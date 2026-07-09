@@ -1,7 +1,8 @@
 {
-  "decision_run_at": "2026-07-07T09:10:11Z",
-  "portfolio_as_of": "2026-07-07T09:08:11Z",
+  "decision_run_at": "2026-07-08T06:55:09Z",
+  "portfolio_as_of": "2026-07-08T06:55:07Z",
   "market_as_of_date": "2025-06-07",
+  "market_data_stale_days": 396,
   "elec_spot_gbp_per_mwh": 70.31,
   "gas_spot_gbp_per_mwh": 32.25,
   "elec_12m_forward_gbp_per_mwh": 73.49,
@@ -21,20 +22,7 @@
     "C_IC4"
   ],
   "renewal_window_days": 60,
-  "renewal_flags": [
-    {
-      "cid": "C9",
-      "segment": "resi",
-      "commodity": "electricity",
-      "days_to_renewal": 22,
-      "renewal_date": "2025-06-29",
-      "current_rate_gbp_per_mwh": 210.0,
-      "proposed_rate_gbp_per_mwh": 153.49,
-      "svt_approx_gbp_per_mwh": 84.51,
-      "eac_kwh": 12154.0,
-      "expected_gross_margin_gbp_pa": 340.31
-    }
-  ],
+  "renewal_flags": [],
   "acquisition_prices": {
     "resi_elec_gbp_per_mwh": 153.49,
     "sme_elec_gbp_per_mwh": 147.49,

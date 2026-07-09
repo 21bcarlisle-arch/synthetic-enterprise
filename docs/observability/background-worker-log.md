@@ -2556,3 +2556,573 @@ Structured performance entries are added after each task completes.
 - [2026-07-07 08:56 UTC] Processed run_complete_20260707T084749Z.md
 - [2026-07-07 08:56 UTC] Found queued tasks — beginning execution
 - [2026-07-07 08:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 09:26 UTC] Found queued tasks — beginning execution
+- [2026-07-07 09:26 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 09:56 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 09:56 UTC] Processed run_complete_20260707T094658Z.md
+- [2026-07-07 09:56 UTC] Found queued tasks — beginning execution
+- [2026-07-07 09:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 10:26 UTC] Found queued tasks — beginning execution
+- [2026-07-07 10:26 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 10:56 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 10:56 UTC] Processed run_complete_20260707T104655Z.md
+- [2026-07-07 10:56 UTC] Found queued tasks — beginning execution
+- [2026-07-07 10:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 11:26 UTC] Found queued tasks — beginning execution
+- [2026-07-07 11:26 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 11:56 UTC] Found queued tasks — beginning execution
+- [2026-07-07 11:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 12:26 UTC] Found queued tasks — beginning execution
+- [2026-07-07 12:26 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 12:56 UTC] Found queued tasks — beginning execution
+- [2026-07-07 12:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 13:26 UTC] Found queued tasks — beginning execution
+- [2026-07-07 13:26 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 13:56 UTC] Found queued tasks — beginning execution
+- [2026-07-07 13:56 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 14:26 UTC] Found queued tasks — beginning execution
+- [2026-07-07 14:26 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 14:56 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 14:59 UTC] Processed run_complete_20260707T144157Z.md
+- [2026-07-07 14:59 UTC] Found queued tasks — beginning execution
+- [2026-07-07 14:59 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 15:29 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 15:29 UTC] Processed run_complete_20260707T151903Z.md
+- [2026-07-07 15:29 UTC] Found queued tasks — beginning execution
+- [2026-07-07 15:29 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 15:59 UTC] Found queued tasks — beginning execution
+- [2026-07-07 15:59 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 16:29 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:29 UTC
+- [2026-07-07 16:44 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:44 UTC
+- [2026-07-07 16:59 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:59 UTC
+- [2026-07-07 17:14 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 17:14 UTC] Processed run_complete_20260707T170424Z.md
+- [2026-07-07 17:14 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:14 UTC
+- [2026-07-07 17:29 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:29 UTC
+- [2026-07-07 17:44 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:44 UTC
+- [2026-07-07 17:59 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:59 UTC
+- [2026-07-07 18:14 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:14 UTC
+- [2026-07-07 18:29 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:29 UTC
+- [2026-07-07 18:44 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:44 UTC
+- [2026-07-07 18:59 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 18:59 UTC] Processed run_complete_20260707T185015Z.md
+- [2026-07-07 18:59 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:59 UTC
+- [2026-07-07 19:14 UTC] Found queued tasks — beginning execution
+- [2026-07-07 19:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 19:44 UTC] Found queued tasks — beginning execution
+- [2026-07-07 19:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 20:14 UTC] Found queued tasks — beginning execution
+- [2026-07-07 20:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 20:44 UTC] Found queued tasks — beginning execution
+- [2026-07-07 20:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 21:14 UTC] Found queued tasks — beginning execution
+- [2026-07-07 21:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 21:44 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-07 21:44 UTC] Processed run_complete_20260707T213448Z.md
+- [2026-07-07 21:44 UTC] Found queued tasks — beginning execution
+- [2026-07-07 21:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 22:14 UTC] Found queued tasks — beginning execution
+- [2026-07-07 22:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 22:44 UTC] Found queued tasks — beginning execution
+- [2026-07-07 22:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 23:14 UTC] Found queued tasks — beginning execution
+- [2026-07-07 23:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-07 23:44 UTC] Found queued tasks — beginning execution
+- [2026-07-07 23:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 00:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 00:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 00:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 00:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 01:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 01:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 01:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 01:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 02:14 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-08 02:14 UTC] Processed run_complete_20260708T020514Z.md
+- [2026-07-08 02:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 02:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 02:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 02:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 03:14 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-08 03:14 UTC] Processed run_complete_20260708T030341Z.md
+- [2026-07-08 03:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 03:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 03:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 03:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 04:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 04:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 04:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 04:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 05:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 05:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 05:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 05:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 06:14 UTC] Found queued tasks — beginning execution
+- [2026-07-08 06:14 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 06:44 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-08 06:44 UTC] Processed run_complete_20260708T063447Z.md
+- [2026-07-08 06:44 UTC] Found queued tasks — beginning execution
+- [2026-07-08 06:44 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T06:56:22Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T06:57:03Z] refresh_elexon_ssp_rolling: appended 18960 records for 2025-06-08..2026-07-07; rolling now covers 2025-06-07+1..2026-07-07 (18960 total)
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T06:57:06Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T06:59:36Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T06:59:40Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:06:15Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:06:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:08:15Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 07:14 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-08T07:14:22Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:14:39Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:16:28Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 07:16 UTC] Processed run_complete_20260708T065808Z.md
+- [2026-07-08 07:16 UTC] Found queued tasks — beginning execution
+- [2026-07-08 07:16 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T07:24:55Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:25:08Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:26:53Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:34:21Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:34:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:36:14Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:39:19Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:39:29Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:44:58Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:45:08Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 07:46 UTC] Found 2 leftover run_complete marker(s) — processing
+- [2026-07-08 07:46 UTC] Processed run_complete_20260708T072800Z.md
+- [2026-07-08 07:46 UTC] Processed run_complete_20260708T073718Z.md
+- [2026-07-08 07:46 UTC] Found queued tasks — beginning execution
+- [2026-07-08 07:46 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T07:46:51Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:54:14Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T07:54:25Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T07:56:10Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:06:52Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T08:07:04Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:08:50Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 08:16 UTC] Found 1 leftover run_complete marker(s) — processing
+- [2026-07-08T08:16:43Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T08:16:56Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 08:18 UTC] Failed to process run_complete_20260708T073718Z.md (rc=1) — will retry next cycle
+- [2026-07-08 08:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 08:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T08:27:04Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T08:27:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:29:00Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:38:56Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T08:39:07Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:40:51Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 08:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 08:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T08:50:39Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T08:50:49Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T08:52:34Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:56:42Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T08:57:44Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 09:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 09:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 09:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 09:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 10:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 10:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T10:44:22Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T10:46:06Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 10:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 10:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T10:58:28Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T11:00:14Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T11:12:35Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T11:14:19Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 11:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 11:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 11:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 11:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T12:10:19Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:12:06Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 12:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 12:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T12:21:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T12:22:51Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T12:24:57Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 12:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 12:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T13:05:24Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T13:06:35Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T13:06:50Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 13:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 13:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T13:47:02Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 13:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 13:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 14:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 14:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T14:48:17Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 14:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 14:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T14:49:27Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 15:18 UTC] Found queued tasks — beginning execution
+- [2026-07-08 15:18 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 15:48 UTC] Found queued tasks — beginning execution
+- [2026-07-08 15:48 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 16:18 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:18 UTC
+- [2026-07-08 16:33 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:33 UTC
+- [2026-07-08 16:48 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 16:48 UTC
+- [2026-07-08 17:03 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:03 UTC
+- [2026-07-08 17:18 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:18 UTC
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T17:19:45Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T17:21:31Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T17:26:25Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T17:33:47Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 17:33 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:33 UTC
+- [2026-07-08 17:48 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 17:48 UTC
+- [2026-07-08 18:03 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:03 UTC
+- [2026-07-08 18:18 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:18 UTC
+- [2026-07-08 18:33 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:33 UTC
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T18:41:51Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T18:47:07Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 18:48 UTC] Peak hours (16:00-19:00 GMT) — pausing. Current time: 18:48 UTC
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T18:51:13Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08 19:03 UTC] Found queued tasks — beginning execution
+- [2026-07-08 19:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T19:08:10Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T19:10:00Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T19:19:22Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T19:19:37Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T19:21:23Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 19:33 UTC] Found queued tasks — beginning execution
+- [2026-07-08 19:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 20:03 UTC] Found queued tasks — beginning execution
+- [2026-07-08 20:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 20:33 UTC] Found queued tasks — beginning execution
+- [2026-07-08 20:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 21:03 UTC] Found queued tasks — beginning execution
+- [2026-07-08 21:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 21:33 UTC] Found queued tasks — beginning execution
+- [2026-07-08 21:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 22:03 UTC] Found queued tasks — beginning execution
+- [2026-07-08 22:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T22:09:30Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T22:20:45Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T22:27:40Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:28:53Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-08T22:29:09Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-08T22:30:55Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-07, target_end=2026-07-07) -- no fetch
+- [2026-07-08 22:33 UTC] Found queued tasks — beginning execution
+- [2026-07-08 22:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 23:03 UTC] Found queued tasks — beginning execution
+- [2026-07-08 23:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-08 23:33 UTC] Found queued tasks — beginning execution
+- [2026-07-08 23:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 00:03 UTC] Found queued tasks — beginning execution
+- [2026-07-09 00:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09T00:04:34Z] refresh_elexon_ssp_rolling: appended 48 records for 2026-07-08..2026-07-08; rolling now covers 2025-06-07+1..2026-07-08 (19008 total)
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-09T00:04:44Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-09T00:06:30Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-08, target_end=2026-07-08) -- no fetch
+- [2026-07-09 00:33 UTC] Found queued tasks — beginning execution
+- [2026-07-09 00:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 01:03 UTC] Found queued tasks — beginning execution
+- [2026-07-09 01:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 01:33 UTC] Found queued tasks — beginning execution
+- [2026-07-09 01:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 02:03 UTC] Found queued tasks — beginning execution
+- [2026-07-09 02:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 02:33 UTC] Found queued tasks — beginning execution
+- [2026-07-09 02:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 03:03 UTC] Found queued tasks — beginning execution
+- [2026-07-09 03:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 03:33 UTC] Found queued tasks — beginning execution
+- [2026-07-09 03:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 04:03 UTC] Found queued tasks — beginning execution
+- [2026-07-09 04:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 04:33 UTC] Found queued tasks — beginning execution
+- [2026-07-09 04:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09 05:03 UTC] Found queued tasks — beginning execution
+- [2026-07-09 05:03 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-09T05:31:18Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-09T05:32:59Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-09 05:33 UTC] Found queued tasks — beginning execution
+- [2026-07-09 05:33 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-09T05:34:45Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-08, target_end=2026-07-08) -- no fetch
+- [2026-07-09T05:45:37Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-08, target_end=2026-07-08) -- no fetch
+- [2026-07-09T05:49:00Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-08, target_end=2026-07-08) -- no fetch
+- [2026-07-09T05:52:12Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-08, target_end=2026-07-08) -- no fetch

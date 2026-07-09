@@ -254,3 +254,14 @@
 - [2026-07-05 20:28 UTC] Acked inbound message 'cD1Z21KHeDIl' ("Scan the .github/workflows/ directory in this repository. I'") — staged as from_rich_20260705_202849.md
 - [2026-07-06 12:40 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783341312 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
 - [2026-07-06 12:40 UTC] Poll error: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /skynet-synthetic/json?poll=1&since=1783341312 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
+- [2026-07-08 05:39 UTC] Acked inbound message 'KZmWYEMBKoq1' ('Last thing I heard was a failed SIM and 3 staged instruction') — staged as from_rich_20260708_053958.md
+- [2026-07-08 08:08 UTC] Acked inbound message 'TF4r6s92zSLv' ('Status check: is AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md in rev') — staged as from_rich_20260708_080828.md
+- [2026-07-08 09:30 UTC] Acked inbound message 'cxLSTrD070D1' ('"Website pass R1 check failed on defect 4: five \\u2014 escap') — staged as from_rich_20260708_093000.md
+- [2026-07-08 11:04 UTC] Acked inbound message 'G6GZHDEzfDuQ' ('You send the same ntfy at 11.54 and 12.02. is there a proble') — staged as from_rich_20260708_110415.md
+- [2026-07-08 11:37 UTC] Acked inbound message '5thXNfvFl9U2' ('"Director: I checked the topic history myself — no fake mess') — staged as from_rich_20260708_113706.md
+- [2026-07-08 14:17 UTC] Acked inbound message 'TBphrklPyOqg' ('Subscribed — proceed with cutover') — staged as from_rich_20260708_141714.md
+- [2026-07-08 14:21 UTC] NTFY responder started
+- [2026-07-08 14:34 UTC] Acked inbound message 'vxiWhhQJVoeN' ('Received, thank you.')
+- [2026-07-08 16:46 UTC] Acked inbound message 'jgAQ2kL1XdK1' ('Start Phase 3 (CORE_FIDELITY_PHASES.md — unhappy-path physic') — staged as from_rich_20260708_164652.md
+- [2026-07-08 18:07 UTC] Acked inbound message 'iw5QT3pbD3Ha' ('Should I be still getting messages in the other channel? [SI') — staged as from_rich_20260708_180705.md
+- [2026-07-08 18:10 UTC] Acked inbound message 'udy6E1FP6X4F' ('"Before closing: the urgent from_rich path empirically faile') — staged as from_rich_20260708_181030.md

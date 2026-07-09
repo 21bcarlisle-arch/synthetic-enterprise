@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-08T10:24:48.863645+00:00",
+  "last_updated": "2026-07-09T05:58:34.463748+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T10:24:25.693206+00:00",
+      "last_heartbeat": "2026-07-09T05:58:08.118089+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-08T10:24:25.693206+00:00",
+      "last_action_ts": "2026-07-09T05:58:08.118089+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T10:24:48.863645+00:00",
-      "last_action": "Heartbeat \u2014 4 files tracked",
-      "last_action_ts": "2026-07-08T10:24:48.863645+00:00",
+      "last_heartbeat": "2026-07-09T05:58:34.463748+00:00",
+      "last_action": "Heartbeat \u2014 3 files tracked",
+      "last_action_ts": "2026-07-09T05:58:34.463748+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T10:24:37.078093+00:00",
-      "last_action": "Waiting for next cycle (3h 35m remaining)",
-      "last_action_ts": "2026-07-08T10:24:37.078093+00:00",
+      "last_heartbeat": "2026-07-09T05:54:58.588161+00:00",
+      "last_action": "Waiting for next cycle (2h 30m remaining)",
+      "last_action_ts": "2026-07-09T05:54:58.588161+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-08T10:24:19.276647+00:00",
-      "last_action": "Sim started \u2014 git=4dc1c719",
-      "last_action_ts": "2026-07-08T10:24:19.276647+00:00",
+      "last_heartbeat": "2026-07-09T05:51:33.144930+00:00",
+      "last_action": "Sim started \u2014 git=e93a4b96",
+      "last_action_ts": "2026-07-09T05:51:33.144930+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T09:30:08.563105+00:00",
-      "last_action": "Classified from_rich_20260708_093000.md as NORMAL",
-      "last_action_ts": "2026-07-08T09:30:08.563105+00:00",
+      "last_heartbeat": "2026-07-09T05:32:57.405904+00:00",
+      "last_action": "Classified from_rich_005.md as NORMAL",
+      "last_action_ts": "2026-07-09T05:32:57.405904+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T09:30:00.814626+00:00",
-      "last_action": "Acked message: '\"Website pass R1 check failed on defect 4: five \\\\u2014 escaped literals remain i'",
-      "last_action_ts": "2026-07-08T09:30:00.814626+00:00",
+      "last_heartbeat": "2026-07-09T05:32:57.683478+00:00",
+      "last_action": "Acked message: 'Start the full 2016-2025 run when GPU is free.'",
+      "last_action_ts": "2026-07-09T05:32:57.683478+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T10:18:44.034874+00:00",
+      "last_heartbeat": "2026-07-09T05:33:53.474025+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-08T10:18:44.034874+00:00",
+      "last_action_ts": "2026-07-09T05:33:53.474025+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,15 +85,35 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-08T10:23:42.848919+00:00",
+      "last_heartbeat": "2026-07-09T05:52:16.468299+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-08T10:23:42.848919+00:00",
+      "last_action_ts": "2026-07-09T05:52:16.468299+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
+    },
+    {
+      "name": "discovery-agent",
+      "status": "idle",
+      "last_heartbeat": "2026-07-08T19:05:31.297997+00:00",
+      "last_action": "Verified 5 Phase-2 archetype dimensions (occupancy, tenure, fuel poverty, payment method, active/passive switcher rate) -- H confidence, ASSUMPTIONS.md new section",
+      "last_action_ts": "2026-07-08T19:05:31.297997+00:00",
+      "anomaly": null,
+      "role": "Validates simulation assumptions against real UK market benchmarks",
+      "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
+    },
+    {
+      "name": "supervisor",
+      "status": "idle",
+      "last_heartbeat": "2026-07-09T05:58:00.517879+00:00",
+      "last_action": "Cycle complete -- last fingerprint unchanged for 0 grant(s)",
+      "last_action_ts": "2026-07-09T05:58:00.517879+00:00",
+      "anomaly": null,
+      "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
+      "produces": "tmux turn-grants + stuck-state NTFY escalation"
     }
   ],
-  "treasury_gbp": 3911893.8860475523,
-  "net_margin_gbp": 1535307.740845,
-  "enterprise_value_gbp": 8930210.948187593
+  "treasury_gbp": 11131.0,
+  "net_margin_gbp": -8317.21,
+  "enterprise_value_gbp": -20661.9
 }

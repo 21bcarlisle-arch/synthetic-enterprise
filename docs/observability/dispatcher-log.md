@@ -8878,3 +8878,15 @@
 - [2026-07-05 19:15 UTC] NORMAL: from_rich_003.md — left in staging for Claude's next staging-poll
 - [2026-07-05 19:15 UTC] NORMAL: from_rich_005.md — left in staging for Claude's next staging-poll
 - [2026-07-05 20:29 UTC] NORMAL: from_rich_20260705_202849.md — left in staging for Claude's next staging-poll
+- [2026-07-08 05:40 UTC] URGENT routed: from_rich_20260708_053958.md — relayed to Claude session + high-priority NTFY
+- [2026-07-08 08:08 UTC] NORMAL: from_rich_20260708_080828.md — left in staging for Claude's next staging-poll
+- [2026-07-08 09:30 UTC] NORMAL: from_rich_20260708_093000.md — left in staging for Claude's next staging-poll
+- [2026-07-08 11:04 UTC] NORMAL: from_rich_20260708_110415.md — left in staging for Claude's next staging-poll
+- [2026-07-08 11:37 UTC] NORMAL: from_rich_20260708_113706.md — left in staging for Claude's next staging-poll
+- [2026-07-08 14:17 UTC] NORMAL: from_rich_20260708_141714.md — left in staging for Claude's next staging-poll
+- [2026-07-08 14:19 UTC] Dispatcher started
+- [2026-07-08 14:21 UTC] Dispatcher started
+- [2026-07-08 16:47 UTC] URGENT routed: from_rich_20260708_164652.md — relayed to Claude session + high-priority NTFY
+- [2026-07-08 18:07 UTC] NORMAL: from_rich_20260708_180705.md — left in staging for Claude's next staging-poll
+- [2026-07-08 18:10 UTC] URGENT routed: from_rich_20260708_181030.md — relayed to Claude session + high-priority NTFY
+- [2026-07-08 18:43 UTC] Dispatcher started
