@@ -5,6 +5,31 @@ EPOCH2_INTENT_RIDER.md. No fixes, no refactors made. Every claim below is
 labelled `observed-with-evidence` (file:line cited) or `inferred` (chain
 stated), per R9.
 
+## HEADLINE FINDING — director-confirmed epoch-2 target (2026-07-09, in-console)
+
+The Q4/Q5/Q6 epistemic-wall gap is CONFIRMED a real epoch-2 target, not
+actioned now (deliberately out of scope for this desk-only pass; belongs to
+epoch-2 build sequencing). Three binding requirements the director stated
+directly:
+1. **The company must DISCOVER customer data through interfaces, never read
+   SIM ground truth.** Today `company/portal/app.py` imports `saas.customers.CUSTOMERS`
+   directly (Q4 below) -- `tools/epistemic_verifier.py` never checks `saas.*`
+   imports, only `sim.*`/`simulation.*`, so this has been invisible to the
+   tool built to catch exactly this class of violation.
+2. **Population must become a per-run DRAW, not a fixed cast.** Today
+   `saas/customers.py::CUSTOMERS` is a static list literal with no
+   population-generation mechanism (Q6 below) -- this also blocks the
+   planned epoch-4 evolutionary tournament outright, since there is no lever
+   to vary the population between runs.
+3. **Generation and validation must be independently anchored** (Q5 below) --
+   confirmed true today, but by accident (the generator has no anchor to
+   share with the validator), not by design; epoch-2 work should make this
+   independence a structural property, not a coincidence.
+
+This finding is real and confirmed but NOT being fixed as part of this desk
+pass or the DOMAIN_SENSE_AND_COMPLIANCE programme -- it is registered here
+as the epoch-2 sequencing input the director asked for.
+
 ## Q1. How are retail tariffs actually set today?
 
 **observed-with-evidence:** Pricing IS decided ex-ante via a real six-component
