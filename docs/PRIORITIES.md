@@ -3,32 +3,31 @@
 **Last director review: 2026-07-08 22:57 UTC (director-direct in-console, supersedes the Phase RY
 Tier-3 opt-out below as front of queue).** Two P1 docs landed via the advisor staging bridge
 (commits 60bb6103, 282d72f2) and are now the front of the ranked queue, ahead of Phase RY:
-1. **BILL_CORRECTNESS_ADDENDUM.md** (Tier 2, binds/expands the already-open CORE_FIDELITY_PHASES.md
-   Phase 4 agenda item -- background/.open_agenda.json). **Defect 1 CLOSED (2026-07-08, commit
-   32ab2a4c):** root-caused as a pure render-layer bug -- C6's 20% VAT + ~28MWh/yr were already
-   correct for its true SME segment; site/customers/index.html's badge/label logic only
-   special-cased I&C and silently collapsed every other segment (SME included) into
-   Residential/Household. Fixed with an explicit per-segment lookup (resi/SME/I&C). Sweeping for
-   the same class also found saas/non_commodity.py's VAT_RATE dict was missing an "I&C" key,
-   silently charging I&C accounts the domestic 5% rate instead of the legally-required 20% --
-   fixed, with a regression test guarding against any business segment silently defaulting to the
-   domestic rate again. Domain-invariant test added: every account in the live customer sample
-   checked for badge/label agreement with its true segment. 16,012 tests pass, epistemic PASS.
-   **Next: Defects 2-4** (bill period/reads/meter-serial/MPAN display, register/period-structured
-   ToU-ready bill lines, portal-vs-ledger-vs-sample reconciliation) complete Phase 4. Defect 5
-   (I&C billing model -- bill on HH data with capacity/DUoS components, not domestic-shaped bills
-   at scale) registers to backlog alongside WALLED_INTERFACES per the doc's own instruction; the
-   just-found I&C non-commodity-rate/standing-charge gap in saas/non_commodity.py (same
-   missing-segment-branch pattern, not fixed -- out of scope per Defect 5's own "register, don't
-   build now") is concrete supporting evidence for that backlog item.
-2. **DOMAIN_SENSE_AND_COMPLIANCE.md** (Tier 2, P1 programme). Explicitly sequenced by its own text:
-   "does not interrupt Phase 4 / BILL_CORRECTNESS_ADDENDUM -- those complete first; harness-side
-   pieces are background-lane eligible immediately." Company-side organs (pre-bill gate, compliance
-   function, internal audit) queue behind item 1 above; harness-side pieces (invariants library,
-   sanity daemon, Qwen skeptic pass) may start in the background lane now. R10 (absurdity-class
-   defects require a class-level invariant/register fix, never an instance patch) to be added to
-   CLAUDE.md when this phase starts landing code.
-Phase RY (FEEDBACK_AND_REPUTATION Layer 2) and the S1 fast-follows drop to backlog behind both.
+1. **BILL_CORRECTNESS_ADDENDUM.md CLOSED IN FULL (Defects 1-4, 2026-07-09).** Defect 1 (commit
+   32ab2a4c): C6's mislabel root-caused as a pure render-layer bug (VAT/consumption were already
+   correct for its true SME segment); also fixed a real second bug in the same class,
+   saas/non_commodity.py's VAT_RATE missing an "I&C" key. Defect 2 (commit 6f176f87): every bill
+   now states period, opening/closing meter reads with A/E type, meter serial, MPAN/MPRN. Defect 3
+   (commit e93a4b96): consumption restructured as a register/period list (ToU-ready schema, ToU
+   itself not built). Defect 4 (commit 10d13544): root-caused the "£13k billed vs £1.5k gross"
+   observation as a definitional mismatch (gross_gbp = SIM trading margin, not a bill total), added
+   a permanent consistency-gate test sweeping every real customer-year. Method rule 0c (read one
+   real instance as a human) added to CLAUDE.md per the addendum's own instruction. Real pipeline
+   regenerated and verified (commit 8494b61b): C6 and a real residential account (C1) both open
+   correctly with all new fields. 19 new tests across 4 commits, 834 tools/ tests pass, epistemic
+   PASS. Defect 5 (I&C billing model) registers to backlog alongside WALLED_INTERFACES per its own
+   "do not build now" instruction; the I&C non-commodity-rate/standing-charge gap in
+   saas/non_commodity.py found while sweeping Defect 1 (same missing-segment-branch pattern, not
+   fixed) is concrete supporting evidence for that backlog item.
+2. **DOMAIN_SENSE_AND_COMPLIANCE.md** (Tier 2, P1 programme) -- front of queue next. Explicitly
+   sequenced by its own text: "does not interrupt Phase 4 / BILL_CORRECTNESS_ADDENDUM -- those
+   complete first; harness-side pieces are background-lane eligible immediately." Item 1 above is
+   now closed, so both company-side organs (pre-bill gate, compliance function, internal audit) AND
+   harness-side pieces (invariants library, sanity daemon, Qwen skeptic pass) are eligible to start.
+   R10 (absurdity-class defects require a class-level invariant/register fix, never an instance
+   patch) to be added to CLAUDE.md when this phase starts landing code. Propose the phase
+   decomposition in the first NTFY per the doc's own DoD.
+Phase RY (FEEDBACK_AND_REPUTATION Layer 2) and the S1 fast-follows drop to backlog behind item 2.
 
 Prior review: 2026-07-08 (P-5 re-rank, DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, director-
 confirmed "I agree"): sequence = (1) change-detection gate + runner retirement DONE, (2) website
