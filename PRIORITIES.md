@@ -59,11 +59,37 @@
 #       simulation/contact_centre.py; switching-funnel stage-to-stage calendar spacing --
 #       simulation/acquisition_funnel.py). Evidence on the Sim tab (meter-read delay histogram).
 #       47 new tests, 16,071 collected, epistemic PASS.
-#     Phase 4 (C implementation: UK-compliant bill artefact, rides on Phases 2+3) -- Phase 3 half
-#       now unblocked (meter-read events exist); still blocked on Phase 2 (household segments).
-#       NOT YET STARTED.
-#   Token economy remains a P1 constraint (~50% weekly consumed, Wednesday, per the instruction's
-#   own note) -- SIM_FAST_MODE where possible for calibration runs.
+#     Phase 4 (C implementation: UK-compliant bill artefact) -- substantially CLOSED via a separate
+#       staged doc rather than this queue entry (BILL_CORRECTNESS_ADDENDUM.md Defects 1-4, 2026-07-09,
+#       CLAUDE.md Current state): billing period + opening/closing meter reads with A/E type + meter
+#       serial + MPAN/MPRN now on every bill; consumption restructured as a `registers` list (ToU-
+#       ready schema, ToU itself not built). Did NOT wait on Phase 2 Layers 2+ (household psychology)
+#       -- the bill-artefact defects were structural/data-plumbing, independent of segment psychology.
+#       Remaining Phase 4 scope: none identified: Defect 5 (I&C billing model) stays backlog per its
+#       own doc, alongside WALLED_INTERFACES.
+#   TOKEN ECONOMY CONSTRAINT RETIRED (2026-07-09, BUDGET_UNCONSTRAINED.md, actioned): director lifted
+#   the token-conservation framing entirely (~44 days after the constraint above was first stated) --
+#   frontier budget is to be used against the weekly allowance, not hoarded; the "weigh every action
+#   for token cost" framing throughout this block is SUPERSEDED. Delegate to Qwen/GPU for quality and
+#   speed, not to save tokens (see also CLAUDE.md's velocity-and-tokens guidance).
+#   ALSO CLOSED SINCE THIS BLOCK WAS WRITTEN (2026-07-08/09, not yet reflected below at the time):
+#   DOMAIN_SENSE_AND_COMPLIANCE.md (P1 compliance programme, 7 phases: obligations register, domain-
+#   invariants library, pre-bill validation gate, risk-tiered compliance report, sanity daemon,
+#   internal audit, phase-close audit) -- CLOSED IN FULL. THE SUPERVISOR (turn-granting architecture
+#   rebuild, doorbell failure #4) -- CLOSED. Doorbell failure #5 (busy-spinner regex false positive)
+#   -- CLOSED. Dead-man's switch (background/deadmans_switch.py, independent BLOCKED alert) --
+#   CLOSED. DIRECTOR_COMMENTS_BOX.md (per-page feedback widget, PIN-authenticated) -- CLOSED.
+#   EPOCH2_EVIDENCE_PASS (Q1-Q6 verdicts delivered) -- CLOSED, with one headline finding logged but
+#   deliberately NOT fixed yet: a confirmed epoch-2 target that customer population must become a
+#   per-run DRAW (not a fixed cast) discovered through company-observable interfaces only, never
+#   read from SIM ground truth -- see docs/design/EPOCH2_EVIDENCE.md's headline section.
+#   Genuine remaining front-of-queue as of this 2026-07-09 freshness pass: Phase 2 Layers 2+
+#   (household segment dimensions -- fuel-poverty/income band, tenure, occupancy, payment-method
+#   mix, complaint-propensity -- threaded through switching_propensity.py/feedback_survey.py/
+#   arrears_engine.py::payment_method(); real anchors already registered in ASSUMPTIONS.md, not yet
+#   threaded) OR the P-5 re-rank item (a) NUDGE_PHYSICS remaining mechanisms. Both are named,
+#   already-approved backlog items (Tier 2), not novel proposals.
+#   (Token-economy note retired -- see BUDGET_UNCONSTRAINED entry above.)
 #   Event-driven wake (2026-07-08, director-direct, in-conversation, same reorientation
 #   conversation): background/staging_watcher.py now injects one batched tmux turn into the live
 #   session for genuinely-new staged files (ADVISOR-STAGED commits included, via the existing
@@ -112,16 +138,14 @@
 #   AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule below -- report as such, not "done".
 #   REOPENED (2026-07-06, docs/staging/BILLING_AND_PAYMENTS_LEDGER.md, [ADVISOR-STAGED] 8a8f2e81,
 #   Tier 2, Rich's own directive labels it "P1a scope, continue on the 360" after live review --
-#   P-2 director-repeat rule applies): Billing tab -> BILLING & PAYMENTS. (1) bill equation renders
-#   inline per row (data already present, pure renderer work); (2) new STATEMENT view -- chronological
-#   ledger per account (invoice/payment/adjustment/write-off with actual payment dates) + running
-#   balance, sourced from billing_ledger.json/ledger events; (3) per-customer CASHFLOW panel --
-#   monthly billed-vs-collected + cumulative net cash curve as the real H2/CLV actuals base, per-fuel
-#   + combined, with page-level reconciliation (cumulative collected must tie to lifetime_revenue
-#   minus outstanding balance; Risk tab arrears state must equal the statement's aged balance); (4)
-#   payment-method (DD/receipt) shown on the statement, DD failures/retries as ledger events.
-#   NOT YET STARTED -- front of queue, ranks ahead of P1c's remaining Method/Project-slim-down scope
-#   per P-2 (this is Rich's own live-reviewed ask, not self-generated backlog).
+#   P-2 director-repeat rule applies): Billing tab -> BILLING & PAYMENTS.
+#   CLOSED IN FULL (confirmed live in site/customers/index.html during the 2026-07-09 PRIORITIES.md
+#   freshness pass -- shipped in an earlier phase without a matching queue update, caught by phase-
+#   close checklist step 0): (1) bill equation renders inline (`billEquationHtml()`); (2) STATEMENT
+#   view (`renderStatementView()`, BILL_VIEWS tab) -- chronological ledger with running balance; (3)
+#   CASHFLOW panel (`renderCashflow()`/`renderCashflowShell()`) with a page-level `reconciliationLine()`
+#   tying collected cash to lifetime_revenue minus outstanding balance; (4) payment-method shown on
+#   the statement. AWAITING RICH'S VISUAL CONFIRMATION per the P1 acceptance rule -- report as such.
 # P1b. SUPPLIER TAB IA (docs/staging/SUPPLIER_TAB_OVERHAUL.md) -- CLOSED IN FULL (Phase RM,
 #   2026-07-06). Phase RH closed the core IA regroup (grouped nav + Query FAB); RG closed
 #   Capabilities->Project + Regulatory RAG + Worst-Shock-Month annotation; RM closed the
