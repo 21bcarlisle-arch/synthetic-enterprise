@@ -9092,3 +9092,8 @@
 - [2026-07-09 07:16 UTC] URGENT wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: from_rich_20260709_062648.md
 - [2026-07-09 07:16 UTC] URGENT wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: from_rich_20260709_062648.md
 - [2026-07-09 07:16 UTC] URGENT wake delivered (confirmed): from_rich_20260709_062648.md
+- [2026-07-09 21:02 UTC] Dispatcher started
+- [2026-07-09 21:28 UTC] NORMAL: from_rich_comment_20260709_212751_359809.md — left in staging for Claude's next staging-poll
+- [2026-07-09 21:57 UTC] NORMAL: from_rich_comment_20260709_215702_578082.md — left in staging for Claude's next staging-poll
+- [2026-07-09 22:02 UTC] NORMAL: from_rich_comment_20260709_220207_831164.md — left in staging for Claude's next staging-poll
+- [2026-07-09 22:02 UTC] NORMAL: from_rich_comment_20260709_220248_706665.md — left in staging for Claude's next staging-poll

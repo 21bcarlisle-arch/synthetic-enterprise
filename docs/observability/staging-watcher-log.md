@@ -4669,3 +4669,606 @@
 - [2026-07-09 10:10 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
 - [2026-07-09 10:10 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
 - [2026-07-09 10:11 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:14 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:17 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:18 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:18 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:18 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:20 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:23 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:27 UTC] Remote check error: Command '['git', 'fetch', 'origin', 'main']' timed out after 30 seconds
+- [2026-07-09 10:29 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:29 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:29 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:29 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:29 UTC] Silently registered sim run marker: run_complete_20260709T101933Z.md (Claude polls staging, no notification needed)
+- [2026-07-09 10:30 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:30 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:30 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:32 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:33 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:33 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:33 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:34 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:34 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:34 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:35 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:38 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:41 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:41 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:41 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:41 UTC] Silently registered sim run marker: run_complete_20260709T103236Z.md (Claude polls staging, no notification needed)
+- [2026-07-09 10:41 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:44 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:47 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:50 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:50 UTC] Remote staging bridge: extracted DIRECTOR_COMMENTS_BOX.md from advisor commit
+- [2026-07-09 10:50 UTC] Notified: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:50 UTC] Queued wake for: DIRECTOR_COMMENTS_BOX.md (attempted in main loop, retried if session busy)
+- [2026-07-09 10:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:53 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:56 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 10:59 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:02 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:05 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:08 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:11 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:14 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:17 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:21 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:24 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:27 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:30 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:30 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:33 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:33 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:36 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:36 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:39 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:39 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:42 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:42 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:45 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:45 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:48 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:48 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:51 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:51 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:54 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:54 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:57 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 11:57 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 11:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 11:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:00 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:00 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:03 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:03 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:06 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:06 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:09 UTC] Remote has 3 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:09 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:12 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:12 UTC] Remote staging bridge: extracted ADVISOR_VISIBILITY.md from advisor commit
+- [2026-07-09 12:12 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:12 UTC] Notified: ADVISOR_VISIBILITY.md
+- [2026-07-09 12:12 UTC] Queued wake for: ADVISOR_VISIBILITY.md (attempted in main loop, retried if session busy)
+- [2026-07-09 12:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:15 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:15 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:18 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:18 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:21 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:21 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:24 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:24 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:27 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:27 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:27 UTC] Wake delivered (confirmed) to 'claude' session for: ADVISOR_VISIBILITY.md, DIRECTOR_COMMENTS_BOX.md
+- [2026-07-09 12:30 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:30 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:33 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:33 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:36 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:36 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:39 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:39 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:42 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:42 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:45 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:45 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 12:48 UTC] Remote has 5 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 12:48 UTC] Could not extract from_rich_20260709_062648.md from origin/main: fatal: path 'docs/staging/from_rich_20260709_062648.md' does
+- [2026-07-09 13:05 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:05 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:05 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 13:08 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:08 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:08 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 13:31 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:31 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:31 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 13:33 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:33 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:33 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 13:42 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:42 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:42 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 13:45 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:46 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:46 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:46 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 13:48 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:58 UTC] git fetch failed (network?): network error
+- [2026-07-09 13:58 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 13:58 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 14:05 UTC] git fetch failed (network?): network error
+- [2026-07-09 14:05 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 14:05 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 14:06 UTC] git fetch failed (network?): network error
+- [2026-07-09 14:06 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 14:06 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 15:43 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 15:43 UTC] Remote staging bridge: extracted BUDGET_UNCONSTRAINED.md from advisor commit
+- [2026-07-09 15:43 UTC] Notified: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:43 UTC] Queued wake for: BUDGET_UNCONSTRAINED.md (attempted in main loop, retried if session busy)
+- [2026-07-09 15:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:46 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 15:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:49 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 15:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:52 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 15:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:55 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 15:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:58 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 15:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 15:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:01 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:04 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:07 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:10 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:13 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:16 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:19 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:22 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:25 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:28 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:31 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:34 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:37 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:40 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:43 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:46 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:49 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:52 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:54 UTC] Wake delivered (confirmed) to 'claude' session for: BUDGET_UNCONSTRAINED.md
+- [2026-07-09 16:55 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 16:58 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:01 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:04 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:07 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:10 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:13 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:16 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:19 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:22 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:25 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:28 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:31 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:34 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:37 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:40 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:43 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:46 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:49 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:52 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:55 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 17:58 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:01 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:04 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:07 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:10 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:13 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:16 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:19 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:22 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:25 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:28 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:31 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:34 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:37 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:40 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:43 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:46 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:49 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:52 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:55 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 18:58 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:01 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:04 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:07 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:10 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:13 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:16 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:19 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:22 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:25 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:28 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:31 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:34 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:37 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:40 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:43 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:46 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:49 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:52 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:55 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 19:58 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:01 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:04 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:07 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:10 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:13 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:16 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:19 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:22 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:25 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:28 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:31 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:34 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:37 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:40 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:43 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:46 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:49 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:52 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:55 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:58 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:59 UTC] git fetch failed (network?): network error
+- [2026-07-09 20:59 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 20:59 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 21:02 UTC] Staging watcher started — resuming from saved state
+- [2026-07-09 21:11 UTC] git fetch failed (network?): network error
+- [2026-07-09 21:11 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 21:11 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 21:22 UTC] git fetch failed (network?): network error
+- [2026-07-09 21:22 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 21:22 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 21:28 UTC] Silently registered NTFY-originated file: from_rich_comment_20260709_212751_359809.md (no staging notification)
+- [2026-07-09 21:31 UTC] git fetch failed (network?): network error
+- [2026-07-09 21:31 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 21:31 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 21:57 UTC] Silently registered NTFY-originated file: from_rich_comment_20260709_215702_578082.md (no staging notification)
+- [2026-07-09 22:02 UTC] Silently registered NTFY-originated file: from_rich_comment_20260709_220207_831164.md (no staging notification)
+- [2026-07-09 22:02 UTC] Silently registered sim run marker: run_complete_20260709T215308Z.md (Claude polls staging, no notification needed)
+- [2026-07-09 22:02 UTC] git fetch failed (network?): network error
+- [2026-07-09 22:02 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 22:02 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 22:02 UTC] Silently registered NTFY-originated file: from_rich_comment_20260709_220248_706665.md (no staging notification)
+- [2026-07-09 22:06 UTC] git fetch failed (network?): network error
+- [2026-07-09 22:06 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 22:06 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping

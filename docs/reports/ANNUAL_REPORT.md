@@ -19,7 +19,7 @@ the last partial). The business survived the full window.
 - Capital cost ratio: 0.8% of gross
 - Net margin as % of revenue: 34.0%
   (industry benchmark for a retail energy supplier: 2-5%)
-- Risk committee (Context Handshake) interventions: 38
+- Risk committee (Context Handshake) interventions: 37
 - Bills issued: 1550, average clarity 0.812,
   service quality score 0.903
 - Enterprise value (CLV sum across 15 billing accounts): £8,160,654.31
@@ -27,7 +27,7 @@ the last partial). The business survived the full window.
 - Hedge effectiveness (whole window): hedging cost £4,223,875.31 vs. a fully unhedged book (commodity-only: actual net £1,436,696.99 vs. naked net £5,660,572.30)
 
 - **2021** (crisis year): net margin £75,626.01, 0 risk committee wake-up(s).
-- **2022** (crisis year): net margin £338,829.66, 9 risk committee wake-up(s).
+- **2022** (crisis year): net margin £338,829.66, 8 risk committee wake-up(s).
 
 ## Board Risk Summary
 
@@ -1221,11 +1221,11 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 |------|----------|---------------------|--------------------|--------------------|
 | 2016 | 13 | 13 | 1.0 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
-| 2022 | 9 | 59 | 6.6 | £20,532 |
+| 2022 | 8 | 52 | 6.5 | £20,532 |
 | 2023 | 4 | 32 | 8.0 | £48,892 |
 
 **Peak intervention year: 2016 (13 wake-ups)**
-**Total committee events (all years): 38**
+**Total committee events (all years): 37**
 
 > Each wake-up adjusts hedge fractions upward for flagged customers. 2016-17 (early book).
 > 2022-23 crisis years trigger most interventions on I&C anchor accounts.
@@ -1591,7 +1591,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (10 active customers) under 12-month forward scenarios.
-Generated: 2026-07-09T10:34:04Z
+Generated: 2026-07-09T13:10:25Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2056,18 +2056,18 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 |------|----------|----------------------|----------------------|-----------------|
 | 2016 | 13 | £28 | £9 | 1 |
 | 2017 | 12 | £1,005 | £401 | 3 |
-| 2022 | 9 | £55,382 | £20,532 | 7 |
+| 2022 | 8 | £55,382 | £20,532 | 7 |
 | 2023 | 4 | £128,210 | £48,892 | 9 |
 
-**Total sessions 2016-2025: 38** | Busiest year: 2016 (13 sessions)
+**Total sessions 2016-2025: 37** | Busiest year: 2016 (13 sessions)
 Peak VaR observed: 2023 at £128,210 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
 - C1: 22 sessions
 - C7: 16 sessions
-- C2: 13 sessions
 - C5: 12 sessions
-- C6: 12 sessions
+- C2: 12 sessions
+- C6: 11 sessions
 
 > Risk committee wake-ups are documented in `docs/observability/run_history.json`.
 
@@ -3059,7 +3059,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - Gas: gross £90,355.92, capital £33.84, net £8,843.70
 - Treasury at year end: £3,161,293.93
 - Hedge fraction at first renewal this year (avg across year's terms): C1_2 0.94 (avg 0.94), C2_2 0.95 (avg 0.95), C4 0.96 (avg 0.96), C4g 0.85 (avg 0.85), C6 0.94 (avg 0.94), C7 0.93 (avg 0.93), C8 0.96 (avg 0.96), C9 0.94 (avg 0.94), C_IC1 1.00 (avg 0.97), C_IC2 1.00 (avg 0.97), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85)
-- Risk committee (Context Handshake) interventions: 9
+- Risk committee (Context Handshake) interventions: 8
   - 2022-04-29: treasury £3,037,780.55, C2->1.00, C6->1.00, C8->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,211.15 / stressed £20,491.01) ratio 2.69
   - 2022-05-29: treasury £3,037,900.95, C2->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,320.95 / stressed £20,520.22) ratio 2.70
   - 2022-06-28: treasury £3,037,895.70, C2->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,320.95 / stressed £20,520.22) ratio 2.70
@@ -3068,7 +3068,6 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2022-09-26: treasury £3,037,666.93, C2->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,382.36 / stressed £20,532.45) ratio 2.70
   - 2022-10-26: treasury £3,036,724.53, C2->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,382.36 / stressed £20,532.45) ratio 2.70
   - 2022-11-25: treasury £3,036,722.02, C2->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,382.36 / stressed £20,532.45) ratio 2.70
-  - 2022-12-25: treasury £3,036,689.25, C2->1.00, C4->1.00, C6->1.00, C8->1.00, C9->1.00, C_IC1->1.00, C_IC2->1.00, VaR (current £55,382.36 / stressed £20,532.45) ratio 2.70
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 2.70
 - Worst single period: C2 on 2022-03-30 period 48, net margin £-111.99
 
@@ -3127,7 +3126,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - C_IC3g: actual £8,513.79 vs. naked £123,301.26 -- hedging cost £114,787.47
   - C_IC4: actual £3,472.81 vs. naked £205,056.67 -- hedging cost £201,583.86
 
-**Year narrative:** 2022 (flagged crisis year) produced a net gain of £338,829.66 across 15 accounts. The risk committee intervened 9 time(s), raising hedge fractions in response to elevated VaR. 71 customer(s) experienced a bill shock of >=20%.
+**Year narrative:** 2022 (flagged crisis year) produced a net gain of £338,829.66 across 15 accounts. The risk committee intervened 8 time(s), raising hedge fractions in response to elevated VaR. 71 customer(s) experienced a bill shock of >=20%.
 
 ## 2023
 
