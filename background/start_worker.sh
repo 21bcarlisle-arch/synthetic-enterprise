@@ -118,6 +118,11 @@ _start_session "sanity-daemon" \
   "DOMAIN_SENSE_AND_COMPLIANCE.md Phase 5 -- population-level statistical sanity checks every 30min, one NTFY per new/changed finding set" \
   "${NTFY_ENV_FLAGS[@]}"
 
+_start_session "deadmans-switch" \
+  "python3 background/deadmans_switch.py" \
+  "Director-flagged 2026-07-09 (doorbell failure #5) -- independent of the tmux/supervisor stack: BLOCKED alert if 90min+ pass with no commit/observability activity AND real staged work is queued" \
+  "${NTFY_ENV_FLAGS[@]}"
+
 # RETIRED 2026-07-08 (docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md, director-approved
 # Option A of docs/review_gates/AUTONOMOUS_RUNNER_STILL_RUNNING.md). Deliberately stopped:
 # waste + tree-race source + budget burn. Single-writer mode = the watchdog-managed

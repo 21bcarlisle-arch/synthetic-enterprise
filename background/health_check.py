@@ -32,6 +32,7 @@ EXPECTED_PANES = {
     "background-worker": "background_worker.py",
     "sim-runner": "sim_runner.py",
     "sanity-daemon": "sanity_daemon.py",
+    "deadmans-switch": "deadmans_switch.py",
     # autonomous-runner deliberately excluded: retired by director decision
     # (docs/staging/AUTONOMOUS_RUNNER_RETIRED.md, 2026-07-07) -- the watchdog-managed
     # interactive session is now the single writer. Its absence is not a fault; do
