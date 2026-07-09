@@ -95,6 +95,11 @@ _start_session "sim-runner" \
   "Continuous 9.5yr simulation loop — pegs GPU off-peak, writes run_complete markers" \
   "${NTFY_ENV_FLAGS[@]}"
 
+_start_session "sanity-daemon" \
+  "python3 background/sanity_daemon.py" \
+  "DOMAIN_SENSE_AND_COMPLIANCE.md Phase 5 -- population-level statistical sanity checks every 30min, one NTFY per new/changed finding set" \
+  "${NTFY_ENV_FLAGS[@]}"
+
 # RETIRED 2026-07-08 (docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md, director-approved
 # Option A of docs/review_gates/AUTONOMOUS_RUNNER_STILL_RUNNING.md). Deliberately stopped:
 # waste + tree-race source + budget burn. Single-writer mode = the watchdog-managed
@@ -134,4 +139,4 @@ python3 background/health_check.py --quiet
 echo ""
 echo "Attach to any session: tmux attach -t <session-name>"
 echo "Sessions: background-worker, session-watchdog, staging-watcher, supervisor,"
-echo "         ntfy-responder, dispatcher, discovery-daemon"
+echo "         ntfy-responder, dispatcher, discovery-daemon, sanity-daemon"

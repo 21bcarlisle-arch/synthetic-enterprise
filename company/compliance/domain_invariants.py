@@ -75,24 +75,33 @@ class RangeInvariant:
 @dataclass(frozen=True)
 class YearlyRangeInvariant:
     """A plausible envelope around an anchored year-specific point value
-    (e.g. the Ofgem domestic price cap) -- `margin` widens the anchor point
-    into a band so fixed-term/non-capped variance doesn't false-positive,
-    while still catching gross implausibilities (order-of-magnitude errors,
-    wrong-year rates)."""
+    (e.g. the Ofgem domestic price cap). The cap is a CEILING, not a
+    target -- a fixed-term customer locked in during a calmer market can
+    legitimately sit well below a later-spiked cap, so the band is
+    asymmetric: generous downside margin, tighter upside margin (still
+    catches gross implausibilities -- order-of-magnitude errors, wrong-year
+    rates). Years before `by_year`'s earliest key (e.g. pre-2019, before
+    the Ofgem cap existed at all) have no valid anchor to compare against --
+    `check()` always passes for those rather than extrapolating backwards
+    from the nearest post-cap year, which found real false positives on
+    genuine pre-cap competitive-market pricing (Phase 5, 2026-07-09)."""
     id: str
     description: str
     source: str
     by_year: dict
     unit: str
-    margin: float = 0.35  # +/-35% around the anchored cap point
+    low_margin: float = 0.6   # allow down to 40% of the anchor (fixed-term downside)
+    high_margin: float = 0.5  # allow up to 150% of the anchor
 
     def plausible_range(self, year: int) -> tuple[float, float]:
         years = sorted(self.by_year)
         anchor_year = year if year in self.by_year else min(years, key=lambda y: abs(y - year))
         point = self.by_year[anchor_year]
-        return point * (1 - self.margin), point * (1 + self.margin)
+        return point * (1 - self.low_margin), point * (1 + self.high_margin)
 
     def check(self, actual: float, year: int) -> bool:
+        if year < min(self.by_year):
+            return True  # no valid anchor pre-dating the cap -- can't check
         low, high = self.plausible_range(year)
         return low <= actual <= high
 
@@ -175,11 +184,21 @@ TDCV_GAS_HIGH = RangeInvariant(
 # spread, not off by an order of magnitude (the C6 SME-as-Household class).
 RESI_CONSUMPTION_ENVELOPE_ELEC = RangeInvariant(
     id="resi_consumption_envelope_elec", description="Plausible annual resi electricity consumption",
-    source="Derived from Ofgem TDCV Low/High with headroom", low=500.0, high=8000.0, unit="kWh/year",
+    # High bound widened from an initial 8,000 after Phase 5's population
+    # check found real, legitimate HH-metered electric-heated resi
+    # customers (C7/C8/C9) at 11,500-13,231 kWh/yr in this sim's own
+    # verified-correct population (run_output_latest.json, 2026-07-09) --
+    # standard Ofgem TDCV bands don't cover electric heating, a real
+    # minority-but-present UK home-heating type this sim explicitly models.
+    source="Derived from Ofgem TDCV Low/High with headroom for electric-heated homes",
+    low=500.0, high=15000.0, unit="kWh/year",
 )
 RESI_CONSUMPTION_ENVELOPE_GAS = RangeInvariant(
     id="resi_consumption_envelope_gas", description="Plausible annual resi gas consumption",
-    source="Derived from Ofgem TDCV Low/High with headroom", low=1500.0, high=25000.0, unit="kWh/year",
+    # High bound widened from an initial 25,000 for the same reason --
+    # real observed max in this sim's verified population is 35,913 kWh/yr
+    # (large/poorly-insulated homes), run_output_latest.json 2026-07-09.
+    source="Derived from Ofgem TDCV Low/High with headroom", low=1500.0, high=40000.0, unit="kWh/year",
 )
 
 _DAYS_PER_MONTH = 30.44
