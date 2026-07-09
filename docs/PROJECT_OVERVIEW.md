@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-08. 500+ commits. 15,996 tests collected (fast suite). Codebase: ~51,700 lines across 342+ Python modules.*
+*Last updated: 2026-07-09. 500+ commits. 16,241 tests collected (full suite). Codebase: ~52,000 lines across 345+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,22 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### R4 fix + DOMAIN_SENSE_AND_COMPLIANCE Phases 1-4 (2026-07-09, Tier 1-adjacent safety fix + Tier 2 director-approved P1 programme, in-conversation)
+
+**R4 (director-direct, R4 diagnosis discipline):** the supervisor's turn-granting was defeated by a new failure mode -- a pane frozen in tmux copy-mode/scrollback (visible to the director as the CLI's own "Jump to bottom" hint), which made `is_session_idle()` read stale content and any injected wake get silently consumed as copy-mode navigation rather than reaching the running CLI. `background/tmux_relay.py` gains `pane_in_copy_mode()`/`exit_copy_mode()`/`ensure_live_tail()`, called before any idle-check; `send_keys_when_idle()` restructured to send text-then-verify-landed, then Enter-then-verify-consumed, so it proves the input line actually received the text rather than trusting an absent marker. `background/supervisor.py` clears copy-mode before its own idle check too. Also root-caused (inferred, R9-labelled) a same-morning duplicate-NTFY report to this same wedge corrupting delivery confirmation. 10 new tests, supervisor daemon restarted live.
+
+**Gas/elec clarity + C1 smart-meter fix (director-flagged, from_rich):** `saas/customers.py`'s static C1-C4 customer records carried no `smart_meter` flag at all, so `simulation.meter_reads.meter_type_for_customer()` silently defaulted every one to "traditional" despite `saas/property_model.py`'s asset-profile table already saying C1 is smart -- the same mismatch hit the company portal's own `/account/C1/smart-meter` upgrade page. Fixed at the source (`_stamp_known_smart_meter_status()`, gas twins inherit their electricity sibling's status). Also found `tools/generate_customer_data.py`'s meter-type label was a hardcoded "always Smart" placeholder, fixed to use the real per-customer status. Separately, the Customers portal's Risk tab only ever showed electricity's Pricing Action for dual-fuel households (a real, independently-computed per-fuel field, unlike household-level churn/CLV) -- now shows one card per fuel. Verified live in a real headless browser (Playwright): both fuel cards render, zero console errors.
+
+**DOMAIN_SENSE_AND_COMPLIANCE.md (director-approved P1 programme, 7-phase decomposition proposed and followed):** R10 added to CLAUDE.md (absurdity-class defects close by extending the invariant library/register, never an instance fix -- the C6 SME-as-Household 20%-VAT/4.3x-sigma-consumption defect is the anchor case throughout).
+- **Phase 1** -- `company/compliance/obligations_register.py` (new): risk-tiered register (impact x likelihood; impact ranked physical-harm-to-people worst, then customer-financial, then licence/regulatory, then company-financial, then reputational), 12 seed obligations spanning billing accuracy, back-billing cap, SLC14 refunds, GSOP, PSR/vulnerability, VAT-by-segment, settlement, marketing/switching, smart meter, WHD/ECO, green claims, Consumer Duty -- each referencing whichever of the ~10 pre-existing scattered compliance trackers (`company/regulatory/*`, `company/compliance/*`) already monitors it, rather than duplicating logic. Two real flagged gaps (billing accuracy, VAT-by-segment, both Tier 1, `existing_tracker=None`) feed the next two phases.
+- **Phase 2** -- `company/compliance/domain_invariants.py` (new): 24 checkable invariants (VAT, standing charges, non-commodity costs/share, TDCV consumption bands, year-specific unit-rate plausibility reused directly from `company/pricing/ofgem_price_cap.py`'s Phase 47a cap tables via its public accessor, margin/bad-debt ranges), every one pulled from an anchor already in `ASSUMPTIONS.md`/`ons_consumption_profiles.md`/`ofgem_price_cap.py` rather than freshly guessed.
+- **Phase 3** -- `company/billing/pre_bill_validation.py` (new), wired directly into `tools/generate_billing_ledger.py`: every bill checked before issue; failures HELD to a real exception queue (`exception_queue` key + `held_bill_count` in the ledger's own meta), excluded from that cycle's invoices entirely. Found and fixed a real methodology bug live while wiring against production data: naively annualizing one month's consumption (`x365/days`) before comparing to an annual TDCV envelope massively overstated genuine winter gas/electric-heating peaks, holding 401/1550 real already-verified-correct bills on first wire-up. Fixed with a properly calibrated per-bill monthly-equivalent envelope (real headroom above the observed sim population -- elec 52-1,945 kWh/month, gas 382-5,412 kWh/month -- while its high bound still sits below C6's real historical defect figure of 2,346.8 kWh/month, proven by two dedicated tests using both exact real numbers). Re-ran against live production data after the fix: 0/1550 held. Also found and fixed the same VAT-placeholder test-fixture drift in three other test files' local bill-builder helpers.
+- **Phase 4** -- `company/compliance/compliance_report.py` (new): the compliance function, rolling the register into a risk-tiered report; the two Tier-1 gate-covered obligations show a LIVE status from the gate's own exception-queue count, everything else honestly reports MANUAL with its real tracker rather than a fabricated pass. Wired into `tools/generate_dashboard_data.py` and rendered on the Supplier tab's existing Regulatory & Compliance Framework section as a new "Risk-Tiered Compliance Report" block (rule 0b: evidence lands on a business surface) -- verified live with a real headless browser, screenshot confirms correct rendering, zero console errors.
+
+Also found and closed a real process gap mid-session: 7 local commits sat unpushed and invisible on origin while NTFYs cited their SHAs (advisor's own `ADVISOR_VISIBILITY.md` flagged this). Merged the advisor's 5 pending staged commits and pushed everything; added a permanent "push before claiming committed" rule to CLAUDE.md.
+
+~90 new tests across the session, full SIM_FAST_MODE suite (16,103+) and full non-fast suite (16,185 passed / 2 pre-fix-stale, independently reconfirmed clean) both re-run, epistemic PASS throughout. Front of queue next: DOMAIN_SENSE_AND_COMPLIANCE Phase 5 (sanity daemon + population-level statistical tests, background lane).
 
 ### Phase SC -- CORE_FIDELITY_PHASES.md Phase 2 Layer 1: household engagement archetype (2026-07-08, Tier 2 -- PRIORITIES.md front of queue, continuous-build agenda per director's own instruction)
 
@@ -6677,7 +6693,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,129 tests collected (full suite) -- 15 new tests from Phase SC (household engagement
+- 16,241 tests collected (full suite) -- ~90 new tests from the 2026-07-09 R4-fix +
+  DOMAIN_SENSE_AND_COMPLIANCE Phases 1-4 session (obligations register, domain-invariants
+  library, pre-bill validation gate, compliance function/report), on top of the prior
+  16,129 tests collected (full suite) -- 15 new tests from Phase SC (household engagement
   archetype, test_household_segments.py/test_churn_model.py additions) plus 25 new tests from
   Phase SB (idle-gated verified tmux relay, test_tmux_relay.py/test_staging_watcher.py/
   test_dispatcher.py additions) plus 18 new tests from Phase SA (test_agenda.py,
