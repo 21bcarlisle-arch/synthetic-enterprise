@@ -122,6 +122,94 @@ def test_required_invoice_fields(tmp_path):
         assert f in inv
 
 
+# BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): meter serial,
+# MPAN/MPRN, read type, opening/closing reads.
+
+def test_defect2_meter_identity_fields_present(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    for f in ("meter_serial", "mpan", "mprn", "read_type", "opening_read_kwh", "closing_read_kwh"):
+        assert f in inv
+
+
+def test_defect2_electricity_bill_has_mpan_not_mprn(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))  # commodity="electricity"
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["mpan"] is not None
+    assert len(inv["mpan"]) == 13
+    assert inv["mprn"] is None
+
+
+def test_defect2_gas_bill_has_mprn_not_mpan(tmp_path):
+    bill = _bill("C1g", "2022-03-31", 500.0)
+    bill["commodity"] = "gas"
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([bill])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C1g"]["invoices"][0]
+    assert inv["mprn"] is not None
+    assert len(inv["mprn"]) == 10
+    assert inv["mpan"] is None
+
+
+def test_defect2_mpan_stable_across_bills_for_same_account(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([
+        _bill("C_IC1", "2022-03-31", 8000.0),
+        _bill("C_IC1", "2022-06-30", 8000.0),
+    ])))
+    result = generate(rj, tmp_path / "l.json")
+    invs = result["customers"]["C_IC1"]["invoices"]
+    assert invs[0]["mpan"] == invs[1]["mpan"]
+    assert invs[0]["meter_serial"] == invs[1]["meter_serial"]
+
+
+def test_defect2_defaults_to_actual_read_without_meter_read_log(tmp_path):
+    """A run predating Phase 3's meter-read simulation has no
+    meter_read_log -- must fall back to "actual" at the bill's own
+    consumption, not omit the fields or crash."""
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["read_type"] == "A"
+    assert inv["opening_read_kwh"] == 0.0
+    assert inv["closing_read_kwh"] == 1000.0  # the bill's total_consumption_kwh
+
+
+def test_defect2_estimated_read_uses_estimated_consumption(tmp_path):
+    bill = _bill("C_IC1", "2022-03-31", 8000.0)
+    run_data = _run([bill])
+    run_data["meter_read_log"] = [{
+        "customer_id": "C_IC1", "period_end": "2022-03-31", "status": "estimated",
+        "estimated_consumption_kwh": 850.0, "true_consumption_kwh": 1000.0,
+    }]
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(run_data))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["read_type"] == "E"
+    assert inv["closing_read_kwh"] == 850.0  # estimated, not true, consumption
+
+
+def test_defect2_opening_read_chains_from_previous_closing_read(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([
+        _bill("C_IC1", "2022-03-31", 8000.0),
+        _bill("C_IC1", "2022-06-30", 8000.0),
+    ])))
+    result = generate(rj, tmp_path / "l.json")
+    invs = result["customers"]["C_IC1"]["invoices"]
+    assert invs[0]["opening_read_kwh"] == 0.0
+    assert invs[0]["closing_read_kwh"] == 1000.0
+    assert invs[1]["opening_read_kwh"] == invs[0]["closing_read_kwh"]
+    assert invs[1]["closing_read_kwh"] == 2000.0
+
+
 def test_due_date_14_days(tmp_path):
     rj = tmp_path / "run.json"
     rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))

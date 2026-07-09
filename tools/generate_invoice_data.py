@@ -31,7 +31,12 @@ def _real_invoice(inv):
     """Map one billing_ledger.json invoice record onto the customer-portal
     invoice schema, adding the derived unit rate the bill equation needs.
     Field names amount_gbp/date/status kept for backward compatibility with
-    the existing bill-list rendering."""
+    the existing bill-list rendering.
+
+    BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): meter serial,
+    MPAN/MPRN, and read type (A=actual/E=estimated) + opening/closing reads
+    carried straight through from the ledger record -- not fabricated here,
+    just mapped, same as every other field in this function."""
     kwh = inv.get("consumption_kwh", 0) or 0
     commodity_amt = inv.get("commodity_amount_gbp", 0) or 0
     unit_rate_p_per_kwh = round(commodity_amt / kwh * 100, 2) if kwh else None
@@ -49,6 +54,12 @@ def _real_invoice(inv):
         vat_gbp=round(inv.get("vat_gbp", 0) or 0, 2),
         amount_gbp=round(inv.get("total_amount_gbp", 0) or 0, 2),
         status=_STATUS_MAP.get(inv.get("payment_status"), "PAID"),
+        meter_serial=inv.get("meter_serial"),
+        mpan=inv.get("mpan"),
+        mprn=inv.get("mprn"),
+        read_type=inv.get("read_type"),
+        opening_read_kwh=inv.get("opening_read_kwh"),
+        closing_read_kwh=inv.get("closing_read_kwh"),
     )
 
 

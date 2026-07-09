@@ -23,6 +23,12 @@ _LEDGER_INV = dict(
     vat_gbp=4.78,
     total_amount_gbp=100.34,
     payment_status="paid",
+    meter_serial="M12345678",
+    mpan="1234567890123",
+    mprn=None,
+    read_type="A",
+    opening_read_kwh=1000.0,
+    closing_read_kwh=1471.1,
 )
 
 
@@ -70,6 +76,30 @@ def test_real_invoice_carries_bill_equation_components():
     assert out["standing_charge_gbp"] == 8.37
     assert out["non_commodity_amount_gbp"] == 24.5
     assert out["vat_gbp"] == 4.78
+
+
+# BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): meter identity fields
+# must carry through from the ledger record onto the portal invoice.
+
+def test_real_invoice_carries_meter_identity_fields():
+    out = _real_invoice(_LEDGER_INV)
+    assert out["meter_serial"] == "M12345678"
+    assert out["mpan"] == "1234567890123"
+    assert out["mprn"] is None
+    assert out["read_type"] == "A"
+    assert out["opening_read_kwh"] == 1000.0
+    assert out["closing_read_kwh"] == 1471.1
+
+
+def test_real_invoice_meter_fields_default_none_when_absent_from_ledger():
+    """A ledger record generated before Defect 2 landed won't have these
+    keys -- must map to None, not KeyError."""
+    old_inv = dict(_LEDGER_INV)
+    for key in ("meter_serial", "mpan", "mprn", "read_type", "opening_read_kwh", "closing_read_kwh"):
+        del old_inv[key]
+    out = _real_invoice(old_inv)
+    assert out["meter_serial"] is None
+    assert out["read_type"] is None
 
 
 def test_real_invoices_for_unknown_customer_returns_empty():
