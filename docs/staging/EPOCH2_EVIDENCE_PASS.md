@@ -36,7 +36,35 @@ grow with (customers x ticks? events? artefacts?), and what are the top 3 cost
 drivers. Then estimate directionally: under (a) population scale-up 10-100x,
 and (b) repeated full-history reruns (the future evolutionary tournament),
 which components break first? Identify anything computed eagerly per-tick that
-could be computed lazily at decision points.
+could be computed lazily at decision points. Also: is run population SIZE a
+parameter that can vary today, and what is the largest run that completes in
+reasonable wall-time? (Scale-as-a-dial before we scale — a cheap testing lever
+if variable draws exist, and it surfaces aggregate-only bugs early.)
+
+### Q4. Customer truth: read from the SIM, or discovered through interfaces?
+Does the company obtain customer reality (identity, true consumption, dwelling,
+psychology) by reading SIM ground truth directly, or does it ASSEMBLE a belief
+from interface events (onboarding, quotes, meter/industry flows) that can be
+incomplete and wrong before it is corrected? Cite where customer data crosses
+into company code. If it reads SIM truth directly, that is an epistemic-wall
+violation and an epoch-2 target (two-layer model: hidden SIM truth vs company
+belief, gap closed only through interfaces).
+
+### Q5. Are customer generation and validation independently anchored?
+Does the sanity/invariants layer that checks customers draw on the SAME anchors
+the generator used, or on INDEPENDENT external stats (ONS/Ofgem/TDCV)? Shared
+source = marking its own homework (a biased generator blesses itself). Also
+confirm the wall direction: harness-outside-wall may audit SIM generation vs
+reality; company-inside-wall must NOT validate discovered data against SIM
+ground truth. Report which happens today.
+
+### Q6. Is the customer population fixed across runs, or drawn per run?
+Does every run play the same fixed customer cast, or does the SIM DRAW a
+population (varying mix/skew/meter-ratio/vulnerability-incidence) per run, with
+the seeded composition hidden from the company? Fixed = the run is a
+demonstration; drawn = an experiment (and the precondition for the epoch-4
+tournament + honest run statistics). State current behaviour and what varying
+the draw would take.
 
 ## Output
 docs/design/EPOCH2_EVIDENCE.md — three sections, evidence-cited, each ending
