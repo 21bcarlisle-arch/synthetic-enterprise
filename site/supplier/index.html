@@ -1462,8 +1462,46 @@ function renderRegulatory() {
       `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);color:var(--muted);font-size:11px">${o.notes || ""}</td></tr>`
     ),
     "</tbody></table></div>",
+    renderRiskTieredCompliance(),
   ].join("");
   el("tab-regulatory").innerHTML = html;
+}
+
+function renderRiskTieredCompliance() {
+  const rtc = D.risk_tiered_compliance;
+  if (!rtc) return "";
+  const statusBadge = (status) => {
+    const cls = status === "RED" ? "red" : status === "GREEN" ? "green" : "muted";
+    return `<span class="badge badge-${status.toLowerCase()}" style="${status === "MANUAL" ? "background:var(--surface2);color:var(--muted)" : ""}">${status}</span>`;
+  };
+  const tierLabel = {tier_1: "Tier 1 -- preventive gate, 100% continuous", tier_2: "Tier 2 -- detective, statistical sample", tier_3: "Tier 3 -- periodic"};
+  const tierSection = (tierKey) => {
+    const rows = rtc.by_tier[tierKey] || [];
+    if (!rows.length) return "";
+    return "<h4 style=\"margin:16px 0 8px;font-size:13px;color:var(--muted)\">" + tierLabel[tierKey] + " (" + rows.length + ")</h4>" +
+      "<div class=\"card\" style=\"padding:0;overflow:hidden\">" +
+      "<table style=\"width:100%;border-collapse:collapse;font-size:12px\">" +
+      "<thead><tr>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Obligation</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Impact / Likelihood</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Status</th>" +
+      "<th style=\"padding:8px 12px;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)\">Basis</th>" +
+      "</tr></thead><tbody>" +
+      rows.map(o =>
+        `<tr><td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)"><div style="font-weight:600">${o.name}</div><div style="color:var(--muted);font-size:11px">${o.source}</div></td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);color:var(--muted);font-size:11px">${o.impact.replace(/_/g," ")} / ${o.likelihood}</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4)">${statusBadge(o.status)}</td>` +
+        `<td style="padding:6px 12px;border-bottom:1px solid rgba(225,224,217,.4);color:var(--muted);font-size:11px">${o.basis}</td></tr>`
+      ).join("") +
+      "</tbody></table></div>";
+  };
+  return "<h3 class=\"section-head\" style=\"margin-top:32px\">Risk-Tiered Compliance Report</h3>" +
+    "<p class=\"view-sub\">Impact &times; likelihood risk tiering (company/compliance/obligations_register.py) -- impact ranked physical harm to people worst, then customer financial harm, then licence/regulatory, then company-financial, then reputational. Tier 1 obligations are enforced by a real preventive pre-bill validation gate (company/billing/pre_bill_validation.py); status below is live, read from that gate's own exception queue, not a build/phase estimate.</p>" +
+    "<div class=\"kpi-row\">" +
+    kpi("Overall", statusBadge(rtc.overall_rag), null, rtc.obligation_count + " obligations tracked") +
+    kpi("Bills Held", rtc.held_bill_count, null, "By the pre-bill validation gate this run") +
+    "</div>" +
+    tierSection("tier_1") + tierSection("tier_2") + tierSection("tier_3");
 }
 
 function renderReputation() {

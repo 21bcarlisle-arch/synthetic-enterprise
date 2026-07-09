@@ -206,6 +206,36 @@ def test_extract_regulatory_every_domain_has_an_obligation():
     all_domains = {d.value for d in ComplianceDomain} - {"tariff_price_cap"}
     assert all_domains <= mapped_domains
 
+
+def test_extract_risk_tiered_compliance_no_ledger_file_defaults_clean(tmp_path, monkeypatch):
+    import tools.generate_dashboard_data as gdd
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)  # no site/state/billing_ledger.json here
+    report = gdd.extract_risk_tiered_compliance()
+    assert report["held_bill_count"] == 0
+    assert report["overall_rag"] == "GREEN"
+
+
+def test_extract_risk_tiered_compliance_reads_live_held_count(tmp_path, monkeypatch):
+    import tools.generate_dashboard_data as gdd
+    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir.mkdir(parents=True)
+    (ledger_dir / "billing_ledger.json").write_text(json.dumps({"meta": {"held_bill_count": 4}}))
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)
+    report = gdd.extract_risk_tiered_compliance()
+    assert report["held_bill_count"] == 4
+    assert report["overall_rag"] == "RED"
+
+
+def test_extract_risk_tiered_compliance_malformed_ledger_defaults_to_zero(tmp_path, monkeypatch):
+    import tools.generate_dashboard_data as gdd
+    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir.mkdir(parents=True)
+    (ledger_dir / "billing_ledger.json").write_text("not valid json")
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)
+    report = gdd.extract_risk_tiered_compliance()
+    assert report["held_bill_count"] == 0
+
+
 def test_load_frozen_baseline_missing_file_returns_empty(tmp_path):
     from tools.generate_dashboard_data import _load_frozen_baseline
     assert _load_frozen_baseline(tmp_path / "missing.json") == {}

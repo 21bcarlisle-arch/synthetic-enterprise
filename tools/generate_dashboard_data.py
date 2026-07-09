@@ -721,6 +721,27 @@ def extract_regulatory(data):
     }
 
 
+def extract_risk_tiered_compliance():
+    """DOMAIN_SENSE_AND_COMPLIANCE.md Phase 4: the risk-tiered compliance
+    report (company/compliance/compliance_report.py), distinct from
+    extract_regulatory()'s existing RAG scorecard above -- this one carries
+    the director's impact x likelihood risk tiering and, for the two
+    obligations the Phase 3 pre-bill gate actually enforces, a LIVE status
+    read from site/state/billing_ledger.json's held_bill_count (the gate's
+    own real exception-queue count), not a build/phase metadata guess."""
+    from company.compliance.compliance_report import build_compliance_report
+
+    ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+    held_bill_count = 0
+    if ledger_path.is_file():
+        try:
+            ledger = json.loads(ledger_path.read_text())
+            held_bill_count = ledger.get("meta", {}).get("held_bill_count", 0)
+        except (json.JSONDecodeError, OSError):
+            held_bill_count = 0
+    return build_compliance_report(held_bill_count=held_bill_count)
+
+
 def extract_reputation(data):
     """Phase RU (FEEDBACK_AND_REPUTATION.md Layer 1): company CSAT/NPS
     dashboard reading only solicited survey responses, plus the Global
@@ -886,6 +907,7 @@ def generate(run_json_path=None):
         "customers": extract_customers(data),
         "market": extract_market(data, spot_monthly),
         "regulatory": extract_regulatory(data),
+        "risk_tiered_compliance": extract_risk_tiered_compliance(),
         "reputation": extract_reputation(data),
         "nudge_discovery": extract_nudge_discovery(data),
         "insights": insights,
