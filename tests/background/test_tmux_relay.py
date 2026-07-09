@@ -207,21 +207,49 @@ def test_send_keys_when_idle_refuses_when_busy(monkeypatch):
 def test_send_keys_when_idle_success_when_idle_and_consumed(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
-    # First capture (idle check) -> idle pane. send-keys -> success.
-    # Second capture (post-send verify) -> idle pane again (marker gone,
-    # i.e. successfully consumed/submitted).
+    # Capture #1 (idle check) -> idle pane. send-keys(text) -> success.
+    # Capture #2 (landed check) -> marker visible in the input line (proof
+    # the keystrokes actually reached it). send-keys(Enter) -> success.
+    # Capture #3 (post-send verify) -> idle pane again (marker gone, i.e.
+    # successfully consumed/submitted).
+    landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
+    capture_sequence = iter([IDLE_PANE, landed_pane, IDLE_PANE])
     call_log = []
 
     def _run(cmd, **kw):
         call_log.append(cmd)
         if cmd[1] == "capture-pane":
-            return type("R", (), {"returncode": 0, "stdout": IDLE_PANE})()
+            return type("R", (), {"returncode": 0, "stdout": next(capture_sequence)})()
         return type("R", (), {"returncode": 0})()
 
     monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
     result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
     assert result is True
     assert any(c[1] == "send-keys" for c in call_log)
+
+
+def test_send_keys_when_idle_fails_when_text_never_reaches_input_line(monkeypatch):
+    """The failure mode the text/Enter split specifically targets: the
+    send-keys subprocess exits 0, but the marker never actually shows up in
+    the pane afterward -- e.g. tmux copy-mode silently ate it as navigation
+    instead of forwarding it to the input line. Must fail BEFORE ever
+    sending Enter -- never submit into whatever state the pane is actually
+    in."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    calls = []
+
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": IDLE_PANE})()  # marker never appears
+        return type("R", (), {"returncode": 0})()
+
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
+    assert result is False
+    enter_calls = [c for c in calls if c[1] == "send-keys" and "Enter" in c]
+    assert enter_calls == []
 
 
 def test_send_keys_when_idle_fails_when_marker_still_stuck(monkeypatch):
@@ -284,6 +312,102 @@ def test_send_keys_when_idle_returns_false_when_send_keys_fails(monkeypatch):
 # --- relay_lock: cross-daemon mutual exclusion (2026-07-08, third
 # wake-doorbell failure -- session_watchdog's autoloop nudge raced
 # staging_watcher's wake into the same pane with no coordination) ---
+
+# ── Copy-mode / scrollback wedge (R4, 2026-07-09): a pane frozen in tmux
+# copy-mode showed stale scrollback (the CLI's own "Jump to bottom" hint is
+# one visible symptom) to every daemon -- capture_pane read frozen content
+# instead of the live tail, and any later send-keys was consumed by tmux as
+# copy-mode navigation rather than reaching the running CLI, so grants
+# silently vanished with no error anywhere. ──
+
+def test_pane_in_copy_mode_noop_under_pytest():
+    assert tmux_relay.pane_in_copy_mode("claude") is False
+
+
+def test_pane_in_copy_mode_true_when_flag_set(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning("1\n"))
+    assert tmux_relay.pane_in_copy_mode("claude") is True
+
+
+def test_pane_in_copy_mode_false_when_flag_clear(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning("0\n"))
+    assert tmux_relay.pane_in_copy_mode("claude") is False
+
+
+def test_pane_in_copy_mode_fails_safe_on_error(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+
+    def _raise(*a, **k):
+        raise Exception("no such session")
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _raise)
+    assert tmux_relay.pane_in_copy_mode("claude") is False
+
+
+def test_exit_copy_mode_sends_cancel_command(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    calls = []
+    monkeypatch.setattr(
+        tmux_relay.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0})(),
+    )
+    assert tmux_relay.exit_copy_mode("claude") is True
+    assert calls == [["tmux", "send-keys", "-X", "-t", "claude", "cancel"]]
+
+
+def test_ensure_live_tail_clears_when_in_copy_mode(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    calls = []
+
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "display-message":
+            return type("R", (), {"returncode": 0, "stdout": "1\n"})()
+        return type("R", (), {"returncode": 0})()
+
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    tmux_relay.ensure_live_tail("claude")
+    assert any(c[1] == "send-keys" and "cancel" in c for c in calls)
+
+
+def test_ensure_live_tail_noop_when_not_in_copy_mode(monkeypatch):
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    calls = []
+
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        return type("R", (), {"returncode": 0, "stdout": "0\n"})()
+
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    tmux_relay.ensure_live_tail("claude")
+    assert all(c[1] != "send-keys" for c in calls)
+
+
+def test_send_keys_when_idle_clears_copy_mode_before_idle_check(monkeypatch):
+    """The R4 wedge itself, end to end: pane is in copy-mode showing stale
+    scrollback. send_keys_when_idle must clear it before deciding
+    idle/busy, not just read the frozen content and give up forever."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
+    capture_sequence = iter([IDLE_PANE, landed_pane, IDLE_PANE])
+    calls = []
+
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "display-message":
+            return type("R", (), {"returncode": 0, "stdout": "1\n"})()  # in copy-mode
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": next(capture_sequence)})()
+        return type("R", (), {"returncode": 0})()
+
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
+    assert result is True
+    assert any(c[1] == "send-keys" and "cancel" in c for c in calls)
+
 
 def test_relay_lock_serializes_two_acquisitions(monkeypatch, tmp_path):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)

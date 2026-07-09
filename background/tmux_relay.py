@@ -141,6 +141,59 @@ def _configured_session_name() -> str:
     return os.environ.get("SE_TMUX_SESSION_NAME", DEFAULT_SESSION_NAME)
 
 
+def pane_in_copy_mode(session: str) -> bool:
+    """True if `session`'s active pane is in tmux copy-mode/view-mode
+    (`#{pane_in_mode}`) -- i.e. showing frozen scrollback (the CLI's own
+    "Jump to bottom" hint is one visible symptom) rather than the live
+    tail, and swallowing keystrokes as copy-mode navigation instead of
+    forwarding them to the running program. Fails safe: any capture error
+    returns False (never claims copy-mode when we can't confirm it)."""
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None:
+        return False
+    try:
+        result = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", session, "-F", "#{pane_in_mode}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        return result.returncode == 0 and result.stdout.strip() == "1"
+    except Exception:
+        return False
+
+
+def exit_copy_mode(session: str) -> bool:
+    """Send tmux's copy-mode 'cancel' command (bound to q/Escape in the
+    copy-mode key table) to snap `session`'s pane back to the live tail.
+    Returns True only if the command was issued successfully -- not proof
+    copy-mode actually cleared; callers that need certainty should re-check
+    `pane_in_copy_mode()`."""
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None:
+        return False
+    try:
+        result = subprocess.run(
+            ["tmux", "send-keys", "-X", "-t", session, "cancel"],
+            capture_output=True, timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+def ensure_live_tail(session: str) -> None:
+    """Best-effort: if `session`'s pane is frozen in copy-mode/scrollback,
+    clear it so subsequent idle-checks and sends see/reach the real live
+    pane. Root cause (2026-07-09, R4): a pane left in copy-mode all morning
+    showed stale scrollback ("Jump to bottom") to every daemon -- capture_pane
+    read frozen content instead of the live tail, and injected keystrokes
+    were consumed by tmux as copy-mode navigation rather than reaching the
+    running CLI, so grants silently vanished with no error anywhere. No-op
+    (and safe) if the pane is not in copy-mode, or under pytest."""
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None:
+        return
+    if pane_in_copy_mode(session):
+        exit_copy_mode(session)
+        time.sleep(0.2)
+
+
 def send_keys(session: str, *keys: str) -> bool:
     """Send `keys` (the trailing tmux send-keys arguments, e.g. a text
     string plus "Enter", or a bare "Escape") to tmux session `session`.
@@ -209,34 +262,53 @@ def is_session_idle(session: str) -> bool:
 
 
 def send_keys_when_idle(
-    session: str, text: str, verify_marker: str, post_send_wait: float = 1.5
+    session: str, text: str, verify_marker: str,
+    post_send_wait: float = 1.5, post_type_wait: float = 0.3,
 ) -> bool:
     """Only inject `text` + Enter if `session` is currently idle at its
-    prompt; after sending, verify the text was actually consumed rather
-    than trusting a fire-and-forget send.
+    prompt; verify both that the text actually reached the input line and
+    that it was subsequently consumed, rather than trusting a
+    fire-and-forget send.
 
     `verify_marker` should be a short, distinctive substring of `text`
     (e.g. the trailing HMAC hex digest of a signed wake message) --
-    checked against the flattened (whitespace-stripped) post-send pane
-    capture, so word-wrapping can't hide a still-stuck fragment.
+    checked against the flattened (whitespace-stripped) pane capture, so
+    word-wrapping can't hide a still-stuck fragment.
 
-    Returns True only if: the pane was idle, the send subprocess
-    succeeded, AND the marker is no longer visible afterward (proof of
-    consumption). Any other outcome returns False -- the caller must
-    treat this as "not delivered, retry next cycle," never as delivered.
+    Sequence: clear any frozen copy-mode/scrollback first (R4, 2026-07-09
+    -- see `ensure_live_tail()`), confirm idle, send `text` WITHOUT Enter
+    and confirm the marker actually landed in the pane (proof the
+    keystrokes reached the input line rather than being silently swallowed
+    -- e.g. by tmux copy-mode interpreting them as navigation, the exact
+    failure mode that motivated this split), only then send Enter, and
+    finally confirm the marker is no longer visible (proof of consumption).
 
-    The whole idle-check+send+verify sequence runs inside `relay_lock()`
-    so a second daemon calling this concurrently can't interleave its own
-    send between this call's idle-check and its send (see module docstring,
-    "Cross-daemon relay lock").
+    Returns True only if every one of those checks passes. Any other
+    outcome returns False -- the caller must treat this as "not delivered,
+    retry next cycle," never as delivered.
+
+    The whole sequence runs inside `relay_lock()` so a second daemon
+    calling this concurrently can't interleave its own send (see module
+    docstring, "Cross-daemon relay lock").
     """
     if os.environ.get("PYTEST_CURRENT_TEST") is not None:
         return False
     try:
         with relay_lock(timeout=_RELAY_LOCK_TIMEOUT_SECONDS):
+            ensure_live_tail(session)
             if not is_session_idle(session):
                 return False
-            if not send_keys(session, text, "Enter"):
+            if not send_keys(session, text):
+                return False
+            time.sleep(post_type_wait)
+            landed = capture_pane(session)
+            if not landed or _flatten(verify_marker) not in _flatten(landed):
+                # Text never reached the input line -- e.g. swallowed by
+                # copy-mode navigation, or the pane wasn't actually focused
+                # on an input prompt. Not delivered; do not send Enter into
+                # whatever state the pane is actually in.
+                return False
+            if not send_keys(session, "Enter"):
                 return False
             time.sleep(post_send_wait)
             after = capture_pane(session)

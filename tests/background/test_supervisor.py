@@ -141,6 +141,32 @@ def test_run_cycle_skips_when_busy(monkeypatch):
     assert grant_calls == []
 
 
+def test_run_cycle_clears_copy_mode_before_idle_check(monkeypatch):
+    """R4 (2026-07-09): a pane frozen in tmux copy-mode/scrollback must be
+    cleared before this cycle trusts its own idle check -- not left to read
+    stale content forever."""
+    monkeypatch.setattr(supervisor, "pane_in_copy_mode", lambda session: True)
+    clear_calls = []
+    monkeypatch.setattr(supervisor, "ensure_live_tail", lambda session: clear_calls.append(session))
+    monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+    grant_calls = []
+    monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
+    agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
+    supervisor.run_cycle()
+    assert clear_calls == [supervisor.SESSION_NAME]
+    assert len(grant_calls) == 1
+
+
+def test_run_cycle_does_not_clear_copy_mode_when_not_in_copy_mode(monkeypatch):
+    monkeypatch.setattr(supervisor, "pane_in_copy_mode", lambda session: False)
+    clear_calls = []
+    monkeypatch.setattr(supervisor, "ensure_live_tail", lambda session: clear_calls.append(session))
+    monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+    monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
+    supervisor.run_cycle()
+    assert clear_calls == []
+
+
 def test_run_cycle_skips_when_idle_and_no_work(monkeypatch):
     monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
     grant_calls = []

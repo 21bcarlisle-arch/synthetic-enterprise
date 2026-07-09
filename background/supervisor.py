@@ -67,7 +67,9 @@ sys.path.insert(0, str(PROJECT_DIR))
 from background import agenda as agenda_module  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
-from background.tmux_relay import is_session_idle, send_keys_when_idle  # noqa: E402
+from background.tmux_relay import (  # noqa: E402
+    ensure_live_tail, is_session_idle, pane_in_copy_mode, send_keys_when_idle,
+)
 
 SESSION_NAME = "claude"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "supervisor-log.md"
@@ -213,6 +215,16 @@ def run_cycle() -> None:
         return
     resumed_from_pause = _was_paused
     _was_paused = False
+
+    # R4 (2026-07-09): a pane frozen in tmux copy-mode/scrollback ("Jump to
+    # bottom") reads as stale content to is_session_idle() below and
+    # swallows any later send as copy-mode navigation -- clear it before
+    # trusting the idle check at all. send_keys_when_idle() does this too
+    # (defence in depth), but doing it here as well means this cycle's own
+    # busy/idle log line reflects the real live pane, not frozen scrollback.
+    if pane_in_copy_mode(SESSION_NAME):
+        ensure_live_tail(SESSION_NAME)
+        log("Pane was in scroll/copy-mode -- cleared before idle check")
 
     if not is_session_idle(SESSION_NAME):
         log("Session busy -- skipping this cycle")
