@@ -1,8 +1,9 @@
 {
   "meta": {
-    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_7bf34025_20260709T103236Z.json",
+    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_latest.json",
     "invoice_count": 1550,
-    "customer_count": 20
+    "customer_count": 20,
+    "held_bill_count": 0
   },
   "customers": {
     "C1": {
@@ -62076,5 +62077,6 @@
       ],
       "arrears_history": []
     }
-  }
+  },
+  "exception_queue": []
 }
