@@ -5,6 +5,15 @@ Updated by discovery agent and manually when phases change assumptions.
 
 Last seeded: 2026-07-09 from current codebase.
 
+**Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
+`company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
+Structure's VAT/standing-charge/non-commodity figures, TDCV bands, the
+Ofgem price-cap module's year-specific unit rates, and the margin/bad-debt
+ranges) into checkable predicates for the pre-bill validation gate (Phase 3)
+and the sanity daemon (Phase 5). This doc remains the human-readable
+provenance trail; the code module is the machine-checkable mirror -- keep
+both in sync when either changes.
+
 ---
 
 ## Bill Structure

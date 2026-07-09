@@ -1,0 +1,259 @@
+"""Anchored domain-invariants library -- Phase 2 of DOMAIN_SENSE_AND_COMPLIANCE.md.
+
+UK domain law and market reality expressed as checkable data, so rendered
+artefacts and data surfaces can be tested against real anchors rather than
+"looks about right." Harness-side (outside the wall -- the harness plays
+Ofgem/external auditor here, not the company).
+
+Every invariant below is pulled from an anchor this codebase already
+established (discovery-agent sourced, with its own provenance trail) rather
+than freshly guessed for this module:
+  - VAT rates, standing charges, non-commodity cost shares, margin and
+    bad-debt ranges: docs/market_research/ASSUMPTIONS.md.
+  - TDCV (Typical Domestic Consumption Value) bands: Ofgem TDCV review, via
+    docs/market_research/ons_consumption_profiles.md.
+  - Year-specific plausible unit-rate ranges: company/pricing/ofgem_price_cap.py's
+    already-anchored annual cap tables (Phase 47a) -- reused here, not
+    re-derived, so the two never drift apart.
+
+This module seeds the library (>=20 invariants, DoD requirement) with
+checkable predicates. It does not itself sample or gate anything -- Phase 3
+(pre-bill validation gate) and Phase 5 (sanity daemon + population tests)
+are the consumers.
+
+R10 (CLAUDE.md): an absurdity-class defect (e.g. the C6 SME-as-Household
+20%-VAT bill) closes by EXTENDING this library so the whole class fails
+automatically thereafter, never by patching the one instance.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional
+
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+
+_CAP_ANCHOR_YEARS = range(2019, 2026)
+_ELEC_CAP_BY_YEAR = {
+    y: get_cap_unit_rate_gbp_per_mwh("electricity", y) for y in _CAP_ANCHOR_YEARS
+}
+_GAS_CAP_BY_YEAR = {
+    y: get_cap_unit_rate_gbp_per_mwh("gas", y) for y in _CAP_ANCHOR_YEARS
+}
+
+
+@dataclass(frozen=True)
+class RateInvariant:
+    """An exact rate/proportion with a small tolerance (e.g. VAT -- there is
+    no legitimate reason for a bill to charge 5.4% VAT for a residential
+    customer)."""
+    id: str
+    description: str
+    source: str
+    value: float
+    tolerance: float = 0.0005
+
+    def check(self, actual: float) -> bool:
+        return abs(actual - self.value) <= self.tolerance
+
+
+@dataclass(frozen=True)
+class RangeInvariant:
+    """A plausible [low, high] envelope (e.g. standing charges, margins) --
+    real values vary within a band, so exact-match would be wrong; falling
+    outside the band is the absurdity signal."""
+    id: str
+    description: str
+    source: str
+    low: float
+    high: float
+    unit: str
+
+    def check(self, actual: float) -> bool:
+        return self.low <= actual <= self.high
+
+
+@dataclass(frozen=True)
+class YearlyRangeInvariant:
+    """A plausible envelope around an anchored year-specific point value
+    (e.g. the Ofgem domestic price cap) -- `margin` widens the anchor point
+    into a band so fixed-term/non-capped variance doesn't false-positive,
+    while still catching gross implausibilities (order-of-magnitude errors,
+    wrong-year rates)."""
+    id: str
+    description: str
+    source: str
+    by_year: dict
+    unit: str
+    margin: float = 0.35  # +/-35% around the anchored cap point
+
+    def plausible_range(self, year: int) -> tuple[float, float]:
+        years = sorted(self.by_year)
+        anchor_year = year if year in self.by_year else min(years, key=lambda y: abs(y - year))
+        point = self.by_year[anchor_year]
+        return point * (1 - self.margin), point * (1 + self.margin)
+
+    def check(self, actual: float, year: int) -> bool:
+        low, high = self.plausible_range(year)
+        return low <= actual <= high
+
+
+# --- Bill structure (docs/market_research/ASSUMPTIONS.md, "Bill Structure") ---
+
+VAT_RESIDENTIAL = RateInvariant(
+    id="vat_residential", description="VAT rate for residential energy supply",
+    source="HMRC VAT Notice 701/19 (reduced domestic rate)", value=0.05,
+)
+VAT_SME = RateInvariant(
+    id="vat_sme", description="VAT rate for SME/non-domestic energy supply",
+    source="HMRC (standard rate; de minimis <33kWh/day not modelled)", value=0.20,
+)
+STANDING_CHARGE_ELEC_RESI = RangeInvariant(
+    id="standing_charge_elec_resi", description="Electricity standing charge, residential",
+    source="Ofgem Price Cap Q1-Q4 2024", low=0.25, high=0.35, unit="GBP/day",
+)
+STANDING_CHARGE_ELEC_SME = RangeInvariant(
+    id="standing_charge_elec_sme", description="Electricity standing charge, SME",
+    source="Industry tariff survey", low=0.40, high=0.70, unit="GBP/day",
+)
+STANDING_CHARGE_GAS_RESI = RangeInvariant(
+    id="standing_charge_gas_resi", description="Gas standing charge, residential",
+    source="Ofgem Price Cap Q1-Q4 2024", low=0.22, high=0.32, unit="GBP/day",
+)
+STANDING_CHARGE_GAS_SME = RangeInvariant(
+    id="standing_charge_gas_sme", description="Gas standing charge, SME",
+    source="Industry", low=0.30, high=0.55, unit="GBP/day",
+)
+NON_COMMODITY_ELEC_RESI = RangeInvariant(
+    id="non_commodity_elec_resi", description="Non-commodity cost, electricity residential",
+    source="Ofgem energy price stats, Elexon charges", low=50.0, high=65.0, unit="GBP/MWh",
+)
+NON_COMMODITY_ELEC_SME = RangeInvariant(
+    id="non_commodity_elec_sme", description="Non-commodity cost, electricity SME",
+    source="Elexon, Ofgem", low=35.0, high=55.0, unit="GBP/MWh",
+)
+NON_COMMODITY_GAS_RESI = RangeInvariant(
+    id="non_commodity_gas_resi", description="Non-commodity cost, gas residential",
+    source="Ofgem, Xoserve", low=8.0, high=15.0, unit="GBP/MWh",
+)
+NON_COMMODITY_GAS_SME = RangeInvariant(
+    id="non_commodity_gas_sme", description="Non-commodity cost, gas SME",
+    source="Xoserve, industry", low=6.0, high=12.0, unit="GBP/MWh",
+)
+NON_COMMODITY_SHARE_OF_BILL = RangeInvariant(
+    id="non_commodity_share_of_bill", description="Non-commodity as % of all-in bill",
+    source="Ofgem Electricity/Gas Stats", low=0.30, high=0.45, unit="fraction",
+)
+
+# --- TDCV consumption bands (Ofgem TDCV review, via ons_consumption_profiles.md) ---
+
+TDCV_ELEC_LOW = RangeInvariant(
+    id="tdcv_elec_low", description="TDCV electricity Low band",
+    source="Ofgem TDCV 2026 review", low=1400.0, high=1800.0, unit="kWh/year",
+)
+TDCV_ELEC_MEDIUM = RangeInvariant(
+    id="tdcv_elec_medium", description="TDCV electricity Medium band",
+    source="Ofgem TDCV 2026 review", low=2300.0, high=2700.0, unit="kWh/year",
+)
+TDCV_ELEC_HIGH = RangeInvariant(
+    id="tdcv_elec_high", description="TDCV electricity High band",
+    source="Ofgem TDCV 2026 review", low=3600.0, high=4000.0, unit="kWh/year",
+)
+TDCV_GAS_LOW = RangeInvariant(
+    id="tdcv_gas_low", description="TDCV gas Low band",
+    source="Ofgem TDCV 2026 review", low=5500.0, high=6500.0, unit="kWh/year",
+)
+TDCV_GAS_MEDIUM = RangeInvariant(
+    id="tdcv_gas_medium", description="TDCV gas Medium band",
+    source="Ofgem TDCV 2026 review", low=9000.0, high=10000.0, unit="kWh/year",
+)
+TDCV_GAS_HIGH = RangeInvariant(
+    id="tdcv_gas_high", description="TDCV gas High band",
+    source="Ofgem TDCV 2026 review", low=13000.0, high=15000.0, unit="kWh/year",
+)
+# Wide population-plausibility envelope (Phase 5/6's population tests): a
+# resi customer's annual consumption should sit somewhere near the TDCV
+# spread, not off by an order of magnitude (the C6 SME-as-Household class).
+RESI_CONSUMPTION_ENVELOPE_ELEC = RangeInvariant(
+    id="resi_consumption_envelope_elec", description="Plausible annual resi electricity consumption",
+    source="Derived from Ofgem TDCV Low/High with headroom", low=500.0, high=8000.0, unit="kWh/year",
+)
+RESI_CONSUMPTION_ENVELOPE_GAS = RangeInvariant(
+    id="resi_consumption_envelope_gas", description="Plausible annual resi gas consumption",
+    source="Derived from Ofgem TDCV Low/High with headroom", low=1500.0, high=25000.0, unit="kWh/year",
+)
+
+# --- Year-specific unit-rate plausibility (company/pricing/ofgem_price_cap.py, Phase 47a) ---
+
+UNIT_RATE_ELEC_RESI_BY_YEAR = YearlyRangeInvariant(
+    id="unit_rate_elec_resi_by_year", description="Plausible resi electricity unit rate by year",
+    source="company/pricing/ofgem_price_cap.py (Ofgem Default Tariff Cap, Phase 47a)",
+    by_year=_ELEC_CAP_BY_YEAR, unit="GBP/MWh",
+)
+UNIT_RATE_GAS_RESI_BY_YEAR = YearlyRangeInvariant(
+    id="unit_rate_gas_resi_by_year", description="Plausible resi gas unit rate by year",
+    source="company/pricing/ofgem_price_cap.py (Ofgem Default Tariff Cap, Phase 47a)",
+    by_year=_GAS_CAP_BY_YEAR, unit="GBP/MWh",
+)
+
+# --- Margin & bad-debt plausibility ---
+
+NET_MARGIN_PCT_OF_REVENUE = RangeInvariant(
+    id="net_margin_pct_of_revenue", description="Net margin as % of revenue",
+    source="Ofgem Retail Market Report; Cornwall Insight", low=0.02, high=0.05, unit="fraction",
+)
+GROSS_MARGIN_PCT_OF_REVENUE = RangeInvariant(
+    id="gross_margin_pct_of_revenue", description="Gross margin as % of revenue",
+    source="Ofgem", low=0.08, high=0.15, unit="fraction",
+)
+BAD_DEBT_RATE_RESI = RangeInvariant(
+    id="bad_debt_rate_resi", description="Bad debt rate, residential",
+    source="Ofgem Annual Report; Cornwall Insight", low=0.01, high=0.03, unit="fraction",
+)
+BAD_DEBT_RATE_SME = RangeInvariant(
+    id="bad_debt_rate_sme", description="Bad debt rate, SME",
+    source="Industry", low=0.005, high=0.02, unit="fraction",
+)
+
+
+ALL_INVARIANTS: list = [
+    VAT_RESIDENTIAL, VAT_SME,
+    STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
+    STANDING_CHARGE_GAS_RESI, STANDING_CHARGE_GAS_SME,
+    NON_COMMODITY_ELEC_RESI, NON_COMMODITY_ELEC_SME,
+    NON_COMMODITY_GAS_RESI, NON_COMMODITY_GAS_SME,
+    NON_COMMODITY_SHARE_OF_BILL,
+    TDCV_ELEC_LOW, TDCV_ELEC_MEDIUM, TDCV_ELEC_HIGH,
+    TDCV_GAS_LOW, TDCV_GAS_MEDIUM, TDCV_GAS_HIGH,
+    RESI_CONSUMPTION_ENVELOPE_ELEC, RESI_CONSUMPTION_ENVELOPE_GAS,
+    UNIT_RATE_ELEC_RESI_BY_YEAR, UNIT_RATE_GAS_RESI_BY_YEAR,
+    NET_MARGIN_PCT_OF_REVENUE, GROSS_MARGIN_PCT_OF_REVENUE,
+    BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
+]
+
+
+def vat_rate_for_segment(segment: str) -> Optional[float]:
+    """The correct VAT rate for a segment -- 'resi' -> 5%, anything else
+    (SME/I&C) -> 20%. The exact check the C6 SME-as-Household defect
+    (billed 20% VAT... no wait, billed as if resi at some point, or the
+    reverse -- see R10) would have caught automatically."""
+    return VAT_RESIDENTIAL.value if segment == "resi" else VAT_SME.value
+
+
+def check_vat(segment: str, actual_rate: float) -> bool:
+    expected = vat_rate_for_segment(segment)
+    invariant = VAT_RESIDENTIAL if segment == "resi" else VAT_SME
+    return invariant.check(actual_rate) and abs(actual_rate - expected) <= invariant.tolerance
+
+
+def check_unit_rate_plausible(fuel: str, year: int, unit_rate_gbp_per_mwh: float) -> bool:
+    invariant = UNIT_RATE_ELEC_RESI_BY_YEAR if fuel == "electricity" else UNIT_RATE_GAS_RESI_BY_YEAR
+    return invariant.check(unit_rate_gbp_per_mwh, year)
+
+
+def check_resi_consumption_plausible(fuel: str, annual_kwh: float) -> bool:
+    invariant = RESI_CONSUMPTION_ENVELOPE_ELEC if fuel == "electricity" else RESI_CONSUMPTION_ENVELOPE_GAS
+    return invariant.check(annual_kwh)
+
+
+def invariant_count() -> int:
+    return len(ALL_INVARIANTS)
