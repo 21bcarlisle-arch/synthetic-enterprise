@@ -51,6 +51,35 @@ def test_payment_method_ic_chaps_threshold():
     assert payment_method("I&C", 5000) == "bacs"
 
 
+def test_payment_method_resi_defaults_to_direct_debit_when_no_customer_id():
+    """Backward compatibility: customer_id/fuel are optional -- omitting them
+    must reproduce the exact original flat behaviour (every resi customer on
+    direct debit), so pre-existing callers that never pass customer_id are
+    unaffected."""
+    assert payment_method("resi", 100.0) == "direct_debit"
+
+
+def test_payment_method_resi_archetype_aware_with_customer_id():
+    """With a customer_id, resi payment method must be archetype-aware
+    (2026-07-09 fix) -- a large sample must produce both direct_debit and
+    standard_credit, not a flat single value."""
+    methods = {payment_method("resi", 100.0, f"PM_C{i}", "electricity") for i in range(200)}
+    assert methods == {"direct_debit", "standard_credit"}
+
+
+def test_payment_method_resi_archetype_is_deterministic():
+    a = payment_method("resi", 100.0, "C1", "electricity")
+    b = payment_method("resi", 100.0, "C1", "electricity")
+    assert a == b
+
+
+def test_payment_method_sme_ignores_customer_id():
+    """SME/I&C payment method is amount/segment-driven only -- customer_id
+    must not perturb it."""
+    assert payment_method("sme", 100.0, "C1", "electricity") == "bacs"
+    assert payment_method("I&C", 15000, "C1", "electricity") == "chaps"
+
+
 def test_payment_outcome_bacs_ic_can_dispute():
     rng_outcomes = set()
     import random

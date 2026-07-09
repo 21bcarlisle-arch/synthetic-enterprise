@@ -163,9 +163,41 @@ function renderMetrics(dashboard, phases){
 }
 function renderLearningCurve(phases){
   var tp=(phases&&phases.test_progression)||[];
+  var pd=(phases&&phases.phase_dates)||[];
   var ctx=document.getElementById("learning-chart");
   if(!ctx||!tp.length)return;
-  new Chart(ctx,{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:"Tests passing over time",color:"#52514e",font:{size:11}}},scales:{x:{ticks:{maxTicksLimit:6,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}}});
+  // Director feedback (2026-07-09, via the page comment widget): the test-
+  // count line alone plateaus in weeks spent on verification/compliance/
+  // architecture work rather than raw test volume, which reads as "no
+  // progress" even when real capability keeps landing. Phases completed
+  // (docs/PROJECT_OVERVIEW.md Section 4 build history) keeps climbing
+  // through those same weeks, so it's plotted alongside as a second series
+  // on its own axis rather than replacing the honest (if flatter) test
+  // line -- both are real signals, shown together.
+  // phase_dates' row index is file/parse order, which is not perfectly
+  // date-ordered (some phase entries are backfilled/out-of-sequence in
+  // PROJECT_OVERVIEW.md's Section 4) -- a per-date max alone can produce a
+  // false dip (e.g. 2026-06-26 tops out at 208 but 2026-06-27 only reaches
+  // 94). A cumulative running max across sorted dates is the honest
+  // rendering: "phases completed by this date," which cannot decrease.
+  var phaseDateMax={};
+  pd.forEach(function(row){ phaseDateMax[row[0]]=Math.max(phaseDateMax[row[0]]||0, row[1]); });
+  var phaseByDate={};
+  var _running=0;
+  Object.keys(phaseDateMax).sort().forEach(function(d){
+    _running=Math.max(_running, phaseDateMax[d]);
+    phaseByDate[d]=_running;
+  });
+  var testByDate={};
+  tp.forEach(function(row){ testByDate[row[0]]=row[1]; });
+  // Union of both series' dates, sorted, so each dataset is indexed
+  // against the SAME label array by date rather than by raw array
+  // position (the two series don't cover identical date sets).
+  var allDates=Object.keys(Object.assign({},testByDate,phaseByDate)).sort();
+  new Chart(ctx,{type:"line",data:{labels:allDates,datasets:[
+    {label:"Tests passing",data:allDates.map(function(d){return testByDate.hasOwnProperty(d)?testByDate[d]:null;}),spanGaps:true,borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1,yAxisID:"yTests"},
+    {label:"Phases completed",data:allDates.map(function(d){return phaseByDate.hasOwnProperty(d)?phaseByDate[d]:null;}),spanGaps:true,borderColor:"#2a6fb0",backgroundColor:"rgba(42,111,176,0.08)",fill:false,borderWidth:2,pointRadius:1,yAxisID:"yPhases"}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:"#52514e",font:{size:10}}},title:{display:true,text:"Development over time -- tests passing & phases completed",color:"#52514e",font:{size:11}}},scales:{x:{ticks:{maxTicksLimit:6,color:"#52514e"},grid:{color:"#e1e0d9"}},yTests:{position:"left",ticks:{color:"#0ca30c"},grid:{color:"#e1e0d9"}},yPhases:{position:"right",ticks:{color:"#2a6fb0"},grid:{display:false}}}}});
 }
 Promise.all([
   fetch("./data/dashboard.json").then(function(r){return r.json();}).catch(function(){return {};}),

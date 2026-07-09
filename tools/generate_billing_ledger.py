@@ -158,7 +158,7 @@ def generate(run_json_path=None, out_path=None):
 
         beh = behavioral.get(cid) or {}
         stress = _stress_for_year(beh, year)
-        method = _payment_method(segment, amount)
+        method = _payment_method(segment, amount, cid, commodity)
         outcome, days_late = _payment_outcome(method, stress, rng, segment)
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,

@@ -98,7 +98,8 @@ def generate_credit_refund_log(
             continue
         segment = customer_segments.get(cid, "resi")
         last_bill = customer_bills[-1]
-        method = payment_method(segment, last_bill["total_amount_gbp"])
+        method = payment_method(segment, last_bill["total_amount_gbp"], cid,
+                                 last_bill.get("commodity", "electricity"))
         if method != "direct_debit":
             continue
         balance = dd_smoothing_balance_at_closure(customer_bills)

@@ -22,13 +22,15 @@ independently sourced -- tuned only so the weighted aggregate lands at the
 existing anchored ~35% (0.48*0.65 + 0.23*0.15 + 0.29*0.02 ≈ 0.352),
 honestly flagged as such per the Anchored-noise law.
 
-Layer 1 scope: engagement_level only. Fuel-poverty/income-band, payment-
-method-mix, tenure, occupancy, and complaint-propensity archetype threading
-(the remaining dimensions in CORE_FIDELITY_PHASES.md's Phase 1 archetype
-table) are explicit backlog, not built this pass -- see
+Layer 1 scope: engagement_level only. Layer 2 dimension 1 (payment-method
+mix -- see PaymentChannel/payment_channel_for_customer below) added
+2026-07-09. Fuel-poverty/income-band, tenure, occupancy, and
+complaint-propensity archetype threading (the remaining dimensions in
+CORE_FIDELITY_PHASES.md's Phase 1 archetype table) are still explicit
+backlog, not built this pass -- see
 docs/market_research/ASSUMPTIONS.md's "Household Segment & Psychology"
 section for real anchors already registered for those (ONS Census 2021
-occupancy, EHS 2023-24 tenure, DESNZ fuel poverty/payment-method).
+occupancy, EHS 2023-24 tenure, DESNZ fuel poverty).
 
 ⚠ Recalibration flag (docs/market_research/ASSUMPTIONS.md, same section):
 a MORE RECENT Ofgem Retail Market Indicators series (Oct 2025) puts the
@@ -104,3 +106,42 @@ def active_renewal_probability_for_customer(customer_id: str) -> float:
     active-renewal probability in one call -- the typical call site
     (simulation/run_phase2b.py) only needs the final float."""
     return active_renewal_probability(engagement_level_for_customer(customer_id))
+
+
+class PaymentChannel(str, Enum):
+    DIRECT_DEBIT = "direct_debit"
+    STANDARD_CREDIT = "standard_credit"
+
+
+# Layer 2, dimension 1 (payment-method mix): the exact named gap in
+# docs/market_research/ASSUMPTIONS.md's "Household Segment & Psychology"
+# section -- `simulation/arrears_engine.py::payment_method()` was
+# segment-aware (resi/SME/I&C) but returned a FLAT "direct_debit" for every
+# resi customer, i.e. the whole population, when real suppliers have a
+# genuinely mixed payment-method book.
+#
+# Anchor: DESNZ "Quarterly Energy Prices: June 2026" commentary, "Payment
+# methods" section (fetched 2026-07-08) -- Direct Debit was 72% of standard
+# electricity customers and 75% of gas customers, end of March 2026. The
+# remaining ~25-28% (prepayment + standard credit combined) has NO published
+# sub-split in the fetched commentary text (genuine registered gap, not
+# guessed) -- so that remainder is collapsed into one STANDARD_CREDIT bucket
+# here rather than inventing an unanchored three-way split. Recovering the
+# PPM-vs-standard-credit sub-split (and PPM's genuinely different mechanic --
+# pre-payment, self-disconnect risk, no "returned" event -- rather than a
+# late/missed bank-transfer payment) is explicit backlog, flagged again here.
+DIRECT_DEBIT_SHARE_BY_FUEL: dict[str, float] = {
+    "electricity": 0.72,
+    "gas": 0.75,
+}
+
+
+def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") -> PaymentChannel:
+    """Deterministic per-customer, per-fuel payment-channel archetype,
+    stable for the account's whole tenure. Keyed on (customer_id, fuel) --
+    not just customer_id -- because the anchor itself is fuel-specific
+    (72% elec vs 75% gas) and this codebase already bills/meters electricity
+    and gas as two independent accounts (own MPAN/MPRN) per household."""
+    share = DIRECT_DEBIT_SHARE_BY_FUEL.get(fuel, DIRECT_DEBIT_SHARE_BY_FUEL["electricity"])
+    rng = random.Random(f"paychannel_{customer_id}_{fuel}")
+    return PaymentChannel.DIRECT_DEBIT if rng.random() < share else PaymentChannel.STANDARD_CREDIT

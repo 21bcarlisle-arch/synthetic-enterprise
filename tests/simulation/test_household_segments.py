@@ -8,11 +8,14 @@ rate reproducing the existing anchored ~35% figure.
 import statistics
 
 from simulation.household_segments import (
+    DIRECT_DEBIT_SHARE_BY_FUEL,
     ENGAGEMENT_POPULATION_SHARE,
     EngagementLevel,
+    PaymentChannel,
     active_renewal_probability,
     active_renewal_probability_for_customer,
     engagement_level_for_customer,
+    payment_channel_for_customer,
 )
 
 
@@ -97,3 +100,65 @@ def test_large_sample_realized_active_renewal_rate_close_to_anchor():
         active_count += _random.Random(f"outcome_{cid}").random() < p
     rate = active_count / n
     assert abs(rate - 0.35) < 0.03
+
+
+# --- Layer 2 dimension 1: payment-method mix (2026-07-09) ---
+
+
+def test_dd_share_anchors_in_valid_range():
+    for fuel, share in DIRECT_DEBIT_SHARE_BY_FUEL.items():
+        assert 0.0 <= share <= 1.0
+
+
+def test_payment_channel_is_deterministic():
+    a = payment_channel_for_customer("C1", "electricity")
+    b = payment_channel_for_customer("C1", "electricity")
+    assert a == b
+
+
+def test_payment_channel_returns_valid_enum():
+    for i in range(50):
+        channel = payment_channel_for_customer(f"CUST{i}", "electricity")
+        assert channel in PaymentChannel
+
+
+def test_payment_channel_can_differ_by_fuel_for_same_customer():
+    """The anchor itself is fuel-specific (72% elec / 75% gas) -- keying the
+    draw on (customer_id, fuel) means at least some customers should land on
+    different channels for their two accounts across a large sample."""
+    differs = any(
+        payment_channel_for_customer(f"DUAL_{i}", "electricity")
+        != payment_channel_for_customer(f"DUAL_{i}", "gas")
+        for i in range(200)
+    )
+    assert differs
+
+
+def test_large_sample_matches_dd_share_electricity():
+    n = 3000
+    dd_count = sum(
+        payment_channel_for_customer(f"PM_ELEC_{i}", "electricity") == PaymentChannel.DIRECT_DEBIT
+        for i in range(n)
+    )
+    observed = dd_count / n
+    assert abs(observed - DIRECT_DEBIT_SHARE_BY_FUEL["electricity"]) < 0.03
+
+
+def test_large_sample_matches_dd_share_gas():
+    n = 3000
+    dd_count = sum(
+        payment_channel_for_customer(f"PM_GAS_{i}", "gas") == PaymentChannel.DIRECT_DEBIT
+        for i in range(n)
+    )
+    observed = dd_count / n
+    assert abs(observed - DIRECT_DEBIT_SHARE_BY_FUEL["gas"]) < 0.03
+
+
+def test_payment_channel_unknown_fuel_falls_back_to_electricity_share():
+    n = 2000
+    dd_count = sum(
+        payment_channel_for_customer(f"PM_UNK_{i}", "unknown_fuel") == PaymentChannel.DIRECT_DEBIT
+        for i in range(n)
+    )
+    observed = dd_count / n
+    assert abs(observed - DIRECT_DEBIT_SHARE_BY_FUEL["electricity"]) < 0.03

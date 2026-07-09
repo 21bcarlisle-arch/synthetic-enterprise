@@ -91,7 +91,7 @@
         <option value="none">None</option>
         <option value="hdd">Heating Degree Days</option>
         <option value="short">System Short %</option>
-        <option value="gas">Gas NBP &pound;/MWh</option>
+        <option value="gas" selected>Gas NBP &pound;/MWh</option>
       </select>
     </div>
     <canvas id="monthly-chart" height="280"></canvas>
@@ -1101,7 +1101,12 @@
         priceMonthlyCache = data.monthly || [];
         priceWeatherMonthlyCache = (weather && weather.monthly) || [];
         buildKPIs(data);
-        buildChart(priceMonthlyCache, 'none');
+        // Director feedback (2026-07-09, page comment on /sim/): wants gas and
+        // electricity visible together, not gated behind the overlay picker --
+        // the dual-axis Gas NBP overlay already existed in buildChart(), just
+        // defaulted to 'none'. Default to 'gas' instead; the picker still lets
+        // HDD/System Short% be swapped in.
+        buildChart(priceMonthlyCache, 'gas');
         buildNegPriceChart(data.annual || []);
         buildAnnualTable(data.annual || [], priceMonthlyCache, data.daily || {});
         buildPeakTable(data.peak_records || []);

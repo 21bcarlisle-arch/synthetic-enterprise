@@ -159,11 +159,24 @@ def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: s
     return stages
 
 
-def payment_method(segment: str, amount_gbp: float) -> str:
+def payment_method(segment: str, amount_gbp: float, customer_id: str | None = None,
+                    fuel: str = "electricity") -> str:
+    """`customer_id`/`fuel` are optional and keyword-only in practice --
+    default None preserves the original flat "every resi customer is on
+    direct debit" behaviour exactly. When a customer_id is supplied for a
+    resi customer, the real DD/non-DD population mix from
+    `simulation.household_segments.payment_channel_for_customer()` is used
+    instead (2026-07-09, closes the named gap in
+    docs/market_research/ASSUMPTIONS.md's "Household Segment & Psychology"
+    section: payment_method() was segment-aware but not archetype-aware
+    within resi)."""
     if segment in _IC_SEGMENTS:
         return "chaps" if amount_gbp >= 10000 else "bacs"
     if segment == "sme":
         return "bacs"
+    if customer_id is not None:
+        from simulation.household_segments import payment_channel_for_customer
+        return payment_channel_for_customer(customer_id, fuel).value
     return "direct_debit"
 
 
@@ -251,7 +264,7 @@ def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: 
         issue_date = date.fromisoformat(period_end)
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
         stress = stress_for_year(behavioral.get(cid) or {}, year)
-        method = payment_method(segment, amount)
+        method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
         outcome, _days_late = payment_outcome(method, stress, rng, segment)
 
         if outcome not in ("failed", "dispute"):
@@ -336,7 +349,7 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
         beh = behavioral.get(cid) or {}
         stress = stress_for_year(beh, year)
-        method = payment_method(segment, amount)
+        method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
         outcome, _days_late = payment_outcome(method, stress, rng, segment)
 
         if outcome not in ("failed", "dispute"):

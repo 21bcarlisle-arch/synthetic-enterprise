@@ -83,12 +83,16 @@
 #   deliberately NOT fixed yet: a confirmed epoch-2 target that customer population must become a
 #   per-run DRAW (not a fixed cast) discovered through company-observable interfaces only, never
 #   read from SIM ground truth -- see docs/design/EPOCH2_EVIDENCE.md's headline section.
-#   Genuine remaining front-of-queue as of this 2026-07-09 freshness pass: Phase 2 Layers 2+
-#   (household segment dimensions -- fuel-poverty/income band, tenure, occupancy, payment-method
-#   mix, complaint-propensity -- threaded through switching_propensity.py/feedback_survey.py/
-#   arrears_engine.py::payment_method(); real anchors already registered in ASSUMPTIONS.md, not yet
-#   threaded) OR the P-5 re-rank item (a) NUDGE_PHYSICS remaining mechanisms. Both are named,
-#   already-approved backlog items (Tier 2), not novel proposals.
+#   Phase 2 Layer 2 dimension 1 (payment-method mix) CLOSED same day (2026-07-09,
+#   PROJECT_OVERVIEW.md Section 4 "payment-method-mix archetype" entry) --
+#   simulation/household_segments.py::payment_channel_for_customer() (DESNZ DD-share anchors
+#   72%/75% elec/gas), wired through arrears_engine.py/credit_refund_events.py/
+#   generate_billing_ledger.py, verified live (72.8% observed DD share, Statement view shows
+#   Standard credit for the non-DD population). Remaining Layer 2 dimensions (fuel-poverty/
+#   income band, tenure, occupancy, complaint-propensity) still backlog -- real anchors already
+#   registered in ASSUMPTIONS.md, not yet threaded. Genuine remaining front-of-queue: those
+#   remaining dimensions OR the P-5 re-rank item (a) NUDGE_PHYSICS remaining mechanisms. Both are
+#   named, already-approved backlog items (Tier 2), not novel proposals.
 #   (Token-economy note retired -- see BUDGET_UNCONSTRAINED entry above.)
 #   Event-driven wake (2026-07-08, director-direct, in-conversation, same reorientation
 #   conversation): background/staging_watcher.py now injects one batched tmux turn into the live
