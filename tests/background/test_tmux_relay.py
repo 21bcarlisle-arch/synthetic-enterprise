@@ -128,13 +128,33 @@ IDLE_PANE = (
 )
 
 BUSY_PANE = (
-    "* Wiring evidence and closing phase-close checklist…\n"
+    "* Wiring evidence and closing phase-close checklist… (12s)\n"
     "  ⎿  ◼ Evidence: Sim tab meter-read delay histo…\n"
     "     ✔ Housekeeping: move 3 staged docs to done/\n"
     "────────────────────────────────────────────────────────\n"
     "❯ \n"
     "────────────────────────────────────────────────────────\n"
     "  ⏵⏵ bypass permissions on (shift+tab to cycle) · esc …\n"
+)
+
+# The exact real pane content captured live (2026-07-09, doorbell failure #5)
+# during a genuinely IDLE session -- a completed task-list panel with no live
+# spinner, every line truncated with an ellipsis. The pre-fix regex (no
+# elapsed-time requirement) matched these static bullet lines as "busy",
+# making the supervisor log "Session busy" every 2-minute cycle for ~7 hours
+# straight while real work (a staged BUDGET_UNCONSTRAINED.md) sat undelivered.
+IDLE_PANE_WITH_COMPLETED_TASK_LIST = (
+    "  ⎿  ◼ EPOCH2_EVIDENCE_PASS + INTENT_RIDER: des…\n"
+    "     ◻ DIRECTOR_COMMENTS_BOX.md: per-page feedb…\n"
+    "     ✔ Fix R4: supervisor/tmux_relay copy-mode …\n"
+    "     ✔ Action from_rich 06:26 -- gas/elec clari…\n"
+    "     ✔ Action from_rich 07:12 -- explain duplic…\n"
+    "      … +3 completed\n"
+    "  ✘ Auto-update failed: no write permission to npm pre…\n"
+    "────────────────────────────────────────────────────────\n"
+    "❯ \n"
+    "────────────────────────────────────────────────────────\n"
+    "  ⏵⏵ bypass permissions on (shift+tab to cycle)\n"
 )
 
 
@@ -177,6 +197,35 @@ def test_is_session_idle_false_for_busy_pane(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning(BUSY_PANE))
     assert tmux_relay.is_session_idle("claude") is False
+
+
+def test_is_session_idle_true_for_completed_task_list_no_live_spinner(monkeypatch):
+    """Doorbell failure #5 (2026-07-09): a completed/pending task-list panel
+    (bullets ◼ ◻ ✔ ✘, each line truncated with an ellipsis) stays visible in
+    the pane indefinitely once a session has done any checklist-tracked work
+    -- it is NOT a live spinner and must never register as busy. The
+    original regex (bare ellipsis, no elapsed-time requirement) matched
+    these lines, making the supervisor see "busy" for ~7 hours straight
+    while genuinely idle, silently dropping a staged BUDGET_UNCONSTRAINED.md."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning(IDLE_PANE_WITH_COMPLETED_TASK_LIST))
+    assert tmux_relay.is_session_idle("claude") is True
+
+
+def test_busy_spinner_requires_elapsed_time_suffix_not_just_ellipsis(monkeypatch):
+    """A checklist bullet line ending in a bare truncation ellipsis, with NO
+    elapsed-time counter, must never match the busy-spinner pattern on its
+    own -- only a genuine "(<N>s)"/"(<N>m <N>s)" live-timer suffix does."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    static_checklist_only = (
+        "  ⎿  ◼ Some completed task description that…\n"
+        "────────────────────────────────────────────────────────\n"
+        "❯ \n"
+        "────────────────────────────────────────────────────────\n"
+        "  ⏵⏵ bypass permissions on (shift+tab to cycle)\n"
+    )
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning(static_checklist_only))
+    assert tmux_relay.is_session_idle("claude") is True
 
 
 def test_is_session_idle_fails_safe_on_capture_error(monkeypatch):

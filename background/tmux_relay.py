@@ -125,16 +125,32 @@ def relay_lock(timeout: float = _RELAY_LOCK_TIMEOUT_SECONDS):
         fcntl.flock(fh, fcntl.LOCK_UN)
         fh.close()
 
-# A busy pane shows a spinner glyph + gerund-form status line ending in an
-# ellipsis (e.g. "* Wiring evidence and closing phase-close checklist…") --
-# this is the harness's own in-progress-task indicator, not something any
-# idle prompt renders.
-_BUSY_SPINNER_LINE = re.compile(r"^\s*\S\s+\S.*[.…]{1,3}\s*$", re.MULTILINE)
+# A busy pane shows a spinner glyph + gerund-form status line ending in a
+# live elapsed-time counter (e.g. "✽ Running the Epoch-2 desk-work evidence
+# pass… (51s)") -- the "(<N>s)"/"(<N>m <N>s)" suffix is what's genuinely
+# unique to an in-progress task; a bare ellipsis is NOT, because Claude
+# Code's own persistent completed/pending task-list panel (bullets ◼ ◻ ✔ ✘)
+# stays visible in the pane indefinitely and its lines are truncated with
+# "…" too. The original regex (no elapsed-time requirement, 2026-07-08)
+# matched those static checklist lines as "busy" -- confirmed live
+# (2026-07-09): the supervisor logged "Session busy" every single 2-minute
+# cycle for ~7 hours straight while the session was genuinely idle for
+# almost all of it, because a completed task-list block sat in the pane's
+# last 30 lines the whole time. Real work (a staged BUDGET_UNCONSTRAINED.md)
+# went undelivered for hours as a direct result -- this is the exact bug R4
+# was supposed to have already caught, in the same function, one day older.
+_BUSY_SPINNER_LINE = re.compile(r"^\s*\S\s+\S.*\(\d+(?:m\s*\d+\s*)?s\)\s*$", re.MULTILINE)
 
 # Claude Code's footer shows an "esc to interrupt"-style hint (sometimes
 # truncated to "esc …" in a narrow pane) only while a turn is actively
 # running; an idle prompt's footer does not mention "esc" in this context.
+# The check must be scoped to the actual footer line (identified by the
+# stable "bypass permissions" marker), not a bare substring search across
+# the whole pane -- found live (2026-07-09, doorbell failure #5) that a
+# pane-content word merely CONTAINING "esc" (e.g. "description") would
+# otherwise false-positive as busy.
 _BUSY_FOOTER_HINT = "esc"
+_FOOTER_LINE_MARKER = "bypass permissions"
 
 
 def _configured_session_name() -> str:
@@ -256,7 +272,10 @@ def is_session_idle(session: str) -> bool:
         return False
     if _BUSY_SPINNER_LINE.search(content):
         return False
-    if _BUSY_FOOTER_HINT in content.lower():
+    footer_line = next(
+        (line for line in content.splitlines() if _FOOTER_LINE_MARKER in line), ""
+    )
+    if _BUSY_FOOTER_HINT in footer_line.lower():
         return False
     return True
 
