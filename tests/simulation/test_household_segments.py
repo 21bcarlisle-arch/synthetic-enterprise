@@ -11,13 +11,16 @@ from simulation.household_segments import (
     DIRECT_DEBIT_SHARE_BY_FUEL,
     ENGAGEMENT_POPULATION_SHARE,
     FUEL_POVERTY_RATE_BY_CHANNEL,
+    TENURE_POPULATION_SHARE,
     EngagementLevel,
     PaymentChannel,
+    TenureType,
     active_renewal_probability,
     active_renewal_probability_for_customer,
     engagement_level_for_customer,
     fuel_poverty_for_customer,
     payment_channel_for_customer,
+    tenure_for_customer,
 )
 
 
@@ -211,3 +214,37 @@ def test_large_sample_matches_fuel_poverty_rate_standard_credit():
     )
     observed = poor_count / n
     assert abs(observed - FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.STANDARD_CREDIT]) < 0.03
+
+
+# --- Layer 2 dimension 3: tenure (2026-07-10) ---
+
+
+def test_tenure_population_shares_sum_to_one():
+    assert abs(sum(TENURE_POPULATION_SHARE.values()) - 1.0) < 1e-9
+
+
+def test_tenure_is_deterministic():
+    a = tenure_for_customer("C1")
+    b = tenure_for_customer("C1")
+    assert a == b
+
+
+def test_tenure_returns_valid_enum():
+    for i in range(50):
+        tenure = tenure_for_customer(f"CUST{i}")
+        assert tenure in TenureType
+
+
+def test_tenure_varies_across_customers():
+    tenures = {tenure_for_customer(f"C{i}") for i in range(200)}
+    assert len(tenures) == 3  # all three tenure types should appear across 200 customers
+
+
+def test_large_sample_matches_tenure_population_shares():
+    n = 3000
+    counts = {t: 0 for t in TenureType}
+    for i in range(n):
+        counts[tenure_for_customer(f"TEN_{i}")] += 1
+    for tenure, share in TENURE_POPULATION_SHARE.items():
+        observed = counts[tenure] / n
+        assert abs(observed - share) < 0.03

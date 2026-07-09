@@ -33,10 +33,39 @@ def stress_switching_multiplier(income_stress: IncomeStress | None) -> float:
     return STRESS_SWITCHING_MULTIPLIER[income_stress]
 
 
-def adjust_churn_probability(base_prob: float, income_stress: IncomeStress | None) -> float:
-    """Apply income stress modifier to a base churn probability.
+# Layer 2 dimension 3 (tenure, 2026-07-09): real suppliers see lower
+# switching among renters -- private renters often can't freely switch
+# (landlord-controlled accounts in some tenancies, more transient outlook,
+# less incentive to invest effort in a home they don't own); social
+# renters similarly. EHS anchors the population SHARE of each tenure type
+# (household_segments.py::TENURE_POPULATION_SHARE) but does NOT publish a
+# switching-suppression magnitude -- these multipliers are a calibration
+# CHOICE (NOT independently sourced), kept modest, per the Anchored-noise
+# law. Owner-occupier is the baseline (1.0, no suppression).
+TENURE_SWITCHING_MULTIPLIER: dict[str, float] = {
+    "owner_occupier": 1.0,
+    "private_renter": 0.80,
+    "social_renter": 0.75,
+}
 
-    Result capped at 0.95; cannot go negative.
+
+def tenure_switching_multiplier(tenure: str | None) -> float:
+    """Return the switching-propensity multiplier for a given tenure
+    archetype. None maps to owner_occupier (baseline -- no tenure data
+    available), matching stress_switching_multiplier's None convention."""
+    if tenure is None:
+        return TENURE_SWITCHING_MULTIPLIER["owner_occupier"]
+    return TENURE_SWITCHING_MULTIPLIER.get(tenure, TENURE_SWITCHING_MULTIPLIER["owner_occupier"])
+
+
+def adjust_churn_probability(base_prob: float, income_stress: IncomeStress | None,
+                              tenure: str | None = None) -> float:
+    """Apply income stress (and optionally tenure) modifiers to a base
+    churn probability.
+
+    `tenure` is optional -- default None preserves the exact original
+    behaviour (income-stress-only). Result capped at 0.95; cannot go
+    negative.
     """
-    multiplier = stress_switching_multiplier(income_stress)
+    multiplier = stress_switching_multiplier(income_stress) * tenure_switching_multiplier(tenure)
     return min(max(base_prob * multiplier, 0.0), _MAX_CHURN_PROBABILITY)

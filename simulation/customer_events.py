@@ -109,9 +109,13 @@ def roll_lifecycle_event(
     if market_year is not None:
         p_churn_market = (1.0 - effective_p_retain) * market_switching_multiplier(market_year)
         effective_p_retain = 1.0 - min(p_churn_market, 0.95)
-    # Phase MZ: apply income_stress switching propensity before retention modifier
+    # Phase MZ: apply income_stress switching propensity before retention modifier.
+    # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
+    # renters switch less (see switching_propensity.py's module note).
     if income_stress is not None:
-        p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress)
+        from simulation.household_segments import tenure_for_customer
+        tenure = tenure_for_customer(billing_account).value
+        p_churn_stress = adjust_churn_probability(1.0 - effective_p_retain, income_stress, tenure)
         effective_p_retain = 1.0 - p_churn_stress
     # Phase NF: apply SIM-side satisfaction score before retention modifier
     if satisfaction_score is not None:

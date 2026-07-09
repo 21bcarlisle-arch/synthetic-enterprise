@@ -219,9 +219,10 @@
           <th>Payment Score</th>
           <th>Satisfaction</th>
           <th>Fuel Poverty</th>
+          <th>Housing Tenure</th>
           <th>Life Events</th>
         </tr></thead>
-        <tbody id="cust-tbody"><tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        <tbody id="cust-tbody"><tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
     <div class="section-title">Income Stress Distribution Over Time</div>
@@ -641,7 +642,12 @@
     var stressNum = {LOW:0, MODERATE:0.5, HIGH:1};
     var rows = ids.map(function(id, idx) {
       var c = custs[id];
-      var seg = (id.indexOf('IC') >= 0) ? 'I&C' : 'Residential';
+      // Found while adding the fuel-poverty/tenure columns (2026-07-10):
+      // this previously keyed off the account ID substring alone (only
+      // ever producing 'I&C' or 'Residential'), silently mislabelling real
+      // SME accounts as Residential -- now uses the actual segment field.
+      var _segLabel = {resi:'Residential', SME:'SME', 'I&C':'I&C'};
+      var seg = _segLabel[c.segment] || (id.indexOf('IC') >= 0 ? 'I&C' : 'Residential');
       var traj = c.income_stress_trajectory || [];
       var lastSt = (traj.length ? traj[traj.length-1].stress || 'low' : 'low').toUpperCase();
       var pa = c.payment_behaviour_analytics || {};
@@ -653,11 +659,13 @@
       var stCol = stColors[lastSt] || 'var(--muted)';
       var scCol = scColors[sc] || 'var(--muted)';
       var fpCell = c.fuel_poverty == null ? '—' : (c.fuel_poverty ? '<span style="color:var(--red)">Yes</span>' : 'No');
+      var _housingTenureLabel = {owner_occupier:'Owner-occupier', private_renter:'Private renter', social_renter:'Social renter'};
+      var housingTenureCell = c.tenure ? (_housingTenureLabel[c.tenure] || c.tenure) : '—';
       var detailId = 'cust-detail-' + idx;
       var stressVals = traj.map(function(pt) { return stressNum[(pt.stress||'low').toUpperCase()] != null ? stressNum[(pt.stress||'low').toUpperCase()] : 0; });
       var satVals = satTraj.map(function(pt) { return Number(pt.satisfaction_score); });
-      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
-      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="8" style="background:var(--surface2);padding:14px 18px">'+
+      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="text-align:right;font-size:11px">'+housingTenureCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="9" style="background:var(--surface2);padding:14px 18px">'+
         '<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Income Stress Trajectory</div>'+sparklineSvg(stressVals,'#d03b3b')+'</div>'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Satisfaction Trajectory</div>'+sparklineSvg(satVals,'#1baf7a')+'</div>'+

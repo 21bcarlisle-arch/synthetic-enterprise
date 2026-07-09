@@ -47,10 +47,11 @@ def test_resi_customer_gets_payment_channel_and_fuel_poverty_fields(tmp_path):
     c1 = out["customers"]["C1"]
     assert c1["payment_channel"] in ("direct_debit", "standard_credit")
     assert isinstance(c1["fuel_poverty"], bool)
+    assert c1["tenure"] in ("owner_occupier", "private_renter", "social_renter")
 
 
 def test_ic_customer_has_null_payment_channel_and_fuel_poverty(tmp_path):
-    """Payment-channel/fuel-poverty archetypes are a resi-only concept
+    """Payment-channel/fuel-poverty/tenure archetypes are a resi-only concept
     (I&C/SME use bacs/chaps, not a household DD-vs-standard-credit split)."""
     customers = {
         "C_IC1": {"segment": "I&C", "commodity": "electricity", "acquisition_date": "2020-01-01",
@@ -60,6 +61,22 @@ def test_ic_customer_has_null_payment_channel_and_fuel_poverty(tmp_path):
     ic = out["customers"]["C_IC1"]
     assert ic["payment_channel"] is None
     assert ic["fuel_poverty"] is None
+    assert ic["tenure"] is None
+
+
+def test_gas_twin_gets_same_tenure_as_electricity_leg(tmp_path):
+    """Tenure is a household-level (not per-fuel) trait -- a dual-fuel
+    household's gas leg must resolve to the SAME tenure as its electricity
+    leg (both keyed on base_account_id), unlike payment_channel/fuel_poverty
+    which are legitimately fuel-specific."""
+    customers = {
+        "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2020-01-01",
+               "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
+        "C1g": {"segment": "resi", "commodity": "gas", "acquisition_date": "2020-01-01",
+                "revenue_gbp": 50.0, "gross_gbp": 20.0, "net_gbp": 8.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C1"]["tenure"] == out["customers"]["C1g"]["tenure"]
 
 
 def test_payment_channel_deterministic_across_regeneration(tmp_path):

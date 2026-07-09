@@ -92,10 +92,14 @@
 #   CLOSED same day (2026-07-09, PROJECT_OVERVIEW.md Section 4 "fuel-poverty archetype" entry) --
 #   simulation/household_segments.py::fuel_poverty_for_customer() (DESNZ LILEE anchors 8.8% DD /
 #   20.4% non-DD blend), wired as a bounded modifier into arrears_engine.py::payment_outcome();
-#   new population-sanity check + SIM-tab evidence column. Remaining Layer 2 dimensions (tenure,
-#   occupancy, complaint-propensity) still backlog -- real anchors already registered in
-#   ASSUMPTIONS.md, not yet threaded. Genuine remaining front-of-queue: those
-#   remaining dimensions OR the P-5 re-rank item (a) NUDGE_PHYSICS remaining mechanisms. Both are
+#   new population-sanity check + SIM-tab evidence column. Dimension 3 (tenure) ALSO CLOSED
+#   (2026-07-10, PROJECT_OVERVIEW.md Section 4 "tenure archetype" entry) --
+#   simulation/household_segments.py::tenure_for_customer() (EHS anchors 65%/19%/16% owner/
+#   private-rent/social-rent), wired into switching_propensity.py (renters switch less) and
+#   customer_events.py. Remaining Layer 2 dimensions (occupancy, complaint-propensity) still
+#   backlog -- real anchors already registered in ASSUMPTIONS.md, not yet threaded. Genuine
+#   remaining front-of-queue: those remaining dimensions OR the P-5 re-rank item (a) NUDGE_PHYSICS
+#   remaining mechanisms. Both are
 #   named, already-approved backlog items (Tier 2), not novel proposals.
 #   (Token-economy note retired -- see BUDGET_UNCONSTRAINED entry above.)
 #   Event-driven wake (2026-07-08, director-direct, in-conversation, same reorientation

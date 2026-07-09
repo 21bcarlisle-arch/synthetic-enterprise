@@ -22,15 +22,14 @@ independently sourced -- tuned only so the weighted aggregate lands at the
 existing anchored ~35% (0.48*0.65 + 0.23*0.15 + 0.29*0.02 ≈ 0.352),
 honestly flagged as such per the Anchored-noise law.
 
-Layer 1 scope: engagement_level only. Layer 2 dimension 1 (payment-method
-mix -- see PaymentChannel/payment_channel_for_customer below) added
-2026-07-09. Fuel-poverty/income-band, tenure, occupancy, and
-complaint-propensity archetype threading (the remaining dimensions in
-CORE_FIDELITY_PHASES.md's Phase 1 archetype table) are still explicit
-backlog, not built this pass -- see
-docs/market_research/ASSUMPTIONS.md's "Household Segment & Psychology"
-section for real anchors already registered for those (ONS Census 2021
-occupancy, EHS 2023-24 tenure, DESNZ fuel poverty).
+Layer 1 scope: engagement_level only. Layer 2 dimensions 1-3 (payment-
+method mix, fuel poverty, tenure -- see PaymentChannel/PaymentChannel/
+TenureType below) added 2026-07-09. Occupancy and complaint-propensity
+archetype threading (the remaining dimensions in CORE_FIDELITY_PHASES.md's
+Phase 1 archetype table) are still explicit backlog, not built this pass
+-- see docs/market_research/ASSUMPTIONS.md's "Household Segment &
+Psychology" section for the real anchor already registered for that
+(ONS Census 2021 occupancy).
 
 ⚠ Recalibration flag (docs/market_research/ASSUMPTIONS.md, same section):
 a MORE RECENT Ofgem Retail Market Indicators series (Oct 2025) puts the
@@ -171,3 +170,40 @@ def fuel_poverty_for_customer(customer_id: str, payment_channel: PaymentChannel)
     rate = FUEL_POVERTY_RATE_BY_CHANNEL.get(payment_channel, FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.STANDARD_CREDIT])
     rng = random.Random(f"fuelpoverty_{customer_id}")
     return rng.random() < rate
+
+
+class TenureType(str, Enum):
+    OWNER_OCCUPIER = "owner_occupier"
+    PRIVATE_RENTER = "private_renter"
+    SOCIAL_RENTER = "social_renter"
+
+
+# Layer 2 dimension 3 (tenure, 2026-07-09): EHS 2023-24 Headline Report on
+# Demographics and Household Resilience, Chapter 1 "Trends in tenure"
+# (MHCLG, fetched 2026-07-08, see ASSUMPTIONS.md) -- England housing tenure
+# split: owner-occupier 65% (35% outright + 30% mortgagors, combined here
+# since this module doesn't yet model outright-vs-mortgaged), private
+# renters 19%, social renters 16% (10% housing association + 6% local
+# authority, combined -- the mechanism this dimension feeds, switching
+# friction, doesn't currently distinguish the two social-rent sub-types).
+TENURE_POPULATION_SHARE: dict[TenureType, float] = {
+    TenureType.OWNER_OCCUPIER: 0.65,
+    TenureType.PRIVATE_RENTER: 0.19,
+    TenureType.SOCIAL_RENTER: 0.16,
+}
+
+assert abs(sum(TENURE_POPULATION_SHARE.values()) - 1.0) < 1e-9
+
+
+def tenure_for_customer(customer_id: str) -> TenureType:
+    """Deterministic per-customer tenure archetype, stable for the
+    customer's whole tenure (a persistent housing-status trait) -- same
+    convention as engagement_level/payment_channel above."""
+    rng = random.Random(f"tenure_{customer_id}")
+    roll = rng.random()
+    cumulative = 0.0
+    for tenure, share in TENURE_POPULATION_SHARE.items():
+        cumulative += share
+        if roll < cumulative:
+            return tenure
+    return TenureType.SOCIAL_RENTER  # float-rounding fallback
