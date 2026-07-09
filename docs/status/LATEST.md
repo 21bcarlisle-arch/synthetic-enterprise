@@ -1,5 +1,5 @@
 ## Wake-doorbell third-strike fix + BILL_CORRECTNESS_ADDENDUM Defect 1 CLOSED
-Last updated: 2026-07-08T22:33:01Z
+Last updated: 2026-07-09T00:06:37Z
 
 **Status:** COMPLETE. 16,012 tests pass (full suite minus known-slow simulation integration suites).
 Epistemic: PASS.
@@ -30,7 +30,7 @@ own sequencing; harness-side pieces background-lane eligible now.
 (2026-07-07) -- SAAS_COVERAGE_MAP.md CLOSED, P2 queue fully closed. Phases RF-RX: see
 docs/claude/phase-history.md and docs/PROJECT_OVERVIEW.md Section 4.
 
-**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (468s / 8 min):
 - Net margin: £1,526,516.74 | Gross: £6,447,283.33 | Capital: £51,210
 - Treasury: £2,466,636 → £3,903,143 | 38 committee interventions | 1550 bills issued
 - Enterprise value: £8,220,970.68 | Net after CTS: £6,414,742
