@@ -469,6 +469,15 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **TIME_REPLAY (Epoch-2 dividend, registered 2026-07-09 per DIRECTOR_COMMENTS_BOX.md's
+  forward registration -- registration only, no design/build done)**: director wants a
+  run-button/slider on most site pages to visualise the passage of time -- events, actions,
+  reactions replayed. Canonical placement: this is a VIEW OVER THE EVENT LOG, a named
+  dividend of the Epoch-2 event-primitive/bitemporal architecture (see
+  docs/design/EPOCH2_EVIDENCE.md Q2 -- foundational rework, no event ledger exists yet) --
+  enters the epoch-2 programme statement when that is framed. An optional cheap precursor
+  (animating existing period snapshots, no real event ledger needed) may be proposed for the
+  director to rank separately.
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy
   (currently only feeds acquisition credit checks)
 - FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md: explicitly queued behind the current design

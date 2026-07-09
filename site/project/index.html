@@ -308,5 +308,6 @@ function renderCharts(){if(!PH)return;var tp=PH.test_progression||[];var lineOpt
 function renderBuildStats(){if(!PH)return;var build=(D&&D.build)||{};var phases=PH.total_phases;var tests=build.test_count;var commits=PH.total_commits;var modules=build.company_modules;var parts=[];if(phases)parts.push(phases+" phases");if(tests)parts.push(tests.toLocaleString()+" tests");if(commits)parts.push(commits.toLocaleString()+" commits");var rmEl=document.getElementById("rm-stat");if(rmEl){var rmParts=[];if(modules)rmParts.push(modules+" modules");if(tests)rmParts.push(tests.toLocaleString()+" tests passing");if(commits)rmParts.push("("+commits.toLocaleString()+" commits)");rmEl.textContent=rmParts.length?rmParts.join(", "):"--";}}
 Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();})]).then(function(rs){D=rs[0];PH=rs[1];renderKpis();renderCharts();renderBuildStats();}).catch(function(e){console.error("Load error:",e);});
 </script>
+<script src="../shared/director-comments.js" defer></script>
 </body>
 </html>
