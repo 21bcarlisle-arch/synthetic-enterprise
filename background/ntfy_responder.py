@@ -247,6 +247,12 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
         seen_hashes.append(h)
         seen_set.add(h)
 
+        try:
+            from background.ntfy_mirror import append_mirror_entry
+            append_mirror_entry("in", message, topic=NTFY_TOPIC)
+        except Exception:
+            pass  # mirroring must never block real inbound processing
+
         staged_path = _write_to_staging(message)
         reply = build_status_reply(staged_path)
         send_ntfy(reply, headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})

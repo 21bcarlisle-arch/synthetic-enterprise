@@ -2,6 +2,11 @@ import json
 
 from background import ntfy_utils
 
+# send_ntfy() mirrors every call (ADVISOR_VISIBILITY.md's background/ntfy_mirror.py)
+# -- no per-file isolation needed here: ntfy_mirror.append_mirror_entry() has its
+# own structural PYTEST_CURRENT_TEST guard (same pattern as tmux_relay.py), so it's
+# a no-op under this whole suite regardless of what any individual test mocks.
+
 
 def _fake_run(stdout):
     return lambda cmd, **kw: type("R", (), {"stdout": stdout})()

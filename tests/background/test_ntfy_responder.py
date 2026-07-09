@@ -3,6 +3,11 @@ import time
 
 from background import ntfy_responder as responder
 
+# check_once() mirrors inbound messages and (via send_ntfy) the ack reply
+# (ADVISOR_VISIBILITY.md's background/ntfy_mirror.py) -- no per-file isolation
+# needed: ntfy_mirror.append_mirror_entry() has its own structural
+# PYTEST_CURRENT_TEST guard (same pattern as tmux_relay.py).
+
 
 def test_run_progress_summary_no_active_run(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)

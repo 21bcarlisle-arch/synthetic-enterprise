@@ -5,6 +5,13 @@ from zoneinfo import ZoneInfo
 
 from background import session_watchdog as watchdog
 
+# Several tests here monkeypatch subprocess.run (a single shared stdlib module
+# object, so this also affects ntfy_utils.send_ntfy's own call) rather than
+# send_ntfy itself -- the real send_ntfy body, including its mirror call
+# (ADVISOR_VISIBILITY.md's background/ntfy_mirror.py), still runs. No per-file
+# isolation needed: ntfy_mirror.append_mirror_entry() has its own structural
+# PYTEST_CURRENT_TEST guard (same pattern as tmux_relay.py).
+
 
 # ── Phase QB (WATCHDOG_NO_SENDKEYS.md): nvm binary resolution ────────────────
 

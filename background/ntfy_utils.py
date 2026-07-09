@@ -111,8 +111,9 @@ def was_sent_by_us(msg_id: str | None) -> bool:
 
 def send_ntfy(message: str, headers: dict[str, str] | None = None) -> str | None:
     """POST `message` to the shared ntfy topic, record its id (so the
-    inbound-command poller can recognise and skip it), and return the id (or
-    None if the request or id-parsing failed)."""
+    inbound-command poller can recognise and skip it), mirror it
+    (secret-scrubbed) for the advisor (ADVISOR_VISIBILITY.md), and return
+    the id (or None if the request or id-parsing failed)."""
     cmd = ["curl", "-s"]
     if NTFY_AUTH_TOKEN:
         cmd += ["-H", f"Authorization: Bearer {NTFY_AUTH_TOKEN}"]
@@ -128,4 +129,11 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None) -> str | None
 
     if msg_id:
         record_sent_id(msg_id)
+
+    try:
+        from background.ntfy_mirror import append_mirror_entry
+        append_mirror_entry("out", message, topic=NTFY_TOPIC)
+    except Exception:
+        pass  # mirroring must never block or break a real send
+
     return msg_id
