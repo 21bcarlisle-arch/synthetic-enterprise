@@ -53,8 +53,27 @@ def _tariff(segment, commodity):
     return "Standard Variable (" + commodity.capitalize() + ")"
 
 
-def _meter(segment):
-    return "HH" if segment == "I&C" else "Smart"
+def _meter(cid, segment):
+    """Customer-facing meter type label.
+
+    Was a hardcoded "HH for I&C, else always Smart" placeholder -- every
+    non-I&C customer showed "Smart" regardless of their real status. That's
+    exactly what let C1 display a "Smart" label while its actual meter-read
+    data (site's Timeline/bills) behaved like a traditional meter: C1's
+    saas.customers record carried no smart_meter flag at all, so
+    simulation.meter_reads.meter_type_for_customer() silently defaulted it to
+    "traditional" (Rich-flagged 2026-07-09; root cause fixed in
+    saas/customers.py the same session -- this closes the matching label-side
+    half of the same class of bug, not just C1's instance).
+    """
+    if segment == "I&C":
+        return "HH"
+    from saas.customers import get_customer
+    from simulation.meter_reads import meter_type_for_customer
+    record = get_customer(cid)
+    if record is None:
+        return "Traditional"
+    return "Smart" if meter_type_for_customer(record) == "smart" else "Traditional"
 
 
 def _base_id(cid):
@@ -164,7 +183,7 @@ def generate(run_json_path=None):
             is_dual_fuel=has_dual_fuel,
             acquisition_date=cdata.get("acquisition_date", "2016-01-01"),
             tariff_name=_tariff(segment, commodity),
-            meter_type=_meter(segment),
+            meter_type=_meter(cid, segment),
             mpan=(_mpan(cid, segment) if commodity == "electricity" else None),
             mprn=(_mprn(cid) if commodity == "gas" else None),
             lifetime_revenue_gbp=round(cdata.get("revenue_gbp", 0), 2),

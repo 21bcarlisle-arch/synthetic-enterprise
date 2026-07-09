@@ -7,8 +7,13 @@ client = TestClient(app, raise_server_exceptions=True)
 
 
 def test_smart_meter_get_non_hh_customer():
-    # C1 is resi, profile-class (no smart meter)
-    r = client.get("/account/C1/smart-meter")
+    # C3 is resi, profile-class, and genuinely has no smart meter
+    # (saas/property_model.py's ASSET_PROFILE_BY_CUSTOMER: smart_meter=False).
+    # C1 used to serve this role too, but that relied on saas/customers.py's
+    # static CUSTOMERS entry simply omitting a smart_meter key -- C1 is
+    # actually smart per the same asset profile (Rich-flagged 2026-07-09,
+    # fixed in saas/customers.py the same session).
+    r = client.get("/account/C3/smart-meter")
     assert r.status_code == 200
     assert "Smart Meter Upgrade" in r.text
     assert "Request smart meter upgrade" in r.text
@@ -55,7 +60,9 @@ def test_smart_meter_post_event_is_self_service():
 
 
 def test_dashboard_has_smart_meter_link_for_non_hh():
-    r = client.get("/account/C1")
+    # C3 genuinely has no smart meter (see comment above) -- C1 now
+    # correctly does, so its dashboard no longer shows the upgrade link.
+    r = client.get("/account/C3")
     assert r.status_code == 200
     assert "smart-meter" in r.text
 

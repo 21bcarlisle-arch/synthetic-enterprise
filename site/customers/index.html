@@ -487,27 +487,39 @@ function renderReactionChain(){
 function renderRiskTab(){
   var d=HH.elec||HH.gas;
   var churnP=d.churn_probability||0,cc=churnColour(churnP);
-  var pa=d.pricing_action||{},paFlag=pa.flag||"OK";
-  var paColor=paFlag==="URGENT_REPRICE"?"red":paFlag==="REPRICE"?"amber":paFlag==="MONITOR"?"blue":"green";
-  var paSub=pa.recommended_uplift_pct?"Uplift: "+(pa.recommended_uplift_pct*100).toFixed(1)+"%":"";
   var lt=combinedLedgerTotals();
   var balColor=lt.balance>0.005?"red":"green";
-  return "<div class=\"sec-title\">Retention &amp; Risk"+(d===HH.elec?" (electricity account)":" (gas account)")+"</div>"+
+  // Pricing Action is computed independently per fuel-leg (unlike churn/CLV,
+  // which is genuinely household-level) -- showing only HH.elec's here
+  // silently hid a dual-fuel household's gas-side repricing flag whenever it
+  // differed from electricity's (Rich-flagged 2026-07-09: "gas tends to get
+  // ignored or forgotten"). Render one card per fuel this household has.
+  var paAccts=[];
+  if(HH.elec)paAccts.push(["Electricity",HH.elec]);
+  if(HH.gas)paAccts.push(["Gas",HH.gas]);
+  var paCards=paAccts.map(function(pair){
+    var label=pair[0],acct=pair[1];
+    var pa=acct.pricing_action||{},paFlag=pa.flag||"OK";
+    var paColor=paFlag==="URGENT_REPRICE"?"red":paFlag==="REPRICE"?"amber":paFlag==="MONITOR"?"blue":"green";
+    var paSub=pa.recommended_uplift_pct?"Uplift: "+(pa.recommended_uplift_pct*100).toFixed(1)+"%":"";
+    return "<div class=\"kpi\"><div class=\"kpi-label\">Pricing Action ("+label+")</div>"+
+      "<div class=\"kpi-value\" style=\"font-size:14px\"><span class=\""+paColor+"\">"+esc(paFlag)+"</span></div>"+
+      (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
+      "</div>";
+  }).join("");
+  return "<div class=\"sec-title\">Retention &amp; Risk</div>"+
     "<div class=\"kpi-grid\">"+
     "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
     "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
     "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
     "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
     "<div class=\"kpi\"><div class=\"kpi-label\">Expected Lifetime</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
-    "<div class=\"kpi\"><div class=\"kpi-label\">Pricing Action</div>"+
-    "<div class=\"kpi-value\" style=\"font-size:14px\"><span class=\""+paColor+"\">"+esc(paFlag)+"</span></div>"+
-    (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
-    "</div>"+
+    paCards+
     "<div class=\"kpi\"><div class=\"kpi-label\">Outstanding Balance</div>"+
     "<div class=\"kpi-value "+balColor+"\">"+gbp(lt.balance)+"</div>"+
     (lt.written_off>0.005?"<div class=\"kpi-sub\">"+gbp(lt.written_off)+" written off lifetime"+(lt.recovered>0.005?", "+gbp(lt.recovered)+" recovered":"")+"</div>":"")+
     "</div></div>"+
-    "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel. Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div>";
+    "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel; Pricing Action is computed independently per fuel-leg and shown for each fuel this household has. Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div>";
 }
 var _LEDGER_LABEL={
   invoice_raised:"Invoice raised",payment_received:"Payment received",

@@ -25,15 +25,30 @@ def test_tariff_sme():
 
 
 def test_meter_ic_is_hh():
-    assert _meter("I&C") == "HH"
+    assert _meter("C_IC1", "I&C") == "HH"
 
 
-def test_meter_resi_is_smart():
-    assert _meter("resi") == "Smart"
+def test_meter_reflects_real_smart_meter_status():
+    """Was a hardcoded "always Smart" placeholder for every non-I&C
+    customer (Rich-flagged 2026-07-09: let C1 show "Smart" on the site while
+    its actual meter-read data behaved like a traditional meter). Now
+    resolves the real per-customer status via saas.customers +
+    simulation.meter_reads.meter_type_for_customer -- C1 is genuinely smart,
+    C3 genuinely is not (saas/property_model.py's ASSET_PROFILE_BY_CUSTOMER)."""
+    assert _meter("C1", "resi") == "Smart"
+    assert _meter("C3", "resi") == "Traditional"
 
 
-def test_meter_sme_is_smart():
-    assert _meter("SME") == "Smart"
+def test_meter_gas_twin_inherits_electricity_siblings_status():
+    assert _meter("C1g", "resi") == "Smart"
+    assert _meter("C3g", "resi") == "Traditional"
+
+
+def test_meter_sme_without_known_profile_defaults_traditional():
+    # C5/C6 (SME) have no ASSET_PROFILE_BY_CUSTOMER entry and no explicit
+    # smart_meter/metering flag -- meter_type_for_customer's own documented
+    # default applies.
+    assert _meter("C5", "SME") == "Traditional"
 
 
 def test_base_id_strips_gas_suffix():
@@ -58,9 +73,9 @@ def test_tariff_unknown_segment_defaults_to_resi():
     assert len(result) > 0
 
 
-def test_meter_unknown_defaults_to_smart():
-    result = _meter("unknown")
-    assert isinstance(result, str)
+def test_meter_unknown_customer_defaults_to_traditional():
+    result = _meter("unknown_customer_id", "resi")
+    assert result == "Traditional"
 
 
 def test_base_id_strips_trailing_g_only():
