@@ -130,7 +130,21 @@
       "non_commodity_amount_gbp": 24.5,
       "vat_gbp": 4.78,
       "amount_gbp": 100.34,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 0.0,
+      "closing_read_kwh": 471.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 471.1,
+          "amount_gbp": 62.69
+        }
+      ]
     },
     {
       "id": "C1-INV2",
@@ -145,7 +159,21 @@
       "non_commodity_amount_gbp": 22.89,
       "vat_gbp": 4.47,
       "amount_gbp": 93.8,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 471.1,
+      "closing_read_kwh": 911.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 440.3,
+          "amount_gbp": 58.6
+        }
+      ]
     },
     {
       "id": "C1-INV3",
@@ -160,7 +188,21 @@
       "non_commodity_amount_gbp": 23.56,
       "vat_gbp": 4.63,
       "amount_gbp": 97.14,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 911.3,
+      "closing_read_kwh": 1364.5,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 453.1,
+          "amount_gbp": 60.58
+        }
+      ]
     },
     {
       "id": "C1-INV4",
@@ -175,7 +217,21 @@
       "non_commodity_amount_gbp": 18.53,
       "vat_gbp": 3.78,
       "amount_gbp": 79.4,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 1364.5,
+      "closing_read_kwh": 1720.8,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 356.3,
+          "amount_gbp": 49.0
+        }
+      ]
     },
     {
       "id": "C1-INV5",
@@ -190,7 +246,21 @@
       "non_commodity_amount_gbp": 18.03,
       "vat_gbp": 3.73,
       "amount_gbp": 78.24,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 1720.8,
+      "closing_read_kwh": 2067.5,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 346.7,
+          "amount_gbp": 48.11
+        }
+      ]
     },
     {
       "id": "C1-INV6",
@@ -205,7 +275,21 @@
       "non_commodity_amount_gbp": 16.65,
       "vat_gbp": 3.48,
       "amount_gbp": 72.98,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 2067.5,
+      "closing_read_kwh": 2387.7,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 320.2,
+          "amount_gbp": 44.76
+        }
+      ]
     },
     {
       "id": "C1-INV7",
@@ -220,7 +304,21 @@
       "non_commodity_amount_gbp": 17.26,
       "vat_gbp": 3.6,
       "amount_gbp": 75.6,
-      "status": "UNPAID"
+      "status": "UNPAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 2387.7,
+      "closing_read_kwh": 2719.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 331.9,
+          "amount_gbp": 46.37
+        }
+      ]
     },
     {
       "id": "C1-INV8",
@@ -235,7 +333,21 @@
       "non_commodity_amount_gbp": 17.12,
       "vat_gbp": 3.58,
       "amount_gbp": 75.13,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 2719.6,
+      "closing_read_kwh": 3048.8,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 329.2,
+          "amount_gbp": 46.06
+        }
+      ]
     },
     {
       "id": "C1-INV9",
@@ -250,7 +362,21 @@
       "non_commodity_amount_gbp": 18.61,
       "vat_gbp": 3.79,
       "amount_gbp": 79.68,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 3048.8,
+      "closing_read_kwh": 3406.7,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 357.8,
+          "amount_gbp": 49.17
+        }
+      ]
     },
     {
       "id": "C1-INV10",
@@ -265,7 +391,21 @@
       "non_commodity_amount_gbp": 19.89,
       "vat_gbp": 4.03,
       "amount_gbp": 84.61,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 3406.7,
+      "closing_read_kwh": 3789.2,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 382.6,
+          "amount_gbp": 52.32
+        }
+      ]
     },
     {
       "id": "C1-INV11",
@@ -280,7 +420,21 @@
       "non_commodity_amount_gbp": 23.68,
       "vat_gbp": 4.62,
       "amount_gbp": 97.0,
-      "status": "UNPAID"
+      "status": "UNPAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 3789.2,
+      "closing_read_kwh": 4244.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 455.3,
+          "amount_gbp": 60.61
+        }
+      ]
     },
     {
       "id": "C1-INV12",
@@ -295,7 +449,21 @@
       "non_commodity_amount_gbp": 24.46,
       "vat_gbp": 4.78,
       "amount_gbp": 100.46,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 4244.6,
+      "closing_read_kwh": 4715.0,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 470.4,
+          "amount_gbp": 62.84
+        }
+      ]
     },
     {
       "id": "C1-INV13",
@@ -310,7 +478,21 @@
       "non_commodity_amount_gbp": 25.45,
       "vat_gbp": 5.19,
       "amount_gbp": 108.9,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 4715.0,
+      "closing_read_kwh": 5186.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 471.3,
+          "amount_gbp": 69.9
+        }
+      ]
     },
     {
       "id": "C1-INV14",
@@ -325,7 +507,21 @@
       "non_commodity_amount_gbp": 22.96,
       "vat_gbp": 4.68,
       "amount_gbp": 98.27,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 5186.3,
+      "closing_read_kwh": 5657.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 425.2,
+          "amount_gbp": 63.07
+        }
+      ]
     },
     {
       "id": "C1-INV15",
@@ -340,7 +536,21 @@
       "non_commodity_amount_gbp": 24.29,
       "vat_gbp": 4.99,
       "amount_gbp": 104.69,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 5657.6,
+      "closing_read_kwh": 6129.0,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 449.8,
+          "amount_gbp": 67.05
+        }
+      ]
     },
     {
       "id": "C1-INV16",
@@ -355,7 +565,21 @@
       "non_commodity_amount_gbp": 19.28,
       "vat_gbp": 4.1,
       "amount_gbp": 86.07,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 6129.0,
+      "closing_read_kwh": 6600.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 357.1,
+          "amount_gbp": 54.59
+        }
+      ]
     },
     {
       "id": "C1-INV17",
@@ -370,7 +594,21 @@
       "non_commodity_amount_gbp": 18.62,
       "vat_gbp": 4.01,
       "amount_gbp": 84.21,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 6600.3,
+      "closing_read_kwh": 7071.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 344.8,
+          "amount_gbp": 53.21
+        }
+      ]
     },
     {
       "id": "C1-INV18",
@@ -385,7 +623,21 @@
       "non_commodity_amount_gbp": 17.4,
       "vat_gbp": 3.78,
       "amount_gbp": 79.28,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 7071.6,
+      "closing_read_kwh": 7542.9,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 322.3,
+          "amount_gbp": 50.0
+        }
+      ]
     },
     {
       "id": "C1-INV19",
@@ -400,7 +652,21 @@
       "non_commodity_amount_gbp": 17.83,
       "vat_gbp": 3.88,
       "amount_gbp": 81.38,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 7542.9,
+      "closing_read_kwh": 8014.2,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 330.3,
+          "amount_gbp": 51.3
+        }
+      ]
     },
     {
       "id": "C1-INV20",
@@ -415,7 +681,21 @@
       "non_commodity_amount_gbp": 17.69,
       "vat_gbp": 3.85,
       "amount_gbp": 80.87,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 8014.2,
+      "closing_read_kwh": 8485.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 327.7,
+          "amount_gbp": 50.95
+        }
+      ]
     },
     {
       "id": "C1-INV21",
@@ -430,7 +710,21 @@
       "non_commodity_amount_gbp": 19.37,
       "vat_gbp": 4.11,
       "amount_gbp": 86.38,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 8485.6,
+      "closing_read_kwh": 8844.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 358.7,
+          "amount_gbp": 54.8
+        }
+      ]
     },
     {
       "id": "C1-INV22",
@@ -445,7 +739,21 @@
       "non_commodity_amount_gbp": 20.82,
       "vat_gbp": 4.39,
       "amount_gbp": 92.15,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 8844.3,
+      "closing_read_kwh": 9259.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 385.5,
+          "amount_gbp": 58.58
+        }
+      ]
     },
     {
       "id": "C1-INV23",
@@ -460,7 +768,21 @@
       "non_commodity_amount_gbp": 24.59,
       "vat_gbp": 5.01,
       "amount_gbp": 105.23,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 9259.3,
+      "closing_read_kwh": 9674.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 455.3,
+          "amount_gbp": 67.54
+        }
+      ]
     },
     {
       "id": "C1-INV24",
@@ -475,7 +797,21 @@
       "non_commodity_amount_gbp": 25.46,
       "vat_gbp": 5.18,
       "amount_gbp": 108.68,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 9674.3,
+      "closing_read_kwh": 10089.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 471.4,
+          "amount_gbp": 69.68
+        }
+      ]
     },
     {
       "id": "C1-INV25",
@@ -490,7 +826,21 @@
       "non_commodity_amount_gbp": 24.93,
       "vat_gbp": 4.83,
       "amount_gbp": 101.53,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 10089.3,
+      "closing_read_kwh": 10504.4,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 470.3,
+          "amount_gbp": 63.4
+        }
+      ]
     },
     {
       "id": "C1-INV26",
@@ -505,7 +855,21 @@
       "non_commodity_amount_gbp": 22.54,
       "vat_gbp": 4.37,
       "amount_gbp": 91.78,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 10504.4,
+      "closing_read_kwh": 10919.4,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 425.2,
+          "amount_gbp": 57.31
+        }
+      ]
     },
     {
       "id": "C1-INV27",
@@ -520,7 +884,21 @@
       "non_commodity_amount_gbp": 23.68,
       "vat_gbp": 4.63,
       "amount_gbp": 97.31,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 10919.4,
+      "closing_read_kwh": 11334.4,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 446.9,
+          "amount_gbp": 60.63
+        }
+      ]
     },
     {
       "id": "C1-INV28",
@@ -535,7 +913,21 @@
       "non_commodity_amount_gbp": 18.91,
       "vat_gbp": 3.84,
       "amount_gbp": 80.61,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 11334.4,
+      "closing_read_kwh": 11691.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 356.7,
+          "amount_gbp": 49.77
+        }
+      ]
     },
     {
       "id": "C1-INV29",
@@ -550,7 +942,21 @@
       "non_commodity_amount_gbp": 18.21,
       "vat_gbp": 3.75,
       "amount_gbp": 78.83,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 11691.1,
+      "closing_read_kwh": 12086.7,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 343.7,
+          "amount_gbp": 48.49
+        }
+      ]
     },
     {
       "id": "C1-INV30",
@@ -565,7 +971,21 @@
       "non_commodity_amount_gbp": 16.98,
       "vat_gbp": 3.53,
       "amount_gbp": 74.1,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 12086.7,
+      "closing_read_kwh": 12482.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 320.3,
+          "amount_gbp": 45.49
+        }
+      ]
     },
     {
       "id": "C1-INV31",
@@ -580,7 +1000,21 @@
       "non_commodity_amount_gbp": 17.86,
       "vat_gbp": 3.7,
       "amount_gbp": 77.62,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 12482.3,
+      "closing_read_kwh": 12877.8,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 336.9,
+          "amount_gbp": 47.7
+        }
+      ]
     },
     {
       "id": "C1-INV32",
@@ -595,7 +1029,21 @@
       "non_commodity_amount_gbp": 17.53,
       "vat_gbp": 3.64,
       "amount_gbp": 76.51,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 12877.8,
+      "closing_read_kwh": 13273.4,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 330.7,
+          "amount_gbp": 46.97
+        }
+      ]
     },
     {
       "id": "C1-INV33",
@@ -610,7 +1058,21 @@
       "non_commodity_amount_gbp": 19.12,
       "vat_gbp": 3.87,
       "amount_gbp": 81.35,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 13273.4,
+      "closing_read_kwh": 13669.0,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 360.8,
+          "amount_gbp": 50.25
+        }
+      ]
     },
     {
       "id": "C1-INV34",
@@ -625,7 +1087,21 @@
       "non_commodity_amount_gbp": 20.53,
       "vat_gbp": 4.13,
       "amount_gbp": 86.66,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 13669.0,
+      "closing_read_kwh": 14064.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 387.4,
+          "amount_gbp": 53.63
+        }
+      ]
     },
     {
       "id": "C1-INV35",
@@ -640,7 +1116,21 @@
       "non_commodity_amount_gbp": 24.13,
       "vat_gbp": 4.68,
       "amount_gbp": 98.28,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 14064.6,
+      "closing_read_kwh": 14460.2,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 455.3,
+          "amount_gbp": 61.37
+        }
+      ]
     },
     {
       "id": "C1-INV36",
@@ -655,7 +1145,21 @@
       "non_commodity_amount_gbp": 24.91,
       "vat_gbp": 4.86,
       "amount_gbp": 101.96,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 14460.2,
+      "closing_read_kwh": 14855.7,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 470.0,
+          "amount_gbp": 63.83
+        }
+      ]
     },
     {
       "id": "C1-INV37",
@@ -670,7 +1174,21 @@
       "non_commodity_amount_gbp": 25.86,
       "vat_gbp": 5.65,
       "amount_gbp": 118.61,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 14855.7,
+      "closing_read_kwh": 15251.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 470.1,
+          "amount_gbp": 78.73
+        }
+      ]
     },
     {
       "id": "C1-INV38",
@@ -685,7 +1203,21 @@
       "non_commodity_amount_gbp": 23.39,
       "vat_gbp": 5.11,
       "amount_gbp": 107.27,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 15251.3,
+      "closing_read_kwh": 15676.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 425.2,
+          "amount_gbp": 71.21
+        }
+      ]
     },
     {
       "id": "C1-INV39",
@@ -700,7 +1232,21 @@
       "non_commodity_amount_gbp": 25.71,
       "vat_gbp": 5.62,
       "amount_gbp": 118.05,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 15676.6,
+      "closing_read_kwh": 16144.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 467.5,
+          "amount_gbp": 78.34
+        }
+      ]
     },
     {
       "id": "C1-INV40",
@@ -715,7 +1261,21 @@
       "non_commodity_amount_gbp": 19.57,
       "vat_gbp": 4.45,
       "amount_gbp": 93.5,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 16144.1,
+      "closing_read_kwh": 16560.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 355.9,
+          "amount_gbp": 61.37
+        }
+      ]
     },
     {
       "id": "C1-INV41",
@@ -730,7 +1290,21 @@
       "non_commodity_amount_gbp": 18.84,
       "vat_gbp": 4.34,
       "amount_gbp": 91.19,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 16560.6,
+      "closing_read_kwh": 16977.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 342.5,
+          "amount_gbp": 59.64
+        }
+      ]
     },
     {
       "id": "C1-INV42",
@@ -745,7 +1319,21 @@
       "non_commodity_amount_gbp": 17.66,
       "vat_gbp": 4.1,
       "amount_gbp": 86.02,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 16977.1,
+      "closing_read_kwh": 17393.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 321.1,
+          "amount_gbp": 56.16
+        }
+      ]
     },
     {
       "id": "C1-INV43",
@@ -760,7 +1348,21 @@
       "non_commodity_amount_gbp": 18.4,
       "vat_gbp": 4.26,
       "amount_gbp": 89.47,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 17393.6,
+      "closing_read_kwh": 17810.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 334.5,
+          "amount_gbp": 58.44
+        }
+      ]
     },
     {
       "id": "C1-INV44",
@@ -775,7 +1377,21 @@
       "non_commodity_amount_gbp": 18.05,
       "vat_gbp": 4.2,
       "amount_gbp": 88.11,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 17810.1,
+      "closing_read_kwh": 18226.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 328.2,
+          "amount_gbp": 57.49
+        }
+      ]
     },
     {
       "id": "C1-INV45",
@@ -790,7 +1406,21 @@
       "non_commodity_amount_gbp": 19.92,
       "vat_gbp": 4.52,
       "amount_gbp": 94.86,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 18226.6,
+      "closing_read_kwh": 18588.9,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 362.3,
+          "amount_gbp": 62.32
+        }
+      ]
     },
     {
       "id": "C1-INV46",
@@ -805,7 +1435,21 @@
       "non_commodity_amount_gbp": 21.48,
       "vat_gbp": 4.83,
       "amount_gbp": 101.53,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 18588.9,
+      "closing_read_kwh": 19007.2,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 390.6,
+          "amount_gbp": 66.84
+        }
+      ]
     },
     {
       "id": "C1-INV47",
@@ -820,7 +1464,21 @@
       "non_commodity_amount_gbp": 25.03,
       "vat_gbp": 5.47,
       "amount_gbp": 114.8,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 19007.2,
+      "closing_read_kwh": 19425.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 455.1,
+          "amount_gbp": 76.21
+        }
+      ]
     },
     {
       "id": "C1-INV48",
@@ -835,7 +1493,21 @@
       "non_commodity_amount_gbp": 25.92,
       "vat_gbp": 5.64,
       "amount_gbp": 118.5,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 19425.6,
+      "closing_read_kwh": 19896.9,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 471.3,
+          "amount_gbp": 78.56
+        }
+      ]
     },
     {
       "id": "C1-INV49",
@@ -850,7 +1522,21 @@
       "non_commodity_amount_gbp": 26.81,
       "vat_gbp": 5.14,
       "amount_gbp": 107.87,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 19896.9,
+      "closing_read_kwh": 20330.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 470.3,
+          "amount_gbp": 67.55
+        }
+      ]
     },
     {
       "id": "C1-INV50",
@@ -865,7 +1551,21 @@
       "non_commodity_amount_gbp": 25.1,
       "vat_gbp": 4.81,
       "amount_gbp": 100.98,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 20330.6,
+      "closing_read_kwh": 20764.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 440.4,
+          "amount_gbp": 63.24
+        }
+      ]
     },
     {
       "id": "C1-INV51",
@@ -880,7 +1580,21 @@
       "non_commodity_amount_gbp": 26.26,
       "vat_gbp": 5.05,
       "amount_gbp": 106.02,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "A",
+      "opening_read_kwh": 20764.3,
+      "closing_read_kwh": 21225.1,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 460.8,
+          "amount_gbp": 66.34
+        }
+      ]
     },
     {
       "id": "C1-INV52",
@@ -895,7 +1609,21 @@
       "non_commodity_amount_gbp": 20.29,
       "vat_gbp": 4.06,
       "amount_gbp": 85.33,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 21225.1,
+      "closing_read_kwh": 21656.6,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 355.9,
+          "amount_gbp": 52.88
+        }
+      ]
     },
     {
       "id": "C1-INV53",
@@ -910,7 +1638,21 @@
       "non_commodity_amount_gbp": 19.92,
       "vat_gbp": 4.03,
       "amount_gbp": 84.66,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 21656.6,
+      "closing_read_kwh": 22088.0,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 349.4,
+          "amount_gbp": 52.34
+        }
+      ]
     },
     {
       "id": "C1-INV54",
@@ -925,7 +1667,21 @@
       "non_commodity_amount_gbp": 18.3,
       "vat_gbp": 3.74,
       "amount_gbp": 78.63,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 22088.0,
+      "closing_read_kwh": 22519.5,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 321.0,
+          "amount_gbp": 48.49
+        }
+      ]
     },
     {
       "id": "C1-INV55",
@@ -940,7 +1696,21 @@
       "non_commodity_amount_gbp": 18.88,
       "vat_gbp": 3.86,
       "amount_gbp": 81.15,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 22519.5,
+      "closing_read_kwh": 22950.9,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 331.2,
+          "amount_gbp": 50.04
+        }
+      ]
     },
     {
       "id": "C1-INV56",
@@ -955,7 +1725,21 @@
       "non_commodity_amount_gbp": 19.31,
       "vat_gbp": 3.93,
       "amount_gbp": 82.6,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 22950.9,
+      "closing_read_kwh": 23382.4,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 338.7,
+          "amount_gbp": 50.99
+        }
+      ]
     },
     {
       "id": "C1-INV57",
@@ -970,7 +1754,21 @@
       "non_commodity_amount_gbp": 20.18,
       "vat_gbp": 4.05,
       "amount_gbp": 84.98,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 23382.4,
+      "closing_read_kwh": 23813.9,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 354.1,
+          "amount_gbp": 52.65
+        }
+      ]
     },
     {
       "id": "C1-INV58",
@@ -985,7 +1783,21 @@
       "non_commodity_amount_gbp": 22.63,
       "vat_gbp": 4.47,
       "amount_gbp": 93.8,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 23813.9,
+      "closing_read_kwh": 24245.3,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 397.0,
+          "amount_gbp": 58.33
+        }
+      ]
     },
     {
       "id": "C1-INV59",
@@ -1000,7 +1812,21 @@
       "non_commodity_amount_gbp": 26.01,
       "vat_gbp": 4.98,
       "amount_gbp": 104.6,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 24245.3,
+      "closing_read_kwh": 24676.8,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 456.3,
+          "amount_gbp": 65.51
+        }
+      ]
     },
     {
       "id": "C1-INV60",
@@ -1015,7 +1841,21 @@
       "non_commodity_amount_gbp": 25.1,
       "vat_gbp": 4.81,
       "amount_gbp": 100.96,
-      "status": "PAID"
+      "status": "PAID",
+      "meter_serial": "M00040331",
+      "mpan": "1000000000116",
+      "mprn": null,
+      "read_type": "E",
+      "opening_read_kwh": 24676.8,
+      "closing_read_kwh": 25108.2,
+      "registers": [
+        {
+          "register_id": "1",
+          "label": "Anytime",
+          "consumption_kwh": 440.3,
+          "amount_gbp": 63.23
+        }
+      ]
     }
   ],
   "ledger": {
