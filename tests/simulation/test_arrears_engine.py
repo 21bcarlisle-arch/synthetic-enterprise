@@ -25,11 +25,18 @@ from tools.generate_billing_ledger import generate as generate_ledger
 
 def _bill(cid, period_end, amount, segment="resi"):
     ps = (date.fromisoformat(period_end) - timedelta(days=90)).isoformat()
+    # VAT derived from the subtotal (not a flat weight of `amount`) at the
+    # correct rate per segment, so this fixture passes the Phase 3 pre-bill
+    # validation gate now wired into generate_billing_ledger.generate() --
+    # other components reweighted proportionally so they still sum to `amount`.
+    vat_rate = 0.05 if segment == "resi" else 0.20
+    subtotal = amount / (1 + vat_rate)
+    vat_gbp = amount - subtotal
     return {
         "customer_id": cid, "period_start": ps, "period_end": period_end,
-        "total_consumption_kwh": 1000.0, "commodity_amount_gbp": amount * 0.8,
-        "non_commodity_amount_gbp": amount * 0.1, "standing_charge_gbp": amount * 0.05,
-        "vat_gbp": amount * 0.05, "total_amount_gbp": amount,
+        "total_consumption_kwh": 1000.0, "commodity_amount_gbp": subtotal * (0.8 / 0.95),
+        "non_commodity_amount_gbp": subtotal * (0.1 / 0.95), "standing_charge_gbp": subtotal * (0.05 / 0.95),
+        "vat_gbp": vat_gbp, "total_amount_gbp": amount,
         "average_unit_rate_gbp_per_mwh": amount, "clarity_score": 0.75,
         "bill_shock_pct": None, "segment": segment, "commodity": "electricity",
     }

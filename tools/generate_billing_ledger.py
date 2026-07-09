@@ -39,6 +39,7 @@ from simulation.arrears_engine import (
     _ON_TIME_PROB,
     _LATE_DAYS,
 )
+from company.billing.pre_bill_validation import validate_bills, exception_queue_as_dicts
 
 PROJECT = Path(__file__).parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -101,6 +102,13 @@ def generate(run_json_path=None, out_path=None):
     behavioral = data.get("per_customer_behavioral", {})
     churned = set(data.get("churned_billing_accounts", []))
 
+    # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
+    # (director's Principle 1 -- 100% of bills validated before issue, zero
+    # tolerance). A held bill is excluded from this cycle's normal issuance
+    # entirely (never sent) and recorded on the exception queue below rather
+    # than silently dropped.
+    bills, held_bills = validate_bills(bills)
+
     # BILL_CORRECTNESS_ADDENDUM.md Defect 2: meter-read status (A=actual,
     # E=estimated) per bill, from Phase 3's real estimation physics
     # (simulation/meter_reads.py), keyed the same way the bills themselves
@@ -122,6 +130,7 @@ def generate(run_json_path=None, out_path=None):
             "meta": {"note": "No bill data -- re-run simulation with Phase PP extract_report_data",
                      "invoice_count": 0, "customer_count": 0},
             "customers": {},
+            "exception_queue": exception_queue_as_dicts(held_bills),
         }
         Path(out_path).parent.mkdir(parents=True, exist_ok=True)
         Path(out_path).write_text(json.dumps(result, indent=2))
@@ -271,8 +280,10 @@ def generate(run_json_path=None, out_path=None):
             "source_json": str(run_json_path),
             "invoice_count": invoice_number - 1,
             "customer_count": len(customers),
+            "held_bill_count": len(held_bills),
         },
         "customers": customers,
+        "exception_queue": exception_queue_as_dicts(held_bills),
     }
 
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)

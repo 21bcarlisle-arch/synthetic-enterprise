@@ -182,6 +182,37 @@ RESI_CONSUMPTION_ENVELOPE_GAS = RangeInvariant(
     source="Derived from Ofgem TDCV Low/High with headroom", low=1500.0, high=25000.0, unit="kWh/year",
 )
 
+_DAYS_PER_MONTH = 30.44
+
+# Per-bill (sub-annual period) plausibility. Deliberately NOT the annual
+# envelope above scaled linearly by period length -- gas and electric-heated
+# homes are heavily seasonal (a winter month can carry 20-25% of a whole
+# year's gas use), so naively annualizing one month's figure massively
+# overstates a true winter peak. Found live wiring Phase 3's gate: linear
+# annualization held 401/1550 real, already-verified-correct bills (up to
+# ~28,000 kWh/yr projected from a genuine ~2,200 kWh January gas bill).
+# These monthly-equivalent bounds are calibrated with real headroom above
+# the actual observed range in this sim's verified population (elec
+# 52-1,945 kWh/month, gas 382-5,412 kWh/month, run_output_latest.json
+# 2026-07-09) -- wide enough to tolerate real seasonal/electric-heating
+# variation, narrow enough to still catch a genuine order-of-magnitude
+# error (an SME-scale account on a resi record, the R10 C6 class).
+RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY = RangeInvariant(
+    id="resi_consumption_envelope_elec_monthly",
+    description="Plausible per-bill (~30 day) resi electricity consumption",
+    # High bound sits between the real observed resi max (1,945 kWh/month,
+    # run_output_latest.json) and C6's real SME consumption (2,346.8
+    # kWh/month, BILL_CORRECTNESS_ADDENDUM.md) -- comfortable margin above
+    # genuine domestic variation, still catches that exact defect class
+    # (an SME account mislabeled resi) if it recurs.
+    source="Calibrated against observed sim population + headroom", low=15.0, high=2100.0, unit="kWh/~30 days",
+)
+RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY = RangeInvariant(
+    id="resi_consumption_envelope_gas_monthly",
+    description="Plausible per-bill (~30 day) resi gas consumption",
+    source="Calibrated against observed sim population + headroom", low=100.0, high=8000.0, unit="kWh/~30 days",
+)
+
 # --- Year-specific unit-rate plausibility (company/pricing/ofgem_price_cap.py, Phase 47a) ---
 
 UNIT_RATE_ELEC_RESI_BY_YEAR = YearlyRangeInvariant(
@@ -225,6 +256,7 @@ ALL_INVARIANTS: list = [
     TDCV_ELEC_LOW, TDCV_ELEC_MEDIUM, TDCV_ELEC_HIGH,
     TDCV_GAS_LOW, TDCV_GAS_MEDIUM, TDCV_GAS_HIGH,
     RESI_CONSUMPTION_ENVELOPE_ELEC, RESI_CONSUMPTION_ENVELOPE_GAS,
+    RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY, RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY,
     UNIT_RATE_ELEC_RESI_BY_YEAR, UNIT_RATE_GAS_RESI_BY_YEAR,
     NET_MARGIN_PCT_OF_REVENUE, GROSS_MARGIN_PCT_OF_REVENUE,
     BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
@@ -251,8 +283,26 @@ def check_unit_rate_plausible(fuel: str, year: int, unit_rate_gbp_per_mwh: float
 
 
 def check_resi_consumption_plausible(fuel: str, annual_kwh: float) -> bool:
+    """Population/annual-level check (Phase 5/6) -- use on a full year's
+    total, never on a single sub-annual bill (see check_resi_bill_consumption_
+    plausible for that -- linear annualization of one month badly distorts
+    seasonal fuels, see that function's docstring)."""
     invariant = RESI_CONSUMPTION_ENVELOPE_ELEC if fuel == "electricity" else RESI_CONSUMPTION_ENVELOPE_GAS
     return invariant.check(annual_kwh)
+
+
+def check_resi_bill_consumption_plausible(fuel: str, kwh: float, days_in_period: float) -> bool:
+    """Per-bill plausibility check for a sub-annual billing period. Scales
+    the monthly-equivalent envelope by the period's actual length rather
+    than annualizing the observed value and comparing to an annual band --
+    annualizing (kwh * 365/days) would massively overstate a genuine winter
+    gas/electric-heating peak as an implausible whole-year projection."""
+    invariant = (
+        RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY if fuel == "electricity"
+        else RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY
+    )
+    scale = days_in_period / _DAYS_PER_MONTH
+    return invariant.low * scale <= kwh <= invariant.high * scale
 
 
 def invariant_count() -> int:

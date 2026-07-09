@@ -1,0 +1,132 @@
+"""Tier-1 pre-bill validation gate -- Phase 3 of DOMAIN_SENSE_AND_COMPLIANCE.md.
+
+Director's Principle 1 (binding): "Bills must be accurate, above all. 100% of
+bills pass preventive validation before issue; failures are HELD to an
+exception queue, never sent. Zero tolerance, continuous, not sampled."
+
+Checks every bill against the Tier-1 obligations named in
+company/compliance/obligations_register.py ("slc_6_7_billing_accuracy",
+"vat_by_segment") using the anchored predicates in
+company/compliance/domain_invariants.py -- the same class of defect R10
+names (C6 SME-as-Household at 20% VAT; 4.3x-sigma consumption anomaly).
+
+A HELD bill is a real company-side event, not a silent drop: it is excluded
+from this run's normal issuance and recorded on the exception queue with the
+specific reason(s). Held bills reaching a customer later (once the
+underlying data issue is fixed and the bill re-validates) are exactly the
+"billing delayed" scenario Phase 3's existing meter-read-delay/GSOP-
+compensation machinery already models -- this gate does not build a second,
+parallel consequence mechanism; it produces the HELD signal that mechanism
+can act on. Wiring an automatic retry/re-issue cadence and a GSOP-
+compensation trigger specifically for a gate-held bill is flagged as
+follow-up, not built in this pass.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+
+from company.compliance.domain_invariants import (
+    check_vat,
+    check_resi_bill_consumption_plausible,
+)
+
+
+class ValidationOutcome(str, Enum):
+    PASS = "pass"
+    HELD = "held"
+
+
+@dataclass(frozen=True)
+class BillValidationResult:
+    customer_id: str
+    period_end: str
+    outcome: ValidationOutcome
+    reasons: list = field(default_factory=list)  # empty when PASS
+
+    @property
+    def held(self) -> bool:
+        return self.outcome == ValidationOutcome.HELD
+
+
+def _days_in_period(bill: dict) -> float:
+    from datetime import date
+    start = date.fromisoformat(bill["period_start"])
+    end = date.fromisoformat(bill["period_end"])
+    return max((end - start).days + 1, 1)
+
+
+def _actual_vat_rate(bill: dict) -> float | None:
+    subtotal = (
+        bill.get("commodity_amount_gbp", 0.0)
+        + bill.get("non_commodity_amount_gbp", 0.0)
+        + bill.get("standing_charge_gbp", 0.0)
+    )
+    if subtotal <= 0:
+        return None
+    return bill.get("vat_gbp", 0.0) / subtotal
+
+
+def validate_bill(bill: dict) -> BillValidationResult:
+    """Run every Tier-1 check against one bill dict (the shape produced by
+    saas.bill_generator.generate_bill / tools.generate_billing_ledger's bill
+    records: customer_id, period_start, period_end, segment, commodity,
+    total_consumption_kwh, commodity_amount_gbp, non_commodity_amount_gbp,
+    standing_charge_gbp, vat_gbp). Returns PASS with empty reasons, or HELD
+    with every reason that fired (a bill can fail more than one check)."""
+    reasons: list[str] = []
+    segment = bill.get("segment", "resi")
+    commodity = bill.get("commodity", "electricity")
+
+    actual_vat = _actual_vat_rate(bill)
+    if actual_vat is not None and not check_vat(segment, actual_vat):
+        reasons.append(
+            f"vat_by_segment: segment={segment!r} implies a different VAT rate than "
+            f"the {actual_vat:.4f} applied on this bill"
+        )
+
+    if segment == "resi":
+        days = _days_in_period(bill)
+        kwh = bill.get("total_consumption_kwh", 0.0)
+        if not check_resi_bill_consumption_plausible(commodity, kwh, days):
+            reasons.append(
+                f"slc_6_7_billing_accuracy: {kwh:.1f} kWh over {days:.0f} days is implausible "
+                f"for a resi {commodity} account"
+            )
+
+    outcome = ValidationOutcome.HELD if reasons else ValidationOutcome.PASS
+    return BillValidationResult(
+        customer_id=bill.get("customer_id", ""),
+        period_end=bill.get("period_end", ""),
+        outcome=outcome,
+        reasons=reasons,
+    )
+
+
+def validate_bills(bills: list) -> tuple[list, list[BillValidationResult]]:
+    """Partition `bills` into (passing, held) -- passing bills proceed to
+    normal issuance unchanged; held bills are the exception queue, keyed by
+    (customer_id, period_end) so a caller can look up why any given bill
+    didn't issue this cycle."""
+    passing = []
+    exception_queue: list[BillValidationResult] = []
+    for bill in bills:
+        result = validate_bill(bill)
+        if result.held:
+            exception_queue.append(result)
+        else:
+            passing.append(bill)
+    return passing, exception_queue
+
+
+def exception_queue_as_dicts(exception_queue: list[BillValidationResult]) -> list[dict]:
+    """JSON-serialisable form for the ledger output -- the exception queue as
+    a real operational surface, not just an internal Python structure."""
+    return [
+        {
+            "customer_id": r.customer_id,
+            "period_end": r.period_end,
+            "reasons": r.reasons,
+        }
+        for r in exception_queue
+    ]

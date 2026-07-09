@@ -12,11 +12,17 @@ from tools.generate_billing_ledger import (
 
 def _ic_bill(cid, period_end, amount=8000.0):
     ps = (date.fromisoformat(period_end) - timedelta(days=90)).isoformat()
+    # VAT at the correct 20% (non-resi) rate so this fixture passes the
+    # Phase 3 pre-bill validation gate -- other components reweighted
+    # proportionally so they still sum to `amount`.
+    vat_rate = 0.20
+    subtotal = amount / (1 + vat_rate)
+    vat_gbp = amount - subtotal
     return {
         "customer_id": cid, "period_start": ps, "period_end": period_end,
-        "total_consumption_kwh": 1000.0, "commodity_amount_gbp": amount * 0.8,
-        "non_commodity_amount_gbp": amount * 0.1, "standing_charge_gbp": amount * 0.05,
-        "vat_gbp": amount * 0.05, "total_amount_gbp": amount,
+        "total_consumption_kwh": 1000.0, "commodity_amount_gbp": subtotal * (0.8 / 0.95),
+        "non_commodity_amount_gbp": subtotal * (0.1 / 0.95), "standing_charge_gbp": subtotal * (0.05 / 0.95),
+        "vat_gbp": vat_gbp, "total_amount_gbp": amount,
         "average_unit_rate_gbp_per_mwh": amount, "clarity_score": 0.75,
         "bill_shock_pct": None, "segment": "I&C", "commodity": "electricity",
     }
@@ -24,11 +30,17 @@ def _ic_bill(cid, period_end, amount=8000.0):
 
 def _resi_bill(cid, period_end, amount=150.0):
     ps = (date.fromisoformat(period_end) - timedelta(days=90)).isoformat()
+    # VAT derived from the subtotal (not a flat weight of `amount`) so the
+    # effective rate is exactly 5%, within the Phase 3 gate's tolerance --
+    # other components reweighted proportionally so they still sum to `amount`.
+    vat_rate = 0.05
+    subtotal = amount / (1 + vat_rate)
+    vat_gbp = amount - subtotal
     return {
         "customer_id": cid, "period_start": ps, "period_end": period_end,
-        "total_consumption_kwh": 300.0, "commodity_amount_gbp": amount * 0.7,
-        "non_commodity_amount_gbp": amount * 0.15, "standing_charge_gbp": amount * 0.1,
-        "vat_gbp": amount * 0.05, "total_amount_gbp": amount,
+        "total_consumption_kwh": 300.0, "commodity_amount_gbp": subtotal * (0.7 / 0.95),
+        "non_commodity_amount_gbp": subtotal * (0.15 / 0.95), "standing_charge_gbp": subtotal * (0.1 / 0.95),
+        "vat_gbp": vat_gbp, "total_amount_gbp": amount,
         "average_unit_rate_gbp_per_mwh": 200.0, "clarity_score": 0.80,
         "bill_shock_pct": None, "segment": "resi", "commodity": "electricity",
     }
