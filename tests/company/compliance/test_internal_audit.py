@@ -1,4 +1,5 @@
-"""Tests for company/compliance/internal_audit.py -- DOMAIN_SENSE_AND_COMPLIANCE.md Phase 6."""
+"""Tests for company/compliance/internal_audit.py -- DOMAIN_SENSE_AND_COMPLIANCE.md
+Phases 6 (bill sampling) and 7 (phase-close artefact sampling)."""
 import random
 
 from company.compliance.internal_audit import (
@@ -6,6 +7,9 @@ from company.compliance.internal_audit import (
     parse_audit_response,
     sample_bills_risk_based,
     run_internal_audit,
+    build_artefact_audit_prompt,
+    audit_artefact,
+    run_phase_close_audit,
 )
 
 
@@ -121,3 +125,66 @@ def test_run_internal_audit_finding_includes_customer_and_note():
     assert findings[0]["customer_id"] == "C6"
     assert findings[0]["period_end"] == "2024-01-31"
     assert "SME-scale" in findings[0]["note"]
+
+
+# --- Phase 7: Qwen skeptic phase-close pass (arbitrary rendered artefacts) ---
+
+def test_build_artefact_audit_prompt_includes_name_and_content():
+    prompt = build_artefact_audit_prompt("site/customers/index.html#C1", "Household bill total: GBP 100")
+    assert "site/customers/index.html#C1" in prompt
+    assert "Household bill total" in prompt
+
+
+def test_build_artefact_audit_prompt_truncates_long_content():
+    long_text = "x" * 5000
+    prompt = build_artefact_audit_prompt("some_page", long_text)
+    assert len(prompt) < 3000  # excerpt capped, not the full 5000 chars
+
+
+def test_audit_artefact_clean():
+    result = audit_artefact("page1", "all fine", call_qwen_fn=lambda p: "VERDICT: clean\nNOTE: nothing wrong")
+    assert result["verdict"] == "clean"
+    assert result["artefact_name"] == "page1"
+
+
+def test_audit_artefact_flagged():
+    result = audit_artefact("page1", "SME billed as household", call_qwen_fn=lambda p: "VERDICT: flagged\nNOTE: segment mismatch")
+    assert result["verdict"] == "flagged"
+    assert "segment mismatch" in result["note"]
+
+
+def test_run_phase_close_audit_returns_only_flagged():
+    artefacts = {"page_a": "content a", "page_b": "content b", "page_c": "content c"}
+
+    def fake_qwen(prompt):
+        if "content b" in prompt:
+            return "VERDICT: flagged\nNOTE: something off"
+        return "VERDICT: clean\nNOTE: fine"
+
+    findings = run_phase_close_audit(artefacts, n_samples=3, seed=1, call_qwen_fn=fake_qwen)
+    assert len(findings) == 1
+    assert findings[0]["artefact_name"] == "page_b"
+
+
+def test_run_phase_close_audit_samples_at_most_n_artefacts(monkeypatch):
+    artefacts = {f"page_{i}": f"content {i}" for i in range(10)}
+    calls = []
+
+    def counting_qwen(prompt):
+        calls.append(prompt)
+        return "VERDICT: clean\nNOTE: fine"
+
+    run_phase_close_audit(artefacts, n_samples=3, seed=1, call_qwen_fn=counting_qwen)
+    assert len(calls) == 3
+
+
+def test_run_phase_close_audit_empty_artefacts():
+    assert run_phase_close_audit({}, n_samples=3) == []
+
+
+def test_run_phase_close_audit_all_clean_returns_empty():
+    artefacts = {"page_a": "content a", "page_b": "content b"}
+    findings = run_phase_close_audit(
+        artefacts, n_samples=2, seed=1, call_qwen_fn=lambda p: "VERDICT: clean\nNOTE: fine"
+    )
+    assert findings == []

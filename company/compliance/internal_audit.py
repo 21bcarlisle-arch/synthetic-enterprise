@@ -125,3 +125,57 @@ def run_internal_audit(
                 "note": result["note"],
             })
     return findings
+
+
+# --- Phase 7: Qwen skeptic phase-close pass (generalises the bill-specific
+# audit above to ANY rendered artefact -- a portal page's text, a report
+# section, a dashboard block -- for the phase-close checklist ritual named
+# in DOMAIN_SENSE_AND_COMPLIANCE.md, rather than a second bespoke prompt/
+# parsing mechanism) ---
+
+def build_artefact_audit_prompt(artefact_name: str, artefact_text: str) -> str:
+    # Truncated -- num_predict-sized context is for the verdict, not for
+    # re-reading an arbitrarily long rendered page back in full.
+    excerpt = artefact_text[:2000]
+    return f"""You are a grumpy, skeptical UK energy industry auditor reviewing a rendered artefact ({artefact_name}) from a UK energy supplier's systems for absurdities an automated check might miss.
+
+Artefact content:
+{excerpt}
+
+Does anything here look absurd, inconsistent, or wrong for a real UK energy supplier -- e.g. numbers that don't add up, labels that contradict the data, implausible values? Respond with EXACTLY this format (no extra text):
+VERDICT: clean|flagged
+NOTE: <one sentence>
+/no_think"""
+
+
+def audit_artefact(
+    artefact_name: str, artefact_text: str,
+    call_qwen_fn: Callable[[str], str] = call_qwen,
+) -> dict:
+    """One artefact, one verdict -- the phase-close pass calls this once per
+    randomly sampled artefact and collects only the flagged ones, same
+    silent-on-clean discipline as run_internal_audit()."""
+    response = call_qwen_fn(build_artefact_audit_prompt(artefact_name, artefact_text))
+    result = parse_audit_response(response)
+    return {"artefact_name": artefact_name, "verdict": result["verdict"], "note": result["note"]}
+
+
+def run_phase_close_audit(
+    artefacts: dict[str, str], n_samples: int = 3, seed: Optional[int] = None,
+    call_qwen_fn: Callable[[str], str] = call_qwen,
+) -> list[dict]:
+    """`artefacts` maps a name (e.g. "site/customers/index.html#C1-bill") to
+    its rendered text content. Randomly samples n_samples of them and
+    returns only the flagged verdicts -- the phase-close checklist step
+    named in DOMAIN_SENSE_AND_COMPLIANCE.md ("Qwen skeptic pass at phase
+    close: grumpy-UK-energy-auditor prompt reads randomly sampled rendered
+    artefacts; flags absurdities")."""
+    rng = random.Random(seed)
+    names = list(artefacts.keys())
+    sampled_names = rng.sample(names, k=min(n_samples, len(names))) if names else []
+    findings = []
+    for name in sampled_names:
+        result = audit_artefact(name, artefacts[name], call_qwen_fn=call_qwen_fn)
+        if result["verdict"] == "flagged":
+            findings.append(result)
+    return findings
