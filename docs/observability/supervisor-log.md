@@ -530,3 +530,8 @@
 - [2026-07-09 23:05 UTC] Session busy -- skipping this cycle
 - [2026-07-09 23:07 UTC] Session busy -- skipping this cycle
 - [2026-07-09 23:09 UTC] Session busy -- skipping this cycle
+- [2026-07-09 23:11 UTC] Idle, no work -- skipping
+- [2026-07-09 23:13 UTC] Session busy -- skipping this cycle
+- [2026-07-09 23:15 UTC] Session busy -- skipping this cycle
+- [2026-07-09 23:17 UTC] Session busy -- skipping this cycle
+- [2026-07-09 23:20 UTC] Turn grant not delivered (busy/unconfirmed) -- retrying next cycle -- unprocessed staging -- run_complete_20260709T231051Z.md
