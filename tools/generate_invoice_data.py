@@ -36,7 +36,9 @@ def _real_invoice(inv):
     BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): meter serial,
     MPAN/MPRN, and read type (A=actual/E=estimated) + opening/closing reads
     carried straight through from the ledger record -- not fabricated here,
-    just mapped, same as every other field in this function."""
+    just mapped, same as every other field in this function.
+    Defect 3 (2026-07-09): the register/period-structured consumption list
+    (single-register today, schema supports N) carried through the same way."""
     kwh = inv.get("consumption_kwh", 0) or 0
     commodity_amt = inv.get("commodity_amount_gbp", 0) or 0
     unit_rate_p_per_kwh = round(commodity_amt / kwh * 100, 2) if kwh else None
@@ -60,6 +62,7 @@ def _real_invoice(inv):
         read_type=inv.get("read_type"),
         opening_read_kwh=inv.get("opening_read_kwh"),
         closing_read_kwh=inv.get("closing_read_kwh"),
+        registers=inv.get("registers"),
     )
 
 

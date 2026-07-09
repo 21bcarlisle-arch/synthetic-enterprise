@@ -651,14 +651,29 @@ function waterfallChip(label,d){
   return "<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+fmt(d.delta)+
     " (usage "+fmt(d.usageEffect)+", price "+fmt(d.priceEffect)+", other "+fmt(d.otherEffect)+")</span></div>";
 }
-function billEquationHtml(i){
-  var parts=[];
-  if(i.unit_rate_p_per_kwh!=null){
-    var unitTag=i.commodity==="gas"?"p/kWh (gas)":"p/kWh (elec)";
-    parts.push("<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+i.unit_rate_p_per_kwh.toFixed(2)+unitTag+" = "+gbp(i.commodity_amount_gbp)+"</span></div>");
-  }else{
-    parts.push("<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+gbp(i.commodity_amount_gbp)+"</span></div>");
+/* BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): usage rendered as one
+   line per register/period (i.registers -- single-register "Anytime" today,
+   but the array shape supports N so a future ToU tariff with Day/Night/Peak
+   registers bills correctly here without a render-layer change). Falls back
+   to the old single flat line if i.registers is absent (pre-Defect-3 data). */
+function billUsageLinesHtml(i){
+  var unitTag=i.commodity==="gas"?"p/kWh (gas)":"p/kWh (elec)";
+  if(i.registers&&i.registers.length){
+    return i.registers.map(function(r){
+      var rate=r.consumption_kwh?(r.amount_gbp/r.consumption_kwh*100):null;
+      var label=i.registers.length>1?("Usage ("+esc(r.label)+")"):"Usage";
+      return rate!=null
+        ?"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+r.consumption_kwh.toFixed(1)+" kWh &times; "+rate.toFixed(2)+unitTag+" = "+gbp(r.amount_gbp)+"</span></div>"
+        :"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+gbp(r.amount_gbp)+"</span></div>";
+    }).join("");
   }
+  if(i.unit_rate_p_per_kwh!=null){
+    return "<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+i.unit_rate_p_per_kwh.toFixed(2)+unitTag+" = "+gbp(i.commodity_amount_gbp)+"</span></div>";
+  }
+  return "<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+gbp(i.commodity_amount_gbp)+"</span></div>";
+}
+function billEquationHtml(i){
+  var parts=[billUsageLinesHtml(i)];
   parts.push("<div class=\"row\"><span class=\"rl\">+ Standing charge</span><span>"+gbp(i.standing_charge_gbp)+"</span></div>");
   if(i.non_commodity_amount_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ Network &amp; environmental</span><span>"+gbp(i.non_commodity_amount_gbp)+"</span></div>");
   if(i.vat_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ VAT</span><span>"+gbp(i.vat_gbp)+"</span></div>");

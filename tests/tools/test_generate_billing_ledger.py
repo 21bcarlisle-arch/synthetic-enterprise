@@ -196,6 +196,30 @@ def test_defect2_estimated_read_uses_estimated_consumption(tmp_path):
     assert inv["closing_read_kwh"] == 850.0  # estimated, not true, consumption
 
 
+# BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): register/period-
+# structured bill lines (ToU-ready schema, not ToU itself).
+
+def test_defect3_invoice_has_registers_list(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert isinstance(inv["registers"], list)
+    assert len(inv["registers"]) == 1
+
+
+def test_defect3_register_totals_equal_flat_fields(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    reg = inv["registers"][0]
+    assert reg["register_id"] == "1"
+    assert reg["label"] == "Anytime"
+    assert reg["consumption_kwh"] == inv["consumption_kwh"]
+    assert reg["amount_gbp"] == inv["commodity_amount_gbp"]
+
+
 def test_defect2_opening_read_chains_from_previous_closing_read(tmp_path):
     rj = tmp_path / "run.json"
     rj.write_text(json.dumps(_run([

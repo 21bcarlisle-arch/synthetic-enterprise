@@ -29,6 +29,7 @@ _LEDGER_INV = dict(
     read_type="A",
     opening_read_kwh=1000.0,
     closing_read_kwh=1471.1,
+    registers=[{"register_id": "1", "label": "Anytime", "consumption_kwh": 471.1, "amount_gbp": 62.69}],
 )
 
 
@@ -95,11 +96,19 @@ def test_real_invoice_meter_fields_default_none_when_absent_from_ledger():
     """A ledger record generated before Defect 2 landed won't have these
     keys -- must map to None, not KeyError."""
     old_inv = dict(_LEDGER_INV)
-    for key in ("meter_serial", "mpan", "mprn", "read_type", "opening_read_kwh", "closing_read_kwh"):
+    for key in ("meter_serial", "mpan", "mprn", "read_type", "opening_read_kwh", "closing_read_kwh", "registers"):
         del old_inv[key]
     out = _real_invoice(old_inv)
     assert out["meter_serial"] is None
     assert out["read_type"] is None
+    assert out["registers"] is None
+
+
+def test_real_invoice_carries_registers_list():
+    out = _real_invoice(_LEDGER_INV)
+    assert out["registers"] == [
+        {"register_id": "1", "label": "Anytime", "consumption_kwh": 471.1, "amount_gbp": 62.69}
+    ]
 
 
 def test_real_invoices_for_unknown_customer_returns_empty():

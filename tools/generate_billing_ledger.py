@@ -192,6 +192,19 @@ def generate(run_json_path=None, out_path=None):
             "opening_read_kwh": round(opening_read_kwh, 1),
             "closing_read_kwh": round(closing_read_kwh, 1),
         }
+        # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): consumption
+        # structured as a list of registers/periods, not one flat line --
+        # today every tariff is single-register ("Anytime"), so this is
+        # always a one-element list, but the SHAPE supports N so a future
+        # ToU tariff (Day/Night/Peak registers) bills correctly without a
+        # schema change. Do not build ToU itself here -- just the structure
+        # that permits it, per the addendum's own instruction.
+        inv["registers"] = [{
+            "register_id": "1",
+            "label": "Anytime",
+            "consumption_kwh": inv["consumption_kwh"],
+            "amount_gbp": inv["commodity_amount_gbp"],
+        }]
         invoices_by_cid.setdefault(cid, []).append(inv)
 
         payment_date = due_date + timedelta(days=days_late)
