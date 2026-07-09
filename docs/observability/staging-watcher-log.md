@@ -4248,3 +4248,424 @@
 - [2026-07-09 05:32 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
 - [2026-07-09 05:32 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
 - [2026-07-09 05:36 UTC] Staging watcher started — resuming from saved state
+- [2026-07-09 06:27 UTC] Silently registered NTFY-originated file: from_rich_20260709_062648.md (no staging notification)
+- [2026-07-09 06:57 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 06:57 UTC] Remote staging bridge: extracted EPOCH2_EVIDENCE_PASS.md from advisor commit
+- [2026-07-09 06:57 UTC] Notified: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 06:57 UTC] Queued wake for: EPOCH2_EVIDENCE_PASS.md (attempted in main loop, retried if session busy)
+- [2026-07-09 06:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 06:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 06:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 06:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 06:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 06:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:00 UTC] Remote has 1 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md
+- [2026-07-09 07:03 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:03 UTC] Remote staging bridge: extracted EPOCH2_INTENT_RIDER.md from advisor commit
+- [2026-07-09 07:03 UTC] Notified: EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:03 UTC] Queued wake for: EPOCH2_INTENT_RIDER.md (attempted in main loop, retried if session busy)
+- [2026-07-09 07:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:06 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:09 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:12 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:12 UTC] Silently registered NTFY-originated file: from_rich_20260709_071209.md (no staging notification)
+- [2026-07-09 07:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:15 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:18 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:21 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:24 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:27 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:31 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:34 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:37 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:40 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:43 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:46 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:50 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:53 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:56 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 07:59 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 07:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:02 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:05 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:09 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:12 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:15 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:18 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:21 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:24 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:27 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:31 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:34 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:37 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:40 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:43 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:46 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:50 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:53 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:56 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 08:59 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 08:59 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:00 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:01 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:02 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:02 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:03 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:04 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:05 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:05 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:06 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:07 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:08 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:09 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:09 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:10 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:11 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:12 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:12 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:13 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:14 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:15 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:15 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:16 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:17 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:18 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:18 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:19 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:20 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:21 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:21 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:22 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:23 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:24 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:24 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:25 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:26 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:27 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:28 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:28 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:29 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:30 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:31 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:31 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:32 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:33 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:34 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:34 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:35 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:36 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:37 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:37 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:38 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:39 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:40 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:40 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:41 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:42 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:43 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:43 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:44 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:45 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:46 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:47 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:47 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:48 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:49 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:50 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:50 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:51 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:52 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:53 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:53 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:54 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:55 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:56 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 09:56 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:57 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:58 UTC] Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:58 UTC] Wake delivered (confirmed) to 'claude' session for: EPOCH2_EVIDENCE_PASS.md, EPOCH2_INTENT_RIDER.md
+- [2026-07-09 09:59 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:02 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:05 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:08 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:10 UTC] git fetch failed (network?): network error
+- [2026-07-09 10:10 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files
+- [2026-07-09 10:10 UTC] No [ADVISOR-STAGED] commits in new remote work — skipping
+- [2026-07-09 10:11 UTC] Remote has 2 new commit(s) — scanning for advisor-staged files

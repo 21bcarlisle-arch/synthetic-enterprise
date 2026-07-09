@@ -265,3 +265,5 @@
 - [2026-07-08 16:46 UTC] Acked inbound message 'jgAQ2kL1XdK1' ('Start Phase 3 (CORE_FIDELITY_PHASES.md — unhappy-path physic') — staged as from_rich_20260708_164652.md
 - [2026-07-08 18:07 UTC] Acked inbound message 'iw5QT3pbD3Ha' ('Should I be still getting messages in the other channel? [SI') — staged as from_rich_20260708_180705.md
 - [2026-07-08 18:10 UTC] Acked inbound message 'udy6E1FP6X4F' ('"Before closing: the urgent from_rich path empirically faile') — staged as from_rich_20260708_181030.md
+- [2026-07-09 06:26 UTC] Acked inbound message 'GzbJQ9cO40rf' ('In the website is not always clear of gas or elec or both ar') — staged as from_rich_20260709_062648.md
+- [2026-07-09 07:12 UTC] Acked inbound message '82bNYrAlq3qe' ('Minor point, you replied identically via ntfy twice 6 minute') — staged as from_rich_20260709_071209.md

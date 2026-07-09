@@ -18839,3 +18839,9 @@
 - [2026-07-09 05:32 UTC] Launching autonomous turn (claude -p --dangerously-skip-permissions)
 - [2026-07-09 05:32 UTC] Autonomous turn launched (pid=<MagicMock name='Popen().pid' id='128842900734032'>)
 - [2026-07-09 05:32 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
+- [2026-07-09 10:10 UTC] Rate cap (2/hour) — skipping turn
+- [2026-07-09 10:10 UTC] Previous autonomous turn still running — skipping this cycle
+- [2026-07-09 10:10 UTC] claude binary not found at /tmp/pytest-of-rich/pytest-1183/test_launch_turn_skips_when_bi0/no_such_claude — cannot launch autonomous turn
+- [2026-07-09 10:10 UTC] Launching autonomous turn (claude -p --dangerously-skip-permissions)
+- [2026-07-09 10:10 UTC] Autonomous turn launched (pid=<MagicMock name='Popen().pid' id='136033659487296'>)
+- [2026-07-09 10:10 UTC] Usage limit active — session_watchdog will resume; skipping autonomous turn
