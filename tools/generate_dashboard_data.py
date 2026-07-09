@@ -70,7 +70,18 @@ def _derive_build_from_claude_md():
         text = claude_md.read_text()
     except OSError:
         return None, None
-    m = re.search(r"Phase ([A-Z]{1,3}) COMPLETE", text)
+    # 2026-07-10: "Current state" entries drifted away from the original
+    # literal "Phase XY COMPLETE" wording over several sessions (CLOSED /
+    # CLOSED IN FULL / bare descriptive titles are now common) -- the last
+    # entry using the exact old phrasing (Phase SC COMPLETE) was trimmed to
+    # docs/claude/phase-history.md some time before this regex's failure was
+    # actually observed (a >1hr background test run surfaced it). Broadened
+    # to accept CLOSED/CLOSED IN FULL too, for resilience against the same
+    # drift recurring in wording alone -- but the mechanism still
+    # fundamentally depends on each entry naming a short phase code
+    # somewhere; that discipline must be kept up going forward (see the
+    # phase-close checklist).
+    m = re.search(r"Phase ([A-Z]{1,3}) (?:COMPLETE|CLOSED(?: IN FULL)?)", text)
     if not m:
         return None, None
     phase = m.group(1)
