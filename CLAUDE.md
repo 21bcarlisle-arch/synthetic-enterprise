@@ -103,6 +103,7 @@ account for cost-to-serve at the customer level.
 ## Key learnings — do not repeat these mistakes
 - **Local models confabulate endpoints.** Pre-load ground-truth API context before any local model touches external sources.
 - **LATEST.md must be committed before NTFY**, not after. If stale, fix root cause.
+- **Push before claiming "committed."** Local commits are invisible to the advisor/director outside this terminal and are lost if the machine dies. Any NTFY citing a commit SHA or announcing work as done must be preceded by a push to origin — if deliberately batching, say "committed locally, push pending," never let commit-claims outrun what origin shows (2026-07-09, ADVISOR_VISIBILITY.md: found 7 local commits invisible on origin while NTFYs cited their SHAs).
 - **REVIEW_GATE must only match on actual pane idleness** — not on prose mentioning the string "REVIEW_GATE".
 - **Staging-watcher notifies Rich, not the agent.** Poll `docs/staging/` yourself.
 - **The simulation is not the company.** Company makes decisions based on what it's allowed to see.
