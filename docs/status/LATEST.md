@@ -1,37 +1,46 @@
-## THE SUPERVISOR — architecture rebuild (doorbell failure #4, R3)
-Last updated: 2026-07-09T05:38:27Z
+## BILL_CORRECTNESS_ADDENDUM CLOSED IN FULL (Defects 1-4)
+Last updated: 2026-07-09T05:59:29Z
 
-**Status:** COMPLETE. 16,026 tests pass (full suite minus known-slow simulation integration suites).
-Epistemic: PASS.
+**Status:** COMPLETE. 834 tools/ tests pass, 16,026+ full suite, epistemic PASS.
 
-**Doorbell failure #4 + architecture rebuild:** the relay_lock fix (strike 3, same day) closed
-the multi-daemon race, but a fourth failure the same night proved individual-call-site fixes
-insufficient. Evidence (docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md,
-R9-labelled): `agenda.should_nudge()` nudged the open-agenda snapshot exactly once (R5's "never
-repeat" misapplied to turn-granting) and never again by design -- work sat undone 5+ hours.
-Independently, session_watchdog's autoloop fired "delivered (confirmed)" 34 times over that same
-window with zero resulting work. Independently again, staging_watcher.py went silently inert for
-5+ hours while still alive, taking every one of its bundled responsibilities down with it.
+**Defect 1** (commit 32ab2a4c): C6's "Household / Residential" mislabel root-caused as a pure
+portal render-layer bug -- its 20% VAT and ~28MWh/yr were already correct for its true SME segment.
+Fixed with an explicit per-segment badge/label lookup. Sweeping for the same class found a second
+real bug: saas/non_commodity.py's VAT_RATE was missing an "I&C" key, silently undercharging I&C
+accounts 5% domestic VAT instead of the legally-required 20%.
 
-**Fix: `background/supervisor.py`** -- a single dumb loop, sole turn-granting authority. Every 2
-minutes: if idle AND real work exists on disk (open agenda / unprocessed staging / urgent
-from_rich / usage-pause just ended), grants one turn via the locked relay, logs the decision every
-cycle, no "already done" memory. Beyond the literal spec: tracks a work-state fingerprint across
-cycles and escalates via one deduped NTFY if grants keep succeeding with zero progress for ~16
-minutes -- the piece that would have caught tonight specifically. Demoted to non-authoritative
-fast-path hints: staging_watcher's new-file wake, dispatcher's URGENT relay. Removed outright:
-session_watchdog's autoloop send + dead cap machinery, agenda.py's whole nudge-once mechanism
-(retirement-guarded by an explicit test). Usage-limit pause/resume now each fire one NTFY
-transition. `health_check.py`/`start_worker.sh` updated. 27 new tests including explicit
-simulations of all 4 historical failure modes by name. All three affected daemons restarted live,
-verified.
+**Defect 2** (commit 6f176f87): every bill now states billing period, opening/closing meter reads
+with A(ctual)/E(stimated) type (Phase 3's meter_read_log, previously computed but never surfaced),
+meter serial, and MPAN/MPRN. Running cumulative register value chains correctly across each
+account's bill history.
 
-**Prior:** Wake-doorbell strike 3 fix + BILL_CORRECTNESS_ADDENDUM Defect 1 CLOSED (2026-07-08/09,
-see docs/retrospectives/2026-07-08-wake-doorbell-third-strike.md). Defects 2-4 (bill period/reads/
-MPAN, ToU-ready line structure, portal-vs-ledger-vs-sample reconciliation) next; Defect 5 (I&C
-billing model) registered to backlog. DOMAIN_SENSE_AND_COMPLIANCE.md queued behind Phase 4.
+**Defect 3** (commit e93a4b96): consumption restructured as a register/period list (ToU-ready
+schema -- single "Anytime" register today, array shape supports N). ToU itself not built, per the
+addendum's own instruction.
 
-**Latest simulation results (2016–2025)** — auto-processed (468s / 8 min):
+**Defect 4** (commit 10d13544): root-caused the "£13k billed vs £1.5k gross" observation as a
+definitional mismatch, not a bug -- annual_pnl's gross_gbp is the SIM's internal commodity trading
+margin, not a bill total. Added a permanent consistency-gate test sweeping every real
+customer-year (billed total must never be less than gross margin -- holds cleanly across all 143
+live pairs) plus an inline portal note.
+
+**Method rule 0c added to CLAUDE.md** per the addendum's own instruction: any customer-facing
+artefact's definition-of-done now includes rendering one real instance and inspecting it against
+domain law by eye, alongside automated invariants.
+
+Real pipeline regenerated and verified directly (commit 8494b61b): C6 (SME) now opens correctly
+with all new fields at its real 2,346.8 kWh/month (matches the addendum's own cited figure); C1
+(residential) shows the same fields at a plausible ~440 kWh/month.
+
+Defect 5 (I&C billing model) registers to backlog alongside WALLED_INTERFACES per its own "do not
+build now" instruction. Front of queue next: DOMAIN_SENSE_AND_COMPLIANCE.md (P1 compliance
+programme), recorded in the open agenda for the next session/supervisor cycle to pick up.
+
+**Prior:** THE SUPERVISOR architecture rebuild (doorbell failure #4, R3) -- see
+docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md. Wake-doorbell strike 3 fix -- see
+docs/retrospectives/2026-07-08-wake-doorbell-third-strike.md.
+
+**Latest simulation results (2016–2025)** — auto-processed:
 - Net margin: £1,526,516.74 | Gross: £6,447,283.33 | Capital: £51,210
 - Treasury: £2,466,636 → £3,903,143 | 38 committee interventions | 1550 bills issued
 - Enterprise value: £8,220,970.68 | Net after CTS: £6,414,742
