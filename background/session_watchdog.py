@@ -48,27 +48,36 @@ PROACTIVE USAGE PAUSE (soft, self-checkpointing — Rich's instruction,
 2026-06-13, fixed 2026-06-14): the usage-limit handling above is reactive —
 it waits for Claude Code's own "usage limit reached" message, which can land
 mid-tool-call and leave a messier resume than a stop at a natural checkpoint
-(between sub-phases, after a commit). To avoid that, the watchdog itself
-checks usage before sending each autoloop nudge: `check_session_usage()`
-sends a standalone `/usage` keystroke to the session (a slash command can
-only be recognised when it's the entire input — embedding "run /usage..."
-inside a longer instruction, as the original version of this did, is never
-executed as a command), captures the pane, parses the "Current session"
-percentage and reset time via `parse_usage_pane()`, then dismisses the
-dialog with Escape.
+(between sub-phases, after a commit). To avoid that, check_autoloop() checks
+usage once per idle cycle: `check_session_usage()` sends a standalone
+`/usage` keystroke to the session (a slash command can only be recognised
+when it's the entire input — embedding "run /usage..." inside a longer
+instruction, as the original version of this did, is never executed as a
+command), captures the pane, parses the "Current session" percentage and
+reset time via `parse_usage_pane()`, then dismisses the dialog with Escape.
 
 If usage is at or above USAGE_PAUSE_THRESHOLD_PCT (90%), the watchdog writes
 docs/observability/.usage_pause.json itself (`{"resume_at": "<iso8601>"}`,
-computed from the parsed reset time via `_usage_resume_at`) and skips sending
-AUTOLOOP_INSTRUCTION for this cycle — Claude's current sub-phase is left to
-finish naturally rather than being interrupted. Before sending the next
-autoloop nudge, `usage_pause_active()` checks this file: if `resume_at` is
-still in the future, the nudge is suppressed entirely (logged once, not every
-cycle); once it has passed, the file is deleted, an NTFY is sent, and normal
-autoloop resumes — `check_session_usage()` runs again on the next nudge and
-will pause again if still >= 90%. This is a soft self-imposed checkpoint
-layered in front of the hard usage-limit path above, not a replacement for
-it.
+computed from the parsed reset time via `_usage_resume_at`) and sends one
+NTFY marking the transition into pause. background/supervisor.py reads this
+same file read-only every cycle and holds off granting turns while it's
+active. `usage_pause_active()` deletes the file and sends one NTFY marking
+the transition back out of pause once `resume_at` has passed (2026-07-09,
+doorbell failure #4: "usage-limit pause and resume become ntfy transitions
+so the director never has to guess") — `check_session_usage()` runs again
+on the next idle cycle and will pause again if still >= 90%. This is a soft
+self-imposed checkpoint layered in front of the hard usage-limit path
+above, not a replacement for it.
+
+RETIRED 2026-07-09 (doorbell failure #4, R3 architecture rebuild — see
+background/supervisor.py's module docstring): check_autoloop() no longer
+sends a turn-granting nudge itself. Its idle-streak detection continues to
+gate REVIEW_GATE-reply relay and permission-prompt detection (unrelated to
+turn-granting for open backlog work) and its usage-pause write/NTFY above,
+but background/supervisor.py is now the sole authority that grants a turn
+because open work exists. The removed AUTOLOOP_INSTRUCTION nudge fired
+"delivered (confirmed)" 34 times over 5.5 hours on 2026-07-08/09 with zero
+resulting work — see docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md.
 
 KNOWN LIMITATION — "verified sender": even after the 2026-07-08 topic
 rotation to a secret value (docs/staging/NTFY_CHANNEL_HARDENING.md), ntfy.sh
@@ -114,7 +123,6 @@ from background.ntfy_utils import (  # noqa: E402
     NTFY_AUTH_TOKEN,
     NTFY_TOPIC,
     send_ntfy,
-    sign_wake_message,
     was_sent_by_us,
 )
 from background.agent_status import update_agent_status  # noqa: E402
@@ -313,10 +321,11 @@ RESUME_INSTRUCTION = (
 # middle of a running command's stdin, and long enough that a "Cogitating"
 # extended-thinking stretch with a static spinner (no live elapsed-time
 # redraw) doesn't read as a finished/idle session and trigger a
-# false-positive autoloop nudge. Previously 5 minutes, raised June 2026 after
-# observed false positives during long thinking stretches.
+# false-positive nudge. Previously 5 minutes, raised June 2026 after
+# observed false positives during long thinking stretches. Still used to
+# gate REVIEW_GATE-reply relay and permission-prompt detection below
+# (turn-granting for open work is background/supervisor.py's job now).
 AUTOLOOP_IDLE_CHECKS = 10
-MAX_AUTOLOOP_PER_HOUR = 6
 
 # If the visible pane shows either of these, the session needs Rich, not a
 # nudge: a REVIEW_GATE is a deliberate stop for human review (per
@@ -386,19 +395,6 @@ USAGE_PCT_PATTERN = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 
-AUTOLOOP_INSTRUCTION = (
-    "Per the Staging Directory Protocol, first check docs/staging/ for any "
-    "file not yet in docs/staging/done/ -- staging is pre-approval, action it "
-    "now without waiting for confirmation, following its own Gate/NTFY "
-    "instructions, then move it to docs/staging/done/. Repeat until "
-    "docs/staging/ is empty. Only then check docs/instructions/MASTER_BACKLOG.md "
-    "for the next incomplete phase or sub-phase and proceed autonomously. "
-    "Proceed immediately — do not hold for confirmation before starting. "
-    "NTFY Rich with what you are doing so he can redirect via NTFY if needed. "
-    "If you hit a genuine blocker or a REVIEW_GATE that needs Rich's input, "
-    "stop and state it clearly."
-)
-
 DOWNTIME_TASKS_FILE = Path(f"{PROJECT_DIR}/docs/instructions/background-tasks.md")
 
 # Tasks queued for the independent background-worker tmux session (local
@@ -439,10 +435,10 @@ DOWNTIME_TASKS = [
 ]
 
 restart_times: deque = deque()
-autoloop_times: deque = deque()
 
-# Mutable across main() loop iterations — tracks the autoloop idle
-# state-machine. Reset implicitly whenever the pane content changes.
+# Mutable across main() loop iterations — tracks the idle state-machine
+# that gates REVIEW_GATE-reply relay and permission-prompt detection.
+# Reset implicitly whenever the pane content changes.
 _autoloop_last_pane: str | None = None
 _autoloop_idle_streak = 0
 _autoloop_waiting_notified = False
@@ -558,13 +554,6 @@ def restarts_in_last_hour() -> int:
     while restart_times and now - restart_times[0] > 3600:
         restart_times.popleft()
     return len(restart_times)
-
-
-def autoloop_sends_in_last_hour() -> int:
-    now = time.time()
-    while autoloop_times and now - autoloop_times[0] > 3600:
-        autoloop_times.popleft()
-    return len(autoloop_times)
 
 
 def _is_yes_reply(record: dict, since: float) -> bool:
@@ -1059,9 +1048,11 @@ def usage_pause_active() -> bool:
     USAGE_PAUSE_CHECK_INSTRUCTION) is still in the future.
 
     A malformed file is logged and removed (treated as "not paused"). Once
-    `resume_at` has passed, the file is deleted and an NTFY sent — the next
-    autoloop nudge proceeds normally, and its USAGE_PAUSE_CHECK_INSTRUCTION
-    prefix will re-check /usage and pause again if still >= threshold.
+    `resume_at` has passed, the file is deleted and an NTFY sent (2026-07-09,
+    doorbell failure #4: "usage-limit pause and resume become ntfy
+    transitions so the director never has to guess") -- the supervisor
+    (background/supervisor.py) reads this same file read-only and resumes
+    granting turns normally once it's gone.
     """
     if not USAGE_PAUSE_FILE.is_file():
         return False
@@ -1070,7 +1061,7 @@ def usage_pause_active() -> bool:
         data = json.loads(USAGE_PAUSE_FILE.read_text(encoding="utf-8"))
         resume_at = datetime.fromisoformat(data["resume_at"])
     except (json.JSONDecodeError, KeyError, ValueError) as e:
-        log(f"Malformed usage-pause file ({e}) — clearing and resuming autoloop")
+        log(f"Malformed usage-pause file ({e}) — clearing, treating as not paused")
         USAGE_PAUSE_FILE.unlink()
         return False
 
@@ -1080,7 +1071,8 @@ def usage_pause_active() -> bool:
     if datetime.now(timezone.utc) < resume_at:
         return True
 
-    log(f"Usage pause window ended (resume_at={data['resume_at']}) — resuming autoloop")
+    log(f"Usage pause window ended (resume_at={data['resume_at']})")
+    ntfy("Claude Code usage pause window ended — resuming normally.")
     USAGE_PAUSE_FILE.unlink()
     return False
 
@@ -1109,8 +1101,10 @@ def _flush_pending_gate_reply() -> bool:
 
 
 def check_autoloop(pane_text: str) -> None:
-    """Autonomous main-loop nudge — see the "Autonomous main loop" section
-    of this module's constants for the rationale.
+    """Idle-state machine gating REVIEW_GATE-reply relay, permission-prompt
+    detection, and the proactive usage-pause check. Turn-granting for open
+    backlog work was retired from here 2026-07-09 (doorbell failure #4) --
+    that is now background/supervisor.py's sole job.
 
     State machine over successive calls (one per CHECK_INTERVAL_SECONDS,
     pane content from `capture_pane()`):
@@ -1121,8 +1115,8 @@ def check_autoloop(pane_text: str) -> None:
         stop, not mid-task quiet. Then:
           - REVIEW_GATE or a permission prompt visible: NTFY once (not every
             check) that the session needs Rich, and do nothing further.
-          - Otherwise: send AUTOLOOP_INSTRUCTION (subject to
-            MAX_AUTOLOOP_PER_HOUR) and NTFY a milestone message.
+          - Otherwise: check /usage and write+NTFY a proactive pause if at
+            or above threshold (see PROACTIVE USAGE PAUSE above).
 
     REVIEW_GATE_PATTERN/PERMISSION_PROMPT_PATTERN are deliberately only
     checked once the pane is idle. Checking them unconditionally on every
@@ -1131,10 +1125,9 @@ def check_autoloop(pane_text: str) -> None:
     discussing a staged instruction's gate requirements), and if that text
     sat in the captured pane tail, the old code treated it as a deliberate
     stop on every single poll — returning early before ever reaching the
-    idle/nudge logic. That suppressed AUTOLOOP_INSTRUCTION (and the soft
-    90%-usage self-check that used to be prefixed onto it) for hours while
-    Claude kept working, until the hard usage-limit path caught it at 100%
-    instead of the soft check catching it at 90%. Gating these patterns on
+    idle logic. That suppressed the soft 90%-usage self-check for hours
+    while Claude kept working, until the hard usage-limit path caught it at
+    100% instead of the soft check catching it at 90%. Gating these patterns on
     idle means an actively-changing pane never triggers them.
     """
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
@@ -1199,14 +1192,6 @@ def check_autoloop(pane_text: str) -> None:
 
     _autoloop_idle_streak = 0
 
-    if autoloop_sends_in_last_hour() >= MAX_AUTOLOOP_PER_HOUR:
-        if not _autoloop_waiting_notified:
-            log(f"Autoloop cap reached ({MAX_AUTOLOOP_PER_HOUR}/hour) — pausing")
-            ntfy(f"Claude Code autoloop cap reached ({MAX_AUTOLOOP_PER_HOUR}/hour) "
-                 "— pausing autonomous continuation, check the session.", needs_input=True)
-            _autoloop_waiting_notified = True
-        return
-
     usage = check_session_usage()
     if usage is not None:
         pct, reset_time, tz_name = usage
@@ -1217,21 +1202,14 @@ def check_autoloop(pane_text: str) -> None:
                 json.dumps({"resume_at": resume_at}), encoding="utf-8"
             )
             log(f"Session usage at {pct}% (>= {USAGE_PAUSE_THRESHOLD_PCT}%) — "
-                f"writing usage pause until {resume_at}, holding off the "
-                "autoloop nudge this cycle")
+                f"writing usage pause until {resume_at}")
+            ntfy(f"Claude Code usage at {pct}% — pausing until ~{resume_at} "
+                 "(auto-resumes, no action needed).")
             _autoloop_waiting_notified = False
             _autoloop_idle_streak = 0
             return
 
     _autoloop_waiting_notified = False
-    signed = sign_wake_message(AUTOLOOP_INSTRUCTION)
-    marker = signed.rsplit("|", 1)[-1]
-    if send_keys_when_idle(SESSION_NAME, signed, marker):
-        log("Session idle — sending autoloop continuation instruction")
-        autoloop_times.append(time.time())
-    else:
-        log("Autoloop continuation instruction not yet delivered (pane busy or "
-            "unconfirmed) — retrying next cycle")
 
 
 def handle_session_ended(pane_text: str = "") -> None:
@@ -1267,14 +1245,15 @@ def handle_session_ended(pane_text: str = "") -> None:
 
 def main() -> None:
     log("Session watchdog started (auto-restart mode — no YES gate, max "
-        f"{MAX_RESTARTS_PER_HOUR}/hr); autoloop active "
-        f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> continue, "
-        "REVIEW_GATE/permission prompts pause for Rich)")
+        f"{MAX_RESTARTS_PER_HOUR}/hr); idle-gate active "
+        f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> REVIEW_GATE/"
+        "permission-prompt check, usage-pause check; turn-granting for open "
+        "work is background/supervisor.py's job now)")
     # Startup NTFY suppressed — logged locally; Rich flagged this as noise (2026-06-25).
     update_agent_status(
         "session-watchdog", status="running",
         last_action="Watchdog started",
-        role="Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
+        role="Monitors Claude Code session; handles REVIEW_GATE/permission-prompt/usage-pause",
         produces="docs/observability/session-watchdog-log.md, tmux autoloop pings",
     )
     consecutive_down = 0

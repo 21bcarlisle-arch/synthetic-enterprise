@@ -28,6 +28,14 @@ Routing table (scalable to multiple agents — add entries per destination):
 
 Logs to docs/observability/dispatcher-log.md.
 State file: background/.dispatcher_seen.json
+
+FAST-PATH HINT, not the guarantee (2026-07-09, doorbell failure #4): the
+URGENT tmux relay below shortens the wait from "up to 2 minutes" to
+"seconds" when it works, but background/supervisor.py's own poll
+independently detects any unprocessed from_rich_*.md carrying the
+"Dispatcher: URGENT" header (see route_message's _prepend_urgency_header)
+straight off disk -- it does not depend on this relay, or on dispatcher.py
+being alive, to eventually grant a turn for it.
 """
 
 import json

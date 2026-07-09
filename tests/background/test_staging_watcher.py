@@ -203,55 +203,12 @@ def test_attempt_pending_wake_passes_sorted_names(monkeypatch):
     assert calls == [["A.md", "B.md"]]
 
 
-# ── Open-agenda continuation nudge (Deliverable 1a, docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md) ──
-
-def test_relay_agenda_nudge_calls_send_keys_when_idle(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        watcher, "send_keys_when_idle",
-        lambda session, text, marker: calls.append((session, text, marker)) or True,
-    )
-
-    result = watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"})
-
-    assert result is True
-    assert len(calls) == 1
-    session, text, marker = calls[0]
-    assert session == watcher.SESSION_NAME
-    assert "Phase 3" in text
-    assert "item 2" in text
-    assert marker
-
-
-def test_relay_agenda_nudge_never_includes_next_action_as_instruction(monkeypatch):
-    """R7: the nudge is a doorbell, never a directive -- it must not embed
-    the agenda's own next_action text as something to execute."""
-    calls = []
-    monkeypatch.setattr(
-        watcher, "send_keys_when_idle",
-        lambda session, text, marker: calls.append((session, text, marker)) or True,
-    )
-
-    watcher._relay_agenda_nudge({
-        "phase": "Phase 3", "step": "item 2",
-        "next_action": "SECRET INSTRUCTION THAT MUST NOT LEAK VERBATIM",
-    })
-
-    injected_text = calls[0][1]
-    assert "SECRET INSTRUCTION THAT MUST NOT LEAK VERBATIM" not in injected_text
-
-
-def test_relay_agenda_nudge_returns_false_when_send_fails(monkeypatch):
-    monkeypatch.setattr(watcher, "send_keys_when_idle", lambda session, text, marker: False)
-    assert watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"}) is False
-
-
-def test_relay_agenda_nudge_swallows_tmux_errors(monkeypatch):
-    def _raise(*a, **k):
-        raise Exception("tmux: no such session")
-    monkeypatch.setattr(watcher, "send_keys_when_idle", _raise)
-
-    assert watcher._relay_agenda_nudge({"phase": "Phase 3", "step": "item 2"}) is False  # must not raise
+# Open-agenda continuation nudge (Deliverable 1a,
+# docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md) retired 2026-07-09
+# (doorbell failure #4, R3 architecture rebuild) -- see
+# background/agenda.py's module docstring and test_agenda.py's
+# test_nudge_once_mechanism_is_retired for the guard against reintroducing
+# it. background/supervisor.py is the sole turn-granting authority now.
 
 
 def test_current_files_ignores_dirs_and_gitkeep(tmp_path, monkeypatch):

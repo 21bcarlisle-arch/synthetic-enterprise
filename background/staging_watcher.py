@@ -44,6 +44,23 @@ Persists the set of already-seen filenames to
 background/.staging_watcher_seen.json so restarts don\'t re-notify for files
 that arrived in an earlier run. Persists the last month a maintenance
 reminder was queued to background/.maintenance_reminder_sent.json.
+
+RETIRED 2026-07-09 (doorbell failure #4, R3 architecture rebuild, see
+background/supervisor.py's module docstring): the agenda continue-nudge
+(background/agenda.py's should_nudge()/record_nudged(), nudge-once per
+snapshot) has been removed from this daemon's loop. It fired exactly once
+for the 2026-07-08 22:47 UTC agenda snapshot, was logged delivered, and
+then -- because should_nudge() never returns an already-nudged snapshot
+again -- never fired again despite the underlying work sitting undone for
+5+ hours. background/supervisor.py is now the sole authority for granting a
+turn because open work exists (agenda, staging, urgent from_rich, or a
+usage-pause that just ended); it re-checks from scratch every 2 minutes,
+no "already nudged" memory. The new-staged-file wake below (_relay_wake_to_
+claude) is UNCHANGED and remains a fast-path hint: when it works, the
+session responds within seconds instead of waiting up to 2 minutes for the
+supervisor's next cycle -- but it is no longer load-bearing, since a failed
+or silently-ineffective wake now just means the supervisor's own poll picks
+the file up shortly after regardless.
 """
 
 import json
@@ -71,7 +88,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.tmux_relay import send_keys_when_idle  # noqa: E402
-from background import agenda  # noqa: E402
 
 # Names of new staged files whose wake hasn't yet been confirmed-delivered
 # (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md root-cause fix, 2026-07-08:
@@ -242,6 +258,11 @@ def _relay_wake_to_claude(new_names: list[str]) -> bool:
     AUTONOMOUS_RUNNER_STILL_RUNNING.md). No new process, single-writer
     preserved.
 
+    FAST-PATH HINT, not the guarantee (2026-07-09, doorbell failure #4):
+    background/supervisor.py is the sole authority that guarantees a new
+    staged file eventually gets a turn. This wake just shortens the wait
+    from "up to 2 minutes" to "seconds" on the common case where it works.
+
     Names only, never file contents -- matches this watcher's existing
     "announce, don't act" discipline.
 
@@ -283,34 +304,6 @@ def _relay_wake_to_claude(new_names: list[str]) -> bool:
         # subprocess failures, but this catch means the watcher's poll loop
         # is also protected against any future regression in that
         # guarantee, or a test double that doesn't replicate it.
-        return False
-
-
-def _relay_agenda_nudge(agenda_snapshot: dict) -> bool:
-    """Attempt ONE signed continue-nudge for open phase work that has sat
-    idle long enough (background/agenda.py, Deliverable 1a,
-    docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md). Same HMAC-signed,
-    idle-gated, verified-consumption discipline as _relay_wake_to_claude --
-    the nudge points the session at the agenda marker, it never carries the
-    agenda's own next_action text as an instruction (R7: zero content
-    authority; the receiving session re-derives what to do from disk).
-    Returns False on any failure -- the caller (main()) only calls
-    agenda.record_nudged() on True, so a busy/failed attempt is retried
-    automatically next cycle (should_nudge() keeps returning the same
-    snapshot until it's actually recorded as nudged).
-    """
-    message = (
-        f"[STAGING WATCHER: open agenda detected -- phase '{agenda_snapshot.get('phase', '?')}', "
-        f"step '{agenda_snapshot.get('step', '?')}', idle since the agenda was last updated. "
-        "Read background/.open_agenda.json and the relevant design doc/PRIORITIES.md "
-        "yourself to decide what continues -- this nudge is a doorbell only, not an "
-        "instruction (R7).]"
-    )
-    signed = sign_wake_message(message)
-    marker = signed.rsplit("|", 1)[-1]
-    try:
-        return send_keys_when_idle(SESSION_NAME, signed, marker)
-    except Exception:
         return False
 
 
@@ -420,17 +413,6 @@ def main() -> None:
             _attempt_pending_wake()
         except Exception as e:
             log(f"Pending-wake attempt error: {e}")
-
-        try:
-            due = agenda.should_nudge()
-            if due:
-                if _relay_agenda_nudge(due):
-                    agenda.record_nudged(due)
-                    log(f"Agenda continue-nudge delivered (confirmed) -- phase '{due.get('phase')}', step '{due.get('step')}'")
-                else:
-                    log(f"Agenda continue-nudge not yet delivered (session busy or unconfirmed) -- retrying next cycle -- phase '{due.get('phase')}', step '{due.get('step')}'")
-        except Exception as e:
-            log(f"Agenda check error: {e}")
 
         time.sleep(POLL_INTERVAL_SECONDS)
 

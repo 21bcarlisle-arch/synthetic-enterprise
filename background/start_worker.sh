@@ -70,6 +70,11 @@ _start_session "staging-watcher" \
   "Sends NTFY when new files land in docs/staging/" \
   "${NTFY_ENV_FLAGS[@]}"
 
+_start_session "supervisor" \
+  "python3 background/supervisor.py" \
+  "Sole turn-granting authority (2026-07-09, doorbell failure #4) -- polls every 2min, grants a turn when idle+work exists" \
+  "${NTFY_ENV_FLAGS[@]}"
+
 _start_session "ntfy-responder" \
   "python3 background/ntfy_responder.py" \
   "Instant-acks all inbound NTFY messages, writes to staging/" \
@@ -128,5 +133,5 @@ echo "Stack startup complete. Running health check..."
 python3 background/health_check.py --quiet
 echo ""
 echo "Attach to any session: tmux attach -t <session-name>"
-echo "Sessions: background-worker, session-watchdog, staging-watcher,"
+echo "Sessions: background-worker, session-watchdog, staging-watcher, supervisor,"
 echo "         ntfy-responder, dispatcher, discovery-daemon"

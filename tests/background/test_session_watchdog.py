@@ -367,7 +367,6 @@ def test_handle_usage_limit_queues_downtime_tasks(tmp_path, monkeypatch):
 
 
 def _reset_autoloop_state():
-    watchdog.autoloop_times.clear()
     watchdog._autoloop_last_pane = None
     watchdog._autoloop_idle_streak = 0
     watchdog._autoloop_waiting_notified = False
@@ -391,7 +390,11 @@ def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
     _reset_autoloop_state()
 
 
-def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
+def test_check_autoloop_idle_does_nothing_when_no_gate_or_pause(monkeypatch):
+    """2026-07-09 (doorbell failure #4): check_autoloop() no longer sends a
+    turn-granting nudge on plain idle -- background/supervisor.py owns
+    that now. An idle pane with no REVIEW_GATE/permission-prompt/usage-pause
+    condition must do nothing further."""
     _reset_autoloop_state()
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
@@ -407,29 +410,8 @@ def test_check_autoloop_sends_instruction_after_idle_streak(monkeypatch):
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(idle_pane)
 
-    assert len(relay_calls) == 1
-    session, text = relay_calls[0]
-    assert session == watchdog.SESSION_NAME
-    assert watchdog.AUTOLOOP_INSTRUCTION in text  # signed wrapper carries the original text verbatim
-    # No "milestone reached" NTFY — removed to reduce notification noise (Rich's request 2026-06-16)
-    assert not any("milestone reached" in msg for msg in ntfy_messages)
-    _reset_autoloop_state()
-
-
-def test_check_autoloop_retries_instruction_when_relay_fails(monkeypatch):
-    _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(watchdog, "send_keys_when_idle", lambda session, text, marker: False)
-    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
-
-    idle_pane = "Claude Code is idle at the prompt"
-    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
-        watchdog.check_autoloop(idle_pane)
-
-    # A failed (busy-pane) relay must not be counted against the hourly cap —
-    # nothing was actually delivered.
-    assert len(watchdog.autoloop_times) == 0
+    assert relay_calls == []
+    assert ntfy_messages == []
     _reset_autoloop_state()
 
 
@@ -510,7 +492,6 @@ def test_check_autoloop_retries_gate_response_when_relay_fails(monkeypatch, tmp_
     assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
     assert watchdog._pending_gate_decision == "Rich approved — proceed."
     assert ntfy_messages == []
-    _reset_autoloop_state()
     _reset_autoloop_state()
 
 
@@ -612,49 +593,6 @@ def test_check_autoloop_debounces_gate_clear_flicker(monkeypatch, tmp_path):
     _reset_autoloop_state()
 
 
-def test_check_autoloop_respects_cap(monkeypatch):
-    _reset_autoloop_state()
-    now = time.time()
-    for _ in range(watchdog.MAX_AUTOLOOP_PER_HOUR):
-        watchdog.autoloop_times.append(now)
-
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
-
-    idle_pane = "Claude Code is idle at the prompt"
-    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
-        watchdog.check_autoloop(idle_pane)
-
-    assert send_keys_calls == []
-    assert any("cap reached" in msg for msg in ntfy_messages)
-    _reset_autoloop_state()
-
-
-def test_check_autoloop_cap_ntfy_fires_only_once(monkeypatch):
-    """Cap NTFY must not repeat on every idle check — only fires once per cap window."""
-    _reset_autoloop_state()
-    now = time.time()
-    for _ in range(watchdog.MAX_AUTOLOOP_PER_HOUR):
-        watchdog.autoloop_times.append(now)
-
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: None)
-
-    idle_pane = "Claude Code is idle at the prompt"
-    # Run many idle check cycles (well beyond AUTOLOOP_IDLE_CHECKS)
-    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS * 5):
-        watchdog.check_autoloop(idle_pane)
-
-    cap_msgs = [m for m in ntfy_messages if "cap reached" in m]
-    assert len(cap_msgs) == 1, f"Cap NTFY fired {len(cap_msgs)} times — should be exactly 1"
-    _reset_autoloop_state()
-
-
 def test_restart_claude_respects_cap(monkeypatch):
     watchdog.restart_times.clear()
     now = time.time()
@@ -692,6 +630,9 @@ def test_usage_pause_active_true_when_resume_in_future(tmp_path, monkeypatch):
 
 
 def test_usage_pause_active_clears_file_once_resume_time_passes(tmp_path, monkeypatch):
+    """2026-07-09: resume is now an NTFY transition (doorbell failure #4),
+    reversing the earlier no-NTFY choice now that it's a clean enter/exit
+    pair rather than a repeating heartbeat."""
     pause_file = tmp_path / ".usage_pause.json"
     resume_at = datetime.now(timezone.utc) - timedelta(minutes=1)
     pause_file.write_text(json.dumps({"resume_at": resume_at.isoformat()}))
@@ -702,8 +643,7 @@ def test_usage_pause_active_clears_file_once_resume_time_passes(tmp_path, monkey
 
     assert watchdog.usage_pause_active() is False
     assert not pause_file.is_file()
-    # No "resuming" NTFY — removed to reduce notification noise (Rich's request 2026-06-16)
-    assert not any("resuming" in msg for msg in ntfy_messages)
+    assert any("resuming" in msg for msg in ntfy_messages)
 
 
 def test_usage_pause_active_clears_malformed_file(tmp_path, monkeypatch):
@@ -737,6 +677,9 @@ def test_check_autoloop_suppressed_while_usage_pause_active(tmp_path, monkeypatc
 
 
 def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch):
+    """2026-07-09: usage-pause resume is now an NTFY transition (doorbell
+    failure #4 -- "the director never has to guess"), not a turn-grant --
+    that's background/supervisor.py's job once it reads the file is gone."""
     _reset_autoloop_state()
     pause_file = tmp_path / ".usage_pause.json"
     resume_at = datetime.now(timezone.utc) - timedelta(minutes=1)
@@ -756,8 +699,8 @@ def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch)
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(idle_pane)
 
-    assert len(relay_calls) == 1
-    assert watchdog.AUTOLOOP_INSTRUCTION in relay_calls[0][1]
+    assert relay_calls == []  # no turn-grant from here any more
+    assert any("resuming normally" in msg for msg in ntfy_messages)
     assert not pause_file.is_file()
     _reset_autoloop_state()
 
@@ -801,26 +744,32 @@ def test_check_session_usage_sends_standalone_usage_and_dismisses(monkeypatch):
 
 
 def test_check_autoloop_writes_usage_pause_file_at_threshold(tmp_path, monkeypatch):
+    """2026-07-09: entering a usage pause is now an NTFY transition
+    (doorbell failure #4 -- "the director never has to guess"), reversing
+    the earlier no-NTFY-for-90%-pause choice now that it's a clean
+    enter/exit pair rather than a repeating heartbeat."""
     _reset_autoloop_state()
     pause_file = tmp_path / ".usage_pause.json"
     monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog.subprocess, "run", lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})())
+    relay_calls = []
+    monkeypatch.setattr(
+        watchdog, "send_keys_when_idle",
+        lambda session, text, marker: relay_calls.append((session, text)) or True,
+    )
     monkeypatch.setattr(watchdog, "check_session_usage", lambda: (92, "4:59pm", "Europe/London"))
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(idle_pane)
 
-    assert ["tmux", "send-keys", "-t", watchdog.SESSION_NAME, watchdog.AUTOLOOP_INSTRUCTION, "Enter"] not in send_keys_calls
+    assert relay_calls == []  # no turn-grant from here any more
     assert pause_file.is_file()
     data = json.loads(pause_file.read_text())
     assert "resume_at" in data
-    # No NTFY for 90% usage pause — not actionable, removed to reduce noise
-    assert not any("92%" in msg for msg in ntfy_messages)
+    assert any("92%" in msg for msg in ntfy_messages)
     _reset_autoloop_state()
 
 

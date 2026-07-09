@@ -26,6 +26,7 @@ EXPECTED_PANES = {
     "ntfy-responder": "ntfy_responder.py",
     "staging-watcher": "staging_watcher.py",
     "session-watchdog": "session_watchdog.py",
+    "supervisor": "supervisor.py",
     "dispatcher": "dispatcher.py",
     "discovery-daemon": "discovery_agent.py",
     "background-worker": "background_worker.py",
