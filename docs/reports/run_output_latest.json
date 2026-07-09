@@ -254,9 +254,7 @@
         {
           "settlement_date": "2016-07-29",
           "treasury_gbp": 2466720.450191202,
-          "adjustments": {
-            "C1": 1.0
-          },
+          "adjustments": {},
           "portfolio_var_current_gbp": 27.727020520979767,
           "portfolio_var_stressed_gbp": 8.518381907375637
         },
@@ -33222,6 +33220,16 @@
     "net_margin_gbp": 6396260.396294071
   },
   "tou_stats": {
+    "C8": {
+      "total_kwh": 106721.8,
+      "peak_kwh": 43948.0,
+      "offpeak_kwh": 62773.8,
+      "peak_pct": 41.2,
+      "peak_revenue_gbp": 11985.0,
+      "offpeak_revenue_gbp": 9701.99,
+      "avg_peak_rate": 272.71,
+      "avg_offpeak_rate": 154.55
+    },
     "C9": {
       "total_kwh": 109386.6,
       "peak_kwh": 43689.1,
@@ -33241,16 +33249,6 @@
       "offpeak_revenue_gbp": 12233.03,
       "avg_peak_rate": 261.96,
       "avg_offpeak_rate": 144.62
-    },
-    "C8": {
-      "total_kwh": 106721.8,
-      "peak_kwh": 43948.0,
-      "offpeak_kwh": 62773.8,
-      "peak_pct": 41.2,
-      "peak_revenue_gbp": 11985.0,
-      "offpeak_revenue_gbp": 9701.99,
-      "avg_peak_rate": 272.71,
-      "avg_offpeak_rate": 154.55
     }
   },
   "company_gas_churn_log": [
@@ -85213,8 +85211,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-09T22:05:59Z",
-    "portfolio_as_of": "2026-07-09T22:05:57Z",
+    "generated_at": "2026-07-09T22:54:46Z",
+    "portfolio_as_of": "2026-07-09T22:54:43Z",
     "active_customers": 10,
     "projection_months": 12,
     "scenarios": {

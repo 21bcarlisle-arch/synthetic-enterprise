@@ -1,5 +1,5 @@
 ## BILL_CORRECTNESS_ADDENDUM CLOSED IN FULL (Defects 1-4)
-Last updated: 2026-07-09T22:57:16Z
+Last updated: 2026-07-09T23:10:19Z
 
 **Status:** COMPLETE. 834 tools/ tests pass, 16,026+ full suite, epistemic PASS.
 
@@ -40,7 +40,7 @@ programme), recorded in the open agenda for the next session/supervisor cycle to
 docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md. Wake-doorbell strike 3 fix -- see
 docs/retrospectives/2026-07-08-wake-doorbell-third-strike.md.
 
-**Latest simulation results (2016–2025)** — auto-processed (594s / 10 min):
+**Latest simulation results (2016–2025)** — auto-processed (581s / 10 min):
 - Net margin: £1,525,682.33 | Gross: £6,447,470.99 | Capital: £51,211
 - Treasury: £2,466,636 → £3,903,333 | 38 committee interventions | 1550 bills issued
 - Enterprise value: £8,160,654.31 | Net after CTS: £6,414,930
