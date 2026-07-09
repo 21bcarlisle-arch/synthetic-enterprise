@@ -1,11 +1,11 @@
 {
-  "generated": "2026-07-09T22:05:57Z",
+  "generated": "2026-07-09T22:54:43Z",
   "simulation_window": "2016-2025",
   "portfolio_summary": {
     "total_revenue_gbp": 14030856.0,
     "total_gross_gbp": 6433656.0,
-    "total_net_gbp": 1526708.0,
-    "total_bad_debt_gbp": 2092.0,
+    "total_net_gbp": 1525682.0,
+    "total_bad_debt_gbp": 3118.0,
     "final_treasury_gbp": 3903333.0,
     "enterprise_value_gbp": 8160654.0,
     "cost_to_serve_portfolio_gbp": 18727.0
@@ -427,9 +427,9 @@
       "year": 2024,
       "revenue_gbp": 2189302.0,
       "gross_gbp": 1258380.0,
-      "net_gbp": 347827.0,
-      "bad_debt_gbp": 0.0,
-      "treasury_end_gbp": 3777915.0,
+      "net_gbp": 346801.0,
+      "bad_debt_gbp": 1025.0,
+      "treasury_end_gbp": 3776890.0,
       "active_customers": 13,
       "policy_cost_gbp": 643645.0,
       "network_cost_gbp": 143473.0,
@@ -442,7 +442,7 @@
         "SME electricity": {
           "gross_gbp": 1512.552063217681,
           "capital_gbp": 13.49603263412542,
-          "net_gbp": 516.3097059999992
+          "net_gbp": -509.0002940000008
         },
         "I&C electricity": {
           "gross_gbp": 1121958.008445051,
@@ -466,7 +466,7 @@
           "wholesale_cost_gbp": 784845.2686507896,
           "gross_gbp": 1133966.0411277325,
           "capital_gbp": 9489.220146852354,
-          "net_gbp": 337359.190154
+          "net_gbp": 336333.880154
         },
         "gas": {
           "revenue_gbp": 270490.618959,
@@ -483,7 +483,7 @@
       "gross_gbp": 518927.0,
       "net_gbp": 120993.0,
       "bad_debt_gbp": 0.0,
-      "treasury_end_gbp": 3829604.0,
+      "treasury_end_gbp": 3828579.0,
       "active_customers": 10,
       "policy_cost_gbp": 281867.0,
       "network_cost_gbp": 61363.0,

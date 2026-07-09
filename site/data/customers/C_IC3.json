@@ -588,7 +588,7 @@
       "non_commodity_amount_gbp": 18489.64,
       "vat_gbp": 10490.3,
       "amount_gbp": 62941.82,
-      "status": "PAID",
+      "status": "DISPUTED",
       "meter_serial": "M00047678",
       "mpan": "1000000000353",
       "mprn": null,
@@ -704,7 +704,7 @@
       "non_commodity_amount_gbp": 18665.12,
       "vat_gbp": 10550.4,
       "amount_gbp": 63302.41,
-      "status": "DISPUTED",
+      "status": "PAID",
       "meter_serial": "M00047678",
       "mpan": "1000000000353",
       "mprn": null,
@@ -2437,6 +2437,16 @@
         "running_balance_gbp": 65700.61
       },
       {
+        "date": "2019-03-17",
+        "type": "payment_received",
+        "invoice_number": 1330,
+        "amount_gbp": -65700.61,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2019-04-03",
         "type": "invoice_raised",
         "invoice_number": 1331,
@@ -2444,16 +2454,6 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1331 raised",
-        "running_balance_gbp": 138581.53
-      },
-      {
-        "date": "2019-04-13",
-        "type": "payment_received",
-        "invoice_number": 1330,
-        "amount_gbp": -65700.61,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
         "running_balance_gbp": 72880.92
       },
       {
@@ -2637,16 +2637,6 @@
         "running_balance_gbp": 74548.87
       },
       {
-        "date": "2020-01-16",
-        "type": "payment_received",
-        "invoice_number": 1340,
-        "amount_gbp": -74548.87,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2020-02-04",
         "type": "invoice_raised",
         "invoice_number": 1341,
@@ -2654,6 +2644,16 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1341 raised",
+        "running_balance_gbp": 141547.72
+      },
+      {
+        "date": "2020-02-09",
+        "type": "payment_received",
+        "invoice_number": 1340,
+        "amount_gbp": -74548.87,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
         "running_balance_gbp": 66998.85
       },
       {
@@ -2697,16 +2697,6 @@
         "running_balance_gbp": 66788.94
       },
       {
-        "date": "2020-04-21",
-        "type": "payment_received",
-        "invoice_number": 1343,
-        "amount_gbp": -66788.94,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2020-05-01",
         "type": "invoice_raised",
         "invoice_number": 1344,
@@ -2714,6 +2704,36 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1344 raised",
+        "running_balance_gbp": 129730.76
+      },
+      {
+        "date": "2020-05-15",
+        "type": "invoice_disputed",
+        "invoice_number": 1344,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Invoice disputed -- GBP62941.82 under formal review",
+        "running_balance_gbp": 129730.76
+      },
+      {
+        "date": "2020-05-17",
+        "type": "payment_received",
+        "invoice_number": 1343,
+        "amount_gbp": -66788.94,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 62941.82
+      },
+      {
+        "date": "2020-05-29",
+        "type": "notice",
+        "invoice_number": 1344,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Dispute notice raised -- escalated to accounts receivable",
         "running_balance_gbp": 62941.82
       },
       {
@@ -2727,13 +2747,13 @@
         "running_balance_gbp": 127551.07
       },
       {
-        "date": "2020-06-08",
-        "type": "payment_received",
+        "date": "2020-06-14",
+        "type": "arrears_resolved",
         "invoice_number": 1344,
         "amount_gbp": -62941.82,
         "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
+        "method": "payment_plan",
+        "description": "Payment plan agreed -- arrears to be settled over 60 days",
         "running_balance_gbp": 64609.25
       },
       {
@@ -2777,6 +2797,16 @@
         "running_balance_gbp": 63831.58
       },
       {
+        "date": "2020-08-17",
+        "type": "payment_received",
+        "invoice_number": 1347,
+        "amount_gbp": -63831.58,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2020-09-03",
         "type": "invoice_raised",
         "invoice_number": 1348,
@@ -2784,37 +2814,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1348 raised",
-        "running_balance_gbp": 127133.99
-      },
-      {
-        "date": "2020-09-12",
-        "type": "payment_received",
-        "invoice_number": 1347,
-        "amount_gbp": -63831.58,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
         "running_balance_gbp": 63302.41
       },
       {
         "date": "2020-09-17",
-        "type": "invoice_disputed",
+        "type": "payment_received",
         "invoice_number": 1348,
-        "amount_gbp": 0.0,
+        "amount_gbp": -63302.41,
         "info_amount_gbp": null,
         "method": "chaps",
-        "description": "Invoice disputed -- GBP63302.41 under formal review",
-        "running_balance_gbp": 63302.41
-      },
-      {
-        "date": "2020-10-01",
-        "type": "notice",
-        "invoice_number": 1348,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Dispute notice raised -- escalated to accounts receivable",
-        "running_balance_gbp": 63302.41
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2020-10-02",
@@ -2824,7 +2834,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1349 raised",
-        "running_balance_gbp": 126234.23
+        "running_balance_gbp": 62931.82
       },
       {
         "date": "2020-10-16",
@@ -2834,16 +2844,6 @@
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
-        "running_balance_gbp": 63302.41
-      },
-      {
-        "date": "2020-10-17",
-        "type": "arrears_resolved",
-        "invoice_number": 1348,
-        "amount_gbp": -63302.41,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Payment plan agreed -- arrears to be settled over 60 days",
         "running_balance_gbp": 0.0
       },
       {
@@ -8067,34 +8067,34 @@
     },
     {
       "customer_id": "C_IC3",
-      "date": "2020-09-17",
+      "date": "2020-05-15",
       "event_type": "arrears_invoice_disputed",
-      "description": "Invoice disputed -- GBP63302.41 under formal review",
+      "description": "Invoice disputed -- GBP62941.82 under formal review",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 63302.41,
+      "amount_gbp": 62941.82,
       "outcome": "INVOICE_DISPUTED",
       "framing_type": null
     },
     {
       "customer_id": "C_IC3",
-      "date": "2020-10-01",
+      "date": "2020-05-29",
       "event_type": "arrears_dispute_notice",
       "description": "Dispute notice raised -- escalated to accounts receivable",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 63302.41,
+      "amount_gbp": 62941.82,
       "outcome": "DISPUTE_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C_IC3",
-      "date": "2020-10-17",
+      "date": "2020-06-14",
       "event_type": "arrears_payment_plan_agreed",
       "description": "Payment plan agreed -- arrears to be settled over 60 days",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 63302.41,
+      "amount_gbp": 62941.82,
       "outcome": "PAYMENT_PLAN_AGREED",
       "framing_type": null
     },

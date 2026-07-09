@@ -7032,3 +7032,17 @@ via tree_lock, no conflict) and its trailing observability/site-data diffs.
 - [2026-07-09T22:16:32Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-09T22:19:29Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
 - [2026-07-09T22:22:39Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:24:22Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:25:51Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:28:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:31:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:33:24Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:36:35Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:39:54Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:39:55Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:42:48Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:43:21Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:44:43Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:45:28Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:55:27Z] cache_hit: elexon_ssp_full.json — background task  consumed by Phase 2b
+- [2026-07-09T22:56:28Z] cache_hit: miss — background task  consumed by Phase 2024-01-31

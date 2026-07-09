@@ -564,7 +564,7 @@
       "non_commodity_amount_gbp": 8547.46,
       "vat_gbp": 7151.53,
       "amount_gbp": 42909.18,
-      "status": "PAID",
+      "status": "DISPUTED",
       "meter_serial": "M00047616",
       "mpan": "1000000000351",
       "mprn": null,
@@ -680,7 +680,7 @@
       "non_commodity_amount_gbp": 9224.67,
       "vat_gbp": 7743.37,
       "amount_gbp": 46460.2,
-      "status": "DISPUTED",
+      "status": "PAID",
       "meter_serial": "M00047616",
       "mpan": "1000000000351",
       "mprn": null,
@@ -2710,7 +2710,7 @@
       "non_commodity_amount_gbp": 11627.53,
       "vat_gbp": 9588.96,
       "amount_gbp": 57533.78,
-      "status": "PAID",
+      "status": "DISPUTED",
       "meter_serial": "M00047616",
       "mpan": "1000000000351",
       "mprn": null,
@@ -2826,7 +2826,7 @@
       "non_commodity_amount_gbp": 12879.73,
       "vat_gbp": 10825.49,
       "amount_gbp": 64952.97,
-      "status": "DISPUTED",
+      "status": "PAID",
       "meter_serial": "M00047616",
       "mpan": "1000000000351",
       "mprn": null,
@@ -3109,16 +3109,6 @@
         "running_balance_gbp": 29711.96
       },
       {
-        "date": "2017-03-15",
-        "type": "payment_received",
-        "invoice_number": 1138,
-        "amount_gbp": -29711.96,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2017-04-01",
         "type": "invoice_raised",
         "invoice_number": 1139,
@@ -3126,17 +3116,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1139 raised",
-        "running_balance_gbp": 34419.63
+        "running_balance_gbp": 64131.59
       },
       {
-        "date": "2017-04-15",
+        "date": "2017-04-19",
         "type": "payment_received",
-        "invoice_number": 1139,
-        "amount_gbp": -34419.63,
+        "invoice_number": 1138,
+        "amount_gbp": -29711.96,
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 34419.63
       },
       {
         "date": "2017-04-30",
@@ -3146,13 +3136,23 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1140 raised",
-        "running_balance_gbp": 30849.68
+        "running_balance_gbp": 65269.31
       },
       {
         "date": "2017-05-14",
         "type": "payment_received",
         "invoice_number": 1140,
         "amount_gbp": -30849.68,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 34419.63
+      },
+      {
+        "date": "2017-05-26",
+        "type": "payment_received",
+        "invoice_number": 1139,
+        "amount_gbp": -34419.63,
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
@@ -3189,6 +3189,16 @@
         "running_balance_gbp": 33029.43
       },
       {
+        "date": "2017-07-17",
+        "type": "payment_received",
+        "invoice_number": 1142,
+        "amount_gbp": -33029.43,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2017-08-02",
         "type": "invoice_raised",
         "invoice_number": 1143,
@@ -3196,17 +3206,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1143 raised",
-        "running_balance_gbp": 65270.73
+        "running_balance_gbp": 32241.3
       },
       {
-        "date": "2017-08-21",
+        "date": "2017-08-16",
         "type": "payment_received",
-        "invoice_number": 1142,
-        "amount_gbp": -33029.43,
+        "invoice_number": 1143,
+        "amount_gbp": -32241.3,
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
-        "running_balance_gbp": 32241.3
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2017-09-05",
@@ -3216,23 +3226,13 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1144 raised",
-        "running_balance_gbp": 66662.35
+        "running_balance_gbp": 34421.05
       },
       {
         "date": "2017-09-19",
         "type": "payment_received",
         "invoice_number": 1144,
         "amount_gbp": -34421.05,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 32241.3
-      },
-      {
-        "date": "2017-09-26",
-        "type": "payment_received",
-        "invoice_number": 1143,
-        "amount_gbp": -32241.3,
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
@@ -3390,13 +3390,13 @@
       },
       {
         "date": "2018-05-20",
-        "type": "payment_received",
+        "type": "invoice_disputed",
         "invoice_number": 1152,
-        "amount_gbp": -42909.18,
+        "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "Invoice disputed -- GBP42909.18 under formal review",
+        "running_balance_gbp": 42909.18
       },
       {
         "date": "2018-05-31",
@@ -3406,7 +3406,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1153 raised",
-        "running_balance_gbp": 46460.2
+        "running_balance_gbp": 89369.38
+      },
+      {
+        "date": "2018-06-03",
+        "type": "notice",
+        "invoice_number": 1152,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Dispute notice raised -- escalated to accounts receivable",
+        "running_balance_gbp": 89369.38
       },
       {
         "date": "2018-06-14",
@@ -3416,6 +3426,16 @@
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
+        "running_balance_gbp": 42909.18
+      },
+      {
+        "date": "2018-06-19",
+        "type": "arrears_resolved",
+        "invoice_number": 1152,
+        "amount_gbp": -42909.18,
+        "info_amount_gbp": null,
+        "method": "payment_plan",
+        "description": "Payment plan agreed -- arrears to be settled over 60 days",
         "running_balance_gbp": 0.0
       },
       {
@@ -3449,16 +3469,6 @@
         "running_balance_gbp": 44792.18
       },
       {
-        "date": "2018-08-18",
-        "type": "payment_received",
-        "invoice_number": 1155,
-        "amount_gbp": -44792.18,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2018-09-01",
         "type": "invoice_raised",
         "invoice_number": 1156,
@@ -3466,27 +3476,27 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1156 raised",
+        "running_balance_gbp": 91252.38
+      },
+      {
+        "date": "2018-09-06",
+        "type": "payment_received",
+        "invoice_number": 1155,
+        "amount_gbp": -44792.18,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
         "running_balance_gbp": 46460.2
       },
       {
         "date": "2018-09-15",
-        "type": "invoice_disputed",
+        "type": "payment_received",
         "invoice_number": 1156,
-        "amount_gbp": 0.0,
+        "amount_gbp": -46460.2,
         "info_amount_gbp": null,
         "method": "chaps",
-        "description": "Invoice disputed -- GBP46460.20 under formal review",
-        "running_balance_gbp": 46460.2
-      },
-      {
-        "date": "2018-09-29",
-        "type": "notice",
-        "invoice_number": 1156,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Dispute notice raised -- escalated to accounts receivable",
-        "running_balance_gbp": 46460.2
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2018-10-05",
@@ -3496,27 +3506,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1157 raised",
-        "running_balance_gbp": 88059.15
-      },
-      {
-        "date": "2018-10-15",
-        "type": "arrears_resolved",
-        "invoice_number": 1156,
-        "amount_gbp": -46460.2,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Payment plan agreed -- arrears to be settled over 60 days",
         "running_balance_gbp": 41598.95
-      },
-      {
-        "date": "2018-10-19",
-        "type": "payment_received",
-        "invoice_number": 1157,
-        "amount_gbp": -41598.95,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
       },
       {
         "date": "2018-11-02",
@@ -3526,6 +3516,16 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1158 raised",
+        "running_balance_gbp": 88053.48
+      },
+      {
+        "date": "2018-11-11",
+        "type": "payment_received",
+        "invoice_number": 1157,
+        "amount_gbp": -41598.95,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
         "running_balance_gbp": 46454.53
       },
       {
@@ -3549,6 +3549,16 @@
         "running_balance_gbp": 43388.96
       },
       {
+        "date": "2018-12-31",
+        "type": "payment_received",
+        "invoice_number": 1159,
+        "amount_gbp": -43388.96,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2019-01-02",
         "type": "invoice_raised",
         "invoice_number": 1160,
@@ -3556,23 +3566,13 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1160 raised",
-        "running_balance_gbp": 85659.54
+        "running_balance_gbp": 42270.58
       },
       {
         "date": "2019-01-16",
         "type": "payment_received",
         "invoice_number": 1160,
         "amount_gbp": -42270.58,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 43388.96
-      },
-      {
-        "date": "2019-01-19",
-        "type": "payment_received",
-        "invoice_number": 1159,
-        "amount_gbp": -43388.96,
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
@@ -3589,6 +3589,16 @@
         "running_balance_gbp": 45262.15
       },
       {
+        "date": "2019-02-19",
+        "type": "payment_received",
+        "invoice_number": 1161,
+        "amount_gbp": -45262.15,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2019-03-02",
         "type": "invoice_raised",
         "invoice_number": 1162,
@@ -3596,16 +3606,6 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1162 raised",
-        "running_balance_gbp": 66086.93
-      },
-      {
-        "date": "2019-03-14",
-        "type": "payment_received",
-        "invoice_number": 1161,
-        "amount_gbp": -45262.15,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
         "running_balance_gbp": 20824.78
       },
       {
@@ -3829,16 +3829,6 @@
         "running_balance_gbp": 52477.79
       },
       {
-        "date": "2020-02-14",
-        "type": "payment_received",
-        "invoice_number": 1173,
-        "amount_gbp": -52477.79,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2020-03-01",
         "type": "invoice_raised",
         "invoice_number": 1174,
@@ -3846,6 +3836,16 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1174 raised",
+        "running_balance_gbp": 99340.88
+      },
+      {
+        "date": "2020-03-14",
+        "type": "payment_received",
+        "invoice_number": 1173,
+        "amount_gbp": -52477.79,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
         "running_balance_gbp": 46863.09
       },
       {
@@ -3909,6 +3909,16 @@
         "running_balance_gbp": 33763.34
       },
       {
+        "date": "2020-06-20",
+        "type": "payment_received",
+        "invoice_number": 1177,
+        "amount_gbp": -33763.34,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2020-07-06",
         "type": "invoice_raised",
         "invoice_number": 1178,
@@ -3916,16 +3926,6 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1178 raised",
-        "running_balance_gbp": 68351.32
-      },
-      {
-        "date": "2020-07-19",
-        "type": "payment_received",
-        "invoice_number": 1177,
-        "amount_gbp": -33763.34,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
         "running_balance_gbp": 34587.98
       },
       {
@@ -4389,16 +4389,6 @@
         "running_balance_gbp": 47055.98
       },
       {
-        "date": "2022-06-16",
-        "type": "payment_received",
-        "invoice_number": 1201,
-        "amount_gbp": -47055.98,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2022-07-09",
         "type": "invoice_raised",
         "invoice_number": 1202,
@@ -4406,6 +4396,16 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1202 raised",
+        "running_balance_gbp": 130481.21
+      },
+      {
+        "date": "2022-07-20",
+        "type": "payment_received",
+        "invoice_number": 1201,
+        "amount_gbp": -47055.98,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
         "running_balance_gbp": 83425.23
       },
       {
@@ -4469,6 +4469,16 @@
         "running_balance_gbp": 83425.23
       },
       {
+        "date": "2022-10-18",
+        "type": "payment_received",
+        "invoice_number": 1205,
+        "amount_gbp": -83425.23,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
+      },
+      {
         "date": "2022-11-01",
         "type": "invoice_raised",
         "invoice_number": 1206,
@@ -4476,23 +4486,13 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1206 raised",
-        "running_balance_gbp": 164713.03
+        "running_balance_gbp": 81287.8
       },
       {
         "date": "2022-11-15",
         "type": "payment_received",
         "invoice_number": 1206,
         "amount_gbp": -81287.8,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 83425.23
-      },
-      {
-        "date": "2022-11-21",
-        "type": "payment_received",
-        "invoice_number": 1205,
-        "amount_gbp": -83425.23,
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
@@ -4890,13 +4890,13 @@
       },
       {
         "date": "2024-07-21",
-        "type": "payment_received",
+        "type": "invoice_disputed",
         "invoice_number": 1226,
-        "amount_gbp": -57533.78,
+        "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "Invoice disputed -- GBP57533.78 under formal review",
+        "running_balance_gbp": 57533.78
       },
       {
         "date": "2024-08-02",
@@ -4906,7 +4906,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1227 raised",
-        "running_balance_gbp": 38358.89
+        "running_balance_gbp": 95892.67
+      },
+      {
+        "date": "2024-08-04",
+        "type": "notice",
+        "invoice_number": 1226,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "chaps",
+        "description": "Dispute notice raised -- escalated to accounts receivable",
+        "running_balance_gbp": 95892.67
       },
       {
         "date": "2024-08-16",
@@ -4916,6 +4926,16 @@
         "info_amount_gbp": null,
         "method": "chaps",
         "description": "Payment received",
+        "running_balance_gbp": 57533.78
+      },
+      {
+        "date": "2024-08-20",
+        "type": "arrears_resolved",
+        "invoice_number": 1226,
+        "amount_gbp": -57533.78,
+        "info_amount_gbp": null,
+        "method": "payment_plan",
+        "description": "Payment plan agreed -- arrears to be settled over 60 days",
         "running_balance_gbp": 0.0
       },
       {
@@ -4970,23 +4990,13 @@
       },
       {
         "date": "2024-11-14",
-        "type": "invoice_disputed",
+        "type": "payment_received",
         "invoice_number": 1230,
-        "amount_gbp": 0.0,
+        "amount_gbp": -64952.97,
         "info_amount_gbp": null,
         "method": "chaps",
-        "description": "Invoice disputed -- GBP64952.97 under formal review",
-        "running_balance_gbp": 64952.97
-      },
-      {
-        "date": "2024-11-28",
-        "type": "notice",
-        "invoice_number": 1230,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Dispute notice raised -- escalated to accounts receivable",
-        "running_balance_gbp": 64952.97
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2024-12-09",
@@ -4996,16 +5006,6 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1231 raised",
-        "running_balance_gbp": 121693.69
-      },
-      {
-        "date": "2024-12-14",
-        "type": "arrears_resolved",
-        "invoice_number": 1230,
-        "amount_gbp": -64952.97,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Payment plan agreed -- arrears to be settled over 60 days",
         "running_balance_gbp": 56740.72
       },
       {
@@ -5137,21 +5137,11 @@
         "method": null,
         "description": "Invoice INV1238 raised",
         "running_balance_gbp": 72636.96
-      },
-      {
-        "date": "2025-06-14",
-        "type": "payment_received",
-        "invoice_number": 1237,
-        "amount_gbp": -59247.12,
-        "info_amount_gbp": null,
-        "method": "chaps",
-        "description": "Payment received",
-        "running_balance_gbp": 13389.84
       }
     ],
-    "current_balance_gbp": 13389.84,
+    "current_balance_gbp": 72636.96,
     "total_billed_gbp": 5012102.28,
-    "total_collected_gbp": 4998712.44,
+    "total_collected_gbp": 4939465.32,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -9357,34 +9347,34 @@
     },
     {
       "customer_id": "C_IC1",
-      "date": "2018-09-15",
+      "date": "2018-05-20",
       "event_type": "arrears_invoice_disputed",
-      "description": "Invoice disputed -- GBP46460.20 under formal review",
+      "description": "Invoice disputed -- GBP42909.18 under formal review",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 46460.2,
+      "amount_gbp": 42909.18,
       "outcome": "INVOICE_DISPUTED",
       "framing_type": null
     },
     {
       "customer_id": "C_IC1",
-      "date": "2018-09-29",
+      "date": "2018-06-03",
       "event_type": "arrears_dispute_notice",
       "description": "Dispute notice raised -- escalated to accounts receivable",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 46460.2,
+      "amount_gbp": 42909.18,
       "outcome": "DISPUTE_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C_IC1",
-      "date": "2018-10-15",
+      "date": "2018-06-19",
       "event_type": "arrears_payment_plan_agreed",
       "description": "Payment plan agreed -- arrears to be settled over 60 days",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 46460.2,
+      "amount_gbp": 42909.18,
       "outcome": "PAYMENT_PLAN_AGREED",
       "framing_type": null
     },
@@ -9478,6 +9468,17 @@
     },
     {
       "customer_id": "C_IC1",
+      "date": "2024-07-21",
+      "event_type": "arrears_invoice_disputed",
+      "description": "Invoice disputed -- GBP57533.78 under formal review",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 57533.78,
+      "outcome": "INVOICE_DISPUTED",
+      "framing_type": null
+    },
+    {
+      "customer_id": "C_IC1",
       "date": "2024-07-28",
       "event_type": "journey_state",
       "description": "Hidden churn-journey state advances to IRRITATED (resentment score 0.0)",
@@ -9489,34 +9490,23 @@
     },
     {
       "customer_id": "C_IC1",
-      "date": "2024-11-14",
-      "event_type": "arrears_invoice_disputed",
-      "description": "Invoice disputed -- GBP64952.97 under formal review",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 64952.97,
-      "outcome": "INVOICE_DISPUTED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C_IC1",
-      "date": "2024-11-28",
+      "date": "2024-08-04",
       "event_type": "arrears_dispute_notice",
       "description": "Dispute notice raised -- escalated to accounts receivable",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 64952.97,
+      "amount_gbp": 57533.78,
       "outcome": "DISPUTE_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C_IC1",
-      "date": "2024-12-14",
+      "date": "2024-08-20",
       "event_type": "arrears_payment_plan_agreed",
       "description": "Payment plan agreed -- arrears to be settled over 60 days",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 64952.97,
+      "amount_gbp": 57533.78,
       "outcome": "PAYMENT_PLAN_AGREED",
       "framing_type": null
     }

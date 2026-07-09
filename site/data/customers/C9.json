@@ -455,7 +455,7 @@
       "non_commodity_amount_gbp": 39.58,
       "vat_gbp": 6.63,
       "amount_gbp": 139.32,
-      "status": "UNPAID",
+      "status": "PAID",
       "meter_serial": "M00040579",
       "mpan": "1000000000124",
       "mprn": null,
@@ -2021,7 +2021,7 @@
       "non_commodity_amount_gbp": 77.32,
       "vat_gbp": 16.52,
       "amount_gbp": 346.84,
-      "status": "PAID",
+      "status": "UNPAID",
       "meter_serial": "M00040579",
       "mpan": "1000000000124",
       "mprn": null,
@@ -2079,7 +2079,7 @@
       "non_commodity_amount_gbp": 107.35,
       "vat_gbp": 20.44,
       "amount_gbp": 429.31,
-      "status": "UNPAID",
+      "status": "PAID",
       "meter_serial": "M00040579",
       "mpan": "1000000000124",
       "mprn": null,
@@ -3500,23 +3500,13 @@
       },
       {
         "date": "2017-06-14",
-        "type": "payment_failed",
+        "type": "payment_received",
         "invoice_number": 1039,
-        "amount_gbp": 0.0,
+        "amount_gbp": -139.32,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 139.32
-      },
-      {
-        "date": "2017-06-21",
-        "type": "notice",
-        "invoice_number": 1039,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "First overdue notice -- GBP139.32 outstanding",
-        "running_balance_gbp": 139.32
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2017-07-03",
@@ -3526,17 +3516,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1040 raised",
-        "running_balance_gbp": 242.98
-      },
-      {
-        "date": "2017-07-05",
-        "type": "notice",
-        "invoice_number": 1039,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 242.98
+        "running_balance_gbp": 103.66
       },
       {
         "date": "2017-07-17",
@@ -3546,16 +3526,6 @@
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 139.32
-      },
-      {
-        "date": "2017-07-29",
-        "type": "arrears_resolved",
-        "invoice_number": 1039,
-        "amount_gbp": -139.32,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
         "running_balance_gbp": 0.0
       },
       {
@@ -3689,7 +3659,7 @@
         "running_balance_gbp": 348.77
       },
       {
-        "date": "2018-02-15",
+        "date": "2018-02-21",
         "type": "payment_received",
         "invoice_number": 1047,
         "amount_gbp": -348.77,
@@ -3729,7 +3699,7 @@
         "running_balance_gbp": 341.7
       },
       {
-        "date": "2018-04-15",
+        "date": "2018-04-28",
         "type": "payment_received",
         "invoice_number": 1049,
         "amount_gbp": -341.7,
@@ -3769,7 +3739,7 @@
         "running_balance_gbp": 155.98
       },
       {
-        "date": "2018-06-30",
+        "date": "2018-06-17",
         "type": "payment_received",
         "invoice_number": 1051,
         "amount_gbp": -155.98,
@@ -3949,7 +3919,7 @@
         "running_balance_gbp": 276.26
       },
       {
-        "date": "2019-03-22",
+        "date": "2019-04-02",
         "type": "payment_received",
         "invoice_number": 1060,
         "amount_gbp": -276.26,
@@ -3989,7 +3959,7 @@
         "running_balance_gbp": 234.43
       },
       {
-        "date": "2019-05-31",
+        "date": "2019-05-20",
         "type": "payment_received",
         "invoice_number": 1062,
         "amount_gbp": -234.43,
@@ -4169,7 +4139,7 @@
         "running_balance_gbp": 305.03
       },
       {
-        "date": "2020-02-18",
+        "date": "2020-02-21",
         "type": "payment_received",
         "invoice_number": 1071,
         "amount_gbp": -305.03,
@@ -4209,7 +4179,7 @@
         "running_balance_gbp": 318.73
       },
       {
-        "date": "2020-04-24",
+        "date": "2020-04-21",
         "type": "payment_received",
         "invoice_number": 1073,
         "amount_gbp": -318.73,
@@ -4610,13 +4580,23 @@
       },
       {
         "date": "2021-12-16",
-        "type": "payment_received",
+        "type": "payment_failed",
         "invoice_number": 1093,
-        "amount_gbp": -346.84,
+        "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "Direct debit returned",
+        "running_balance_gbp": 346.84
+      },
+      {
+        "date": "2021-12-23",
+        "type": "notice",
+        "invoice_number": 1093,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "First overdue notice -- GBP346.84 outstanding",
+        "running_balance_gbp": 346.84
       },
       {
         "date": "2022-01-02",
@@ -4626,7 +4606,17 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1094 raised",
-        "running_balance_gbp": 427.28
+        "running_balance_gbp": 774.12
+      },
+      {
+        "date": "2022-01-06",
+        "type": "notice",
+        "invoice_number": 1093,
+        "amount_gbp": 0.0,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Second notice -- payment plan offered",
+        "running_balance_gbp": 774.12
       },
       {
         "date": "2022-01-16",
@@ -4636,6 +4626,16 @@
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
+        "running_balance_gbp": 346.84
+      },
+      {
+        "date": "2022-01-30",
+        "type": "arrears_resolved",
+        "invoice_number": 1093,
+        "amount_gbp": -346.84,
+        "info_amount_gbp": null,
+        "method": "payment_plan",
+        "description": "Arrears cleared via payment plan",
         "running_balance_gbp": 0.0
       },
       {
@@ -4650,23 +4650,13 @@
       },
       {
         "date": "2022-02-14",
-        "type": "payment_failed",
+        "type": "payment_received",
         "invoice_number": 1095,
-        "amount_gbp": 0.0,
+        "amount_gbp": -429.31,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": 429.31
-      },
-      {
-        "date": "2022-02-21",
-        "type": "notice",
-        "invoice_number": 1095,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "First overdue notice -- GBP429.31 outstanding",
-        "running_balance_gbp": 429.31
+        "description": "Payment received",
+        "running_balance_gbp": 0.0
       },
       {
         "date": "2022-03-02",
@@ -4676,17 +4666,7 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1096 raised",
-        "running_balance_gbp": 823.08
-      },
-      {
-        "date": "2022-03-07",
-        "type": "notice",
-        "invoice_number": 1095,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 823.08
+        "running_balance_gbp": 393.77
       },
       {
         "date": "2022-03-16",
@@ -4696,16 +4676,6 @@
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 429.31
-      },
-      {
-        "date": "2022-03-31",
-        "type": "arrears_resolved",
-        "invoice_number": 1095,
-        "amount_gbp": -429.31,
-        "info_amount_gbp": null,
-        "method": "payment_plan",
-        "description": "Arrears cleared via payment plan",
         "running_balance_gbp": 0.0
       },
       {
@@ -4819,16 +4789,6 @@
         "running_balance_gbp": 168.61
       },
       {
-        "date": "2022-09-17",
-        "type": "payment_received",
-        "invoice_number": 1102,
-        "amount_gbp": -168.61,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
-      },
-      {
         "date": "2022-09-30",
         "type": "invoice_raised",
         "invoice_number": 1103,
@@ -4836,6 +4796,16 @@
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1103 raised",
+        "running_balance_gbp": 413.72
+      },
+      {
+        "date": "2022-10-01",
+        "type": "payment_received",
+        "invoice_number": 1102,
+        "amount_gbp": -168.61,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
         "running_balance_gbp": 245.11
       },
       {
@@ -4859,7 +4829,7 @@
         "running_balance_gbp": 317.52
       },
       {
-        "date": "2022-11-29",
+        "date": "2022-11-15",
         "type": "payment_received",
         "invoice_number": 1104,
         "amount_gbp": -317.52,
@@ -4879,7 +4849,7 @@
         "running_balance_gbp": 453.97
       },
       {
-        "date": "2022-12-15",
+        "date": "2022-12-23",
         "type": "payment_received",
         "invoice_number": 1105,
         "amount_gbp": -453.97,
@@ -4919,7 +4889,7 @@
         "running_balance_gbp": 623.54
       },
       {
-        "date": "2023-02-24",
+        "date": "2023-02-16",
         "type": "payment_received",
         "invoice_number": 1107,
         "amount_gbp": -623.54,
@@ -5059,7 +5029,7 @@
         "running_balance_gbp": 177.72
       },
       {
-        "date": "2023-09-17",
+        "date": "2023-09-23",
         "type": "payment_received",
         "invoice_number": 1114,
         "amount_gbp": -177.72,
@@ -5099,7 +5069,7 @@
         "running_balance_gbp": 365.07
       },
       {
-        "date": "2023-11-21",
+        "date": "2023-11-15",
         "type": "payment_received",
         "invoice_number": 1116,
         "amount_gbp": -365.07,
@@ -5179,7 +5149,7 @@
         "running_balance_gbp": 514.74
       },
       {
-        "date": "2024-03-15",
+        "date": "2024-03-21",
         "type": "payment_received",
         "invoice_number": 1120,
         "amount_gbp": -514.74,
@@ -5219,7 +5189,7 @@
         "running_balance_gbp": 422.08
       },
       {
-        "date": "2024-05-26",
+        "date": "2024-05-20",
         "type": "payment_received",
         "invoice_number": 1122,
         "amount_gbp": -422.08,
@@ -5319,7 +5289,7 @@
         "running_balance_gbp": 252.29
       },
       {
-        "date": "2024-10-25",
+        "date": "2024-11-04",
         "type": "payment_received",
         "invoice_number": 1127,
         "amount_gbp": -252.29,
@@ -5359,7 +5329,7 @@
         "running_balance_gbp": 448.76
       },
       {
-        "date": "2024-12-27",
+        "date": "2024-12-17",
         "type": "payment_received",
         "invoice_number": 1129,
         "amount_gbp": -448.76,
@@ -9698,28 +9668,6 @@
   "reaction_chain": [
     {
       "customer_id": "C9",
-      "date": "2017-06-14",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 139.32,
-      "outcome": "DD_FAILED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C9",
-      "date": "2017-06-21",
-      "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP139.32 outstanding",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 139.32,
-      "outcome": "FIRST_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C9",
       "date": "2017-07-01",
       "event_type": "journey_state",
       "description": "Hidden churn-journey state advances to IRRITATED (resentment score 18.0)",
@@ -9727,28 +9675,6 @@
       "sim_truth": 18.0,
       "amount_gbp": null,
       "outcome": null,
-      "framing_type": null
-    },
-    {
-      "customer_id": "C9",
-      "date": "2017-07-05",
-      "event_type": "arrears_second_notice",
-      "description": "Second notice -- payment plan offered",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 139.32,
-      "outcome": "SECOND_NOTICE",
-      "framing_type": null
-    },
-    {
-      "customer_id": "C9",
-      "date": "2017-07-29",
-      "event_type": "arrears_resolved",
-      "description": "Arrears cleared via payment plan",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 139.32,
-      "outcome": "RESOLVED",
       "framing_type": null
     },
     {
@@ -9819,45 +9745,45 @@
     },
     {
       "customer_id": "C9",
-      "date": "2022-02-14",
+      "date": "2021-12-16",
       "event_type": "arrears_dd_failed",
       "description": "Direct debit returned",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 429.31,
+      "amount_gbp": 346.84,
       "outcome": "DD_FAILED",
       "framing_type": null
     },
     {
       "customer_id": "C9",
-      "date": "2022-02-21",
+      "date": "2021-12-23",
       "event_type": "arrears_first_notice",
-      "description": "First overdue notice -- GBP429.31 outstanding",
+      "description": "First overdue notice -- GBP346.84 outstanding",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 429.31,
+      "amount_gbp": 346.84,
       "outcome": "FIRST_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C9",
-      "date": "2022-03-07",
+      "date": "2022-01-06",
       "event_type": "arrears_second_notice",
       "description": "Second notice -- payment plan offered",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 429.31,
+      "amount_gbp": 346.84,
       "outcome": "SECOND_NOTICE",
       "framing_type": null
     },
     {
       "customer_id": "C9",
-      "date": "2022-03-31",
+      "date": "2022-01-30",
       "event_type": "arrears_resolved",
       "description": "Arrears cleared via payment plan",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 429.31,
+      "amount_gbp": 346.84,
       "outcome": "RESOLVED",
       "framing_type": null
     },
