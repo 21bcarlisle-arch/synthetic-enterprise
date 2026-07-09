@@ -6,6 +6,24 @@ cd ~/synthetic-enterprise
 export OLLAMA_FLASH_ATTENTION=1
 export OLLAMA_NUM_CTX=8192
 
+# DISABLE_AUTOUPDATER=1 permanent, every launch path (2026-07-09, director
+# flagged the auto-updater failing on npm permissions -- root cause: this
+# machine's system npm prefix (/usr) is root-owned while `claude` itself
+# runs via a user-writable NVM install, so the auto-updater's own npm call
+# resolves to a permission-denied location; that mismatch is inside the
+# closed-source CLI binary, not something this repo can patch directly).
+# `tmux set-environment -g` (not a plain shell `export`) is required here --
+# same lesson as the 2026-07-08 NTFY topic rotation: a `tmux new-session`
+# against an already-running server does NOT inherit the calling shell's
+# freshly-exported env, only the server's own global environment, fixed at
+# whatever it was last set to. This makes DISABLE_AUTOUPDATER=1 the default
+# for EVERY session the server creates from here on -- including a manual
+# `tmux new-session` + `claude` Rich types himself, not just the daemons
+# this script explicitly launches with `-e` flags (session_watchdog.py's
+# restart_claude() already does that per-session; this is the belt to that
+# brace, and the only fix that reaches a manually-created session too).
+tmux set-environment -g DISABLE_AUTOUPDATER 1 2>/dev/null || true
+
 # Load SE_NTFY_TOPIC / SE_WAKE_HMAC_KEY from the gitignored env file before
 # starting ANY session that touches NTFY or the tmux wake relay (session-
 # watchdog, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
