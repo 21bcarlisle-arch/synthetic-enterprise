@@ -157,12 +157,19 @@ def generate(run_json_path=None, out_path=None, state_path=None):
         _home_type = _raw.get("home_type")
         _smart_meter = _raw.get("smart_meter")
         _dual_fuel = len(_bases_with_leg.get(base, set())) >= 2
+        # Engagement archetype (Phase 33/CORE_FIDELITY_PHASES.md Layer 1) drives
+        # active/passive renewal in run_phase2b.py for EVERY segment (billing_account
+        # is looked up unconditionally there, not resi-gated) -- unlike
+        # fuel_poverty/tenure/occupancy below, this is not resi-specific. SIM-internal
+        # ground truth, evidence-surface purpose only: MUST NEVER be read by
+        # company/** code.
+        from simulation.household_segments import engagement_level_for_customer
+        _engagement_level = engagement_level_for_customer(base).value
         if _segment == "resi":
             # Layer 2 dimensions 1-4 (2026-07-09/10): SIM-internal ground truth
             # (payment channel / fuel poverty / tenure / occupancy archetype),
-            # shown here for the SIM tab's own evidence-surface purpose only
-            # -- same caveat as engagement_level above: MUST NEVER be read by
-            # company/** code.
+            # shown here for the SIM tab's own evidence-surface purpose only --
+            # MUST NEVER be read by company/** code.
             from simulation.household_segments import PaymentChannel, fuel_poverty_for_customer, occupancy_for_customer, payment_channel_for_customer, tenure_for_customer
             _channel = payment_channel_for_customer(cid, _commodity)
             _payment_channel = _channel.value
@@ -178,6 +185,7 @@ def generate(run_json_path=None, out_path=None, state_path=None):
             "base_account_id": base,
             "segment": _segment,
             "commodity": _commodity,
+            "engagement_level": _engagement_level,
             "payment_channel": _payment_channel,
             "fuel_poverty": _fuel_poverty,
             "tenure": _tenure,

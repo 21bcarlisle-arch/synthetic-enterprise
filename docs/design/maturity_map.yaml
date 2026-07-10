@@ -153,12 +153,12 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 1
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   evidence: ["tools/generate_customer_sample.py", "saas/customers.py"]
-  simplifications: []
+  simplifications: ["2026-07-10: found engagement_level (simulation/household_segments.py, drives active/passive renewal for EVERY segment in run_phase2b.py, not resi-gated) was computed but never surfaced anywhere -- a dangling comment ('same caveat as engagement_level above') referenced it as if already shown, but it wasn't in this file at all. Fixed: added to tools/generate_customer_sample.py + a new SIM tab column, verified against real production data (dual-fuel legs share the same level, I&C customers get one too). 4 new tests."]
   expert_hour: {status: passed, last: "2026-07-10", findings: []}
   real_world_twin: "CRM customer segmentation fields"
   depends_on: []

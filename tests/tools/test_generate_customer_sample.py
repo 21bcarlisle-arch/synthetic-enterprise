@@ -66,6 +66,46 @@ def test_ic_customer_has_null_payment_channel_and_fuel_poverty(tmp_path):
     assert ic["occupancy"] is None
 
 
+def test_resi_customer_gets_engagement_level(tmp_path):
+    """2026-07-10, C1_segment_layers self-refill draw: engagement_level
+    (simulation/household_segments.py, drives active/passive renewal for
+    EVERY segment in run_phase2b.py) was computed but never surfaced
+    anywhere on the SIM tab -- a real gap, now fixed."""
+    customers = {
+        "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2020-01-01",
+               "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C1"]["engagement_level"] in ("active", "passive", "disengaged")
+
+
+def test_ic_customer_also_gets_engagement_level(tmp_path):
+    """Unlike payment_channel/fuel_poverty/tenure/occupancy, engagement_level
+    is NOT resi-gated -- run_phase2b.py looks it up unconditionally for
+    every billing_account regardless of segment."""
+    customers = {
+        "C_IC1": {"segment": "I&C", "commodity": "electricity", "acquisition_date": "2020-01-01",
+                  "revenue_gbp": 100000.0, "gross_gbp": 5000.0, "net_gbp": 2000.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C_IC1"]["engagement_level"] in ("active", "passive", "disengaged")
+
+
+def test_engagement_level_deterministic_and_shared_across_dual_fuel_legs(tmp_path):
+    """engagement_level_for_customer() is keyed on the household base_id
+    (billing_account), matching run_phase2b.py's own lookup -- a dual-fuel
+    household's gas leg must resolve to the SAME engagement level as its
+    electricity leg."""
+    customers = {
+        "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2020-01-01",
+               "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
+        "C1g": {"segment": "resi", "commodity": "gas", "acquisition_date": "2020-01-01",
+                "revenue_gbp": 50.0, "gross_gbp": 20.0, "net_gbp": 10.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C1"]["engagement_level"] == out["customers"]["C1g"]["engagement_level"]
+
+
 def test_gas_twin_gets_same_tenure_and_occupancy_as_electricity_leg(tmp_path):
     """Tenure/occupancy are household-level (not per-fuel) traits -- a
     dual-fuel household's gas leg must resolve to the SAME tenure/occupancy
