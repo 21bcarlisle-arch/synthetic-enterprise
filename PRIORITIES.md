@@ -13,11 +13,31 @@
 #   GitHub-trigger cloud sessions) -- exact schemas recorded in the assessment doc. Item 5
 #   (environment hardening) written up as a recommendation only (Tier-1-adjacent, no build).
 #   Item 6 (harness pruning ritual) adopted directly into CLAUDE.md's phase-close checklist
-#   (6a). NEXT, NOT this turn: implement item 1's three hooks (point-in-time-read block, sudo
-#   block, unevidenced-claim block -- each individually testable/removable per the DoD), add
-#   fallbackModel to .claude/settings.json (item 3), register the two routines pilots with a
-#   one-week review date (item 4). Item 2 (evaluator subagent) sequenced after item 1 lands.
-#   Real, separate engineering -- deliberately not compressed into the assessment turn.
+#   (6a). Item 3 (fallbackModel) DONE 2026-07-10: .claude/settings.json now sets
+#   "fallbackModel": ["claude-sonnet-5", "claude-haiku-4-5-20251001"], no cost/preference change,
+#   fires only on genuine primary unavailability. Item 1 (b)+(c) DONE 2026-07-10:
+#   .claude/hooks/block_sudo.py (PreToolUse/Bash, exit 2 on any sudo invocation) and
+#   .claude/hooks/block_unevidenced_claim.py (PreToolUse/Bash, blocks a send_ntfy(...) call
+#   whose message claims fixed/live/deployed/confirmed/verified unless
+#   docs/observability/.last_live_verification exists and is <30min old -- the R11 evidence
+#   contract, `touch` the marker right after a real curl/fetch live-check). Both individually
+#   demonstrated per the DoD (blocked-sudo, allowed-normal, blocked-unevidenced-claim,
+#   allowed-with-fresh-marker, allowed-non-claim-message -- see
+#   tests/tools/test_claude_hooks.py, 12 new tests) and wired live in .claude/settings.json
+#   (confirmed real: my own test bash command tripped the live hook mid-session before I
+#   switched to file-redirected stdin to test cleanly). Item 1(a) (point-in-time-blindfold
+#   hook) DELIBERATELY NOT BUILT: it's the same detection class as the still-open
+#   EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md gate (data-flow/timing violation detection)
+#   -- building a parallel enforcement mechanism for the same class while that gate sits open
+#   and unanswered would pre-empt the director's own pending decision. Holds until that gate
+#   closes. Item 4 (Routines pilot) BLOCKED, not built: RemoteTrigger's real `create` schema
+#   (probed live: name -> job_config -> job_config.ccr -> requires
+#   ccr.environment_id or ccr.self_hosted_runner_pool_id) needs a cloud environment already
+#   configured in Rich's claude.ai account -- not something I can fabricate or discover by
+#   further trial-and-error against the live API. Needs Rich to either point me at an existing
+#   environment_id or set one up. Item 2 (evaluator subagent) sequenced after item 1 fully
+#   lands (1a still open) -- not started. 16,554 tests collected (full suite via collect-only;
+#   1,362 passed directly in tests/tools/+tests/background/), epistemic PASS.
 #
 # === MATURITY-MAP QUEUE STATUS: EXHAUSTED, CORRECTLY (2026-07-10, nineteenth dial-weighted
 #   draw): every remaining atom with a real level gap is now either genuinely idle-blocked
