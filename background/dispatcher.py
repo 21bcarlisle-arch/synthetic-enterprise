@@ -273,8 +273,23 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
 
 def _attempt_pending_urgent() -> None:
     """Attempt delivery of any queued URGENT relay(s) not yet confirmed --
-    called once per main() cycle. Only clears an entry on CONFIRMED
-    delivery (idle pane + consumption verified); on failure (busy, or
+    called once per main() cycle. Clears an entry on CONFIRMED delivery
+    (idle pane + consumption verified) OR -- 2026-07-10, real observed bug
+    -- if the underlying staging file no longer exists at its original
+    path, meaning it has already been fully actioned and archived to
+    done/ by a session that never got a clean wake-delivery confirmation
+    back (e.g. it was mid-turn/busy every single cycle the retry fired).
+    Without this, _pending_urgent is purely in-memory state with no link
+    to real-world completion: a genuinely-answered, already-archived
+    message kept re-triggering "URGENT wake not yet delivered -- retrying"
+    every cycle indefinitely (observed: from_rich_20260710_144058.md and
+    _144806.md retried every ~60s for 20+ minutes after both had already
+    been answered and moved to docs/staging/done/), which reads to the
+    director as the same question being asked 3 times over NTFY when it
+    is actually one already-resolved item stuck in a dead retry loop --
+    exactly the class of repeat-status spam R5 exists to prevent, just
+    reached via a different daemon's stale state instead of a bad dedup
+    key. On failure with the file still present (busy, or
     stuck-unconsumed), leaves it queued for the next cycle's retry, per
     the root-cause fix's "never fire into a mid-turn session, hold and
     retry" requirement. Classification/header/NTFY already happened in
@@ -282,6 +297,10 @@ def _attempt_pending_urgent() -> None:
     if not _pending_urgent:
         return
     for name in sorted(_pending_urgent):
+        if not (STAGING_DIR / name).exists():
+            log(f"URGENT wake dropped (already actioned/archived, no longer at its staging path): {name}")
+            del _pending_urgent[name]
+            continue
         message = _pending_urgent[name]
         if _relay_to_claude(message):
             log(f"URGENT wake delivered (confirmed): {name}")

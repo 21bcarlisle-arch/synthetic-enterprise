@@ -103,7 +103,9 @@ def test_attempt_pending_urgent_noop_when_empty(monkeypatch):
     assert calls == []
 
 
-def test_attempt_pending_urgent_clears_on_success(monkeypatch):
+def test_attempt_pending_urgent_clears_on_success(tmp_path, monkeypatch):
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    _make_staging_file(tmp_path, "from_rich_010.md", "message text")
     _reset_pending_urgent()
     dispatcher._pending_urgent["from_rich_010.md"] = "message text"
     monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: True)
@@ -114,11 +116,14 @@ def test_attempt_pending_urgent_clears_on_success(monkeypatch):
     assert dispatcher._pending_urgent == {}
 
 
-def test_attempt_pending_urgent_retains_on_failure(monkeypatch):
-    """Session busy -- must stay queued for the next cycle's retry, never
-    silently dropped (this is the exact live failure mode: an urgent
-    message classified and queued, but the session was busy, so nothing
-    should be marked delivered until it actually is)."""
+def test_attempt_pending_urgent_retains_on_failure(tmp_path, monkeypatch):
+    """Session busy, file still staged (not yet archived) -- must stay
+    queued for the next cycle's retry, never silently dropped (this is the
+    exact live failure mode: an urgent message classified and queued, but
+    the session was busy, so nothing should be marked delivered until it
+    actually is)."""
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    _make_staging_file(tmp_path, "from_rich_011.md", "message text")
     _reset_pending_urgent()
     dispatcher._pending_urgent["from_rich_011.md"] = "message text"
     monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: False)
@@ -129,7 +134,10 @@ def test_attempt_pending_urgent_retains_on_failure(monkeypatch):
     assert dispatcher._pending_urgent == {"from_rich_011.md": "message text"}
 
 
-def test_attempt_pending_urgent_retries_independently_per_file(monkeypatch):
+def test_attempt_pending_urgent_retries_independently_per_file(tmp_path, monkeypatch):
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    _make_staging_file(tmp_path, "A.md", "msg a")
+    _make_staging_file(tmp_path, "B.md", "msg b")
     _reset_pending_urgent()
     dispatcher._pending_urgent["A.md"] = "msg a"
     dispatcher._pending_urgent["B.md"] = "msg b"
@@ -140,6 +148,46 @@ def test_attempt_pending_urgent_retries_independently_per_file(monkeypatch):
     dispatcher._attempt_pending_urgent()
 
     assert dispatcher._pending_urgent == {"B.md": "msg b"}
+
+
+def test_attempt_pending_urgent_drops_stale_entry_when_file_already_archived(tmp_path, monkeypatch):
+    """2026-07-10 real observed bug: a file already fully actioned and
+    moved to docs/staging/done/ (no longer present at its original
+    STAGING_DIR path) must be dropped from the in-memory retry queue
+    without needing a wake-delivery confirmation at all -- otherwise it
+    retries "URGENT wake not yet delivered" forever, since a busy session
+    (mid-turn, exactly the state that caused it to still be pending) never
+    confirms delivery, producing an infinite loop of repeated identical
+    doorbell text for an already-answered question (observed live: the
+    same message retried every ~60s for 20+ minutes after being answered)."""
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    # Deliberately do NOT create the file -- simulates it having already
+    # been moved to docs/staging/done/ by the session that answered it.
+    _reset_pending_urgent()
+    dispatcher._pending_urgent["from_rich_already_done.md"] = "message text"
+    relay_calls = []
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: relay_calls.append(msg) or True)
+    monkeypatch.setattr(dispatcher, "log", lambda msg: None)
+
+    dispatcher._attempt_pending_urgent()
+
+    assert dispatcher._pending_urgent == {}
+    assert relay_calls == []  # never even attempted a wake for an already-resolved item
+
+
+def test_attempt_pending_urgent_mixed_archived_and_still_pending(tmp_path, monkeypatch):
+    monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
+    _make_staging_file(tmp_path, "still_pending.md", "msg pending")
+    # "already_done.md" deliberately not created -- already archived.
+    _reset_pending_urgent()
+    dispatcher._pending_urgent["already_done.md"] = "msg done"
+    dispatcher._pending_urgent["still_pending.md"] = "msg pending"
+    monkeypatch.setattr(dispatcher, "_relay_to_claude", lambda msg: False)
+    monkeypatch.setattr(dispatcher, "log", lambda msg: None)
+
+    dispatcher._attempt_pending_urgent()
+
+    assert dispatcher._pending_urgent == {"still_pending.md": "msg pending"}
 
 
 def test_fyi_routing_moves_file_to_fyi_dir(tmp_path, monkeypatch):

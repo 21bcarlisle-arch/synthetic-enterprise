@@ -196,13 +196,18 @@ def test_maturity_map_draw_excludes_unassessed_atoms():
     assert supervisor._maturity_map_draw() is None
 
 
-def test_maturity_map_draw_weights_by_dial(monkeypatch):
+def test_maturity_map_draw_weights_by_dial():
+    """A weighted-random draw is inherently probabilistic -- a fixed seed
+    makes this deterministic rather than a real (if small) flake risk on
+    an unweighted `random` draw across CI runs."""
+    import random as random_module
     supervisor.MATURITY_MAP_PATH.write_text(
         "- id: LOW_DIAL\n  lane: L\n  dial_inherited: 1\n  level_current: 0\n  level_target: 1\n"
         "- id: HIGH_DIAL\n  lane: H\n  dial_inherited: 100\n  level_current: 0\n  level_target: 1\n"
     )
-    results = [supervisor._maturity_map_draw() for _ in range(20)]
-    assert all("HIGH_DIAL" in r for r in results)
+    rng = random_module.Random(42)
+    results = [supervisor._maturity_map_draw(rng=rng) for _ in range(20)]
+    assert sum("HIGH_DIAL" in r for r in results) >= 18  # overwhelmingly the high-dial atom
 
 
 def test_find_work_self_refills_from_maturity_map_when_nothing_staged():
