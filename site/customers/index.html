@@ -7,6 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 :root {
   --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
@@ -748,13 +749,68 @@ function billMeterDetailsHtml(i){
   if(i.mprn)rows.push("<div class=\"row\"><span class=\"rl\">MPRN</span><span>"+esc(i.mprn)+"</span></div>");
   return rows.join("");
 }
+// Real downloadable bill PDF (2026-07-10, director page comment: "should we
+// produce a bill pdf for each month" -- director picked "a real downloadable
+// PDF"). Generated client-side via jsPDF from the exact same invoice data
+// already on the page -- no server-side PDF store needed for a static site,
+// and the numbers can never drift from what's shown on-screen since it's
+// the same object.
+function downloadBillPdf(i){
+  if(!window.jspdf){alert("PDF library still loading -- try again in a moment.");return;}
+  var doc=new window.jspdf.jsPDF();
+  var y=20;
+  doc.setFontSize(18);doc.text("Poesys",20,y);
+  doc.setFontSize(10);doc.setTextColor(120);doc.text("Energy Statement",20,y+7);
+  doc.setTextColor(0);y+=20;
+  doc.setFontSize(11);
+  doc.text("Account: "+HH.base,20,y);y+=6;
+  doc.text("Invoice: "+i.id,20,y);y+=6;
+  doc.text("Billing period: "+i.period_start+" to "+i.period_end,20,y);y+=6;
+  doc.text("Commodity: "+(i.commodity||(i===HH.gas?"gas":"electricity")),20,y);y+=10;
+  doc.setDrawColor(200);doc.line(20,y,190,y);y+=10;
+  doc.setFontSize(12);doc.text("Charges",20,y);y+=8;
+  doc.setFontSize(10);
+  function line(label,amount){
+    doc.text(label,20,y);
+    doc.text(gbp(amount),190,y,{align:"right"});
+    y+=7;
+  }
+  if(i.consumption_kwh!=null&&i.commodity_amount_gbp!=null){
+    var rateNote=i.unit_rate_p_per_kwh!=null?(" @ "+i.unit_rate_p_per_kwh.toFixed(2)+"p/kWh"):"";
+    line("Usage: "+i.consumption_kwh.toFixed(1)+" kWh"+rateNote,i.commodity_amount_gbp);
+  }
+  var scLabel=(i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
+    ?("Standing charge ("+i.days_in_period+" days x £"+i.standing_charge_gbp_per_day.toFixed(2)+"/day)")
+    :"Standing charge";
+  line(scLabel,i.standing_charge_gbp);
+  if(i.non_commodity_amount_gbp)line("Network & environmental",i.non_commodity_amount_gbp);
+  if(i.vat_gbp)line("VAT",i.vat_gbp);
+  doc.setDrawColor(200);doc.line(20,y,190,y);y+=8;
+  doc.setFontSize(12);doc.setFont(undefined,"bold");
+  doc.text("Total due",20,y);doc.text(gbp(i.amount_gbp),190,y,{align:"right"});
+  doc.setFont(undefined,"normal");y+=12;
+  doc.setFontSize(9);doc.setTextColor(120);
+  if(i.meter_serial)doc.text("Meter serial: "+i.meter_serial,20,y),y+=5;
+  if(i.mpan)doc.text("MPAN: "+i.mpan,20,y),y+=5;
+  if(i.mprn)doc.text("MPRN: "+i.mprn,20,y),y+=5;
+  doc.text("Status: "+i.status,20,y);y+=10;
+  doc.setFontSize(8);doc.text("Generated from live account data -- synthetic simulation, not a real bill.",20,y);
+  doc.save("Poesys_Bill_"+HH.base+"_"+i.period_end+".pdf");
+}
+window.downloadBillPdf=downloadBillPdf;
 function billExpandHtml(i,allInvoices){
   var wf=billWaterfall(i,allInvoices);
   var prevD=decomposeBillDelta(i,wf.prev),yoyD=decomposeBillDelta(i,wf.yoy);
   var waterfallHtml=waterfallChip("vs previous bill ("+(wf.prev?fmtMonth(wf.prev.period_start.slice(0,7)):"n/a")+")",prevD)+
     waterfallChip("vs same month last year ("+(wf.yoy?fmtMonth(wf.yoy.period_start.slice(0,7)):"n/a")+")",yoyD);
   return "<div class=\"card\" style=\"margin-top:6px;background:var(--surface2)\">"+
-    "<div class=\"sec-title\" style=\"margin-top:0\">Bill Equation</div>"+billEquationHtml(i)+
+    "<div style=\"display:flex;justify-content:space-between;align-items:center\">"+
+    "<div class=\"sec-title\" style=\"margin-top:0\">Bill Equation</div>"+
+    "<button onclick=\"event.stopPropagation();downloadBillPdf(JSON.parse(this.dataset.inv))\" "+
+    "data-inv='"+esc(JSON.stringify(i)).replace(/'/g,"&#39;")+"' "+
+    "style=\"font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);cursor:pointer\">"+
+    "&#8681; Download PDF</button></div>"+
+    billEquationHtml(i)+
     "<div class=\"sec-title\">Meter &amp; Period</div>"+billMeterDetailsHtml(i)+
     (waterfallHtml?"<div class=\"sec-title\">Why Different</div>"+waterfallHtml:"")+
     "</div>";

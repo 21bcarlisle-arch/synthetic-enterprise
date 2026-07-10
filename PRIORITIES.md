@@ -639,20 +639,28 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   enters the epoch-2 programme statement when that is framed. An optional cheap precursor
   (animating existing period snapshots, no real event ledger needed) may be proposed for the
   director to rank separately.
-- **Bill calculation breakdown, PARTIALLY CLOSED (2026-07-10, director page comment,
-  /customers/)**: "Days x standing charges" now shown -- `saas/bill_generator.py::generate_bill()`
-  exposes `days_in_period`/`standing_charge_gbp_per_day` (both already computed locally to derive
-  the total, just never returned), threaded through `tools/generate_billing_ledger.py` to the
-  persisted invoice, rendered as "N days x £X/day" on the Bill Equation
-  (`site/customers/index.html::billEquationHtml()`), gracefully falling back to the old plain
-  label for bills computed before this fix (`run_output_latest.json`'s existing bills predate it --
-  will populate automatically on the next fresh simulation run once the hold clears). 5 new tests.
-  REMAINING, genuinely deferred: "prices x days at that price" / full TOU-readiness (multiple rate
-  bands per day) -- the tariff engine has no multi-rate-per-day concept at all yet, a real
-  architecture gap, not a quick addition (the invoice's existing `registers` list structure, per
-  BILL_CORRECTNESS_ADDENDUM.md Defect 3, already anticipates this without a schema change, but the
-  tariff-pricing/settlement side does not yet produce more than one register). The bill-PDF-vs-
-  on-page-mockup question remains open for the director's own call.
+- **Bill calculation breakdown + real PDF, PARTIALLY CLOSED (2026-07-10, director page comment
+  + direct NTFY decision, /customers/)**: "Days x standing charges" now shown --
+  `saas/bill_generator.py::generate_bill()` exposes `days_in_period`/`standing_charge_gbp_per_day`
+  (both already computed locally to derive the total, just never returned), threaded through
+  `tools/generate_billing_ledger.py` AND `tools/generate_invoice_data.py` (the actual customer-
+  portal-facing mapping layer -- found and fixed a second pass-through gap here, the ledger fix
+  alone was not sufficient) to the persisted invoice, rendered as "N days x £X/day" on the Bill
+  Equation, gracefully falling back to the old plain label for bills computed before this fix.
+  Director picked "a real downloadable PDF" (NTFY "2. A") over an on-page mockup: real per-bill
+  PDF generation shipped via client-side jsPDF (CDN, matching this site's existing Chart.js
+  convention) -- a "Download PDF" button on each expanded bill renders account, invoice, billing
+  period, the full charge breakdown incl. the new days x rate line, meter/MPAN/MPRN, and total,
+  using the exact same invoice object already on the page (numbers can never drift from what's
+  shown on-screen). Verified end-to-end with real data through the full real pipeline
+  (bill_generator -> ledger invoice -> frontend invoice mapping -> PDF render logic, via a Node
+  harness stubbing jsPDF) -- no browser available in this environment to see the literal PDF file,
+  stated honestly as the verification ceiling. 12 new tests (5 bill-generator/ledger, 7 invoice-
+  mapping + regression). REMAINING, genuinely deferred: "prices x days at that price" / full
+  TOU-readiness (multiple rate bands per day) -- the tariff engine has no multi-rate-per-day
+  concept at all yet, a real architecture gap (the invoice's existing `registers` list structure
+  already anticipates this without a schema change, per BILL_CORRECTNESS_ADDENDUM.md Defect 3, but
+  the tariff-pricing/settlement side does not yet produce more than one register).
 - **Consumption page with fuel toggle -- ALREADY EXISTS, CLOSED (2026-07-10, director NTFY
   steer)**: "I don't mind kWh for gas. You just need to be careful not to add to electricity as
   this makes no sense. Maybe a page on the website with a toggle." Checked live: no bug existed

@@ -52,6 +52,11 @@ def _real_invoice(inv):
         unit_rate_p_per_kwh=unit_rate_p_per_kwh,
         commodity_amount_gbp=round(commodity_amt, 2),
         standing_charge_gbp=round(inv.get("standing_charge_gbp", 0) or 0, 2),
+        # Calculation-transparency breakdown (2026-07-10, director page comment:
+        # "Days x standing charges... explain the maths properly") -- carried
+        # through from the ledger record, same as every other field here.
+        days_in_period=inv.get("days_in_period"),
+        standing_charge_gbp_per_day=inv.get("standing_charge_gbp_per_day"),
         non_commodity_amount_gbp=round(inv.get("non_commodity_amount_gbp", 0) or 0, 2),
         vat_gbp=round(inv.get("vat_gbp", 0) or 0, 2),
         amount_gbp=round(inv.get("total_amount_gbp", 0) or 0, 2),
