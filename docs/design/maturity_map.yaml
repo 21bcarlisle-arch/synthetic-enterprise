@@ -318,13 +318,13 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 1
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   evidence: ["simulation/household_segments.py"]
-  simplifications: []
-  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  simplifications: ["2026-07-10 (thirteenth draw): the atom's own expert_hour had been marked 'passed, findings: []' since initial seeding -- an unverified placeholder, not a real check, inconsistent with the map's own philosophy that a genuine Expert Hour should produce real findings even when the verdict is clean. Did the actual check this time: pulled real population distributions for all 5 named dimensions against their cited DESNZ/Ofgem anchors. payment_channel (72% elec/75% gas DD share) landed at 71.4% DD in the live 7-household sample -- close to the anchor. fuel_poverty (8.8% DD/20.4% SC rate) landed at 0/7 -- verified this is honest small-sample noise (expected count ~0.85 with only 7 households), not a bug, by checking the actual rate constants and rng seeding directly. tenure/occupancy showed real variety, home_type is legitimately per-named-customer (not procedurally drawn, a documented design choice for this project's small fixed cast). Genuine finding, not a flaw in this atom's own scope: population-level statistical verification is inherently weak with only 7 resi households -- correctly out of scope here, separately registered as W2_2_population_draw."]
+  expert_hour: {status: passed, last: "2026-07-10", findings: ["payment_channel/tenure/occupancy verified against real anchors, plausible", "fuel_poverty 0/7 confirmed honest small-sample noise not a bug (expected ~0.85)", "small fixed population limits statistical power -- correctly out of scope, see W2_2_population_draw"]}
   real_world_twin: "real GB household archetype distributions (DESNZ/Ofgem survey data)"
   depends_on: []
 
