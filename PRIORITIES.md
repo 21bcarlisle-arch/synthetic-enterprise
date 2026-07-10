@@ -1,6 +1,20 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md, director-direct NTFY)
 #
+# === BUG FOUND, NOT FIXED: staging-watcher wake consumption-check is structurally broken
+#   (2026-07-10, docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md). Root cause: `background/
+#   tmux_relay.py::send_keys_when_idle()` checks "is the marker absent from the pane" to confirm
+#   a wake was consumed -- but Claude Code's own terminal UI keeps a submitted turn visible in
+#   scrollback forever, so this check can structurally never pass, and every genuinely successful
+#   wake gets misclassified as failed and retried indefinitely (1103 occurrences of the retry log
+#   line historically; directly observed 2 real duplicate wake deliveries ~32s apart this
+#   session, confirmed via a live `tmux capture-pane` showing the "consumed" marker still
+#   present). Low safety impact (R7/R8 discipline catches every duplicate as stale before acting)
+#   but real noise/attention cost. NOT fixed live -- background/tmux_relay.py is a shared,
+#   actively-in-use relay module and this session's own pane was the one being scraped mid-
+#   diagnosis; a suggested fix direction (busy-then-idle transition instead of marker-absence) is
+#   in the finding doc. NEXT: a careful, tested fix in its own pass.
+#
 # === B2_OPEX_TAXONOMY_EXPANSION.md -- P1, BUILT 2026-07-10 (director-direct NTFY,
 #   docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md; maturity_map.yaml B2_opex_cost_to_serve
 #   level 1->2). Researched via 3 parallel forks (WebSearch/WebFetch, real in this interactive
