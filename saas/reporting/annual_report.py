@@ -265,7 +265,17 @@ def extract_report_data(run_output: dict) -> dict:
         yr_bills = [b for b in bills if _year(b["period_end"]) == year]
         shocked = [b for b in yr_bills if b["bill_shock_pct"] is not None]
         shock_events = [
-            {"customer_id": b["customer_id"], "period_end": b["period_end"], "bill_shock_pct": b["bill_shock_pct"]}
+            {
+                "customer_id": b["customer_id"],
+                "period_end": b["period_end"],
+                "bill_shock_pct": b["bill_shock_pct"],
+                # Additive 2026-07-10 (docs/design/BILL_SHOCK_DEFINITION_FINDING.md,
+                # phase-close-evaluator finding: these existed on `bills` but were
+                # never threaded through to shock_events, so no business surface
+                # could ever show the seasonal-vs-genuine distinction).
+                "bill_shock_yoy_pct": b.get("bill_shock_yoy_pct"),
+                "bill_shock_likely_seasonal": b.get("bill_shock_likely_seasonal", False),
+            }
             for b in shocked
             if b["bill_shock_pct"] >= 0.20
         ]

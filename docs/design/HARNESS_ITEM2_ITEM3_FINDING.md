@@ -24,18 +24,25 @@ purpose-built subagent rather than relying on a generic check.
 project's own phase-close checklist and R1-R13 substituted for the generic "spec or acceptance
 criteria" the reference repo assumes.
 
-**Honest limitation found, not glossed over:** attempted to invoke it (`Agent` tool,
-`subagent_type: "phase-close-evaluator"`) to demonstrate it working against the most recent real
-commit (`7b02343c`) — it is NOT available. Confirmed via a second, independent check (a fresh
-`general-purpose` subagent asked to list its own visible agent types) that this is not a fluke of
-my own session's cache: agent-type registration happens once, at the top-level Claude Code
-process's own start, not per-session or per-subagent-spawn — a newly-added `.claude/agents/*.md`
-file only becomes invokable after that process itself restarts. This is a real, structural
-property of the harness, not a bug in the file (its YAML frontmatter matches the working
-`epistemic-verifier.md`/`discovery-agent.md` templates exactly). **Not demonstrated working this
-session** — R1 (consumer-verified completion) means this is registered as built-but-unverified,
-not claimed as done. Whoever restarts the Claude Code process next should invoke it once against
-a real recent phase and confirm PASS/NEEDS_WORK output before this item is marked fully closed.
+**Initial limitation found, then corrected (both stages honestly recorded, not just the final
+answer):** attempted to invoke it (`Agent` tool, `subagent_type: "phase-close-evaluator"`)
+immediately after creating the file — it was NOT available. Confirmed via a second, independent
+check (a fresh `general-purpose` subagent asked to list its own visible agent types) that this
+wasn't a fluke of my own session's cache. Concluded at the time: agent-type registration happens
+once, at the top-level Claude Code process's own start, requiring a full process restart.
+**That conclusion was wrong** — a later system notification confirmed the new agent type became
+available in the SAME session, with no restart, after some interval had passed (the registry
+evidently refreshes periodically, not only at process start). Corrected here rather than left
+standing.
+
+**Demonstrated working for real, same session:** invoked `phase-close-evaluator` against the
+actual commit `7b02343c` once it became available. It returned a genuine `NEEDS_WORK` verdict
+with real, independently-verified findings (not false positives) — see PRIORITIES.md's own entry
+logging exactly what it found (PROJECT_OVERVIEW.md Section 4/10 not updated; the new bill-shock
+YoY fields shipped with zero test coverage; a real semantic edge-case bug in the seasonal
+heuristic, found via the evaluator's own manual smoke-test; no business surface consumed the new
+fields) and how each was fixed. R1 (consumer-verified completion) is now actually satisfied: the
+evaluator is confirmed invokable and its output was acted on, not just claimed as built.
 
 ## Item 3: resilience settings review
 

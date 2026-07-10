@@ -85,6 +85,15 @@ def _year_ago_month(month: str) -> str:
     return f"{int(yr) - 1}-{mo}"
 
 
+def _prior_calendar_month(month: str) -> str:
+    """'YYYY-MM' -> the immediately preceding calendar month (year rolls
+    back at January)."""
+    yr, mo = int(month[:4]), int(month[5:7])
+    if mo == 1:
+        return f"{yr - 1}-12"
+    return f"{yr}-{mo - 1:02d}"
+
+
 def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     """Group `all_records` (from `simulation.settlement.run_settlement`) into
     one bill per customer per calendar month, in chronological order, via
@@ -133,9 +142,14 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     # pass since it needs every bill for a customer already generated to
     # look back a full year, not just the immediately-prior one.
     totals_by_customer_month: dict[str, dict[str, float]] = {}
+    mom_shock_by_customer_month: dict[str, dict[str, bool]] = {}
     for bill in bills:
         month = _billing_month(bill["period_end"])
         totals_by_customer_month.setdefault(bill["customer_id"], {})[month] = bill["total_amount_gbp"]
+        mom_pct = bill.get("bill_shock_pct")
+        mom_shock_by_customer_month.setdefault(bill["customer_id"], {})[month] = bool(
+            mom_pct is not None and mom_pct >= 0.20
+        )
 
     for bill in bills:
         month = _billing_month(bill["period_end"])
@@ -147,8 +161,22 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
         yoy_pct = abs(bill["total_amount_gbp"] - year_ago_total) / year_ago_total
         bill["bill_shock_yoy_pct"] = yoy_pct
         mom_pct = bill.get("bill_shock_pct")
+        # Exclude "shock aftermath" months (phase-close-evaluator finding,
+        # 2026-07-10): a genuine anomaly month produces a large MoM shock
+        # when it occurs; the FOLLOWING month, reverting back to a normal
+        # baseline, ALSO shows a large MoM swing (the mirror image of the
+        # drop back down) while its YoY stays small (both this and last
+        # year's same month are normal) -- mislabelling that reversion month
+        # itself as "seasonal" when the real cause is the PRIOR month's
+        # anomaly, not this month's own seasonal pattern. Excluded by
+        # checking the immediately-prior calendar month wasn't itself
+        # flagged as a MoM shock.
+        prior_month_was_shock = mom_shock_by_customer_month.get(bill["customer_id"], {}).get(
+            _prior_calendar_month(month), False
+        )
         bill["bill_shock_likely_seasonal"] = bool(
             mom_pct is not None and mom_pct >= 0.20 and yoy_pct < 0.20
+            and not prior_month_was_shock
         )
 
     return bills

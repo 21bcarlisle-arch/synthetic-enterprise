@@ -73,12 +73,27 @@ first, don't invent the anchor" discipline. Real, sourced findings:
   April/October elevated shock counts as a genuine industry-wide event, not pure noise, though
   still not conclusively separated from seasonal consumption effects without the actual redesign.
 
-## Not fixed this turn
+## Year-over-year comparison BUILT (2026-07-10, same session, later)
 
-This deserves a real redesign, not a quick patch: comparing against the same calendar period a
-year prior (to net out seasonality) and/or explicitly detecting the two named real-world event
-types (contract-end tariff reversion; DD recalculation) would require new logic in the billing/
-contract model. The anchors above are now in hand, but two genuine design choices remain open
-(a time-varying not fixed reversion differential; no citable "max DD jump" figure to bound an
-invented one) -- registered in PRIORITIES.md as backlog, not rushed into an already very large
-session.
+The seasonality half of the redesign (comparing against the same calendar month a year prior)
+was built: `simulation/run_phase4c_on_phase2b.py::build_monthly_bills()` gained additive
+`bill_shock_yoy_pct`/`bill_shock_likely_seasonal` fields, and `saas/reporting/annual_report.py`
+threads them through to `shock_events` so a real business surface (Operations tab) shows the
+split. **Self-caught via a fresh-context `phase-close-evaluator` review** (HARNESS_BEST_PRACTICE_
+ADOPTION.md item 2): the feature initially shipped with zero test coverage on the new fields
+(the pre-existing 18 phase4c tests tested none of it), and the evaluator's own manual smoke-test
+found a real semantic bug -- a month immediately following a genuine anomaly (reverting to
+baseline) was mislabelled `likely_seasonal`, since its own month-on-month swing is large and its
+year-over-year comparison is small, the same signature real seasonality produces, for the wrong
+reason. Fixed by excluding a month from the seasonal label if its own immediately-prior calendar
+month was itself flagged as a month-on-month shock (`_prior_calendar_month()`); the exact bug is
+now a named regression test. 8 new tests, all passing (`tests/simulation/
+test_run_phase4c_on_phase2b.py`).
+
+## Still not built
+
+Explicit event-type detection (contract-end tariff reversion; DD recalculation) remains separate,
+bigger work needing new SIM state -- the anchors from the research above are in hand, but two
+genuine design choices remain open (a time-varying not fixed reversion differential; no citable
+"max DD jump" figure to bound an invented one). Registered in PRIORITIES.md as backlog, not
+rushed.

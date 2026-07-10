@@ -1459,12 +1459,23 @@ function renderMonthly() {
     'A <strong>bill shock</strong> is a month-on-month billing change of &ge;20% vs a customer\'s ' +
     'previous bill (saas/bill_generator.py) -- it raises SIM churn probability via the bill-shock ' +
     'history model, and can trigger a contact/complaint (saas/contact_model.py). Shocks are flagged ' +
-    'by MAGNITUDE only -- this run does not yet break a shock down by cause (wholesale price move vs ' +
-    'consumption change vs tariff renewal); the 2021-22 "CRISIS" months reflect the real UK wholesale ' +
-    'price crisis in the underlying settlement data, not a data error.' +
+    'by MAGNITUDE only, on a raw month-vs-previous-month basis -- this does not yet break a shock ' +
+    'down by cause (wholesale price move vs consumption change vs tariff renewal); the 2021-22 ' +
+    '"CRISIS" months reflect the real UK wholesale price crisis, not a data error. A second, ' +
+    'ADDITIVE year-over-year comparison (same calendar month a year prior) now splits shocks into ' +
+    '"likely seasonal" (large month-on-month change, but small year-over-year change vs the same ' +
+    'month last year, and the prior month wasn\'t itself flagged) vs genuine -- see the two counts ' +
+    'below. Real UK anchors for the two named genuine-shock causes (contract-end SVT reversion, ' +
+    'DD recalculation) are researched (docs/market_research/BILL_SHOCK_EVENT_TYPES_ANCHORS.md) but ' +
+    'not yet built as their own detected event types. NOTE: the YoY split only reflects runs ' +
+    'processed since this field was added -- if "Genuine Shocks" below equals "Total Bill Shocks" ' +
+    'with zero "Likely Seasonal", this run predates the field and the split will populate once ' +
+    'the sim next re-runs end to end, not a claim that every shock this run is genuine.' +
     '</div>' +
     '<div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Total Bill Shocks</div><div class="kpi-value">'+totalShocks+'</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Likely Seasonal</div><div class="kpi-value">'+(D.monthly_ops.likely_seasonal_shock_count||0)+'</div><div class="kpi-sub">large MoM, small YoY vs last year</div></div>' +
+    '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Genuine Shocks</div><div class="kpi-value" style="color:var(--red)">'+(D.monthly_ops.genuine_shock_count||0)+'</div><div class="kpi-sub">large MoM AND large YoY</div></div>' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Crisis Bill Shocks</div><div class="kpi-value" style="color:var(--red)">'+crisisShocks+'</div><div class="kpi-sub">2021-22</div></div>' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Worst Shock Month</div><div class="kpi-value">'+maxShock.max_shock_pct.toFixed(0)+'%</div><div class="kpi-sub">'+maxShock.month+(maxShock.max_shock_pct>200 ? ' — true-up bill vs a small prior baseline, not a data error' : '')+'</div></div>' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Committee Meetings</div><div class="kpi-value" style="color:var(--amber)">'+totalComm+'</div></div>' +

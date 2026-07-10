@@ -882,11 +882,22 @@ def extract_b2_taxonomy(data):
 def extract_monthly_ops(data):
     from collections import defaultdict as _dd
     shock_m = _dd(list)
+    likely_seasonal_count = 0
+    genuine_shock_count = 0
     for yr, yd in data.get("years", {}).items():
         for e in yd.get("bill_shock_events", []):
             m = e.get("period_end", "")[:7]
             if m:
                 shock_m[m].append(float(e.get("bill_shock_pct", 0)))
+            # Additive 2026-07-10 (docs/design/BILL_SHOCK_DEFINITION_FINDING.md):
+            # split the raw MoM shock count into "likely just seasonal" (large
+            # MoM, small YoY, prior month wasn't itself a shock) vs "genuine"
+            # -- a real business-surface consumer of the new YoY fields,
+            # not just a computed-and-unused pair of dict keys.
+            if e.get("bill_shock_likely_seasonal"):
+                likely_seasonal_count += 1
+            else:
+                genuine_shock_count += 1
     comm_m = _dd(int)
     for yr, yd in data.get("years", {}).items():
         for wu in yd.get("committee_wake_ups", []):
@@ -948,7 +959,12 @@ def extract_monthly_ops(data):
             "oracle_fallback_count": dem_source_counts[yr]["oracle_fallback"],
         })
 
-    return {"monthly": rows, "demand_estimation_annual": demand_estimation_annual}
+    return {
+        "monthly": rows,
+        "demand_estimation_annual": demand_estimation_annual,
+        "likely_seasonal_shock_count": likely_seasonal_count,
+        "genuine_shock_count": genuine_shock_count,
+    }
 
 
 def extract_arrears_case_load(data):

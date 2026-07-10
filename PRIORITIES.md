@@ -2,6 +2,33 @@
 # last director review: 2026-07-10 (from_rich_20260710_203008.md -- verifier gate closed, W1/D2
 #   bounded start approved, Routines environment click-path requested)
 #
+# === phase-close-evaluator demonstrated FOR REAL, found real defects, all fixed (2026-07-10):
+#   the new agent (item 2 above) initially reported as unavailable this session -- correction:
+#   it just needed more time for the agent-type registry to refresh, not a full process restart
+#   as first concluded. Invoked it for real against commit 7b02343c -- verdict NEEDS_WORK, with
+#   real, verified findings, not false positives: (1) PROJECT_OVERVIEW.md Section 4/10 hadn't
+#   been updated for this commit -- confirmed true, and it turned out the gap extended back
+#   across this whole session's stretch since 11:36 (SLC25C, B2 taxonomy, Operations KPIs,
+#   staging-watcher fix, bill-shock work, Epoch-2 start, harness items 2/3 -- all now
+#   consolidated into one Section 4 entry + Section 10 test-count chain, rather than
+#   back-dated into individually-titled entries that would misrepresent timing). (2) the new
+#   bill_shock_yoy_pct/bill_shock_likely_seasonal fields shipped with ZERO test coverage (the
+#   18 passing phase4c tests all pre-dated the feature and tested none of it) -- fixed with 8
+#   real new tests. (3) the evaluator's own manual smoke-test found a genuine semantic bug: a
+#   "shock aftermath" month (reverting to baseline right after a real anomaly) was mislabelled
+#   likely_seasonal, since its own MoM swing is large and YoY small -- the same signature as
+#   real seasonality, wrong cause. Fixed by excluding months whose immediately-prior calendar
+#   month was itself flagged as a MoM shock (new `_prior_calendar_month()` helper); the exact
+#   bug is now a named regression test (test_bill_shock_likely_seasonal_false_for_shock_
+#   aftermath_month). (4) no business surface consumed the new fields at all -- fixed:
+#   shock_events now carries them through to a real Operations-tab KPI split ("Likely Seasonal"
+#   vs "Genuine Shocks"), honestly caveated that the split only populates for runs processed
+#   since the field was added. 27 new tests total (8 phase4c regression + 2 dashboard-extraction
+#   + others), 16,676 tests collected (full suite), epistemic PASS, verified live in-browser.
+#   This is the evaluator doing exactly its designed job -- a strong first real demonstration,
+#   not a synthetic test.
+#
+#
 # === HARNESS_BEST_PRACTICE_ADOPTION.md items 2/3 addressed (2026-07-10, docs/design/
 #   HARNESS_ITEM2_ITEM3_FINDING.md), item 1 now fully complete unlocking item 2's own sequencing.
 #   Item 2: studied github.com/anthropics/cwc-long-running-agents for real (gh repo view, not

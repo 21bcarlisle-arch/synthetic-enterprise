@@ -90,7 +90,27 @@ def test_no_crisis_in_2020():
 
 def test_empty_data():
     r = extract_monthly_ops({})
-    assert r == {"monthly": [], "demand_estimation_annual": []}
+    assert r == {
+        "monthly": [], "demand_estimation_annual": [],
+        "likely_seasonal_shock_count": 0, "genuine_shock_count": 0,
+    }
+
+
+def test_likely_seasonal_and_genuine_shock_counts_split():
+    data = {
+        "years": {
+            "2020": {
+                "bill_shock_events": [
+                    {"period_end": "2020-07-31", "bill_shock_pct": 0.5, "bill_shock_likely_seasonal": True},
+                    {"period_end": "2020-08-31", "bill_shock_pct": 0.6, "bill_shock_likely_seasonal": False},
+                    {"period_end": "2020-09-30", "bill_shock_pct": 0.3, "bill_shock_likely_seasonal": False},
+                ],
+            },
+        },
+    }
+    r = extract_monthly_ops(data)
+    assert r["likely_seasonal_shock_count"] == 1
+    assert r["genuine_shock_count"] == 2
 
 
 def test_shock_count_zero_when_no_shocks():

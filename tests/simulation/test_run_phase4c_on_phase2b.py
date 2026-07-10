@@ -16,6 +16,25 @@ def make_record(customer_id, settlement_date, kwh, unit_rate=200.0):
     }
 
 
+def consecutive_monthly_records(customer_id, start_year, kwh_by_month_index):
+    """One record per CONSECUTIVE calendar month starting Jan of start_year,
+    kwh_by_month_index[i] = consumption for month i (0-indexed from Jan
+    start_year). Consecutive (no gaps) so bill_shock_pct's "previous bill"
+    and _prior_calendar_month() always refer to the same real month --
+    sparse test data would let an intermediate gap masquerade as a
+    same-month comparison that never really happened."""
+    records = []
+    for i, kwh in enumerate(kwh_by_month_index):
+        year = start_year + i // 12
+        month = i % 12 + 1
+        records.append(make_record(customer_id, f"{year}-{month:02d}-01", kwh))
+    return records
+
+
+def bills_by_month(bills, customer_id):
+    return {b["period_end"][:7]: b for b in bills if b["customer_id"] == customer_id}
+
+
 def test_build_monthly_bills_groups_by_customer_and_month():
     records = [
         make_record("C1", "2023-01-15", 10.0),
@@ -169,3 +188,85 @@ def test_main_produces_credit_refund_log():
         assert entry["credit_amount_gbp"] > 0
         assert entry["working_days_to_pay"] is not None
         assert isinstance(entry["breached_slc14_deadline"], bool)
+
+
+# -- bill_shock_yoy_pct / bill_shock_likely_seasonal (docs/design/
+# BILL_SHOCK_DEFINITION_FINDING.md, added 2026-07-10, real tests added
+# 2026-07-10 per phase-close-evaluator NEEDS_WORK finding -- the feature
+# shipped with zero test coverage on the new fields themselves) --
+
+from simulation.run_phase4c_on_phase2b import _prior_calendar_month, _year_ago_month
+
+
+def test_prior_calendar_month_normal():
+    assert _prior_calendar_month("2020-06") == "2020-05"
+
+
+def test_prior_calendar_month_january_rolls_back_a_year():
+    assert _prior_calendar_month("2020-01") == "2019-12"
+
+
+def test_year_ago_month_normal():
+    assert _year_ago_month("2020-06") == "2019-06"
+
+
+def test_bill_shock_yoy_pct_none_when_no_year_ago_data():
+    records = consecutive_monthly_records("C1", 2020, [10] * 6)
+    bills = bills_by_month(build_monthly_bills(records), "C1")
+    assert bills["2020-06"]["bill_shock_yoy_pct"] is None
+    assert bills["2020-06"]["bill_shock_likely_seasonal"] is False
+
+
+def test_bill_shock_yoy_pct_computed_when_year_ago_exists():
+    kwh = [10] * 12 + [10] * 5 + [30]  # flat, then June Y2 jumps to 30
+    records = consecutive_monthly_records("C1", 2019, kwh)
+    bills = bills_by_month(build_monthly_bills(records), "C1")
+    june_y2 = bills["2020-06"]
+    # YoY vs June Y1 (kwh=10): a real, non-None percentage
+    assert june_y2["bill_shock_yoy_pct"] is not None
+    assert june_y2["bill_shock_yoy_pct"] > 0.20
+
+
+def test_bill_shock_likely_seasonal_true_for_genuine_repeating_pattern():
+    """July is a real, repeating seasonal peak both years -- large MoM
+    (vs June), small YoY (vs last July), and June itself was never flagged
+    -- this SHOULD be flagged likely_seasonal."""
+    year1 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    year2 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    records = consecutive_monthly_records("C1", 2019, year1 + year2)
+    bills = bills_by_month(build_monthly_bills(records), "C1")
+    july_y2 = bills["2020-07"]
+    assert july_y2["bill_shock_pct"] >= 0.20
+    assert july_y2["bill_shock_yoy_pct"] < 0.20
+    assert july_y2["bill_shock_likely_seasonal"] is True
+
+
+def test_bill_shock_likely_seasonal_false_for_genuine_one_off_anomaly():
+    """July Y2 spikes with no precedent in July Y1 -- large MoM AND large
+    YoY -- a real shock, must NOT be labelled seasonal."""
+    year1 = [10] * 12
+    year2 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    records = consecutive_monthly_records("C1", 2019, year1 + year2)
+    bills = bills_by_month(build_monthly_bills(records), "C1")
+    july_y2 = bills["2020-07"]
+    assert july_y2["bill_shock_pct"] >= 0.20
+    assert july_y2["bill_shock_yoy_pct"] >= 0.20
+    assert july_y2["bill_shock_likely_seasonal"] is False
+
+
+def test_bill_shock_likely_seasonal_false_for_shock_aftermath_month():
+    """Regression for the phase-close-evaluator's live finding (2026-07-10):
+    July Y2 has a genuine one-off spike (as above); August Y2 reverts back
+    to baseline. August's own MoM change is large (dropping back down from
+    July's spike) and its YoY is small (August is normal both years) --
+    without the prior-month-shock exclusion, August would be WRONGLY
+    labelled likely_seasonal, when the real cause is July's anomaly, not
+    August's own seasonal pattern."""
+    year1 = [10] * 12
+    year2 = [10, 10, 10, 10, 10, 10, 50, 10, 10, 10, 10, 10]
+    records = consecutive_monthly_records("C1", 2019, year1 + year2)
+    bills = bills_by_month(build_monthly_bills(records), "C1")
+    august_y2 = bills["2020-08"]
+    assert august_y2["bill_shock_pct"] >= 0.20  # reverting from July's spike
+    assert august_y2["bill_shock_yoy_pct"] < 0.20  # August is normal both years
+    assert august_y2["bill_shock_likely_seasonal"] is False  # NOT seasonal -- shock aftermath
