@@ -25,6 +25,7 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 REPORTS_DIR = PROJECT_DIR / "docs" / "reports"
 HOLD_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".sim_runner_hold"
+FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish_once"
 
 BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
@@ -145,20 +146,38 @@ def run_simulation() -> bool:
     return True
 
 
+def _check_hold(was_held: bool) -> tuple[bool, bool]:
+    """Check HOLD_FLAG and update hold state; returns (new_was_held, should_skip_run).
+
+    No-orphan-transitions fix (2026-07-10, CLAIM_EQUALS_PIXEL.md/
+    END_TO_END_VERIFICATION.md): a hold release must itself trigger
+    republication -- releasing this hold previously did nothing on its own
+    if the fixed code's headline figures looked "identical" to the pre-fix
+    run's fingerprint, leaving the live site stale for hours despite the
+    gate being closed. On the held->cleared transition, this touches
+    FORCE_REPUBLISH_FLAG, which forces background/process_run_complete.py's
+    next _process() call through regardless of fingerprint match, consumed
+    exactly once."""
+    if HOLD_FLAG.exists():
+        if not was_held:
+            log("HELD: {} present -- skipping new runs until it is removed "
+                "(director hold on publishing new results)".format(HOLD_FLAG.name))
+        return True, True
+    if was_held:
+        log("Hold cleared -- resuming normal runs, forcing next publish through")
+        FORCE_REPUBLISH_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        FORCE_REPUBLISH_FLAG.touch()
+    return False, False
+
+
 def main() -> None:
     log("Simulation runner started")
     was_held = False
     while True:
-        if HOLD_FLAG.exists():
-            if not was_held:
-                log("HELD: {} present -- skipping new runs until it is removed "
-                    "(director hold on publishing new results)".format(HOLD_FLAG.name))
-                was_held = True
+        was_held, should_skip = _check_hold(was_held)
+        if should_skip:
             time.sleep(120)
             continue
-        if was_held:
-            log("Hold cleared -- resuming normal runs")
-            was_held = False
         try:
             success = run_simulation()
         except Exception as exc:

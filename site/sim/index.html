@@ -669,7 +669,7 @@
       var occupancyCell = c.occupancy ? (_occupancyLabel[c.occupancy] || c.occupancy) : '—';
       var smartMeterCell = c.smart_meter == null ? '—' : (c.smart_meter ? '<span style="color:var(--green)">Yes</span>' : 'No');
       var dualFuelCell = c.dual_fuel == null ? '—' : (c.dual_fuel ? 'Yes' : 'No');
-      var _homeTypeLabel = {urban_flat:'Urban flat', suburban_semi:'Suburban semi', detached_house:'Detached house', rural_cottage:'Rural cottage', small_office:'Small office', warehouse_unit:'Warehouse', office_building:'Office building', chemical_plant:'Chemical plant', supermarket:'Supermarket'};
+      var _homeTypeLabel = {urban_flat:'Urban flat', tenement_flat:'Tenement flat', suburban_semi:'Suburban semi', rural_detached:'Rural detached', small_office:'Small office', warehouse_unit:'Warehouse', office_building:'Office building', chemical_plant:'Chemical plant', supermarket:'Supermarket'};
       var homeTypeCell = c.home_type ? (_homeTypeLabel[c.home_type] || c.home_type) : '—';
       var detailId = 'cust-detail-' + idx;
       var stressVals = traj.map(function(pt) { return stressNum[(pt.stress||'low').toUpperCase()] != null ? stressNum[(pt.stress||'low').toUpperCase()] : 0; });

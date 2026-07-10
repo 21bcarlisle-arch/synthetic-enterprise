@@ -165,7 +165,11 @@ function cycleCustomer(dir){
     params.delete("year");
     history.replaceState(null,"","?"+params.toString());
     loadHousehold(next.loginId).then(function(){
-      ACTIVE_TAB="overview";BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
+      // Director page comment (2026-07-10): "Please keep the same tab when
+      // we scroll between customers" -- ACTIVE_TAB deliberately NOT reset
+      // here (was "overview" every time); fuel/bill-view sub-state still
+      // resets since those depend on the new household's own fuel mix.
+      BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
       BILL_VIEW="bills";CASH_SCOPE=(HH.elec&&HH.gas)?"combined":BILL_FUEL;
       renderHousehold();
     });
@@ -336,13 +340,18 @@ function renderHousehold(){
   }).join("");
   document.getElementById("app").innerHTML=
     "<div class=\"account-wrap\">"+
-    "<div class=\"account-header\"><div>"+
-    "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">"+(segmentInfo()[1]==="Residential"?"Household":"Business")+"</span></div>"+
-    "<div class=\"account-meta\">"+fuelBadges()+"</div>"+
-    "</div><div style=\"display:flex;gap:8px;align-items:center\">"+
+    "<div class=\"account-header\">"+
+    // Director page comment (2026-07-10): "Can you move the scroll to left
+    // hand side?" -- prev/next customer arrows moved from the right
+    // (grouped with Sign out) to the left, ahead of the account id.
+    "<div style=\"display:flex;gap:8px;align-items:center\">"+
     "<button class=\"logout-btn\" onclick=\"cycleCustomer(-1)\" title=\"Previous customer\">&larr;</button>"+
     "<button class=\"logout-btn\" onclick=\"cycleCustomer(1)\" title=\"Next customer\">&rarr;</button>"+
-    "<button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div></div>"+
+    "<div>"+
+    "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">"+(segmentInfo()[1]==="Residential"?"Household":"Business")+"</span></div>"+
+    "<div class=\"account-meta\">"+fuelBadges()+"</div>"+
+    "</div></div>"+
+    "<button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div>"+
     "<div class=\"tab-nav\">"+tabsHtml+"</div>"+
     "<div id=\"tab-body\"></div>"+
     "</div>";
@@ -1013,14 +1022,19 @@ function renderUsage(d){
       "</div></div>";
   }else{
     // Director page comment (2026-07-10): "C2 is smart meter, but no smart
-    // data and shape" -- a real distinction that wasn't explained anywhere:
-    // having a smart meter installed and opting into half-hourly data
-    // sharing with the supplier are two different things in the real UK
-    // market (most domestic customers with a smart meter never enable HH
-    // sharing) -- see tools/generate_customer_consumption.py's own module
-    // docstring. Not a bug; the UI just didn't say so.
+    // data and shape" -- a real distinction that wasn't explained anywhere.
+    // CORRECTED same day after a second director challenge to this exact
+    // claim: a smart meter sending reads to its OWN supplier for BILLING is
+    // NOT a rarely-taken opt-in (DESNZ Q4 2024: ~90% of installed smart
+    // meters do this by default) -- only a separate, narrower, real
+    // settlement-purpose HH-data consent regime is opt-in-like, and its
+    // real uptake rate is unpublished (see docs/market_research/
+    // ASSUMPTIONS.md "Smart Meter Half-Hourly Data Access: Billing vs.
+    // Settlement Consent"). This account's missing half-hourly shape here
+    // reflects a simulation data-availability choice, not a modelled
+    // customer consent decision.
     var _smartNote=(d.meter_type&&d.meter_type.toLowerCase().indexOf("smart")>=0)
-      ?" This account has a smart meter installed, but half-hourly data sharing with the supplier is a separate opt-in most domestic customers with a smart meter never enable — matching the real UK market."
+      ?" This account has a smart meter installed; the half-hourly load shape below isn't simulated for every account (a data-availability choice, not a customer consent gate) -- monthly totals are always real regardless."
       :"";
     html+="<div class=\"sec-title\">Load Shape</div><div class=\"card\"><div class=\"no-inv\">Half-hourly data not available for this account — monthly totals only."+_smartNote+"</div></div>";
   }

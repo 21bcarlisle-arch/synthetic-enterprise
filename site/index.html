@@ -87,7 +87,10 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   </div>
 
   <div class="sec">The Learning Curve</div>
-  <div class="chart-card"><div class="chart-wrap"><canvas id="learning-chart"></canvas></div></div>
+  <div class="chart-card">
+    <div id="learning-window-toggle" style="display:flex;gap:8px;margin-bottom:8px;font-size:11px"></div>
+    <div class="chart-wrap"><canvas id="learning-chart"></canvas></div>
+  </div>
 
   <div class="sec">Why This Is Different</div>
   <div class="product-grid">
@@ -188,7 +191,10 @@ function renderMetrics(dashboard, phases){
     return '<div class="metric"><div class="metric-label">'+m.l+'</div><div class="metric-value'+(m.pos?" pos":"")+'">'+m.v+'</div></div>';
   }).join("");
 }
+var LEARNING_WINDOW="recent"; // "recent" | "all"
+var LEARNING_PHASES_DATA=null;
 function renderLearningCurve(phases){
+  LEARNING_PHASES_DATA=phases;
   var tp=(phases&&phases.test_progression)||[];
   var pd=(phases&&phases.phase_dates)||[];
   var ctx=document.getElementById("learning-chart");
@@ -221,11 +227,43 @@ function renderLearningCurve(phases){
   // against the SAME label array by date rather than by raw array
   // position (the two series don't cover identical date sets).
   var allDates=Object.keys(Object.assign({},testByDate,phaseByDate)).sort();
-  new Chart(ctx,{type:"line",data:{labels:allDates,datasets:[
-    {label:"Tests passing",data:allDates.map(function(d){return testByDate.hasOwnProperty(d)?testByDate[d]:null;}),spanGaps:true,borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1,yAxisID:"yTests"},
-    {label:"Phases completed",data:allDates.map(function(d){return phaseByDate.hasOwnProperty(d)?phaseByDate[d]:null;}),spanGaps:true,borderColor:"#2a6fb0",backgroundColor:"rgba(42,111,176,0.08)",fill:false,borderWidth:2,pointRadius:1,yAxisID:"yPhases"}
+
+  // Real director-repeat complaint (2026-07-10, "They look like the old flat
+  // ones still" -- 3rd time): the data itself was correct and growing, but a
+  // one-time early bulk jump (1,290 -> 15,314 tests in the first ~6 days)
+  // dominates the linear y-axis range for the ENTIRE history, so a full
+  // week of genuinely real, ongoing progress since then (15,314 -> 16,387)
+  // occupies only ~7% of the visible range -- it visually reads as flat even
+  // though it is not. Default view now shows the most recent 14 days, where
+  // day-to-day movement is actually visible; "All time" remains one click
+  // away for full historical context. Neither series is altered or hidden,
+  // only the default date window shown.
+  var RECENT_WINDOW_DAYS=7;
+  var dates=allDates;
+  if(LEARNING_WINDOW==="recent"&&allDates.length>1){
+    var cutoff=new Date(allDates[allDates.length-1]);
+    cutoff.setDate(cutoff.getDate()-RECENT_WINDOW_DAYS);
+    var cutoffStr=cutoff.toISOString().slice(0,10);
+    dates=allDates.filter(function(d){return d>=cutoffStr;});
+    if(dates.length<2)dates=allDates.slice(-2); // never render a single-point chart
+  }
+
+  var toggleEl=document.getElementById("learning-window-toggle");
+  if(toggleEl){
+    toggleEl.innerHTML=
+      "<button onclick=\"setLearningWindow('recent')\" style=\"padding:3px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:"+(LEARNING_WINDOW==="recent"?"var(--surface2)":"var(--surface)")+";font-weight:"+(LEARNING_WINDOW==="recent"?"700":"400")+"\">Recent ("+RECENT_WINDOW_DAYS+"d)</button>"+
+      "<button onclick=\"setLearningWindow('all')\" style=\"padding:3px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:"+(LEARNING_WINDOW==="all"?"var(--surface2)":"var(--surface)")+";font-weight:"+(LEARNING_WINDOW==="all"?"700":"400")+"\">All time</button>";
+  }
+
+  if(learningChart)learningChart.destroy();
+  learningChart=new Chart(ctx,{type:"line",data:{labels:dates,datasets:[
+    {label:"Tests passing",data:dates.map(function(d){return testByDate.hasOwnProperty(d)?testByDate[d]:null;}),spanGaps:true,borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1,yAxisID:"yTests"},
+    {label:"Phases completed",data:dates.map(function(d){return phaseByDate.hasOwnProperty(d)?phaseByDate[d]:null;}),spanGaps:true,borderColor:"#2a6fb0",backgroundColor:"rgba(42,111,176,0.08)",fill:false,borderWidth:2,pointRadius:1,yAxisID:"yPhases"}
   ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:"#52514e",font:{size:10}}},title:{display:true,text:"Development over time -- tests passing & phases completed",color:"#52514e",font:{size:11}}},scales:{x:{ticks:{maxTicksLimit:6,color:"#52514e"},grid:{color:"#e1e0d9"}},yTests:{position:"left",ticks:{color:"#0ca30c"},grid:{color:"#e1e0d9"}},yPhases:{position:"right",ticks:{color:"#2a6fb0"},grid:{display:false}}}}});
 }
+var learningChart=null;
+function setLearningWindow(w){LEARNING_WINDOW=w;renderLearningCurve(LEARNING_PHASES_DATA);}
+window.setLearningWindow=setLearningWindow;
 Promise.all([
   fetch("./data/dashboard.json").then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/phases.json").then(function(r){return r.json();}).catch(function(){return {};})

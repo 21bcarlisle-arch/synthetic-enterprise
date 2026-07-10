@@ -184,3 +184,55 @@ def test_log_entry_has_timestamp(tmp_path, monkeypatch):
     sim_runner.log("check timestamp")
     text = log_file.read_text()
     assert "20" in text and "UTC" in text
+
+
+# --- _check_hold() -- no-orphan-transitions fix (2026-07-10,
+# CLAIM_EQUALS_PIXEL.md/END_TO_END_VERIFICATION.md): a hold release must
+# itself force a republish, not just stop skipping ---
+
+def _setup_hold(tmp_path, monkeypatch):
+    monkeypatch.setattr(sim_runner, "HOLD_FLAG", tmp_path / ".sim_runner_hold")
+    monkeypatch.setattr(sim_runner, "FORCE_REPUBLISH_FLAG", tmp_path / ".force_republish_once")
+    monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "log.md")
+
+
+def test_check_hold_no_flag_no_prior_hold_runs_normally(tmp_path, monkeypatch):
+    _setup_hold(tmp_path, monkeypatch)
+    was_held, should_skip = sim_runner._check_hold(False)
+    assert was_held is False
+    assert should_skip is False
+    assert not sim_runner.FORCE_REPUBLISH_FLAG.exists()
+
+
+def test_check_hold_flag_present_skips_and_marks_held(tmp_path, monkeypatch):
+    _setup_hold(tmp_path, monkeypatch)
+    sim_runner.HOLD_FLAG.touch()
+    was_held, should_skip = sim_runner._check_hold(False)
+    assert was_held is True
+    assert should_skip is True
+
+
+def test_check_hold_flag_still_present_stays_held_no_relog(tmp_path, monkeypatch):
+    _setup_hold(tmp_path, monkeypatch)
+    sim_runner.HOLD_FLAG.touch()
+    was_held, should_skip = sim_runner._check_hold(True)
+    assert was_held is True
+    assert should_skip is True
+
+
+def test_check_hold_cleared_transition_touches_force_republish_flag(tmp_path, monkeypatch):
+    """The exact regression: releasing a hold must force the next publish
+    through, not just quietly stop skipping."""
+    _setup_hold(tmp_path, monkeypatch)
+    was_held, should_skip = sim_runner._check_hold(True)
+    assert was_held is False
+    assert should_skip is False
+    assert sim_runner.FORCE_REPUBLISH_FLAG.exists()
+
+
+def test_check_hold_no_prior_hold_does_not_touch_force_republish_flag(tmp_path, monkeypatch):
+    """Only a real held->cleared transition forces a republish -- normal
+    operation with no hold ever involved must not force anything."""
+    _setup_hold(tmp_path, monkeypatch)
+    sim_runner._check_hold(False)
+    assert not sim_runner.FORCE_REPUBLISH_FLAG.exists()

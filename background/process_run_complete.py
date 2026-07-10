@@ -32,6 +32,19 @@ RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 # fetch, live-decision days_to_renewal / market_data_stale_days) still produce
 # exactly one processed commit per day.
 LAST_FINGERPRINT_FILE = PROJECT_DIR / "docs" / "observability" / ".last_processed_fingerprint.json"
+# No-orphan-transitions fix (2026-07-10, CLAIM_EQUALS_PIXEL.md/END_TO_END_
+# VERIFICATION.md, director-flagged incident): the change-detection gate
+# above is correct in general, but it has no concept of "the CODE changed
+# even though headline figures barely moved" -- releasing a publish hold
+# (docs/review_gates/.sim_runner_hold) after a fix whose real-world P&L
+# impact happens to be small silently produced a fingerprint match against
+# the pre-fix run, so the hold-release triggered nothing and the live site
+# stayed on stale, pre-fix figures for hours. background/sim_runner.py now
+# touches this flag the moment it detects a hold was just cleared; the next
+# _process() call consumes it (bypassing the fingerprint-skip check exactly
+# once, regardless of whether the figures look identical) and deletes it, so
+# a hold-release always forces a real regen/test/commit/deploy.
+FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish_once"
 # DEPLOY_CONTENTION_BATCH_COMMITS.md (2026-07-04): sim_runner cycles every
 # ~10 min and each cycle committed+pushed unconditionally (LATEST.md's
 # timestamp always differs), giving ~6 pushes/hour -- enough to contend with
@@ -718,14 +731,24 @@ def _process(marker_path_str):
     # entire regen/test/commit pipeline below would reproduce byte-identical
     # surfaces -- skip it, log one line, archive the marker. An administration
     # event always processes (never skipped) so the NTFY exception path fires.
+    # A pending FORCE_REPUBLISH_FLAG (a hold was just released) also forces
+    # processing through regardless of fingerprint match -- see its own
+    # comment above for why: a code fix can change correctness without
+    # moving headline figures enough to break the fingerprint match.
     fingerprint = _run_fingerprint(data)
     last_fp = _read_last_fingerprint()
-    if last_fp == fingerprint and not fingerprint["administration_event"]:
+    forced = FORCE_REPUBLISH_FLAG.exists()
+    if last_fp == fingerprint and not fingerprint["administration_event"] and not forced:
         _archive_marker(marker)
         log("SKIP (change-detection gate): identical to last processed run "
             "[net=\xa3{:,.0f}, date={}] -- no regen/test/commit. Archived {}.".format(
                 net_margin, fingerprint["date"], marker.name))
         return 0
+    if forced:
+        log("FORCED processing (a hold was just released) -- bypassing change-detection gate "
+            "regardless of fingerprint match [net=\xa3{:,.0f}, date={}].".format(
+                net_margin, fingerprint["date"]))
+        FORCE_REPUBLISH_FLAG.unlink()
 
     log("Regenerating ANNUAL_REPORT.md from {}".format(json_path.name))
     if not regenerate_report(json_path):

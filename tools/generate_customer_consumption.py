@@ -16,13 +16,25 @@ consumption model, no fabrication:
 
 Daily/HH detail is genuinely not available for every customer, and that is
 not a plumbing gap to "fix" -- in the real UK market, gas is AQ/EAC-read
-based and never HH-settled, and even for HH-eligible electricity accounts,
-full HH data sharing back to the supplier is an opt-in most domestic
-customers never take up. sim/hh_data/ reflects exactly that: only the
-customers simulation/publish_consumption_data.py already treats as HH-data
-sources (C7, C8, C9 resi opt-ins, plus every HH-metered I&C account) have a
-CSV. Every other customer gets monthly bars only -- consumption["has_hh_data"]
-says which, honestly, rather than a fabricated daily curve.
+based and never HH-settled. Electricity is more nuanced than this module's
+earlier docstring claimed (corrected 2026-07-10, director challenge --
+docs/market_research/ASSUMPTIONS.md "Smart Meter Half-Hourly Data Access:
+Billing vs. Settlement Consent"): a DCC-enrolled smart meter in smart mode
+(~90% of installed smart meters, DESNZ Q4 2024) routinely sends reads to
+its OWN supplier for billing purposes BY DEFAULT, not as a rarely-taken
+opt-in -- the only real "opt-out" is losing/declining smart functionality
+(traditional mode). A separate, genuinely narrower opt-in (domestic) /
+opt-out (microbusiness) consent regime does exist for using HH-granularity
+data for market-wide SETTLEMENT purposes (Ofgem, 25 Jun 2019), but its real
+uptake rate is unpublished, and Ofgem/Elexon's MHHS programme is retiring
+that mechanism entirely by migrating every customer to universal HH
+settlement (began Sept 2025, due complete May 2027) -- not a per-customer
+consent choice. sim/hh_data/ having a CSV for only C7/C8/C9 + every
+HH-metered I&C account is therefore a SIMULATION DATA-AVAILABILITY choice
+(not every customer's full half-hourly shape is simulated), not a modelled
+real-world consent gate. Every other customer gets monthly bars only --
+consumption["has_hh_data"] says which, honestly, rather than a fabricated
+daily curve.
 
 Output: patches a "consumption" key into each existing
 site/data/customers/{cid}.json (same read-existing/patch-key pattern as

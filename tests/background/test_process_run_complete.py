@@ -146,6 +146,81 @@ def test_main_success_flow(tmp_path, monkeypatch):
     assert (tmp_path / "staging" / "done" / marker.name).exists()
 
 
+def _full_isolation_setup(tmp_path, monkeypatch):
+    """Same isolation as test_main_success_flow, factored out for the
+    force-republish tests below."""
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "staging" / "done")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")
+    monkeypatch.setattr(prc, "generate_dashboard_json", lambda p, git_hash="unknown": True)
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
+    monkeypatch.setattr(prc, "RUN_INSIGHTS_PATH", tmp_path / "run_insights.json")
+    monkeypatch.setattr(prc, "RUN_HISTORY_PATH", tmp_path / "run_history.json")
+    monkeypatch.setattr(prc, "FORCE_REPUBLISH_FLAG", tmp_path / ".force_republish_once")
+    latest_md = tmp_path / "LATEST.md"
+    latest_md.write_text(
+        "Last updated: 2026-01-01T00:00:00Z\n\n"
+        "**Latest simulation results (2016-2025)** - auto-processed (0s / 0 min):\n"
+        "- Net margin: old\n"
+        "\n"
+        "**Next section**\n"
+    )
+    monkeypatch.setattr(prc, "LATEST_MD", latest_md)
+
+    def fake_run(cmd, **kwargs):
+        m = MagicMock()
+        m.returncode = 0
+        return m
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+
+# --- FORCE_REPUBLISH_FLAG -- no-orphan-transitions fix (2026-07-10,
+# CLAIM_EQUALS_PIXEL.md/END_TO_END_VERIFICATION.md): a hold release must
+# force a real republish, even when the fixed code's headline figures
+# happen to fingerprint-match the last processed run ---
+
+def test_change_detection_gate_skips_identical_run_when_not_forced(tmp_path, monkeypatch):
+    _full_isolation_setup(tmp_path, monkeypatch)
+    marker, json_data = make_marker(tmp_path)
+    prc.LAST_FINGERPRINT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    prc.LAST_FINGERPRINT_FILE.write_text(json.dumps(prc._run_fingerprint(json_data), sort_keys=True))
+
+    rc = prc.main(str(marker))
+
+    assert rc == 0
+    assert (tmp_path / "staging" / "done" / marker.name).exists()
+    assert not prc.LATEST_MD.read_text().count("Net margin: \xa3")  # LATEST.md never touched
+
+
+def test_force_republish_flag_bypasses_identical_fingerprint(tmp_path, monkeypatch):
+    """The exact regression: an identical-looking fingerprint must not skip
+    processing when a hold was just released."""
+    _full_isolation_setup(tmp_path, monkeypatch)
+    marker, json_data = make_marker(tmp_path)
+    prc.LAST_FINGERPRINT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    prc.LAST_FINGERPRINT_FILE.write_text(json.dumps(prc._run_fingerprint(json_data), sort_keys=True))
+    prc.FORCE_REPUBLISH_FLAG.parent.mkdir(parents=True, exist_ok=True)
+    prc.FORCE_REPUBLISH_FLAG.touch()
+
+    rc = prc.main(str(marker))
+
+    assert rc == 0
+    assert "Net margin: \xa3" in prc.LATEST_MD.read_text()  # LATEST.md WAS regenerated
+
+
+def test_force_republish_flag_consumed_exactly_once(tmp_path, monkeypatch):
+    _full_isolation_setup(tmp_path, monkeypatch)
+    marker, json_data = make_marker(tmp_path)
+    prc.FORCE_REPUBLISH_FLAG.parent.mkdir(parents=True, exist_ok=True)
+    prc.FORCE_REPUBLISH_FLAG.touch()
+
+    prc.main(str(marker))
+
+    assert not prc.FORCE_REPUBLISH_FLAG.exists()
+
+
 def test_main_returns_1_for_missing_marker(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(prc, "RUN_LOCK_FILE", tmp_path / ".process_run_complete.lock")

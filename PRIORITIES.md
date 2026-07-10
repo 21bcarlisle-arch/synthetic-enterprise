@@ -679,3 +679,58 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
 - Smart meter customers on real HH shapes for segment model
 - EPC-calibrated consumption distributions (requires GOV.UK data access)
 - BSUoS year-indexed actuals
+
+## 2026-07-10 director page comments -- CLOSED (Home chart, /customers/ nav + HH-consent claim, C9 data-sense check)
+- **Home page chart still looked flat, 3rd occurrence -- CLOSED**: "I thought you changed these
+  graphs. They look like the old flat ones still." NOT a data bug this time (data was already
+  correct and live) -- a real visual-scaling issue: an early one-time bulk jump (1,290 -> 15,314
+  tests in the first ~6 days) dominates the linear y-axis for the whole history, so a full week of
+  genuinely real recent progress (15,314 -> 16,471) occupied only ~7% of the visible range and
+  read as flat. Fixed with a "Recent (7d)" / "All time" toggle on the Home page Learning Curve
+  (`site/index.html::renderLearningCurve()`), defaulting to Recent so real day-to-day movement is
+  visible; neither series altered, only the default window. Verified via a Node harness against
+  real phases.json data.
+- **`/customers/` nav: keep tab across customer-cycling + move arrows left -- CLOSED**: "Please
+  keep the same tab when we scroll between customers. Can you move the scroll to left hand side?"
+  `cycleCustomer()` was resetting `ACTIVE_TAB="overview"` on every navigation -- removed (fuel/
+  bill-view sub-state still resets, since that's genuinely per-household). Prev/next arrows moved
+  from the right (grouped with Sign out) to the left, ahead of the account id.
+- **HH data-sharing "opt-in" claim -- CORRECTED, director was right**: "Please make sure opt in is
+  the default option for most customers as we see. They can opt out but few do." Dispatched
+  discovery-agent research rather than just flipping the code on assertion: confirmed the
+  director's framing for the mechanism that actually matters (a DCC-enrolled smart meter sends
+  reads to its OWN supplier for BILLING by default, ~90% of installed smart meters, DESNZ Q4
+  2024 -- NOT opt-in-gated as the old docstring claimed). A separate, genuinely narrower
+  settlement-purpose HH-consent regime does exist (Ofgem, 2019) but its real uptake is unpublished
+  and Ofgem/Elexon's MHHS programme is retiring it entirely by 2027. Corrected both
+  `tools/generate_customer_consumption.py`'s docstring and the matching user-facing note on
+  `site/customers/index.html` -- full findings in `docs/market_research/ASSUMPTIONS.md`.
+- **"Is C9 really residential household?" -- answered, found and fixed a real label bug**: yes,
+  genuinely modelled as residential (segment=resi, 2-bed Glasgow tenement flat) -- but it's an
+  all-electric household (no gas service, EPC D) with correspondingly high consumption (~12,500
+  kWh/year), which is why its numbers look larger than a gas-heated resi customer; a plausible
+  real-world archetype, not a bug. Investigating this DID surface a real bug from earlier today's
+  SIM tab work: the House/Business Type label map (`site/sim/index.html`) was missing
+  `tenement_flat` entirely and had two WRONG values that don't exist in the real data
+  (`rural_cottage`/`detached_house` instead of the real `rural_detached`) -- fixed to match the
+  actual `home_type` values in `saas/customers.py`.
+
+## R1/R11 class fix -- CLOSED (2026-07-10, director-caught live incident + advisor-staged docs)
+Full detail in CLAUDE.md's Current-state entry + `docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md`.
+Core DoD items from `CLAIM_EQUALS_PIXEL.md`/`END_TO_END_VERIFICATION.md` closed: today's specific
+incident fixed + pixel-verified live; the class fixed (`FORCE_REPUBLISH_FLAG` mechanism, hold
+release can never again be a no-op); R11 added to CLAUDE.md. NOT built in this pass, registered as
+separate future scope: the daily automated Expert Hour walk (a new background daemon walking the
+live site as a fresh visitor, reconciling claims vs pixels); the sanity daemon's broader freshness-
+invariant extension (checking every artefact's stamp against its expected trigger, not just this
+one incident's mechanism); a full audit+retrofit of every OTHER hold/gate/flag in the codebase for
+the same orphan-transition risk (only sim-runner's hold was fixed, others -- e.g. the exception
+queue release, agenda refill -- were not audited this pass).
+
+## DOMAIN_ARTEFACT_LIBRARY.md -- registered, NOT built (2026-07-10, advisor-staged, background-lane discovery)
+A large external-codification research programme (UK market specs, regulatory process
+codifications, open-source domain models like PowerTAC/Kill Bill/ERPNext, process taxonomies like
+APQC PCF/eTOM) to mine rather than reinvent, feeding the invariant library, ASSUMPTIONS.md lineage,
+and Epoch 2/3/4 framing. Explicitly background-lane, must not displace DOMAIN_SENSE_AND_COMPLIANCE
+or BILL_CORRECTNESS_ADDENDUM. Genuinely multi-session scope -- registered for a dedicated future
+phase rather than started alongside everything else in flight today.
