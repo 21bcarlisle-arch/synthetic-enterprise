@@ -86,6 +86,49 @@ This distinguishes "never picked up" (stays idle throughout) from "picked up and
 (goes busy, then idle) without depending on scrollback content disappearing, which it never
 does by design in this terminal UI.
 
+## Root cause FIXED (2026-07-10, later same day, separate pass)
+
+After the symptom mitigation below, the doorbell kept firing every ~2 minutes for over
+20 minutes straight with zero content change (12+ identical `[SUPERVISOR: turn granted...]`
+turns in one conversation) -- strong live evidence the root cause was still live and worth
+fixing properly, not just bounding. Re-examined the "don't fix this live" reasoning from the
+first pass: it worried about editing a live confirmation-check while this session's own pane
+was being scraped mid-diagnosis -- but a running daemon process holds its OLD code in memory
+regardless of what gets written to the source file on disk (R2: committed != running), so
+editing `tmux_relay.py` itself carries none of that risk; only *restarting* the daemon deploys
+it, which is a deliberate, separate, verifiable step. That reasoning no longer blocked a fix.
+
+Implemented the suggested fix direction exactly: `send_keys_when_idle()` (background/
+tmux_relay.py) now confirms consumption via a busy-THEN-idle state transition instead of
+marker-absence. After sending Enter, it waits (bounded by `busy_confirm_timeout`, default 10s)
+for the pane to show BUSY -- proof Claude Code actually picked up the turn, still held under
+`relay_lock()` so no other daemon's own idle-check can race a competing send into the
+still-transitioning pane -- then releases the lock and waits (bounded by `completion_timeout`,
+default 90s) for the pane to return to IDLE -- proof the turn completed, this part deliberately
+OUTSIDE the lock so a slow turn doesn't block every other daemon's own sends for its whole
+duration. A session that never goes busy, or stays busy past the completion timeout, returns
+False; the caller's own is_session_idle() gate on the next call correctly refuses to re-send
+while the pane is genuinely still busy, so the new mechanism can't itself cause a duplicate.
+
+New helper `_poll_until(session, want_idle, timeout, interval)` factors the bounded-poll logic
+shared by both waits. All 5 existing tests whose fixtures encoded the OLD (wrong) semantics were
+updated to the new busy-then-idle fixture sequences (R3: redesign, not re-patch) rather than
+left passing against a mechanism that no longer exists; one is renamed
+(`test_send_keys_when_idle_fails_when_marker_still_stuck` ->
+`test_send_keys_when_idle_fails_when_never_goes_busy`) since "stuck" is no longer the concept
+being tested. Added a direct regression test for the exact documented bug --
+`test_send_keys_when_idle_succeeds_when_marker_stays_in_scrollback_after_consumption` -- which
+keeps the marker present in EVERY captured pane (mimicking Claude Code's permanent scrollback)
+and asserts the busy-then-idle transition still reports success, where the old code would have
+wrongly returned False forever. 37/37 tmux_relay tests pass, 459/459 background tests pass,
+16,677 tests collected (full suite), epistemic PASS (background/ is outside the company/saas
+scan scope but the check was run anyway as standard practice).
+
+Not yet done: the daemon(s) that import this module (`staging_watcher.py`, `dispatcher.py`,
+`session_watchdog.py`, `supervisor.py`) need an actual restart to pick up the fix in their
+running process memory (R2) -- to be done as part of the same commit's deploy step, verified by
+observing the doorbell cadence actually stop repeating for unchanged content afterward.
+
 ## Symptom mitigation applied (2026-07-10, same session, later)
 
 The bug kept firing live -- 7+ identical duplicate wakes observed in a single conversation

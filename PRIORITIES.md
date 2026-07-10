@@ -182,19 +182,25 @@
 #   follow-up to state that explicitly in the report's own rendering, not just its docstring. 4
 #   new/updated tests, 16,604 tests collected (full suite), epistemic PASS.
 #
-# === BUG FOUND, NOT FIXED: staging-watcher wake consumption-check is structurally broken
-#   (2026-07-10, docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md). Root cause: `background/
-#   tmux_relay.py::send_keys_when_idle()` checks "is the marker absent from the pane" to confirm
-#   a wake was consumed -- but Claude Code's own terminal UI keeps a submitted turn visible in
-#   scrollback forever, so this check can structurally never pass, and every genuinely successful
-#   wake gets misclassified as failed and retried indefinitely (1103 occurrences of the retry log
-#   line historically; directly observed 2 real duplicate wake deliveries ~32s apart this
-#   session, confirmed via a live `tmux capture-pane` showing the "consumed" marker still
-#   present). Low safety impact (R7/R8 discipline catches every duplicate as stale before acting)
-#   but real noise/attention cost. NOT fixed live -- background/tmux_relay.py is a shared,
-#   actively-in-use relay module and this session's own pane was the one being scraped mid-
-#   diagnosis; a suggested fix direction (busy-then-idle transition instead of marker-absence) is
-#   in the finding doc. NEXT: a careful, tested fix in its own pass.
+# === staging-watcher wake consumption-check FIXED (2026-07-10, root cause, docs/design/
+#   STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md). Originally found-not-fixed (marker-absence check
+#   structurally could never confirm consumption, since Claude Code's UI keeps a submitted turn in
+#   scrollback forever -- every genuine success misclassified as stuck, causing duplicate wake
+#   deliveries; 1103 historical retry-log occurrences). Deferred fixing live first pass over a
+#   worry that editing the module while this session's own pane was being scraped was risky --
+#   re-examined once the SAME doorbell repeated 12+ times with zero content change over 20+
+#   minutes: a running daemon holds its OLD code in memory regardless of disk edits (R2), so
+#   editing the source carried none of that risk, only restarting the daemon does, which is a
+#   separate deliberate step. Implemented the suggested fix: `send_keys_when_idle()` now confirms
+#   consumption via a busy-THEN-idle state transition (bounded polls, `_poll_until()` helper)
+#   instead of marker-absence -- busy-confirm held under `relay_lock()` (no other daemon can race a
+#   competing send into the still-transitioning pane), completion-wait released outside the lock
+#   (a slow turn doesn't block every other daemon's sends). 5 existing tests updated to the new
+#   fixture semantics (R3: redesign, not re-patch) + 1 new direct regression test keeping the
+#   marker permanently visible in every captured pane and asserting success anyway -- the exact
+#   documented bug. 37/37 tmux_relay tests, 459/459 background tests, 16,677 tests collected (full
+#   suite), epistemic PASS. Deployed: staging-watcher/dispatcher/session-watchdog/supervisor tmux
+#   sessions restarted to load the fix (R2, committed != running).
 #
 # === B2_OPEX_TAXONOMY_EXPANSION.md -- P1, BUILT 2026-07-10 (director-direct NTFY,
 #   docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md; maturity_map.yaml B2_opex_cost_to_serve

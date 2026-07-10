@@ -259,10 +259,13 @@ def test_send_keys_when_idle_success_when_idle_and_consumed(monkeypatch):
     # Capture #1 (idle check) -> idle pane. send-keys(text) -> success.
     # Capture #2 (landed check) -> marker visible in the input line (proof
     # the keystrokes actually reached it). send-keys(Enter) -> success.
-    # Capture #3 (post-send verify) -> idle pane again (marker gone, i.e.
-    # successfully consumed/submitted).
+    # Capture #3 (busy-confirm poll) -> busy pane (proof Claude Code
+    # actually picked up the turn). Capture #4 (completion poll) -> idle
+    # pane again (proof the turn finished) -- the busy-THEN-idle
+    # transition that replaces the old, structurally-broken "marker
+    # absent" check (2026-07-10, STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md).
     landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
-    capture_sequence = iter([IDLE_PANE, landed_pane, IDLE_PANE])
+    capture_sequence = iter([IDLE_PANE, landed_pane, BUSY_PANE, IDLE_PANE])
     call_log = []
 
     def _run(cmd, **kw):
@@ -272,9 +275,42 @@ def test_send_keys_when_idle_success_when_idle_and_consumed(monkeypatch):
         return type("R", (), {"returncode": 0})()
 
     monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
-    result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
+    result = tmux_relay.send_keys_when_idle(
+        "claude", "hello|123|abc123", "abc123",
+        busy_confirm_timeout=0.2, completion_timeout=0.2, poll_interval=0.05,
+    )
     assert result is True
     assert any(c[1] == "send-keys" for c in call_log)
+
+
+def test_send_keys_when_idle_succeeds_when_marker_stays_in_scrollback_after_consumption(monkeypatch):
+    """Direct regression test for the exact live bug (docs/design/
+    STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md): Claude Code's terminal UI
+    keeps a submitted turn visible in scrollback forever, so the marker is
+    STILL present in the pane capture even after full, genuine
+    consumption. The busy-then-idle transition must still report success
+    -- the old marker-absence check would have wrongly returned False
+    here, forever, causing the observed duplicate wake deliveries."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
+    busy_pane_marker_in_history = "❯ hello|123|abc123\n" + BUSY_PANE
+    idle_pane_marker_in_history = "❯ hello|123|abc123\n" + IDLE_PANE
+    capture_sequence = iter([
+        IDLE_PANE, landed_pane, busy_pane_marker_in_history, idle_pane_marker_in_history,
+    ])
+
+    def _run(cmd, **kw):
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": next(capture_sequence)})()
+        return type("R", (), {"returncode": 0})()
+
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    result = tmux_relay.send_keys_when_idle(
+        "claude", "hello|123|abc123", "abc123",
+        busy_confirm_timeout=0.2, completion_timeout=0.2, poll_interval=0.05,
+    )
+    assert result is True
 
 
 def test_send_keys_when_idle_fails_when_text_never_reaches_input_line(monkeypatch):
@@ -301,11 +337,13 @@ def test_send_keys_when_idle_fails_when_text_never_reaches_input_line(monkeypatc
     assert enter_calls == []
 
 
-def test_send_keys_when_idle_fails_when_marker_still_stuck(monkeypatch):
-    """The exact failure mode this fix targets: idle-check passes, send
-    'succeeds' (subprocess exit 0), but the text never actually submitted
-    -- still visible in the post-send capture. Must return False, not
-    silently report success."""
+def test_send_keys_when_idle_fails_when_never_goes_busy(monkeypatch):
+    """A genuinely inert send: the pane never shows a busy indicator after
+    Enter (e.g. the keystrokes never actually reached a live Claude Code
+    turn). Must return False, not silently report success. This replaces
+    the old marker-absence check, which could never distinguish "stuck"
+    from "already consumed and now sitting in scrollback history forever"
+    -- see docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md."""
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
     stuck_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
@@ -316,33 +354,40 @@ def test_send_keys_when_idle_fails_when_marker_still_stuck(monkeypatch):
         return type("R", (), {"returncode": 0})()
 
     monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
-    result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
+    result = tmux_relay.send_keys_when_idle(
+        "claude", "hello|123|abc123", "abc123",
+        busy_confirm_timeout=0.2, completion_timeout=0.2, poll_interval=0.05,
+    )
     assert result is False
 
 
 def test_send_keys_when_idle_marker_survives_line_wrap(monkeypatch):
     """The observed live bug: a long single-line message word-wraps across
-    multiple pane lines. The marker check must flatten whitespace so a
-    wrapped-but-present marker is still correctly detected as stuck."""
+    multiple pane lines in the LANDED check (pre-Enter). The marker check
+    must flatten whitespace so a wrapped-but-present marker is still
+    correctly recognized as having reached the input line, letting the
+    send proceed normally to Enter + busy/idle confirmation."""
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
-    wrapped_stuck_pane = (
+    wrapped_landed_pane = (
         "❯ this message has been classified as requiring\n"
         "  immediate attention.]|1783534244|1650f1781210d13f20\n"
         "  009e6ac12d054b1a589c18da912f43b5afa14510911cd7\n"
     )
+    capture_sequence = iter([IDLE_PANE, wrapped_landed_pane, BUSY_PANE, IDLE_PANE])
 
     def _run(cmd, **kw):
         if cmd[1] == "capture-pane":
-            return type("R", (), {"returncode": 0, "stdout": wrapped_stuck_pane})()
+            return type("R", (), {"returncode": 0, "stdout": next(capture_sequence)})()
         return type("R", (), {"returncode": 0})()
 
     monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
     result = tmux_relay.send_keys_when_idle(
         "claude", "some message|1783534244|1650f1781210d13f20009e6ac12d054b1a589c18da912f43b5afa14510911cd7",
         "1650f1781210d13f20009e6ac12d054b1a589c18da912f43b5afa14510911cd7",
+        busy_confirm_timeout=0.2, completion_timeout=0.2, poll_interval=0.05,
     )
-    assert result is False
+    assert result is True
 
 
 def test_send_keys_when_idle_returns_false_when_send_keys_fails(monkeypatch):
@@ -441,7 +486,7 @@ def test_send_keys_when_idle_clears_copy_mode_before_idle_check(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
     landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
-    capture_sequence = iter([IDLE_PANE, landed_pane, IDLE_PANE])
+    capture_sequence = iter([IDLE_PANE, landed_pane, BUSY_PANE, IDLE_PANE])
     calls = []
 
     def _run(cmd, **kw):
@@ -453,7 +498,10 @@ def test_send_keys_when_idle_clears_copy_mode_before_idle_check(monkeypatch):
         return type("R", (), {"returncode": 0})()
 
     monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
-    result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
+    result = tmux_relay.send_keys_when_idle(
+        "claude", "hello|123|abc123", "abc123",
+        busy_confirm_timeout=0.2, completion_timeout=0.2, poll_interval=0.05,
+    )
     assert result is True
     assert any(c[1] == "send-keys" and "cancel" in c for c in calls)
 

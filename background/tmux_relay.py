@@ -280,9 +280,24 @@ def is_session_idle(session: str) -> bool:
     return True
 
 
+def _poll_until(session: str, want_idle: bool, timeout: float, interval: float) -> bool:
+    """Poll `is_session_idle(session)` until it equals `want_idle`, or
+    `timeout` seconds elapse. Returns whether the wanted state was
+    observed in time (bounded -- never spins forever)."""
+    deadline = time.monotonic() + timeout
+    while True:
+        if is_session_idle(session) == want_idle:
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(interval)
+
+
 def send_keys_when_idle(
     session: str, text: str, verify_marker: str,
     post_send_wait: float = 1.5, post_type_wait: float = 0.3,
+    busy_confirm_timeout: float = 10.0, completion_timeout: float = 90.0,
+    poll_interval: float = 1.0,
 ) -> bool:
     """Only inject `text` + Enter if `session` is currently idle at its
     prompt; verify both that the text actually reached the input line and
@@ -299,16 +314,33 @@ def send_keys_when_idle(
     and confirm the marker actually landed in the pane (proof the
     keystrokes reached the input line rather than being silently swallowed
     -- e.g. by tmux copy-mode interpreting them as navigation, the exact
-    failure mode that motivated this split), only then send Enter, and
-    finally confirm the marker is no longer visible (proof of consumption).
+    failure mode that motivated this split), only then send Enter.
 
-    Returns True only if every one of those checks passes. Any other
-    outcome returns False -- the caller must treat this as "not delivered,
-    retry next cycle," never as delivered.
+    Consumption is then confirmed via a busy-THEN-idle state transition,
+    NOT by the marker disappearing from the pane (redesigned 2026-07-10,
+    docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md): Claude Code's
+    own terminal UI keeps a submitted turn visible in scrollback
+    indefinitely, so "marker absent" could structurally never become true
+    even after a fully successful send -- every genuine success was being
+    misclassified as still-stuck, causing duplicate wake deliveries
+    (observed live: 1103 retry-log occurrences, confirmed duplicate sends
+    ~32s apart in one real session). Instead: wait (bounded by
+    `busy_confirm_timeout`) for the pane to go BUSY -- proof Claude Code
+    actually picked up the turn, held under the same lock as the send so
+    no other daemon's own idle-check can race a competing send into the
+    still-transitioning pane -- then release the lock and wait (bounded by
+    `completion_timeout`) for the pane to return to IDLE -- proof the turn
+    completed. A session that never picks up the turn, or is still busy
+    past `completion_timeout`, returns False; the caller's own
+    is_session_idle() gate on its NEXT call correctly refuses to re-send
+    while the pane is genuinely still busy, so this can't itself cause a
+    duplicate.
 
-    The whole sequence runs inside `relay_lock()` so a second daemon
-    calling this concurrently can't interleave its own send (see module
-    docstring, "Cross-daemon relay lock").
+    The send itself runs inside `relay_lock()` so a second daemon calling
+    this concurrently can't interleave its own send (see module docstring,
+    "Cross-daemon relay lock") -- but the (potentially long) wait for
+    completion runs outside the lock, so a slow turn doesn't block every
+    other daemon's own sends for its whole duration.
     """
     if os.environ.get("PYTEST_CURRENT_TEST") is not None:
         return False
@@ -330,11 +362,15 @@ def send_keys_when_idle(
             if not send_keys(session, "Enter"):
                 return False
             time.sleep(post_send_wait)
-            after = capture_pane(session)
-            if not after:
-                return False  # can't confirm consumption -- treat as failed, retry
-            if _flatten(verify_marker) in _flatten(after):
-                return False  # still sitting unconsumed in the pane
-            return True
+            went_busy = _poll_until(
+                session, want_idle=False,
+                timeout=busy_confirm_timeout, interval=poll_interval,
+            )
     except RelayLockTimeout:
         return False  # another daemon is mid-send -- retry next cycle
+    if not went_busy:
+        return False  # never picked up -- genuinely inert/stuck send
+    return _poll_until(
+        session, want_idle=True,
+        timeout=completion_timeout, interval=poll_interval,
+    )
