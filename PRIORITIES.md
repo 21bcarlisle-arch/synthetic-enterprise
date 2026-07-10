@@ -5,13 +5,23 @@
 #   docs/design/BILL_SHOCK_DEFINITION_FINDING.md). Confirmed by checking, not assumed: the
 #   current >=20% threshold + month-on-month comparison (saas/bill_generator.py, simulation/
 #   run_phase4c_on_phase2b.py::build_monthly_bills()) was NEVER externally researched (no
-#   docs/market_research entry exists), has NO seasonal/year-over-year adjustment, and does NOT
-#   detect the two real-world event types the director named (contract-end tariff reversion to
-#   SVT/deemed rate; Direct Debit recalculation/catch-up) at all. Real run data (494 shock
-#   events, 2016-2025) shows an inconclusive month distribution, not a clean seasonal-only
-#   pattern -- properly separating causes needs the redesign, not more eyeballing. NOT fixed
-#   this turn: needs real research into UK contract-reversion/DD-recalculation timing before
-#   building, same discipline as this session's other work. Registered, not rushed.
+#   docs/market_research entry existed until this session), has NO seasonal/year-over-year
+#   adjustment, and does NOT detect the two real-world event types the director named
+#   (contract-end tariff reversion to SVT/deemed rate; Direct Debit recalculation/catch-up) at
+#   all. Real run data (494 shock events, 2016-2025) shows an inconclusive month distribution,
+#   not a clean seasonal-only pattern. RESEARCH LANDED same session (docs/market_research/
+#   BILL_SHOCK_EVENT_TYPES_ANCHORS.md): SVT-vs-fixed differential ~8-14% (real, sourced, but
+#   time-varying not fixed -- 2021-22 crisis produced much larger gaps); Ofgem SLC 7A 30-day
+#   notice/no-exit-fee rules (real); Ofgem's OWN Direct Debit Market Compliance Review confirms
+#   review frequency is inconsistent industry-wide (regulator-acknowledged gap, not a research
+#   miss); Ofgem's real Jan/Apr/Jul/Oct quarterly price-cap reset cadence plausibly explains part
+#   of the observed April/October shock clustering (a genuine structural cause, not just noise).
+#   No formal Ofgem "bill shock" definition exists to adopt wholesale. Genuine remaining gaps,
+#   not invented: no citable "max DD jump %"; no full historical SVT-vs-fixed time series across
+#   2016-2025. STILL NOT BUILT: the actual redesign (year-over-year comparison + explicit
+#   contract-end/DD-recalculation event detection) -- anchors are now in hand but two design
+#   choices remain genuinely open (time-varying differential, no DD-jump bound to cite).
+#   Registered, not rushed into an already large session.
 #
 # === B2 director-owned numbers WIRED (2026-07-10, from_rich_20260710_190908.md): "ROCE hurdle:
 #   12% pre-tax on segment capital employed. Concentration limit: 15% of gross margin per

@@ -46,12 +46,39 @@ top of whatever genuine seasonal consumption swing exists. **Properly separating
 the fix below, not eyeballing the aggregate distribution** — flagged honestly as inconclusive,
 not stretched into a confirmed finding either way.
 
+## Research landed (2026-07-10, same session, later): `docs/market_research/BILL_SHOCK_EVENT_TYPES_ANCHORS.md`
+
+Dispatched real web research (WebSearch/WebFetch, available in this interactive session) into
+the two named event types before attempting any redesign, matching this project's "research
+first, don't invent the anchor" discipline. Real, sourced findings:
+
+- **Contract-end reversion magnitude:** SVT/price-cap rate currently ~8-14% (£150-£260/yr)
+  above the cheapest fixed deals (July 2026 market) -- real, sourced, but explicitly
+  **time-varying**, not a fixed constant (the 2021-22 crisis produced much larger gaps
+  industry-wide). Any redesign must not hardcode one number.
+- **Reversion timing:** Ofgem SLC 7A requires 30 days' notice on deemed-contract terms, no exit
+  fees; exiting a fixed deal within 49 days of its own end date is also fee-free. **Could not
+  source** a single universal "reversion happens on day X" rule -- practice varies by supplier
+  (some roll to a deemed/OOC rate, others to their own SVT).
+- **DD recalculation frequency:** Ofgem's own 2022-onward Direct Debit Market Compliance Review
+  exists BECAUSE review frequency and price-change handling are inconsistent across the
+  industry -- a regulator-acknowledged fact, not a research gap on this pass. Ofgem's Credit
+  Balances decision (2022) does require suppliers to notify customers before a DD change and
+  glide credit balances back over ~12 months (not an instant snap), but **no clean "maximum
+  legitimate single jump %"** exists to cite.
+- **No formal Ofgem "bill shock" definition exists at all**, confirmed by targeted search --
+  any redesign must define its own working threshold, not borrow a regulatory one.
+- **A real, structural, non-seasonal cause for part of the observed pattern**: Ofgem reviews the
+  price cap quarterly (Jan/Apr/Jul/Oct) -- this plausibly explains part of the parent finding's
+  April/October elevated shock counts as a genuine industry-wide event, not pure noise, though
+  still not conclusively separated from seasonal consumption effects without the actual redesign.
+
 ## Not fixed this turn
 
 This deserves a real redesign, not a quick patch: comparing against the same calendar period a
 year prior (to net out seasonality) and/or explicitly detecting the two named real-world event
 types (contract-end tariff reversion; DD recalculation) would require new logic in the billing/
-contract model, plus honest research into how each is actually timed and sized in real UK energy
-retail before building anything — the same "research first, don't invent the anchor" discipline
-already applied throughout this session's other work (MARGIN_REALISM, B2 taxonomy). Registered
-in PRIORITIES.md as backlog, not rushed into an already very large session.
+contract model. The anchors above are now in hand, but two genuine design choices remain open
+(a time-varying not fixed reversion differential; no citable "max DD jump" figure to bound an
+invented one) -- registered in PRIORITIES.md as backlog, not rushed into an already very large
+session.
