@@ -52,7 +52,14 @@ _SINGLE_ENTITY_MAX_PCT = 20.0  # Ofgem guidance: no single customer > 20%
 class ConcentrationSnapshot:
     dimension: ConcentrationDimension
     as_of: dt.date
-    shares: Dict[str, float]  # entity_id -> revenue share (0.0 to 1.0)
+    shares: Dict[str, float]  # entity_id -> share (0.0 to 1.0), basis given by `metric`
+    # B2_OPEX_TAXONOMY_EXPANSION.md (2026-07-10): "max % of GROSS MARGIN from one
+    # customer" is a different, and for solvency purposes more important, metric
+    # than revenue share -- a high-revenue low-margin customer is not the risk this
+    # asks about. Defaults to "revenue" so every existing call site (this module's
+    # original design) is unchanged; new margin-based snapshots set metric=
+    # "gross_margin" explicitly via build_gross_margin_concentration_snapshot().
+    metric: str = "revenue"
 
     @property
     def hhi(self) -> float:
@@ -136,3 +143,47 @@ class ConcentrationRiskMonitor:
             + str(n_high) + " high/critical dimensions. "
             + str(n_breaches) + " entity cap breaches."
         )
+
+
+def build_gross_margin_concentration_snapshot(
+    per_customer_gross_margin_gbp: Dict[str, float], as_of: dt.date
+) -> ConcentrationSnapshot:
+    """B2_OPEX_TAXONOMY_EXPANSION.md (2026-07-10): 'one I&C loss must not be able
+    to kill the company undetected' -- a real single-customer concentration check
+    keyed on GROSS MARGIN share, not revenue share (a high-revenue, thin-margin
+    customer is not the risk this asks about; a low-revenue, fat-margin one might
+    be). Negative-margin customers are excluded from the share base (a loss-making
+    customer contributes nothing to 'how much margin depends on one customer' --
+    including it would understate every other customer's true share)."""
+    positive = {cid: m for cid, m in per_customer_gross_margin_gbp.items() if m > 0}
+    total = sum(positive.values())
+    if total <= 0:
+        shares: Dict[str, float] = {}
+    else:
+        shares = {cid: m / total for cid, m in positive.items()}
+    return ConcentrationSnapshot(
+        dimension=ConcentrationDimension.CUSTOMER, as_of=as_of, shares=shares,
+        metric="gross_margin",
+    )
+
+
+def gross_margin_concentration_check(
+    snapshot: ConcentrationSnapshot, limit_pct: Optional[float] = None
+) -> Dict[str, object]:
+    """Checks a gross-margin-basis snapshot against a director-set limit (max %
+    of gross margin from one customer -- B2_OPEX_TAXONOMY_EXPANSION.md's risk-
+    appetite ask). limit_pct is None until the director sets one: per this
+    project's standing discipline (never invent a number that is explicitly the
+    director's own risk appetite to set -- see B2(b)'s AI-compute-cost precedent),
+    'breach' is None (not False) when no limit is set -- distinct from a real
+    'checked and within limit' result."""
+    if snapshot.metric != "gross_margin":
+        raise ValueError("gross_margin_concentration_check requires a gross_margin-metric snapshot")
+    breach = None if limit_pct is None else snapshot.top_entity_pct > limit_pct
+    return {
+        "as_of": str(snapshot.as_of),
+        "top_customer": snapshot.top_entity,
+        "top_customer_pct_of_gross_margin": round(snapshot.top_entity_pct, 2),
+        "limit_pct": limit_pct,
+        "breach": breach,
+    }

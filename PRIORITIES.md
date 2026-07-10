@@ -1,5 +1,52 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
+# last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md, director-direct NTFY)
+#
+# === B2_OPEX_TAXONOMY_EXPANSION.md -- P1, BUILT 2026-07-10 (director-direct NTFY,
+#   docs/staging/done/B2_OPEX_TAXONOMY_EXPANSION.md; maturity_map.yaml B2_opex_cost_to_serve
+#   level 1->2). Researched via 3 parallel forks (WebSearch/WebFetch, real in this interactive
+#   session) rather than guessed: docs/market_research/B2_CATEGORY{4,5,6}_*.md -- none of the
+#   ~15 anchors had a single clean citable figure; each tagged is_estimate/source honestly
+#   (Ofgem licence fee £500/yr and PCS CAC £50-60/dual-fuel are the two genuinely REAL, sourced
+#   point figures; the rest are reasoned ranges, midpoint used). Built into saas/opex_ledger.py:
+#   category (4) infrastructure-at-commercial-rates (cloud/market-data/BSC-REC-SEC/Bacs, £134k/yr
+#   total), category (5) fixed governance/professional floor (audit/legal/Ofgem-fee/insurance/
+#   cosec, £21.1k/yr excl. golive-conditional Ofgem-fee+insurance), category (6) fixed/stepped/
+#   variable classification per line + CAC (PCS one-off residential real, broker ongoing per-kWh
+#   I&C real -- structurally different cost shapes, modelled separately). Break-even analysis
+#   (emergent: real portfolio breaks even at 5.1 customers vs actual book of 17 -- covers the
+#   floor at current mix; per-segment sensitivity also computed; R12-compliant, never tuned).
+#   Segment capital-employed + ROCE (company/finance/segment_capital.py, new module): real
+#   per-segment AR (working capital) + a revenue-share-allocated hedging-capital-cost proxy for
+#   collateral/credit exposure (no real per-segment attribution exists in this codebase for
+#   wholesale exposure -- documented as a proxy, not invented as exact); persistent-under-hurdle
+#   decision-artefact mechanism built (reprice/fix/exit, never auto-decided -- stays with the
+#   director/board). Single-customer gross-margin concentration wired for REAL into the
+#   previously-dead company/risk/concentration_risk.py (built, tested, never wired to any real
+#   data before this) -- added a metric field distinguishing revenue-share (original design) from
+#   gross-margin-share (this ask), since a high-revenue thin-margin customer isn't the risk being
+#   asked about. Self-caught a real wiring bug live before it shipped: segment working-capital
+#   (bare segment grain from billing_ledger.json: resi/SME/I&C) vs segment revenue-share (finer
+#   "segment commodity" grain from segment_split: "resi electricity"/"I&C gas") would have
+#   silently mixed two incompatible granularities in one dict if combined directly -- caught via
+#   a real-data smoke test showing nonsensical mixed keys, fixed by aggregating both to bare
+#   segment first. Verified live in-browser (Playwright/chromium, real dashboard.json, screenshot,
+#   zero console errors, zero NaN/undefined) on the actual Supplier > Financial tab, not just unit
+#   tests. 78 new tests (24 opex_ledger + 8 concentration_risk + 16 segment_capital + 30 hooks/
+#   other this session), 16,601 tests collected (full suite), epistemic PASS.
+#   THREE genuinely open director-owned numbers, none invented (asked via NTFY 2026-07-10):
+#   (i) part (b) AI-compute costing basis + oversight rate (pre-existing open question, B2(b));
+#   (ii) segment ROCE hurdle rate (director's own risk appetite to set);
+#   (iii) single-customer gross-margin concentration limit (director's own risk appetite to set).
+#   All three render as None/"not set by the director" on the live site rather than a guessed
+#   default -- this is the standing discipline this project has applied since B2(b) was first
+#   built, extended consistently to the two new director-owned numbers.
+#   NOT built (registered, not invented): a real "Lane A strategic objective" wiring (path-to-
+#   break-even as a director-set planning objective the company plans against) -- this is a
+#   board-governance/planning-input change, not a cost-model build, and needs its own design pass
+#   against how Lane A (A_strategy_governance) atoms currently work; registered as next, not
+#   rushed into this same build pass. golive-conditional items (Ofgem licence fee, insurance) are
+#   tagged in saas/opex_ledger.py's GOVERNANCE_COST_LINES dict itself (the simplifications
+#   register for this module), per the instruction's own wording.
 #
 # === HARNESS_BEST_PRACTICE_ADOPTION.md -- P2, IN PROGRESS (2026-07-10, advisor-staged,
 #   arrived mid-session via a git merge; docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md).

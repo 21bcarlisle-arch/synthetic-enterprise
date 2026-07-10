@@ -701,6 +701,150 @@ def extract_opex_ledger(data):
     }
 
 
+def extract_b2_taxonomy(data):
+    """B2_OPEX_TAXONOMY_EXPANSION.md (2026-07-10, director-direct NTFY): the
+    fixed-cost floor (categories 4+5), the emergent break-even analysis, segment
+    capital-employed + ROCE, and single-customer gross-margin concentration.
+    Two numbers are genuinely the director's own call and are NOT invented here
+    (same discipline as B2(b)'s AI-compute-cost precedent): the segment ROCE
+    hurdle rate and the concentration limit -- both surfaced as None/"not set"
+    until he provides them (asked via NTFY 2026-07-10), not defaulted."""
+    from saas.opex_ledger import (
+        break_even_analysis, fixed_cost_floor_gbp_per_year,
+    )
+    from company.finance.segment_capital import (
+        segment_capital_employed_gbp, segment_roce_pct, segments_under_hurdle,
+    )
+    from company.risk.concentration_risk import (
+        build_gross_margin_concentration_snapshot, gross_margin_concentration_check,
+    )
+    import datetime as _dt
+
+    # Director hasn't set either of these yet -- both explicitly None, not a
+    # guessed default (asked 2026-07-10, see PRIORITIES.md B2_OPEX_TAXONOMY_
+    # EXPANSION.md entry).
+    ROCE_HURDLE_PCT = None
+    CONCENTRATION_LIMIT_PCT = None
+
+    floor = fixed_cost_floor_gbp_per_year(golive=False)
+
+    years = data.get("years", {})
+    latest_year = max(years.keys(), key=int) if years else None
+    ssplit = years.get(latest_year, {}).get("segment_split", {}) if latest_year else {}
+
+    segment_avg_margin = {}
+    segment_revenue_share = {}
+    segment_net_profit = {}
+    total_revenue = sum(s.get("revenue_gbp", 0.0) for s in ssplit.values())
+    total_capital_cost = sum(s.get("capital_gbp", 0.0) for s in ssplit.values())
+
+    pcl = data.get("per_customer_lifetime", {})
+    count_by_label = {}
+    for cid, cdata in pcl.items():
+        seg = cdata.get("segment", "unknown")
+        comm = cdata.get("commodity", "electricity")
+        label = f"{seg} {comm}"
+        count_by_label[label] = count_by_label.get(label, 0) + 1
+
+    for label, sdata in ssplit.items():
+        rev = sdata.get("revenue_gbp", 0.0)
+        gross = sdata.get("gross_gbp", 0.0)
+        net = sdata.get("net_gbp", 0.0)
+        n = count_by_label.get(label, 0)
+        segment_avg_margin[label] = round(gross / n, 2) if n > 0 else 0.0
+        segment_revenue_share[label] = round(rev / total_revenue, 4) if total_revenue > 0 else 0.0
+        segment_net_profit[label] = net
+
+    current_mix_counts = {label: count_by_label.get(label, 0) for label in ssplit}
+
+    break_even = break_even_analysis(
+        segment_avg_gross_margin_gbp=segment_avg_margin,
+        current_mix_counts=current_mix_counts,
+        fixed_floor_gbp=floor["total_floor_gbp"],
+    )
+
+    # Segment capital/ROCE works at the BARE segment grain (resi/SME/I&C), not
+    # segment_split's finer "segment commodity" grain used for break-even above
+    # -- working capital (AR) is a per-household concept (a dual-fuel household
+    # owes money as a household, not per fuel leg), so mixing the two grains in
+    # one dict would silently double-count/misattribute. Aggregate ssplit's
+    # per-label figures up to bare segment (strip the trailing commodity word)
+    # to match.
+    bare_revenue = {}
+    bare_net_profit = {}
+    for label, sdata in ssplit.items():
+        bare_seg = label.rsplit(" ", 1)[0]
+        bare_revenue[bare_seg] = bare_revenue.get(bare_seg, 0.0) + sdata.get("revenue_gbp", 0.0)
+        bare_net_profit[bare_seg] = bare_net_profit.get(bare_seg, 0.0) + sdata.get("net_gbp", 0.0)
+    bare_revenue_share = {
+        seg: round(rev / total_revenue, 4) if total_revenue > 0 else 0.0
+        for seg, rev in bare_revenue.items()
+    }
+
+    # Working capital (accounts receivable) per segment, from the real billing
+    # ledger -- balance_gbp is total_paid - total_billed, so a NEGATIVE balance
+    # is money owed BY the customer TO the company (a real receivable); a
+    # positive balance (credit/overpaid) contributes nothing to working capital
+    # tied up. Bare segment grain (resi/SME/I&C), matching bare_revenue_share
+    # above -- working capital is a per-household concept, not per-fuel-account.
+    ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+    segment_working_capital = {}
+    if ledger_path.is_file():
+        try:
+            ledger = json.loads(ledger_path.read_text())
+            for cid, cdata in ledger.get("customers", {}).items():
+                seg = cdata.get("segment", "unknown")
+                owed = max(0.0, -cdata.get("balance_gbp", 0.0))
+                segment_working_capital[seg] = segment_working_capital.get(seg, 0.0) + owed
+        except (json.JSONDecodeError, OSError):
+            segment_working_capital = {}
+
+    # No real per-segment attribution exists in this codebase for wholesale
+    # collateral/credit exposure (company/trading/wholesale_credit_exposure.py,
+    # initial_margin_register.py are portfolio-level, never wired to a specific
+    # segment) -- allocated pro-rata by revenue share instead, using the year's
+    # real total capital_gbp (hedging capital cost) as the closest already-
+    # computed real portfolio figure, documented as a proxy, not collateral
+    # itself.
+    capital_employed = segment_capital_employed_gbp(
+        segment_working_capital_gbp=segment_working_capital,
+        segment_revenue_share=bare_revenue_share,
+        total_collateral_and_exposure_gbp=total_capital_cost,
+    )
+    roce = segment_roce_pct(bare_net_profit, capital_employed)
+    under_hurdle = segments_under_hurdle(roce, ROCE_HURDLE_PCT)
+
+    concentration = None
+    if pcl:
+        per_cid_margin = {cid: cdata.get("gross_gbp", 0.0) for cid, cdata in pcl.items()}
+        snap = build_gross_margin_concentration_snapshot(per_cid_margin, _dt.date.today())
+        concentration = gross_margin_concentration_check(snap, CONCENTRATION_LIMIT_PCT)
+
+    return {
+        "fixed_cost_floor": floor,
+        "break_even_analysis": break_even,
+        "segment_capital_employed_gbp": capital_employed,
+        "segment_roce_pct": roce,
+        "segment_roce_hurdle": under_hurdle,
+        "single_customer_concentration": concentration,
+        "note": (
+            "Fixed floor = categories (4) infrastructure + (5) governance/"
+            "professional, own P&L line, never blended per-customer -- see "
+            "saas/opex_ledger.py and docs/market_research/B2_CATEGORY{4,5,6}_"
+            "*.md for anchors, most estimate-flagged not invented. Break-even "
+            "= book size at current segment mix needed for gross margin to "
+            "cover the floor -- emergent, recomputed each run, never tuned "
+            "(R12). Segment capital employed = real per-segment AR (working "
+            "capital) + a revenue-share-allocated portion of total hedging "
+            "capital cost (a documented proxy for collateral/credit exposure, "
+            "which has no real per-segment attribution in this codebase). "
+            "ROCE hurdle and the concentration limit are the director's own "
+            "numbers to set (asked 2026-07-10) -- both None/not-set here, "
+            "never invented."
+        ),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1041,6 +1185,7 @@ def generate(run_json_path=None):
         "monthly_ops": extract_monthly_ops(data),
         "flexibility": extract_flexibility(data),
         "opex_ledger": extract_opex_ledger(data),
+        "b2_taxonomy": extract_b2_taxonomy(data),
         "churn_model_performance": data.get("churn_model_performance", {}),
         "frozen_baseline": _load_frozen_baseline(),
         "build": {

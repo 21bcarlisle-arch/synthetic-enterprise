@@ -606,6 +606,80 @@ function opexLedgerHtml() {
     </div>`;
 }
 
+function b2TaxonomyHtml() {
+  const b2 = D.b2_taxonomy;
+  if (!b2) return '';
+  const floor = b2.fixed_cost_floor || {};
+  const be = b2.break_even_analysis || {};
+  const capEmployed = b2.segment_capital_employed_gbp || {};
+  const roce = b2.segment_roce_pct || {};
+  const hurdle = b2.segment_roce_hurdle || {};
+  const conc = b2.single_customer_concentration;
+  const segs = Object.keys(capEmployed).sort();
+  const beCovers = be.covers_floor_at_current_mix;
+
+  return `
+    <div class="tbl-box">
+      <div class="tbl-title">Fixed Cost Floor &amp; Break-Even Analysis</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        The "AI-irreducible floor": infrastructure at commercial rates + fixed
+        governance/professional costs, own P&amp;L line, never blended per-customer.
+        Break-even = book size at the CURRENT segment mix needed for gross margin to
+        cover that floor -- emergent, recomputed each run, never tuned toward a target
+        (B2_OPEX_TAXONOMY_EXPANSION.md, docs/market_research/B2_CATEGORY{4,5,6}_*.md).
+      </div>
+      <table>
+        <tr><th></th><th>£/year</th></tr>
+        <tr><td>Infrastructure (cloud, market data, BSC/REC/SEC, Bacs)</td><td>${gbp(floor.infrastructure_gbp)}</td></tr>
+        <tr><td>Governance &amp; professional (audit, legal, cosec)</td><td>${gbp(floor.governance_gbp)}</td></tr>
+        <tr><td><strong>Total fixed floor</strong></td><td><strong>${gbp(floor.total_floor_gbp)}</strong></td></tr>
+      </table>
+      <div style="padding:.5rem 0 0;font-size:.9em">
+        <strong>Break-even at current mix: ${be.break_even_customers_at_current_mix != null ? be.break_even_customers_at_current_mix.toFixed(1) + ' customers' : 'undefined (avg margin &le; 0)'}</strong>
+        <span style="color:var(--muted)"> — actual book: ${be.current_book_size} customer(s),
+        weighted avg gross margin ${gbp(be.weighted_avg_gross_margin_gbp_per_customer)}/customer.
+        <span class="${beCovers ? 'pos' : 'neg'}">${beCovers ? 'Covers the floor.' : 'Does not yet cover the floor.'}</span></span>
+      </div>
+      <div style="color:var(--muted);font-size:.8em;padding:.3rem 0 0">
+        Ofgem licence fee + insurance are golive-conditional (excluded above -- no real
+        regulatory/insurable exposure in a pure backtest).
+      </div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Segment Capital Employed &amp; ROCE</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        Capital employed = real per-segment working capital (accounts receivable) + a
+        revenue-share-allocated portion of total hedging capital cost (a documented proxy
+        for collateral/credit exposure, which has no real per-segment attribution in this
+        codebase). ROCE hurdle: ${hurdle.hurdle_set ? hurdle.hurdle_pct + '%' : 'not yet set by the director'}.
+      </div>
+      <table>
+        <tr><th>Segment</th><th>Capital Employed</th><th>ROCE</th></tr>
+        ${segs.map(seg => {
+          const r = roce[seg];
+          const underHurdle = hurdle.hurdle_set && hurdle.under_hurdle.includes(seg);
+          return `<tr><td>${seg}${underHurdle ? ' <span class="neg">(under hurdle)</span>' : ''}</td>
+            <td>${gbp(capEmployed[seg])}</td>
+            <td class="${r != null ? cls(r) : ''}">${r != null ? r.toFixed(1) + '%' : '&mdash;'}</td></tr>`;
+        }).join('')}
+      </table>
+    </div>
+    ${conc ? `
+    <div class="tbl-box">
+      <div class="tbl-title">Single-Customer Concentration Risk</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        Max % of gross margin sourced from any one customer -- one large loss must be
+        visible as a risk, not discoverable only after the fact.
+      </div>
+      <div style="font-size:.95em">
+        Top customer: <strong>${conc.top_customer}</strong>
+        (<strong>${conc.top_customer_pct_of_gross_margin}%</strong> of gross margin)
+        <span style="color:var(--muted)">— limit: ${conc.limit_pct != null ? conc.limit_pct + '%' : 'not yet set by the director'}</span>
+        ${conc.breach === true ? '<span class="neg"> BREACH</span>' : conc.breach === false ? '<span class="pos"> within limit</span>' : ''}
+      </div>
+    </div>` : ''}`;
+}
+
 function renderFinancial() {
   const faAll = D.financial.annual;
   const fa = YEAR_FILTER ? faAll.filter(r => r.year === YEAR_FILTER) : faAll;
@@ -627,9 +701,9 @@ function renderFinancial() {
         }).join('')}</tr>`).join('')}
       </table></div>
       <div style="color:var(--muted);font-size:.85em;padding:.4rem 0 0">
-        Net % = net margin ÷ revenue billed, per segment per year. Cash flow and ROCE by
-        segment are a scoped follow-up (need a defined capital-employed basis) — see
-        PRIORITIES.md backlog.
+        Net % = net margin ÷ revenue billed, per segment per year. Segment capital
+        employed + ROCE below (B2_OPEX_TAXONOMY_EXPANSION.md); segment cash flow
+        remains a scoped follow-up.
       </div>
     </div>
     <div class="chart-box">
@@ -685,6 +759,7 @@ function renderFinancial() {
       </table>
     </div>
     ${opexLedgerHtml()}
+    ${b2TaxonomyHtml()}
     ${segTableHtml}`;
 
   if (segs.length) {

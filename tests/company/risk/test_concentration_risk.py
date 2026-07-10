@@ -4,6 +4,7 @@ import pytest
 from company.risk.concentration_risk import (
     ConcentrationRiskLevel, ConcentrationDimension, ConcentrationSnapshot,
     ConcentrationRiskMonitor,
+    build_gross_margin_concentration_snapshot, gross_margin_concentration_check,
 )
 
 DATE = dt.date(2024, 1, 15)
@@ -100,3 +101,49 @@ class TestConcentrationRiskMonitor:
         monitor.record(make_snap())
         s = monitor.portfolio_concentration_summary(DATE)
         assert "Concentration Risk Monitor" in s
+
+
+class TestGrossMarginConcentration:
+    def test_default_metric_is_revenue_backward_compat(self):
+        snap = make_snap()
+        assert snap.metric == "revenue"
+
+    def test_build_snapshot_excludes_negative_margin_customers(self):
+        snap = build_gross_margin_concentration_snapshot(
+            {"A": 100.0, "B": -50.0, "C": 300.0}, DATE
+        )
+        assert "B" not in snap.shares
+        assert snap.shares["A"] == pytest.approx(0.25)
+        assert snap.shares["C"] == pytest.approx(0.75)
+        assert snap.metric == "gross_margin"
+
+    def test_build_snapshot_empty_when_no_positive_margin(self):
+        snap = build_gross_margin_concentration_snapshot({"A": -10.0, "B": -20.0}, DATE)
+        assert snap.shares == {}
+        assert snap.top_entity is None
+
+    def test_check_breach_true_over_limit(self):
+        snap = build_gross_margin_concentration_snapshot({"A": 80.0, "B": 20.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=50.0)
+        assert result["breach"] is True
+        assert result["top_customer"] == "A"
+        assert result["top_customer_pct_of_gross_margin"] == pytest.approx(80.0)
+
+    def test_check_breach_false_within_limit(self):
+        snap = build_gross_margin_concentration_snapshot({"A": 40.0, "B": 60.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=65.0)
+        assert result["breach"] is False
+
+    def test_check_breach_none_when_no_limit_set(self):
+        """Director hasn't set a concentration limit yet -- must report None
+        (unknown), never a fabricated pass/fail, matching this project's
+        B2(b)-precedent discipline of never inventing a director-owned number."""
+        snap = build_gross_margin_concentration_snapshot({"A": 80.0, "B": 20.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=None)
+        assert result["breach"] is None
+        assert result["limit_pct"] is None
+
+    def test_check_rejects_revenue_basis_snapshot(self):
+        snap = make_snap()  # default metric="revenue"
+        with pytest.raises(ValueError):
+            gross_margin_concentration_check(snap, limit_pct=50.0)
