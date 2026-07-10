@@ -85,3 +85,20 @@ busy-spinner/footer-hint logic `is_session_idle()` already uses, just inverted a
 This distinguishes "never picked up" (stays idle throughout) from "picked up and completed"
 (goes busy, then idle) without depending on scrollback content disappearing, which it never
 does by design in this terminal UI.
+
+## Symptom mitigation applied (2026-07-10, same session, later)
+
+The bug kept firing live -- 7+ identical duplicate wakes observed in a single conversation
+after this finding was first written, each costing a full verify-and-dismiss round-trip.
+Rather than risk the `tmux_relay.py` redesign above mid-session (still deliberately deferred,
+per the reasoning above), applied a narrow, single-daemon-scoped mitigation of the SYMPTOM only:
+`background/staging_watcher.py::_attempt_pending_wake()` now tracks each pending wake's first
+unconfirmed-attempt time (`_pending_wake_first_attempt`) and gives up retrying it after
+`_WAKE_GIVE_UP_SECONDS` (600s) of no confirmed delivery, logging once and clearing the pending
+set rather than hammering the session indefinitely. `background/supervisor.py::find_work()`'s
+own independent poll (no tmux-relay dependency at all -- it re-checks disk state every cycle
+regardless of wake delivery) remains the durable path for genuinely open staging work, so
+nothing is actually lost by giving up on the wake specifically. 4 new tests
+(`tests/background/test_staging_watcher.py`), 16,618 tests collected (full suite), epistemic
+PASS (no company/saas files touched). This does NOT fix the root cause above -- a future pass
+should still redesign `send_keys_when_idle()`'s confirmation check properly.

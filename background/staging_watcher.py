@@ -99,6 +99,24 @@ from background.tmux_relay import send_keys_when_idle  # noqa: E402
 # layer on top of it, not the sole guarantee.
 _pending_wake_names: set[str] = set()
 
+# Bounded retry (2026-07-10, docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md):
+# tmux_relay.py's send_keys_when_idle() confirms consumption by checking that
+# its wake marker is absent from the pane afterward -- but Claude Code's own
+# terminal UI keeps a submitted turn visible in scrollback indefinitely, so
+# that check can structurally never pass. Every genuinely-successful wake
+# gets misclassified as failed and retried forever (1103 historical
+# occurrences of the retry log line; two confirmed live duplicate deliveries
+# observed directly). The real fix belongs in tmux_relay.py (a shared,
+# actively-in-use relay module across 3 daemons) and deserves its own
+# careful pass, not a rushed live edit. This is a narrow, single-daemon-
+# scoped mitigation of the SYMPTOM only: give up retrying the same still-
+# open staged file(s) after _WAKE_GIVE_UP_SECONDS of unconfirmed attempts,
+# rather than hammering the session indefinitely -- supervisor.py's
+# independent poll (background/supervisor.py::find_work(), no tmux-relay
+# dependency) remains the durable path for genuinely open staging work.
+_pending_wake_first_attempt: dict[str, float] = {}
+_WAKE_GIVE_UP_SECONDS = 600.0
+
 
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -359,6 +377,16 @@ def _attempt_pending_wake() -> None:
     stale wake every cycle indefinitely. Before each attempt, drop any name
     no longer present in docs/staging/ as moot (already handled) instead of
     retrying it blind.
+
+    Bounded-retry fix (2026-07-10, docs/design/
+    STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md): a name that is genuinely
+    STILL staged (not stale/archived, per the check above) but has been
+    unconfirmed for over _WAKE_GIVE_UP_SECONDS is dropped too -- the
+    underlying tmux_relay.py consumption check can structurally never
+    confirm a real terminal-UI send (see that finding doc), so retrying
+    indefinitely just repeats an already-delivered wake every cycle.
+    supervisor.py's own independent poll (no tmux-relay dependency) remains
+    the durable path for genuinely open staging work.
     """
     if not _pending_wake_names:
         return
@@ -367,12 +395,31 @@ def _attempt_pending_wake() -> None:
     if stale:
         log(f"Dropping stale wake (already archived, no longer staged): {', '.join(sorted(stale))}")
         _pending_wake_names.difference_update(stale)
+        for name in stale:
+            _pending_wake_first_attempt.pop(name, None)
     if not _pending_wake_names:
         return
+
+    now = time.monotonic()
+    for name in _pending_wake_names:
+        _pending_wake_first_attempt.setdefault(name, now)
+
     names = sorted(_pending_wake_names)
+    oldest_attempt = min(_pending_wake_first_attempt.get(n, now) for n in names)
+    if now - oldest_attempt > _WAKE_GIVE_UP_SECONDS:
+        log(f"Giving up on wake retry after {int(_WAKE_GIVE_UP_SECONDS)}s unconfirmed "
+            f"(known tmux_relay consumption-check limitation) -- relying on "
+            f"supervisor.py's independent poll for: {', '.join(names)}")
+        _pending_wake_names.clear()
+        for n in names:
+            _pending_wake_first_attempt.pop(n, None)
+        return
+
     if _relay_wake_to_claude(names):
         log(f"Wake delivered (confirmed) to '{SESSION_NAME}' session for: {', '.join(names)}")
         _pending_wake_names.clear()
+        for n in names:
+            _pending_wake_first_attempt.pop(n, None)
     else:
         log(f"Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: {', '.join(names)}")
 

@@ -1,8 +1,11 @@
+import time
+
 from background import staging_watcher as watcher
 
 
 def _reset_pending_wake():
     watcher._pending_wake_names.clear()
+    watcher._pending_wake_first_attempt.clear()
 
 
 # ── Event-driven wake (director directive, in-conversation, 2026-07-08): tmux wake on genuinely new staged files ──
@@ -242,6 +245,70 @@ def test_attempt_pending_wake_all_stale_clears_without_relay_call(tmp_path, monk
 
     assert calls == []
     assert watcher._pending_wake_names == set()
+
+
+# ── Bounded retry (2026-07-10, docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md) ──
+
+def test_attempt_pending_wake_records_first_attempt_time(tmp_path, monkeypatch):
+    _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
+    watcher._pending_wake_names.update({"A.md"})
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: False)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert "A.md" in watcher._pending_wake_first_attempt
+
+
+def test_attempt_pending_wake_gives_up_after_timeout(tmp_path, monkeypatch):
+    """The known tmux_relay consumption-check bug means a genuinely-delivered
+    wake can never be confirmed -- must stop retrying after
+    _WAKE_GIVE_UP_SECONDS rather than hammering the session forever."""
+    _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
+    watcher._pending_wake_names.update({"A.md"})
+    watcher._pending_wake_first_attempt["A.md"] = time.monotonic() - 700.0  # older than the 600s bound
+    calls = []
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or False)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert calls == []  # gave up before even attempting the relay call
+    assert watcher._pending_wake_names == set()
+    assert "A.md" not in watcher._pending_wake_first_attempt
+
+
+def test_attempt_pending_wake_does_not_give_up_before_timeout(tmp_path, monkeypatch):
+    _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
+    watcher._pending_wake_names.update({"A.md"})
+    watcher._pending_wake_first_attempt["A.md"] = time.monotonic() - 30.0  # well within the 600s bound
+    calls = []
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or False)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert calls == [["A.md"]]  # still attempted the relay call
+    assert watcher._pending_wake_names == {"A.md"}
+
+
+def test_attempt_pending_wake_clearing_on_success_also_clears_first_attempt(tmp_path, monkeypatch):
+    _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
+    watcher._pending_wake_names.update({"A.md"})
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: True)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert "A.md" not in watcher._pending_wake_first_attempt
 
 
 # Open-agenda continuation nudge (Deliverable 1a,
