@@ -255,23 +255,47 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
                 return False
         return True
 
-    candidates = [
-        a for a in atoms
-        if isinstance(a, dict)
-        and a.get("level_current") is not None
-        and a.get("level_target") is not None
-        and a["level_current"] < a["level_target"]
-        and _dependencies_met(a)
-        # 2026-07-10, real observed gap: the third live draw surfaced
-        # W3_1_price_cap_binding (loop_stage=idle) -- per MATURITY_MAP.md
-        # Section 6's own schema, "idle" specifically means NOT currently in
-        # the Hardening Loop (parked -- e.g. explicitly sequenced after other
-        # steps in its own programme doc, or simply not this cycle's
-        # priority per the dial-setter). Drawing it as if it were live
-        # discover/build/etc. work wastes a turn on something the map's own
-        # data already says isn't due yet.
-        and a.get("loop_stage") != "idle"
-    ]
+    def _is_valid_candidate(a: dict) -> bool:
+        """2026-07-10, HARDEN-stage adversarial review of this exact function
+        (H1_supervisor_turn_granting's own Expert Hour): a single malformed
+        atom (wrong type -- e.g. a quoted "2" instead of 2 -- or an explicit
+        `dial_inherited: null`) would previously raise TypeError from the
+        `<` comparison or `max()` below, uncaught until main()'s outer
+        try/except, which logs and moves on -- but does NOT fall through to
+        the backlog-prose fallback, because the exception aborts
+        find_work()'s whole function body before it reaches that later
+        line. Since this only matters when agenda+staging are BOTH empty
+        (exactly self-refill's own use case), an unhandled malformed atom
+        would silently reintroduce the identical idle-hole class of bug
+        this entire mechanism was built to eliminate. Isolating validation
+        per-atom means one bad edit degrades to "skip this one atom", not
+        "the whole draw silently stops working every cycle forever until a
+        human notices and fixes the YAML"."""
+        if not isinstance(a, dict):
+            return False
+        level_current, level_target = a.get("level_current"), a.get("level_target")
+        if level_current is None or level_target is None:
+            return False
+        dial = a.get("dial_inherited", 1)
+        try:
+            has_gap = level_current < level_target
+            _ = max(1, dial)
+        except TypeError:
+            return False
+        if not has_gap:
+            return False
+        if a.get("loop_stage") == "idle":
+            # 2026-07-10, real observed gap: the third live draw surfaced
+            # W3_1_price_cap_binding (loop_stage=idle) -- per MATURITY_MAP.md
+            # Section 6's own schema, "idle" specifically means NOT currently
+            # in the Hardening Loop (parked -- e.g. explicitly sequenced
+            # after other steps in its own programme doc). Drawing it as if
+            # it were live discover/build work wastes a turn on something
+            # the map's own data already says isn't due yet.
+            return False
+        return _dependencies_met(a)
+
+    candidates = [a for a in atoms if _is_valid_candidate(a)]
     if not candidates:
         return None
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]

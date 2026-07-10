@@ -228,6 +228,40 @@ _IDLE_ATOM_YAML = """\
   loop_stage: idle
 """
 
+_MALFORMED_LEVEL_TYPE_YAML = """\
+- id: X9_malformed_atom
+  name: "Atom with a quoted string level instead of an int"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: "2"
+  level_target: 3
+"""
+
+_NULL_DIAL_YAML = """\
+- id: X10_null_dial_atom
+  name: "Atom with dial_inherited explicitly null"
+  lane: X_test_lane
+  dial_inherited: null
+  level_current: 0
+  level_target: 2
+"""
+
+_MIXED_MALFORMED_AND_VALID_YAML = """\
+- id: X9_malformed_atom
+  name: "Atom with a quoted string level instead of an int"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: "2"
+  level_target: 3
+- id: X1_test_atom
+  name: "Test atom with a real gap"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: discover
+"""
+
 
 def test_maturity_map_draw_none_when_file_missing():
     assert not supervisor.MATURITY_MAP_PATH.exists()
@@ -290,6 +324,38 @@ def test_maturity_map_draw_excludes_idle_loop_stage():
     has a real level gap and no unmet dependency."""
     supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)
     assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_skips_atom_with_string_level_instead_of_crashing():
+    """2026-07-10, HARDEN-stage adversarial review of this exact function
+    (H1_supervisor_turn_granting's own Expert Hour): a malformed atom (e.g.
+    a quoted "2" instead of an int, an easy hand-editing typo) must not
+    raise -- comparing str < int raises TypeError, which would previously
+    propagate uncaught out of _maturity_map_draw(), aborting find_work()
+    before it ever reaches the backlog-prose fallback -- silently
+    reintroducing the exact idle-hole class of bug this whole mechanism
+    was built to eliminate, specifically during agenda+staging-empty
+    periods (self-refill's own use case)."""
+    supervisor.MATURITY_MAP_PATH.write_text(_MALFORMED_LEVEL_TYPE_YAML)
+    assert supervisor._maturity_map_draw() is None  # degrades gracefully, does not raise
+
+
+def test_maturity_map_draw_skips_atom_with_null_dial_instead_of_crashing():
+    """dial_inherited: null (explicit YAML null, distinct from the key being
+    absent entirely) previously reached max(1, None), raising TypeError."""
+    supervisor.MATURITY_MAP_PATH.write_text(_NULL_DIAL_YAML)
+    assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_skips_malformed_atom_but_still_draws_a_valid_one():
+    """The real robustness property: ONE malformed atom degrades to
+    "excluded from this draw", not "the whole draw stops working" -- a
+    valid atom elsewhere in the same file must still be drawable."""
+    supervisor.MATURITY_MAP_PATH.write_text(_MIXED_MALFORMED_AND_VALID_YAML)
+    result = supervisor._maturity_map_draw()
+    assert result is not None
+    assert "X1_test_atom" in result
+    assert "X9_malformed_atom" not in result
 
 
 def test_maturity_map_draw_weights_by_dial():

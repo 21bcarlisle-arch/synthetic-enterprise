@@ -438,13 +438,13 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 1
-  level_current: 2
+  level_current: 3
   level_target: 3
   loop_stage: harden
   dial_inherited: 1
-  evidence: ["background/supervisor.py", "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md"]
-  simplifications: ["v1 wiring lands 2026-07-10 -- this very atom is the one being closed by that wiring"]
-  expert_hour: {status: not_attempted, last: null, findings: []}
+  evidence: ["background/supervisor.py", "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md", "tests/background/test_supervisor.py"]
+  simplifications: ["v1 wiring lands 2026-07-10 -- this very atom is the one being closed by that wiring. 2026-07-10 HARDEN pass (this atom drew ITSELF, fittingly): adversarially reviewed _maturity_map_draw() before a 4th live incident found the next gap rather than after. Found a real crash risk -- a malformed atom (a hand-editing typo like a quoted level_current string, or an explicit dial_inherited: null) would raise TypeError uncaught, aborting find_work() before it reaches the backlog-prose fallback -- silently reintroducing the exact idle-hole class of bug this mechanism was built to eliminate, specifically during agenda+staging-empty periods (self-refill's own use case). Fixed: per-atom validation now isolates a malformed atom to 'excluded from this draw', not 'the whole draw stops working forever'. Known, accepted lower-severity gap not fixed (self-defeating, not crash-causing): an atom listing itself in its own depends_on would permanently self-exclude rather than crash -- an obvious typo, visually apparent on review, left undefended rather than adding more complexity for a safe-side failure mode. 3 new tests, 452/452 background tests pass, epistemic PASS, live supervisor restarted."]
+  expert_hour: {status: passed, last: "2026-07-10", findings: ["malformed-atom crash risk (fixed)", "self-dependency edge case (accepted, safe-side)"]}
   real_world_twin: "an ops on-call rotation's auto-page escalation logic"
   depends_on: []
 
