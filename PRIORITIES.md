@@ -604,6 +604,13 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   enters the epoch-2 programme statement when that is framed. An optional cheap precursor
   (animating existing period snapshots, no real event ledger needed) may be proposed for the
   director to rank separately.
+- **Consumption page with fuel toggle (director NTFY steer, 2026-07-10)**: "I don't mind kWh
+  for gas. You just need to be careful not to add to electricity as this makes no sense. Maybe
+  a page on the website with a toggle." Checked live: no existing bug -- `site/customers/index.html::combinedTotals()`
+  (the "combined household roll-up") already only ever sums £ (revenue/net margin/CLV), never
+  kWh. Registered as forward guidance for a genuinely new surface: a dedicated Consumption page
+  with an elec/gas/side-by-side toggle, gas and electricity kWh kept always separate, never
+  summed into one blended energy figure. NOT YET STARTED -- not scoped beyond the toggle concept.
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy
   (currently only feeds acquisition credit checks)
 - FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md: explicitly queued behind the current design
