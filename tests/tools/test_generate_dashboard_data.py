@@ -110,6 +110,36 @@ def test_extract_financial_empty_years():
     assert r["annual"] == []
 
 
+# --- total_revenue_gbp / net_margin_pct denominator fix (2026-07-10,
+# MARGIN_REALISM.md Step 1 gauge fix: years[yr].revenue_gbp is
+# commodity-only, inflating any margin % computed against it -- total
+# revenue from management_accounts is the real denominator) ---
+
+def _financial_data_with_mgmt_accounts():
+    data = _financial_data()
+    data["management_accounts"] = {
+        "2022": {"income_statement": {"revenue_gbp": 1000.0}},
+    }
+    data["years"]["2022"]["net_gbp"] = 150.0
+    return data
+
+
+def test_extract_financial_annual_has_total_revenue_field():
+    r = extract_financial(_financial_data_with_mgmt_accounts())
+    assert r["annual"][0]["total_revenue_gbp"] == 1000.0
+
+
+def test_extract_financial_net_margin_pct_uses_total_revenue():
+    r = extract_financial(_financial_data_with_mgmt_accounts())
+    assert r["annual"][0]["net_margin_pct"] == 15.0
+
+
+def test_extract_financial_total_revenue_none_when_no_management_accounts():
+    r = extract_financial(_financial_data())
+    assert r["annual"][0]["total_revenue_gbp"] is None
+    assert r["annual"][0]["net_margin_pct"] == 0.0
+
+
 # --- segment_annual revenue + net_margin_pct (2026-07-10, PRIORITIES.md
 # "Segmented financials" backlog item, director page comments x2) ---
 

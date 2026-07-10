@@ -635,14 +635,22 @@ function renderFinancial() {
     </div>
     <div class="tbl-box">
       <div class="tbl-title">Annual P&amp;L</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        "Energy Revenue" is commodity/energy sales only. "Total Revenue" is the real total billed
+        to customers, net of VAT (includes standing charges + network/environmental pass-through
+        recovery) -- Net % uses Total Revenue as the denominator (MARGIN_REALISM.md gauge fix,
+        2026-07-10; see docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md).
+      </div>
       <table>
-        <tr><th>Year</th><th>Revenue</th><th>Gross</th><th>Capital</th><th>Net</th><th>Treasury</th></tr>
+        <tr><th>Year</th><th>Energy Revenue</th><th>Total Revenue</th><th>Gross</th><th>Capital</th><th>Net</th><th>Net %</th><th>Treasury</th></tr>
         ${fa.map(r=>`<tr>
           <td>${r.year}</td>
           <td>${gbp(r.revenue_gbp)}</td>
+          <td>${r.total_revenue_gbp!=null?gbp(r.total_revenue_gbp):'&mdash;'}</td>
           <td class="${cls(r.gross_gbp)}">${gbp(r.gross_gbp)}</td>
           <td class="neg">${gbp(r.capital_gbp)}</td>
           <td class="${cls(r.net_gbp)}">${gbp(r.net_gbp)}</td>
+          <td class="${cls(r.net_margin_pct)}">${(r.net_margin_pct||0).toFixed(1)}%</td>
           <td>${gbp(r.treasury_end_gbp)}</td>
         </tr>`).join('')}
       </table>

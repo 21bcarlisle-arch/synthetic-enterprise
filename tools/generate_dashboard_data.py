@@ -224,18 +224,44 @@ def extract_portfolio(data):
 
 
 def extract_financial(data):
+    # MARGIN_REALISM.md Step 1 (2026-07-10, director-decided programme, gauge
+    # fix): `years[yr].revenue_gbp` is commodity/energy revenue ONLY
+    # (settlement-record based) -- it excludes standing charges, non-
+    # commodity pass-through, and VAT entirely. `management_accounts[yr].
+    # income_statement.revenue_gbp` is the real double-entry TOTAL revenue
+    # booked (net of VAT, includes non-commodity pass-through recovery),
+    # confirmed by tracing saas/ledger.py's billing_event ("total customer
+    # bill, all-in") through company/finance/double_entry.py. These two
+    # figures disagree by 26-52% every year with no shrinking trend -- not a
+    # bug in either, but a genuine "which revenue" ambiguity, and the site's
+    # net_margin_pct was computed against the smaller (commodity-only)
+    # denominator, inflating every year's reported margin percentage
+    # (director: "levels ~5x too high vs real UK domestic retail ~1-3%").
+    # Using the real total revenue as the denominator brings the 10-year
+    # average from ~12.5% to ~8.9% -- a real, mechanically-explained
+    # correction, not a tuned output (R12: diagnose the mechanism, never
+    # tune toward a benchmark). Full diagnosis: docs/design/
+    # MARGIN_REALISM_STEP1_DIAGNOSIS.md -- NOT yet reconciled across every
+    # surface or added to the consistency gate; this is the first surface.
+    mgmt_accounts = data.get("management_accounts", {})
     annual = []
     for yr in sorted(data.get("years", {}).keys()):
         ydata = data["years"][yr]
         csplit = ydata.get("commodity_split", {})
         elec = csplit.get("electricity", {})
         gas = csplit.get("gas", {})
+        net = ydata.get("net_gbp", 0)
+        total_revenue = mgmt_accounts.get(yr, {}).get("income_statement", {}).get("revenue_gbp")
         annual.append({
             "year": int(yr),
             "revenue_gbp": _fmt(ydata.get("revenue_gbp", 0)),
+            "total_revenue_gbp": _fmt(total_revenue) if total_revenue is not None else None,
+            "net_margin_pct": (
+                round(net / total_revenue * 100, 2) if total_revenue else 0.0
+            ),
             "gross_gbp": _fmt(ydata.get("gross_gbp", 0)),
             "capital_gbp": _fmt(ydata.get("capital_gbp", 0)),
-            "net_gbp": _fmt(ydata.get("net_gbp", 0)),
+            "net_gbp": _fmt(net),
             "treasury_end_gbp": _fmt(ydata.get("treasury_end_gbp", 0)),
             "policy_cost_gbp": _fmt(ydata.get("policy_cost_gbp", 0)),
             "bad_debt_gbp": _fmt(ydata.get("bad_debt_gbp", 0)),

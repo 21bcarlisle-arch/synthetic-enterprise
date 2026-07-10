@@ -1,5 +1,35 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-10 (MATURITY_MAP_CANONICAL.md ratification, advisor-staged/director-ratified)
+# last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
+#
+# === MARGIN_REALISM -- P1, IN PROGRESS (2026-07-10, docs/staging/done/MARGIN_REALISM.md,
+#   advisor-staged, director-decided from a real observation: net margin % by year 10.2/13.6/23.3/
+#   19.5/10.5/4.4/9.8/5.6/15.9/12.5, real UK domestic retail ~1-3% net with negative years --
+#   levels ~5x too high, volatility far too high). Two permanent method laws adopted verbatim into
+#   CLAUDE.md as R12 (anti-goal-seek: margin is a diagnostic, never a target) and R13 (baseline/
+#   curriculum split: the real-history baseline only changes for fidelity reasons, the director's
+#   curriculum is his own instrument, never silently tuned by the agent).
+#   STEP 1 (fix the gauge, immediate) -- REAL PROGRESS, not fully closed: confirmed and evidenced
+#   (docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md) that `years[yr].revenue_gbp` (commodity-only,
+#   settlement-based) and `management_accounts[yr].income_statement.revenue_gbp` (real double-
+#   entry total revenue, net of VAT) disagree 26-52% every year -- neither is wrong, but the
+#   percentages the director cited were computed against the smaller, commodity-only denominator,
+#   inflating every year's reported margin. Fixed for the Financial tab specifically:
+#   `tools/generate_dashboard_data.py::extract_financial()` now carries `total_revenue_gbp` +
+#   `net_margin_pct` computed against it (10-yr average moves from ~12.5% to ~8.9% -- a real,
+#   mechanically-explained correction, not a tuned output), surfaced on `site/supplier/index.html`'s
+#   Annual P&L table with both revenue definitions clearly labelled. NOT YET DONE: reconciling
+#   every OTHER surface that shows a revenue/margin figure against the same ambiguity, adding this
+#   to the consistency gate, and the genuinely open question of which figure a real UK supplier's
+#   own "net margin %" claim would be built on (total revenue almost certainly, but confirm before
+#   treating this as final).
+#   STEPS 2-6 (diagnosis decomposition, opex/cost-to-serve mechanism, hedge-tariff alignment,
+#   price-cap-binds mechanism, pressure-roadmap registration) -- NOT STARTED, explicitly sequenced
+#   AFTER step 1 closes per the advisor's own doc ("no mechanism work lands until percentages are
+#   computed on a trustworthy base"). Each is a substantial, separately-anchored build in its own
+#   right (opex needs real published supplier-accounts anchors; hedge-tariff alignment touches the
+#   same hedge-decision code the Tier 1 gate closed today; the price cap becoming binding is a
+#   baseline-fidelity change). Side-tagging rule (every commit: SIM-BASELINE/CURRICULUM/SUPPLIER/
+#   WALL/REPORTING) applies going forward on this whole programme.
 #
 # === MATURITY MAP v1.1 -- NOW THE GOVERNING FRAMEWORK, PARTIALLY INSTALLED (2026-07-10,
 #   docs/staging/MATURITY_MAP_CANONICAL.md + MATURITY_MAP_v1.1.md, director-ratified
