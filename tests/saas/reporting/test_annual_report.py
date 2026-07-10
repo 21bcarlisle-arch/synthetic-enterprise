@@ -176,6 +176,10 @@ def test_extract_report_data_splits_by_year():
     # C1 and C1g are both segment "resi" (saas.customers.CUSTOMERS)
     assert y2016["segment_split"]["resi electricity"]["net_gbp"] == 17.0
     assert y2016["segment_split"]["resi gas"]["net_gbp"] == 4.0
+    # revenue_gbp threaded into segment_split (2026-07-10, segmented financials
+    # backlog item): 110.0 + 112.0 from the two C1 electricity records
+    assert y2016["segment_split"]["resi electricity"]["revenue_gbp"] == 222.0
+    assert y2016["segment_split"]["resi gas"]["revenue_gbp"] == 105.0
     # Picked from the chronologically latest record (2016-06-01), not list order
     assert y2016["treasury_end_gbp"] == 1017.0
     # All 13 customers (incl. Phase 6a HH customers C7-C9) have a 2016

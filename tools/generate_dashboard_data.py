@@ -213,6 +213,10 @@ def extract_financial(data):
         })
 
     # Segment annual
+    segments_seen = set()
+    for yr in data.get("years", {}).keys():
+        segments_seen.update(data["years"][yr].get("segment_split", {}).keys())
+
     segment_annual = []
     for yr in sorted(data.get("years", {}).keys()):
         ydata = data["years"][yr]
@@ -220,9 +224,13 @@ def extract_financial(data):
         row = {"year": int(yr)}
         for seg, sdata in ssplit.items():
             key = seg.lower().replace(" ", "_")
+            rev = sdata.get("revenue_gbp", 0)
+            net = sdata.get("net_gbp", 0)
             row[key] = {
+                "revenue_gbp": _fmt(rev),
                 "gross_gbp": _fmt(sdata.get("gross_gbp", 0)),
-                "net_gbp": _fmt(sdata.get("net_gbp", 0)),
+                "net_gbp": _fmt(net),
+                "net_margin_pct": round(net / rev * 100, 2) if rev > 0 else 0.0,
             }
         segment_annual.append(row)
 
@@ -230,6 +238,7 @@ def extract_financial(data):
     return {
         "annual": annual,
         "segment_annual": segment_annual,
+        "segments": sorted(segments_seen),
         "ledger": {
             "revenue_gbp": _fmt(ledger.get("revenue_gbp", 0)),
             "wholesale_cost_gbp": _fmt(ledger.get("wholesale_cost_gbp", 0)),

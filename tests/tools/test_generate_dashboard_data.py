@@ -110,6 +110,52 @@ def test_extract_financial_empty_years():
     assert r["annual"] == []
 
 
+# --- segment_annual revenue + net_margin_pct (2026-07-10, PRIORITIES.md
+# "Segmented financials" backlog item, director page comments x2) ---
+
+def _financial_data_with_segments():
+    data = _financial_data()
+    data["years"]["2022"]["segment_split"] = {
+        "resi electricity": {
+            "revenue_gbp": 500_000.0, "gross_gbp": 120_000.0,
+            "capital_gbp": 20_000.0, "net_gbp": 100_000.0,
+        },
+        "sme electricity": {
+            "revenue_gbp": 0.0, "gross_gbp": 0.0,
+            "capital_gbp": 0.0, "net_gbp": 0.0,
+        },
+    }
+    return data
+
+
+def test_extract_financial_segment_annual_has_revenue_field():
+    r = extract_financial(_financial_data_with_segments())
+    row = r["segment_annual"][0]
+    assert row["resi_electricity"]["revenue_gbp"] == 500_000.0
+
+
+def test_extract_financial_segment_annual_net_margin_pct():
+    r = extract_financial(_financial_data_with_segments())
+    row = r["segment_annual"][0]
+    assert row["resi_electricity"]["net_margin_pct"] == 20.0
+
+
+def test_extract_financial_segment_annual_zero_revenue_no_division_error():
+    r = extract_financial(_financial_data_with_segments())
+    row = r["segment_annual"][0]
+    assert row["sme electricity".replace(" ", "_")]["net_margin_pct"] == 0.0
+
+
+def test_extract_financial_segments_list_sorted():
+    r = extract_financial(_financial_data_with_segments())
+    assert r["segments"] == ["resi electricity", "sme electricity"]
+
+
+def test_extract_financial_segments_list_empty_when_no_segments():
+    r = extract_financial(_financial_data())
+    assert r["segments"] == []
+
+
 def test_fmt_negative_value():
     assert _fmt(-5.5) == -5.5
 

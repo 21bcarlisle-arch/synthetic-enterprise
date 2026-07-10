@@ -521,17 +521,23 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
 - **REVIEW GATE OPEN (Tier 1, blocking) -- hedge-decision volatility lookback uses future data**:
   docs/review_gates/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md (2026-07-10, from a real director
   page comment on /supplier/ Trading & Market, confirmed twice-verified real epistemic-wall
-  violation). Awaiting explicit director decision before any fix -- correcting it re-derives
-  hedge decisions across the whole 2016-2025 run and may move headline figures already reported.
-- **Segmented financials (director page comments, 2026-07-10, /supplier/ Performance tab, twice
-  in the same session -- P-2 director-repeat)**: percentage EBIT margin per segment, cash flow
-  per segment, ROCE (incl. collateral) for resi/SME/I&C + total, replacing/supplementing the
-  current absolute-£ portfolio view. Real data likely already exists per-segment in
-  by_billing_account/segment_annual structures (site/data/dashboard.json's market.segment_annual
-  has gross/net £ but no revenue field yet -- same gap flagged for the earlier "percentage margin
-  by segment" SIM-tab comment, now confirmed as the same underlying ask from the Supplier tab
-  specifically). NOT YET STARTED -- needs a revenue-by-segment field + a real %-margin/cashflow/
-  ROCE chart design.
+  violation). Director authorized the fix in-console with an explicit hold on republishing;
+  fixed, re-derived (headline P&L barely moves, but the flagship hf=0.00 finding does not
+  reproduce), sim-runner held (docs/review_gates/.sim_runner_hold). Still open -- awaiting
+  director review of the re-derivation before any new run is published.
+- **Segmented financials -- PARTIALLY CLOSED (2026-07-10, director page comments, /supplier/
+  Performance tab, twice in the same session -- P-2 director-repeat)**: revenue-by-segment +
+  %-net-margin-by-segment shipped -- `saas/reporting/annual_report.py`'s `segment_split` now
+  carries `revenue_gbp`, threaded into `tools/generate_dashboard_data.py::extract_financial()`
+  (`net_margin_pct` per segment, `segments` list), new table + line chart on the Performance >
+  Financial tab (`site/supplier/index.html::renderFinancial()`). Cash flow per segment and ROCE
+  (incl. collateral) per segment deliberately NOT built -- neither concept exists anywhere in
+  the codebase yet (`ROCE`/`capital_employed`/`cash_flow` all zero hits on grep); building them
+  now would mean fabricating an undefined "capital employed" denominator rather than surfacing
+  real computed data, unlike the revenue/%-margin piece which was a straightforward 2-line
+  re-aggregation of an already-computed field. NOT YET STARTED as a real design task: what
+  "capital employed" and "cash flow" (vs. accrual net margin) should mean at segment level for
+  this business, before any chart gets built on top of it.
 - **Trading & Market tab redesign (director page comment, 2026-07-10, /supplier/)**: monthly
   buying/position-seeking activity, seasonal % cover over time by segment/product type, VaR --
   BLOCKED on the review gate above (fixing the volatility-lookback bug first, so this isn't built

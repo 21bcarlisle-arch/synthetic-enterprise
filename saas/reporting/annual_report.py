@@ -227,8 +227,9 @@ def extract_report_data(run_output: dict) -> dict:
             segment = segment_by_customer.get(r["customer_id"], "unknown")
             label = f"{segment} {r.get('commodity', 'electricity')}"
             entry = segment_split.setdefault(
-                label, {"gross_gbp": 0.0, "capital_gbp": 0.0, "net_gbp": 0.0}
+                label, {"revenue_gbp": 0.0, "gross_gbp": 0.0, "capital_gbp": 0.0, "net_gbp": 0.0}
             )
+            entry["revenue_gbp"] += r["revenue_gbp"]
             entry["gross_gbp"] += r["margin_gbp"]
             entry["capital_gbp"] += r["capital_cost_gbp"]
             entry["net_gbp"] += r["net_margin_gbp"]

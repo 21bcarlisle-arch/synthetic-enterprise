@@ -582,6 +582,31 @@ function renderFinancial() {
   const fa = YEAR_FILTER ? faAll.filter(r => r.year === YEAR_FILTER) : faAll;
   const ld = D.financial.ledger;
   const yrs = fa.map(r => r.year);
+  const segs = D.financial.segments || [];
+  const saAll = D.financial.segment_annual || [];
+  const sa = YEAR_FILTER ? saAll.filter(r => r.year === YEAR_FILTER) : saAll;
+
+  const segTableHtml = segs.length ? `
+    <div class="tbl-box">
+      <div class="tbl-title">Segment Revenue &amp; Net Margin % by Year</div>
+      <div style="overflow-x:auto"><table>
+        <tr><th>Year</th>${segs.map(s=>`<th>${s} Revenue</th><th>${s} Net %</th>`).join('')}</tr>
+        ${sa.map(r=>`<tr><td>${r.year}</td>${segs.map(seg=>{
+          const key = seg.toLowerCase().replace(/ /g,'_');
+          const row = r[key] || { revenue_gbp: 0, net_margin_pct: 0 };
+          return `<td>${gbp(row.revenue_gbp)}</td><td class="${cls(row.net_margin_pct)}">${row.net_margin_pct.toFixed(1)}%</td>`;
+        }).join('')}</tr>`).join('')}
+      </table></div>
+      <div style="color:var(--muted);font-size:.85em;padding:.4rem 0 0">
+        Net % = net margin ÷ revenue billed, per segment per year. Cash flow and ROCE by
+        segment are a scoped follow-up (need a defined capital-employed basis) — see
+        PRIORITIES.md backlog.
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Net Margin % by Segment by Year</div>
+      <div class="chart-wrap tall"><canvas id="ch-seg-margin-pct"></canvas></div>
+    </div>` : '';
 
   el('tab-financial').innerHTML = yearBtnsHtml() + `
     <div class="chart-box">
@@ -621,7 +646,29 @@ function renderFinancial() {
           <td>${gbp(r.treasury_end_gbp)}</td>
         </tr>`).join('')}
       </table>
-    </div>`;
+    </div>
+    ${segTableHtml}`;
+
+  if (segs.length) {
+    mkChart('ch-seg-margin-pct', {
+      type: 'line',
+      data: {
+        labels: sa.map(r=>r.year),
+        datasets: segs.map((seg, i) => {
+          const key = seg.toLowerCase().replace(/ /g,'_');
+          return {
+            label: seg,
+            data: sa.map(r => (r[key] || {}).net_margin_pct ?? 0),
+            borderColor: `hsl(${i*60},60%,50%)`,
+            fill: false, tension: 0.2, pointRadius: 2, borderWidth: 2,
+          };
+        })
+      },
+      options: { ...baseLineOpts(), scales: {
+        x:{grid:{color:'rgba(225,224,217,.4)'}},
+        y:{grid:{color:'rgba(225,224,217,.4)'},ticks:{callback:v=>v+'%'}} } }
+    });
+  }
 
   mkChart('ch-pnl-stack', {
     type: 'bar',
