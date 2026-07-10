@@ -49,12 +49,35 @@ missing-cost-lines list vs a real domestic bill stack. Output: one document,
 evidence-cited; it becomes the margin bridge's seed (Lane B).
 
 ### 3. First mechanism — the cost of being a company (Lane E)
-Build the opex/cost-to-serve line: anchored £/customer/yr (external sources:
-published supplier accounts, Ofgem cost stacks; register anchors), covering
-service, billing/systems, acquisition amortisation, overhead. SUPPLIER-side
-only; no world parameter touched. Re-run; bridge attributes the level shift.
-Expected direction: net toward low single digits. If it lands wildly off, LAW A:
-investigate mechanisms, do not tune.
+AMENDED (director, 2026-07-10): do NOT charge the company a fictional
+incumbent staff cost — that would hide the one number the project exists to
+prove (the AI-native cost advantage). But charging nothing is fake (infinite
+advantage, too-easy game, and unpriceable competitors). Split "opex" into
+three honest parts:
+
+(a) **True third-party & industry costs — charge fully, per unit, anchored:**
+metering (MOP/DC/DA per meter), DCC comms, payment processing fees, print &
+postage, credit-reference checks, debt-collection agency costs, industry
+charges (Elexon/Xoserve). Real costs any supplier pays regardless of being AI.
+(b) **Labour-replaced functions — charge the TRUE cost, metered:** AI compute
+(bill the company for its own cognition from the token/usage logs — the data
+exists), platform/hosting compute, and director oversight hours at a rate.
+This is the honest AI-native cost base and the thesis measurement.
+(c) **Benchmark ledger (the director's lower-quartile idea):** publish TWO P&L
+views — the TRUE ledger (a+b) and a BENCHMARK-LOADED ledger additionally
+carrying lower-quartile incumbent labour cost per segment (anchored to
+published supplier accounts/Ofgem cost stacks; lower-quartile chosen as the
+conservative claim: "even costed as an efficient human supplier, we make X").
+The gap between the two ledgers IS the investor thesis, quantified per year,
+and belongs on the website (Supplier tab), pixel-verified.
+
+Margin diagnostics (LAW A bands) run against the BENCHMARK ledger — that is
+the like-for-like comparison to real supplier margins. Competitors (when W2
+builds them) carry FULL incumbent cost stacks: they simulate human suppliers,
+so pricing competition is honest and the structural advantage becomes a
+strategic trade-off (undercut vs bank margin), not a distortion.
+SUPPLIER-side only; no world parameter touched. Re-run; bridge attributes the
+level shift on BOTH ledgers. If wildly off, LAW A: investigate, do not tune.
 
 ### 4. Second mechanism — hedge-tariff alignment (Lane B)
 Volatility fix: cost is locked when price is locked — hedging aligns to priced
