@@ -40,6 +40,15 @@
 #   Tier 1 gate closed today; the price cap becoming binding is a
 #   baseline-fidelity change). Side-tagging rule (every commit: SIM-BASELINE/CURRICULUM/SUPPLIER/
 #   WALL/REPORTING) applies going forward on this whole programme.
+#   FOLLOW-UP found live via R11 (2026-07-10): the Step 1 code fix landed and passed tests but
+#   was NOT reflected in the deployed dashboard.json -- process_run_complete.py's change-detection
+#   fingerprint gate correctly treats "same underlying run figures" as skip-worthy, but has no
+#   concept of "the CODE computing derived fields changed even though the run didn't." Manually
+#   regenerated+deployed this once (verified live via curl, not committed-only). General fix
+#   NOT built: needs a trigger that also fires on generator-script changes (e.g. hash
+#   tools/generate_dashboard_data.py alongside the run fingerprint), registered here rather than
+#   guessed at inline -- same class as the FORCE_REPUBLISH_FLAG hold-release mechanism, distinct
+#   trigger condition.
 #
 # === MATURITY MAP v1.1 -- NOW THE GOVERNING FRAMEWORK, PARTIALLY INSTALLED (2026-07-10,
 #   docs/staging/MATURITY_MAP_CANONICAL.md + MATURITY_MAP_v1.1.md, director-ratified
