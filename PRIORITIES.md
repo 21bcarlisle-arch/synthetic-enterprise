@@ -221,10 +221,18 @@
 #   HTML section (no undefined/NaN, degrades gracefully when opex_ledger is absent).
 #   NEXT: (b)'s two open questions still need either director input or a genuinely
 #   defensible default -- not invented by self-refill.
-#   STEPS 4-6 (hedge-tariff alignment, price-cap-binds mechanism, pressure-roadmap
-#   registration) -- NOT STARTED, sequenced after Step 3 (hedge-tariff alignment touches
-#   the same hedge-decision code the Tier 1 gate closed this week; the price cap becoming
-#   binding is a baseline-fidelity change). Side-tagging rule (every commit:
+#   STEP 4 (hedge-tariff alignment) -- CLOSED 2026-07-10 (seventeenth dial-weighted draw,
+#   docs/design/B3_HEDGE_TARIFF_ALIGNMENT_FINDING.md): verified, not assumed, that Step 4's own
+#   goal ("cost locked when price is locked") is substantially ALREADY BUILT. Fixed/pass-through
+#   tariffs: hedge decided once per term, held constant to the next renewal -- confirmed via real
+#   2020 data (start_hf == avg_hf for the large majority of customers). Deemed (SVT-adjacent):
+#   spot+premium, correctly NO forward hedge. Flex: weekly re-hedge at rolling reference, matching
+#   its own short commitment horizon. One honest exception flagged, not glossed over: a few I&C
+#   customers show hf changing within a year, plausibly genuine multiple real-world 3-6-month
+#   renewals rather than a bug -- NOT independently re-verified against the raw per-term log
+#   (not retained in the report-extracted shape this session worked from).
+#   STEPS 5-6 (price-cap-binds mechanism, pressure-roadmap registration) -- NOT STARTED (the
+#   price cap becoming binding is a baseline-fidelity change). Side-tagging rule (every commit:
 #   SIM-BASELINE/CURRICULUM/SUPPLIER/WALL/REPORTING) applies going forward.
 #   FOLLOW-UP found live via R11 (2026-07-10): the Step 1 code fix landed and passed tests but
 #   was NOT reflected in the deployed dashboard.json -- process_run_complete.py's change-detection
