@@ -652,13 +652,15 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   BILL_CORRECTNESS_ADDENDUM.md Defect 3, already anticipates this without a schema change, but the
   tariff-pricing/settlement side does not yet produce more than one register). The bill-PDF-vs-
   on-page-mockup question remains open for the director's own call.
-- **Consumption page with fuel toggle (director NTFY steer, 2026-07-10)**: "I don't mind kWh
-  for gas. You just need to be careful not to add to electricity as this makes no sense. Maybe
-  a page on the website with a toggle." Checked live: no existing bug -- `site/customers/index.html::combinedTotals()`
-  (the "combined household roll-up") already only ever sums £ (revenue/net margin/CLV), never
-  kWh. Registered as forward guidance for a genuinely new surface: a dedicated Consumption page
-  with an elec/gas/side-by-side toggle, gas and electricity kWh kept always separate, never
-  summed into one blended energy figure. NOT YET STARTED -- not scoped beyond the toggle concept.
+- **Consumption page with fuel toggle -- ALREADY EXISTS, CLOSED (2026-07-10, director NTFY
+  steer)**: "I don't mind kWh for gas. You just need to be careful not to add to electricity as
+  this makes no sense. Maybe a page on the website with a toggle." Checked live: no bug existed
+  (`combinedTotals()` only ever sums £, never kWh) -- and on closer check, the requested SURFACE
+  already exists too: `site/customers/index.html`'s Consumption tab (`renderConsumptionTab()`,
+  dual-fuel accounts only) has a real Electricity/Gas toggle (`setConsFuel()`), rendering usage
+  for the selected fuel only via `renderUsage()` -- kWh is never combined across fuels anywhere
+  in this view. No new page built; would have been redundant. Told Rich directly rather than
+  building something that already exists.
 - SAAS_COVERAGE_MAP.md item 4 remainder: credit bureau feed into collections strategy
   (currently only feeds acquisition credit checks)
 - FEEDBACK_AND_REPUTATION.md, NUDGE_PHYSICS.md: explicitly queued behind the current design
