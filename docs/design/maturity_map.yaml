@@ -67,8 +67,8 @@
   level_target: 3
   loop_stage: discover
   dial_inherited: 4
-  evidence: []
-  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). loop_stage=discover means background RESEARCH/design only is self-startable here; any actual code change to how/when SIM data becomes visible requires the hard Tier 1 REVIEW_GATE (explicit director approval, no timeout, never proceed on silence) before implementation."]
+  evidence: ["docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md"]
+  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). loop_stage=discover means background RESEARCH/design only is self-startable here; any actual code change to how/when SIM data becomes visible requires the hard Tier 1 REVIEW_GATE (explicit director approval, no timeout, never proceed on silence) before implementation. DISCOVER finding: sim/risk_engine.py::calculate_sigma_recent() is already self-contained/safe (takes reference_date, filters internally) but company/trading/hedge_decision.py::estimate_price_volatility() has no date parameter at all -- caller-trusted, only made safe by an external wrapper at its one known call site (the already-fixed hedge-volatility bug). No live second violation found, but the unsafe function itself remains a template others could copy. Design sketch (not built): a single structural point-in-time snapshot/as-of-view object all reads go through, rather than patching call sites one at a time. External research on real quant-finance PIT-database precedent dispatched."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real trading desk never sees tomorrow's settlement prices"
   depends_on: []
@@ -97,8 +97,8 @@
   level_target: 3
   loop_stage: discover
   dial_inherited: 3
-  evidence: ["saas/reporting/margin_attribution.py", "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md"]
-  simplifications: ["2026-07-10 DISCOVER finding: the report renders TWO adjacent margin-bridge sections (annual_report.py's Phase BE ledger-based + Phase NT years[]-based) whose gross-margin deltas disagree for the same year transition (e.g. 2016-2017: +116,919 vs +116,417), unlabelled -- a live Expert-Hour-failing legibility+consistency gap, same root cause as the E2 two-pipelines finding, not yet fixed. Also: gross_delta is a single lump (no price/volume split); portfolio_change is informational only, not an attributed £ driver -- external FP&A convention research dispatched, not yet landed."]
+  evidence: ["saas/reporting/margin_attribution.py", "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md", "docs/market_research/ASSUMPTIONS.md (B1 Margin Bridge section)"]
+  simplifications: ["2026-07-10 DISCOVER finding: the report renders TWO adjacent margin-bridge sections (annual_report.py's Phase BE ledger-based + Phase NT years[]-based) whose gross-margin deltas disagree for the same year transition (e.g. 2016-2017: +116,919 vs +116,417), unlabelled -- a live Expert-Hour-failing legibility+consistency gap, same root cause as the E2 two-pipelines finding, not yet fixed. External research LANDED: price/volume/mix split is a real, standard FP&A convention (Corporate Finance Institute) but NOT shown to be energy-retail-specific; Centrica plc's real FY2025 results instead use sector-specific named drivers (weather, commodity-curve shape, regulatory reconciliations, bad debt quantified directly by the CFO) much closer to this bridge's existing driver set -- VALIDATES the current design over a generic price/volume/mix rebuild. Customer count as informational-only (not a £ driver) is ALSO validated -- Centrica discloses customer numbers as a standalone KPI, not inside its £ bridge. Ofgem/CMA's own methodology uses levels-and-trends, not a bridge/waterfall convention at all -- a genuine, useful negative finding. Remaining real gap is the two-pipelines disagreement above, not the driver set."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "FP&A margin bridge deck"
   depends_on: []

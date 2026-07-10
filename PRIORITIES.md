@@ -43,8 +43,36 @@
 #   bridge (Maturity Map DISCOVER)", non-blocking); (3) portfolio_change (active customer
 #   count delta) is informational only, not an attributed £ driver -- same research checking
 #   whether a real supplier report quantifies new/lost-customer contribution separately.
-#   No opex/cost-to-serve driver yet -- correctly NOT a gap, blocked on Step 3. NEXT: once
-#   research lands + E2's root cause resolves, re-assess whether level 2->3 is earned.
+#   No opex/cost-to-serve driver yet -- correctly NOT a gap, blocked on Step 3.
+#   RESEARCH LANDED: price/volume/mix split is real FP&A convention (Corporate Finance
+#   Institute) but NOT energy-retail-specific; Centrica plc's actual FY2025 results use
+#   sector-specific named drivers (weather £80m headwind, EPG/FiT reconciliations, bad debt
+#   quantified directly by the CFO) much closer to this bridge's existing driver set --
+#   VALIDATES the current design, no price/volume rebuild needed. Customer count as
+#   informational-only is ALSO validated (Centrica discloses it as a standalone KPI, not
+#   inside the £ bridge). Ofgem/CMA's own methodology doesn't use a bridge/waterfall
+#   convention at all (levels-and-trends instead) -- useful negative finding. NEXT: once
+#   E2's root cause resolves (the real remaining gap), re-assess whether level 2->3 is
+#   earned -- the driver-set question is now closed, don't re-open it.
+#
+# === W1 REVEAL-OVER-TIME -- DISCOVER-STAGE FINDING, TIER 1 ADJACENT (2026-07-10, fourth
+#   dial-weighted draw, docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md): audited how
+#   price-history data flows into decision-making, following up the recent hedge-volatility
+#   review-gate fix. Found a real architectural inconsistency: sim/risk_engine.py::
+#   calculate_sigma_recent() is self-contained/safe "at the source" (takes reference_date,
+#   filters internally); company/trading/hedge_decision.py::estimate_price_volatility() has
+#   NO date parameter at all -- caller-trusted, made safe only by an external wrapper
+#   (_price_history_as_of()) at its one known call site, patched after the original bug was
+#   found. No live second violation found (only one production call path exists and it IS
+#   patched), but the unsafe function itself remains a template a future call site or
+#   refactor could copy without noticing. Design sketch registered, NOT built (Tier 1 --
+#   touches the SIM/company boundary, requires explicit director approval before any code
+#   change): a single structural point-in-time snapshot/as-of-view object all reads go
+#   through, replacing per-call-site patches. External research on real quant-finance
+#   point-in-time-database precedent dispatched (discovery-agent, appending to
+#   ASSUMPTIONS.md under "W1 reveal-over-time (Maturity Map DISCOVER)"). NEXT: once research
+#   lands, write this up as a named FRAME-stage proposal for the director's Tier 1 review --
+#   no implementation before that gate opens and closes.
 #
 # === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
 #   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
