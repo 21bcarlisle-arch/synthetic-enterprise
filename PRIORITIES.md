@@ -535,9 +535,11 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   the codebase yet (`ROCE`/`capital_employed`/`cash_flow` all zero hits on grep); building them
   now would mean fabricating an undefined "capital employed" denominator rather than surfacing
   real computed data, unlike the revenue/%-margin piece which was a straightforward 2-line
-  re-aggregation of an already-computed field. NOT YET STARTED as a real design task: what
-  "capital employed" and "cash flow" (vs. accrual net margin) should mean at segment level for
-  this business, before any chart gets built on top of it.
+  re-aggregation of an already-computed field. NEEDS A DIRECTOR DEFINITION DECISION, not
+  mechanically self-refillable (same class the supervisor's self-refill heuristic is meant to
+  exclude, per its own docstring: a director-decision-pending item, not real self-startable
+  work) -- what "capital employed" and "cash flow" (vs. accrual net margin) should mean at
+  segment level for this business, before any chart gets built on top of it.
 - **Trading & Market tab redesign (director page comment, 2026-07-10, /supplier/)**: monthly
   buying/position-seeking activity, seasonal % cover over time by segment/product type, VaR --
   BLOCKED on the review gate above (fixing the volatility-lookback bug first, so this isn't built
