@@ -1,6 +1,28 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
 #
+# === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
+#   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
+#   the alerting bug live (background/sanity_daemon.py's audit-NTFY dedup was keyed
+#   on the Qwen skeptic's randomly-sampled customer/date, which changes almost every
+#   cycle by construction -- 49/49 cycles fired an NTFY over 21h; now keyed on a
+#   normalised finding CATEGORY, tests + epistemic PASS, daemon restarted live).
+#   TWO follow-ups NOT done, registered rather than rushed:
+#   (1) the 3 population-sanity findings themselves (C1_2 129kWh/2020, C1g 42.6
+#   GBP/MWh/2019, C4 ~320.5 GBP/MWh/2024) have been the IDENTICAL customer/year for
+#   21h+ across 50 cycles -- a real, still-unfixed data anomaly, not just an
+#   alerting question. Needs its own R4 diagnosis (nearest working analogue: the
+#   other ~7 customers in the same segment/year that DON'T trip the band).
+#   (2) the Qwen skeptic prompt (company/compliance/internal_audit.py) has no memory
+#   of categories already adjudicated false-positive project-wide (gas-billed-in-
+#   kWh is correct GB practice; VAT-mismatch and I&C-high-consumption have each
+#   been manually verified correct at least once -- CLAUDE.md 2a, BILL_CORRECTNESS_
+#   ADDENDUM) -- it will keep re-manufacturing the same non-findings forever even
+#   with the NTFY fix above (they'll just log silently instead of spamming). A
+#   "known non-issues" reference the prompt or a post-filter could consult is a
+#   real design decision (what counts as adjudicated, who updates it) -- not a
+#   one-line patch.
+#
 # === MARGIN_REALISM -- P1, IN PROGRESS (2026-07-10, docs/staging/done/MARGIN_REALISM.md,
 #   advisor-staged, director-decided from a real observation: net margin % by year 10.2/13.6/23.3/
 #   19.5/10.5/4.4/9.8/5.6/15.9/12.5, real UK domestic retail ~1-3% net with negative years --
