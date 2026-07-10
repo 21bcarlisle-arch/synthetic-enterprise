@@ -126,6 +126,20 @@ def generate(run_json_path=None, out_path=None, state_path=None):
             "outcome": e.get("outcome"),
         })
 
+    # Layer 2 "model-complexity flavour" evidence (2026-07-10, director page
+    # comment on /sim/: "No info on smart meters. Duel fuel. House type.
+    # Business type consumption"). saas/customers.py is SIM-side generation
+    # data (not company/), same basis as the household_segments archetypes
+    # below -- shown here for the SIM tab's own evidence-surface purpose
+    # only, MUST NEVER be read by company/** code.
+    from saas.customers import CUSTOMERS as _RAW_CUSTOMERS
+    _customer_by_id = {c["customer_id"]: c for c in _RAW_CUSTOMERS}
+    _bases_with_leg = defaultdict(set)
+    for _cid in pcl.keys():
+        _bases_with_leg[_base_id(_cid)].add(
+            _customer_by_id.get(_cid, {}).get("commodity", "electricity")
+        )
+
     sample = {}
     for cid, cdata in sorted(pcl.items()):
         base = _base_id(cid)
@@ -139,6 +153,10 @@ def generate(run_json_path=None, out_path=None, state_path=None):
         _fuel_poverty = None
         _tenure = None
         _occupancy = None
+        _raw = _customer_by_id.get(cid, {})
+        _home_type = _raw.get("home_type")
+        _smart_meter = _raw.get("smart_meter")
+        _dual_fuel = len(_bases_with_leg.get(base, set())) >= 2
         if _segment == "resi":
             # Layer 2 dimensions 1-4 (2026-07-09/10): SIM-internal ground truth
             # (payment channel / fuel poverty / tenure / occupancy archetype),
@@ -164,6 +182,9 @@ def generate(run_json_path=None, out_path=None, state_path=None):
             "fuel_poverty": _fuel_poverty,
             "tenure": _tenure,
             "occupancy": _occupancy,
+            "home_type": _home_type,
+            "smart_meter": _smart_meter,
+            "dual_fuel": _dual_fuel,
             "acquisition_date": cdata.get("acquisition_date"),
             "lifetime_revenue_gbp": round(cdata.get("revenue_gbp", 0), 2),
             "lifetime_gross_gbp": round(cdata.get("gross_gbp", 0), 2),

@@ -91,3 +91,51 @@ def test_payment_channel_deterministic_across_regeneration(tmp_path):
     out2 = _generate(tmp_path, customers)
     assert out1["customers"]["C7"]["payment_channel"] == out2["customers"]["C7"]["payment_channel"]
     assert out1["customers"]["C7"]["fuel_poverty"] == out2["customers"]["C7"]["fuel_poverty"]
+
+
+# --- smart_meter / home_type / dual_fuel (2026-07-10, director page comment
+# on /sim/: "No info on smart meters. Duel fuel. House type. Business type
+# consumption") -- sourced from saas/customers.py, real per-customer_id data ---
+
+def test_home_type_and_smart_meter_sourced_from_raw_customer_record(tmp_path):
+    customers = {
+        "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2016-01-01",
+               "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
+    }
+    out = _generate(tmp_path, customers)
+    c1 = out["customers"]["C1"]
+    assert c1["home_type"] == "urban_flat"
+    assert c1["smart_meter"] is True
+
+
+def test_business_customer_home_type_is_the_business_premises_type(tmp_path):
+    """home_type doubles as the "business type" signal for I&C/SME accounts
+    (no separate field exists in saas/customers.py -- same key, segment-aware
+    label on the rendering side)."""
+    customers = {
+        "C_IC1": {"segment": "I&C", "commodity": "electricity", "acquisition_date": "2016-01-01",
+                  "revenue_gbp": 100000.0, "gross_gbp": 5000.0, "net_gbp": 2000.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C_IC1"]["home_type"] == "warehouse_unit"
+
+
+def test_dual_fuel_true_when_both_legs_present(tmp_path):
+    customers = {
+        "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2016-01-01",
+               "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
+        "C1g": {"segment": "resi", "commodity": "gas", "acquisition_date": "2016-01-01",
+                "revenue_gbp": 50.0, "gross_gbp": 20.0, "net_gbp": 8.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C1"]["dual_fuel"] is True
+    assert out["customers"]["C1g"]["dual_fuel"] is True
+
+
+def test_dual_fuel_false_when_only_one_leg_present(tmp_path):
+    customers = {
+        "C7": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2019-06-01",
+               "revenue_gbp": 200.0, "gross_gbp": 80.0, "net_gbp": 30.0},
+    }
+    out = _generate(tmp_path, customers)
+    assert out["customers"]["C7"]["dual_fuel"] is False

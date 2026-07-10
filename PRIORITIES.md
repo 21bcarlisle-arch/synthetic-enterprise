@@ -571,14 +571,22 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   supplier" auditor persona flags forward-looking vision language as implausible when it is
   director's own verbatim wording, correctly labelled as future vision not current operations).
   Presentation-only (site/ only), epistemic PASS.
-- **SIM tab -- more model-complexity flavour (director page comment, 2026-07-10, /sim/)**: "Many
-  being 70% satisfied looks suspicious. And none in fuel poverty. No info on smart meters. Duel
-  fuel. House type. Business type consumption etc. I feel we need to give more of a flavour of
-  the 4d model we have and scope of complexity we are simulating." Partial progress already
-  exists (fuel poverty/tenure/occupancy columns added 2026-07-09/10 on the Customer Sample table)
-  but the director's ask is broader -- smart-meter status, dual-fuel indicator, house type,
-  business-type consumption all need surfacing too, plus investigating why satisfaction clusters
-  suspiciously at 70% (a real population-sanity question, not yet checked). NOT YET STARTED.
+- **SIM tab -- more model-complexity flavour, PARTIALLY CLOSED (2026-07-10, director page
+  comment, /sim/)**: "Many being 70% satisfied looks suspicious. And none in fuel poverty. No
+  info on smart meters. Duel fuel. House type. Business type consumption etc." Smart-meter
+  status, dual-fuel indicator, and house/business type now surface on the SIM Customer Sample
+  table (`tools/generate_customer_sample.py` reads real per-customer_id fields from
+  `saas/customers.py` -- `home_type` doubles as the business-premises-type signal for I&C/SME
+  accounts, segment-aware label on the render side; `dual_fuel` derived by checking whether a
+  household's `base_account_id` has both an electricity and gas leg). 5 new tests, verified
+  against real data via a Node harness executing the actual table-render logic (no undefined/NaN,
+  correct labels for all sampled customers). REMAINING, NOT YET CLOSED: the "70% satisfaction
+  looks suspicious" population-sanity question -- CONFIRMED a real finding on inspection (67% of
+  all satisfaction data points in the sample sit at EXACTLY 0.70, 28% at EXACTLY 0.65, only 5% any
+  other value; root cause is `simulation/sim_satisfaction.py`'s `BASELINE_SATISFACTION = 0.70`
+  constant with zero per-customer heterogeneity and only 3 coarse discrete adjustment buckets).
+  Discovery-agent research dispatched for a real published UK energy-CSAT distribution anchor
+  before building a fix, rather than picking an arbitrary spread -- in progress, not yet landed.
 - **Cumulative tests EXECUTED metric (director page comment, 2026-07-10, /project/)**: "Don't we
   want cumulative tests run, not the growth in the standard test set." A genuinely different,
   arguably more impressive metric (total test executions across every CI/verification run over

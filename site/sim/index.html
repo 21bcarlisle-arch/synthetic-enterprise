@@ -221,9 +221,12 @@
           <th>Fuel Poverty</th>
           <th>Housing Tenure</th>
           <th>Occupancy</th>
+          <th>Smart Meter</th>
+          <th>Dual Fuel</th>
+          <th>House/Business Type</th>
           <th>Life Events</th>
         </tr></thead>
-        <tbody id="cust-tbody"><tr><td colspan="10" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        <tbody id="cust-tbody"><tr><td colspan="13" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
     <div class="section-title">Income Stress Distribution Over Time</div>
@@ -664,11 +667,15 @@
       var housingTenureCell = c.tenure ? (_housingTenureLabel[c.tenure] || c.tenure) : '—';
       var _occupancyLabel = {one_person:'1 person', two_person:'2 people', three_to_four_person:'3-4 people', five_plus_person:'5+ people'};
       var occupancyCell = c.occupancy ? (_occupancyLabel[c.occupancy] || c.occupancy) : '—';
+      var smartMeterCell = c.smart_meter == null ? '—' : (c.smart_meter ? '<span style="color:var(--green)">Yes</span>' : 'No');
+      var dualFuelCell = c.dual_fuel == null ? '—' : (c.dual_fuel ? 'Yes' : 'No');
+      var _homeTypeLabel = {urban_flat:'Urban flat', suburban_semi:'Suburban semi', detached_house:'Detached house', rural_cottage:'Rural cottage', small_office:'Small office', warehouse_unit:'Warehouse', office_building:'Office building', chemical_plant:'Chemical plant', supermarket:'Supermarket'};
+      var homeTypeCell = c.home_type ? (_homeTypeLabel[c.home_type] || c.home_type) : '—';
       var detailId = 'cust-detail-' + idx;
       var stressVals = traj.map(function(pt) { return stressNum[(pt.stress||'low').toUpperCase()] != null ? stressNum[(pt.stress||'low').toUpperCase()] : 0; });
       var satVals = satTraj.map(function(pt) { return Number(pt.satisfaction_score); });
-      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="text-align:right;font-size:11px">'+housingTenureCell+'</td><td style="text-align:right;font-size:11px">'+occupancyCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
-      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="10" style="background:var(--surface2);padding:14px 18px">'+
+      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="text-align:right;font-size:11px">'+housingTenureCell+'</td><td style="text-align:right;font-size:11px">'+occupancyCell+'</td><td style="text-align:right">'+smartMeterCell+'</td><td style="text-align:right">'+dualFuelCell+'</td><td style="text-align:right;font-size:11px">'+homeTypeCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="13" style="background:var(--surface2);padding:14px 18px">'+
         '<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Income Stress Trajectory</div>'+sparklineSvg(stressVals,'#d03b3b')+'</div>'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Satisfaction Trajectory</div>'+sparklineSvg(satVals,'#1baf7a')+'</div>'+
@@ -677,7 +684,7 @@
         '</div></td></tr>';
       return mainRow + detailRow;
     }).join('');
-    document.getElementById('cust-tbody').innerHTML = rows || '<tr><td colspan="7" style="color:var(--muted)">No data</td></tr>';
+    document.getElementById('cust-tbody').innerHTML = rows || '<tr><td colspan="13" style="color:var(--muted)">No data</td></tr>';
   }
   var custStressChart = null, custPayChart = null, custEventFreqChart = null;
   function buildStressChart(d) {
