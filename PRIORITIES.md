@@ -540,13 +540,14 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   (recalibrate one-way doors) deliberately NOT actioned -- Tier 1 safety-control change, needs
   the director's own in-console confirmation, flagged via NTFY. Problem 3 (parallel-lanes
   proposal) still registered below, not yet drafted.
-- **REVIEW GATE OPEN (Tier 1, blocking) -- hedge-decision volatility lookback uses future data**:
-  docs/review_gates/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md (2026-07-10, from a real director
-  page comment on /supplier/ Trading & Market, confirmed twice-verified real epistemic-wall
-  violation). Director authorized the fix in-console with an explicit hold on republishing;
-  fixed, re-derived (headline P&L barely moves, but the flagship hf=0.00 finding does not
-  reproduce), sim-runner held (docs/review_gates/.sim_runner_hold). Still open -- awaiting
-  director review of the re-derivation before any new run is published.
+- **REVIEW GATE CLOSED (Tier 1) -- hedge-decision volatility lookback uses future data**:
+  docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md (2026-07-10, from a real
+  director page comment on /supplier/ Trading & Market). Director authorized the fix in-console,
+  reviewed the re-derivation, then closed the gate with "publish corrected figures now, drop the
+  old naked-hedging claim." Sim-runner hold removed; the "Regime-Change Blindness" discovery card
+  and the hedge-fraction chart caption both rewritten to honestly reflect the re-derivation
+  (population hedge cover stays 0.80-0.90 throughout, the old naked-hedging story does not hold in
+  the current build). Next full sim-runner cycle publishes the corrected canonical figures.
 - **Segmented financials -- PARTIALLY CLOSED (2026-07-10, director page comments, /supplier/
   Performance tab, twice in the same session -- P-2 director-repeat)**: revenue-by-segment +
   %-net-margin-by-segment shipped -- `saas/reporting/annual_report.py`'s `segment_split` now

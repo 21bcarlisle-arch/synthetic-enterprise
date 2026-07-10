@@ -783,10 +783,13 @@ function renderTrading() {
     <div class="chart-box">
       <div class="chart-title">Portfolio Avg Hedge Fraction by Year</div>
       <p style="font-size:12px;color:var(--muted);margin:0 0 8px">
-        Min HF touches 0% every year 2019–2024 — the regime-change-blindness trap
-        (Phase 1e "hf=0.00" finding): the hedging model converged toward naked positions during
-        calm pre-crisis markets, directly ahead of the 2021–22 crisis it then had to weather.
-        2025's return to an 85% floor across avg/min/max is the corrective fix, not a data gap.
+        Min HF touches 0% every year 2019–2024 -- REVISED (2026-07-10): an earlier finding read this
+        as the hedging model converging toward naked positions in calm pre-crisis markets. A later
+        fix corrected a point-in-time data leak in the volatility calc, and re-checking shows the 0%
+        entries trace every year to exactly one customer, a pass-through gas account structurally
+        designed never to hedge -- not a behavioural convergence. Every other customer stays hedged
+        0.85–0.97 throughout, calm years included; the portfolio average (below) never drops below
+        ~0.80.
       </p>
       <div class="chart-wrap"><canvas id="ch-hedge"></canvas></div>
     </div>

@@ -124,9 +124,13 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <div class="sec">Key Discoveries</div>
   <div class="disc-grid">
     <div class="disc">
-      <h3>Regime-Change Blindness</h3>
-      <p>Agent converged to near-naked hedging during 2016-2020 calm, directly before the crisis --
-      mirroring how 28 real UK suppliers failed in 2021-22. Discovered in simulation before the fix.</p>
+      <h3>Regime-Change Blindness -- Revised</h3>
+      <p>An early build showed the hedging model converging toward naked positions in calm markets,
+      mirroring how 28 real UK suppliers failed in 2021-22. A later fix corrected a point-in-time
+      data leak in the volatility calculation, and re-deriving the finding against the current build
+      shows the opposite: hedge cover stays real (0.80-0.90) through every year, calm ones included.
+      The naked-hedging story reflected an earlier, since-superseded model -- caught and corrected,
+      not left stale.</p>
     </div>
     <div class="disc">
       <h3>Activity-Based Pricing Gap</h3>
