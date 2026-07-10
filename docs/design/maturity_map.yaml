@@ -65,10 +65,10 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: discover
+  loop_stage: idle
   dial_inherited: 4
-  evidence: ["docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md"]
-  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). loop_stage=discover means background RESEARCH/design only is self-startable here; any actual code change to how/when SIM data becomes visible requires the hard Tier 1 REVIEW_GATE (explicit director approval, no timeout, never proceed on silence) before implementation. DISCOVER finding: sim/risk_engine.py::calculate_sigma_recent() is already self-contained/safe (takes reference_date, filters internally) but company/trading/hedge_decision.py::estimate_price_volatility() has no date parameter at all -- caller-trusted, only made safe by an external wrapper at its one known call site (the already-fixed hedge-volatility bug). No live second violation found, but the unsafe function itself remains a template others could copy. Design sketch (not built): a single structural point-in-time snapshot/as-of-view object all reads go through, rather than patching call sites one at a time. External research on real quant-finance PIT-database precedent dispatched."]
+  evidence: ["docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md", "docs/review_gates/POINT_IN_TIME_SNAPSHOT_TIER1.md"]
+  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). DISCOVER finding (internal + external research, both landed): sim/risk_engine.py::calculate_sigma_recent() is already self-contained/safe but company/trading/hedge_decision.py::estimate_price_volatility() is caller-trusted, only made safe by an external wrapper at its one known call site (the already-fixed hedge-volatility bug) -- no live second violation, but a template others could copy. Wrote up a proper Tier 1 REVIEW GATE (docs/review_gates/POINT_IN_TIME_SNAPSHOT_TIER1.md) with options + a recommendation (register, sequence after current work -- not build now) for the director's actual decision, rather than just a design sketch. loop_stage set to idle: genuinely blocked pending that Tier 1 decision, same pattern just corrected for W4_1_typed_adapters -- applying the lesson immediately rather than repeating the mistake."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real trading desk never sees tomorrow's settlement prices"
   depends_on: []

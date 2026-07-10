@@ -84,9 +84,14 @@
 #   for the sibling bias (survivorship bias: Elton/Gruber/Blake 1996, ~0.9%/yr overstated
 #   returns) though no case study was found naming look-ahead bias specifically from
 #   inconsistent per-function enforcement -- stated as an honest negative finding, not
-#   invented. NEXT: write this up as a named FRAME-stage proposal (the shared point-in-time
-#   access-layer pattern, evidence-cited) for the director's Tier 1 review -- no
-#   implementation before that gate opens and closes.
+#   invented. TIER 1 REVIEW GATE OPENED 2026-07-10 (eleventh dial-weighted draw):
+#   docs/review_gates/POINT_IN_TIME_SNAPSHOT_TIER1.md -- decision needed: build a structural
+#   point-in-time snapshot object now, or register/sequence after current work, or do nothing
+#   beyond documenting the pattern. Recommendation given (register, sequence after
+#   MARGIN_REALISM Steps 3-6 + D2_three_clocks -- no live bug driving urgency, purely
+#   preventive value), but this is the director's decision, not a default to proceed on.
+#   loop_stage set to idle (genuinely blocked pending the gate) -- NTFY sent per the standing
+#   Tier 1 protocol, gate stays open, re-ping daily while blocked, other queue items continue.
 #
 # === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
 #   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
