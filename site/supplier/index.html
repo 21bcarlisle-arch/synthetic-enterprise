@@ -636,10 +636,12 @@ function b2TaxonomyHtml() {
       </table>
       <div style="padding:.5rem 0 0;font-size:.9em">
         <strong>Break-even at current mix: ${be.break_even_customers_at_current_mix != null ? be.break_even_customers_at_current_mix.toFixed(1) + ' customers' : 'undefined (avg margin &le; 0)'}</strong>
+        ${be.provisional ? '<span class="badge badge-amber" style="margin-left:6px">PROVISIONAL</span>' : ''}
         <span style="color:var(--muted)"> — actual book: ${be.current_book_size} customer(s),
         weighted avg gross margin ${gbp(be.weighted_avg_gross_margin_gbp_per_customer)}/customer.
         <span class="${beCovers ? 'pos' : 'neg'}">${beCovers ? 'Covers the floor.' : 'Does not yet cover the floor.'}</span></span>
       </div>
+      ${be.provisional ? `<div style="color:var(--amber);font-size:.8em;padding:.3rem 0 0">${be.provisional_note}</div>` : ''}
       <div style="color:var(--muted);font-size:.8em;padding:.3rem 0 0">
         Ofgem licence fee + insurance are golive-conditional (excluded above -- no real
         regulatory/insurable exposure in a pure backtest).
@@ -674,9 +676,10 @@ function b2TaxonomyHtml() {
       <div style="font-size:.95em">
         Top customer: <strong>${conc.top_customer}</strong>
         (<strong>${conc.top_customer_pct_of_gross_margin}%</strong> of gross margin)
-        <span style="color:var(--muted)">— limit: ${conc.limit_pct != null ? conc.limit_pct + '%' : 'not yet set by the director'}</span>
-        ${conc.breach === true ? '<span class="neg"> BREACH</span>' : conc.breach === false ? '<span class="pos"> within limit</span>' : ''}
+        <span style="color:var(--muted)">— limit: ${conc.limit_pct != null ? conc.limit_pct + '%' : 'not yet set by the director'}${conc.amber_pct != null ? ', amber at ' + conc.amber_pct + '%' : ''}</span>
+        ${conc.status === 'red' ? '<span class="neg"> BREACH</span>' : conc.status === 'amber' ? '<span style="color:var(--amber)"> APPROACHING LIMIT</span>' : conc.status === 'green' ? '<span class="pos"> within limit</span>' : ''}
       </div>
+      ${conc.status === 'red' ? '<div style="color:var(--muted);font-size:.8em;padding:.3rem 0 0">A standing risk exception, curable only by book growth/diversification -- by design, not a defect to silence (director risk appetite, 2026-07-10).</div>' : ''}
     </div>` : ''}`;
 }
 

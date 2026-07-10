@@ -1,5 +1,31 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md, director-direct NTFY)
+# last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md director numbers, NTFY)
+#
+# === Backlog: bill-shock definition needs a real redesign (2026-07-10, director page comment,
+#   docs/design/BILL_SHOCK_DEFINITION_FINDING.md). Confirmed by checking, not assumed: the
+#   current >=20% threshold + month-on-month comparison (saas/bill_generator.py, simulation/
+#   run_phase4c_on_phase2b.py::build_monthly_bills()) was NEVER externally researched (no
+#   docs/market_research entry exists), has NO seasonal/year-over-year adjustment, and does NOT
+#   detect the two real-world event types the director named (contract-end tariff reversion to
+#   SVT/deemed rate; Direct Debit recalculation/catch-up) at all. Real run data (494 shock
+#   events, 2016-2025) shows an inconclusive month distribution, not a clean seasonal-only
+#   pattern -- properly separating causes needs the redesign, not more eyeballing. NOT fixed
+#   this turn: needs real research into UK contract-reversion/DD-recalculation timing before
+#   building, same discipline as this session's other work. Registered, not rushed.
+#
+# === B2 director-owned numbers WIRED (2026-07-10, from_rich_20260710_190908.md): "ROCE hurdle:
+#   12% pre-tax on segment capital employed. Concentration limit: 15% of gross margin per
+#   customer, amber at 10% -- current breaches render as standing risk exceptions curable only
+#   by book growth, exactly as intended." Both wired into tools/generate_dashboard_data.py::
+#   extract_b2_taxonomy() (was None/not-set). Real live result: SME + resi segments show under
+#   the 12% hurdle; single-customer concentration is a REAL RED breach (C_IC1 at 29.15% of gross
+#   margin vs the 15% limit) -- exactly the standing risk exception the director expected, not
+#   hidden or fudged. company/risk/concentration_risk.py's check gained a 3-tier status
+#   (green/amber/red) alongside the existing boolean breach field. Break-even (5.1 customers) now
+#   explicitly flagged "provisional": true + a whale-distortion caveat on every surface per his
+#   instruction -- to be re-derived with segment-level break-evens once MARGIN_REALISM steps 4-5
+#   land (not built this turn, registered). 9 new/updated tests, 16,614 tests collected (full
+#   suite), epistemic PASS, verified live in-browser (screenshot, zero console errors/NaN).
 #
 # === Backlog: Operations tab KPI expansion (2026-07-10, director page comment: "Surely there
 #   are other key operational KPIs for an energy supplier? Even a fully autonomous one.").

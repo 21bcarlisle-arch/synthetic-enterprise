@@ -8,6 +8,7 @@ import pytest
 from tools.generate_dashboard_data import (
     _fmt, extract_portfolio, extract_financial, count_run_history_total,
     extract_regulatory, _SLC_OBLIGATIONS, extract_reputation, extract_opex_ledger,
+    extract_b2_taxonomy,
 )
 import json
 
@@ -440,3 +441,81 @@ def test_extract_opex_ledger_ai_compute_not_yet_populated():
     fabricated (R12)."""
     result = extract_opex_ledger({})
     assert result["true_ai_compute_cost_gbp"] == 0.0
+
+
+# -- B2_OPEX_TAXONOMY_EXPANSION.md: extract_b2_taxonomy() --
+
+def _b2_data():
+    return {
+        "years": {
+            "2025": {
+                "segment_split": {
+                    "resi electricity": {"revenue_gbp": 10000.0, "gross_gbp": 500.0, "net_gbp": 100.0},
+                    "ic electricity": {"revenue_gbp": 90000.0, "gross_gbp": 40000.0, "net_gbp": 39000.0},
+                },
+            },
+        },
+        "per_customer_lifetime": {
+            "R1": {"segment": "resi", "commodity": "electricity", "gross_gbp": 500.0},
+            "W1": {"segment": "ic", "commodity": "electricity", "gross_gbp": 40000.0},
+        },
+    }
+
+
+def _write_ledger(tmp_path, customers):
+    import json as _json
+    ledger_dir = tmp_path / "site" / "state"
+    ledger_dir.mkdir(parents=True)
+    (ledger_dir / "billing_ledger.json").write_text(_json.dumps({"customers": customers}))
+
+
+def test_extract_b2_taxonomy_real_director_numbers_wired(tmp_path, monkeypatch):
+    """Director set these live 2026-07-10 (from_rich_20260710_190908.md) --
+    must no longer be None/not-set."""
+    import tools.generate_dashboard_data as gdd
+    _write_ledger(tmp_path, {"R1": {"segment": "resi", "balance_gbp": 0.0},
+                             "W1": {"segment": "ic", "balance_gbp": 0.0}})
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)
+    result = gdd.extract_b2_taxonomy(_b2_data())
+    assert result["segment_roce_hurdle"]["hurdle_pct"] == 12.0
+    assert result["segment_roce_hurdle"]["hurdle_set"] is True
+    assert result["single_customer_concentration"]["limit_pct"] == 15.0
+    assert result["single_customer_concentration"]["amber_pct"] == 10.0
+
+
+def test_extract_b2_taxonomy_whale_customer_breaches_concentration(tmp_path, monkeypatch):
+    """W1 holds 40000/40500 = 98.8% of gross margin -- must be a real RED
+    breach against the director's 15% limit, not silently passed."""
+    import tools.generate_dashboard_data as gdd
+    _write_ledger(tmp_path, {"R1": {"segment": "resi", "balance_gbp": 0.0},
+                             "W1": {"segment": "ic", "balance_gbp": 0.0}})
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)
+    result = gdd.extract_b2_taxonomy(_b2_data())
+    conc = result["single_customer_concentration"]
+    assert conc["top_customer"] == "W1"
+    assert conc["status"] == "red"
+    assert conc["breach"] is True
+
+
+def test_extract_b2_taxonomy_break_even_flagged_provisional(tmp_path, monkeypatch):
+    import tools.generate_dashboard_data as gdd
+    _write_ledger(tmp_path, {"R1": {"segment": "resi", "balance_gbp": 0.0},
+                             "W1": {"segment": "ic", "balance_gbp": 0.0}})
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)
+    result = gdd.extract_b2_taxonomy(_b2_data())
+    be = result["break_even_analysis"]
+    assert be["provisional"] is True
+    assert "whale-distorted" in be["provisional_note"]
+
+
+def test_extract_b2_taxonomy_under_hurdle_segment_flagged(tmp_path, monkeypatch):
+    """resi's segment ROCE is far below the 12% hurdle at this scale -- must
+    show up in under_hurdle, not silently omitted."""
+    import tools.generate_dashboard_data as gdd
+    _write_ledger(tmp_path, {"R1": {"segment": "resi", "balance_gbp": -5000.0},
+                             "W1": {"segment": "ic", "balance_gbp": 0.0}})
+    monkeypatch.setattr(gdd, "PROJECT", tmp_path)
+    result = gdd.extract_b2_taxonomy(_b2_data())
+    hurdle = result["segment_roce_hurdle"]
+    assert hurdle["hurdle_set"] is True
+    assert isinstance(hurdle["under_hurdle"], list)

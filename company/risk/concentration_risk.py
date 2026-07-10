@@ -168,22 +168,41 @@ def build_gross_margin_concentration_snapshot(
 
 
 def gross_margin_concentration_check(
-    snapshot: ConcentrationSnapshot, limit_pct: Optional[float] = None
+    snapshot: ConcentrationSnapshot,
+    limit_pct: Optional[float] = None,
+    amber_pct: Optional[float] = None,
 ) -> Dict[str, object]:
     """Checks a gross-margin-basis snapshot against a director-set limit (max %
     of gross margin from one customer -- B2_OPEX_TAXONOMY_EXPANSION.md's risk-
-    appetite ask). limit_pct is None until the director sets one: per this
-    project's standing discipline (never invent a number that is explicitly the
-    director's own risk appetite to set -- see B2(b)'s AI-compute-cost precedent),
-    'breach' is None (not False) when no limit is set -- distinct from a real
-    'checked and within limit' result."""
+    appetite ask), with an optional amber warning tier below the hard limit
+    (director-set 2026-07-10: RED >15%, AMBER >10%, both real risk-appetite
+    numbers, not invented -- "current breaches render as standing risk
+    exceptions curable only by book growth, exactly as intended"). limit_pct/
+    amber_pct are None until the director sets them: per this project's
+    standing discipline (never invent a number that is explicitly the
+    director's own risk appetite to set -- see B2(b)'s AI-compute-cost
+    precedent), 'breach'/'status' are None/'unset' (not False/'green') when no
+    limit is set -- distinct from a real 'checked and within limit' result."""
     if snapshot.metric != "gross_margin":
         raise ValueError("gross_margin_concentration_check requires a gross_margin-metric snapshot")
-    breach = None if limit_pct is None else snapshot.top_entity_pct > limit_pct
+    pct = snapshot.top_entity_pct
+    if limit_pct is None:
+        breach = None
+        status = "unset"
+    else:
+        breach = pct > limit_pct
+        if breach:
+            status = "red"
+        elif amber_pct is not None and pct > amber_pct:
+            status = "amber"
+        else:
+            status = "green"
     return {
         "as_of": str(snapshot.as_of),
         "top_customer": snapshot.top_entity,
-        "top_customer_pct_of_gross_margin": round(snapshot.top_entity_pct, 2),
+        "top_customer_pct_of_gross_margin": round(pct, 2),
         "limit_pct": limit_pct,
+        "amber_pct": amber_pct,
+        "status": status,
         "breach": breach,
     }

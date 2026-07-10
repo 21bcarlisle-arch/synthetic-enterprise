@@ -147,3 +147,42 @@ class TestGrossMarginConcentration:
         snap = make_snap()  # default metric="revenue"
         with pytest.raises(ValueError):
             gross_margin_concentration_check(snap, limit_pct=50.0)
+
+    def test_status_unset_when_no_limit(self):
+        snap = build_gross_margin_concentration_snapshot({"A": 80.0, "B": 20.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=None)
+        assert result["status"] == "unset"
+
+    def test_status_red_over_limit(self):
+        snap = build_gross_margin_concentration_snapshot({"A": 20.0, "B": 80.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=15.0, amber_pct=10.0)
+        assert result["status"] == "red"
+        assert result["breach"] is True
+
+    def test_status_amber_between_amber_and_limit(self):
+        # 9 entities: top at 12% (>10 amber, <=15 limit), remaining 88% spread
+        # evenly across the other 8 so none of them exceeds 12%.
+        margins = {"top": 12.0}
+        margins.update({f"c{i}": 11.0 for i in range(8)})
+        snap = build_gross_margin_concentration_snapshot(margins, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=15.0, amber_pct=10.0)
+        assert result["status"] == "amber"
+        assert result["breach"] is False
+
+    def test_status_green_below_amber(self):
+        # 13 roughly-equal entities -> top share ~7.7%, below the 10% amber line.
+        margins = {f"c{i}": 100.0 / 13 for i in range(13)}
+        snap = build_gross_margin_concentration_snapshot(margins, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=15.0, amber_pct=10.0)
+        assert result["status"] == "green"
+        assert result["breach"] is False
+
+    def test_status_red_without_amber_configured(self):
+        snap = build_gross_margin_concentration_snapshot({"A": 20.0, "B": 80.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=15.0)
+        assert result["status"] == "red"
+
+    def test_status_green_without_amber_configured(self):
+        snap = build_gross_margin_concentration_snapshot({"A": 40.0, "B": 60.0}, DATE)
+        result = gross_margin_concentration_check(snap, limit_pct=65.0)
+        assert result["status"] == "green"

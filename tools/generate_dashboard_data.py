@@ -705,10 +705,15 @@ def extract_b2_taxonomy(data):
     """B2_OPEX_TAXONOMY_EXPANSION.md (2026-07-10, director-direct NTFY): the
     fixed-cost floor (categories 4+5), the emergent break-even analysis, segment
     capital-employed + ROCE, and single-customer gross-margin concentration.
-    Two numbers are genuinely the director's own call and are NOT invented here
-    (same discipline as B2(b)'s AI-compute-cost precedent): the segment ROCE
-    hurdle rate and the concentration limit -- both surfaced as None/"not set"
-    until he provides them (asked via NTFY 2026-07-10), not defaulted."""
+    ROCE hurdle + concentration limit are the director's own real numbers
+    (2026-07-10 NTFY reply, docs/staging/done/from_rich_20260710_190908.md):
+    "ROCE hurdle: 12% pre-tax on segment capital employed. Concentration
+    limit: 15% of gross margin per customer, amber at 10% -- current breaches
+    render as standing risk exceptions curable only by book growth, exactly as
+    intended." Break-even is explicitly flagged provisional per the same
+    reply: "5.1 is machinery-proof only, pre-normalisation and
+    whale-distorted -- label it provisional on all surfaces, and re-derive
+    with segment-level break-evens after MARGIN_REALISM steps 4-5 land"."""
     from saas.opex_ledger import (
         break_even_analysis, fixed_cost_floor_gbp_per_year,
     )
@@ -720,11 +725,9 @@ def extract_b2_taxonomy(data):
     )
     import datetime as _dt
 
-    # Director hasn't set either of these yet -- both explicitly None, not a
-    # guessed default (asked 2026-07-10, see PRIORITIES.md B2_OPEX_TAXONOMY_
-    # EXPANSION.md entry).
-    ROCE_HURDLE_PCT = None
-    CONCENTRATION_LIMIT_PCT = None
+    ROCE_HURDLE_PCT = 12.0
+    CONCENTRATION_LIMIT_PCT = 15.0
+    CONCENTRATION_AMBER_PCT = 10.0
 
     floor = fixed_cost_floor_gbp_per_year(golive=False)
 
@@ -761,6 +764,18 @@ def extract_b2_taxonomy(data):
         segment_avg_gross_margin_gbp=segment_avg_margin,
         current_mix_counts=current_mix_counts,
         fixed_floor_gbp=floor["total_floor_gbp"],
+    )
+    # Director-flagged 2026-07-10: this figure is "machinery-proof only,
+    # pre-normalisation and whale-distorted" at this book's current scale (one
+    # dominant I&C customer skews the weighted-average gross margin) -- must
+    # be labelled provisional on every surface until re-derived with
+    # segment-level break-evens after MARGIN_REALISM steps 4-5 land.
+    break_even["provisional"] = True
+    break_even["provisional_note"] = (
+        "Machinery-proof only, pre-normalisation and whale-distorted at this "
+        "book's current scale (one dominant I&C customer skews the weighted-"
+        "average gross margin) -- to be re-derived with segment-level "
+        "break-evens once MARGIN_REALISM steps 4-5 land."
     )
 
     # Segment capital/ROCE works at the BARE segment grain (resi/SME/I&C), not
@@ -818,7 +833,9 @@ def extract_b2_taxonomy(data):
     if pcl:
         per_cid_margin = {cid: cdata.get("gross_gbp", 0.0) for cid, cdata in pcl.items()}
         snap = build_gross_margin_concentration_snapshot(per_cid_margin, _dt.date.today())
-        concentration = gross_margin_concentration_check(snap, CONCENTRATION_LIMIT_PCT)
+        concentration = gross_margin_concentration_check(
+            snap, CONCENTRATION_LIMIT_PCT, CONCENTRATION_AMBER_PCT
+        )
 
     return {
         "fixed_cost_floor": floor,
@@ -834,13 +851,18 @@ def extract_b2_taxonomy(data):
             "*.md for anchors, most estimate-flagged not invented. Break-even "
             "= book size at current segment mix needed for gross margin to "
             "cover the floor -- emergent, recomputed each run, never tuned "
-            "(R12). Segment capital employed = real per-segment AR (working "
-            "capital) + a revenue-share-allocated portion of total hedging "
-            "capital cost (a documented proxy for collateral/credit exposure, "
-            "which has no real per-segment attribution in this codebase). "
-            "ROCE hurdle and the concentration limit are the director's own "
-            "numbers to set (asked 2026-07-10) -- both None/not-set here, "
-            "never invented."
+            "(R12). PROVISIONAL at this book's scale (director-flagged "
+            "2026-07-10): whale-distorted by one dominant I&C customer, to be "
+            "re-derived with segment-level break-evens once MARGIN_REALISM "
+            "steps 4-5 land. Segment capital employed = real per-segment AR "
+            "(working capital) + a revenue-share-allocated portion of total "
+            "hedging capital cost (a documented proxy for collateral/credit "
+            "exposure, which has no real per-segment attribution in this "
+            "codebase). ROCE hurdle (12% pre-tax) and the concentration limit "
+            "(15%, amber at 10%) are the director's own real risk-appetite "
+            "numbers (set 2026-07-10) -- current breaches are standing risk "
+            "exceptions curable only by book growth, by design, not a defect "
+            "to silence."
         ),
     }
 
