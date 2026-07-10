@@ -151,11 +151,18 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Phases shipped per day</div><canvas id="cp"></canvas></div>
   </div>
 
-  <div class="sec">Roadmap</div>
-  <div class="card">
-    <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
-      The path to the end state above: depth before scale, then population scale-up, then real
-      market-flows choreography, then products, then the go-live analysis.
+  <div class="sec">The Epochs</div>
+  <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    Not a static checklist -- the real, dependency-ordered story of what this business becomes next,
+    and why each stage has to happen before the one after it.
+  </p>
+
+  <div class="card" style="border-left:3px solid var(--green)">
+    <h3 style="font-size:14px;margin-bottom:6px">Epoch 1 -- Built <span style="color:var(--muted);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(depth before scale)</span></h3>
+    <p class="about-text" style="font-size:12px;margin-bottom:12px">
+      A single fixed cast of customers, run once end-to-end against real 2016-2025 settlement data,
+      with a company layer detailed enough to price, hedge, bill, collect, and survive a real crisis
+      on its own logic. This is the foundation the next two epochs build on, not a finished product.
     </p>
     <div style="font-size:13px;line-height:2">
       <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Company layer: <span id="rm-stat">--</span></div>
@@ -167,6 +174,59 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
       <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Fuel Mix Disclosure board report (module exists, wiring next)</div>
       <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Real market interfaces: N2EX, Elexon API, Met Office live feeds</div>
       <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Capital raise: when the blueprint is proven</div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--amber)">
+    <h3 style="font-size:14px;margin-bottom:6px">Epoch 2 -- Closing the Wall <span style="color:var(--muted);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(next up)</span></h3>
+    <p class="about-text" style="font-size:12px;margin-bottom:12px">
+      The company is supposed to know its world only the way a real supplier would -- through meter
+      reads, bills, and customer contact -- never by peeking at simulation ground truth. A desk audit
+      this month found the wall holds in most places, but not all: the customer portal reads
+      physical-property "truth" (home type, EPC rating, smart-meter status) straight out of the same
+      list the simulation itself uses, with no discovery step in between. That gap already produced a
+      real, live bug -- one customer's smart-meter flag defaulting wrong because the field it read had
+      gone missing. Separately, every run today plays the identical 27-customer cast with the identical
+      seeded outcomes: there is no lever to vary who the company serves, which means the tournament in
+      Epoch 3 has nothing to run yet. Closing both gaps is the precondition for everything after it.
+    </p>
+    <div style="font-size:13px;line-height:1.9">
+      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Customer truth discovered through interfaces only -- no company code reads simulation-adjacent data directly</div>
+      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Population becomes a per-run draw from a real distribution, not a fixed cast</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Generation and validation independently anchored by design, not by accident</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>A real two-clock financial ledger (billed / settled / banked) replacing today's single-computed-value model</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Governance and an ex-post margin bridge layered onto the pricing engine that already exists</div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--teal)">
+    <h3 style="font-size:14px;margin-bottom:6px">Epoch 3 -- The Company That Can Die <span style="color:var(--muted);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(director-decided direction, re-rank input, not yet queued)</span></h3>
+    <p class="about-text" style="font-size:12px;margin-bottom:12px">
+      Five mission clauses, decided directly with the director, define what this business becomes once
+      the wall is closed. Insolvency and licence revocation stop being avoided outcomes and become real
+      endings: the endgame is a <span class="tl">longevity tournament</span> -- repeated lifetime runs,
+      scored by survival duration times cumulative value, a league table of strategies competing on
+      robustness. A run that dies doesn't end the project -- the corpse becomes data for the next one.
+      Brand stops being decoration and becomes <span class="tl">behavioural physics</span>: it changes
+      the discount required to move a customer, absorbs one service failure for free, and remembers a
+      second one with a permanently lower switching threshold -- discovered by the company from its own
+      win/loss data, never read as a parameter. Learning happens under
+      <span class="tl">regulated experimentation</span>: the same consumer-duty and fairness constraints
+      a real regulator would enforce, so the tension between learning fast and staying compliant is a
+      designed feature, not an oversight. Every random number in the world has to earn its distribution
+      from a published statistic first (<span class="tl">anchored noise</span>), and nothing happens
+      instantly -- every process carries a real latency distribution, so failed direct debits, callbacks
+      that never come, and appointment no-shows are counted as first-class cost, not edge cases
+      (<span class="tl">temporal realism</span>).
+    </p>
+    <div style="font-size:13px;line-height:1.9">
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Longevity tournament: survival x value scoring, a league table of strategies</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Brand as behavioural physics: elasticity, forgiveness buffer, sensitised exit, discovered not read</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Regulated experimentation: learning fenced by the same rules a real regulator would hold it to</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Anchored noise: every distribution sourced from real published data or honestly flagged</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Temporal realism: latency distributions everywhere, doom loops as first-class cost</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>The Belief Book: a company hypothesis register, "time-to-truth" as the headline learning metric</div>
+      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Board model: owner sets mission + reserved matters, company proposes strategy, the scenario battery is the exam</div>
     </div>
   </div>
 </div>

@@ -553,13 +553,24 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   needs a proper investigation of what real energy-retailer operational reporting actually
   covers (acquisition, onboarding, billing ops, contact centre, arrears/collections, meter
   operations, complaints, regulatory returns) vs what's currently shown, before sizing a build.
-- **Project tab roadmap -- epoch storytelling (director page comment, 2026-07-10, /project/)**:
+- **Project tab roadmap -- epoch storytelling CLOSED (2026-07-10, director page comment, /project/)**:
   "I don't like the roadmap. It's very static. Where are my epochs. Tell the true story of all
-  the cool work we have have planned." Current Project tab shows the archive/spec view only
-  (per phase-close rule 0b, "Project tab spec is the archive, never the evidence") -- director
-  wants a genuine forward-looking, epoch-framed narrative (Epoch 2/3 direction, already recorded
-  in docs/design/EPOCH2_EVIDENCE.md and the EPOCH3_DIRECTION.md re-rank input) surfaced as a real
-  story he can react to and shape, not a static list. NOT YET STARTED -- a real content/design task.
+  the cool work we have have planned." The static "Roadmap" checklist on the Overview tab
+  (`site/project/index.html`) is now "The Epochs" -- three cards: Epoch 1 (Built, the existing
+  checklist preserved as history), Epoch 2 (Closing the Wall, grounded in `docs/design/
+  EPOCH2_EVIDENCE.md`'s director-confirmed headline finding -- the portal reads customer
+  physical-property truth directly instead of through a discovery interface, and population is a
+  fixed cast with no per-run draw lever), Epoch 3 (The Company That Can Die, the five mission
+  clauses from `docs/staging/done/EPOCH3_DIRECTION.md` -- mortality/longevity tournament, brand as
+  behavioural physics, regulated experimentation, anchored noise, temporal realism -- explicitly
+  labelled "director-decided direction, re-rank input, not yet queued" per that doc's own framing).
+  Deliberately did NOT touch the existing "Regime-Change Blindness" discovery card on the same
+  page -- that claim is directly implicated by the open hedge-decision review gate above and stays
+  untouched pending director review, per the explicit hold. Qwen phase-close audit sampled the new
+  section: 3 flags, all false positives on manual check (a category mismatch -- the "grumpy real-
+  supplier" auditor persona flags forward-looking vision language as implausible when it is
+  director's own verbatim wording, correctly labelled as future vision not current operations).
+  Presentation-only (site/ only), epistemic PASS.
 - **SIM tab -- more model-complexity flavour (director page comment, 2026-07-10, /sim/)**: "Many
   being 70% satisfied looks suspicious. And none in fuel poverty. No info on smart meters. Duel
   fuel. House type. Business type consumption etc. I feel we need to give more of a flavour of
