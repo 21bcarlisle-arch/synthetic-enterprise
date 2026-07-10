@@ -25,9 +25,19 @@
 #   STEPS 2-6 (diagnosis decomposition, opex/cost-to-serve mechanism, hedge-tariff alignment,
 #   price-cap-binds mechanism, pressure-roadmap registration) -- NOT STARTED, explicitly sequenced
 #   AFTER step 1 closes per the advisor's own doc ("no mechanism work lands until percentages are
-#   computed on a trustworthy base"). Each is a substantial, separately-anchored build in its own
-#   right (opex needs real published supplier-accounts anchors; hedge-tariff alignment touches the
-#   same hedge-decision code the Tier 1 gate closed today; the price cap becoming binding is a
+#   computed on a trustworthy base"). Step 3 (opex) AMENDED by the director since first staged: do
+#   NOT charge a fictional incumbent staff cost (hides the AI-native cost-advantage thesis) but
+#   don't charge nothing either (unpriceable, too-easy game) -- split into (a) true third-party/
+#   industry costs charged fully and anchored (metering, DCC, payment processing, print/postage,
+#   debt-collection, Elexon/Xoserve charges), (b) AI-compute + director-oversight hours charged at
+#   TRUE metered cost from real usage logs, (c) a DUAL ledger -- the true (a+b) ledger alongside a
+#   benchmark-loaded ledger additionally carrying lower-quartile incumbent labour cost per segment
+#   (anchored to published accounts/Ofgem cost stacks) -- the gap between the two ledgers IS the
+#   investor thesis, quantified per year, belongs on the Supplier tab. R12's plausibility bands run
+#   against the BENCHMARK ledger (the like-for-like comparison), not the true one. Each remaining
+#   step is a substantial, separately-anchored build in its own right (opex needs real published
+#   supplier-accounts anchors; hedge-tariff alignment touches the same hedge-decision code the
+#   Tier 1 gate closed today; the price cap becoming binding is a
 #   baseline-fidelity change). Side-tagging rule (every commit: SIM-BASELINE/CURRICULUM/SUPPLIER/
 #   WALL/REPORTING) applies going forward on this whole programme.
 #
