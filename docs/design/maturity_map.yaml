@@ -97,8 +97,8 @@
   level_target: 3
   loop_stage: discover
   dial_inherited: 3
-  evidence: ["saas/reporting/margin_attribution.py"]
-  simplifications: []
+  evidence: ["saas/reporting/margin_attribution.py", "docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md"]
+  simplifications: ["2026-07-10 DISCOVER finding: the report renders TWO adjacent margin-bridge sections (annual_report.py's Phase BE ledger-based + Phase NT years[]-based) whose gross-margin deltas disagree for the same year transition (e.g. 2016-2017: +116,919 vs +116,417), unlabelled -- a live Expert-Hour-failing legibility+consistency gap, same root cause as the E2 two-pipelines finding, not yet fixed. Also: gross_delta is a single lump (no price/volume split); portfolio_change is informational only, not an attributed £ driver -- external FP&A convention research dispatched, not yet landed."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "FP&A margin bridge deck"
   depends_on: []

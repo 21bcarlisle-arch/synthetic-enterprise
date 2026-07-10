@@ -25,6 +25,26 @@
 #   IMPLICATION: Step 1's "~12.5% -> ~8.9%" figure used years[].net_gbp (the smaller
 #   numerator) -- may need a second pass once this resolves; not restated as broken, no
 #   longer assumed fully closed either.
+#   PRIORITY RAISED 2026-07-10 (B1_margin_bridge DISCOVER finding, docs/design/
+#   MARGIN_REALISM_B1_DISCOVER_FINDING.md, third dial-weighted draw): the SAME root cause
+#   now has a LIVE, user-visible symptom, not just an internal data inconsistency --
+#   docs/reports/ANNUAL_REPORT.md renders TWO adjacent margin-bridge sections (Phase BE
+#   ledger-based, Phase NT years[]-based) whose gross-margin deltas for the same year
+#   transition genuinely disagree (2016-2017: +116,919 vs +116,417), unlabelled. This is
+#   the actual document a board member reads -- resolving the E2 root cause is now higher
+#   priority than before, not merely a dashboard-percentage nuance.
+#
+# === B1 MARGIN BRIDGE -- DISCOVER-STAGE FINDING (2026-07-10, second dial-weighted draw,
+#   docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md): the bridge's own residual reconciles
+#   to ~£0 every year (internally self-consistent). Real DISCOVER-stage gaps found: (1) see
+#   E2's "PRIORITY RAISED" note above -- two report sections disagree, same root cause;
+#   (2) gross_delta is a single lump, no price/volume split -- external FP&A convention
+#   research dispatched (discovery-agent, appending to ASSUMPTIONS.md under "B1 margin
+#   bridge (Maturity Map DISCOVER)", non-blocking); (3) portfolio_change (active customer
+#   count delta) is informational only, not an attributed £ driver -- same research checking
+#   whether a real supplier report quantifies new/lost-customer contribution separately.
+#   No opex/cost-to-serve driver yet -- correctly NOT a gap, blocked on Step 3. NEXT: once
+#   research lands + E2's root cause resolves, re-assess whether level 2->3 is earned.
 #
 # === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
 #   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
