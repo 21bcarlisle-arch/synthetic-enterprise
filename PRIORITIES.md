@@ -243,6 +243,17 @@
 #   docs/design/WALLED_INTERFACES_SKETCH.md (candidate flows table, sequencing, explicitly NOT a
 #   data-model rewrite or new epistemic rule -- a transport-shape change to already-correct data).
 #   Awaiting director rank -- do not start the first reference-flow conversion without it.
+#   AUDIT REFRESHED 2026-07-10 (seventh dial-weighted draw, W4_1_typed_adapters level 1->2,
+#   FRAME-stage work per the map's Hardening Loop -- doc-only, no code touched): re-verified
+#   all 5 candidate flows against current code, still accurate. Found a 6th already-typed
+#   example the original sketch omitted: tools/market_data_port.py::MarketDataPort -- already
+#   AT target shape (typed Protocol + every method takes an explicit as_of date,
+#   point-in-time-safe by construction), directly cross-referencing the separate
+#   W1_reveal_over_time DISCOVER finding as its natural reference implementation. Confirmed
+#   the sketch's own tier reasoning still holds under the current recalibrated Tier 3 model
+#   (no opt-out wait, but still flag-and-proceed, not build-without-flagging): the first
+#   reference-flow conversion remains a real BUILD action still awaiting director rank per
+#   this section's own standing instruction -- NOT started this turn.
 #
 # === CORE FIDELITY BEFORE LOOPS (2026-07-08, docs/staging/CORE_FIDELITY_BEFORE_LOOPS.md,
 #   director-direct, in-conversation -- Tier 2, proceed, no opt-out window). THIS IS NOW P1,

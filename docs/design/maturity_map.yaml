@@ -393,12 +393,12 @@
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 2
-  level_current: 1
+  level_current: 2
   level_target: 3
-  loop_stage: frame
+  loop_stage: build
   dial_inherited: 3
-  evidence: ["interface/sim_interface.py"]
-  simplifications: ["forward-preference only, 2026-07-08; already-shipped Phase 3 code not reworked"]
+  evidence: ["interface/sim_interface.py", "docs/design/WALLED_INTERFACES_SKETCH.md", "tools/market_data_port.py"]
+  simplifications: ["forward-preference only, 2026-07-08; already-shipped Phase 3 code not reworked. 2026-07-10 self-refill draw (FRAME-stage): refreshed WALLED_INTERFACES_SKETCH.md's audit -- all 5 candidate flows still accurate against current code, added a 6th (tools/market_data_port.py::MarketDataPort) the original sketch omitted -- already at target shape (typed Protocol + point-in-time-safe via an explicit as_of param), directly cross-referencing the W1_reveal_over_time DISCOVER finding as the natural reference implementation if that finding's structural snapshot object is ever built. NEXT (registered, not built this turn): the sketch's own Step 2 (meter-reads reference-flow conversion) is classified Tier 3 (reversible, not Tier 1 -- confirmed: a transport-shape change to an already-correct crossing, not an epistemic-law change) under the current recalibrated model -- a real, well-scoped next BUILD action, not rushed into the same turn as the audit refresh."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real go-live integration seam between a trading system and a retail billing system"
   depends_on: []
