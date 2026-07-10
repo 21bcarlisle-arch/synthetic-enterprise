@@ -408,13 +408,13 @@
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 1
-  level_current: 2
+  level_current: 1
   level_target: 3
-  loop_stage: harden
+  loop_stage: idle
   dial_inherited: 3
-  evidence: ["tools/epistemic_verifier.py", "docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md"]
-  simplifications: []
-  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  evidence: ["tools/epistemic_verifier.py", "docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md", "docs/review_gates/EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md"]
+  simplifications: ["2026-07-10 (fourteenth draw): this atom's own claim was FALSE. expert_hour had been marked 'passed, findings: []' since seeding, and level_current=2 implied the TOOL itself gained timing-detection capability. Read the entire 202-line tools/epistemic_verifier.py: it contains ONLY literal import-statement regex matching (FORBIDDEN_SOURCES), zero data-flow/timing detection logic -- confirmed unambiguously by this atom's OWN cited evidence: docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md's own contemporaneous text states plainly 'tools/epistemic_verifier.py does not catch this class of bug -- it scans for company/<->simulation.* import violations, not data-flow/timing bugs.' What actually happened was CLAUDE.md's Tier 1 POLICY definition being broadened to explicitly name timing violations as in-scope for classification purposes -- a real, true change -- but I conflated 'the policy now names this' with 'the tool now detects this' when originally seeding this atom. Corrected level_current down to 1 (the real progress: policy broadened, real incident understanding gained) and loop_stage to idle: actually building real detection into tools/epistemic_verifier.py is Tier 1 (CLAUDE.md names 'the epistemic verifier' explicitly as a safety-control-modification category (b)) -- opened docs/review_gates/EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md rather than build it unilaterally."]
+  expert_hour: {status: passed, last: "2026-07-10", findings: ["OWN PRIOR CLAIM WAS FALSE: level 2/expert_hour=passed had no real basis -- the tool has zero timing-detection code, confirmed by reading all 202 lines and by the atom's own cited source document explicitly stating the gap was NOT closed", "corrected to level 1, opened a Tier 1 gate for the real fix rather than building it unilaterally (the verifier is a named safety control)"]}
   real_world_twin: "a Chinese-wall audit that checks for information leakage, not just org-chart separation"
   depends_on: []
 
