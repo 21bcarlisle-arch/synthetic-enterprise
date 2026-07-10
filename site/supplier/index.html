@@ -1321,6 +1321,39 @@ function renderMarket() {
 
 
 // ── Insights ─────────────────────────────────────────────────────────────────
+function demandEstimationHtml() {
+  var dem = (D.monthly_ops && D.monthly_ops.demand_estimation_annual) ? D.monthly_ops.demand_estimation_annual : [];
+  if (!dem.length) return '';
+  var totalRenewals = dem.reduce(function(s,y){return s+y.renewal_count;},0);
+  var totalPriorBilling = dem.reduce(function(s,y){return s+y.prior_billing_count;},0);
+  var worstYear = dem.reduce(function(mx,y){return y.mean_abs_error_pct > (mx.mean_abs_error_pct||0) ? y : mx;}, {mean_abs_error_pct:0, year:'--'});
+  var rows = dem.map(function(y) {
+    return '<tr><td>'+y.year+'</td><td>'+y.renewal_count+'</td>' +
+      '<td class="'+(y.mean_abs_error_pct<10?'pos':y.mean_abs_error_pct<20?'':'neg')+'">'+y.mean_abs_error_pct.toFixed(1)+'%</td>' +
+      '<td>'+y.max_abs_error_pct.toFixed(1)+'%</td>' +
+      '<td>'+y.prior_billing_count+'</td><td>'+y.oracle_fallback_count+'</td></tr>';
+  }).join('');
+  return `
+    <div class="tbl-box">
+      <div class="tbl-title">Demand Estimation Accuracy</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        The company estimates each customer's annual consumption from its own observable
+        prior-year billing records, not the SIM's oracle EAC (real suppliers don't know
+        forward consumption either) -- this is that estimate's real, measured accuracy at
+        renewal, per year.
+      </div>
+      <div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Renewals Estimated</div><div class="kpi-value">${totalRenewals}</div></div>
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">From Prior Billing</div><div class="kpi-value">${totalPriorBilling}</div><div class="kpi-sub">vs SIM oracle fallback (first term only)</div></div>
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Worst Year (Mean Error)</div><div class="kpi-value">${worstYear.mean_abs_error_pct.toFixed(1)}%</div><div class="kpi-sub">${worstYear.year}</div></div>
+      </div>
+      <table>
+        <tr><th>Year</th><th>Renewals</th><th>Mean Abs Error</th><th>Max Abs Error</th><th>From Billing</th><th>Oracle Fallback</th></tr>
+        ${rows}
+      </table>
+    </div>`;
+}
+
 function renderMonthly() {
   var mo = (D.monthly_ops && D.monthly_ops.monthly) ? D.monthly_ops.monthly : [];
   if (!mo.length) {
@@ -1363,7 +1396,8 @@ function renderMonthly() {
     '<div class="tbl-box"><div class="tbl-title">Monthly Operational Timeline</div>' +
     '<div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table>' +
     '<thead><tr><th>Month</th><th>Shocks</th><th>Avg%</th><th>Max%</th><th>Committee</th><th>Retention</th><th>Retained</th></tr></thead>' +
-    '<tbody>' + trows + '</tbody></table></div></div>';
+    '<tbody>' + trows + '</tbody></table></div></div>' +
+    demandEstimationHtml();
 
   mkChart('ch-monthly-ops', {
     type: 'bar',

@@ -908,7 +908,39 @@ def extract_monthly_ops(data):
             "retained": rt["retained"],
             "is_crisis": m[:4] in CRISIS,
         })
-    return {"monthly": rows}
+
+    # Demand-estimation accuracy per year (Operations tab KPI expansion backlog
+    # item, 2026-07-10 -- PRIORITIES.md: real data already computed/rendered on
+    # the Regulatory tab via saas/reporting/annual_report.py::
+    # _section_demand_estimation(), just never surfaced as its own Operations
+    # KPI. Same aggregation logic, reused here rather than duplicated
+    # differently.)
+    dem_by_year: dict[str, list[float]] = _dd(list)
+    dem_source_counts: dict[str, dict[str, int]] = _dd(lambda: {"prior_billing": 0, "oracle_fallback": 0})
+    for entry in data.get("demand_estimation_log", []):
+        yr = entry.get("term_start", "")[:4]
+        if not yr:
+            continue
+        dem_by_year[yr].append(abs(entry.get("error_pct", 0.0)))
+        if entry.get("source") == "prior_billing":
+            dem_source_counts[yr]["prior_billing"] += 1
+        else:
+            dem_source_counts[yr]["oracle_fallback"] += 1
+
+    demand_estimation_annual = []
+    for yr in sorted(dem_by_year.keys()):
+        errs = dem_by_year[yr]
+        n = len(errs)
+        demand_estimation_annual.append({
+            "year": int(yr),
+            "renewal_count": n,
+            "mean_abs_error_pct": round(sum(errs) / n, 1) if n else 0.0,
+            "max_abs_error_pct": round(max(errs), 1) if errs else 0.0,
+            "prior_billing_count": dem_source_counts[yr]["prior_billing"],
+            "oracle_fallback_count": dem_source_counts[yr]["oracle_fallback"],
+        })
+
+    return {"monthly": rows, "demand_estimation_annual": demand_estimation_annual}
 
 
 def extract_run_history(history_path=None, max_entries=10):

@@ -39,19 +39,19 @@
 #
 # === Backlog: Operations tab KPI expansion (2026-07-10, director page comment: "Surely there
 #   are other key operational KPIs for an energy supplier? Even a fully autonomous one.").
-#   Currently the Operations/"Monthly" tab shows only bill-shock counts + risk-committee
-#   interventions. Real, already-computed operational data that exists elsewhere in this
-#   codebase but isn't surfaced there yet -- candidates for a scoped design pass, not rushed in
-#   blind: (a) demand-estimation accuracy (data["demand_estimation_log"], already feeds the
-#   Regulatory tab's INFORMATION_TRANSPARENCY check, real EAC error % per term); (b) DSR/
-#   flexibility dispatch summary (data["flexibility_revenue_summary"] / ["ic_flexibility_
-#   summary"], already has its own Trading-adjacent data, not yet an Operations-tab KPI); (c)
-#   arrears/collections case load (per-customer "arrears_history" already in per_customer_
-#   lifetime-adjacent data, real case counts/resolution). NOT built this turn -- a real KPI
-#   set for "what does an autonomous energy supplier's ops desk actually watch" deserves its
-#   own design pass (which metrics, what cadence, what threshold bands) rather than a
-#   scattershot addition, per this project's own P-3 rule (vision-level asks get a
-#   reference-implementation-first artifact, not test-count-style padding).
+#   Candidate (a) BUILT (2026-07-10, supervisor-granted idle turn, while the two blocked staging
+#   files await director input): demand-estimation accuracy now a real Operations-tab section
+#   (tools/generate_dashboard_data.py::extract_monthly_ops()'s new "demand_estimation_annual" key
+#   + site/supplier/index.html::demandEstimationHtml()) -- real per-year renewal count/mean-abs-
+#   error/max-abs-error/prior-billing-vs-oracle-fallback split, reusing the same aggregation
+#   already computed for the Regulatory tab (saas/reporting/annual_report.py::
+#   _section_demand_estimation()), just never surfaced on Operations before. Real live result:
+#   error tightens from 0.1% (2016) to a real, honestly-shown 8.6% (2025, still small-sample).
+#   4 new tests, 16,622 tests collected (full suite), epistemic PASS, verified live in-browser
+#   (screenshot, zero console errors/NaN/undefined).
+#   Candidates (b) DSR/flexibility dispatch summary and (c) arrears/collections case load remain
+#   NOT built -- still registered for their own scoped design pass (which metrics, what cadence,
+#   what threshold bands), not rushed in as a scattershot batch, per this project's own P-3 rule.
 #
 # === SLC 25C "Communication Channel Choice" FIXED (2026-07-10, director page comment,
 #   docs/design/SLC25C_CHANNEL_CHOICE_FIX.md): real R10-class domain-sense mismatch, not a

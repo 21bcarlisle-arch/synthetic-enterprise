@@ -90,7 +90,7 @@ def test_no_crisis_in_2020():
 
 def test_empty_data():
     r = extract_monthly_ops({})
-    assert r == {"monthly": []}
+    assert r == {"monthly": [], "demand_estimation_annual": []}
 
 
 def test_shock_count_zero_when_no_shocks():
@@ -115,3 +115,46 @@ def test_shock_count_is_int():
     r = extract_monthly_ops(_data())
     jan = next(m for m in r["monthly"] if m["month"] == "2022-01")
     assert isinstance(jan["shock_count"], int)
+
+
+# -- demand_estimation_annual (Operations tab KPI expansion, 2026-07-10) --
+
+def test_demand_estimation_annual_empty_when_no_log():
+    r = extract_monthly_ops(_data())
+    assert r["demand_estimation_annual"] == []
+
+
+def test_demand_estimation_annual_aggregates_by_year():
+    data = _data(demand_estimation_log=[
+        {"term_start": "2022-03-01", "error_pct": 5.0, "source": "prior_billing"},
+        {"term_start": "2022-06-01", "error_pct": -15.0, "source": "prior_billing"},
+        {"term_start": "2023-01-01", "error_pct": 2.0, "source": "oracle_fallback"},
+    ])
+    r = extract_monthly_ops(data)
+    y2022 = next(y for y in r["demand_estimation_annual"] if y["year"] == 2022)
+    assert y2022["renewal_count"] == 2
+    assert y2022["mean_abs_error_pct"] == pytest.approx((5.0 + 15.0) / 2, abs=0.05)
+    assert y2022["max_abs_error_pct"] == 15.0
+    assert y2022["prior_billing_count"] == 2
+    assert y2022["oracle_fallback_count"] == 0
+
+    y2023 = next(y for y in r["demand_estimation_annual"] if y["year"] == 2023)
+    assert y2023["renewal_count"] == 1
+    assert y2023["oracle_fallback_count"] == 1
+    assert y2023["prior_billing_count"] == 0
+
+
+def test_demand_estimation_annual_sorted_by_year():
+    data = _data(demand_estimation_log=[
+        {"term_start": "2023-01-01", "error_pct": 1.0, "source": "prior_billing"},
+        {"term_start": "2020-01-01", "error_pct": 1.0, "source": "prior_billing"},
+    ])
+    r = extract_monthly_ops(data)
+    years = [y["year"] for y in r["demand_estimation_annual"]]
+    assert years == sorted(years)
+
+
+def test_demand_estimation_annual_ignores_entries_without_term_start():
+    data = _data(demand_estimation_log=[{"error_pct": 1.0, "source": "prior_billing"}])
+    r = extract_monthly_ops(data)
+    assert r["demand_estimation_annual"] == []
