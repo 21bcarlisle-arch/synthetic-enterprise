@@ -12,10 +12,43 @@ from tools.generate_dashboard_data import (
 
 def test_derive_build_from_claude_md_parses_current_state():
     """The stamp is derived live from CLAUDE.md's current-state section so it can
-    never drift stale (WEBSITE_FRESHNESS_AND_DEDUP.md item 1)."""
+    never drift stale (WEBSITE_FRESHNESS_AND_DEDUP.md item 1).
+
+    2026-07-10: phase is a best-effort label only (never displayed on the
+    live site) and may legitimately be None if the newest Current-state
+    entries are bare descriptive titles with no "Phase XY" tag -- test_count
+    is the part that must always be present and correct."""
     phase, count = _derive_build_from_claude_md()
-    assert phase and phase.isalpha() and phase.isupper()
+    assert phase is None or (phase.isalpha() and phase.isupper())
     assert isinstance(count, int) and count > 10000
+
+
+def test_derive_build_from_claude_md_test_count_independent_of_phase_code(tmp_path, monkeypatch):
+    """The exact regression this fix targets: a Current-state entry with no
+    phase-letter code at all must still yield a real test_count, not fall
+    through to (None, None)."""
+    claude_md = tmp_path / "CLAUDE.md"
+    claude_md.write_text(
+        "## Current state\n"
+        "**A bare descriptive title, no phase code (2026-07-10):** "
+        "did some real work. 12,345 tests collected, epistemic PASS.\n"
+    )
+    monkeypatch.setattr("tools.generate_dashboard_data.PROJECT", tmp_path)
+    phase, count = _derive_build_from_claude_md()
+    assert phase is None
+    assert count == 12345
+
+
+def test_derive_build_from_claude_md_finds_phase_code_when_present(tmp_path, monkeypatch):
+    claude_md = tmp_path / "CLAUDE.md"
+    claude_md.write_text(
+        "## Current state\n"
+        "**Phase ZZ CLOSED (2026-07-10):** did some work. 5,000 tests collected.\n"
+    )
+    monkeypatch.setattr("tools.generate_dashboard_data.PROJECT", tmp_path)
+    phase, count = _derive_build_from_claude_md()
+    assert phase == "ZZ"
+    assert count == 5000
 
 
 def _no_claude_md(monkeypatch):
@@ -82,6 +115,22 @@ def test_count_company_modules_matches_independent_filesystem_scan():
     )
     assert count_company_modules() == expected
     assert expected > 0
+
+
+def test_load_build_info_keeps_fresh_test_count_when_phase_code_missing(tmp_path, monkeypatch):
+    """The exact regression this fix targets: CLAUDE.md yields a real,
+    fresh test_count but no phase code -- must NOT discard that test_count
+    in favour of a stale build_info.json figure."""
+    monkeypatch.setattr(
+        "tools.generate_dashboard_data._derive_build_from_claude_md",
+        lambda: (None, 16447),
+    )
+    p = tmp_path / "build_info.json"
+    p.write_text(json.dumps({"phase": "OLD", "test_count": 9999}))
+    monkeypatch.setattr("tools.generate_dashboard_data.BUILD_INFO_PATH", p)
+    phase, count, modules = _load_build_info()
+    assert count == 16447
+    assert phase == "OLD"
 
 
 def test_load_build_info_partial_file_uses_defaults_for_missing_keys(tmp_path, monkeypatch):

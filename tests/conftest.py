@@ -54,3 +54,17 @@ def fast_mode():
     os.environ["SIM_FAST_MODE"] = "1"
     yield
     os.environ.pop("SIM_FAST_MODE", None)
+
+
+# Cumulative tests EXECUTED metric (2026-07-10, director page comment:
+# "Don't we want cumulative tests run, not the growth in the standard test
+# set"). Forward-only instrumentation -- see tools/test_execution_metric.py
+# module docstring for the full rationale (no historical log exists,
+# fabricating one would violate the Anchored-noise/R-A no-fabrication rule).
+def pytest_sessionfinish(session, exitstatus):
+    from tools.test_execution_metric import record_execution
+
+    reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+    if reporter is None:
+        return
+    record_execution(reporter.stats)

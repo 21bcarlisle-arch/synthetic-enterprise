@@ -58,11 +58,27 @@ def _derive_build_from_claude_md():
     15740 tests" while the project was at RX / 15,996). Rather than one more
     hand-edited number, derive it from the one doc that is always current --
     the same live-computation treatment count_company_modules() already gets.
-    The most-recent "Phase XX COMPLETE" heading and the first "NN,NNN collected"
-    figure inside its paragraph are the single source of truth every page then
-    consumes via dashboard.json's build block. Returns (phase, test_count) or
-    (None, None) if CLAUDE.md can't be parsed, so callers fall back to
-    build_info.json then the module constants."""
+
+    2026-07-10, THIRD recurrence of the same documentation-convention-drift
+    class this session (R10: close the class, not the instance): this
+    function previously required a literal "Phase XY (COMPLETE|CLOSED...)"
+    tag to appear in CLAUDE.md at all, but the newest Current-state entries
+    (this session's own) are bare descriptive titles with no phase-letter
+    code -- `_load_build_info()`'s `if phase and test_count` gate then
+    silently fell through to the (stale, manually-maintained) build_info.json
+    fallback the moment the newest entries lost that tag, exactly the
+    staleness class this mechanism exists to prevent. Test count -- the part
+    that actually matters functionally (`phase` is never displayed anywhere
+    on the live site, only `test_count` is consumed) -- is now extracted
+    independently of whether a phase code is present at all. `phase` is
+    still returned as a best-effort label when a code IS found nearby (kept
+    for backward-compat / cosmetic use), but is no longer required for
+    test_count to be trusted.
+
+    Returns (phase, test_count), either of which may be None if CLAUDE.md
+    can't be parsed at all or no test-count figure is found in the
+    Current-state section, so callers fall back to build_info.json then the
+    module constants for whichever half is missing."""
     claude_md = PROJECT / "CLAUDE.md"
     if not claude_md.exists():
         return None, None
@@ -70,25 +86,33 @@ def _derive_build_from_claude_md():
         text = claude_md.read_text()
     except OSError:
         return None, None
-    # 2026-07-10: "Current state" entries drifted away from the original
-    # literal "Phase XY COMPLETE" wording over several sessions (CLOSED /
-    # CLOSED IN FULL / bare descriptive titles are now common) -- the last
-    # entry using the exact old phrasing (Phase SC COMPLETE) was trimmed to
-    # docs/claude/phase-history.md some time before this regex's failure was
-    # actually observed (a >1hr background test run surfaced it). Broadened
-    # to accept CLOSED/CLOSED IN FULL too, for resilience against the same
-    # drift recurring in wording alone -- but the mechanism still
-    # fundamentally depends on each entry naming a short phase code
-    # somewhere; that discipline must be kept up going forward (see the
-    # phase-close checklist).
-    m = re.search(r"Phase ([A-Z]{1,3}) (?:COMPLETE|CLOSED(?: IN FULL)?)", text)
-    if not m:
+    idx = text.find("## Current state")
+    if idx < 0:
         return None, None
-    phase = m.group(1)
-    # First collected-test figure at/after the current-phase heading.
-    tail = text[m.start():]
-    tm = re.search(r"([\d,]+)\s+collected", tail)
-    test_count = int(tm.group(1).replace(",", "")) if tm else None
+    section = text[idx:]
+    # Phase code is a best-effort label only -- not required (see docstring).
+    m = re.search(r"Phase ([A-Z]{1,3})\b", section)
+    phase = m.group(1) if m else None
+    # Test count: NOT simply "the first match" -- some entries (this
+    # session's own "221 tests passing across the two touched test files")
+    # state a partial, scoped count with no full-suite figure anywhere in
+    # that entry's own body, and a first-match scan can land on exactly that
+    # partial number (observed live, 2026-07-10 -- the same bug this fix
+    # already closed once for the Home page chart, recurring here in a
+    # second parser). "collected" is, by this project's own phase-close
+    # convention, always the true pytest full-suite collection count, while
+    # "tests passing" is used ambiguously for both full-suite and
+    # partial/scoped claims -- so "collected" figures are strongly preferred,
+    # and the MAXIMUM across all matches of whichever kind is used (never
+    # just the first in scan order), since the real suite only grows.
+    collected = [int(g.replace(",", "")) for g in re.findall(r"([\d,]+)\s*tests?\s*collected", section)]
+    if not collected:
+        collected = [int(g.replace(",", "")) for g in re.findall(r"([\d,]+)\s*collected", section)]
+    if collected:
+        test_count = max(collected)
+    else:
+        passing = [int(g.replace(",", "")) for g in re.findall(r"([\d,]+)\s*tests?\s*passing", section)]
+        test_count = max(passing) if passing else None
     return phase, test_count
 
 
@@ -96,8 +120,19 @@ def _load_build_info():
     company_modules = count_company_modules()
     # Preferred source: derive fresh from CLAUDE.md so the stamp can never drift.
     phase, test_count = _derive_build_from_claude_md()
-    if phase and test_count:
-        return phase, test_count, company_modules
+    # test_count is the part that actually matters functionally (phase is
+    # never displayed on the live site, only test_count is consumed) -- a
+    # missing phase code alone must not discard a fresh, correct test_count
+    # (2026-07-10: this exact gate previously required BOTH, so the newest
+    # phase-close entries losing their literal "Phase XY" tag silently fell
+    # through to the stale build_info.json fallback).
+    if test_count:
+        if not phase and BUILD_INFO_PATH.exists():
+            try:
+                phase = json.loads(BUILD_INFO_PATH.read_text()).get("phase")
+            except (json.JSONDecodeError, ValueError):
+                pass
+        return phase or _BUILD_PHASE, test_count, company_modules
     # Fallbacks: build_info.json, then the module constants.
     if BUILD_INFO_PATH.exists():
         try:

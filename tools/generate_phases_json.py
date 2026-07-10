@@ -222,6 +222,9 @@ def generate():
     latest_phase, _test_count = _parse_phase_and_tests()
     timeline = _build_timeline(chronological)
 
+    from tools.test_execution_metric import cumulative_tests_executed
+    test_executions = cumulative_tests_executed()
+
     data = dict(
         total_phases=total_phases,
         latest_phase=latest_phase,
@@ -230,6 +233,8 @@ def generate():
         phase_dates=phase_dates,
         total_commits=_total_commits(),
         timeline=timeline,
+        cumulative_tests_executed=test_executions["cumulative_total"],
+        cumulative_tests_executed_since=test_executions["since"],
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))

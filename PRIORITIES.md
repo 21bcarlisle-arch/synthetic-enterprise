@@ -591,14 +591,22 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   regression test for the clustering; full `tests/simulation/` suite (1343 tests) + the real-
   pipeline `test_run_phase2b.py`/`test_run_phase4c_on_phase2b.py` regression (39 tests, ~12min real
   run) both pass. Epistemic PASS.
-- **Cumulative tests EXECUTED metric (director page comment, 2026-07-10, /project/)**: "Don't we
-  want cumulative tests run, not the growth in the standard test set." A genuinely different,
-  arguably more impressive metric (total test executions across every CI/verification run over
-  the project's history, not just current suite size) -- but no historical execution-count log
-  exists to derive it from retroactively, and fabricating a historical total would violate the
-  Anchored-noise/R-A no-fabrication rule. Needs NEW forward-only instrumentation (log each pytest
-  run's test count + timestamp, accumulate from whenever that instrumentation starts) rather than
-  a quick metric swap. NOT YET STARTED.
+- **Cumulative tests EXECUTED metric CLOSED (2026-07-10, director page comment, /project/)**:
+  "Don't we want cumulative tests run, not the growth in the standard test set." Forward-only
+  instrumentation, not a fabricated historical backfill: `tests/conftest.py::pytest_sessionfinish`
+  now appends one line per real pytest session (full suite or a partial/targeted run -- every
+  invocation counts, matching the metric's intent of showing continuous verification activity) to
+  `docs/observability/test_execution_log.jsonl` via `tools/test_execution_metric.py`. New
+  "Test executions" KPI card on the Project tab (`site/project/index.html::renderKpis()`), honestly
+  labelled with a tooltip stating the "since" date rather than implying a full-project total. 10
+  new tests. Same phase: found and fixed a THIRD recurrence of the documentation-convention-drift
+  class (R10) -- `tools/generate_dashboard_data.py::_derive_build_from_claude_md()` also silently
+  broke once recent CLAUDE.md Current-state entries lost their literal "Phase XY" tag, AND its
+  test-count extraction landed on the same "221 tests passing" partial figure the chart-regression
+  fix already found once. Fixed by decoupling test_count extraction from phase-code presence and
+  preferring "collected" phrasing (MAX across matches) over ambiguous "passing" phrasing. Added a
+  durable phase-close checklist line (CLAUDE.md step 5) requiring every Current-state entry to
+  state the true full-suite count as "N tests collected." 6 new tests, epistemic PASS.
 - **TIME_REPLAY (Epoch-2 dividend, registered 2026-07-09 per DIRECTOR_COMMENTS_BOX.md's
   forward registration -- registration only, no design/build done)**: director wants a
   run-button/slider on most site pages to visualise the passage of time -- events, actions,
