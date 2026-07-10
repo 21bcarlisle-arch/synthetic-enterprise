@@ -943,6 +943,57 @@ def extract_monthly_ops(data):
     return {"monthly": rows, "demand_estimation_annual": demand_estimation_annual}
 
 
+def extract_arrears_case_load(data):
+    """Operations tab KPI expansion candidate (c), 2026-07-10 (PRIORITIES.md).
+    Real per-year arrears/collections case load: reuses the exact same real
+    data + DESNZ-anchored RAG bands already computed for the Regulatory-
+    adjacent Population Anchoring section (saas/reporting/annual_report.py::
+    _section_population_anchoring()) -- GREEN <8% (non-crisis)/<12% (crisis
+    2021-23) active customers with an open arrears case that year, AMBER
+    <15%/<18%, RED above. Reads the real billing ledger's arrears_history,
+    same as that section, rather than duplicating a different definition."""
+    ledger_path = PROJECT / "site" / "state" / "billing_ledger.json"
+    arrears_by_year: dict[int, set[str]] = defaultdict(set)
+    if ledger_path.is_file():
+        try:
+            ledger = json.loads(ledger_path.read_text())
+            for cid, cdata in ledger.get("customers", {}).items():
+                for case in cdata.get("arrears_history", []):
+                    opened = case.get("opened_date", "")
+                    if opened:
+                        try:
+                            arrears_by_year[int(opened[:4])].add(cid)
+                        except ValueError:
+                            continue
+        except (json.JSONDecodeError, OSError):
+            arrears_by_year = defaultdict(set)
+
+    rows = []
+    for yr, yd in sorted(data.get("years", {}).items()):
+        yr_int = int(yr)
+        is_crisis = yr_int in (2021, 2022, 2023)
+        active = yd.get("active_customer_ids", [])
+        n_active = len(active)
+        case_count = len(arrears_by_year.get(yr_int, set()))
+        if n_active > 0:
+            rate = round(case_count / n_active * 100, 1)
+            green_hi = 12.0 if is_crisis else 8.0
+            amber_hi = 18.0 if is_crisis else 15.0
+            status = "red" if rate > amber_hi else "amber" if rate > green_hi else "green"
+        else:
+            rate = None
+            status = "unknown"
+        rows.append({
+            "year": yr_int,
+            "case_count": case_count,
+            "active_customers": n_active,
+            "arrears_rate_pct": rate,
+            "status": status,
+            "is_crisis": is_crisis,
+        })
+    return {"annual": rows}
+
+
 def extract_run_history(history_path=None, max_entries=10):
     """Return last N run history entries, or [] if absent/invalid."""
     path = history_path or RUN_HISTORY_PATH
@@ -1237,6 +1288,7 @@ def generate(run_json_path=None):
         "query_context": extract_query_context(data),
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
+        "arrears_case_load": extract_arrears_case_load(data),
         "flexibility": extract_flexibility(data),
         "opex_ledger": extract_opex_ledger(data),
         "b2_taxonomy": extract_b2_taxonomy(data),

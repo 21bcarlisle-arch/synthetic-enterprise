@@ -1321,6 +1321,45 @@ function renderMarket() {
 
 
 // ── Insights ─────────────────────────────────────────────────────────────────
+function arrearsCaseLoadHtml() {
+  var rows = (D.arrears_case_load && D.arrears_case_load.annual) ? D.arrears_case_load.annual : [];
+  if (!rows.length) return '';
+  var statusColor = { green: 'pos', amber: '', red: 'neg', unknown: '' };
+  var statusLabel = { green: 'GREEN', amber: 'AMBER', red: 'RED', unknown: 'n/a' };
+  var latest = rows[rows.length - 1];
+  var trows = rows.map(function(r) {
+    var cls = statusColor[r.status] || '';
+    var style = r.status === 'amber' ? ' style="color:var(--amber)"' : '';
+    return '<tr' + (r.is_crisis ? ' style="background:rgba(208,59,59,0.05)"' : '') + '>' +
+      '<td>' + r.year + (r.is_crisis ? ' <span class="badge-crisis">CRISIS</span>' : '') + '</td>' +
+      '<td>' + r.case_count + '</td><td>' + r.active_customers + '</td>' +
+      '<td class="' + cls + '"' + style + '>' + (r.arrears_rate_pct != null ? r.arrears_rate_pct.toFixed(1) + '%' : '&mdash;') + '</td>' +
+      '<td class="' + cls + '"' + style + '>' + statusLabel[r.status] + '</td></tr>';
+  }).join('');
+  return `
+    <div class="tbl-box">
+      <div class="tbl-title">Arrears / Collections Case Load</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        Real per-year count of customers with an open arrears case, vs the active book that
+        year -- RAG bands anchored to DESNZ business energy debt benchmarks (GREEN &lt;8% normal
+        years / &lt;12% crisis years 2021-23, RED &gt;15%/&gt;18%), same anchors already used in
+        the Population Anchoring report section. At this book's small scale (11-19 active
+        customers), one customer moves the rate by ~7-9 percentage points -- the frequent RED
+        readings below likely reflect population-size statistical noise against bands
+        calibrated for a much larger real book, not necessarily a genuine collections failure;
+        not yet independently verified against a small-population-adjusted anchor.
+      </div>
+      <div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Latest Year Rate</div><div class="kpi-value ${statusColor[latest.status]||''}" style="${latest.status==='amber'?'color:var(--amber)':''}">${latest.arrears_rate_pct != null ? latest.arrears_rate_pct.toFixed(1) + '%' : '&mdash;'}</div><div class="kpi-sub">${latest.year}</div></div>
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Open Cases</div><div class="kpi-value">${latest.case_count}</div><div class="kpi-sub">of ${latest.active_customers} active</div></div>
+      </div>
+      <table>
+        <tr><th>Year</th><th>Cases</th><th>Active</th><th>Rate</th><th>Status</th></tr>
+        ${trows}
+      </table>
+    </div>`;
+}
+
 function demandEstimationHtml() {
   var dem = (D.monthly_ops && D.monthly_ops.demand_estimation_annual) ? D.monthly_ops.demand_estimation_annual : [];
   if (!dem.length) return '';
@@ -1397,6 +1436,7 @@ function renderMonthly() {
     '<div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table>' +
     '<thead><tr><th>Month</th><th>Shocks</th><th>Avg%</th><th>Max%</th><th>Committee</th><th>Retention</th><th>Retained</th></tr></thead>' +
     '<tbody>' + trows + '</tbody></table></div></div>' +
+    arrearsCaseLoadHtml() +
     demandEstimationHtml();
 
   mkChart('ch-monthly-ops', {

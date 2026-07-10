@@ -49,9 +49,19 @@
 #   error tightens from 0.1% (2016) to a real, honestly-shown 8.6% (2025, still small-sample).
 #   4 new tests, 16,622 tests collected (full suite), epistemic PASS, verified live in-browser
 #   (screenshot, zero console errors/NaN/undefined).
-#   Candidates (b) DSR/flexibility dispatch summary and (c) arrears/collections case load remain
-#   NOT built -- still registered for their own scoped design pass (which metrics, what cadence,
-#   what threshold bands), not rushed in as a scattershot batch, per this project's own P-3 rule.
+#   Candidate (c) BUILT (2026-07-10, second supervisor-granted idle turn, same session): arrears/
+#   collections case load now a real Operations-tab section (tools/generate_dashboard_data.py::
+#   extract_arrears_case_load() + site/supplier/index.html::arrearsCaseLoadHtml()) -- real
+#   per-year distinct-customer arrears case count vs active book, same DESNZ-anchored RAG bands
+#   already used in the Population Anchoring report section (GREEN <8%/<12% crisis, RED
+#   >15%/>18%). Real live result mostly RED (30-57% most years) -- honestly flagged on the page
+#   itself as LIKELY a small-population statistical-noise artifact (11-19 active customers means
+#   one customer moves the rate ~7-9pp against bands calibrated for a much larger real book), not
+#   asserted as a genuine collections failure, not yet independently verified either way. 8 new
+#   tests, 16,630 tests collected (full suite), epistemic PASS, verified live in-browser
+#   (screenshot, zero console errors/NaN/undefined).
+#   Candidate (b) DSR/flexibility dispatch summary remains NOT built -- still registered for its
+#   own scoped design pass, not rushed in, per this project's own P-3 rule.
 #
 # === SLC 25C "Communication Channel Choice" FIXED (2026-07-10, director page comment,
 #   docs/design/SLC25C_CHANNEL_CHOICE_FIX.md): real R10-class domain-sense mismatch, not a
