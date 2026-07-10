@@ -92,6 +92,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <div class="chart-wrap"><canvas id="learning-chart"></canvas></div>
   </div>
 
+  <div class="sec">Cumulative Work -- The Growth We're Creating</div>
+  <div class="chart-card">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
+      A genuinely cumulative metric, not a saturating suite size -- git commits, every one real
+      work, running total since the project started.
+    </div>
+    <div class="chart-wrap"><canvas id="commits-chart"></canvas></div>
+  </div>
+
   <div class="sec">Why This Is Different</div>
   <div class="product-grid">
     <div class="product-card">
@@ -264,12 +273,26 @@ function renderLearningCurve(phases){
 var learningChart=null;
 function setLearningWindow(w){LEARNING_WINDOW=w;renderLearningCurve(LEARNING_PHASES_DATA);}
 window.setLearningWindow=setLearningWindow;
+
+var commitsChart=null;
+function renderCommitsChart(phases){
+  var cbd=(phases&&phases.commits_by_day)||[];
+  var ctx=document.getElementById("commits-chart");
+  if(!ctx||!cbd.length)return;
+  if(commitsChart)commitsChart.destroy();
+  commitsChart=new Chart(ctx,{type:"line",data:{
+    labels:cbd.map(function(r){return r[0];}),
+    datasets:[{label:"Cumulative commits",data:cbd.map(function(r){return r[1];}),borderColor:"#4a3aa7",backgroundColor:"rgba(74,58,167,0.12)",fill:true,borderWidth:2,pointRadius:0}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:"Cumulative commits since project start",color:"#52514e",font:{size:11}}},scales:{x:{ticks:{maxTicksLimit:8,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}}});
+}
+
 Promise.all([
   fetch("./data/dashboard.json").then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/phases.json").then(function(r){return r.json();}).catch(function(){return {};})
 ]).then(function(rs){
   renderMetrics(rs[0], rs[1]);
   renderLearningCurve(rs[1]);
+  renderCommitsChart(rs[1]);
 }).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="./shared/director-comments.js" defer></script>

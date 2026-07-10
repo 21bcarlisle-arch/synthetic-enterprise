@@ -39,6 +39,41 @@ def _total_commits():
         pass
     return None
 
+
+def cumulative_commits_by_day(log_lines):
+    """[date, cumulative_count] pairs from `git log --format=%ad --date=short`
+    output (one date per line, newest-first) -- a genuinely cumulative
+    metric (2026-07-10, director page comment: "I want to pick metrics, such
+    as cumulative ones that show the growth we creating" -- a 4th repeat of
+    the "these graphs look flat/decelerating" complaint). Unlike test-SUITE
+    SIZE, which necessarily looks like deceleration once a large total makes
+    each new addition a smaller relative share, real commit activity has
+    stayed high and roughly constant across this project's whole history
+    (60-400+ commits/day, every day) -- a running total of it climbs
+    steadily with no flat stretches, because it counts ongoing WORK, not a
+    saturating total."""
+    from collections import Counter
+    counts = Counter(line.strip() for line in log_lines if line.strip())
+    running = 0
+    result = []
+    for date in sorted(counts):
+        running += counts[date]
+        result.append([date, running])
+    return result
+
+
+def _commits_per_day_lines():
+    try:
+        out = subprocess.run(
+            ["git", "log", "--format=%ad", "--date=short"],
+            cwd=str(PROJECT), capture_output=True, text=True, timeout=15,
+        )
+        if out.returncode == 0:
+            return out.stdout.splitlines()
+    except Exception:
+        pass
+    return []
+
 sys.path.insert(0, str(PROJECT))
 from tools.generate_project_state import _parse_phase_and_tests  # noqa: E402
 
@@ -232,6 +267,7 @@ def generate():
         test_progression=test_progression,
         phase_dates=phase_dates,
         total_commits=_total_commits(),
+        commits_by_day=cumulative_commits_by_day(_commits_per_day_lines()),
         timeline=timeline,
         cumulative_tests_executed=test_executions["cumulative_total"],
         cumulative_tests_executed_since=test_executions["since"],

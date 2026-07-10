@@ -690,6 +690,18 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   (`site/index.html::renderLearningCurve()`), defaulting to Recent so real day-to-day movement is
   visible; neither series altered, only the default window. Verified via a Node harness against
   real phases.json data.
+- **Home page charts "go up fast then look flat", 4th occurrence -- CLOSED, director gave concrete
+  guidance**: "I want to pick metrics, such as cumulative ones that show the growth we creating."
+  Root cause this time is structural, not fixable by rewindowing alone: test-SUITE SIZE
+  mathematically must look like deceleration once the total is large, since each new test is a
+  shrinking relative share -- no amount of chart-scaling fixes that. Added a genuinely different
+  metric with the property the director asked for: cumulative git commits by day
+  (`tools/generate_phases_json.py::cumulative_commits_by_day()`), a running total that has stayed
+  high (60-400+/day) across the WHOLE 31-day project history with no flat stretches, because it
+  counts ongoing work rather than a saturating total -- 9 -> 3,104 commits, real, monotonic,
+  verified via a Node harness. New "Cumulative Work -- The Growth We're Creating" chart section on
+  the Home page, alongside (not replacing) the existing Learning Curve. 5 new tests, epistemic
+  PASS.
 - **`/customers/` nav: keep tab across customer-cycling + move arrows left -- CLOSED**: "Please
   keep the same tab when we scroll between customers. Can you move the scroll to left hand side?"
   `cycleCustomer()` was resetting `ACTIVE_TAB="overview"` on every navigation -- removed (fuel/

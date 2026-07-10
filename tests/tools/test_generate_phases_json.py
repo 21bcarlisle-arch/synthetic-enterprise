@@ -7,7 +7,7 @@ phases on, PROJECT_TAB_OVERHAUL.md critique). These tests exercise the
 Section-4 header parser and the date-dedup/sort behaviour that fixes the
 Project tab's duplicate-x-axis-label chart bug.
 """
-from tools.generate_phases_json import _parse_build_history, _extract_test_count, _total_commits, _monotonic_test_progression
+from tools.generate_phases_json import _parse_build_history, _extract_test_count, _total_commits, _monotonic_test_progression, cumulative_commits_by_day
 
 
 def test_parses_phase_id_and_date_from_header():
@@ -239,3 +239,34 @@ def test_iter_phase_entries_matches_parse_build_history_ids_and_dates():
     assert [(pid, date, tc) for pid, date, tc, _t, _b in full] == old
     assert full[0][3] == "Newest"
     assert full[1][3] == "Older"
+
+
+# --- cumulative_commits_by_day (2026-07-10, director page comment, 4th
+# repeat of "these graphs look flat/decelerating": "I want to pick metrics,
+# such as cumulative ones that show the growth we creating") ---
+
+def test_cumulative_commits_by_day_basic():
+    lines = ["2026-07-01", "2026-07-01", "2026-07-02"]
+    assert cumulative_commits_by_day(lines) == [["2026-07-01", 2], ["2026-07-02", 3]]
+
+
+def test_cumulative_commits_by_day_is_monotonic_non_decreasing():
+    lines = ["2026-07-03", "2026-07-01", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-03"]
+    result = cumulative_commits_by_day(lines)
+    values = [v for _, v in result]
+    assert values == sorted(values)
+
+
+def test_cumulative_commits_by_day_ignores_blank_lines():
+    lines = ["2026-07-01", "", "  ", "2026-07-01"]
+    assert cumulative_commits_by_day(lines) == [["2026-07-01", 2]]
+
+
+def test_cumulative_commits_by_day_empty_input():
+    assert cumulative_commits_by_day([]) == []
+
+
+def test_cumulative_commits_by_day_sorted_by_date_not_input_order():
+    lines = ["2026-07-03", "2026-07-01", "2026-07-02"]
+    result = cumulative_commits_by_day(lines)
+    assert [d for d, _ in result] == ["2026-07-01", "2026-07-02", "2026-07-03"]
