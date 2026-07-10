@@ -50,10 +50,10 @@
   epoch: 2
   level_current: 0
   level_target: 2
-  loop_stage: frame
+  loop_stage: idle
   dial_inherited: 4
-  evidence: ["docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md"]
-  simplifications: ["2026-07-10: real evidence feeding this atom found while tracing E2's two-pipelines root cause -- saas/bill_generator.py bills non-commodity cost via a single blended £/MWh rate (saas/non_commodity.py) while simulation/hedged_settlement.py computes the same real-world cost per-levy, per-settlement-period (RO/CfD/CCL/CM/FiT + DUoS/TNUoS individually). The resulting gap between what's billed and what's settled is bidirectional/non-monotonic across years (+27.7% to -25.3%), consistent with a genuine volume/timing mismatch this atom's own scope names, not a simple missing-component bug -- this is the concrete first reconciliation target when this atom is built."]
+  evidence: ["docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md", "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md"]
+  simplifications: ["2026-07-10: real evidence feeding this atom found while tracing E2's two-pipelines root cause -- saas/bill_generator.py bills non-commodity cost via a single blended £/MWh rate (saas/non_commodity.py) while simulation/hedged_settlement.py computes the same real-world cost per-levy, per-settlement-period (RO/CfD/CCL/CM/FiT + DUoS/TNUoS individually). The resulting gap between what's billed and what's settled is bidirectional/non-monotonic across years (+27.7% to -25.3%), consistent with a genuine volume/timing mismatch this atom's own scope names, not a simple missing-component bug -- this is the concrete first reconciliation target when this atom is built. PLACEMENT CORRECTION (director, closing the sibling POINT_IN_TIME_SNAPSHOT_TIER1.md gate): this atom is Epoch-2 CORE -- the BILLING-side face of the reveal-over-time spine, sibling to W1_reveal_over_time (the COMPANY-side/pricing-decision face), one architecture not two. loop_stage set to idle to match: sequencing is the advisor's epoch framing to set, not a FRAME-stage design task to pick up independently right now."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "settlement timetable D+1/D+... true-up cycle"
   depends_on: [W1_reveal_over_time]
@@ -67,8 +67,8 @@
   level_target: 3
   loop_stage: idle
   dial_inherited: 4
-  evidence: ["docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md", "docs/review_gates/POINT_IN_TIME_SNAPSHOT_TIER1.md"]
-  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). DISCOVER finding (internal + external research, both landed): sim/risk_engine.py::calculate_sigma_recent() is already self-contained/safe but company/trading/hedge_decision.py::estimate_price_volatility() is caller-trusted, only made safe by an external wrapper at its one known call site (the already-fixed hedge-volatility bug) -- no live second violation, but a template others could copy. Wrote up a proper Tier 1 REVIEW GATE (docs/review_gates/POINT_IN_TIME_SNAPSHOT_TIER1.md) with options + a recommendation (register, sequence after current work -- not build now) for the director's actual decision, rather than just a design sketch. loop_stage set to idle: genuinely blocked pending that Tier 1 decision, same pattern just corrected for W4_1_typed_adapters -- applying the lesson immediately rather than repeating the mistake."]
+  evidence: ["docs/design/MARGIN_REALISM_W1_DISCOVER_FINDING.md", "docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md"]
+  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). DISCOVER finding (internal + external research, both landed): sim/risk_engine.py::calculate_sigma_recent() is already self-contained/safe but company/trading/hedge_decision.py::estimate_price_volatility() is caller-trusted, only made safe by an external wrapper at its one known call site (the already-fixed hedge-volatility bug) -- no live second violation, but a template others could copy. TIER 1 GATE CLOSED (director, in-console via staged NTFY): approved as recommended (register, don't build now). PLACEMENT CORRECTION (director): this is Epoch-2 CORE, not a standalone W1-lane item -- the COMPANY-SIDE face of the reveal-over-time spine, sibling to D2_three_clocks (the BILLING-side face), one architecture not two. Sequencing left to the advisor's epoch framing. Interim standing instruction: keep patching individual call sites only if a live bug actually surfaces -- no proactive build before the epoch sequencing names its turn."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real trading desk never sees tomorrow's settlement prices"
   depends_on: []

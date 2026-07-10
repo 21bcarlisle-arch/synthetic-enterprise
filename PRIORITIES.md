@@ -90,8 +90,16 @@
 #   beyond documenting the pattern. Recommendation given (register, sequence after
 #   MARGIN_REALISM Steps 3-6 + D2_three_clocks -- no live bug driving urgency, purely
 #   preventive value), but this is the director's decision, not a default to proceed on.
-#   loop_stage set to idle (genuinely blocked pending the gate) -- NTFY sent per the standing
-#   Tier 1 protocol, gate stays open, re-ping daily while blocked, other queue items continue.
+#   GATE CLOSED 2026-07-10 (director, in-console via staged NTFY from_rich_20260710_165627.md):
+#   "Approved as recommended: register, don't build now." PLACEMENT CORRECTION (director): this
+#   is Epoch-2 CORE, not a standalone W1-lane item -- the COMPANY-SIDE face of the reveal-over-
+#   time spine, sibling to D2_three_clocks (the BILLING-side face), ONE architecture not two.
+#   Sequencing left to the advisor's epoch framing -- not decided here. Standing interim
+#   instruction: keep patching individual call sites only if a live bug actually surfaces
+#   (matching the hedge-volatility precedent), no proactive build before the epoch sequencing
+#   names its turn. Both W1_reveal_over_time and D2_three_clocks now cross-reference this
+#   closed gate and each other; both set to loop_stage=idle. Gate moved to
+#   docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md.
 #
 # === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
 #   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
