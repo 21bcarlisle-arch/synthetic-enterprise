@@ -22,14 +22,12 @@ independently sourced -- tuned only so the weighted aggregate lands at the
 existing anchored ~35% (0.48*0.65 + 0.23*0.15 + 0.29*0.02 ≈ 0.352),
 honestly flagged as such per the Anchored-noise law.
 
-Layer 1 scope: engagement_level only. Layer 2 dimensions 1-3 (payment-
-method mix, fuel poverty, tenure -- see PaymentChannel/PaymentChannel/
-TenureType below) added 2026-07-09. Occupancy and complaint-propensity
-archetype threading (the remaining dimensions in CORE_FIDELITY_PHASES.md's
-Phase 1 archetype table) are still explicit backlog, not built this pass
--- see docs/market_research/ASSUMPTIONS.md's "Household Segment &
-Psychology" section for the real anchor already registered for that
-(ONS Census 2021 occupancy).
+Layer 1 scope: engagement_level only. Layer 2 dimensions 1-4 (payment-
+method mix, fuel poverty, tenure, occupancy -- see PaymentChannel/
+TenureType/OccupancyBand below) added 2026-07-09/10. Complaint-
+propensity as its own archetype (distinct from occupancy feeding INTO
+complaint probability, which IS built) is the one remaining dimension
+in CORE_FIDELITY_PHASES.md's Phase 1 archetype table not yet built.
 
 ⚠ Recalibration flag (docs/market_research/ASSUMPTIONS.md, same section):
 a MORE RECENT Ofgem Retail Market Indicators series (Oct 2025) puts the
@@ -207,3 +205,43 @@ def tenure_for_customer(customer_id: str) -> TenureType:
         if roll < cumulative:
             return tenure
     return TenureType.SOCIAL_RENTER  # float-rounding fallback
+
+
+class OccupancyBand(str, Enum):
+    ONE_PERSON = "one_person"
+    TWO_PERSON = "two_person"
+    THREE_TO_FOUR_PERSON = "three_to_four_person"
+    FIVE_PLUS_PERSON = "five_plus_person"
+
+
+# Layer 2 dimension 4 (occupancy / household size, 2026-07-10): ONS Census
+# 2021 table TS017 "Household size" (England-only aggregate, computed
+# directly from the published LTLA-level CSV by a discovery-agent pass,
+# fetched 2026-07-08, see ASSUMPTIONS.md) -- H confidence, primary census
+# microdata. 1-person 30.1%, 2-person 34.0%, 3-4-person 28.9% (3-person
+# 16.0% + 4-person 12.9%, combined here since this module doesn't yet need
+# the finer split), 5+-person 7.0% (5/6/7/8+-person 4.5/1.5/0.5/0.4%,
+# combined). Mean 2.37 persons/household, cross-checked against EHS
+# 2023-24 (2.2-2.4 range) -- consistent.
+OCCUPANCY_POPULATION_SHARE: dict[OccupancyBand, float] = {
+    OccupancyBand.ONE_PERSON: 0.301,
+    OccupancyBand.TWO_PERSON: 0.340,
+    OccupancyBand.THREE_TO_FOUR_PERSON: 0.289,
+    OccupancyBand.FIVE_PLUS_PERSON: 0.070,
+}
+
+assert abs(sum(OCCUPANCY_POPULATION_SHARE.values()) - 1.0) < 1e-9
+
+
+def occupancy_for_customer(customer_id: str) -> OccupancyBand:
+    """Deterministic per-customer occupancy (household-size) archetype,
+    stable for the customer's whole tenure -- same convention as
+    engagement_level/payment_channel/tenure above."""
+    rng = random.Random(f"occupancy_{customer_id}")
+    roll = rng.random()
+    cumulative = 0.0
+    for band, share in OCCUPANCY_POPULATION_SHARE.items():
+        cumulative += share
+        if roll < cumulative:
+            return band
+    return OccupancyBand.FIVE_PLUS_PERSON  # float-rounding fallback

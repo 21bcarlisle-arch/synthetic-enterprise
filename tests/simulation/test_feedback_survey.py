@@ -11,6 +11,7 @@ from simulation.feedback_survey import (
     LOW_SATISFACTION_THRESHOLD,
     COMPLAINT_BASE_PROBABILITY,
     BILL_SHOCK_COMPLAINT_PENALTY,
+    OCCUPANCY_COMPLAINT_MULTIPLIER,
     ON_TIME_DAYS_MAX,
     response_propensity,
     dispatch_csat_survey,
@@ -128,3 +129,43 @@ def test_no_complaint_result_has_no_event_type():
     if not result.occurred:
         assert result.reputation_event_type is None
         assert result.days_to_resolve is None
+
+
+# --- Layer 2 dimension 4: occupancy -> complaint propensity (2026-07-10) ---
+
+
+def test_occupancy_multiplier_complete_for_all_bands():
+    for band in ("one_person", "two_person", "three_to_four_person", "five_plus_person"):
+        assert band in OCCUPANCY_COMPLAINT_MULTIPLIER
+
+
+def test_occupancy_multiplier_increases_with_household_size():
+    m = OCCUPANCY_COMPLAINT_MULTIPLIER
+    assert m["one_person"] < m["two_person"] < m["three_to_four_person"] < m["five_plus_person"]
+
+
+def test_dispatch_complaint_occupancy_none_matches_original_behaviour():
+    """Backward compatibility: omitting occupancy must reproduce the exact
+    original (no household-size adjustment) behaviour bit-for-bit."""
+    a = dispatch_complaint_and_resolution("C1", "2020-01-01", True)
+    b = dispatch_complaint_and_resolution("C1", "2020-01-01", True, occupancy=None)
+    assert a == b
+
+
+def test_dispatch_complaint_five_plus_person_more_likely_than_one_person():
+    n = 300
+    five_plus = sum(
+        1 for i in range(n)
+        if dispatch_complaint_and_resolution(f"OCC5_{i}", "2020-01-01", True, occupancy="five_plus_person").occurred
+    )
+    one_person = sum(
+        1 for i in range(n)
+        if dispatch_complaint_and_resolution(f"OCC1_{i}", "2020-01-01", True, occupancy="one_person").occurred
+    )
+    assert five_plus > one_person
+
+
+def test_dispatch_complaint_unknown_occupancy_falls_back_to_no_adjustment():
+    a = dispatch_complaint_and_resolution("C1", "2020-01-01", True, occupancy=None)
+    b = dispatch_complaint_and_resolution("C1", "2020-01-01", True, occupancy="unknown_band")
+    assert a == b

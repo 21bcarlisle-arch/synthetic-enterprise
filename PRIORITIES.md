@@ -96,11 +96,17 @@
 #   (2026-07-10, PROJECT_OVERVIEW.md Section 4 "tenure archetype" entry) --
 #   simulation/household_segments.py::tenure_for_customer() (EHS anchors 65%/19%/16% owner/
 #   private-rent/social-rent), wired into switching_propensity.py (renters switch less) and
-#   customer_events.py. Remaining Layer 2 dimensions (occupancy, complaint-propensity) still
-#   backlog -- real anchors already registered in ASSUMPTIONS.md, not yet threaded. Genuine
-#   remaining front-of-queue: those remaining dimensions OR the P-5 re-rank item (a) NUDGE_PHYSICS
-#   remaining mechanisms. Both are
-#   named, already-approved backlog items (Tier 2), not novel proposals.
+#   customer_events.py. Dimension 4 (occupancy) ALSO CLOSED (2026-07-10, PROJECT_OVERVIEW.md
+#   Section 4 "Occupancy archetype" entry) -- household_segments.py::occupancy_for_customer()
+#   (ONS Census 2021 anchors), wired into feedback_survey.py's complaint propensity. ALL of
+#   Layer 2's originally-named dimensions (payment-method mix, fuel poverty, tenure, occupancy)
+#   are now CLOSED -- only complaint-propensity-as-its-own-archetype remains (arguably redundant
+#   now that occupancy already feeds complaint propensity directly).
+#   Genuine remaining front-of-queue: NUDGE_PHYSICS remaining mechanisms (P-5 item a) -- a fork
+#   scoped this 2026-07-10 and recommends collections-letter tone/framing next (anchor already
+#   cited in docs/market_research/NUDGE_PHYSICS_BENCHMARKS.md, extends arrears_engine.py's
+#   already-built fuel-poverty modifier pattern, smaller scope than Layer 1). Already-approved
+#   backlog item (Tier 2), not a novel proposal.
 #   (Token-economy note retired -- see BUDGET_UNCONSTRAINED entry above.)
 #   Event-driven wake (2026-07-08, director-direct, in-conversation, same reorientation
 #   conversation): background/staging_watcher.py now injects one batched tmux turn into the live

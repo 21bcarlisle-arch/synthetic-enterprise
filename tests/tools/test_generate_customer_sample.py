@@ -48,6 +48,7 @@ def test_resi_customer_gets_payment_channel_and_fuel_poverty_fields(tmp_path):
     assert c1["payment_channel"] in ("direct_debit", "standard_credit")
     assert isinstance(c1["fuel_poverty"], bool)
     assert c1["tenure"] in ("owner_occupier", "private_renter", "social_renter")
+    assert c1["occupancy"] in ("one_person", "two_person", "three_to_four_person", "five_plus_person")
 
 
 def test_ic_customer_has_null_payment_channel_and_fuel_poverty(tmp_path):
@@ -62,13 +63,14 @@ def test_ic_customer_has_null_payment_channel_and_fuel_poverty(tmp_path):
     assert ic["payment_channel"] is None
     assert ic["fuel_poverty"] is None
     assert ic["tenure"] is None
+    assert ic["occupancy"] is None
 
 
-def test_gas_twin_gets_same_tenure_as_electricity_leg(tmp_path):
-    """Tenure is a household-level (not per-fuel) trait -- a dual-fuel
-    household's gas leg must resolve to the SAME tenure as its electricity
-    leg (both keyed on base_account_id), unlike payment_channel/fuel_poverty
-    which are legitimately fuel-specific."""
+def test_gas_twin_gets_same_tenure_and_occupancy_as_electricity_leg(tmp_path):
+    """Tenure/occupancy are household-level (not per-fuel) traits -- a
+    dual-fuel household's gas leg must resolve to the SAME tenure/occupancy
+    as its electricity leg (both keyed on base_account_id), unlike
+    payment_channel/fuel_poverty which are legitimately fuel-specific."""
     customers = {
         "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2020-01-01",
                "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
@@ -77,6 +79,7 @@ def test_gas_twin_gets_same_tenure_as_electricity_leg(tmp_path):
     }
     out = _generate(tmp_path, customers)
     assert out["customers"]["C1"]["tenure"] == out["customers"]["C1g"]["tenure"]
+    assert out["customers"]["C1"]["occupancy"] == out["customers"]["C1g"]["occupancy"]
 
 
 def test_payment_channel_deterministic_across_regeneration(tmp_path):

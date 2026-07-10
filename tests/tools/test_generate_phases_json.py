@@ -42,6 +42,34 @@ def test_multiple_entries_preserve_file_order():
     assert [e[0] for e in entries] == ["RC", "RB"]
 
 
+def test_header_without_phase_code_still_counts_with_synthetic_id():
+    """2026-07-10: a header with no 'Phase XY' code at all (the drifted
+    convention this whole session used) must still be counted and dated,
+    not silently dropped -- gets a synthetic 'H<n>' id instead."""
+    text = "### Tenure archetype -- Layer 2 dimension 3 (2026-07-10, note)\n50 tests collected\n"
+    entries = _parse_build_history(text)
+    assert len(entries) == 1
+    phase_id, date, tc = entries[0]
+    assert phase_id == "H0"
+    assert date == "2026-07-10"
+    assert tc == 50
+
+
+def test_mixed_old_and_new_style_headers_both_counted():
+    text = (
+        "### Fuel-poverty archetype -- Layer 2 dimension 2 (2026-07-09, note)\n24 tests collected\n"
+        "### Phase RC -- Old Style (2026-07-05)\n5 collected\n"
+    )
+    entries = _parse_build_history(text)
+    assert len(entries) == 2
+    assert entries[0] == ("H0", "2026-07-09", 24)
+    assert entries[1] == ("RC", "2026-07-05", 5)
+
+
+def test_extract_test_count_handles_tests_collected_phrasing():
+    assert _extract_test_count("16,373 tests collected (full suite), up from 16,358.") == 16373
+
+
 def test_extract_test_count_prefers_total_line_over_collected():
     body = "some prose 999 collected more prose\n**Total:** 15,342 tests\n"
     assert _extract_test_count(body) == 15342
@@ -80,9 +108,25 @@ def test_extract_title_handles_split_phase_parenthetical():
     assert _extract_title(header) == "Consistency Fix: total_net_gbp"
 
 
-def test_extract_title_returns_none_without_double_dash():
+def test_extract_title_without_double_dash_now_returns_the_bare_header():
+    """2026-07-10: _HEADER_RE/_TITLE_RE were broadened after discovering the
+    strict 'Phase XY -- Title' requirement silently dropped 38 of 496 real
+    Section 4 entries (every one written since the header convention
+    drifted to bare descriptive titles) -- a header without the old
+    double-dash structure now still yields a usable title (the whole
+    header, with only a real ISO-date parenthetical stripped) instead of
+    None. "early June 2026" isn't an ISO date, so it's left intact here --
+    only the digit-dated parenthetical case is stripped (see the sibling
+    test below)."""
     from tools.generate_phases_json import _extract_title
-    assert _extract_title("### Phase 0 Prove the Machine (early June 2026)") is None
+    assert _extract_title("### Phase 0 Prove the Machine (early June 2026)") == \
+        "Phase 0 Prove the Machine (early June 2026)"
+
+
+def test_extract_title_strips_real_date_parenthetical_without_double_dash():
+    from tools.generate_phases_json import _extract_title
+    assert _extract_title("### Tenure archetype -- Layer 2 dimension 3 (2026-07-10, director note)") == \
+        "Tenure archetype -- Layer 2 dimension 3"
 
 
 def test_extract_findings_strips_prefix_and_returns_line_tail():

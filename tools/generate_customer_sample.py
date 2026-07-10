@@ -138,20 +138,22 @@ def generate(run_json_path=None, out_path=None, state_path=None):
         _payment_channel = None
         _fuel_poverty = None
         _tenure = None
+        _occupancy = None
         if _segment == "resi":
-            # Layer 2 dimensions 1-3 (2026-07-09/10): SIM-internal ground truth
-            # (payment channel / fuel poverty / tenure archetype), shown here
-            # for the SIM tab's own evidence-surface purpose only -- same
-            # caveat as engagement_level above: MUST NEVER be read by
+            # Layer 2 dimensions 1-4 (2026-07-09/10): SIM-internal ground truth
+            # (payment channel / fuel poverty / tenure / occupancy archetype),
+            # shown here for the SIM tab's own evidence-surface purpose only
+            # -- same caveat as engagement_level above: MUST NEVER be read by
             # company/** code.
-            from simulation.household_segments import PaymentChannel, fuel_poverty_for_customer, payment_channel_for_customer, tenure_for_customer
+            from simulation.household_segments import PaymentChannel, fuel_poverty_for_customer, occupancy_for_customer, payment_channel_for_customer, tenure_for_customer
             _channel = payment_channel_for_customer(cid, _commodity)
             _payment_channel = _channel.value
             _fuel_poverty = fuel_poverty_for_customer(cid, _channel)
-            # Tenure is a household-level (not per-fuel) trait -- keyed on
-            # `base` (the billing_account), matching how
-            # simulation/customer_events.py applies it.
+            # Tenure/occupancy are household-level (not per-fuel) traits --
+            # keyed on `base` (the billing_account), matching how
+            # simulation/customer_events.py / run_phase2b.py apply them.
             _tenure = tenure_for_customer(base).value
+            _occupancy = occupancy_for_customer(base).value
 
         sample[cid] = {
             "account_id": cid,
@@ -161,6 +163,7 @@ def generate(run_json_path=None, out_path=None, state_path=None):
             "payment_channel": _payment_channel,
             "fuel_poverty": _fuel_poverty,
             "tenure": _tenure,
+            "occupancy": _occupancy,
             "acquisition_date": cdata.get("acquisition_date"),
             "lifetime_revenue_gbp": round(cdata.get("revenue_gbp", 0), 2),
             "lifetime_gross_gbp": round(cdata.get("gross_gbp", 0), 2),

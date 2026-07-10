@@ -11,14 +11,17 @@ from simulation.household_segments import (
     DIRECT_DEBIT_SHARE_BY_FUEL,
     ENGAGEMENT_POPULATION_SHARE,
     FUEL_POVERTY_RATE_BY_CHANNEL,
+    OCCUPANCY_POPULATION_SHARE,
     TENURE_POPULATION_SHARE,
     EngagementLevel,
+    OccupancyBand,
     PaymentChannel,
     TenureType,
     active_renewal_probability,
     active_renewal_probability_for_customer,
     engagement_level_for_customer,
     fuel_poverty_for_customer,
+    occupancy_for_customer,
     payment_channel_for_customer,
     tenure_for_customer,
 )
@@ -247,4 +250,38 @@ def test_large_sample_matches_tenure_population_shares():
         counts[tenure_for_customer(f"TEN_{i}")] += 1
     for tenure, share in TENURE_POPULATION_SHARE.items():
         observed = counts[tenure] / n
+        assert abs(observed - share) < 0.03
+
+
+# --- Layer 2 dimension 4: occupancy / household size (2026-07-10) ---
+
+
+def test_occupancy_population_shares_sum_to_one():
+    assert abs(sum(OCCUPANCY_POPULATION_SHARE.values()) - 1.0) < 1e-9
+
+
+def test_occupancy_is_deterministic():
+    a = occupancy_for_customer("C1")
+    b = occupancy_for_customer("C1")
+    assert a == b
+
+
+def test_occupancy_returns_valid_enum():
+    for i in range(50):
+        band = occupancy_for_customer(f"CUST{i}")
+        assert band in OccupancyBand
+
+
+def test_occupancy_varies_across_customers():
+    bands = {occupancy_for_customer(f"C{i}") for i in range(200)}
+    assert len(bands) == 4  # all four bands should appear across 200 customers
+
+
+def test_large_sample_matches_occupancy_population_shares():
+    n = 3000
+    counts = {b: 0 for b in OccupancyBand}
+    for i in range(n):
+        counts[occupancy_for_customer(f"OCC_{i}")] += 1
+    for band, share in OCCUPANCY_POPULATION_SHARE.items():
+        observed = counts[band] / n
         assert abs(observed - share) < 0.03

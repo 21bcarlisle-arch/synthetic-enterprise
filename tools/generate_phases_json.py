@@ -42,13 +42,33 @@ def _total_commits():
 sys.path.insert(0, str(PROJECT))
 from tools.generate_project_state import _parse_phase_and_tests  # noqa: E402
 
-_HEADER_RE = re.compile(r"^### Phase\s+(\S+)")
+# 2026-07-10: broadened after discovering (director page comment: Home
+# chart "still looks decelerated") that this had silently stopped matching
+# 38 of 496 real Section 4 entries -- every one written since the header
+# convention drifted from "### Phase XY -- Title (date...)" to bare
+# descriptive titles ("### Tenure archetype -- Layer 2 dimension 3
+# (date...)") somewhere around 2026-07-08/09. Every entry this entire
+# session (payment-method-mix, fuel-poverty, tenure, occupancy, the
+# build-stamp fix, etc.) was invisible to phases.json's date-indexed
+# series -- the chart wasn't lying about deceleration, it was reading
+# stale data. Now matches ANY "### " header; the optional "Phase XY" code
+# is still extracted when present (for the old convention and the
+# timeline's "Phase " + phase_id fallback label), but is no longer
+# required for an entry to count.
+_HEADER_RE = re.compile(r"^### (.+)$")
+_PHASE_CODE_RE = re.compile(r"^Phase\s+(\S+)\b")
 _DATE_RE = re.compile(r"(\d\d\d\d-\d\d-\d\d)")
-_TITLE_RE = re.compile(r"^### Phase\s+\S+(?:\s*\([^)]*\))?\s*--\s*(.+)$")
+_TITLE_RE = re.compile(r"^### (?:Phase\s+\S+(?:\s*\([^)]*\))?\s*--\s*)?(.+)$")
 _FINDING_RE = re.compile(r"KEY FINDING\b[^\n]*")
 
 _TEST_COUNT_RES = [
     re.compile(r"\*\*Total:\*\*\s*(\d[\d,]*)\s*tests"),
+    # 2026-07-10: broadened -- this session's own entries phrase it "N tests
+    # collected" (the word "tests" between the number and "collected"),
+    # which the original digit-then-"collected" pattern never matched,
+    # silently contributing to the same stale-chart symptom as the header
+    # and phase-code regex fixes above.
+    re.compile(r"(\d[\d,]*)\s*tests?\s*collected"),
     re.compile(r"(\d[\d,]*)\s*collected"),
     re.compile(r"(\d[\d,]*)\s*tests?\s+passing"),
     re.compile(r"\((\d[\d,]*)\+?\s*total\)"),
@@ -104,7 +124,14 @@ def _iter_phase_entries(text):
             header_idxs.append(i)
     for n, idx in enumerate(header_idxs):
         header = lines[idx]
-        phase_id = _HEADER_RE.match(header).group(1)
+        header_text = _HEADER_RE.match(header).group(1)
+        code_m = _PHASE_CODE_RE.match(header_text)
+        # Fall back to a synthetic, unique-by-position id ("H<n>") for
+        # headers that don't carry an explicit "Phase XY" code -- still
+        # counts toward total_phases/phase_dates, just has no short letter
+        # tag (the timeline label falls back to the extracted title in
+        # that case anyway, never to "Phase H37").
+        phase_id = code_m.group(1) if code_m else "H%d" % n
         date_m = _DATE_RE.search(header)
         date = date_m.group(1) if date_m else None
         if n + 1 < len(header_idxs):

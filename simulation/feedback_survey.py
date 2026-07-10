@@ -118,6 +118,21 @@ def dispatch_nps_survey(
 COMPLAINT_BASE_PROBABILITY = 0.03
 BILL_SHOCK_COMPLAINT_PENALTY = 0.35
 
+# Layer 2 dimension 4 (occupancy, 2026-07-10): more people in a household
+# means more "eyes on the bill" -- more chances someone notices a problem
+# and initiates contact. ONS Census 2021 anchors the population SHARE of
+# each occupancy band (household_segments.py::OCCUPANCY_POPULATION_SHARE)
+# but does NOT publish a complaint-propensity magnitude by household size
+# -- these multipliers are a calibration CHOICE (NOT independently
+# sourced), kept modest, per the Anchored-noise law. Two-person is the
+# baseline (1.0, no adjustment) since it's the modal household size.
+OCCUPANCY_COMPLAINT_MULTIPLIER: dict[str, float] = {
+    "one_person": 0.85,
+    "two_person": 1.0,
+    "three_to_four_person": 1.15,
+    "five_plus_person": 1.30,
+}
+
 # Resolution-outcome bands, evaluated against company/crm/complaints.py\'s real
 # OMBUDSMAN_ESCALATION_DAYS (56) SLC window:
 ON_TIME_DAYS_MAX = 10
@@ -136,7 +151,8 @@ class ComplaintResolutionOutcome:
 
 
 def dispatch_complaint_and_resolution(
-    customer_id: str, event_date: str, bill_shock_occurred: bool
+    customer_id: str, event_date: str, bill_shock_occurred: bool,
+    occupancy: str | None = None,
 ) -> ComplaintResolutionOutcome:
     """Roll whether a complaint occurs this term, and if so how it resolves.
 
@@ -146,11 +162,18 @@ def dispatch_complaint_and_resolution(
     GRI must be fed causally, in-order, inside the same loop that reads
     activation_energy_multiplier() for that customer\'s later renewals, so
     the dispatch has to live here rather than in a downstream billing pass.
+
+    `occupancy` is optional -- default None preserves the exact original
+    behaviour (no household-size adjustment). When supplied (2026-07-10,
+    Layer 2 dimension 4), the base+bill-shock probability is scaled by
+    OCCUPANCY_COMPLAINT_MULTIPLIER before the roll.
     """
     rng = random.Random(f"complaint_{customer_id}_{event_date}")
     probability = COMPLAINT_BASE_PROBABILITY + (
         BILL_SHOCK_COMPLAINT_PENALTY if bill_shock_occurred else 0.0
     )
+    if occupancy is not None:
+        probability *= OCCUPANCY_COMPLAINT_MULTIPLIER.get(occupancy, 1.0)
     if rng.random() >= probability:
         return ComplaintResolutionOutcome(customer_id, event_date, occurred=False)
 

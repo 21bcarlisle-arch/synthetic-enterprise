@@ -220,9 +220,10 @@
           <th>Satisfaction</th>
           <th>Fuel Poverty</th>
           <th>Housing Tenure</th>
+          <th>Occupancy</th>
           <th>Life Events</th>
         </tr></thead>
-        <tbody id="cust-tbody"><tr><td colspan="9" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
+        <tbody id="cust-tbody"><tr><td colspan="10" style="color:var(--muted);text-align:center;padding:20px">Loading...</td></tr></tbody>
       </table>
     </div>
     <div class="section-title">Income Stress Distribution Over Time</div>
@@ -661,11 +662,13 @@
       var fpCell = c.fuel_poverty == null ? '—' : (c.fuel_poverty ? '<span style="color:var(--red)">Yes</span>' : 'No');
       var _housingTenureLabel = {owner_occupier:'Owner-occupier', private_renter:'Private renter', social_renter:'Social renter'};
       var housingTenureCell = c.tenure ? (_housingTenureLabel[c.tenure] || c.tenure) : '—';
+      var _occupancyLabel = {one_person:'1 person', two_person:'2 people', three_to_four_person:'3-4 people', five_plus_person:'5+ people'};
+      var occupancyCell = c.occupancy ? (_occupancyLabel[c.occupancy] || c.occupancy) : '—';
       var detailId = 'cust-detail-' + idx;
       var stressVals = traj.map(function(pt) { return stressNum[(pt.stress||'low').toUpperCase()] != null ? stressNum[(pt.stress||'low').toUpperCase()] : 0; });
       var satVals = satTraj.map(function(pt) { return Number(pt.satisfaction_score); });
-      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="text-align:right;font-size:11px">'+housingTenureCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
-      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="9" style="background:var(--surface2);padding:14px 18px">'+
+      var mainRow = '<tr class="cust-row" style="cursor:pointer" onclick="toggleCustDetail(\''+detailId+'\')" title="Click to expand trajectory"><td style="font-family:monospace;font-size:11px">&#9656; '+id+'</td><td>'+seg+'</td><td style="text-align:right">'+tenure+'</td><td style="text-align:right;color:'+stCol+'">'+lastSt+'</td><td style="text-align:right;color:'+scCol+'">'+sc+'</td><td style="text-align:right">'+sat+'</td><td style="text-align:right">'+fpCell+'</td><td style="text-align:right;font-size:11px">'+housingTenureCell+'</td><td style="text-align:right;font-size:11px">'+occupancyCell+'</td><td style="font-size:11px;color:var(--muted)">'+evts+'</td></tr>';
+      var detailRow = '<tr id="'+detailId+'" style="display:none"><td colspan="10" style="background:var(--surface2);padding:14px 18px">'+
         '<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-end">'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Income Stress Trajectory</div>'+sparklineSvg(stressVals,'#d03b3b')+'</div>'+
         '<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Satisfaction Trajectory</div>'+sparklineSvg(satVals,'#1baf7a')+'</div>'+
@@ -1164,12 +1167,25 @@
   }
   function buildChart(monthly, overlayType) {
     overlayType = overlayType || 'none';
-    var labels=[], means=[], p95s=[], crisisVals=[];
+    var labels=[], means=[], p95s=[];
     for (var i = 0; i < monthly.length; i++) {
       var r = monthly[i];
       labels.push(r.month); means.push(r.mean); p95s.push(r.p95);
-      crisisVals.push(r.is_crisis ? 5000 : null);
     }
+    // Director feedback (2026-07-10, page comment on /sim/): "scales on the
+    // elec could be improved to enable more of the graph to be seen better."
+    // Root cause: the Crisis Zone shading used a fixed sentinel value (5000)
+    // on the same axis as real prices (which only ever reach a few hundred
+    // £/MWh) -- Chart.js auto-scales the axis to fit every dataset sharing
+    // it, so that one sentinel forced the whole axis to ~5000 and squashed
+    // the real price line into a thin band at the bottom. Fixed by deriving
+    // the axis ceiling from the real data (20% headroom above the highest
+    // P95 this chart actually has to show) and using THAT as the crisis-zone
+    // fill value instead of an arbitrary constant.
+    var maxP95 = 0;
+    for (var j = 0; j < p95s.length; j++) { if (p95s[j] != null && p95s[j] > maxP95) maxP95 = p95s[j]; }
+    var yCeiling = Math.ceil((maxP95 || 100) * 1.2 / 50) * 50;
+    var crisisVals = monthly.map(function(r) { return r.is_crisis ? yCeiling : null; });
     var datasets = [
       {label:'Crisis Zone', data:crisisVals, fill:'origin',
        backgroundColor:'rgba(208,59,59,0.13)', borderColor:'transparent',
@@ -1183,7 +1199,7 @@
     ];
     var scales = {
       x: {ticks:{color:'#52514e',maxTicksLimit:12,maxRotation:0}, grid:{color:'rgba(225,224,217,0.6)'}},
-      y: {min:0, ticks:{color:'#52514e', callback:function(v){return '£'+v;}},
+      y: {min:0, max:yCeiling, ticks:{color:'#52514e', callback:function(v){return '£'+v;}},
           grid:{color:'rgba(225,224,217,0.6)'}}
     };
     if (overlayType !== 'none') {

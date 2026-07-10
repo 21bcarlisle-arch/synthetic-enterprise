@@ -28,10 +28,17 @@ def _parse_phase_and_tests():
         if idx < 0:
             return "?", 0
         section = text[idx:]
+        # 2026-07-10: same class of bug as generate_dashboard_data.py's
+        # _derive_build_from_claude_md() (a third independent instance --
+        # confirmed while investigating why the Home page's phases/tests
+        # chart still looked stale after an earlier fix). This required
+        # the literal word "COMPLETE"; recent entries say "CLOSED"/"CLOSED
+        # IN FULL" instead, so it silently fell through to whatever older
+        # entry last said COMPLETE.
         for line in section.split("\n"):
-            if "COMPLETE" not in line:
+            if "COMPLETE" not in line and "CLOSED" not in line:
                 continue
-            m_ph = re.search(r"\*\*Phase (\w+) COMPLETE", line)
+            m_ph = re.search(r"\*\*Phase (\w+) (?:COMPLETE|CLOSED(?: IN FULL)?)", line)
             # Phase QP: entries since QL phrase this as "N collected" rather than
             # "(N total)" -- the strict "total"-only match silently fell through
             # to an older phase whenever a newer entry used the newer phrasing.

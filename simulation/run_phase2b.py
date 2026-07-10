@@ -1198,8 +1198,10 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 "nps_responded": _nps_result.responded,
                 "nps_score_0_10": _nps_result.score_0_10,
             })
+            from simulation.household_segments import occupancy_for_customer
             _complaint_outcome = dispatch_complaint_and_resolution(
                 billing_account, term_start_str, _bill_shock_this_term,
+                occupancy_for_customer(billing_account).value,
             )
             if _complaint_outcome.occurred:
                 _complaint_book.raise_complaint(
