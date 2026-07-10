@@ -58,24 +58,28 @@
 #   suppliers went bust in 2021-22, not hedged ones) -- backwards from expected shape,
 #   unexplained, seeded for Step 4 rather than root-caused now (recently-touched
 #   hedge-decision code, own sequenced turn).
-#   STEPS 3-6 (opex/cost-to-serve mechanism, hedge-tariff alignment,
-#   price-cap-binds mechanism, pressure-roadmap registration) -- NOT STARTED, explicitly sequenced
-#   AFTER step 1 closes per the advisor's own doc ("no mechanism work lands until percentages are
-#   computed on a trustworthy base"). Step 3 (opex) AMENDED by the director since first staged: do
-#   NOT charge a fictional incumbent staff cost (hides the AI-native cost-advantage thesis) but
-#   don't charge nothing either (unpriceable, too-easy game) -- split into (a) true third-party/
-#   industry costs charged fully and anchored (metering, DCC, payment processing, print/postage,
-#   debt-collection, Elexon/Xoserve charges), (b) AI-compute + director-oversight hours charged at
-#   TRUE metered cost from real usage logs, (c) a DUAL ledger -- the true (a+b) ledger alongside a
-#   benchmark-loaded ledger additionally carrying lower-quartile incumbent labour cost per segment
-#   (anchored to published accounts/Ofgem cost stacks) -- the gap between the two ledgers IS the
-#   investor thesis, quantified per year, belongs on the Supplier tab. R12's plausibility bands run
-#   against the BENCHMARK ledger (the like-for-like comparison), not the true one. Each remaining
-#   step is a substantial, separately-anchored build in its own right (opex needs real published
-#   supplier-accounts anchors; hedge-tariff alignment touches the same hedge-decision code the
-#   Tier 1 gate closed today; the price cap becoming binding is a
-#   baseline-fidelity change). Side-tagging rule (every commit: SIM-BASELINE/CURRICULUM/SUPPLIER/
-#   WALL/REPORTING) applies going forward on this whole programme.
+#   STEP 3 (opex/cost-to-serve mechanism) -- IN PROGRESS 2026-07-10. Split into (a) true
+#   third-party/industry costs charged fully and anchored (metering, DCC, payment
+#   processing, print/postage, debt-collection, Elexon/Xoserve charges) -- REAL-ANCHOR
+#   RESEARCH DISPATCHED (discovery-agent, appending to ASSUMPTIONS.md, non-blocking), (b)
+#   AI-compute + director-oversight hours at TRUE metered cost -- data-source check found
+#   a REAL GAP: background/token_proxy.py's usage log (docs/observability/token-usage-
+#   log.jsonl) only covers 2026-06-21 to 2026-06-25 (stopped 2+ weeks ago, ~$69.81 total --
+#   not representative) and never captured THIS interactive session at all (no
+#   ANTHROPIC_BASE_URL routing through it here) -- plus a genuine pricing-basis question
+#   the agent should not silently resolve: Anthropic list/metered $/token price vs the
+#   actual flat Max-20x subscription fee Rich pays (near-zero true marginal cost per extra
+#   token under a flat plan) -- and the director's own oversight-hours rate is his call,
+#   not a number to invent. (c) DUAL ledger (true vs benchmark-loaded with lower-quartile
+#   incumbent labour cost per segment) -- anchors also part of the dispatched research.
+#   NEXT: once research lands, build (a) into the mechanism now (well-anchored, no open
+#   design question); propose a clearly-flagged default for (b)'s pricing basis + a
+#   placeholder oversight rate (director can override) rather than blocking, per Tier 3.
+#   STEPS 4-6 (hedge-tariff alignment, price-cap-binds mechanism, pressure-roadmap
+#   registration) -- NOT STARTED, sequenced after Step 3 (hedge-tariff alignment touches
+#   the same hedge-decision code the Tier 1 gate closed this week; the price cap becoming
+#   binding is a baseline-fidelity change). Side-tagging rule (every commit:
+#   SIM-BASELINE/CURRICULUM/SUPPLIER/WALL/REPORTING) applies going forward.
 #   FOLLOW-UP found live via R11 (2026-07-10): the Step 1 code fix landed and passed tests but
 #   was NOT reflected in the deployed dashboard.json -- process_run_complete.py's change-detection
 #   fingerprint gate correctly treats "same underlying run figures" as skip-worthy, but has no
