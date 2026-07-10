@@ -1,5 +1,27 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-08 (CORE_FIDELITY_BEFORE_LOOPS.md reorientation, director-direct)
+# last director review: 2026-07-10 (MATURITY_MAP_CANONICAL.md ratification, advisor-staged/director-ratified)
+#
+# === MATURITY MAP v1.1 -- NOW THE GOVERNING FRAMEWORK, PARTIALLY INSTALLED (2026-07-10,
+#   docs/staging/MATURITY_MAP_CANONICAL.md + MATURITY_MAP_v1.1.md, director-ratified
+#   in-conversation with the advisor after two review rounds). "This IS the arc's territory --
+#   all future phases name the capability cell(s) they move." Canonical doc installed at
+#   docs/design/MATURITY_MAP.md (verbatim). NOT YET DONE, real remaining scope, each a
+#   substantial phase in its own right, deliberately not rushed in the same stretch as the
+#   install: (1) seed docs/design/maturity_map.yaml with ~60-120 capability atoms per the
+#   section-6 schema, decomposing all 12 lanes from real existing sources (DESTINATION_VISION,
+#   EPOCH2_EVIDENCE, CORE_FIDELITY phases, compliance programme, WALLED_INTERFACES sketch,
+#   this week's director decisions) -- honest level_current per atom, uncertain ones marked as
+#   such rather than guessed; (2) wire background/supervisor.py's self-refill to draw from the
+#   YAML's dials + loop_stage instead of the current PRIORITIES.md-backlog heuristic; (3) render
+#   the four views (function matrix / value-stream flow / campaign / activity) as toggles on the
+#   Project tab, replacing the epoch-storytelling section built earlier today (2026-07-10) per
+#   the map's own instruction ("replaces/absorbs... rather than duplicating it"); (4) adopt the
+#   map's section-9 operating rules into CLAUDE.md verbatim (cells move only at phase close with
+#   evidence past the loop; every staged phase names a capability id; silent simplification is an
+#   R10-class defect); (5) retro-tag current in-flight work (segments, hedge-fix aftermath,
+#   comments-box backlog) with capability ids; (6) start DISCOVER/FRAME for the two hot lanes
+#   (W1 Market & Weather, D Billing & Metering) per the map's section 8 dials -- background-lane
+#   research only, explicitly NOT epoch-2 BUILD work yet.
 #
 # === REGISTERED FOR NEXT P-5 RE-RANK, NOT STARTED (2026-07-08, docs/staging/BACKGROUND_LANE_AND_WALL.md
 #   Part C, advisor-staged/director-approved): WALLED_INTERFACES programme -- full enforcement of
