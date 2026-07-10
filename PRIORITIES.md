@@ -2,6 +2,25 @@
 # last director review: 2026-07-10 (from_rich_20260710_203008.md -- verifier gate closed, W1/D2
 #   bounded start approved, Routines environment click-path requested)
 #
+# === HARNESS_BEST_PRACTICE_ADOPTION.md items 2/3 addressed (2026-07-10, docs/design/
+#   HARNESS_ITEM2_ITEM3_FINDING.md), item 1 now fully complete unlocking item 2's own sequencing.
+#   Item 2: studied github.com/anthropics/cwc-long-running-agents for real (gh repo view, not
+#   guessed) before building, per the instruction's own requirement -- confirmed /goal is a real
+#   built-in but too generic for this project's specific, judgement-heavy phase-close bar; built
+#   `.claude/agents/phase-close-evaluator.md` instead, adapted from the repo's real evaluator.md
+#   pattern (no Write/Edit, skeptical, PASS/NEEDS_WORK verdict) with THIS project's own checklist
+#   + R1-R13 substituted in. HONEST LIMITATION FOUND, not glossed over: tried to invoke it twice
+#   (once directly, once via an independent fresh subagent's own agent-type listing) -- confirmed
+#   agent-type registration happens once at the Claude Code PROCESS's own start, not per-session/
+#   per-subagent-spawn, so a newly-added agent file only becomes invokable after that process
+#   restarts. NOT demonstrated working this session (R1: consumer-verified completion) -- next
+#   session should invoke it once for real before this is marked closed. Item 3: fallbackModel
+#   already done earlier session; session-cap/auto-compaction reviewed (no explicit setting
+#   needed -- background/session_watchdog.py's restart cycle already matches the cwc repo's own
+#   "Unattended loop" pattern); native parallel subagents already in real use this session (3 B2
+#   research forks), cited as precedent for the pending parallel-lanes proposal, not rebuilt.
+#
+#
 # === Epoch-2 core BOUNDED START (2026-07-10, director NTFY, from_rich_20260710_203008.md):
 #   "(3) W1/D2: bounded start approved now -- build the ordering-invariant foundations
 #   (bitemporal event log + as-of snapshot interface) and the W1/D charters; full campaign
