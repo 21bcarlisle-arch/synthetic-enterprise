@@ -535,3 +535,26 @@
 - [2026-07-09 23:15 UTC] Session busy -- skipping this cycle
 - [2026-07-09 23:17 UTC] Session busy -- skipping this cycle
 - [2026-07-09 23:20 UTC] Turn grant not delivered (busy/unconfirmed) -- retrying next cycle -- unprocessed staging -- run_complete_20260709T231051Z.md
+- [2026-07-09 23:22 UTC] Idle, no work -- skipping
+- [2026-07-09 23:24 UTC] Idle, no work -- skipping
+- [2026-07-09 23:26 UTC] Idle, no work -- skipping
+- [2026-07-09 23:28 UTC] Idle, no work -- skipping
+- [2026-07-09 23:30 UTC] Idle, no work -- skipping
+- [2026-07-09 23:32 UTC] Idle, no work -- skipping
+- [2026-07-09 23:34 UTC] Idle, no work -- skipping
+- [2026-07-09 23:36 UTC] Idle, no work -- skipping
+- [2026-07-09 23:38 UTC] Idle, no work -- skipping
+- [2026-07-09 23:40 UTC] Idle, no work -- skipping
+- [2026-07-09 23:42 UTC] Idle, no work -- skipping
+- [2026-07-09 23:44 UTC] Idle, no work -- skipping
+- [2026-07-09 23:46 UTC] Idle, no work -- skipping
+- [2026-07-09 23:48 UTC] Idle, no work -- skipping
+- [2026-07-09 23:50 UTC] Idle, no work -- skipping
+- [2026-07-09 23:52 UTC] Idle, no work -- skipping
+- [2026-07-09 23:54 UTC] Idle, no work -- skipping
+- [2026-07-09 23:56 UTC] Idle, no work -- skipping
+- [2026-07-09 23:58 UTC] Idle, no work -- skipping
+- [2026-07-10 00:00 UTC] Idle, no work -- skipping
+- [2026-07-10 00:02 UTC] Idle, no work -- skipping
+- [2026-07-10 00:04 UTC] Idle, no work -- skipping
+- [2026-07-10 00:06 UTC] Turn grant not delivered (busy/unconfirmed) -- retrying next cycle -- unprocessed staging -- run_complete_20260709T235730Z.md

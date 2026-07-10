@@ -1212,7 +1212,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,532 |
 | 2023 | 4 | 28 | 7.0 | £48,908 |
@@ -1408,17 +1408,17 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 |------|-----------------|-----------|-------|---------------|-----------|-------|
 | 2016 | 4.70% | 6% | OK | 30.8% | 8% | ! |
 | 2017 | 4.68% | 6% | OK | 28.6% | 8% | ! |
-| 2018 | 4.67% | 6% | OK | 33.3% | 8% | ! |
-| 2019 | 4.69% | 6% | OK | 23.5% | 8% | ! |
-| 2020 | 4.29% | 6% | OK | 10.5% | 8% | ~ |
-| 2021 | 4.82% | 8% | OK | 21.4% | 12% | ! |
-| 2022 | 5.63% | 8% | OK | 28.6% | 12% | ! |
+| 2018 | 4.67% | 6% | OK | 13.3% | 8% | ~ |
+| 2019 | 4.69% | 6% | OK | 17.6% | 8% | ! |
+| 2020 | 4.29% | 6% | OK | 5.3% | 8% | OK |
+| 2021 | 4.82% | 8% | OK | 14.3% | 12% | ~ |
+| 2022 | 5.63% | 8% | OK | 50.0% | 12% | ! |
 | 2023 | 4.85% | 8% | OK | 21.4% | 12% | ! |
-| 2024 | 4.64% | 6% | OK | 21.4% | 8% | ! |
-| 2025 | 6.01% | 6% | ~ | 9.1% | 8% | ~ |
+| 2024 | 4.64% | 6% | OK | 57.1% | 8% | ! |
+| 2025 | 6.01% | 6% | ~ | 27.3% | 8% | ! |
 
 **Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
-**Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
+**Arrears:** 1 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
 
 ## Plausibility vs Industry
 
@@ -1581,17 +1581,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (10 active customers) under 12-month forward scenarios.
-Generated: 2026-07-09T23:16:47Z
+Live portfolio (11 active customers) under 12-month forward scenarios.
+Generated: 2026-07-09T23:21:24Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-397,725 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£795,451 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,559,960 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-397,750 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£795,500 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,559,990 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
@@ -2053,7 +2053,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,230 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C7: 16 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2596,7 +2596,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Treasury at year end: £2,467,441.30
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
-  - 2016-01-01: treasury £2,466,636.22, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-01-01: treasury £2,466,636.22, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-01-31: treasury £2,466,649.42, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-01: treasury £2,466,662.69, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,676.15, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
