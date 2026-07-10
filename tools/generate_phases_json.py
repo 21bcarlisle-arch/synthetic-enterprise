@@ -146,6 +146,32 @@ def _parse_build_history(text):
     return [(pid, date, tc) for pid, date, tc, _title, _body in _iter_phase_entries(text)]
 
 
+def _monotonic_test_progression(chronological):
+    """Build [date, test_count] pairs from oldest-first (phase_id, date, tc, ...)
+    entries, refusing any candidate below the running max seen so far.
+
+    Not every phase entry restates the true running full-suite total -- some
+    (this session's own segmented-financials entry, e.g.) report a partial,
+    test-file-scoped count ("221 tests passing across the two touched test
+    files") with no full-suite figure anywhere in that entry's own body.
+    _extract_test_count() has no way to know a matched number is scoped
+    rather than authoritative, so it was accepted verbatim (2026-07-10) --
+    producing a nonsensical single-day crash from 16,358 to 221 on the live
+    Home page chart, a real director-reported regression. The real suite only
+    grows over a project's history; refusing any candidate below the running
+    max (rather than trying to solve "which phrasing is authoritative") fixes
+    this class of bug directly, matching the same cumulative-running-max
+    principle already applied to phase_dates on the client side.
+    """
+    tp_by_date = {}
+    running_max_tc = 0
+    for _phase_id, date, tc, _title, _body in chronological:
+        if tc is not None and tc >= running_max_tc:
+            tp_by_date[date] = tc
+            running_max_tc = tc
+    return [[d, tp_by_date[d]] for d in sorted(tp_by_date)]
+
+
 def _build_timeline(chronological):
     """Build the Project-tab timeline (phase + discovery rows) from oldest-first entries.
 
@@ -191,13 +217,7 @@ def generate():
     for i, (_phase_id, date, _tc, _title, _body) in enumerate(chronological):
         phase_dates.append([date, i])
 
-    tp_by_date = {}
-    for _phase_id, date, tc, _title, _body in chronological:
-        if tc is not None:
-            tp_by_date[date] = tc
-    test_progression = []
-    for d in sorted(tp_by_date):
-        test_progression.append([d, tp_by_date[d]])
+    test_progression = _monotonic_test_progression(chronological)
 
     latest_phase, _test_count = _parse_phase_and_tests()
     timeline = _build_timeline(chronological)

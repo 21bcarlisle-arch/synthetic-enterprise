@@ -7,7 +7,7 @@ phases on, PROJECT_TAB_OVERHAUL.md critique). These tests exercise the
 Section-4 header parser and the date-dedup/sort behaviour that fixes the
 Project tab's duplicate-x-axis-label chart bug.
 """
-from tools.generate_phases_json import _parse_build_history, _extract_test_count, _total_commits
+from tools.generate_phases_json import _parse_build_history, _extract_test_count, _total_commits, _monotonic_test_progression
 
 
 def test_parses_phase_id_and_date_from_header():
@@ -81,6 +81,61 @@ def test_extract_test_count_returns_none_when_unparseable():
 
 def test_extract_test_count_handles_tests_passing_phrasing():
     assert _extract_test_count("182 tests passing in the suite") == 182
+
+
+# --- _monotonic_test_progression (2026-07-10, real director-reported chart
+# regression: a phase entry's partial/scoped "N tests passing" count got
+# accepted as the running total, crashing the Home page chart from 16,358 to
+# 221 on a single day) ---
+
+def _entry(phase_id, date, tc):
+    return (phase_id, date, tc, "title", "body")
+
+
+def test_monotonic_test_progression_basic_increase():
+    chrono = [_entry("A", "2026-01-01", 100), _entry("B", "2026-01-02", 150)]
+    assert _monotonic_test_progression(chrono) == [["2026-01-01", 100], ["2026-01-02", 150]]
+
+
+def test_monotonic_test_progression_rejects_a_lower_partial_count():
+    """The exact regression: a later entry reports a small scoped count
+    ("221 tests passing across two touched files") -- must not overwrite the
+    running total with a lower number."""
+    chrono = [
+        _entry("A", "2026-07-09", 16358),
+        _entry("B", "2026-07-10", 221),
+    ]
+    result = _monotonic_test_progression(chrono)
+    assert result == [["2026-07-09", 16358]]
+
+
+def test_monotonic_test_progression_accepts_equal_or_higher_same_day():
+    chrono = [
+        _entry("A", "2026-07-10", 100),
+        _entry("B", "2026-07-10", 200),
+    ]
+    assert _monotonic_test_progression(chrono) == [["2026-07-10", 200]]
+
+
+def test_monotonic_test_progression_skips_none_counts():
+    chrono = [_entry("A", "2026-01-01", 100), _entry("B", "2026-01-02", None)]
+    assert _monotonic_test_progression(chrono) == [["2026-01-01", 100]]
+
+
+def test_monotonic_test_progression_empty_input():
+    assert _monotonic_test_progression([]) == []
+
+
+def test_monotonic_test_progression_a_real_valid_later_higher_count_still_lands():
+    """After a rejected lower/partial count, a genuine subsequent higher
+    total must still be accepted (the filter isn't a one-way lockout)."""
+    chrono = [
+        _entry("A", "2026-07-09", 16358),
+        _entry("B", "2026-07-10", 221),
+        _entry("C", "2026-07-11", 16500),
+    ]
+    result = _monotonic_test_progression(chrono)
+    assert result == [["2026-07-09", 16358], ["2026-07-11", 16500]]
 
 
 def test_total_commits_returns_positive_int_from_real_repo():
