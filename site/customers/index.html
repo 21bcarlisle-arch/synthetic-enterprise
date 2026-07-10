@@ -141,6 +141,35 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 <script>
 var HH={elec:null,gas:null,base:null};
 var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null,EXPANDED_BILL_ID=null,BILL_VIEW="bills",CASH_SCOPE="combined";
+var CUSTOMER_GROUPS=null; // lazy-fetched ordered list of household ids, for prev/next cycling
+function fetchCustomerGroups(){
+  if(CUSTOMER_GROUPS)return Promise.resolve(CUSTOMER_GROUPS);
+  return fetch("../data/customers.json").then(function(r){return r.json();}).then(function(d){
+    CUSTOMER_GROUPS=(d.customers||[]).map(function(c){
+      var legs=c.legs||{};
+      var loginId=(legs.electricity&&legs.electricity.cid)||(legs.gas&&legs.gas.cid)||c.customer_group;
+      return {group:c.customer_group,loginId:loginId};
+    });
+    return CUSTOMER_GROUPS;
+  }).catch(function(){return [];});
+}
+function cycleCustomer(dir){
+  fetchCustomerGroups().then(function(groups){
+    if(!groups.length)return;
+    var idx=groups.findIndex(function(g){return g.group===HH.base;});
+    if(idx<0)idx=0;
+    var next=groups[(idx+dir+groups.length)%groups.length];
+    var params=new URLSearchParams(location.search);
+    params.set("acc",next.loginId);
+    params.delete("year");
+    history.replaceState(null,"","?"+params.toString());
+    loadHousehold(next.loginId).then(function(){
+      ACTIVE_TAB="overview";BILL_FUEL=HH.elec?"elec":"gas";CONS_FUEL=BILL_FUEL;ROLLUP_OPEN=false;
+      BILL_VIEW="bills";CASH_SCOPE=(HH.elec&&HH.gas)?"combined":BILL_FUEL;
+      renderHousehold();
+    });
+  });
+}
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function pct(v){return(v*100).toFixed(0)+"%";}
 function nc(v){return v>=0?"green":"red";}
@@ -309,7 +338,10 @@ function renderHousehold(){
     "<div class=\"account-header\"><div>"+
     "<div class=\"account-id\">"+esc(HH.base)+"<span class=\"hh-label\">"+(segmentInfo()[1]==="Residential"?"Household":"Business")+"</span></div>"+
     "<div class=\"account-meta\">"+fuelBadges()+"</div>"+
-    "</div><button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div>"+
+    "</div><div style=\"display:flex;gap:8px;align-items:center\">"+
+    "<button class=\"logout-btn\" onclick=\"cycleCustomer(-1)\" title=\"Previous customer\">&larr;</button>"+
+    "<button class=\"logout-btn\" onclick=\"cycleCustomer(1)\" title=\"Next customer\">&rarr;</button>"+
+    "<button class=\"logout-btn\" onclick=\"doLogout()\">Sign out</button></div></div>"+
     "<div class=\"tab-nav\">"+tabsHtml+"</div>"+
     "<div id=\"tab-body\"></div>"+
     "</div>";
@@ -917,7 +949,17 @@ function renderUsage(d){
       "<div><div class=\"load-shape-cell-label\">Seasonal shape (avg daily profile)</div><canvas id=\"usage-season-chart\" height=\"180\"></canvas></div>"+
       "</div></div>";
   }else{
-    html+="<div class=\"sec-title\">Load Shape</div><div class=\"card\"><div class=\"no-inv\">Half-hourly data not available for this account — monthly totals only.</div></div>";
+    // Director page comment (2026-07-10): "C2 is smart meter, but no smart
+    // data and shape" -- a real distinction that wasn't explained anywhere:
+    // having a smart meter installed and opting into half-hourly data
+    // sharing with the supplier are two different things in the real UK
+    // market (most domestic customers with a smart meter never enable HH
+    // sharing) -- see tools/generate_customer_consumption.py's own module
+    // docstring. Not a bug; the UI just didn't say so.
+    var _smartNote=(d.meter_type&&d.meter_type.toLowerCase().indexOf("smart")>=0)
+      ?" This account has a smart meter installed, but half-hourly data sharing with the supplier is a separate opt-in most domestic customers with a smart meter never enable — matching the real UK market."
+      :"";
+    html+="<div class=\"sec-title\">Load Shape</div><div class=\"card\"><div class=\"no-inv\">Half-hourly data not available for this account — monthly totals only."+_smartNote+"</div></div>";
   }
   section.innerHTML=html;
   window.ACC_CONS=cons;

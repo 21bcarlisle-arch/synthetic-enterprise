@@ -31,6 +31,26 @@ Every category below, and every Poesys module it maps to, sorts into exactly one
   data. These become epistemic-boundary adapters at go-live, the same pattern as the swappable
   market-feed adapter (Phase PV, `tools/market_data_port.py`).
 
+## What this map does NOT claim (2026-07-10, director page comment: "we are over claiming here")
+
+Director feedback, correctly: listing real market leaders (Kraken, Gentrack, Brady, NetSuite --
+production systems each serving real customers at real scale, hardened through real incidents,
+real regulatory audits, real security certification, real SLAs) in the same row as a Poesys
+module is easy to misread as a claim of *parity*. It is not one, and this map should say so
+plainly rather than let the reader infer it:
+
+- **Bucket B ("recreated") means the same architectural FUNCTION exists as real, working code**
+  -- a `company/billing/` invoice run genuinely executes; it does not mean that code has the
+  production depth, edge-case coverage, scale-testing, security hardening, or multi-tenant
+  reliability of a system that has run millions of real customer accounts for years.
+- The "no vendor does both retail and trading in one codebase" observation is an architectural
+  fact about how this project is structured, not a claim that this project's trading or retail
+  depth individually matches a vendor that specializes in only one.
+- Where the real gap is is precisely the point, not something to obscure: it IS the roadmap.
+  Every Bucket-B row above is honestly a "this pattern works, now go deepen it" item, not a
+  "solved" one -- see PRIORITIES.md and CORE_FIDELITY_BEFORE_LOOPS.md for what deepening is
+  actually queued next.
+
 ## Category landscape
 
 | Category | Market leaders | Poesys mapping | Bucket |
