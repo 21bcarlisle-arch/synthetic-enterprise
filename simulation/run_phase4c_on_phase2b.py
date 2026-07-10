@@ -79,6 +79,12 @@ def _billing_month(settlement_date: str) -> str:
     return settlement_date[:7]
 
 
+def _year_ago_month(month: str) -> str:
+    """'YYYY-MM' -> the same calendar month one year earlier."""
+    yr, mo = month.split("-")
+    return f"{int(yr) - 1}-{mo}"
+
+
 def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     """Group `all_records` (from `simulation.settlement.run_settlement`) into
     one bill per customer per calendar month, in chronological order, via
@@ -87,6 +93,20 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     Each customer's bills carry `previous_bill_total_gbp` from their own
     prior month, enabling the bill-shock clarity penalty. `contract_type` is
     looked up per customer from `saas.customers.CUSTOMERS`.
+
+    Director-flagged 2026-07-10 (docs/design/BILL_SHOCK_DEFINITION_FINDING.md):
+    the existing `bill_shock_pct` (month-N vs month-N-1) conflates normal
+    seasonal consumption swings with a genuine surprise -- a resi customer's
+    real December bill vs November bill is an expected jump, not a shock.
+    Adds an ADDITIVE (not replacing) `bill_shock_yoy_pct`: the same bill
+    compared against the SAME CALENDAR MONTH a year earlier, which nets out
+    seasonality by construction (comparing like-for-like months). Also adds
+    `bill_shock_likely_seasonal`: True when the raw month-on-month shock is
+    large but the year-over-year comparison for the same month is small --
+    a real, reasoned diagnostic signal (not a full redesign; contract-end
+    SVT-reversion and DD-recalculation event detection remain a separate,
+    bigger piece of work needing new SIM state, registered in PRIORITIES.md,
+    not built here).
     """
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
     for record in all_records:
@@ -108,6 +128,28 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
             )
             bills.append(bill)
             previous_bill_total_gbp = bill["total_amount_gbp"]
+
+    # Additive year-over-year comparison (see docstring above) -- a second
+    # pass since it needs every bill for a customer already generated to
+    # look back a full year, not just the immediately-prior one.
+    totals_by_customer_month: dict[str, dict[str, float]] = {}
+    for bill in bills:
+        month = _billing_month(bill["period_end"])
+        totals_by_customer_month.setdefault(bill["customer_id"], {})[month] = bill["total_amount_gbp"]
+
+    for bill in bills:
+        month = _billing_month(bill["period_end"])
+        year_ago_total = totals_by_customer_month.get(bill["customer_id"], {}).get(_year_ago_month(month))
+        if year_ago_total is None or year_ago_total == 0:
+            bill["bill_shock_yoy_pct"] = None
+            bill["bill_shock_likely_seasonal"] = False
+            continue
+        yoy_pct = abs(bill["total_amount_gbp"] - year_ago_total) / year_ago_total
+        bill["bill_shock_yoy_pct"] = yoy_pct
+        mom_pct = bill.get("bill_shock_pct")
+        bill["bill_shock_likely_seasonal"] = bool(
+            mom_pct is not None and mom_pct >= 0.20 and yoy_pct < 0.20
+        )
 
     return bills
 

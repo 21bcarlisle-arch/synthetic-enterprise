@@ -1,9 +1,10 @@
 """Tests for the PreToolUse lifecycle hooks in .claude/hooks/.
 
-HARNESS_BEST_PRACTICE_ADOPTION.md item 1: sudo ban (1b) and the
-unevidenced-claim pixel rule (1c). Each hook is a standalone script reading
-a Claude Code PreToolUse JSON payload on stdin and signalling block via
-exit code 2 (per the verified real hooks schema, docs/design/
+HARNESS_BEST_PRACTICE_ADOPTION.md item 1: sudo ban (1b), the unevidenced-
+claim pixel rule (1c), and the point-in-time-read flag (1a, director-
+authorized 2026-07-10). Each hook is a standalone script reading a Claude
+Code PreToolUse JSON payload on stdin and signalling block via exit code 2
+(per the verified real hooks schema, docs/design/
 HARNESS_BEST_PRACTICE_ASSESSMENT.md).
 """
 import json
@@ -17,6 +18,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BLOCK_SUDO = REPO_ROOT / ".claude" / "hooks" / "block_sudo.py"
 BLOCK_CLAIM = REPO_ROOT / ".claude" / "hooks" / "block_unevidenced_claim.py"
+BLOCK_PIT_READ = REPO_ROOT / ".claude" / "hooks" / "block_point_in_time_read.py"
 MARKER = REPO_ROOT / "docs" / "observability" / ".last_live_verification"
 
 
@@ -121,4 +123,89 @@ class TestBlockUnevidencedClaim:
             "fixed/live/deployed/confirmed/verified unless evidence exists'"
         )
         result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}})
+        assert result.returncode == 0
+
+
+class TestBlockPointInTimeRead:
+    def test_flags_all_records_in_company_file_without_as_of_bound(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "company/finance/example.py",
+                "content": "def compute(all_records):\n    return sum(r['revenue_gbp'] for r in all_records)\n",
+            },
+        })
+        assert result.returncode == 2
+        assert "hedge-volatility bug" in result.stderr
+
+    def test_flags_run_settlement_call_in_saas_file(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Edit",
+            "tool_input": {
+                "file_path": "saas/reporting/example.py",
+                "old_string": "pass",
+                "new_string": "records = run_settlement(start, end)\n",
+            },
+        })
+        assert result.returncode == 2
+
+    def test_allows_when_as_of_bound_present(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "company/finance/example.py",
+                "content": (
+                    "def compute(all_records, as_of_date):\n"
+                    "    bounded = bisect_slice(all_records, as_of_date)\n"
+                    "    return sum(r['revenue_gbp'] for r in bounded)\n"
+                ),
+            },
+        })
+        assert result.returncode == 0
+
+    def test_allows_when_bisect_evidence_present(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "company/finance/example.py",
+                "content": "records = bisect.bisect_right(all_records, cutoff)\n",
+            },
+        })
+        assert result.returncode == 0
+
+    def test_ignores_files_outside_company_saas(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "simulation/run_phase2b.py",
+                "content": "def compute(all_records):\n    return sum(r['revenue_gbp'] for r in all_records)\n",
+            },
+        })
+        assert result.returncode == 0
+
+    def test_ignores_non_edit_write_tool(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Bash",
+            "tool_input": {"command": "cat company/finance/example.py"},
+        })
+        assert result.returncode == 0
+
+    def test_ignores_content_without_dangerous_pattern(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "company/finance/example.py",
+                "content": "def compute(bills):\n    return sum(b['total_amount_gbp'] for b in bills)\n",
+            },
+        })
+        assert result.returncode == 0
+
+    def test_ignores_malformed_json(self):
+        result = subprocess.run(
+            [sys.executable, str(BLOCK_PIT_READ)],
+            input="not json",
+            capture_output=True,
+            text=True,
+            cwd=REPO_ROOT,
+        )
         assert result.returncode == 0

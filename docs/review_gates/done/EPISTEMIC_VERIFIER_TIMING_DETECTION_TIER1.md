@@ -1,8 +1,24 @@
 # REVIEW GATE (Tier 1 — safety-control modification): build real timing/data-flow detection into the epistemic verifier
 
-**Status:** OPEN — awaiting director decision. Filed 2026-07-10, from a self-audit of the
+**Status:** CLOSED — director decision received 2026-07-10 (NTFY, correlated with
+`docs/staging/done/from_rich_20260710_203008.md`): *"Verifier gate: B/C confirmed — register +
+doc-fix, no build; the PreToolUse hook (adoption sprint) is the near-term detector, the as-of
+snapshot object the permanent fix. Close the gate."* Filed 2026-07-10, from a self-audit of the
 W4_2_verifier_timing_extension maturity-map atom (its own claim turned out to be false — see
-below). Research/correction only — no code touched in `tools/epistemic_verifier.py`.
+below). Research/correction only — no code touched in `tools/epistemic_verifier.py`, per the
+decision.
+
+**Resolution:** Option B/C confirmed — `tools/epistemic_verifier.py` itself is NOT modified; no
+new static/AST timing-detection logic is built into it. The documentation correction (this
+gate's own finding, W4_2's level corrected down, CLAUDE.md's Tier 1 policy text already
+broadened) stands as the resolution, per this gate's own "What happens on approval" section.
+Two REAL, SEPARATE mechanisms now carry the practical detection/prevention burden instead of a
+modified epistemic verifier: (1) near-term — `.claude/hooks/block_point_in_time_read.py` (built
+same session, HARNESS_BEST_PRACTICE_ADOPTION.md item 1a, now explicitly director-authorized —
+this is a NEW hook, not a change to `tools/epistemic_verifier.py`, so it does not itself require
+reopening this gate); (2) permanent fix — the point-in-time snapshot/as-of interface object
+(`docs/review_gates/done/POINT_IN_TIME_SNAPSHOT_TIER1.md`, now beginning its bounded build as
+part of the W1/D2 Epoch-2 foundations, same director message).
 
 ## Why this is Tier 1
 

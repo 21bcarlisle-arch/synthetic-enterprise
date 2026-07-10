@@ -1,5 +1,46 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md director numbers, NTFY)
+# last director review: 2026-07-10 (from_rich_20260710_203008.md -- verifier gate closed, W1/D2
+#   bounded start approved, Routines environment click-path requested)
+#
+# === Epoch-2 core BOUNDED START (2026-07-10, director NTFY, from_rich_20260710_203008.md):
+#   "(3) W1/D2: bounded start approved now -- build the ordering-invariant foundations
+#   (bitemporal event log + as-of snapshot interface) and the W1/D charters; full campaign
+#   sequencing arrives via the advisor's epoch framing this weekend." Built: company/interfaces/
+#   bitemporal_event_log.py (BitemporalEventLog -- real dual-axis valid_time/transaction_time
+#   semantics, i.e. "what did we know as of decision_time D", the Martin-Fowler-cited
+#   "bitemporal history" pattern already externally researched this session, 17 tests) +
+#   company/interfaces/point_in_time_view.py (PointInTimeView -- constructed once per decision,
+#   wraps the existing MarketDataPort adapter for price/forward + the bitemporal log for
+#   settlement-restatement-sensitive facts, structurally preventing the "forgot to bound this
+#   read" bug class rather than relying on a per-caller-remembered patch, 12 tests). Both scoped
+#   exactly to the closed POINT_IN_TIME_SNAPSHOT_TIER1.md gate's own Option A sizing. Lane
+#   charters written (docs/design/charters/W1_market_weather.md, D_billing_metering.md) --
+#   mission/sub-capability-tree/L2-L4 definitions/roadmap/simplifications register per
+#   MATURITY_MAP.md's own format, both dials at 4/hot. W1_reveal_over_time bumped level 0->1
+#   (real code now exists, proven correct in isolation); D2_three_clocks stays at level 0/idle
+#   (its own charter honestly registers thinking, not reconciliation code -- that still awaits
+#   the advisor's epoch framing naming its turn, per the director's own instruction). NOT done:
+#   no existing call site (estimate_price_volatility() etc.) has migrated onto PointInTimeView
+#   yet -- object built + tested, migration is next, sequencing per the advisor.
+#
+# === Epistemic-verifier Tier 1 gate CLOSED (2026-07-10, same director NTFY): "(1) Verifier gate:
+#   B/C confirmed -- register + doc-fix, no build; the PreToolUse hook (adoption sprint) is the
+#   near-term detector, the as-of snapshot object the permanent fix. Close the gate." tools/
+#   epistemic_verifier.py itself NOT modified, per the decision. Two separate, real mechanisms
+#   now carry the practical burden instead: near-term detector .claude/hooks/
+#   block_point_in_time_read.py (HARNESS_BEST_PRACTICE_ADOPTION.md item 1a, now built -- flags
+#   new company/saas code referencing a full historical dataset (run_settlement(.../all_records)
+#   with no as_of/bisect bounding evidence in the same change; a soft warning not a hard block,
+#   deliberately, given the real false-positive risk this exact heuristic class carries; 8 new
+#   tests) + the permanent fix, the W1/D2 spine above. Gate moved to docs/review_gates/done/.
+#
+# === Routines environment click-path relayed (2026-07-10, same director NTFY): director will
+#   create the cloud environment himself and send the environment_id once he has it. Real
+#   click-path found (claude-code-guide agent, cited docs): claude.ai/code -> cloud icon -> Add
+#   environment -> name + network access level + optional env vars/setup script -> Create. Open
+#   gap flagged to him: the web UI shows the environment by NAME only, no raw environment_id
+#   visible anywhere -- RemoteTrigger's create call may need to resolve by name instead; to be
+#   tested once he has a real environment to try against, not guessed at now.
 #
 # === Backlog: bill-shock definition needs a real redesign (2026-07-10, director page comment,
 #   docs/design/BILL_SHOCK_DEFINITION_FINDING.md). Confirmed by checking, not assumed: the
@@ -212,10 +253,11 @@
 #   "## Backlog" heading (re.search with re.MULTILINE) instead of a raw substring find, which
 #   had been locking onto a prose mention of the heading name earlier in this very file. 2 new
 #   tests, 454/454 background tests pass, 16,542 tests collected (full suite), epistemic PASS.
-#   NEXT real self-refill work requires either: the one open Tier 1 gate being decided
-#   (EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md -- corrected 2026-07-10, this line previously
-#   said "two", stale since POINT_IN_TIME_SNAPSHOT_TIER1.md closed), the epoch sequencing naming
-#   W1/D2's turn, or B2's two open cost-basis questions being answered.
+#   NEXT real self-refill work (stale, 2026-07-10 update): both Tier 1 gates named in this entry
+#   are now CLOSED (EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md closed same day, B/C decision --
+#   see top-of-file entry) and the epoch sequencing HAS now partially named W1/D2's turn (bounded
+#   start approved, see top-of-file entry) -- only B2's AI-compute cost-basis questions remain
+#   genuinely open from this list.
 #
 # === E1 CORPORATION TAX -- BUILT 2026-07-10 (eighteenth dial-weighted draw,
 #   docs/design/E1_CORPORATION_TAX_FINDING.md): balance_sheet() genuinely balances for every real
