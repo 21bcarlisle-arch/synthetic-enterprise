@@ -52,8 +52,8 @@
   level_target: 2
   loop_stage: frame
   dial_inherited: 4
-  evidence: []
-  simplifications: []
+  evidence: ["docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md"]
+  simplifications: ["2026-07-10: real evidence feeding this atom found while tracing E2's two-pipelines root cause -- saas/bill_generator.py bills non-commodity cost via a single blended £/MWh rate (saas/non_commodity.py) while simulation/hedged_settlement.py computes the same real-world cost per-levy, per-settlement-period (RO/CfD/CCL/CM/FiT + DUoS/TNUoS individually). The resulting gap between what's billed and what's settled is bidirectional/non-monotonic across years (+27.7% to -25.3%), consistent with a genuine volume/timing mismatch this atom's own scope names, not a simple missing-component bug -- this is the concrete first reconciliation target when this atom is built."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "settlement timetable D+1/D+... true-up cycle"
   depends_on: [W1_reveal_over_time]
@@ -213,12 +213,12 @@
   lane: E_finance_treasury
   value_stream: close_to_learn
   epoch: 1
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: frame
   dial_inherited: 3
   evidence: ["docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md", "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md"]
-  simplifications: ["2026-07-10 audit: fra_ratio_series was already correct (my prior note was an unverified assumption, corrected); generate_insights.py had a real live instance of the Step 1 bug, fixed. Deeper finding: years[].net_gbp and management_accounts income_statement.net_margin_gbp are two structurally different net-margin formulas (not just different revenue denominators) -- unresolved, real next step, not silently picked a side on."]
+  simplifications: ["2026-07-10 audit: fra_ratio_series was already correct (my prior note was an unverified assumption, corrected); generate_insights.py had a real live instance of the Step 1 bug, fixed. ROOT CAUSE TRACED (third draw, not deferred again): the years[]/ledger net-margin divergence traces to saas/bill_generator.py billing non-commodity cost via a single blended rate (saas/non_commodity.py) while simulation/hedged_settlement.py computes the same cost per-levy/per-period -- two independently-built, never-reconciled models, bidirectional/non-monotonic gap consistent with a real volume/timing mismatch, not a bug in either. Full numerical reconciliation re-scoped to D2_three_clocks (its natural home) rather than resolved here -- E2's OWN scope (gauge/legibility) is now closed on its own terms."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "one true revenue line, used consistently across FP&A and statutory reporting"
   depends_on: []

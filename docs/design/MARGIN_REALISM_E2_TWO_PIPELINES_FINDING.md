@@ -1,9 +1,10 @@
 # E2 (revenue reconciliation) finding: two independent P&L pipelines disagree, deeper than Step 1 fixed
 
-**Status:** REAL FINDING, NOT YET RESOLVED. Filed while working the maturity-map atom
-`E2_revenue_reconciliation` (self-refill draw, 2026-07-10). One safe, well-understood fix
-shipped alongside this doc (`tools/generate_insights.py`); the deeper issue below is
-flagged, not silently picked a side on, per R4/R12.
+**Status:** ROOT CAUSE TRACED (2026-07-10, third self-refill draw on this atom). The
+mechanism generating the divergence is now understood (see "Root cause traced" section
+below) -- full numerical reconciliation is NOT built, correctly re-scoped to the separate
+`D2_three_clocks` maturity-map atom rather than resolved here. One safe, well-understood
+fix already shipped in an earlier commit (`tools/generate_insights.py`).
 
 ## What was being checked
 
@@ -97,3 +98,58 @@ terms, but now known to be paired with the SMALLER of the two available net-marg
 numerators. Whichever pipeline turns out to be the structurally correct one, the Financial
 tab's number may need a second pass once this is resolved. Not restated here as broken --
 just no longer assumed closed.
+
+## Root cause traced (2026-07-10, third self-refill draw on this atom -- not deferred again)
+
+Traced `saas/ledger.py`'s `non_commodity_cost_event` emission per the "NEXT" step above.
+**Found the actual mechanism, not just another symptom:**
+
+`make_non_commodity_cost_event(bill)` (`saas/ledger.py`) uses `bill["non_commodity_amount_gbp"]`,
+which `saas/bill_generator.py` computes as `total_consumption_kwh / 1000 *
+non_commodity_rate(commodity, segment, year)` -- a SINGLE BLENDED £/MWh rate per commodity/
+segment/year from `saas/non_commodity.py` (Phase 9a/78; e.g. electricity resi 2016 = £52.0/MWh,
+described as bundling "DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM, Smart Metering" into one number).
+
+The settlement layer computes the SAME real-world cost category completely independently and
+far more granularly: `simulation/hedged_settlement.py`'s `net_margin_gbp = margin_gbp -
+policy_cost_gbp - network_cost_gbp - capital_cost_gbp`, where `policy_cost_gbp = ro_levy_gbp +
+cfd_levy_gbp + ccl_gbp + cm_levy_gbp + fit_levy_gbp` (each levy individually modelled and
+year-indexed -- Phases 21a/27b/30a/31a) and `network_cost_gbp` = DUoS + TNUoS computed per
+settlement period. This feeds `years[yr].policy_cost_gbp`/`network_cost_gbp` via
+`saas/reporting/annual_report.py` summing settlement records.
+
+**These are two independently-built, never-reconciled models of the same real-world cost
+category**, built at different points in this project's history as fidelity matured (the
+billing layer's single blended rate predates the settlement layer's later, itemised
+per-levy modelling) -- nobody wired the more granular settlement-level computation back
+into the bill generator, or vice versa.
+
+**Confirms via the wholesale-cost cross-check:** `wholesale_cost_gbp` in the ledger's
+income_statement (£3,594.97, 2016) matches `years[]`'s implied wholesale cost almost
+exactly (`years[].revenue_gbp` £10,417.15 minus `years[].gross_gbp` £6,822.19 ≈ £3,594.96) --
+the wholesale/commodity side of both pipelines IS consistent. The entire gross-level
+divergence (£1,052.1 for 2016) traces cleanly to the non-commodity side only, exactly as
+this root cause predicts.
+
+**The gap is bidirectional, not one-directional** (settlement-vs-ledger non-commodity gap:
++27.7% in 2016, -25.3% in 2017, -3.2% in 2018, +4.4%/+4.5%/+0.3% in 2019-21, -14.9%/-9.7%
+in 2022-23, +10.1%/+34.5% in 2024-25 -- real figures, `docs/reports/run_output_latest.json`).
+A one-directional gap would suggest a missing/double-counted component; this bidirectional,
+non-monotonic pattern is more consistent with a genuine VOLUME/TIMING mismatch between when
+energy is physically consumed+settled vs when it is billed (estimated reads, billing-period
+boundaries not aligning with settlement dates, rate changes landing mid-cycle) -- i.e. the
+same real-world phenomenon the separate `D2_three_clocks` maturity-map atom already names
+("physical/financial/regulatory settlement clocks reconciled per bill") as a not-yet-built
+capability, rather than a simple missing-component bug in either pipeline.
+
+**Recommendation, not built here:** this should NOT be resolved by picking one pipeline as
+authoritative and discarding the other -- the settlement layer's granular levy modelling is
+real cost-category fidelity worth keeping, and the bill is what customers are actually
+charged (real cash, correctly ledger-recognised). A real supplier's finance team maintains a
+billing-to-settlement RECONCILIATION explaining variance drivers (volume true-up,
+estimated-vs-actual reads, rate-change timing) rather than treating either figure as simply
+wrong. This is exactly `D2_three_clocks`'s scope (level 0->2, dial=4 hot lane) -- this
+finding is registered as evidence feeding that atom's eventual build, not resolved within
+E2/B1's own scope. E2/B1 are correctly re-classified: their own gauge/legibility questions
+(Step 1's denominator fix, the two adjacent report sections) are closed on their own terms;
+full numerical reconciliation depends on D2's own future build.

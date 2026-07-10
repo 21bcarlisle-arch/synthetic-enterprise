@@ -11,28 +11,32 @@
 #   NTFY via run_insights.json, uncaught by the dashboard's consistency gate (which only
 #   checks absolute £ fields, never a %). Fixed: sums management_accounts' real total
 #   revenue across years as the denominator. 1 new test, epistemic PASS.
-#   DEEPER FINDING, NOT FIXED, flagged not silently resolved: years[yr].net_gbp (feeds the
-#   Financial tab) and management_accounts[yr].income_statement.net_margin_gbp (the real
-#   double-entry ledger P&L) are two STRUCTURALLY DIFFERENT net-margin formulas, not just
-#   different revenue denominators -- e.g. 2016: 1,278 vs 6,477 (>5x). Gross margin only
-#   diverges slightly; net diverges enormously because the two pipelines disagree on how
-#   policy/network pass-through costs interact with margin (years[] subtracts them as a
-#   separate post-gross deduction; the ledger nets a different, smaller non_commodity_cost
-#   figure INTO gross and never deducts it again). NEXT: trace saas/ledger.py's event-
-#   emission call sites to determine whether non_commodity_cost_event fires for the true
-#   recovered network/policy cost 1:1 against years[].policy_cost_gbp/network_cost_gbp, or
-#   is a partial/mistimed subset -- before picking either pipeline as authoritative.
-#   IMPLICATION: Step 1's "~12.5% -> ~8.9%" figure used years[].net_gbp (the smaller
-#   numerator) -- may need a second pass once this resolves; not restated as broken, no
-#   longer assumed fully closed either.
 #   PRIORITY RAISED 2026-07-10 (B1_margin_bridge DISCOVER finding, docs/design/
 #   MARGIN_REALISM_B1_DISCOVER_FINDING.md, third dial-weighted draw): the SAME root cause
-#   now has a LIVE, user-visible symptom, not just an internal data inconsistency --
-#   docs/reports/ANNUAL_REPORT.md renders TWO adjacent margin-bridge sections (Phase BE
-#   ledger-based, Phase NT years[]-based) whose gross-margin deltas for the same year
-#   transition genuinely disagree (2016-2017: +116,919 vs +116,417), unlabelled. This is
-#   the actual document a board member reads -- resolving the E2 root cause is now higher
-#   priority than before, not merely a dashboard-percentage nuance.
+#   had a LIVE, user-visible symptom too -- docs/reports/ANNUAL_REPORT.md renders TWO
+#   adjacent margin-bridge sections (Phase BE ledger-based, Phase NT years[]-based) whose
+#   gross-margin deltas for the same year transition genuinely disagree (2016-2017:
+#   +116,919 vs +116,417), unlabelled.
+#   ROOT CAUSE TRACED 2026-07-10 (eighth dial-weighted draw, third time this atom was drawn
+#   -- traced rather than deferred again): saas/bill_generator.py bills non-commodity cost
+#   via a SINGLE BLENDED £/MWh rate (saas/non_commodity.py, Phase 9a/78) while
+#   simulation/hedged_settlement.py computes the SAME real cost category per-levy,
+#   per-settlement-period (RO/CfD/CCL/CM/FiT + DUoS/TNUoS individually, Phases 21a/27b/30a/
+#   31a) -- two independently-built, never-reconciled models of the same real-world cost.
+#   Confirmed via the wholesale-cost cross-check: wholesale cost matches almost exactly
+#   between both pipelines (2016: ledger £3,594.97 vs years[]-implied £3,594.96) -- the
+#   ENTIRE gross-level divergence traces to the non-commodity side only. The gap is
+#   BIDIRECTIONAL and non-monotonic across years (+27.7% 2016, -25.3% 2017, -3.2% 2018,
+#   +4.4%/+4.5%/+0.3% 2019-21, -14.9%/-9.7% 2022-23, +10.1%/+34.5% 2024-25) -- NOT a simple
+#   missing-component bug, consistent with a genuine volume/timing mismatch between when
+#   energy is settled vs billed (the same real phenomenon D2_three_clocks already names).
+#   RECOMMENDATION (not built): do not pick one pipeline as authoritative -- reconcile via
+#   D2_three_clocks (its natural home, real evidence now feeds that atom directly) rather
+#   than resolve within E2/B1's own scope. E2/B1's OWN scope (gauge fix, legibility, driver
+#   set) is now closed on its own terms -- full numerical reconciliation is D2's job.
+#   IMPLICATION: Step 1's "~12.5% -> ~8.9%" figure used years[].net_gbp (the smaller
+#   numerator) -- may need a second pass once D2 resolves; not restated as broken, no
+#   longer assumed fully closed either.
 #
 # === B1 MARGIN BRIDGE -- DISCOVER-STAGE FINDING (2026-07-10, second dial-weighted draw,
 #   docs/design/MARGIN_REALISM_B1_DISCOVER_FINDING.md): the bridge's own residual reconciles
