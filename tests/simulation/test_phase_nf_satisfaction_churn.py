@@ -82,6 +82,61 @@ def test_income_stress_low_no_delta():
     assert score_low == pytest.approx(score_none + _INCOME_STRESS_DELTA[IncomeStress.LOW])
 
 
+# --- payment_channel + customer_id heterogeneity (2026-07-10, director page
+# comment "Many being 70% satisfied looks suspicious" -- ASSUMPTIONS.md
+# "Customer Satisfaction Population Distribution", Ofgem Wave 20) ---
+
+def test_omitting_new_params_reproduces_prior_behaviour():
+    """Backward compatibility: no payment_channel/customer_id -> identical
+    to the pre-2026-07-10 score."""
+    score = sim_satisfaction_score(1, 2.0, IncomeStress.MODERATE)
+    assert score == pytest.approx(
+        BASELINE_SATISFACTION + _BILL_SHOCK_DELTA + _INCOME_STRESS_DELTA[IncomeStress.MODERATE]
+        + min(2.0 * _TENURE_BONUS_PER_YEAR, _MAX_TENURE_BONUS)
+    )
+
+
+def test_standard_credit_lower_than_direct_debit():
+    from simulation.household_segments import PaymentChannel
+    dd = sim_satisfaction_score(0, 0.0, None, payment_channel=PaymentChannel.DIRECT_DEBIT)
+    sc = sim_satisfaction_score(0, 0.0, None, payment_channel=PaymentChannel.STANDARD_CREDIT)
+    assert sc < dd
+    assert dd == pytest.approx(BASELINE_SATISFACTION)
+
+
+def test_individual_variation_is_deterministic():
+    a = sim_satisfaction_score(0, 0.0, None, customer_id="C42")
+    b = sim_satisfaction_score(0, 0.0, None, customer_id="C42")
+    assert a == b
+
+
+def test_individual_variation_differs_across_customers():
+    scores = {
+        sim_satisfaction_score(0, 0.0, None, customer_id=f"C{i}")
+        for i in range(1, 30)
+    }
+    assert len(scores) > 1
+
+
+def test_individual_variation_bounded():
+    from simulation.sim_satisfaction import _INDIVIDUAL_VARIATION_RANGE
+    for i in range(1, 200):
+        score = sim_satisfaction_score(0, 0.0, None, customer_id=f"C{i}")
+        assert BASELINE_SATISFACTION - _INDIVIDUAL_VARIATION_RANGE / 2 - 1e-9 <= score
+        assert score <= BASELINE_SATISFACTION + _INDIVIDUAL_VARIATION_RANGE / 2 + 1e-9
+
+
+def test_population_no_longer_clusters_at_two_exact_values():
+    """The regression this whole fix targets: same shock count + same
+    income-stress tier must no longer produce the IDENTICAL float for every
+    customer."""
+    scores = [
+        round(sim_satisfaction_score(0, 0.0, IncomeStress.LOW, customer_id=f"C{i}"), 4)
+        for i in range(1, 50)
+    ]
+    assert len(set(scores)) > 10
+
+
 def test_satisfaction_multiplier_high_is_below_one():
     assert _HIGH_SATISFACTION_MULTIPLIER < 1.0
 

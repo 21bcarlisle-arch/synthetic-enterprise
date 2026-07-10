@@ -1206,8 +1206,17 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 (date.fromisoformat(term_start_str) - date.fromisoformat(acq_date_for_est)).days / 365.25
                 if old_elec_rate is not None else term_index * 0.5
             )
+            # Real payment-method satisfaction gap + per-customer heterogeneity
+            # (2026-07-10, ASSUMPTIONS.md "Customer Satisfaction Population
+            # Distribution") -- resi-only, matching the existing
+            # payment_channel_for_customer() convention (I&C/SME use bacs/chaps).
+            _nf_payment_channel = None
+            if segment_for_churn == "resi":
+                from simulation.household_segments import payment_channel_for_customer
+                _nf_payment_channel = payment_channel_for_customer(billing_account, "electricity")
             _nf_satisfaction = _sim_satisfaction_score(
-                _nf_shock_count, _nf_tenure, _churn_income_stress
+                _nf_shock_count, _nf_tenure, _churn_income_stress,
+                payment_channel=_nf_payment_channel, customer_id=cid,
             )
             # Phase RU: solicited feedback survey + complaint dispatch
             # (FEEDBACK_AND_REPUTATION.md Layer 1) -- CSAT/NPS off the SIM
