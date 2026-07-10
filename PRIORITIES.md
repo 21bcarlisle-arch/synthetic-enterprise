@@ -60,8 +60,25 @@
 #   asserted as a genuine collections failure, not yet independently verified either way. 8 new
 #   tests, 16,630 tests collected (full suite), epistemic PASS, verified live in-browser
 #   (screenshot, zero console errors/NaN/undefined).
-#   Candidate (b) DSR/flexibility dispatch summary remains NOT built -- still registered for its
-#   own scoped design pass, not rushed in, per this project's own P-3 rule.
+#   Candidate (b) BUILT too (2026-07-10, third supervisor-granted idle turn, same session):
+#   D.flexibility was already fully computed by tools/generate_dashboard_data.py::
+#   extract_flexibility() but never rendered anywhere on the site -- confirmed by grep before
+#   building, not assumed. New site/supplier/index.html::flexibilityDispatchHtml() on the
+#   Operations/Monthly tab: total/resi/I&C flexibility revenue KPIs + a per-year table.
+#   SELF-CAUGHT REAL BUG while building this (not touched before, found via actually using the
+#   data): data["total_flexibility_revenue_gbp"] was assembled in saas/reporting/
+#   annual_report.py as RESI-ONLY (flex_summary's own total) despite its name implying a combined
+#   grand total -- the existing markdown ANNUAL_REPORT.md's own Flexibility Revenue section had
+#   been silently displaying "Total 2016-2025: £0 (Residential: £0 | I&C: £21,381.06)" for who
+#   knows how long, i.e. "Total" == "Residential" while I&C sat right next to it, unsummed.
+#   Fixed at the source (now a real resi+I&C sum) AND made extract_flexibility() itself compute
+#   the total locally (resi_total_gbp + ic_total_gbp) rather than trust the upstream field, so
+#   the dashboard is correct even against a stale pre-fix run_output.json (this run's own JSON
+#   predates the fix). Real live result: total flexibility revenue £21,381.06 (all I&C this run --
+#   resi DSR/DFS enrollment is 0 for this population). All 3 Operations KPI backlog candidates
+#   (a/b/c) now built. 16,630 tests collected (full suite via collect-only; 16,498 passed
+#   directly, excluding only the always-excluded slow simulation-generation test files),
+#   epistemic PASS, verified live in-browser (screenshot, zero console errors/NaN/undefined).
 #
 # === SLC 25C "Communication Channel Choice" FIXED (2026-07-10, director page comment,
 #   docs/design/SLC25C_CHANNEL_CHOICE_FIX.md): real R10-class domain-sense mismatch, not a

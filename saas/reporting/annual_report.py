@@ -558,7 +558,19 @@ def extract_report_data(run_output: dict) -> dict:
         "cost_to_serve_portfolio_gbp": cost_to_serve.get("portfolio", {}).get("cost_to_serve_gbp"),
         "net_margin_after_cost_to_serve_gbp": cost_to_serve.get("portfolio", {}).get("net_margin_gbp"),
         "flexibility_revenue_summary": flex_summary,
-        "total_flexibility_revenue_gbp": flex_summary.get("total_flexibility_revenue_gbp", 0.0),
+        # FIXED 2026-07-10 (found while building the Operations-tab DSR KPI,
+        # PRIORITIES.md): this field's own name says "total" but only ever
+        # held the RESIDENTIAL flexibility summary's total, silently
+        # excluding I&C DSR revenue -- the existing markdown report section
+        # (_section_flexibility_revenue below) displayed it labelled
+        # "Total 2016-2025" right next to "I&C: £Y", implying a sum that
+        # was never actually computed. Now a genuine resi+I&C total; the
+        # resi-only figure remains available unambiguously via
+        # flexibility_revenue_summary.total_flexibility_revenue_gbp.
+        "total_flexibility_revenue_gbp": (
+            flex_summary.get("total_flexibility_revenue_gbp", 0.0)
+            + phase2b.get("ic_flexibility_summary", {}).get("total_ic_flex_revenue_gbp", 0.0)
+        ),
         "ic_flexibility_summary": phase2b.get("ic_flexibility_summary", {}),
         "tpi_summary": phase2b.get("tpi_summary", {}),
         "roc_summary": phase2b.get("roc_summary", {}),

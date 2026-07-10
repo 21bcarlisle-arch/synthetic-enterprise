@@ -338,10 +338,18 @@ def extract_flexibility(data):
             "total_flex_kw": _fmt(yd.get("total_flex_kw", 0)),
         }
 
+    resi_total_gbp = flex.get("total_flexibility_revenue_gbp", 0)
+    ic_total_gbp = ic_flex.get("total_ic_flex_revenue_gbp", 0)
     return {
-        "total_gbp": _fmt(data.get("total_flexibility_revenue_gbp", 0)),
-        "resi_total_gbp": _fmt(flex.get("total_flexibility_revenue_gbp", 0)),
-        "ic_total_gbp": _fmt(ic_flex.get("total_ic_flex_revenue_gbp", 0)),
+        # Computed locally as resi+ic rather than trusting data["total_
+        # flexibility_revenue_gbp"] -- that upstream field was itself buggy
+        # (resi-only, silently missing I&C) until saas/reporting/
+        # annual_report.py's 2026-07-10 fix, and a run_output.json generated
+        # by an older sim run still carries the stale value regardless of
+        # that fix. This keeps the dashboard correct even against old data.
+        "total_gbp": _fmt(resi_total_gbp + ic_total_gbp),
+        "resi_total_gbp": _fmt(resi_total_gbp),
+        "ic_total_gbp": _fmt(ic_total_gbp),
         "resi_enrolled_customer_years": int(flex.get("enrolled_customer_years", 0)),
         "ic_enrolled_customer_years": int(ic_flex.get("enrolled_customer_years", 0)),
         "resi_per_year": resi_per_year,
