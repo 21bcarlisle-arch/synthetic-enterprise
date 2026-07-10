@@ -1,6 +1,6 @@
 import pytest
 
-from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY, DecisionPolicy, framing_type_for
+from company.policy.decision_policy import CURRENT_POLICY, NAIVE_POLICY, DecisionPolicy, framing_type_for, tone_for
 
 
 def test_current_policy_tiered_discount_matches_phase_14a_tiers():
@@ -84,3 +84,52 @@ def test_framing_type_for_ab_test_roughly_balanced_across_customers():
     total = sum(counts.values())
     assert 0.35 < counts["loss_framed"] / total < 0.65
     assert 0.35 < counts["gain_framed"] / total < 0.65
+
+
+# --- tone_for() (2026-07-10, NUDGE_PHYSICS.md remaining mechanism) ---
+
+def test_current_policy_ab_tests_tone():
+    assert CURRENT_POLICY.tone_mode == "ab_test"
+
+
+def test_naive_policy_fixed_firm_tone():
+    assert NAIVE_POLICY.tone_mode == "firm_toned"
+
+
+def test_tone_for_fixed_mode_returns_constant():
+    for period_end in ("2020-01-31", "2021-06-30", "2025-12-31"):
+        assert tone_for(NAIVE_POLICY, "C1", period_end) == "firm_toned"
+
+
+def test_tone_for_ab_test_varies_by_date_same_customer():
+    seen = set()
+    for i in range(50):
+        period_end = "20{:02d}-01-31".format(i)
+        seen.add(tone_for(CURRENT_POLICY, "C1", period_end))
+    assert seen == {"empathetic_toned", "firm_toned"}
+
+
+def test_tone_for_ab_test_is_deterministic():
+    a = tone_for(CURRENT_POLICY, "C1", "2020-01-31")
+    b = tone_for(CURRENT_POLICY, "C1", "2020-01-31")
+    assert a == b
+
+
+def test_tone_for_ab_test_roughly_balanced_across_customers():
+    from collections import Counter
+    counts = Counter(
+        tone_for(CURRENT_POLICY, "C" + str(i), "2020-01-31") for i in range(1, 500)
+    )
+    total = sum(counts.values())
+    assert 0.35 < counts["empathetic_toned"] / total < 0.65
+    assert 0.35 < counts["firm_toned"] / total < 0.65
+
+
+def test_tone_for_independent_of_framing_type_for_same_inputs():
+    """tone_for and framing_type_for are separate cohort splits (different
+    seed prefixes) -- they must not be forced to agree just because they
+    share the ab_test convention."""
+    tones = {tone_for(CURRENT_POLICY, "C" + str(i), "2020-01-31") for i in range(1, 30)}
+    framings = {framing_type_for(CURRENT_POLICY, "C" + str(i), "2020-01-31") for i in range(1, 30)}
+    assert tones == {"empathetic_toned", "firm_toned"}
+    assert framings == {"loss_framed", "gain_framed"}

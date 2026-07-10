@@ -192,12 +192,28 @@ def _fuel_poor_for_bill(method: str, customer_id: str | None) -> bool:
     return fuel_poverty_for_customer(customer_id, channel)
 
 
+def _tone_for_bill(method: str, customer_id: str | None, period_end: str) -> str | None:
+    """Resolve the debt-collection letter tone for a resi bill's
+    payment_outcome() call (2026-07-10, NUDGE_PHYSICS.md remaining
+    mechanism) -- resi-only, and only meaningful once a customer_id is
+    known. Reads the company's own CURRENT_POLICY.tone_mode choice
+    (company/policy/decision_policy.py::tone_for) -- the SIM legitimately
+    consumes the company's own chosen attribute here (same precedent as
+    simulation/run_phase2b.py's framing_type_for() call), it is not a wall
+    violation to read what the company itself decided."""
+    if customer_id is None or method not in ("direct_debit", "standard_credit"):
+        return None
+    from company.policy.decision_policy import CURRENT_POLICY, tone_for
+    return tone_for(CURRENT_POLICY, customer_id, period_end)
+
+
 FUEL_POVERTY_DD_FAIL_MULTIPLIER = 1.3
 FUEL_POVERTY_ON_TIME_MULTIPLIER = 0.9
 
 
 def payment_outcome(method: str, stress: str, rng: random.Random, segment: str = "resi",
-                     fuel_poor: bool = False):
+                     fuel_poor: bool = False, tone: str | None = None,
+                     customer_id: str | None = None):
     """Returns (outcome, days_late). outcome is one of success/failed/dispute.
 
     `fuel_poor` is optional -- default False preserves the exact original
@@ -208,7 +224,18 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     down by FUEL_POVERTY_DD_FAIL_MULTIPLIER/FUEL_POVERTY_ON_TIME_MULTIPLIER.
     These multipliers are a calibration CHOICE (NOT independently sourced --
     the DESNZ anchor is a population fuel-poverty RATE, not a payment-outcome
-    multiplier), kept modest and capped at 1.0, per the Anchored-noise law."""
+    multiplier), kept modest and capped at 1.0, per the Anchored-noise law.
+
+    `tone`/`customer_id` are optional -- default None preserves the exact
+    original behaviour (2026-07-10, NUDGE_PHYSICS.md remaining mechanism:
+    debt-collection letter tone/framing). Represents the company's chosen
+    dunning-communication style ("empathetic_toned"/"firm_toned") as a
+    company-wide policy attribute (company/policy/decision_policy.py::
+    tone_for()) -- not a claim that one specific letter caused one specific
+    payment, but that a customer's hidden responsiveness to that general
+    communication style (simulation/nudge_physics.py::
+    tone_effectiveness_multiplier, hidden from the company) nudges their
+    overall on-time probability. Cabinet Office/BIT anchor: +3 to +10pp."""
     if method in ("bacs", "chaps"):
         if segment in _IC_SEGMENTS:
             r = rng.random()
@@ -224,6 +251,9 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     if fuel_poor:
         dd_fail_prob = min(1.0, dd_fail_prob * FUEL_POVERTY_DD_FAIL_MULTIPLIER)
         on_time_prob = min(1.0, on_time_prob * FUEL_POVERTY_ON_TIME_MULTIPLIER)
+    if tone is not None and customer_id is not None:
+        from simulation.nudge_physics import tone_effectiveness_multiplier
+        on_time_prob = min(1.0, on_time_prob * tone_effectiveness_multiplier(customer_id, tone))
     if rng.random() < dd_fail_prob:
         return ("failed", 0)
     if rng.random() < on_time_prob:
@@ -295,7 +325,10 @@ def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: 
         due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
         stress = stress_for_year(behavioral.get(cid) or {}, year)
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        outcome, _days_late = payment_outcome(method, stress, rng, segment, _fuel_poor_for_bill(method, cid))
+        outcome, _days_late = payment_outcome(
+            method, stress, rng, segment, _fuel_poor_for_bill(method, cid),
+            _tone_for_bill(method, cid, period_end), cid,
+        )
 
         if outcome not in ("failed", "dispute"):
             continue
@@ -380,7 +413,10 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
         beh = behavioral.get(cid) or {}
         stress = stress_for_year(beh, year)
         method = payment_method(segment, amount, cid, bill.get("commodity", "electricity"))
-        outcome, _days_late = payment_outcome(method, stress, rng, segment, _fuel_poor_for_bill(method, cid))
+        outcome, _days_late = payment_outcome(
+            method, stress, rng, segment, _fuel_poor_for_bill(method, cid),
+            _tone_for_bill(method, cid, period_end), cid,
+        )
 
         if outcome not in ("failed", "dispute"):
             continue

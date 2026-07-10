@@ -60,6 +60,13 @@ class DecisionPolicy:
     # framing every pre-Nudge-Physics phase implicitly used.
     framing_mode: str = "gain_framed"
 
+    # NUDGE_PHYSICS.md remaining mechanism: debt-collection letter tone
+    # (2026-07-10). Same "ab_test" cohort-split convention as framing_mode
+    # above -- the company discovers which tone lifts on-time payment for
+    # which segment via company/analytics/nudge_discovery.py, without ever
+    # seeing simulation/nudge_physics.py's hidden tone-susceptibility.
+    tone_mode: str = "firm_toned"
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":
@@ -85,6 +92,7 @@ CURRENT_POLICY = DecisionPolicy(
     include_acq_cost_saved_in_guard=True,
     use_var_hedge_decision=True,
     framing_mode="ab_test",
+    tone_mode="ab_test",
 )
 
 # Pre-Phase-14a/15b/43b state: naive flat-discount retention with a
@@ -116,3 +124,21 @@ def framing_type_for(policy: DecisionPolicy, customer_id: str, event_date: str) 
     seed = "framing_cohort_" + customer_id + "_" + event_date
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
     return "loss_framed" if int(digest, 16) % 2 == 0 else "gain_framed"
+
+
+def tone_for(policy: DecisionPolicy, customer_id: str, period_end: str) -> str:
+    """Debt-collection letter tone attribute for one bill's payment cycle
+    (2026-07-10, NUDGE_PHYSICS.md remaining mechanism).
+
+    Company-observable by construction (the company chose it) -- never
+    reads simulation/nudge_physics.py's hidden tone-susceptibility. In
+    ab_test mode the split is hashed on customer_id + period_end (same
+    cohort-rotation convention as framing_type_for), so the company can
+    discover which tone lifts on-time payment for which segment via
+    company/analytics/nudge_discovery.py.
+    """
+    if policy.tone_mode != "ab_test":
+        return policy.tone_mode
+    seed = "tone_cohort_" + customer_id + "_" + period_end
+    digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    return "empathetic_toned" if int(digest, 16) % 2 == 0 else "firm_toned"

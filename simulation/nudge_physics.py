@@ -70,3 +70,65 @@ def framing_effectiveness_multiplier(customer_id: str, framing_type: str) -> flo
     lo, hi = _MATCHED_FRAMING_UPLIFT_RANGE
     frac = _stable_fraction("nudge_uplift_" + customer_id)
     return 1.0 + lo + frac * (hi - lo)
+
+
+# --- NUDGE_PHYSICS.md remaining mechanism: debt-collection letter tone/framing
+# (2026-07-10). Same SIM/company split as Layer 1 above: a hidden per-customer
+# tone-susceptibility drives the real response magnitude; the company only
+# ever chooses and observes the tone attribute it sends (company/policy/
+# decision_policy.py::tone_for()), discovering which tone lifts payment
+# response for which segment via company/analytics/nudge_discovery.py --
+# without ever seeing this module's hidden trait.
+#
+# Anchor: Cabinet Office/BIT, "Applying Behavioural Insights to Reduce Fraud,
+# Error and Debt" (2012) -- +3 to +10pp additive uplift in payment response
+# from debt-collection letter tone/framing (M confidence: cross-sector --
+# tax/fines, not energy-specific). See
+# docs/market_research/NUDGE_PHYSICS_BENCHMARKS.md.
+
+class ToneSusceptibility(str, Enum):
+    EMPATHETIC_RESPONSIVE = "empathetic_responsive"
+    FIRM_RESPONSIVE = "firm_responsive"
+    NEUTRAL = "neutral"
+
+
+_TONE_SUSCEPTIBILITY_WEIGHTS: tuple[tuple[ToneSusceptibility, float], ...] = (
+    (ToneSusceptibility.EMPATHETIC_RESPONSIVE, 0.45),
+    (ToneSusceptibility.FIRM_RESPONSIVE, 0.35),
+    (ToneSusceptibility.NEUTRAL, 0.20),
+)
+
+# Additive uplift range (Cabinet Office/BIT anchor, +3 to +10pp), applied as
+# a multiplier on the base on-time probability -- same "matched tone only"
+# mechanic as the retention-offer framing above, no separate calibration
+# invented for the magnitude.
+_MATCHED_TONE_UPLIFT_RANGE: tuple[float, float] = (0.03, 0.10)
+
+_MATCHING_TONE: dict[ToneSusceptibility, str] = dict([
+    (ToneSusceptibility.EMPATHETIC_RESPONSIVE, "empathetic_toned"),
+    (ToneSusceptibility.FIRM_RESPONSIVE, "firm_toned"),
+])
+
+
+def tone_susceptibility_for(customer_id: str) -> ToneSusceptibility:
+    roll = _stable_fraction("tone_susceptibility_" + customer_id)
+    cumulative = 0.0
+    for label, weight in _TONE_SUSCEPTIBILITY_WEIGHTS:
+        cumulative += weight
+        if roll < cumulative:
+            return label
+    return ToneSusceptibility.NEUTRAL
+
+
+def tone_effectiveness_multiplier(customer_id: str, tone: str) -> float:
+    """Multiplier on payment_outcome()'s on-time probability. 1.0 (no
+    effect) unless the customer's hidden tone-susceptibility matches the
+    tone the company chose to send."""
+    susceptibility = tone_susceptibility_for(customer_id)
+    if susceptibility == ToneSusceptibility.NEUTRAL:
+        return 1.0
+    if _MATCHING_TONE.get(susceptibility) != tone:
+        return 1.0
+    lo, hi = _MATCHED_TONE_UPLIFT_RANGE
+    frac = _stable_fraction("tone_uplift_" + customer_id)
+    return 1.0 + lo + frac * (hi - lo)

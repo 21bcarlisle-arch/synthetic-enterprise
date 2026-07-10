@@ -12,6 +12,7 @@ from simulation.arrears_engine import (
     FUEL_POVERTY_DD_FAIL_MULTIPLIER,
     FUEL_POVERTY_ON_TIME_MULTIPLIER,
     _fuel_poor_for_bill,
+    _tone_for_bill,
     apply_debt_recovery,
     apply_emergent_bad_debt,
     arrears_stages,
@@ -372,3 +373,79 @@ def test_payment_outcome_fuel_poor_increases_failure_rate():
 def test_fuel_poverty_multipliers_are_bounded():
     assert FUEL_POVERTY_DD_FAIL_MULTIPLIER >= 1.0
     assert 0.0 < FUEL_POVERTY_ON_TIME_MULTIPLIER <= 1.0
+
+
+# --- NUDGE_PHYSICS.md remaining mechanism: debt-collection letter tone (2026-07-10) ---
+
+def test_tone_for_bill_none_when_no_customer_id():
+    assert _tone_for_bill("direct_debit", None, "2020-01-31") is None
+
+
+def test_tone_for_bill_none_for_corp_methods():
+    assert _tone_for_bill("bacs", "C1", "2020-01-31") is None
+    assert _tone_for_bill("chaps", "C1", "2020-01-31") is None
+
+
+def test_tone_for_bill_returns_a_real_tone_for_resi():
+    tone = _tone_for_bill("direct_debit", "C1", "2020-01-31")
+    assert tone in ("empathetic_toned", "firm_toned")
+
+
+def test_tone_for_bill_deterministic():
+    a = _tone_for_bill("direct_debit", "C1", "2020-01-31")
+    b = _tone_for_bill("direct_debit", "C1", "2020-01-31")
+    assert a == b
+
+
+def test_payment_outcome_default_matches_no_tone_or_customer_id():
+    """Backward compatibility: tone/customer_id default to None, must
+    reproduce the exact original probability behaviour bit-for-bit."""
+    import random
+    rng_a = random.Random(42)
+    rng_b = random.Random(42)
+    for _ in range(200):
+        a = payment_outcome("direct_debit", "MODERATE", rng_a, segment="resi")
+        b = payment_outcome("direct_debit", "MODERATE", rng_b, segment="resi", tone=None, customer_id=None)
+        assert a == b
+
+
+def test_payment_outcome_tone_without_customer_id_is_a_noop():
+    """tone alone (no customer_id) must not change behaviour -- there is
+    nothing to resolve a multiplier against."""
+    import random
+    rng_a = random.Random(7)
+    rng_b = random.Random(7)
+    for _ in range(200):
+        a = payment_outcome("direct_debit", "MODERATE", rng_a, segment="resi")
+        b = payment_outcome("direct_debit", "MODERATE", rng_b, segment="resi", tone="firm_toned")
+        assert a == b
+
+
+def test_payment_outcome_matched_tone_increases_on_time_rate():
+    """A large sample at fixed stress, across many customers, must show a
+    higher on-time-or-better rate when a MATCHED tone is applied to
+    susceptible customers than with no tone at all."""
+    import random
+    from simulation.nudge_physics import tone_susceptibility_for, ToneSusceptibility
+
+    n = 2000
+    successes_no_tone = 0
+    successes_with_tone = 0
+    for i in range(n):
+        cid = f"TONE_{i}"
+        susc = tone_susceptibility_for(cid)
+        if susc == ToneSusceptibility.FIRM_RESPONSIVE:
+            matched_tone = "firm_toned"
+        elif susc == ToneSusceptibility.EMPATHETIC_RESPONSIVE:
+            matched_tone = "empathetic_toned"
+        else:
+            continue
+        rng1 = random.Random(f"seed_{cid}")
+        outcome_no_tone, _ = payment_outcome("direct_debit", "MODERATE", rng1, segment="resi", customer_id=cid)
+        rng2 = random.Random(f"seed_{cid}")
+        outcome_with_tone, _ = payment_outcome(
+            "direct_debit", "MODERATE", rng2, segment="resi", tone=matched_tone, customer_id=cid
+        )
+        successes_no_tone += outcome_no_tone == "success"
+        successes_with_tone += outcome_with_tone == "success"
+    assert successes_with_tone >= successes_no_tone

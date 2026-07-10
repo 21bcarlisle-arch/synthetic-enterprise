@@ -28,6 +28,7 @@ from simulation.arrears_engine import (
     payment_method as _payment_method,
     payment_outcome as _payment_outcome,
     _fuel_poor_for_bill,
+    _tone_for_bill,
     arrears_stages as _arrears_stages,
     ic_arrears_stages as _ic_arrears_stages,
     debt_archetype as _debt_archetype,
@@ -160,7 +161,10 @@ def generate(run_json_path=None, out_path=None):
         beh = behavioral.get(cid) or {}
         stress = _stress_for_year(beh, year)
         method = _payment_method(segment, amount, cid, commodity)
-        outcome, days_late = _payment_outcome(method, stress, rng, segment, _fuel_poor_for_bill(method, cid))
+        _tone = _tone_for_bill(method, cid, period_end)
+        outcome, days_late = _payment_outcome(
+            method, stress, rng, segment, _fuel_poor_for_bill(method, cid), _tone, cid,
+        )
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,
         # MPAN/MPRN. read_event is None for a bill Phase 3's meter-read
@@ -225,6 +229,7 @@ def generate(run_json_path=None, out_path=None):
             "method": method,
             "outcome": outcome,
             "income_stress_at_time": stress,
+            "tone": _tone,
         }
         payments_by_cid.setdefault(cid, []).append(pay)
 

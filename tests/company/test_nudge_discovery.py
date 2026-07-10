@@ -1,6 +1,8 @@
 from company.analytics.nudge_discovery import (
     FramingSegmentLift,
+    ToneSegmentLift,
     compute_framing_lift_by_segment,
+    compute_tone_lift_by_segment,
     assess_framing_consumer_duty,
 )
 
@@ -77,3 +79,60 @@ def test_assess_consumer_duty_green_when_insufficient_data():
     assessment = assess_framing_consumer_duty([], "2025-12-31")
     assert assessment.rag.value == "green"
     assert "Insufficient" in assessment.narrative
+
+
+# --- compute_tone_lift_by_segment() (2026-07-10, NUDGE_PHYSICS.md remaining mechanism) ---
+
+def test_compute_tone_lift_by_segment_basic_counts():
+    payments_by_customer = {
+        "C1": [dict(tone="firm_toned", outcome="success")],
+        "C2": [dict(tone="firm_toned", outcome="failed")],
+        "C3": [dict(tone="empathetic_toned", outcome="success")],
+    }
+    customers = _customers([("C1", "resi"), ("C2", "resi"), ("C3", "resi")])
+    lift = compute_tone_lift_by_segment(payments_by_customer, customers)
+    by_key = dict(((x.tone, x.segment), x) for x in lift)
+    firm_resi = by_key[("firm_toned", "resi")]
+    assert firm_resi.payments_observed == 2
+    assert firm_resi.successful_count == 1
+    assert firm_resi.success_rate == 0.5
+    empathetic_resi = by_key[("empathetic_toned", "resi")]
+    assert empathetic_resi.payments_observed == 1
+    assert empathetic_resi.successful_count == 1
+    assert empathetic_resi.success_rate == 1.0
+
+
+def test_compute_tone_lift_ignores_missing_tone():
+    payments_by_customer = {
+        "C1": [dict(outcome="success")],  # no tone -- e.g. I&C/SME bacs/chaps payment
+        "C2": [dict(tone="firm_toned", outcome="success")],
+    }
+    customers = _customers([("C1", "resi"), ("C2", "resi")])
+    lift = compute_tone_lift_by_segment(payments_by_customer, customers)
+    assert len(lift) == 1
+    assert lift[0].tone == "firm_toned"
+
+
+def test_compute_tone_lift_multiple_payments_per_customer():
+    payments_by_customer = {
+        "C1": [
+            dict(tone="firm_toned", outcome="success"),
+            dict(tone="firm_toned", outcome="failed"),
+            dict(tone="firm_toned", outcome="success"),
+        ],
+    }
+    customers = _customers([("C1", "resi")])
+    lift = compute_tone_lift_by_segment(payments_by_customer, customers)
+    assert lift[0].payments_observed == 3
+    assert lift[0].successful_count == 2
+    assert lift[0].success_rate == round(2 / 3, 4)
+
+
+def test_compute_tone_lift_defaults_missing_segment_to_resi():
+    payments_by_customer = {"C9": [dict(tone="firm_toned", outcome="success")]}
+    lift = compute_tone_lift_by_segment(payments_by_customer, [])
+    assert lift[0].segment == "resi"
+
+
+def test_compute_tone_lift_empty_input_returns_empty_list():
+    assert compute_tone_lift_by_segment({}, []) == []

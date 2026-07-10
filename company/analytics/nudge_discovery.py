@@ -118,3 +118,53 @@ def assess_framing_consumer_duty(lift_by_segment: list[FramingSegmentLift], as_o
         metric_name="loss_framing_resi_concentration_gap",
         narrative=narrative,
     )
+
+
+# --- NUDGE_PHYSICS.md remaining mechanism: debt-collection letter tone
+# (2026-07-10). Same discovery pattern as compute_framing_lift_by_segment()
+# above, applied to real persisted payment records (site/state/
+# billing_ledger.json's per-customer "payments" list, each carrying the
+# "tone" attribute the company itself chose via company/policy/
+# decision_policy.py::tone_for() and the real "outcome" of that payment) --
+# never simulation/nudge_physics.py's hidden tone-susceptibility.
+
+@dataclass(frozen=True)
+class ToneSegmentLift:
+    tone: str
+    segment: str
+    payments_observed: int
+    successful_count: int
+    success_rate: float
+
+
+def compute_tone_lift_by_segment(payments_by_customer: dict, customers: list[dict]) -> list[ToneSegmentLift]:
+    """Empirical payment-success rate by (tone, segment) from real persisted
+    payment records. `payments_by_customer` maps customer_id -> list of
+    payment dicts (site/state/billing_ledger.json's own shape -- each with
+    "tone" and "outcome" keys)."""
+    seg_by_id = dict((c["customer_id"], c.get("segment", "resi")) for c in customers)
+    groups: dict[tuple[str, str], list[bool]] = dict()
+    for cid, payments in payments_by_customer.items():
+        segment = seg_by_id.get(cid, "resi")
+        for entry in payments:
+            tone = entry.get("tone")
+            outcome = entry.get("outcome")
+            if tone is None or outcome not in ("success", "failed", "dispute"):
+                continue
+            key = (tone, segment)
+            groups.setdefault(key, []).append(outcome == "success")
+
+    results: list[ToneSegmentLift] = []
+    for key in sorted(groups.keys()):
+        tone, segment = key
+        outcomes = groups[key]
+        n = len(outcomes)
+        successful = sum(outcomes)
+        results.append(ToneSegmentLift(
+            tone=tone,
+            segment=segment,
+            payments_observed=n,
+            successful_count=successful,
+            success_rate=round(successful / n, 4) if n else 0.0,
+        ))
+    return results
