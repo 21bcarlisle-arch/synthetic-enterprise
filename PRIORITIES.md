@@ -1,6 +1,31 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
 #
+# === E2 REVENUE RECONCILIATION -- REAL PROGRESS, DEEPER ISSUE FOUND (2026-07-10, first
+#   dial-weighted maturity-map self-refill draw, docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_
+#   FINDING.md): audited every surface reading revenue_gbp/a margin %. fra_ratio_series was
+#   already correct (my own earlier maturity-map note was an unverified assumption --
+#   corrected rather than left standing). tools/generate_insights.py had a REAL live
+#   instance of the Step 1 class of bug -- compared a commodity-only revenue % against a
+#   real external 2-5% TOTAL-margin benchmark (Ofgem/CMA), feeding every run-completion
+#   NTFY via run_insights.json, uncaught by the dashboard's consistency gate (which only
+#   checks absolute £ fields, never a %). Fixed: sums management_accounts' real total
+#   revenue across years as the denominator. 1 new test, epistemic PASS.
+#   DEEPER FINDING, NOT FIXED, flagged not silently resolved: years[yr].net_gbp (feeds the
+#   Financial tab) and management_accounts[yr].income_statement.net_margin_gbp (the real
+#   double-entry ledger P&L) are two STRUCTURALLY DIFFERENT net-margin formulas, not just
+#   different revenue denominators -- e.g. 2016: 1,278 vs 6,477 (>5x). Gross margin only
+#   diverges slightly; net diverges enormously because the two pipelines disagree on how
+#   policy/network pass-through costs interact with margin (years[] subtracts them as a
+#   separate post-gross deduction; the ledger nets a different, smaller non_commodity_cost
+#   figure INTO gross and never deducts it again). NEXT: trace saas/ledger.py's event-
+#   emission call sites to determine whether non_commodity_cost_event fires for the true
+#   recovered network/policy cost 1:1 against years[].policy_cost_gbp/network_cost_gbp, or
+#   is a partial/mistimed subset -- before picking either pipeline as authoritative.
+#   IMPLICATION: Step 1's "~12.5% -> ~8.9%" figure used years[].net_gbp (the smaller
+#   numerator) -- may need a second pass once this resolves; not restated as broken, no
+#   longer assumed fully closed either.
+#
 # === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
 #   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
 #   the alerting bug live (background/sanity_daemon.py's audit-NTFY dedup was keyed

@@ -217,8 +217,8 @@
   level_target: 3
   loop_stage: frame
   dial_inherited: 3
-  evidence: ["docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md"]
-  simplifications: ["Financial tab fixed 2026-07-10; other surfaces (fra_ratio_series etc.) not yet reconciled"]
+  evidence: ["docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md", "docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_FINDING.md"]
+  simplifications: ["2026-07-10 audit: fra_ratio_series was already correct (my prior note was an unverified assumption, corrected); generate_insights.py had a real live instance of the Step 1 bug, fixed. Deeper finding: years[].net_gbp and management_accounts income_statement.net_margin_gbp are two structurally different net-margin formulas (not just different revenue denominators) -- unresolved, real next step, not silently picked a side on."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "one true revenue line, used consistently across FP&A and statutory reporting"
   depends_on: []

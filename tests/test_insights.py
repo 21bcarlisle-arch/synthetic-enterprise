@@ -135,6 +135,26 @@ def test_financial_insight_ic_concentration():
     assert "WARNING" in fin.narrative
 
 
+def test_financial_insight_uses_total_revenue_when_management_accounts_present():
+    """2026-07-10, MARGIN_REALISM Step 1/E2: the commodity-only revenue
+    (_ledger_headline/total_revenue_gbp, ~5M here) understates the real
+    total revenue (management_accounts' double-entry revenue, net of VAT,
+    ~10M here) -- net_pct must be computed against the LARGER, total
+    figure, not the smaller commodity-only one, matching the Financial
+    tab's own Step 1 fix."""
+    data = dict(_MINIMAL)
+    data["management_accounts"] = {
+        "2021": {"income_statement": {"revenue_gbp": 6_000_000.0}},
+        "2022": {"income_statement": {"revenue_gbp": 4_000_000.0}},
+    }
+    ins = generate_insights(data)
+    fin = next(i for i in ins.insights if i.area == InsightArea.FINANCIAL)
+    # net=1,000,000 / total_revenue=10,000,000 = 10% -- NOT 20% (the
+    # commodity-only-revenue result the old code would have produced).
+    assert fin.key_metrics["net_margin_pct"] == pytest.approx(10.0, abs=0.1)
+    assert "total revenue" in fin.headline
+
+
 def test_operations_insight_bills_and_quality():
     ins = generate_insights(_MINIMAL)
     ops = next(i for i in ins.insights if i.area == InsightArea.OPERATIONS)

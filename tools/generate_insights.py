@@ -187,7 +187,22 @@ def _financial_insight(data: dict) -> AreaInsight:
     # live data (ledger subtotal vs final total differ by ~1.5%), which the
     # widened consistency gate now catches as a cross-surface mismatch.
     gross = data.get("total_gross_gbp", lh.get("gross_margin_gbp", 0.0))
-    revenue = lh.get("revenue_gbp", data.get("total_revenue_gbp", 0.0))
+    # MARGIN_REALISM Step 1/E2 (2026-07-10): this was comparing a COMMODITY-ONLY
+    # revenue (lh["revenue_gbp"]/total_revenue_gbp, settlement-based, excludes
+    # standing charges + non-commodity pass-through + VAT) against
+    # _INDUSTRY_MARGIN_LOW/HIGH (2-5%), a real external Ofgem/CMA benchmark for
+    # TOTAL margin -- inflating every headline's %, same class the Financial
+    # tab's net_margin_pct had before the Step 1 fix, just uncaught in this
+    # separate generator (the dashboard's consistency gate never checked this
+    # percentage, only absolute £ fields). Sums management_accounts' real
+    # double-entry revenue_gbp (total, net of VAT) across all years as the
+    # correct denominator, falling back to the old commodity-only figure only
+    # when management_accounts is absent (older run_output shapes).
+    total_revenue_all_years = sum(
+        ma.get("income_statement", {}).get("revenue_gbp", 0.0)
+        for ma in data.get("management_accounts", {}).values()
+    )
+    revenue = total_revenue_all_years or lh.get("revenue_gbp", data.get("total_revenue_gbp", 0.0))
     net_pct = (net / revenue * 100) if revenue else 0.0
     pcl = data.get("per_customer_lifetime", {})
     def _pcl_net(cv):
@@ -203,7 +218,7 @@ def _financial_insight(data: dict) -> AreaInsight:
     net_frac = net_pct / 100
     benchmark_pos = "below" if net_frac < _INDUSTRY_MARGIN_LOW else (
         "above" if net_frac > _INDUSTRY_MARGIN_HIGH else "within")
-    headline = "Net margin {} ({} of revenue -- {} 2-5% benchmark)".format(
+    headline = "Net margin {} ({} of total revenue -- {} 2-5% benchmark)".format(
         _fmt_gbp(net), _fmt_pct(net_pct), benchmark_pos)
     concentration_warning = ""
     if ic_pct >= 80:
