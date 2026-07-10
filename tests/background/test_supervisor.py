@@ -123,6 +123,38 @@ def test_find_work_no_backlog_section_returns_none():
     assert supervisor.find_work(resumed_from_pause=False) is None
 
 
+def test_find_work_ignores_backlog_heading_mentioned_in_prose_before_the_real_heading():
+    """2026-07-10 real observed gap, found by testing find_work() directly
+    (third instance of the same self-referential false-positive class): a
+    raw text.find("## Backlog") locks onto the FIRST occurrence of that
+    substring anywhere in the file -- including a prose sentence describing
+    the mechanism itself (e.g. '...scans text after the literal "## Backlog"
+    heading...') that appears BEFORE the real heading. Must anchor to an
+    actual line-start heading, not any mention of the string."""
+    supervisor.PRIORITIES_PATH.write_text(
+        "# Some doc-history section\n"
+        "This mechanism scans text after the literal \"## Backlog\" heading "
+        "for actionable items -- NOT YET STARTED items get picked up.\n"
+        "\n"
+        "## Backlog\n"
+        "- Some real item, no gap here\n"
+    )
+    assert supervisor.find_work(resumed_from_pause=False) is None
+
+
+def test_find_work_still_finds_real_backlog_item_past_a_prose_mention():
+    supervisor.PRIORITIES_PATH.write_text(
+        "# Some doc-history section\n"
+        "This mechanism scans text after the literal \"## Backlog\" heading.\n"
+        "\n"
+        "## Backlog\n"
+        "- Some item NOT YET STARTED -- do it\n"
+    )
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None
+    assert "self-refill" in reason
+
+
 def test_find_work_missing_priorities_file_returns_none():
     assert not supervisor.PRIORITIES_PATH.exists()
     assert supervisor.find_work(resumed_from_pause=False) is None

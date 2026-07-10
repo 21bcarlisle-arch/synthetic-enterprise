@@ -1,6 +1,27 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
 #
+# === MATURITY-MAP QUEUE STATUS: EXHAUSTED, CORRECTLY (2026-07-10, nineteenth dial-weighted
+#   draw): every remaining atom with a real level gap is now either genuinely idle-blocked
+#   (W1_reveal_over_time and its dependents D2/D3/E2/B1/E3/G2/C2, all pending the epoch
+#   sequencing from the closed POINT_IN_TIME_SNAPSHOT_TIER1.md gate; B2_opex_cost_to_serve,
+#   pending the director's own answers on AI-compute costing basis + oversight rate;
+#   W4_2_verifier_timing_extension, pending the still-open EPISTEMIC_VERIFIER_TIMING_
+#   DETECTION_TIER1.md gate) or director-ratified-idle-by-design (A/G/W3-lane items per the
+#   original MATURITY_MAP.md Section 8 equaliser). B2's investigation (whether re-enabling
+#   background/token_proxy.py routing could unblock part (b)) found the answer is NO --
+#   autonomous_runner.py deliberately stopped routing through it after a documented past
+#   incident ("the single point of failure that silently killed all overnight autonomous
+#   turns") -- correctly left alone rather than reintroducing known risk. This queue-exhaustion
+#   ALSO surfaced (and got fixed at the root) a third live instance of the same self-
+#   referential false-positive class in the PRIORITIES.md-backlog fallback path --
+#   background/supervisor.py::_actionable_backlog_item() now anchors to a real line-start
+#   "## Backlog" heading (re.search with re.MULTILINE) instead of a raw substring find, which
+#   had been locking onto a prose mention of the heading name earlier in this very file. 2 new
+#   tests, 454/454 background tests pass, 16,542 tests collected (full suite), epistemic PASS.
+#   NEXT real self-refill work requires either: the two open Tier 1 gates being decided, the
+#   epoch sequencing naming W1/D2's turn, or B2's two open cost-basis questions being answered.
+#
 # === E1 CORPORATION TAX -- BUILT 2026-07-10 (eighteenth dial-weighted draw,
 #   docs/design/E1_CORPORATION_TAX_FINDING.md): balance_sheet() genuinely balances for every real
 #   year 2016-2025 (verified, not assumed). Real gap found + closed against the real_world_twin
@@ -802,13 +823,20 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
-- **Supervisor self-refill CLOSED (2026-07-10, SELF_DIRECTION_AND_PARALLELISM.md Problem 1,
-  PROJECT_OVERVIEW.md Section 4 entry)**: background/supervisor.py now grants a turn from an
-  unblocked PRIORITIES.md backlog item ("NOT YET STARTED", not BLOCKED/REVIEW GATE) when the
-  agenda is empty and nothing is staged, instead of going idle. Problem 2 of the same doc
-  (recalibrate one-way doors) deliberately NOT actioned -- Tier 1 safety-control change, needs
-  the director's own in-console confirmation, flagged via NTFY. Problem 3 (parallel-lanes
-  proposal) still registered below, not yet drafted.
+- **Supervisor self-refill CLOSED, then SUPERSEDED (2026-07-10, SELF_DIRECTION_AND_
+  PARALLELISM.md Problem 1, PROJECT_OVERVIEW.md Section 4 entry)**: background/supervisor.py
+  originally granted a turn from an unblocked PRIORITIES.md backlog line (matching a
+  since-retired trigger phrase, not BLOCKED/REVIEW GATE) when the agenda was empty and nothing
+  was staged, instead of going idle. That mechanism is now the FALLBACK ONLY --
+  _maturity_map_draw() (dial-weighted, docs/design/maturity_map.yaml) is the primary self-refill
+  source as of the same day's R3 redesign; see supervisor.py's own module docstring. This bullet
+  is deliberately reworded (2026-07-10, nineteenth dial-weighted draw self-audit) to stop
+  containing the old fallback's own literal trigger substring unguarded -- the exact same
+  self-referential false-positive class already fixed once before in this file, found again by
+  directly testing find_work() when the maturity map returned zero live candidates. Problem 2 of
+  the original doc (recalibrate one-way doors) deliberately NOT actioned -- Tier 1 safety-control
+  change, needs the director's own in-console confirmation, flagged via NTFY. Problem 3
+  (parallel-lanes proposal) still registered below, not yet drafted.
 - **REVIEW GATE CLOSED (Tier 1) -- hedge-decision volatility lookback uses future data**:
   docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md (2026-07-10, from a real
   director page comment on /supplier/ Trading & Market). Director authorized the fix in-console,

@@ -69,6 +69,7 @@ from __future__ import annotations
 
 import json
 import random
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -194,9 +195,20 @@ def _actionable_backlog_item() -> str | None:
         text = PRIORITIES_PATH.read_text(encoding="utf-8")
     except OSError:
         return None
-    idx = text.find("## Backlog")
-    if idx < 0:
+    # 2026-07-10, third instance of the same self-referential false-positive
+    # class found in one self-audit (nineteenth dial-weighted draw): a raw
+    # `text.find("## Backlog")` matches the FIRST occurrence of that
+    # substring anywhere in the file -- including inside this very
+    # docstring's own prose describing the mechanism, or inside a past
+    # commit's write-up quoting the heading name in the file itself (both
+    # observed live). A real markdown heading is always anchored at the
+    # start of a line; a heading name merely mentioned mid-sentence is not.
+    # `re.search(..., re.MULTILINE)` with `^` fixes this at the root rather
+    # than continuing to reword prose to dodge the same substring forever.
+    match = re.search(r"^## Backlog", text, re.MULTILINE)
+    if match is None:
         return None
+    idx = match.start()
     for line in text[idx:].split("\n"):
         if "NOT YET STARTED" in line and "BLOCKED" not in line and "REVIEW GATE" not in line:
             # Return a short, stable identifier (first ~80 chars) -- enough
