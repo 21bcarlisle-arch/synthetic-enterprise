@@ -1,6 +1,24 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
 #
+# === HARNESS_BEST_PRACTICE_ADOPTION.md -- P2, IN PROGRESS (2026-07-10, advisor-staged,
+#   arrived mid-session via a git merge; docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md).
+#   Picked up while the maturity-map queue is genuinely exhausted (see entry above) -- legitimate
+#   non-displacing work per the staged instruction's own sequencing note. Validation-first
+#   confirmed: supervisor/maturity-map/R7-R8 already independently match the published
+#   long-running-agent patterns the advisor found. All 6 candidates assessed (adopt/adapt/reject
+#   + reasons). Technical verification (via claude-code-guide agent, no network access here to
+#   check the docs directly) confirms all three real: lifecycle hooks (PreToolUse/PostToolUse,
+#   .claude/settings.json), fallbackModel resilience chaining, and Routines (schedule/API/
+#   GitHub-trigger cloud sessions) -- exact schemas recorded in the assessment doc. Item 5
+#   (environment hardening) written up as a recommendation only (Tier-1-adjacent, no build).
+#   Item 6 (harness pruning ritual) adopted directly into CLAUDE.md's phase-close checklist
+#   (6a). NEXT, NOT this turn: implement item 1's three hooks (point-in-time-read block, sudo
+#   block, unevidenced-claim block -- each individually testable/removable per the DoD), add
+#   fallbackModel to .claude/settings.json (item 3), register the two routines pilots with a
+#   one-week review date (item 4). Item 2 (evaluator subagent) sequenced after item 1 lands.
+#   Real, separate engineering -- deliberately not compressed into the assessment turn.
+#
 # === MATURITY-MAP QUEUE STATUS: EXHAUSTED, CORRECTLY (2026-07-10, nineteenth dial-weighted
 #   draw): every remaining atom with a real level gap is now either genuinely idle-blocked
 #   (W1_reveal_over_time and its dependents D2/D3/E2/B1/E3/G2/C2, all pending the epoch
