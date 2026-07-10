@@ -235,12 +235,33 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
         return None
     if not isinstance(atoms, list):
         return None
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
+
+    def _dependencies_met(atom: dict) -> bool:
+        """2026-07-10, real observed gap (first draw of W1_2_generate_futures
+        surfaced its own unmet dependency W1_reveal_over_time, level 0/3) --
+        a `depends_on` entry that isn't itself at/above its target level means
+        the atom's own foundation doesn't exist yet, so drawing it produces
+        real but premature/unbuildable "work". A dependency id not present in
+        the map at all is treated as unmet (fail closed, not silently
+        ignored) rather than assumed satisfied."""
+        for dep_id in atom.get("depends_on") or []:
+            dep = by_id.get(dep_id)
+            if dep is None:
+                return False
+            dep_level = dep.get("level_current")
+            dep_target = dep.get("level_target")
+            if dep_level is None or dep_target is None or dep_level < dep_target:
+                return False
+        return True
+
     candidates = [
         a for a in atoms
         if isinstance(a, dict)
         and a.get("level_current") is not None
         and a.get("level_target") is not None
         and a["level_current"] < a["level_target"]
+        and _dependencies_met(a)
     ]
     if not candidates:
         return None

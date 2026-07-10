@@ -68,7 +68,7 @@
   loop_stage: discover
   dial_inherited: 4
   evidence: []
-  simplifications: []
+  simplifications: ["2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). loop_stage=discover means background RESEARCH/design only is self-startable here; any actual code change to how/when SIM data becomes visible requires the hard Tier 1 REVIEW_GATE (explicit director approval, no timeout, never proceed on silence) before implementation."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real trading desk never sees tomorrow's settlement prices"
   depends_on: []
@@ -83,7 +83,7 @@
   loop_stage: idle
   dial_inherited: 4
   evidence: []
-  simplifications: []
+  simplifications: ["2026-07-10: generating NEW future scenarios/difficulty is CURRICULUM per CLAUDE.md R13 (the baseline/curriculum split) -- the director's own instrument, never built or content-decided unilaterally by the agent, even once the depends_on prerequisite is met. Any work here beyond the underlying mechanism/engine must be director-named and director-authored content, not agent-invented."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "scenario/stress generation for market risk teams"
   depends_on: [W1_reveal_over_time]

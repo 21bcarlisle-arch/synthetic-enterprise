@@ -171,6 +171,53 @@ _UNASSESSED_ATOM_YAML = """\
   loop_stage: idle
 """
 
+_UNMET_DEPENDENCY_YAML = """\
+- id: X4_dependent_atom
+  name: "Atom whose dependency is not yet at target"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  depends_on: [X5_prerequisite_atom]
+- id: X5_prerequisite_atom
+  name: "Prerequisite not yet done"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: discover
+"""
+
+_MET_DEPENDENCY_YAML = """\
+- id: X4_dependent_atom
+  name: "Atom whose dependency IS at target"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  depends_on: [X5_prerequisite_atom]
+- id: X5_prerequisite_atom
+  name: "Prerequisite already done"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+"""
+
+_MISSING_DEPENDENCY_YAML = """\
+- id: X6_dependent_on_nonexistent
+  name: "Atom depending on an id not present in the map at all"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  depends_on: [X7_does_not_exist]
+"""
+
 
 def test_maturity_map_draw_none_when_file_missing():
     assert not supervisor.MATURITY_MAP_PATH.exists()
@@ -193,6 +240,34 @@ def test_maturity_map_draw_excludes_atoms_already_at_target():
 
 def test_maturity_map_draw_excludes_unassessed_atoms():
     supervisor.MATURITY_MAP_PATH.write_text(_UNASSESSED_ATOM_YAML)
+    assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_excludes_atom_with_unmet_dependency():
+    """2026-07-10 real observed gap: the first live draw surfaced
+    W1_2_generate_futures (level 0->2) whose own depends_on
+    (W1_reveal_over_time) was itself at level 0/3 -- premature, unbuildable
+    "work". A dependency not yet at its own target level must exclude the
+    dependent atom entirely -- but the prerequisite atom itself (which has
+    no unmet dependencies of its own) remains a legitimately drawable
+    candidate on its own merits, e.g. the fixture's own X5_prerequisite_atom."""
+    supervisor.MATURITY_MAP_PATH.write_text(_UNMET_DEPENDENCY_YAML)
+    results = [supervisor._maturity_map_draw() for _ in range(20)]
+    assert all(r is not None and "X4_dependent_atom" not in r for r in results)
+    assert any("X5_prerequisite_atom" in r for r in results)
+
+
+def test_maturity_map_draw_includes_atom_once_dependency_met():
+    supervisor.MATURITY_MAP_PATH.write_text(_MET_DEPENDENCY_YAML)
+    result = supervisor._maturity_map_draw()
+    assert result is not None
+    assert "X4_dependent_atom" in result
+
+
+def test_maturity_map_draw_excludes_atom_depending_on_nonexistent_id():
+    """A depends_on id absent from the map entirely fails closed (treated as
+    unmet), not silently assumed satisfied."""
+    supervisor.MATURITY_MAP_PATH.write_text(_MISSING_DEPENDENCY_YAML)
     assert supervisor._maturity_map_draw() is None
 
 
