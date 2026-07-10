@@ -171,6 +171,68 @@ def test_run_cycle_audit_does_not_repeat_ntfy_for_unchanged_finding(monkeypatch)
     assert len(calls) == 1
 
 
+def test_run_cycle_audit_does_not_repeat_ntfy_for_same_category_different_sample(monkeypatch):
+    """2026-07-10 regression: real run_internal_audit re-samples a different
+    (customer_id, period_end) pair every cycle (unseeded random draw), so a
+    signature keyed on that pair alone re-fires every cycle even when the
+    finding's substantive category (e.g. the known gas-kWh false positive)
+    is identical. This is the exact bug the director flagged as "repetitive
+    findings" -- 49/49 cycles fired an NTFY overnight."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    samples = iter([
+        [{"customer_id": "C1g", "period_end": "2020-07-31",
+          "note": "Gas consumption is reported in kWh, which is typically used for electricity, not gas."}],
+        [{"customer_id": "C4g", "period_end": "2021-03-31",
+          "note": "Gas consumption is stated in kWh, which is typically used for electricity, not gas."}],
+        [{"customer_id": "C2g", "period_end": "2023-01-31",
+          "note": "Gas consumption is reported in kWh, suggesting a possible unit error."}],
+    ])
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: next(samples),
+    )
+    sanity_daemon.run_cycle()
+    sanity_daemon.run_cycle()
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1
+
+
+def test_run_cycle_audit_fires_again_for_genuinely_new_category(monkeypatch):
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    samples = iter([
+        [{"customer_id": "C1g", "period_end": "2020-07-31",
+          "note": "Gas consumption is reported in kWh, which is typically used for electricity, not gas."}],
+        [{"customer_id": "C9", "period_end": "2022-05-31",
+          "note": "The standing charge appears twice on this bill, once under each fuel."}],
+    ])
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: next(samples),
+    )
+    sanity_daemon.run_cycle()
+    sanity_daemon.run_cycle()
+    assert len(calls) == 2
+
+
+def test_categorize_audit_note_buckets_known_false_positive_shapes():
+    assert sanity_daemon._categorize_audit_note(
+        "Gas consumption is reported in kWh, not gas."
+    ) == "gas-kwh-unit"
+    assert sanity_daemon._categorize_audit_note(
+        "The VAT amount does not align with the expected rate."
+    ) == "vat-mismatch"
+    assert sanity_daemon._categorize_audit_note(
+        "This consumption looks extremely high for a residential customer."
+    ) == "high-consumption"
+    assert sanity_daemon._categorize_audit_note(
+        "Something entirely novel and unrelated to any known shape."
+    ).startswith("other:")
+
+
 def test_run_cycle_population_and_audit_ntfys_are_independent(monkeypatch):
     bills = [{"customer_id": "C6", "period_end": "2024-01-28", "segment": "resi",
               "commodity": "electricity", "total_consumption_kwh": 50000.0,

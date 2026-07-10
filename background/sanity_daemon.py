@@ -64,8 +64,34 @@ def _finding_signature(findings: list) -> str:
     ))
 
 
+# 2026-07-10 director observation (from_rich_20260710_135317.md): the audit
+# NTFY fired on effectively every single cycle for 21h/49 cycles straight --
+# root cause was this signature keying on (customer_id, period_end), which
+# `run_internal_audit`'s risk-based RANDOM sample (unseeded -- a fresh draw
+# every cycle) is guaranteed to change almost every time, even when the
+# underlying finding is the exact same recurring false-positive SHAPE (e.g.
+# "gas billed in kWh" -- correct GB practice, already adjudicated a false
+# positive in BILL_CORRECTNESS_ADDENDUM/CLAUDE.md 2a). Keying on a
+# normalised category instead means a repeat of an already-seen shape on a
+# freshly-sampled customer/date stays silent (R5), while a genuinely new
+# shape of finding still alerts.
+_AUDIT_CATEGORY_RULES = [
+    ("gas-kwh-unit", ("gas", "kwh")),
+    ("vat-mismatch", ("vat",)),
+    ("high-consumption", ("consumption",)),
+]
+
+
+def _categorize_audit_note(note: str) -> str:
+    lowered = note.lower()
+    for category, keywords in _AUDIT_CATEGORY_RULES:
+        if all(kw in lowered for kw in keywords):
+            return category
+    return f"other:{note.strip()[:40].lower()}"
+
+
 def _audit_signature(findings: list) -> str:
-    return json.dumps(sorted((f["customer_id"], f["period_end"]) for f in findings))
+    return json.dumps(sorted({_categorize_audit_note(f["note"]) for f in findings}))
 
 
 def run_cycle() -> None:
