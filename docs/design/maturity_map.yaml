@@ -202,8 +202,8 @@
   level_target: 3
   loop_stage: frame
   dial_inherited: 3
-  evidence: ["company/finance/double_entry.py", "saas/ledger.py"]
-  simplifications: []
+  evidence: ["company/finance/double_entry.py", "saas/ledger.py", "docs/design/E1_CORPORATION_TAX_FINDING.md"]
+  simplifications: ["2026-07-10 FRAME finding: balance_sheet() genuinely balances (equation_holds=True, verified for every real year 2016-2025 in production data) -- the ledger mechanism itself is sound. Real, complete gap found against the real_world_twin (a real supplier's statutory accounts): UK Corporation Tax is entirely absent (zero hits for corporation_tax/corp_tax/tax_provision anywhere). net_margin_gbp is pre-tax operating profit, not the post-tax 'Profit for the year' a real Companies House filing would headline. Quantified: ~25% reduction for any year above the marginal-relief threshold (most years here), a material not cosmetic effect. NOT simply another margin bug to fix blind -- the EBIT% anchors this session's MARGIN_REALISM work already uses (EDF/British Gas CSS, Ofgem cap) are BY DEFINITION pre-tax, so the current pre-tax-only figure is correct for those comparisons; adding tax and silently replacing net_margin_gbp would introduce a THIRD margin-basis conflation into a programme already unwinding two. Recommended (not built): add a genuinely NEW profit_before_tax/corporation_tax/profit_for_year triplet alongside the existing field, never replacing it."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's statutory accounts"
   depends_on: []

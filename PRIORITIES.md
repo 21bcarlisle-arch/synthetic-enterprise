@@ -1,6 +1,22 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
 #
+# === E1 CORPORATION TAX -- REAL FRAME FINDING, NOT BUILT (2026-07-10, sixteenth dial-weighted
+#   draw, docs/design/E1_CORPORATION_TAX_FINDING.md): balance_sheet() genuinely balances for
+#   every real year 2016-2025 (verified, not assumed) -- the ledger mechanism is sound. Real gap
+#   against the real_world_twin (a real supplier's statutory accounts): UK Corporation Tax is
+#   entirely absent -- net_margin_gbp is pre-tax operating profit, not the post-tax "Profit for
+#   the year" a real Companies House filing headlines. Quantified: ~25% reduction for any year
+#   above the marginal-relief threshold (most years here) -- material, not cosmetic. NOT simply
+#   another margin bug -- the EBIT% anchors already used throughout MARGIN_REALISM (EDF/British
+#   Gas CSS, Ofgem cap) are BY DEFINITION pre-tax, so the current figure is CORRECT for those
+#   comparisons; adding tax and replacing net_margin_gbp would introduce a THIRD margin-basis
+#   conflation into a programme already unwinding two (Step 1's commodity-vs-total-revenue,
+#   E2/B1/D2's years[]-vs-ledger). NEXT: add a genuinely NEW profit_before_tax/corporation_tax/
+#   profit_for_year triplet alongside the existing field, never replacing it -- real UK rate
+#   history (19% flat pre-April 2023, 19%/25%/marginal-relief after) is clean and well-anchored
+#   once this labelling discipline is respected. Not rushed into this same turn.
+#
 # === E2 REVENUE RECONCILIATION -- REAL PROGRESS, DEEPER ISSUE FOUND (2026-07-10, first
 #   dial-weighted maturity-map self-refill draw, docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_
 #   FINDING.md): audited every surface reading revenue_gbp/a margin %. fra_ratio_series was
