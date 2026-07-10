@@ -61,7 +61,20 @@
 #   STEP 3 (opex/cost-to-serve mechanism) -- IN PROGRESS 2026-07-10. Split into (a) true
 #   third-party/industry costs charged fully and anchored (metering, DCC, payment
 #   processing, print/postage, debt-collection, Elexon/Xoserve charges) -- REAL-ANCHOR
-#   RESEARCH DISPATCHED (discovery-agent, appending to ASSUMPTIONS.md, non-blocking), (b)
+#   RESEARCH LANDED 2026-07-10 (docs/market_research/ASSUMPTIONS.md "MARGIN_REALISM Step 3"
+#   section): DCC smart-meter comms charge, H-confidence, live-fetched from Smart DCC's own
+#   RY26/27 Charging Statement -- £19.01/yr per domestic electricity smart meter, £14.32/yr
+#   per gas smart meter (same rate domestic/non-domestic). Ofgem price-cap "operating, debt
+#   and industry costs" allowance, H-confidence -- £297.92/yr (Direct Debit) / £441.10/yr
+#   (Standard Credit) / £308.04/yr (Prepayment) per dual-fuel domestic customer, but
+#   explicitly BUNDLED (opex+bad-debt+industry charges together) -- a double-counting risk
+#   against separately-built industry-cost lines, flagged not silently used. GoCardless DD
+#   processing fee (1%+20p, capped £4) and Royal Mail postage (91p/£1.80) as SME/retail-rate
+#   benchmarks. Honestly-logged gaps, not invented: Elexon BSC + Xoserve UK Link charges
+#   (sites blocked this session), MOP/DC/DA meter-service rates, bulk credit-check pricing.
+#   NEXT: build (a) using the DCC figure now (clean, real, not bundled); use the Ofgem
+#   bundled figure ONLY for the benchmark ledger (c), never inside the true (a+b) ledger,
+#   per its own double-counting caveat. (b)
 #   AI-compute + director-oversight hours at TRUE metered cost -- data-source check found
 #   a REAL GAP: background/token_proxy.py's usage log (docs/observability/token-usage-
 #   log.jsonl) only covers 2026-06-21 to 2026-06-25 (stopped 2+ weeks ago, ~$69.81 total --
