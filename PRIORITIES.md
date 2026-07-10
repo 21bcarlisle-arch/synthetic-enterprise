@@ -511,6 +511,56 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **REVIEW GATE OPEN (Tier 1, blocking) -- hedge-decision volatility lookback uses future data**:
+  docs/review_gates/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md (2026-07-10, from a real director
+  page comment on /supplier/ Trading & Market, confirmed twice-verified real epistemic-wall
+  violation). Awaiting explicit director decision before any fix -- correcting it re-derives
+  hedge decisions across the whole 2016-2025 run and may move headline figures already reported.
+- **Segmented financials (director page comments, 2026-07-10, /supplier/ Performance tab, twice
+  in the same session -- P-2 director-repeat)**: percentage EBIT margin per segment, cash flow
+  per segment, ROCE (incl. collateral) for resi/SME/I&C + total, replacing/supplementing the
+  current absolute-£ portfolio view. Real data likely already exists per-segment in
+  by_billing_account/segment_annual structures (site/data/dashboard.json's market.segment_annual
+  has gross/net £ but no revenue field yet -- same gap flagged for the earlier "percentage margin
+  by segment" SIM-tab comment, now confirmed as the same underlying ask from the Supplier tab
+  specifically). NOT YET STARTED -- needs a revenue-by-segment field + a real %-margin/cashflow/
+  ROCE chart design.
+- **Trading & Market tab redesign (director page comment, 2026-07-10, /supplier/)**: monthly
+  buying/position-seeking activity, seasonal % cover over time by segment/product type, VaR --
+  BLOCKED on the review gate above (fixing the volatility-lookback bug first, so this isn't built
+  against known-wrong numbers). A research fork found: no per-decision/monthly hedge-event log
+  exists yet (would need a new one in run_phase2b.py); VaR is already computed internally in
+  company/trading/hedge_decision.py (VAR_Z_95/VAR_REVENUE_LIMIT) but never surfaced -- cheap to
+  expose once the lookback bug is fixed.
+- **Operations tab -- full value chain (director page comment, 2026-07-10, /supplier/
+  Operations)**: "very narrow compared to the full operational reporting and scope of processes
+  ... across resi, sme & I&C... the full value chain. Might need sub levels." NOT YET SCOPED --
+  needs a proper investigation of what real energy-retailer operational reporting actually
+  covers (acquisition, onboarding, billing ops, contact centre, arrears/collections, meter
+  operations, complaints, regulatory returns) vs what's currently shown, before sizing a build.
+- **Project tab roadmap -- epoch storytelling (director page comment, 2026-07-10, /project/)**:
+  "I don't like the roadmap. It's very static. Where are my epochs. Tell the true story of all
+  the cool work we have have planned." Current Project tab shows the archive/spec view only
+  (per phase-close rule 0b, "Project tab spec is the archive, never the evidence") -- director
+  wants a genuine forward-looking, epoch-framed narrative (Epoch 2/3 direction, already recorded
+  in docs/design/EPOCH2_EVIDENCE.md and the EPOCH3_DIRECTION.md re-rank input) surfaced as a real
+  story he can react to and shape, not a static list. NOT YET STARTED -- a real content/design task.
+- **SIM tab -- more model-complexity flavour (director page comment, 2026-07-10, /sim/)**: "Many
+  being 70% satisfied looks suspicious. And none in fuel poverty. No info on smart meters. Duel
+  fuel. House type. Business type consumption etc. I feel we need to give more of a flavour of
+  the 4d model we have and scope of complexity we are simulating." Partial progress already
+  exists (fuel poverty/tenure/occupancy columns added 2026-07-09/10 on the Customer Sample table)
+  but the director's ask is broader -- smart-meter status, dual-fuel indicator, house type,
+  business-type consumption all need surfacing too, plus investigating why satisfaction clusters
+  suspiciously at 70% (a real population-sanity question, not yet checked). NOT YET STARTED.
+- **Cumulative tests EXECUTED metric (director page comment, 2026-07-10, /project/)**: "Don't we
+  want cumulative tests run, not the growth in the standard test set." A genuinely different,
+  arguably more impressive metric (total test executions across every CI/verification run over
+  the project's history, not just current suite size) -- but no historical execution-count log
+  exists to derive it from retroactively, and fabricating a historical total would violate the
+  Anchored-noise/R-A no-fabrication rule. Needs NEW forward-only instrumentation (log each pytest
+  run's test count + timestamp, accumulate from whenever that instrumentation starts) rather than
+  a quick metric swap. NOT YET STARTED.
 - **TIME_REPLAY (Epoch-2 dividend, registered 2026-07-09 per DIRECTOR_COMMENTS_BOX.md's
   forward registration -- registration only, no design/build done)**: director wants a
   run-button/slider on most site pages to visualise the passage of time -- events, actions,
