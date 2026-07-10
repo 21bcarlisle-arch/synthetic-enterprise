@@ -108,12 +108,12 @@
   lane: B_commercial
   value_stream: wholesale_to_price
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 2
-  loop_stage: frame
+  loop_stage: build
   dial_inherited: 3
-  evidence: ["docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md", "docs/staging/done/MARGIN_REALISM_amended.md"]
-  simplifications: []
+  evidence: ["docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md", "docs/staging/done/MARGIN_REALISM_amended.md", "saas/opex_ledger.py", "site/supplier/index.html (Cost-to-Serve card)"]
+  simplifications: ["2026-07-10 v1 BUILT: part (a) true third-party cost is DCC comms charge only (clean, H-confidence, £19.01/yr elec + £14.32/yr gas smart meter) -- payment processing/postage/credit-check/debt-collection/Elexon/Xoserve remain honest, unmodelled gaps (R12: no fudge factors). Part (b) AI-compute+oversight is a hard 0.0 pending two real open questions (token-usage-log representativeness + costing basis; director's own oversight rate) -- registered in PRIORITIES.md, never silently defaulted. Part (c) benchmark ledger uses Ofgem's bundled cost-cap allowance per household (netted of the true DCC cost) -- a partial de-duplication (bad debt/other industry costs remain bundled inside it), documented not claimed exact. Live real portfolio result: true opex £99.99/yr, benchmark £4,488.87/yr, gap £4,388.88/yr. Surfaced on Supplier tab Financial section. Real first BUILD pass, not full fidelity -- level 1, not yet 2."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "supplier cost-to-serve allocation vs a lower-quartile incumbent benchmark"
   depends_on: []

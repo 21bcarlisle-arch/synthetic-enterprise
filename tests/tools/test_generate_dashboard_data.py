@@ -3,9 +3,11 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+import pytest
+
 from tools.generate_dashboard_data import (
     _fmt, extract_portfolio, extract_financial, count_run_history_total,
-    extract_regulatory, _SLC_OBLIGATIONS, extract_reputation,
+    extract_regulatory, _SLC_OBLIGATIONS, extract_reputation, extract_opex_ledger,
 )
 import json
 
@@ -372,3 +374,31 @@ def test_extract_reputation_counts_events():
     }
     r = extract_reputation(data)
     assert r["total_reputation_events"] == 2
+
+
+# -- extract_opex_ledger (MARGIN_REALISM Step 3 / B2) --
+
+def test_extract_opex_ledger_computes_against_real_customers_master_list():
+    """Independent of run_output.json's own content -- reads saas.customers.CUSTOMERS
+    directly, matching this module's existing pattern for other CUSTOMERS-derived
+    figures (extract_customers etc.)."""
+    result = extract_opex_ledger({})
+    assert result["true_opex_total_gbp"] >= 0.0
+    assert result["benchmark_opex_total_gbp"] >= 0.0
+    assert result["household_count"] > 0
+    assert "note" in result
+
+
+def test_extract_opex_ledger_investor_thesis_gap_is_positive():
+    result = extract_opex_ledger({})
+    assert result["investor_thesis_gap_gbp"] == pytest.approx(
+        result["benchmark_opex_total_gbp"] - result["true_opex_total_gbp"]
+    )
+    assert result["investor_thesis_gap_gbp"] > 0
+
+
+def test_extract_opex_ledger_ai_compute_not_yet_populated():
+    """Real, unresolved open design questions -- must stay 0.0, never silently
+    fabricated (R12)."""
+    result = extract_opex_ledger({})
+    assert result["true_ai_compute_cost_gbp"] == 0.0

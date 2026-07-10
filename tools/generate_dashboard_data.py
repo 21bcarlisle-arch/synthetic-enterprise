@@ -659,6 +659,48 @@ def extract_management_accounts(data):
     return {"annual": rows}
 
 
+def extract_opex_ledger(data):
+    """MARGIN_REALISM Step 3 (B2, Maturity Map): the dual opex ledger --
+    TRUE (a+b) cost vs a BENCHMARK-loaded proxy, per saas/opex_ledger.py.
+    Computed fresh from the CUSTOMERS master list + each household's real
+    payment channel, independent of run_output.json's own content, matching
+    this module's existing pattern (extract_customers etc. already do the
+    same for other CUSTOMERS-derived figures)."""
+    from saas.customers import CUSTOMERS as _CUSTS
+    from saas.opex_ledger import build_opex_ledger, _household_base_id
+    from simulation.household_segments import payment_channel_for_customer
+
+    households = sorted({_household_base_id(c["customer_id"]) for c in _CUSTS})
+    channels = {}
+    for household in households:
+        try:
+            channels[household] = payment_channel_for_customer(household).value
+        except Exception:
+            continue  # left unresolved -- build_opex_ledger excludes it from the benchmark side only
+
+    ledger = build_opex_ledger(_CUSTS, channels)
+    return {
+        "true_third_party_cost_gbp": ledger["true_third_party_cost_gbp"],
+        "true_ai_compute_cost_gbp": ledger["true_ai_compute_cost_gbp"],
+        "true_opex_total_gbp": ledger["true_opex_total_gbp"],
+        "benchmark_labour_cost_gbp": ledger["benchmark_labour_cost_gbp"],
+        "benchmark_opex_total_gbp": ledger["benchmark_opex_total_gbp"],
+        "investor_thesis_gap_gbp": ledger["investor_thesis_gap_gbp"],
+        "household_count": ledger["household_count"],
+        "unresolved_household_count": ledger["unresolved_household_count"],
+        "note": (
+            "TRUE ledger = real third-party costs (DCC comms charge only -- "
+            "payment processing/postage/credit-check/debt-collection/Elexon/"
+            "Xoserve are genuine, documented gaps, not estimated) + AI-compute "
+            "(not yet populated -- open costing-basis + director-rate questions, "
+            "see PRIORITIES.md). BENCHMARK ledger = Ofgem price-cap 'operating, "
+            "debt and industry' allowance per household, netted of the TRUE "
+            "third-party cost to avoid double-counting DCC. The gap between "
+            "them is the investor thesis, not a claim the TRUE ledger is complete."
+        ),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -998,6 +1040,7 @@ def generate(run_json_path=None):
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
         "flexibility": extract_flexibility(data),
+        "opex_ledger": extract_opex_ledger(data),
         "churn_model_performance": data.get("churn_model_performance", {}),
         "frozen_baseline": _load_frozen_baseline(),
         "build": {

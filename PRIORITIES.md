@@ -68,11 +68,21 @@
 #   refactor could copy without noticing. Design sketch registered, NOT built (Tier 1 --
 #   touches the SIM/company boundary, requires explicit director approval before any code
 #   change): a single structural point-in-time snapshot/as-of-view object all reads go
-#   through, replacing per-call-site patches. External research on real quant-finance
-#   point-in-time-database precedent dispatched (discovery-agent, appending to
-#   ASSUMPTIONS.md under "W1 reveal-over-time (Maturity Map DISCOVER)"). NEXT: once research
-#   lands, write this up as a named FRAME-stage proposal for the director's Tier 1 review --
-#   no implementation before that gate opens and closes.
+#   through, replacing per-call-site patches. RESEARCH LANDED: "look-ahead bias" is the
+#   confirmed standard term (QuantConnect/LEAN glossary); QuantConnect names its own
+#   enforcement boundary the "Time Frontier", Zipline uses event-driven/streaming delivery --
+#   both real, named precedent for a structural approach. The MORE mature pattern than a
+#   simple as-of-filter is a shared, uniformly-enforced access layer every caller must route
+#   through -- named "point-in-time join" (Feast, open-source ML feature store) and
+#   "bitemporal history" (Martin Fowler); Lopez de Prado's "Advances in Financial Machine
+#   Learning" (Wiley 2018) implements this as a reusable PurgedKFoldCV class with "purging"/
+#   "embargo" concepts. Real quantified precedent for the COST of getting this wrong exists
+#   for the sibling bias (survivorship bias: Elton/Gruber/Blake 1996, ~0.9%/yr overstated
+#   returns) though no case study was found naming look-ahead bias specifically from
+#   inconsistent per-function enforcement -- stated as an honest negative finding, not
+#   invented. NEXT: write this up as a named FRAME-stage proposal (the shared point-in-time
+#   access-layer pattern, evidence-cited) for the director's Tier 1 review -- no
+#   implementation before that gate opens and closes.
 #
 # === SANITY DAEMON FOLLOW-UPS (2026-07-10, director NTFY -- "sanity daemon findings
 #   ...all seem similar and repetitive, is there a broader fix needed" -- YES, fixed
@@ -158,9 +168,26 @@
 #   token under a flat plan) -- and the director's own oversight-hours rate is his call,
 #   not a number to invent. (c) DUAL ledger (true vs benchmark-loaded with lower-quartile
 #   incumbent labour cost per segment) -- anchors also part of the dispatched research.
-#   NEXT: once research lands, build (a) into the mechanism now (well-anchored, no open
-#   design question); propose a clearly-flagged default for (b)'s pricing basis + a
-#   placeholder oversight rate (director can override) rather than blocking, per Tier 3.
+#   BUILT 2026-07-10 (saas/opex_ledger.py, wired into tools/generate_dashboard_data.py +
+#   site/supplier/index.html Financial section, sixth dial-weighted draw): (a) DCC comms
+#   charge only (£19.01/yr elec, £14.32/yr gas per smart-metered account) -- other real
+#   cost lines left at £0, not estimated, per R12 (payment processing/postage were
+#   explicitly flagged SME-scale, not a real incumbent's unit cost; credit-check/debt-
+#   collection/Elexon/Xoserve are genuine unresolved gaps). (b) hard 0.0, NOT silently
+#   defaulted -- the two open questions (token-usage-log representativeness/costing basis;
+#   director's own oversight rate) remain genuinely unresolved and are not the agent's to
+#   invent, even under Tier 3 -- a placeholder $ figure feeding an "investor thesis" number
+#   is exactly the kind of invented number R12 exists to prevent, so this stayed at 0
+#   rather than picking a default. (c) Ofgem bundled allowance per household, NETTED of (a)
+#   to avoid double-counting DCC (per the research's own recommendation) -- a partial, not
+#   full, de-duplication (bad debt/other industry costs remain bundled inside it), honestly
+#   documented. Real live portfolio result: true opex £99.99/yr vs benchmark £4,488.87/yr,
+#   gap £4,388.88/yr -- the investor thesis, quantified, though understated on the true
+#   side pending (b). 26 new tests (module + dashboard extraction), epistemic PASS, verified
+#   via scratch generation (canonical dashboard.json untouched) + a Node harness for the new
+#   HTML section (no undefined/NaN, degrades gracefully when opex_ledger is absent).
+#   NEXT: (b)'s two open questions still need either director input or a genuinely
+#   defensible default -- not invented by self-refill.
 #   STEPS 4-6 (hedge-tariff alignment, price-cap-binds mechanism, pressure-roadmap
 #   registration) -- NOT STARTED, sequenced after Step 3 (hedge-tariff alignment touches
 #   the same hedge-decision code the Tier 1 gate closed this week; the price cap becoming

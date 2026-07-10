@@ -577,6 +577,35 @@ function renderOverview() {
 }
 
 // ── FINANCIAL ────────────────────────────────────────────────────────────────
+function opexLedgerHtml() {
+  const ol = D.opex_ledger;
+  if (!ol) return '';
+  const gapPositive = ol.investor_thesis_gap_gbp >= 0;
+  return `
+    <div class="tbl-box">
+      <div class="tbl-title">Cost-to-Serve: True vs Benchmark Ledger</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        TRUE ledger charges only real, anchored third-party costs (DCC smart-meter comms
+        charge) plus AI-compute/oversight (not yet populated -- open costing-basis
+        questions, see PRIORITIES.md). BENCHMARK ledger uses Ofgem's own price-cap
+        "operating, debt and industry costs" allowance per household as a lower-quartile
+        incumbent-labour proxy, netted of the TRUE third-party cost to avoid double-counting.
+        The gap between them is the investor thesis, quantified -- not a claim the TRUE
+        ledger is complete (MARGIN_REALISM Step 3, docs/market_research/ASSUMPTIONS.md).
+      </div>
+      <table>
+        <tr><th></th><th>True Ledger</th><th>Benchmark Ledger</th></tr>
+        <tr><td>Third-party/industry costs</td><td>${gbp(ol.true_third_party_cost_gbp)}</td><td rowspan="2" style="vertical-align:middle">${gbp(ol.benchmark_labour_cost_gbp)}</td></tr>
+        <tr><td>AI-compute + oversight</td><td>${gbp(ol.true_ai_compute_cost_gbp)}</td></tr>
+        <tr><td><strong>Total opex</strong></td><td><strong>${gbp(ol.true_opex_total_gbp)}</strong></td><td><strong>${gbp(ol.benchmark_opex_total_gbp)}</strong></td></tr>
+      </table>
+      <div style="padding:.5rem 0 0;font-size:.9em">
+        <strong>Investor thesis gap: <span class="${gapPositive?'pos':'neg'}">${gbp(ol.investor_thesis_gap_gbp)}</span></strong>
+        <span style="color:var(--muted)"> (${ol.household_count} household(s) resolved${ol.unresolved_household_count?`, ${ol.unresolved_household_count} unresolved`:''})</span>
+      </div>
+    </div>`;
+}
+
 function renderFinancial() {
   const faAll = D.financial.annual;
   const fa = YEAR_FILTER ? faAll.filter(r => r.year === YEAR_FILTER) : faAll;
@@ -655,6 +684,7 @@ function renderFinancial() {
         </tr>`).join('')}
       </table>
     </div>
+    ${opexLedgerHtml()}
     ${segTableHtml}`;
 
   if (segs.length) {
