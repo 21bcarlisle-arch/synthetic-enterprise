@@ -262,6 +262,15 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
         and a.get("level_target") is not None
         and a["level_current"] < a["level_target"]
         and _dependencies_met(a)
+        # 2026-07-10, real observed gap: the third live draw surfaced
+        # W3_1_price_cap_binding (loop_stage=idle) -- per MATURITY_MAP.md
+        # Section 6's own schema, "idle" specifically means NOT currently in
+        # the Hardening Loop (parked -- e.g. explicitly sequenced after other
+        # steps in its own programme doc, or simply not this cycle's
+        # priority per the dial-setter). Drawing it as if it were live
+        # discover/build/etc. work wastes a turn on something the map's own
+        # data already says isn't due yet.
+        and a.get("loop_stage") != "idle"
     ]
     if not candidates:
         return None

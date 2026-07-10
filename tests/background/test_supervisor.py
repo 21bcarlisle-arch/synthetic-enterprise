@@ -178,7 +178,7 @@ _UNMET_DEPENDENCY_YAML = """\
   dial_inherited: 3
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   depends_on: [X5_prerequisite_atom]
 - id: X5_prerequisite_atom
   name: "Prerequisite not yet done"
@@ -196,7 +196,7 @@ _MET_DEPENDENCY_YAML = """\
   dial_inherited: 3
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   depends_on: [X5_prerequisite_atom]
 - id: X5_prerequisite_atom
   name: "Prerequisite already done"
@@ -214,8 +214,18 @@ _MISSING_DEPENDENCY_YAML = """\
   dial_inherited: 3
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   depends_on: [X7_does_not_exist]
+"""
+
+_IDLE_ATOM_YAML = """\
+- id: X8_idle_atom
+  name: "Atom explicitly parked, not in the active loop"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 1
+  level_target: 2
+  loop_stage: idle
 """
 
 
@@ -268,6 +278,17 @@ def test_maturity_map_draw_excludes_atom_depending_on_nonexistent_id():
     """A depends_on id absent from the map entirely fails closed (treated as
     unmet), not silently assumed satisfied."""
     supervisor.MATURITY_MAP_PATH.write_text(_MISSING_DEPENDENCY_YAML)
+    assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_excludes_idle_loop_stage():
+    """2026-07-10 real observed gap: the third live draw surfaced
+    W3_1_price_cap_binding (loop_stage=idle) -- per MATURITY_MAP.md's own
+    schema, "idle" means explicitly parked/not in the active Hardening Loop
+    (this atom is also Step 5 of MARGIN_REALISM, sequenced after Steps 3-4),
+    so it must never be surfaced as active self-refill work even though it
+    has a real level gap and no unmet dependency."""
+    supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)
     assert supervisor._maturity_map_draw() is None
 
 
