@@ -13,6 +13,27 @@ path, NOT `docs/reports/run_output_latest.json`) compared old-vs-new headline fi
 hf=0.00 finding specifically. This gate stays open until the director reviews these results and
 says go-live.
 
+**Incident, self-caught (2026-07-10, ~07:11):** killing the `sim-runner` tmux session was not
+sufficient to hold publishing — `background/health_check.py` auto-restarts any daemon it finds
+dead, and did so at 07:00:01, before I'd made the pause durable. That respawned instance ran one
+full cycle on the fixed code (`git=d98e0608`) and its own `process_run_complete.py` step
+auto-committed the result to every canonical/live surface (`site/data/dashboard.json`,
+`supplier.json`, `customers/*.json`, `billing_ledger.json`, `docs/reports/ANNUAL_REPORT.md`,
+`docs/status/LATEST.md`) as commit `6b403dcc` — exactly the auto-publish the director said to
+hold. Caught it myself ~1 minute later via the same mtime check that flagged this investigation,
+before the commit reached origin (`git branch -r --contains 6b403dcc` was empty — never pushed,
+so nothing external ever saw it). Remediation: (1) reverted `6b403dcc` cleanly (commit
+`2c5a6543`, safe because it was local-only) — canonical `dashboard.json` etc. are back to their
+pre-publish state; (2) added a real hold mechanism `background/sim_runner.py` now checks for
+`docs/review_gates/.sim_runner_hold` at the top of its loop and skips starting new runs while it
+exists, so a health_check-triggered respawn can no longer bypass a hold — killing the tmux
+session alone was insufficient and will not be relied on again; (3) created that hold flag now,
+sim-runner restarted (alive but idle). Net loss: ~25 routine `run_complete_*.md` archival
+records from before the fix (00:08-06:00, all change-detection-SKIP no-ops, no data difference)
+were deleted rather than restored by the revert, since they were never tracked as pending in git
+— trivial, self-healing as new runs process going forward, not remediated further. No headline
+figures were exposed externally at any point.
+
 ## Re-derivation results (2026-07-10, isolated run, one BEFORE snapshot vs one FIXED run)
 
 **Headline P&L: barely moves.** total_net_gbp -0.02% (-£342.76), total_revenue_gbp +0.00%,

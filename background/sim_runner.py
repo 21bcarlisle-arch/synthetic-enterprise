@@ -24,6 +24,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 REPORTS_DIR = PROJECT_DIR / "docs" / "reports"
+HOLD_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".sim_runner_hold"
 
 BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
@@ -146,7 +147,18 @@ def run_simulation() -> bool:
 
 def main() -> None:
     log("Simulation runner started")
+    was_held = False
     while True:
+        if HOLD_FLAG.exists():
+            if not was_held:
+                log("HELD: {} present -- skipping new runs until it is removed "
+                    "(director hold on publishing new results)".format(HOLD_FLAG.name))
+                was_held = True
+            time.sleep(120)
+            continue
+        if was_held:
+            log("Hold cleared -- resuming normal runs")
+            was_held = False
         try:
             success = run_simulation()
         except Exception as exc:
