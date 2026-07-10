@@ -5596,7 +5596,6 @@ def populate_compliance_scorecard(data: dict):
         bad_debt = yd.get("bad_debt_gbp", 0.0)
         bad_debt_pct = bad_debt / revenue * 100 if revenue > 0 else 0.0
         avg_clarity = yd.get("avg_clarity", 1.0)
-        avg_complaint = yd.get("avg_complaint_probability", 0.0)
         fra_data = fra_series.get(yr_int, {})
         fra_ratio = fra_data.get("fra_ratio", 10.0) if fra_data else 10.0
 
@@ -5642,16 +5641,42 @@ def populate_compliance_scorecard(data: dict):
                                 metric_value=round(avg_err, 1), threshold=10.0,
                                 notes=f"EAC estimation error {avg_err:.1f}%")
 
-        # COMPLAINTS (SLC 25-29): complaint probability proxy
-        if avg_complaint < 0.01:
+        # COMPLAINTS (SLC 25-29, displayed as "SLC 25C: Communication Channel
+        # Choice") -- FIXED 2026-07-10 (director page comment: "How do
+        # complaints link to channels available?"): this used to key off
+        # avg_complaint_probability, a churn-model metric measuring HOW LIKELY
+        # a customer is to complain -- nothing to do with whether they had a
+        # real channel choice or were served well once they used one. A real
+        # domain-sense mismatch (R10 absurdity class), not a tuning issue.
+        # simulation/contact_centre.py already models real multi-channel
+        # contact (phone/webchat/email, always all three structurally
+        # available -- so literal channel AVAILABILITY is guaranteed by
+        # construction) with a real per-contact first-response SLA outcome
+        # (breached_sla). The meaningful compliance signal for "channel
+        # choice" is whether customers are actually served adequately once
+        # they pick a channel -- an SLA-breach rate, not complaint volume.
+        # docs/design/SLC25C_CHANNEL_CHOICE_FIX.md.
+        cc_log = [
+            e for e in data.get("contact_centre_log", [])
+            if e.get("period_end", "")[:4] == yr
+        ]
+        breach_count = sum(1 for e in cc_log if e.get("breached_sla"))
+        breach_rate = breach_count / len(cc_log) if cc_log else 0.0
+        if not cc_log:
             comp_rag = RAGStatus.GREEN
-        elif avg_complaint < 0.05:
+            comp_notes = "No contact-centre events this year"
+        elif breach_rate < 0.10:
+            comp_rag = RAGStatus.GREEN
+            comp_notes = f"First-response SLA breach rate {breach_rate:.1%} ({breach_count}/{len(cc_log)} contacts)"
+        elif breach_rate < 0.25:
             comp_rag = RAGStatus.AMBER
+            comp_notes = f"First-response SLA breach rate {breach_rate:.1%} ({breach_count}/{len(cc_log)} contacts)"
         else:
             comp_rag = RAGStatus.RED
+            comp_notes = f"First-response SLA breach rate {breach_rate:.1%} ({breach_count}/{len(cc_log)} contacts)"
         scorecard.record_check(ComplianceDomain.COMPLAINTS, as_of, comp_rag,
-                                metric_value=round(avg_complaint, 4), threshold=0.01,
-                                notes=f"Avg complaint probability {avg_complaint:.3f}")
+                                metric_value=round(breach_rate, 4), threshold=0.10,
+                                notes=comp_notes)
 
         # VULNERABLE CUSTOMERS (SLC 30-35): always GREEN (not modelled in detail)
         scorecard.record_check(ComplianceDomain.VULNERABLE_CUSTOMERS, as_of, RAGStatus.GREEN,

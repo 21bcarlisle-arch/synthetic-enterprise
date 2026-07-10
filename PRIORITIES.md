@@ -1,6 +1,21 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md, director-direct NTFY)
 #
+# === SLC 25C "Communication Channel Choice" FIXED (2026-07-10, director page comment,
+#   docs/design/SLC25C_CHANNEL_CHOICE_FIX.md): real R10-class domain-sense mismatch, not a
+#   tuning issue. The COMPLAINTS scorecard check was keyed on avg_complaint_probability (a
+#   churn-model metric, nothing to do with channel choice) instead of the ALREADY-BUILT real
+#   multi-channel contact-centre model (simulation/contact_centre.py + company/crm/
+#   contact_journey.py, existed since an earlier phase, was simply never wired to this specific
+#   check). Fixed: now uses the real first-response SLA-breach rate from
+#   data["contact_centre_log"]. Live result: SLC 25C RED -> GREEN, overall Regulatory RAG RED ->
+#   AMBER (now correctly driven by the separate, genuine billing-clarity AMBER). Confirmed by
+#   reading, not assumed: the other 22 SLC obligations don't show the same mismatch class. Also
+#   answered a separate director question: "MANUAL" status on the OTHER compliance surface
+#   (company/compliance/compliance_report.py) is by design not a failure -- registered a small
+#   follow-up to state that explicitly in the report's own rendering, not just its docstring. 4
+#   new/updated tests, 16,604 tests collected (full suite), epistemic PASS.
+#
 # === BUG FOUND, NOT FIXED: staging-watcher wake consumption-check is structurally broken
 #   (2026-07-10, docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md). Root cause: `background/
 #   tmux_relay.py::send_keys_when_idle()` checks "is the marker absent from the pane" to confirm

@@ -222,12 +222,11 @@ def test_count_run_history_total_invalid_json_returns_zero(tmp_path):
     assert count_run_history_total(history_path) == 0
 
 
-def _regulatory_data(**year_overrides):
+def _regulatory_data(contact_centre_log=None, **year_overrides):
     year_2024 = {
         "revenue_gbp": 1_000_000.0,
         "bad_debt_gbp": 5_000.0,
         "avg_clarity": 0.85,
-        "avg_complaint_probability": 0.005,
         "bsc_credit_required_gbp": 1_000.0,
         "treasury_end_gbp": 500_000.0,
     }
@@ -237,6 +236,7 @@ def _regulatory_data(**year_overrides):
         "management_accounts": {"2024": {"balance_sheet": {"total_equity_gbp": 1.0}}},
         "fra_ratio_series": [{"year": 2024, "fra_ratio": 5.0}],
         "demand_estimation_log": [],
+        "contact_centre_log": contact_centre_log or [],
     }
 
 
@@ -264,10 +264,48 @@ def test_extract_regulatory_billing_amber_on_low_clarity():
 
 
 def test_extract_regulatory_complaints_red_flows_to_slc25c():
-    r = extract_regulatory(_regulatory_data(avg_complaint_probability=0.10))
+    """SLC 25C ("Communication Channel Choice") is keyed on the real
+    contact-centre first-response SLA breach rate (simulation/contact_centre.py),
+    not complaint probability -- fixed 2026-07-10 (director page comment,
+    docs/design/SLC25C_CHANNEL_CHOICE_FIX.md: complaint probability measures how
+    likely a customer is to complain, nothing about whether they had a real
+    channel choice or were served well through it)."""
+    log = (
+        [{"period_end": "2024-06-30", "breached_sla": True}] * 8
+        + [{"period_end": "2024-06-30", "breached_sla": False}] * 2
+    )
+    r = extract_regulatory(_regulatory_data(contact_centre_log=log))
     row = next(o for o in r["obligations"] if o["code"] == "SLC 25C")
     assert row["status"] == "RED"
     assert r["overall_rag"] == "RED"
+
+
+def test_extract_regulatory_complaints_green_on_low_breach_rate():
+    log = (
+        [{"period_end": "2024-06-30", "breached_sla": True}]
+        + [{"period_end": "2024-06-30", "breached_sla": False}] * 19
+    )
+    r = extract_regulatory(_regulatory_data(contact_centre_log=log))
+    row = next(o for o in r["obligations"] if o["code"] == "SLC 25C")
+    assert row["status"] == "GREEN"
+
+
+def test_extract_regulatory_complaints_green_when_no_contact_events():
+    r = extract_regulatory(_regulatory_data(contact_centre_log=[]))
+    row = next(o for o in r["obligations"] if o["code"] == "SLC 25C")
+    assert row["status"] == "GREEN"
+    assert "No contact-centre events" in row["notes"]
+
+
+def test_extract_regulatory_complaints_filters_by_year():
+    """A breach logged in a different year must not bleed into 2024's rate."""
+    log = (
+        [{"period_end": "2023-06-30", "breached_sla": True}] * 10
+        + [{"period_end": "2024-06-30", "breached_sla": False}] * 5
+    )
+    r = extract_regulatory(_regulatory_data(contact_centre_log=log))
+    row = next(o for o in r["obligations"] if o["code"] == "SLC 25C")
+    assert row["status"] == "GREEN"
 
 
 def test_extract_regulatory_every_domain_has_an_obligation():
