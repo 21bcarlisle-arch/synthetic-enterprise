@@ -638,18 +638,20 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   enters the epoch-2 programme statement when that is framed. An optional cheap precursor
   (animating existing period snapshots, no real event ledger needed) may be proposed for the
   director to rank separately.
-- **Bill calculation breakdown + TOU-readiness + bill PDF/mockup question (director page
-  comment, 2026-07-10, /customers/)**: "I want to see a better structured set of data here
-  breaking out the calculation more. Days x standing charges. Prices x days at that price. We
-  need to be ready for TOU prices which are more complex. We need to be able to explain the maths
-  properly that went into the calculations. Also should we produce a bill pdf for each month, or
-  a mock up of it?" Checked live: `site/customers/index.html`'s billing detail currently shows
-  only flat blended totals -- `standing_charge_gbp` as one number (no days x daily-rate
-  breakdown), unit rate as one blended `consumption_kwh x unit_rate_p_per_kwh` line for the whole
-  billing period (no day-count-per-rate-band breakdown for mid-period rate changes, and no
-  structure at all for genuinely multiple same-day rate bands, which real TOU billing needs).
-  NOT YET STARTED -- a real bill-calculation-transparency redesign, not a quick tweak; also an
-  open question for the director (PDF vs. on-page mockup) rather than an assumption to guess at.
+- **Bill calculation breakdown, PARTIALLY CLOSED (2026-07-10, director page comment,
+  /customers/)**: "Days x standing charges" now shown -- `saas/bill_generator.py::generate_bill()`
+  exposes `days_in_period`/`standing_charge_gbp_per_day` (both already computed locally to derive
+  the total, just never returned), threaded through `tools/generate_billing_ledger.py` to the
+  persisted invoice, rendered as "N days x £X/day" on the Bill Equation
+  (`site/customers/index.html::billEquationHtml()`), gracefully falling back to the old plain
+  label for bills computed before this fix (`run_output_latest.json`'s existing bills predate it --
+  will populate automatically on the next fresh simulation run once the hold clears). 5 new tests.
+  REMAINING, genuinely deferred: "prices x days at that price" / full TOU-readiness (multiple rate
+  bands per day) -- the tariff engine has no multi-rate-per-day concept at all yet, a real
+  architecture gap, not a quick addition (the invoice's existing `registers` list structure, per
+  BILL_CORRECTNESS_ADDENDUM.md Defect 3, already anticipates this without a schema change, but the
+  tariff-pricing/settlement side does not yet produce more than one register). The bill-PDF-vs-
+  on-page-mockup question remains open for the director's own call.
 - **Consumption page with fuel toggle (director NTFY steer, 2026-07-10)**: "I don't mind kWh
   for gas. You just need to be careful not to add to electricity as this makes no sense. Maybe
   a page on the website with a toggle." Checked live: no existing bug -- `site/customers/index.html::combinedTotals()`

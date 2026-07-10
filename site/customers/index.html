@@ -720,7 +720,14 @@ function billUsageLinesHtml(i){
 }
 function billEquationHtml(i){
   var parts=[billUsageLinesHtml(i)];
-  parts.push("<div class=\"row\"><span class=\"rl\">+ Standing charge</span><span>"+gbp(i.standing_charge_gbp)+"</span></div>");
+  // Calculation-transparency breakdown (2026-07-10, director page comment:
+  // "Days x standing charges... explain the maths properly") -- both fields
+  // were already computed internally to derive standing_charge_gbp, just
+  // never exposed until now (saas/bill_generator.py).
+  var scLabel=(i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
+    ?("+ Standing charge ("+i.days_in_period+" days &times; £"+i.standing_charge_gbp_per_day.toFixed(2)+"/day)")
+    :"+ Standing charge";
+  parts.push("<div class=\"row\"><span class=\"rl\">"+scLabel+"</span><span>"+gbp(i.standing_charge_gbp)+"</span></div>");
   if(i.non_commodity_amount_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ Network &amp; environmental</span><span>"+gbp(i.non_commodity_amount_gbp)+"</span></div>");
   if(i.vat_gbp)parts.push("<div class=\"row\"><span class=\"rl\">+ VAT</span><span>"+gbp(i.vat_gbp)+"</span></div>");
   parts.push("<div class=\"row\" style=\"font-weight:700\"><span class=\"rl\">= Total</span><span>"+gbp(i.amount_gbp)+"</span></div>");

@@ -81,6 +81,32 @@ def test_generate_bill_phase9a_components():
     assert bill["commodity"] == "electricity"
 
 
+# --- days_in_period / standing_charge_gbp_per_day (2026-07-10, director page
+# comment: "Days x standing charges... we need to be able to explain the
+# maths properly") ---
+
+def test_generate_bill_exposes_days_in_period():
+    records = make_records({"2023-01-01": 10.0, "2023-01-02": 20.0, "2023-01-03": 5.0})
+    bill = generate_bill("C1", records, "fixed_1yr")
+    assert bill["days_in_period"] == 3
+
+
+def test_generate_bill_days_times_daily_rate_equals_standing_charge():
+    records = make_records({"2023-01-01": 10.0, "2023-01-02": 20.0})
+    bill = generate_bill("C1", records, "fixed_1yr")
+    assert bill["days_in_period"] * bill["standing_charge_gbp_per_day"] == pytest.approx(
+        bill["standing_charge_gbp"]
+    )
+
+
+def test_generate_bill_standing_charge_gbp_per_day_matches_real_rate_table():
+    records = make_records({"2023-01-01": 10.0})
+    bill = generate_bill("C1", records, "fixed_1yr", segment="resi", commodity="electricity")
+    assert bill["standing_charge_gbp_per_day"] == pytest.approx(
+        STANDING_CHARGE_GBP_PER_DAY["electricity"]["resi"]
+    )
+
+
 def test_generate_bill_sme_uses_higher_vat():
     """SME customers pay 20% VAT, domestic 5%."""
     records = make_records({"2023-06-01": 100.0, "2023-06-02": 100.0})

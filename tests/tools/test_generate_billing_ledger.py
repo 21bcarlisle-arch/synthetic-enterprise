@@ -4,6 +4,8 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
+import pytest
+
 from tools.generate_billing_ledger import (
     generate, _stress_for_year, _payment_method, _payment_outcome, _arrears_stages,
     _bill_generation_delay_days,
@@ -22,6 +24,7 @@ def _bill(cid, period_end, amount, segment="ic"):
         "customer_id": cid, "period_start": ps, "period_end": period_end,
         "total_consumption_kwh": 1000.0, "commodity_amount_gbp": subtotal * (0.8 / 0.95),
         "non_commodity_amount_gbp": subtotal * (0.1 / 0.95), "standing_charge_gbp": subtotal * (0.05 / 0.95),
+        "days_in_period": 90, "standing_charge_gbp_per_day": (subtotal * (0.05 / 0.95)) / 90,
         "vat_gbp": vat_gbp, "total_amount_gbp": amount,
         "average_unit_rate_gbp_per_mwh": amount, "clarity_score": 0.75,
         "bill_shock_pct": None, "segment": segment, "commodity": "electricity",
@@ -126,6 +129,21 @@ def test_required_invoice_fields(tmp_path):
     for f in ("invoice_number", "customer_id", "period_start", "period_end",
               "total_amount_gbp", "issue_date", "due_date", "payment_status"):
         assert f in inv
+
+
+# --- days_in_period / standing_charge_gbp_per_day (2026-07-10, director page
+# comment on /customers/: "Days x standing charges... explain the maths
+# properly") ---
+
+def test_invoice_exposes_days_in_period_and_daily_standing_charge_rate(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["days_in_period"] == 90
+    assert inv["days_in_period"] * inv["standing_charge_gbp_per_day"] == pytest.approx(
+        inv["standing_charge_gbp"], abs=0.01
+    )
 
 
 # BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): meter serial,

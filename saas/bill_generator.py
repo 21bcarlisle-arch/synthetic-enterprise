@@ -145,4 +145,14 @@ def generate_bill(
         "bill_shock_pct": bill_shock_pct,
         "segment": segment,
         "commodity": commodity,
+        # Calculation-transparency breakdown (2026-07-10, director page comment
+        # on /customers/: "Days x standing charges. Prices x days at that
+        # price. We need to be able to explain the maths properly"). Both
+        # days_in_period and standing_charge_gbp_per_day were already computed
+        # locally above to derive standing_charge_gbp -- simply never exposed.
+        # Full time-of-use (multiple rate bands per day) is a separate,
+        # larger architecture gap -- the tariff engine has no multi-rate-per-
+        # day concept at all yet -- registered separately, not attempted here.
+        "days_in_period": days_in_period,
+        "standing_charge_gbp_per_day": standing_charge_rate(commodity, segment),
     }

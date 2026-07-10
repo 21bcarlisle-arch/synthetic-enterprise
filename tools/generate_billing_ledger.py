@@ -193,6 +193,8 @@ def generate(run_json_path=None, out_path=None):
             "commodity_amount_gbp": round(bill.get("commodity_amount_gbp", 0), 2),
             "non_commodity_amount_gbp": round(bill.get("non_commodity_amount_gbp", 0), 2),
             "standing_charge_gbp": round(bill.get("standing_charge_gbp", 0), 2),
+            "days_in_period": bill.get("days_in_period"),
+            "standing_charge_gbp_per_day": bill.get("standing_charge_gbp_per_day"),
             "vat_gbp": round(bill.get("vat_gbp", 0), 2),
             "total_amount_gbp": round(amount, 2),
             "issue_date": issue_date.isoformat(),
