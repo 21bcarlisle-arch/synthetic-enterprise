@@ -167,8 +167,11 @@ def test_attempt_pending_wake_noop_when_nothing_queued(monkeypatch):
     assert calls == []
 
 
-def test_attempt_pending_wake_clears_on_success(monkeypatch):
+def test_attempt_pending_wake_clears_on_success(tmp_path, monkeypatch):
     _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
+    (tmp_path / "B.md").write_text("x")
     watcher._pending_wake_names.update({"A.md", "B.md"})
     monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: True)
     monkeypatch.setattr(watcher, "log", lambda msg: None)
@@ -178,10 +181,12 @@ def test_attempt_pending_wake_clears_on_success(monkeypatch):
     assert watcher._pending_wake_names == set()
 
 
-def test_attempt_pending_wake_retains_on_failure(monkeypatch):
+def test_attempt_pending_wake_retains_on_failure(tmp_path, monkeypatch):
     """Session busy -- must stay queued for the next cycle's retry, never
     silently dropped."""
     _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
     watcher._pending_wake_names.update({"A.md"})
     monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: False)
     monkeypatch.setattr(watcher, "log", lambda msg: None)
@@ -191,8 +196,11 @@ def test_attempt_pending_wake_retains_on_failure(monkeypatch):
     assert watcher._pending_wake_names == {"A.md"}
 
 
-def test_attempt_pending_wake_passes_sorted_names(monkeypatch):
+def test_attempt_pending_wake_passes_sorted_names(tmp_path, monkeypatch):
     _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "A.md").write_text("x")
+    (tmp_path / "B.md").write_text("x")
     watcher._pending_wake_names.update({"B.md", "A.md"})
     calls = []
     monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or True)
@@ -201,6 +209,39 @@ def test_attempt_pending_wake_passes_sorted_names(monkeypatch):
     watcher._attempt_pending_wake()
 
     assert calls == [["A.md", "B.md"]]
+
+
+def test_attempt_pending_wake_drops_stale_name_already_archived(tmp_path, monkeypatch):
+    """Doorbell failure #6: a name whose file was archived to done/ while the
+    session was continuously busy (never once seen idle) must be dropped as
+    moot instead of retried forever -- 140+ live retries observed for one
+    already-actioned file before this fix."""
+    _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    (tmp_path / "STILL_STAGED.md").write_text("x")
+    watcher._pending_wake_names.update({"ALREADY_ARCHIVED.md", "STILL_STAGED.md"})
+    calls = []
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or False)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert calls == [["STILL_STAGED.md"]]
+    assert watcher._pending_wake_names == {"STILL_STAGED.md"}
+
+
+def test_attempt_pending_wake_all_stale_clears_without_relay_call(tmp_path, monkeypatch):
+    _reset_pending_wake()
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    watcher._pending_wake_names.update({"ALREADY_ARCHIVED.md"})
+    calls = []
+    monkeypatch.setattr(watcher, "_relay_wake_to_claude", lambda names: calls.append(names) or True)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+
+    watcher._attempt_pending_wake()
+
+    assert calls == []
+    assert watcher._pending_wake_names == set()
 
 
 # Open-agenda continuation nudge (Deliverable 1a,

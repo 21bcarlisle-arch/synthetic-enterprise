@@ -350,7 +350,23 @@ def _attempt_pending_wake() -> None:
     pending set on a CONFIRMED-delivered wake (idle pane + consumption
     verified); on failure (busy, or stuck-unconsumed), leaves it queued for
     the next cycle's retry, per the root-cause fix's "never fire into a
-    mid-turn session, hold and retry" requirement."""
+    mid-turn session, hold and retry" requirement.
+
+    Doorbell failure #6 fix (2026-07-10): a name whose file has since been
+    archived to done/ (processed during a long busy stretch, e.g. a
+    multi-hour session that never once showed as idle) was retried forever
+    -- 140+ retries observed live for one already-actioned file, spamming a
+    stale wake every cycle indefinitely. Before each attempt, drop any name
+    no longer present in docs/staging/ as moot (already handled) instead of
+    retrying it blind.
+    """
+    if not _pending_wake_names:
+        return
+    live = current_files()
+    stale = _pending_wake_names - live
+    if stale:
+        log(f"Dropping stale wake (already archived, no longer staged): {', '.join(sorted(stale))}")
+        _pending_wake_names.difference_update(stale)
     if not _pending_wake_names:
         return
     names = sorted(_pending_wake_names)
