@@ -96,12 +96,20 @@
 #   all future phases name the capability cell(s) they move." Canonical doc installed at
 #   docs/design/MATURITY_MAP.md (verbatim). NOT YET DONE, real remaining scope, each a
 #   substantial phase in its own right, deliberately not rushed in the same stretch as the
-#   install: (1) seed docs/design/maturity_map.yaml with ~60-120 capability atoms per the
-#   section-6 schema, decomposing all 12 lanes from real existing sources (DESTINATION_VISION,
-#   EPOCH2_EVIDENCE, CORE_FIDELITY phases, compliance programme, WALLED_INTERFACES sketch,
-#   this week's director decisions) -- honest level_current per atom, uncertain ones marked as
-#   such rather than guessed; (2) wire background/supervisor.py's self-refill to draw from the
-#   YAML's dials + loop_stage instead of the current PRIORITIES.md-backlog heuristic; (3) render
+#   install: (1) seed docs/design/maturity_map.yaml -- v1 SEED LIVE 2026-07-10 (director audit,
+#   "is the dial-weighted draw actually wired -- evidence, not intent"): 30 real, evidence-backed
+#   atoms across all 12 lanes (dials copied verbatim from Section 8's ratified equaliser), NOT
+#   yet the full 60-120 target -- honestly a v1 starter set, expand incrementally at phase close
+#   rather than fabricate the rest up front; (2) wire background/supervisor.py's self-refill to
+#   draw from the YAML's dials -- DONE 2026-07-10, `_maturity_map_draw()` is now the PRIMARY
+#   self-refill source (dial-weighted random.choices over atoms with level_current < level_target),
+#   the old PRIORITIES.md-backlog-prose heuristic demoted to fallback-only. This was itself an R3
+#   redesign: the demoted heuristic was found to be the root cause of a real 2h40m empty-agenda
+#   idle hole (2026-07-10 11:00-14:40) -- it only scanned text after "## Backlog" for the exact
+#   substring "NOT YET STARTED", which no real backlog bullet used verbatim by that date, and
+#   was structurally blind to every "# ===" section above that heading (including everything
+#   registered earlier this same session). 12 new tests, 443/443 background tests pass,
+#   epistemic PASS. (3) render
 #   the four views (function matrix / value-stream flow / campaign / activity) as toggles on the
 #   Project tab, replacing the epoch-storytelling section built earlier today (2026-07-10) per
 #   the map's own instruction ("replaces/absorbs... rather than duplicating it"); (4) adopt the

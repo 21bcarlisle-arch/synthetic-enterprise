@@ -4,10 +4,13 @@ failure #4, R3 architecture-level rebuild, director-direct).
 A single dumb loop. Every POLL_INTERVAL_SECONDS: if the session is idle AND
 real work exists on disk (an open agenda, unprocessed staging, an urgent
 from_rich message, a usage-limit pause that just ended, OR -- 2026-07-10,
-SELF_DIRECTION_AND_PARALLELISM.md Problem 1 -- an unblocked backlog item
-still marked NOT YET STARTED in PRIORITIES.md when nothing else is queued),
-grant exactly one turn via the locked relay, verify it was consumed, and log
-the decision either way -- every cycle, not just the interesting ones.
+SELF_DIRECTION_AND_PARALLELISM.md Problem 1, REDESIGNED same-day per a
+director audit + R3 -- a dial-weighted draw from docs/design/
+maturity_map.yaml's real capability atoms with an open gap, falling back to
+the original PRIORITIES.md "## Backlog" prose scan only if the YAML is
+unavailable), grant exactly one turn via the locked relay, verify it was
+consumed, and log the decision either way -- every cycle, not just the
+interesting ones.
 
 The self-refill check (`_actionable_backlog_item()`) is a cheap mechanical
 heuristic, not comprehension -- it never treats a BLOCKED or REVIEW GATE
@@ -65,10 +68,12 @@ never a directive -- same discipline as every other wake in this codebase.
 from __future__ import annotations
 
 import json
+import random
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
@@ -160,20 +165,31 @@ def _pause_active_readonly() -> bool:
 
 
 PRIORITIES_PATH = PROJECT_DIR / "PRIORITIES.md"
+MATURITY_MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 
 
 def _actionable_backlog_item() -> str | None:
-    """Cheap, mechanical heuristic (2026-07-10, SELF_DIRECTION_AND_
-    PARALLELISM.md Problem 1: "an empty agenda is itself a trigger... self-
-    refill from the roadmap") -- NOT real comprehension. The supervisor
-    stays a dumb, blocking-call-free loop by design (see module docstring);
-    it does not read PRIORITIES.md for MEANING, only to check whether the
-    Backlog section contains at least one line explicitly marked "NOT YET
-    STARTED" that is NOT also marked BLOCKED or a REVIEW GATE -- a real
-    Tier-1 gate or director-decision-pending item must never be treated as
-    self-refillable work; only the granted session itself decides what to
-    actually do, this just decides whether to grant a turn at all when
-    nothing is staged and no agenda is open."""
+    """FALLBACK ONLY as of 2026-07-10 -- see `_maturity_map_draw()`, now the
+    primary self-refill source. Kept only for the case maturity_map.yaml is
+    ever missing/unreadable (graceful degradation, same style as the rest of
+    this module), so self-refill never regresses to nothing.
+
+    R3 note (2026-07-10, director audit -- "was that gap a session pause, an
+    empty-agenda idle, or grants that produced nothing? ... if genuine idle,
+    R3 applies to the refill logic"): this heuristic was found to be the
+    root cause of a genuine 2h40m idle hole (11:00-14:40) -- it only scanned
+    text AFTER the literal "## Backlog" heading for the exact substring "NOT
+    YET STARTED", and by that date NONE of the real backlog bullets used
+    that exact phrase (they said "NOT STARTED"/"BLOCKED"/"PARTIALLY CLOSED"
+    etc.), while every item registered elsewhere in the file (the "# ==="
+    sections above the Backlog heading) was structurally invisible to it
+    regardless of wording. Same failure class as an earlier incident where a
+    phrase accidentally DID match and caused repeated false grants -- two
+    strikes on the same fragile prose-substring mechanism. Per R3 (redesign,
+    not patch again), the primary mechanism is now the dial-weighted
+    maturity-map draw below, which reads structured YAML fields
+    (level_current/level_target) instead of matching free-form English
+    prose that changes every time someone edits PRIORITIES.md."""
     try:
         text = PRIORITIES_PATH.read_text(encoding="utf-8")
     except OSError:
@@ -189,6 +205,54 @@ def _actionable_backlog_item() -> str | None:
             # directive -- the granted session re-reads PRIORITIES.md itself).
             return line.strip().lstrip("#- ").strip()[:80]
     return None
+
+
+def _maturity_map_draw(rng: Any = None) -> str | None:
+    """Primary self-refill source (2026-07-10, MATURITY_MAP.md Section 6/8:
+    "Supervisor self-refill draws work from lanes proportional to dials").
+    Reads docs/design/maturity_map.yaml, keeps atoms with a real gap
+    (level_current is not None and level_current < level_target -- an
+    atom with level_current: null is an honestly-unassessed atom, never
+    self-refillable), and makes ONE weighted-random draw where each atom's
+    weight is its own `dial_inherited` (the director-ratified per-lane dial
+    from MATURITY_MAP.md Section 8) -- lanes with a higher dial are more
+    likely to be drawn, matching the equaliser's intent, without the
+    supervisor needing to understand what "DISCOVER" vs "BUILD" means (R7:
+    the granted session reads the atom's own loop_stage/evidence itself and
+    decides what kind of turn that implies).
+
+    Still a cheap, blocking-call-free, no-comprehension read (module
+    docstring's own constraint) -- one file read + one weighted choice, no
+    network, no git. Returns None (graceful degradation) if the YAML is
+    missing, unreadable, malformed, or has no atom with a real gap."""
+    try:
+        import yaml
+    except ImportError:
+        return None
+    try:
+        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return None
+    if not isinstance(atoms, list):
+        return None
+    candidates = [
+        a for a in atoms
+        if isinstance(a, dict)
+        and a.get("level_current") is not None
+        and a.get("level_target") is not None
+        and a["level_current"] < a["level_target"]
+    ]
+    if not candidates:
+        return None
+    weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    picker = rng or random
+    chosen = picker.choices(candidates, weights=weights, k=1)[0]
+    return (
+        f"{chosen['id']} -- {chosen.get('name', '?')} "
+        f"(lane={chosen.get('lane', '?')}, dial={chosen.get('dial_inherited', '?')}, "
+        f"level {chosen['level_current']}->{chosen['level_target']}, "
+        f"loop_stage={chosen.get('loop_stage', '?')})"
+    )
 
 
 def find_work(resumed_from_pause: bool) -> str | None:
@@ -209,9 +273,13 @@ def find_work(resumed_from_pause: bool) -> str | None:
     if staged:
         return f"unprocessed staging -- {', '.join(staged)}"
 
+    map_draw = _maturity_map_draw()
+    if map_draw:
+        return f"agenda+staging empty -- self-refill from maturity map (dial-weighted): {map_draw}"
+
     backlog_item = _actionable_backlog_item()
     if backlog_item:
-        return f"agenda+staging empty -- self-refill from PRIORITIES.md backlog: {backlog_item}"
+        return f"agenda+staging empty -- self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
 
     return None
 

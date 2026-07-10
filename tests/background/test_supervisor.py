@@ -35,6 +35,10 @@ def _isolate(tmp_path, monkeypatch):
     # nonexistent tmp_path file (no backlog found, matching the pre-existing
     # "nothing open" test expectations), never the real repo file.
     monkeypatch.setattr(supervisor, "PRIORITIES_PATH", tmp_path / "PRIORITIES.md")
+    # Isolated from the real, committed maturity_map.yaml for the same reason
+    # -- defaults to a nonexistent tmp_path file so pre-existing backlog-
+    # fallback tests still exercise the fallback path specifically.
+    monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
@@ -132,6 +136,108 @@ def test_find_work_staging_and_agenda_still_win_over_backlog():
     reason = supervisor.find_work(resumed_from_pause=False)
     assert "unprocessed staging" in reason
     assert "self-refill" not in reason
+
+
+# ── maturity-map dial-weighted draw (2026-07-10, director audit + R3 redesign
+#    of the backlog-prose-scan root cause of a real 2h40m idle hole) ──
+
+_ONE_GAP_ATOM_YAML = """\
+- id: X1_test_atom
+  name: "Test atom with a real gap"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: discover
+"""
+
+_NO_GAP_ATOM_YAML = """\
+- id: X2_done_atom
+  name: "Test atom already at target"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+"""
+
+_UNASSESSED_ATOM_YAML = """\
+- id: X3_unassessed_atom
+  name: "Honestly unassessed atom"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: null
+  level_target: 2
+  loop_stage: idle
+"""
+
+
+def test_maturity_map_draw_none_when_file_missing():
+    assert not supervisor.MATURITY_MAP_PATH.exists()
+    assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_finds_atom_with_real_gap():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+    result = supervisor._maturity_map_draw()
+    assert result is not None
+    assert "X1_test_atom" in result
+    assert "lane=X_test_lane" in result
+    assert "level 0->2" in result
+
+
+def test_maturity_map_draw_excludes_atoms_already_at_target():
+    supervisor.MATURITY_MAP_PATH.write_text(_NO_GAP_ATOM_YAML)
+    assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_excludes_unassessed_atoms():
+    supervisor.MATURITY_MAP_PATH.write_text(_UNASSESSED_ATOM_YAML)
+    assert supervisor._maturity_map_draw() is None
+
+
+def test_maturity_map_draw_weights_by_dial(monkeypatch):
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: LOW_DIAL\n  lane: L\n  dial_inherited: 1\n  level_current: 0\n  level_target: 1\n"
+        "- id: HIGH_DIAL\n  lane: H\n  dial_inherited: 100\n  level_current: 0\n  level_target: 1\n"
+    )
+    results = [supervisor._maturity_map_draw() for _ in range(20)]
+    assert all("HIGH_DIAL" in r for r in results)
+
+
+def test_find_work_self_refills_from_maturity_map_when_nothing_staged():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None
+    assert "self-refill from maturity map" in reason
+    assert "X1_test_atom" in reason
+
+
+def test_find_work_maturity_map_wins_over_backlog_fallback():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+    supervisor.PRIORITIES_PATH.write_text(
+        "## Backlog\n- Some item NOT YET STARTED\n"
+    )
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert "maturity map" in reason
+    assert "PRIORITIES.md backlog" not in reason
+
+
+def test_find_work_falls_back_to_backlog_when_maturity_map_unavailable():
+    assert not supervisor.MATURITY_MAP_PATH.exists()
+    supervisor.PRIORITIES_PATH.write_text(
+        "## Backlog\n- Some item NOT YET STARTED\n"
+    )
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert "self-refill from PRIORITIES.md backlog (fallback" in reason
+
+
+def test_find_work_staging_wins_over_maturity_map():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+    (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert "unprocessed staging" in reason
+    assert "maturity map" not in reason
 
 
 def test_work_fingerprint_changes_when_priorities_md_edited():

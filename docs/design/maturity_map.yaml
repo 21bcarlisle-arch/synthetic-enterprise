@@ -1,0 +1,464 @@
+# Maturity Map v1.1 canonical data store (docs/design/MATURITY_MAP.md Section 6).
+# v1 SEED -- 2026-07-10, director audit ("is the dial-weighted draw actually wired
+# and live -- evidence, not intent"). Real atoms only, honestly leveled from actual
+# codebase/doc state observed this session and in this project's build history --
+# NOT the full 60-120 target Section 8's Current-state entry names; this is a
+# genuine, evidence-backed starter set (~28 atoms across all 12 lanes) so the
+# supervisor's self-refill has real data to draw from NOW. Expand incrementally at
+# phase close (add/update an atom when a phase actually moves one), rather than
+# fabricating the remaining count up front. Uncertain levels are marked
+# level_current: null with a note in evidence, per the doc's own instruction --
+# not guessed.
+#
+# Dial values below are copied verbatim from MATURITY_MAP.md Section 8 (the
+# director-ratified equaliser table) -- not invented here.
+
+- id: D3_catchup_rebilling
+  name: "Estimated billing & catch-up rebilling cycle"
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: frame
+  dial_inherited: 4
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "supplier billing ops + Elexon NHH profiling"
+  depends_on: [W1_reveal_over_time]
+
+- id: D1_bill_correctness
+  name: "Bill line-item correctness (VAT, segment labelling, non-commodity recovery)"
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 1
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 4
+  evidence: ["docs/staging/done/BILL_CORRECTNESS_ADDENDUM.md"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-09", findings: []}
+  real_world_twin: "supplier billing QA / regulatory bill-content rules"
+  depends_on: []
+
+- id: D2_three_clocks
+  name: "Three settlement clocks (physical/financial/regulatory) reconciled per bill"
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: frame
+  dial_inherited: 4
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "settlement timetable D+1/D+... true-up cycle"
+  depends_on: [W1_reveal_over_time]
+
+- id: W1_reveal_over_time
+  name: "Historical data reveal-over-time (point-in-time blindfold at the source, not just company/ code)"
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: discover
+  dial_inherited: 4
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real trading desk never sees tomorrow's settlement prices"
+  depends_on: []
+
+- id: W1_2_generate_futures
+  name: "Synthetic future market generation beyond real 2016-2025 history"
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 4
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "scenario/stress generation for market risk teams"
+  depends_on: [W1_reveal_over_time]
+
+- id: B1_margin_bridge
+  name: "Year-over-year margin bridge with residual reconciliation"
+  lane: B_commercial
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 2
+  level_target: 3
+  loop_stage: discover
+  dial_inherited: 3
+  evidence: ["saas/reporting/margin_attribution.py"]
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "FP&A margin bridge deck"
+  depends_on: []
+
+- id: B2_opex_cost_to_serve
+  name: "Opex/cost-to-serve mechanism -- true (a+b) ledger vs benchmark-loaded dual ledger"
+  lane: B_commercial
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: frame
+  dial_inherited: 3
+  evidence: ["docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md", "docs/staging/done/MARGIN_REALISM_amended.md"]
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "supplier cost-to-serve allocation vs a lower-quartile incumbent benchmark"
+  depends_on: []
+
+- id: B3_hedge_tariff_alignment
+  name: "Hedge-tariff alignment (cost locked when price is locked)"
+  lane: B_commercial
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 1
+  level_target: 2
+  loop_stage: discover
+  dial_inherited: 3
+  evidence: ["docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md"]
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's hedge book matched to its fixed-tariff book"
+  depends_on: []
+
+- id: B4_competitor_field
+  name: "Competitor field (price ceiling / undercut pressure)"
+  lane: B_commercial
+  value_stream: wholesale_to_price
+  epoch: 4
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "real GB domestic switching market with ~8 active suppliers"
+  depends_on: [W2_3_competitor_field]
+
+- id: C1_segment_layers
+  name: "Customer segment flavour fields (smart meter, dual-fuel, home/business type)"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 1
+  level_current: 2
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  evidence: ["tools/generate_customer_sample.py", "saas/customers.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "CRM customer segmentation fields"
+  depends_on: []
+
+- id: C2_discovery_through_interfaces
+  name: "Portal discovers customer physical-property truth through observable interfaces, not a direct read"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/design/EPOCH2_EVIDENCE.md"]
+  simplifications: ["director-confirmed known gap, queued behind W1"]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier only learns a property's true attributes via meter install/survey/customer disclosure"
+  depends_on: [W1_reveal_over_time]
+
+- id: C3_satisfaction_heterogeneity
+  name: "Per-customer satisfaction heterogeneity (payment-channel gap + individual variation)"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 1
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 3
+  evidence: ["simulation/sim_satisfaction.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "Ofgem/Citizens Advice Wave 20 satisfaction distribution"
+  depends_on: []
+
+- id: E1_ledger_double_entry
+  name: "Double-entry ledger + management accounts (income statement)"
+  lane: E_finance_treasury
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 2
+  level_target: 3
+  loop_stage: frame
+  dial_inherited: 3
+  evidence: ["company/finance/double_entry.py", "saas/ledger.py"]
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's statutory accounts"
+  depends_on: []
+
+- id: E2_revenue_reconciliation
+  name: "Single reconciled revenue definition across every reporting surface"
+  lane: E_finance_treasury
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 1
+  level_target: 3
+  loop_stage: frame
+  dial_inherited: 3
+  evidence: ["docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md"]
+  simplifications: ["Financial tab fixed 2026-07-10; other surfaces (fra_ratio_series etc.) not yet reconciled"]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "one true revenue line, used consistently across FP&A and statutory reporting"
+  depends_on: []
+
+- id: E3_accrual_restatement
+  name: "Accrual accounting + restatement handling"
+  lane: E_finance_treasury
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "period-end accrual + prior-period restatement in real supplier accounts"
+  depends_on: [W1_reveal_over_time]
+
+- id: F1_epistemic_verifier
+  name: "SIM/company epistemic barrier verifier (static + timing)"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 1
+  evidence: ["tools/epistemic_verifier.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "Chinese-wall compliance control between trading desk and retail"
+  depends_on: []
+
+- id: F2_sanity_daemon
+  name: "Population-level + Qwen-skeptic sanity daemon, R5-compliant alerting"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 1
+  evidence: ["background/sanity_daemon.py"]
+  simplifications: ["Qwen skeptic prompt has no memory of adjudicated false positives yet -- registered in PRIORITIES.md"]
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "internal audit sampling + statistical population controls"
+  depends_on: []
+
+- id: F3_obligations_register
+  name: "Obligations register + domain invariants (risk-tiered compliance checks)"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 1
+  evidence: ["company/compliance/domain_invariants.py", "company/compliance/population_sanity.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-09", findings: []}
+  real_world_twin: "Ofgem licence obligations register"
+  depends_on: []
+
+- id: G1_test_progression_metrics
+  name: "Monotonic, non-saturating growth metrics (cumulative commits, test-execution count)"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 2
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: ["tools/generate_phases_json.py", "tools/test_execution_metric.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "engineering-velocity dashboards that don't flatten as the codebase grows"
+  depends_on: []
+
+- id: G2_event_log_shared_with_spine
+  name: "Unified event log shared across sim/company for the epoch-2 reveal spine"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a shared event bus feeding both trading and retail systems"
+  depends_on: [W1_reveal_over_time]
+
+- id: W2_1_archetype_layers
+  name: "Customer archetype layers (home type, payment channel, tenure, fuel poverty, occupancy)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 1
+  level_current: 2
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  evidence: ["simulation/household_segments.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "real GB household archetype distributions (DESNZ/Ofgem survey data)"
+  depends_on: []
+
+- id: W2_2_population_draw
+  name: "Per-run stochastic population draw (vs current fixed cast)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/design/EPOCH2_EVIDENCE.md"]
+  simplifications: ["director-confirmed known gap"]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's book composition varies run to run / cohort to cohort"
+  depends_on: []
+
+- id: W2_3_competitor_field
+  name: "Competitor supplier field (world-side)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the ~8-supplier real GB domestic market"
+  depends_on: []
+
+- id: W3_1_price_cap_binding
+  name: "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)"
+  lane: W3_industry_systems
+  value_stream: wholesale_to_price
+  epoch: 1
+  level_current: 1
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: ["docs/staging/done/MARGIN_REALISM_amended.md"]
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the real Ofgem default tariff cap has bound SVT pricing since 2019"
+  depends_on: []
+
+- id: W3_2_settlement_timetable
+  name: "Real settlement timetable (D+1/D+... true-up) as an explicit world mechanism"
+  lane: W3_industry_systems
+  value_stream: wholesale_to_price
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: []
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "Elexon's SBP/SSP settlement run timetable"
+  depends_on: [D2_three_clocks]
+
+- id: W4_1_typed_adapters
+  name: "Typed, versioned-message SIM/company boundary adapters (go-live seam)"
+  lane: W4_the_wall
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: frame
+  dial_inherited: 3
+  evidence: ["interface/sim_interface.py"]
+  simplifications: ["forward-preference only, 2026-07-08; already-shipped Phase 3 code not reworked"]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real go-live integration seam between a trading system and a retail billing system"
+  depends_on: []
+
+- id: W4_2_verifier_timing_extension
+  name: "Epistemic verifier extended to data-flow/timing violations, not just literal imports"
+  lane: W4_the_wall
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 2
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 3
+  evidence: ["tools/epistemic_verifier.py", "docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-10", findings: []}
+  real_world_twin: "a Chinese-wall audit that checks for information leakage, not just org-chart separation"
+  depends_on: []
+
+- id: A1_learn_loop_chair
+  name: "Formalised learn-loop / retrospective cadence"
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 2
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: ["docs/retrospectives/"]
+  simplifications: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a board strategy/risk committee's own retro cadence"
+  depends_on: []
+
+- id: H1_supervisor_turn_granting
+  name: "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 2
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 1
+  evidence: ["background/supervisor.py", "docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md"]
+  simplifications: ["v1 wiring lands 2026-07-10 -- this very atom is the one being closed by that wiring"]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an ops on-call rotation's auto-page escalation logic"
+  depends_on: []
+
+- id: H2_tree_lock_concurrency
+  name: "tree_lock() serialized git writes across concurrent daemons/sessions"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+  dial_inherited: 1
+  evidence: ["background/tree_lock.py"]
+  simplifications: []
+  expert_hour: {status: passed, last: "2026-07-05", findings: []}
+  real_world_twin: "database row-locking under concurrent writers"
+  depends_on: []
