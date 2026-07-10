@@ -1341,6 +1341,14 @@ function renderMonthly() {
   }).join('');
 
   el('tab-monthly').innerHTML =
+    '<div style="color:var(--muted);font-size:.85em;padding:0 0 .6rem">' +
+    'A <strong>bill shock</strong> is a month-on-month billing change of &ge;20% vs a customer\'s ' +
+    'previous bill (saas/bill_generator.py) -- it raises SIM churn probability via the bill-shock ' +
+    'history model, and can trigger a contact/complaint (saas/contact_model.py). Shocks are flagged ' +
+    'by MAGNITUDE only -- this run does not yet break a shock down by cause (wholesale price move vs ' +
+    'consumption change vs tariff renewal); the 2021-22 "CRISIS" months reflect the real UK wholesale ' +
+    'price crisis in the underlying settlement data, not a data error.' +
+    '</div>' +
     '<div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Total Bill Shocks</div><div class="kpi-value">'+totalShocks+'</div></div>' +
     '<div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Crisis Bill Shocks</div><div class="kpi-value" style="color:var(--red)">'+crisisShocks+'</div><div class="kpi-sub">2021-22</div></div>' +
@@ -1659,7 +1667,7 @@ function renderRiskTieredCompliance() {
       "</tbody></table></div>";
   };
   return "<h3 class=\"section-head\" style=\"margin-top:32px\">Risk-Tiered Compliance Report</h3>" +
-    "<p class=\"view-sub\">Impact &times; likelihood risk tiering (company/compliance/obligations_register.py) -- impact ranked physical harm to people worst, then customer financial harm, then licence/regulatory, then company-financial, then reputational. Tier 1 obligations are enforced by a real preventive pre-bill validation gate (company/billing/pre_bill_validation.py); status below is live, read from that gate's own exception queue, not a build/phase estimate.</p>" +
+    "<p class=\"view-sub\">Impact &times; likelihood risk tiering (company/compliance/obligations_register.py) -- impact ranked physical harm to people worst, then customer financial harm, then licence/regulatory, then company-financial, then reputational. Tier 1 obligations are enforced by a real preventive pre-bill validation gate (company/billing/pre_bill_validation.py); status below is live, read from that gate's own exception queue, not a build/phase estimate. <strong>MANUAL does not mean fail</strong> -- only billing accuracy and VAT-by-segment currently have a live automated check feeding this report; every other obligation is tracked by an existing process/module (see its Basis column) and reported honestly as not-yet-automated-into-this-report, never silently upgraded to a false GREEN.</p>" +
     "<div class=\"kpi-row\">" +
     kpi("Overall", statusBadge(rtc.overall_rag), null, rtc.obligation_count + " obligations tracked") +
     kpi("Bills Held", rtc.held_bill_count, null, "By the pre-bill validation gate this run") +
@@ -1682,7 +1690,7 @@ function renderReputation() {
     "<div class=\"kpi-row\">",
     kpi("Global Reputation Index", gri ? gri.gri_score.toFixed(1) + " " + bandBadge(gri.band) : "—", null, gri ? `As of ${gri.year} year-end` : "No data"),
     kpi("Net Promoter Score", nps && nps.nps != null ? nps.nps.toFixed(1) : "—", null, nps ? `${nps.responses} responses, ${nps.year}` : "No survey responses yet"),
-    kpi("Reputation Events", rep.total_reputation_events || 0, null, "Complaint outcomes recorded, full run"),
+    kpi("Reputation Events", rep.total_reputation_events || 0, null, "Complaint outcomes, full 10yr run -- this is a small (~17-19 customer) portfolio, and complaints are evaluated once per contract term (not per bill), so a low absolute count reflects population size + sampling frequency, not a suppressed mechanism -- see the full list below"),
     kpi("Promoter / Detractor", nps && nps.promoter_pct != null ? nps.promoter_pct + "% / " + nps.detractor_pct + "%" : "—", null, nps ? `Latest survey year ${nps.year}` : ""),
     "</div>",
     "<h3 class=\"section-head\" style=\"margin-top:24px\">2 &middot; What the company infers &mdash; Global Reputation Index trend</h3>",

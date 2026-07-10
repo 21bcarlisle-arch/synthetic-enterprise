@@ -1,6 +1,22 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (B2_OPEX_TAXONOMY_EXPANSION.md, director-direct NTFY)
 #
+# === Backlog: Operations tab KPI expansion (2026-07-10, director page comment: "Surely there
+#   are other key operational KPIs for an energy supplier? Even a fully autonomous one.").
+#   Currently the Operations/"Monthly" tab shows only bill-shock counts + risk-committee
+#   interventions. Real, already-computed operational data that exists elsewhere in this
+#   codebase but isn't surfaced there yet -- candidates for a scoped design pass, not rushed in
+#   blind: (a) demand-estimation accuracy (data["demand_estimation_log"], already feeds the
+#   Regulatory tab's INFORMATION_TRANSPARENCY check, real EAC error % per term); (b) DSR/
+#   flexibility dispatch summary (data["flexibility_revenue_summary"] / ["ic_flexibility_
+#   summary"], already has its own Trading-adjacent data, not yet an Operations-tab KPI); (c)
+#   arrears/collections case load (per-customer "arrears_history" already in per_customer_
+#   lifetime-adjacent data, real case counts/resolution). NOT built this turn -- a real KPI
+#   set for "what does an autonomous energy supplier's ops desk actually watch" deserves its
+#   own design pass (which metrics, what cadence, what threshold bands) rather than a
+#   scattershot addition, per this project's own P-3 rule (vision-level asks get a
+#   reference-implementation-first artifact, not test-count-style padding).
+#
 # === SLC 25C "Communication Channel Choice" FIXED (2026-07-10, director page comment,
 #   docs/design/SLC25C_CHANNEL_CHOICE_FIX.md): real R10-class domain-sense mismatch, not a
 #   tuning issue. The COMPLAINTS scorecard check was keyed on avg_complaint_probability (a
