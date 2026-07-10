@@ -33,7 +33,7 @@ def annual_management_pack(events, opening_treasury=0.0):
         year_entries = by_year[year]
         cumulative = cumulative + year_entries
         result[year] = {
-            "income_statement": income_statement(year_entries),
+            "income_statement": income_statement(year_entries, year=int(year)),
             "balance_sheet": balance_sheet(cumulative),
         }
     return result

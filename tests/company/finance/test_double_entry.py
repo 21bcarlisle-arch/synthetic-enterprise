@@ -143,7 +143,7 @@ def test_account_codes_follow_range_convention():
         elif info["type"] == "income":
             assert prefix == 4
         elif info["type"] == "expense":
-            assert prefix in (5, 6)
+            assert prefix in (5, 6, 7)
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +282,109 @@ def test_trial_balance_balances_for_full_lifecycle():
 # ---------------------------------------------------------------------------
 # income_statement — must agree with saas.ledger.derive_pnl()
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Corporation Tax (2026-07-10, E1_ledger_double_entry -- docs/design/
+# E1_CORPORATION_TAX_FINDING.md) -- strictly additive: year=None (the default,
+# and every pre-existing call site) must leave net_margin_gbp and every other
+# field byte-for-byte unchanged, with the three new fields all None.
+# ---------------------------------------------------------------------------
+
+from company.finance.double_entry import uk_corporation_tax_gbp
+
+
+def test_income_statement_without_year_leaves_new_fields_none():
+    events = [_billing(amount=120.0), _vat(amount=20.0)]
+    journal = build_journal(events)
+    stmt = income_statement(journal)
+    assert stmt["profit_before_tax_gbp"] is None
+    assert stmt["corporation_tax_gbp"] is None
+    assert stmt["profit_for_year_gbp"] is None
+
+
+def test_income_statement_without_year_net_margin_unchanged():
+    """The pre-existing field's value must be identical whether or not `year`
+    is passed -- this is an additive change, not a redefinition."""
+    events = [
+        _billing(amount=120.0), _vat(amount=20.0), _non_commodity(amount=10.0),
+        _settlement(amount=70.0), _capital(amount=3.0),
+    ]
+    journal = build_journal(events)
+    without_year = income_statement(journal)
+    with_year = income_statement(journal, year=2024)
+    assert without_year["net_margin_gbp"] == with_year["net_margin_gbp"]
+    assert without_year["gross_margin_gbp"] == with_year["gross_margin_gbp"]
+
+
+def test_income_statement_with_year_computes_tax_triplet():
+    events = [
+        _billing(amount=1_000_000.0), _vat(amount=100_000.0),
+        _non_commodity(amount=50_000.0), _settlement(amount=400_000.0),
+    ]
+    journal = build_journal(events)
+    stmt = income_statement(journal, year=2024)
+    assert stmt["profit_before_tax_gbp"] == pytest.approx(stmt["net_margin_gbp"])
+    assert stmt["corporation_tax_gbp"] > 0
+    assert stmt["profit_for_year_gbp"] == pytest.approx(
+        stmt["profit_before_tax_gbp"] - stmt["corporation_tax_gbp"]
+    )
+
+
+def test_uk_corporation_tax_zero_for_a_loss():
+    assert uk_corporation_tax_gbp(-10_000.0, 2024) == 0.0
+    assert uk_corporation_tax_gbp(0.0, 2024) == 0.0
+
+
+def test_uk_corporation_tax_flat_19pct_before_2023():
+    assert uk_corporation_tax_gbp(1_000_000.0, 2016) == pytest.approx(190_000.0)
+    assert uk_corporation_tax_gbp(1_000_000.0, 2022) == pytest.approx(190_000.0)
+
+
+def test_uk_corporation_tax_small_profits_rate_2023_onward():
+    assert uk_corporation_tax_gbp(50_000.0, 2023) == pytest.approx(9_500.0)  # 19%
+    assert uk_corporation_tax_gbp(30_000.0, 2024) == pytest.approx(5_700.0)  # 19%
+
+
+def test_uk_corporation_tax_main_rate_at_and_above_threshold():
+    assert uk_corporation_tax_gbp(250_000.0, 2023) == pytest.approx(62_500.0)  # 25%
+    assert uk_corporation_tax_gbp(1_000_000.0, 2024) == pytest.approx(250_000.0)  # 25%
+
+
+def test_uk_corporation_tax_marginal_relief_is_continuous_at_both_thresholds():
+    """The marginal-relief formula must produce EXACTLY 19% at GBP 50k and
+    EXACTLY 25% at GBP 250k -- no discontinuity at either boundary."""
+    tax_at_50k = uk_corporation_tax_gbp(50_000.0, 2024)
+    tax_at_250k = uk_corporation_tax_gbp(250_000.0, 2024)
+    assert tax_at_50k / 50_000.0 == pytest.approx(0.19)
+    assert tax_at_250k / 250_000.0 == pytest.approx(0.25)
+
+
+def test_uk_corporation_tax_marginal_relief_midpoint():
+    # Real HMRC-published example: GBP 150,000 profit (2023 rates) -> effective
+    # rate roughly 22% (marginal relief blends between 19% and 25%).
+    tax = uk_corporation_tax_gbp(150_000.0, 2023)
+    effective_rate = tax / 150_000.0
+    assert 0.19 < effective_rate < 0.25
+    assert tax == pytest.approx(150_000.0 * 0.25 - (250_000.0 - 150_000.0) * 3 / 200)
+
+
+def test_annual_management_pack_income_statement_carries_tax_triplet():
+    """End-to-end: annual_management_pack() (the real call site) must thread
+    the year through and produce the tax triplet, without altering
+    net_margin_gbp."""
+    from company.finance.management_accounts import annual_management_pack
+    events = [
+        _billing(amount=1_000_000.0, period="2024-01-01"),
+        _vat(amount=100_000.0, date="2024-01-01"),
+        _settlement(amount=300_000.0, date="2024-01-01"),
+    ]
+    pack = annual_management_pack(events, opening_treasury=0.0)
+    stmt = pack["2024"]["income_statement"]
+    assert stmt["corporation_tax_gbp"] is not None
+    assert stmt["profit_for_year_gbp"] == pytest.approx(
+        stmt["net_margin_gbp"] - stmt["corporation_tax_gbp"]
+    )
+
 
 def test_income_statement_revenue_net_of_vat():
     events = [_billing(amount=120.0), _vat(amount=20.0)]

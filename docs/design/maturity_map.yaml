@@ -198,12 +198,12 @@
   lane: E_finance_treasury
   value_stream: close_to_learn
   epoch: 1
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: frame
+  loop_stage: harden
   dial_inherited: 3
   evidence: ["company/finance/double_entry.py", "saas/ledger.py", "docs/design/E1_CORPORATION_TAX_FINDING.md"]
-  simplifications: ["2026-07-10 FRAME finding: balance_sheet() genuinely balances (equation_holds=True, verified for every real year 2016-2025 in production data) -- the ledger mechanism itself is sound. Real, complete gap found against the real_world_twin (a real supplier's statutory accounts): UK Corporation Tax is entirely absent (zero hits for corporation_tax/corp_tax/tax_provision anywhere). net_margin_gbp is pre-tax operating profit, not the post-tax 'Profit for the year' a real Companies House filing would headline. Quantified: ~25% reduction for any year above the marginal-relief threshold (most years here), a material not cosmetic effect. NOT simply another margin bug to fix blind -- the EBIT% anchors this session's MARGIN_REALISM work already uses (EDF/British Gas CSS, Ofgem cap) are BY DEFINITION pre-tax, so the current pre-tax-only figure is correct for those comparisons; adding tax and silently replacing net_margin_gbp would introduce a THIRD margin-basis conflation into a programme already unwinding two. Recommended (not built): add a genuinely NEW profit_before_tax/corporation_tax/profit_for_year triplet alongside the existing field, never replacing it."]
+  simplifications: ["2026-07-10 FRAME finding: balance_sheet() genuinely balances (equation_holds=True, verified for every real year 2016-2025 in production data) -- the ledger mechanism itself is sound. Real, complete gap found against the real_world_twin (a real supplier's statutory accounts): UK Corporation Tax is entirely absent. NOT simply another margin bug to fix blind -- the EBIT% anchors this session's MARGIN_REALISM work already uses are BY DEFINITION pre-tax, so the pre-tax-only figure is correct for those comparisons. BUILT 2026-07-10 (eighteenth draw): added Corporation Tax as a genuinely NEW, additive triplet (profit_before_tax_gbp/corporation_tax_gbp/profit_for_year_gbp) via a new uk_corporation_tax_gbp() function (real UK rates: 19% flat pre-April 2023, then 19%/25%/marginal-relief via HMRC's own 3/200 Standard Fraction) -- net_margin_gbp itself is completely UNCHANGED in meaning and value (verified with a direct with-year-vs-without-year test), and the new fields are None unless a year is explicitly passed, so every pre-existing call site is unaffected. income_statement.py's docstring documents this is strictly additive. Deliberately did NOT touch the balance sheet (no real anchor for CT payment-timing, ~9 months after period end in reality -- left as a known, honest scope limit rather than invented)."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's statutory accounts"
   depends_on: []

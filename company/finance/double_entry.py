@@ -11,6 +11,7 @@ Account code ranges:
   4xxx  Revenue        (normal balance: credit)
   5xxx  Cost of Sales  (normal balance: debit)
   6xxx  Operating Exp  (normal balance: debit)
+  7xxx  Taxation       (normal balance: debit)
 """
 
 from typing import Any
@@ -29,7 +30,41 @@ ACCOUNTS: dict[str, dict[str, str]] = {
     "6100": {"name": "Cost to Serve",                       "type": "expense"},
     "6200": {"name": "Fixed Overheads",                     "type": "expense"},
     "6300": {"name": "Customer Acquisition and Retention",  "type": "expense"},
+    "7001": {"name": "Corporation Tax Expense",             "type": "expense"},
 }
+
+# UK Corporation Tax, real rates (docs/design/E1_CORPORATION_TAX_FINDING.md). Flat 19% for
+# all financial years up to and including FY2022 (year ending before 1 April 2023). From
+# FY2023: small profits rate 19% (profits <= GBP 50,000), main rate 25% (profits >
+# GBP 250,000), with marginal relief between the two thresholds using HMRC's own Standard
+# Fraction (3/200) -- CT = profit * 0.25 - (upper_limit - profit) * 3/200, which is exactly
+# continuous with 19% at GBP 50,000 and 25% at GBP 250,000 by construction.
+_CT_SMALL_PROFITS_RATE = 0.19
+_CT_MAIN_RATE = 0.25
+_CT_SMALL_PROFITS_LIMIT_GBP = 50_000.0
+_CT_MAIN_RATE_THRESHOLD_GBP = 250_000.0
+_CT_MARGINAL_RELIEF_STANDARD_FRACTION = 3 / 200
+_CT_TWO_TIER_RATES_FROM_YEAR = 2023  # FY2023 (year ending on/after 1 April 2023) onward
+
+
+def uk_corporation_tax_gbp(profit_before_tax_gbp: float, year: int) -> float:
+    """UK Corporation Tax due on `profit_before_tax_gbp` for calendar `year`. Returns 0.0 for
+    a loss (no negative tax / no loss-relief modelling here -- a real loss-carry-back/forward
+    mechanism is a separate, unbuilt feature, not silently assumed). No associated-companies
+    adjustment to the GBP 50k/250k thresholds (this simulation has one company)."""
+    if profit_before_tax_gbp <= 0:
+        return 0.0
+    if year < _CT_TWO_TIER_RATES_FROM_YEAR:
+        return profit_before_tax_gbp * _CT_SMALL_PROFITS_RATE
+    if profit_before_tax_gbp <= _CT_SMALL_PROFITS_LIMIT_GBP:
+        return profit_before_tax_gbp * _CT_SMALL_PROFITS_RATE
+    if profit_before_tax_gbp >= _CT_MAIN_RATE_THRESHOLD_GBP:
+        return profit_before_tax_gbp * _CT_MAIN_RATE
+    marginal_relief = (
+        (_CT_MAIN_RATE_THRESHOLD_GBP - profit_before_tax_gbp)
+        * _CT_MARGINAL_RELIEF_STANDARD_FRACTION
+    )
+    return profit_before_tax_gbp * _CT_MAIN_RATE - marginal_relief
 
 
 def _entry(
@@ -173,8 +208,18 @@ def trial_balance(journal: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def income_statement(journal: list[dict[str, Any]]) -> dict[str, float]:
-    """P&L that emerges from account balances — not event-type pattern matching."""
+def income_statement(journal: list[dict[str, Any]], year: int | None = None) -> dict[str, float]:
+    """P&L that emerges from account balances — not event-type pattern matching.
+
+    `year`: optional calendar year, used ONLY to compute the NEW profit_before_tax_gbp/
+    corporation_tax_gbp/profit_for_year_gbp triplet (docs/design/E1_CORPORATION_TAX_FINDING.md).
+    When None (the default, and every pre-existing call site unless updated), those three
+    fields are None -- NOT silently computed with a guessed year -- and `net_margin_gbp`
+    (pre-tax operating profit, unchanged in meaning) remains the only profit figure, exactly as
+    before this change. This is a strictly additive change: no existing field's meaning or
+    value changes, and MARGIN_REALISM's own EBIT%-anchored comparisons (which are correctly
+    pre-tax) continue to read `net_margin_gbp` exactly as they always have.
+    """
     b = account_balances(journal)
 
     def net(code: str) -> float:
@@ -192,6 +237,11 @@ def income_statement(journal: list[dict[str, Any]]) -> dict[str, float]:
     opex = bad_debt + cost_to_serve + fixed + acq
     net_profit = gross - capital - opex
 
+    corporation_tax_gbp = uk_corporation_tax_gbp(net_profit, year) if year is not None else None
+    profit_for_year_gbp = (
+        net_profit - corporation_tax_gbp if corporation_tax_gbp is not None else None
+    )
+
     return {
         "revenue_gbp": revenue,
         "wholesale_cost_gbp": wholesale,
@@ -204,6 +254,9 @@ def income_statement(journal: list[dict[str, Any]]) -> dict[str, float]:
         "acquisition_spend_gbp": acq,
         "total_opex_gbp": opex,
         "net_margin_gbp": net_profit,
+        "profit_before_tax_gbp": net_profit if year is not None else None,
+        "corporation_tax_gbp": corporation_tax_gbp,
+        "profit_for_year_gbp": profit_for_year_gbp,
     }
 
 

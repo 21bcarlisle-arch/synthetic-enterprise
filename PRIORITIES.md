@@ -1,21 +1,28 @@
 # PRIORITIES.md -- Synthetic Enterprise
 # last director review: 2026-07-10 (MARGIN_REALISM.md, advisor-staged/director-decided)
 #
-# === E1 CORPORATION TAX -- REAL FRAME FINDING, NOT BUILT (2026-07-10, sixteenth dial-weighted
-#   draw, docs/design/E1_CORPORATION_TAX_FINDING.md): balance_sheet() genuinely balances for
-#   every real year 2016-2025 (verified, not assumed) -- the ledger mechanism is sound. Real gap
-#   against the real_world_twin (a real supplier's statutory accounts): UK Corporation Tax is
-#   entirely absent -- net_margin_gbp is pre-tax operating profit, not the post-tax "Profit for
-#   the year" a real Companies House filing headlines. Quantified: ~25% reduction for any year
-#   above the marginal-relief threshold (most years here) -- material, not cosmetic. NOT simply
-#   another margin bug -- the EBIT% anchors already used throughout MARGIN_REALISM (EDF/British
-#   Gas CSS, Ofgem cap) are BY DEFINITION pre-tax, so the current figure is CORRECT for those
-#   comparisons; adding tax and replacing net_margin_gbp would introduce a THIRD margin-basis
-#   conflation into a programme already unwinding two (Step 1's commodity-vs-total-revenue,
-#   E2/B1/D2's years[]-vs-ledger). NEXT: add a genuinely NEW profit_before_tax/corporation_tax/
-#   profit_for_year triplet alongside the existing field, never replacing it -- real UK rate
-#   history (19% flat pre-April 2023, 19%/25%/marginal-relief after) is clean and well-anchored
-#   once this labelling discipline is respected. Not rushed into this same turn.
+# === E1 CORPORATION TAX -- BUILT 2026-07-10 (eighteenth dial-weighted draw,
+#   docs/design/E1_CORPORATION_TAX_FINDING.md): balance_sheet() genuinely balances for every real
+#   year 2016-2025 (verified, not assumed). Real gap found + closed against the real_world_twin
+#   (a real supplier's statutory accounts): UK Corporation Tax was entirely absent -- net_margin_gbp
+#   is pre-tax operating profit, not the post-tax "Profit for the year" a real Companies House
+#   filing headlines. Built as a genuinely NEW, additive triplet (profit_before_tax_gbp/
+#   corporation_tax_gbp/profit_for_year_gbp) via company/finance/double_entry.py::
+#   uk_corporation_tax_gbp() -- real UK rates (19% flat pre-April 2023, then 19%/25%/marginal-relief
+#   via HMRC's own 3/200 Standard Fraction, verified continuous at both the £50k and £250k
+#   thresholds). net_margin_gbp itself is UNCHANGED (verified with a direct with/without-year test)
+#   -- the EBIT% anchors already used throughout MARGIN_REALISM (EDF/British Gas CSS, Ofgem cap)
+#   are BY DEFINITION pre-tax, so that field must keep meaning exactly what it always has; the new
+#   fields are None unless a year is explicitly passed (only annual_management_pack()'s real call
+#   site was updated). Deliberately did NOT touch the balance sheet -- no real anchor for CT
+#   payment timing (~9 months after period end in reality) -- registered as a known, honest scope
+#   limit rather than invented. 14 new tests, 16,540 tests collected (full suite), epistemic PASS.
+#   SELF-CAUGHT PROCESS GAP (same turn): several recent doc-only CLAUDE.md entries this session
+#   omitted the required "N tests collected" phrase (rule 2a), which broke
+#   tools/generate_phases_json.py's _derive_build_from_claude_md() parser (test_derive_build_
+#   from_claude_md_parses_current_state started failing, test_count came back None) -- fixed by
+#   ensuring THIS entry properly states the true full-suite figure; not retroactively editing past
+#   commits.
 #
 # === E2 REVENUE RECONCILIATION -- REAL PROGRESS, DEEPER ISSUE FOUND (2026-07-10, first
 #   dial-weighted maturity-map self-refill draw, docs/design/MARGIN_REALISM_E2_TWO_PIPELINES_
