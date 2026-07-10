@@ -1,7 +1,20 @@
 # REVIEW GATE (Tier 1 — one-way door): hedge-decision volatility lookback uses future data
 
-**Status:** OPEN — awaiting explicit director decision. No fix applied.
-**Opened:** 2026-07-10, in response to a real director page comment on `/supplier/` (Trading &
+**Status:** DIRECTOR-AUTHORIZED IN-CONSOLE (Option A/B hybrid), 2026-07-10. Exact words: *"Hedge
+gate: fix it, re-run, but HOLD republishing headline figures until I review the re-derived
+numbers. The naked-hedging finding must be re-derived and re-framed, not auto-published. Not a
+one-way door once fixed — proceed."* Code fix applied (`simulation/run_phase2b.py::
+_price_history_as_of()`, bounded to the two `decide_hedge_fraction()` call sites, per this gate's
+own recommendation -- `company/trading/hedge_decision.py` untouched). Regression tests added,
+epistemic PASS. `background/sim-runner` daemon PAUSED (reversible -- restart once the reviewed
+figures are ready to go live) so it cannot complete a fixed-code run and get auto-published by the
+routine batch pipeline before director review. An isolated verification run (output to a scratch
+path, NOT `docs/reports/run_output_latest.json`) is comparing old-vs-new headline figures and the
+hf=0.00 finding specifically -- results to be brought to the director for review BEFORE anything
+touches the live site or the canonical run output. This gate stays open until that review happens
+and the director says go-live on the new figures.
+
+**Original finding (2026-07-10)**, in response to a real director page comment on `/supplier/` (Trading &
 Market tab): *"This looks suspiciously like we are hedging knowing what's coming... this doesn't
 look like the dashboard of an energy trading function for a real energy supplier. Have a think
 about it."*

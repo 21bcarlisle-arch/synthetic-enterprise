@@ -15,6 +15,7 @@ Key differences from Phase 2a repriced:
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import bisect
 import random
 import statistics
 from collections import defaultdict
@@ -134,6 +135,44 @@ from simulation.household_demand import HouseholdDemandRegister
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
 CRISIS_YEARS = {"2021", "2022"}
+
+# 2026-07-10: point-in-time-blindfold fix (docs/review_gates/
+# HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md, director-authorized in-console
+# to fix + re-run, hold republishing headline figures pending director
+# review). elec_records used to be passed into decide_hedge_fraction()
+# unsliced -- the FULL run's price history (through REPORT_END) at every
+# renewal decision, regardless of that decision's actual date.
+# estimate_price_volatility() (company/trading/hedge_decision.py) takes the
+# last VOL_LOOKBACK_DAYS (90) of whatever list it's given, so every hedge
+# decision across the whole 2016-2025 run shared one volatility estimate
+# drawn from near the run's end -- a genuine epistemic-wall violation, not a
+# presentation issue. _price_history_as_of() slices to only the records a
+# real decision-maker could have seen by that date, bounding the blast
+# radius to this one call site per the review gate's own recommendation
+# (not touching estimate_price_volatility itself). A small per-records-list
+# cache avoids re-deriving the settlement-date index on every one of the
+# many renewal decisions that share the same elec_records list within a run.
+_PRICE_HISTORY_DATE_INDEX_CACHE: dict[int, tuple[list, list[str]]] = {}
+
+
+def _price_history_as_of(records: list[dict], as_of_date_str: str, lookback_days: int = 120) -> list[dict]:
+    """Records with settlementDate in [as_of_date - lookback_days, as_of_date]
+    only -- never anything after as_of_date. lookback_days=120 (not just 90)
+    gives headroom since estimate_price_volatility() takes the last 90
+    UNIQUE DAYS after its own internal aggregation, and this raw
+    settlement-period-level slice may have gaps."""
+    cache_key = id(records)
+    cached = _PRICE_HISTORY_DATE_INDEX_CACHE.get(cache_key)
+    if cached is not None and cached[0] is records:
+        dates = cached[1]
+    else:
+        dates = [r.get("settlementDate", "") for r in records]
+        _PRICE_HISTORY_DATE_INDEX_CACHE[cache_key] = (records, dates)
+    as_of = date.fromisoformat(as_of_date_str)
+    start_str = (as_of - timedelta(days=lookback_days)).isoformat()
+    lo = bisect.bisect_left(dates, start_str)
+    hi = bisect.bisect_right(dates, as_of_date_str)
+    return records[lo:hi]
 
 # Treasury scaled by total EAC across all commodities
 # Base: £3,250 per 15,000 kWh of electricity EAC
@@ -1525,7 +1564,8 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 ).days
                 if policy.use_var_hedge_decision and unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
                     _var_hf = decide_hedge_fraction(
-                        eac_kwh, company_fwd, unit_rate, elec_records, term_days_count
+                        eac_kwh, company_fwd, unit_rate,
+                        _price_history_as_of(elec_records, term_start_str), term_days_count
                     )
                     if cid not in pending_committee_overrides:
                         hf = _var_hf
@@ -1632,7 +1672,8 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 ).days
                 if _gas_term_days > 0:
                     _gas_var_hf = decide_hedge_fraction(
-                        aq_kwh, company_fwd, unit_rate, gas_records, _gas_term_days
+                        aq_kwh, company_fwd, unit_rate,
+                        _price_history_as_of(gas_records, term_start_str), _gas_term_days
                     )
                     if cid not in pending_committee_overrides:
                         hf = _gas_var_hf
