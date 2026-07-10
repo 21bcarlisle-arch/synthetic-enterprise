@@ -37,8 +37,10 @@
 #   "## Backlog" heading (re.search with re.MULTILINE) instead of a raw substring find, which
 #   had been locking onto a prose mention of the heading name earlier in this very file. 2 new
 #   tests, 454/454 background tests pass, 16,542 tests collected (full suite), epistemic PASS.
-#   NEXT real self-refill work requires either: the two open Tier 1 gates being decided, the
-#   epoch sequencing naming W1/D2's turn, or B2's two open cost-basis questions being answered.
+#   NEXT real self-refill work requires either: the one open Tier 1 gate being decided
+#   (EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md -- corrected 2026-07-10, this line previously
+#   said "two", stale since POINT_IN_TIME_SNAPSHOT_TIER1.md closed), the epoch sequencing naming
+#   W1/D2's turn, or B2's two open cost-basis questions being answered.
 #
 # === E1 CORPORATION TAX -- BUILT 2026-07-10 (eighteenth dial-weighted draw,
 #   docs/design/E1_CORPORATION_TAX_FINDING.md): balance_sheet() genuinely balances for every real
