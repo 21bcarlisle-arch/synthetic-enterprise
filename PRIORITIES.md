@@ -511,6 +511,13 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **Supervisor self-refill CLOSED (2026-07-10, SELF_DIRECTION_AND_PARALLELISM.md Problem 1,
+  PROJECT_OVERVIEW.md Section 4 entry)**: background/supervisor.py now grants a turn from an
+  unblocked PRIORITIES.md backlog item ("NOT YET STARTED", not BLOCKED/REVIEW GATE) when the
+  agenda is empty and nothing is staged, instead of going idle. Problem 2 of the same doc
+  (recalibrate one-way doors) deliberately NOT actioned -- Tier 1 safety-control change, needs
+  the director's own in-console confirmation, flagged via NTFY. Problem 3 (parallel-lanes
+  proposal) still registered below, not yet drafted.
 - **REVIEW GATE OPEN (Tier 1, blocking) -- hedge-decision volatility lookback uses future data**:
   docs/review_gates/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md (2026-07-10, from a real director
   page comment on /supplier/ Trading & Market, confirmed twice-verified real epistemic-wall

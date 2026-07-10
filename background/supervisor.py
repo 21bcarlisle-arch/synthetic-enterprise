@@ -3,9 +3,18 @@ failure #4, R3 architecture-level rebuild, director-direct).
 
 A single dumb loop. Every POLL_INTERVAL_SECONDS: if the session is idle AND
 real work exists on disk (an open agenda, unprocessed staging, an urgent
-from_rich message, or a usage-limit pause that just ended), grant exactly
-one turn via the locked relay, verify it was consumed, and log the decision
-either way -- every cycle, not just the interesting ones.
+from_rich message, a usage-limit pause that just ended, OR -- 2026-07-10,
+SELF_DIRECTION_AND_PARALLELISM.md Problem 1 -- an unblocked backlog item
+still marked NOT YET STARTED in PRIORITIES.md when nothing else is queued),
+grant exactly one turn via the locked relay, verify it was consumed, and log
+the decision either way -- every cycle, not just the interesting ones.
+
+The self-refill check (`_actionable_backlog_item()`) is a cheap mechanical
+heuristic, not comprehension -- it never treats a BLOCKED or REVIEW GATE
+line as self-refillable, and it never says what to do beyond "something is
+open," matching R7 exactly like every other reason string here. The
+granted session decides what's actually worth doing by reading
+PRIORITIES.md itself, same as always.
 
 Why this exists (three independent things broke the same night, see
 docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md):
@@ -150,6 +159,38 @@ def _pause_active_readonly() -> bool:
     return datetime.now(timezone.utc) < resume_at
 
 
+PRIORITIES_PATH = PROJECT_DIR / "PRIORITIES.md"
+
+
+def _actionable_backlog_item() -> str | None:
+    """Cheap, mechanical heuristic (2026-07-10, SELF_DIRECTION_AND_
+    PARALLELISM.md Problem 1: "an empty agenda is itself a trigger... self-
+    refill from the roadmap") -- NOT real comprehension. The supervisor
+    stays a dumb, blocking-call-free loop by design (see module docstring);
+    it does not read PRIORITIES.md for MEANING, only to check whether the
+    Backlog section contains at least one line explicitly marked "NOT YET
+    STARTED" that is NOT also marked BLOCKED or a REVIEW GATE -- a real
+    Tier-1 gate or director-decision-pending item must never be treated as
+    self-refillable work; only the granted session itself decides what to
+    actually do, this just decides whether to grant a turn at all when
+    nothing is staged and no agenda is open."""
+    try:
+        text = PRIORITIES_PATH.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    idx = text.find("## Backlog")
+    if idx < 0:
+        return None
+    for line in text[idx:].split("\n"):
+        if "NOT YET STARTED" in line and "BLOCKED" not in line and "REVIEW GATE" not in line:
+            # Return a short, stable identifier (first ~80 chars) -- enough
+            # for the log/fingerprint to distinguish backlog items from each
+            # other without embedding the full line (R7: doorbell, not a
+            # directive -- the granted session re-reads PRIORITIES.md itself).
+            return line.strip().lstrip("#- ").strip()[:80]
+    return None
+
+
 def find_work(resumed_from_pause: bool) -> str | None:
     """Return a human-readable reason string if real work exists on disk,
     else None. Checked fresh every cycle -- no "already nudged" memory, by
@@ -168,17 +209,36 @@ def find_work(resumed_from_pause: bool) -> str | None:
     if staged:
         return f"unprocessed staging -- {', '.join(staged)}"
 
+    backlog_item = _actionable_backlog_item()
+    if backlog_item:
+        return f"agenda+staging empty -- self-refill from PRIORITIES.md backlog: {backlog_item}"
+
     return None
 
 
 def _work_fingerprint() -> str:
     """A cheap, comparable snapshot of real work-state. Unchanged across
     cycles despite repeated granted turns is the stuck signal -- see
-    STUCK_GRANT_THRESHOLD."""
+    STUCK_GRANT_THRESHOLD.
+
+    Includes PRIORITIES.md's own mtime (2026-07-10, self-refill addition)
+    -- a granted turn spent genuinely closing a backlog item edits
+    PRIORITIES.md as part of the phase-close checklist, which changes this
+    fingerprint; a turn that keeps granting against the SAME unedited
+    PRIORITIES.md is the real stuck signal for the self-refill path, same
+    principle as agenda_updated_at for the agenda path."""
     agenda = agenda_module.load_agenda()
     agenda_key = agenda.get("updated_at") if agenda else None
+    try:
+        priorities_mtime = PRIORITIES_PATH.stat().st_mtime
+    except OSError:
+        priorities_mtime = None
     return json.dumps(
-        {"agenda_updated_at": agenda_key, "staging": _unprocessed_staging_files()},
+        {
+            "agenda_updated_at": agenda_key,
+            "staging": _unprocessed_staging_files(),
+            "priorities_mtime": priorities_mtime,
+        },
         sort_keys=True,
     )
 

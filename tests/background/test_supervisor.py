@@ -31,6 +31,10 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(supervisor, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(supervisor, "USAGE_PAUSE_FILE", tmp_path / ".usage_pause.json")
+    # Isolated from the real, committed PRIORITIES.md -- defaults to a
+    # nonexistent tmp_path file (no backlog found, matching the pre-existing
+    # "nothing open" test expectations), never the real repo file.
+    monkeypatch.setattr(supervisor, "PRIORITIES_PATH", tmp_path / "PRIORITIES.md")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
@@ -83,6 +87,64 @@ def test_find_work_agenda_takes_priority_over_staging():
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
     reason = supervisor.find_work(resumed_from_pause=False)
     assert "agenda open" in reason
+
+
+# ── self-refill (2026-07-10, SELF_DIRECTION_AND_PARALLELISM.md Problem 1) ──
+
+def test_find_work_self_refills_from_backlog_when_nothing_staged():
+    supervisor.PRIORITIES_PATH.write_text(
+        "## Backlog\n- Some item NOT YET STARTED -- do it\n"
+    )
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None
+    assert "self-refill" in reason
+
+
+def test_find_work_ignores_blocked_backlog_items():
+    supervisor.PRIORITIES_PATH.write_text(
+        "## Backlog\n- **BLOCKED** on something NOT YET STARTED, awaiting director\n"
+    )
+    assert supervisor.find_work(resumed_from_pause=False) is None
+
+
+def test_find_work_ignores_review_gate_backlog_items():
+    supervisor.PRIORITIES_PATH.write_text(
+        "## Backlog\n- **REVIEW GATE OPEN (Tier 1)** -- some item NOT YET STARTED\n"
+    )
+    assert supervisor.find_work(resumed_from_pause=False) is None
+
+
+def test_find_work_no_backlog_section_returns_none():
+    supervisor.PRIORITIES_PATH.write_text("# Just a title, no backlog section\n")
+    assert supervisor.find_work(resumed_from_pause=False) is None
+
+
+def test_find_work_missing_priorities_file_returns_none():
+    assert not supervisor.PRIORITIES_PATH.exists()
+    assert supervisor.find_work(resumed_from_pause=False) is None
+
+
+def test_find_work_staging_and_agenda_still_win_over_backlog():
+    supervisor.PRIORITIES_PATH.write_text(
+        "## Backlog\n- Some item NOT YET STARTED\n"
+    )
+    (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
+    reason = supervisor.find_work(resumed_from_pause=False)
+    assert "unprocessed staging" in reason
+    assert "self-refill" not in reason
+
+
+def test_work_fingerprint_changes_when_priorities_md_edited():
+    import os
+    supervisor.PRIORITIES_PATH.write_text("## Backlog\n- item A NOT YET STARTED\n")
+    fp1 = supervisor._work_fingerprint()
+    supervisor.PRIORITIES_PATH.write_text("## Backlog\n- item A CLOSED\n- item B NOT YET STARTED\n")
+    # Deterministic mtime bump -- avoids flakiness from coarse filesystem
+    # timestamp resolution on a real (if tiny) sleep.
+    st = supervisor.PRIORITIES_PATH.stat()
+    os.utime(supervisor.PRIORITIES_PATH, (st.st_atime, st.st_mtime + 1))
+    fp2 = supervisor._work_fingerprint()
+    assert fp1 != fp2
 
 
 def test_find_work_resumed_from_pause_short_circuits():

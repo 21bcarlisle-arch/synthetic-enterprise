@@ -111,6 +111,14 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Supervisor self-refill from PRIORITIES.md backlog (2026-07-10, SELF_DIRECTION_AND_PARALLELISM.md Problem 1, advisor-staged/director-decided)
+
+**Self-refill on an empty agenda:** `background/supervisor.py::find_work()` previously returned no work (and granted no turn) whenever the open-agenda marker was clear and nothing was staged in `docs/staging/` -- even when real, unblocked backlog existed in `PRIORITIES.md`. New `_actionable_backlog_item()`: a cheap, mechanical heuristic (not comprehension -- the supervisor stays a dumb, blocking-call-free loop by design) that scans `PRIORITIES.md`'s Backlog section for a line marked "NOT YET STARTED" that is NOT also marked BLOCKED or a REVIEW GATE -- a real Tier-1 gate or director-decision-pending item must never be treated as self-refillable work. Wired as the final fallback in `find_work()`, after agenda/staging/urgent checks. `_work_fingerprint()` (the stuck-grant detector) now also includes `PRIORITIES.md`'s own mtime, so a turn that genuinely closes a backlog item (which edits `PRIORITIES.md` as part of the phase-close checklist) is correctly distinguished from a turn that keeps granting against the same unedited file.
+
+Deliberately did NOT action Problem 2 of the same staged doc ("recalibrate one-way doors -- flag-and-proceed on reversible calls, hard-stop only for irreversible real-world actions") -- that is a Tier-1 safety-control change (loosening the one-way-door model itself), and CLAUDE.md's own authentication convention is explicit that such a change is only ever authorized by the director typing it directly in-console, never by a staged commit alone (even one asserting "director-decided"). Flagged directly via NTFY, asking for that confirmation in-conversation before touching it -- especially live in the same session as filing a new, real Tier-1 gate (the hedge-volatility finding below). Problem 3 (propose parallel-agent lanes) registered as a design task for a future turn, not built here.
+
+7 new tests (`test_supervisor.py`), full `tests/background/` suite (421 tests) clean, epistemic PASS. Supervisor daemon killed and restarted live with the new code (R2 discipline), verified running with a fresh PID.
+
 ### Occupancy archetype + a real chart-staleness regression found and fixed at the root cause (2026-07-10, Tier 2 pre-approved queue item + director page comments)
 
 **Occupancy archetype (CORE_FIDELITY_BEFORE_LOOPS Phase 2 Layer 2, dimension 4 -- closes ALL of Layer 2's originally-named dimensions):** ONS Census 2021 table TS017 anchors England's household-size distribution: 1-person 30.1%, 2-person 34.0%, 3-4-person 28.9%, 5+-person 7.0% (mean 2.37, cross-checked against EHS 2023-24's 2.2-2.4 range). New `simulation/household_segments.py::OccupancyBand`/`occupancy_for_customer(customer_id)`. Wired into `simulation/feedback_survey.py::dispatch_complaint_and_resolution()` via a new optional `occupancy` param (default None preserves exact original behaviour) and `OCCUPANCY_COMPLAINT_MULTIPLIER` (one_person=0.85, two_person=1.0 baseline, three_to_four_person=1.15, five_plus_person=1.30 -- explicitly flagged calibration choice: more people in a household means more "eyes on the bill," more chances someone notices a problem and initiates contact; ONS anchors the population share, not a complaint-propensity magnitude). Wired into `simulation/run_phase2b.py`'s existing `dispatch_complaint_and_resolution` call site. New "Occupancy" evidence column on the SIM Customers sub-tab, sourced from a new `occupancy` field in `tools/generate_customer_sample.py` (household-level, keyed on `base_account_id` like tenure -- tested that a dual-fuel gas leg matches its electricity leg). Verified live: zero console errors; Qwen phase-close audit sampled the table -- one flag, checked by eye and confirmed an unrelated false positive (a generic complaint about satisfaction being shown as a percentage, which this site has done consistently throughout). 15 new tests (5 `test_household_segments.py`, 6 `test_feedback_survey.py`, 4 `test_generate_customer_sample.py`), full `tests/simulation/` suite (1,324 tests, ~21min real run) clean, epistemic PASS.
@@ -6731,8 +6739,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,387 tests collected (full suite) -- 19 new tests from the 2026-07-10 occupancy phase +
-  chart-staleness regression fix (CORE_FIDELITY_BEFORE_LOOPS Phase 2 Layer 2 dimension 4 +
+- 16,394 tests collected (full suite) -- 7 new tests from the 2026-07-10 supervisor self-refill
+  phase (background/supervisor.py -- PRIORITIES.md backlog refill on an empty agenda), on top of
+  the prior 16,387 tests collected (full suite) -- 19 new tests from the 2026-07-10 occupancy
+  phase + chart-staleness regression fix (CORE_FIDELITY_BEFORE_LOOPS Phase 2 Layer 2 dimension 4 +
   tools/generate_phases_json.py root-cause fix), on top of the prior 16,373 tests collected
   (full suite) -- 15 new tests from the 2026-07-10 tenure phase
   (CORE_FIDELITY_BEFORE_LOOPS Phase 2 Layer 2 dimension 3), on top of the prior 16,358 tests
