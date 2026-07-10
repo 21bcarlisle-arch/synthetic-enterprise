@@ -9,10 +9,61 @@ own recommendation -- `company/trading/hedge_decision.py` untouched). Regression
 epistemic PASS. `background/sim-runner` daemon PAUSED (reversible -- restart once the reviewed
 figures are ready to go live) so it cannot complete a fixed-code run and get auto-published by the
 routine batch pipeline before director review. An isolated verification run (output to a scratch
-path, NOT `docs/reports/run_output_latest.json`) is comparing old-vs-new headline figures and the
-hf=0.00 finding specifically -- results to be brought to the director for review BEFORE anything
-touches the live site or the canonical run output. This gate stays open until that review happens
-and the director says go-live on the new figures.
+path, NOT `docs/reports/run_output_latest.json`) compared old-vs-new headline figures and the
+hf=0.00 finding specifically. This gate stays open until the director reviews these results and
+says go-live.
+
+## Re-derivation results (2026-07-10, isolated run, one BEFORE snapshot vs one FIXED run)
+
+**Headline P&L: barely moves.** total_net_gbp -0.02% (-£342.76), total_revenue_gbp +0.00%,
+total_bad_debt_gbp +9.66% (+£323.61, small in absolute terms). The fix does not meaningfully
+change the portfolio financials.
+
+**Hedge fractions: small effect in about half the years, honestly re-examined.** First
+comparison attempt was WRONG (a bug in my own comparison script checked non-existent `avg`/`min`/
+`max` keys on the year dict, always silently defaulting to 0 -- caught before reporting, redone
+correctly against the real per-customer `hedge_fractions[cid].avg_hf` structure). Real result,
+population avg/min/max hedge fraction by year:
+
+| Year | BEFORE | FIXED | Differs? |
+|---|---|---|---|
+| 2016 | 0.889/0.850/0.922 | 0.889/0.850/0.922 | no |
+| 2017 | 0.895/0.850/0.943 | 0.891/0.850/0.943 | yes (~0.4pp) |
+| 2018 | 0.895/0.850/0.931 | 0.893/0.850/0.922 | yes (~0.2-0.9pp) |
+| 2019 | 0.835/0.000/0.962 | 0.835/0.000/0.962 | no |
+| 2020 | 0.811/0.000/0.960 | 0.811/0.000/0.960 | no |
+| 2021 | 0.844/0.000/0.970 | 0.846/0.000/0.970 | yes (~0.2pp) |
+| 2022 | 0.863/0.000/0.974 | 0.865/0.000/0.974 | yes (~0.2pp) |
+| 2023 | 0.839/0.000/0.961 | 0.839/0.000/0.961 | no |
+| 2024 | 0.806/0.000/0.944 | 0.806/0.000/0.944 | no |
+| 2025 | 0.880/0.850/0.894 | 0.880/0.850/0.894 | no |
+
+**Genuinely surprising finding, the real headline here: the population is NOT running "naked"
+in this codebase's current output.** The average hedge fraction sits at 0.80-0.90 throughout,
+including the 2016-2020 "calm" years the original hf=0.00 flagship finding was about. The
+"min: 0.000" entries every year 2019-2024 trace to exactly ONE customer, `C_IC3g` -- a
+pass-through gas account, which is DESIGNED never to hedge (bills at spot by construction, per
+Phase 56's own comment in run_phase2b.py: "Pass-through gas customers must not hedge -- they bill
+at spot, so a forward hedge creates wrong-way risk"), not a behavioural naked-hedging choice.
+Every other customer stays hedged in the 0.85-0.97 range in every year checked.
+
+**Implication for the flagship finding:** the original "hf=0.00 during calm 2016-2020, right
+before the 2021-22 crisis" result (Phase 1d/1e, an early-build finding) does not reproduce in
+the current codebase's real output at all -- this run shows consistently HIGH hedging the whole
+way through, calm years included. This is NOT something the volatility-lookback fix caused (the
+BEFORE run, still on the buggy code, shows the exact same high-hedging pattern) -- it looks like
+the flagship finding reflects an EARLIER architecture (before `evolve_hedge_fraction`'s Phase 22b
+backward-looking evolution and the Phase 43b VaR-decision system existed), superseded by later
+building, and the "hf=0.00" story was never re-verified against the current build. This needs
+the director's own re-framing decision, per his own instruction -- flagging honestly rather than
+guessing at a narrative.
+
+**Recommendation:** do not republish the old "hf=0.00 naked hedging" framing at all pending
+director review -- it appears to no longer describe this codebase's real behaviour. The
+volatility-lookback fix itself is real, correct, and low-risk to land (headline P&L barely
+moves) -- but the interesting story here is arguably not the bug fix, it's that the original
+flagship finding may be stale/superseded and needs the director's own decision on how (or
+whether) to re-state it.
 
 **Original finding (2026-07-10)**, in response to a real director page comment on `/supplier/` (Trading &
 Market tab): *"This looks suspiciously like we are hedging knowing what's coming... this doesn't
