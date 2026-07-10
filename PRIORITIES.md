@@ -44,7 +44,21 @@
 #   to the consistency gate, and the genuinely open question of which figure a real UK supplier's
 #   own "net margin %" claim would be built on (total revenue almost certainly, but confirm before
 #   treating this as final).
-#   STEPS 2-6 (diagnosis decomposition, opex/cost-to-serve mechanism, hedge-tariff alignment,
+#   STEP 2 (per-year margin decomposition) -- CLOSED 2026-07-10:
+#   docs/design/MARGIN_REALISM_STEP2_DECOMPOSITION.md. Gross margin (24.7-44.4%) is
+#   plausible, not the problem. The single largest, clearest gap: saas/cost_to_serve.py's
+#   opex model exists but is ONLY ever consumed per-customer/cumulative for CLV, NEVER
+#   subtracted from the portfolio annual net_gbp -- a real missing cost line, matching
+#   Step 3's mandate exactly. Cross-checked sim net% year-by-year against real EDF/British
+#   Gas CSS EBIT% + Ofgem's own cap EBIT allowance (1.9%) already in ASSUMPTIONS.md --
+#   2024 (11.6% sim vs 1.9-5.4% real) is the cleanest read, ~2-3x too high, consistent with
+#   the missing opex line. FLAGGED for Step 4, not investigated further: hedge value-add is
+#   negative every year 2016-2025, worst (-97.5% of gross) in 2022 -- the actual UK gas
+#   crisis year, when a hedged supplier should show its BEST relative performance (naked
+#   suppliers went bust in 2021-22, not hedged ones) -- backwards from expected shape,
+#   unexplained, seeded for Step 4 rather than root-caused now (recently-touched
+#   hedge-decision code, own sequenced turn).
+#   STEPS 3-6 (opex/cost-to-serve mechanism, hedge-tariff alignment,
 #   price-cap-binds mechanism, pressure-roadmap registration) -- NOT STARTED, explicitly sequenced
 #   AFTER step 1 closes per the advisor's own doc ("no mechanism work lands until percentages are
 #   computed on a trustworthy base"). Step 3 (opex) AMENDED by the director since first staged: do
