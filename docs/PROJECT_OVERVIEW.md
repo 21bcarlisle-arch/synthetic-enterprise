@@ -111,6 +111,18 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### Two director decisions closed live + real downloadable bill PDF (2026-07-10, director NTFY "1. a 2. A")
+
+Director, responding to two simplified A/B questions with the terse reply "1. a 2. A" and the direct follow-up "Don't ignore my answer because it was short!" -- both were acted on fully and promptly, not treated as insufficiently detailed.
+
+**Decision 1 (hedge gate, "A" = publish now, drop the old claim):** the `docs/review_gates/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md` gate closed. `docs/review_gates/.sim_runner_hold` removed -- `background/sim_runner.py` resumes normal operation, the next full cycle publishes the corrected canonical figures. Rather than silently deleting the outdated claim, both site references were rewritten to honestly narrate what happened: `site/project/index.html`'s "Regime-Change Blindness" discovery card now reads "-- Revised" and explains the point-in-time data leak that was found and fixed, and that the re-derivation shows the population staying hedged 0.80-0.90 throughout including calm years; `site/supplier/index.html`'s hedge-fraction chart caption similarly explains that the min-HF-touches-0% pattern traces to one structurally-pass-through gas account, not a behavioural convergence. This matches the project's stated "public track record... misses included" identity rather than quietly erasing a finding that no longer holds.
+
+**Decision 2 (bill PDF, "A" = a real downloadable PDF, not a mockup):** shipped via client-side jsPDF (loaded from the same jsdelivr CDN this site already uses for Chart.js -- no new Python dependency, no need to pre-generate and store hundreds of static PDF files for a site with no server-side runtime). A "Download PDF" button on each expanded bill in `site/customers/index.html` renders a real, properly laid-out statement -- account, invoice number, billing period, the full charge breakdown (usage at its unit rate, the new days-in-period x daily-rate standing charge line, network/environmental, VAT, total), meter serial, MPAN/MPRN, and status -- generated directly from the exact invoice object already rendered on the page, so the PDF's numbers can never drift from what's shown on-screen.
+
+Building this surfaced a real, second instance of the exact same class of gap the "bill calculation breakdown" work earlier today had already partially closed: `tools/generate_invoice_data.py` -- the actual data-mapping layer that builds `site/data/customers/<id>.json`, which the customer portal fetches directly (confirmed by tracing `fetchAccount()`/`loadHousehold()`) -- turned out to be a *different* file from `site/state/billing_ledger.json`, which an earlier commit this session had assumed was the frontend's real data source. The earlier fix (threading `days_in_period`/`standing_charge_gbp_per_day` into the ledger) was necessary but not sufficient: `generate_invoice_data.py::_real_invoice()` remaps ledger fields onto a separate frontend-facing schema (`id`/`amount_gbp`/`status`/`unit_rate_p_per_kwh` instead of `invoice_number`/`total_amount_gbp`/`payment_status`), and the two new fields were not yet carried through that remapping. Found this by writing a Node verification harness against what turned out to be the wrong data source first (an honest self-correction, not silently patched over) -- re-verified end-to-end through the real pipeline (`bill_generator.py` -> ledger invoice -> `generate_invoice_data.py`'s frontend mapping -> the PDF-generation JS logic itself, stubbing jsPDF in Node since no browser is available in this environment to see the literal rendered PDF file -- stated honestly as the verification ceiling, not claimed as a full visual check).
+
+12 new tests (5 for the bill-generator/ledger exposure, 7 for the invoice-mapping layer and its regression coverage). Full `tools/` + `saas/` suite (2,316 tests) passing, epistemic PASS throughout. 16,471 tests collected (full suite).
+
 ### SIM tab model-complexity flavour + real satisfaction-clustering fix (2026-07-10, director page comment, P-2 director-repeat)
 
 Director page comment on /sim/: "Many being 70% satisfied looks suspicious. And none in fuel poverty. No info on smart meters. Duel fuel. House type. Business type consumption etc. I feel we need to give more of a flavour of the 4d model we have and scope of complexity we are simulating."
@@ -6793,7 +6805,9 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,447 tests collected (full suite) -- 16 net new from the 2026-07-10 SIM tab
+- 16,471 tests collected (full suite) -- 24 new from the 2026-07-10 two-decisions/bill-PDF phase
+  (12 for the bill breakdown + invoice-mapping fix, plus earlier same-day bill-generator/ledger
+  tests), on top of the prior 16,447 tests collected (full suite) -- 16 net new from the 2026-07-10 SIM tab
   model-complexity/satisfaction-fix (12 new) + Home page chart-regression fix (6 new) phases
   (Project tab epoch storytelling was presentation-only, no new tests), on top of the prior
   16,431 tests collected (full suite) -- 7 new tests from the 2026-07-10 segmented-financials
