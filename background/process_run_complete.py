@@ -439,6 +439,18 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("simplified.json generation failed: {}".format(exc))
     try:
+        # PRODUCTION_READINESS_EVIDENCE_PASS.md's Part A found company/data/*.db
+        # (the company's own operational financial/customer state) had NO
+        # off-machine copy at all -- matches the "unrecoverable canonical data"
+        # immediate-action carve-out. Rides along on the existing run-complete
+        # cycle rather than a new standalone schedule; safe to run every cycle
+        # (byte-identical DBs produce a clean no-op commit).
+        from background.backup_company_data import backup_once
+        backed_up = backup_once()
+        log("Backed up company/data/*.db to ops repo: {}".format(backed_up))
+    except Exception as exc:
+        log("company/data backup failed: {}".format(exc))
+    try:
         from tools.generate_platform_data import generate as gen_platform
         gen_platform()
         log("Generated site/data/platform.json")
