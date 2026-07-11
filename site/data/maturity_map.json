@@ -613,13 +613,13 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": true
     }
   ],
   "lanes": {
