@@ -1,6 +1,25 @@
 # PRIORITIES.md -- Synthetic Enterprise
-# last director review: 2026-07-10 (from_rich_20260710_203008.md -- verifier gate closed, W1/D2
-#   bounded start approved, Routines environment click-path requested)
+# last director review: 2026-07-11 (docs/staging/SPIKE_WEEKEND.md -- advisor-staged,
+#   director-decided, P1 time-boxed spike, now through Monday 03:59 weekly reset)
+#
+# === SPIKE_WEEKEND ACTIVE (2026-07-11 -> Monday 03:59). Full text: docs/staging/
+#   in_progress/SPIKE_WEEKEND.md. NTFY cadence overridden (see CLAUDE.md) -- twice-daily digest
+#   + immediate only for [ACTION NEEDED]/Tier 1. Quality gates unchanged (pixel rule, fresh-
+#   context evaluator at every phase close). Priority order for the window, THIS IS NOW "Next":
+#     1. MARGIN_REALISM steps 4-5 (hedge-tariff alignment, binding cap, bridge attribution) --
+#        closes the margin programme; director Expert Hour is its close, queue for Monday pack.
+#     2. Sanity follow-ups: remaining adjudications (the 2 open unit-rate findings), skeptic
+#        memory, prove the daily-digest alert mode live over a real cycle.
+#     3. Epoch-2 foundations continue, BOUNDED, until the advisor's epoch framing arrives
+#        (expected same day per the spike doc) -- its sequencing then takes over this slot.
+#     4. DISCOVER/FRAME charter flood: every lane at dial>=2 lacking one (B, C, E, W2, W3, A, G).
+#     5. HARDEN sweep: Expert-Hour simulation per company lane vs the live site, findings into
+#        the adjudication ledger.
+#     6. Bill-shock redesign + any map-drawn work as capacity allows.
+#   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
+#   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
+#   every claim in it. Not started this turn (landed mid-turn, recorded for the next pickup) --
+#   see CLAUDE.md's own SPIKE_WEEKEND override entry for the full NTFY-cadence detail.
 #
 # === phase-close-evaluator demonstrated FOR REAL, found real defects, all fixed (2026-07-10):
 #   the new agent (item 2 above) initially reported as unavailable this session -- correction:
