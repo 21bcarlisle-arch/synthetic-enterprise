@@ -427,6 +427,12 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("capabilities.json generation failed: {}".format(exc))
     try:
+        from tools.generate_maturity_map_data import generate as gen_maturity_map
+        gen_maturity_map()
+        log("Generated site/data/maturity_map.json")
+    except Exception as exc:
+        log("maturity_map.json generation failed: {}".format(exc))
+    try:
         from tools.generate_platform_data import generate as gen_platform
         gen_platform()
         log("Generated site/data/platform.json")

@@ -49,6 +49,13 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .tab-btn.active{color:var(--text);border-bottom-color:var(--blue);}
 .tab-btn:hover{color:var(--text);}
 .view{display:none;}.view.active{display:block;}
+.mm-view-btn{padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;}
+.mm-view-btn.active{color:var(--text);background:var(--surface2);border-color:var(--blue);}
+.mm-view-btn:hover{color:var(--text);}
+.mm-lane-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
+.mm-atom-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-top:1px solid var(--border);}
+.mm-atom-row:first-child{border-top:none;}
+.mm-badge{border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;white-space:nowrap;}
 .tl-row{display:flex;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
 .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;margin-right:10px;}
 .tl-body{flex:1;}.tl-date{font-size:12px;color:var(--muted);margin-bottom:2px;}
@@ -155,83 +162,30 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Phases shipped per day</div><canvas id="cp"></canvas></div>
   </div>
 
-  <div class="sec">The Epochs</div>
+  <div class="sec">Epoch 2 Progress -- The Value Cycle</div>
   <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
-    Not a static checklist -- the real, dependency-ordered story of what this business becomes next,
-    and why each stage has to happen before the one after it.
+    Four movements, evaluator-gated, exit tests as the schedule (docs/design/THE_VALUE_CYCLE_FRAMING.md).
+    M4 strictly last -- every headline figure on this site is PROVISIONAL until it lands.
   </p>
-
-  <div class="card" style="border-left:3px solid var(--green)">
-    <h3 style="font-size:14px;margin-bottom:6px">Epoch 1 -- Built <span style="color:var(--muted);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(depth before scale)</span></h3>
-    <p class="about-text" style="font-size:12px;margin-bottom:12px">
-      A single fixed cast of customers, run once end-to-end against real 2016-2025 settlement data,
-      with a company layer detailed enough to price, hedge, bill, collect, and survive a real crisis
-      on its own logic. This is the foundation the next two epochs build on, not a finished product.
-    </p>
-    <div style="font-size:13px;line-height:2">
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Company layer: <span id="rm-stat">--</span></div>
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Crisis survival: 2021-22 energy crisis replicated and survived</div>
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Four-dimension customer model: physical, economic, behavioural, emotional</div>
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Three-signal churn model: bill shock + payment behaviour + satisfaction</div>
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>Full regulatory policy cost stack: RO, FiT, CCL, GSOP, WHD, ECO, Carbon, TPI</div>
-      <div><span style="color:var(--green);margin-right:8px">&#10003;</span>SIM section live: prices, weather, BM settlement, customer detail &amp; behaviour</div>
-      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Fuel Mix Disclosure board report (module exists, wiring next)</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Real market interfaces: N2EX, Elexon API, Met Office live feeds</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Capital raise: when the blueprint is proven</div>
-    </div>
+  <div id="epoch2-strip" class="disc-grid" style="margin-bottom:24px">
+    <div style="color:var(--muted);font-size:12px">Loading...</div>
   </div>
 
-  <div class="card" style="border-left:3px solid var(--amber)">
-    <h3 style="font-size:14px;margin-bottom:6px">Epoch 2 -- Closing the Wall <span style="color:var(--muted);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(next up)</span></h3>
-    <p class="about-text" style="font-size:12px;margin-bottom:12px">
-      The company is supposed to know its world only the way a real supplier would -- through meter
-      reads, bills, and customer contact -- never by peeking at simulation ground truth. A desk audit
-      this month found the wall holds in most places, but not all: the customer portal reads
-      physical-property "truth" (home type, EPC rating, smart-meter status) straight out of the same
-      list the simulation itself uses, with no discovery step in between. That gap already produced a
-      real, live bug -- one customer's smart-meter flag defaulting wrong because the field it read had
-      gone missing. Separately, every run today plays the identical 27-customer cast with the identical
-      seeded outcomes: there is no lever to vary who the company serves, which means the tournament in
-      Epoch 3 has nothing to run yet. Closing both gaps is the precondition for everything after it.
-    </p>
-    <div style="font-size:13px;line-height:1.9">
-      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Customer truth discovered through interfaces only -- no company code reads simulation-adjacent data directly</div>
-      <div><span style="color:var(--amber);margin-right:8px">&#9679;</span>Population becomes a per-run draw from a real distribution, not a fixed cast</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Generation and validation independently anchored by design, not by accident</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>A real two-clock financial ledger (billed / settled / banked) replacing today's single-computed-value model</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Governance and an ex-post margin bridge layered onto the pricing engine that already exists</div>
-    </div>
+  <div class="sec">Maturity Map -- What The Business Is Becoming</div>
+  <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    A single, canonical, machine-readable picture of every capability a fully-grown UK energy supplier
+    needs, honestly leveled (docs/design/maturity_map.yaml). Four views of the same data
+    (docs/design/MATURITY_MAP.md Section 6) -- Activity is the default: what's actually being worked
+    on right now, and what each lane does next.
+  </p>
+  <div id="mm-view-btns" style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="mm-view-btn active" data-view="activity" onclick="setMMView('activity')">Activity</button>
+    <button class="mm-view-btn" data-view="function" onclick="setMMView('function')">Function Matrix</button>
+    <button class="mm-view-btn" data-view="stream" onclick="setMMView('stream')">Value-Stream Flow</button>
+    <button class="mm-view-btn" data-view="campaign" onclick="setMMView('campaign')">Campaign</button>
   </div>
-
-  <div class="card" style="border-left:3px solid var(--teal)">
-    <h3 style="font-size:14px;margin-bottom:6px">Epoch 3 -- The Company That Can Die <span style="color:var(--muted);font-weight:400;font-size:11px;text-transform:none;letter-spacing:0">(director-decided direction, re-rank input, not yet queued)</span></h3>
-    <p class="about-text" style="font-size:12px;margin-bottom:12px">
-      Five mission clauses, decided directly with the director, define what this business becomes once
-      the wall is closed. Insolvency and licence revocation stop being avoided outcomes and become real
-      endings: the endgame is a <span class="tl">longevity tournament</span> -- repeated lifetime runs,
-      scored by survival duration times cumulative value, a league table of strategies competing on
-      robustness. A run that dies doesn't end the project -- the corpse becomes data for the next one.
-      Brand stops being decoration and becomes <span class="tl">behavioural physics</span>: it changes
-      the discount required to move a customer, absorbs one service failure for free, and remembers a
-      second one with a permanently lower switching threshold -- discovered by the company from its own
-      win/loss data, never read as a parameter. Learning happens under
-      <span class="tl">regulated experimentation</span>: the same consumer-duty and fairness constraints
-      a real regulator would enforce, so the tension between learning fast and staying compliant is a
-      designed feature, not an oversight. Every random number in the world has to earn its distribution
-      from a published statistic first (<span class="tl">anchored noise</span>), and nothing happens
-      instantly -- every process carries a real latency distribution, so failed direct debits, callbacks
-      that never come, and appointment no-shows are counted as first-class cost, not edge cases
-      (<span class="tl">temporal realism</span>).
-    </p>
-    <div style="font-size:13px;line-height:1.9">
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Longevity tournament: survival x value scoring, a league table of strategies</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Brand as behavioural physics: elasticity, forgiveness buffer, sensitised exit, discovered not read</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Regulated experimentation: learning fenced by the same rules a real regulator would hold it to</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Anchored noise: every distribution sourced from real published data or honestly flagged</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Temporal realism: latency distributions everywhere, doom loops as first-class cost</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>The Belief Book: a company hypothesis register, "time-to-truth" as the headline learning metric</div>
-      <div><span style="color:var(--muted);margin-right:8px">&#9675;</span>Board model: owner sets mission + reserved matters, company proposes strategy, the scenario battery is the exam</div>
-    </div>
+  <div id="mm-view-body">
+    <div style="color:var(--muted);font-size:12px">Loading maturity map...</div>
   </div>
 </div>
 
@@ -380,7 +334,118 @@ function renderKpis(){if(!D||!PH)return;var ann=(D.financial||{}).annual||[];var
   document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){return'<div class="kpi"'+(k.title?' title="'+k.title.replace(/"/g,"&quot;")+'"':'')+'><div class="kl">'+k.l+'</div><div class="kv'+(k.g?" green":"")+'">'+k.v+'</div></div>';}).join("");}
 function renderCharts(){if(!PH)return;var tp=PH.test_progression||[];var lineOpts={responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:5,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}};new Chart(document.getElementById("ct"),{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:lineOpts});var pd=PH.phase_dates||[];var dm={};pd.forEach(function(p){dm[p[0]]=(dm[p[0]]||0)+1;});var days=Object.keys(dm).sort();var barOpts={responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.y+" phase"+(ctx.parsed.y===1?"":"s")+" shipped";}}}},scales:{x:{ticks:{color:"#52514e",autoSkip:false,maxRotation:60,minRotation:60,font:{size:9}},grid:{display:false}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"},title:{display:true,text:"Phases shipped",color:"#52514e",font:{size:10}}}}};new Chart(document.getElementById("cp"),{type:"bar",data:{labels:days,datasets:[{data:days.map(function(d){return dm[d];}),backgroundColor:"rgba(42,120,214,0.6)"}]},options:barOpts});}
 function renderBuildStats(){if(!PH)return;var build=(D&&D.build)||{};var phases=PH.total_phases;var tests=build.test_count;var commits=PH.total_commits;var modules=build.company_modules;var parts=[];if(phases)parts.push(phases+" phases");if(tests)parts.push(tests.toLocaleString()+" tests");if(commits)parts.push(commits.toLocaleString()+" commits");var rmEl=document.getElementById("rm-stat");if(rmEl){var rmParts=[];if(modules)rmParts.push(modules+" modules");if(tests)rmParts.push(tests.toLocaleString()+" tests passing");if(commits)rmParts.push("("+commits.toLocaleString()+" commits)");rmEl.textContent=rmParts.length?rmParts.join(", "):"--";}}
-Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();})]).then(function(rs){D=rs[0];PH=rs[1];renderKpis();renderCharts();renderBuildStats();}).catch(function(e){console.error("Load error:",e);});
+
+// ── MATURITY MAP (director page comment 2026-07-11: "the epoch's primary
+// window" -- four views over docs/design/maturity_map.yaml, activity view
+// foremost) ──────────────────────────────────────────────────────────────
+var MM=null, MM_VIEW="activity";
+var MM_STATUS_COLOR={not_started:"muted",in_progress:"amber",audit_complete:"blue",done:"green"};
+var MM_STATUS_LABEL={not_started:"NOT STARTED",in_progress:"IN PROGRESS",audit_complete:"AUDIT COMPLETE",done:"DONE"};
+var MM_LOOP_COLOR={discover:"blue",frame:"blue",build:"amber",verify:"amber",harden:"green",idle:"muted"};
+
+function mmBadge(text,color){
+  var bg={green:"rgba(12,163,12,.15)",amber:"rgba(250,178,25,.15)",blue:"rgba(42,120,214,.15)",muted:"rgba(82,81,78,.15)"}[color]||"rgba(82,81,78,.15)";
+  var fg="var(--"+color+")";
+  return '<span class="mm-badge" style="background:'+bg+';color:'+fg+'">'+text+'</span>';
+}
+
+function renderEpoch2Strip(){
+  var el=document.getElementById("epoch2-strip");
+  if(!el||!MM)return;
+  el.innerHTML=(MM.epoch2_movements||[]).map(function(m){
+    var color=MM_STATUS_COLOR[m.status]||"muted";
+    return '<div class="disc" style="border-left-color:var(--'+color+')">'+
+      '<h3>'+m.id+' -- '+m.name+' '+mmBadge(MM_STATUS_LABEL[m.status]||m.status,color)+'</h3>'+
+      '<p style="margin-bottom:6px"><em>Exit test:</em> '+m.exit_test+'</p>'+
+      '<p style="color:var(--muted);font-size:11px">'+m.status_note+'</p>'+
+      '</div>';
+  }).join("");
+}
+
+function setMMView(view){
+  MM_VIEW=view;
+  document.querySelectorAll(".mm-view-btn").forEach(function(b){b.classList.toggle("active",b.dataset.view===view);});
+  renderMMView();
+}
+
+function renderMMView(){
+  var body=document.getElementById("mm-view-body");
+  if(!body||!MM)return;
+  if(MM_VIEW==="activity")body.innerHTML=renderMMActivity();
+  else if(MM_VIEW==="function")body.innerHTML=renderMMFunction();
+  else if(MM_VIEW==="stream")body.innerHTML=renderMMStream();
+  else if(MM_VIEW==="campaign")body.innerHTML=renderMMCampaign();
+}
+
+function mmAtomRow(a){
+  var lvlText=(a.level_current!=null&&a.level_target!=null)?("L"+a.level_current+" → L"+a.level_target):"--";
+  var loopColor=MM_LOOP_COLOR[a.loop_stage]||"muted";
+  return '<div class="mm-atom-row"><span>'+a.name+'</span><span>'+lvlText+' '+
+    mmBadge((a.loop_stage||"?").toUpperCase(),loopColor)+
+    (a.at_target?mmBadge("AT TARGET","green"):"")+'</span></div>';
+}
+
+function renderMMActivity(){
+  // What's in DISCOVER/BUILD/HARDEN right now, grouped by loop_stage -- the
+  // "what it's done and what it's going to do" view, foremost per the
+  // director's own framing (M1 is below-the-waterline; this is what makes
+  // it visible).
+  var stages=["discover","frame","build","verify","harden","idle"];
+  var byStage={};
+  stages.forEach(function(s){byStage[s]=[];});
+  MM.atoms.forEach(function(a){(byStage[a.loop_stage]=byStage[a.loop_stage]||[]).push(a);});
+  return stages.filter(function(s){return byStage[s]&&byStage[s].length;}).map(function(s){
+    var atoms=byStage[s].slice().sort(function(x,y){return (y.dial_inherited||0)-(x.dial_inherited||0);});
+    return '<div class="mm-lane-card"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px">'+
+      s+' ('+atoms.length+')</div>'+atoms.map(mmAtomRow).join("")+'</div>';
+  }).join("");
+}
+
+function renderMMFunction(){
+  // Lanes x levels -- the org-familiar grid (MATURITY_MAP.md Section 8).
+  var lanes=Object.keys(MM.lanes);
+  return lanes.map(function(laneId){
+    var lane=MM.lanes[laneId];
+    var atoms=MM.atoms.filter(function(a){return a.lane===laneId;});
+    var loopColor=MM_LOOP_COLOR[lane.loop_stage_now]||"muted";
+    return '<div class="mm-lane-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'+
+      '<strong style="font-size:13px">'+lane.name+'</strong>'+
+      '<span>'+mmBadge(lane.level_now,"blue")+' Dial '+lane.dial+' '+mmBadge((lane.loop_stage_now||"?").toUpperCase(),loopColor)+'</span></div>'+
+      atoms.map(mmAtomRow).join("")+
+      (atoms.length===0?'<div style="color:var(--muted);font-size:11px">No individual atoms registered yet for this lane.</div>':'')+
+      '</div>';
+  }).join("");
+}
+
+function renderMMStream(){
+  // The four cycles, each showing its capabilities in sequence.
+  var streams={};
+  MM.atoms.forEach(function(a){
+    var key=a.value_stream_label||a.value_stream||"Unclassified";
+    (streams[key]=streams[key]||[]).push(a);
+  });
+  return Object.keys(streams).map(function(label){
+    var atoms=streams[label];
+    return '<div class="mm-lane-card"><div style="font-size:13px;font-weight:700;margin-bottom:8px">'+label+'</div>'+
+      atoms.map(mmAtomRow).join("")+'</div>';
+  }).join("");
+}
+
+function renderMMCampaign(){
+  // Capabilities grouped by epoch.
+  var epochs={};
+  MM.atoms.forEach(function(a){
+    var key="Epoch "+(a.epoch!=null?a.epoch:"?");
+    (epochs[key]=epochs[key]||[]).push(a);
+  });
+  return Object.keys(epochs).sort().map(function(label){
+    var atoms=epochs[label];
+    return '<div class="mm-lane-card"><div style="font-size:13px;font-weight:700;margin-bottom:8px">'+label+' ('+atoms.length+' capabilities)</div>'+
+      atoms.map(mmAtomRow).join("")+'</div>';
+  }).join("");
+}
+
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];renderKpis();renderCharts();renderBuildStats();if(MM){renderEpoch2Strip();renderMMView();}}).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="../shared/director-comments.js" defer></script>
 </body>

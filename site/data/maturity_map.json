@@ -1,0 +1,618 @@
+{
+  "atoms": [
+    {
+      "id": "D3_catchup_rebilling",
+      "name": "Estimated billing & catch-up rebilling cycle",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "frame",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "D1_bill_correctness",
+      "name": "Bill line-item correctness (VAT, segment labelling, non-commodity recovery)",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 4,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "D2_three_clocks",
+      "name": "Three settlement clocks (physical/financial/regulatory) reconciled per bill",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W1_reveal_over_time",
+      "name": "Historical data reveal-over-time (point-in-time blindfold at the source, not just company/ code)",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "W1_2_generate_futures",
+      "name": "Synthetic future market generation beyond real 2016-2025 history",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "B1_margin_bridge",
+      "name": "Year-over-year margin bridge with residual reconciliation",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D2_three_clocks"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "B2_opex_cost_to_serve",
+      "name": "Opex/cost-to-serve mechanism -- full B2 taxonomy (true/benchmark ledger, fixed floor, break-even, segment capital/ROCE, concentration)",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "B3_hedge_tariff_alignment",
+      "name": "Hedge-tariff alignment (cost locked when price is locked)",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "B4_competitor_field",
+      "name": "Competitor field (price ceiling / undercut pressure)",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_3_competitor_field"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "C1_segment_layers",
+      "name": "Customer segment flavour fields (smart meter, dual-fuel, home/business type)",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "C2_discovery_through_interfaces",
+      "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "C3_satisfaction_heterogeneity",
+      "name": "Per-customer satisfaction heterogeneity (payment-channel gap + individual variation)",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "E1_ledger_double_entry",
+      "name": "Double-entry ledger + management accounts (income statement)",
+      "lane": "E_finance_treasury",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "E2_revenue_reconciliation",
+      "name": "Single reconciled revenue definition across every reporting surface",
+      "lane": "E_finance_treasury",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "frame",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D2_three_clocks"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "E3_accrual_restatement",
+      "name": "Accrual accounting + restatement handling",
+      "lane": "E_finance_treasury",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "F1_epistemic_verifier",
+      "name": "SIM/company epistemic barrier verifier (static + timing)",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "F2_sanity_daemon",
+      "name": "Population-level + Qwen-skeptic sanity daemon, R5-compliant alerting",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "F3_obligations_register",
+      "name": "Obligations register + domain invariants (risk-tiered compliance checks)",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "G1_test_progression_metrics",
+      "name": "Monotonic, non-saturating growth metrics (cumulative commits, test-execution count)",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "G2_event_log_shared_with_spine",
+      "name": "Unified event log shared across sim/company for the epoch-2 reveal spine",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_1_archetype_layers",
+      "name": "Customer archetype layers (home type, payment channel, tenure, fuel poverty, occupancy)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "W2_2_population_draw",
+      "name": "Per-run stochastic population draw (vs current fixed cast)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "W2_3_competitor_field",
+      "name": "Competitor supplier field (world-side)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "W3_1_price_cap_binding",
+      "name": "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)",
+      "lane": "W3_industry_systems",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 1,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "W3_2_settlement_timetable",
+      "name": "Real settlement timetable (D+1/D+... true-up) as an explicit world mechanism",
+      "lane": "W3_industry_systems",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D2_three_clocks"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W4_1_typed_adapters",
+      "name": "Typed, versioned-message SIM/company boundary adapters (go-live seam)",
+      "lane": "W4_the_wall",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "W4_2_verifier_timing_extension",
+      "name": "Epistemic verifier extended to data-flow/timing violations, not just literal imports",
+      "lane": "W4_the_wall",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "A1_learn_loop_chair",
+      "name": "Formalised learn-loop / retrospective cadence",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "H1_supervisor_turn_granting",
+      "name": "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "H2_tree_lock_concurrency",
+      "name": "tree_lock() serialized git writes across concurrent daemons/sessions",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    },
+    {
+      "id": "W5_1_banking_payment_rails",
+      "name": "Banking & Payment Rails simulator (twin: Bacs/bank/acquirer)",
+      "lane": "W5_banking_payment_rails",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D2_three_clocks",
+        "D_payments_maturity_audit"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "D_payments_maturity_audit",
+      "name": "Payments & billing maturity audit (M2 entry gate) -- 22+ existing modules graded vs D/E charters",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "passed",
+      "depends_on": [],
+      "at_target": true
+    }
+  ],
+  "lanes": {
+    "W1_market_weather": {
+      "name": "W1 Market & Weather",
+      "level_now": "L1",
+      "dial": 4,
+      "loop_stage_now": "discover"
+    },
+    "D_billing_metering": {
+      "name": "D Billing & Metering",
+      "level_now": "L2",
+      "dial": 4,
+      "loop_stage_now": "frame"
+    },
+    "B_commercial": {
+      "name": "B Commercial",
+      "level_now": "L2",
+      "dial": 3,
+      "loop_stage_now": "discover"
+    },
+    "C_customer_ops": {
+      "name": "C Customer Ops",
+      "level_now": "L2\u21923",
+      "dial": 3,
+      "loop_stage_now": "build"
+    },
+    "E_finance_treasury": {
+      "name": "E Finance & Treasury",
+      "level_now": "L1\u21922",
+      "dial": 3,
+      "loop_stage_now": "frame"
+    },
+    "W2_customer_generator": {
+      "name": "W2 Customer Generator",
+      "level_now": "L1\u21922",
+      "dial": 3,
+      "loop_stage_now": "build"
+    },
+    "W4_the_wall": {
+      "name": "W4 The Wall",
+      "level_now": "L1",
+      "dial": 3,
+      "loop_stage_now": "frame"
+    },
+    "A_strategy_governance": {
+      "name": "A Strategy & Governance",
+      "level_now": "L2",
+      "dial": 2,
+      "loop_stage_now": "idle"
+    },
+    "G_data_learning": {
+      "name": "G Data & Learning",
+      "level_now": "L2",
+      "dial": 2,
+      "loop_stage_now": "idle"
+    },
+    "W3_industry_systems": {
+      "name": "W3 Industry Systems",
+      "level_now": "L1",
+      "dial": 2,
+      "loop_stage_now": "idle"
+    },
+    "W5_banking_payment_rails": {
+      "name": "W5 Banking & Payment Rails",
+      "level_now": "L0",
+      "dial": 2,
+      "loop_stage_now": "idle"
+    },
+    "F_risk_compliance": {
+      "name": "F Risk & Compliance",
+      "level_now": "L3",
+      "dial": 1,
+      "loop_stage_now": "harden"
+    },
+    "H_harness": {
+      "name": "H Harness",
+      "level_now": "L3",
+      "dial": 1,
+      "loop_stage_now": "harden"
+    }
+  },
+  "total_atoms": 32,
+  "epoch2_movements": [
+    {
+      "id": "M1",
+      "name": "The clock and the log",
+      "exit_test": "The hedge decision literally cannot see past \u2018now\u2019; a restatement lands as an event and downstream values version correctly.",
+      "status": "in_progress",
+      "status_note": "Bitemporal log + as-of interfaces built (bounded start). Real call-site migration attempted 2026-07-11 and found a genuine pipeline mismatch first (PointInTimeView's MarketDataPort is backed by a different data source than the historical backtest) -- corrected path not yet built. Exit test not yet passing."
+    },
+    {
+      "id": "M2",
+      "name": "Three clocks through the books",
+      "exit_test": "The two revenue series reconcile BY DESIGN, and a bill can be lawfully wrong then corrected on the portal.",
+      "status": "audit_complete",
+      "status_note": "Entry-gate payments maturity audit complete 2026-07-11 (docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md + M2_PAYMENTS_AUDIT_BILLING_COLLECTIONS.md): verdict HARDEN-EXISTING for the company-logic layer, NEW BUILD for the Banking & Payment Rails simulator (Bacs rails-physics layer is entirely absent). Build not yet started -- waits on M1's exit test per the framing's own sequencing."
+    },
+    {
+      "id": "M3",
+      "name": "Discovery and the draw",
+      "exit_test": "The company mis-estimates a new customer's consumption, bills wrong, discovers, rebills -- end to end on surfaces; two runs with different draws produce different books.",
+      "status": "not_started",
+      "status_note": "Design-only in background forks per the framing's own spike integration (section 5). Not yet started."
+    },
+    {
+      "id": "M4",
+      "name": "Rederivation and the reckoning",
+      "exit_test": "The director reads the rederived decade and recognises a real supplier's life.",
+      "status": "not_started",
+      "status_note": "Strictly last, per the framing. All headline public figures are PROVISIONAL until this lands (site/supplier/index.html banners, 2026-07-11)."
+    }
+  ]
+}
