@@ -1,3 +1,15 @@
+**PARKED IN PROGRESS (2026-07-11):** items 1(a/b/c), 2, 3, 6 all BUILT this session
+(see PRIORITIES.md/CLAUDE.md Current-state). Only item 4 (Routines pilot) remains
+genuinely open — blocked on Rich creating the cloud environment in his claude.ai
+account and sending back the resulting identifier (real click-path already relayed:
+claude.ai/code → cloud icon → Add environment). Moved here (docs/staging/in_progress/,
+excluded from supervisor.py's unprocessed-staging scan) rather than left in the
+staging root, where a fully-actioned-but-unarchived file re-granted a supervisor
+turn every ~2min for hours overnight with nothing new to do (director-caught,
+2026-07-11). Move to `done/` once item 4 lands or is otherwise resolved.
+
+---
+
 # HARNESS_BEST_PRACTICE_ADOPTION — borrow from published practice + routines pilot (P2)
 
 **Staged:** 2026-07-10 by advisor, director-decided. **Map cell:** Lane H,

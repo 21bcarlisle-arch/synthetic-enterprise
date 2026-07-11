@@ -77,6 +77,22 @@ def test_find_work_detects_unprocessed_staging():
     assert "SOME_DOC.md" in reason
 
 
+def test_find_work_ignores_in_progress_subdirectory():
+    """docs/staging/in_progress/ (2026-07-11 convention, CLAUDE.md "How to
+    operate autonomously"): a multi-part staged instruction with a
+    genuinely still-open sub-item is parked here rather than left in the
+    scanned root, where a fully-actioned-but-unarchived file re-granted a
+    supervisor turn every ~2min for hours with nothing new to do. No new
+    code needed -- _unprocessed_staging_files() already only iterates
+    top-level FILES (p.is_file()), same mechanism that already excludes
+    done/fyi/drafts/ -- this test just proves the new directory name is
+    correctly covered by that same existing exclusion."""
+    in_progress = supervisor.STAGING_DIR / "in_progress"
+    in_progress.mkdir()
+    (in_progress / "PARKED_INSTRUCTION.md").write_text("still has one open sub-item")
+    assert supervisor.find_work(resumed_from_pause=False) is None
+
+
 def test_find_work_ignores_gitkeep():
     (supervisor.STAGING_DIR / ".gitkeep").write_text("")
     assert supervisor.find_work(resumed_from_pause=False) is None
