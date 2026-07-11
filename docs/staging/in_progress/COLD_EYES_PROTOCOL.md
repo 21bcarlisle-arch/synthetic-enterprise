@@ -1,3 +1,9 @@
+**STATUS (2026-07-11): REGISTERED, NOT STARTED — non-interrupting per its own
+text ("next boundary"). Queued behind the in-flight ADVISOR_STEER_THESIS_CHART.md
+work (task #9, data-layer fix in review). Will pick up once that closes.**
+
+---
+
 # COLD_EYES_PROTOCOL — manufacture the outside vantage (Tier 2, Lane H)
 
 **Staged:** 2026-07-11 by advisor, from the director's insight: the advisor
