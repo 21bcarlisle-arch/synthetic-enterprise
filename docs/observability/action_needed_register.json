@@ -13,7 +13,7 @@
     "how": "claude.ai/code -> cloud icon -> 'Add environment' -> give it a name, set network access level, optionally add env vars/setup script -> Create. WHERE TO FIND THE ID: the web UI currently only shows the environment by NAME, no raw ID is visible anywhere (confirmed this session) -- send me the exact NAME you gave it and I'll try to resolve the real ID via the API when you're ready to run a Routine; if you happen to find a raw ID some other way (e.g. browser network tab), even better, but the name should be enough.",
     "item_id": "routines-cloud-environment-id",
     "last_pinged_at": "2026-07-11T05:21:26.112710+00:00",
-    "resolved": false,
+    "resolved": true,
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
   },
@@ -22,7 +22,7 @@
     "how": "Per P-1 (PRIORITISATION_RULES.md), just tell me where it should sit relative to current P1 work (top/after-X/backlog) and I'll place it in PRIORITIES.md -- decomposition is already sketched at docs/design/WALLED_INTERFACES_SKETCH.md (5 candidate flows + a 6th already-typed reference example, tools/market_data_port.py::MarketDataPort).",
     "item_id": "walled-interfaces-priority-rank",
     "last_pinged_at": "2026-07-11T05:21:26.663659+00:00",
-    "resolved": false,
+    "resolved": true,
     "what": "Give the WALLED_INTERFACES programme's first reference-flow conversion a priority rank.",
     "why": "It's sat 'awaiting director rank, do not start without it' since 2026-07-08, re-confirmed still accurate 2026-07-10 -- this should have had its own ping before now rather than sitting as a line in a status update, per your new rule today."
   }

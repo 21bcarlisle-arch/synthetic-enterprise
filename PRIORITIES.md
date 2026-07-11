@@ -663,6 +663,16 @@
 #   (no opt-out wait, but still flag-and-proceed, not build-without-flagging): the first
 #   reference-flow conversion remains a real BUILD action still awaiting director rank per
 #   this section's own standing instruction -- NOT started this turn.
+#   RANK RESOLVED (2026-07-11, director NTFY: "assess versus the goals and progress of the
+#   project and use your judgement"): this is real, valuable portability work matching the
+#   project's own go-live-seam strategic framing, but it isn't blocking any current
+#   business-fidelity priority, and the programme already has a live tracking mechanism --
+#   the dial-weighted maturity-map self-refill draw already carries W4_1_typed_adapters at
+#   level 2. Judgement call: no longer needs a special manual P-rank competing with real
+#   business-fidelity work -- fold it into the normal self-refill draw and let its own dial
+#   weight decide when it surfaces, same as every other atom. The "awaiting director rank,
+#   do not start without it" block above is now LIFTED; the first reference-flow conversion
+#   may be picked up whenever the self-refill mechanism draws W4_1_typed_adapters next.
 #
 # === CORE FIDELITY BEFORE LOOPS (2026-07-08, docs/staging/CORE_FIDELITY_BEFORE_LOOPS.md,
 #   director-direct, in-conversation -- Tier 2, proceed, no opt-out window). THIS IS NOW P1,
