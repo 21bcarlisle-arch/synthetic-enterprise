@@ -54,6 +54,30 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .entry-card:hover { border-color: var(--blue); }
 .entry-card .en { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 4px; }
 .entry-card .et { font-size: 15px; font-weight: 700; }
+
+/* Front Door: pulse strip, thesis chart, persona doors (SITE_CONSTITUTION.md Doors 1-2, 2026-07-11) */
+.pulse-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 24px 0 32px; }
+.pulse-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; }
+.pulse-item .pl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
+.pulse-item .pv { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+.pulse-item .pv a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
+.pulse-item .pv a:hover { border-bottom-color: var(--blue); }
+.pulse-item .pn { font-size: 9px; color: var(--muted); margin-top: 3px; }
+.provisional-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: var(--amber);
+  border: 1px solid var(--amber); border-radius: 4px; padding: 1px 4px; margin-left: 4px; vertical-align: middle; }
+.thesis-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 32px; }
+.thesis-headline { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.thesis-sentence { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; max-width: 640px; }
+.thesis-chart-wrap { position: relative; height: 160px; max-width: 480px; margin: 0 auto; }
+.thesis-caveat { font-size: 11px; color: var(--amber); margin-top: 12px; border-left: 2px solid var(--amber); padding-left: 10px; }
+.door-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 8px; }
+.door-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-decoration: none;
+  color: var(--text); display: block; transition: border-color .15s, transform .15s; border-top: 3px solid var(--blue); }
+.door-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+.door-card.honesty { border-top-color: var(--amber); }
+.door-card .dp { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
+.door-card .dt { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.door-card .dd { font-size: 12px; color: var(--muted); line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -66,22 +90,57 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <a href="./platform/" class="nav-link">Platform</a>
   <a href="./method/" class="nav-link">Method</a>
   <a href="./project/" class="nav-link">Project</a>
+  <a href="./simplified/" class="nav-link">Simplified</a>
 </nav>
 
 <div class="hero">
   <h1>A UK energy supplier that <span>builds and runs itself</span> -- and could go live.</h1>
   <p class="pitch">
-    Poesys is not a model of an energy supplier -- it's a running one. Its commercial,
-    financial, and operational processes all execute, settled half-hourly against real
-    Elexon and NESO market data since 2016, and it can never see inside the simulation it
-    runs in: it discovers its world only the way a real supplier would -- meter reads,
-    market feeds, customer contacts, bills, regulatory publications. The final phase of
-    the roadmap is a go-live analysis: what it would actually take, legally and
-    operationally, to serve a real customer.
+    An autonomous UK energy supplier -- every commercial, financial and operational process
+    executed by AI -- evolved through simulated decades toward a stated go-live analysis.
+    It is settled half-hourly against real Elexon and NESO market data since 2016, and it
+    can never see inside the simulation it runs in: it discovers its world only the way a
+    real supplier would -- meter reads, market feeds, customer contacts, bills, regulatory
+    publications. Not a model of a company; a running one.
   </p>
 </div>
 
 <div class="wrap">
+  <div class="pulse-strip" id="pulse-strip">
+    <div class="pulse-item"><div class="pl">Loading</div><div class="pv">...</div></div>
+  </div>
+
+  <div class="thesis-card">
+    <div class="thesis-headline">The dual-ledger gap <span class="provisional-badge">PROVISIONAL</span></div>
+    <p class="thesis-sentence" id="thesis-sentence">Loading...</p>
+    <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
+    <div class="thesis-caveat" id="thesis-caveat"></div>
+  </div>
+
+  <div class="door-grid">
+    <a class="door-card" href="./supplier/">
+      <div class="dp">Energy CEO / COO</div>
+      <div class="dt">Inspect the company &rarr;</div>
+      <div class="dd">Trading &amp; risk, finance on three clocks, customers &amp; operations, compliance &amp; controls -- a board pack, not a feature list.</div>
+    </a>
+    <a class="door-card" href="./method/">
+      <div class="dp">CTO / AI engineer</div>
+      <div class="dt">Inspect the method &rarr;</div>
+      <div class="dd">The operating model, the harness, test discipline, and how failures were actually handled -- the transferable part of the product.</div>
+    </a>
+    <a class="door-card" href="./project/">
+      <div class="dp">VC / investor</div>
+      <div class="dt">Inspect the case &rarr;</div>
+      <div class="dd">The maturity map, the epoch roadmap, the thesis number above -- evidence-linked, not a pitch deck.</div>
+    </a>
+    <a class="door-card honesty" href="./simplified/">
+      <div class="dp">Domain expert / skeptic</div>
+      <div class="dt">What we've simplified &rarr;</div>
+      <div class="dd">Every known gap and cut corner, in one register -- the page an expert checks first to decide whether to trust the rest.</div>
+    </a>
+  </div>
+
+  <div class="sec">All-Time Figures</div>
   <div class="metric-row" id="metric-row">
     <div class="metric"><div class="metric-label">Loading</div><div class="metric-value">...</div></div>
   </div>
@@ -186,6 +245,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 </div>
 <script>
 function gbp(n){if(n==null)return "--";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return (n<0?"-":"")+"£"+s;}
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
 function renderMetrics(dashboard, phases){
   var p=(dashboard&&dashboard.portfolio)||{};
   var tp=(phases&&phases.test_progression)||[];
@@ -199,6 +259,88 @@ function renderMetrics(dashboard, phases){
   document.getElementById("metric-row").innerHTML=metrics.map(function(m){
     return '<div class="metric"><div class="metric-label">'+m.l+'</div><div class="metric-value'+(m.pos?" pos":"")+'">'+m.v+'</div></div>';
   }).join("");
+}
+
+function renderPulseStrip(dashboard, supplier, method){
+  var p=(dashboard&&dashboard.portfolio)||{};
+  var window=(supplier&&supplier.simulation_window)||"--";
+  var book=(dashboard&&dashboard.customers&&dashboard.customers.book_annual)||[];
+  var lastBook=book.length?book[book.length-1]:null;
+  var bookVal=lastBook?(lastBook.active_elec+lastBook.active_gas)+" accounts":"--";
+  var bookNote=lastBook?("as of "+lastBook.year):"";
+  var tr=(method&&method.track_record)||{};
+  var hg=tr.hedge_grading||{};
+  var predVal=hg.graded_count!=null?(hg.graded_count+" graded / "+((hg.graded_count||0)+(hg.ungraded_count||0))+" logged"):"--";
+
+  var items=[
+    {l:"Simulation Window", v:esc(window), n:"real 2016-2025 history"},
+    {l:"Book Size", v:esc(bookVal), n:esc(bookNote)},
+    {l:"Bill Rendering", v:"Not yet public", n:"data correct, no live bill page (tracked)"},
+    {l:"Prediction Tracking", v:esc(predVal), n:"pre-registered, misses kept"},
+    {l:"Treasury", v:gbp(p.treasury_end_gbp), n:"end of window"},
+    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp)+'<span class="provisional-badge">PROVISIONAL</span>', n:"pre-M4 rederivation"}
+  ];
+  document.getElementById("pulse-strip").innerHTML=items.map(function(it){
+    return '<div class="pulse-item"><div class="pl">'+it.l+'</div><div class="pv">'+it.v+'</div><div class="pn">'+(it.n||"")+'</div></div>';
+  }).join("");
+}
+
+var thesisChart=null;
+function renderThesisChart(dashboard){
+  var ol=(dashboard&&dashboard.opex_ledger)||{};
+  var trueCost=ol.true_opex_total_gbp;
+  var benchCost=ol.benchmark_opex_total_gbp;
+  var gap=ol.investor_thesis_gap_gbp;
+  var sentEl=document.getElementById("thesis-sentence");
+  var caveatEl=document.getElementById("thesis-caveat");
+  if(trueCost==null||benchCost==null){
+    if(sentEl)sentEl.textContent="Dual-ledger data not yet available for this run.";
+    return;
+  }
+  if(sentEl)sentEl.innerHTML="Current book: the TRUE cost-base runs at "+gbp(trueCost)+" against a "+gbp(benchCost)+" incumbent-benchmark allowance -- a "+gbp(gap)+" gap, per household "+(ol.household_count?("across "+ol.household_count+" accounts"):"")+".";
+  if(caveatEl)caveatEl.textContent="Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Simplified) -- and AI-compute cost is not yet populated (open costing-basis question), so the TRUE side is a floor, not a complete figure.";
+
+  var ctx=document.getElementById("thesis-chart");
+  if(!ctx)return;
+  if(thesisChart)thesisChart.destroy();
+  thesisChart=new Chart(ctx,{type:"bar",data:{
+    labels:["TRUE cost-base","Benchmark (incumbent)"],
+    datasets:[{
+      data:[trueCost,benchCost],
+      backgroundColor:["#1baf7a","#4a3aa7"],
+      borderRadius:4,
+      barThickness:48
+    }]
+  },options:{
+    indexAxis:"y",
+    responsive:true,maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:function(c){return gbp(c.raw);}}},
+      datalabels:false
+    },
+    scales:{
+      x:{ticks:{color:"#52514e",callback:function(v){return gbp(v);}},grid:{color:"#e1e0d9"}},
+      y:{ticks:{color:"#0b0b0b",font:{size:12,weight:"600"}},grid:{display:false}}
+    }
+  },plugins:[{
+    id:"valueLabels",
+    afterDatasetsDraw:function(chart){
+      var ctx2=chart.ctx;
+      chart.data.datasets[0].data.forEach(function(val,i){
+        var meta=chart.getDatasetMeta(0);
+        var bar=meta.data[i];
+        if(!bar)return;
+        ctx2.save();
+        ctx2.fillStyle="#0b0b0b";
+        ctx2.font="700 12px sans-serif";
+        ctx2.textAlign="left";
+        ctx2.textBaseline="middle";
+        ctx2.fillText(gbp(val),bar.x+8,bar.y);
+        ctx2.restore();
+      });
+    }
+  }]});
 }
 var LEARNING_WINDOW="recent"; // "recent" | "all"
 var LEARNING_PHASES_DATA=null;
@@ -287,12 +429,16 @@ function renderCommitsChart(phases){
 }
 
 Promise.all([
-  fetch("./data/dashboard.json").then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/phases.json").then(function(r){return r.json();}).catch(function(){return {};})
+  fetch("./data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
+  fetch("./data/phases.json").then(function(r){return r.json();}).catch(function(){return {};}),
+  fetch("./data/supplier.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
+  fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
 ]).then(function(rs){
   renderMetrics(rs[0], rs[1]);
   renderLearningCurve(rs[1]);
   renderCommitsChart(rs[1]);
+  renderPulseStrip(rs[0], rs[2], rs[3]);
+  renderThesisChart(rs[0]);
 }).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="./shared/director-comments.js" defer></script>

@@ -1,0 +1,252 @@
+{
+  "lanes": [
+    {
+      "lane": "B_commercial",
+      "lane_name": "B Commercial",
+      "atoms": [
+        {
+          "atom_id": "B1_margin_bridge",
+          "atom_name": "Year-over-year margin bridge with residual reconciliation",
+          "level_current": 2,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10 DISCOVER finding: the report renders TWO adjacent margin-bridge sections (annual_report.py's Phase BE ledger-based + Phase NT years[]-based) whose gross-margin deltas disagree for the same year transition (e.g. 2016-2017: +116,919 vs +116,417), unlabelled -- a live Expert-Hour-failing legibility+consistency gap, same root cause as the E2 two-pipelines finding, not yet fixed. External research LANDED: price/volume/mix split is a real, standard FP&A convention (Corporate Finance Institute) but NOT shown to be energy-retail-specific; Centrica plc's real FY2025 results instead use sector-specific named drivers (weather, commodity-curve shape, regulatory reconciliations, bad debt quantified directly by the CFO) much closer to this bridge's existing driver set -- VALIDATES the current design over a generic price/volume/mix rebuild. Customer count as informational-only (not a \u00a3 driver) is ALSO validated -- Centrica discloses customer numbers as a standalone KPI, not inside its \u00a3 bridge. Ofgem/CMA's own methodology uses levels-and-trends, not a bridge/waterfall convention at all -- a genuine, useful negative finding. Remaining real gap is the two-pipelines disagreement above, not the driver set. DEPENDENCY FORMALIZED 2026-07-10 (fifteenth draw, same treatment just applied to E2_revenue_reconciliation): the two-pipelines root cause is Epoch-2 core per the director-closed POINT_IN_TIME_SNAPSHOT_TIER1.md gate -- sequencing belongs to the advisor's epoch framing, not a B1-owned FRAME action. loop_stage set to idle, depends_on added."
+          ]
+        },
+        {
+          "atom_id": "B2_opex_cost_to_serve",
+          "atom_name": "Opex/cost-to-serve mechanism -- full B2 taxonomy (true/benchmark ledger, fixed floor, break-even, segment capital/ROCE, concentration)",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10 v1 (parts a/b/c) as before. 2026-07-10 v2 BUILT (director-direct NTFY, B2_OPEX_TAXONOMY_EXPANSION.md): category (4) infrastructure-at-commercial-rates (cloud/market-data/BSC-REC-SEC/Bacs, all estimate-flagged, docs/market_research/B2_CATEGORY4_INFRASTRUCTURE_ANCHORS.md) + category (5) fixed governance/professional floor (audit/legal/Ofgem-fee/insurance/cosec, own P&L line, golive-conditional tagging, docs/market_research/B2_CATEGORY5_GOVERNANCE_ANCHORS.md) + category (6) fixed/stepped/variable classification + CAC per channel/segment (PCS one-off residential real \u00a350-60/dual-fuel, broker ongoing per-kWh I&C real 0.2-2.0p/kWh, docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md) -- all built into saas/opex_ledger.py. Break-even analysis (emergent, book size/mix vs the fixed floor, recomputed each run, R12-compliant) built + rendered. Segment capital-employed (real per-segment AR + revenue-share-allocated hedging-capital-cost proxy for collateral/exposure) + ROCE + persistent-under-hurdle decision-artefact mechanism built in company/finance/segment_capital.py. Single-customer gross-margin concentration wired for real into the previously-dead company/risk/concentration_risk.py (added a metric field + gross-margin builder/checker, distinct from its original revenue-share design). Self-caught a real wiring bug live: segment working-capital (bare segment grain from billing_ledger.json) vs segment revenue-share (finer 'segment commodity' grain from segment_split) would have silently mixed two incompatible granularities in one dict -- fixed by aggregating both to bare-segment before combining. 78 new tests (24 opex_ledger + 8 concentration_risk + 16 segment_capital + hooks/other), 16,601 tests collected (full suite), epistemic PASS, verified live in-browser (screenshot, zero console errors, zero NaN/undefined) on the real Supplier > Financial tab. 2026-07-10 v3 (level 2->3, director numbers WIRED, from_rich_20260710_190908.md): ROCE hurdle 12% pre-tax + concentration limit 15%/amber-10% are now real, live thresholds (were None/not-set) -- real breaches confirmed live: SME + resi under the ROCE hurdle, single-customer concentration a genuine RED breach (C_IC1 29.15% of gross margin), exactly the standing risk exception the director expected, rendered not hidden. concentration_risk.py gained a 3-tier (green/amber/red) status. Break-even (5.1 customers) explicitly flagged provisional=true + a whale-distortion caveat per his instruction, pending segment-level re-derivation after MARGIN_REALISM steps 4-5 (not this atom's scope). 9 new/updated tests, 16,614 tests collected, epistemic PASS, verified live. Level bumped to target: the full B2 taxonomy's ONLY remaining open number is B2(b)'s AI-compute costing basis/rate -- a separate, pre-existing open question tracked on its own, not blocking this atom's own scope. loop_stage -> harden."
+          ]
+        },
+        {
+          "atom_id": "B3_hedge_tariff_alignment",
+          "atom_name": "Hedge-tariff alignment (cost locked when price is locked)",
+          "level_current": 2,
+          "level_target": 2,
+          "notes": [
+            "2026-07-10 DISCOVER finding, verified not assumed: MARGIN_REALISM Step 4's goal is substantially already built. Fixed/pass-through tariffs: decide_hedge_fraction() decided once per term (volatility as-of term start), held constant until the next renewal -- confirmed via real 2020 data (start_hf == avg_hf exactly for the large majority of customers). Deemed (out-of-contract/SVT-adjacent) tariffs: spot+premium, explicitly NO forward hedge -- correctly matches SVT tracking the cap's own wholesale-observation window. Flex tariffs: weekly re-hedge at rolling reference price -- matches a short-reset tariff's own commitment horizon. One honest exception NOT glossed over: a few I&C customers show hf changing within a calendar year, plausibly multiple genuine contract renewals (I&C terms are often 3-6 months in reality) rather than a mid-term re-decision bug -- NOT independently re-verified against the raw per-term log (not retained in the report-extracted shape), flagged as resting on a plausible inference, not a full re-derivation."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "C_customer_ops",
+      "lane_name": "C Customer Ops",
+      "atoms": [
+        {
+          "atom_id": "C1_segment_layers",
+          "atom_name": "Customer segment flavour fields (smart meter, dual-fuel, home/business type)",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10: found engagement_level (simulation/household_segments.py, drives active/passive renewal for EVERY segment in run_phase2b.py, not resi-gated) was computed but never surfaced anywhere -- a dangling comment ('same caveat as engagement_level above') referenced it as if already shown, but it wasn't in this file at all. Fixed: added to tools/generate_customer_sample.py + a new SIM tab column, verified against real production data (dual-fuel legs share the same level, I&C customers get one too). 4 new tests."
+          ]
+        },
+        {
+          "atom_id": "C2_discovery_through_interfaces",
+          "atom_name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
+          "level_current": 0,
+          "level_target": 2,
+          "notes": [
+            "director-confirmed known gap, queued behind W1",
+            "2026-07-11 M3 DISCOVER+FRAME (docs/design/M3_DISCOVER_FRAME.md): confirmed Q4/Q5/Q6 gaps still live (portal still reads saas.customers.CUSTOMERS directly; property_model.py generator still unanchored; CUSTOMERS still a fixed 31-entry list, single fixed payment-rng seed, zero population-draw code found). New finding: two company-side onboarding/acquisition-journey trackers (company/crm/acquisition_journey.py, company/crm/onboarding_journey.py) are real, SLC-anchored, but completely unwired (zero non-test callers) -- same 'paper compliance' class M2 found in payments. BUILD deferred on all three M3 sub-components pending director/advisor sequencing; one low-risk item flagged as independently actionable (onboarding_journey.py SLC-deadline wiring)."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "D_billing_metering",
+      "lane_name": "D Billing & Metering",
+      "atoms": [
+        {
+          "atom_id": "D2_three_clocks",
+          "atom_name": "Three settlement clocks (physical/financial/regulatory) reconciled per bill",
+          "level_current": 0,
+          "level_target": 2,
+          "notes": [
+            "2026-07-10: real evidence feeding this atom found while tracing E2's two-pipelines root cause -- saas/bill_generator.py bills non-commodity cost via a single blended \u00a3/MWh rate (saas/non_commodity.py) while simulation/hedged_settlement.py computes the same real-world cost per-levy, per-settlement-period (RO/CfD/CCL/CM/FiT + DUoS/TNUoS individually). The resulting gap between what's billed and what's settled is bidirectional/non-monotonic across years (+27.7% to -25.3%), consistent with a genuine volume/timing mismatch this atom's own scope names, not a simple missing-component bug -- this is the concrete first reconciliation target when this atom is built. PLACEMENT CORRECTION (director, closing the sibling POINT_IN_TIME_SNAPSHOT_TIER1.md gate): this atom is Epoch-2 CORE -- the BILLING-side face of the reveal-over-time spine, sibling to W1_reveal_over_time (the COMPANY-side/pricing-decision face), one architecture not two. loop_stage set to idle to match: sequencing is the advisor's epoch framing to set, not a FRAME-stage design task to pick up independently right now. Lane charter written 2026-07-10 (docs/design/charters/D_billing_metering.md, dial reached 4/hot, charter earned per the map's own rule) as part of the same director-approved bounded start that built W1's shared spine foundation -- explicitly registers this lane's own thinking (sub-capability tree, L2/L3/L4 definitions, roadmap) WITHOUT claiming any reconciliation code has been built; loop_stage correctly stays idle, this atom's own build still awaits the advisor's epoch framing naming its turn."
+          ]
+        },
+        {
+          "atom_id": "D_payments_maturity_audit",
+          "atom_name": "Payments & billing maturity audit (M2 entry gate) -- 22+ existing modules graded vs D/E charters",
+          "level_current": 1,
+          "level_target": 1,
+          "notes": [
+            "2026-07-11 REGISTERED (EPOCH2_RATIFIED.md immediate effects 1+3): M2's entry gate, joins the weekend background work NOW (unlike W5_1's build, which waits on this audit's verdict). Grade all billing/payment modules vs the D/E charters; Expert Hour run under a payments-operations-veteran persona (mandate lifecycle, Bacs cycle timing, failure/representment reality, prepay); classify each module COMPANY-LOGIC (behaviour) vs RAILS-PHYSICS (timing, failure codes, cash arrival); seed the simplifications register. The audit's verdict dictates M2's shape (harden-existing vs rebuild), decided on evidence before spine rewiring -- report in the Monday SPIKE_WEEKEND pack. This atom's own 'level' is the audit process itself reaching a verdict, not a build-capability level -- target=1 reflects 'audit complete, verdict published', not a maturity claim about the audited modules.",
+            "2026-07-11 AUDIT COMPLETE, level 0->1 (AT TARGET). Two parallel Expert-Hour forks covered 38 modules total: DD/Bacs-rails cluster (16 modules, docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md) and billing/collections/arrears cluster (22 modules, docs/design/M2_PAYMENTS_AUDIT_BILLING_COLLECTIONS.md). VERDICT: HARDEN-EXISTING for the company-logic layer -- both audits independently found the same shape, real modules correctly cited against real Ofgem SLCs/PPM Rules 2019/real 2022-23 crisis events, not a naive/fabricated pass. NEW BUILD required for the Banking & Payment Rails simulator (W5_1_banking_payment_rails) -- the Bacs rails-physics layer (3-day submission/processing/settlement cycle, AUDDIS mandate setup, ARUDD failure reason codes, ADDACS amendments) is ENTIRELY ABSENT, not partially modeled; every DD/mandate state transition happens synchronously today. Real gaps found beyond the rails absence: (1) two duplicated-register pairs (direct_debit.py vs dd_mandate_register.py; prepayment.py's inline emergency-credit fields vs ppm_emergency_credit_register.py) needing consolidation before W5 wiring lands; (2) 18 of 22 billing/collections modules (breathing_space_register.py, winter_moratorium.py, disconnection_warning.py, debt_referral.py, annual_statement.py, tariff_variation.py, account_closure.py, billing_dispute.py, renewal_engine.py, switching.py, etc.) are well-built, correctly-cited, but COMPLETELY UNWIRED -- 'paper compliance', correct in isolation, connected to nothing, a real wiring gap not a redesign gap; (3) capacity_to_pay.py recommends PPM conversion for vulnerable fuel-poverty customers, contradicting the real 2023 regulatory direction restricting forced PPM for vulnerable customers -- a genuine domain-sense defect, not yet fixed; (4) switching.py and account_closure.py use date.today() internally instead of an as_of parameter -- the same point-in-time-blindfold anti-pattern class M1 targets, found OUTSIDE the pricing/hedging path it was originally scoped to, registered here rather than fixed opportunistically. loop_stage set to idle: the audit's own job (reach a verdict) is done; the NEXT action (W5 build, register consolidation, the capacity_to_pay/date.today() fixes) belongs to other atoms/a fresh review, not a further action this audit atom itself can take."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "E_finance_treasury",
+      "lane_name": "E Finance & Treasury",
+      "atoms": [
+        {
+          "atom_id": "E1_ledger_double_entry",
+          "atom_name": "Double-entry ledger + management accounts (income statement)",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10 FRAME finding: balance_sheet() genuinely balances (equation_holds=True, verified for every real year 2016-2025 in production data) -- the ledger mechanism itself is sound. Real, complete gap found against the real_world_twin (a real supplier's statutory accounts): UK Corporation Tax is entirely absent. NOT simply another margin bug to fix blind -- the EBIT% anchors this session's MARGIN_REALISM work already uses are BY DEFINITION pre-tax, so the pre-tax-only figure is correct for those comparisons. BUILT 2026-07-10 (eighteenth draw): added Corporation Tax as a genuinely NEW, additive triplet (profit_before_tax_gbp/corporation_tax_gbp/profit_for_year_gbp) via a new uk_corporation_tax_gbp() function (real UK rates: 19% flat pre-April 2023, then 19%/25%/marginal-relief via HMRC's own 3/200 Standard Fraction) -- net_margin_gbp itself is completely UNCHANGED in meaning and value (verified with a direct with-year-vs-without-year test), and the new fields are None unless a year is explicitly passed, so every pre-existing call site is unaffected. income_statement.py's docstring documents this is strictly additive. Deliberately did NOT touch the balance sheet (no real anchor for CT payment-timing, ~9 months after period end in reality -- left as a known, honest scope limit rather than invented)."
+          ]
+        },
+        {
+          "atom_id": "E2_revenue_reconciliation",
+          "atom_name": "Single reconciled revenue definition across every reporting surface",
+          "level_current": 2,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10 audit: fra_ratio_series was already correct (my prior note was an unverified assumption, corrected); generate_insights.py had a real live instance of the Step 1 bug, fixed. ROOT CAUSE TRACED (third draw, not deferred again): the years[]/ledger net-margin divergence traces to saas/bill_generator.py billing non-commodity cost via a single blended rate (saas/non_commodity.py) while simulation/hedged_settlement.py computes the same cost per-levy/per-period -- two independently-built, never-reconciled models, bidirectional/non-monotonic gap consistent with a real volume/timing mismatch, not a bug in either. Full numerical reconciliation re-scoped to D2_three_clocks (its natural home) rather than resolved here -- E2's OWN scope (gauge/legibility) is now closed on its own terms. depends_on ADDED 2026-07-10 (twelfth draw): formalising what was already true in prose -- E2's remaining gap to level 3 is full numerical reconciliation, which is D2_three_clocks's job, not a further action E2 itself can take. D2 in turn depends on W1_reveal_over_time, now idle pending the just-opened Tier 1 gate (docs/review_gates/POINT_IN_TIME_SNAPSHOT_TIER1.md) -- so this whole chain is honestly, transitively blocked, and the existing depends_on mechanism (not loop_stage=idle) is the structurally correct way to express it, since E2's own loop_stage genuinely IS frame-appropriate work if/when D2 unblocks."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "F_risk_compliance",
+      "lane_name": "F Risk & Compliance",
+      "atoms": [
+        {
+          "atom_id": "F2_sanity_daemon",
+          "atom_name": "Population-level + Qwen-skeptic sanity daemon, R5-compliant alerting",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "Qwen skeptic prompt has no memory of adjudicated false positives yet -- registered in PRIORITIES.md"
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "H_harness",
+      "lane_name": "H Harness",
+      "atoms": [
+        {
+          "atom_id": "H1_supervisor_turn_granting",
+          "atom_name": "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "v1 wiring lands 2026-07-10 -- this very atom is the one being closed by that wiring. 2026-07-10 HARDEN pass (this atom drew ITSELF, fittingly): adversarially reviewed _maturity_map_draw() before a 4th live incident found the next gap rather than after. Found a real crash risk -- a malformed atom (a hand-editing typo like a quoted level_current string, or an explicit dial_inherited: null) would raise TypeError uncaught, aborting find_work() before it reaches the backlog-prose fallback -- silently reintroducing the exact idle-hole class of bug this mechanism was built to eliminate, specifically during agenda+staging-empty periods (self-refill's own use case). Fixed: per-atom validation now isolates a malformed atom to 'excluded from this draw', not 'the whole draw stops working forever'. Known, accepted lower-severity gap not fixed (self-defeating, not crash-causing): an atom listing itself in its own depends_on would permanently self-exclude rather than crash -- an obvious typo, visually apparent on review, left undefended rather than adding more complexity for a safe-side failure mode. 3 new tests, 452/452 background tests pass, epistemic PASS, live supervisor restarted."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "W1_market_weather",
+      "lane_name": "W1 Market & Weather",
+      "atoms": [
+        {
+          "atom_id": "W1_2_generate_futures",
+          "atom_name": "Synthetic future market generation beyond real 2016-2025 history",
+          "level_current": 0,
+          "level_target": 2,
+          "notes": [
+            "2026-07-10: generating NEW future scenarios/difficulty is CURRICULUM per CLAUDE.md R13 (the baseline/curriculum split) -- the director's own instrument, never built or content-decided unilaterally by the agent, even once the depends_on prerequisite is met. Any work here beyond the underlying mechanism/engine must be director-named and director-authored content, not agent-invented."
+          ]
+        },
+        {
+          "atom_id": "W1_reveal_over_time",
+          "atom_name": "Historical data reveal-over-time (point-in-time blindfold at the source, not just company/ code)",
+          "level_current": 2,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10: this atom touches the epistemic law (SIM/company boundary, point-in-time blindfold) -- CLAUDE.md Tier 1, category (a). DISCOVER finding (internal + external research, both landed): sim/risk_engine.py::calculate_sigma_recent() is already self-contained/safe but company/trading/hedge_decision.py::estimate_price_volatility() is caller-trusted, only made safe by an external wrapper at its one known call site (the already-fixed hedge-volatility bug) -- no live second violation, but a template others could copy. TIER 1 GATE CLOSED (director, in-console via staged NTFY): approved as recommended (register, don't build now). PLACEMENT CORRECTION (director): this is Epoch-2 CORE, not a standalone W1-lane item -- the COMPANY-SIDE face of the reveal-over-time spine, sibling to D2_three_clocks (the BILLING-side face), one architecture not two. Sequencing left to the advisor's epoch framing. Interim standing instruction: keep patching individual call sites only if a live bug actually surfaces -- no proactive build before the epoch sequencing names its turn. BOUNDED START APPROVED 2026-07-10 (director NTFY, correlated with from_rich_20260710_203008.md): 'build the ordering-invariant foundations (bitemporal event log + as-of snapshot interface) and the W1/D charters; full campaign sequencing arrives via the advisor's epoch framing this weekend.' Level 0->1 (FRAME->BUILD): company/interfaces/bitemporal_event_log.py (BitemporalEventLog, real dual-time-axis valid_time/transaction_time semantics, 17 tests) + company/interfaces/point_in_time_view.py (PointInTimeView, constructed once per decision, wraps the existing MarketDataPort adapter for price/forward observables plus the new bitemporal log for settlement-restatement-sensitive facts, 12 tests) -- both scoped exactly to the closed gate's own Option A sizing ('1-2 files, a class + a handful of methods'). Near-term detector also built: .claude/hooks/block_point_in_time_read.py (HARNESS_BEST_PRACTICE_ADOPTION.md item 1a, now explicitly director-authorized, flags new company/saas code referencing a full historical dataset with no as_of/bisect bounding evidence). NOT yet done: no existing call site (estimate_price_volatility() etc.) has migrated onto PointInTimeView -- the object exists and is proven correct in isolation, real migration is next, sequencing per the advisor's epoch framing.",
+            "2026-07-11 self-referential mechanism bug found and fixed: loop_stage was left at 'build' from the bounded-start work, contradicting this atom's own recorded standing instruction ('no proactive build before the epoch sequencing names its turn') and its idle sibling D2_three_clocks. Consequence was real and repeated: the dial-weighted self-refill selector treats loop_stage=build as actionable, so it re-drew this exact atom on essentially every empty-queue supervisor grant this session (matching the same self-referential-fallback bug class already fixed twice this session in PRIORITIES.md backlog matching and the fingerprint-based stuck-escalation). Corrected to loop_stage=idle to match D2_three_clocks and this atom's own prose -- the field now honestly reflects 'blocked pending the advisor's epoch framing,' not 'ready to build.'",
+            "2026-07-11 EPOCH-2 FRAMING RATIFIED, loop_stage restored to build (docs/design/THE_VALUE_CYCLE_FRAMING.md, SPIKE slot 3 = 'M1 at full parallel depth'). Attempted the obvious next step (migrate estimate_price_volatility()'s call site in simulation/run_phase2b.py onto PointInTimeView) and found it would have been WRONG, caught before writing the code (R4 diagnosis discipline): PointInTimeView's market_data_port is backed by tools/market_adapters/frozen_2025.py -> tools/live_market.py, which reads sim/cache/elexon_ssp_full.json -- a frozen snapshot explicitly for the LIVE DECISION path (tools/run_live_decisions.py-style present-day company view; the module's own comment: 'Merged into the LIVE decision path only, here'). The historical BACKTEST simulation's own price records (elec_records/gas_records, what _price_history_as_of() actually bounds) come from a COMPLETELY DIFFERENT pipeline: sim/system_prices_history.py::get_system_prices_range() hits the LIVE Elexon API directly for the run's own date range. Migrating the hedge-decision call site onto PointInTimeView/MarketDataPort as originally planned would have silently swapped the historical backtest's real settlement-price basis for an unrelated frozen 2025-snapshot feed -- corrupting the entire historical simulation, not fixing anything. Also confirmed MarketDataPort has no bulk-history method at all (only single-point spot/forward/summary reads) -- would need extending regardless. REAL NEXT STEP (not yet built): either (a) extend PointInTimeView.get_history_as_known() to be backed by a BitemporalEventLog populated from the historical simulation's OWN elec_records/gas_records (not MarketDataPort), or (b) promote _price_history_as_of()'s already-correct per-call-site bound into a small dedicated as-of-view class wrapping the sim's own record lists directly, never touching MarketDataPort at all. Sizing/choice between (a)/(b) is the next real M1 depth-work session's first task.",
+            "2026-07-11 REAL CALL-SITE MIGRATION BUILT, level 1->2. Chose option (a) (one architecture, not two): `market_data_port` made OPTIONAL on PointInTimeView (same fail-loud-if-missing pattern already used for bitemporal_log), new `build_price_bitemporal_log(elec_records, gas_records)` populates a BitemporalEventLog from the historical sim's own records (daily-mean price per commodity/date -- fits the log's one-record-per-valid_time model exactly, since estimate_price_volatility() already aggregates to daily means internally, confirmed by reading its actual code before designing around it), new `PointInTimeView.get_price_history_as_of(commodity)` reconstructs the exact {settlementDate, systemSellPrice} shape the volatility function expects. Both real call sites in simulation/run_phase2b.py migrated (electricity + gas hedge decisions); the old `_price_history_as_of()` wrapper + its cache RETIRED entirely (not left as dead code) -- confirmed zero remaining call-code references (only historical comments). transaction_time==valid_time is a documented simplification (no real settlement-run revision modeling at the price level yet) with an explicit escape hatch: a genuine restatement would `.record()` with a later transaction_time, which `history_as_known_at()` already handles correctly by construction (untested for THIS use case specifically, since no real restatement data exists yet -- exit test's 'cannot see past now' half is now structurally true and tested; the 'restatement versions correctly' half rests on BitemporalEventLog's own existing test coverage, not freshly exercised here). 26 new/changed tests across company/interfaces/test_point_in_time_view.py + tests/simulation/test_run_phase2b.py, full related suites (company/interfaces + company/trading + simulation run_phase2b/hedged_settlement, 779 tests) pass, epistemic PASS (simulation/ importing company/interfaces/ matches the same already-accepted 'layering oddity, not a violation' precedent as W3_1_price_cap_binding). NOT yet done, level 3 still requires: the event-drained loop (sim loop currently steps, not events) and materiality gates + lazy valuation (the affordability mechanism) -- both untouched by this pass.",
+            "2026-07-11 DISCOVER+FRAME on the remaining two sub-components (docs/design/M1_EVENT_DRAIN_MATERIALITY_FRAME.md), BUILD deliberately NOT started. Investigated the real code before assuming the framing's abstract language meant a full rewrite: simulation/run_phase2b.py's OUTER decision loop (line ~780-902, all_terms interleaved chronologically then iterated once) is ALREADY event-shaped -- one iteration per real renewal/term event, not customer\u00d7tick nesting. The genuine step-based cost is ONE LEVEL DEEPER, in simulation/hedged_settlement.py's run_hedged_term/run_deemed_term/run_flex_term, each doing `for period in range(1,49)` per day -- but this generates REAL UK half-hourly settlement records, the actual ground truth every downstream number (billing, margin, this session's own CT/VaR/forecast-cashflow work) is built from, not wasted overhead a naive 'skip some periods' reading of lazy valuation would suggest. Real runtime today: 468-484s (~8min) for the full 2016-2025 run (docs/observability/sim-runner-log.md, 6 samples) -- not currently blocking anything, a genuine FUTURE scaling concern once M3 (population draws) and M4 (full replay) land, not a live problem. Zero prior art anywhere in the codebase for materiality/lazy-eval concepts -- genuinely greenfield. Deliberately did NOT attempt a same-day rewrite of hedged_settlement.py: it produces literal ground truth, a subtly-wrong change could silently corrupt years of historical data for a problem that isn't urgent (two-way-door filter: don't build against an unresolved design question when nothing forces the decision now). loop_stage set to idle -- genuinely blocked pending a director/advisor call on whether to pre-empt the scaling risk now or defer to when M3/M4 make it load-bearing, not a self-refill-answerable FRAME/BUILD task.",
+            "2026-07-11 SEQUENCING RESOLVED (director, in-console): DEFER the settlement-generation rewrite to M4 -- M4's full history rederivation forces the sim through hedged_settlement.py anyway, so rewrite it once there, against a design validated by M2 running on the EXISTING generation first (real load on the current code path, real evidence for the rewrite's shape, rather than guessing now). loop_stage stays idle on this sub-component through M2/M3; picks back up only when M4 starts. FORMAL EXIT TEST RUN same day: THE_VALUE_CYCLE_FRAMING.md's M1 exit test is 'the hedge decision literally cannot see past now; a restatement lands as an event and downstream values version correctly.' Half 1 (cannot see past now) was already covered for the real pathway (test_structurally_excludes_future_dates, company/interfaces/test_point_in_time_view.py). Half 2 (restatement versions correctly) had only ever been exercised generically at the BitemporalEventLog level, never through get_price_history_as_of() -- the actual pathway estimate_price_volatility() consumes -- an explicitly flagged gap in the prior entry above. New test_restatement_versions_correctly_through_price_history added closing that gap: records an initial price, then a later-transaction_time restatement for the same date with a different value; asserts a decision_time before the restatement's transaction_time sees the OLD value and a decision_time after sees the NEW value, both via get_price_history_as_of() itself. Result: PASS -- tests/company/interfaces/test_point_in_time_view.py (25 tests, was 24) + full related suites (company/interfaces + company/trading + simulation run_phase2b + simulation hedged_settlement, 780 tests total) all pass, epistemic verifier PASS (493 files scanned, no violations). Both exit-test halves now structurally true AND tested through the real hedge-decision pathway."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "W2_customer_generator",
+      "lane_name": "W2 Customer Generator",
+      "atoms": [
+        {
+          "atom_id": "W2_1_archetype_layers",
+          "atom_name": "Customer archetype layers (home type, payment channel, tenure, fuel poverty, occupancy)",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10 (thirteenth draw): the atom's own expert_hour had been marked 'passed, findings: []' since initial seeding -- an unverified placeholder, not a real check, inconsistent with the map's own philosophy that a genuine Expert Hour should produce real findings even when the verdict is clean. Did the actual check this time: pulled real population distributions for all 5 named dimensions against their cited DESNZ/Ofgem anchors. payment_channel (72% elec/75% gas DD share) landed at 71.4% DD in the live 7-household sample -- close to the anchor. fuel_poverty (8.8% DD/20.4% SC rate) landed at 0/7 -- verified this is honest small-sample noise (expected count ~0.85 with only 7 households), not a bug, by checking the actual rate constants and rng seeding directly. tenure/occupancy showed real variety, home_type is legitimately per-named-customer (not procedurally drawn, a documented design choice for this project's small fixed cast). Genuine finding, not a flaw in this atom's own scope: population-level statistical verification is inherently weak with only 7 resi households -- correctly out of scope here, separately registered as W2_2_population_draw."
+          ]
+        },
+        {
+          "atom_id": "W2_2_population_draw",
+          "atom_name": "Per-run stochastic population draw (vs current fixed cast)",
+          "level_current": 0,
+          "level_target": 2,
+          "notes": [
+            "director-confirmed known gap",
+            "2026-07-11 M3 DISCOVER+FRAME (docs/design/M3_DISCOVER_FRAME.md): population draw is genuinely greenfield -- CUSTOMERS is still a fixed list literal, _payment_rng is a single fixed seed (42+7919), zero draw_population/generate_population code found anywhere. Not currently a live epistemic violation (no seed exists yet for company code to read) but a real future risk if a draw module were placed carelessly (e.g. in saas/, which the portal already imports directly). BUILD deferred pending director/advisor sequencing."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "W3_industry_systems",
+      "lane_name": "W3 Industry Systems",
+      "atoms": [
+        {
+          "atom_id": "W3_1_price_cap_binding",
+          "atom_name": "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)",
+          "level_current": 2,
+          "level_target": 2,
+          "notes": [
+            "2026-07-11 BUILT (SPIKE_WEEKEND item 1, MARGIN_REALISM Step 5): found the real gap by reading run_deemed_term() directly -- it computed spot*(1+deemed_premium) with ZERO reference to the Ofgem cap, completely unbound (the existing Phase 47a cap-clamp only ever applied to FIXED-tariff terms, never to deemed/SVT). Real UK deemed/SVT customers cannot legally be charged above the cap regardless of wholesale spot cost -- this is the actual mechanism that squeezed/killed real suppliers buying at spot through the 2021-22 crisis while capped on the sell side. Fixed: billed_rate = min(spot*(1+premium), get_cap_unit_rate_gbp_per_mwh(commodity, year)) for resi customers, 2019+ only (pre-2019 and non-resi stay uncapped, matching the cap's own real scope) -- same clamp convention already used for fixed-tariff terms, extended consistently rather than inventing a new pattern. New `cap_bound` field marks when clamping actually occurred. Margin can now legitimately go negative on a capped settlement period, matching real crisis economics (verified via a dedicated test). Note on architecture: this reuses the existing company/pricing/ofgem_price_cap.py import already present in simulation/run_phase2b.py (Phase 47a precedent) -- a SIM module importing a COMPANY module is a layering oddity (backwards from the SIM being the 'real world' company should discover, not vice versa) but is NOT a point-in-time-blindfold violation (the cap data is static, real, historical, not derived from anything a real company couldn't independently know) -- flagged, not fixed, consistent with the pre-existing precedent this change extends rather than a new decision. 6 new tests (post-2019 clamp, negative-margin-once-capped, pre-2019 uncapped, non-resi uncapped, gas-vs-electricity cap table selection, backward-compatible default). Real before/after effect on the margin trajectory (the 'bridge attribution' SPIKE_WEEKEND also asks for) awaits the next natural sim_runner cycle regenerating run_output_latest.json -- not fabricated from an isolated run under time pressure; to be written up once real post-fix data exists.",
+            "2026-07-11 HARDEN sweep Expert Hour run (SPIKE_WEEKEND item 5, energy-market-skeptic-veteran persona, read run_deemed_term() + ofgem_price_cap.py + all 6 cap tests directly): PASS overall (scope, year-boundary handling, commodity selection all correct) with one real gap logged, not silently accepted -- the cap table's ANNUAL granularity doesn't capture the real Ofgem cap's 2-4x/year updates, material specifically in the 2021-22 crisis window this atom targets (e.g. the real ~54% Apr 2022 jump). Recorded in company/compliance/sanity_adjudication.py ledger as expert_hour:W3_1_price_cap_binding (adjudicated-real). Not re-opening level_current (still 2/2, the binding-constraint mechanism itself is correct) -- this is granularity debt on an already-working mechanism, tracked for a future intra-year cap-table pass if crisis-period precision becomes load-bearing."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "W4_the_wall",
+      "lane_name": "W4 The Wall",
+      "atoms": [
+        {
+          "atom_id": "W4_1_typed_adapters",
+          "atom_name": "Typed, versioned-message SIM/company boundary adapters (go-live seam)",
+          "level_current": 2,
+          "level_target": 3,
+          "notes": [
+            "forward-preference only, 2026-07-08; already-shipped Phase 3 code not reworked. 2026-07-10 self-refill draw (FRAME-stage): refreshed WALLED_INTERFACES_SKETCH.md's audit -- all 5 candidate flows still accurate against current code, added a 6th (tools/market_data_port.py::MarketDataPort) the original sketch omitted -- already at target shape (typed Protocol + point-in-time-safe via an explicit as_of param), directly cross-referencing the W1_reveal_over_time DISCOVER finding as the natural reference implementation if that finding's structural snapshot object is ever built. The sketch's own Step 2 (meter-reads reference-flow conversion) is classified Tier 3 (reversible, not Tier 1), but PRIORITIES.md carries an existing, explicit standing instruction: 'Awaiting director rank -- do not start the first reference-flow conversion without it.' loop_stage CORRECTED 2026-07-10 (own mistake from the prior draw, caught on the very next draw): set to build reflexively (the next real action IS a build task) without applying the same idle-exclusion logic already built for exactly this situation -- reverted to idle, since 'blocked pending an external director decision' is precisely what idle already means in this schema (W3_price_cap_binding's own precedent), not a new field to invent."
+          ]
+        },
+        {
+          "atom_id": "W4_2_verifier_timing_extension",
+          "atom_name": "Epistemic verifier extended to data-flow/timing violations, not just literal imports",
+          "level_current": 1,
+          "level_target": 3,
+          "notes": [
+            "2026-07-10 (fourteenth draw): this atom's own claim was FALSE. expert_hour had been marked 'passed, findings: []' since seeding, and level_current=2 implied the TOOL itself gained timing-detection capability. Read the entire 202-line tools/epistemic_verifier.py: it contains ONLY literal import-statement regex matching (FORBIDDEN_SOURCES), zero data-flow/timing detection logic -- confirmed unambiguously by this atom's OWN cited evidence: docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md's own contemporaneous text states plainly 'tools/epistemic_verifier.py does not catch this class of bug -- it scans for company/<->simulation.* import violations, not data-flow/timing bugs.' What actually happened was CLAUDE.md's Tier 1 POLICY definition being broadened to explicitly name timing violations as in-scope for classification purposes -- a real, true change -- but I conflated 'the policy now names this' with 'the tool now detects this' when originally seeding this atom. Corrected level_current down to 1 (the real progress: policy broadened, real incident understanding gained) and loop_stage to idle: actually building real detection into tools/epistemic_verifier.py is Tier 1 (CLAUDE.md names 'the epistemic verifier' explicitly as a safety-control-modification category (b)) -- opened docs/review_gates/EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md rather than build it unilaterally."
+          ]
+        }
+      ]
+    },
+    {
+      "lane": "W5_banking_payment_rails",
+      "lane_name": "W5 Banking & Payment Rails",
+      "atoms": [
+        {
+          "atom_id": "W5_1_banking_payment_rails",
+          "atom_name": "Banking & Payment Rails simulator (twin: Bacs/bank/acquirer)",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-11 REGISTERED (EPOCH2_RATIFIED.md immediate effect 1): director-ratified NEW W-lane, three amendments to THE_VALUE_CYCLE_FRAMING.md (banking-as-swappable-interface worry). Built adapter-SHAPED behind an interface mirroring the real protocol -- submission windows, multi-day cycle, AUDDIS-style mandate setup, ARUDD-style failure returns with reason codes, ADDACS amendments; cash lands when the rails say, making the banked clock (D2_three_clocks/C2) honest -- 'rails ARE late-arriving truth, a limb of the spine, not an adjacent system.' Full typed/versioned hardening of this seam is Epoch-3 work (added to the wall's adapter inventory). loop_stage=idle: M2 build (this atom included) starts only after the M2 entry-gate payments-maturity-audit verdict AND M1's exit test both land -- not before, per EPOCH2_RATIFIED.md immediate effect 4."
+          ]
+        }
+      ]
+    }
+  ],
+  "total_atoms_with_notes": 19,
+  "total_notes": 28
+}

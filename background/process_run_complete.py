@@ -433,6 +433,12 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("maturity_map.json generation failed: {}".format(exc))
     try:
+        from tools.generate_simplified_data import generate as gen_simplified
+        gen_simplified()
+        log("Generated site/data/simplified.json")
+    except Exception as exc:
+        log("simplified.json generation failed: {}".format(exc))
+    try:
         from tools.generate_platform_data import generate as gen_platform
         gen_platform()
         log("Generated site/data/platform.json")

@@ -1,8 +1,13 @@
 > **STATUS (2026-07-11):** Canonical docs installed to docs/design/ (verbatim).
-> Still open: the actual Doors 1-2 BUILD (Front Door + Thesis Chart, The Journey).
-> Queued behind Rich's direct HARDEN-sweep/M3-forks instruction per PRIORITIES.md
-> item 7 -- not blocked on anything external, just sequenced. Move to done/ once
-> Doors 1-2 ship and are pixel-verified.
+> Doors 1-2 BUILT per director instruction ("START NOW, top of queue"): Front Door
+> (pulse strip + THE THESIS CHART, real current-snapshot dual-ledger data, honest
+> caveat that a per-year historical series doesn't exist yet + persona doors incl.
+> a new Simplified/honesty-door page) and The Journey (already had the maturity-map
+> 4-view + epoch strip from earlier work; added the two missing pieces -- Quarterly
+> Narrative and Replay/M4 sections, both honestly stubbed, not fabricated). Browser-
+> verified locally (Playwright, real data, zero console errors, desktop+mobile
+> screenshots). NOT yet pixel-verified on the live poesys.net (R11) -- pending
+> commit+push+deploy+fetch, same session. Move to done/ once that's confirmed.
 
 # SITE_CONSTITUTION — ratified redesign brief + migration order (P1, spike-eligible)
 

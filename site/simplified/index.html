@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- What We've Simplified</title>
+<meta name="description" content="The consolidated register of every known simplification, gap, and deferred build decision -- what's cut, why, and when it's due.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://poesys.net/simplified/">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px 64px; }
+.page-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px; }
+.page-lede { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 700px; margin-bottom: 8px; }
+.stats-line { font-size: 12px; color: var(--muted); margin-bottom: 32px; }
+.stats-line strong { color: var(--text); }
+.lane-block { margin-bottom: 32px; }
+.lane-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--purple); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.atom-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber);
+  border-radius: 8px; padding: 16px 18px; margin-bottom: 12px; }
+.atom-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.atom-name { font-size: 13px; font-weight: 700; }
+.atom-level { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.note { font-size: 12.5px; color: var(--text); line-height: 1.6; margin-bottom: 8px; }
+.note:last-child { margin-bottom: 0; }
+.note-date { color: var(--blue); font-weight: 600; margin-right: 4px; }
+.muted { color: var(--muted); font-size: 12px; }
+.empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
+  <a href="../project/" class="nav-link">Project</a>
+  <a href="./" class="nav-link active">Simplified</a>
+</nav>
+
+<div class="wrap">
+  <div class="page-title">What we've simplified</div>
+  <p class="page-lede">
+    Every known gap, cut corner, and deferred build decision this project has recorded against
+    itself -- grouped by capability lane, most recent note first within each atom. Nothing here
+    is hidden or summarised away: this is the same register the agent itself reads before
+    deciding what to build next (<code>docs/design/maturity_map.yaml</code>), rendered directly,
+    not authored for this page.
+  </p>
+  <div class="stats-line" id="stats-line">Loading...</div>
+  <div id="lanes-out"><div class="empty">Loading the register...</div></div>
+</div>
+
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+
+function renderNote(note){
+  var m = note.match(/^(\d{4}-\d{2}-\d{2})[:,]?\s*/);
+  if (m) {
+    return '<div class="note"><span class="note-date">'+esc(m[1])+'</span>'+esc(note.slice(m[0].length))+'</div>';
+  }
+  return '<div class="note">'+esc(note)+'</div>';
+}
+
+function renderLane(lane){
+  var atoms = lane.atoms.map(function(a){
+    var level = (a.level_current!=null && a.level_target!=null)
+      ? 'L'+a.level_current+' &rarr; L'+a.level_target : '';
+    return '<div class="atom-card">'
+      + '<div class="atom-head"><span class="atom-name">'+esc(a.atom_name)+'</span>'
+      + '<span class="atom-level">'+esc(a.atom_id)+(level?' &middot; '+level:'')+'</span></div>'
+      + a.notes.slice().reverse().map(renderNote).join("")
+      + '</div>';
+  }).join("");
+  return '<div class="lane-block"><div class="lane-title">'+esc(lane.lane_name)+'</div>'+atoms+'</div>';
+}
+
+fetch("../data/simplified.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  document.getElementById("stats-line").innerHTML =
+    '<strong>'+d.total_notes+'</strong> recorded simplification'+(d.total_notes===1?'':'s')
+    +' across <strong>'+d.total_atoms_with_notes+'</strong> capabilit'+(d.total_atoms_with_notes===1?'y':'ies')
+    +' in <strong>'+d.lanes.length+'</strong> lanes.';
+  var out = document.getElementById("lanes-out");
+  out.innerHTML = d.lanes.length ? d.lanes.map(renderLane).join("") : '<div class="empty">No simplifications recorded.</div>';
+}).catch(function(e){
+  console.error("simplified.json load error:", e);
+  document.getElementById("lanes-out").innerHTML = '<div class="empty" style="color:var(--red)">Could not load the simplifications register.</div>';
+});
+</script>
+<script src="../shared/director-comments.js" defer></script>
+</body>
+</html>
