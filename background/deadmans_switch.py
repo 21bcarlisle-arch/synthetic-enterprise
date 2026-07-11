@@ -38,6 +38,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.ntfy_utils import send_ntfy  # noqa: E402
+from background import action_needed  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "deadmans-switch-log.md"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
@@ -105,8 +106,26 @@ def _unprocessed_staging_files() -> list[str]:
     )
 
 
+def _reping_open_action_needed_items() -> None:
+    """Daily re-ping for anything genuinely waiting on Rich's own input
+    (2026-07-11, director rule) -- independent of whether the tmux/
+    supervisor stack itself looks stalled (that's the [BLOCKED] class
+    below). An item here can sit open for days while everything else runs
+    fine; the staging-activity check would never catch that on its own."""
+    for entry in action_needed.due_for_reping():
+        send_ntfy(action_needed.format_action_needed(
+            entry["item_id"], entry["what"], entry["how"], entry["why"],
+        ))
+        action_needed.register_item(
+            entry["item_id"], entry["what"], entry["how"], entry["why"],
+        )
+        log(f"Re-pinged open action-needed item: {entry['item_id']}")
+
+
 def run_cycle() -> None:
     global _last_escalation_ts
+
+    _reping_open_action_needed_items()
 
     staged = _unprocessed_staging_files()
     if not staged:
