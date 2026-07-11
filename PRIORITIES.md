@@ -110,6 +110,15 @@
 #         history/build-cadence), tolerances by class with NTFY-not-silent-log alarming,
 #         orphan-transition tests per R11. R10: closes as a CLASS fix, instance patches don't
 #         satisfy it. Queued behind item 9's build-lane items -- next natural boundary.
+#     11. NEW 2026-07-11 (advisor-staged, docs/staging/done/ADOPTION_JOURNEY_REGISTER.md, P3,
+#         "registration only, do not start"): ToU/control/DER adoption-journey mechanics --
+#         hidden adoption physics (bother-threshold, friction, trust, reward responsiveness),
+#         key-moments-as-conversion-windows, bill-visible loyalty/incentive economics.
+#         REGISTERED as 3 capability atoms (C4_adoption_physics, C5_key_moment_conversion,
+#         D4_loyalty_incentive_billing), all epoch:4, level_current:0, loop_stage:idle,
+#         dial_inherited:1 -- placed at EPOCH 4 per the advisor's own dependency analysis (C
+#         customer psychology partial, W2 population draw L0, M1 event stream in flight).
+#         Registration only, no design or build -- DoD met, one digest line sent.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full

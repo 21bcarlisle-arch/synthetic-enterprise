@@ -492,3 +492,48 @@
   expert_hour: {status: passed, last: "2026-07-11", findings: ["Bacs rails-physics layer entirely absent (not partial) -- no 3-day cycle, no AUDDIS/ARUDD/ADDACS modeling", "two duplicated-register pairs needing consolidation (direct_debit/dd_mandate_register; prepayment/ppm_emergency_credit_register)", "18/22 billing-collections modules well-built but completely unwired -- paper compliance", "capacity_to_pay.py contradicts real 2023 forced-PPM-restriction regulatory direction for vulnerable customers", "switching.py/account_closure.py use date.today() instead of as_of -- point-in-time-blindfold anti-pattern outside the originally-scoped pricing/hedging path"]}
   real_world_twin: "a real supplier's payments-operations function auditing its own billing/collections estate before a platform migration"
   depends_on: []
+
+- id: C4_adoption_physics
+  name: "Hidden adoption physics (bother-threshold, friction sensitivity, trust/reassurance, reward responsiveness)"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/done/ADOPTION_JOURNEY_REGISTER.md"]
+  simplifications: ["2026-07-11 REGISTERED (P3, advisor-staged, director-decided -- ADOPTION_JOURNEY_REGISTER.md, do not start): ToU/control/DER adoption is a journey not a switch, and is the missing precondition for ToU tariffs meaning anything behaviourally. Each customer carries hidden traits (being-bothered threshold -- for many, the real £ at stake sits BELOW it, must be honestly true in the population, never tuned away; friction sensitivity; trust/reassurance needs; reward responsiveness), extending the engagement archetypes and consuming the deferred NUDGE_PHYSICS mechanisms (present bias, friction costs, defaults, social norms, commitment devices) with the same behavioural-science anchoring discipline as the shipped framing/tone work. Non-negotiable (Law A): adoption rate is a DIAGNOSTIC, never a target -- no tuning hidden susceptibility to hit a number. Advisor amendment (director-approved, Law B): susceptibility DISTRIBUTIONS are BASELINE-world fidelity, anchored to real ToU/smart-tariff uptake data, never tuned; the INCENTIVE MECHANICS the company offers are supplier-side strategy it must learn -- that line stays clean. The wall holds: the company observes offers/responses/behaviour, never the hidden thresholds. PLACEMENT: Epoch 4 -- dependencies unbuilt or in flight (C customer psychology partial, W2 population draw L0, M1 event stream in flight); building this on a fixed cast under single-pass truth would be mechanically-real but behaviourally-hollow, the same trap that correctly deferred RY. Open questions left open until the epoch opens: anchor sources for adoption/threshold distributions, how journey progress is measured company-side."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "real UK ToU/smart-tariff/DER adoption curves -- most households' flexibility value sits below their actual bother threshold"
+  depends_on: [C3_satisfaction_heterogeneity, W2_2_population_draw, W1_reveal_over_time]
+
+- id: C5_key_moment_conversion
+  name: "Key moments as conversion windows (EV purchase, house move, boiler failure, smart-meter install, bill shock, renewal)"
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/done/ADOPTION_JOURNEY_REGISTER.md"]
+  simplifications: ["2026-07-11 REGISTERED (P3, advisor-staged, director-decided -- ADOPTION_JOURNEY_REGISTER.md, do not start): adoption is state- and event-dependent -- these are events in the SIM's own event stream; the company's job is DETECTING/INFERRING the moment through the wall and acting within the window, never reading the SIM's ground truth directly. PLACEMENT: Epoch 4, same dependency block as C4_adoption_physics (C customer psychology partial, W2 population draw L0, M1 event stream in flight) -- do not build ahead of those. Non-negotiable: nudge mechanics stay two-sided under Consumer Duty -- gamified incentives and pressure at key moments have mis-selling/vulnerability edges the compliance organs must see."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's CRM detecting a house-move/EV-purchase trigger from observable signals, not an internal customer database it shouldn't have"
+  depends_on: [C4_adoption_physics, W1_reveal_over_time]
+
+- id: D4_loyalty_incentive_billing
+  name: "Incentives and loyalty integrated into billing (points, rewards, free/half-price hours, miles, prizes as bill-visible artefacts)"
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/done/ADOPTION_JOURNEY_REGISTER.md"]
+  simplifications: ["2026-07-11 REGISTERED (P3, advisor-staged, director-decided -- ADOPTION_JOURNEY_REGISTER.md, do not start): ToU/EV loyalty mechanics (points, rewards, free hours, half-price hours, miles, prizes) are becoming standard industry practice and are bill-visible artefacts (statement lines, reward balances, discounted-window tariff structures) -- NOT marketing copy. They touch the billing lane and the bill artefact standard directly, and their cost is a real P&L line. Where flexibility value per customer sits below the bother threshold (see C4_adoption_physics), engagement/loyalty mechanics carry the persuasion load, and the company must DISCOVER that rather than assume rational £-response. Advisor placement decision: loyalty economics live INSIDE the billing + marketing lanes -- explicitly no new lane created for this. PLACEMENT: Epoch 4, same dependency block as C4/C5 -- do not build ahead of the adoption-physics/conversion-window mechanics this depends on for who gets offered what, when."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "Octopus Energy's Saving Sessions / EV Octopus reward mechanics, British Gas Rewards -- real bill-visible loyalty economics"
+  depends_on: [C4_adoption_physics, D1_bill_correctness]

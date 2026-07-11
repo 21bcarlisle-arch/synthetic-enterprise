@@ -374,7 +374,7 @@
       "level_target": 2,
       "loop_stage": "harden",
       "dial_inherited": 2,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "passed",
       "depends_on": [],
       "at_target": true
     },
@@ -502,6 +502,61 @@
       "expert_hour_status": "passed",
       "depends_on": [],
       "at_target": true
+    },
+    {
+      "id": "C4_adoption_physics",
+      "name": "Hidden adoption physics (bother-threshold, friction sensitivity, trust/reassurance, reward responsiveness)",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "C3_satisfaction_heterogeneity",
+        "W2_2_population_draw",
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "C5_key_moment_conversion",
+      "name": "Key moments as conversion windows (EV purchase, house move, boiler failure, smart-meter install, bill shock, renewal)",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "C4_adoption_physics",
+        "W1_reveal_over_time"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "D4_loyalty_incentive_billing",
+      "name": "Incentives and loyalty integrated into billing (points, rewards, free/half-price hours, miles, prizes as bill-visible artefacts)",
+      "lane": "D_billing_metering",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "C4_adoption_physics",
+        "D1_bill_correctness"
+      ],
+      "at_target": false
     }
   ],
   "lanes": {
@@ -584,7 +639,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 32,
+  "total_atoms": 35,
   "epoch2_movements": [
     {
       "id": "M1",
