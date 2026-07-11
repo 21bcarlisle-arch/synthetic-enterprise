@@ -16,9 +16,19 @@ sprint is the known-good mechanism — deterministic, unskippable). Each entry:
   | supervisor-wake | watcher-wake | advisor-staged
 - HMAC-verified status for machine-generated injections
 - content, SCRUBBED (below)
-Appended to a repo log (docs/observability/director_input_log.md or similar),
-batched commits per the existing mirror pattern, size-capped/rotating,
-advisor-readable within ~10 minutes.
+Appended to a log in the PRIVATE ops repo (see below), batched commits per
+the existing mirror pattern, size-capped/rotating, advisor-readable within
+~10 minutes via the same Contents API.
+
+## PRIVACY AMENDMENT (director, 2026-07-11)
+The log lives in a separate PRIVATE repository, `synthetic-enterprise-ops`
+(director is creating it and extending the PAT's access — BLOCKED on those
+two director clicks; prepare everything else meanwhile: remote config, push
+path, log format). RELOCATE the existing ntfy/from_rich mirror there too —
+its public placement was a compromise, now unnecessary. Public repo keeps
+zero message-traffic mirrors. Scrubbing of genuine secrets still applies
+(raw secrets belong in NO repo, private included); personal/operational
+content may flow unredacted in the private log.
 
 ## Scrubbing (public-repo aware — the director has been told everything he
 types becomes public once scrubbed)
