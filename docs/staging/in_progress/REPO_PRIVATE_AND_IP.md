@@ -1,3 +1,12 @@
+> **STATUS (2026-07-11):** Phase 1 pre-flight audit run --
+> docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md. Verdict: NO-GO as
+> measured (deploy cadence ~206% of the private-repo Actions quota,
+> root-caused to github-pages.yml having no path filter). Recommended fix
+> not yet applied -- awaiting Rich's call since it changes site-freshness
+> cadence. Phase 2 (the actual visibility flip) is Rich's own manual click
+> either way. Phase 3 (site IP assertion) blocked on entity name +
+> crawler-block decision. Move to done/ once Phase 2 flip + Phase 3 land.
+
 # REPO_PRIVATE_AND_IP — protect the IP, assert the copyright (P1)
 
 **Staged:** 2026-07-11 by advisor, director-decided. **Rationale on record:**
