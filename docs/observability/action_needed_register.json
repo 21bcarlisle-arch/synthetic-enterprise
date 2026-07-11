@@ -4,7 +4,7 @@
     "how": "Just tell me which costing basis you want and a \u00a3/hour oversight rate -- I'll wire both into saas/opex_ledger.py::ai_compute_and_oversight_cost_gbp_per_year() once you do.",
     "item_id": "ai-compute-costing-basis",
     "last_pinged_at": "2026-07-11T05:21:26.386758+00:00",
-    "resolved": false,
+    "resolved": true,
     "what": "Two things only you can set for the AI-compute cost-to-serve line: (1) costing basis -- charge at Anthropic's metered list-price-per-token, or allocate from the actual flat Max-subscription fee spread across usage? (2) your own oversight-hours rate -- what hourly rate represents your time reviewing/overseeing this agent's work?",
     "why": "That function returns 0.0 today specifically because these are your calls, not mine to invent (R12 discipline) -- it's the only unpriced real cost line in the whole opex model. Separately, FYI not an action item: docs/observability/token-usage-log.jsonl only covers 5 days and never captured interactive sessions, so even once you answer this, the underlying usage data is currently too thin for a fully representative true figure -- flagging so you know that data gap exists alongside the policy question."
   },

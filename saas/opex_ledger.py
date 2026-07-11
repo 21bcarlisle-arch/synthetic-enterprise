@@ -24,14 +24,20 @@ but do not charge nothing either (unpriceable, too-easy game). Split into three 
     fudge factors, ever), they are left at £0 here rather than estimated, and remain
     logged as open gaps in ASSUMPTIONS.md, not silently absorbed into this module.
 
-(b) AI-compute + director-oversight hours at TRUE metered cost -- NOT YET POPULATED.
-    Two real, unresolved design questions block this (registered in PRIORITIES.md, not
-    silently defaulted): (i) `docs/observability/token-usage-log.jsonl` only covers
-    2026-06-21 to 2026-06-25 and never captured interactive sessions -- not
-    representative data; (ii) Anthropic's metered list-price-per-token vs the actual
-    flat Max-subscription economics is a genuine costing-basis choice, and the
-    director's own oversight-hours rate is his call, not the agent's to invent.
-    `ai_compute_and_oversight_cost_gbp_per_year()` returns 0.0 until both are resolved.
+(b) AI-compute + director-oversight hours. Director resolved the oversight-rate and
+    costing-basis questions 2026-07-11 (NTFY, from_rich_20260711_052540.md): "1. Metered
+    cost. 2. Assume £500k pa of expertise needed." The oversight/expertise figure is now a
+    real, decided company-wide annual cost -- GOVERNANCE_COST_LINES["director_oversight_
+    expertise"], flowing into the fixed floor like every other governance line (NOT
+    per-customer -- it's his own time/expertise value, not a per-account usage charge).
+    The METERED AI-COMPUTE sub-component specifically (per-customer/per-token usage) stays
+    at £0 in `ai_compute_and_oversight_cost_gbp_per_year()` -- the costing BASIS is now
+    resolved (metered, not flat-subscription-allocated) but the underlying representative-
+    usage-DATA gap is a separate, still-open problem: `docs/observability/token-usage-
+    log.jsonl` only covers 2026-06-21 to 2026-06-25 and never captured interactive
+    sessions (which plausibly dominate real usage) -- extrapolating a full-year metered
+    figure from that 5-day, non-representative sample would be exactly the kind of fudge
+    factor R12 forbids. Stays £0 until representative usage logging exists.
 
 (c) A DUAL ledger: the TRUE (a+b) ledger, and a BENCHMARK-loaded ledger additionally
     carrying a lower-quartile-incumbent-labour-cost proxy. The best available proxy
@@ -86,10 +92,16 @@ def true_third_party_cost_gbp_per_year(customer: dict[str, Any]) -> float:
 
 
 def ai_compute_and_oversight_cost_gbp_per_year(customer: dict[str, Any]) -> float:
-    """Part (b) -- see module docstring. Always 0.0 until both open design questions
-    (token-usage-log representativeness + costing-basis choice; director's own
-    oversight rate) are resolved. `customer` is accepted for call-site symmetry with
-    the other two functions even though it is currently unused."""
+    """Part (b), the PER-CUSTOMER metered AI-compute sub-component only -- see module
+    docstring. The oversight-rate/costing-basis questions this function was originally
+    blocked on are RESOLVED (2026-07-11 NTFY): oversight is now a real company-wide
+    governance cost (GOVERNANCE_COST_LINES["director_oversight_expertise"], £500k/yr,
+    NOT allocated here), and the costing basis for the metered sub-component itself is
+    metered (not flat-subscription). Still returns 0.0: the underlying representative-
+    usage-data gap (docs/observability/token-usage-log.jsonl, 5 non-representative days,
+    no interactive sessions) remains open -- extrapolating from it would be a fudge
+    factor (R12). `customer` is accepted for call-site symmetry with the other two
+    functions even though it is currently unused."""
     return 0.0
 
 
@@ -320,6 +332,21 @@ GOVERNANCE_COST_LINES: dict[str, dict[str, Any]] = {
             "Real bands exist by number of directors/shareholders (e.g. up to "
             "5 vs up to 10) -- too small a cost line to warrant a full curve; "
             "comprehensive-package estimate used."
+        ),
+    },
+    "director_oversight_expertise": {
+        "annual_gbp": 500_000.0,
+        "range_gbp": (500_000.0, 500_000.0),
+        "is_estimate": False,
+        "classification": "fixed",
+        "source": "Director-set, NTFY 2026-07-11 (docs/staging/done/from_rich_20260711_052540.md)",
+        "golive_conditional": False,
+        "note": (
+            "Resolves the long-standing B2(b) oversight-hours-rate question: "
+            "'Assume £500k pa of expertise needed.' His own figure, not the "
+            "agent's to invent (R12) -- a real cost of the human expertise "
+            "required to direct/oversee this autonomous build, company-wide, "
+            "not allocated per customer."
         ),
     },
 }

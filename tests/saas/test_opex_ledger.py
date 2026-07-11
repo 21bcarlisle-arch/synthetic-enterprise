@@ -57,12 +57,34 @@ def test_true_third_party_cost_unknown_commodity_is_zero():
 
 # -- Part (b): AI-compute + oversight, explicitly not yet populated --
 
-def test_ai_compute_cost_always_zero_pending_open_design_questions():
-    """Real, unresolved: token-usage-log representativeness + costing-basis choice +
-    director's own oversight rate -- must never be silently defaulted to a fabricated
-    number (R12)."""
+def test_ai_compute_cost_always_zero_pending_representative_usage_data():
+    """The oversight-rate/costing-basis questions this was originally blocked on are
+    now RESOLVED (2026-07-11 NTFY, folded into GOVERNANCE_COST_LINES["director_
+    oversight_expertise"] instead) -- but the per-customer METERED sub-component still
+    must never be silently defaulted to a fabricated number (R12): the underlying
+    representative-usage-data gap (token-usage-log.jsonl, 5 non-representative days)
+    remains open."""
     assert ai_compute_and_oversight_cost_gbp_per_year(_cust("C1")) == 0.0
     assert ai_compute_and_oversight_cost_gbp_per_year({}) == 0.0
+
+
+def test_director_oversight_expertise_governance_line_real_and_decided():
+    """2026-07-11 NTFY resolution: 'Assume £500k pa of expertise needed.' Real,
+    decided, not an estimate -- the director's own figure, not the agent's to invent."""
+    line = GOVERNANCE_COST_LINES["director_oversight_expertise"]
+    assert line["annual_gbp"] == 500_000.0
+    assert line["is_estimate"] is False
+    assert line["classification"] == "fixed"
+    assert line["golive_conditional"] is False
+
+
+def test_governance_floor_includes_director_oversight_expertise():
+    floor_without_golive = governance_floor_gbp_per_year(golive=False)
+    other_lines_total = sum(
+        line["annual_gbp"] for name, line in GOVERNANCE_COST_LINES.items()
+        if name != "director_oversight_expertise" and not line["golive_conditional"]
+    )
+    assert floor_without_golive == pytest.approx(other_lines_total + 500_000.0)
 
 
 def test_true_opex_cost_is_just_third_party_cost_today():
