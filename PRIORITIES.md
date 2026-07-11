@@ -119,6 +119,21 @@
 #         dial_inherited:1 -- placed at EPOCH 4 per the advisor's own dependency analysis (C
 #         customer psychology partial, W2 population draw L0, M1 event stream in flight).
 #         Registration only, no design or build -- DoD met, one digest line sent.
+#     12. ADVISOR STEER 2026-07-11 (docs/staging/done/ADVISOR_STEER_M2_OPEN.md, Tier 2,
+#         director-approved routing): CORRECTS item 9c's open question -- the M2 payments
+#         audit reporting unlocks M2 BUILD, not M3. M3 stays design-only until M2's clocks
+#         exist for discovery to ride on. CONFIRMED QUEUE ORDER, THIS IS NOW "Next":
+#           1. Doors 1-2 wrap-up items (none currently outstanding)
+#           2. Margin HARDEN-sweep surfacing gap (B3 hedge-fraction never reached a business
+#              surface, per HARDEN sweep item 9e)
+#           3. OPEN M2 BUILD: rails sim first (adapter-shaped, Bacs twin: submission windows,
+#              AUDDIS/ARUDD/ADDACS), then estimated billing -> catch-up rebilling ->
+#              settlement timetable -> DD cash engine, per THE_VALUE_CYCLE_FRAMING.md and the
+#              M2_PAYMENTS_AUDIT harden-vs-rebuild verdicts
+#           4. M3 design forks continue in background; SURFACE_FRESHNESS_CLASS_FIX at next
+#              natural boundary (Phase 1 inventory fork already dispatched, in progress)
+#         Channel note recorded in CLAUDE.md: advisor->agent steers now come via
+#         docs/staging/ directly, Rich no longer relays by hand.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
