@@ -136,4 +136,10 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None) -> str | None
     except Exception:
         pass  # mirroring must never block or break a real send
 
+    try:
+        from background.director_input_log import append_entry
+        append_entry("ntfy", message, direction="out", hmac_verified=None)
+    except Exception:
+        pass  # logging must never block or break a real send
+
     return msg_id

@@ -37,6 +37,16 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/log_director_input.py"
+          }
+        ]
+      }
     ]
   }
 }

@@ -1,4 +1,6 @@
 """Tests for background/ntfy_mirror.py -- ADVISOR_VISIBILITY.md."""
+from unittest.mock import patch
+
 import pytest
 
 from background import ntfy_mirror
@@ -7,7 +9,16 @@ from background import ntfy_mirror
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(ntfy_mirror, "MIRROR_FILE", tmp_path / "ntfy-mirror.md")
-    yield
+    # 2026-07-11 relocation (DIRECTOR_INPUT_LOG.md): append_mirror_entry()
+    # now also commits+pushes to the private ops repo. Mocked here so no
+    # test run ever touches the real synthetic-enterprise-ops repo --
+    # matches the stricter isolation background/director_input_log.py's
+    # own tests use, and avoids relying on "nothing to commit" being a
+    # silent no-op (it isn't: `git add` on a path that was never created
+    # in OPS_REPO_DIR at all -- because MIRROR_FILE is mocked to tmp_path
+    # above -- fails loudly with exit 128, not silently).
+    with patch("background.ntfy_mirror.commit_and_push"):
+        yield
 
 
 def test_scrub_secrets_removes_known_topic():

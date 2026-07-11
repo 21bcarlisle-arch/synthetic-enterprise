@@ -8,26 +8,36 @@ the day's traffic via the repo within ~10 minutes of send/receipt, without
 Rich manually copy-pasting anything into the advisor chat by hand (his
 explicit ask, and something he "hates").
 
-Secret-scrubbed: this file is committed to a PUBLIC repo. The actual NTFY
-topic value and anything that looks like an HMAC signature or content hash
-(a long hex run) are stripped before writing, never the raw value.
+RELOCATED 2026-07-11 (docs/staging/in_progress/DIRECTOR_INPUT_LOG.md's
+PRIVACY AMENDMENT, director-approved): this mirror now lives in the
+PRIVATE synthetic-enterprise-ops repo (background/ops_repo.py), not this
+(public) repo -- "the public repo now keeps zero message-traffic mirrors."
+The old public-repo file (docs/observability/ntfy-mirror.md) is removed
+from tracking; its history remains in git log.
 
-Batched commits are fine (no per-message commit spam) -- this file just
-gets written to; it rides along on whatever commit next touches
-docs/observability/ (the routine sim-run/auto-process pipeline already
-commits that directory regularly), matching the doc's own "piggyback on
-existing commit moments" instruction. Rotation caps the file at
-MAX_MIRROR_ENTRIES so it never bloats the repo.
+Secret-scrubbed regardless: the doc's own scrubbing spec still applies to
+genuine secrets even in the private repo ("raw secrets belong in NO repo,
+private included"). Kept as its own blunt-placeholder scrubber
+(scrub_secrets() below) rather than switched to
+background/secret_scrub.py's correlatable-hash scheme -- see
+background/secret_scrub.py's own docstring for why that's a deliberate,
+separate function, not an oversight.
+
+Batched commits are fine (no per-message commit spam) -- V1 pushes per
+call via background/ops_repo.py, matching the pattern
+background/director_input_log.py also uses (see that module for why
+per-call push is an acceptable V1 choice, not correctness-load-bearing).
+Rotation caps the file at MAX_MIRROR_ENTRIES so it never bloats the repo.
 """
 from __future__ import annotations
 
 import os
 import re
 from datetime import datetime, timezone
-from pathlib import Path
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent
-MIRROR_FILE = PROJECT_DIR / "docs" / "observability" / "ntfy-mirror.md"
+from background.ops_repo import OPS_REPO_DIR, commit_and_push, ops_tree_lock
+
+MIRROR_FILE = OPS_REPO_DIR / "ntfy-mirror.md"
 
 _HEADER = (
     "# NTFY Message Mirror\n\n"
@@ -84,10 +94,13 @@ def append_mirror_entry(direction: str, message: str, topic: str | None = None) 
     scrubbed = scrub_secrets(message, topic=topic).replace("\n", " ")
     entry = f"- [{ts}] [{direction.upper()}] {scrubbed}"
 
-    existing = MIRROR_FILE.read_text(encoding="utf-8") if MIRROR_FILE.is_file() else ""
-    entries = _split_header_and_entries(existing)
-    entries.append(entry)
-    entries = entries[-MAX_MIRROR_ENTRIES:]
+    with ops_tree_lock():
+        existing = MIRROR_FILE.read_text(encoding="utf-8") if MIRROR_FILE.is_file() else ""
+        entries = _split_header_and_entries(existing)
+        entries.append(entry)
+        entries = entries[-MAX_MIRROR_ENTRIES:]
 
-    MIRROR_FILE.parent.mkdir(parents=True, exist_ok=True)
-    MIRROR_FILE.write_text(_HEADER + "\n".join(entries) + "\n", encoding="utf-8")
+        MIRROR_FILE.parent.mkdir(parents=True, exist_ok=True)
+        MIRROR_FILE.write_text(_HEADER + "\n".join(entries) + "\n", encoding="utf-8")
+
+        commit_and_push(["ntfy-mirror.md"], "ntfy mirror update")

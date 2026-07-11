@@ -253,6 +253,17 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
         except Exception:
             pass  # mirroring must never block real inbound processing
 
+        try:
+            # DIRECTOR_INPUT_LOG.md channel-tagged log (2026-07-11): this
+            # call site unambiguously KNOWS its own channel is "ntfy" --
+            # pass channel_hint rather than relying on classify_channel()'s
+            # inference, which is for cases (the UserPromptSubmit hook)
+            # that don't already know.
+            from background.director_input_log import classify_and_log_message
+            classify_and_log_message(message, channel_hint="ntfy")
+        except Exception:
+            pass  # logging must never block real inbound processing
+
         staged_path = _write_to_staging(message)
         reply = build_status_reply(staged_path)
         send_ntfy(reply, headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
