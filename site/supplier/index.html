@@ -303,6 +303,18 @@ function card(label, value, sub='', klass='neu') {
     ${sub ? `<div class="card-sub">${sub}</div>` : ''}</div>`;
 }
 
+// EPOCH2_RATIFIED.md immediate effect 5 (2026-07-11): all headline public
+// figures are provisional pending M4 rederivation (the whole 2016-25 period
+// replays through the reveal engine) -- reuses the existing badge-amber
+// pattern already proven for the break-even figure, as one shared banner
+// per tab rather than a hand-rolled badge on every individual card.
+function provisionalBanner(scopeNote) {
+  return `<div style="background:rgba(212,150,45,.1);border:1px solid var(--amber);border-radius:6px;padding:.5rem .75rem;margin:0 0 .75rem;font-size:.85em">
+    <span class="badge badge-amber">PROVISIONAL</span>
+    <span style="color:var(--amber);margin-left:6px">${scopeNote} regenerate under Epoch 2's M4 rederivation (docs/design/THE_VALUE_CYCLE_FRAMING.md) -- the whole 2016-25 history replays through the point-in-time reveal engine, and these figures will change.</span>
+  </div>`;
+}
+
 function yearBtnsHtml() {
   const ALL_YRS = [2016,2017,2018,2019,2020,2021,2022,2023,2024,2025];
   return '<div class="year-btns">' +
@@ -508,6 +520,7 @@ function renderOverview() {
   const fa = D.financial.annual;
 
   el('tab-overview').innerHTML = `
+    ${provisionalBanner('Net Margin and Enterprise Value')}
     <div class="cards">
       ${card('Net Margin', gbp(p.net_margin_gbp), '10-year total', cls(p.net_margin_gbp))}
       ${card('Gross Margin', gbp(p.gross_margin_gbp), 'wholesale spread', cls(p.gross_margin_gbp))}
@@ -714,7 +727,7 @@ function renderFinancial() {
       <div class="chart-wrap tall"><canvas id="ch-seg-margin-pct"></canvas></div>
     </div>` : '';
 
-  el('tab-financial').innerHTML = yearBtnsHtml() + `
+  el('tab-financial').innerHTML = yearBtnsHtml() + provisionalBanner('All P&amp;L, margin, and tax figures on this tab') + `
     <div class="chart-box">
       <div class="chart-title">Annual P&amp;L Components</div>
       <div class="chart-wrap tall"><canvas id="ch-pnl-stack"></canvas></div>
@@ -855,6 +868,7 @@ function renderAccounts() {
   }).join('');
 
   el('tab-accounts').innerHTML =
+    provisionalBanner('All management-accounts figures on this tab') +
     '<div class="chart-box"><div class="chart-title">Cost Stack vs Revenue (2016-2025)</div>' +
     '<div class="chart-wrap tall"><canvas id="ch-acct-stack"></canvas></div></div>' +
     '<div class="tbl-box"><div class="tbl-title">Annual Management Accounts — P&amp;L Waterfall</div>' +
