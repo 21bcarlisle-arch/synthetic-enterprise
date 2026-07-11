@@ -182,6 +182,35 @@
 #   follow-up to state that explicitly in the report's own rendering, not just its docstring. 4
 #   new/updated tests, 16,604 tests collected (full suite), epistemic PASS.
 #
+# === Sanity triage CLOSED (2026-07-11, director-ordered NTFY, from_rich_20260711_044314.md/
+#   044335.md, docs/design/SANITY_TRIAGE_2026_07_11.md). Root cause of "still alarming every
+#   30min": background/sanity_daemon.py's audit (Qwen skeptic) stream's category-normalisation
+#   (2026-07-10 partial fix) only stopped an IDENTICAL category repeating -- a small 2-bill
+#   random sample still draws a DIFFERENT SUBSET of the same 3 known categories each cycle, so
+#   the signature (a set of category strings) kept looking "new." Confirmed: ~70 NTFYs against
+#   ~70 cycles in the real log. Built company/compliance/sanity_adjudication.py -- a durable,
+#   disk-persisted ledger (finding_key -> open/adjudicated-real/adjudicated-false-positive +
+#   evidence/who/when). Redesigned the daemon's alert discipline around it: a finding_key already
+#   in the ledger (whatever its state) is a standing known finding, folds into ONE daily digest,
+#   never a per-cycle repeat -- only a genuinely NEW key (never seen) triggers an immediate NTFY.
+#   Triaged all 3 named categories, NOT a rubber stamp (director's own framing: "did it catch true
+#   C6-class defects or cry wolf?"): gas-kwh-unit = false positive (real UK gas bills are correctly
+#   stated in kWh, standard practice); vat-mismatch = false positive, confirmed by EXACT arithmetic
+#   on a real bill (C2, 2022-07-31: net charges x 5% domestic VAT rate = the exact reported vat_gbp
+#   to the last decimal -- Qwen wrongly assumed 20%); high-consumption = split verdict -- I&C-scale
+#   and resi high-but-plausible instances are false positives (Qwen lacks segment-scale context),
+#   BUT investigating a third instance (C1_2) found a REAL check-level defect:
+#   check_consumption_distribution() compared a customer's 2-day billing STUB (their very first
+#   bill) against a full-year plausibility envelope, so it always looked implausibly low regardless
+#   of true per-day rate -- their own next month's rate confirmed it was never anomalous. Fixed as
+#   an R10 class fix (_MIN_DAYS_COVERAGE_FOR_ANNUAL_CHECK, skips the annual check when a customer-
+#   year has under 60 days of real billing history), not an instance patch -- protects every future
+#   partial-year joiner/leaver. Two marginal unit-rate findings (C1g gas 2019, C4 elec 2024, both
+#   ~2-9% outside a band with generous +-40%/+50% tolerance already) left honestly `open` in the
+#   ledger, not force-adjudicated either way under time pressure -- registered as backlog. 26 new
+#   tests (10 ledger + 2 population_sanity fix + 4 daemon regression/digest + existing suite
+#   updates), 16,697 tests collected (full suite), epistemic PASS.
+#
 # === Auto-commit pipeline gate FIXED, two real bugs found via a live-blocked run_complete
 #   marker (2026-07-11). A pending run_complete_20260710T235951Z.md marker was stuck: sim_runner's
 #   own auto-process (background/process_run_complete.py) hit "Tests FAILED - not committing" and

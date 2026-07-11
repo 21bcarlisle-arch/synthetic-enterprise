@@ -1,0 +1,37 @@
+{
+  "audit:gas-kwh-unit": {
+    "adjudicated_at": "2026-07-11T05:02:08.839284+00:00",
+    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
+    "evidence": "UK gas consumption is correctly and conventionally always expressed in kWh on real bills (converted from the raw meter volume in m3 via calorific value before it ever reaches a bill) -- standard UK domestic gas billing practice, not a unit error. Qwen has no domain grounding for this and pattern-matches kWh+gas as suspicious. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "finding_key": "audit:gas-kwh-unit",
+    "state": "adjudicated-false-positive"
+  },
+  "audit:high-consumption": {
+    "adjudicated_at": "2026-07-11T05:02:08.839570+00:00",
+    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
+    "evidence": "I&C-scale instances (e.g. C_IC3: 324,336 kWh/month, segment I&C, ~3.9 GWh/year) and resi high-but-plausible instances (e.g. C8: 376.665 kWh in August, segment resi, ~12.15 kWh/day, bill_shock_likely_seasonal=true) are both real, plausible consumption -- Qwen lacks real distributional/segment-scale context. A REAL check-level defect was found while investigating a third instance (C1_2) and fixed separately -- see population:consumption_distribution_vs_tdcv entries and company/compliance/population_sanity.py::check_consumption_distribution()'s new partial-year-coverage guard. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "finding_key": "audit:high-consumption",
+    "state": "adjudicated-false-positive"
+  },
+  "audit:vat-mismatch": {
+    "adjudicated_at": "2026-07-11T05:02:08.839454+00:00",
+    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
+    "evidence": "Confirmed by exact arithmetic on real bill data (customer C2, period 2022-07-31): net-of-VAT charges 162.40232409512363 * 0.05 = 8.120116204756... matches the reported vat_gbp (8.120116204756183) exactly. The bill correctly charges the UK domestic reduced VAT rate (5%), not the 20% standard rate Qwen assumed. Same class CLAUDE.md 2a already documented. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "finding_key": "audit:vat-mismatch",
+    "state": "adjudicated-false-positive"
+  },
+  "population:unit_rate_vs_cap_band:C1g:2019": {
+    "adjudicated_at": "2026-07-11T05:02:08.840134+00:00",
+    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
+    "evidence": "C1g (gas, resi) average unit rate 42.6 GBP/MWh in 2019 vs plausible band [10.4, 39.0] (~9% over a band that already carries +-40%/+50% tolerance) -- full 12-month real bill history (not a partial-period artefact). Marginal breach, not force-adjudicated either way under time pressure. Registered as backlog for closer inspection. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "finding_key": "population:unit_rate_vs_cap_band:C1g:2019",
+    "state": "open"
+  },
+  "population:unit_rate_vs_cap_band:C4:2024": {
+    "adjudicated_at": "2026-07-11T05:02:08.840387+00:00",
+    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
+    "evidence": "C4 (electricity, resi) average unit rate 320.5 GBP/MWh in 2024 vs plausible band [84.0, 315.0] (~1.7% over). Marginal breach, not force-adjudicated either way under time pressure. Registered as backlog for closer inspection. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "finding_key": "population:unit_rate_vs_cap_band:C4:2024",
+    "state": "open"
+  }
+}

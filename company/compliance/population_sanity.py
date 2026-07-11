@@ -25,6 +25,21 @@ from company.compliance.domain_invariants import (
 )
 
 
+# A customer-year with less real billing history than this can't be
+# meaningfully judged against a full annual envelope -- a partial-year
+# joiner/leaver (a genuine, common real-world case) will always look
+# implausibly LOW against a 500-15,000 kWh/year band no matter how normal
+# their true per-day rate is. Confirmed real, not hypothetical (2026-07-11
+# sanity triage, docs/design/SANITY_TRIAGE_2026_07_11.md): C1_2's very first
+# bill is a 2-day stub period (2020-12-30 to 2020-12-31, 128.68 kWh, ~64.3
+# kWh/day) that flagged as "implausibly low" for the whole of 2020 -- their
+# own January 2021 rate (~52.3 kWh/day, a full month) confirms the 2-day
+# figure was never anomalous once read as a partial period, not a full year.
+# This is a defect in THIS CHECK, not in the customer's bill -- an R10 class
+# fix (protects every future partial-year case, not just this one instance).
+_MIN_DAYS_COVERAGE_FOR_ANNUAL_CHECK = 60
+
+
 def check_consumption_distribution(bills: list) -> list[dict]:
     """Sum each resi customer's own bills into a real annual total and check
     it against the annual TDCV-derived envelope (domain_invariants.
@@ -32,6 +47,7 @@ def check_consumption_distribution(bills: list) -> list[dict]:
     the R10 C6 class that a single bill's per-period check might miss if
     spread thinly across many small anomalies."""
     by_customer_year: dict[tuple[str, int], float] = defaultdict(float)
+    days_by_customer_year: dict[tuple[str, int], float] = defaultdict(float)
     commodity_by_customer: dict[str, str] = {}
     segment_by_customer: dict[str, str] = {}
     for bill in bills:
@@ -40,11 +56,14 @@ def check_consumption_distribution(bills: list) -> list[dict]:
         cid = bill["customer_id"]
         year = int(bill["period_end"][:4])
         by_customer_year[(cid, year)] += bill.get("total_consumption_kwh", 0.0)
+        days_by_customer_year[(cid, year)] += bill.get("days_in_period", 0.0)
         commodity_by_customer[cid] = bill.get("commodity", "electricity")
         segment_by_customer[cid] = "resi"
 
     findings = []
     for (cid, year), annual_kwh in by_customer_year.items():
+        if days_by_customer_year[(cid, year)] < _MIN_DAYS_COVERAGE_FOR_ANNUAL_CHECK:
+            continue  # insufficient real billing history for a full-year judgement
         commodity = commodity_by_customer[cid]
         if not check_resi_consumption_plausible(commodity, annual_kwh):
             findings.append({

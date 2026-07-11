@@ -14,9 +14,23 @@ a cap boundary) are expected, legitimate output for human review, not a
 sign the check itself is broken.
 
 Runs read-only: never blocks a bill run, never mutates run_output_latest.json
-or the billing ledger. Escalates via one NTFY per distinct finding-set (R5:
-never repeat an unchanged status) -- a new finding or a changed finding set
-gets one NTFY; an unchanged set from the prior cycle stays silent.
+or the billing ledger.
+
+Alert discipline REDESIGNED 2026-07-11 (director-ordered sanity triage,
+docs/design/SANITY_TRIAGE_2026_07_11.md): the audit (Qwen skeptic) stream's
+signature was already normalised to 3 known categories specifically to stop
+alarm fatigue -- but since only a couple of bills are sampled per cycle, a
+DIFFERENT subset of those same known categories gets drawn each time, so the
+signature (a set of category strings) still changed cycle to cycle, and it
+re-alerted almost every single 30-min cycle for 21h+ (confirmed: ~70 NTFYs
+against ~70 cycles). Replaced the in-memory prior-signature comparison with
+the durable company/compliance/sanity_adjudication.py ledger: a finding_key
+(population check+customer+year, or audit category) already IN the ledger --
+whatever its adjudicated state -- is a standing known finding and goes into
+ONE daily digest line, never a repeat NTFY; only a finding_key never seen
+before (auto-registered as "open" on first sighting) gets an immediate NTFY.
+Director's own framing for why this matters: "an alarm that repeats
+unactionably trains me to ignore all alarms, which kills the immune system."
 """
 from __future__ import annotations
 
@@ -33,10 +47,12 @@ from background.agent_status import update_agent_status  # noqa: E402
 from background.ntfy_utils import send_ntfy  # noqa: E402
 from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
 from company.compliance.internal_audit import run_internal_audit  # noqa: E402
+from company.compliance import sanity_adjudication as adjudication  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
 BILLING_LEDGER_PATH = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
+LAST_DIGEST_DATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sanity_daemon_last_digest_date"
 
 POLL_INTERVAL_SECONDS = 1800  # 30 minutes -- detective/sampling cadence, not turn-granting
 
@@ -44,9 +60,6 @@ POLL_INTERVAL_SECONDS = 1800  # 30 minutes -- detective/sampling cadence, not tu
 # purpose -- each call takes real wall-clock time (~10-30s) against the
 # local model, and this is a sampling control, not a full sweep.
 AUDIT_SAMPLES_PER_CYCLE = 2
-
-_last_finding_signature: str | None = None
-_last_audit_signature: str | None = None
 
 
 def log(msg: str) -> None:
@@ -58,23 +71,18 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def _finding_signature(findings: list) -> str:
-    return json.dumps(sorted(
-        (f["check"], f.get("customer_id"), f.get("year")) for f in findings
-    ))
-
-
-# 2026-07-10 director observation (from_rich_20260710_135317.md): the audit
-# NTFY fired on effectively every single cycle for 21h/49 cycles straight --
-# root cause was this signature keying on (customer_id, period_end), which
-# `run_internal_audit`'s risk-based RANDOM sample (unseeded -- a fresh draw
-# every cycle) is guaranteed to change almost every time, even when the
+# 2026-07-10 director observation (from_rich_20260710_135317.md), and
+# 2026-07-11's follow-up (docs/design/SANITY_TRIAGE_2026_07_11.md): a naive
+# signature keying on (customer_id, period_end) re-fires almost every cycle,
+# since `run_internal_audit`'s risk-based RANDOM sample (unseeded -- a fresh
+# draw every cycle) is guaranteed to change almost every time, even when the
 # underlying finding is the exact same recurring false-positive SHAPE (e.g.
-# "gas billed in kWh" -- correct GB practice, already adjudicated a false
-# positive in BILL_CORRECTNESS_ADDENDUM/CLAUDE.md 2a). Keying on a
-# normalised category instead means a repeat of an already-seen shape on a
-# freshly-sampled customer/date stays silent (R5), while a genuinely new
-# shape of finding still alerts.
+# "gas billed in kWh" -- correct GB practice, adjudicated a false positive,
+# see the triage doc). Categorising alone (this dict) was only a PARTIAL fix
+# -- a small per-cycle sample still draws a different SUBSET of the same
+# known categories each time, so a signature built from that subset still
+# changes cycle to cycle. The real fix is _register_if_new()'s ledger-backed
+# membership check below: durable, not subset-dependent.
 _AUDIT_CATEGORY_RULES = [
     ("gas-kwh-unit", ("gas", "kwh")),
     ("vat-mismatch", ("vat",)),
@@ -90,13 +98,54 @@ def _categorize_audit_note(note: str) -> str:
     return f"other:{note.strip()[:40].lower()}"
 
 
-def _audit_signature(findings: list) -> str:
-    return json.dumps(sorted({_categorize_audit_note(f["note"]) for f in findings}))
+def _population_finding_key(f: dict) -> str:
+    return f"population:{f['check']}:{f.get('customer_id')}:{f.get('year')}"
+
+
+def _audit_finding_key(category: str) -> str:
+    return f"audit:{category}"
+
+
+def _register_if_new(finding_key: str, evidence: str) -> bool:
+    """Auto-register a never-before-seen finding key as 'open' in the
+    durable adjudication ledger and return True (genuinely new -- alert the
+    caller). A key already in the ledger (whatever its state: open,
+    adjudicated-real, or adjudicated-false-positive) is a standing known
+    finding -- returns False, folds into the daily digest instead of
+    repeating a per-cycle NTFY."""
+    if adjudication.is_known(finding_key):
+        return False
+    adjudication.adjudicate(finding_key, "open", evidence, "sanity-daemon (auto-registered)")
+    return True
+
+
+def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
+    """Standing open findings get ONE line in a daily digest, not a 30-min
+    repeat (director's own framing, 2026-07-11: "an alarm that repeats
+    unactionably trains me to ignore all alarms, which kills the immune
+    system."). Fires at most once per UTC calendar date. If a genuinely new
+    finding already triggered its own fresh NTFY this cycle, that satisfies
+    today's notification budget -- skip the digest today rather than
+    immediately following a fresh alert with a redundant summary of the
+    same information."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    last_sent = LAST_DIGEST_DATE_FILE.read_text().strip() if LAST_DIGEST_DATE_FILE.exists() else None
+    if last_sent == today:
+        return
+    if not any_new_this_cycle:
+        open_entries = adjudication.open_findings()
+        if open_entries:
+            lines = "; ".join(e["finding_key"] for e in open_entries[:8])
+            send_ntfy(
+                f"Sanity daemon daily digest: {len(open_entries)} standing open finding(s) -- {lines}"
+                + (" (+ more, see sanity_adjudication_ledger.json)" if len(open_entries) > 8 else "")
+            )
+            log(f"Daily digest sent -- {len(open_entries)} standing open finding(s)")
+    LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    LAST_DIGEST_DATE_FILE.write_text(today)
 
 
 def run_cycle() -> None:
-    global _last_finding_signature, _last_audit_signature
-
     if not RUN_OUTPUT_PATH.is_file():
         log("No run_output_latest.json -- skipping this cycle")
         return
@@ -125,24 +174,23 @@ def run_cycle() -> None:
             pass
 
     findings = run_all_population_checks(bills, data.get("meter_read_log", []), payments)
+    new_findings: list[dict] = []
 
     if not findings:
         log("Clean -- 0 population-sanity findings")
-        _last_finding_signature = _finding_signature([])
     else:
-        signature = _finding_signature(findings)
         log(f"{len(findings)} population-sanity finding(s): " +
             "; ".join(f["detail"] for f in findings[:5]) +
             (" ..." if len(findings) > 5 else ""))
 
-        if signature != _last_finding_signature:
+        new_findings = [f for f in findings if _register_if_new(_population_finding_key(f), f["detail"])]
+        if new_findings:
             send_ntfy(
-                f"Sanity daemon: {len(findings)} population-level finding(s) -- "
-                + "; ".join(f["detail"] for f in findings[:3])
-                + (" (+ more, see sanity-daemon-log.md)" if len(findings) > 3 else "")
+                f"Sanity daemon: {len(new_findings)} NEW population-level finding(s) -- "
+                + "; ".join(f["detail"] for f in new_findings[:3])
+                + (" (+ more, see sanity-daemon-log.md)" if len(new_findings) > 3 else "")
             )
-            log("NTFY sent (new/changed finding set)")
-        _last_finding_signature = signature
+            log(f"NTFY sent ({len(new_findings)} genuinely new finding(s))")
 
     # Phase 6: internal audit sample. Advisory only -- a live run found the
     # Qwen skeptic can produce false positives on numeric consistency
@@ -151,20 +199,23 @@ def run_cycle() -> None:
     # never mistakes a flag for a confirmed defect the way Phase 3's
     # deterministic gate's findings are.
     audit_findings = run_internal_audit(bills, n_samples=AUDIT_SAMPLES_PER_CYCLE)
+    new_categories: list[str] = []
     if not audit_findings:
         log("Internal audit: 0 flagged in this cycle's sample (advisory, small sample)")
-        _last_audit_signature = _audit_signature([])
     else:
-        audit_sig = _audit_signature(audit_findings)
+        categories = sorted({_categorize_audit_note(f["note"]) for f in audit_findings})
         detail = "; ".join(f"{f['customer_id']} ({f['period_end']}): {f['note']}" for f in audit_findings)
         log(f"Internal audit (Qwen skeptic, ADVISORY -- verify before acting): {detail}")
-        if audit_sig != _last_audit_signature:
+        new_categories = [c for c in categories if _register_if_new(_audit_finding_key(c), detail)]
+        if new_categories:
             send_ntfy(
                 "Sanity daemon: internal audit (Qwen skeptic, advisory -- verify before "
-                f"acting, false positives observed) flagged: {detail}"
+                f"acting, false positives observed) flagged a NEW category "
+                f"({', '.join(new_categories)}): {detail}"
             )
-            log("NTFY sent (new/changed audit finding)")
-        _last_audit_signature = audit_sig
+            log(f"NTFY sent (new audit category: {', '.join(new_categories)})")
+
+    _maybe_send_daily_digest(any_new_this_cycle=bool(new_findings) or bool(new_categories))
 
 
 def main() -> None:
@@ -173,7 +224,7 @@ def main() -> None:
         "sanity-daemon", status="idle",
         last_action="Sanity daemon started",
         role="Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
-        produces="sanity-daemon-log.md entries + one NTFY per new/changed finding set",
+        produces="sanity-daemon-log.md entries + one NTFY per genuinely new finding + a daily digest of standing open findings",
     )
     while True:
         try:

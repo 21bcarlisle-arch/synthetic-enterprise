@@ -8,10 +8,11 @@ from company.compliance.population_sanity import (
 )
 
 
-def _bill(cid, period_end, kwh, gbp_per_mwh, segment="resi", commodity="electricity"):
+def _bill(cid, period_end, kwh, gbp_per_mwh, segment="resi", commodity="electricity", days_in_period=30.44):
     return {
         "customer_id": cid, "period_end": period_end, "segment": segment, "commodity": commodity,
         "total_consumption_kwh": kwh, "commodity_amount_gbp": kwh / 1000 * gbp_per_mwh,
+        "days_in_period": days_in_period,
     }
 
 
@@ -29,6 +30,27 @@ def test_consumption_distribution_catches_sme_scale_on_resi_account():
     assert len(findings) == 1
     assert findings[0]["check"] == "consumption_distribution_vs_tdcv"
     assert findings[0]["customer_id"] == "C6"
+
+
+def test_consumption_distribution_skips_partial_year_with_insufficient_coverage():
+    """R10 class fix (2026-07-11 sanity triage, docs/design/
+    SANITY_TRIAGE_2026_07_11.md): a customer whose only billing history in a
+    calendar year is a short stub period (e.g. joining 2 days before year-end)
+    must not be judged against a full-year envelope -- direct regression for
+    the real C1_2 case (128.68 kWh over a 2-day period, correctly NOT an
+    annual-consumption defect once read as a partial period)."""
+    bills = [_bill("C1_2", "2020-12-31", 128.68, 500.0, days_in_period=2)]
+    findings = check_consumption_distribution(bills)
+    assert findings == []
+
+
+def test_consumption_distribution_still_catches_full_year_low_outlier():
+    """The fix must not swallow a genuine full-year implausibility -- only
+    insufficient-coverage years are skipped."""
+    bills = [_bill("C1", f"2024-{m:02d}-28", 10.0, 150.0) for m in range(1, 13)]  # 120 kWh/yr, full year
+    findings = check_consumption_distribution(bills)
+    assert len(findings) == 1
+    assert findings[0]["customer_id"] == "C1"
 
 
 def test_consumption_distribution_ignores_non_resi():

@@ -5,11 +5,7 @@ import json
 import pytest
 
 from background import sanity_daemon
-
-
-def _reset_state():
-    sanity_daemon._last_finding_signature = None
-    sanity_daemon._last_audit_signature = None
+from company.compliance import sanity_adjudication
 
 
 @pytest.fixture(autouse=True)
@@ -21,13 +17,16 @@ def _isolate(tmp_path, monkeypatch):
     # simply skipped, matching the daemon's own graceful-degradation
     # design), never the real repo file.
     monkeypatch.setattr(sanity_daemon, "BILLING_LEDGER_PATH", tmp_path / "billing_ledger.json")
+    # Isolated from the real, committed sanity_adjudication_ledger.json --
+    # every test starts with a genuinely empty ledger (2026-07-11 redesign).
+    monkeypatch.setattr(sanity_adjudication, "LEDGER_PATH", tmp_path / "sanity_adjudication_ledger.json")
+    # Isolated from the real daily-digest date marker.
+    monkeypatch.setattr(sanity_daemon, "LAST_DIGEST_DATE_FILE", tmp_path / ".last_digest_date")
     # Phase 6's internal audit calls a real local Ollama model by default --
     # never let a test hit that network service; default to "nothing
     # flagged" unless a test explicitly overrides this.
     monkeypatch.setattr(sanity_daemon, "run_internal_audit", lambda bills, n_samples=2: [])
-    _reset_state()
     yield
-    _reset_state()
 
 
 def _write_run_output(path, bills=None, meter_read_log=None):
@@ -58,7 +57,7 @@ def test_run_cycle_clean_population_no_ntfy(monkeypatch):
     bills = [
         {"customer_id": "C1", "period_end": f"2024-{m:02d}-28", "segment": "resi",
          "commodity": "electricity", "total_consumption_kwh": 200.0,
-         "commodity_amount_gbp": 200.0 * 150.0 / 1000}
+         "commodity_amount_gbp": 200.0 * 150.0 / 1000, "days_in_period": 30.44}
         for m in range(1, 13)
     ]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills, meter_read_log=[{"status": "actual"}] * 90 + [{"status": "estimated"}] * 10)
@@ -72,7 +71,7 @@ def test_run_cycle_clean_population_no_ntfy(monkeypatch):
 def test_run_cycle_sends_one_ntfy_for_new_findings(monkeypatch):
     bills = [{"customer_id": "C6", "period_end": "2024-01-28", "segment": "resi",
               "commodity": "electricity", "total_consumption_kwh": 50000.0,
-              "commodity_amount_gbp": 50000.0 * 150.0 / 1000}]
+              "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
     monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
@@ -84,7 +83,7 @@ def test_run_cycle_sends_one_ntfy_for_new_findings(monkeypatch):
 def test_run_cycle_does_not_repeat_ntfy_for_unchanged_findings(monkeypatch):
     bills = [{"customer_id": "C6", "period_end": "2024-01-28", "segment": "resi",
               "commodity": "electricity", "total_consumption_kwh": 50000.0,
-              "commodity_amount_gbp": 50000.0 * 150.0 / 1000}]
+              "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
     monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
@@ -97,7 +96,7 @@ def test_run_cycle_does_not_repeat_ntfy_for_unchanged_findings(monkeypatch):
 def test_run_cycle_sends_new_ntfy_when_findings_change(monkeypatch):
     bills = [{"customer_id": "C6", "period_end": "2024-01-28", "segment": "resi",
               "commodity": "electricity", "total_consumption_kwh": 50000.0,
-              "commodity_amount_gbp": 50000.0 * 150.0 / 1000}]
+              "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
     monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
@@ -105,7 +104,7 @@ def test_run_cycle_sends_new_ntfy_when_findings_change(monkeypatch):
 
     bills_changed = bills + [{"customer_id": "C9", "period_end": "2024-02-28", "segment": "resi",
                                "commodity": "gas", "total_consumption_kwh": 90000.0,
-                               "commodity_amount_gbp": 90000.0 * 40.0 / 1000}]
+                               "commodity_amount_gbp": 90000.0 * 40.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills_changed)
     sanity_daemon.run_cycle()
     assert len(calls) == 2
@@ -114,7 +113,7 @@ def test_run_cycle_sends_new_ntfy_when_findings_change(monkeypatch):
 def test_run_cycle_transition_from_findings_back_to_clean_is_silent(monkeypatch):
     bad_bills = [{"customer_id": "C6", "period_end": "2024-01-28", "segment": "resi",
                   "commodity": "electricity", "total_consumption_kwh": 50000.0,
-                  "commodity_amount_gbp": 50000.0 * 150.0 / 1000}]
+                  "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bad_bills)
     calls = []
     monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
@@ -218,6 +217,117 @@ def test_run_cycle_audit_fires_again_for_genuinely_new_category(monkeypatch):
     assert len(calls) == 2
 
 
+def test_run_cycle_audit_does_not_repeat_for_varying_mixed_subsets_of_known_categories(monkeypatch):
+    """The actual 2026-07-11 root cause (docs/design/SANITY_TRIAGE_2026_07_11.md):
+    category normalisation alone was only a PARTIAL fix. A small per-cycle
+    sample (n_samples=2) draws a DIFFERENT combination of the same 3 known
+    categories each cycle -- the prior test above only ever samples ONE
+    category per cycle and so never actually reproduces this. Real symptom:
+    ~70 NTFYs fired over ~70 cycles, confirmed via docs/observability/
+    sanity-daemon-log.md, because a signature built from {gas-kwh-unit} one
+    cycle and {vat-mismatch, high-consumption} the next always looks "new"
+    to a naive set-comparison, even though every individual category in it
+    had already been seen before. The ledger-backed fix must not re-alert
+    for any of these, since gas-kwh-unit/vat-mismatch/high-consumption all
+    become known after their first appearance regardless of which subset
+    a later cycle happens to draw."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    samples = iter([
+        [{"customer_id": "C1g", "period_end": "2020-07-31",
+          "note": "Gas consumption is reported in kWh, which is typically used for electricity, not gas."}],
+        [{"customer_id": "C2", "period_end": "2022-07-31",
+          "note": "The VAT amount does not align with the expected 20% VAT rate."},
+         {"customer_id": "C8", "period_end": "2018-08-31",
+          "note": "This consumption looks extremely high for a residential customer."}],
+        [{"customer_id": "C4g", "period_end": "2021-03-31",
+          "note": "Gas consumption is stated in kWh, which is typically used for electricity, not gas."},
+         {"customer_id": "C9", "period_end": "2023-09-30",
+          "note": "The VAT amount does not align with the expected 20% VAT rate."}],
+        [{"customer_id": "C_IC3", "period_end": "2021-04-30",
+          "note": "This consumption looks extremely high for an I&C customer."}],
+    ])
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: next(samples),
+    )
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1  # cycle 1: gas-kwh-unit is genuinely new
+
+    sanity_daemon.run_cycle()
+    assert len(calls) == 2  # cycle 2: vat-mismatch AND high-consumption are both new
+
+    sanity_daemon.run_cycle()
+    assert len(calls) == 2  # cycle 3: gas-kwh-unit + vat-mismatch -- both ALREADY known, silent
+
+    sanity_daemon.run_cycle()
+    assert len(calls) == 2  # cycle 4: high-consumption again -- already known, silent
+
+
+def test_audit_ledger_persists_across_a_simulated_daemon_restart(monkeypatch):
+    """The other root-cause fix: the ledger is disk-persisted, not an
+    in-memory module global -- a daemon restart must not forget a category
+    was already seen and re-alert on it."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
+                                      "note": "Gas consumption is reported in kWh, not gas."}],
+    )
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1
+
+    # Simulate a process restart: nothing in-memory survives -- but this
+    # module never held any relevant state in memory any more (only the
+    # disk-persisted ledger), so a fresh call must still see it as known.
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1
+
+
+def test_daily_digest_fires_once_for_standing_open_findings_on_a_new_day(monkeypatch):
+    """A standing open finding surfaces as ONE digest line on a later day
+    that has no fresh alert of its own -- not silence forever."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
+                                      "note": "Gas consumption is reported in kWh, not gas."}],
+    )
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1  # fresh alert, digest skipped same day
+
+    # Simulate the next UTC calendar day by clearing the digest-date marker
+    # (equivalent to real wall-clock time actually advancing a day).
+    sanity_daemon.LAST_DIGEST_DATE_FILE.unlink()
+    sanity_daemon.run_cycle()
+    assert len(calls) == 2
+    assert "daily digest" in calls[1].lower()
+    assert "gas-kwh-unit" not in calls[1] or "audit:gas-kwh-unit" in calls[1]
+
+
+def test_daily_digest_does_not_repeat_same_day(monkeypatch):
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
+                                      "note": "Gas consumption is reported in kWh, not gas."}],
+    )
+    sanity_daemon.run_cycle()
+    sanity_daemon.LAST_DIGEST_DATE_FILE.unlink()
+    sanity_daemon.run_cycle()
+    assert len(calls) == 2
+
+    sanity_daemon.run_cycle()  # same day, digest already sent -- silent
+    assert len(calls) == 2
+
+
 def test_categorize_audit_note_buckets_known_false_positive_shapes():
     assert sanity_daemon._categorize_audit_note(
         "Gas consumption is reported in kWh, not gas."
@@ -236,7 +346,7 @@ def test_categorize_audit_note_buckets_known_false_positive_shapes():
 def test_run_cycle_population_and_audit_ntfys_are_independent(monkeypatch):
     bills = [{"customer_id": "C6", "period_end": "2024-01-28", "segment": "resi",
               "commodity": "electricity", "total_consumption_kwh": 50000.0,
-              "commodity_amount_gbp": 50000.0 * 150.0 / 1000}]
+              "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
     monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
