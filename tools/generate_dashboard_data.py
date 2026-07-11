@@ -701,18 +701,60 @@ def extract_management_accounts(data):
     return {"annual": rows}
 
 
+def _final_year_active_ids(data):
+    """The final simulation year's active_customer_ids -- the SAME source
+    population the pulse-strip Book Size (extract_customers()'s book_annual
+    last entry) is counted from. One canonical population, so every
+    count-of-accounts figure on the page reconciles by construction rather
+    than by coincidence (defect 3, ADVISOR_STEER_THESIS_CHART.md)."""
+    years = data.get("years", {})
+    if not years:
+        return []
+    last_yr = sorted(years.keys())[-1]
+    return list(years[last_yr].get("active_customer_ids", []))
+
+
+def _resi_household_ids_from_active(active_ids):
+    """Resi-only, deduplicated household base-IDs from a set of active account
+    legs. Resi filter fixes defect 2 (SME/I&C accounts have no valid DOMESTIC
+    Ofgem allowance and must never load the benchmark); dedup collapses a
+    dual-fuel household's two legs (e.g. C2 + C2g) into one household, since the
+    Ofgem allowance is per dual-fuel household, not per fuel account."""
+    from saas.customers import get_customer
+    from saas.opex_ledger import _household_base_id
+    resi = [
+        cid for cid in active_ids
+        if (get_customer(cid) or {}).get("segment") == "resi"
+    ]
+    return sorted({_household_base_id(cid) for cid in resi})
+
+
 def extract_opex_ledger(data):
     """MARGIN_REALISM Step 3 (B2, Maturity Map): the dual opex ledger --
     TRUE (a+b) cost vs a BENCHMARK-loaded proxy, per saas/opex_ledger.py.
-    Computed fresh from the CUSTOMERS master list + each household's real
-    payment channel, independent of run_output.json's own content, matching
-    this module's existing pattern (extract_customers etc. already do the
-    same for other CUSTOMERS-derived figures)."""
-    from saas.customers import CUSTOMERS as _CUSTS
-    from saas.opex_ledger import build_opex_ledger, _household_base_id
+
+    Population (ADVISOR_STEER_THESIS_CHART.md, defects 2+3, 2026-07-11): RESI
+    households that are ACTIVE IN THE FINAL SIMULATION YEAR, deduplicated to
+    households. This is the resi-only, deduplicated subset of the exact same
+    final-year active_customer_ids population the pulse-strip Book Size is
+    counted from -- so the two page figures reconcile by construction, not by
+    coincidence. It replaces the previous static, all-time, all-segment
+    saas.customers.CUSTOMERS master list, which (a) loaded the DOMESTIC Ofgem
+    benchmark with SME/I&C accounts that have no valid domestic allowance
+    (inflating the benchmark) and (b) counted a different population from the
+    Book Size (the reader-visible 11-vs-13 mismatch)."""
+    from saas.customers import get_customer
+    from saas.opex_ledger import build_opex_ledger
     from simulation.household_segments import payment_channel_for_customer
 
-    households = sorted({_household_base_id(c["customer_id"]) for c in _CUSTS})
+    active_ids = _final_year_active_ids(data)
+    resi_active_ids = [
+        cid for cid in active_ids
+        if (get_customer(cid) or {}).get("segment") == "resi"
+    ]
+    resi_records = [get_customer(cid) for cid in resi_active_ids if get_customer(cid)]
+
+    households = _resi_household_ids_from_active(active_ids)
     channels = {}
     for household in households:
         try:
@@ -720,7 +762,7 @@ def extract_opex_ledger(data):
         except Exception:
             continue  # left unresolved -- build_opex_ledger excludes it from the benchmark side only
 
-    ledger = build_opex_ledger(_CUSTS, channels)
+    ledger = build_opex_ledger(resi_records, channels)
     return {
         "true_third_party_cost_gbp": ledger["true_third_party_cost_gbp"],
         "true_ai_compute_cost_gbp": ledger["true_ai_compute_cost_gbp"],
@@ -730,6 +772,9 @@ def extract_opex_ledger(data):
         "investor_thesis_gap_gbp": ledger["investor_thesis_gap_gbp"],
         "household_count": ledger["household_count"],
         "unresolved_household_count": ledger["unresolved_household_count"],
+        "benchmark_opex_per_household_gbp": ledger["benchmark_opex_per_household_gbp"],
+        "true_opex_per_household_gbp": ledger["true_opex_per_household_gbp"],
+        "population_basis": "resi households active in the final simulation year",
         "note": (
             "TRUE ledger = real third-party costs (DCC comms charge only -- "
             "payment processing/postage/credit-check/debt-collection/Elexon/"
@@ -737,8 +782,13 @@ def extract_opex_ledger(data):
             "(not yet populated -- open costing-basis + director-rate questions, "
             "see PRIORITIES.md). BENCHMARK ledger = Ofgem price-cap 'operating, "
             "debt and industry' allowance per household, netted of the TRUE "
-            "third-party cost to avoid double-counting DCC. The gap between "
-            "them is the investor thesis, not a claim the TRUE ledger is complete."
+            "third-party cost to avoid double-counting DCC. Population = RESI "
+            "households active in the final simulation year (the same population "
+            "the Book Size is counted from); SME/I&C are excluded because the "
+            "Ofgem allowance is a DOMESTIC figure. *_total_gbp fields are book "
+            "sums across households; *_per_household_gbp are the honest "
+            "per-household figures. The gap is the investor thesis, not a claim "
+            "the TRUE ledger is complete."
         ),
     }
 
@@ -1364,6 +1414,8 @@ def generate(run_json_path=None):
     }
 
     consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
+    population_ok = _check_population_consistency(data, dashboard)
+    consistency_ok = consistency_ok and population_ok
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1429,6 +1481,70 @@ def _check_consistency(portfolio, insights, source_file, tolerance_gbp=1.0):
         print(
             "CONSISTENCY GATE FAILED (source={}): {} surface(s) disagree -- {}".format(
                 source_file, len(mismatches), "; ".join(mismatches)
+            ),
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def _check_population_consistency(data, dashboard):
+    """Page-internal POPULATION reconciliation gate (R10 class fix for
+    defect 3, ADVISOR_STEER_THESIS_CHART.md).
+
+    R10 forbids closing an absurdity-class defect with an instance fix: the
+    class here is "two different populations rendered on one page, both called
+    'accounts/households', silently diverging". This gate asserts that EVERY
+    count-of-accounts/households figure on the Front Door derives from the SAME
+    final-year active_customer_ids population, so a future new count that reverts
+    to a different population (e.g. the all-time, all-segment master list, the
+    exact defect-2/3 bug) fails automatically here rather than shipping stale.
+
+    Three assertions against the one canonical population:
+      (1) the pulse-strip Book Size (book_annual last entry, active_elec+gas)
+          equals len(final-year active_customer_ids) -- the book count reconciles
+          to its source population;
+      (2) the opex ledger household_count equals the resi-only, deduplicated
+          household count derived from that SAME final-year population -- the opex
+          count reconciles to the source population, resi-filtered (defect 2);
+      (3) the resi household set is a subset of the full active household set --
+          the opex population is a principled subset of the book population, not a
+          separately-sourced list that merely happens to look plausible.
+    """
+    mismatches = []
+    active_ids = _final_year_active_ids(data)
+
+    book_annual = dashboard.get("customers", {}).get("book_annual", [])
+    if book_annual:
+        last = book_annual[-1]
+        book_legs = last.get("active_elec", 0) + last.get("active_gas", 0)
+        if book_legs != len(active_ids):
+            mismatches.append(
+                "Book Size ({}) != final-year active_customer_ids ({})".format(
+                    book_legs, len(active_ids)
+                )
+            )
+
+    resi_hh = _resi_household_ids_from_active(active_ids)
+    opex_hh = dashboard.get("opex_ledger", {}).get("household_count")
+    if opex_hh is not None and opex_hh != len(resi_hh):
+        mismatches.append(
+            "opex household_count ({}) != resi households in final-year "
+            "active population ({})".format(opex_hh, len(resi_hh))
+        )
+
+    from saas.opex_ledger import _household_base_id
+    all_hh = {_household_base_id(cid) for cid in active_ids}
+    if not set(resi_hh) <= all_hh:
+        mismatches.append(
+            "resi household set {} is not a subset of the final-year active "
+            "household population {}".format(sorted(resi_hh), sorted(all_hh))
+        )
+
+    if mismatches:
+        print(
+            "POPULATION CONSISTENCY GATE FAILED: {} mismatch(es) -- {}".format(
+                len(mismatches), "; ".join(mismatches)
             ),
             file=sys.stderr,
         )

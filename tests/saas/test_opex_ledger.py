@@ -158,6 +158,43 @@ def test_build_opex_ledger_empty_portfolio():
     assert ledger["household_count"] == 0
 
 
+# -- per-household figures (ADVISOR_STEER_THESIS_CHART.md defect 2: the *_total_gbp
+# fields are book SUMS accumulated across households, previously mislabelled as
+# per-household on the Front Door) --
+
+def test_build_opex_ledger_per_household_is_total_over_count():
+    customers = [
+        _cust("C1", "electricity", True),
+        _cust("C2", "electricity", False),
+    ]
+    ledger = build_opex_ledger(customers, {"C1": "direct_debit", "C2": "standard_credit"})
+    assert ledger["household_count"] == 2
+    assert ledger["benchmark_opex_per_household_gbp"] == pytest.approx(
+        ledger["benchmark_opex_total_gbp"] / 2, abs=0.01
+    )
+    assert ledger["true_opex_per_household_gbp"] == pytest.approx(
+        ledger["true_opex_total_gbp"] / 2, abs=0.01
+    )
+
+
+def test_build_opex_ledger_per_household_zero_when_no_households():
+    """Divide-by-zero guard: an empty/fully-unresolved book yields 0.0, not a crash."""
+    ledger = build_opex_ledger([], {})
+    assert ledger["benchmark_opex_per_household_gbp"] == 0.0
+    assert ledger["true_opex_per_household_gbp"] == 0.0
+
+
+def test_build_opex_ledger_per_household_single_household_equals_total():
+    customers = [_cust("C1", "electricity", True)]
+    ledger = build_opex_ledger(customers, {"C1": "direct_debit"})
+    assert ledger["benchmark_opex_per_household_gbp"] == pytest.approx(
+        ledger["benchmark_opex_total_gbp"]
+    )
+    assert ledger["true_opex_per_household_gbp"] == pytest.approx(
+        ledger["true_opex_total_gbp"]
+    )
+
+
 def test_ofgem_allowance_has_no_prepayment_key():
     """This codebase's PaymentChannel enum has no Prepayment variant -- confirms the
     module's own documented scoping choice, not an oversight."""

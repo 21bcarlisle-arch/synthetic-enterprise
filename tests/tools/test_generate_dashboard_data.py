@@ -416,20 +416,75 @@ def test_extract_reputation_counts_events():
 
 
 # -- extract_opex_ledger (MARGIN_REALISM Step 3 / B2) --
+# ADVISOR_STEER_THESIS_CHART.md (defects 2+3, 2026-07-11): the population is now
+# the RESI households ACTIVE IN THE FINAL SIMULATION YEAR (resi-only fixes the
+# domestic-Ofgem-benchmark contamination; final-year active reconciles with the
+# pulse-strip Book Size), not the static all-time, all-segment CUSTOMERS list.
 
-def test_extract_opex_ledger_computes_against_real_customers_master_list():
-    """Independent of run_output.json's own content -- reads saas.customers.CUSTOMERS
-    directly, matching this module's existing pattern for other CUSTOMERS-derived
-    figures (extract_customers etc.)."""
-    result = extract_opex_ledger({})
+def _opex_run_data(active_ids):
+    """A minimal run_output-shaped dict carrying just the final-year active
+    population extract_opex_ledger now reads."""
+    return {"years": {"2025": {"active_customer_ids": list(active_ids)}}}
+
+
+# The final-year active population as it appears in the live run (resi legs
+# C1_2/C2/C2g/C7/C8/C9 dedupe to 5 households; I&C C_IC* excluded).
+_LIVE_FINAL_YEAR_ACTIVE = [
+    "C1_2", "C2", "C2g", "C7", "C8", "C9",
+    "C_IC1", "C_IC2", "C_IC3", "C_IC3g", "C_IC4",
+]
+
+
+def test_extract_opex_ledger_uses_final_year_active_resi_population():
+    result = extract_opex_ledger(_opex_run_data(_LIVE_FINAL_YEAR_ACTIVE))
     assert result["true_opex_total_gbp"] >= 0.0
     assert result["benchmark_opex_total_gbp"] >= 0.0
-    assert result["household_count"] > 0
+    # 5 resi households (C1_2, C2[+C2g], C7, C8, C9); I&C excluded.
+    assert result["household_count"] == 5
+    assert result["population_basis"] == "resi households active in the final simulation year"
     assert "note" in result
 
 
-def test_extract_opex_ledger_investor_thesis_gap_is_positive():
+def test_extract_opex_ledger_excludes_ic_and_sme_from_benchmark():
+    """Defect 2: SME/I&C accounts have no valid DOMESTIC Ofgem allowance and must
+    never load the benchmark. A book of resi + I&C + SME must produce the SAME
+    benchmark as the resi-only subset alone."""
+    resi_only = ["C1_2", "C2", "C2g", "C7", "C8", "C9"]
+    mixed = resi_only + ["C_IC1", "C_IC2", "C_IC3", "C_IC3g", "C_IC4", "C5", "C6"]
+    r_resi = extract_opex_ledger(_opex_run_data(resi_only))
+    r_mixed = extract_opex_ledger(_opex_run_data(mixed))
+    assert r_mixed["household_count"] == r_resi["household_count"] == 5
+    assert r_mixed["benchmark_opex_total_gbp"] == pytest.approx(r_resi["benchmark_opex_total_gbp"])
+    assert r_mixed["true_opex_total_gbp"] == pytest.approx(r_resi["true_opex_total_gbp"])
+
+
+def test_extract_opex_ledger_per_household_figures_are_correct_arithmetic():
+    """Defect 2 (mislabelling): *_total_gbp are book SUMS; the per-household
+    fields must be total / household_count."""
+    result = extract_opex_ledger(_opex_run_data(_LIVE_FINAL_YEAR_ACTIVE))
+    hc = result["household_count"]
+    assert hc == 5
+    assert result["benchmark_opex_per_household_gbp"] == pytest.approx(
+        result["benchmark_opex_total_gbp"] / hc, abs=0.01
+    )
+    assert result["true_opex_per_household_gbp"] == pytest.approx(
+        result["true_opex_total_gbp"] / hc, abs=0.01
+    )
+    # A real domestic incumbent cost-to-serve is a few hundred pounds PER HOUSEHOLD,
+    # not the ~£1.6k book sum.
+    assert 100.0 < result["benchmark_opex_per_household_gbp"] < 500.0
+
+
+def test_extract_opex_ledger_empty_population_no_crash():
+    """No years / empty active set -> zeroed figures, never a divide-by-zero."""
     result = extract_opex_ledger({})
+    assert result["household_count"] == 0
+    assert result["benchmark_opex_per_household_gbp"] == 0.0
+    assert result["true_opex_per_household_gbp"] == 0.0
+
+
+def test_extract_opex_ledger_investor_thesis_gap_is_positive():
+    result = extract_opex_ledger(_opex_run_data(_LIVE_FINAL_YEAR_ACTIVE))
     assert result["investor_thesis_gap_gbp"] == pytest.approx(
         result["benchmark_opex_total_gbp"] - result["true_opex_total_gbp"]
     )
@@ -439,8 +494,52 @@ def test_extract_opex_ledger_investor_thesis_gap_is_positive():
 def test_extract_opex_ledger_ai_compute_not_yet_populated():
     """Real, unresolved open design questions -- must stay 0.0, never silently
     fabricated (R12)."""
-    result = extract_opex_ledger({})
+    result = extract_opex_ledger(_opex_run_data(_LIVE_FINAL_YEAR_ACTIVE))
     assert result["true_ai_compute_cost_gbp"] == 0.0
+
+
+# -- Population consistency gate (R10 class fix, defect 3) --
+
+def _dashboard_for_population_gate(active_ids, book_legs, opex_household_count):
+    """Assemble the two page surfaces the population gate reconciles: the
+    pulse-strip Book Size (book_annual last entry) and the opex household count."""
+    elec = [c for c in active_ids if not c.endswith("g")]
+    gas = [c for c in active_ids if c.endswith("g")]
+    # book_legs lets a test deliberately break the Book-Size-vs-source assertion.
+    return {
+        "customers": {"book_annual": [
+            {"year": 2025, "active_elec": len(elec), "active_gas": len(gas)},
+        ]},
+        "opex_ledger": {"household_count": opex_household_count},
+    }
+
+
+def test_population_gate_passes_when_figures_reconcile():
+    from tools.generate_dashboard_data import _check_population_consistency
+    data = _opex_run_data(_LIVE_FINAL_YEAR_ACTIVE)
+    dashboard = _dashboard_for_population_gate(_LIVE_FINAL_YEAR_ACTIVE, None, 5)
+    assert _check_population_consistency(data, dashboard) is True
+
+
+def test_population_gate_catches_all_time_master_list_regression():
+    """The exact defect-2/3 bug: opex household_count reverts to the all-time,
+    all-segment master-list count (13) instead of the 5 resi households active in
+    the final year. The gate MUST fail -- a real regression test, not happy-path."""
+    from tools.generate_dashboard_data import _check_population_consistency
+    data = _opex_run_data(_LIVE_FINAL_YEAR_ACTIVE)
+    dashboard = _dashboard_for_population_gate(_LIVE_FINAL_YEAR_ACTIVE, None, 13)
+    assert _check_population_consistency(data, dashboard) is False
+
+
+def test_population_gate_catches_book_size_diverging_from_source():
+    """If the Book Size count stops reconciling to the final-year active
+    population it was supposedly counted from, the gate fails."""
+    from tools.generate_dashboard_data import _check_population_consistency
+    data = _opex_run_data(_LIVE_FINAL_YEAR_ACTIVE)
+    dashboard = _dashboard_for_population_gate(_LIVE_FINAL_YEAR_ACTIVE, None, 5)
+    # Corrupt the Book Size so elec+gas no longer equals the 11 active legs.
+    dashboard["customers"]["book_annual"][-1]["active_elec"] = 99
+    assert _check_population_consistency(data, dashboard) is False
 
 
 # -- B2_OPEX_TAXONOMY_EXPANSION.md: extract_b2_taxonomy() --

@@ -147,6 +147,13 @@ def build_opex_ledger(
       household_count (resi households resolved to a known payment channel -- households
         with no resolvable channel are excluded from the benchmark side only, not the
         true side, and logged via unresolved_household_count).
+      benchmark_opex_per_household_gbp / true_opex_per_household_gbp (the per-household
+        figures the Front Door thesis chart actually reads -- total / household_count,
+        0.0 when household_count is 0. These exist because the *_total_gbp fields are
+        book SUMS accumulated across households, and were previously mislabelled as
+        per-household on the homepage; a real UK domestic supplier's incumbent
+        cost-to-serve is a few hundred pounds PER HOUSEHOLD, which only the
+        per-household figure honestly shows).
     """
     true_third_party_total = 0.0
     true_ai_compute_total = 0.0
@@ -175,6 +182,18 @@ def build_opex_ledger(
     true_opex_total = true_third_party_total + true_ai_compute_total
     benchmark_opex_total = benchmark_labour_total
 
+    # Per-household figures -- the *_total_gbp fields above are SUMS accumulated
+    # across every household, so dividing by the resolved household count is the
+    # only honest way to render a "per household" number. Guarded against
+    # divide-by-zero (empty/fully-unresolved book -> 0.0, not a crash).
+    per_hh_denom = resolved_household_count or 0
+    benchmark_opex_per_household = (
+        benchmark_opex_total / per_hh_denom if per_hh_denom else 0.0
+    )
+    true_opex_per_household = (
+        true_opex_total / per_hh_denom if per_hh_denom else 0.0
+    )
+
     return {
         "true_third_party_cost_gbp": round(true_third_party_total, 2),
         "true_ai_compute_cost_gbp": round(true_ai_compute_total, 2),
@@ -184,6 +203,8 @@ def build_opex_ledger(
         "investor_thesis_gap_gbp": round(benchmark_opex_total - true_opex_total, 2),
         "household_count": resolved_household_count,
         "unresolved_household_count": unresolved_household_count,
+        "benchmark_opex_per_household_gbp": round(benchmark_opex_per_household, 2),
+        "true_opex_per_household_gbp": round(true_opex_per_household, 2),
     }
 
 
