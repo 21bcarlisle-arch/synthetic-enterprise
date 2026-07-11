@@ -111,6 +111,14 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### E1 Corporation Tax triplet surfaced on the Accounts table (2026-07-11, E1 ledger Expert Hour finding, SPIKE_WEEKEND harden sweep)
+
+An Expert Hour simulation against `E1_ledger_double_entry` found the UK Corporation Tax triplet (`profit_before_tax_gbp`/`corporation_tax_gbp`/`profit_for_year_gbp`) was correctly computed by `company/finance/double_entry.py::income_statement()` when called with a `year`, and genuinely present in `run_output_latest.json`'s `management_accounts` block for every real year -- but `tools/generate_dashboard_data.py::extract_management_accounts()` never extracted the three fields, so they never reached `dashboard.json` or any business surface. A real "evidence lands on business surfaces, not specs" gap (CLAUDE.md rule 0b), not a computation bug — the mechanism built on 2026-07-10 (`E1_CORPORATION_TAX_FINDING.md`) was sound throughout.
+
+Fixed: `extract_management_accounts()` now passes through all three fields, None-safe (never silently defaulted to 0 when a pre-existing no-year call site produced no CT data). `site/supplier/index.html`'s Annual P&L table (`renderAccounts()`) gained "Corp Tax" and "Profit for Year" columns, with the existing "Net" column relabelled "Net (PBT)" and a descriptive note distinguishing pre-tax from post-tax profit. Verified end-to-end with a local regeneration of `dashboard.json` against real figures: 2025 PBT £470,392.87, tax £117,598.22 (=25.0%, the real post-April-2023 main rate), post-tax £352,794.65; 2016 PBT £6,477.33, tax £1,230.69 (=19.0%, the real pre-2023 flat rate), post-tax £5,246.64 -- both rates arithmetically exact, confirming `uk_corporation_tax_gbp()`'s real-rate logic end-to-end for the first time on a rendered surface. `E1_ledger_double_entry`'s `expert_hour.status` marked `passed` in `docs/design/maturity_map.yaml`.
+
+3 new tests (`tests/tools/test_generate_dashboard_mgmt.py`), 16,724 tests collected (full suite), epistemic PASS.
+
 ### SLC25C fix, B2 opex taxonomy expansion, Operations KPI trio, Epoch-2 bounded start, harness items 2/3 (2026-07-10, self-caught documentation gap -- consolidated entry for a long unlogged stretch, flagged by a fresh-context phase-close-evaluator review of the most recent commit rather than caught proactively)
 
 Multiple real phases landed this session without their required PROJECT_OVERVIEW.md Section 4/10 entries (phase-close checklist rules 1/2) -- caught retroactively, consolidated here rather than back-dated into individually-titled entries that would misrepresent when they actually landed.
@@ -6861,7 +6869,8 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,675 tests collected (full suite) -- consolidated retroactive entry (SLC25C fix, B2 opex
+- 16,724 tests collected (full suite) -- E1 Corporation Tax triplet surfaced on the Accounts
+  table (see Section 4's E1 entry), on top of the prior consolidated entry (SLC25C fix, B2 opex
   taxonomy, Operations KPI trio, staging-watcher bounded retry, bill-shock research + YoY
   redesign + phase-close-evaluator-found regression tests, Epoch-2 bounded start, harness items
   2/3 -- see Section 4's consolidated entry for the full list), on top of the prior 16,487 tests

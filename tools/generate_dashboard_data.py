@@ -649,6 +649,16 @@ def extract_management_accounts(data):
         stmt = ma[yr].get("income_statement", {})
         rev = _fmt(stmt.get("revenue_gbp", 0))
         net = _fmt(stmt.get("net_margin_gbp", 0))
+        # E1 Corporation Tax triplet (docs/design/E1_CORPORATION_TAX_FINDING.md) -- computed in
+        # company/finance/double_entry.py::income_statement() since 2026-07-10, but never
+        # extracted here until a 2026-07-11 HARDEN-sweep Expert Hour found it missing from every
+        # business surface (real UK statutory accounts always headline post-tax "Profit for the
+        # Financial Year" with Corporation Tax as its own line -- a real legibility gap, not a
+        # substance one). None for years before the triplet existed / if genuinely absent --
+        # never defaulted to 0, which would misrepresent a real "not computed" as "no tax due".
+        profit_before_tax = stmt.get("profit_before_tax_gbp")
+        corporation_tax = stmt.get("corporation_tax_gbp")
+        profit_for_year = stmt.get("profit_for_year_gbp")
         rows.append({
             "year": int(yr),
             "revenue_gbp": rev,
@@ -663,6 +673,9 @@ def extract_management_accounts(data):
             "total_opex_gbp": _fmt(stmt.get("total_opex_gbp", 0)),
             "net_margin_gbp": net,
             "net_margin_pct": round(net / rev * 100, 2) if rev > 0 else 0.0,
+            "profit_before_tax_gbp": _fmt(profit_before_tax) if profit_before_tax is not None else None,
+            "corporation_tax_gbp": _fmt(corporation_tax) if corporation_tax is not None else None,
+            "profit_for_year_gbp": _fmt(profit_for_year) if profit_for_year is not None else None,
         })
     return {"annual": rows}
 

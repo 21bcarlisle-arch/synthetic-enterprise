@@ -6,13 +6,13 @@ from tools.generate_dashboard_data import extract_management_accounts
 
 def _make_data(years_range=(2016, 2018), rev=500000.0, wholesale=300000.0,
                non_comm=50000.0, capital=20000.0, bad_debt=5000.0,
-               cts=10000.0, fixed=15000.0, acq=8000.0):
+               cts=10000.0, fixed=15000.0, acq=8000.0, ct_triplet=None):
     gross = rev - wholesale - non_comm
     total_opex = capital + bad_debt + cts + fixed + acq
     net = gross - total_opex
     ma = {}
     for yr in range(years_range[0], years_range[1] + 1):
-        ma[str(yr)] = {"income_statement": {
+        stmt = {
             "revenue_gbp": rev,
             "wholesale_cost_gbp": wholesale,
             "non_commodity_cost_gbp": non_comm,
@@ -24,7 +24,10 @@ def _make_data(years_range=(2016, 2018), rev=500000.0, wholesale=300000.0,
             "acquisition_spend_gbp": acq,
             "total_opex_gbp": total_opex,
             "net_margin_gbp": net,
-        }}
+        }
+        if ct_triplet is not None:
+            stmt.update(ct_triplet)
+        ma[str(yr)] = {"income_statement": stmt}
     return {"management_accounts": ma}
 
 
@@ -35,9 +38,45 @@ def test_extract_mgmt_accounts_keys():
     expected = ["year", "revenue_gbp", "wholesale_cost_gbp", "non_commodity_cost_gbp",
                 "gross_margin_gbp", "capital_cost_gbp", "bad_debt_gbp",
                 "cost_to_serve_gbp", "fixed_cost_gbp", "acquisition_spend_gbp",
-                "total_opex_gbp", "net_margin_gbp", "net_margin_pct"]
+                "total_opex_gbp", "net_margin_gbp", "net_margin_pct",
+                "profit_before_tax_gbp", "corporation_tax_gbp", "profit_for_year_gbp"]
     for k in expected:
         assert k in row, f"missing key: {k}"
+
+
+def test_extract_mgmt_accounts_ct_triplet_none_when_absent():
+    """E1 Corporation Tax triplet (2026-07-11 HARDEN-sweep Expert Hour finding): must be
+    None, not silently defaulted to 0, when the source income_statement never computed it
+    (e.g. income_statement() called without a year -- the pre-existing, still-valid case)."""
+    result = extract_management_accounts(_make_data())
+    row = result["annual"][0]
+    assert row["profit_before_tax_gbp"] is None
+    assert row["corporation_tax_gbp"] is None
+    assert row["profit_for_year_gbp"] is None
+
+
+def test_extract_mgmt_accounts_ct_triplet_present_when_computed():
+    data = _make_data(ct_triplet={
+        "profit_before_tax_gbp": 470392.87,
+        "corporation_tax_gbp": 117598.22,
+        "profit_for_year_gbp": 352794.65,
+    })
+    row = extract_management_accounts(data)["annual"][0]
+    assert row["profit_before_tax_gbp"] == pytest.approx(470392.87)
+    assert row["corporation_tax_gbp"] == pytest.approx(117598.22)
+    assert row["profit_for_year_gbp"] == pytest.approx(352794.65)
+
+
+def test_extract_mgmt_accounts_profit_for_year_is_after_tax():
+    data = _make_data(ct_triplet={
+        "profit_before_tax_gbp": 100000.0,
+        "corporation_tax_gbp": 19000.0,
+        "profit_for_year_gbp": 81000.0,
+    })
+    row = extract_management_accounts(data)["annual"][0]
+    assert row["profit_for_year_gbp"] == pytest.approx(
+        row["profit_before_tax_gbp"] - row["corporation_tax_gbp"]
+    )
 
 
 def test_extract_mgmt_accounts_annual_length():

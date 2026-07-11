@@ -826,6 +826,16 @@ function renderAccounts() {
   var rows = ma.map(function(r) {
     var crisis = (r.year === 2021 || r.year === 2022) ? ' style="background:rgba(250,178,25,.08)"' : '';
     var netCls = r.net_margin_gbp >= 0 ? 'pos' : 'neg';
+    // E1 Corporation Tax triplet (2026-07-11 HARDEN-sweep Expert Hour finding): profit_before_tax_gbp
+    // is always identical to net_margin_gbp when computed (same pre-tax operating profit, just named
+    // to match real UK statutory-accounts convention) -- shown here as the two NEW post-tax columns
+    // real UK statutory accounts always headline (Corporation Tax as its own line, then "Profit for
+    // the Financial Year"). None (pre-2026-07-10 runs, or income_statement() called without a year)
+    // renders as an em-dash, never a fabricated £0.
+    var hasCT = r.corporation_tax_gbp !== null && r.corporation_tax_gbp !== undefined;
+    var ctCell = hasCT ? gbp(r.corporation_tax_gbp) : '—';
+    var pfyCls = hasCT ? (r.profit_for_year_gbp >= 0 ? 'pos' : 'neg') : '';
+    var pfyCell = hasCT ? gbp(r.profit_for_year_gbp) : '—';
     return '<tr' + crisis + '>' +
       '<td>' + r.year + (r.year===2022?'<span class="badge-crisis"> CRISIS</span>':'') + '</td>' +
       '<td>' + gbp(r.revenue_gbp) + '</td>' +
@@ -839,6 +849,8 @@ function renderAccounts() {
       '<td class="neg">' + gbp(r.acquisition_spend_gbp) + '</td>' +
       '<td class="' + netCls + '">' + gbp(r.net_margin_gbp) + '</td>' +
       '<td class="' + netCls + '">' + r.net_margin_pct.toFixed(1) + '%</td>' +
+      '<td class="neg">' + ctCell + '</td>' +
+      '<td class="' + pfyCls + '">' + pfyCell + '</td>' +
       '</tr>';
   }).join('');
 
@@ -846,9 +858,13 @@ function renderAccounts() {
     '<div class="chart-box"><div class="chart-title">Cost Stack vs Revenue (2016-2025)</div>' +
     '<div class="chart-wrap tall"><canvas id="ch-acct-stack"></canvas></div></div>' +
     '<div class="tbl-box"><div class="tbl-title">Annual Management Accounts — P&amp;L Waterfall</div>' +
+    '<p style="color:var(--muted);font-size:.85rem;margin:0 0 .5rem">"Net" is pre-tax operating ' +
+    'profit (Profit Before Tax); Corporation Tax and Profit for the Year are UK real-rate figures ' +
+    '(19% flat pre-April 2023, then 19%/25%/marginal relief) -- "—" where not yet computed for that year.</p>' +
     '<div style="overflow-x:auto"><table>' +
     '<tr><th>Year</th><th>Revenue</th><th>Wholesale</th><th>NonComm</th><th>Gross</th>' +
-    '<th>Capital</th><th>Bad Debt</th><th>CTS</th><th>Fixed</th><th>Acq</th><th>Net</th><th>Net%</th></tr>' +
+    '<th>Capital</th><th>Bad Debt</th><th>CTS</th><th>Fixed</th><th>Acq</th><th>Net (PBT)</th><th>Net%</th>' +
+    '<th>Corp Tax</th><th>Profit for Year</th></tr>' +
     rows + '</table></div></div>';
 
   mkChart('ch-acct-stack', {
