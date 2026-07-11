@@ -1,3 +1,8 @@
+> **STATUS (2026-07-11):** Registered in PRIORITIES.md item 8 (backlog, Lane H).
+> BLOCKED on Rich creating the private synthetic-enterprise-ops repo + extending
+> PAT access (two manual director clicks) -- nothing to build until then. Move
+> to done/ once the repo exists and the hook is built + DoD met.
+
 # DIRECTOR_INPUT_LOG — unified log of every director input, every channel (P2)
 
 **Staged:** 2026-07-11 by advisor, director-proposed ("a log of everything I
