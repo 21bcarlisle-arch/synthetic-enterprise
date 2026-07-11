@@ -41,7 +41,13 @@ from simulation.arrears_engine import (
     _ON_TIME_PROB,
     _LATE_DAYS,
 )
-from company.billing.pre_bill_validation import validate_bills, exception_queue_as_dicts
+from company.billing.pre_bill_validation import (
+    validate_bills,
+    exception_queue_as_dicts,
+    validate_rendered_bill_reads,
+    BillValidationResult,
+    ValidationOutcome,
+)
 
 PROJECT = Path(__file__).parent.parent
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -139,6 +145,7 @@ def generate(run_json_path=None, out_path=None):
         return result
 
     rng = random.Random(42)
+    held_reads: list[BillValidationResult] = []
     invoices_by_cid = {}
     payments_by_cid = {}
     arrears_by_cid = {}
@@ -183,13 +190,30 @@ def generate(run_json_path=None, out_path=None):
         closing_read_kwh = opening_read_kwh + register_consumption_kwh
         running_closing_read[read_key] = closing_read_kwh
 
+        # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1 (2026-07-11), R10 class fix:
+        # the DISPLAYED billed usage is derived from the already-rounded
+        # displayed reads, NOT an independent round() of the raw total -- so
+        # `billed_kwh == closing_read - opening_read` holds exactly as printed,
+        # by construction. (Previously opening/closing/usage were each rounded
+        # independently from the same full-precision source, and compounding
+        # those three roundings produced the director's observed 331.1-vs-331.2
+        # kWh mismatch.) This also reconciles ESTIMATED bills on-screen (whose
+        # register advances by the estimate): the usage line now equals the
+        # printed estimated reads' difference. Residual, flagged separately for
+        # the estimation/amount layer: an estimated bill's commodity amount is
+        # still computed upstream on TRUE consumption, so its derived unit rate
+        # diverges from the tariff -- a bill-amount concern out of scope here.
+        opening_read_rounded = round(opening_read_kwh, 1)
+        closing_read_rounded = round(closing_read_kwh, 1)
+        displayed_consumption_kwh = round(closing_read_rounded - opening_read_rounded, 1)
+
         inv = {
             "invoice_number": invoice_number,
             "customer_id": cid,
             "period_start": bill["period_start"],
             "period_end": period_end,
             "commodity": commodity,
-            "consumption_kwh": round(bill.get("total_consumption_kwh", 0), 1),
+            "consumption_kwh": displayed_consumption_kwh,
             "commodity_amount_gbp": round(bill.get("commodity_amount_gbp", 0), 2),
             "non_commodity_amount_gbp": round(bill.get("non_commodity_amount_gbp", 0), 2),
             "standing_charge_gbp": round(bill.get("standing_charge_gbp", 0), 2),
@@ -205,8 +229,8 @@ def generate(run_json_path=None, out_path=None):
             "mpan": _mpan(cid) if commodity == "electricity" else None,
             "mprn": _mprn(cid) if commodity == "gas" else None,
             "read_type": read_type,
-            "opening_read_kwh": round(opening_read_kwh, 1),
-            "closing_read_kwh": round(closing_read_kwh, 1),
+            "opening_read_kwh": opening_read_rounded,
+            "closing_read_kwh": closing_read_rounded,
         }
         # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): consumption
         # structured as a list of registers/periods, not one flat line --
@@ -221,6 +245,25 @@ def generate(run_json_path=None, out_path=None):
             "consumption_kwh": inv["consumption_kwh"],
             "amount_gbp": inv["commodity_amount_gbp"],
         }]
+
+        # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1, R10 class-level gate:
+        # a rendered bill whose usage line does not reconcile with its printed
+        # meter reads is a Tier-1 billing-accuracy failure -- HELD to the
+        # exception queue, never issued (same zero-tolerance treatment as the
+        # VAT/consumption pre-bill checks). By construction of
+        # displayed_consumption_kwh above this never fires in normal operation;
+        # it is the standing guard that catches any future reintroduction of
+        # the compounding-rounding bug or a bad reads/usage data source. A held
+        # bill has no payment/arrears recorded and does not consume an invoice
+        # number (register already advanced -- the meter physically moved).
+        reads_reasons = validate_rendered_bill_reads(inv)
+        if reads_reasons:
+            held_reads.append(BillValidationResult(
+                customer_id=cid, period_end=period_end,
+                outcome=ValidationOutcome.HELD, reasons=reads_reasons,
+            ))
+            continue
+
         invoices_by_cid.setdefault(cid, []).append(inv)
 
         payment_date = due_date + timedelta(days=days_late)
@@ -262,6 +305,31 @@ def generate(run_json_path=None, out_path=None):
 
         invoice_number += 1
 
+    # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 2 (2026-07-11): an invoice whose
+    # arrears case reaches WRITTEN_OFF on or before the book's reference date
+    # ("today" == the latest issue_date across the whole ledger, the identical
+    # as_of tools.generate_payment_ledger_data uses) is a real credit-loss
+    # event, not still-outstanding debt. Its per-invoice payment_status must
+    # say so ("written_off"), otherwise the household ledger correctly zeroes
+    # the balance via total_written_off_gross_gbp while the per-bill
+    # "Outstanding" sum keeps counting it as owed -- exactly the settled-vs-
+    # outstanding contradiction the director saw on C1's portal (the write-off
+    # is a household-ledger-level event that was never propagated back to the
+    # individual invoice record). Point-in-time honesty preserved: a write-off
+    # dated AFTER the book date has not happened yet, so that invoice stays
+    # overdue and legitimately counts as outstanding.
+    all_issue_dates = [inv["issue_date"] for invs in invoices_by_cid.values() for inv in invs]
+    book_as_of = max(all_issue_dates) if all_issue_dates else None
+    if book_as_of is not None:
+        for cid, arrs in arrears_by_cid.items():
+            inv_by_num = {inv["invoice_number"]: inv for inv in invoices_by_cid.get(cid, [])}
+            for arr in arrs:
+                wo = next((s for s in arr["stages"] if s["stage"] == "WRITTEN_OFF"), None)
+                if wo is not None and wo["date"] <= book_as_of:
+                    inv = inv_by_num.get(arr["invoice_number"])
+                    if inv is not None:
+                        inv["payment_status"] = "written_off"
+
     customers = {}
     for cid in sorted(invoices_by_cid):
         invs = invoices_by_cid[cid]
@@ -283,15 +351,17 @@ def generate(run_json_path=None, out_path=None):
             "arrears_history": arrs,
         }
 
+    all_held = list(held_bills) + held_reads
     result = {
         "meta": {
             "source_json": str(run_json_path),
             "invoice_count": invoice_number - 1,
             "customer_count": len(customers),
-            "held_bill_count": len(held_bills),
+            "held_bill_count": len(all_held),
+            "held_reads_reconciliation_count": len(held_reads),
         },
         "customers": customers,
-        "exception_queue": exception_queue_as_dicts(held_bills),
+        "exception_queue": exception_queue_as_dicts(all_held),
     }
 
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)

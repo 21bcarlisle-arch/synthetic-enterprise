@@ -873,7 +873,15 @@ function renderBills(d){
   var btns="<div class=\"year-btns\"><button class=\"year-btn"+((!BILL_YEAR)?" yactive":"")+"\" onclick=\"filterBillYear(null)\">All</button>"+
     years.map(function(y){return "<button class=\"year-btn"+(BILL_YEAR===y?" yactive":"")+"\" onclick=\"filterBillYear('"+y+"')\">"+y+"</button>";}).join("")+"</div>";
   var total=0,unpaid=0;
-  filtered.forEach(function(i){total+=i.amount_gbp;if(i.status!=="PAID")unpaid+=i.amount_gbp;});
+  // ADVISOR_STEER_BILL_ARITHMETIC.md Defect 2: a WRITTEN_OFF invoice is a
+  // realised credit loss, not outstanding debt -- excluded from the per-bill
+  // "Outstanding" sum so this figure reconciles with the household ledger's
+  // current_balance_gbp (which already nets written-off debt to zero via
+  // total_written_off_gross_gbp). Previously any non-PAID status counted here,
+  // so a written-off bill showed as still owed alongside the header's
+  // "Account settled to zero (net of ... written off)" -- a same-page
+  // contradiction.
+  filtered.forEach(function(i){total+=i.amount_gbp;if(i.status!=="PAID"&&i.status!=="WRITTEN_OFF")unpaid+=i.amount_gbp;});
   var summary="<div class=\"bill-sum\">"+
     "<div class=\"bill-kpi\"><div style=\"color:var(--muted);font-size:11px\">Total ("+filtered.length+" bills)</div>"+
     "<div class=\"bill-kv\">"+gbp(total)+"</div></div>"+
@@ -881,8 +889,9 @@ function renderBills(d){
     "</div>";
   var list=filtered.length
     ?filtered.slice().reverse().map(function(i){
-        var c=i.status==="PAID"?"muted":i.status==="DISPUTED"?"red":"amber";
-        var row="<div class=\"row\" style=\"cursor:pointer\" onclick=\"toggleBillExpand('"+i.id+"')\"><span class=\"rl\">"+i.date+"</span><span>"+gbp(i.amount_gbp)+"</span><span class=\""+c+"\">"+i.status+"</span></div>";
+        var c=i.status==="PAID"?"muted":i.status==="DISPUTED"?"red":i.status==="WRITTEN_OFF"?"muted":"amber";
+        var statusLabel=i.status==="WRITTEN_OFF"?"WRITTEN OFF":i.status;
+        var row="<div class=\"row\" style=\"cursor:pointer\" onclick=\"toggleBillExpand('"+i.id+"')\"><span class=\"rl\">"+i.date+"</span><span>"+gbp(i.amount_gbp)+"</span><span class=\""+c+"\">"+statusLabel+"</span></div>";
         if(EXPANDED_BILL_ID===i.id)row+=billExpandHtml(i,invoices);
         return row;
       }).join("")

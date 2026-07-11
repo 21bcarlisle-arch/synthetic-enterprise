@@ -24,7 +24,14 @@ RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 LEDGER_PATH = PROJECT / "site" / "state" / "billing_ledger.json"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
-_STATUS_MAP = dict(paid="PAID", overdue="UNPAID", disputed="DISPUTED")
+# ADVISOR_STEER_BILL_ARITHMETIC.md Defect 2 (2026-07-11): a written-off invoice
+# is labelled WRITTEN_OFF, not silently defaulted to PAID (masking a credit
+# loss as if collected) nor left as UNPAID/overdue (double-counting it as
+# still-outstanding against a household ledger that has already zeroed it via
+# total_written_off_gross_gbp). generate_billing_ledger sets payment_status=
+# "written_off" for any invoice whose arrears reached WRITTEN_OFF by the book
+# reference date.
+_STATUS_MAP = dict(paid="PAID", overdue="UNPAID", disputed="DISPUTED", written_off="WRITTEN_OFF")
 
 
 def _real_invoice(inv):

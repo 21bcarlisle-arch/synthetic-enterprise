@@ -239,7 +239,7 @@
       "period_start": "2016-03-01",
       "period_end": "2016-03-31",
       "commodity": "electricity",
-      "consumption_kwh": 453.1,
+      "consumption_kwh": 453.0,
       "unit_rate_p_per_kwh": 12.08,
       "commodity_amount_gbp": 54.73,
       "standing_charge_gbp": 7.43,
@@ -259,7 +259,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 453.1,
+          "consumption_kwh": 453.0,
           "amount_gbp": 54.73
         }
       ]
@@ -301,7 +301,7 @@
       "period_start": "2016-05-01",
       "period_end": "2016-05-31",
       "commodity": "electricity",
-      "consumption_kwh": 346.7,
+      "consumption_kwh": 346.8,
       "unit_rate_p_per_kwh": 11.77,
       "commodity_amount_gbp": 40.82,
       "standing_charge_gbp": 7.44,
@@ -321,7 +321,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 346.7,
+          "consumption_kwh": 346.8,
           "amount_gbp": 40.82
         }
       ]
@@ -372,7 +372,7 @@
       "non_commodity_amount_gbp": 17.26,
       "vat_gbp": 3.17,
       "amount_gbp": 66.56,
-      "status": "UNPAID",
+      "status": "WRITTEN_OFF",
       "meter_serial": "M00040331",
       "mpan": "1000000000116",
       "mprn": null,
@@ -496,7 +496,7 @@
       "non_commodity_amount_gbp": 23.68,
       "vat_gbp": 4.3,
       "amount_gbp": 90.2,
-      "status": "UNPAID",
+      "status": "WRITTEN_OFF",
       "meter_serial": "M00040331",
       "mpan": "1000000000116",
       "mprn": null,
@@ -518,7 +518,7 @@
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
       "commodity": "electricity",
-      "consumption_kwh": 470.4,
+      "consumption_kwh": 470.5,
       "unit_rate_p_per_kwh": 12.03,
       "commodity_amount_gbp": 56.6,
       "standing_charge_gbp": 7.44,
@@ -538,7 +538,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 470.4,
+          "consumption_kwh": 470.5,
           "amount_gbp": 56.6
         }
       ]
@@ -549,8 +549,8 @@
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
       "commodity": "electricity",
-      "consumption_kwh": 471.3,
-      "unit_rate_p_per_kwh": 13.5,
+      "consumption_kwh": 436.1,
+      "unit_rate_p_per_kwh": 14.59,
       "commodity_amount_gbp": 63.61,
       "standing_charge_gbp": 7.75,
       "days_in_period": 31,
@@ -569,7 +569,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 471.3,
+          "consumption_kwh": 436.1,
           "amount_gbp": 63.61
         }
       ]
@@ -611,8 +611,8 @@
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
       "commodity": "electricity",
-      "consumption_kwh": 449.7,
-      "unit_rate_p_per_kwh": 13.58,
+      "consumption_kwh": 450.4,
+      "unit_rate_p_per_kwh": 13.56,
       "commodity_amount_gbp": 61.07,
       "standing_charge_gbp": 7.74,
       "days_in_period": 31,
@@ -631,7 +631,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 449.7,
+          "consumption_kwh": 450.4,
           "amount_gbp": 61.07
         }
       ]
@@ -735,7 +735,7 @@
       "period_start": "2017-07-01",
       "period_end": "2017-07-31",
       "commodity": "electricity",
-      "consumption_kwh": 330.3,
+      "consumption_kwh": 330.2,
       "unit_rate_p_per_kwh": 13.12,
       "commodity_amount_gbp": 43.33,
       "standing_charge_gbp": 7.75,
@@ -755,7 +755,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 330.3,
+          "consumption_kwh": 330.2,
           "amount_gbp": 43.33
         }
       ]
@@ -797,8 +797,8 @@
       "period_start": "2017-09-01",
       "period_end": "2017-09-30",
       "commodity": "electricity",
-      "consumption_kwh": 358.7,
-      "unit_rate_p_per_kwh": 13.32,
+      "consumption_kwh": 326.8,
+      "unit_rate_p_per_kwh": 14.62,
       "commodity_amount_gbp": 47.77,
       "standing_charge_gbp": 7.5,
       "days_in_period": 30,
@@ -817,7 +817,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 358.7,
+          "consumption_kwh": 326.8,
           "amount_gbp": 47.77
         }
       ]
@@ -828,7 +828,7 @@
       "period_start": "2017-10-01",
       "period_end": "2017-10-31",
       "commodity": "electricity",
-      "consumption_kwh": 385.5,
+      "consumption_kwh": 385.4,
       "unit_rate_p_per_kwh": 13.35,
       "commodity_amount_gbp": 51.47,
       "standing_charge_gbp": 7.75,
@@ -848,7 +848,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 385.5,
+          "consumption_kwh": 385.4,
           "amount_gbp": 51.47
         }
       ]
@@ -859,8 +859,8 @@
       "period_start": "2017-11-01",
       "period_end": "2017-11-30",
       "commodity": "electricity",
-      "consumption_kwh": 455.3,
-      "unit_rate_p_per_kwh": 13.61,
+      "consumption_kwh": 347.8,
+      "unit_rate_p_per_kwh": 17.81,
       "commodity_amount_gbp": 61.95,
       "standing_charge_gbp": 7.5,
       "days_in_period": 30,
@@ -879,7 +879,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 455.3,
+          "consumption_kwh": 347.8,
           "amount_gbp": 61.95
         }
       ]
@@ -890,8 +890,8 @@
       "period_start": "2017-12-01",
       "period_end": "2017-12-31",
       "commodity": "electricity",
-      "consumption_kwh": 471.4,
-      "unit_rate_p_per_kwh": 13.32,
+      "consumption_kwh": 471.5,
+      "unit_rate_p_per_kwh": 13.31,
       "commodity_amount_gbp": 62.77,
       "standing_charge_gbp": 7.75,
       "days_in_period": 31,
@@ -910,7 +910,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 471.4,
+          "consumption_kwh": 471.5,
           "amount_gbp": 62.77
         }
       ]
@@ -952,8 +952,8 @@
       "period_start": "2018-02-01",
       "period_end": "2018-02-28",
       "commodity": "electricity",
-      "consumption_kwh": 425.2,
-      "unit_rate_p_per_kwh": 12.07,
+      "consumption_kwh": 442.4,
+      "unit_rate_p_per_kwh": 11.6,
       "commodity_amount_gbp": 51.31,
       "standing_charge_gbp": 7.28,
       "days_in_period": 28,
@@ -972,7 +972,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 425.2,
+          "consumption_kwh": 442.4,
           "amount_gbp": 51.31
         }
       ]
@@ -1324,7 +1324,7 @@
       "period_start": "2019-02-01",
       "period_end": "2019-02-28",
       "commodity": "electricity",
-      "consumption_kwh": 425.2,
+      "consumption_kwh": 425.3,
       "unit_rate_p_per_kwh": 15.35,
       "commodity_amount_gbp": 65.27,
       "standing_charge_gbp": 7.56,
@@ -1344,7 +1344,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 425.2,
+          "consumption_kwh": 425.3,
           "amount_gbp": 65.27
         }
       ]
@@ -1820,7 +1820,7 @@
       "period_start": "2020-06-01",
       "period_end": "2020-06-30",
       "commodity": "electricity",
-      "consumption_kwh": 321.0,
+      "consumption_kwh": 321.1,
       "unit_rate_p_per_kwh": 12.76,
       "commodity_amount_gbp": 40.96,
       "standing_charge_gbp": 8.1,
@@ -1840,7 +1840,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 321.0,
+          "consumption_kwh": 321.1,
           "amount_gbp": 40.96
         }
       ]
@@ -1851,8 +1851,8 @@
       "period_start": "2020-07-01",
       "period_end": "2020-07-31",
       "commodity": "electricity",
-      "consumption_kwh": 331.2,
-      "unit_rate_p_per_kwh": 12.77,
+      "consumption_kwh": 331.1,
+      "unit_rate_p_per_kwh": 12.78,
       "commodity_amount_gbp": 42.31,
       "standing_charge_gbp": 8.37,
       "days_in_period": 31,
@@ -1871,7 +1871,7 @@
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 331.2,
+          "consumption_kwh": 331.1,
           "amount_gbp": 42.31
         }
       ]

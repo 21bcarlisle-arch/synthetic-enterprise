@@ -103,6 +103,49 @@ def validate_bill(bill: dict) -> BillValidationResult:
     )
 
 
+def check_reads_reconcile(
+    opening_read_kwh: float | None,
+    closing_read_kwh: float | None,
+    billed_consumption_kwh: float | None,
+) -> bool:
+    """A rendered bill's usage line must equal the printed closing meter read
+    minus the printed opening read, at the displayed (1dp) precision.
+
+    ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1 (2026-07-11), R10 class fix:
+    a real UK bill's billed quantity is always `closing_read - opening_read`
+    computed from the PRINTED (rounded) reads, never a separately-rounded raw
+    figure. Compounding the independent rounding of three related numbers
+    (opening, closing, raw usage) is exactly what produced the director's
+    observed 331.1-vs-331.2 kWh mismatch. Returns True (not applicable) for a
+    bill that carries no meter reads."""
+    if opening_read_kwh is None or closing_read_kwh is None or billed_consumption_kwh is None:
+        return True
+    reads_delta = round(round(closing_read_kwh, 1) - round(opening_read_kwh, 1), 1)
+    return abs(reads_delta - round(billed_consumption_kwh, 1)) <= 0.05
+
+
+def validate_rendered_bill_reads(inv: dict) -> list:
+    """Reads-reconciliation reason(s) for one rendered invoice dict
+    (opening_read_kwh, closing_read_kwh, consumption_kwh). Empty list == the
+    bill's usage line reconciles with its printed reads. A non-empty list is
+    a Tier-1 billing-accuracy failure -- the caller HOLDS the bill to the
+    exception queue rather than issuing it (same zero-tolerance treatment as
+    validate_bill's VAT/consumption checks, but this one runs AFTER the
+    opening/closing register reads have been computed for the bill)."""
+    reasons: list[str] = []
+    opening = inv.get("opening_read_kwh")
+    closing = inv.get("closing_read_kwh")
+    billed = inv.get("consumption_kwh")
+    if not check_reads_reconcile(opening, closing, billed):
+        reads_delta = round(round(closing, 1) - round(opening, 1), 1)
+        reasons.append(
+            "slc_6_7_billing_accuracy: billed usage %.1f kWh does not reconcile with the "
+            "printed meter reads %.1f -> %.1f (closing - opening = %.1f kWh)"
+            % (billed, opening, closing, reads_delta)
+        )
+    return reasons
+
+
 def validate_bills(bills: list) -> tuple[list, list[BillValidationResult]]:
     """Partition `bills` into (passing, held) -- passing bills proceed to
     normal issuance unchanged; held bills are the exception queue, keyed by

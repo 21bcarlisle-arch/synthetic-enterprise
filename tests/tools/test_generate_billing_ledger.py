@@ -333,6 +333,92 @@ def test_churned_arrears_written_off(tmp_path):
         assert cust["arrears_history"][0]["stages"][-1]["stage"] == "WRITTEN_OFF"
 
 
+# --- ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1: displayed usage derived from
+#     the already-rounded printed reads (billed_kwh == closing - opening) ---
+
+def test_defect1_billed_usage_equals_printed_reads_delta(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["consumption_kwh"] == round(inv["closing_read_kwh"] - inv["opening_read_kwh"], 1)
+
+
+def test_defect1_holds_by_construction_across_a_multi_bill_chain(tmp_path):
+    # Every rendered bill must reconcile, and none should be held for a reads
+    # mismatch when the pipeline builds them correctly.
+    bills = [_bill("C_IC1", f"20{yr}-03-31", 8000.0) for yr in range(16, 26)]
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run(bills)))
+    result = generate(rj, tmp_path / "l.json")
+    for inv in result["customers"]["C_IC1"]["invoices"]:
+        delta = round(inv["closing_read_kwh"] - inv["opening_read_kwh"], 1)
+        assert abs(inv["consumption_kwh"] - delta) <= 0.05
+    assert result["meta"]["held_reads_reconciliation_count"] == 0
+
+
+def test_defect1_estimated_bill_usage_reconciles_with_estimated_reads(tmp_path):
+    # An estimated bill's printed usage must equal its printed (estimated)
+    # reads' difference -- the previously-visible reads-vs-usage mismatch on
+    # estimated bills is removed by the reads-derivation.
+    bill = _bill("C_IC1", "2022-03-31", 8000.0)
+    run_data = _run([bill])
+    run_data["meter_read_log"] = [{
+        "customer_id": "C_IC1", "period_end": "2022-03-31", "status": "estimated",
+        "estimated_consumption_kwh": 850.0, "true_consumption_kwh": 1000.0,
+    }]
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(run_data))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["closing_read_kwh"] == 850.0
+    assert inv["consumption_kwh"] == 850.0  # == closing - opening, not the true 1000
+
+
+# --- ADVISOR_STEER_BILL_ARITHMETIC.md Defect 2: written-off invoices are
+#     labelled written_off (not left overdue), so they stop double-counting
+#     as outstanding against a household ledger that has already zeroed them ---
+
+def _writeoff_scenario_result(tmp_path):
+    # A churned high-stress resi account across 2020 (likely to fail a DD and
+    # reach WRITTEN_OFF ~2021), plus a much later paying bill so the book's
+    # reference date (max issue_date) sits AFTER those write-offs.
+    bills = [_bill("C7", f"2020-{m:02d}-28", 220.0, "resi") for m in range(1, 13)]
+    bills.append(_bill("C_IC1", "2024-06-30", 8000.0, "ic"))
+    beh = {"C7": {"income_stress_trajectory": [{"year": 2020, "stress": "high"}]}}
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run(bills, beh=beh, churned=["C7"])))
+    return generate(rj, tmp_path / "l.json")
+
+
+def test_defect2_written_off_invoice_is_labelled_written_off(tmp_path):
+    result = _writeoff_scenario_result(tmp_path)
+    c7 = result["customers"]["C7"]
+    # Deterministic under seed 42: this scenario produces at least one write-off.
+    wo_invs = [i for i in c7["invoices"] if i["payment_status"] == "written_off"]
+    assert wo_invs, "expected at least one written-off invoice in this scenario"
+    # No written-off invoice should be left as 'overdue' (the double-count bug).
+    written_off_nums = {a["invoice_number"] for a in c7["arrears_history"]
+                        if any(s["stage"] == "WRITTEN_OFF" for s in a["stages"])}
+    for inv in c7["invoices"]:
+        if inv["invoice_number"] in written_off_nums:
+            assert inv["payment_status"] == "written_off"
+
+
+def test_defect2_point_in_time_writeoff_not_yet_occurred_stays_overdue(tmp_path):
+    # A failing bill whose write-off date falls AFTER the book's reference
+    # date must NOT be marked written_off -- it hasn't happened yet.
+    bills = [_bill("C7", "2020-11-28", 220.0, "resi")]  # only bill -> book date ~2020-12
+    beh = {"C7": {"income_stress_trajectory": [{"year": 2020, "stress": "high"}]}}
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run(bills, beh=beh, churned=["C7"])))
+    result = generate(rj, tmp_path / "l.json")
+    c7 = result["customers"]["C7"]
+    # Whatever the payment outcome, no invoice can be written_off here because
+    # the write-off date (~2021) is after the only issue date (~2020-11).
+    assert all(i["payment_status"] != "written_off" for i in c7["invoices"])
+
+
 def test_stress_label_in_payment(tmp_path):
     bills = [_bill("C7", "2022-10-31", 250.0, "resi")]
     beh = {"C7": {"income_stress_trajectory": [{"year": 2022, "stress": "moderate"}]}}

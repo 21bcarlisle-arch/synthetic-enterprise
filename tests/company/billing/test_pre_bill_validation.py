@@ -4,6 +4,8 @@ from company.billing.pre_bill_validation import (
     validate_bills,
     exception_queue_as_dicts,
     ValidationOutcome,
+    check_reads_reconcile,
+    validate_rendered_bill_reads,
 )
 
 
@@ -136,6 +138,64 @@ def test_exception_queue_as_dicts_is_json_serialisable():
     json.dumps(payload)  # must not raise
     assert payload[0]["customer_id"] == "C1"
     assert "reasons" in payload[0]
+
+
+# --- ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1: reads-vs-usage reconciliation ---
+
+def test_reads_reconcile_exact_match_passes():
+    # The director's actual figures: 21084.0 -> 21415.1 = 331.1 kWh.
+    assert check_reads_reconcile(21084.0, 21415.1, 331.1) is True
+    assert validate_rendered_bill_reads(
+        {"opening_read_kwh": 21084.0, "closing_read_kwh": 21415.1, "consumption_kwh": 331.1}
+    ) == []
+
+
+def test_reads_vs_usage_compounding_rounding_mismatch_is_caught():
+    # The exact defect the director saw: reads say 331.1 but the usage line
+    # says 331.2 -- a bill that would NOT reconcile must be flagged.
+    assert check_reads_reconcile(21084.0, 21415.1, 331.2) is False
+    reasons = validate_rendered_bill_reads(
+        {"opening_read_kwh": 21084.0, "closing_read_kwh": 21415.1, "consumption_kwh": 331.2}
+    )
+    assert reasons != []
+    assert any("slc_6_7_billing_accuracy" in r for r in reasons)
+    assert any("does not reconcile" in r for r in reasons)
+
+
+def test_reads_reconcile_large_mismatch_is_caught():
+    # A provenance defect (usage sourced separately from the reads) -- a big
+    # divergence, not just a rounding edge, must also be held.
+    assert check_reads_reconcile(1000.0, 1400.0, 350.0) is False
+    assert validate_rendered_bill_reads(
+        {"opening_read_kwh": 1000.0, "closing_read_kwh": 1400.0, "consumption_kwh": 350.0}
+    ) != []
+
+
+def test_reads_reconcile_not_applicable_when_reads_absent():
+    # A bill with no meter reads (older run data) is not failed by this check.
+    assert check_reads_reconcile(None, None, 300.0) is True
+    assert validate_rendered_bill_reads(
+        {"opening_read_kwh": None, "closing_read_kwh": None, "consumption_kwh": 300.0}
+    ) == []
+
+
+def test_synthetic_violating_bill_reaches_the_exception_queue():
+    # End-to-end: a deliberately mismatched rendered bill must produce a
+    # HELD result serialisable onto the exception queue (the R10 class gate),
+    # not silently render.
+    import json
+    from company.billing.pre_bill_validation import BillValidationResult, ValidationOutcome as VO
+    bad = {"opening_read_kwh": 5000.0, "closing_read_kwh": 5500.0, "consumption_kwh": 480.0}
+    reasons = validate_rendered_bill_reads(bad)
+    assert reasons, "a mismatched bill must be flagged"
+    held = BillValidationResult(
+        customer_id="C1", period_end="2020-07-31", outcome=VO.HELD, reasons=reasons,
+    )
+    assert held.held is True
+    payload = exception_queue_as_dicts([held])
+    json.dumps(payload)  # must not raise
+    assert payload[0]["customer_id"] == "C1"
+    assert any("does not reconcile" in r for r in payload[0]["reasons"])
 
 
 def test_zero_subtotal_bill_does_not_crash_vat_check():
