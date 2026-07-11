@@ -462,3 +462,33 @@
   expert_hour: {status: passed, last: "2026-07-05", findings: []}
   real_world_twin: "database row-locking under concurrent writers"
   depends_on: []
+
+- id: W5_1_banking_payment_rails
+  name: "Banking & Payment Rails simulator (twin: Bacs/bank/acquirer)"
+  lane: W5_banking_payment_rails
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: ["docs/design/THE_VALUE_CYCLE_FRAMING.md"]
+  simplifications: ["2026-07-11 REGISTERED (EPOCH2_RATIFIED.md immediate effect 1): director-ratified NEW W-lane, three amendments to THE_VALUE_CYCLE_FRAMING.md (banking-as-swappable-interface worry). Built adapter-SHAPED behind an interface mirroring the real protocol -- submission windows, multi-day cycle, AUDDIS-style mandate setup, ARUDD-style failure returns with reason codes, ADDACS amendments; cash lands when the rails say, making the banked clock (D2_three_clocks/C2) honest -- 'rails ARE late-arriving truth, a limb of the spine, not an adjacent system.' Full typed/versioned hardening of this seam is Epoch-3 work (added to the wall's adapter inventory). loop_stage=idle: M2 build (this atom included) starts only after the M2 entry-gate payments-maturity-audit verdict AND M1's exit test both land -- not before, per EPOCH2_RATIFIED.md immediate effect 4."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "Bacs Direct Debit cycle (AUDDIS/ARUDD/ADDACS), card acquirer settlement"
+  depends_on: [D2_three_clocks, D_payments_maturity_audit]
+
+- id: D_payments_maturity_audit
+  name: "Payments & billing maturity audit (M2 entry gate) -- 22+ existing modules graded vs D/E charters"
+  lane: D_billing_metering
+  value_stream: price_to_bill
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: harden
+  dial_inherited: 4
+  evidence: ["docs/design/THE_VALUE_CYCLE_FRAMING.md", "docs/design/charters/D_billing_metering.md", "docs/design/charters/E_finance_treasury.md"]
+  simplifications: ["2026-07-11 REGISTERED (EPOCH2_RATIFIED.md immediate effects 1+3): M2's entry gate, joins the weekend background work NOW (unlike W5_1's build, which waits on this audit's verdict). Grade all billing/payment modules vs the D/E charters; Expert Hour run under a payments-operations-veteran persona (mandate lifecycle, Bacs cycle timing, failure/representment reality, prepay); classify each module COMPANY-LOGIC (behaviour) vs RAILS-PHYSICS (timing, failure codes, cash arrival); seed the simplifications register. The audit's verdict dictates M2's shape (harden-existing vs rebuild), decided on evidence before spine rewiring -- report in the Monday SPIKE_WEEKEND pack. This atom's own 'level' is the audit process itself reaching a verdict, not a build-capability level -- target=1 reflects 'audit complete, verdict published', not a maturity claim about the audited modules."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's payments-operations function auditing its own billing/collections estate before a platform migration"
+  depends_on: []

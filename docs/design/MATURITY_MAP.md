@@ -101,7 +101,7 @@ The canonical store is **data, not prose** (`docs/design/maturity_map.yaml`), so
 ## 7. The lanes (positions restated from v1.0, unchanged this revision)
 
 **Company:** A Strategy & Governance (L2) - B Commercial: pricing/trading/hedging (L2; competitors L0) - C Customer Operations (L2→L3; discovery layer L0) - D Billing & Metering (L2; three-clocks L0) - E Finance & Treasury (L1→L2) - F Risk & Compliance (L3 — most mature) - G Data & Learning (L2).
-**World & Wall:** W1 Market & Weather engine (L1; generation-past-history L0) - W2 Customer & Society generator (L1→L2; population-draw L0; competitor field L0) - W3 Industry Systems (L1) - W4 The Wall (L1).
+**World & Wall:** W1 Market & Weather engine (L1; generation-past-history L0) - W2 Customer & Society generator (L1→L2; population-draw L0; competitor field L0) - W3 Industry Systems (L1) - W4 The Wall (L1) - W5 Banking & Payment Rails (L0, new 2026-07-11, THE_VALUE_CYCLE_FRAMING.md M2).
 **Harness:** H (L3).
 *Full per-lane definitions and evidence as in v1.0 sections 2-4; they carry over verbatim and will live in the YAML.*
 
@@ -112,7 +112,7 @@ The canonical store is **data, not prose** (`docs/design/maturity_map.yaml`), so
 | Lane | Level now | Dial | Loop stage now | Rationale |
 |---|---|---|---|---|
 | W1 Market & Weather | L1 | **4 hot** | DISCOVER | Epoch-2 spine, half 1: reveal-over-time, rederive history, generate futures |
-| D Billing & Metering | L2 | **4 hot** | FRAME | Epoch-2 spine, half 2: three clocks ride the reveal engine |
+| D Billing & Metering | L2 | **4 hot** | FRAME | Epoch-2 spine, half 2: three clocks ride the reveal engine; M2 entry-gate audit joins now |
 | B Commercial | L2 | 3 | DISCOVER | Margin bridge + point-in-time market data (kills the foresight class) |
 | C Customer Ops | L2→3 | 3 | BUILD | Segment layers landing; discovery-through-interfaces queued behind W1 |
 | E Finance & Treasury | L1→2 | 3 | FRAME | Ledger-first accounting now; accrual/restatement rides the spine |
@@ -121,6 +121,7 @@ The canonical store is **data, not prose** (`docs/design/maturity_map.yaml`), so
 | A Strategy & Governance | L2 | 2 | idle | Learn-loop chair comes with the close cycle |
 | G Data & Learning | L2 | 2 | idle | Event log shared with the spine |
 | W3 Industry Systems | L1 | 2 | idle | Settlement timetable enters with the three clocks |
+| W5 Banking & Payment Rails | L0 | 2 | idle | New M2 lane; build waits on the entry-gate audit verdict + M1 exit test |
 | F Risk & Compliance | L3 | **1 maintain** | HARDEN | Ahead; let it prove itself over time |
 | H Harness | L3 | **1 maintain** | HARDEN | Serve the lanes; no more harness-for-its-own-sake |
 
