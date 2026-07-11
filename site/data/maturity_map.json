@@ -589,6 +589,21 @@
         "H3_production_readiness_nfr_evidence"
       ],
       "at_target": false
+    },
+    {
+      "id": "F4_company_internal_authz",
+      "name": "Company-internal authz (roles, maker-checker, segregation of duties)",
+      "lane": "F_risk_compliance",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 5,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
     }
   ],
   "lanes": {
@@ -671,7 +686,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 37,
+  "total_atoms": 38,
   "epoch2_movements": [
     {
       "id": "M1",

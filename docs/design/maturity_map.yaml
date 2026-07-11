@@ -567,3 +567,18 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's go-live readiness register presented to its board/regulator before launch"
   depends_on: [H3_production_readiness_nfr_evidence]
+
+- id: F4_company_internal_authz
+  name: "Company-internal authz (roles, maker-checker, segregation of duties)"
+  lane: F_risk_compliance
+  value_stream: meter_to_cash
+  epoch: 5
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: []
+  simplifications: ["2026-07-11 REGISTERED (director in-console, sandbox/security-profile decision): governance/compliance capability for later epochs -- role-based access control for company-internal decision authority (who/what can approve a pricing action, sign off a large customer refund, etc.), maker-checker separation (the person/process proposing a financial-effect action is never also the sole approver), and segregation of duties across the company's own decision-making functions (distinct from the agent's own harness security profile -- this is the SIMULATED COMPANY's internal governance, a real UK-supplier operational-controls concern, feeding the go-live NFR register's authn/authz category). Registration only, no design or build -- placed at epoch:5 pending real sequencing."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's internal controls -- segregation of duties, maker-checker on payment approvals, RBAC on customer-account actions"
+  depends_on: []
