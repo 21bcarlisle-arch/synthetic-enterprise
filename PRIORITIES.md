@@ -214,6 +214,18 @@
 #   follow-up to state that explicitly in the report's own rendering, not just its docstring. 4
 #   new/updated tests, 16,604 tests collected (full suite), epistemic PASS.
 #
+# === SUPPLIER_REPORTING_STANDARD.md -- registered, NOT started (2026-07-11, advisor-staged,
+#   director-decided). CSS-shaped segmental statement as the annual-report backbone (real Ofgem
+#   CSS template: 4 segments x elec/gas x domestic/non-domestic + aggregate, full P&L/operational
+#   line set, reconciliation to management accounts), a board-grade KPI block (churn/complaints-
+#   per-1000/ARPU/CSAT/DD-share), Fuel Mix Disclosure + carbon intensity of supplied energy, and
+#   3 obligations-register additions (capital adequacy, fuel mix, cyber baseline). Own sequencing
+#   rule is explicit and binding: "Subordinate to DOMAIN_SENSE_AND_COMPLIANCE... batch at a phase
+#   boundary; do not interrupt in-flight work. Nothing here is urgent." DOMAIN_SENSE_AND_
+#   COMPLIANCE is already closed, but SPIKE_WEEKEND's own priority order (above) does not name
+#   this instruction -- parked in docs/staging/in_progress/, not started, per its own "do not
+#   interrupt" instruction. Pick up at the next real phase boundary.
+#
 # === Sanity triage CLOSED (2026-07-11, director-ordered NTFY, from_rich_20260711_044314.md/
 #   044335.md, docs/design/SANITY_TRIAGE_2026_07_11.md). Root cause of "still alarming every
 #   30min": background/sanity_daemon.py's audit (Qwen skeptic) stream's category-normalisation
