@@ -226,6 +226,30 @@
 #   this instruction -- parked in docs/staging/in_progress/, not started, per its own "do not
 #   interrupt" instruction. Pick up at the next real phase boundary.
 #
+# === SPIKE_WEEKEND item 4 (DISCOVER/FRAME charter flood) DONE (2026-07-11). Item 3 (Epoch-2)
+#   stayed correctly bounded -- the advisor's epoch-sequencing framing still had not landed when
+#   checked, so moved to item 4 per the spike's own priority order rather than build past the
+#   standing hold on W1/D2/B1/E2/G2/W3_2. Dispatched 7 PARALLEL forks (matching the spike doc's
+#   own framing: "subagent-parallel; output is documents; zero collision risk") -- one per lane
+#   at dial>=2 lacking a charter (A, B, C, E, G, W2, W3; D and W1 already had one). Each fork
+#   wrote its own docs/design/charters/<lane>.md following the exact W1_market_weather.md
+#   template (Mission/Sub-capability tree/L2-L4/Named references/Roadmap/Simplifications),
+#   briefed with that lane's REAL atoms from maturity_map.yaml, real code to ground claims in,
+#   and instructed to use real WebSearch for citations (R9), never invent one. All 7 landed with
+#   genuine external sources: Google SRE postmortems + FRC UK Corporate Governance Code (A);
+#   Centrica's real 2025 segment reporting + Ofgem's EBIT-allowance methodology + UK
+#   energy-broker hedging practice (B); Ofgem domestic/non-domestic classification + the real
+#   MPAS/ECOES meter-registration system + an independently re-verified Wave 20 satisfaction
+#   anchor (C); FRS 102/ICAEW small-entity reporting + HMRC's own CTM03925 marginal-relief manual
+#   + IAS 8/FRS 102 restatement guidance (E); DORA's official Four Keys + Fowler's Event Sourcing
+#   pattern (G); DESNZ's 2025 fuel-poverty stats + JASSS synthetic-population-methods review +
+#   Ofgem's 2025 State of the Market Report, refining the map's own "~8 suppliers" figure to a
+#   more current 17-21/91-92%-concentration reading (W2); Ofgem's real cap decision history +
+#   Elexon/MHHS's real multi-run settlement timetable, honestly flagging BSCP01 itself as the
+#   still-needed follow-up read (W3). Every charter correctly holds off proposing any Epoch-2
+#   build (B1/E2/G2/W3_2) pending the advisor's framing -- registered the block, not worked
+#   around it. Doc-only, no code touched, epistemic PASS.
+#
 # === SPIKE_WEEKEND item 2 (sanity follow-ups) SUBSTANTIALLY DONE (2026-07-11). Remaining
 #   adjudications: investigated both open unit-rate findings further (C1g gas 2019, C4 elec
 #   2024) rather than leave them untouched -- found a real, shared, unexplained pattern (per-kWh
