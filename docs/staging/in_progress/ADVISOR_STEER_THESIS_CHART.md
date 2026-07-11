@@ -1,14 +1,28 @@
-**STATUS (2026-07-11, in progress): root-caused all 3 defects. Defect 1 (AI-compute
-line) confirmed the token-usage data is too stale (2026-06-21 to 06-25 only, no
-interactive sessions) to honestly populate per R12 -- proceeding with the doc's own
-fallback option (b), reframe with the floor visible in the chart. Defects 2+3 both
-trace to `extract_opex_ledger()` including SME/I&C in what should be a resi-only
-household population, AND being a different population entirely from the pulse
-strip's book_annual figure -- data-layer fix delegated to saas-engineer (in flight,
-task #9), covering: resi-only + population-consistent household set, real
-per-household figures, an R10 page-consistency invariant. Once that lands I'm doing
-the site/index.html chart-rendering side (caveat-in-chart, per-household display,
-basis label) myself. Blocking sub-item: the saas-engineer data-layer diff review.**
+**STATUS (2026-07-11): ALL 3 DEFECTS FIXED, committed, pushed, LIVE-VERIFIED.
+Data layer (b29c0748): extract_opex_ledger() now resi-only + population-consistent
+with the pulse-strip's book_annual (household_count 13->5), real per-household
+fields added (benchmark_opex_per_household_gbp=£319.89, now correctly in the
+few-hundred-pounds sniff-test range), R10 page-consistency invariant with 2
+regression tests. Chart rendering (56f77acc): floor caveat moved INTO the chart
+(bar label + axis label, not just a footnote), per-household figures displayed,
+basis stated on the chart. Defect 1's AI-compute line: confirmed the token-usage
+data is too stale (2026-06-21 to 06-25 only, no interactive sessions) to honestly
+populate per R12 -- used the doc's own explicit fallback (frame the floor
+honestly) rather than its "prefer (a)" default.
+LIVE VERIFICATION: curl-fetched https://poesys.net/data/dashboard.json directly
+(bypassing WebFetch's own summarization/cache, which gave a false-stale read at
+first) -- confirmed household_count=5, benchmark_opex_per_household_gbp=319.89
+live. Confirmed https://poesys.net/ serves the new "TRUE cost/household (FLOOR)"
+label text live. HONEST RESIDUAL GAP: no browser automation available in this
+environment to screenshot the actual Chart.js canvas paint -- data and served
+code are both verified correct and live; the literal pixel render is the one
+thing not directly observed.
+Also found + fixed along the way: the Cloudflare deploy workflow's cache-purge
+step only ever covered a hardcoded /state/* + /shadow/* file list, never /data/*
+or index.html -- fixed to purge_everything (bf777d21), a real standing gap for
+every future site/data change, not just this one (turned out not to be the cause
+of the specific staleness read above, which was a WebFetch tool artifact -- but a
+genuine, separate, worthwhile fix on its own).
 
 ---
 
