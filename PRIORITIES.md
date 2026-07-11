@@ -63,6 +63,14 @@
 #        far). Slots in behind item 5 (HARDEN sweep) unless director reprioritises --
 #        this doc doesn't claim precedence over Rich's direct HARDEN/M3 instruction,
 #        only "spike-eligible", not "next".
+#     8. NEW 2026-07-11 (advisor-staged, docs/staging/DIRECTOR_INPUT_LOG.md, P2, Lane H):
+#        proposal for a unified, channel-tagged, HMAC-verified director-input log (window
+#        live/queued, ntfy, comments, wakes) mirrored to a repo -- directly responsive to
+#        this session's own mid-turn/NTFY provenance-ambiguity incident (see the digest +
+#        commit 35d0770f). AMENDED same day: log relocates to a new PRIVATE
+#        synthetic-enterprise-ops repo, BLOCKED on Rich creating that repo + extending the
+#        PAT's access (two manual director clicks, nothing to build until then). FRAME-stage
+#        design only, no build yet. Backlog, behind items 1-7 -- H lane stays 1/maintain.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
