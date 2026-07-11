@@ -150,7 +150,18 @@
 #         (unrecoverable canonical data, exposed credential) gets fixed under normal tiering
 #         NOW, reviewed/actioned by the agent personally, not delegated to a sub-agent given
 #         the sensitivity. Part A measurement dispatched as a background fork -- does not
-#         displace items 1-12's queue position.
+#         displace items 1-12's queue position. Part A DONE (commit c58407fc): no imminent-
+#         danger risk found; one real carve-out gap (company/data/*.db had zero off-machine
+#         copy) acted on immediately -- new background/backup_company_data.py, verified,
+#         wired into the run-complete cycle. Real security/perf/availability findings on
+#         record (5 stale dev servers, 2 O(n^2) hotspots, 2 crash-loop episodes + 1 outage
+#         this week, 6-daemon NTFY-env SPOF). H3 level 0->1. Part B register + Part C CLAUDE.md
+#         constraints not yet started -- background-lane, still not displacing items 1-12.
+#         Separately: a same-session mid-turn message proposed sandbox/security-profile
+#         changes (Option 2 floor) + a new CLAUDE.md hard rule -- declined pending unambiguous
+#         console confirmation (Tier-1 safety-control class, unverifiable channel), consistent
+#         with this session's standing policy. F4_company_internal_authz registered from the
+#         same message's safe, registration-only portion.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
