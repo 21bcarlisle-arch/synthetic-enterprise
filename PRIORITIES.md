@@ -31,6 +31,16 @@
 #        company-logic, NEW BUILD for Banking & Payment Rails (W5). Maturity-map site view
 #        (4 views + Epoch-2 progress strip) also shipped and pixel-verified on poesys.net/project/,
 #        per a director-urgent NTFY mid-session.
+#        DISCOVER+FRAME on the remaining M1 sub-components (docs/design/
+#        M1_EVENT_DRAIN_MATERIALITY_FRAME.md, 2026-07-11): investigated before building --
+#        run_phase2b.py's outer decision loop is ALREADY event-shaped, don't touch it; the real
+#        step-based cost is hedged_settlement.py's per-half-hour settlement generation, which is
+#        real ground truth (not overhead) every downstream number depends on. Real runtime today
+#        ~8min/run, not currently blocking -- a future M3/M4 scaling concern, not urgent. BUILD
+#        deliberately deferred (two-way-door filter: don't rewrite ground-truth-generating code
+#        against an unresolved design question when nothing forces it now). W1_reveal_over_time
+#        loop_stage set to idle pending a director/advisor sequencing call -- AWAITING DIRECTOR
+#        INPUT: pre-empt the scaling risk now, or defer to when M3/M4 make it load-bearing?
 #     4. DISCOVER/FRAME charter flood: every lane at dial>=2 lacking one (B, C, E, W2, W3, A, G).
 #     5. HARDEN sweep: Expert-Hour simulation per company lane vs the live site, findings into
 #        the adjudication ledger.

@@ -58,7 +58,7 @@
       "epoch": 2,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -591,7 +591,7 @@
       "name": "The clock and the log",
       "exit_test": "The hedge decision literally cannot see past \u2018now\u2019; a restatement lands as an event and downstream values version correctly.",
       "status": "in_progress",
-      "status_note": "Bitemporal log + as-of interfaces built (bounded start). Real call-site migration built 2026-07-11 (docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md): PointInTimeView now backs the historical simulation's own hedge-decision price history via a BitemporalEventLog populated from its own records (not the unrelated frozen-2025 market adapter) -- both real call sites in simulation/run_phase2b.py migrated, old wrapper retired. 'Cannot see past now' half of the exit test is now structurally true and tested. Still open: the event-drained loop and materiality gates/lazy valuation, both untouched."
+      "status_note": "Bitemporal log + as-of interfaces built; hedge-decision price history migrated onto PointInTimeView (2026-07-11) -- 'cannot see past now' half of the exit test now structurally true and tested. Investigated the remaining two sub-components before building (docs/design/M1_EVENT_DRAIN_MATERIALITY_FRAME.md): the sim's outer decision loop is already event-shaped; the real step-based cost is settlement-record generation itself (hedged_settlement.py), which is ground truth, not overhead -- a same-day rewrite risks corrupting real data for a scaling concern that isn't live yet (~8min/run today, not blocking). Deliberately deferred pending a director/advisor sequencing call, not built blind."
     },
     {
       "id": "M2",
