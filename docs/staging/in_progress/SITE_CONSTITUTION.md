@@ -6,8 +6,14 @@
 > 4-view + epoch strip from earlier work; added the two missing pieces -- Quarterly
 > Narrative and Replay/M4 sections, both honestly stubbed, not fabricated). Browser-
 > verified locally (Playwright, real data, zero console errors, desktop+mobile
-> screenshots). NOT yet pixel-verified on the live poesys.net (R11) -- pending
-> commit+push+deploy+fetch, same session. Move to done/ once that's confirmed.
+> screenshots). PIXEL-VERIFIED live on poesys.net same session (commit a19f40ed,
+> R11): thesis chart, all 4 persona doors, Simplified page (28 real notes/11
+> lanes), and both Journey additions all confirmed present via direct fetch of
+> the deployed site, not just the deploy log. Doors 1-2 DONE. Doors 3-8 (Company/
+> World/Proof/Method/Director + cross-cutting Expert-Hour tours) remain, per the
+> constitution's own migration order -- "by map draw after the spike." File
+> stays in in_progress/ (covers the whole 8-door migration, not just this pass)
+> until doors 3-8 land or are explicitly deprioritised.
 
 # SITE_CONSTITUTION — ratified redesign brief + migration order (P1, spike-eligible)
 

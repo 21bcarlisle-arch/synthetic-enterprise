@@ -76,9 +76,13 @@
 #        researched not assumed); comments-box/supervisor-wake/watcher-wake/
 #        advisor-staged are classify-able but have no live source-wiring yet.
 #     9. SEQUENCING ANSWERS (2026-07-11, director in-console, proceed without further asks):
-#        (a) Doors 1-2 site build (SITE_CONSTITUTION.md/POESYS_SITE_BRIEF.md) -- START NOW,
-#            TOP OF QUEUE, ahead of items 1-8 above. Front Door + THESIS CHART first, then
-#            The Journey. Highest gap-to-value; data already exists.
+#        (a) Doors 1-2 site build (SITE_CONSTITUTION.md/POESYS_SITE_BRIEF.md) -- DONE same
+#            turn (commit a19f40ed), pixel-verified live on poesys.net (R11). Front Door:
+#            pulse strip, THE THESIS CHART (real current-snapshot dual-ledger gap, honestly
+#            caveated as not-yet-per-year), 4 persona doors incl. new Simplified/honesty page
+#            (28 real gap-register notes, tools/generate_simplified_data.py). The Journey:
+#            Quarterly Narrative + Replay/M4 sections added (honest stubs) to the existing
+#            maturity-map/epoch-strip work. Doors 3-8 remain, by map draw after the spike.
 #        (b) github-pages.yml workflow-filter fix (REPO_PRIVATE_AND_IP Phase 1 NO-GO) --
 #            director: "reversible, internal -- flag and proceed, don't ask." DONE same turn
 #            (paths-ignore added, commit 41fc0e5b) -- re-measure Actions cadence in a few days.
