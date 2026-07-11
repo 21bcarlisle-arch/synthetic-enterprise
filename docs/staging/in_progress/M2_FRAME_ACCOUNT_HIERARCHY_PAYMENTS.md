@@ -1,3 +1,11 @@
+**STATUS (2026-07-11): REGISTERED, NOT STARTED. Queued behind the two
+director-witnessed live-bug fixes already in flight (thesis-chart chart-
+rendering side, bill-arithmetic fix task). This is FRAME-only per its own
+DoD (design doc + charter updates + sequencing proposal, no portal build) --
+appropriate to queue rather than interrupt live-bug remediation.**
+
+---
+
 # M2 FRAME ADDENDUM — account hierarchy, combined billing, payment allocation (P1, FRAME)
 
 **Staged:** 2026-07-11 by advisor; director-raised from live portal review
