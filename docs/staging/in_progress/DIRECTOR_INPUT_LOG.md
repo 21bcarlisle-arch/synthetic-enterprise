@@ -1,7 +1,24 @@
-> **STATUS (2026-07-11):** Registered in PRIORITIES.md item 8 (backlog, Lane H).
-> BLOCKED on Rich creating the private synthetic-enterprise-ops repo + extending
-> PAT access (two manual director clicks) -- nothing to build until then. Move
-> to done/ once the repo exists and the hook is built + DoD met.
+> **STATUS (2026-07-11):** Private repo created, V1 BUILT (commit 70f1d239).
+> Core mechanism live: background/director_input_log.py (channel-tagged,
+> HMAC-verified, correlatable secret scrubbing), .claude/hooks/
+> log_director_input.py wired for "window", ntfy_utils.py/ntfy_responder.py
+> wired for "ntfy" both directions. ntfy mirror relocated off the public
+> repo. Log genuinely visible on origin (synthetic-enterprise-ops).
+>
+> HONEST SCOPE LIMITS, not silently claimed as done:
+> 1. window-live/window-queued-midturn collapse into one "window" tag --
+>    researched via claude-code-guide before building: Claude Code's
+>    UserPromptSubmit hook has no field distinguishing them, and no other
+>    documented hook covers a mid-turn-queued message either. A real gap
+>    in the harness, not this repo's to close (would need an `origin`
+>    field on the hook payload).
+> 2. comments-box / supervisor-wake / watcher-wake / advisor-staged are
+>    classify-able (classify_channel() recognises their bracket tags,
+>    tested) but have NO live automatic call site yet -- staging_watcher.py,
+>    dispatcher.py, director_comments.py, and advisor-commit detection
+>    would each need their own wiring. Registered as V2, next real step if
+>    this is prioritised further.
+> Move to done/ once V2 lands or the director judges V1 sufficient.
 
 # DIRECTOR_INPUT_LOG — unified log of every director input, every channel (P2)
 

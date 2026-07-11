@@ -63,14 +63,18 @@
 #        far). Slots in behind item 5 (HARDEN sweep) unless director reprioritises --
 #        this doc doesn't claim precedence over Rich's direct HARDEN/M3 instruction,
 #        only "spike-eligible", not "next".
-#     8. NEW 2026-07-11 (advisor-staged, docs/staging/DIRECTOR_INPUT_LOG.md, P2, Lane H):
-#        proposal for a unified, channel-tagged, HMAC-verified director-input log (window
-#        live/queued, ntfy, comments, wakes) mirrored to a repo -- directly responsive to
-#        this session's own mid-turn/NTFY provenance-ambiguity incident (see the digest +
-#        commit 35d0770f). AMENDED same day: log relocates to a new PRIVATE
-#        synthetic-enterprise-ops repo, BLOCKED on Rich creating that repo + extending the
-#        PAT's access (two manual director clicks, nothing to build until then). FRAME-stage
-#        design only, no build yet. Backlog, behind items 1-7 -- H lane stays 1/maintain.
+#     8. NEW 2026-07-11 (advisor-staged, docs/staging/in_progress/DIRECTOR_INPUT_LOG.md,
+#        P2, Lane H): unified, channel-tagged, HMAC-verified director-input log --
+#        directly responsive to this session's own mid-turn/NTFY provenance-ambiguity
+#        incident. Private repo created + PAT extended (director), V1 BUILT same day
+#        (commit 70f1d239): background/director_input_log.py (classify_and_log_message(),
+#        correlatable secret scrubbing) + .claude/hooks/log_director_input.py
+#        (UserPromptSubmit, channel="window") + ntfy_utils.py/ntfy_responder.py wired
+#        for channel="ntfy" both directions; ntfy mirror relocated off the public repo.
+#        HONEST V2 gaps (not silently claimed done): window-live/window-queued-midturn
+#        collapse into one "window" tag (UserPromptSubmit has no distinguishing field,
+#        researched not assumed); comments-box/supervisor-wake/watcher-wake/
+#        advisor-staged are classify-able but have no live source-wiring yet.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
