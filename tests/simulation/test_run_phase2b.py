@@ -1,5 +1,6 @@
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 
+from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
 from sim.weather_price_sensitivity import COLD_SPELL_PRICE_MULTIPLIER
 from simulation.renewals import NOTICE_DAYS
 from simulation.run_phase2b import (
@@ -7,7 +8,6 @@ from simulation.run_phase2b import (
     REPORT_END,
     _build_gas_renewal_schedule,
     _clamp_term_end,
-    _price_history_as_of,
     _weather_adjusted_shape_fn,
 )
 
@@ -212,7 +212,11 @@ def test_retention_log_includes_acq_cost_saved():
         assert "acq_cost_saved_gbp" in rl[0], "retention_log entry should include acq_cost_saved_gbp"
 
 
-# --- _price_history_as_of() (2026-07-10, HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md fix) ---
+# --- price history as-of (2026-07-10 HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md fix;
+# 2026-07-11 M1 depth work retired the per-call-site _price_history_as_of() wrapper in
+# favour of PointInTimeView.get_price_history_as_of(), backed by a BitemporalEventLog
+# built once per run via build_price_bitemporal_log() -- see
+# docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md) ---
 
 def _daily_records(start_date_str, n_days, price_start=50.0):
     start = date.fromisoformat(start_date_str)
@@ -222,44 +226,44 @@ def _daily_records(start_date_str, n_days, price_start=50.0):
     ]
 
 
+def _piv_at(decision_date_str, elec_records, gas_records=None):
+    log = build_price_bitemporal_log(elec_records, gas_records or [])
+    decision_time = datetime.combine(date.fromisoformat(decision_date_str), time.min)
+    return PointInTimeView(decision_time=decision_time, bitemporal_log=log)
+
+
 def test_price_history_as_of_excludes_future_records():
-    """The core fix: no record with settlementDate after as_of_date_str may
+    """The core fix: no record with settlementDate after the decision date may
     ever be returned -- this is the exact point-in-time-blindfold violation
     that was previously live (the full run's price history, including
     dates far in the decision's future, was passed unsliced)."""
     records = _daily_records("2016-01-01", 3000)  # spans ~8yrs of daily records
-    sliced = _price_history_as_of(records, "2018-06-15")
-    assert all(r["settlementDate"] <= "2018-06-15" for r in sliced)
-
-
-def test_price_history_as_of_respects_lookback_window():
-    records = _daily_records("2016-01-01", 200)
-    sliced = _price_history_as_of(records, "2016-05-01", lookback_days=30)
-    dates = [r["settlementDate"] for r in sliced]
-    assert min(dates) >= (date(2016, 5, 1) - timedelta(days=30)).isoformat()
-    assert max(dates) == "2016-05-01"
+    history = _piv_at("2018-06-15", records).get_price_history_as_of("electricity")
+    assert all(r["settlementDate"] <= "2018-06-15" for r in history)
 
 
 def test_price_history_as_of_early_decision_gets_only_early_data():
     """A decision near the start of the run must not see any later data --
     directly what was broken (a 2018 decision seeing 2025 crisis-era data)."""
     records = _daily_records("2016-01-01", 3000)
-    sliced = _price_history_as_of(records, "2016-02-01", lookback_days=120)
-    assert all(r["settlementDate"] <= "2016-02-01" for r in sliced)
-    assert len(sliced) <= 32  # ~1 month of daily records, since the run only started 2016-01-01
+    history = _piv_at("2016-02-01", records).get_price_history_as_of("electricity")
+    assert all(r["settlementDate"] <= "2016-02-01" for r in history)
+    assert len(history) <= 32  # ~1 month of daily records, since the run only started 2016-01-01
 
 
 def test_price_history_as_of_empty_records_returns_empty():
-    assert _price_history_as_of([], "2020-01-01") == []
+    assert _piv_at("2020-01-01", []).get_price_history_as_of("electricity") == []
 
 
-def test_price_history_as_of_cache_does_not_leak_between_different_lists():
-    """The id()-keyed cache must not return a stale dates index if a
-    DIFFERENT records list happens to reuse a freed id() (defensive test --
-    the `cached[0] is records` identity check guards this)."""
-    records_a = _daily_records("2016-01-01", 50)
-    records_b = _daily_records("2020-01-01", 50)
-    sliced_a = _price_history_as_of(records_a, "2016-01-20")
-    sliced_b = _price_history_as_of(records_b, "2020-01-20")
-    assert all(r["settlementDate"].startswith("2016") for r in sliced_a)
-    assert all(r["settlementDate"].startswith("2020") for r in sliced_b)
+def test_price_history_as_of_electricity_and_gas_independent():
+    """Two different commodities built into the SAME shared log (as
+    run_phase2b.py does once per run) must not leak into each other."""
+    elec = _daily_records("2016-01-01", 50, price_start=50.0)
+    gas = _daily_records("2020-01-01", 50, price_start=20.0)
+    piv = _piv_at("2016-01-20", elec, gas)
+    elec_hist = piv.get_price_history_as_of("electricity")
+    assert all(r["settlementDate"].startswith("2016") for r in elec_hist)
+    # gas history at this decision_time is empty -- gas prices only start 2020,
+    # after this 2016 decision could have known them.
+    gas_hist = piv.get_price_history_as_of("gas")
+    assert gas_hist == []

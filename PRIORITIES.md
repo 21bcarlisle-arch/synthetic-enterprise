@@ -22,8 +22,15 @@
 #        path) than the historical backtest's own price records (live Elexon API fetch per
 #        run) -- migrating the hedge-decision call site onto it as planned would have silently
 #        corrupted the backtest. docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md has the two
-#        real next-step options. Payments maturity audit (M2 entry gate) also now joins the
-#        weekend background work per the framing -- not yet started.
+#        real next-step options. RESOLVED 2026-07-11: option (a) built -- market_data_port made
+#        optional on PointInTimeView, new build_price_bitemporal_log() populates a
+#        BitemporalEventLog from the sim's own records, both real hedge-decision call sites
+#        migrated, old wrapper retired. W1_reveal_over_time level 1->2. Still open for level 3:
+#        the event-drained loop + materiality gates/lazy valuation. Payments maturity audit
+#        (M2 entry gate) COMPLETE (2 parallel forks, 38 modules) -- verdict HARDEN-EXISTING
+#        company-logic, NEW BUILD for Banking & Payment Rails (W5). Maturity-map site view
+#        (4 views + Epoch-2 progress strip) also shipped and pixel-verified on poesys.net/project/,
+#        per a director-urgent NTFY mid-session.
 #     4. DISCOVER/FRAME charter flood: every lane at dial>=2 lacking one (B, C, E, W2, W3, A, G).
 #     5. HARDEN sweep: Expert-Hour simulation per company lane vs the live site, findings into
 #        the adjudication ledger.

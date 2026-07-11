@@ -58,7 +58,7 @@ EPOCH2_MOVEMENTS = [
         "id": "M1", "name": "The clock and the log",
         "exit_test": "The hedge decision literally cannot see past ‘now’; a restatement lands as an event and downstream values version correctly.",
         "status": "in_progress",
-        "status_note": "Bitemporal log + as-of interfaces built (bounded start). Real call-site migration attempted 2026-07-11 and found a genuine pipeline mismatch first (PointInTimeView's MarketDataPort is backed by a different data source than the historical backtest) -- corrected path not yet built. Exit test not yet passing.",
+        "status_note": "Bitemporal log + as-of interfaces built (bounded start). Real call-site migration built 2026-07-11 (docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md): PointInTimeView now backs the historical simulation's own hedge-decision price history via a BitemporalEventLog populated from its own records (not the unrelated frozen-2025 market adapter) -- both real call sites in simulation/run_phase2b.py migrated, old wrapper retired. 'Cannot see past now' half of the exit test is now structurally true and tested. Still open: the event-drained loop and materiality gates/lazy valuation, both untouched.",
     },
     {
         "id": "M2", "name": "Three clocks through the books",

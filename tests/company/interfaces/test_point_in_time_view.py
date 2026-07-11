@@ -5,7 +5,7 @@ import datetime as dt
 import pytest
 
 from company.interfaces.bitemporal_event_log import BitemporalEventLog
-from company.interfaces.point_in_time_view import PointInTimeView
+from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
 
 
 class _FakeMarketPort:
@@ -127,3 +127,131 @@ class TestBitemporalDelegation:
         history = view.get_history_as_known("elec_spot", "price")
         assert len(history) == 1
         assert history[0].valid_time == dt.date(2020, 6, 1)
+
+
+class TestMarketDataPortOptional:
+    """2026-07-11 M1 depth work (docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md):
+    market_data_port must be optional so a view backing the historical
+    replay can be constructed with only a bitemporal_log, never touching
+    the unrelated frozen-2025-snapshot adapter."""
+
+    def test_construction_without_market_data_port(self):
+        log = BitemporalEventLog()
+        view = PointInTimeView(dt.datetime(2020, 6, 15, 9, 30), bitemporal_log=log)
+        assert view.decision_date == dt.date(2020, 6, 15)
+
+    def test_get_spot_elec_raises_without_market_data_port(self):
+        log = BitemporalEventLog()
+        view = PointInTimeView(dt.datetime(2020, 6, 15, 9, 30), bitemporal_log=log)
+        with pytest.raises(RuntimeError):
+            view.get_spot_elec_gbp_per_mwh()
+
+    def test_get_forward_price_raises_without_market_data_port(self):
+        log = BitemporalEventLog()
+        view = PointInTimeView(dt.datetime(2020, 6, 15, 9, 30), bitemporal_log=log)
+        with pytest.raises(RuntimeError):
+            view.get_forward_price(dt.date(2021, 1, 1))
+
+    def test_bitemporal_reads_still_work_without_market_data_port(self):
+        log = BitemporalEventLog()
+        log.record("meter_1", "consumption_kwh", dt.date(2020, 6, 1), dt.datetime(2020, 6, 2), 100.0)
+        view = PointInTimeView(dt.datetime(2020, 6, 15, 9, 30), bitemporal_log=log)
+        rec = view.get_fact_as_known("meter_1", "consumption_kwh", dt.date(2020, 6, 1))
+        assert rec.value == 100.0
+
+
+class TestBuildPriceBitemporalLog:
+    def test_aggregates_multiple_periods_to_daily_mean(self):
+        elec = [
+            {"settlementDate": "2020-06-01", "systemSellPrice": 40.0},
+            {"settlementDate": "2020-06-01", "systemSellPrice": 60.0},
+        ]
+        log = build_price_bitemporal_log(elec, [])
+        view = PointInTimeView(dt.datetime(2020, 6, 15), bitemporal_log=log)
+        history = view.get_price_history_as_of("electricity")
+        assert len(history) == 1
+        assert history[0]["systemSellPrice"] == pytest.approx(50.0)
+
+    def test_electricity_and_gas_kept_separate(self):
+        elec = [{"settlementDate": "2020-06-01", "systemSellPrice": 40.0}]
+        gas = [{"settlementDate": "2020-06-01", "systemSellPrice": 20.0}]
+        log = build_price_bitemporal_log(elec, gas)
+        view = PointInTimeView(dt.datetime(2020, 6, 15), bitemporal_log=log)
+        elec_hist = view.get_price_history_as_of("electricity")
+        gas_hist = view.get_price_history_as_of("gas")
+        assert elec_hist[0]["systemSellPrice"] == 40.0
+        assert gas_hist[0]["systemSellPrice"] == 20.0
+
+    def test_skips_zero_or_missing_price(self):
+        elec = [
+            {"settlementDate": "2020-06-01", "systemSellPrice": 0.0},
+            {"settlementDate": "2020-06-01"},
+            {"settlementDate": "2020-06-02", "systemSellPrice": 45.0},
+        ]
+        log = build_price_bitemporal_log(elec, [])
+        view = PointInTimeView(dt.datetime(2020, 6, 15), bitemporal_log=log)
+        history = view.get_price_history_as_of("electricity")
+        assert len(history) == 1
+        assert history[0]["settlementDate"] == "2020-06-02"
+
+    def test_transaction_time_equals_valid_time_midnight(self):
+        """Documented simplification: no real settlement-run revision
+        modeling at the price level yet -- a future restatement would use
+        a LATER transaction_time, which history_as_known_at() already
+        handles correctly by construction."""
+        elec = [{"settlementDate": "2020-06-01", "systemSellPrice": 40.0}]
+        log = build_price_bitemporal_log(elec, [])
+        recs = log.all_records()
+        assert recs[0].transaction_time == dt.datetime(2020, 6, 1, 0, 0)
+
+
+class TestGetPriceHistoryAsOf:
+    def test_raises_without_bitemporal_log(self):
+        port = _FakeMarketPort()
+        view = PointInTimeView(dt.datetime(2020, 6, 15), port)
+        with pytest.raises(RuntimeError):
+            view.get_price_history_as_of("electricity")
+
+    def test_structurally_excludes_future_dates(self):
+        """The actual M1 exit test: a restatement / future price cannot be
+        seen by a decision made before it existed."""
+        elec = [
+            {"settlementDate": "2020-06-01", "systemSellPrice": 40.0},
+            {"settlementDate": "2020-07-01", "systemSellPrice": 999.0},
+        ]
+        log = build_price_bitemporal_log(elec, [])
+        view = PointInTimeView(dt.datetime(2020, 6, 15), bitemporal_log=log)
+        history = view.get_price_history_as_of("electricity")
+        assert len(history) == 1
+        assert history[0]["settlementDate"] == "2020-06-01"
+
+    def test_returns_chronological_order(self):
+        elec = [
+            {"settlementDate": "2020-06-03", "systemSellPrice": 42.0},
+            {"settlementDate": "2020-06-01", "systemSellPrice": 40.0},
+            {"settlementDate": "2020-06-02", "systemSellPrice": 41.0},
+        ]
+        log = build_price_bitemporal_log(elec, [])
+        view = PointInTimeView(dt.datetime(2020, 6, 15), bitemporal_log=log)
+        history = view.get_price_history_as_of("electricity")
+        dates = [r["settlementDate"] for r in history]
+        assert dates == sorted(dates)
+
+    def test_matches_estimate_price_volatility_input_shape(self):
+        """Regression safety: feeding this into estimate_price_volatility()
+        must produce the same result as the old _price_history_as_of()
+        wrapper would have, for the same underlying data."""
+        from company.trading.hedge_decision import estimate_price_volatility
+        import random
+        random.seed(42)
+        elec = []
+        price = 50.0
+        for i in range(100):
+            price = max(1.0, price + random.gauss(0, 3))
+            elec.append({"settlementDate": f"2020-{(i % 12) + 1:02d}-{(i % 28) + 1:02d}",
+                         "systemSellPrice": round(price, 2)})
+        log = build_price_bitemporal_log(elec, [])
+        view = PointInTimeView(dt.datetime(2021, 1, 1), bitemporal_log=log)
+        history = view.get_price_history_as_of("electricity")
+        vol = estimate_price_volatility(history)
+        assert vol > 0

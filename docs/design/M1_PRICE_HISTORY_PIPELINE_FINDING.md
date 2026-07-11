@@ -43,3 +43,35 @@ extending regardless of which pipeline it served.
 
 Sizing/choice between (a)/(b) is the next M1 depth-work session's first task.
 Registered in `docs/design/maturity_map.yaml`'s `W1_reveal_over_time` atom.
+
+## RESOLVED 2026-07-11: option (a) built
+
+Chose (a) -- "one architecture, not two" (the same principle already applied
+to `W1_reveal_over_time`/`D2_three_clocks`). `market_data_port` is now
+optional on `PointInTimeView` (matching `bitemporal_log`'s existing
+optionality, same fail-loud-if-missing pattern). New
+`build_price_bitemporal_log(elec_records, gas_records)` populates a
+`BitemporalEventLog` with one record per (commodity, date) -- the DAILY MEAN
+price, not every raw settlement-period record, because
+`estimate_price_volatility()` already aggregates to daily means internally
+(confirmed by reading its actual code first): this fits the log's
+one-record-per-`valid_time` model exactly, with no information loss for this
+consumer. New `PointInTimeView.get_price_history_as_of(commodity)`
+reconstructs the `{settlementDate, systemSellPrice}` shape the volatility
+function expects. Both real call sites in `simulation/run_phase2b.py`
+(electricity + gas hedge decisions) migrated; `_price_history_as_of()` and
+its cache retired entirely, not left as dead code.
+
+`transaction_time == valid_time` (midnight) is a documented, explicit
+simplification -- this dataset does not model real Elexon settlement-run
+revisions at the price level yet. A genuine restatement would `.record()`
+with a later `transaction_time` for the same `valid_time`, which
+`history_as_known_at()` already handles correctly by construction (tested at
+the `BitemporalEventLog` level, not freshly re-exercised for this specific
+use case since no real restatement data exists yet to test against).
+
+26 new/changed tests, full related suites (`company/interfaces/`,
+`company/trading/`, `simulation` run_phase2b/hedged_settlement -- 779 tests)
+pass, epistemic PASS. `W1_reveal_over_time` level 1->2 in
+`docs/design/maturity_map.yaml`. Level 3 still requires the event-drained
+loop and materiality gates/lazy valuation -- both untouched by this pass.
