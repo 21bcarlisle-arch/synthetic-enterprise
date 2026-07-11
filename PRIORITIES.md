@@ -1293,13 +1293,22 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   exclude, per its own docstring: a director-decision-pending item, not real self-startable
   work) -- what "capital employed" and "cash flow" (vs. accrual net margin) should mean at
   segment level for this business, before any chart gets built on top of it.
-- **Trading & Market tab redesign (director page comment, 2026-07-10, /supplier/)**: monthly
-  buying/position-seeking activity, seasonal % cover over time by segment/product type, VaR --
-  BLOCKED on the review gate above (fixing the volatility-lookback bug first, so this isn't built
-  against known-wrong numbers). A research fork found: no per-decision/monthly hedge-event log
-  exists yet (would need a new one in run_phase2b.py); VaR is already computed internally in
-  company/trading/hedge_decision.py (VAR_Z_95/VAR_REVENUE_LIMIT) but never surfaced -- cheap to
-  expose once the lookback bug is fixed.
+- **Trading & Market tab redesign -- PARTIALLY CLOSED (director page comment, 2026-07-10,
+  /supplier/; VaR piece built 2026-07-11)**: monthly buying/position-seeking activity, seasonal
+  % cover over time by segment/product type, VaR. The lookback-bug blocker is closed (see the
+  review gate above), and the cheap piece flagged by the research fork is now built: a new
+  `compute_realized_var()` in `company/trading/hedge_decision.py` mirrors the existing
+  VaR-constrained hedge decision math in the forward direction (given the actual hf used, what
+  VaR does that imply), logged per-decision into a new `hedge_var_log` (both electricity and gas
+  call sites in `simulation/run_phase2b.py`), aggregated per-year in
+  `tools/generate_dashboard_data.py::extract_trading()` (`var_annual`,
+  `var_limit_pct_of_term_revenue`), and rendered as a new chart + table on the Trading & Market
+  tab (`site/supplier/index.html`) against the real 15% VAR_REVENUE_LIMIT constraint line.
+  Browser-verified (Playwright): panel renders, no console errors, honestly shows "no VaR data"
+  for the current run (predates the metric) rather than fabricating a value -- real figures land
+  on the next natural sim_runner cycle. STILL OPEN: the monthly buying/position-seeking activity
+  log and seasonal %-cover-by-segment breakdown -- no per-decision/monthly hedge-event log exists
+  yet; would need a new one in run_phase2b.py, a larger build than the VaR piece.
 - **Operations tab -- full value chain (director page comment, 2026-07-10, /supplier/
   Operations)**: "very narrow compared to the full operational reporting and scope of processes
   ... across resi, sme & I&C... the full value chain. Might need sub levels." NOT YET SCOPED --

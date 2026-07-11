@@ -92,7 +92,7 @@ from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook
-from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost
+from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost, compute_realized_var
 from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
 from company.crm.customer_profitability import compute_profitability_uplift
@@ -832,6 +832,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     margin_feedback_log: list[dict] = []
     profitability_uplift_log: list[dict] = []
     demand_response_log: list[dict] = []   # Phase 52: per-term DR shift records
+    hedge_var_log: list[dict] = []   # Trading & Market tab: realized VaR per hedge decision
     # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
     hangover_remaining: dict[str, int] = {}
     # Phase NG: company-side satisfaction tracker using observable bill-shock signals only
@@ -1573,13 +1574,25 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
                 if policy.use_var_hedge_decision and unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
+                    _elec_price_hist = _price_history_as_of(elec_records, term_start_str)
                     _var_hf = decide_hedge_fraction(
                         eac_kwh, company_fwd, unit_rate,
-                        _price_history_as_of(elec_records, term_start_str), term_days_count
+                        _elec_price_hist, term_days_count
                     )
                     if cid not in pending_committee_overrides:
                         hf = _var_hf
                         current_hf[cid] = hf
+                    _realized_var = compute_realized_var(
+                        eac_kwh, company_fwd, unit_rate, _elec_price_hist, term_days_count, hf
+                    )
+                    hedge_var_log.append({
+                        "customer_id": cid,
+                        "term_start": term_start_str,
+                        "term_end": term_end_str,
+                        "commodity": "electricity",
+                        "hedge_fraction": round(hf, 4),
+                        **_realized_var,
+                    })
 
                 naked_kwh = eac_kwh * (1.0 - hf)
                 risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
@@ -1681,13 +1694,25 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
                 if _gas_term_days > 0:
+                    _gas_price_hist = _price_history_as_of(gas_records, term_start_str)
                     _gas_var_hf = decide_hedge_fraction(
                         aq_kwh, company_fwd, unit_rate,
-                        _price_history_as_of(gas_records, term_start_str), _gas_term_days
+                        _gas_price_hist, _gas_term_days
                     )
                     if cid not in pending_committee_overrides:
                         hf = _gas_var_hf
                         current_hf[cid] = hf
+                    _gas_realized_var = compute_realized_var(
+                        aq_kwh, company_fwd, unit_rate, _gas_price_hist, _gas_term_days, hf
+                    )
+                    hedge_var_log.append({
+                        "customer_id": cid,
+                        "term_start": term_start_str,
+                        "term_end": term_end_str,
+                        "commodity": "gas",
+                        "hedge_fraction": round(hf, 4),
+                        **_gas_realized_var,
+                    })
 
             # Phase NE: pass-through gas has no commodity price risk -- customer pays spot
             # directly, so company holds no naked position. Using aq_kwh here was generating
@@ -2221,6 +2246,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "margin_feedback_log": margin_feedback_log,
         "profitability_uplift_log": profitability_uplift_log,
         "demand_response_log": demand_response_log,   # Phase 52
+        "hedge_var_log": hedge_var_log,
         "dynamic_pricing_log": dynamic_pricing_log,
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(

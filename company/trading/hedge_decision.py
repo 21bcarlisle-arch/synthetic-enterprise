@@ -137,3 +137,36 @@ def decide_hedge_fraction(
     hf = 1.0 - max_unhedged_fraction
 
     return float(max(COMPANY_MIN_HEDGE_FLOOR, min(1.0, hf)))
+
+
+def compute_realized_var(
+    eac_kwh: float,
+    fwd_price_gbp_per_mwh: float,
+    unit_rate_gbp_per_mwh: float,
+    price_records: list[dict],
+    term_days: int,
+    hf: float,
+) -> dict:
+    """Realized VaR at the ACTUAL hedge fraction used for a term — reporting only.
+
+    decide_hedge_fraction() solves for the hf that caps VaR at VAR_REVENUE_LIMIT;
+    this applies the same model in the forward direction (given hf, what VaR does
+    that imply) so the risk actually carried can be surfaced on the Trading & Market
+    tab, distinct from the constraint the decision was solved against.
+    """
+    if eac_kwh <= 0 or fwd_price_gbp_per_mwh <= 0 or term_days <= 0:
+        return {"var_gbp": 0.0, "var_pct_of_term_revenue": 0.0}
+
+    vol_annual = estimate_price_volatility(price_records)
+    vol_term = vol_annual * ((term_days / 365.25) ** 0.5)
+
+    eac_mwh = eac_kwh / 1000.0
+    term_fraction = term_days / 365.25
+    eac_mwh_term = eac_mwh * term_fraction
+    unhedged_mwh_term = eac_mwh_term * (1.0 - hf)
+
+    var_gbp = fwd_price_gbp_per_mwh * unhedged_mwh_term * vol_term * VAR_Z_95
+    term_revenue_estimate = unit_rate_gbp_per_mwh * eac_mwh_term
+    var_pct = (var_gbp / term_revenue_estimate) if term_revenue_estimate > 0 else 0.0
+
+    return {"var_gbp": round(var_gbp, 2), "var_pct_of_term_revenue": round(var_pct, 6)}

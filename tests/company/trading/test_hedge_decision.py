@@ -4,6 +4,7 @@ from company.trading.hedge_decision import (
     estimate_price_volatility,
     compute_bid_ask_cost,
     decide_hedge_fraction,
+    compute_realized_var,
     MIN_VOL_ANNUAL,
     MAX_VOL_ANNUAL,
     BID_ASK_BASE_PCT,
@@ -112,3 +113,43 @@ class TestDecideHedgeFraction:
         records = _price_records(60)
         hf = decide_hedge_fraction(10000.0, 80.0, 90.0, records, 180)
         assert isinstance(hf, float)
+
+
+class TestComputeRealizedVar:
+    def test_zero_eac_returns_zero(self):
+        result = compute_realized_var(0.0, 80.0, 90.0, _price_records(50), 365, 0.8)
+        assert result == {"var_gbp": 0.0, "var_pct_of_term_revenue": 0.0}
+
+    def test_zero_fwd_price_returns_zero(self):
+        result = compute_realized_var(10000.0, 0.0, 90.0, _price_records(50), 365, 0.8)
+        assert result["var_gbp"] == 0.0
+
+    def test_zero_term_returns_zero(self):
+        result = compute_realized_var(10000.0, 80.0, 90.0, _price_records(50), 0, 0.8)
+        assert result["var_gbp"] == 0.0
+
+    def test_fully_hedged_gives_zero_var(self):
+        records = _price_records(100)
+        result = compute_realized_var(10000.0, 80.0, 90.0, records, 365, 1.0)
+        assert result["var_gbp"] == pytest.approx(0.0, abs=1e-6)
+        assert result["var_pct_of_term_revenue"] == pytest.approx(0.0, abs=1e-6)
+
+    def test_naked_position_has_positive_var(self):
+        records = _price_records(100)
+        result = compute_realized_var(10000.0, 80.0, 90.0, records, 365, 0.0)
+        assert result["var_gbp"] > 0.0
+        assert result["var_pct_of_term_revenue"] > 0.0
+
+    def test_lower_hedge_fraction_gives_higher_var(self):
+        records = _price_records(100)
+        low_hf = compute_realized_var(10000.0, 80.0, 90.0, records, 365, 0.9)
+        high_hf = compute_realized_var(10000.0, 80.0, 90.0, records, 365, 0.2)
+        assert high_hf["var_gbp"] > low_hf["var_gbp"]
+
+    def test_matches_decide_hedge_fraction_constraint_at_solved_hf(self):
+        # At the hf that decide_hedge_fraction() solves for, realized VaR should sit
+        # at (or just under, due to the floor/ceiling clamp) the VAR_REVENUE_LIMIT.
+        records = _price_records(100, noise=8.0)
+        hf = decide_hedge_fraction(10000.0, 80.0, 90.0, records, 365)
+        result = compute_realized_var(10000.0, 80.0, 90.0, records, 365, hf)
+        assert result["var_pct_of_term_revenue"] <= VAR_REVENUE_LIMIT + 1e-6

@@ -15,6 +15,7 @@ from pathlib import Path
 from company.analytics.retention_deferral_economics import (
     compute_realized_deferrals, serial_saver_summary,
 )
+from company.trading.hedge_decision import VAR_REVENUE_LIMIT
 
 PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
@@ -406,10 +407,30 @@ def extract_trading(data, spot_monthly):
 
     committee_enriched.sort(key=lambda r: r["month"])
 
+    # VaR per year (realized value-at-risk carried on the naked/unhedged position)
+    var_by_year = defaultdict(list)
+    for e in data.get("hedge_var_log", []):
+        term_start = e.get("term_start", "")
+        if len(term_start) >= 4:
+            var_by_year[term_start[:4]].append(e)
+    var_annual = []
+    for yr in sorted(var_by_year.keys()):
+        entries = var_by_year[yr]
+        pcts = [e.get("var_pct_of_term_revenue", 0.0) for e in entries]
+        var_annual.append({
+            "year": int(yr),
+            "avg_var_pct_of_term_revenue": round(statistics.mean(pcts), 6) if pcts else 0.0,
+            "max_var_pct_of_term_revenue": round(max(pcts), 6) if pcts else 0.0,
+            "total_var_gbp": _fmt(sum(e.get("var_gbp", 0.0) for e in entries)),
+            "term_count": len(entries),
+        })
+
     return {
         "spot_monthly": committee_enriched,
         "hedge_annual": hedge_annual,
         "forward_terms": forward_terms[:500],  # cap for payload size
+        "var_annual": var_annual,
+        "var_limit_pct_of_term_revenue": VAR_REVENUE_LIMIT,
     }
 
 

@@ -892,6 +892,9 @@ function renderTrading() {
   const sm = YEAR_FILTER ? smAll.filter(r => r.month.startsWith(String(YEAR_FILTER))) : smAll;
   const haAll = D.trading.hedge_annual;
   const ha = YEAR_FILTER ? haAll.filter(r => r.year === YEAR_FILTER) : haAll;
+  const vaAll = D.trading.var_annual || [];
+  const va = YEAR_FILTER ? vaAll.filter(r => r.year === YEAR_FILTER) : vaAll;
+  const varLimitPct = (D.trading.var_limit_pct_of_term_revenue || 0.15) * 100;
 
   const months = sm.map(r=>r.month);
   const means  = sm.map(r=>r.mean);
@@ -931,6 +934,26 @@ function renderTrading() {
         <tr><th>Year</th><th>Avg HF</th><th>Min HF</th><th>Max HF</th></tr>
         ${ha.map(r=>`<tr><td>${r.year}</td><td>${(r.avg_hf*100).toFixed(1)}%</td>
           <td>${(r.min_hf*100).toFixed(1)}%</td><td>${(r.max_hf*100).toFixed(1)}%</td></tr>`).join('')}
+      </table>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Realized Value-at-Risk (95%) as % of Term Revenue</div>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 8px">
+        VaR on the naked/unhedged portion of each term's position, at the trading desk's
+        actual hedge fraction -- distinct from the ${varLimitPct.toFixed(0)}% constraint the
+        hedge decision itself is solved against (company/trading/hedge_decision.py).
+        No VaR data yet for runs processed before this metric was added.
+      </p>
+      <div class="chart-wrap"><canvas id="ch-var"></canvas></div>
+    </div>
+    <div class="tbl-box">
+      <div class="tbl-title">Realized VaR by Year</div>
+      <table>
+        <tr><th>Year</th><th>Avg VaR % of Term Rev</th><th>Max VaR % of Term Rev</th><th>Total VaR £</th><th>Terms</th></tr>
+        ${va.map(r=>`<tr><td>${r.year}</td><td>${(r.avg_var_pct_of_term_revenue*100).toFixed(2)}%</td>
+          <td>${(r.max_var_pct_of_term_revenue*100).toFixed(2)}%</td><td>£${r.total_var_gbp.toLocaleString()}</td>
+          <td>${r.term_count}</td></tr>`).join('')}
+        ${va.length === 0 ? '<tr><td colspan="5" style="color:var(--muted)">No VaR data for the current run.</td></tr>' : ''}
       </table>
     </div>`;
 
@@ -1006,6 +1029,25 @@ function renderTrading() {
       y:{grid:{color:'rgba(225,224,217,.4)'},min:0,max:105,ticks:{callback:v=>v+'%'},
          title:{display:true,text:'Hedge fraction (%)',color:C.muted,font:{size:10}}} } }
   });
+
+  if (va.length) {
+    mkChart('ch-var', {
+      type: 'bar',
+      data: {
+        labels: va.map(r=>r.year),
+        datasets: [
+          { label: 'Avg realized VaR (% of term revenue)', data: va.map(r=>r.avg_var_pct_of_term_revenue*100),
+            backgroundColor:'rgba(42,120,214,.6)', borderRadius:3 },
+          { label: `VaR limit (${varLimitPct.toFixed(0)}%)`, data: va.map(()=>varLimitPct),
+            type:'line', borderColor: C.amber, borderDash:[5,4], pointRadius:0, borderWidth:2, fill:false },
+        ]
+      },
+      options: { ...baseLineOpts(), scales: {
+        x:{grid:{color:'rgba(225,224,217,.4)'}},
+        y:{grid:{color:'rgba(225,224,217,.4)'},min:0,ticks:{callback:v=>v+'%'},
+           title:{display:true,text:'VaR (% of term revenue)',color:C.muted,font:{size:10}}} } }
+    });
+  }
 }
 
 // ── CUSTOMERS ────────────────────────────────────────────────────────────────
