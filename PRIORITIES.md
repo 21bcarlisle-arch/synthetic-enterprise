@@ -1386,10 +1386,26 @@ one incident's mechanism); a full audit+retrofit of every OTHER hold/gate/flag i
 the same orphan-transition risk (only sim-runner's hold was fixed, others -- e.g. the exception
 queue release, agenda refill -- were not audited this pass).
 
-## DOMAIN_ARTEFACT_LIBRARY.md -- registered, NOT built (2026-07-10, advisor-staged, background-lane discovery)
+## DOMAIN_ARTEFACT_LIBRARY.md -- Pass 1 BUILT (2026-07-11, amended 2026-07-10 instruction, advisor-staged, background-lane discovery)
 A large external-codification research programme (UK market specs, regulatory process
 codifications, open-source domain models like PowerTAC/Kill Bill/ERPNext, process taxonomies like
 APQC PCF/eTOM) to mine rather than reinvent, feeding the invariant library, ASSUMPTIONS.md lineage,
 and Epoch 2/3/4 framing. Explicitly background-lane, must not displace DOMAIN_SENSE_AND_COMPLIANCE
-or BILL_CORRECTNESS_ADDENDUM. Genuinely multi-session scope -- registered for a dedicated future
-phase rather than started alongside everything else in flight today.
+or BILL_CORRECTNESS_ADDENDUM (both closed, no longer blocking). Genuinely multi-session scope --
+picked up incrementally, not delivered as one closed survey.
+Pass 1 (2026-07-11): built `docs/domain_artefact_library/` (INDEX.md + provenance-tag scheme +
+required-outputs tracker), surveyed 3 real sources via 3 parallel research forks (real
+WebSearch/WebFetch, this interactive session) -- PowerTAC 2020 spec (explicitly flagged priority
+artefact: ADAPT its tariff rate-type taxonomy + tariff lifecycle state machine, SKIP its
+default-broker/tournament design; honest limitation: SSRN blocked automated PDF fetch, substituted
+the project's own actively-maintained wiki), Kill Bill/Lago (ADAPT Kill Bill's day-count dunning
+ladder shape, SKIP both platforms' invoice-lifecycle/entity-split as direct imports -- this
+project's UK-specific billing entities predate and diverge from a generic SaaS subscription
+shape), TigerBeetle/XTDB (ADOPT both -- confirmed the bitemporal event log built earlier this
+session, `company/interfaces/bitemporal_event_log.py`, already follows TigerBeetle's append-only
+correction-via-offsetting-entry discipline and XTDB's valid_time/transaction_time terminology
+exactly). Found and flagged a real gap in the instruction's own 3-tag provenance scheme (no clean
+tag for an external SOFTWARE-DESIGN reference, only for DATA sources) rather than forcing a bad
+fit silently. ~17 sources remain un-surveyed (REC/DTC/MHHS/Elexon/SEC/CSS, Ofgem SLCs/Complaints
+Regs/Bacs codes, ERPNext/Odoo, APQC PCF/eTOM) -- registered honestly, not rushed. Doc-only, no
+code touched, epistemic PASS (trivially, nothing in company/saas changed).

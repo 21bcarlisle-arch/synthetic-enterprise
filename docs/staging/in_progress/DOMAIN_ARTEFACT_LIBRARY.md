@@ -1,3 +1,14 @@
+**PARKED IN PROGRESS (2026-07-11):** Pass 1 built — `docs/domain_artefact_library/`
+(INDEX.md + 3 real sourced entries: PowerTAC 2020, Kill Bill/Lago, TigerBeetle/XTDB), see
+PRIORITIES.md's own entry for the full verdict summary. ~17 sources remain un-surveyed
+(this instruction's own scope is genuinely multi-session). Moved here rather than left in
+the staging root per the 2026-07-11 in_progress/ convention. Move to `done/` once the
+survey and all required outputs (a)-(f) are judged sufficiently complete — no fixed
+threshold set, agent's own call per the instruction's "designs the approach... depth per
+source" delegation.
+
+---
+
 # INSTRUCTION: DOMAIN_ARTEFACT_LIBRARY — external codification discovery pass
 
 **Place in the epoch arc:** Cross-epoch enabler, anchored in Core Fidelity. Extends the invariant library and ASSUMPTIONS.md lineage now (R10 fuel), pre-seeds Epoch 2 (settlement/three-clock design references, cost-stack benchmarks), Epoch 3 (adapter-schema candidates — the wall IS the go-live seam), and Epoch 4 (tournament prior art). Discovery work, background-lane compatible: metric = anchors produced.
