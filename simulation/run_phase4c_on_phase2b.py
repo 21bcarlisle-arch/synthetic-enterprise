@@ -58,6 +58,7 @@ from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
 from simulation.meter_reads import generate_meter_read_log, meter_type_for_customer
 from simulation.run_phase2b import main as run_phase2b
+from tools.contact_centre_port import ContactCentreMessage
 from tools.meter_read_port import MeterReadMessage
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
@@ -252,7 +253,20 @@ def main(report_end: str | None = None, policy=None):
     # time, distinct from feedback_survey's complaint *resolution* timer --
     # reuses contact_model's already-computed per-bill contact_probability
     # as the trigger, adds the channel + first-response latency layer.
-    contact_centre_log = generate_contact_centre_log(bills, contact_model)
+    # WALLED_INTERFACES reference-flow conversion (W4_1_typed_adapters, third
+    # flow): the customer-contact crossing now travels as versioned typed
+    # messages (tools.contact_centre_port.ContactCentreMessage) rather than raw
+    # dicts. Transport-shape change only -- `to_log_entry()` is a lossless
+    # identity on the pre-conversion dict, so the downstream consumer of
+    # `contact_centre_log` (annual_report.py's SLC 25C SLA-breach check) is
+    # unaffected. All fields are company-observable contact-centre operational
+    # data; unlike meter reads / the acquisition funnel there is no SIM-internal
+    # ground-truth field on this seam.
+    contact_centre_messages = [
+        ContactCentreMessage.from_log_entry(entry)
+        for entry in generate_contact_centre_log(bills, contact_model)
+    ]
+    contact_centre_log = [message.to_log_entry() for message in contact_centre_messages]
 
     all_customers = _get_all_customers()
     cost_to_serve = build_cost_to_serve(all_records, all_customers)
