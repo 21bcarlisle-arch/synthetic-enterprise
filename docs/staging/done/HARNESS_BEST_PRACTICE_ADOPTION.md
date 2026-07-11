@@ -1,12 +1,14 @@
-**PARKED IN PROGRESS (2026-07-11):** items 1(a/b/c), 2, 3, 6 all BUILT this session
-(see PRIORITIES.md/CLAUDE.md Current-state). Only item 4 (Routines pilot) remains
-genuinely open — blocked on Rich creating the cloud environment in his claude.ai
-account and sending back the resulting identifier (real click-path already relayed:
-claude.ai/code → cloud icon → Add environment). Moved here (docs/staging/in_progress/,
-excluded from supervisor.py's unprocessed-staging scan) rather than left in the
-staging root, where a fully-actioned-but-unarchived file re-granted a supervisor
-turn every ~2min for hours overnight with nothing new to do (director-caught,
-2026-07-11). Move to `done/` once item 4 lands or is otherwise resolved.
+**CLOSED (2026-07-11):** items 1(a/b/c), 2, 3, 6 all BUILT earlier this session; item 4
+(Routines pilot) now also BUILT — director created the cloud environment ("poesys"),
+authorized the first trigger live in-conversation ("You create it, against poesys...
+report-only... daily schedule max... pause-on-anomaly"), real trigger created and
+scheduled: `trig_01Xj4Xkj7sD5Fmv7nZVzW41c`, cron `0 3 * * *`, next run
+2026-07-12T03:01 UTC. Full detail, exact prompt, real schema found live (create's
+body is `{name, job_config: {prompt, ccr: {environment_id}}}`, schedule is a
+separate top-level `cron_expression` set via `update`), and honest caveats (broader
+tool access than originally proposed; no confirmed self-pause API) in
+`docs/design/ROUTINES_PILOT_FIRST_TRIGGER.md`. All 6 items of this instruction are
+now complete.
 
 ---
 
