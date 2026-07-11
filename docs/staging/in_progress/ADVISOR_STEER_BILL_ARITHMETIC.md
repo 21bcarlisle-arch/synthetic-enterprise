@@ -1,14 +1,21 @@
-**STATUS (2026-07-11): both defects root-caused, fix delegated (in flight).
-Item 1: tools/generate_billing_ledger.py independently rounds opening_read_kwh/
-closing_read_kwh/consumption_kwh from the same source instead of deriving
-displayed usage from the already-rounded displayed reads -- classic compounding-
-rounding bug, matches the observed 331.1 vs 331.2 kWh exactly. Item 2:
-site/customers/index.html's per-bill "Outstanding" sum counts any non-"PAID"
-invoice status as unpaid, but tools/generate_invoice_data.py's _STATUS_MAP has
-no "written_off" mapping -- a written-off invoice's status never gets updated,
-so it's double-counted as still-outstanding even though the household ledger
-correctly zeroes it via total_written_off_gross_gbp. Item 3 (plausibility
-anchors) queued alongside COLD_EYES_PROTOCOL.md, same non-interrupting class.**
+**STATUS (2026-07-11): items 1+2 FIXED, committed, pushed (f4e4d806) --
+independently re-verified before commit (2622 tests, full epistemic scan,
+spot-checked C1's real regenerated data directly: 331.1 kWh now reconciles
+with reads 21084.0->21415.1; C1-INV7/C1-INV11 now show WRITTEN_OFF). Historical
+sweep: 664/1588 bills violated under the old logic, 239 rounding-class now 0.
+Residual, registered not hidden (sanity_adjudication_ledger.json,
+defect:estimated_bill_amount_on_true_consumption): the other 425 violations
+are a separate, larger, pre-existing gap -- estimated bills' amounts are
+computed from true consumption, not the estimate, since the billing engine
+has no estimate-then-true-up model at all (confirmed: not a new epistemic
+leak, meter_reads.py generates its actual/estimated narrative from
+ALREADY-COMPUTED bills). Belongs to saas/bill_generator.py + the estimation
+physics layer, out of scope here.
+
+STILL OPEN: item 3 (plausibility anchors) queued alongside COLD_EYES_PROTOCOL.md.
+Live pixel verification (R11) not yet done -- same as ADVISOR_STEER_THESIS_CHART.md,
+blocked on confirming the Cloudflare cache-purge fix (bf777d21) actually took
+effect on the next natural site/data deploy cycle.**
 
 ---
 
