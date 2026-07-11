@@ -12,6 +12,18 @@
 #        memory, prove the daily-digest alert mode live over a real cycle.
 #     3. Epoch-2 foundations continue, BOUNDED, until the advisor's epoch framing arrives
 #        (expected same day per the spike doc) -- its sequencing then takes over this slot.
+#        ARRIVED 2026-07-11 (docs/design/THE_VALUE_CYCLE_FRAMING.md, EPOCH2_RATIFIED.md):
+#        slot 3 now reads "M1 at full parallel depth" (bitemporal log, as-of interfaces,
+#        event-drained loop, materiality gates). Installed: framing doc, new W5_banking_
+#        payment_rails lane + D_payments_maturity_audit atom, wall-inventory entry, all
+#        headline figures PROVISIONAL-labelled per the framing's own risk note. M1 build
+#        started -- real finding caught before wrong code shipped: PointInTimeView's
+#        MarketDataPort is backed by a DIFFERENT pipeline (frozen 2025 snapshot, live-decision
+#        path) than the historical backtest's own price records (live Elexon API fetch per
+#        run) -- migrating the hedge-decision call site onto it as planned would have silently
+#        corrupted the backtest. docs/design/M1_PRICE_HISTORY_PIPELINE_FINDING.md has the two
+#        real next-step options. Payments maturity audit (M2 entry gate) also now joins the
+#        weekend background work per the framing -- not yet started.
 #     4. DISCOVER/FRAME charter flood: every lane at dial>=2 lacking one (B, C, E, W2, W3, A, G).
 #     5. HARDEN sweep: Expert-Hour simulation per company lane vs the live site, findings into
 #        the adjudication ledger.
