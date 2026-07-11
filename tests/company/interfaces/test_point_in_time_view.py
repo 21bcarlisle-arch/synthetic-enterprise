@@ -237,6 +237,34 @@ class TestGetPriceHistoryAsOf:
         dates = [r["settlementDate"] for r in history]
         assert dates == sorted(dates)
 
+    def test_restatement_versions_correctly_through_price_history(self):
+        """The other half of THE_VALUE_CYCLE_FRAMING.md's M1 exit test: 'a
+        restatement lands as an event and downstream values version
+        correctly.' Previously only exercised generically at the
+        BitemporalEventLog level (test_bitemporal_event_log.py) -- never
+        through get_price_history_as_of(), the actual pathway
+        estimate_price_volatility() consumes. build_price_bitemporal_log()
+        doesn't produce restatements today (transaction_time == valid_time,
+        a documented simplification), so this constructs the log directly
+        via .record() to prove the pathway ABOVE it (get_price_history_as_of
+        -> history_as_known_at) versions correctly once a restatement does
+        exist -- the exact escape hatch that simplification claims."""
+        log = BitemporalEventLog()
+        log.record("electricity", "daily_mean_spot_price", dt.date(2020, 6, 1),
+                   dt.datetime(2020, 6, 1, 0, 0), 40.0)
+        # A later settlement run restates the same day's price.
+        log.record("electricity", "daily_mean_spot_price", dt.date(2020, 6, 1),
+                   dt.datetime(2020, 6, 10, 0, 0), 55.0)
+
+        before_restatement = PointInTimeView(dt.datetime(2020, 6, 5), bitemporal_log=log)
+        after_restatement = PointInTimeView(dt.datetime(2020, 6, 15), bitemporal_log=log)
+
+        history_before = before_restatement.get_price_history_as_of("electricity")
+        history_after = after_restatement.get_price_history_as_of("electricity")
+
+        assert history_before[0]["systemSellPrice"] == 40.0
+        assert history_after[0]["systemSellPrice"] == 55.0
+
     def test_matches_estimate_price_volatility_input_shape(self):
         """Regression safety: feeding this into estimate_price_volatility()
         must produce the same result as the old _price_history_as_of()

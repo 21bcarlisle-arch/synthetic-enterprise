@@ -74,3 +74,16 @@ judges the scaling risk worth pre-empting now. If/when built, the first
 real step should be a narrow audit of which per-period company-side
 computations (not settlement generation itself) are genuinely tick-bound
 vs already event-bound, before touching any code.
+
+## Sequencing decision (2026-07-11, director, in-console)
+
+DEFER the settlement-generation rewrite to M4. Rationale (director's own):
+M4's full-history rederivation forces the sim through `hedged_settlement.py`
+anyway, so rewrite it once there, against a design validated by M2 running
+on the *existing* generation first -- M2's settlement-timetable/rebilling
+work is real load on the current code path and produces real evidence for
+how the eventual rewrite should be shaped, rather than guessing at the
+shape now. `W1_reveal_over_time`'s `loop_stage` stays `idle` on this
+sub-component through M2 and M3; picks back up only when M4 starts. This
+resolves the "pre-empt now vs defer" question left open above -- defer,
+not pre-empt.

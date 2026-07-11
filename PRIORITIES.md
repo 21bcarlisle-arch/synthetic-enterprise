@@ -39,12 +39,30 @@
 #        ~8min/run, not currently blocking -- a future M3/M4 scaling concern, not urgent. BUILD
 #        deliberately deferred (two-way-door filter: don't rewrite ground-truth-generating code
 #        against an unresolved design question when nothing forces it now). W1_reveal_over_time
-#        loop_stage set to idle pending a director/advisor sequencing call -- AWAITING DIRECTOR
-#        INPUT: pre-empt the scaling risk now, or defer to when M3/M4 make it load-bearing?
+#        loop_stage set to idle pending a director/advisor sequencing call -- RESOLVED 2026-07-11
+#        (director, in-console): DEFER the settlement-generation rewrite to M4 -- M4's full
+#        history rederivation forces the sim through hedged_settlement.py anyway, so rewrite it
+#        once there, against a design validated by M2 running on the EXISTING generation first
+#        (M2's settlement-timetable/rebilling work is real load on the current code path, real
+#        evidence for how the rewrite should be shaped). W1_reveal_over_time stays idle on this
+#        sub-component through M2/M3; picks back up when M4 starts. Formal M1 exit test run the
+#        same day: see maturity_map.yaml W1 entry + evening digest for pass/fail.
 #     4. DISCOVER/FRAME charter flood: every lane at dial>=2 lacking one (B, C, E, W2, W3, A, G).
 #     5. HARDEN sweep: Expert-Hour simulation per company lane vs the live site, findings into
 #        the adjudication ledger.
 #     6. Bill-shock redesign + any map-drawn work as capacity allows.
+#     7. NEW 2026-07-11 (director-ratified, docs/design/SITE_CONSTITUTION.md +
+#        docs/design/POESYS_SITE_BRIEF.md, self-declared P1/spike-eligible): site IA
+#        rebuild, organised by visitor persona question rather than internal
+#        architecture. Constitution's own rank: Doors 1-2 (Front Door + Thesis Chart,
+#        The Journey/maturity-map) spike-eligible NOW, run PARALLEL to -- never
+#        displacing -- the hot lane (M1/payments-audit, both closed this session).
+#        Doors 3-8 proceed by map draw after the spike. Canonical docs installed;
+#        originals parked docs/staging/in_progress/ (BUILD not yet started, per the
+#        staging-directory-protocol -- only the mechanical install step is done so
+#        far). Slots in behind item 5 (HARDEN sweep) unless director reprioritises --
+#        this doc doesn't claim precedence over Rich's direct HARDEN/M3 instruction,
+#        only "spike-eligible", not "next".
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
