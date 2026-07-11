@@ -3,8 +3,11 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+import pytest
+
 from tools.generate_customer_data import (
     _tariff, _meter, _base_id, _mpan, _mprn, _mpan_check_digit, _timeline,
+    _forecast_cashflow,
 )
 
 
@@ -160,3 +163,55 @@ def test_timeline_includes_gas_twin_events():
 
 def test_timeline_empty_when_no_data():
     assert _timeline({}, "C1") == []
+
+
+class TestForecastCashflow:
+    def test_zero_margin_returns_empty(self):
+        assert _forecast_cashflow(0, 5.0, 0.10) == []
+
+    def test_zero_lifetime_returns_empty(self):
+        assert _forecast_cashflow(1000.0, 0, 0.10) == []
+
+    def test_negative_lifetime_returns_empty(self):
+        assert _forecast_cashflow(1000.0, -1.0, 0.10) == []
+
+    def test_whole_year_lifetime_row_count(self):
+        rows = _forecast_cashflow(1000.0, 3.0, 0.10)
+        assert len(rows) == 3
+        assert [r["year_offset"] for r in rows] == [1, 2, 3]
+
+    def test_fractional_lifetime_rounds_up_row_count(self):
+        rows = _forecast_cashflow(1000.0, 2.5, 0.10)
+        assert len(rows) == 3
+
+    def test_fractional_final_year_is_partial_weight(self):
+        rows = _forecast_cashflow(1000.0, 2.5, 0.10)
+        assert rows[0]["undiscounted_gbp"] == pytest.approx(1000.0)
+        assert rows[1]["undiscounted_gbp"] == pytest.approx(1000.0)
+        assert rows[2]["undiscounted_gbp"] == pytest.approx(500.0)
+
+    def test_capped_at_ten_years(self):
+        rows = _forecast_cashflow(1000.0, 25.0, 0.10)
+        assert len(rows) == 10
+
+    def test_discounted_less_than_undiscounted_for_positive_rate(self):
+        rows = _forecast_cashflow(1000.0, 3.0, 0.10)
+        for r in rows:
+            assert r["discounted_gbp"] < r["undiscounted_gbp"]
+
+    def test_discounted_sum_reconciles_with_clv_annuity(self):
+        # Same math as saas/clv_model.py's annuity_factor -- the discounted
+        # sum here should equal avg_annual_margin * annuity_factor(lifetime, rate).
+        avg_margin = 1000.0
+        lifetime = 4.0
+        rate = 0.10
+        rows = _forecast_cashflow(avg_margin, lifetime, rate)
+        total_discounted = sum(r["discounted_gbp"] for r in rows)
+        whole = int(lifetime)
+        expected = sum(avg_margin / (1.0 + rate) ** k for k in range(1, whole + 1))
+        assert total_discounted == pytest.approx(expected, abs=0.01)
+
+    def test_later_years_discounted_less_than_earlier(self):
+        rows = _forecast_cashflow(1000.0, 5.0, 0.10)
+        discounted = [r["discounted_gbp"] for r in rows]
+        assert discounted == sorted(discounted, reverse=True)

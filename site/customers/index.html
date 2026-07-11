@@ -367,7 +367,7 @@ function renderTab(){
   else if(ACTIVE_TAB==="billing"){
     body.innerHTML=renderBillingTab();
     if(BILL_VIEW==="bills")renderBills(BILL_FUEL==="elec"?HH.elec:HH.gas);
-    else if(BILL_VIEW==="cashflow")renderCashflow();
+    else if(BILL_VIEW==="cashflow"){renderCashflow();renderForecastCashflow();}
   }
   else if(ACTIVE_TAB==="timeline")body.innerHTML=renderTimelineTab();
   else if(ACTIVE_TAB==="risk")body.innerHTML=renderRiskTab();
@@ -383,6 +383,7 @@ function renderOverviewTab(){
     html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+esc(d.account_id)+"</div>"+
       "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
       "<div class=\"row\"><span class=\"rl\">Customer Lifetime Value</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
+      (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">Forecast Annual Profit</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"")+
       "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
       "</div>";
   });
@@ -644,8 +645,28 @@ function renderCashflowShell(){
   html+="<div class=\"chart-wrap\"><canvas id=\"cashflow-chart\" height=\"220\"></canvas></div>"+
     "<div id=\"cashflow-kpis\"></div>"+
     "<div class=\"usage-hint\">Monthly billed vs collected, and cumulative collected over the household's lifetime. Cost to Serve is only available as a lifetime total (no monthly series exists in the sim), so the net cash contribution figure below is a lifetime figure, not a monthly one.</div>"+
-    reconciliationLine();
+    reconciliationLine()+
+    "<div class=\"sec-title\" style=\"margin-top:20px\">Forecast Cashflow &mdash; Forward-Looking Projection</div>"+
+    "<div id=\"forecast-cashflow-body\"></div>";
   return html;
+}
+function renderForecastCashflow(){
+  var body=document.getElementById("forecast-cashflow-body");
+  if(!body)return;
+  var d=HH.elec||HH.gas;
+  var fc=(d&&d.forecast_cashflow)||[];
+  if(!fc.length){
+    body.innerHTML="<div class=\"usage-hint\">No forecast cashflow available for this household yet -- projection lands once the next sim run computes a forward CLV basis.</div>";
+    return;
+  }
+  var rows=fc.map(function(r){
+    return "<tr><td>Year "+r.year_offset+"</td><td>"+gbp(r.undiscounted_gbp)+"</td><td>"+gbp(r.discounted_gbp)+"</td></tr>";
+  }).join("");
+  var totalDiscounted=fc.reduce(function(s,r){return s+r.discounted_gbp;},0);
+  body.innerHTML="<table style=\"margin-top:10px\"><tr><th>Year</th><th>Projected Net Margin</th><th>Discounted (PV)</th></tr>"+rows+"</table>"+
+    "<div class=\"usage-hint\">Projects "+(d.forecast_annual_profit_gbp?gbp(d.forecast_annual_profit_gbp)+"/yr":"this household's historical average annual net margin")+
+    " forward across its expected remaining lifetime, discounted at the same rate used for Customer Lifetime Value -- the discounted total ("+gbp(totalDiscounted)+
+    ") reconciles with the CLV figure above by construction. This is a forecast, not a commitment: it assumes the household's historical margin and churn behaviour continue unchanged.</div>";
 }
 var cashflowChart=null;
 function renderCashflow(){

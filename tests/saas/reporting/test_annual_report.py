@@ -208,6 +208,39 @@ def test_extract_report_data_splits_by_year():
     assert data["per_customer_lifetime"]["C1"]["net_gbp"] == 11.0
 
 
+def test_by_billing_account_carries_avg_annual_net_margin_when_ev_present():
+    """Director page comment (2026-07-11, /customers/: "expose forecast profit
+    and cashflow"): saas/clv_model.py::build_clv() already computes
+    avg_annual_net_margin_gbp (the forecast-annual-profit input that drives
+    clv_gbp), but by_billing_account's construction only ever extracted
+    clv_gbp/expected_lifetime_periods from it, dropping this field before it
+    reached tools/generate_customer_data.py."""
+    run_output = _run_output()
+    run_output["enterprise_value"] = {
+        "by_customer": {
+            "C1": {
+                "clv_gbp": 5452.61,
+                "expected_lifetime_periods": 16.78,
+                "avg_annual_net_margin_gbp": 500.0,
+            },
+        },
+    }
+
+    data = extract_report_data(run_output)
+
+    assert data["by_billing_account"]["C1"]["avg_annual_net_margin_gbp"] == 500.0
+    assert data["by_billing_account"]["C1"]["clv_gbp"] == 5452.61
+
+
+def test_by_billing_account_avg_annual_net_margin_none_when_ev_absent():
+    """None-safety, same pattern already used for clv_gbp/expected_lifetime_periods:
+    an account with no enterprise_value entry gets None, never a silent 0."""
+    data = extract_report_data(_run_output())  # no "enterprise_value" key at all
+
+    assert data["by_billing_account"]["C1"]["avg_annual_net_margin_gbp"] is None
+    assert data["by_billing_account"]["C1"]["clv_gbp"] is None
+
+
 def test_extract_report_data_total_net_ignores_stale_phase2b_scalar():
     """Regression test for the Project tab consistency bug (PROJECT_TAB_OVERHAUL.md
     critique finding #1): total_net_gbp/total_bad_debt_gbp must be derived live from

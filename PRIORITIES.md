@@ -1256,6 +1256,15 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **three_horizon_clv.py wiring (2026-07-11, found while scoping the /customers/
+  forecast-profit-and-cashflow director page comment)**: `company/core/three_horizon_clv.py`
+  has real H1 (signing-time commitment)/H2 (running realized P&L)/H3 (genuinely forward-looking
+  discounted forecast with `remaining_contract_years`/`updated_annual_margin_gbp`/
+  `updated_churn_probability`) machinery, but is completely unwired -- the only non-test hit
+  outside its own file is a docstring mention in `company/core/account_intelligence.py`. The
+  cheaper "forecast profit + cashflow" piece was built directly on `saas/clv_model.py`'s existing
+  math instead (same-day fix, see CLAUDE.md Current state). Wiring the fuller H1/H2/H3 model in
+  is a separate, larger integration -- registered here, not built now.
 - **Supervisor self-refill CLOSED, then SUPERSEDED (2026-07-10, SELF_DIRECTION_AND_
   PARALLELISM.md Problem 1, PROJECT_OVERVIEW.md Section 4 entry)**: background/supervisor.py
   originally granted a turn from an unblocked PRIORITIES.md backlog line (matching a

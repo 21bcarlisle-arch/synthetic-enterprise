@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Generate per-customer site data with dual-fuel combined views and enriched metrics."""
 import hashlib
-import json, sys
+import json, math, sys
 from pathlib import Path
 from collections import defaultdict
+
+from saas.clv_model import DISCOUNT_RATE_ANNUAL
 
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -144,6 +146,36 @@ def _per_year_data(run, cid):
     return years_out
 
 
+def _forecast_cashflow(avg_annual_net_margin_gbp, expected_lifetime_periods, discount_rate):
+    """Forward-looking per-year net cash contribution forecast (director page
+    comment, /customers/, 2026-07-11: "expose forecast profit and cashflow").
+
+    Uses the SAME inputs and discounting convention already driving clv_gbp
+    (saas/clv_model.py::build_clv) rather than inventing a new methodology --
+    avg_annual_net_margin_gbp is this account's historical average annual net
+    margin, treated as the forecast for each remaining year of its expected
+    lifetime. Capped at 10 years for display (a longer projection is not more
+    informative, just more speculative for a Bayesian-survival-model lifetime
+    estimate). The sum of discounted_gbp reconciles with clv_gbp by
+    construction (same annuity_factor math, same discount rate).
+    """
+    if avg_annual_net_margin_gbp == 0 or expected_lifetime_periods <= 0:
+        return []
+    n_years = min(10, math.ceil(expected_lifetime_periods))
+    rows = []
+    for year_offset in range(1, n_years + 1):
+        # Final partial year gets a fractional weight if the lifetime isn't a whole number.
+        weight = min(1.0, expected_lifetime_periods - (year_offset - 1))
+        undiscounted = avg_annual_net_margin_gbp * weight
+        discounted = undiscounted / (1.0 + discount_rate) ** year_offset
+        rows.append({
+            "year_offset": year_offset,
+            "undiscounted_gbp": round(undiscounted, 2),
+            "discounted_gbp": round(discounted, 2),
+        })
+    return rows
+
+
 def generate(run_json_path=None):
     path = Path(run_json_path) if run_json_path else RUN_OUTPUT
     run = json.loads(path.read_text())
@@ -196,6 +228,12 @@ def generate(run_json_path=None):
             clv_gbp=clv_gbp,
             churn_probability=churn_p,
             expected_lifetime_periods=round(clv_data.get("expected_lifetime_periods", 0), 2),
+            forecast_annual_profit_gbp=round(clv_data.get("avg_annual_net_margin_gbp", 0), 2),
+            forecast_cashflow=_forecast_cashflow(
+                clv_data.get("avg_annual_net_margin_gbp", 0),
+                clv_data.get("expected_lifetime_periods", 0),
+                DISCOUNT_RATE_ANNUAL,
+            ),
             commodity_split={
                 "electricity": {
                     "net_gbp": round(elec_comm.get("net", 0), 2),

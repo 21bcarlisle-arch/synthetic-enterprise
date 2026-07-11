@@ -462,6 +462,7 @@ def extract_report_data(run_output: dict) -> dict:
             "home_move_win_probability": win_rates[-1]["win_probability"] if win_rates else None,
             "clv_gbp": ev["clv_gbp"] if ev else None,
             "expected_lifetime_periods": ev["expected_lifetime_periods"] if ev else None,
+            "avg_annual_net_margin_gbp": ev["avg_annual_net_margin_gbp"] if ev else None,
         }
 
     clv_values = [v["clv_gbp"] for v in by_billing_account.values() if v["clv_gbp"] is not None]
