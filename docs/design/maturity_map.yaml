@@ -566,7 +566,7 @@
   simplifications: ["2026-07-11 REGISTERED (P2, advisor-staged, director-decided -- PRODUCTION_READINESS_BASELINE.md). Extends the existing obligations-register pattern to non-functional/operational production requirements: one entry per category (availability/SLOs, latency budgets, security incl. authn/authz/secrets/pen test, data protection incl. GDPR/encryption/backups, operational resilience linking the existing cyber-baseline obligation, change management/rollback, capacity, incident response), each recording what a real UK supplier needs, current measured state (fed by H3_production_readiness_nfr_evidence's Part A), go-live tier (blocker/should-have/post-live), and which epoch it lands in. This register is a direct input to Epoch 5 (go-live analysis), maintained from now -- placed at epoch:5 since that's where it's consumed, though the register itself starts being populated now. Depends on H3's Part A evidence existing before entries can carry a real 'current measured state' column."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's go-live readiness register presented to its board/regulator before launch"
-  depends_on: [H3_production_readiness_nfr_evidence]
+  depends_on: [H3_production_readiness_nfr_evidence, H5_security_profiles]
 
 - id: F4_company_internal_authz
   name: "Company-internal authz (roles, maker-checker, segregation of duties)"
@@ -581,4 +581,19 @@
   simplifications: ["2026-07-11 REGISTERED (director in-console, sandbox/security-profile decision): governance/compliance capability for later epochs -- role-based access control for company-internal decision authority (who/what can approve a pricing action, sign off a large customer refund, etc.), maker-checker separation (the person/process proposing a financial-effect action is never also the sole approver), and segregation of duties across the company's own decision-making functions (distinct from the agent's own harness security profile -- this is the SIMULATED COMPANY's internal governance, a real UK-supplier operational-controls concern, feeding the go-live NFR register's authn/authz category). Registration only, no design or build -- placed at epoch:5 pending real sequencing."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's internal controls -- segregation of duties, maker-checker on payment approvals, RBAC on customer-account actions"
+  depends_on: []
+
+- id: H5_security_profiles
+  name: "Security profiles (Developer/Restricted/Hardened) -- sandbox posture as a director-governed model"
+  lane: H_harness
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 1
+  evidence: ["background/secrets_location.py", "background/egress_allowlist.py", "docs/design/HARNESS_BEST_PRACTICE_ASSESSMENT.md"]
+  simplifications: ["2026-07-11 REGISTERED + PARTIALLY BUILT (director in-console, hybrid sandbox model, absorbing HARNESS_BEST_PRACTICE_ASSESSMENT.md's Pattern-C recommendation as the input rather than re-deriving it). Three profiles: (1) DEVELOPER -- local build lane, current access + 'Option 2 floor' -- secrets genuinely moved out of the working tree to ~/.config/synthetic-enterprise/ (background/secrets_location.py, new-location-first/old-path-fallback during the transition), application-level egress allowlist against the named real endpoints (background/egress_allowlist.py) -- BUILT this session, level 1 reflects this real floor, not the full target. (2) RESTRICTED -- cloud/routine lanes, PR-only, no secrets -- named and registered as what already holds for those lanes (no new build required, matches existing Routines/cloud-environment posture); not yet formally documented as its own named profile. (3) HARDENED (Pattern C+: container, unreadable creds, audit log, RBAC) -- defined now, registered as an EPOCH-5 GO-LIVE NFR BLOCKER (feeds H4_go_live_nfr_register's security category), built and rehearsed before go-live, not built now -- true OS-level network enforcement belongs at this profile's container boundary, not a host-level iptables edit the current harness's own sudo ban correctly prevents. HARD RULE (now in CLAUDE.md): profile changes are director-console-only, the agent can never alter its own profile -- Tier 1, no exceptions, regardless of how reversible a specific change might seem."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real company's environment-tiering (dev/staging/prod) with progressively stricter controls, prod requiring genuine sign-off to change"
   depends_on: []
