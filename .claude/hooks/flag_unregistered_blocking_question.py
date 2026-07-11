@@ -42,6 +42,33 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_FILE = PROJECT_DIR / "background" / ".env.ntfy"
 REGISTER_FILE = PROJECT_DIR / "docs" / "observability" / "action_needed_register.json"
+# 2026-07-11, director-flagged: the hook never visibly fired despite a clear
+# trigger match on a real turn, and the broad except-Exception-pass below
+# made "ran and silently decided not to" indistinguishable from "crashed
+# silently" -- there was no way to tell which from outside the process.
+# This log makes every invocation observable regardless of outcome, closing
+# that blind spot structurally (R1: consumer-verified, not just "the code
+# looks right").
+DEBUG_LOG_FILE = PROJECT_DIR / "docs" / "observability" / ".stop_hook_debug.log"
+
+
+DEBUG_LOG_MAX_LINES = 2000  # rotation cap -- risk-committee-log.md grew to
+# an unbounded 277MB with no rotation (PRODUCTION_READINESS_EVIDENCE_PASS.md
+# finding, same session); not repeating that mistake here.
+
+
+def _debug_log(line: str) -> None:
+    """Best-effort, never allowed to raise or block the hook it's
+    instrumenting -- a broken debug log must never become a second reason
+    for the actual hook to fail silently. Rotates at DEBUG_LOG_MAX_LINES."""
+    try:
+        from datetime import datetime, timezone
+        ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        existing = DEBUG_LOG_FILE.read_text().splitlines() if DEBUG_LOG_FILE.is_file() else []
+        existing.append(f"[{ts}] {line}")
+        DEBUG_LOG_FILE.write_text("\n".join(existing[-DEBUG_LOG_MAX_LINES:]) + "\n")
+    except Exception:
+        pass
 
 # High-precision phrases only -- modelled on this agent's own real lapses
 # this session, not a broad "any question mark" scan.
@@ -106,26 +133,41 @@ def _register_recently_touched() -> bool:
 
 
 def main() -> int:
+    _debug_log("invoked")
     try:
-        payload = json.load(sys.stdin)
-    except (json.JSONDecodeError, ValueError):
+        raw_stdin = sys.stdin.read()
+    except Exception as exc:
+        _debug_log(f"stdin read failed: {exc!r}")
+        return 0
+    try:
+        payload = json.loads(raw_stdin)
+    except (json.JSONDecodeError, ValueError) as exc:
+        _debug_log(f"stdin not valid JSON ({exc!r}); first 200 chars: {raw_stdin[:200]!r}")
         return 0
 
     transcript_path = payload.get("transcript_path")
     if not transcript_path:
+        _debug_log(f"no transcript_path in payload; keys were: {list(payload.keys())}")
         return 0
 
     try:
         text = _last_assistant_text(transcript_path)
-        if not text or not _BLOCKING_PHRASE_RE.search(text):
+        if not text:
+            _debug_log(f"no assistant text found in transcript {transcript_path}")
             return 0
+        match = _BLOCKING_PHRASE_RE.search(text)
+        if not match:
+            _debug_log(f"no phrase match; last 120 chars of assistant text: {text[-120:]!r}")
+            return 0
+        _debug_log(f"phrase match: {match.group(0)!r}")
         if _register_recently_touched():
-            return 0  # looks like it WAS registered -- no advisory needed
+            _debug_log("register recently touched -- suppressing (assumed already handled)")
+            return 0
 
         _load_env_file()
         sys.path.insert(0, str(PROJECT_DIR))
         from background.ntfy_utils import send_ntfy
-        send_ntfy(
+        msg_id = send_ntfy(
             "[ACTION NEEDED rule check] The last turn's response contained "
             "phrasing that looks like an unregistered blocking question "
             "(e.g. \"awaiting your steer\"/\"your call\") and "
@@ -133,8 +175,10 @@ def main() -> int:
             "only -- may be a false positive. If this IS a real open "
             "question, register it via background/action_needed.py."
         )
-    except Exception:
-        pass  # best-effort: never block or fail the turn
+        _debug_log(f"sent advisory ntfy, id={msg_id}")
+    except Exception as exc:
+        import traceback
+        _debug_log(f"EXCEPTION (swallowed, hook must never block a turn): {exc!r}\n{traceback.format_exc()}")
 
     return 0
 

@@ -161,3 +161,107 @@ class TestHookSubprocessRobustness:
     def test_exits_zero_for_nonexistent_transcript_file(self):
         result = self._run(json.dumps({"transcript_path": "/nonexistent/path.jsonl"}))
         assert result.returncode == 0
+
+
+class TestDebugLog:
+    """2026-07-11, director-flagged: the hook never visibly fired despite a
+    clear trigger match on a real turn, and the broad except-Exception-pass
+    made a silent crash indistinguishable from "ran fine, decided not to
+    fire". This log closes that observability gap."""
+
+    def test_logs_every_invocation(self, tmp_path, monkeypatch):
+        log_file = tmp_path / "debug.log"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        flag_hook._debug_log("test entry")
+        assert "test entry" in log_file.read_text()
+
+    def test_logs_are_timestamped(self, tmp_path, monkeypatch):
+        log_file = tmp_path / "debug.log"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        flag_hook._debug_log("test entry")
+        content = log_file.read_text()
+        assert content.startswith("[20")  # a real timestamp, not a bare line
+
+    def test_appends_not_overwrites(self, tmp_path, monkeypatch):
+        log_file = tmp_path / "debug.log"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        flag_hook._debug_log("first")
+        flag_hook._debug_log("second")
+        content = log_file.read_text()
+        assert "first" in content
+        assert "second" in content
+
+    def test_rotates_at_max_lines(self, tmp_path, monkeypatch):
+        log_file = tmp_path / "debug.log"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_MAX_LINES", 5)
+        for i in range(10):
+            flag_hook._debug_log(f"entry {i}")
+        lines = [l for l in log_file.read_text().splitlines() if l.strip()]
+        assert len(lines) == 5
+        assert "entry 9" in lines[-1]
+        assert "entry 0" not in log_file.read_text()
+
+    def test_never_raises_even_if_write_fails(self, monkeypatch):
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", Path("/nonexistent_dir_xyz/debug.log"))
+        flag_hook._debug_log("this must not raise")  # no exception = pass
+
+
+class TestMainLogsOutcomes:
+    def test_logs_phrase_match_before_sending(self, tmp_path, monkeypatch):
+        path = _write_transcript(tmp_path, [
+            {"message": {"role": "assistant", "content": "Awaiting your steer on this."}},
+        ])
+        log_file = tmp_path / "debug.log"
+        register = tmp_path / "register.json"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        monkeypatch.setattr(flag_hook, "REGISTER_FILE", register)
+        monkeypatch.setattr(sys, "stdin", _FakeStdin(json.dumps({"transcript_path": str(path)})))
+        with patch("background.ntfy_utils.send_ntfy", return_value="fake-id") as mock_send:
+            flag_hook.main()
+            mock_send.assert_called_once()
+        content = log_file.read_text()
+        assert "phrase match" in content
+        assert "sent advisory ntfy" in content
+
+    def test_logs_no_match_reason(self, tmp_path, monkeypatch):
+        path = _write_transcript(tmp_path, [
+            {"message": {"role": "assistant", "content": "All done, nothing pending."}},
+        ])
+        log_file = tmp_path / "debug.log"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        monkeypatch.setattr(sys, "stdin", _FakeStdin(json.dumps({"transcript_path": str(path)})))
+        flag_hook.main()
+        assert "no phrase match" in log_file.read_text()
+
+    def test_logs_malformed_json_reason(self, tmp_path, monkeypatch):
+        log_file = tmp_path / "debug.log"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        monkeypatch.setattr(sys, "stdin", _FakeStdin("not json"))
+        flag_hook.main()
+        assert "not valid JSON" in log_file.read_text()
+
+    def test_real_transcript_shape_one_block_per_entry(self, tmp_path, monkeypatch):
+        """The actual live transcript format: each content block (thinking/
+        text/tool_use) is its own JSONL entry, not bundled in one message's
+        content list -- confirmed by inspecting the real session transcript
+        this session. Regression guard against the assumption gap."""
+        path = tmp_path / "real_shape.jsonl"
+        entries = [
+            {"message": {"role": "assistant", "content": [{"type": "thinking", "thinking": "x", "signature": "y"}]}},
+            {"message": {"role": "assistant", "content": [{"type": "tool_use", "name": "Bash", "input": {}}]}},
+            {"message": {"role": "user", "content": [{"type": "tool_result", "content": "ok"}]}},
+            {"message": {"role": "assistant", "content": [{"type": "text", "text": "awaiting your call on this."}]}},
+        ]
+        with path.open("w") as f:
+            for e in entries:
+                f.write(json.dumps(e) + "\n")
+
+        log_file = tmp_path / "debug.log"
+        register = tmp_path / "register.json"
+        monkeypatch.setattr(flag_hook, "DEBUG_LOG_FILE", log_file)
+        monkeypatch.setattr(flag_hook, "REGISTER_FILE", register)
+        monkeypatch.setattr(sys, "stdin", _FakeStdin(json.dumps({"transcript_path": str(path)})))
+        with patch("background.ntfy_utils.send_ntfy", return_value="fake-id") as mock_send:
+            flag_hook.main()
+            mock_send.assert_called_once()
