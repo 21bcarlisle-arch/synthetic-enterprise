@@ -194,6 +194,16 @@ def launch_turn() -> None:
     # point of failure that silently killed all overnight autonomous turns.
     env = os.environ.copy()
     env.pop("ANTHROPIC_BASE_URL", None)
+    # Belt-and-braces (2026-07-11, root-caused live): this Popen's env is a
+    # copy of autonomous_runner.py's OWN process environment, not something
+    # freshly read from tmux's global environment at spawn time -- if the
+    # runner's own long-lived process/pane predates a `tmux set-environment
+    # -g DISABLE_AUTOUPDATER 1` (start_worker.sh), it silently inherits the
+    # stale value. session_watchdog.py's restart_claude() already sets this
+    # explicitly per-launch (its own `-e` flag) rather than trusting
+    # inheritance; this closes the same gap here rather than depending on
+    # the runner's own process having been started/restarted after the fix.
+    env["DISABLE_AUTOUPDATER"] = "1"
     _active_proc = subprocess.Popen(
         [str(CLAUDE_BIN), "-p", "--model", AUTONOMOUS_TURN_MODEL,
          "--dangerously-skip-permissions", AUTONOMOUS_PROMPT],

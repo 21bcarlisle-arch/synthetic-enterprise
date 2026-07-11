@@ -96,6 +96,28 @@ def test_launch_turn_skips_when_binary_missing(tmp_path, monkeypatch):
         mock_popen.assert_not_called()
 
 
+def test_launch_turn_explicitly_sets_disable_autoupdater(tmp_path, monkeypatch):
+    """2026-07-11, root-caused live: this Popen's env is copied from the
+    runner's OWN process env, not freshly read from tmux global env at
+    spawn time -- a long-lived runner process predating the
+    `tmux set-environment -g DISABLE_AUTOUPDATER 1` fix (start_worker.sh)
+    would silently inherit the stale value. Must be set explicitly here,
+    not just relied on via inheritance."""
+    autonomous_runner._active_proc = None
+    autonomous_runner._turn_times.clear()
+    fake_bin = tmp_path / "claude"
+    fake_bin.write_text("#!/bin/sh\n")
+    monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", fake_bin)
+    monkeypatch.setattr(autonomous_runner, "_usage_limit_active", lambda: False)
+    monkeypatch.delenv("DISABLE_AUTOUPDATER", raising=False)
+
+    with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
+        mock_popen.return_value = MagicMock(poll=lambda: None)
+        autonomous_runner.launch_turn()
+        env = mock_popen.call_args[1]["env"]
+        assert env["DISABLE_AUTOUPDATER"] == "1"
+
+
 def test_launch_turn_uses_skip_permissions_flag(tmp_path, monkeypatch):
     """Rich's direct, live confirmation (2026-07-05, expanding
     docs/review_gates/SKIP_PERMISSIONS_TIER1.md beyond the watchdog): every
