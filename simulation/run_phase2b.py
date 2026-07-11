@@ -84,6 +84,7 @@ from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.customer_events import roll_lifecycle_event
 from simulation.churn_journey import ChurnJourneyRegister
 from simulation.acquisition_funnel import run_acquisition_funnel
+from tools.acquisition_funnel_port import AcquisitionFunnelMessage
 from tools.credit_adapters import get_credit_bureau_adapter
 from company.core.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
@@ -1394,7 +1395,21 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         )
                         acq_won = _funnel_result.won
 
-                        acquisition_funnel_log.append({
+                        # WALLED_INTERFACES reference-flow conversion
+                        # (W4_1_typed_adapters): the acquisition-funnel crossing
+                        # now travels as a versioned typed message
+                        # (tools.acquisition_funnel_port.AcquisitionFunnelMessage)
+                        # rather than a raw dict. This is a transport-shape change
+                        # only -- `to_log_entry()` is a lossless identity on the
+                        # pre-conversion dict, so every downstream consumer of
+                        # `acquisition_funnel_log` is unaffected. The seam is
+                        # deliberately narrower than the internal
+                        # AcquisitionFunnelResult: per-stage cost_increment_gbp is
+                        # dropped (no consumer reads it; aggregate crosses as
+                        # total_cost_gbp) and billing_account is added from loop
+                        # context. Phase 3 item 5's real stage-to-stage calendar
+                        # dates are preserved via FunnelStageMessage.
+                        _funnel_message = AcquisitionFunnelMessage.from_log_entry({
                             "billing_account": billing_account,
                             "segment": segment,
                             "term_start": term_start_str,
@@ -1404,14 +1419,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                             "credit_bureau_score_band": _funnel_result.credit_bureau_score_band,
                             "credit_bureau_passed": _funnel_result.credit_bureau_passed,
                             "credit_bureau_true_creditworthy": _funnel_result.credit_bureau_true_creditworthy,
-                            # Phase 3 item 5: real stage-to-stage calendar
-                            # dates, replacing the previous instant-in-time
-                            # funnel resolution.
                             "stages": [
                                 {"stage": s.stage, "passed": s.passed, "stage_date": s.stage_date}
                                 for s in _funnel_result.stages
                             ],
                         })
+                        acquisition_funnel_log.append(_funnel_message.to_log_entry())
 
                         acquisition_spend_events.append(
                             make_acquisition_spend_event(
