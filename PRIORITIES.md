@@ -123,15 +123,20 @@
 #         director-approved routing): CORRECTS item 9c's open question -- the M2 payments
 #         audit reporting unlocks M2 BUILD, not M3. M3 stays design-only until M2's clocks
 #         exist for discovery to ride on. CONFIRMED QUEUE ORDER, THIS IS NOW "Next":
-#           1. Doors 1-2 wrap-up items (none currently outstanding)
-#           2. Margin HARDEN-sweep surfacing gap (B3 hedge-fraction never reached a business
-#              surface, per HARDEN sweep item 9e)
-#           3. OPEN M2 BUILD: rails sim first (adapter-shaped, Bacs twin: submission windows,
-#              AUDDIS/ARUDD/ADDACS), then estimated billing -> catch-up rebilling ->
+#           1. Doors 1-2 wrap-up items -- DONE (none outstanding)
+#           2. Margin HARDEN-sweep surfacing gap -- DONE (commit 8dc14ca1): B3 hedge-fraction
+#              surfaced (per_customer_lifetime, per-customer site JSON, visible portal row)
+#           3. OPEN M2 BUILD -- NEXT: rails sim first (adapter-shaped, Bacs twin: submission
+#              windows, AUDDIS/ARUDD/ADDACS), then estimated billing -> catch-up rebilling ->
 #              settlement timetable -> DD cash engine, per THE_VALUE_CYCLE_FRAMING.md and the
 #              M2_PAYMENTS_AUDIT harden-vs-rebuild verdicts
-#           4. M3 design forks continue in background; SURFACE_FRESHNESS_CLASS_FIX at next
-#              natural boundary (Phase 1 inventory fork already dispatched, in progress)
+#           4. M3 design forks continue in background; SURFACE_FRESHNESS_CLASS_FIX Phase 1
+#              inventory COMPLETE (docs/design/SURFACE_FRESHNESS_INVENTORY.md -- headline:
+#              0 of 62 surfaces have a working freshness alarm; root cause is
+#              process_run_complete.py's change-detection gate skipping the ENTIRE
+#              regeneration+deploy pipeline on flat-margin runs, an R11-class defect; also
+#              found site/timeline/ and site/staging-status/ fully orphaned, ~15d stale).
+#              Phase 2 (the actual build) queued behind item 3.
 #         Channel note recorded in CLAUDE.md: advisor->agent steers now come via
 #         docs/staging/ directly, Rich no longer relays by hand.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
