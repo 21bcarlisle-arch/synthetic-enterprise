@@ -3,6 +3,32 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+    # 2026-07-11 (REPO_PRIVATE_AND_IP.md Phase 1 audit, docs/design/
+    # REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md): this workflow had no path
+    # filter at all, unlike its sibling deploy-pages.yml -- measured
+    # ~4,120 runs/month (206% of the private-repo Actions free quota),
+    # root-caused to firing on every push regardless of whether anything
+    # actually served by this Pages mirror changed. `docs/` holds far more
+    # than the served content (observability logs, staging files, market
+    # data caches, internal design docs) that churns on nearly every
+    # commit. paths-ignore (not an inclusive whitelist) chosen deliberately
+    # to be conservative -- excludes only the clearly-non-served, clearly
+    # high-churn directories, so nothing genuinely served by the mirror
+    # (docs/PROJECT_OVERVIEW.md, docs/status/, docs/reports/,
+    # docs/retrospectives/, docs/market_research/, docs/shadow/) can be
+    # silently missed.
+    paths-ignore:
+      - docs/observability/**
+      - docs/staging/**
+      - docs/market_data/**
+      - docs/state/**
+      - docs/snapshots/**
+      - docs/design/**
+      - docs/instructions/**
+      - docs/claude/**
+      - docs/domain_artefact_library/**
+      - docs/context-handshake-latest.md
+      - docs/review_gates/**
   workflow_dispatch:
 
 # PAGES_CONCURRENCY_FIX.md (2026-07-05): the automatic "pages build and
