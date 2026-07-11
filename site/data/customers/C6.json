@@ -21,9 +21,63 @@
     "flag": "OK",
     "recommended_uplift_pct": null
   },
+  "avg_hedge_fraction": 0.9118,
   "clv_gbp": 19260.39,
   "churn_probability": 0.26,
   "expected_lifetime_periods": 12.94,
+  "forecast_annual_profit_gbp": 2718.32,
+  "forecast_cashflow": [
+    {
+      "year_offset": 1,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 2471.2
+    },
+    {
+      "year_offset": 2,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 2246.55
+    },
+    {
+      "year_offset": 3,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 2042.32
+    },
+    {
+      "year_offset": 4,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1856.65
+    },
+    {
+      "year_offset": 5,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1687.86
+    },
+    {
+      "year_offset": 6,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1534.42
+    },
+    {
+      "year_offset": 7,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1394.93
+    },
+    {
+      "year_offset": 8,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1268.12
+    },
+    {
+      "year_offset": 9,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1152.83
+    },
+    {
+      "year_offset": 10,
+      "undiscounted_gbp": 2718.32,
+      "discounted_gbp": 1048.03
+    }
+  ],
   "commodity_split": {
     "electricity": {
       "net_gbp": 1936.26,
