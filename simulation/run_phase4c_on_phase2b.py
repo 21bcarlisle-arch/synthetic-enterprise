@@ -58,6 +58,7 @@ from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
 from simulation.meter_reads import generate_meter_read_log, meter_type_for_customer
 from simulation.run_phase2b import main as run_phase2b
+from tools.meter_read_port import MeterReadMessage
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py
 
@@ -195,7 +196,18 @@ def main(report_end: str | None = None, policy=None):
     customer_meter_types = {
         c["customer_id"]: meter_type_for_customer(c) for c in all_customers_for_meter_type
     }
-    meter_read_log = generate_meter_read_log(bills, customer_meter_types)
+    # WALLED_INTERFACES reference-flow conversion (W4_1_typed_adapters): the
+    # meter-read crossing now travels as versioned typed messages
+    # (tools.meter_read_port.MeterReadMessage) rather than raw dicts. This is a
+    # transport-shape change only -- `to_log_entry()` is a lossless identity on
+    # the pre-conversion dict, so every downstream consumer of `meter_read_log`
+    # is unaffected. Migrating those consumers to accept the message directly
+    # is the follow-on "generalize the pattern" step, not done here.
+    meter_read_messages = [
+        MeterReadMessage.from_log_entry(entry)
+        for entry in generate_meter_read_log(bills, customer_meter_types)
+    ]
+    meter_read_log = [message.to_log_entry() for message in meter_read_messages]
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 2): SLC 14 credit-refund
     # activation -- company/billing/credit_refund.py already had the real
