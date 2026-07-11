@@ -19,6 +19,23 @@ def _isolate_fingerprint_file(tmp_path_factory, monkeypatch):
     monkeypatch.setattr(prc, "LAST_FINGERPRINT_FILE", fp)
 
 
+@pytest.fixture(autouse=True)
+def _isolate_log_file(tmp_path_factory, monkeypatch):
+    """Redirect prc.LOG_FILE to a per-test temp path for every test in this
+    file -- made autouse (2026-07-11) after two tests (test_gate_skips_
+    identical_run, test_gate_never_skips_admin_event) were found live to have
+    called prc._process() without their own explicit monkeypatch, each
+    writing real 'Processing run_complete_X.md'/'run_complete_Y.md' log lines
+    straight into the production docs/observability/sim-runner-log.md during
+    a real fast-test-suite gate run -- confirmed via direct grep, the exact
+    literal marker names only exist in this test file. Same test-isolation-
+    leak class as the tmux-scrollback retro. A per-test explicit
+    monkeypatch.setattr(prc, "LOG_FILE", ...) elsewhere in this file is now
+    redundant but harmless."""
+    log_path = tmp_path_factory.mktemp("log") / "log.md"
+    monkeypatch.setattr(prc, "LOG_FILE", log_path)
+
+
 def make_marker(tmp_path, git_hash="abc1234", elapsed_s=1870.0, json_data=None):
     """Write a realistic run_complete marker and its JSON to tmp_path."""
     if json_data is None:

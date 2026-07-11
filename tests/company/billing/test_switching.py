@@ -1,5 +1,7 @@
 """Phase 115: Supplier switching request tracking tests."""
 
+from datetime import date, timedelta
+
 from company.billing.switching import SwitchRequest, SwitchingBook
 
 
@@ -47,8 +49,20 @@ def test_pending_losses():
 
 
 def test_object_to_pending():
+    """object_to() requires the request still be within its live 14-day
+    objection window (is_objectable checks date.today() against
+    submitted_date + 14 days) -- a hardcoded submitted_date here would
+    silently expire as real wall-clock time passes (found live: this test
+    started failing on 2026-07-11 against a submitted_date of 2026-06-26,
+    used since the test was written). submitted_date is computed relative
+    to today instead, so the window is always open."""
     b = SwitchingBook()
-    b.record(_req("SW-004"))
+    b.record(SwitchRequest(
+        reference="SW-004", customer_id="C1", commodity="electricity",
+        direction="gain", mpan_or_mprn="1012345678901",
+        requested_transfer_date="2026-07-10",
+        submitted_date=(date.today() - timedelta(days=1)).isoformat(),
+    ))
     assert b.object_to("SW-004", "debt outstanding") is True
     assert b._requests[0].status == "objected"
 

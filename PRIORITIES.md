@@ -182,6 +182,28 @@
 #   follow-up to state that explicitly in the report's own rendering, not just its docstring. 4
 #   new/updated tests, 16,604 tests collected (full suite), epistemic PASS.
 #
+# === Auto-commit pipeline gate FIXED, two real bugs found via a live-blocked run_complete
+#   marker (2026-07-11). A pending run_complete_20260710T235951Z.md marker was stuck: sim_runner's
+#   own auto-process (background/process_run_complete.py) hit "Tests FAILED - not committing" and
+#   left it for background_worker, which never picked it up either. Reproduced the exact fast-mode
+#   gate command live (SIM_FAST_MODE=1 pytest -x with the same --ignore list) -- genuine failure,
+#   not flaky: `tests/company/billing/test_switching.py::test_object_to_pending` hardcoded
+#   submitted_date="2026-06-26" against a 14-day objection window (company/billing/switching.py's
+#   real UK 10-working-day switching-objection logic, correct and untouched) -- the window
+#   silently expired against real wall-clock time once today passed 2026-07-10. Fixed by computing
+#   submitted_date relative to date.today() in the one affected test, not touching the other
+#   ~15 tests in the file that check literal date-string values unaffected by wall-clock time.
+#   SEPARATE bug found investigating the confusing log output: two tests in tests/background/
+#   test_process_run_complete.py (test_gate_skips_identical_run, test_gate_never_skips_admin_event)
+#   never monkeypatched prc.LOG_FILE like their siblings, so running the full suite wrote real
+#   "Processing run_complete_X.md"/"run_complete_Y.md" test artefacts straight into the production
+#   docs/observability/sim-runner-log.md -- same test-isolation-leak class as the 2026-07-08
+#   tmux-scrollback retro. Fixed by making the LOG_FILE redirect autouse for the whole file (R10:
+#   class fix, not per-test patch) -- confirmed via a before/after diff of the real log file that a
+#   full test run no longer touches it. Reproduced the full fast-mode gate again after both fixes:
+#   16,537 tests pass clean (SIM_FAST_MODE=1, same --ignore list as production). 16,677 tests
+#   collected (full suite), epistemic PASS (no company/saas production code touched, tests only).
+#
 # === staging-watcher wake consumption-check FIXED (2026-07-10, root cause, docs/design/
 #   STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md). Originally found-not-fixed (marker-absence check
 #   structurally could never confirm consumption, since Claude Code's UI keeps a submitted turn in
