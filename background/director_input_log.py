@@ -70,15 +70,59 @@ def has_signed_suffix(text: str) -> bool:
     return bool(_SIGNED_SUFFIX_RE.match(text))
 
 
+# 2026-07-11, director-caught real bug: the supervisor concatenates multiple
+# independently-signed `[...]|ts|hexhmac` wake messages back-to-back with NO
+# separator when granting one turn for several queued items at once (e.g.
+# two run_complete markers in the same wake). has_signed_suffix()/
+# verify_wake_message() only ever check ONE suffix at the very end of the
+# whole string -- against a concatenated blob, that check recomputes the
+# HMAC over "[msg1]|ts1|hash1[msg2]" + "|ts2", which was never the payload
+# either signature was actually computed over, so it correctly reports
+# INVALID even though each sub-message, verified in isolation, is genuinely
+# valid. Not a security hole (each real sub-message's own signature still
+# has to check out -- this can't be used to smuggle a fake segment past a
+# real one), but a real correctness bug that produced a false
+# "unknown-unverified" classification on genuinely legitimate content.
+_ALL_SIGNED_SEGMENT_ENDS_RE = re.compile(r"\|\d{9,}\|[0-9a-fA-F]{64}")
+
+
+def split_signed_segments(text: str) -> list[str]:
+    """Split `text` into one or more complete `...]|ts|hexhmac` segments by
+    finding every signature boundary, not just the last one. Returns
+    `[text]` unchanged if zero or exactly one signature boundary is found
+    (the common case) -- multi-segment splitting only kicks in when a
+    genuine concatenation is detected."""
+    ends = [m.end() for m in _ALL_SIGNED_SEGMENT_ENDS_RE.finditer(text)]
+    if len(ends) <= 1:
+        return [text]
+    segments = []
+    start = 0
+    for end in ends:
+        segments.append(text[start:end])
+        start = end
+    if start < len(text):
+        segments.append(text[start:])  # trailing unsigned remainder, if any
+    return segments
+
+
 def _hmac_status(text: str) -> Optional[bool]:
     """None = no signature present to check at all (e.g. a plain console
     paste). True/False = a `...|ts|hexhmac` suffix was present and did/did
-    not verify against SE_WAKE_HMAC_KEY."""
+    not verify against SE_WAKE_HMAC_KEY. For a concatenated multi-segment
+    payload (see split_signed_segments()), status is True only if EVERY
+    segment independently verifies -- one invalid segment makes the whole
+    thing invalid, never silently ignored."""
     if not has_signed_suffix(text):
         return None
     if not WAKE_HMAC_KEY:
         return None
-    return verify_wake_message(text, max_age_seconds=10**9) is not None
+    segments = split_signed_segments(text)
+    if len(segments) == 1:
+        return verify_wake_message(text, max_age_seconds=10**9) is not None
+    return all(
+        has_signed_suffix(seg) and verify_wake_message(seg, max_age_seconds=10**9) is not None
+        for seg in segments
+    )
 
 
 def classify_channel(raw_text: str, hmac_status: Optional[bool]) -> ChannelTag:

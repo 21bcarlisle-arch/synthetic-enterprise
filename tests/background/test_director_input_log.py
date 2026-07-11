@@ -41,6 +41,29 @@ class TestHasSignedSuffix:
         assert not dil.has_signed_suffix("committed as|1783767358|d3a731b4")
 
 
+class TestSplitSignedSegments:
+    def test_single_segment_returned_unchanged(self):
+        text = "some text|1783767358|" + "a" * 64
+        assert dil.split_signed_segments(text) == [text]
+
+    def test_plain_text_returned_unchanged(self):
+        text = "no signature here at all"
+        assert dil.split_signed_segments(text) == [text]
+
+    def test_splits_two_concatenated_segments(self):
+        seg1 = "[SUPERVISOR: first]|1783779512|" + "a" * 64
+        seg2 = "[SUPERVISOR: second]|1783780232|" + "b" * 64
+        result = dil.split_signed_segments(seg1 + seg2)
+        assert result == [seg1, seg2]
+
+    def test_splits_three_concatenated_segments(self):
+        seg1 = "[A]|1783779512|" + "a" * 64
+        seg2 = "[B]|1783780232|" + "b" * 64
+        seg3 = "[C]|1783781000|" + "c" * 64
+        result = dil.split_signed_segments(seg1 + seg2 + seg3)
+        assert result == [seg1, seg2, seg3]
+
+
 class TestHmacStatus:
     def test_none_when_no_signature_present(self):
         assert dil._hmac_status("plain window message") is None
@@ -55,6 +78,46 @@ class TestHmacStatus:
         monkeypatch.setattr(dil, "WAKE_HMAC_KEY", "test-key-123")
         with patch("background.director_input_log.verify_wake_message", return_value=None):
             assert dil._hmac_status("[SUPERVISOR: x]|123456789|" + "a" * 64) is False
+
+
+class TestHmacStatusMultiSegmentRealSigning:
+    """2026-07-11, director-caught real bug: the supervisor concatenates
+    multiple independently-signed wake messages with no separator when
+    granting one turn for several queued items (e.g. two run_complete
+    markers at once, real example: 14:30:32 UTC director_input_log.md
+    entry). Uses REAL sign_wake_message()/verify_wake_message() -- no
+    mocking -- for the strongest possible regression proof."""
+
+    def test_two_genuinely_signed_messages_concatenated_verify_true(self):
+        from background.ntfy_utils import sign_wake_message
+        seg1 = sign_wake_message("[SUPERVISOR: first real message]")
+        seg2 = sign_wake_message("[SUPERVISOR: second real message]")
+        concatenated = seg1 + seg2
+        # Before the fix, this would have been False -- the naive
+        # single-suffix check verifies "[msg1]|ts1|hash1[msg2]|ts2" against
+        # hash2, which was never the real signed payload.
+        assert dil._hmac_status(concatenated) is True
+
+    def test_three_genuinely_signed_messages_concatenated_verify_true(self):
+        from background.ntfy_utils import sign_wake_message
+        segs = [sign_wake_message(f"[SUPERVISOR: message {i}]") for i in range(3)]
+        assert dil._hmac_status("".join(segs)) is True
+
+    def test_one_genuine_plus_one_forged_segment_verifies_false(self):
+        """The 'not a security hole' claim, proven: splicing one real
+        signed segment with one fabricated one must still fail overall --
+        never silently accept the real half and ignore the fake one."""
+        from background.ntfy_utils import sign_wake_message
+        real_seg = sign_wake_message("[SUPERVISOR: genuine]")
+        forged_seg = "[SUPERVISOR: forged]|1783780232|" + "f" * 64
+        assert dil._hmac_status(real_seg + forged_seg) is False
+
+    def test_single_genuinely_signed_message_still_works(self):
+        """Regression guard: the common single-message case must not break
+        from the multi-segment handling being added."""
+        from background.ntfy_utils import sign_wake_message
+        seg = sign_wake_message("[SUPERVISOR: only message]")
+        assert dil._hmac_status(seg) is True
 
 
 class TestClassifyChannel:
