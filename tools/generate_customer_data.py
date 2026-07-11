@@ -225,6 +225,10 @@ def generate(run_json_path=None):
                 cdata.get("net_margin_after_cost_to_serve_gbp", 0), 2),
             cost_to_serve_gbp=round(cdata.get("cost_to_serve_gbp", 0), 2),
             pricing_action=cdata.get("pricing_action", "NONE"),
+            avg_hedge_fraction=(
+                round(cdata["avg_hedge_fraction"], 4)
+                if cdata.get("avg_hedge_fraction") is not None else None
+            ),
             clv_gbp=clv_gbp,
             churn_probability=churn_p,
             expected_lifetime_periods=round(clv_data.get("expected_lifetime_periods", 0), 2),

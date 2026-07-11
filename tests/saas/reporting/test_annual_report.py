@@ -541,6 +541,42 @@ def test_extract_report_data_includes_pricing_action():
         assert pcl["pricing_action"]["flag"] in ("OK", "MARGIN_SQUEEZE", "NET_NEGATIVE", "UNKNOWN")
 
 
+def test_extract_report_data_includes_avg_hedge_fraction():
+    """2026-07-11, HARDEN sweep (harden_sweep:live_site:B3_hedge_tariff_alignment):
+    hedge_fraction has always been on every settlement record but was never
+    surfaced to per_customer_lifetime -- this closes that gap."""
+    data = extract_report_data(_run_output())
+    for pcl in data["per_customer_lifetime"].values():
+        assert "avg_hedge_fraction" in pcl
+
+
+def test_avg_hedge_fraction_is_consumption_weighted():
+    base = _run_output()
+    # Two records: 20 kWh at hedge_fraction 1.0, 10 kWh at hedge_fraction 0.0
+    # -> weighted average = (20*1.0 + 10*0.0) / 30 = 0.6667, NOT the plain
+    # mean of 0.5 -- proves the weighting, not just presence of the field.
+    records = [
+        dict(_record("C1", "electricity", "2016-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1008.0),
+             consumption_kwh=20.0, hedge_fraction=1.0),
+        dict(_record("C1", "electricity", "2016-06-01", 1, 12.0, 3.0, 9.0, 52.0, 1017.0),
+             consumption_kwh=10.0, hedge_fraction=0.0),
+    ]
+    base["phase2b"]["all_records"] = records
+    data = extract_report_data(base)
+    assert abs(data["per_customer_lifetime"]["C1"]["avg_hedge_fraction"] - 0.6667) < 0.001
+
+
+def test_avg_hedge_fraction_none_when_zero_consumption():
+    base = _run_output()
+    records = [
+        dict(_record("C1", "electricity", "2016-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1008.0),
+             consumption_kwh=0.0, hedge_fraction=0.5),
+    ]
+    base["phase2b"]["all_records"] = records
+    data = extract_report_data(base)
+    assert data["per_customer_lifetime"]["C1"]["avg_hedge_fraction"] is None
+
+
 def test_extract_report_data_includes_revenue_gbp_per_customer():
     data = extract_report_data(_run_output())
     # C1 has records with revenue = margin + 100: (10+100) + (12+100) + (-5+100) = 317

@@ -5,10 +5,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import pytest
 
+import json
+
 from tools.generate_customer_data import (
     _tariff, _meter, _base_id, _mpan, _mprn, _mpan_check_digit, _timeline,
-    _forecast_cashflow,
+    _forecast_cashflow, generate,
 )
+import tools.generate_customer_data as gcd_module
 
 
 def test_tariff_ic_segment():
@@ -215,3 +218,55 @@ class TestForecastCashflow:
         rows = _forecast_cashflow(1000.0, 5.0, 0.10)
         discounted = [r["discounted_gbp"] for r in rows]
         assert discounted == sorted(discounted, reverse=True)
+
+
+class TestAvgHedgeFractionThreadedIntoOutput:
+    """2026-07-11, HARDEN sweep (harden_sweep:live_site:B3_hedge_tariff_alignment):
+    avg_hedge_fraction was computed in per_customer_lifetime but never reached
+    a per-customer site JSON file -- this proves the full thread."""
+
+    def test_field_present_and_correct_when_computed(self, tmp_path, monkeypatch):
+        run = {
+            "per_customer_lifetime": {
+                "C1": {
+                    "segment": "resi", "commodity": "electricity",
+                    "acquisition_date": "2016-01-01",
+                    "revenue_gbp": 100.0, "gross_gbp": 20.0, "net_gbp": 15.0,
+                    "cost_to_serve_gbp": 5.0, "pricing_action": "NONE",
+                    "avg_hedge_fraction": 0.6667,
+                },
+            },
+            "by_billing_account": {}, "per_cid_comm_pnl": {},
+        }
+        run_path = tmp_path / "run.json"
+        run_path.write_text(json.dumps(run))
+        out_dir = tmp_path / "out"
+        monkeypatch.setattr(gcd_module, "OUT_DIR", out_dir)
+
+        generate(run_json_path=run_path)
+
+        obj = json.loads((out_dir / "C1.json").read_text())
+        assert obj["avg_hedge_fraction"] == 0.6667
+
+    def test_field_none_when_not_computed(self, tmp_path, monkeypatch):
+        run = {
+            "per_customer_lifetime": {
+                "C1": {
+                    "segment": "resi", "commodity": "electricity",
+                    "acquisition_date": "2016-01-01",
+                    "revenue_gbp": 100.0, "gross_gbp": 20.0, "net_gbp": 15.0,
+                    "cost_to_serve_gbp": 5.0, "pricing_action": "NONE",
+                    "avg_hedge_fraction": None,
+                },
+            },
+            "by_billing_account": {}, "per_cid_comm_pnl": {},
+        }
+        run_path = tmp_path / "run.json"
+        run_path.write_text(json.dumps(run))
+        out_dir = tmp_path / "out"
+        monkeypatch.setattr(gcd_module, "OUT_DIR", out_dir)
+
+        generate(run_json_path=run_path)
+
+        obj = json.loads((out_dir / "C1.json").read_text())
+        assert obj["avg_hedge_fraction"] is None

@@ -432,6 +432,20 @@ def extract_report_data(run_output: dict) -> dict:
         cts = cost_to_serve.get("by_customer", {}).get(cid, {})
         revenue_gbp = sum(r["revenue_gbp"] for r in recs)
         net_after_cts = cts.get("net_margin_gbp")
+        # 2026-07-11 (HARDEN sweep, harden_sweep:live_site:B3_hedge_tariff_alignment):
+        # hedge_fraction has always been on every settlement record (real per-term
+        # value for fixed/hedged terms; 0.0 for deemed/SVT by definition -- buys at
+        # spot; 1.0 for flex by definition -- fully hedged) but was never surfaced
+        # to any business surface, same "verified in code, never reached a surface"
+        # class as the earlier B2 Corp-Tax finding. Consumption-weighted (not a
+        # plain mean across periods) so a high-usage winter period counts more than
+        # a low-usage summer one -- matches the weighting convention already used
+        # for avg_rate_gbp_per_mwh elsewhere in this reporting layer.
+        total_kwh_for_hedge = sum(r.get("consumption_kwh", 0.0) for r in recs)
+        avg_hedge_fraction = (
+            sum(r.get("hedge_fraction", 0.0) * r.get("consumption_kwh", 0.0) for r in recs) / total_kwh_for_hedge
+            if total_kwh_for_hedge > 0 else None
+        )
         per_customer_lifetime[cid] = {
             "commodity": c["commodity"],
             "segment": c["segment"],
@@ -443,6 +457,7 @@ def extract_report_data(run_output: dict) -> dict:
             "cost_to_serve_gbp": cts.get("cost_to_serve_gbp"),
             "net_margin_after_cost_to_serve_gbp": net_after_cts,
             "pricing_action": _pricing_action(net_after_cts, revenue_gbp),
+            "avg_hedge_fraction": round(avg_hedge_fraction, 4) if avg_hedge_fraction is not None else None,
         }
 
     # CLV/churn/enterprise-value are computed per billing account (dual-fuel

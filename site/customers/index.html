@@ -419,6 +419,7 @@ function renderAccountsTab(){
       "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(d.lifetime_revenue_gbp)+"</span></div>"+
       "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
       "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
+      (d.avg_hedge_fraction!=null?"<div class=\"row\"><span class=\"rl\">Avg. Hedge Coverage</span><span class=\"muted\">"+Math.round(d.avg_hedge_fraction*100)+"%</span></div>":"")+
       (annRows?"<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Tariff Range</th></tr>"+annRows+"</table>"+
         "<div class=\"usage-hint\">Gross/Net here are the SIM's internal commodity trading margin per year (wholesale-cost accounting) -- not the customer's all-in billed total. That figure, which includes standing charge, network/environmental pass-through and VAT on top of commodity, is always larger and lives on the Billing &amp; Payments tab.</div>":"")+
       "</div>";
