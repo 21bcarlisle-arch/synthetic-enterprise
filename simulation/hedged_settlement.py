@@ -41,6 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
+from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
 from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
@@ -250,17 +251,32 @@ def run_deemed_term(
     consumption_shape,
     system_price_records: list[dict],
     segment: str = "resi",
+    commodity: str = "electricity",
 ) -> list[dict]:
     """Phase 40c: settle an out-of-contract deemed period.
 
     The customer has no fixed-term contract. They are billed at spot price
-    × (1 + deemed_premium) each settlement period. The company buys at spot
-    (no forward hedge commitment). Capital cost is zero for deemed periods
-    (no collateral is sized — buying is fully spot-indexed).
+    × (1 + deemed_premium) each settlement period, BINDING-CAPPED at the real
+    Ofgem Default Tariff Cap from 2019 onward for resi customers (MARGIN_
+    REALISM Step 5, W3_1_price_cap_binding: "the cap as a BINDING constraint
+    on SVT pricing, not just a lookup"). Real UK deemed/SVT customers cannot
+    legally be charged above the cap regardless of wholesale spot cost --
+    exactly the mechanism that squeezed/killed real suppliers buying at spot
+    through the 2021-22 crisis while capped on the sell side. Uncapped before
+    2019 (no cap existed) or for non-resi segments (the cap is domestic-only).
+    Same clamp convention already used for fixed-tariff terms elsewhere in
+    this codebase (simulation/run_phase2b.py Phase 47a): unit_rate =
+    min(unit_rate, cap).
 
-    Revenue = spot × (1 + premium) × consumption
+    The company buys at spot regardless (no forward hedge commitment) --
+    capital cost is zero for deemed periods (no collateral is sized — buying
+    is fully spot-indexed). The cap therefore compresses/removes margin on
+    this book, never the wholesale cost side, matching the real economics.
+
+    Revenue = min(spot × (1 + premium), cap) × consumption  [cap only applies
+      2019+, resi segment]
     Wholesale cost = spot × consumption
-    Gross margin = spot × premium × consumption
+    Gross margin = revenue − wholesale cost (can be negative once capped)
     Net margin = gross margin − policy cost − network cost
     """
     start = date.fromisoformat(term_start_date)
@@ -285,7 +301,14 @@ def run_deemed_term(
             consumption_kwh = shape[period - 1]
             consumption_mwh = consumption_kwh / 1000.0
 
-            revenue_gbp = spot_price * (1.0 + deemed_premium) * consumption_mwh
+            uncapped_rate_gbp_per_mwh = spot_price * (1.0 + deemed_premium)
+            billed_rate_gbp_per_mwh = uncapped_rate_gbp_per_mwh
+            if segment == "resi":
+                _cap = get_cap_unit_rate_gbp_per_mwh(commodity, current_date.year)
+                if _cap is not None:
+                    billed_rate_gbp_per_mwh = min(uncapped_rate_gbp_per_mwh, _cap)
+
+            revenue_gbp = billed_rate_gbp_per_mwh * consumption_mwh
             wholesale_cost_gbp = spot_price * consumption_mwh
             margin_gbp = revenue_gbp - wholesale_cost_gbp
 
@@ -304,7 +327,8 @@ def run_deemed_term(
                 "settlement_date": date_str,
                 "settlement_period": period,
                 "consumption_kwh": consumption_kwh,
-                "unit_rate_gbp_per_mwh": spot_price * (1.0 + deemed_premium),
+                "unit_rate_gbp_per_mwh": billed_rate_gbp_per_mwh,
+                "cap_bound": billed_rate_gbp_per_mwh < uncapped_rate_gbp_per_mwh,
                 "hedge_price_gbp_per_mwh": None,
                 "hedge_fraction": 0.0,
                 "hedged_volume_kwh": 0.0,

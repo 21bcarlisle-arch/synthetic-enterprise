@@ -236,3 +236,117 @@ def test_deemed_tariff_type_field():
         system_price_records=_prices(["2022-01-01"]),
     )
     assert all(r["tariff_type"] == "deemed" for r in result)
+
+
+# --- MARGIN_REALISM Step 5 (W3_1_price_cap_binding): the Ofgem cap as a
+# BINDING constraint on deemed/SVT pricing, not just a lookup ---
+
+def test_deemed_cap_binds_when_spot_plus_premium_exceeds_cap_post_2019():
+    """2022 electricity cap is 305.0 GBP/MWh (company/pricing/ofgem_price_cap.py).
+    A spot price high enough that spot*(1+premium) exceeds it must be clamped --
+    real UK deemed/SVT customers cannot legally be charged above the cap."""
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(2.0),
+        system_price_records=_prices(["2022-01-01"], price=1000.0),
+        segment="resi",
+        commodity="electricity",
+    )
+    r = result[0]
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(305.0)
+    assert r["cap_bound"] is True
+    # Wholesale cost is unaffected by the cap -- the company still buys at spot.
+    assert r["wholesale_cost_gbp"] == pytest.approx(1000.0 * (2.0 / 1000.0))
+
+
+def test_deemed_margin_can_go_negative_once_capped():
+    """Real crisis economics: buying at spot, capped on the sell side -- gross
+    margin on this settlement period must be able to go negative, exactly the
+    mechanism that squeezed real suppliers through 2021-22."""
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(2.0),
+        system_price_records=_prices(["2022-01-01"], price=1000.0),
+        segment="resi",
+        commodity="electricity",
+    )
+    r = result[0]
+    assert r["margin_gbp"] < 0
+
+
+def test_deemed_uncapped_pre_2019():
+    """No Ofgem Default Tariff Cap existed before Q4 2019 -- the same high
+    spot price must NOT be clamped for a pre-cap date."""
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2018-01-01",
+        term_end_date="2018-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(2.0),
+        system_price_records=_prices(["2018-01-01"], price=1000.0),
+        segment="resi",
+        commodity="electricity",
+    )
+    r = result[0]
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(1000.0 * 1.10)
+    assert r["cap_bound"] is False
+
+
+def test_deemed_cap_not_applied_to_non_resi_segment():
+    """The Ofgem Default Tariff Cap is domestic-only -- an I&C/SME deemed
+    period must not be clamped even post-2019."""
+    result = run_deemed_term(
+        customer_id="C_IC1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(2.0),
+        system_price_records=_prices(["2022-01-01"], price=1000.0),
+        segment="I&C",
+        commodity="electricity",
+    )
+    r = result[0]
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(1000.0 * 1.10)
+    assert r["cap_bound"] is False
+
+
+def test_deemed_gas_commodity_uses_gas_cap_not_electricity_cap():
+    """2022 gas cap (95.0 GBP/MWh) is materially different from the 2022
+    electricity cap (305.0 GBP/MWh) -- a gas deemed period must clamp against
+    the gas table, proving commodity is actually threaded through, not
+    defaulted to electricity regardless of the real fuel."""
+    result = run_deemed_term(
+        customer_id="C1g",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.0,
+        consumption_shape=_shape_fn(2.0),
+        system_price_records=_prices(["2022-01-01"], price=800.0),
+        segment="resi",
+        commodity="gas",
+    )
+    r = result[0]
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(95.0)
+    assert r["cap_bound"] is True
+
+
+def test_deemed_default_commodity_is_electricity_backward_compatible():
+    """commodity defaults to 'electricity' -- every pre-existing caller/test
+    that never passed it keeps its exact prior behaviour."""
+    result = run_deemed_term(
+        customer_id="C1",
+        term_start_date="2022-01-01",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        system_price_records=_prices(["2022-01-01"], price=60.0),
+    )
+    r = result[0]
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(60.0 * 1.10)
+    assert r["cap_bound"] is False

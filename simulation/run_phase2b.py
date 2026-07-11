@@ -1550,10 +1550,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             cust_segment = customer.get("segment", "resi") if customer else "resi"
             if term_tariff_type == "deemed":
                 # Phase 40c: out-of-contract period — spot + deemed_premium, no forward hedge.
+                # Phase 47a/MARGIN_REALISM Step 5: cap-bound 2019+ for resi (W3_1_price_cap_binding).
                 deemed_premium = term.get("deemed_premium", 0.20)
                 term_records = run_deemed_term(
                     cid, term_start_str, term_end_str, deemed_premium,
-                    shape_fn, elec_records, segment=cust_segment,
+                    shape_fn, elec_records, segment=cust_segment, commodity=commodity,
                 )
             elif term_tariff_type == "flex":
                 # Phase 41a: flex/trading tariff — reference price (7-day rolling spot) + markup.

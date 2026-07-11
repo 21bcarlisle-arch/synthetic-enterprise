@@ -363,12 +363,12 @@
   lane: W3_industry_systems
   value_stream: wholesale_to_price
   epoch: 1
-  level_current: 1
+  level_current: 2
   level_target: 2
-  loop_stage: idle
+  loop_stage: harden
   dial_inherited: 2
-  evidence: ["docs/staging/done/MARGIN_REALISM_amended.md"]
-  simplifications: []
+  evidence: ["docs/staging/done/MARGIN_REALISM_amended.md", "simulation/hedged_settlement.py::run_deemed_term()", "tests/simulation/test_hedged_settlement.py (6 new cap-binding tests)"]
+  simplifications: ["2026-07-11 BUILT (SPIKE_WEEKEND item 1, MARGIN_REALISM Step 5): found the real gap by reading run_deemed_term() directly -- it computed spot*(1+deemed_premium) with ZERO reference to the Ofgem cap, completely unbound (the existing Phase 47a cap-clamp only ever applied to FIXED-tariff terms, never to deemed/SVT). Real UK deemed/SVT customers cannot legally be charged above the cap regardless of wholesale spot cost -- this is the actual mechanism that squeezed/killed real suppliers buying at spot through the 2021-22 crisis while capped on the sell side. Fixed: billed_rate = min(spot*(1+premium), get_cap_unit_rate_gbp_per_mwh(commodity, year)) for resi customers, 2019+ only (pre-2019 and non-resi stay uncapped, matching the cap's own real scope) -- same clamp convention already used for fixed-tariff terms, extended consistently rather than inventing a new pattern. New `cap_bound` field marks when clamping actually occurred. Margin can now legitimately go negative on a capped settlement period, matching real crisis economics (verified via a dedicated test). Note on architecture: this reuses the existing company/pricing/ofgem_price_cap.py import already present in simulation/run_phase2b.py (Phase 47a precedent) -- a SIM module importing a COMPANY module is a layering oddity (backwards from the SIM being the 'real world' company should discover, not vice versa) but is NOT a point-in-time-blindfold violation (the cap data is static, real, historical, not derived from anything a real company couldn't independently know) -- flagged, not fixed, consistent with the pre-existing precedent this change extends rather than a new decision. 6 new tests (post-2019 clamp, negative-margin-once-capped, pre-2019 uncapped, non-resi uncapped, gas-vs-electricity cap table selection, backward-compatible default). Real before/after effect on the margin trajectory (the 'bridge attribution' SPIKE_WEEKEND also asks for) awaits the next natural sim_runner cycle regenerating run_output_latest.json -- not fabricated from an isolated run under time pressure; to be written up once real post-fix data exists."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the real Ofgem default tariff cap has bound SVT pricing since 2019"
   depends_on: []

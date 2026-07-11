@@ -18,8 +18,21 @@
 #     6. Bill-shock redesign + any map-drawn work as capacity allows.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
-#   every claim in it. Not started this turn (landed mid-turn, recorded for the next pickup) --
-#   see CLAUDE.md's own SPIKE_WEEKEND override entry for the full NTFY-cadence detail.
+#   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
+#   NTFY-cadence detail.
+#   Item 1 progress (2026-07-11): MARGIN_REALISM Step 4 (hedge-tariff alignment) was ALREADY
+#   at target (B3_hedge_tariff_alignment level 2/2, expert_hour passed 2026-07-10) -- verified
+#   against maturity_map.yaml directly rather than re-building something already done. Step 5
+#   (binding cap, W3_1_price_cap_binding) BUILT: found the real gap by reading
+#   simulation/hedged_settlement.py::run_deemed_term() directly -- it computed spot*(1+premium)
+#   with ZERO reference to the Ofgem cap, completely unbound, unlike the existing fixed-tariff
+#   clamp (Phase 47a). Fixed: billed_rate = min(spot*(1+premium), cap) for resi customers 2019+,
+#   same clamp convention extended consistently, not reinvented. New `cap_bound` field marks
+#   clamping; margin can now legitimately go negative once capped, matching real 2021-22 crisis
+#   economics (buying at spot, capped on the sell side) -- verified via a dedicated test, not
+#   just asserted. 6 new tests, W3_1_price_cap_binding level 1->2 (AT target), loop_stage
+#   harden. Real before/after margin-trajectory effect ("bridge attribution") awaits the next
+#   natural sim_runner cycle -- not fabricated from an isolated run under time pressure.
 #
 # === phase-close-evaluator demonstrated FOR REAL, found real defects, all fixed (2026-07-10):
 #   the new agent (item 2 above) initially reported as unavailable this session -- correction:
