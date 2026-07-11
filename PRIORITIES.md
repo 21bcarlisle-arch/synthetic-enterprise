@@ -100,6 +100,16 @@
 #            surface, same "spec not surface" class as the B2 CT finding) -- queued in the
 #            build lane BEHIND Doors 1-2, per the director's own ordering.
 #        (f) Evening digest -- as scheduled, unchanged cadence.
+#     10. NEW 2026-07-11 (advisor-staged, docs/staging/SURFACE_FRESHNESS_CLASS_FIX.md, P1,
+#         explicitly "queued not urgent, do not interrupt"): kill the stale-website CLASS --
+#         4th instance in 5 days (today: Platform/agent-health page 1.5d stale, cadence chart
+#         missing 173 commits). Real failure is the freshness invariants not alarming, not the
+#         staleness itself. Requires: full surface inventory (provable coverage, no
+#         exceptions), root-cause why agent-health/platform was uncovered + report other
+#         uncovered surfaces, generator+trigger for every surface (wire agent-health/session-
+#         history/build-cadence), tolerances by class with NTFY-not-silent-log alarming,
+#         orphan-transition tests per R11. R10: closes as a CLASS fix, instance patches don't
+#         satisfy it. Queued behind item 9's build-lane items -- next natural boundary.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
