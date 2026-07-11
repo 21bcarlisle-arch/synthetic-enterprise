@@ -1,3 +1,7 @@
+> **STATUS (2026-07-11):** Registered in PRIORITIES.md item 10. Queued behind
+> item 9's build-lane items, per this doc's own explicit "do not interrupt"
+> instruction -- next natural boundary. Not started.
+
 # SURFACE_FRESHNESS_CLASS_FIX — kill the stale-website class for good (P1, queued not urgent)
 
 **Staged:** 2026-07-11 by advisor, director-decided. **Do not interrupt** the
