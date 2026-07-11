@@ -557,6 +557,38 @@
         "D1_bill_correctness"
       ],
       "at_target": false
+    },
+    {
+      "id": "H3_production_readiness_nfr_evidence",
+      "name": "Production-readiness non-functional evidence pass (recoverability, security posture, capacity, availability)",
+      "lane": "H_harness",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "H4_go_live_nfr_register",
+      "name": "Go-live NFR register (availability/SLOs, security, data protection, operational resilience, capacity, incident response)",
+      "lane": "H_harness",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 5,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H3_production_readiness_nfr_evidence"
+      ],
+      "at_target": false
     }
   ],
   "lanes": {
@@ -639,7 +671,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 35,
+  "total_atoms": 37,
   "epoch2_movements": [
     {
       "id": "M1",

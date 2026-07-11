@@ -139,6 +139,18 @@
 #              Phase 2 (the actual build) queued behind item 3.
 #         Channel note recorded in CLAUDE.md: advisor->agent steers now come via
 #         docs/staging/ directly, Rich no longer relays by hand.
+#     13. NEW 2026-07-11 (advisor-staged, docs/staging/done/PRODUCTION_READINESS_BASELINE.md,
+#         P2, "background-lane, do not displace the spike queue"): measure the production-
+#         readiness NFR baseline (recoverability w/ scratch-restore, security posture w/
+#         PRIVATE-repo routing for raw findings, capacity scaling, availability/SPOFs) + a
+#         go-live NFR register feeding Epoch 5 + standing design constraints (no creds in
+#         repo, idempotent financial ops verified on the bitemporal ledger, walled contracts
+#         carry operational terms). Registered as H3_production_readiness_nfr_evidence +
+#         H4_go_live_nfr_register. IMMEDIATE-ACTION CARVE-OUT standing: any live risk found
+#         (unrecoverable canonical data, exposed credential) gets fixed under normal tiering
+#         NOW, reviewed/actioned by the agent personally, not delegated to a sub-agent given
+#         the sensitivity. Part A measurement dispatched as a background fork -- does not
+#         displace items 1-12's queue position.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full

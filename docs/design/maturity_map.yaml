@@ -537,3 +537,33 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "Octopus Energy's Saving Sessions / EV Octopus reward mechanics, British Gas Rewards -- real bill-visible loyalty economics"
   depends_on: [C4_adoption_physics, D1_bill_correctness]
+
+- id: H3_production_readiness_nfr_evidence
+  name: "Production-readiness non-functional evidence pass (recoverability, security posture, capacity, availability)"
+  lane: H_harness
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/done/PRODUCTION_READINESS_BASELINE.md"]
+  simplifications: ["2026-07-11 REGISTERED (P2, advisor-staged, director-decided -- PRODUCTION_READINESS_BASELINE.md, background-lane, explicitly 'do not displace the spike queue'). No measured baseline currently exists for this business's non-functional properties. Part A scope: recoverability (enumerate everything canonical existing ONLY on Skynet; test an actual restore of one representative artefact -- advisor amendment: to a SCRATCH location, never over live state; report measured RTO/RPO, not assumed), security posture (secrets inventory, exposed-surface inventory, dependency vulnerability scan -- advisor amendment: raw findings route to the PRIVATE ops repo ONLY, the public surface carries a sanitised summary never the map of weaknesses; absorb the harness sprint's existing sandbox/Pattern-C recommendation as an input rather than re-deriving), performance/capacity (measured full-run wall time/memory/disk and scaling with customer count, identify the first resource breaking at 10x/100x population), availability (daemon-stack real uptime from existing logs, every current single point of failure). Non-negotiable: measure, don't assert (R9). Immediate-action carve-out: any live-risk finding (unrecoverable canonical data, exposed credential) gets fixed under normal tiering NOW, not deferred -- the agent reviews and acts on such findings personally rather than delegating remediation, per this session's own consequential-action discipline. Dispatched as a background-lane fork; findings pending."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's SRE/security team measuring its own operational posture before a go-live or audit"
+  depends_on: []
+
+- id: H4_go_live_nfr_register
+  name: "Go-live NFR register (availability/SLOs, security, data protection, operational resilience, capacity, incident response)"
+  lane: H_harness
+  value_stream: meter_to_cash
+  epoch: 5
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/done/PRODUCTION_READINESS_BASELINE.md"]
+  simplifications: ["2026-07-11 REGISTERED (P2, advisor-staged, director-decided -- PRODUCTION_READINESS_BASELINE.md). Extends the existing obligations-register pattern to non-functional/operational production requirements: one entry per category (availability/SLOs, latency budgets, security incl. authn/authz/secrets/pen test, data protection incl. GDPR/encryption/backups, operational resilience linking the existing cyber-baseline obligation, change management/rollback, capacity, incident response), each recording what a real UK supplier needs, current measured state (fed by H3_production_readiness_nfr_evidence's Part A), go-live tier (blocker/should-have/post-live), and which epoch it lands in. This register is a direct input to Epoch 5 (go-live analysis), maintained from now -- placed at epoch:5 since that's where it's consumed, though the register itself starts being populated now. Depends on H3's Part A evidence existing before entries can carry a real 'current measured state' column."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's go-live readiness register presented to its board/regulator before launch"
+  depends_on: [H3_production_readiness_nfr_evidence]
