@@ -287,24 +287,33 @@ function renderPulseStrip(dashboard, supplier, method){
 
 var thesisChart=null;
 function renderThesisChart(dashboard){
+  // ADVISOR_STEER_THESIS_CHART.md fixes (2026-07-11, director Expert Hour):
+  // (1) per-household figures, not book totals mislabelled as per-household;
+  // (2) basis labelled on the chart itself (passport rule), sourced from the
+  // data layer's own population_basis field, not invented here;
+  // (3) the TRUE side's incompleteness is a badge ON the bar/axis label, not
+  // a footnote alone -- an expert reading only the bars for five seconds
+  // still sees it's a floor.
   var ol=(dashboard&&dashboard.opex_ledger)||{};
-  var trueCost=ol.true_opex_total_gbp;
-  var benchCost=ol.benchmark_opex_total_gbp;
-  var gap=ol.investor_thesis_gap_gbp;
+  var trueCost=ol.true_opex_per_household_gbp;
+  var benchCost=ol.benchmark_opex_per_household_gbp;
   var sentEl=document.getElementById("thesis-sentence");
   var caveatEl=document.getElementById("thesis-caveat");
   if(trueCost==null||benchCost==null){
     if(sentEl)sentEl.textContent="Dual-ledger data not yet available for this run.";
     return;
   }
-  if(sentEl)sentEl.innerHTML="Current book: the TRUE cost-base runs at "+gbp(trueCost)+" against a "+gbp(benchCost)+" incumbent-benchmark allowance -- a "+gbp(gap)+" gap, per household "+(ol.household_count?("across "+ol.household_count+" accounts"):"")+".";
-  if(caveatEl)caveatEl.textContent="Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Simplified) -- and AI-compute cost is not yet populated (open costing-basis question), so the TRUE side is a floor, not a complete figure.";
+  var gapPerHh=benchCost-trueCost;
+  var basis=ol.population_basis||"resi households";
+  var hhCount=ol.household_count;
+  if(sentEl)sentEl.innerHTML="Per household ("+esc(basis)+(hhCount?(", "+hhCount+" households"):"")+"): the TRUE cost-base runs at "+gbp(trueCost)+" against a "+gbp(benchCost)+" incumbent-benchmark allowance -- a "+gbp(gapPerHh)+" gap per household.";
+  if(caveatEl)caveatEl.textContent="TRUE side is a cost FLOOR, not a complete figure: AI-compute cost is not yet populated -- the usage data needed to price it honestly is too thin/stale to use without fudging a number (open costing-basis question, see PRIORITIES.md). Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Simplified).";
 
   var ctx=document.getElementById("thesis-chart");
   if(!ctx)return;
   if(thesisChart)thesisChart.destroy();
   thesisChart=new Chart(ctx,{type:"bar",data:{
-    labels:["TRUE cost-base","Benchmark (incumbent)"],
+    labels:["TRUE cost/household (FLOOR)","Benchmark/household (incumbent)"],
     datasets:[{
       data:[trueCost,benchCost],
       backgroundColor:["#1baf7a","#4a3aa7"],
@@ -316,7 +325,7 @@ function renderThesisChart(dashboard){
     responsive:true,maintainAspectRatio:false,
     plugins:{
       legend:{display:false},
-      tooltip:{callbacks:{label:function(c){return gbp(c.raw);}}},
+      tooltip:{callbacks:{label:function(c){return gbp(c.raw)+(c.dataIndex===0?" -- floor, AI-compute not yet included":"");}}},
       datalabels:false
     },
     scales:{
@@ -336,7 +345,10 @@ function renderThesisChart(dashboard){
         ctx2.font="700 12px sans-serif";
         ctx2.textAlign="left";
         ctx2.textBaseline="middle";
-        ctx2.fillText(gbp(val),bar.x+8,bar.y);
+        // Defect 1 fix: the floor caveat is IN the chart (on the bar itself),
+        // not only in a footnote paragraph below -- an expert reading only
+        // the bars for the first five seconds still sees it's incomplete.
+        ctx2.fillText(gbp(val)+(i===0?" (floor)":""),bar.x+8,bar.y);
         ctx2.restore();
       });
     }
