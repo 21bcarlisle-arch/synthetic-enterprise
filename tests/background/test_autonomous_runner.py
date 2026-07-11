@@ -118,6 +118,26 @@ def test_launch_turn_uses_skip_permissions_flag(tmp_path, monkeypatch):
         assert args[1] == "-p"
 
 
+def test_launch_turn_uses_cheap_model_for_supervisor_micro_turns(tmp_path, monkeypatch):
+    """Model routing (2026-07-11, director NTFY, Lane-H): these unattended
+    turns are supervisor micro-turns/status checks -- routed to the fastest
+    cheap model, not the strongest one reserved for build-lane architecture."""
+    autonomous_runner._active_proc = None
+    autonomous_runner._turn_times.clear()
+    fake_bin = tmp_path / "claude"
+    fake_bin.write_text("#!/bin/sh\n")
+    monkeypatch.setattr(autonomous_runner, "CLAUDE_BIN", fake_bin)
+    monkeypatch.setattr(autonomous_runner, "_usage_limit_active", lambda: False)
+
+    with patch("background.autonomous_runner.subprocess.Popen") as mock_popen:
+        mock_popen.return_value = MagicMock(poll=lambda: None)
+        autonomous_runner.launch_turn()
+        args = mock_popen.call_args[0][0]
+        assert "--model" in args
+        model_idx = args.index("--model")
+        assert args[model_idx + 1] == autonomous_runner.AUTONOMOUS_TURN_MODEL
+
+
 def test_usage_limit_active_detects_limit_phrase(monkeypatch):
     monkeypatch.setattr(
         autonomous_runner, "_pane_content",

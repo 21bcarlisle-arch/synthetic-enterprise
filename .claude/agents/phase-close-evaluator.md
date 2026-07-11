@@ -2,6 +2,7 @@
 name: phase-close-evaluator
 description: Fresh-context skeptical reviewer for a claimed-complete phase. Has no Write/Edit tools and no memory of the build. Reads the diff, the claimed evidence, and this project's own phase-close checklist, then returns PASS or NEEDS_WORK with specific findings. Sits alongside (not replacing) the Qwen skeptic pass -- use this for judgement-heavy phase closes and Expert-Hour simulation, Qwen for volume/cheap passes.
 tools: Read, Bash, Grep, Glob
+model: opus
 ---
 <!-- HARNESS_BEST_PRACTICE_ADOPTION.md item 2 (2026-07-10) -- adapted from
      github.com/anthropics/cwc-long-running-agents's agents/evaluator.md

@@ -55,6 +55,13 @@ SESSION_NAME = "claude"
 # Claude Code binary — full path since nvm isn't active in subprocess env
 CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
 
+# Model routing (2026-07-11, director NTFY, Lane-H): these are supervisor-fired
+# micro-turns/status checks (fired when nobody's watching, most cycles find an
+# empty queue and go back to sleep) -- routed to the fastest cheap model, not
+# the strongest one reserved for build-lane architecture. See CLAUDE.md's model
+# routing note for the full task-class mapping.
+AUTONOMOUS_TURN_MODEL = "claude-haiku-4-5-20251001"
+
 POLL_INTERVAL_SECONDS = 120       # check every 2 min
 IDLE_THRESHOLD_SECONDS = 30 * 60  # 30 min static pane = session idle
 MAX_TURNS_PER_HOUR = 2            # conservative — each turn costs frontier tokens
@@ -175,7 +182,7 @@ def launch_turn() -> None:
         return
 
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    log("Launching autonomous turn (claude -p --dangerously-skip-permissions)")
+    log(f"Launching autonomous turn (claude -p --model {AUTONOMOUS_TURN_MODEL} --dangerously-skip-permissions)")
 
     TURN_OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(TURN_OUTPUT_FILE, "a") as out:
@@ -188,7 +195,8 @@ def launch_turn() -> None:
     env = os.environ.copy()
     env.pop("ANTHROPIC_BASE_URL", None)
     _active_proc = subprocess.Popen(
-        [str(CLAUDE_BIN), "-p", "--dangerously-skip-permissions", AUTONOMOUS_PROMPT],
+        [str(CLAUDE_BIN), "-p", "--model", AUTONOMOUS_TURN_MODEL,
+         "--dangerously-skip-permissions", AUTONOMOUS_PROMPT],
         cwd=str(PROJECT_DIR),
         stdout=outfile,
         stderr=outfile,

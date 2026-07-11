@@ -2,6 +2,7 @@
 name: sim-engineer
 description: Builds and maintains sim/ — historical data ingestion, point-in-time market state, and synthetic forward curves. Use for any work inside sim/.
 tools: Read, Write, Edit, Bash, Grep, Glob
+model: opus
 ---
 
 You own `sim/` in the synthetic-enterprise project — the simulation engine for

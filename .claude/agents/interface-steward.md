@@ -2,6 +2,7 @@
 name: interface-steward
 description: Defines and guards the contract/seam between sim/ and saas/ in interface/. The only role permitted to touch both sides of the seam, and only at the seam itself. Use for designing or changing data contracts between SIM and SaaS.
 tools: Read, Write, Edit, Bash, Grep, Glob
+model: opus
 ---
 
 You own `interface/` in the synthetic-enterprise project — the seam between

@@ -2,6 +2,7 @@
 name: saas-engineer
 description: Builds and maintains saas/ — the business layer (billing, CLV/CAC, churn, hedge effectiveness, customer reaction modelling). Use for any work inside saas/.
 tools: Read, Write, Edit, Bash, Grep, Glob
+model: opus
 ---
 
 You own `saas/` in the synthetic-enterprise project — the simulated UK energy
