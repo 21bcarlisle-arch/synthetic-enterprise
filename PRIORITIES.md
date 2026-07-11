@@ -75,6 +75,27 @@
 #        collapse into one "window" tag (UserPromptSubmit has no distinguishing field,
 #        researched not assumed); comments-box/supervisor-wake/watcher-wake/
 #        advisor-staged are classify-able but have no live source-wiring yet.
+#     9. SEQUENCING ANSWERS (2026-07-11, director in-console, proceed without further asks):
+#        (a) Doors 1-2 site build (SITE_CONSTITUTION.md/POESYS_SITE_BRIEF.md) -- START NOW,
+#            TOP OF QUEUE, ahead of items 1-8 above. Front Door + THESIS CHART first, then
+#            The Journey. Highest gap-to-value; data already exists.
+#        (b) github-pages.yml workflow-filter fix (REPO_PRIVATE_AND_IP Phase 1 NO-GO) --
+#            director: "reversible, internal -- flag and proceed, don't ask." DONE same turn
+#            (paths-ignore added, commit 41fc0e5b) -- re-measure Actions cadence in a few days.
+#        (c) M3: DESIGN forks only in background, no BUILD until M2's entry-gate payments
+#            audit reports. NOTE surfaced back to the director: that audit already reported
+#            this session (D_payments_maturity_audit AT TARGET, verdict HARDEN-EXISTING +
+#            W5 new-build) -- his call whether that changes M3's queue position; "no build
+#            yet" honoured regardless pending his read of that fact. M3 DESIGN work already
+#            substantial (docs/design/M3_DISCOVER_FRAME.md, same day) -- not duplicated.
+#        (d) DIRECTOR_INPUT_LOG V2 (remaining channel wiring) -- registered (item 8 above),
+#            deliberately not started now.
+#        (e) MARGIN_REALISM Step 4 (hedge-tariff alignment) -- ALREADY AT TARGET
+#            (B3_hedge_tariff_alignment level 2/2, expert_hour passed 2026-07-10). One real
+#            HARDEN-sweep gap open (per-customer hedge fraction never reached a business
+#            surface, same "spec not surface" class as the B2 CT finding) -- queued in the
+#            build lane BEHIND Doors 1-2, per the director's own ordering.
+#        (f) Evening digest -- as scheduled, unchanged cadence.
 #   DoD: Monday-morning consolidated pack (before/after map snapshot, charters landed,
 #   adjudication verdicts, evaluator NEEDS_WORK rate, what broke under load), pixel rule on
 #   every claim in it. See CLAUDE.md's own SPIKE_WEEKEND override entry for the full
