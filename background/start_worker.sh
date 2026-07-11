@@ -30,15 +30,22 @@ tmux set-environment -g DISABLE_AUTOUPDATER 1 2>/dev/null || true
 # sim-runner all import background.ntfy_utils, which raises loudly at import
 # time if this isn't set — 2026-07-08 topic rotation,
 # docs/staging/NTFY_CHANNEL_HARDENING.md).
+# 2026-07-11, Option 2 floor (director in-console authorization): secrets
+# moved out of the working tree to ~/.config/synthetic-enterprise/ (see
+# background/secrets_location.py) -- check there FIRST, fall back to the
+# old in-tree path during the transition so this script keeps working
+# either way, not a hard cutover that could break a restart mid-migration.
+NTFY_ENV_PATH="$HOME/.config/synthetic-enterprise/.env.ntfy"
+[ -f "$NTFY_ENV_PATH" ] || NTFY_ENV_PATH="background/.env.ntfy"
 NTFY_ENV_FLAGS=()
-if [ -f background/.env.ntfy ]; then
+if [ -f "$NTFY_ENV_PATH" ]; then
   while IFS= read -r line; do
     [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
     export "$line"
     NTFY_ENV_FLAGS+=(-e "$line")
-  done < background/.env.ntfy
+  done < "$NTFY_ENV_PATH"
 else
-  echo "WARNING: background/.env.ntfy not found -- NTFY-touching sessions will fail to start." >&2
+  echo "WARNING: no .env.ntfy found (checked ~/.config/synthetic-enterprise/ and background/) -- NTFY-touching sessions will fail to start." >&2
 fi
 
 # _start_session takes any number of trailing `-e VAR=value` flag pairs
@@ -147,13 +154,17 @@ _start_session "token-proxy" \
 # NTFY_ENV_FLAGS above (2026-07-08) -- a plain `export` here silently did not
 # reach a NEW session on an ALREADY-RUNNING tmux server; harmless historically
 # only because file-api has never actually needed a mid-uptime restart yet.
+# 2026-07-11, Option 2 floor -- same new-location-first, old-fallback
+# pattern as NTFY_ENV_PATH above.
+FILE_API_ENV_PATH="$HOME/.config/synthetic-enterprise/.env.file-api"
+[ -f "$FILE_API_ENV_PATH" ] || FILE_API_ENV_PATH="background/.env.file-api"
 FILE_API_ENV_FLAGS=()
-if [ -f background/.env.file-api ]; then
+if [ -f "$FILE_API_ENV_PATH" ]; then
   while IFS= read -r line; do
     [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
     export "$line"
     FILE_API_ENV_FLAGS+=(-e "$line")
-  done < background/.env.file-api
+  done < "$FILE_API_ENV_PATH"
 fi
 
 _start_session "file-api" \

@@ -40,7 +40,7 @@ import sys
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
-ENV_FILE = PROJECT_DIR / "background" / ".env.ntfy"
+sys.path.insert(0, str(PROJECT_DIR))
 REGISTER_FILE = PROJECT_DIR / "docs" / "observability" / "action_needed_register.json"
 # 2026-07-11, director-flagged: the hook never visibly fired despite a clear
 # trigger match on a real turn, and the broad except-Exception-pass below
@@ -82,9 +82,15 @@ _RECENT_REGISTER_TOUCH_SECONDS = 300  # 5 min: proxy for "did register_item() ac
 
 
 def _load_env_file() -> None:
-    if not ENV_FILE.is_file():
+    """2026-07-11, Option 2 floor (director in-console authorization):
+    resolves through background/secrets_location.py, which checks the new
+    out-of-tree ~/.config/synthetic-enterprise/ location first, falling
+    back to the old in-tree path during the transition."""
+    from background.secrets_location import resolve_secret_file
+    env_file = resolve_secret_file(".env.ntfy")
+    if not env_file.is_file():
         return
-    for line in ENV_FILE.read_text().splitlines():
+    for line in env_file.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

@@ -22,7 +22,16 @@ import sys
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
-ENV_FILE = PROJECT_DIR / "background" / ".env.ntfy"
+sys.path.insert(0, str(PROJECT_DIR))
+
+
+def _resolve_env_file():
+    """2026-07-11, Option 2 floor (director in-console authorization):
+    secrets moved out of the working tree to ~/.config/synthetic-enterprise/
+    -- see background/secrets_location.py for the full rationale and the
+    old-path fallback this resolves through during the transition."""
+    from background.secrets_location import resolve_secret_file
+    return resolve_secret_file(".env.ntfy")
 
 
 def _load_env_file() -> None:
@@ -36,9 +45,10 @@ def _load_env_file() -> None:
     caught by this hook's own best-effort try/except below, so the
     failure would never surface). Load it directly here instead of
     assuming inheritance."""
-    if not ENV_FILE.is_file():
+    env_file = _resolve_env_file()
+    if not env_file.is_file():
         return
-    for line in ENV_FILE.read_text().splitlines():
+    for line in env_file.read_text().splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

@@ -34,7 +34,11 @@ RESPONSES_DIR = (STAGING_DIR / "responses").resolve()
 GATE_TOKENS_DIR = (STAGING_DIR / ".gate_tokens").resolve()
 
 # Load from .env.file-api if FILE_API_KEY not already in environment.
-_ENV_FILE = REPO_ROOT / "background" / ".env.file-api"
+# 2026-07-11, Option 2 floor (director in-console authorization): resolves
+# through background/secrets_location.py, new out-of-tree location first,
+# old in-tree path as a fallback during the transition.
+from background.secrets_location import resolve_secret_file  # noqa: E402
+_ENV_FILE = resolve_secret_file(".env.file-api")
 if not os.environ.get("FILE_API_KEY") and _ENV_FILE.exists():
     for _line in _ENV_FILE.read_text().splitlines():
         if _line.startswith("FILE_API_KEY="):
