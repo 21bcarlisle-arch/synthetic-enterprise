@@ -27,6 +27,14 @@ levies), standing charge, and VAT via saas.non_commodity. The commodity
 amount (from settlement records) is separated from non-commodity and
 standing so the ledger can track pass-through costs correctly.
 
+Standing-charge double-count fix (2026-07-11): the standing charge is sourced
+from the settlement records' own year-calibrated field (folded there by
+simulation/hedged_settlement.py / gas_settlement.py) and subtracted back out of
+commodity_amount_gbp, rather than being independently recomputed from a flat
+rate table and added a second time. See generate_bill() for detail. The
+saas.non_commodity flat rate is retained only as a fallback for synthetic/
+legacy records that carry no settlement-derived standing-charge field.
+
 This module is pure: plain dicts/lists in, plain dict out. No imports from
 `sim/`.
 """
@@ -99,17 +107,51 @@ def generate_bill(
 
     dates = sorted(record["settlement_date"] for record in settlement_records)
     total_consumption_kwh = sum(record["consumption_kwh"] for record in settlement_records)
-    commodity_amount_gbp = sum(record["revenue_gbp"] for record in settlement_records)
+    raw_revenue_gbp = sum(record["revenue_gbp"] for record in settlement_records)
+
+    period_start_date = datetime.date.fromisoformat(dates[0])
+    period_end_date = datetime.date.fromisoformat(dates[-1])
+    days_in_period = (period_end_date - period_start_date).days + 1
+
+    # Standing charge -- SINGLE authoritative source (2026-07-11 double-count
+    # fix). Real settlement records (simulation/hedged_settlement.py,
+    # gas_settlement.py) already fold the year-calibrated, Ofgem-sourced daily
+    # standing charge into `revenue_gbp` AND expose it as its own per-record
+    # field (`standing_charge_gbp` for electricity, `gas_standing_charge_gbp`
+    # for gas). We take the standing charge from that field and SUBTRACT it back
+    # out of revenue so `commodity_amount_gbp` is genuinely pure commodity
+    # revenue -- what the field name and its tests already claim it to be.
+    #
+    # Before this fix generate_bill() ADDITIONALLY recomputed a flat,
+    # non-year-varying standing charge from saas.non_commodity and added it a
+    # second time, so every resi/SME bill charged the standing charge twice
+    # (once hidden inside commodity_amount_gbp, once as the visible line) and
+    # every I&C bill charged a resi-rate standing charge that should be zero.
+    #
+    # The flat saas.non_commodity fallback is used ONLY for synthetic/legacy
+    # records that carry no settlement-derived standing-charge field (test
+    # fixtures pre-dating Phase 62); those records also never fold a standing
+    # charge into revenue_gbp, so nothing is subtracted in that path.
+    sc_field = "gas_standing_charge_gbp" if commodity == "gas" else "standing_charge_gbp"
+    records_carry_sc = any(sc_field in record for record in settlement_records)
+    if records_carry_sc:
+        standing_charge_gbp = sum(record.get(sc_field, 0.0) for record in settlement_records)
+        commodity_amount_gbp = raw_revenue_gbp - standing_charge_gbp
+    else:
+        standing_charge_gbp = days_in_period * standing_charge_rate(commodity, segment)
+        commodity_amount_gbp = raw_revenue_gbp
+
+    # Effective per-day standing charge for the calculation-transparency
+    # breakdown (director's "Days x standing charges" ask): derived from the
+    # actual billed standing charge so days_in_period x this == standing_charge_gbp
+    # exactly, even across a year boundary where the daily rate itself changes.
+    standing_charge_gbp_per_day = (
+        standing_charge_gbp / days_in_period if days_in_period > 0 else 0.0
+    )
 
     # Non-commodity pass-through: network charges + environmental levies
     billing_year = int(dates[0][:4])
     non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment, year=billing_year)
-
-    # Standing charge: pure supplier margin (covers metering, admin, data)
-    period_start_date = datetime.date.fromisoformat(dates[0])
-    period_end_date = datetime.date.fromisoformat(dates[-1])
-    days_in_period = (period_end_date - period_start_date).days + 1
-    standing_charge_gbp = days_in_period * standing_charge_rate(commodity, segment)
 
     # VAT on full pre-tax bill (5% domestic, 20% business)
     subtotal_gbp = commodity_amount_gbp + non_commodity_amount_gbp + standing_charge_gbp
@@ -150,9 +192,12 @@ def generate_bill(
         # price. We need to be able to explain the maths properly"). Both
         # days_in_period and standing_charge_gbp_per_day were already computed
         # locally above to derive standing_charge_gbp -- simply never exposed.
+        # standing_charge_gbp_per_day is now derived from the actual billed
+        # standing charge (standing_charge_gbp / days_in_period) rather than a
+        # separate rate-table lookup, so the two can never disagree.
         # Full time-of-use (multiple rate bands per day) is a separate,
         # larger architecture gap -- the tariff engine has no multi-rate-per-
         # day concept at all yet -- registered separately, not attempted here.
         "days_in_period": days_in_period,
-        "standing_charge_gbp_per_day": standing_charge_rate(commodity, segment),
+        "standing_charge_gbp_per_day": standing_charge_gbp_per_day,
     }

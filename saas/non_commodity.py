@@ -67,9 +67,27 @@ NON_COMMODITY_GAS_RATE_GBP_PER_MWH: dict[str, float] = {
 
 # Standing charge by commodity and segment (£/day).
 # Covers: metering data collection, supply point admin, network standing.
+#
+# FALLBACK-ONLY as of the standing-charge double-count fix (2026-07-11): the
+# AUTHORITATIVE standing charge is the year-calibrated, Ofgem-sourced value the
+# settlement engines fold into every record and expose as its own field
+# (`standing_charge_gbp` / `gas_standing_charge_gbp`, from
+# simulation/policy_costs.py). saas/bill_generator.generate_bill() now SOURCES
+# the bill's standing charge from those record fields; this flat table is used
+# only when a record genuinely lacks that field (synthetic/legacy test
+# fixtures pre-dating Phase 62). It is deliberately NOT year-varying and MUST
+# NOT be treated as a second authoritative source for a real bill.
+#
+# I&C is listed EXPLICITLY as 0.0 (matching both real settlement engines, which
+# return 0.0 for I&C -- capacity/transportation charges are handled via BSC
+# settlement, not a per-day standing charge). Before this fix standing_charge_
+# rate()'s numeric default silently charged I&C the resi 0.27 rate -- the exact
+# missing-segment-key class BILL_CORRECTNESS_ADDENDUM.md Defect 1 fixed for
+# VAT_RATE. Every real segment must appear here explicitly; see
+# test_standing_charge_rate_never_silently_defaults_a_segment.
 STANDING_CHARGE_GBP_PER_DAY: dict[str, dict[str, float]] = {
-    "electricity": {"resi": 0.27, "SME": 0.55},
-    "gas": {"resi": 0.25, "SME": 0.40},
+    "electricity": {"resi": 0.27, "SME": 0.55, "I&C": 0.0},
+    "gas": {"resi": 0.25, "SME": 0.40, "I&C": 0.0},
 }
 
 # VAT rate by segment.
@@ -110,10 +128,25 @@ def non_commodity_rate(commodity: str, segment: str, year: int | None = None) ->
 
 
 def standing_charge_rate(commodity: str, segment: str) -> float:
-    """Return the standing charge (£/day)."""
-    return STANDING_CHARGE_GBP_PER_DAY.get(commodity, STANDING_CHARGE_GBP_PER_DAY["electricity"]).get(
-        segment, 0.27
+    """Return the FALLBACK flat standing charge (£/day).
+
+    FALLBACK ONLY. The authoritative standing charge for a real bill is the
+    year-calibrated value on each settlement record (see
+    STANDING_CHARGE_GBP_PER_DAY docstring); generate_bill() reads that field
+    directly and only calls this when a record carries no such field.
+
+    Every real segment (resi, SME, I&C) is listed explicitly in
+    STANDING_CHARGE_GBP_PER_DAY, so no real segment hits the numeric fallback
+    below. The resi rate remains the fallback for a genuinely unknown segment,
+    but a NEW business segment MUST add itself explicitly (see
+    test_standing_charge_rate_never_silently_defaults_a_segment) rather than
+    silently inherit the domestic rate -- the exact class of bug fixed here for
+    I&C (previously defaulted to the resi 0.27 rate).
+    """
+    commodity_rates = STANDING_CHARGE_GBP_PER_DAY.get(
+        commodity, STANDING_CHARGE_GBP_PER_DAY["electricity"]
     )
+    return commodity_rates.get(segment, commodity_rates["resi"])
 
 
 def vat_rate(segment: str) -> float:

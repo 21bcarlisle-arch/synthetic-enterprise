@@ -13,6 +13,14 @@ from saas.non_commodity import (
 )
 
 
+# NOTE: make_records() deliberately produces the *fallback* record shape -- a
+# pure-commodity `revenue_gbp` with NO settlement-derived standing-charge field.
+# This exercises generate_bill()'s fallback path (flat saas.non_commodity rate),
+# which is what synthetic/legacy pre-Phase-62 records look like. The REAL
+# settlement-record shape (year-calibrated standing charge folded into
+# revenue_gbp AND exposed as its own field) is exercised by the
+# test_*_real_settlement / test_*_sc_field integration tests below -- that path
+# was the coverage gap that let the standing-charge double-count ship.
 def make_records(daily_kwh: dict[str, float], unit_rate_gbp_per_mwh: float = 200.0):
     records = []
     for settlement_date, kwh in daily_kwh.items():
@@ -196,3 +204,162 @@ def test_consumption_cv_matches_manual_calc():
     assert consumption_coefficient_of_variation(records) == pytest.approx(0.5)
     bill = generate_bill("C1", records, "fixed_1yr")
     assert bill["clarity_score"] == pytest.approx(1.0 - 0.5 * CONSUMPTION_CV_PENALTY_FACTOR)
+
+
+# ---------------------------------------------------------------------------
+# Standing-charge double-count fix (2026-07-11) -- REAL settlement integration.
+#
+# The bug: generate_bill() recomputed a flat standing charge from
+# saas.non_commodity and added it a SECOND time, on top of the year-calibrated
+# standing charge that hedged_settlement.py / gas_settlement.py already fold
+# into revenue_gbp. Synthetic fixtures (make_records above) never carried the
+# settlement standing-charge field, so the unit suite passed while the real
+# integration double-charged every resi/SME bill. These tests feed the REAL
+# settlement-engine output through generate_bill() -- the path that was never
+# exercised -- and assert the standing charge is billed EXACTLY ONCE, equal to
+# the settlement engine's own value, with commodity_amount_gbp genuinely pure.
+# ---------------------------------------------------------------------------
+
+_JAN_2023_DAYS = 31
+
+
+def _elec_price_records(dates, spot=80.0):
+    return [
+        {"settlementDate": d, "settlementPeriod": sp, "systemSellPrice": spot}
+        for d in dates
+        for sp in range(1, 49)
+    ]
+
+
+def _jan_2023_dates():
+    return [f"2023-01-{day:02d}" for day in range(1, _JAN_2023_DAYS + 1)]
+
+
+def test_generate_bill_does_not_double_count_standing_charge_real_settlement():
+    """Resi electricity: bill standing charge == settlement engine's own SC
+    (billed once), and commodity_amount_gbp excludes it entirely."""
+    from simulation.hedged_settlement import run_hedged_term
+    from simulation.policy_costs import get_electricity_standing_charge_per_day
+
+    dates = _jan_2023_dates()
+    records = run_hedged_term(
+        customer_id="C1",
+        term_start_date="2023-01-01",
+        term_end_date="2023-02-01",
+        fixed_tariff_rate_gbp_per_mwh=180.0,
+        hedge_price_gbp_per_mwh=80.0,
+        hedge_fraction=1.0,
+        monthly_cost_of_capital_gbp=0.0,
+        consumption_shape=lambda _: [250.0] * 48,
+        system_price_records=_elec_price_records(dates),
+        segment="resi",
+    )
+
+    settlement_sc = sum(r["standing_charge_gbp"] for r in records)
+    raw_revenue = sum(r["revenue_gbp"] for r in records)
+
+    bill = generate_bill("C1", records, "fixed_1yr", segment="resi", commodity="electricity")
+
+    # SC billed exactly once, equal to the settlement engine's own year-calibrated value.
+    expected_daily_sc = get_electricity_standing_charge_per_day("2023-01-15", "resi")
+    assert settlement_sc == pytest.approx(_JAN_2023_DAYS * expected_daily_sc)
+    assert bill["standing_charge_gbp"] == pytest.approx(settlement_sc)
+
+    # It is NOT the old flat 2019 rate (0.27/day) -- proves the year-calibrated
+    # value now drives the bill, not the superseded flat table.
+    assert bill["standing_charge_gbp"] != pytest.approx(_JAN_2023_DAYS * 0.27)
+
+    # commodity_amount_gbp is pure commodity: it excludes the SC that revenue_gbp
+    # carried, and commodity + SC reconstructs the raw settlement revenue exactly
+    # (no third copy, no missing copy).
+    assert bill["commodity_amount_gbp"] == pytest.approx(raw_revenue - settlement_sc)
+    assert bill["commodity_amount_gbp"] + bill["standing_charge_gbp"] == pytest.approx(raw_revenue)
+
+    # Per-day breakdown stays internally consistent.
+    assert bill["days_in_period"] * bill["standing_charge_gbp_per_day"] == pytest.approx(
+        bill["standing_charge_gbp"]
+    )
+
+
+def test_generate_bill_does_not_double_count_standing_charge_real_gas():
+    """Resi gas: bill standing charge == run_gas_term's own gas SC (billed once)."""
+    from simulation.gas_settlement import run_gas_term
+    from simulation.policy_costs import get_gas_standing_charge_per_day
+
+    gas_records = run_gas_term(
+        customer_id="C1g",
+        term_start="2023-01-01",
+        term_end="2023-02-01",
+        aq_kwh=12_000,
+        unit_rate_gbp_mwh=60.0,
+        hedge_fraction=1.0,
+        forward_price=55.0,
+        monthly_cost_of_capital_gbp=0.0,
+        gas_price_records=[
+            {"settlementDate": d, "systemSellPrice": 55.0} for d in _jan_2023_dates()
+        ],
+        segment="resi",
+    )
+
+    settlement_sc = sum(r["gas_standing_charge_gbp"] for r in gas_records)
+    raw_revenue = sum(r["revenue_gbp"] for r in gas_records)
+
+    bill = generate_bill("C1g", gas_records, "fixed_1yr", segment="resi", commodity="gas")
+
+    expected_daily_sc = get_gas_standing_charge_per_day("2023-01-15", "resi")
+    assert settlement_sc == pytest.approx(_JAN_2023_DAYS * expected_daily_sc)
+    assert bill["standing_charge_gbp"] == pytest.approx(settlement_sc)
+    assert bill["commodity_amount_gbp"] == pytest.approx(raw_revenue - settlement_sc)
+    assert bill["commodity_amount_gbp"] + bill["standing_charge_gbp"] == pytest.approx(raw_revenue)
+
+
+def test_generate_bill_ic_charges_zero_standing_charge_real_settlement():
+    """I&C electricity: settlement engine returns SC=0; the bill must too --
+    not the silent resi-rate fallback the old code applied."""
+    from simulation.hedged_settlement import run_hedged_term
+
+    dates = _jan_2023_dates()
+    records = run_hedged_term(
+        customer_id="C_IC1",
+        term_start_date="2023-01-01",
+        term_end_date="2023-02-01",
+        fixed_tariff_rate_gbp_per_mwh=180.0,
+        hedge_price_gbp_per_mwh=80.0,
+        hedge_fraction=1.0,
+        monthly_cost_of_capital_gbp=0.0,
+        consumption_shape=lambda _: [5000.0] * 48,
+        system_price_records=_elec_price_records(dates),
+        segment="I&C",
+    )
+    raw_revenue = sum(r["revenue_gbp"] for r in records)
+
+    bill = generate_bill("C_IC1", records, "fixed_1yr", segment="I&C", commodity="electricity")
+
+    assert bill["standing_charge_gbp"] == pytest.approx(0.0)
+    assert bill["standing_charge_gbp_per_day"] == pytest.approx(0.0)
+    # No SC to subtract -- commodity is the full (SC-free) settlement revenue.
+    assert bill["commodity_amount_gbp"] == pytest.approx(raw_revenue)
+
+
+def test_generate_bill_subtracts_sc_from_commodity_when_field_present():
+    """Focused unit check of the primary path with a minimal synthetic record
+    that carries the settlement standing-charge field (SC folded into revenue,
+    matching real settlement output shape), without a full settlement run."""
+    records = [
+        {
+            "customer_id": "C1",
+            "settlement_date": "2023-03-01",
+            "settlement_period": 1,
+            "consumption_kwh": 100.0,
+            "unit_rate_gbp_per_mwh": 200.0,
+            # revenue = pure commodity (100/1000*200 = 20.0) + folded SC (0.53)
+            "revenue_gbp": 20.0 + 0.53,
+            "standing_charge_gbp": 0.53,
+            "wholesale_cost_gbp": 0.0,
+            "margin_gbp": 0.0,
+        }
+    ]
+    bill = generate_bill("C1", records, "fixed_1yr", segment="resi", commodity="electricity")
+    assert bill["standing_charge_gbp"] == pytest.approx(0.53)
+    assert bill["commodity_amount_gbp"] == pytest.approx(20.0)  # SC subtracted back out
+    assert bill["average_unit_rate_gbp_per_mwh"] == pytest.approx(200.0)  # pure commodity rate

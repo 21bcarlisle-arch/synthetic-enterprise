@@ -64,6 +64,34 @@ def test_standing_charge_gas_sme():
     assert standing_charge_rate("gas", "SME") == pytest.approx(0.40)
 
 
+def test_standing_charge_ic_is_zero():
+    """Standing-charge double-count fix (2026-07-11): I&C standing charge is
+    0.0 in both real settlement engines (capacity/transportation charges are
+    handled via BSC settlement, not a per-day standing charge). Before the fix
+    standing_charge_rate()'s numeric default silently charged I&C the resi
+    0.27/0.25 rate -- the same missing-segment-key class as the VAT bug in
+    BILL_CORRECTNESS_ADDENDUM.md Defect 1."""
+    assert standing_charge_rate("electricity", "I&C") == pytest.approx(0.0)
+    assert standing_charge_rate("gas", "I&C") == pytest.approx(0.0)
+
+
+# Every real customer segment must have an EXPLICIT standing-charge entry, not
+# silently inherit the resi rate via a missing dict key -- the same invariant
+# BILL_CORRECTNESS_ADDENDUM.md Defect 1 established for VAT_RATE. A future new
+# business segment must add itself here explicitly, or this test catches the
+# silent fallback. I&C must be zero (settlement-engine parity); resi/SME > 0.
+def test_standing_charge_rate_never_silently_defaults_a_segment():
+    for commodity in ("electricity", "gas"):
+        assert standing_charge_rate(commodity, "I&C") == pytest.approx(0.0), (
+            f"{commodity} I&C standing charge must be 0.0 (settlement engines "
+            "return 0.0 for I&C); a non-zero value means I&C is missing from "
+            "STANDING_CHARGE_GBP_PER_DAY and silently fell back to the resi rate"
+        )
+        assert STANDING_CHARGE_GBP_PER_DAY[commodity]["I&C"] == 0.0
+        for segment in ("resi", "SME"):
+            assert standing_charge_rate(commodity, segment) > 0.0
+
+
 def test_vat_resi_is_five_pct():
     assert vat_rate("resi") == pytest.approx(0.05)
 
