@@ -810,7 +810,7 @@ Two flexibility revenue streams: residential DSR (EV/ASHP/battery via Flexibilit
 - **Demand Flexibility Service (DFS):** launched October 2022; £4.5/MWh × 20 events/yr.
 - **I&C DSR aggregator fee:** 20% of gross CM/DFS revenue.
 
-**Total 2016–2025:** £0.00  (Residential: £0.00 | I&C: £21,381.06)
+**Total 2016–2025:** £21,381.06  (Residential: £0.00 | I&C: £21,381.06)
 
 ### I&C Demand Response Revenue
 
@@ -1212,7 +1212,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 11 | 0.8 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,532 |
 | 2023 | 4 | 28 | 7.0 | £48,908 |
@@ -1406,15 +1406,15 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 4.70% | 6% | OK | 30.8% | 8% | ! |
-| 2017 | 4.68% | 6% | OK | 28.6% | 8% | ! |
-| 2018 | 4.67% | 6% | OK | 13.3% | 8% | ~ |
-| 2019 | 4.69% | 6% | OK | 17.6% | 8% | ! |
+| 2016 | 4.70% | 6% | OK | 15.4% | 8% | ! |
+| 2017 | 4.68% | 6% | OK | 21.4% | 8% | ! |
+| 2018 | 4.67% | 6% | OK | 26.7% | 8% | ! |
+| 2019 | 4.69% | 6% | OK | 29.4% | 8% | ! |
 | 2020 | 4.29% | 6% | OK | 5.3% | 8% | OK |
-| 2021 | 4.82% | 8% | OK | 14.3% | 12% | ~ |
+| 2021 | 4.82% | 8% | OK | 21.4% | 12% | ! |
 | 2022 | 5.63% | 8% | OK | 50.0% | 12% | ! |
 | 2023 | 4.85% | 8% | OK | 21.4% | 12% | ! |
-| 2024 | 4.64% | 6% | OK | 57.1% | 8% | ! |
+| 2024 | 4.64% | 6% | OK | 35.7% | 8% | ! |
 | 2025 | 6.01% | 6% | ~ | 27.3% | 8% | ! |
 
 **Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
@@ -1582,7 +1582,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-10T08:22:07Z
+Generated: 2026-07-11T00:17:48Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -1869,16 +1869,15 @@ G = GREEN (compliant), A = AMBER (watch), R = RED (breach).
 | Billing/Metering | SLC 10-14 | G | G | G | G | G | G | A | G | G | A |
 | Payment/Debt | SLC 15-19 | G | G | G | G | G | G | G | G | G | G |
 | Information | SLC 20-24 | G | G | G | G | G | G | G | G | G | G |
-| Complaints | SLC 25-29 / Ofgem Time to Fix rules | A | A | A | A | A | A | R | A | A | R |
+| Complaints | SLC 25-29 / Ofgem Time to Fix rules | G | G | G | G | G | G | G | G | G | G |
 | Vulnerable Cust | SLC 30-35 / PSR | G | G | G | G | G | G | G | G | G | G |
 | Tariff/Cap | SLC 36-40 / Default Tariff Cap | G | G | G | G | G | G | G | G | G | G |
 | Environmental | SLC 41-50 / RO, CfD, EE obligation | G | G | G | G | G | G | G | G | G | G |
 | Network/BSC | SLC 51-60 / BSC obligations | G | G | G | G | G | G | G | G | G | G |
 | Financial Res. | SLC 4C / SFR Decision 2023 | G | G | G | G | G | G | G | G | G | G |
-| **Overall** |  | A | A | A | A | A | A | R | A | A | R |
+| **Overall** |  | G | G | G | G | G | G | A | G | G | A |
 
-**Breach years (RED):** 2022, 2025
-**Watch years (AMBER):** 2016, 2017, 2018, 2019, 2020, 2021, 2023, 2024
+**Watch years (AMBER):** 2022, 2025
 
 _Note: Vulnerable customers, tariff/cap, and environmental domains defaulted to GREEN_
 _(these are modelled as compliant; detailed SLC breach simulation not yet implemented)._
@@ -2053,7 +2052,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,230 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 20 sessions
 - C7: 16 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2601,12 +2600,12 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-03-01: treasury £2,466,662.69, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,676.15, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-04-30: treasury £2,466,687.59, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-05-30: treasury £2,466,698.23, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-05-30: treasury £2,466,698.23, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,709.30, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,720.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-08-28: treasury £2,466,731.08, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-09-27: treasury £2,466,742.26, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-10-27: treasury £2,466,753.97, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-10-27: treasury £2,466,753.97, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,766.42, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-12-26: treasury £2,466,778.78, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
 - VaR ratio (current vs stressed floor, avg of this year's wake-ups): 3.25

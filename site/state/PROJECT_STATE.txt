@@ -1,19 +1,19 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-07-10T05:09:04Z
+Generated: 2026-07-11T00:20:54Z
 
 ## Summary
-- Current Phase: TB
-- Test Suite: 16,387 tests passing (unit / fast suite ~10s)
-- Company Modules: 429+ Python modules across company/
+- Current Phase: ?
+- Test Suite: 0 tests passing (unit / fast suite ~10s)
+- Company Modules: 432+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
 
-## Latest Simulation Results (auto-processed 2026-07-10)
-- Net Margin: GBP1,524,167 (10-year 2016-2025)
-- Gross Margin: GBP6,431,113
-- Capital at Risk: GBP51,259
-- Treasury: GBP2,466,636 -> GBP3,902,115
-- Enterprise Value: GBP7,807,956 | Net after CTS: GBP6,412,383
+## Latest Simulation Results (auto-processed 2026-07-11)
+- Net Margin: GBP1,523,825 (10-year 2016-2025)
+- Gross Margin: GBP6,431,213
+- Capital at Risk: GBP51,377
+- Treasury: GBP2,466,636 -> GBP3,902,095
+- Enterprise Value: GBP7,735,816 | Net after CTS: GBP6,412,482
 - Risk Committee Interventions: 38
 - Bills Issued: 1,588
 - Retention: 12/12 offers accepted | 5 no-offer churns | 5 total churned
@@ -50,6 +50,6 @@ Generated: 2026-07-10T05:09:04Z
 - Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 16,387
-- Net margin all-time: GBP1,524,167 | Crisis survived: 2021-22
+- Tests at start (Phase 0): 0 | Tests now: 0
+- Net margin all-time: GBP1,523,825 | Crisis survived: 2021-22
 - Retention: 12/12 offers | 5 no-offer churns
