@@ -21,16 +21,16 @@
     "state": "adjudicated-false-positive"
   },
   "population:unit_rate_vs_cap_band:C1g:2019": {
-    "adjudicated_at": "2026-07-11T05:02:08.840134+00:00",
-    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
-    "evidence": "C1g (gas, resi) average unit rate 42.6 GBP/MWh in 2019 vs plausible band [10.4, 39.0] (~9% over a band that already carries +-40%/+50% tolerance) -- full 12-month real bill history (not a partial-period artefact). Marginal breach, not force-adjudicated either way under time pressure. Registered as backlog for closer inspection. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "adjudicated_at": "2026-07-11T06:07:26.071399+00:00",
+    "adjudicated_by": "claude (sanity triage follow-up, 2026-07-11, spike item 2)",
+    "evidence": "C1g (gas, resi) average unit rate 42.6 GBP/MWh in 2019 vs plausible band [10.4, 39.0] (~9% over). Investigated further (2026-07-11, spike item 2): the raw commodity_amount_gbp/consumption ratio shows a smooth, genuinely seasonal-looking pattern -- 39.5 GBP/MWh in Jan, rising steadily to a 56.3 GBP/MWh peak in Jul/Aug (low-consumption summer months), falling back to 39.9 by Dec. basis_risk_terms shows this customer term-started 2018-12-31 with a sim_fwd (hedge) price of only ~22.6 GBP/MWh -- well below the billed rate range throughout, consistent with margin/markup, but does not explain WHY the per-kWh commodity rate itself drifts ~43% across the year on what basis-risk data suggests is a fixed-term contract (a genuinely fixed rate should not drift monthly). Could not conclusively separate two real possibilities without deeper investigation: (a) a real UK gas billing quirk (AQ-based estimated billing with periodic wholesale-passthrough reconciliation genuinely can produce monthly rate drift even under a nominally fixed tariff), or (b) a genuine defect in how the gas commodity charge is computed. Left open rather than force a verdict -- registered as a concrete follow-up: trace saas/bill_generator.py / simulation gas billing path for this specific customer-term to determine which.",
     "finding_key": "population:unit_rate_vs_cap_band:C1g:2019",
     "state": "open"
   },
   "population:unit_rate_vs_cap_band:C4:2024": {
-    "adjudicated_at": "2026-07-11T05:02:08.840387+00:00",
-    "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
-    "evidence": "C4 (electricity, resi) average unit rate 320.5 GBP/MWh in 2024 vs plausible band [84.0, 315.0] (~1.7% over). Marginal breach, not force-adjudicated either way under time pressure. Registered as backlog for closer inspection. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
+    "adjudicated_at": "2026-07-11T06:07:26.072667+00:00",
+    "adjudicated_by": "claude (sanity triage follow-up, 2026-07-11, spike item 2)",
+    "evidence": "C4 (electricity, resi) average unit rate 320.5 GBP/MWh in 2024 vs plausible band [84.0, 315.0] (~1.7% over). Investigated further (2026-07-11, spike item 2): monthly rate rises smoothly from 302.8 (Jan) to a 354.6 peak (Jun) as consumption falls (423 kWh/month in Jan down to 141 kWh/month in Jun) then partially recovers -- the same low-consumption-inflates-apparent-rate shape seen in the C1g gas finding above, suggesting a possibly shared root mechanism across both commodities rather than two unrelated coincidences. Still only a ~1.7% band breach (well within noise for a band with +-40%/+50% tolerance) -- not force-adjudicated. Registered alongside C1g as the same open follow-up: trace whether a shared billing mechanism (possibly a per-bill fixed cost component divided into an apparent per-kWh rate) explains the low-consumption-month rate inflation seen in both.",
     "finding_key": "population:unit_rate_vs_cap_band:C4:2024",
     "state": "open"
   }

@@ -226,6 +226,21 @@
 #   this instruction -- parked in docs/staging/in_progress/, not started, per its own "do not
 #   interrupt" instruction. Pick up at the next real phase boundary.
 #
+# === SPIKE_WEEKEND item 2 (sanity follow-ups) SUBSTANTIALLY DONE (2026-07-11). Remaining
+#   adjudications: investigated both open unit-rate findings further (C1g gas 2019, C4 elec
+#   2024) rather than leave them untouched -- found a real, shared, unexplained pattern (per-kWh
+#   rate rises smoothly as monthly consumption falls, in BOTH commodities) but could not
+#   conclusively separate "real UK gas AQ-billing/wholesale-passthrough quirk" from "a genuine
+#   defect" without a deeper trace of the billing path -- left honestly `open` with full
+#   investigation notes recorded, not force-adjudicated either way under time pressure (a
+#   concrete next-step trace is registered in the ledger evidence itself). Daily-digest mode:
+#   PROVEN live over 3 real consecutive cycles (05:05/05:35/06:05 UTC) -- one digest fired for
+#   the 2 standing open findings, then correctly stayed silent on the same day; the audit
+#   stream's random Qwen samples produced zero repeat NTFYs across all 3 cycles despite
+#   different customers/notes each time, confirming the ledger-based fix holds under real,
+#   repeated, non-deterministic sampling, not just the unit tests. Skeptic memory: already
+#   built (company/compliance/sanity_adjudication.py IS the memory).
+#
 # === Sanity triage CLOSED (2026-07-11, director-ordered NTFY, from_rich_20260711_044314.md/
 #   044335.md, docs/design/SANITY_TRIAGE_2026_07_11.md). Root cause of "still alarming every
 #   30min": background/sanity_daemon.py's audit (Qwen skeptic) stream's category-normalisation
