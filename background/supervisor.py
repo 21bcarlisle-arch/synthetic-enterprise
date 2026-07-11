@@ -44,14 +44,21 @@ docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md):
    observable from outside the Claude Code CLI process -- see R9 note in
    the retrospective). Polling alone does not detect this; it just makes
    the same silent failure repeat faster. The supervisor additionally
-   tracks a fingerprint of real work-state (agenda updated_at + the exact
-   set of unprocessed staging files) across cycles: if it keeps granting
-   turns for the SAME unchanged fingerprint past STUCK_GRANT_THRESHOLD
-   cycles, that is no longer an ordinary retry -- it escalates with one
-   NTFY (deduped per stuck fingerprint, R5-compliant) instead of retrying
-   silently forever. This is the one piece beyond the director's literal
-   spec, added because failure #4 specifically would NOT have been caught
-   by polling cadence alone.
+   tracks a narrow key of real work-state (_stuck_key(), disk-persisted in
+   STUCK_STATE_FILE) across cycles: if it keeps granting turns for the SAME
+   unchanged key past STUCK_THRESHOLD_SECONDS of wall-clock time, that is
+   no longer an ordinary retry -- it escalates with one NTFY (deduped per
+   stuck key, R5-compliant) instead of retrying silently forever. This is
+   the one piece beyond the director's literal spec, added because failure
+   #4 specifically would NOT have been caught by polling cadence alone.
+   REDESIGNED 2026-07-11 (R3, second failure of this exact mechanism,
+   director-caught): the original in-memory grant-COUNT version's
+   fingerprint included PRIORITIES.md's mtime and the raw unprocessed-
+   staging list, so real work on OTHER items (editing PRIORITIES.md) and
+   transient run_complete_*.md churn both reset the "unchanged" counter to
+   1 every time, masking a full night where the actual blocker (two staged
+   files) never moved. Replaced with a disk-persisted, wall-clock tracker
+   keyed narrowly enough to exclude both noise sources -- see _stuck_key().
 
 Every other turn-granting path (session_watchdog's autoloop nudge, its
 REVIEW_GATE reply relay, staging_watcher's new-file wake and agenda-nudge,
@@ -98,7 +105,21 @@ POLL_INTERVAL_SECONDS = 120  # 2 minutes -- polling is explicitly permitted (dir
 # ordinary retry -- something below the tmux layer is plausibly swallowing
 # them. Escalate once per stuck fingerprint rather than retry silently
 # forever.
-STUCK_GRANT_THRESHOLD = 8
+STUCK_THRESHOLD_SECONDS = 3600  # 1 hour wall-clock (2026-07-11 redesign, R3 second
+# failure of this mechanism -- director-caught: the old grant-COUNT threshold's
+# fingerprint included PRIORITIES.md's mtime and the raw unprocessed-staging list,
+# so a full night of zero progress on two genuinely stuck staged files (B2_OPEX_
+# TAXONOMY_EXPANSION.md, HARNESS_BEST_PRACTICE_ADOPTION.md) never escalated --
+# unrelated real work editing PRIORITIES.md (closing OTHER items) and transient
+# run_complete_*.md markers coming and going both reset the "unchanged" counter
+# to 1 every time, even though the actual director-relevant blocker never moved.
+# Per R3 (two-strike redesign): eliminated the in-memory grant-count fingerprint
+# entirely rather than patching it a third time. Replaced with a wall-clock,
+# disk-persisted tracker (STUCK_STATE_FILE) keyed narrowly by _stuck_key() to
+# exclude exactly those two noise sources, and durable across a daemon restart
+# (the old in-memory globals reset silently on any supervisor.py restart, which
+# was never itself flagged as a gap until now).
+STUCK_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_stuck_state.json"
 
 # Names that live directly in docs/staging/ but are not real work items.
 _IGNORED_STAGING_NAMES = {".gitkeep"}
@@ -350,31 +371,80 @@ def find_work(resumed_from_pause: bool) -> str | None:
     return None
 
 
-def _work_fingerprint() -> str:
-    """A cheap, comparable snapshot of real work-state. Unchanged across
-    cycles despite repeated granted turns is the stuck signal -- see
-    STUCK_GRANT_THRESHOLD.
+def _stuck_key(reason: str) -> str:
+    """The narrow, comparable state used to detect 'no real progress' --
+    deliberately NOT the full find_work() reason string or a broad snapshot
+    of everything on disk (2026-07-11 redesign; see STUCK_THRESHOLD_SECONDS
+    for why the prior broad fingerprint silently masked a full night of a
+    genuinely stuck 'unprocessed staging' case).
 
-    Includes PRIORITIES.md's own mtime (2026-07-10, self-refill addition)
-    -- a granted turn spent genuinely closing a backlog item edits
-    PRIORITIES.md as part of the phase-close checklist, which changes this
-    fingerprint; a turn that keeps granting against the SAME unedited
-    PRIORITIES.md is the real stuck signal for the self-refill path, same
-    principle as agenda_updated_at for the agenda path."""
+    Two specific exclusions, both confirmed root causes:
+    - run_complete_*.md markers are excluded from the staging list used
+      here. They self-process on sim_runner's/background_worker's own
+      pipeline cadence; their transient appearance/disappearance is routine
+      housekeeping, not evidence a DIFFERENT stuck staged file has moved.
+    - PRIORITIES.md's mtime is folded in ONLY for the self-refill-from-
+      backlog path, where an edited file genuinely is the progress signal
+      (a self-refill turn closing item X changes the file even though the
+      next self-refill draw's reason text might otherwise look the same).
+      For the unprocessed-staging/urgent/agenda paths it is irrelevant noise
+      -- real work closing some OTHER, unrelated item was resetting the
+      stuck-clock for these two untouched files every time overnight."""
     agenda = agenda_module.load_agenda()
-    agenda_key = agenda.get("updated_at") if agenda else None
+    if agenda:
+        return json.dumps({"kind": "agenda", "updated_at": agenda.get("updated_at")}, sort_keys=True)
+    if reason.startswith("agenda+staging empty -- self-refill from PRIORITIES.md backlog"):
+        try:
+            priorities_mtime = PRIORITIES_PATH.stat().st_mtime
+        except OSError:
+            priorities_mtime = None
+        return json.dumps({"kind": "backlog", "priorities_mtime": priorities_mtime}, sort_keys=True)
+    non_transient_staged = [
+        name for name in _unprocessed_staging_files()
+        if not (name.startswith("run_complete_") and name.endswith(".md"))
+    ]
+    return json.dumps({"kind": "staging", "reason": reason, "staged": non_transient_staged}, sort_keys=True)
+
+
+def _load_stuck_state() -> dict:
+    if not STUCK_STATE_FILE.exists():
+        return {}
     try:
-        priorities_mtime = PRIORITIES_PATH.stat().st_mtime
-    except OSError:
-        priorities_mtime = None
-    return json.dumps(
-        {
-            "agenda_updated_at": agenda_key,
-            "staging": _unprocessed_staging_files(),
-            "priorities_mtime": priorities_mtime,
-        },
-        sort_keys=True,
-    )
+        return json.loads(STUCK_STATE_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_stuck_state(state: dict) -> None:
+    STUCK_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STUCK_STATE_FILE.write_text(json.dumps(state, sort_keys=True))
+
+
+def _check_stuck_escalation(reason: str) -> None:
+    """Wall-clock, disk-persisted escalation (2026-07-11 redesign) -- see
+    STUCK_THRESHOLD_SECONDS and _stuck_key(). Persisting to disk (rather
+    than an in-memory counter) means a supervisor.py restart mid-stuck-
+    period does not silently reset the clock either -- another latent gap
+    the prior in-memory-only design had."""
+    key = _stuck_key(reason)
+    state = _load_stuck_state()
+    now = time.time()
+    if state.get("key") != key:
+        _save_stuck_state({"key": key, "first_seen_at": now, "escalated": False})
+        return
+    first_seen_at = state.get("first_seen_at", now)
+    elapsed = now - first_seen_at
+    if elapsed >= STUCK_THRESHOLD_SECONDS and not state.get("escalated"):
+        minutes = int(elapsed // 60)
+        ntfy(
+            f"Supervisor: granting turns for ~{minutes}min for the same work "
+            f"({reason}) with no state change -- something below the tmux "
+            "layer may be swallowing turns (see doorbell failure #4), or "
+            "this is genuinely blocked and needs your input."
+        )
+        log(f"STUCK escalation sent -- ~{minutes}min unchanged -- {reason}")
+        state["escalated"] = True
+        _save_stuck_state(state)
 
 
 def grant_turn(reason: str) -> bool:
@@ -394,13 +464,10 @@ def grant_turn(reason: str) -> bool:
 
 # Mutable across main() loop iterations.
 _was_paused = False
-_last_fingerprint: str | None = None
-_fingerprint_unchanged_grants = 0
-_escalated_for_fingerprint: str | None = None
 
 
 def run_cycle() -> None:
-    global _was_paused, _last_fingerprint, _fingerprint_unchanged_grants, _escalated_for_fingerprint
+    global _was_paused
 
     paused_now = _pause_active_readonly()
     if paused_now:
@@ -429,27 +496,7 @@ def run_cycle() -> None:
         log("Idle, no work -- skipping")
         return
 
-    fingerprint = _work_fingerprint()
-    if fingerprint == _last_fingerprint:
-        _fingerprint_unchanged_grants += 1
-    else:
-        _fingerprint_unchanged_grants = 1  # this cycle is grant #1 for the new fingerprint
-        _escalated_for_fingerprint = None
-    _last_fingerprint = fingerprint
-
-    if (
-        _fingerprint_unchanged_grants >= STUCK_GRANT_THRESHOLD
-        and _escalated_for_fingerprint != fingerprint
-    ):
-        minutes = _fingerprint_unchanged_grants * POLL_INTERVAL_SECONDS // 60
-        ntfy(
-            f"Supervisor: granted {_fingerprint_unchanged_grants} turns over "
-            f"~{minutes}min for the same work ({reason}) with no state "
-            "change -- something below the tmux layer may be swallowing "
-            "turns (see doorbell failure #4). Check the session directly."
-        )
-        log(f"STUCK escalation sent -- {_fingerprint_unchanged_grants} unchanged grants -- {reason}")
-        _escalated_for_fingerprint = fingerprint
+    _check_stuck_escalation(reason)
 
     if grant_turn(reason):
         log(f"Turn granted (confirmed) -- {reason}")
@@ -471,9 +518,11 @@ def main() -> None:
         except Exception as e:
             log(f"Supervisor cycle error: {e}")
         try:
+            stuck_state = _load_stuck_state()
+            elapsed_min = int((time.time() - stuck_state.get("first_seen_at", time.time())) // 60)
             update_agent_status(
                 "supervisor", status="idle",
-                last_action=f"Cycle complete -- last fingerprint unchanged for {_fingerprint_unchanged_grants} grant(s)",
+                last_action=f"Cycle complete -- current stuck-key unchanged for ~{elapsed_min}min",
             )
         except Exception:
             pass

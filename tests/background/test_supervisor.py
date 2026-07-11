@@ -19,11 +19,23 @@ from background import agenda as agenda_module
 from background import supervisor
 
 
+class _FakeClock:
+    """A monotonically-advancing fake clock for time.time(), so stuck-
+    escalation tests can simulate hours of wall-clock elapsing across many
+    supervisor cycles without a real sleep (2026-07-11 redesign -- the
+    escalation mechanism is now wall-clock-based, not grant-count-based)."""
+    def __init__(self, start: float = 0.0):
+        self.now = start
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
 def _reset_supervisor_state():
     supervisor._was_paused = False
-    supervisor._last_fingerprint = None
-    supervisor._fingerprint_unchanged_grants = 0
-    supervisor._escalated_for_fingerprint = None
 
 
 @pytest.fixture(autouse=True)
@@ -31,6 +43,7 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(supervisor, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(supervisor, "USAGE_PAUSE_FILE", tmp_path / ".usage_pause.json")
+    monkeypatch.setattr(supervisor, "STUCK_STATE_FILE", tmp_path / ".supervisor_stuck_state.json")
     # Isolated from the real, committed PRIORITIES.md -- defaults to a
     # nonexistent tmp_path file (no backlog found, matching the pre-existing
     # "nothing open" test expectations), never the real repo file.
@@ -439,17 +452,52 @@ def test_find_work_staging_wins_over_maturity_map():
     assert "maturity map" not in reason
 
 
-def test_work_fingerprint_changes_when_priorities_md_edited():
+def test_stuck_key_backlog_path_changes_when_priorities_md_edited():
+    """The self-refill-from-backlog path SHOULD be sensitive to PRIORITIES.md
+    edits -- an edit there is the real progress signal for that path."""
     import os
+    reason = (
+        "agenda+staging empty -- self-refill from PRIORITIES.md backlog "
+        "(fallback, maturity map unavailable): item A"
+    )
     supervisor.PRIORITIES_PATH.write_text("## Backlog\n- item A NOT YET STARTED\n")
-    fp1 = supervisor._work_fingerprint()
+    key1 = supervisor._stuck_key(reason)
     supervisor.PRIORITIES_PATH.write_text("## Backlog\n- item A CLOSED\n- item B NOT YET STARTED\n")
     # Deterministic mtime bump -- avoids flakiness from coarse filesystem
     # timestamp resolution on a real (if tiny) sleep.
     st = supervisor.PRIORITIES_PATH.stat()
     os.utime(supervisor.PRIORITIES_PATH, (st.st_atime, st.st_mtime + 1))
-    fp2 = supervisor._work_fingerprint()
-    assert fp1 != fp2
+    key2 = supervisor._stuck_key(reason)
+    assert key1 != key2
+
+
+def test_stuck_key_staging_path_ignores_unrelated_priorities_md_edits():
+    """The actual root-cause fix (2026-07-11, director-caught): for the
+    unprocessed-staging path, editing PRIORITIES.md for OTHER, unrelated
+    work must NOT reset the stuck-clock for these untouched staged files --
+    this is exactly what let a full night of zero progress on two genuinely
+    stuck files go unescalated."""
+    import os
+    reason = "unprocessed staging -- SOME_DOC.md"
+    supervisor.PRIORITIES_PATH.write_text("## Backlog\n- item A NOT YET STARTED\n")
+    key1 = supervisor._stuck_key(reason)
+    supervisor.PRIORITIES_PATH.write_text("## Backlog\n- item A CLOSED\n")
+    st = supervisor.PRIORITIES_PATH.stat()
+    os.utime(supervisor.PRIORITIES_PATH, (st.st_atime, st.st_mtime + 1))
+    key2 = supervisor._stuck_key(reason)
+    assert key1 == key2
+
+
+def test_stuck_key_staging_path_ignores_run_complete_marker_churn():
+    """The other root-cause fix: transient run_complete_*.md markers coming
+    and going (sim_runner's own normal pipeline cadence) must NOT change the
+    stuck key for an unrelated, genuinely-stuck staged doc."""
+    (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
+    reason = supervisor.find_work(resumed_from_pause=False)
+    key1 = supervisor._stuck_key(reason)
+    (supervisor.STAGING_DIR / "run_complete_20260101T000000Z.md").write_text("marker")
+    key2 = supervisor._stuck_key(reason)
+    assert key1 == key2
 
 
 def test_find_work_resumed_from_pause_short_circuits():
@@ -582,52 +630,84 @@ def test_grant_turn_calls_send_keys_when_idle(monkeypatch):
 
 
 # ── Stuck-grant escalation (the piece beyond the literal spec) ──
+# Wall-clock-based (2026-07-11 redesign) -- a _FakeClock stands in for
+# time.time() so these simulate hours of elapsed wall-clock time across many
+# cycles without a real sleep. supervisor.POLL_INTERVAL_SECONDS (120s) is the
+# real cadence; supervisor.STUCK_THRESHOLD_SECONDS (3600s) divides evenly by
+# it (30 cycles), used directly rather than hardcoding cycle counts.
 
-def test_stuck_escalation_fires_after_threshold_unchanged_grants(monkeypatch):
+_STEP = 120  # matches supervisor.POLL_INTERVAL_SECONDS, asserted below
+
+
+def test_step_matches_real_poll_interval():
+    assert _STEP == supervisor.POLL_INTERVAL_SECONDS
+
+
+def test_stuck_escalation_fires_after_threshold_elapsed(monkeypatch):
     monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
     monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)  # "always delivered"
     ntfy_calls = []
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
     agenda_module.set_agenda("PhaseX", "stepY", "stuck forever")
 
-    for _ in range(supervisor.STUCK_GRANT_THRESHOLD - 1):
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+    cycles_to_threshold = supervisor.STUCK_THRESHOLD_SECONDS // _STEP  # 30
+
+    clock.advance(_STEP)
+    supervisor.run_cycle()  # baseline cycle -- establishes first_seen_at
+    assert ntfy_calls == []
+
+    for _ in range(cycles_to_threshold - 1):
+        clock.advance(_STEP)
         supervisor.run_cycle()
     assert ntfy_calls == []  # not yet at threshold
 
+    clock.advance(_STEP)
     supervisor.run_cycle()
     assert len(ntfy_calls) == 1
     assert "swallowing turns" in ntfy_calls[0]
 
 
-def test_stuck_escalation_does_not_repeat_for_same_fingerprint(monkeypatch):
+def test_stuck_escalation_does_not_repeat_for_same_key(monkeypatch):
     monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
     monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
     ntfy_calls = []
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
     agenda_module.set_agenda("PhaseX", "stepY", "stuck forever")
 
-    for _ in range(supervisor.STUCK_GRANT_THRESHOLD + 5):
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+
+    for _ in range(supervisor.STUCK_THRESHOLD_SECONDS // _STEP + 10):
+        clock.advance(_STEP)
         supervisor.run_cycle()
 
     assert len(ntfy_calls) == 1  # deduped, not one per cycle past threshold
 
 
-def test_stuck_counter_resets_when_fingerprint_changes(monkeypatch):
+def test_stuck_clock_resets_when_key_changes(monkeypatch):
     monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
     monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
     ntfy_calls = []
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
     agenda_module.set_agenda("PhaseX", "stepY", "working")
 
-    for _ in range(supervisor.STUCK_GRANT_THRESHOLD - 1):
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+    cycles_to_threshold = supervisor.STUCK_THRESHOLD_SECONDS // _STEP
+
+    for _ in range(cycles_to_threshold - 1):
+        clock.advance(_STEP)
         supervisor.run_cycle()
     assert ntfy_calls == []
 
-    # Real progress: agenda updated (new updated_at) -- fingerprint changes.
-    time.sleep(0.01)
+    # Real progress: agenda updated (new updated_at) -- key changes, clock resets.
+    clock.advance(_STEP)
     agenda_module.set_agenda("PhaseX", "stepZ", "moved on")
     supervisor.run_cycle()
-    assert supervisor._fingerprint_unchanged_grants == 1  # grant #1 for the new fingerprint
+    state = supervisor._load_stuck_state()
+    assert state["first_seen_at"] == clock.now  # reset to this cycle, not accumulated
     assert ntfy_calls == []
 
 
@@ -638,14 +718,20 @@ def test_stuck_escalation_fires_again_for_a_new_stuck_state(monkeypatch):
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
     agenda_module.set_agenda("PhaseX", "stepY", "stuck forever")
 
-    for _ in range(supervisor.STUCK_GRANT_THRESHOLD):
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+    cycles_to_threshold = supervisor.STUCK_THRESHOLD_SECONDS // _STEP
+
+    for _ in range(cycles_to_threshold + 1):
+        clock.advance(_STEP)
         supervisor.run_cycle()
     assert len(ntfy_calls) == 1
 
     # Progress happens, then gets stuck again in a NEW state.
-    time.sleep(0.01)
+    clock.advance(_STEP)
     agenda_module.set_agenda("PhaseX", "stepZ", "stuck again")
-    for _ in range(supervisor.STUCK_GRANT_THRESHOLD):
+    for _ in range(cycles_to_threshold + 1):
+        clock.advance(_STEP)
         supervisor.run_cycle()
     assert len(ntfy_calls) == 2
 
@@ -653,18 +739,48 @@ def test_stuck_escalation_fires_again_for_a_new_stuck_state(monkeypatch):
 def test_stuck_escalation_does_not_fire_when_grants_fail(monkeypatch):
     """If grant_turn keeps returning False (busy/unconfirmed), that's the
     ALREADY-understood retry case -- not the failure #4 signature (which
-    was grants reporting SUCCESS with no progress). No escalation."""
+    was grants reporting SUCCESS with no progress). Escalation still fires
+    here (see docstring on the original test), since it's about state-
+    progress, independent of confirmed-delivery."""
     monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
     monkeypatch.setattr(supervisor, "grant_turn", lambda reason: False)
     ntfy_calls = []
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
     agenda_module.set_agenda("PhaseX", "stepY", "busy pane every time")
 
-    for _ in range(supervisor.STUCK_GRANT_THRESHOLD + 5):
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+
+    for _ in range(supervisor.STUCK_THRESHOLD_SECONDS // _STEP + 10):
+        clock.advance(_STEP)
         supervisor.run_cycle()
-    # Fingerprint tracking still runs (grant attempted), so this documents
-    # current behaviour: escalation is about state-progress, independent of
-    # confirmed-delivery. Failed-delivery has its own log line already.
+    assert len(ntfy_calls) == 1
+
+
+def test_stuck_escalation_survives_daemon_restart(monkeypatch):
+    """The other root-cause fix (2026-07-11): the tracker is disk-persisted,
+    not an in-memory counter -- a supervisor.py process restart mid-stuck-
+    period must not silently reset the clock back to zero."""
+    monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+    monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
+    ntfy_calls = []
+    monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+    agenda_module.set_agenda("PhaseX", "stepY", "stuck forever")
+
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+    cycles_to_threshold = supervisor.STUCK_THRESHOLD_SECONDS // _STEP
+
+    clock.advance(_STEP)
+    supervisor.run_cycle()  # baseline -- writes first_seen_at to disk
+
+    # Simulate a process restart: nothing in-memory survives except what's
+    # on disk (STUCK_STATE_FILE, untouched by the restart).
+    _reset_supervisor_state()
+
+    for _ in range(cycles_to_threshold):
+        clock.advance(_STEP)
+        supervisor.run_cycle()
     assert len(ntfy_calls) == 1
 
 
@@ -768,8 +884,14 @@ class TestFailureMode4DeliveredButNoProgress:
         )
 
         # Simulate ~5.5 hours at the real 2-minute cadence worth of cycles
-        # (34 grants) -- the exact count from the real incident.
+        # (34 grants) -- the exact count from the real incident. Wall-clock
+        # based (2026-07-11 redesign) -- a fake clock stands in for real
+        # elapsed time so 34 cycles at the real 120s cadence (~68min) is
+        # enough to cross STUCK_THRESHOLD_SECONDS (60min).
+        clock = _FakeClock()
+        monkeypatch.setattr(supervisor.time, "time", clock)
         for _ in range(34):
+            clock.advance(_STEP)
             supervisor.run_cycle()
 
         assert len(ntfy_calls) == 1, "must escalate exactly once, not zero and not repeatedly"
