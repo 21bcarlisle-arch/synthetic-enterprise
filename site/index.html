@@ -313,7 +313,14 @@ function renderThesisChart(dashboard){
   if(!ctx)return;
   if(thesisChart)thesisChart.destroy();
   thesisChart=new Chart(ctx,{type:"bar",data:{
-    labels:["TRUE cost/household (FLOOR)","Benchmark/household (incumbent)"],
+    // Short labels -- the "per household" framing is already stated in the
+    // sentence above the chart, and the 480px-wide chart-wrap (site's own
+    // narrow layout) clips a longer y-axis label (caught 2026-07-11 via a
+    // real Playwright screenshot: "Benchmark/household (incumbent)" was
+    // rendering truncated to "enchmark/household (incumbent)" -- the exact
+    // class of bug curl/DOM-text verification cannot catch, only a real
+    // rendered pixel check can).
+    labels:["TRUE cost (FLOOR)","Benchmark (incumbent)"],
     datasets:[{
       data:[trueCost,benchCost],
       backgroundColor:["#1baf7a","#4a3aa7"],

@@ -70,6 +70,44 @@ def _running_scripts() -> list[str]:
         return []
 
 
+def _check_pixel_verification_capability() -> str | None:
+    """Return warning string if real browser pixel-verification (Playwright)
+    is not actually launchable right now.
+
+    ADVISOR_STEER_BROWSER_REGRESSION.md (2026-07-11): pixel verification is
+    part of the harness baseline, not an optional nicety -- if it silently
+    stops working, that must be an ALARMED failure (this check), not a caveat
+    buried in a digest days later. Root-cause of the specific 2026-07-11
+    incident this check guards against: the capability was never actually
+    broken -- `npx playwright --version` worked the whole time -- an earlier
+    check that turn used the wrong invocation (`which playwright`, `pip3 show
+    playwright`) and concluded "unavailable" without trying `npx`. This check
+    uses the correct invocation so that class of false-negative can't recur,
+    and so a REAL future breakage (binary removed, npx cache cleared, network
+    egress blocking the download) surfaces here instead of being silently
+    reasoned around again.
+
+    Deliberately lightweight: version-check only, no browser launch/page
+    navigation -- this runs on every routine health-check cycle and must stay
+    fast. A full live-site pixel check is a separate, on-demand verification
+    step, not a routine health-check concern.
+    """
+    try:
+        result = subprocess.run(
+            ["npx", "--no-install", "playwright", "--version"],
+            capture_output=True, text=True, timeout=15,
+        )
+        if result.returncode != 0:
+            return f"Pixel-verification (Playwright) unavailable: {result.stderr.strip()[:200]}"
+        return None
+    except FileNotFoundError:
+        return "Pixel-verification (Playwright) unavailable: npx not found"
+    except subprocess.TimeoutExpired:
+        return "Pixel-verification (Playwright) unavailable: version check timed out"
+    except Exception as e:
+        return f"Pixel-verification (Playwright) unavailable: {e}"
+
+
 def _check_staging_age() -> str | None:
     """Return warning string if any from_rich_*.md is older than 2 hours unactioned."""
     staging = PROJECT_DIR / "docs" / "staging"
@@ -109,6 +147,12 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
         problem_lines.append(f"  ✗ {staging_warn}")
     else:
         ok_lines.append("  ✓ staging — no stale messages")
+
+    pixel_warn = _check_pixel_verification_capability()
+    if pixel_warn:
+        problem_lines.append(f"  ✗ {pixel_warn}")
+    else:
+        ok_lines.append("  ✓ pixel-verification (Playwright) available")
 
     all_ok = len(problem_lines) == 0
     return all_ok, ok_lines, problem_lines

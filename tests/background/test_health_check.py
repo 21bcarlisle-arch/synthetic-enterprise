@@ -12,16 +12,61 @@ def _mock_panes(names: list[str]):
     return {n: "python3" for n in names}
 
 
+class TestCheckPixelVerificationCapability:
+    """ADVISOR_STEER_BROWSER_REGRESSION.md (2026-07-11): pixel-verification
+    capability is a standing harness invariant -- if it breaks, it must be an
+    alarmed health-check failure, not a silently-reasoned-around caveat."""
+
+    def test_returns_none_when_playwright_available(self):
+        # Real invocation -- this environment genuinely has Playwright
+        # available (proven 2026-07-11 via a live pixel check on poesys.net),
+        # so this is a real, not mocked, positive-path assertion.
+        assert health_check._check_pixel_verification_capability() is None
+
+    def test_returns_warning_on_nonzero_exit(self, monkeypatch):
+        class _FakeResult:
+            returncode = 1
+            stderr = "some npx error"
+
+        monkeypatch.setattr(
+            health_check.subprocess, "run", lambda *a, **k: _FakeResult()
+        )
+        result = health_check._check_pixel_verification_capability()
+        assert result is not None
+        assert "unavailable" in result.lower()
+
+    def test_returns_warning_on_file_not_found(self, monkeypatch):
+        def _raise(*a, **k):
+            raise FileNotFoundError("npx not found")
+
+        monkeypatch.setattr(health_check.subprocess, "run", _raise)
+        result = health_check._check_pixel_verification_capability()
+        assert result is not None
+        assert "npx not found" in result
+
+    def test_returns_warning_on_timeout(self, monkeypatch):
+        import subprocess as _subprocess
+
+        def _raise(*a, **k):
+            raise _subprocess.TimeoutExpired(cmd="npx", timeout=15)
+
+        monkeypatch.setattr(health_check.subprocess, "run", _raise)
+        result = health_check._check_pixel_verification_capability()
+        assert result is not None
+        assert "timed out" in result.lower()
+
+
 def test_all_processes_running_reports_ok(monkeypatch):
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
     monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 1  # +1 for staging
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 2  # +1 staging, +1 pixel-verification
 
 
 def test_missing_process_reported_as_problem(monkeypatch):

@@ -22,8 +22,8 @@
   level_target: 3
   loop_stage: frame
   dial_inherited: 4
-  evidence: []
-  simplifications: []
+  evidence: ["docs/observability/sanity_adjudication_ledger.json (defect:estimated_bill_amount_on_true_consumption)"]
+  simplifications: ["2026-07-11 UPGRADED FROM THEORETICAL TO QUANTIFIED (director/advisor decision, ADVISOR_ACK_ESTIMATE_GAP.md + ADVISOR_STEER_ESTIMATION_GAP.md, answering the bill-arithmetic fix's own residual finding): surfaced while fixing the reads-vs-usage rounding defect (ADVISOR_STEER_BILL_ARITHMETIC.md), a full historical sweep found 425 of 1588 rendered bills (~27%) are Estimated-read bills whose CHARGED AMOUNT is computed from true (SIM ground-truth) consumption rather than the estimate -- the billing engine has no estimate-then-true-up model at all today. Confirmed NOT a new epistemic-wall leak: simulation/meter_reads.py generates the actual/estimated read-status narrative from ALREADY-COMPUTED bills, so no company-side decision ever chose true consumption over an estimate -- the choice was simply never modeled. Director's decision: this is NOT a standalone patch -- it IS this atom, and the epoch exists to fix exactly this class. Sequence per THE_VALUE_CYCLE_FRAMING (unchanged, not resequenced by this finding): rails sim landed -> estimated billing on EAC/profile -> actual-read catch-up rebilling within back-billing law -> settlement timetable -> DD cash engine. The mechanism ships forward-looking first; the 425 historical bills are rederived through it as part of M4's full-history replay -- they already sit under the PROVISIONAL banner, no emergency relabel needed. level_current STAYS at 0 (not yet built, still framed) -- this is a quantification-of-magnitude upgrade, not a build-progress one."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "supplier billing ops + Elexon NHH profiling"
   depends_on: [W1_reveal_over_time]
