@@ -1,3 +1,7 @@
+> **STATUS (2026-07-11):** Queued, non-interrupting per its own instruction.
+> Take at next natural boundary -- after the current Stop-hook-fix +
+> security-profile + M2-wiring work this turn.
+
 # ADVISOR_STEER — auto-update line, final kill (Tier 2, tiny)
 
 **Staged:** 2026-07-11 by advisor. Non-interrupting; take at next boundary.
