@@ -35,7 +35,7 @@ A curated, versioned domain reference library in the repo, and derived artefacts
 
 - **UK market specs:** REC / Energy Market Data Specification / DTC flow catalogue; MHHS Programme baselined design artefacts (TOM, interface catalogues, method statements); Elexon BSC + BSCPs; Smart Energy Code / DCC DUIS; CSS switching schedules.
 - **Regulatory process codifications:** Ofgem SLCs (bill content, back-billing, debt path, PSR); Complaints Handling Standards Regulations; Bacs DD failure/cancellation reason-code sets; Ofgem price cap model (published cost stack); Consolidated Segmental Statements and challenger Companies House accounts as comparator benchmarks.
-- **Open-source domain models:** PowerTAC (retail-market simulation, customer/tariff models, tournament and replay design); Kill Bill / Lago (billing, dunning, invoicing entity models); ERPNext / Odoo (GL, AR/AP, reconciliation); open CRM/ticketing (complaints/contact-centre entity design); TigerBeetle / XTDB (double-entry and bitemporal design patterns, for Epoch 2 reference).
+- **Open-source domain models:** PowerTAC (retail-market simulation, customer/tariff models, tournament and replay design — the versioned 2020 game specification paper is the priority artefact, ahead of the Java; also note the default-broker/fallback-supplier mechanism and tariff lifecycle state machine as design references); Kill Bill / Lago (billing, dunning, invoicing entity models); ERPNext / Odoo (GL, AR/AP, reconciliation); open CRM/ticketing (complaints/contact-centre entity design); TigerBeetle / XTDB (double-entry and bitemporal design patterns, for Epoch 2 reference).
 - **Process taxonomies:** APQC PCF (utilities) and TM Forum eTOM — used to audit the module tree for functions a real supplier performs that we don't yet model.
 
 ## Required outputs
@@ -45,6 +45,7 @@ A curated, versioned domain reference library in the repo, and derived artefacts
 (c) Adapter-schema candidates registered as inputs to the WALLED_INTERFACES programme.
 (d) Invariant-library extension candidates (R10 class-level, validator-tagged sources only).
 (e) A coverage-gap report: module tree mapped against the external taxonomies, gaps ranked by materiality, delivered as evidence for the Epoch-2 framing.
+(f) A per-source **adopt / adapt / skip** verdict table with one-line rationale each — so leverage decisions are explicit and reviewable, not implicit in what got copied.
 
 ## Sequencing
 
