@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-09. 500+ commits. 16,285 tests collected (full suite). Codebase: ~52,300 lines across 347+ Python modules.*
+*Last updated: 2026-07-12. 2,500+ commits. 17,005 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,22 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### D3_catchup_rebilling: estimated billing on the real tariff rate + actual-read catch-up rebilling within the Ofgem SLC 31A cap (2026-07-12, director-named hot lane, maturity-map self-refill, level 0->2)
+
+Closes the quantified defect surfaced 2026-07-11 (`ADVISOR_STEER_ESTIMATION_GAP.md`): 425 of 1588 historical bills (~27%) were Estimated-read bills whose CHARGED AMOUNT was computed from true (SIM ground-truth) consumption rather than the estimate -- the billing engine had no estimate-then-true-up model at all. Built in two steps continuing work already in progress from an earlier, interrupted supervisor turn (found uncommitted on disk and completed rather than redone):
+
+**Step 1 (estimated billing on the real tariff rate):** `simulation/run_phase4c_on_phase2b.py::build_monthly_bills()` now decides actual-vs-estimated per bill (via `simulate_read()`, same deterministic dispatch as `generate_meter_read_log()`) BEFORE finalising the charge. An estimated bill rescales the real settlement records by (estimate/true) via `_estimated_settlement_records()` -- preserving the real per-MWh commodity rate and the fixed daily standing charge exactly -- then reuses the unmodified `generate_bill()`, collapsing the unit-rate divergence (previously up to 57% off) to exactly zero. Every bill gains `billing_basis` + (when estimated) the true-vs-billed pair via `_annotate_billing_basis()`. The actual-read path is provably byte-identical to pre-D3 (`test_actual_read_bills_are_byte_identical_to_pre_d3`, forced via a new `force_actual_reads` fixture across a 36-month run).
+
+**Step 2 (catch-up rebilling within back-billing law):** `_resolve_catchup()` fires when a real read resolves a run of consecutive estimated bills (or the pre-existing `MAX_CONSECUTIVE_ESTIMATED_PERIODS` forced-catch-up triggers). It sums each estimated period's already-fully-priced true-vs-billed delta (VAT/non-commodity/standing charge all correctly included, since both totals came from real `generate_bill()` calls) and, for an undercharge, routes it through `company/billing/back_billing.py`'s `BackBillingAssessment` (reason `ESTIMATED_READ_CORRECTED`) for the Ofgem SLC 31A 12-month cap -- a module that existed, fully built and tested, with zero callers anywhere in the codebase until now. Overcharges (credit owed) are never capped, matching the real asymmetry (the cap protects consumers from late demands; it does not let a supplier withhold a refund). The correction folds onto the resolving bill's own `total_amount_gbp`, with `bill_shock_pct`/`clarity_score` correctly recomputed against the corrected total rather than left stale against the pre-correction figure -- a real catch-up bill IS a genuine bill-shock event, exactly the non-rational-customer-reaction mechanic this project already models.
+
+**Business-surface evidence (CLAUDE.md 0b), verified live (R11):** the full bill list already flowed unmodified through `saas/reporting/annual_report.py`'s existing `bills` passthrough into `run_output_latest.json`, so no new plumbing was needed there. Added additive field mapping (`catchup_applied`/`direction`/`adjustment_gbp`/`written_off_gbp`/`back_billing_cap_applied`) to `tools/generate_billing_ledger.py` and `tools/generate_invoice_data.py`, mirroring the existing `read_type` passthrough pattern. Regenerated the real pipeline end-to-end and read one instance as a human (0c): `site/data/customers/C3g.json` invoice INV470 (2018-08-31) -- 12 consecutive estimated gas bills resolved on a real read, £480.64 raw undercharge, £39.61 correctly written off (the oldest sliver pre-dates the SLC 31A 12-month protected window as of the billing date), £441.03 charged, folded into that bill's own total (£45.98 -> £487.01). Full real 2016-2025 run: 471/1588 bills estimated (29.7%, consistent with the 27% finding), 155 catch-ups resolved (67 undercharge/88 overcharge), £7,950.07 raw delta, £7,864.25 chargeable, £85.82 written off across 2 real cap-applied cases.
+
+**Second-order bug found and fixed while reading the real output (R4/R10):** an overcharge credit can make `total_amount_gbp <= 0` -- the payment-outcome simulation (built assuming a positive amount owed) rendered this as a nonsensical "successful direct_debit payment" of a negative sum, and because the account-ledger view negates a payment's amount to compute its balance effect, that fabricated payment silently cancelled the very credit the negative invoice had just applied (found on `C3g` INV483, a £-2.03 credit statement). Fixed in `tools/generate_billing_ledger.py`: a credit invoice records no payment event at all -- real suppliers carry a credit forward, they don't "collect" a negative amount -- so the `invoice_raised` entry alone correctly reduces the running balance.
+
+**Registered, not built this phase:** no Expert-Hour pass yet (why `level_current` stops at 2, not the target of 3); `company/billing/smart_meter_reconciliation.py` remains a separate, still-unwired mechanism (annual smart-meter AQ reconciliation is a genuinely different real-world process from this per-actual-read catch-up, deliberately not force-fit together -- see `_resolve_catchup()`'s own docstring); `build_monthly_bills()`'s own second, independent `simulate_read()` call (duplicating `generate_meter_read_log()`'s, by the same seed) remains un-deduplicated, as flagged by the step-1 work itself.
+
+9 new tests (`test_run_phase4c_on_phase2b.py`, `test_generate_billing_ledger.py`, `test_generate_invoice_data.py`), full suite 17,005 tests collected, epistemic PASS (493 files scanned).
 
 ### E1 Corporation Tax triplet surfaced on the Accounts table (2026-07-11, E1 ledger Expert Hour finding, SPIKE_WEEKEND harden sweep)
 
@@ -6869,7 +6885,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 16,724 tests collected (full suite) -- E1 Corporation Tax triplet surfaced on the Accounts
+- 17,005 tests collected (full suite) -- D3_catchup_rebilling built (estimated billing on the
+  real EAC/profile at the real tariff rate + actual-read catch-up rebilling within the Ofgem SLC
+  31A 12-month cap; see Section 4's entry), 9 new tests, on top of the prior 16,724 tests
+  collected (full suite) -- E1 Corporation Tax triplet surfaced on the Accounts
   table (see Section 4's E1 entry), on top of the prior consolidated entry (SLC25C fix, B2 opex
   taxonomy, Operations KPI trio, staging-watcher bounded retry, bill-shock research + YoY
   redesign + phase-close-evaluator-found regression tests, Epoch-2 bounded start, harness items

@@ -220,6 +220,63 @@ def test_defect2_estimated_read_uses_estimated_consumption(tmp_path):
     assert inv["closing_read_kwh"] == 850.0  # estimated, not true, consumption
 
 
+# D3 step 2 (docs/design/maturity_map.yaml "Estimated billing & catch-up
+# rebilling cycle"): the resolving bill's catchup_* fields are carried
+# straight through onto the customer-facing invoice, same passthrough
+# pattern as read_type above.
+
+def test_d3_catchup_defaults_to_not_applied(tmp_path):
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["catchup_applied"] is False
+    assert inv.get("catchup_adjustment_gbp") is None
+
+
+def test_d3_credit_invoice_has_no_fabricated_payment(tmp_path):
+    """A catch-up overcharge credit can make total_amount_gbp <= 0 -- no real
+    DD/BACS/CHAPS collection applies to a negative amount, so no payment
+    event should be recorded for it (found by reading a real instance: a
+    credit bill was otherwise rendered with a "successful direct_debit
+    payment" of a negative sum)."""
+    bill = _bill("C1", "2022-03-31", -2.03, segment="resi")
+    bill["catchup_applied"] = True
+    bill["catchup_direction"] = "overcharge"
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([bill])))
+    result = generate(rj, tmp_path / "l.json")
+    cust = result["customers"]["C1"]
+    assert cust["invoices"][0]["total_amount_gbp"] == -2.03
+    assert cust["payments"] == []
+    assert cust["invoices"][0]["payment_status"] == "paid"
+
+
+def test_d3_catchup_fields_carried_through_to_invoice(tmp_path):
+    bill = _bill("C_IC1", "2022-03-31", 8000.0)
+    bill.update({
+        "catchup_applied": True,
+        "catchup_period_start": "2021-04-01",
+        "catchup_period_end": "2022-03-31",
+        "catchup_periods_covered": 12,
+        "catchup_direction": "undercharge",
+        "catchup_raw_delta_gbp": 120.0,
+        "catchup_adjustment_gbp": 110.0,
+        "catchup_written_off_gbp": 10.0,
+        "catchup_back_billing_cap_applied": True,
+    })
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([bill])))
+    result = generate(rj, tmp_path / "l.json")
+    inv = result["customers"]["C_IC1"]["invoices"][0]
+    assert inv["catchup_applied"] is True
+    assert inv["catchup_direction"] == "undercharge"
+    assert inv["catchup_periods_covered"] == 12
+    assert inv["catchup_adjustment_gbp"] == 110.0
+    assert inv["catchup_written_off_gbp"] == 10.0
+    assert inv["catchup_back_billing_cap_applied"] is True
+
+
 # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): register/period-
 # structured bill lines (ToU-ready schema, not ToU itself).
 

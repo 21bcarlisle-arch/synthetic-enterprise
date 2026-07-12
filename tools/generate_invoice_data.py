@@ -75,6 +75,18 @@ def _real_invoice(inv):
         opening_read_kwh=inv.get("opening_read_kwh"),
         closing_read_kwh=inv.get("closing_read_kwh"),
         registers=inv.get("registers"),
+        # D3 step 2 (docs/design/maturity_map.yaml "Estimated billing &
+        # catch-up rebilling cycle"): carried straight through from the
+        # ledger record, same as read_type above -- not fabricated here.
+        catchup_applied=inv.get("catchup_applied", False),
+        catchup_period_start=inv.get("catchup_period_start"),
+        catchup_period_end=inv.get("catchup_period_end"),
+        catchup_periods_covered=inv.get("catchup_periods_covered"),
+        catchup_direction=inv.get("catchup_direction"),
+        catchup_raw_delta_gbp=inv.get("catchup_raw_delta_gbp"),
+        catchup_adjustment_gbp=inv.get("catchup_adjustment_gbp"),
+        catchup_written_off_gbp=inv.get("catchup_written_off_gbp"),
+        catchup_back_billing_cap_applied=inv.get("catchup_back_billing_cap_applied"),
     )
 
 

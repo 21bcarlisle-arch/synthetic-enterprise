@@ -39,7 +39,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import saas.payment_behaviour as payment_behaviour_module
-from saas.bill_generator import generate_bill
+from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from saas.bill_generator import (
+    BILL_SHOCK_PENALTY_FACTOR,
+    MAX_CLARITY_SCORE,
+    MIN_CLARITY_SCORE,
+    generate_bill,
+)
 from saas.churn_model import build_churn_risk
 from saas.contact_model import build_contact_model
 from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
@@ -56,7 +62,11 @@ from simulation.arrears_engine import (
 )
 from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
-from simulation.meter_reads import generate_meter_read_log, meter_type_for_customer
+from simulation.meter_reads import (
+    generate_meter_read_log,
+    meter_type_for_customer,
+    simulate_read,
+)
 from simulation.run_phase2b import main as run_phase2b
 from tools.contact_centre_port import ContactCentreMessage
 from tools.meter_read_port import MeterReadMessage
@@ -96,6 +106,129 @@ def _prior_calendar_month(month: str) -> str:
     return f"{yr}-{mo - 1:02d}"
 
 
+def _estimated_settlement_records(
+    settlement_records: list[dict], ratio: float, commodity: str
+) -> list[dict]:
+    """Rescale real settlement records to reflect an ESTIMATED consumption
+    quantity while preserving (a) the real per-MWh commodity unit rate and
+    (b) the fixed daily standing charge exactly.
+
+    Each record's `consumption_kwh` and its commodity portion of `revenue_gbp`
+    are scaled by `ratio` (estimated_kwh / true_kwh); the standing-charge field
+    is left untouched (a fixed daily charge does not move with metered volume).
+    Because commodity revenue and consumption scale by the identical factor, a
+    bill built from these records has the SAME average unit rate as the true
+    bill -- the estimate is priced at the real rate, only the quantity differs.
+    This is the point of D3 step 1: the estimate-labelled bill no longer mixes
+    true consumption into an estimate, collapsing the unit-rate divergence.
+    """
+    sc_field = "gas_standing_charge_gbp" if commodity == "gas" else "standing_charge_gbp"
+    scaled = []
+    for record in settlement_records:
+        sc = record.get(sc_field, 0.0)
+        commodity_portion = record["revenue_gbp"] - sc
+        new_record = dict(record)
+        new_record["consumption_kwh"] = record["consumption_kwh"] * ratio
+        new_record["revenue_gbp"] = commodity_portion * ratio + sc
+        scaled.append(new_record)
+    return scaled
+
+
+def _annotate_billing_basis(bill: dict, event, true_bill: dict) -> dict:
+    """Additive D3 provenance on a bill dict -- existing fields untouched.
+
+    Every bill gains `billing_basis` ("actual" | "estimated"). An estimated
+    bill also carries the TRUE-vs-BILLED pair so the divergence is directly
+    measurable (and so step 2, actual-read catch-up rebilling, has the true
+    figures it will reconcile against once a real read arrives).
+    """
+    annotated = dict(bill)
+    annotated["billing_basis"] = event.status
+    if event.status == "estimated":
+        annotated["true_consumption_kwh"] = true_bill["total_consumption_kwh"]
+        annotated["true_commodity_amount_gbp"] = true_bill["commodity_amount_gbp"]
+        annotated["true_total_amount_gbp"] = true_bill["total_amount_gbp"]
+        annotated["estimated_consumption_kwh"] = event.estimated_consumption_kwh
+        annotated["consecutive_estimated_count"] = event.consecutive_estimated_count
+    return annotated
+
+
+# Below this delta, real suppliers typically do not bother billing a
+# correction (matches the same £5 real-world convention already used by
+# company/billing/smart_meter_reconciliation.py's `is_material`, kept as its
+# own named constant here rather than imported since that module models a
+# different real mechanism -- annual smart-meter AQ reconciliation -- not the
+# per-actual-read catch-up this pipeline builds; see _resolve_catchup below).
+CATCHUP_MATERIALITY_THRESHOLD_GBP = 5.0
+
+
+def _resolve_catchup(
+    customer_id: str, segment: str, pending_run: list[dict], billing_date_iso: str
+) -> dict | None:
+    """D3 step 2: when an actual read arrives, reconcile a just-ended run of
+    consecutive ESTIMATED bills against what they should have charged.
+
+    `pending_run` is the list of estimated bills' own {period_start,
+    period_end, true_total_amount_gbp, total_amount_gbp} since the customer's
+    last actual (or forced-catch-up) read -- both totals already fully priced
+    (VAT/non-commodity/standing charge included) by generate_bill(), so their
+    difference is already correctly gross, no re-pricing needed.
+
+    Undercharges (supplier owes itself more) are subject to the Ofgem SLC 31A
+    12-month back-billing cap (company/billing/back_billing.py, reason
+    ESTIMATED_READ_CORRECTED -- built for exactly this scenario, previously
+    unwired). Overcharges (credit owed to the customer) are NEVER capped --
+    the cap protects consumers from late supplier demands, it does not let a
+    supplier withhold a refund (same real-world asymmetry already documented
+    in company/billing/smart_meter_reconciliation.py's `recoverable_gbp`).
+
+    Returns None if there was no estimated run to resolve (the common case:
+    the customer's read arrived on time last period too).
+    """
+    if not pending_run:
+        return None
+
+    raw_delta_gbp = round(
+        sum(p["true_total_amount_gbp"] - p["total_amount_gbp"] for p in pending_run), 2
+    )
+    period_start = pending_run[0]["period_start"]
+    period_end = pending_run[-1]["period_end"]
+    billing_date = datetime.fromisoformat(billing_date_iso).date()
+    is_domestic = segment == "resi"
+
+    if raw_delta_gbp > 0:
+        assessment = BackBillingAssessment(
+            account_id=customer_id,
+            billing_date=billing_date,
+            consumption_period_start=datetime.fromisoformat(period_start).date(),
+            consumption_period_end=datetime.fromisoformat(period_end).date(),
+            billed_amount_gbp=raw_delta_gbp,
+            reason=BackBillingReason.ESTIMATED_READ_CORRECTED,
+            is_domestic=is_domestic,
+        )
+        chargeable_gbp = assessment.capped_amount_gbp
+        written_off_gbp = assessment.written_off_gbp
+        cap_applied = assessment.cap_applies
+        direction = "undercharge"
+    else:
+        chargeable_gbp = raw_delta_gbp
+        written_off_gbp = 0.0
+        cap_applied = False
+        direction = "overcharge"
+
+    return {
+        "period_start": period_start,
+        "period_end": period_end,
+        "periods_covered": len(pending_run),
+        "direction": direction,
+        "raw_delta_gbp": raw_delta_gbp,
+        "chargeable_gbp": round(chargeable_gbp, 2),
+        "written_off_gbp": round(written_off_gbp, 2),
+        "back_billing_cap_applied": cap_applied,
+        "is_material": abs(chargeable_gbp) >= CATCHUP_MATERIALITY_THRESHOLD_GBP,
+    }
+
+
 def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     """Group `all_records` (from `simulation.settlement.run_settlement`) into
     one bill per customer per calendar month, in chronological order, via
@@ -131,14 +264,115 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
         contract_type = customer_data.get("contract_type", "fixed_1yr")
         segment = customer_data.get("segment", "resi")
         commodity = customer_data.get("commodity", "electricity")
+        # D3 step 1 (docs/design/maturity_map.yaml "Estimated billing &
+        # catch-up rebilling cycle"): decide per bill whether a real read
+        # arrived or the bill is ESTIMATED, and when estimated bill the
+        # estimate at the real unit rate instead of the true (not-yet-known)
+        # consumption. Uses the SAME deterministic dispatch, arguments and
+        # per-customer state-threading (trailing confirmed actuals + running
+        # consecutive-estimated count) as generate_meter_read_log(), computed
+        # here a second time on purpose (additive-first, no change to
+        # meter_reads.py or its own call site); the identical seed means the
+        # two always agree. De-duplicating the two call sites is a documented
+        # follow-up, not this step.
+        meter_type = (
+            meter_type_for_customer(customer_data) if customer_data else "traditional"
+        )
+        # `previous_bill_total_gbp` is threaded on the TRUE bill total exactly
+        # as before this change, so the actual-read path is byte-identical in
+        # every run (mixed or not), not just an all-actual one.
         previous_bill_total_gbp = None
+        trailing_actuals_kwh: list[float] = []
+        consecutive_estimated = 0
+        pending_estimated_run: list[dict] = []
         for month in sorted(months):
-            bill = generate_bill(
+            # TRUE-consumption bill from the real settlement records -- the
+            # unchanged actual-read path, and the source of the real unit rate
+            # and standing charge an estimated bill reuses.
+            true_bill = generate_bill(
                 customer_id, months[month], contract_type,
                 previous_bill_total_gbp, segment, commodity,
             )
+            event = simulate_read(
+                customer_id, true_bill["period_end"], meter_type,
+                true_bill["total_consumption_kwh"],
+                trailing_actuals_kwh, consecutive_estimated,
+            )
+            if event.status == "actual":
+                bill = _annotate_billing_basis(true_bill, event, true_bill)
+                # D3 step 2: this real read resolves any pending run of
+                # estimated bills since the last one -- fold the reconciled
+                # correction (capped per Ofgem SLC 31A where it's an
+                # undercharge) onto THIS bill, matching how a real catch-up
+                # correction actually appears: as an adjustment on the next
+                # real bill, not a separate artifact.
+                catchup = _resolve_catchup(
+                    customer_id, segment, pending_estimated_run, bill["period_end"]
+                )
+                if catchup is not None:
+                    bill["catchup_applied"] = True
+                    bill["catchup_period_start"] = catchup["period_start"]
+                    bill["catchup_period_end"] = catchup["period_end"]
+                    bill["catchup_periods_covered"] = catchup["periods_covered"]
+                    bill["catchup_direction"] = catchup["direction"]
+                    bill["catchup_raw_delta_gbp"] = catchup["raw_delta_gbp"]
+                    bill["catchup_adjustment_gbp"] = catchup["chargeable_gbp"]
+                    bill["catchup_written_off_gbp"] = catchup["written_off_gbp"]
+                    bill["catchup_back_billing_cap_applied"] = catchup["back_billing_cap_applied"]
+                    bill["catchup_is_material"] = catchup["is_material"]
+                    bill["total_amount_gbp"] = round(
+                        bill["total_amount_gbp"] + catchup["chargeable_gbp"], 2
+                    )
+                    # A catch-up correction changes what the customer is
+                    # actually charged THIS bill -- generate_bill() already
+                    # computed bill_shock_pct/clarity_score against the
+                    # pre-catchup total, so both must be recomputed against
+                    # the corrected total or the bill would present an
+                    # internally-inconsistent shock/clarity figure (a real
+                    # catch-up bill is exactly the kind of surprise this
+                    # project's own bill-shock mechanic exists to capture).
+                    if previous_bill_total_gbp:
+                        old_shock = bill.get("bill_shock_pct") or 0.0
+                        new_shock = abs(
+                            bill["total_amount_gbp"] - previous_bill_total_gbp
+                        ) / previous_bill_total_gbp
+                        bill["bill_shock_pct"] = new_shock
+                        clarity = bill["clarity_score"]
+                        clarity += min(old_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
+                        clarity -= min(new_shock, 1.0) * BILL_SHOCK_PENALTY_FACTOR
+                        bill["clarity_score"] = max(
+                            MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity)
+                        )
+                pending_estimated_run = []
+                trailing_actuals_kwh.append(true_bill["total_consumption_kwh"])
+                consecutive_estimated = 0
+            else:
+                true_kwh = true_bill["total_consumption_kwh"]
+                est_kwh = event.estimated_consumption_kwh
+                if true_kwh > 0 and est_kwh is not None:
+                    scaled = _estimated_settlement_records(
+                        months[month], est_kwh / true_kwh, commodity
+                    )
+                    estimated_bill = generate_bill(
+                        customer_id, scaled, contract_type,
+                        previous_bill_total_gbp, segment, commodity,
+                    )
+                else:
+                    # Degenerate zero-metered month: no real per-MWh rate to
+                    # price an estimate against -- fall back to the true bill
+                    # amount (rare); the billing_basis annotation still records
+                    # the estimate.
+                    estimated_bill = true_bill
+                bill = _annotate_billing_basis(estimated_bill, event, true_bill)
+                consecutive_estimated = event.consecutive_estimated_count
+                pending_estimated_run.append({
+                    "period_start": bill["period_start"],
+                    "period_end": bill["period_end"],
+                    "true_total_amount_gbp": bill["true_total_amount_gbp"],
+                    "total_amount_gbp": bill["total_amount_gbp"],
+                })
             bills.append(bill)
-            previous_bill_total_gbp = bill["total_amount_gbp"]
+            previous_bill_total_gbp = true_bill["total_amount_gbp"]
 
     # Additive year-over-year comparison (see docstring above) -- a second
     # pass since it needs every bill for a customer already generated to

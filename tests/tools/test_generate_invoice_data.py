@@ -51,6 +51,30 @@ def test_real_invoice_days_fields_none_when_absent_from_source():
     assert inv["standing_charge_gbp_per_day"] is None
 
 
+# D3 step 2 (docs/design/maturity_map.yaml "Estimated billing & catch-up
+# rebilling cycle"): catchup_* fields carried through unchanged, same
+# passthrough pattern as read_type above.
+
+def test_real_invoice_catchup_absent_defaults_false():
+    inv = _real_invoice(_raw_invoice())
+    assert inv["catchup_applied"] is False
+    assert inv["catchup_adjustment_gbp"] is None
+
+
+def test_real_invoice_carries_through_catchup_fields():
+    inv = _real_invoice(_raw_invoice(
+        catchup_applied=True, catchup_direction="overcharge",
+        catchup_periods_covered=3, catchup_raw_delta_gbp=-42.0,
+        catchup_adjustment_gbp=-42.0, catchup_written_off_gbp=0.0,
+        catchup_back_billing_cap_applied=False,
+    ))
+    assert inv["catchup_applied"] is True
+    assert inv["catchup_direction"] == "overcharge"
+    assert inv["catchup_periods_covered"] == 3
+    assert inv["catchup_adjustment_gbp"] == -42.0
+    assert inv["catchup_back_billing_cap_applied"] is False
+
+
 def test_real_invoices_for_missing_customer_returns_empty_list():
     assert real_invoices_for("NOPE", {}) == []
 

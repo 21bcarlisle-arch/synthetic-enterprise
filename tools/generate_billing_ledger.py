@@ -167,11 +167,26 @@ def generate(run_json_path=None, out_path=None):
 
         beh = behavioral.get(cid) or {}
         stress = _stress_for_year(beh, year)
-        method = _payment_method(segment, amount, cid, commodity)
-        _tone = _tone_for_bill(method, cid, period_end)
-        outcome, days_late = _payment_outcome(
-            method, stress, rng, segment, _fuel_poor_for_bill(method, cid), _tone, cid,
-        )
+        # D3 step 2: a catch-up overcharge credit can make `amount` <= 0 (the
+        # customer is owed money, not billed). Real suppliers carry that as
+        # an account credit, not a collected payment -- there is no DD/BACS/
+        # CHAPS "collection" of a negative amount to simulate. Route straight
+        # to a settled/no-collection outcome rather than feeding a negative
+        # figure through the payment-method/outcome model, which assumes a
+        # positive amount owed (found while reading a real instance: a credit
+        # invoice was otherwise rendered as a "successful direct_debit
+        # payment" of a negative sum, which is not a real event).
+        is_credit = amount <= 0
+        if is_credit:
+            method = None
+            _tone = None
+            outcome, days_late = "success", 0
+        else:
+            method = _payment_method(segment, amount, cid, commodity)
+            _tone = _tone_for_bill(method, cid, period_end)
+            outcome, days_late = _payment_outcome(
+                method, stress, rng, segment, _fuel_poor_for_bill(method, cid), _tone, cid,
+            )
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,
         # MPAN/MPRN. read_event is None for a bill Phase 3's meter-read
@@ -199,10 +214,14 @@ def generate(run_json_path=None, out_path=None):
         # those three roundings produced the director's observed 331.1-vs-331.2
         # kWh mismatch.) This also reconciles ESTIMATED bills on-screen (whose
         # register advances by the estimate): the usage line now equals the
-        # printed estimated reads' difference. Residual, flagged separately for
-        # the estimation/amount layer: an estimated bill's commodity amount is
-        # still computed upstream on TRUE consumption, so its derived unit rate
-        # diverges from the tariff -- a bill-amount concern out of scope here.
+        # printed estimated reads' difference. The residual noted here
+        # previously (an estimated bill's commodity amount computed upstream
+        # on TRUE consumption, diverging its derived unit rate from the
+        # tariff) is CLOSED: D3 step 1 (docs/design/maturity_map.yaml
+        # "Estimated billing & catch-up rebilling cycle") now prices
+        # `bill["total_amount_gbp"]` on the estimate at the real tariff rate
+        # before this module ever sees it -- no change needed here, `amount`
+        # above already reads the corrected figure.
         opening_read_rounded = round(opening_read_kwh, 1)
         closing_read_rounded = round(closing_read_kwh, 1)
         displayed_consumption_kwh = round(closing_read_rounded - opening_read_rounded, 1)
@@ -232,6 +251,27 @@ def generate(run_json_path=None, out_path=None):
             "opening_read_kwh": opening_read_rounded,
             "closing_read_kwh": closing_read_rounded,
         }
+        # D3 step 2 (docs/design/maturity_map.yaml "Estimated billing &
+        # catch-up rebilling cycle"): when a real read resolves a run of
+        # estimated bills, the correction (capped per Ofgem SLC 31A where
+        # it's an undercharge) is already folded into `amount` above --
+        # these fields make the WHY visible on the customer-facing invoice
+        # rather than a silent total change. Omitted (None) on every bill
+        # that isn't itself the resolving bill, matching the bill dict's own
+        # additive-only convention (bill.get() with no catchup key on a
+        # normal bill).
+        if bill.get("catchup_applied"):
+            inv["catchup_applied"] = True
+            inv["catchup_period_start"] = bill.get("catchup_period_start")
+            inv["catchup_period_end"] = bill.get("catchup_period_end")
+            inv["catchup_periods_covered"] = bill.get("catchup_periods_covered")
+            inv["catchup_direction"] = bill.get("catchup_direction")
+            inv["catchup_raw_delta_gbp"] = bill.get("catchup_raw_delta_gbp")
+            inv["catchup_adjustment_gbp"] = bill.get("catchup_adjustment_gbp")
+            inv["catchup_written_off_gbp"] = bill.get("catchup_written_off_gbp")
+            inv["catchup_back_billing_cap_applied"] = bill.get("catchup_back_billing_cap_applied")
+        else:
+            inv["catchup_applied"] = False
         # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): consumption
         # structured as a list of registers/periods, not one flat line --
         # today every tariff is single-register ("Anytime"), so this is
@@ -266,17 +306,24 @@ def generate(run_json_path=None, out_path=None):
 
         invoices_by_cid.setdefault(cid, []).append(inv)
 
-        payment_date = due_date + timedelta(days=days_late)
-        pay = {
-            "invoice_number": invoice_number,
-            "payment_date": payment_date.isoformat(),
-            "amount_gbp": round(amount, 2),
-            "method": method,
-            "outcome": outcome,
-            "income_stress_at_time": stress,
-            "tone": _tone,
-        }
-        payments_by_cid.setdefault(cid, []).append(pay)
+        # D3 step 2: a credit invoice (amount <= 0) has nothing to collect --
+        # no payment event is recorded, so tools/generate_payment_ledger_data.py's
+        # account ledger sees only the (negative) invoice_raised entry, correctly
+        # reducing the running balance by the credit. Fabricating a "payment" here
+        # too would double-count it (the ledger negates a payment's amount_gbp to
+        # get its effect on the balance, which would cancel the credit back out).
+        if not is_credit:
+            payment_date = due_date + timedelta(days=days_late)
+            pay = {
+                "invoice_number": invoice_number,
+                "payment_date": payment_date.isoformat(),
+                "amount_gbp": round(amount, 2),
+                "method": method,
+                "outcome": outcome,
+                "income_stress_at_time": stress,
+                "tone": _tone,
+            }
+            payments_by_cid.setdefault(cid, []).append(pay)
 
         if outcome == "failed":
             eventually_resolved = cid not in churned
