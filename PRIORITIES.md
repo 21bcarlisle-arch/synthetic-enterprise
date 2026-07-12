@@ -25,6 +25,19 @@
 #        open, not yet investigated: bad-debt-implausibly-low-through-2021-22-crisis, C2's
 #        extreme YoY tariff-vs-SVT swing, C1_2 successor-account acquisition-date mismatch,
 #        cost-to-serve cross-fuel gap same household -- all in the adjudication ledger).
+#     NEW REFERENCE (2026-07-12, docs/staging/done/REGULATORY_RULES_AS_FIDELITY_ORACLE.md,
+#        advisor-staged research artefact, director-decided): multi-market regulatory gap
+#        analysis -- "a market's rulebook is a checklist of unhappy paths" the SIM should
+#        produce or explicitly scope out. Top 20 ranked SIM additions registered (not built);
+#        #1-2 are the natural next D-lane items after D3_catchup_rebilling (just shipped
+#        2026-07-12, level 3): #1 back-billing WRITE-OFF as its own P&L event (today the cap
+#        is enforced but the write-off amount is folded into the bill, never booked as its own
+#        loss line); #2 customer-fault attribution (obstruction/tampering/access-refusal) that
+#        PIERCES the 12-month cap in every market studied. #18 (pro-rata rebilling across price
+#        periods, French energy-ombudsman rule) is directly encodable as a domain invariant. No
+#        multi-market build authorised (portability-lens only, per PORTABILITY_DESIGN_
+#        CONSTRAINTS.md) -- UK-only items are the actionable ones. Sequencing is the director's
+#        own re-rank, not self-executing.
 #     3. Epoch-2 foundations continue, BOUNDED, until the advisor's epoch framing arrives
 #        (expected same day per the spike doc) -- its sequencing then takes over this slot.
 #        ARRIVED 2026-07-11 (docs/design/THE_VALUE_CYCLE_FRAMING.md, EPOCH2_RATIFIED.md):
