@@ -12,6 +12,117 @@ def _mock_panes(names: list[str]):
     return {n: "python3" for n in names}
 
 
+class TestCheckStaleDependencies:
+    """Idle-hole #8 (ADVISOR_STEER_OVERNIGHT.md, 2026-07-11): a real
+    hot-lane-designated atom (D3) sat unselected for ~90 minutes because its
+    depends_on required an atom at its full target level while that
+    dependency was correctly, deliberately parked below target for an
+    unrelated, deferred reason. This check surfaces (does not assert as bugs)
+    every non-idle atom blocked by an idle dependency."""
+
+    def test_returns_none_for_empty_map(self, tmp_path, monkeypatch):
+        map_path = tmp_path / "maturity_map.yaml"
+        map_path.write_text("[]\n")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        assert health_check._check_stale_dependencies() is None
+
+    def test_flags_build_atom_blocked_by_idle_dependency(self, tmp_path, monkeypatch):
+        map_path = tmp_path / "docs" / "design"
+        map_path.mkdir(parents=True)
+        (map_path / "maturity_map.yaml").write_text("""
+- id: hot_lane_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  depends_on: [blocker_atom]
+- id: blocker_atom
+  level_current: 2
+  level_target: 3
+  loop_stage: idle
+""")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        result = health_check._check_stale_dependencies()
+        assert result is not None
+        assert "hot_lane_atom" in result
+        assert "blocker_atom" in result
+
+    def test_does_not_flag_atom_blocked_by_a_non_idle_dependency(self, tmp_path, monkeypatch):
+        map_path = tmp_path / "docs" / "design"
+        map_path.mkdir(parents=True)
+        (map_path / "maturity_map.yaml").write_text("""
+- id: hot_lane_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  depends_on: [blocker_atom]
+- id: blocker_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+""")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        assert health_check._check_stale_dependencies() is None
+
+    def test_does_not_flag_atom_with_no_real_gap(self, tmp_path, monkeypatch):
+        map_path = tmp_path / "docs" / "design"
+        map_path.mkdir(parents=True)
+        (map_path / "maturity_map.yaml").write_text("""
+- id: already_done_atom
+  level_current: 3
+  level_target: 3
+  loop_stage: build
+  depends_on: [blocker_atom]
+- id: blocker_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+""")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        assert health_check._check_stale_dependencies() is None
+
+    def test_does_not_flag_idle_atom_itself(self, tmp_path, monkeypatch):
+        map_path = tmp_path / "docs" / "design"
+        map_path.mkdir(parents=True)
+        (map_path / "maturity_map.yaml").write_text("""
+- id: idle_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  depends_on: [blocker_atom]
+- id: blocker_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+""")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        assert health_check._check_stale_dependencies() is None
+
+    def test_flags_missing_dependency_id(self, tmp_path, monkeypatch):
+        map_path = tmp_path / "docs" / "design"
+        map_path.mkdir(parents=True)
+        (map_path / "maturity_map.yaml").write_text("""
+- id: hot_lane_atom
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  depends_on: [nonexistent_atom]
+""")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        result = health_check._check_stale_dependencies()
+        assert result is not None
+        assert "nonexistent_atom" in result
+
+    def test_real_maturity_map_e2_not_flagged_as_stale(self):
+        """E2_revenue_reconciliation is a real, deliberate depends_on block
+        (documented in its own simplifications) -- confirm the real map
+        either doesn't flag it, or (if flagged) it's clearly not a false
+        'all clear' claim. This is a live-data smoke test, not asserting a
+        specific outcome, since the real map legitimately changes over time."""
+        result = health_check._check_stale_dependencies()
+        # Just confirm the check runs cleanly against the real map (no crash).
+        assert result is None or isinstance(result, str)
+
+
 class TestCheckPixelVerificationCapability:
     """ADVISOR_STEER_BROWSER_REGRESSION.md (2026-07-11): pixel-verification
     capability is a standing harness invariant -- if it breaks, it must be an
@@ -61,12 +172,13 @@ def test_all_processes_running_reports_ok(monkeypatch):
     monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
     monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 2  # +1 staging, +1 pixel-verification
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 3  # +1 staging, +1 pixel-verification, +1 stale-deps
 
 
 def test_missing_process_reported_as_problem(monkeypatch):

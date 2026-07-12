@@ -108,6 +108,66 @@ def _check_pixel_verification_capability() -> str | None:
         return f"Pixel-verification (Playwright) unavailable: {e}"
 
 
+def _check_stale_dependencies() -> str | None:
+    """Return a warning string if any non-idle maturity-map atom (loop_stage
+    in build/frame -- i.e. genuinely due for self-refill selection) is
+    permanently excluded from the dial-weighted draw by an unmet dependency
+    on an atom whose own loop_stage is idle.
+
+    Idle-hole #8 (ADVISOR_STEER_OVERNIGHT.md, 2026-07-11): D3_catchup_rebilling
+    was the director's own explicitly-named hot-lane build, but sat unselected
+    for ~90 minutes because its depends_on required W1_reveal_over_time at its
+    FULL target level -- while W1 was correctly, deliberately parked below
+    target (one specific sub-component deferred to M4 by a separate director
+    decision). The dependency was real when set, then went stale when W1's
+    own scope narrowed, with no mechanism to ever notice. Root-cause note (see
+    D3's own maturity_map.yaml simplifications for the full audit): NOT every
+    non-idle-atom-blocked-by-idle-dependency instance is stale -- E2_revenue_
+    reconciliation's depends_on is a deliberate, correctly-reasoned block (its
+    own simplifications document choosing depends_on specifically over
+    loop_stage=idle) -- so this check SURFACES candidates for human/agent
+    review, it does not assert they are all bugs. Silence is not the goal;
+    visibility is.
+    """
+    try:
+        import yaml
+    except ImportError:
+        return None
+    map_path = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
+    try:
+        atoms = yaml.safe_load(map_path.read_text(encoding="utf-8"))
+    except (OSError, Exception):
+        return None
+    if not isinstance(atoms, list):
+        return None
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
+
+    flagged = []
+    for atom in atoms:
+        if not isinstance(atom, dict) or "id" not in atom:
+            continue
+        if atom.get("loop_stage") not in ("build", "frame"):
+            continue
+        level_current, level_target = atom.get("level_current"), atom.get("level_target")
+        if level_current is None or level_target is None or level_current >= level_target:
+            continue  # no real gap, nothing to select anyway
+        for dep_id in atom.get("depends_on") or []:
+            dep = by_id.get(dep_id)
+            if dep is None:
+                flagged.append(f"{atom['id']} depends on missing atom {dep_id}")
+                continue
+            dep_level, dep_target = dep.get("level_current"), dep.get("level_target")
+            unmet = dep_level is None or dep_target is None or dep_level < dep_target
+            if unmet and dep.get("loop_stage") == "idle":
+                flagged.append(
+                    f"{atom['id']} (loop_stage={atom.get('loop_stage')}) blocked by "
+                    f"idle dependency {dep_id} ({dep_level}/{dep_target})"
+                )
+    if flagged:
+        return "Stale-dependency candidates (review, not all are bugs): " + "; ".join(flagged)
+    return None
+
+
 def _check_staging_age() -> str | None:
     """Return warning string if any from_rich_*.md is older than 2 hours unactioned."""
     staging = PROJECT_DIR / "docs" / "staging"
@@ -153,6 +213,19 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
         problem_lines.append(f"  ✗ {pixel_warn}")
     else:
         ok_lines.append("  ✓ pixel-verification (Playwright) available")
+
+    # Informational, not a hard failure (idle-hole #8): a flagged candidate
+    # can be a genuine, expected, long-lived block (E2/W5_1-style, reviewed
+    # and found correct) rather than a bug -- treating every occurrence as
+    # DEGRADED would erode the signal (the same "cries wolf" risk this
+    # project already avoids for the epistemic verifier). Always surfaced in
+    # ok_lines (not gated behind --always) so it's visible on every routine
+    # run without triggering a false-alarm NTFY.
+    stale_dep_warn = _check_stale_dependencies()
+    if stale_dep_warn:
+        ok_lines.append(f"  ℹ {stale_dep_warn}")
+    else:
+        ok_lines.append("  ✓ no stale-dependency candidates in the maturity map")
 
     all_ok = len(problem_lines) == 0
     return all_ok, ok_lines, problem_lines
