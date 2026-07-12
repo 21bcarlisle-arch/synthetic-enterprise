@@ -66,6 +66,17 @@
           }
         ]
       }
+    ],
+    "InstructionsLoaded": [
+      {
+        "matcher": "path_glob_match",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/log_instructions_loaded.py"
+          }
+        ]
+      }
     ]
   }
 }
