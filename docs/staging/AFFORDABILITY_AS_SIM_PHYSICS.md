@@ -32,6 +32,39 @@ Record this adjudication + rationale in the ledger.
    protections — several already in the regulatory oracle's UK rows; they
    become live physics once affordability exists.
 
+## Director addendum (2026-07-12, same conversation) — the attitudinal overlay
+6. **Can't-pay vs won't-pay (the cloaked knowledge):** hidden state is a 2x2 —
+   ABILITY (the budget, items 1-3) x WILLINGNESS (attitudinal: strategic/
+   deliberate late- or non-payment despite ability). Same missed payment,
+   four truths; the company CANNOT observe the quadrant — it must CLASSIFY
+   under uncertainty from engagement signals, plan adherence, disclosure.
+   Mis-classification physics both ways: can't-pay treated as won't-pay =
+   customer harm + compliance breach (ability-to-pay rules exist for that
+   quadrant); won't-pay treated as can't-pay = losses + moral hazard.
+   Harness scores the company's classification accuracy vs hidden truth
+   (answer-key pattern). Anchor willingness incidence where possible (Ofgem
+   debt research / industry sources); tag [L] and verify before encoding.
+7. **Pay-but-don't-heat (self-rationing):** households whose payment record
+   is PERFECT while consumption collapses below plausible living levels —
+   vulnerability invisible in payment data, visible only in consumption
+   analytics. SIM must generate them; the company has a regulated DUTY to
+   detect (self-disconnection/Consumer Duty class in the oracle) — detection
+   capability is a C/F atom; missed detection is a harm event.
+8. **Segment T&C / regulatory overlay on debt:** late-payment interest is
+   statutory for business (LPCDCA, 8%+base) and effectively excluded for
+   domestic; late-payment CHARGES largely regulated out of domestic T&Cs.
+   Tariff ELIGIBILITY conditioned on payment behaviour is real commercial
+   policy (DD-discount tariffs; good-payer gating) — model as company-side
+   policy objects with fairness/oracle constraints.
+9. **The DD attribution confound (named analytical trap):** the DD cohort
+   looks like better payers PARTLY BY CONSTRUCTION — failing payers drop off
+   DD, so their bad debt lands in the cash/credit cohort. SIM truth contains
+   the migration; the company's naive channel attribution SHOULD BE CAPABLE
+   OF BEING WRONG (cost-to-serve and discount-justification analytics built
+   from observables); the harness validates attribution accuracy against
+   ground truth. Register as the first entry of a named class: "selection-
+   bias traps the company must discover."
+
 ## Thin start NOW (harness-side, cheap)
 Build the **crisis-era bad-debt validator**: anchored bands from Ofgem debt/
 arrears statistics + StepChange-class data (independent of any generator
@@ -41,6 +74,6 @@ it should FAIL today (that failure is the honest measurement of the gap the
 CFO persona found). File the failure as the atom cluster's opening evidence.
 
 ## DoD
-Adjudication recorded; atoms registered with anchors named and [tags];
+Adjudication recorded; atoms registered (INCLUDING the 2x2 willingness overlay, self-rationing, segment T&C objects, and the DD-confound trap class) with anchors named and [tags];
 validator live and honestly failing; life-event substrate noted on the
 adoption-journey registration; one digest line.
