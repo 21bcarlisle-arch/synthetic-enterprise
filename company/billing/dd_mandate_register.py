@@ -1,5 +1,26 @@
 """Direct Debit Mandate Register (Phase GD).
 
+OPEN DUPLICATION, NOT RESOLVED (2026-07-12, W5_1_banking_payment_rails,
+M2 payments-maturity audit's "duplicated-register pair" finding,
+docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md; corrected after an Expert Hour
+review found an earlier version of this note wrongly claimed the
+duplication was resolved/superseded): this module has ZERO live callers
+anywhere in the codebase (confirmed by exhaustive grep) -- built and tested
+in isolation (Phase GD), never wired to anything. `company/billing/
+direct_debit.py::DirectDebitBook` is the one WITH a live caller
+(`simulation/dd_collection_book.py`) and is therefore the practical,
+de-facto mandate store in the actual simulation today. That is a fact about
+which one runs, not a judgement that DirectDebitBook is the better design --
+this module's `as_of`-parameterised API is, if anything, the more
+epistemically disciplined of the two (DirectDebitBook's `create_mandate()`
+takes a plain date string with no as_of/point-in-time framing). The
+duplication itself is REAL and UNRESOLVED: nothing in the codebase prevents
+a second module from also writing mandate state, no merge or migration has
+happened, and the M2 audit's own instruction ("consolidation needed before
+further wiring compounds the duplication") has not been carried out.
+Registered here per R10 (nothing may be simplified silently) as an OPEN gap
+for a future pass -- not closed by this note.
+
 UK energy suppliers collect most domestic bills via BACS Direct Debit.
 The Direct Debit Guarantee (DDG) scheme, administered by Pay.UK/BACS,
 requires suppliers to:

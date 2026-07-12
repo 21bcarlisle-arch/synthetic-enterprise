@@ -29,6 +29,17 @@ class DirectDebitMandate:
     setup_date: str = ""
     next_collection_date: str = ""
     failed_attempts: int = 0
+    # Bacs rails observability (W5_1_banking_payment_rails, 2026-07-12,
+    # L2->L3): the AUDDIS submission reference/confirmation date for this
+    # mandate's own setup, and for its most recent amendment (if any) --
+    # populated by simulation/dd_collection_book.py via
+    # simulation/bacs_rails.py, never set directly by this module. Empty
+    # string means "not yet observed via the rails layer" (e.g. a mandate
+    # created through a path that doesn't use the rails wiring).
+    setup_rails_reference: str = ""
+    setup_confirmed_date: str = ""
+    last_amendment_rails_reference: str = ""
+    last_amendment_confirmed_date: str = ""
 
 
 @dataclass
@@ -55,8 +66,13 @@ class DirectDebitBook:
         account_last4: str,
         monthly_amount_gbp: float,
         setup_date: str,
+        setup_rails_reference: str = "",
+        setup_confirmed_date: str = "",
     ) -> DirectDebitMandate:
-        """Register a new DD mandate and return it."""
+        """Register a new DD mandate and return it. `setup_rails_reference`/
+        `setup_confirmed_date` are optional Bacs-rails observability fields
+        (simulation/dd_collection_book.py -- AUDDIS confirmation timing);
+        omit for a mandate created outside that wiring."""
         ref = f"DD-{customer_id}-{setup_date.replace('-', '')}"
         next_collect = _add_days(setup_date, _DD_SCHEDULE_DAYS)
         m = DirectDebitMandate(
@@ -67,8 +83,32 @@ class DirectDebitBook:
             monthly_amount_gbp=monthly_amount_gbp,
             setup_date=setup_date,
             next_collection_date=next_collect,
+            setup_rails_reference=setup_rails_reference,
+            setup_confirmed_date=setup_confirmed_date,
         )
         self._mandates[customer_id] = m
+        return m
+
+    def amend_mandate(
+        self,
+        customer_id: str,
+        new_monthly_amount_gbp: float,
+        rails_reference: str = "",
+        confirmed_date: str = "",
+    ) -> DirectDebitMandate | None:
+        """Update an existing mandate's collection amount (a real, common
+        occurrence -- 'most energy suppliers adjust the monthly collection
+        amount to match estimated annual consumption', per this project's
+        own dd_mandate_register.py docstring). Returns None if no mandate
+        exists for this customer yet (caller's responsibility to create one
+        first via create_mandate). `rails_reference`/`confirmed_date` are the
+        same Bacs-rails (ADDACS) observability fields as create_mandate's."""
+        m = self._mandates.get(customer_id)
+        if m is None:
+            return None
+        m.monthly_amount_gbp = new_monthly_amount_gbp
+        m.last_amendment_rails_reference = rails_reference
+        m.last_amendment_confirmed_date = confirmed_date
         return m
 
     def get_mandate(self, customer_id: str) -> DirectDebitMandate | None:

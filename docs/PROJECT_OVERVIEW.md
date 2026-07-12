@@ -111,6 +111,24 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### W5_1_banking_payment_rails: L2->L3 attempt, honestly held at L2 after independent Expert Hour review (2026-07-12, self-refill draw)
+
+The maturity-map self-refill draw (fixed earlier the same session, see ADVISOR_ANSWER_CANNOT_DRAW.md below) selected `W5_1_banking_payment_rails` -- its own charter (`docs/design/charters/W5_banking_payment_rails.md`) named the L2->L3 gap precisely: mandate SETUP and AMENDMENT existed in `simulation/bacs_rails.py` (`submit_mandate_setup`/`submit_amendment`) but were unused; mandate creation still happened synchronously via `book.create_mandate()`.
+
+**Built:** `company/billing/direct_debit.py`'s `DirectDebitMandate` gained rails-observability fields (`setup_rails_reference`/`setup_confirmed_date`/`last_amendment_rails_reference`/`last_amendment_confirmed_date`) and a new `amend_mandate()` method. `simulation/dd_collection_book.py` wired mandate setup through `submit_mandate_setup()`/`resolve_submission()` (the real AUDDIS 2-day confirmation window) and added an amendment path.
+
+**Before claiming L3, dispatched an independent fresh-context Expert Hour review (phase-close-evaluator, no memory of the build) rather than self-grading** -- this project's own established discipline, and it found real, concrete gaps, not just polish:
+1. **Decisive:** `simulation/dd_collection_book.py` has ZERO callers from any real run pipeline (confirmed by grep) -- only exercised by its own tests. This alone caps the atom below L3 (fails "lives in time", phase-close rule 0b, and R1 consumer-verification) regardless of the wiring's quality. Registered as the real next step, not rushed into the same pass (a live-pipeline integration into a ~500s historical replay run late in a session was judged too risky).
+2. **Fixed:** the amendment trigger originally compared a single bill's raw amount against the mandate's stored amount, firing an ADDACS amendment on almost every seasonal swing -- modelling on-demand billing, not smoothed Variable DD. Now compares against a rolling MEDIAN (not mean -- a mean is dragged by a single outlier; a median correctly ignores one anomalous bill while still moving once a majority of a trailing 12-bill window reflects a genuine sustained change) and amends TO the median, never to the raw triggering bill.
+3. **Fixed:** the original "no calibrated mandate-rejection rate exists to anchor a failure model" claim was factually wrong -- this lane's own charter cites GoCardless's public mandate-lifecycle data (~95% confirmed by day 5, i.e. a real ~5% non-confirmation rate is citable). Outcome remains deterministic success in this pass, but the honest limiting factor is corrected: no fallback-payment-method/retry mechanism exists anywhere in this codebase for a rejected mandate, not "no rate exists."
+4. **Fixed:** an earlier version of this build's own docstring claimed the M2 audit's duplicated-register finding (`DirectDebitBook` vs `company/billing/dd_mandate_register.py`) was "resolved"/"superseded" -- it was not; only a docstring changed. `dd_mandate_register.py`'s own docstring corrected to state this honestly as an OPEN, unresolved duplication (R10), also fixing a self-contradiction in the original wording (it declared `DirectDebitBook` canonical while admitting `dd_mandate_register.py` has the cleaner `as_of`/point-in-time discipline -- this project's own primary architectural law).
+5. **Registered, not silently implied fine:** mandate setup is submitted and resolved in the same step as the collection it precedes, rather than genuinely gating the collection on AUDDIS confirmation first. Fixing this properly would delay a new DD customer's first collection date, risking a change to ground-truth arrears/bad-debt figures already baked into `compute_emergent_bad_debt()` -- the same class of change this atom's build has consistently avoided.
+6. Test suite strengthened per the review's own request: a ground-truth-replay test now covers the amendment-firing code path with varying amounts (the pre-existing tests only used a constant amount); the "setup wiring does not change collection outcome" test now compares against an independently-computed real baseline instead of a loose bound.
+
+`level_current` correctly stays at 2 (`W5_1_banking_payment_rails`'s own `expert_hour.status: needs_work`, findings recorded verbatim) -- the fixes are real and worth keeping, but the two structural L3 blockers (pipeline wiring, genuine register consolidation) are not themselves closed by this pass.
+
+6 new/changed tests (`tests/simulation/test_dd_collection_book.py`), 17,174 tests collected (full suite), epistemic PASS.
+
 ### ADVISOR_ANSWER_CANNOT_DRAW.md: maturity-map self-refill draw class-fix (2026-07-12, P0, advisor-staged)
 
 The supervisor's dial-weighted self-refill draw (`background/supervisor.py::_maturity_map_draw()`) escalated CANNOT-draw ("no candidate atom at all") despite the map having 30/50 atoms idle and 23 at L0 -- the advisor checked the raw YAML directly and confirmed the premise false: the map parses fine and has abundant open work, so the draw's own filter was excluding real work.
@@ -6948,7 +6966,13 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,166 tests collected (full suite) -- ADVISOR_ANSWER_CANNOT_DRAW.md closed (maturity-map self-refill
+- 17,174 tests collected (full suite) -- W5_1_banking_payment_rails L2->L3 attempt, honestly held at L2
+  after a fresh-context Expert Hour review found real bugs (amendment-trigger operand conflation, a
+  factually-wrong rejection-rate claim, an overclaimed register-consolidation "resolution") and one
+  decisive structural blocker (zero live pipeline callers); all concrete bugs fixed, structural
+  blockers registered as real next steps, not rushed or self-graded past NEEDS_WORK -- see Section
+  4's entry), 6 new/changed tests, on top of the prior 17,166 tests collected (full suite) --
+  ADVISOR_ANSWER_CANNOT_DRAW.md closed (maturity-map self-refill
   draw class-fix: a dependency on a deliberately-parked atom no longer cascades into blocking non-idle
   dependents; new diagnose_map_blocked_set() upgrades the CANNOT-draw escalation to self-diagnose; see
   Section 4's entry), 7 new tests, on top of the prior 17,159 tests collected (full suite) --
