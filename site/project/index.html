@@ -163,9 +163,26 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   </div>
 
   <div class="sec">Build Evidence</div>
+  <!-- Director page comments 2026-07-12: "What is the so what? Is it the one
+       we want to say. Which is about velocity and depth?" then "Would it
+       help to show the mix of tests? The scope of what we are testing?" --
+       explicit so-what framing (was previously three bare charts with no
+       stated thesis), plus a new depth panel answering the second comment
+       directly. -->
+  <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    <strong>The so-what:</strong> velocity and depth, read together. <strong>Velocity</strong>
+    (left) — sustained pace, no flat or decelerating stretches. <strong>Depth</strong> (right) —
+    not just more tests, but <span id="be-domain-count">--</span> distinct real business domains
+    under test (billing, market, CRM, regulatory, pricing, trading, risk...) — the scope of what a
+    real UK supplier actually has to get right, not a single ballooning number.
+  </p>
   <div class="chart-row">
-    <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tests passing over time</div><canvas id="ct"></canvas></div>
-    <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Phases shipped per day</div><canvas id="cp"></canvas></div>
+    <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Tests passing over time (velocity)</div><canvas id="ct"></canvas></div>
+    <div class="cb"><div style="font-size:11px;color:var(--muted);margin-bottom:8px">Phases shipped per day (velocity)</div><canvas id="cp"></canvas></div>
+  </div>
+  <div class="cb" style="margin-top:16px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Test suite composition (depth) — real pytest-collected count per area, not estimated</div>
+    <canvas id="ctm" style="max-height:420px"></canvas>
   </div>
 
   <div class="sec">Epoch 2 Progress -- The Value Cycle</div>
@@ -285,7 +302,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </div></div>
 
 <script>
-var D=null,PH=null,SYS=null,SYS2=null,rendered={};
+var D=null,PH=null,SYS=null,SYS2=null,TM=null,rendered={};
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function ageLabel(ts){if(!ts)return"unknown";var sec=(Date.now()-new Date(ts).getTime())/1000;if(sec<120)return Math.round(sec)+"s ago";if(sec<3600)return Math.round(sec/60)+"m ago";if(sec<86400)return(sec/3600).toFixed(1)+"h ago";return(sec/86400).toFixed(1)+"d ago";}
 function ageDot(ts,st){if(!ts)return"dot-grey";var h=(Date.now()-new Date(ts).getTime())/3600000;if(st==="error")return"dot-red";if(h>6)return"dot-red";if(h>1)return"dot-amber";return"dot-green";}
@@ -401,6 +418,22 @@ function renderKpis(){if(!D||!PH)return;var ann=(D.financial||{}).annual||[];var
   if(cte!=null)kpis.push({l:"Test executions",v:cte.toLocaleString(),title:cteTitle});
   document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){return'<div class="kpi"'+(k.title?' title="'+k.title.replace(/"/g,"&quot;")+'"':'')+'><div class="kl">'+k.l+'</div><div class="kv'+(k.g?" green":"")+'">'+k.v+'</div></div>';}).join("");}
 function renderCharts(){if(!PH)return;var tp=PH.test_progression||[];var lineOpts={responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:5,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}};new Chart(document.getElementById("ct"),{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:lineOpts});var pd=PH.phase_dates||[];var dm={};pd.forEach(function(p){dm[p[0]]=(dm[p[0]]||0)+1;});var days=Object.keys(dm).sort();var barOpts={responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.y+" phase"+(ctx.parsed.y===1?"":"s")+" shipped";}}}},scales:{x:{ticks:{color:"#52514e",autoSkip:false,maxRotation:60,minRotation:60,font:{size:9}},grid:{display:false}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"},title:{display:true,text:"Phases shipped",color:"#52514e",font:{size:10}}}}};new Chart(document.getElementById("cp"),{type:"bar",data:{labels:days,datasets:[{data:days.map(function(d){return dm[d];}),backgroundColor:"rgba(42,120,214,0.6)"}]},options:barOpts});}
+// Director page comments 2026-07-12: "so what... velocity and depth?" /
+// "show the mix of tests... scope of what we are testing" -- real
+// pytest-collected counts per test-suite area (tools/generate_test_mix_data.py),
+// not an estimate. Single-hue horizontal bar: the axis labels carry category
+// identity, color encodes nothing extra here, so one consistent hue (matching
+// the existing "Phases shipped" bar chart) is correct, no legend needed for
+// one series (dataviz skill).
+function renderTestMix(){
+  if(!TM||!TM.areas||!TM.areas.length)return;
+  var domainCountEl=document.getElementById("be-domain-count");
+  if(domainCountEl)domainCountEl.textContent=TM.areas.length;
+  var ctx=document.getElementById("ctm");
+  if(!ctx)return;
+  var areas=TM.areas; // already sorted descending by count
+  new Chart(ctx,{type:"bar",data:{labels:areas.map(function(a){return a.name;}),datasets:[{data:areas.map(function(a){return a.count;}),backgroundColor:"rgba(42,120,214,0.6)"}]},options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.x.toLocaleString()+" tests";}}}},scales:{x:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"},title:{display:true,text:"Tests collected (real pytest count)",color:"#52514e",font:{size:10}}},y:{ticks:{color:"#52514e",font:{size:10}},grid:{display:false}}}}});
+}
 function renderBuildStats(){if(!PH)return;var build=(D&&D.build)||{};var phases=PH.total_phases;var tests=build.test_count;var commits=PH.total_commits;var modules=build.company_modules;var parts=[];if(phases)parts.push(phases+" phases");if(tests)parts.push(tests.toLocaleString()+" tests");if(commits)parts.push(commits.toLocaleString()+" commits");var rmEl=document.getElementById("rm-stat");if(rmEl){var rmParts=[];if(modules)rmParts.push(modules+" modules");if(tests)rmParts.push(tests.toLocaleString()+" tests passing");if(commits)rmParts.push("("+commits.toLocaleString()+" commits)");rmEl.textContent=rmParts.length?rmParts.join(", "):"--";}}
 
 // ── MATURITY MAP (director page comment 2026-07-11: "the epoch's primary
@@ -513,7 +546,7 @@ function renderMMCampaign(){
   }).join("");
 }
 
-Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];renderKpis();renderCharts();renderBuildStats();if(MM){renderEpoch2Strip();renderMMView();}}).catch(function(e){console.error("Load error:",e);});
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];renderKpis();renderCharts();renderBuildStats();renderTestMix();if(MM){renderEpoch2Strip();renderMMView();}}).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="../shared/director-comments.js" defer></script>
 </body>

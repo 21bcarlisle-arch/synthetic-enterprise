@@ -421,6 +421,20 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("phases.json generation failed: {}".format(exc))
     try:
+        # Director page comments 2026-07-12 (/project/): "so what... velocity
+        # and depth?" / "show the mix of tests... scope of what we are
+        # testing" -- real pytest-collected counts per test-suite area, not
+        # an estimate. ~30-40s (20 pytest --collect-only subprocess calls)
+        # within an ~8-9min cycle; test-suite composition changes far less
+        # often than the financial data driving the rest of this pipeline,
+        # but re-running it every cycle is simpler than a staleness check
+        # for a <10% time addition (BUDGET_UNCONSTRAINED.md).
+        from tools.generate_test_mix_data import generate as gen_test_mix
+        gen_test_mix()
+        log("Generated site/data/test_mix.json")
+    except Exception as exc:
+        log("test_mix.json generation failed: {}".format(exc))
+    try:
         from tools.generate_capabilities_json import generate as gen_capabilities
         gen_capabilities()
         log("Generated site/data/capabilities.json")
