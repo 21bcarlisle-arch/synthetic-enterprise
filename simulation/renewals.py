@@ -12,8 +12,9 @@ reviewed/integrated by the frontier orchestrator — Phase 1c renewal
 increment.
 """
 
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 
+from company.governance.decision_rights import DecisionClass, log_decision_event
 from company.pricing.tariff_engine import CompanyTariffEngine
 
 from saas.tariff_pricing import price_fixed_tariff
@@ -147,6 +148,37 @@ def build_renewal_schedule(
                 naked_fraction=1 - MIN_HEDGE_FLOOR,
                 policy_cost_per_mwh=locked_policy,
                 network_cost_per_mwh=locked_network,
+            )
+            # GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 (thin start,
+            # 2026-07-12): the real pricing-organ decision -- every fixed-
+            # rate renewal/new-term tariff, for every customer, across the
+            # whole historical replay -- logged as a bitemporal decision-
+            # event. valid_time is the term this rate applies to;
+            # transaction_time is notice_date, when the company actually
+            # priced it (Phase 34a's own 42-day notice-period model), not
+            # term_start itself.
+            log_decision_event(
+                DecisionClass.PRICING_MOVE,
+                entity_id=customer_id,
+                request={
+                    "term_start": term_start_str,
+                    "tariff_type": tariff_type,
+                    "segment": segment,
+                },
+                context={
+                    "company_forward_price_gbp_per_mwh": company_fwd,
+                    "eac_kwh": eac_kwh,
+                    "locked_policy_cost_gbp_per_mwh": locked_policy,
+                    "locked_network_cost_gbp_per_mwh": locked_network,
+                },
+                decision={"unit_rate_gbp_per_mwh": unit_rate},
+                rationale=(
+                    "cost-floor forward estimate plus standard risk premium "
+                    "(naked_fraction={:.2f}); routine, below any escalation threshold "
+                    "in this thin-start register".format(1 - MIN_HEDGE_FLOOR)
+                ),
+                valid_time=term_start,
+                transaction_time=datetime.combine(notice_date, time(), tzinfo=timezone.utc),
             )
         next_start = term_start + timedelta(days=CONTRACT_LENGTH_DAYS)
         term_dict = {

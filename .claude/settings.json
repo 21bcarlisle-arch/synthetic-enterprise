@@ -36,6 +36,15 @@
             "command": "python3 .claude/hooks/block_point_in_time_read.py"
           }
         ]
+      },
+      {
+        "matcher": "Read|Glob|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/lane_wall_hook.py"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [

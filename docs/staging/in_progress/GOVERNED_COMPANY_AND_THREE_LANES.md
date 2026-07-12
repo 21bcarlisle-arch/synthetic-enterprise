@@ -1,5 +1,21 @@
 # GOVERNED_COMPANY_AND_THREE_LANES — decision rights + wall-split parallelism (P1)
 
+**STATUS (2026-07-12): DoD's 4 items all actioned this pass, standing item
+NOT fully closed.** Built: decision-rights register + pricing decision-
+events (`company/governance/decision_rights.py`, wired to
+`simulation/renewals.py`, maturity-map atom `A2_decision_rights_register`
+level 0->1); lane-wall dev-time hook piloted and demonstrated both
+directions (`.claude/hooks/lane_wall_hook.py`, atom
+`H6_lane_wall_development_pilot` level 0->1). Registered only, not built:
+`A3_approval_interface` and `A4_sim_approver` atoms, with the two honesty
+disciplines recorded verbatim. Written: the overdue parallel-lanes proposal
+(`docs/design/PARALLEL_LANES_PROPOSAL.md`). Stays in `in_progress/` (not
+`done/`) because the standing item itself isn't closed -- A3/A4 have no
+build date, the parallel-lanes proposal's own recommendations (worktree
+adoption, marker-file lane-keying for multi-agent fan-out) aren't yet
+acted on, and only 1 of 6 decision classes is wired to a real call site.
+Full text below is the original staged instruction, unchanged.
+
 **Staged:** 2026-07-12 by advisor; director-decided in live conversation
 ("human-in-the-loop governance interface... and for the SIM an invisible
 agent acting as that human; turns forking into a benefit not a risk").

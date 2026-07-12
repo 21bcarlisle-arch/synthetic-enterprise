@@ -433,6 +433,66 @@
   real_world_twin: "a board strategy/risk committee's own retro cadence"
   depends_on: []
 
+- id: A2_decision_rights_register
+  name: "Decision-rights register + bitemporal decision-event logging"
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  evidence: ["company/governance/decision_rights.py", "tests/company/governance/test_decision_rights.py", "simulation/renewals.py (real call site)", "tests/simulation/test_renewals.py (integration tests proving real decision-events land)"]
+  simplifications: ["2026-07-12 BUILT, level 0->1 (GOVERNED_COMPANY_AND_THREE_LANES.md Part 1, director-decided in live conversation, 'Registration + thin-start + pilot -- NOT a big-bang build'): a versioned, director-owned register of 6 decision classes (pricing_move, hedge_mandate_change, credit_collections_policy, customer_harm_remediation, legal_contractual_commitment, spend_above_threshold), each with trigger/context-pack-requirement/approver/SLA/expected-effort fields (Part 1b's rate-card addendum folded in from the FIRST event, not retrofitted). Only pricing_move is wired to a real call site this pass -- simulation/renewals.py::build_renewal_schedule(), the actual per-customer per-renewal tariff-rate decision, logging a real DecisionEvent on the bitemporal spine (company/interfaces/bitemporal_event_log.py, reused not reinvented) for every fixed-rate term across the full historical replay. valid_time=the term the rate applies to, transaction_time=notice_date (the real Phase-34a 42-day pricing-notice date, not term_start). actual_effort_minutes/actual_elapsed_seconds are honestly None throughout -- there is no sim-approver yet (A4, still level 0) to draw a realistic actual from, and fabricating one would violate the same R12 discipline BitemporalEventLog.as_known_at() already applies. The two honesty disciplines (sim-approver policy is director-authored curriculum, never agent-tuned; the approver sits OUTSIDE the wall, sees only the submitted context pack) are recorded verbatim in company/governance/decision_rights.py's own module docstring, governing how A3/A4 must be built when their own work starts. NOT yet done (why level_current stops at 1, not higher): the other 5 decision classes are registered but not wired to any real call site; no approval interface exists to actually route a decision for review (that's A3); no sim-approver exists to draw realistic actual-effort data (that's A4); the FTE-required reporting surface Part 1b describes has no accruing data yet. 7 new tests (company/governance) + 3 new tests (simulation/renewals.py integration), epistemic PASS."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real energy supplier's pricing committee minute-book -- what was decided, on what evidence, by whom, when"
+  depends_on: []
+
+- id: A3_approval_interface
+  name: "Approval interface (requests-awaiting-decision surface, human-operable)"
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  evidence: ["docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md"]
+  simplifications: ["2026-07-12 REGISTERED (GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 item 2, Epoch 2/3 boundary), not built -- requests-awaiting-decision as events + a surface/API a human can actually operate (the Director console door already in the site constitution hosts it). Approval LATENCY is real physics: a pricing window that closes while a request waits is a genuine governance cost, to be modelled not wished away. Two honesty disciplines this atom's eventual build MUST satisfy, recorded verbatim from the staged instruction: (1) the sim-approver's policy is DIRECTOR-AUTHORED CURRICULUM -- written, versioned, his -- never learned/tuned by the agent from outcomes; (2) the approver sits OUTSIDE the company's wall like a real board: it sees the submitted context pack, not SIM ground truth, not company internals beyond what is submitted -- a board that can grep the codebase is not a board. Context packs are LINKS not prose (Part 1b item 4): every approval request carries links to the exact website surfaces/data needed to decide, plus the company's recommendation -- makes the Expert-Hour legibility standard a testable property of the site itself. loop_stage idle: sequencing is the director's own re-rank per the staged instruction's own text, not a self-answerable FRAME/BUILD task this pass."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real board approval workflow / a supplier's pricing-committee sign-off process"
+  depends_on: [A2_decision_rights_register]
+
+- id: A4_sim_approver
+  name: "Sim-approver (policy-agent playing the human approver for tournament runs)"
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 4
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/in_progress/GOVERNED_COMPANY_AND_THREE_LANES.md"]
+  simplifications: ["2026-07-12 REGISTERED (GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 item 3, 'the elegant part' -- Epoch-4 tournament machinery, director-decided in live conversation: 'for the SIM an invisible agent acting as that human; turns forking into a benefit not a risk'), not built. sim-twin = a policy-agent playing the human approver so tournament lives don't need the director ten thousand times; real-twin = the director via the approval interface (A3); go-live = swap the adapter, identical pattern to the Bacs/meter-read boundary adapters already built (tools/meter_read_port.py, simulation/bacs_rails.py), applied to governance itself. Same two verbatim honesty disciplines as A3 govern this atom's eventual build (director-authored curriculum policy, never agent-tuned; sits outside the wall, context-pack-only). Deliberately Epoch 4, far downstream of the current Epoch-2 hot lane -- registered for sequencing, not queued for build."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real board member reviewing a submitted paper, not an auditor with database access"
+  depends_on: [A3_approval_interface]
+
+- id: H6_lane_wall_development_pilot
+  name: "Development-time epistemic wall (lane hook pilot, fork as enforcement not risk)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 1
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 1
+  evidence: [".claude/hooks/lane_wall_hook.py", "tests/tools/test_lane_wall_hook.py", "docs/observability/lane_hook_denials.jsonl (2 real demonstrated denials, both directions)"]
+  simplifications: ["2026-07-12 BUILT, level 0->1 (GOVERNED_COMPANY_AND_THREE_LANES.md Part 2 item 1, director-decided, 'fork as enforcement, not risk'): a PreToolUse hook (Read|Glob|Grep matcher) that, when a session declares SE_LANE=supplier or SE_LANE=sim via env var, denies reads crossing to the other side of the sim/company wall -- extending the epistemic wall from RUNTIME into DEVELOPMENT itself ('builder blindness, not just runtime blindness'). No-op (SE_LANE unset) for every normal session, including this one -- deliberately opt-in, not a standing restriction. Demonstrated both directions for real (not just in the automated test suite): a supplier-lane Read of simulation/renewals.py denied and logged; a sim-lane Read of company/pricing/tariff_engine.py denied and logged -- both in docs/observability/lane_hook_denials.jsonl. Live harness-level self-test (setting SE_LANE in this session's own environment to prove the REGISTERED hook fires via settings.json, not just the script directly) was deliberately NOT attempted -- correctly registering it in .claude/settings.json (schema-validated, matches the existing proven-working hook pattern exactly) plus direct pipe-testing was judged sufficient evidence without risking self-locking this session out of company/saas or sim/simulation reads mid-turn with no easy self-administered undo. NOT yet done (why level_current stops at 1, not higher): the full three-lane development model (separate contexts/worktrees per lane, typed-interface-only communication) is NOT this pilot -- that is the still-owed parallel-lanes proposal (docs/design/PARALLEL_LANES_PROPOSAL.md); Bash is out of scope for this pilot (Read/Glob/Grep only -- a `cat sim/foo.py` via Bash is not denied), registered as a known gap, not silently ignored. 14 new tests, epistemic PASS."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the epistemic wall a real Chinese-wall compliance regime enforces on WHO can even see certain material, not just what they're allowed to act on"
+  depends_on: []
+
 - id: H1_supervisor_turn_granting
   name: "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)"
   lane: H_harness

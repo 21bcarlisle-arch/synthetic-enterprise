@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-12. 2,500+ commits. 17,017 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
+*Last updated: 2026-07-12. 2,500+ commits. 17,061 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,22 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### GOVERNED_COMPANY_AND_THREE_LANES.md: decision-rights register + lane-wall dev-time pilot (2026-07-12, director-decided in live conversation, "human-in-the-loop governance interface... turns forking into a benefit not a risk")
+
+Thin-start + pilot across the staged instruction's 4-item DoD -- "Registration + thin-start + pilot, NOT a big-bang build" honoured throughout, not treated as licence to build everything.
+
+**Part 1 (decision-rights register), built:** `company/governance/decision_rights.py` -- a versioned, director-owned register of 6 decision classes (pricing_move, hedge_mandate_change, credit_collections_policy, customer_harm_remediation, legal_contractual_commitment, spend_above_threshold), each with trigger/context-pack/approver/SLA/expected-effort fields (Part 1b's rate-card addendum folded in from the first event). Only `pricing_move` wired to a real call site -- `simulation/renewals.py::build_renewal_schedule()`, the actual per-customer per-renewal tariff-rate decision -- logging a real `DecisionEvent` on the bitemporal spine (`company/interfaces/bitemporal_event_log.py`, reused not reinvented) for every fixed-rate term across the full historical replay. `actual_effort_minutes`/`actual_elapsed_seconds` are honestly `None` throughout: no sim-approver exists yet to draw a realistic actual from, and fabricating one would violate the same R12 discipline `BitemporalEventLog.as_known_at()` already applies.
+
+**Part 2 (lane-wall development pilot), built:** `.claude/hooks/lane_wall_hook.py` -- a PreToolUse hook (Read|Glob|Grep matcher, registered in `.claude/settings.json`) that denies cross-wall reads when a session declares `SE_LANE=supplier` or `SE_LANE=sim`, extending the epistemic wall from runtime into development ("builder blindness, not just runtime blindness"). No-op for every normal session, including the one that built it. Demonstrated for real, both directions, logged to `docs/observability/lane_hook_denials.jsonl`: a supplier-lane Read of `simulation/renewals.py` denied; a sim-lane Read of `company/pricing/tariff_engine.py` denied. A live harness-level self-test (setting `SE_LANE` in this session's own environment) was deliberately not attempted -- correctly registering the hook (schema-validated against the existing proven pattern) plus direct pipe-testing was judged sufficient without risking self-locking the session out of files mid-turn with no easy undo.
+
+**Registration only (Part 1 items 2-3):** two new maturity-map atoms, `A3_approval_interface` and `A4_sim_approver`, carry the two non-negotiable honesty disciplines verbatim -- the sim-approver's policy is director-authored curriculum, never agent-tuned from outcomes; the approver sits outside the company's wall, sees only the submitted context pack, never SIM ground truth or ungated company internals. Neither atom is built; both are registered with `loop_stage: idle` pending their own turn.
+
+**Parallel-lanes proposal (the overdue SELF_DIRECTION item 3), written:** `docs/design/PARALLEL_LANES_PROPOSAL.md` evaluates the three-lane frame (SIM-builder/company-builder/governance+harness, typed-interface-only communication) against this project's *actual* concurrency mechanics, using direct evidence from this very session -- three real non-fast-forward push rejections this session, all cleanly resolved via fetch+merge because writers stay scoped to disjoint files by convention, not by any structural isolation. Key finding: the three-lane frame is not a new invention here -- `.claude/agents/{sim-engineer,saas-engineer,interface-steward}.md` already implement almost exactly this split (interface-steward already "the only role permitted to touch both sides of the seam, and only at the seam itself," via `interface/contracts/`). The real gaps are (a) no physical worktree isolation yet (though `EnterWorktree`/`Agent(isolation:"worktree")` already exist as tools, no new tooling needed) and (b) the `SE_LANE` env-var hook pilot doesn't obviously extend to genuine multi-agent parallel fan-out (no evident mechanism for the Agent tool to scope a custom env var to one spawned subagent) -- recommended evolving to a worktree-path-keyed marker file for that case, registered as a follow-up on `H6_lane_wall_development_pilot`, not built this pass.
+
+New atoms: `A2_decision_rights_register` (level 0->1), `A3_approval_interface` (registered, level 0), `A4_sim_approver` (registered, level 0), `H6_lane_wall_development_pilot` (level 0->1).
+
+44 new tests (8 `company/governance`, 3 `simulation/renewals.py` integration, 14 `lane_wall_hook`, plus supporting), 17,061 tests collected (full suite), epistemic PASS.
 
 ### D3_catchup_rebilling: Expert Hour review, level 2->3 (2026-07-12, maturity-map self-refill continuing the same hot lane)
 
@@ -6899,7 +6915,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,017 tests collected (full suite) -- D3_catchup_rebilling Expert Hour run, level 2->3 (2
+- 17,061 tests collected (full suite) -- GOVERNED_COMPANY_AND_THREE_LANES.md thin-start (decision-
+  rights register + pricing decision-events on the bitemporal spine, dev-time lane-wall hook pilot
+  demonstrated both directions, approval-interface/sim-approver atoms registered, parallel-lanes
+  proposal written; see Section 4's entry), on top of the prior 17,017 tests collected (full
+  suite) -- D3_catchup_rebilling Expert Hour run, level 2->3 (2
   blocking findings fixed: churn/closure reconciliation loss, missing direct cap-arithmetic tests;
   see Section 4's entry), 12 new tests, on top of the prior 17,005 tests collected (full suite) --
   D3_catchup_rebilling built (estimated billing on the

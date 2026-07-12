@@ -23,6 +23,59 @@ def test_build_renewal_schedule_without_lookback_temps_fn_unchanged():
     assert schedule[0]["forward_price_gbp_per_mwh"] > 0
 
 
+# --- GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 (thin start, 2026-07-12):
+# every fixed-rate renewal decision logs a bitemporal decision-event ---
+
+def test_build_renewal_schedule_logs_a_pricing_decision_event():
+    from company.governance.decision_rights import DecisionClass, get_decision_log, reset_decision_log
+
+    reset_decision_log()
+    records = _flat_price_records("2015-10-01", "2017-06-30")
+    schedule = build_renewal_schedule("C_GOV_TEST", "2016-01-01", "2016-01-01", records, 2800)
+
+    log = get_decision_log()
+    matches = [
+        r for r in log.all_records()
+        if r.entity_id == "C_GOV_TEST" and r.fact_type == "decision_event:pricing_move"
+    ]
+    assert len(matches) == 1, "one fixed-rate term must log exactly one pricing decision-event"
+    event = matches[0].value
+    assert event.decision["unit_rate_gbp_per_mwh"] == schedule[0]["unit_rate_gbp_per_mwh"]
+    assert event.decision_class == DecisionClass.PRICING_MOVE
+    assert event.valid_time == date(2016, 1, 1)
+    reset_decision_log()
+
+
+def test_build_renewal_schedule_logs_one_event_per_fixed_rate_term():
+    from company.governance.decision_rights import get_decision_log, reset_decision_log
+
+    reset_decision_log()
+    records = _flat_price_records("2015-10-01", "2019-06-30")
+    build_renewal_schedule("C_GOV_TEST2", "2016-01-01", "2018-01-01", records, 2800)
+
+    log = get_decision_log()
+    matches = [
+        r for r in log.all_records()
+        if r.entity_id == "C_GOV_TEST2" and r.fact_type == "decision_event:pricing_move"
+    ]
+    assert len(matches) >= 2, "a multi-term schedule must log one decision-event per fixed-rate term"
+    reset_decision_log()
+
+
+def test_build_renewal_schedule_flex_tariff_does_not_log_pricing_decision():
+    """flex has no locked unit rate -- nothing to log as a pricing_move decision."""
+    from company.governance.decision_rights import get_decision_log, reset_decision_log
+
+    reset_decision_log()
+    records = _flat_price_records("2015-10-01", "2017-06-30")
+    build_renewal_schedule("C_GOV_TEST3", "2016-01-01", "2016-01-01", records, 2800, tariff_type="flex")
+
+    log = get_decision_log()
+    matches = [r for r in log.all_records() if r.entity_id == "C_GOV_TEST3"]
+    assert matches == []
+    reset_decision_log()
+
+
 def test_build_renewal_schedule_cold_spell_lookback_raises_forward_price():
     records = _flat_price_records("2015-10-01", "2017-06-30")
 
