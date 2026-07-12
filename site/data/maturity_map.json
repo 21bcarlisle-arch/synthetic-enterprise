@@ -41,7 +41,7 @@
       "level_target": 2,
       "loop_stage": "idle",
       "dial_inherited": 4,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "passed",
       "depends_on": [
         "W1_reveal_over_time"
       ],
@@ -613,13 +613,13 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 1,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "H1_supervisor_turn_granting",

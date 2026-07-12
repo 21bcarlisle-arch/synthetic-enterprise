@@ -48,11 +48,42 @@ import time
 from pathlib import Path
 
 DENIAL_LOG = Path("docs/observability/lane_hook_denials.jsonl")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
+# 2026-07-12 HARDEN pass (docs/observability/invariant_redteam-style adversarial
+# review, self-refill dial-weighted draw): the original `path.lstrip("./")`
+# normalization only stripped a leading "./" -- it did nothing for an
+# ABSOLUTE path (confirmed: Claude Code's own Read tool spec requires
+# absolute paths, meaning this hook's Read-side protection was very likely
+# dead on arrival against real Read calls, not just a contrived edge case),
+# nothing for a `..`-traversal that resolves back into denied territory
+# (including one disguised behind REGULATION_COMMONS_DOCTRINE.md's own
+# shared-readable docs/domain_artefact_library/ prefix), and nothing for a
+# differently-cased path. All three are the same root cause: comparing a
+# barely-touched string instead of a properly RESOLVED, repo-root-relative,
+# case-normalized path. Fixed by _normalize_path() below; deny patterns are
+# now matched against that, never the raw caller-supplied string.
 _LANE_DENIES = {
     "supplier": re.compile(r"^(sim|simulation)/"),
     "sim": re.compile(r"^(company|saas)/"),
 }
+
+
+def _normalize_path(path_str: str) -> str | None:
+    """Resolve `path_str` (absolute or relative, however messy -- `..`
+    segments, redundant slashes, mixed case) against the repo root and
+    return its lowercased, POSIX-style path relative to the repo root.
+    Returns None if it resolves outside the repo entirely (not this
+    hook's concern) or can't be resolved at all."""
+    try:
+        p = Path(path_str)
+        if not p.is_absolute():
+            p = REPO_ROOT / p
+        resolved = p.resolve()
+        rel = resolved.relative_to(REPO_ROOT)
+    except (ValueError, OSError):
+        return None
+    return rel.as_posix().lower()
 
 # REGULATION_COMMONS_DOCTRINE.md (2026-07-12): "the TEXT is a commons" --
 # regulatory rule digests (the fidelity oracle and successors) live in
@@ -67,6 +98,7 @@ SHARED_READABLE = ("docs/domain_artefact_library/",)
 _PATH_BEARING_TOOLS = {"Read", "Glob"}
 _GREP_TOOL = "Grep"
 _MARKER_FILE_NAME = ".se_lane"
+_SCOPED_TOOLS = _PATH_BEARING_TOOLS | {_GREP_TOOL}
 
 
 def _lane_from_marker_file() -> str | None:
@@ -74,22 +106,84 @@ def _lane_from_marker_file() -> str | None:
     directory, if one exists. Deliberately only checks cwd (not walking up
     parent directories) -- a worktree root IS the hook's cwd for any tool
     call made from within it, so a marker one level up would be a
-    different worktree/repo, not this one's declaration."""
+    different worktree/repo, not this one's declaration.
+
+    HARDEN pass fixes: only the FIRST line is read (a stray second line --
+    e.g. accidental extra content -- no longer silently corrupts the
+    comparison via a leftover embedded newline surviving .strip()), and
+    the result is lowercased so "Supplier" matches the same as "supplier"
+    (this project's own directories/lane names are case-normalized
+    everywhere else; a marker file shouldn't be the one place case-
+    sensitivity quietly disables the wall). An existing-but-unreadable
+    marker (e.g. corrupted permissions) previously failed open with zero
+    signal; now logs a warning to stderr before falling through -- still
+    fails open (this is a soft dev-time pilot, not the runtime wall), but
+    no longer silently."""
+    marker = Path.cwd() / _MARKER_FILE_NAME
+    if not marker.is_file():
+        return None
     try:
-        marker = Path.cwd() / _MARKER_FILE_NAME
-        if marker.is_file():
-            return marker.read_text().strip()
-    except OSError:
-        pass
-    return None
+        first_line = marker.read_text().splitlines()[0] if marker.stat().st_size else ""
+        return first_line.strip().lower() or None
+    except OSError as exc:
+        sys.stderr.write(
+            "lane_wall_hook.py: WARNING -- {} exists but could not be read "
+            "({}); lane enforcement DISABLED for this call rather than "
+            "silently assumed correct.\n".format(marker, exc)
+        )
+        return None
 
 
-def _target_path(tool_name: str, tool_input: dict) -> str | None:
-    if tool_name in _PATH_BEARING_TOOLS:
-        return tool_input.get("file_path") or tool_input.get("path")
+def _target_paths(tool_name: str, tool_input: dict) -> list[str]:
+    """Every path-shaped string this call could touch. Glob's own `pattern`
+    (e.g. "sim/**/*.py") is path-shaped and checked alongside `path` --
+    Grep's `pattern` is a content search string, never a path, and is
+    deliberately NOT checked here."""
+    if tool_name == "Read":
+        p = tool_input.get("file_path") or tool_input.get("path")
+        return [p] if p else []
+    if tool_name == "Glob":
+        path = tool_input.get("path")
+        pattern = tool_input.get("pattern")
+        # `pattern` is resolved RELATIVE TO `path` (Glob semantics) -- check
+        # the combined string, not each independently, or a base "path" of
+        # "simulation/" with pattern "*.py" would be checked as two
+        # unrelated fragments, neither of which alone matches the deny
+        # regex's own "^(sim|simulation)/" anchor.
+        if path and pattern:
+            return [path.rstrip("/") + "/" + pattern]
+        if path:
+            return [path]
+        if pattern:
+            return [pattern]
+        return []
     if tool_name == _GREP_TOOL:
-        return tool_input.get("path")
-    return None
+        p = tool_input.get("path")
+        return [p] if p else []
+    return []
+
+
+def _has_explicit_scope(tool_name: str, tool_input: dict) -> bool:
+    """Did the caller give this call ANY explicit scoping path at all?
+    Glob/Grep with no `path` (or `path="."`) search from cwd recursively --
+    on a single, un-worktree-isolated checkout that recurses straight
+    through both sides of the wall, and a hook can only allow/deny a whole
+    call, never filter its results. HARDEN pass fix: an unscoped
+    Glob/Grep call is denied outright while a lane is active rather than
+    silently passed through as "no path to check.\""""
+    if tool_name == "Read":
+        return True  # always has file_path -- not this ambiguity's concern
+    path = tool_input.get("path")
+    if tool_name == "Glob":
+        pattern = tool_input.get("pattern") or ""
+        # An absolute or repo-rooted pattern (e.g. "sim/**/*.py") is its
+        # own scope even with no separate `path` key.
+        if path and path not in (".", "./"):
+            return True
+        return bool(pattern) and not pattern.startswith("**")
+    if tool_name == _GREP_TOOL:
+        return bool(path) and path not in (".", "./")
+    return True
 
 
 def _log_denial(lane: str, tool_name: str, path: str) -> None:
@@ -104,8 +198,22 @@ def _log_denial(lane: str, tool_name: str, path: str) -> None:
         f.write(json.dumps(entry) + "\n")
 
 
+def _resolve_lane() -> str | None:
+    """HARDEN pass fix: the original `env or marker_file` used TRUTHINESS,
+    not VALIDITY -- any non-empty SE_LANE (even a typo/leftover env var
+    from an unrelated tool) won over a correctly-configured `.se_lane`
+    file and silently disabled enforcement. Now: a set-and-VALID env var
+    wins (the explicit, harder-to-leave-behind-by-accident signal); a
+    set-but-INVALID env var falls through to the marker file instead of
+    silently nullifying it."""
+    env_lane = os.environ.get("SE_LANE")
+    if env_lane and env_lane in _LANE_DENIES:
+        return env_lane
+    return _lane_from_marker_file()
+
+
 def main() -> int:
-    lane = os.environ.get("SE_LANE") or _lane_from_marker_file()
+    lane = _resolve_lane()
     if not lane or lane not in _LANE_DENIES:
         return 0
 
@@ -115,30 +223,38 @@ def main() -> int:
         return 0
 
     tool_name = payload.get("tool_name")
-    if tool_name not in _PATH_BEARING_TOOLS and tool_name != _GREP_TOOL:
+    if tool_name not in _SCOPED_TOOLS:
         return 0
 
     tool_input = payload.get("tool_input") or {}
-    path = _target_path(tool_name, tool_input)
-    if not path:
-        return 0
 
-    # Relative-path match only (a path outside the repo, e.g. an absolute
-    # /home/... path to a non-wall location, is not this hook's concern).
-    normalized = path.lstrip("./")
-    if not _LANE_DENIES[lane].match(normalized):
-        return 0
+    if not _has_explicit_scope(tool_name, tool_input):
+        _log_denial(lane, tool_name, "<unscoped -- no path/pattern given>")
+        sys.stderr.write(
+            "DENIED by lane_wall_hook.py: this session is lane={} -- an "
+            "unscoped {} call (no explicit path/pattern) would recurse "
+            "across the whole tree, including the other side of the wall. "
+            "Give it an explicit, scoped path.\n".format(lane, tool_name)
+        )
+        return 2
 
-    _log_denial(lane, tool_name, path)
-    other_side = "sim/simulation" if lane == "supplier" else "company/saas"
-    sys.stderr.write(
-        "DENIED by lane_wall_hook.py: this session is SE_LANE={} -- {} on {!r} "
-        "crosses into {} territory, denied by the development-time wall pilot "
-        "(GOVERNED_COMPANY_AND_THREE_LANES.md Part 2). If this lane genuinely "
-        "needs cross-wall data, it should arrive through a typed interface "
-        "contract, not a direct read.\n".format(lane, tool_name, path, other_side)
-    )
-    return 2
+    for raw_path in _target_paths(tool_name, tool_input):
+        normalized = _normalize_path(raw_path)
+        if normalized is None:
+            continue  # outside the repo entirely -- not this hook's concern
+        if _LANE_DENIES[lane].match(normalized):
+            _log_denial(lane, tool_name, raw_path)
+            other_side = "sim/simulation" if lane == "supplier" else "company/saas"
+            sys.stderr.write(
+                "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
+                "crosses into {} territory, denied by the development-time wall pilot "
+                "(GOVERNED_COMPANY_AND_THREE_LANES.md Part 2). If this lane genuinely "
+                "needs cross-wall data, it should arrive through a typed interface "
+                "contract, not a direct read.\n".format(lane, tool_name, raw_path, other_side)
+            )
+            return 2
+
+    return 0
 
 
 if __name__ == "__main__":

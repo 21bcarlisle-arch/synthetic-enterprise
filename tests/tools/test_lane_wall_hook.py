@@ -72,7 +72,7 @@ class TestLaneWallHook:
         )
         assert result.returncode == 2
         assert "DENIED" in result.stderr
-        assert "SE_LANE=supplier" in result.stderr
+        assert "lane=supplier" in result.stderr
 
     def test_supplier_lane_denies_simulation_read(self):
         result = _run(
@@ -94,7 +94,7 @@ class TestLaneWallHook:
             env={"SE_LANE": "sim"},
         )
         assert result.returncode == 2
-        assert "SE_LANE=sim" in result.stderr
+        assert "lane=sim" in result.stderr
 
     def test_sim_lane_denies_saas_read(self):
         result = _run(
@@ -201,7 +201,7 @@ class TestMarkerFileLaneKeying:
             cwd=tmp_path,
         )
         assert result.returncode == 2
-        assert "SE_LANE=supplier" in result.stderr
+        assert "lane=supplier" in result.stderr
 
     def test_marker_file_activates_sim_lane(self, tmp_path):
         (tmp_path / ".se_lane").write_text("sim")
@@ -252,4 +252,136 @@ class TestMarkerFileLaneKeying:
             cwd=tmp_path,
         )
         assert result.returncode == 2
-        assert "SE_LANE=supplier" in result.stderr
+        assert "lane=supplier" in result.stderr
+
+
+# --- HARDEN pass (2026-07-12, adversarial red-team): 7 confirmed findings ---
+
+
+class TestHardenPassFixes:
+    def test_absolute_path_bypass_now_denied(self):
+        # Finding 1 (most severe): Claude Code's own Read tool spec requires
+        # absolute paths -- the old lstrip("./") normalization never
+        # touched an absolute path at all, so this was likely dead on
+        # arrival against real Read calls, not a contrived edge case.
+        abs_path = str(REPO_ROOT / "company" / "pricing" / "tariff_engine.py")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": abs_path}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_directory_traversal_bypass_now_denied(self):
+        # Finding 2: a ".."-traversal that resolves back into denied
+        # territory, including one disguised behind the commons doctrine's
+        # own shared-readable prefix.
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "docs/../company/pricing/tariff_engine.py"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_traversal_disguised_behind_shared_readable_prefix_denied(self):
+        result = _run(
+            {
+                "tool_name": "Read",
+                "tool_input": {
+                    "file_path": "docs/domain_artefact_library/../../company/pricing/tariff_engine.py"
+                },
+            },
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_case_sensitivity_bypass_now_denied(self):
+        # Finding 4.
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "Sim/forward_curve.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+        result2 = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "SIMULATION/renewals.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result2.returncode == 2
+
+    def test_glob_pattern_only_no_path_key_now_checked(self):
+        # Finding 3: Glob's own `pattern` (path-shaped) is now inspected,
+        # not just `path`.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "sim/**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_grep_with_explicit_dot_path_denied_outright(self):
+        # Finding 3 continued: an explicit "." path is equivalent to no
+        # scoping at all and must be denied outright while a lane is active.
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "forward_curve", "path": "."}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_grep_with_no_path_at_all_denied_outright(self):
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "forward_curve"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_grep_with_real_scoped_path_still_correctly_checked(self):
+        # An explicitly-scoped Grep into the ALLOWED side must still pass.
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "def foo", "path": "company/"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_garbage_env_var_no_longer_nullifies_a_valid_marker_file(self, tmp_path):
+        # Finding 5: truthiness, not validity, previously decided
+        # precedence -- a typo'd/leftover SE_LANE silently beat a
+        # well-formed marker file with zero signal.
+        (tmp_path / ".se_lane").write_text("supplier")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            env={"SE_LANE": "typo_lane"},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+
+    def test_marker_file_mixed_case_now_matches(self, tmp_path):
+        # Finding 6.
+        (tmp_path / ".se_lane").write_text("Supplier")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+
+    def test_marker_file_with_extra_line_no_longer_corrupts_lookup(self, tmp_path):
+        # Finding 6 continued: only the first line is read.
+        (tmp_path / ".se_lane").write_text("supplier\nextra_garbage_line")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+
+    def test_unreadable_marker_file_still_fails_open_but_now_warns(self, tmp_path):
+        # Finding 7: still fails open (this is a soft dev-time pilot, not
+        # the runtime wall) but now logs a visible warning rather than
+        # silently swallowing the error.
+        marker = tmp_path / ".se_lane"
+        marker.write_text("supplier")
+        marker.chmod(0o000)
+        try:
+            result = _run(
+                {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+                cwd=tmp_path,
+            )
+            assert result.returncode == 0  # still fails open by design
+            assert "WARNING" in result.stderr
+        finally:
+            marker.chmod(0o644)  # restore so tmp_path cleanup can remove it
