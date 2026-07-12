@@ -26,9 +26,13 @@ with the population draw"). Named events: job loss, illness, divorce, retirement
   AND to the direction of travel: a real, current, ongoing DECLINE, not a stable historical constant
   — worth flagging for whichever period (BASELINE vs CURRICULUM, R13) this atom's incidence rates
   are ultimately anchored to.
-- **Retirement.** ONS publishes real State Pension age population/flow statistics, but the specific
-  datasets surfaced in this pass only went up to 2021 in their public summary — a genuine gap (see
-  below), not filled by assumption.
+- **Retirement.** [L] 13.2 million state pensioners in Great Britain 2025/26; 13.1 million receiving
+  the State Pension at Feb 2025, up 210,000 year-on-year — a real, current net-flow anchor (updates
+  the earlier 2021-cutoff dataset found in the first pass). [L] 4.7 million on the post-2016-reform
+  "new State Pension" (nSP), up 720,000 y/y — a second real, current flow-adjacent figure. Live
+  policy fact directly relevant to this event's timing: State Pension age rises to 67 from April
+  2026, completing March 2028 — retirement timing is not a stable constant over this atom's own
+  simulation horizon (same R13 caution as the fertility-rate finding below).
 
 ## Shared-generator implication (confirmed, not new — cross-checked against the registration)
 
@@ -47,9 +51,6 @@ or duplicate separate generators per consumer.
   annual counts (divorces, births) requiring a matching denominator (households, married couples,
   women of childbearing age) this pass did not source. Converting these into per-customer/per-run
   probabilities is real, unstarted FRAME/BUILD work, not implied by the raw figures found here.
-- **Retirement flow data was the least resolved anchor** — ONS confirmed to publish it, but the
-  specific dataset surfaced in this pass only covers historical years up to 2021; a more targeted
-  search (or a direct ONS dataset pull) is needed for a current figure before this event is sized.
 - No UK-specific research was found in this pass connecting these life events QUANTITATIVELY to
   energy-bill payment difficulty specifically (as opposed to general financial distress) — the
   causal link is asserted by this atom's own registration and by real-world plausibility, not
