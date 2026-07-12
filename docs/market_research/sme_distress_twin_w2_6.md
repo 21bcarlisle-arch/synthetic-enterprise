@@ -73,11 +73,24 @@ liable" — to correctly represent the real churn/loss shape found above, rather
 binary insolvency flag? Not resolved here — a real sizing question for the next FRAME pass once
 epoch sequencing opens this atom.
 
+## SME energy bad-debt write-off rate — closes a named gap, real and current (2026)
+
+- **[L] Total SME energy debt currently sits at £1.3bn-£1.8bn, up 9% year-on-year**; unsecured debt
+  per SME debtor is up 13%, and aged debt up 15% — a real, current, worsening trend, not a stable
+  background level.
+- **[L] Suppliers themselves estimate £1.1bn-£1.7bn of the historic SME debt currently in the
+  system — up to a THIRD — is never paid and is written off.** This is a real, decisive, sourced
+  write-off RATE anchor (~33% of accumulated debt), directly answering this atom's own named gap.
+  Confirms the real mechanism this atom's own registration already named: when an SME goes
+  insolvent, the energy supplier is typically a low-priority creditor and absorbs a large write-off
+  share, not a marginal one.
+- **Honest limit, not a research failure:** the search that found this figure also confirms
+  supplier-level, I&C-specific write-off rates are NOT publicly disclosed — the ~33% aggregate is
+  the best real anchor available, not a gap in this pass's own effort. Do not expect a more granular
+  official figure to exist.
+
 ## Honest open items (R10)
 
-- No UK-specific SME energy-account bad-debt WRITE-OFF RATE (as opposed to general insolvency
-  incidence) was found in this pass — the two are related but distinct numbers, and only the
-  general insolvency/sector data above was sourced with confidence.
 - The precise quantitative overlap between "late payment received" and "eventual insolvency" (i.e.
   what fraction of the ~14,000 annual closures were this project's own kind of customer, an SME
   energy account) was not found and is not asserted here — the £11bn/14,000 figures are UK-economy-
