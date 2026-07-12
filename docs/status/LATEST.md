@@ -1,47 +1,41 @@
-## E2_revenue_reconciliation L3 EARNED (live-verified) + W1 Expert Hour PASS + W2_7 DISCOVER
-Last updated: 2026-07-12T21:54:23Z
+## Background-worker NTFY fix (root-caused recurring pipeline failures) + wide DISCOVER batch
+Last updated: 2026-07-12T21:56:06Z
 
-**Status:** self-refill cycle (idle-tier DISCOVER/FRAME + dial-weighted BUILD), all changes pushed
-and live-verified where R11 applies. Epistemic PASS throughout.
+**Status:** self-refill cycle (idle-tier DISCOVER/FRAME), latest sim run processed successfully.
+Epistemic PASS throughout. All commits pushed.
 
-**E2_revenue_reconciliation (level 2->3, TARGET REACHED, live-verified):** the front page
-(poesys.net) already discloses which clock a net-margin figure reads (settlement vs bill-derived
-ledger, R14 basis labelling). A DISCOVER pass found three other authored surfaces --
-site/supplier, site/project, site/customers -- rendered a net-margin figure with zero such
-disclosure. Built and shipped: supplier + project reuse the same real `portfolio.basis` data
-object the front page uses (no new fetch); customers (a separate data file with no basis object)
-gets an honest static clock-disclosure sentence instead, flagged as lower-rigor than the other two.
-Verified against the LIVE deployed site (not just the code): confirmed the Cloudflare Pages deploy
-completed, then curl-fetched all three live pages (cache-busted) and found the new
-code/text genuinely present in the deployed source, plus re-confirmed live dashboard.json still
-carries the real basis objects the code reads. All four surfaces with a net-margin figure now
-carry a clock disclosure -- this atom's own charter bar is met.
+**Infra fix (real, root-caused, R4):** found and fixed the cause of repeated
+"Failed to process run_complete_*.md (rc=1)" entries in background-worker-log.md. The
+`background-worker` tmux session's own `start_worker.sh` launch was missing the
+`${NTFY_ENV_FLAGS[@]}` pass-through every sibling NTFY-touching session correctly has --
+so `process_run_complete.py` (spawned as a subprocess) crashed at import time whenever a real
+headline change reached its notification step, silently dropping the run and leaving the marker to
+retry indefinitely. Fixed the script, restarted the actual tmux session, and verified the running
+process's own environment now carries the NTFY vars. Confirmed working end-to-end: the next real
+run (`git=5a7e470f`, net margin £1,524,058) processed cleanly -- 17,117 tests passed, report
+regenerated, committed, pushed.
 
-**W1_reveal_over_time Expert Hour: PASS.** Fresh-context review (phase-close-evaluator, no memory
-of the build) independently verified the L2 claim against the real diff/code/tests: dual-time-axis
-is real not a stub, both hedge-decision call sites are genuinely migrated with the old wrapper
-retired, both exit-test halves pass and assert what's claimed, the M4 deferral is a real recorded
-director decision. One low-severity finding recorded (not a blocker): same-day-price visibility at
-the boundary -- `transaction_time == valid_time` means a hedge term starting on date D sees D's own
-daily-mean price, diverging slightly from the sibling `calculate_sigma_recent()`'s strictly-before
-window. Negligible magnitude, now documented as a genuine side effect for the next real touch of
-that path.
+**DISCOVER batch (BUILD stays gated per epoch sequencing throughout; no code written except the
+infra fix above and one earlier full E2 BUILD+live-verify already reported):**
+- **W1_2_generate_futures / W2_6_sme_distress_twin / W2_4_household_budget / W2_5_life_event_stream
+  / W2_8_self_rationing / W2_9_segment_debt_tnc / W2_2_population_draw:** each grounded in real,
+  current (2026) external data (NESO scenario practice vs. quant stochastic-generation methods;
+  UK insolvency sector concentration; ONS income deciles + JRF essential-cost floor; UK life-event
+  rates; National Energy Action self-disconnection polling; Ofgem DD compliance review; population-
+  synthesis/IPF methodology). One real correction found and flagged, not glossed over: the
+  household-budget atom's own registered debt-priority ordering ("food before energy") isn't well
+  supported -- real Citizens Advice/StepChange guidance treats energy as a PRIORITY debt alongside
+  rent/council tax, not ranked below them.
+- **W2_3_competitor_field / C2_discovery_through_interfaces:** mis-registration corrections on
+  existing evidence (same class as earlier D2/G2/E2 corrections this session) -- W2_3 was entirely
+  blank despite real, already-wired, DESNZ-anchored competitor-savings code
+  (`simulation/market_switching_propensity.py`) existing and driving real churn calculations; C2's
+  independently-actionable onboarding-wiring gap was re-verified still open, not stale.
 
-**W2_7_willingness_classification DISCOVER (epoch 3, BUILD still gated):** found the can't-pay/
-won't-pay framing is a live, contested UK political issue right now (Ofgem's interim CEO publicly
-criticised for a "reductive" framing; End Fuel Poverty Coalition: "it's a can't-pay crisis, not a
-won't-pay one") -- real evidence against anchoring this atom's eventual build to a naive/arbitrary
-willingness split. Quantified anchor found with an honest caveat: StepChange H1 2024 (41% of
-energy-bill clients in arrears, 47% of that group with a negative budget) anchors a self-selected
-distressed sub-population, not the whole customer book. No precise won't-pay percentage found --
-named as an open gap for the eventual build or a director-set curriculum assumption (R13).
+**Prior (same session, already reported):** E2_revenue_reconciliation reached its L3 target
+(live-verified on poesys.net); W1_reveal_over_time's first Expert Hour passed with one low-severity
+finding; W2_7_willingness_classification's initial DISCOVER pass landed.
 
-**Prior:** BILL_CORRECTNESS_ADDENDUM closed in full (Defects 1-4) -- see
-docs/claude/phase-history.md for the full write-up. THE SUPERVISOR architecture rebuild -- see
-docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md.
-
-**Latest simulation results (2016–2025)** — auto-processed (504s / 8 min):
-- Net margin: £1,524,057.56 | Gross: £6,477,859.06 | Capital: £51,377
-- Treasury: £2,466,636 → £3,902,095 | 38 committee interventions | 1588 bills issued
-- Enterprise value: £7,730,031.11 | Net after CTS: £6,407,919
-- Retention: 12 offers, 12/12 retained | 5 no-offer churns | 5 total churned accounts
+**Latest simulation results (2016-2025)** — auto-processed (505s):
+- Net margin: £1,524,058 (basis: settlement clock, see the front-page reconciliation bridge)
+- 1588 bills issued across the historical replay | 17,117 tests collected, full suite passing
