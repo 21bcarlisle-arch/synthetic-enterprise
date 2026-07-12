@@ -212,6 +212,30 @@ def test_check_back_billing_cap_respected_fails_on_missing_period_fields():
     assert check_back_billing_cap_respected(bill) is False
 
 
+def test_check_back_billing_cap_respected_fails_closed_on_malformed_date_not_just_missing():
+    # Fresh Expert-Hour finding (2026-07-12): a PRESENT but malformed date
+    # string previously raised an uncaught ValueError instead of failing
+    # closed -- confirmed this crashed validate_bills() for an ENTIRE batch,
+    # not just the one bad bill. Must return False, never raise.
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "01/06/2018",  # not ISO format
+        "catchup_period_end": "2019-05-31",
+        "period_end": "2019-12-31", "catchup_raw_delta_gbp": 600.0,
+    }
+    assert check_back_billing_cap_respected(bill) is False
+
+
+def test_check_back_billing_cap_respected_fails_closed_on_garbage_date_string():
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "not-a-date",
+        "catchup_period_end": "2019-05-31",
+        "period_end": "2019-12-31", "catchup_raw_delta_gbp": 600.0,
+    }
+    assert check_back_billing_cap_respected(bill) is False
+
+
 def test_check_back_billing_cap_respected_passes_when_genuinely_written_off():
     from company.billing.back_billing import BackBillingAssessment, BackBillingReason
     import datetime as _dt

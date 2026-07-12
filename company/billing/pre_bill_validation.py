@@ -103,7 +103,8 @@ def validate_bill(bill: dict) -> BillValidationResult:
         reasons.append(
             "slc_21ba_back_billing_cap: catch-up bill breaches the 12-month "
             "recovery window with no recorded fault attribution but the "
-            "excess was not written off"
+            "written-off amount does not match what the cap requires "
+            "(missing/malformed data, insufficient, or over-stated)"
         )
 
     outcome = ValidationOutcome.HELD if reasons else ValidationOutcome.PASS

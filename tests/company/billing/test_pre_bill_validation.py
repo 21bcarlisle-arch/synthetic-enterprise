@@ -264,6 +264,28 @@ def test_breach_with_token_write_off_wrong_magnitude_is_held():
     assert any("slc_21ba_back_billing_cap" in r for r in result.reasons)
 
 
+def test_batch_with_one_malformed_date_bill_does_not_abort_the_whole_batch():
+    # Fresh Expert-Hour finding (2026-07-12): a present-but-malformed
+    # catchup_period_start previously raised an uncaught ValueError inside
+    # check_back_billing_cap_respected(), which propagated all the way up
+    # through validate_bills() and aborted the ENTIRE batch -- taking down
+    # every other, genuinely fine bill in the same call. The malformed bill
+    # must route to HELD; the good bills around it must still pass.
+    good_before = _good_resi_bill(customer_id="C1", period_end="2024-01-31")
+    malformed = _good_resi_bill(
+        customer_id="C2", period_end="2024-01-31",
+        catchup_applied=True, catchup_direction="undercharge",
+        catchup_period_start="01/06/2018", catchup_period_end="2019-05-31",
+        catchup_raw_delta_gbp=600.0,
+    )
+    good_after = _good_resi_bill(customer_id="C3", period_end="2024-01-31")
+    passing, exceptions = validate_bills([good_before, malformed, good_after])
+    assert {b["customer_id"] for b in passing} == {"C1", "C3"}
+    assert len(exceptions) == 1
+    assert exceptions[0].customer_id == "C2"
+    assert any("slc_21ba_back_billing_cap" in r for r in exceptions[0].reasons)
+
+
 def test_breach_with_malformed_direction_is_held():
     # invariant_redteam_2026-07-12.md Finding 4: fail closed, not open.
     bill = _good_resi_bill(

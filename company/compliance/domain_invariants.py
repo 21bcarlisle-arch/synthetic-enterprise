@@ -329,7 +329,16 @@ BACK_BILLING_CAP_RESPECTED = StructuralInvariant(
         "window, with no recorded customer-fault attribution, must not "
         "charge the excess -- it must be written off, not billed"
     ),
-    source="Ofgem SLC 21BA (domestic/microbusiness back-billing protection)",
+    # Fresh Expert-Hour finding (2026-07-12): this previously said "domestic/
+    # microbusiness", overclaiming coverage the mechanism doesn't enforce --
+    # company/billing/back_billing.py is domestic-only by design ("Non-
+    # domestic customers NOT protected (B2B commercial terms apply)", its own
+    # module docstring), and this check inherits that scope exactly
+    # (is_domestic = segment == "resi"). Real UK back-billing rules DO also
+    # protect microbusinesses -- that is a genuine, registered coverage gap
+    # (PRIORITIES.md backlog), not something to paper over by citing a wider
+    # source than what's actually enforced.
+    source="Ofgem SLC 21BA (domestic back-billing protection -- microbusiness NOT yet enforced, see PRIORITIES.md)",
     # REGULATION_COMMONS_DOCTRINE.md item 3 backfill: the real anchor date,
     # matching company/billing/back_billing.py's own _BACK_BILLING_RULES_START
     # constant -- not fabricated, cited from the same source that constant
@@ -450,9 +459,20 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     if not period_start_raw or not period_end_raw or not billing_date_raw or raw_delta is None:
         return False  # fail closed: cannot verify, so do not pass it
 
-    period_start = datetime.fromisoformat(period_start_raw).date()
-    period_end = datetime.fromisoformat(period_end_raw).date()
-    billing_date = datetime.fromisoformat(billing_date_raw).date()
+    # Fresh Expert-Hour finding (2026-07-12, HARDEN pass on the red-team fix
+    # itself): a PRESENT-but-malformed date string (not just a missing one)
+    # previously raised an uncaught ValueError here, which propagated all
+    # the way up through validate_bills() and aborted validation of the
+    # ENTIRE batch -- taking down every other, genuinely fine bill in the
+    # same call, the exact "uncaught exception kills the loop" class
+    # CLAUDE.md's key-learnings section names. Same fail-closed principle
+    # as the missing-field case above, now applied to malformed values too.
+    try:
+        period_start = datetime.fromisoformat(period_start_raw).date()
+        period_end = datetime.fromisoformat(period_end_raw).date()
+        billing_date = datetime.fromisoformat(billing_date_raw).date()
+    except (ValueError, TypeError):
+        return False  # fail closed: cannot parse, so do not pass it
 
     assessment = BackBillingAssessment(
         account_id=bill.get("customer_id", ""),
