@@ -155,6 +155,10 @@ def _page(title, active, body, ts, git_commit="?", phase="?"):
         '<p class="meta">Generated: ' + ts
         + ' | Run ' + str(git_commit) + ' | Phase ' + str(phase)
         + ' | <a href="/state/customer_sample.json">customer_sample.json</a></p>'
+        # DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md (2026-07-12): trading-style name,
+        # not yet incorporated (Companies House checked clear of POESYS/POESYS
+        # PLATFORMS 2026-07-12) -- do not suffix "Ltd" until incorporation.
+        + '<p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p>'
     )
     return (
         "<!DOCTYPE html><html lang=en><head><meta charset=UTF-8>"

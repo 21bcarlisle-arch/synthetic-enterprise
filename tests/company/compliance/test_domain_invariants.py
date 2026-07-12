@@ -127,6 +127,22 @@ def test_back_billing_cap_respected_registered_as_uk_structural_invariant():
     assert BACK_BILLING_CAP_RESPECTED in ALL_INVARIANTS
 
 
+# --- REGULATION_COMMONS_DOCTRINE.md item 3: time-indexed law ---
+
+
+def test_invariants_expose_effective_date_fields_defaulting_to_none():
+    assert VAT_RESIDENTIAL.effective_from is None
+    assert VAT_RESIDENTIAL.effective_to is None
+    assert RESI_CONSUMPTION_ENVELOPE_ELEC.effective_from is None
+    assert UNIT_RATE_ELEC_RESI_BY_YEAR.effective_from is None
+
+
+def test_back_billing_cap_respected_backfilled_with_real_slc_21ba_date():
+    import datetime
+    assert BACK_BILLING_CAP_RESPECTED.effective_from == datetime.date(2018, 5, 1)
+    assert BACK_BILLING_CAP_RESPECTED.effective_to is None
+
+
 def test_check_back_billing_cap_respected_passes_when_no_catchup():
     assert check_back_billing_cap_respected({}) is True
 

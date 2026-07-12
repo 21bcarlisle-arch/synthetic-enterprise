@@ -39,6 +39,16 @@ _LANE_DENIES = {
     "sim": re.compile(r"^(company|saas)/"),
 }
 
+# REGULATION_COMMONS_DOCTRINE.md (2026-07-12): "the TEXT is a commons" --
+# regulatory rule digests (the fidelity oracle and successors) live in
+# docs/domain_artefact_library/, provenance-tagged, readable by ALL lanes,
+# mirroring reality (law is published). This deny-list design already
+# makes it readable by omission (neither pattern above matches it), but
+# the doctrine wants that EXPLICIT, not accidental -- this constant is the
+# named shared-readable list; a future stricter allow-list model must keep
+# every one of these paths off both lanes' deny patterns.
+SHARED_READABLE = ("docs/domain_artefact_library/",)
+
 _PATH_BEARING_TOOLS = {"Read", "Glob"}
 _GREP_TOOL = "Grep"
 

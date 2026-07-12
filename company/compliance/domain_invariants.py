@@ -56,6 +56,16 @@ _GAS_CAP_BY_YEAR = {
 _UK = "UK"
 
 
+# REGULATION_COMMONS_DOCTRINE.md (2026-07-12) item 3: "law is time-indexed --
+# the blindfold covers regulation itself... the library schema gains
+# effective_from/effective_to." None means "no registered change of law
+# within this codebase's evidence" (i.e. treat as in force for all modelled
+# years), NOT "no effective date exists in reality" -- only backfilled where
+# a specific date is actually anchored (see BACK_BILLING_CAP_RESPECTED
+# below); fabricating a date for an invariant with no cited source would be
+# worse than leaving it None.
+
+
 @dataclass(frozen=True)
 class RateInvariant:
     """An exact rate/proportion with a small tolerance (e.g. VAT -- there is
@@ -67,6 +77,8 @@ class RateInvariant:
     value: float
     tolerance: float = 0.0005
     jurisdiction: str = _UK
+    effective_from: Optional[date] = None
+    effective_to: Optional[date] = None
 
     def check(self, actual: float) -> bool:
         return abs(actual - self.value) <= self.tolerance
@@ -84,6 +96,8 @@ class RangeInvariant:
     high: float
     unit: str
     jurisdiction: str = _UK
+    effective_from: Optional[date] = None
+    effective_to: Optional[date] = None
 
     def check(self, actual: float) -> bool:
         return self.low <= actual <= self.high
@@ -110,6 +124,8 @@ class YearlyRangeInvariant:
     low_margin: float = 0.6   # allow down to 40% of the anchor (fixed-term downside)
     high_margin: float = 0.5  # allow up to 150% of the anchor
     jurisdiction: str = _UK
+    effective_from: Optional[date] = None
+    effective_to: Optional[date] = None
 
     def plausible_range(self, year: int) -> tuple[float, float]:
         years = sorted(self.by_year)
@@ -296,6 +312,8 @@ class StructuralInvariant:
     description: str
     source: str
     jurisdiction: str = _UK
+    effective_from: Optional[date] = None
+    effective_to: Optional[date] = None
 
 
 # ADVISOR_STEER_BACKBILLING_GATE.md item 1(c): "add the cap as a pre-bill
@@ -311,6 +329,11 @@ BACK_BILLING_CAP_RESPECTED = StructuralInvariant(
         "charge the excess -- it must be written off, not billed"
     ),
     source="Ofgem SLC 21BA (domestic/microbusiness back-billing protection)",
+    # REGULATION_COMMONS_DOCTRINE.md item 3 backfill: the real anchor date,
+    # matching company/billing/back_billing.py's own _BACK_BILLING_RULES_START
+    # constant -- not fabricated, cited from the same source that constant
+    # already carries. No effective_to: still in force.
+    effective_from=date(2018, 5, 1),
 )
 
 

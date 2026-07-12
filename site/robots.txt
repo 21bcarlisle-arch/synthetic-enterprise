@@ -1,2 +1,33 @@
+# DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md (2026-07-12): block AI training
+# harvesters, allow user-directed AI fetch + normal search indexing.
+# The site declines to be training data; humans and search are unaffected.
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
 User-agent: *
 Allow: /

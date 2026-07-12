@@ -157,3 +157,32 @@ class TestLaneWallHook:
             env={"SE_LANE": "supplier"},
         )
         assert not DENIAL_LOG.exists()
+
+    # --- REGULATION_COMMONS_DOCTRINE.md (2026-07-12): the commons is shared ---
+
+    def test_domain_artefact_library_readable_from_supplier_lane(self):
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "docs/domain_artefact_library/INDEX.md"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_domain_artefact_library_readable_from_sim_lane(self):
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "docs/domain_artefact_library/INDEX.md"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 0
+
+    def test_shared_readable_paths_never_match_either_lane_deny_pattern(self):
+        """Regression guard: a future edit to either deny regex must not
+        accidentally start matching a path this doctrine names as commons."""
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("lane_wall_hook", LANE_WALL_HOOK)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        for path in module.SHARED_READABLE:
+            for lane, pattern in module._LANE_DENIES.items():
+                assert not pattern.match(path.lstrip("./")), (
+                    f"{path!r} must stay shared-readable but matches lane {lane!r}'s deny pattern"
+                )

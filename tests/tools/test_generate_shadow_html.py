@@ -30,6 +30,15 @@ def test_build_index_footer_has_freshness_stamp():
     assert "Phase QF" in html
 
 
+# --- DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md (2026-07-12): copyright footer ---
+
+
+def test_build_index_has_copyright_footer():
+    html = build_index(_dash(), "2026-07-04T12:00:00Z")
+    assert "Poesys Platforms. All rights reserved." in html
+    assert "Poesys Platforms Ltd" not in html  # not incorporated yet -- no "Ltd" suffix
+
+
 def test_build_customers_footer_has_freshness_stamp():
     html = build_customers(_dash(), {"customers": {}}, "2026-07-04T12:00:00Z")
     assert "Run abc1234" in html
@@ -75,3 +84,18 @@ def test_shadow_page_uses_v4_light_design_system():
     assert "site-nav" in html
     assert "#1a1a1a" not in html
     assert "#2a2a4a" not in html
+
+
+def test_every_static_site_page_has_the_copyright_footer():
+    """DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md: 'Footer site-wide' -- structural
+    guard so a future page addition can't silently omit it."""
+    import glob
+    from pathlib import Path
+    repo_root = Path(__file__).resolve().parents[2]
+    pages = sorted(glob.glob(str(repo_root / "site" / "*.html"))) + sorted(
+        glob.glob(str(repo_root / "site" / "*" / "index.html"))
+    )
+    pages = [p for p in pages if "/shadow/" not in p]
+    assert len(pages) >= 10  # sanity: this must actually be scanning real pages
+    missing = [p for p in pages if "Poesys Platforms" not in Path(p).read_text()]
+    assert missing == [], f"pages missing the copyright footer: {missing}"

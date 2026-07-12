@@ -94,6 +94,7 @@ truth. That imperfection is the point.
 **Before writing any company-layer code:** ask "Could a real UK energy supplier know this?"
 If the answer requires reading simulation internals, it is a violation.
 The SIM/company seam (`company/interfaces/sim_interface.py`) exposes observables only, never internals.
+**Regulation-commons doctrine (2026-07-12, REGULATION_COMMONS_DOCTRINE.md):** the regulatory TEXT (fidelity-oracle digests, `docs/domain_artefact_library/`) is a shared commons, readable by every lane — law is published in reality. Each lane's *implementation* of that law stays independently owned (WORLD enforcement physics, COMPANY's own compliance reading, HARNESS validators) so a company misreading the law stays structurally possible, matching real suppliers who get fined for exactly that. Law is time-indexed too: `company/compliance/domain_invariants.py`'s invariant dataclasses carry `effective_from`/`effective_to`, backfilled where a real date is cited (never fabricated).
 ---
 ## Sequencing principles
 **Two-way-door filter:** don't build something that depends on an unresolved upstream question.
