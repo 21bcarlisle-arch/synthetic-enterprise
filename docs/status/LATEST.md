@@ -1,46 +1,46 @@
-## BILL_CORRECTNESS_ADDENDUM CLOSED IN FULL (Defects 1-4)
-Last updated: 2026-07-12T21:21:09Z
+## E2_revenue_reconciliation L3 EARNED (live-verified) + W1 Expert Hour PASS + W2_7 DISCOVER
+Last updated: 2026-07-12T21:23:00Z
 
-**Status:** COMPLETE. 834 tools/ tests pass, 16,026+ full suite, epistemic PASS.
+**Status:** self-refill cycle (idle-tier DISCOVER/FRAME + dial-weighted BUILD), all changes pushed
+and live-verified where R11 applies. Epistemic PASS throughout.
 
-**Defect 1** (commit 32ab2a4c): C6's "Household / Residential" mislabel root-caused as a pure
-portal render-layer bug -- its 20% VAT and ~28MWh/yr were already correct for its true SME segment.
-Fixed with an explicit per-segment badge/label lookup. Sweeping for the same class found a second
-real bug: saas/non_commodity.py's VAT_RATE was missing an "I&C" key, silently undercharging I&C
-accounts 5% domestic VAT instead of the legally-required 20%.
+**E2_revenue_reconciliation (level 2->3, TARGET REACHED, live-verified):** the front page
+(poesys.net) already discloses which clock a net-margin figure reads (settlement vs bill-derived
+ledger, R14 basis labelling). A DISCOVER pass found three other authored surfaces --
+site/supplier, site/project, site/customers -- rendered a net-margin figure with zero such
+disclosure. Built and shipped: supplier + project reuse the same real `portfolio.basis` data
+object the front page uses (no new fetch); customers (a separate data file with no basis object)
+gets an honest static clock-disclosure sentence instead, flagged as lower-rigor than the other two.
+Verified against the LIVE deployed site (not just the code): confirmed the Cloudflare Pages deploy
+completed, then curl-fetched all three live pages (cache-busted) and found the new
+code/text genuinely present in the deployed source, plus re-confirmed live dashboard.json still
+carries the real basis objects the code reads. All four surfaces with a net-margin figure now
+carry a clock disclosure -- this atom's own charter bar is met.
 
-**Defect 2** (commit 6f176f87): every bill now states billing period, opening/closing meter reads
-with A(ctual)/E(stimated) type (Phase 3's meter_read_log, previously computed but never surfaced),
-meter serial, and MPAN/MPRN. Running cumulative register value chains correctly across each
-account's bill history.
+**W1_reveal_over_time Expert Hour: PASS.** Fresh-context review (phase-close-evaluator, no memory
+of the build) independently verified the L2 claim against the real diff/code/tests: dual-time-axis
+is real not a stub, both hedge-decision call sites are genuinely migrated with the old wrapper
+retired, both exit-test halves pass and assert what's claimed, the M4 deferral is a real recorded
+director decision. One low-severity finding recorded (not a blocker): same-day-price visibility at
+the boundary -- `transaction_time == valid_time` means a hedge term starting on date D sees D's own
+daily-mean price, diverging slightly from the sibling `calculate_sigma_recent()`'s strictly-before
+window. Negligible magnitude, now documented as a genuine side effect for the next real touch of
+that path.
 
-**Defect 3** (commit e93a4b96): consumption restructured as a register/period list (ToU-ready
-schema -- single "Anytime" register today, array shape supports N). ToU itself not built, per the
-addendum's own instruction.
+**W2_7_willingness_classification DISCOVER (epoch 3, BUILD still gated):** found the can't-pay/
+won't-pay framing is a live, contested UK political issue right now (Ofgem's interim CEO publicly
+criticised for a "reductive" framing; End Fuel Poverty Coalition: "it's a can't-pay crisis, not a
+won't-pay one") -- real evidence against anchoring this atom's eventual build to a naive/arbitrary
+willingness split. Quantified anchor found with an honest caveat: StepChange H1 2024 (41% of
+energy-bill clients in arrears, 47% of that group with a negative budget) anchors a self-selected
+distressed sub-population, not the whole customer book. No precise won't-pay percentage found --
+named as an open gap for the eventual build or a director-set curriculum assumption (R13).
 
-**Defect 4** (commit 10d13544): root-caused the "£13k billed vs £1.5k gross" observation as a
-definitional mismatch, not a bug -- annual_pnl's gross_gbp is the SIM's internal commodity trading
-margin, not a bill total. Added a permanent consistency-gate test sweeping every real
-customer-year (billed total must never be less than gross margin -- holds cleanly across all 143
-live pairs) plus an inline portal note.
+**Prior:** BILL_CORRECTNESS_ADDENDUM closed in full (Defects 1-4) -- see
+docs/claude/phase-history.md for the full write-up. THE SUPERVISOR architecture rebuild -- see
+docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md.
 
-**Method rule 0c added to CLAUDE.md** per the addendum's own instruction: any customer-facing
-artefact's definition-of-done now includes rendering one real instance and inspecting it against
-domain law by eye, alongside automated invariants.
-
-Real pipeline regenerated and verified directly (commit 8494b61b): C6 (SME) now opens correctly
-with all new fields at its real 2,346.8 kWh/month (matches the addendum's own cited figure); C1
-(residential) shows the same fields at a plausible ~440 kWh/month.
-
-Defect 5 (I&C billing model) registers to backlog alongside WALLED_INTERFACES per its own "do not
-build now" instruction. Front of queue next: DOMAIN_SENSE_AND_COMPLIANCE.md (P1 compliance
-programme), recorded in the open agenda for the next session/supervisor cycle to pick up.
-
-**Prior:** THE SUPERVISOR architecture rebuild (doorbell failure #4, R3) -- see
-docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md. Wake-doorbell strike 3 fix -- see
-docs/retrospectives/2026-07-08-wake-doorbell-third-strike.md.
-
-**Latest simulation results (2016–2025)** — auto-processed (484s / 8 min):
+**Latest simulation results (2016-2025)** — auto-processed (484s / 8 min):
 - Net margin: £1,524,057.56 | Gross: £6,477,859.06 | Capital: £51,377
 - Treasury: £2,466,636 → £3,902,095 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,730,031.11 | Net after CTS: £6,407,919
