@@ -43,6 +43,50 @@ legal/financial decisions. Build that as a first-class organ:
    Governance actions land in the obligations/compliance surfaces (F lane
    sees the decision trail).
 
+## Part 1b — Scrutiny economics (director addendum, 2026-07-12)
+Governance is not just a control; it is a MEASURED, COSTED subsystem. Extend
+the decision-rights layer with:
+
+1. **The scrutiny dial (director-owned, like the curriculum rack):** named,
+   versioned supervision levels (e.g. Light-touch / Standard / Heightened /
+   Paranoid) that flex which decision classes require approval, thresholds,
+   and review cadences. **Escalation physics:** the compliance/risk organs
+   RECOMMEND dial changes — incidents, breaches, or near-misses generate a
+   recommend-more-scrutiny event with rationale; sustained calm generates
+   recommend-less. The approver (sim-agent now, human later) PICKS — from
+   options or freeform — and the pick is itself a logged decision. When
+   things go wrong, scrutiny rises: that is real-company physics, modelled.
+2. **Roles & disagreement (schema now, settle later):** default = RAPID-style
+   single accountability — each decision class names ONE Decider; others
+   hold Input/Agree/Perform roles; director is tie-break escalation. Voting
+   is deliberately NOT the default (heavy for this scale) but the register
+   schema carries role fields from day one so multi-human governance is
+   configuration, not rebuild. Marked DIRECTOR-TUNABLE, not settled.
+3. **Time-and-cost accounting per decision (the FTE model):** every decision
+   class carries expected review EFFORT (minutes of human attention) and
+   expected ELAPSED SLA. Every decision-event logs actuals — the sim-approver
+   draws realistic effort/elapsed from those expectations (anchored, varied);
+   real mode measures them. Rate card by decision tier: C-suite rates for
+   strategic classes, descending to operational rates for routine reviews
+   (extends and will eventually REPLACE the flat B2 oversight assumption
+   with a decision-derived oversight cost line). Fractional humans assumed.
+4. **Context packs are LINKS, not prose:** every approval request carries
+   links to the exact website surfaces/data (passported, evidence-linked)
+   needed to decide, plus the company's recommendation. Consequence: the
+   Expert-Hour legibility standard becomes operational — "can an approver
+   decide from the pack within the expected effort time" is now a testable
+   property of the SITE as well as the decision.
+5. **The output that matters:** a standing surface computing FTE-required =
+   sum(effort)/capacity BY SUPERVISION LEVEL and by seniority tier, with
+   cost — "how many humans, of what kind, does this company actually need
+   at each scrutiny setting" — derived from logged decisions. This is the
+   thesis's second chart (the dual ledger says what AI removes; this says
+   what human remains, measured) and it prices the director's own time.
+
+Register these as Lane-A atoms alongside the decision-rights register; the
+thin start (pricing decision-events) should log expected/actual effort
+fields from its FIRST event so the dataset accrues from day one.
+
 ## Part 2 — Three-lane development (fork as enforcement, not risk)
 The wall is the one shard boundary disjoint BY DEFINITION — sim/ and
 company/ cannot overlap because non-overlap is the founding law. Therefore:
