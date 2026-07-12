@@ -162,6 +162,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <p class="thesis-sentence" id="bridge-sentence">Loading...</p>
     <div id="bridge-table-wrap" style="overflow-x:auto"></div>
     <div class="thesis-caveat" id="bridge-caveat"></div>
+    <div id="bridge-worked-example" style="margin-top:16px"></div>
   </div>
 
   <div class="sec">The Learning Curve</div>
@@ -427,6 +428,31 @@ function renderMarginBridge(bridge){
   if(caveatEl)caveatEl.textContent=bridge.fully_explained?
     "Fully reconciled: every reconciling item accounts for the gap to within a rounding penny.":
     "NOT fully reconciled -- the unexplained remainder above is an open defect, not a formatting gap.";
+  renderBridgeWorkedExample(bridge.one_bill_worked_example);
+}
+
+function renderBridgeWorkedExample(ex){
+  // D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md): the portfolio
+  // bridge above is an aggregate; the lane charter's own L2 bar needs the three
+  // clocks (physical/financial/regulatory) named and reconciled for at least
+  // ONE real bill -- this is that worked example, computed fresh from the same
+  // run's own data (tools/generate_margin_bridge.py::compute_one_bill_worked_example),
+  // never hardcoded.
+  var el=document.getElementById("bridge-worked-example");
+  if(!el)return;
+  if(!ex){el.innerHTML="";return;}
+  el.innerHTML=
+    '<div style="font-weight:600;font-size:13px;margin-bottom:6px">Worked example, one real bill: '+
+      esc(ex.customer_id)+' ('+esc(ex.period_start)+' to '+esc(ex.period_end)+')</div>'+
+    '<div class="bridge-table" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:8px">'+
+      '<div><div class="bt-mech">PHYSICAL clock</div><div class="bt-amount" style="text-align:left">'+
+        (ex.physical_clock.consumption_kwh)+' kWh</div></div>'+
+      '<div><div class="bt-mech">FINANCIAL clock (billed)</div><div class="bt-amount" style="text-align:left">'+
+        gbp(ex.financial_clock.ledger_net_margin_gbp)+' net margin</div></div>'+
+      '<div><div class="bt-mech">REGULATORY clock (settled)</div><div class="bt-amount" style="text-align:left">'+
+        gbp(ex.regulatory_clock.net_margin_gbp)+' net margin</div></div>'+
+    '</div>'+
+    '<p class="thesis-caveat">Gap: '+gbp(ex.gap_gbp)+'. '+esc(ex.gap_explanation)+'</p>';
 }
 
 var LEARNING_WINDOW="recent"; // "recent" | "all"

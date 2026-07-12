@@ -31,5 +31,26 @@
   "unexplained_remainder_gbp": 0.01,
   "fully_explained": true,
   "held_bills_excluded_from_ledger": 1,
-  "note": "VAT is excluded from both sides (settlement never models VAT; the ledger subtracts vat_remittance_gbp from total_billed_gbp) -- checked, not a reconciling item. Bad debt (write-offs) is tracked separately on both sides and does not enter either net_margin_gbp figure -- checked, not a reconciling item for THIS bridge."
+  "note": "VAT is excluded from both sides (settlement never models VAT; the ledger subtracts vat_remittance_gbp from total_billed_gbp) -- checked, not a reconciling item. Bad debt (write-offs) is tracked separately on both sides and does not enter either net_margin_gbp figure -- checked, not a reconciling item for THIS bridge.",
+  "one_bill_worked_example": {
+    "customer_id": "C1",
+    "period_start": "2020-12-01",
+    "period_end": "2020-12-29",
+    "physical_clock": {
+      "consumption_kwh": 440.28
+    },
+    "financial_clock": {
+      "total_amount_gbp": 94.41,
+      "non_commodity_amount_gbp": 25.1,
+      "ledger_net_margin_gbp": 49.57
+    },
+    "regulatory_clock": {
+      "revenue_gbp": 64.82,
+      "wholesale_cost_gbp": 19.58,
+      "capital_cost_gbp": 0.16,
+      "net_margin_gbp": 19.91
+    },
+    "gap_gbp": 29.66,
+    "gap_explanation": "Same mechanism as the portfolio-level bridge above, scoped to this one bill: for a non-pass-through (fixed) tariff, the settlement (regulatory) clock's revenue_gbp does not include policy/network cost recovery, while the bill separately charges and collects it as non_commodity_amount_gbp -- the ledger-equivalent financial clock recognises it, the regulatory clock's cost deduction does not have a matching revenue line."
+  }
 }

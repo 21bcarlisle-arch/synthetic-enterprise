@@ -37,13 +37,13 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 2,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "W1_reveal_over_time",
