@@ -35,7 +35,45 @@ agent's autonomous choice — regardless of reversibility framing:
 The twin must recognise these and route them to the real director, saying so
 plainly. Wire into `background/one_way_door.py` and CLAUDE.md.
 
-## 3. Chase the CANNOT-draw honestly (19:09Z)
+## 3. Chase the CANNOT-draw honestly (19:09Z) — EVIDENCE ATTACHED, the premise is a tautology
+
+**The advisor has read the map. Your escalation's own wording gives the bug away:**
+*"no NON-IDLE atom is blocked by an unmet dependency; every NON-IDLE atom is
+either at target or already a valid candidate."* You are only ever asking about
+NON-IDLE atoms. But **"idle" means NOT STARTED — that IS the backlog.** The draw
+is excluding precisely the set it exists to draw from.
+
+**Hard evidence from docs/design/maturity_map.yaml right now:**
+- 33 idle atoms. **31 of them are BELOW their level_target.** Only 2 are at target.
+- **ELEVEN are in EPOCH 2 — the current epoch — and undrawn**, including:
+  - **`D2_three_clocks`: level_current 0, target 2.** This is THE RECONCILIATION
+    BRIDGE (CLOCK_TRUTH_AND_THE_BRIDGE, P0, staged this afternoon after the
+    bill-vs-ledger 4.2x divergence was confirmed). It is the single most
+    important open item in the project and it is sitting at zero, idle, undrawn.
+  - `W2_2_population_draw` (L0->2), `W3_2_settlement_timetable` (L0->2),
+    `A3_approval_interface` (L0->2 — the twin's own front door),
+    `E3_accrual_restatement` (L0->2), `C2_discovery_through_interfaces` (L0->2),
+    `G2_event_log_shared_with_spine` (L0->2)
+  - `B1_margin_bridge` (L2->3), `W1_reveal_over_time` (L2->3),
+    `A2_decision_rights_register` (L2->3)
+- Plus Epoch-1 leftovers below target: `E2_revenue_reconciliation` (L2->3),
+  `W4_2_verifier_timing_extension` (L1->3), `A1_learn_loop_chair` (L2->3).
+
+**This is not "no drawable gap left". This is 31 units of outstanding work,
+eleven of them in the epoch you are currently building.** The
+`_idle_discover_frame_draw` tier you added earlier either never fires or is
+short-circuited by the CANNOT-draw check running first. Root-cause THAT.
+
+**Non-negotiable invariant:** while ANY atom sits below its level_target, the
+drawable set is NON-EMPTY. An idle atom below target is drawable work by
+definition — BUILD if its epoch is open, DISCOVER/FRAME if not. Prove it with a
+test seeded from today's real map (33 idle, 31 below target -> non-empty draw).
+
+**Then start with D2_three_clocks.** It is P0, it is epoch-2, it is at level
+zero, and the front door is currently publishing a figure whose basis nobody can
+reconcile.
+
+## 3b. (original wording, retained)
 The supervisor now reports a GENUINE cannot-draw: 52 atoms, 33 idle, 25 at L0,
 no unmet dependencies, "no drawable gap left". That contradicts
 EPOCH_GATING_AND_ATOM_AUTHORSHIP (already closed), which required that IDLE and
