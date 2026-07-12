@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-12T00:32:33Z",
-    "git_commit": "3597c77c",
+    "generated_at": "2026-07-12T00:44:44Z",
+    "git_commit": "dd083ff6",
     "customer_count": 19,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -2205,7 +2205,7 @@
       "acquisition_date": "2016-10-01",
       "lifetime_revenue_gbp": 6193.87,
       "lifetime_gross_gbp": 3243.3,
-      "lifetime_net_gbp": 91.42,
+      "lifetime_net_gbp": 125.72,
       "cost_to_serve_gbp": 439.89,
       "lifetime_net_after_cts_gbp": 2803.41,
       "clv_gbp": 3807.08,
@@ -2257,21 +2257,21 @@
         {
           "year": 2022,
           "gross_gbp": 249.98,
-          "net_gbp": -264.34,
+          "net_gbp": -210.57,
           "tariff_min_gbp_per_mwh": 143.79,
           "tariff_max_gbp_per_mwh": 457.5
         },
         {
           "year": 2023,
           "gross_gbp": 406.49,
-          "net_gbp": -13.16,
+          "net_gbp": -22.31,
           "tariff_min_gbp_per_mwh": 198.37,
           "tariff_max_gbp_per_mwh": 457.5
         },
         {
           "year": 2024,
           "gross_gbp": 529.56,
-          "net_gbp": 114.48,
+          "net_gbp": 104.16,
           "tariff_min_gbp_per_mwh": 198.37,
           "tariff_max_gbp_per_mwh": 378.7
         }
