@@ -321,6 +321,37 @@ def test_build_ledger_without_payment_behaviour_omits_payment_events():
     assert not any(e["event_type"] == "bad_debt_event" for e in events)
 
 
+# --- A2_decision_rights_register (2026-07-12): CREDIT_COLLECTIONS_POLICY wiring ---
+
+
+def test_build_ledger_bad_debt_logs_a_credit_collections_decision_event():
+    from company.governance.decision_rights import (
+        DecisionClass, get_decision_log, reset_decision_log,
+    )
+    reset_decision_log()
+    records = [_settlement_record(date="2016-01-01", period=1)]
+    bills = [_bill(customer_id="C1", period_end="2016-01-31", amount=100.0)]
+    pb = _FakePaymentBehaviour()
+    build_ledger(records, bills, pb)
+    log = get_decision_log()
+    all_recs = [r for r in log.all_records() if r.entity_id == "C1"]
+    assert any(
+        r.fact_type == "decision_event:" + DecisionClass.CREDIT_COLLECTIONS_POLICY.value
+        for r in all_recs
+    )
+
+
+def test_build_ledger_no_decision_event_when_zero_provision():
+    from company.governance.decision_rights import get_decision_log, reset_decision_log
+    reset_decision_log()
+    records = [_settlement_record()]
+    bills = [_bill(customer_id="C2", amount=0.0)]
+    pb = _FakePaymentBehaviour()
+    build_ledger(records, bills, pb)
+    log = get_decision_log()
+    assert not any(r.entity_id == "C2" for r in log.all_records())
+
+
 def test_derive_pnl_with_payment_events_adds_cash_fields():
     records = [_settlement_record(wholesale=6.0, capital=0.5)]
     bills = [_bill(customer_id="C1", period_end="2016-01-31", amount=100.0)]

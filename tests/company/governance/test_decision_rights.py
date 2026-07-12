@@ -39,10 +39,12 @@ def test_register_entries_have_required_fields():
         assert definition.expected_effort_minutes > 0
 
 
-def test_only_pricing_move_is_wired_this_pass():
-    assert DECISION_RIGHTS_REGISTER[DecisionClass.PRICING_MOVE].wired is True
-    others = [d for c, d in DECISION_RIGHTS_REGISTER.items() if c != DecisionClass.PRICING_MOVE]
-    assert all(d.wired is False for d in others)
+def test_pricing_move_and_credit_collections_are_wired_this_pass():
+    # 2026-07-12: CREDIT_COLLECTIONS_POLICY wired to saas/ledger.py's real
+    # per-account bad-debt write-off, alongside PRICING_MOVE.
+    wired_classes = {DecisionClass.PRICING_MOVE, DecisionClass.CREDIT_COLLECTIONS_POLICY}
+    for c, d in DECISION_RIGHTS_REGISTER.items():
+        assert d.wired == (c in wired_classes), f"{c} wired flag unexpected: {d.wired}"
 
 
 def test_log_decision_event_records_on_bitemporal_spine():

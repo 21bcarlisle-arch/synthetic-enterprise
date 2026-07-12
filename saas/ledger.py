@@ -48,6 +48,8 @@ import uuid
 from datetime import date, timedelta
 from typing import Any
 
+from company.governance.decision_rights import DecisionClass, log_decision_event
+
 _NAMESPACE = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")  # uuid.NAMESPACE_URL
 
 
@@ -339,6 +341,28 @@ def build_ledger(
             events.append(make_payment_received_event(b, provision, payment_date))
             if provision > 0:
                 events.append(make_bad_debt_event(b, provision, payment_date))
+                # A2_decision_rights_register (2026-07-12): CREDIT_COLLECTIONS_
+                # POLICY's real, already-existing decision instance -- the
+                # company writing off a provisioned amount against this
+                # account's arrears, per payment_behaviour's credit-risk
+                # model, for every bill across the full historical replay.
+                # Same "log each real instance, not a change to the policy
+                # itself" pattern PRICING_MOVE already established.
+                log_decision_event(
+                    DecisionClass.CREDIT_COLLECTIONS_POLICY,
+                    entity_id=cid,
+                    request={
+                        "bill_period_end": b["period_end"],
+                        "total_amount_gbp": b["total_amount_gbp"],
+                    },
+                    context={"credit_risk": credit_risk, "provision_gbp": provision},
+                    decision={"write_off_gbp": provision},
+                    rationale=(
+                        "bad-debt provision applied per payment_behaviour's "
+                        "credit-risk model for this account/bill"
+                    ),
+                    valid_time=date.fromisoformat(payment_date),
+                )
 
     if extra_events:
         events.extend(extra_events)

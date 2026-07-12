@@ -15,14 +15,27 @@ module may bump; the classes/thresholds/approvers themselves are the
 director's instrument (same "curriculum, not tuned by the agent" law as
 docs/staging/done/... risk-curriculum precedents elsewhere in this project).
 
-Only PRICING_MOVE is wired to a real call site this pass
+PRICING_MOVE and CREDIT_COLLECTIONS_POLICY are wired to real call sites
 (simulation/renewals.py::build_renewal_schedule -- the actual per-customer,
 per-renewal tariff-rate decision, which runs for every customer at every
-renewal across the full 2016-2025 historical replay). The other five
-classes are registered (trigger/context-pack/approver/SLA/effort fields
-present) but not yet wired to any real decision -- honestly reflected in
-each definition's `wired` field, not silently implied by their mere
-presence in the register.
+renewal across the full 2016-2025 historical replay; saas/ledger.py::
+build_ledger() -- each real bad-debt provision write-off against an
+account's arrears, per payment_behaviour's credit-risk model). The other
+four classes are registered (trigger/context-pack/approver/SLA/effort
+fields present) but not yet wired to any real decision -- honestly
+reflected in each definition's `wired` field, not silently implied by their
+mere presence in the register.
+
+2026-07-12 investigation (self-refill, dial-weighted): HEDGE_MANDATE_CHANGE
+was checked for a real call site and none exists -- company/risk/
+hedge_policy.py's COMPANY_MIN_HEDGE_FLOOR is a fixed constant, never
+dynamically changed during a run, so there is no real "mandate CHANGE"
+event to log yet (as distinct from company/trading/hedge_decision.py's
+per-period operational hedge-fraction CALCULATION, a different, already-
+wired mechanism). Wiring this class for real means either building the
+underlying mandate-change mechanism itself (materially bigger scope than
+"wire an existing decision") or waiting for a genuine director-driven
+mandate revision to exist as an event -- registered, not forced.
 
 Two honesty disciplines (non-negotiable, quoted near-verbatim from the
 staged instruction so they can't drift from what was actually decided):
@@ -110,7 +123,7 @@ DECISION_RIGHTS_REGISTER: dict[DecisionClass, DecisionClassDefinition] = {
         approver="director (real mode); sim-policy-agent (curriculum, not yet built)",
         sla_hours=48.0,
         expected_effort_minutes=30.0,
-        wired=False,
+        wired=True,  # saas/ledger.py::build_ledger() -- each real bad-debt write-off instance
     ),
     DecisionClass.CUSTOMER_HARM_REMEDIATION: DecisionClassDefinition(
         decision_class=DecisionClass.CUSTOMER_HARM_REMEDIATION,
