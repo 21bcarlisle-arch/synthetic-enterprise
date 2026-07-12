@@ -322,13 +322,13 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: idle
+  loop_stage: harden
   dial_inherited: 2
-  evidence: []
-  file_scope: []
-  simplifications: []
+  evidence: ["company/interfaces/bitemporal_event_log.py", "tests/company/interfaces/test_bitemporal_event_log.py::test_different_fact_type_not_confused (17 tests total, all passing)", "docs/design/charters/G_data_learning.md"]
+  file_scope: ["company/interfaces/bitemporal_event_log.py"]
+  simplifications: ["2026-07-12 LEVEL CORRECTED, 0->2, with decisive existing evidence (self-refill draw, dial-weighted, epoch-2 idle-tier DISCOVER): the charter's own framing ('G2's generalisation of the bitemporal event log... extending BitemporalEventLog's dual valid_time/transaction_time design beyond price/forward data') implied a BUILD was still needed to generalise the class -- verified directly against the real code and found this is stale. `BitemporalRecord`/`BitemporalEventLog` (company/interfaces/bitemporal_event_log.py) are keyed by arbitrary `entity_id`/`fact_type` strings with `value: Any` -- there is NOTHING price-specific in the core class itself; `build_price_bitemporal_log()` (company/interfaces/point_in_time_view.py) is a thin, separate populator function that merely CALLS the already-generic `.record()`, not a price-coupled variant of the log. Decisive: the existing test suite (tests/company/interfaces/test_bitemporal_event_log.py, 17 tests, all passing) already exercises the log with a genuinely NON-price fact_type -- `test_different_fact_type_not_confused` records `('meter_1', 'consumption_kwh', ...)` alongside a price fact for the same entity and asserts they're not confused. This is the L2 bar met with real, pre-existing, already-passing evidence ('a real, generalised event-log object exists... proven correct in isolation') -- not new work, but a genuine mis-registration corrected: G2's own code was built as a byproduct of W1_reveal_over_time's spine work and never credited to this atom. Matches the same class of correction already applied this session to D2_three_clocks (stale depends_on) and E2_revenue_reconciliation (stale loop_stage) -- an atom's registered state not reflecting work that already happened elsewhere in the codebase. L3 remains genuinely open and is NOT claimed here: it requires 'at least one real cross-cutting event type flows through this shared log and is genuinely consumed by both a sim-side and a company-side reader' -- today the log's only real production populator (build_price_bitemporal_log) is consumed by ONE side only (company/trading/hedge_decision.py's own volatility calc); no second, company-side-authored fact_type (e.g. a customer interaction or a settlement restatement, both named as L3 candidates in the charter) has yet been written through it by any real caller. loop_stage build->harden (at target, L2); a genuine HARDEN/Expert-Hour pass has not yet run on this atom specifically (it inherited W1's own build quality but has never itself been the subject of an adversarial review), registered as the honest remaining gap before this atom's OWN L2 claim could be called fully hardened, distinct from L3's real-caller gap."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a shared event bus feeding both trading and retail systems"
   depends_on: [W1_reveal_over_time]

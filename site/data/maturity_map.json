@@ -304,15 +304,15 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "harden",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W1_reveal_over_time"
       ],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "W2_1_archetype_layers",
