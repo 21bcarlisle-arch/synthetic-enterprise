@@ -234,6 +234,39 @@ def test_extract_report_data_splits_by_year():
     assert data["per_customer_lifetime"]["C1"]["net_gbp"] == 11.0
 
 
+def test_extract_report_data_per_customer_monthly_matches_bill_granularity():
+    """D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md): the
+    real data-export gap this atom's DISCOVER pass found -- no settlement
+    figure existed anywhere at the SAME monthly grain a real bill has, only
+    portfolio totals and annual per_customer. C1's two 2016 records
+    (2016-01-01 and 2016-06-01) are in different months and must appear as
+    two SEPARATE month buckets, not collapsed into the annual figure --
+    that's the entire point of this new key."""
+    data = extract_report_data(_run_output())
+    y2016 = data["years"]["2016"]
+    monthly = y2016["per_customer_monthly"]["C1"]
+    assert set(monthly.keys()) == {"2016-01", "2016-06"}
+    assert monthly["2016-01"]["revenue_gbp"] == 110.0
+    assert monthly["2016-01"]["net_gbp"] == 8.0
+    assert monthly["2016-06"]["revenue_gbp"] == 112.0
+    assert monthly["2016-06"]["net_gbp"] == 9.0
+    # Consumption threads through too, at the same grain (10.0 per _record()).
+    assert monthly["2016-01"]["consumption_kwh"] == 10.0
+
+
+def test_extract_report_data_per_customer_monthly_sums_multiple_records_same_month():
+    records = [
+        _record("C9", "electricity", "2016-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1008.0),
+        _record("C9", "electricity", "2016-01-02", 2, 5.0, 1.0, 4.0, 50.0, 1013.0),
+    ]
+    base = _run_output()
+    base["phase2b"]["all_records"] = records
+    data = extract_report_data(base)
+    monthly = data["years"]["2016"]["per_customer_monthly"]["C9"]["2016-01"]
+    assert monthly["net_gbp"] == 12.0
+    assert monthly["consumption_kwh"] == 20.0
+
+
 def test_by_billing_account_carries_avg_annual_net_margin_when_ev_present():
     """Director page comment (2026-07-11, /customers/: "expose forecast profit
     and cashflow"): saas/clv_model.py::build_clv() already computes

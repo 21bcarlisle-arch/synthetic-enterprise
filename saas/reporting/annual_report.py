@@ -246,6 +246,32 @@ def extract_report_data(run_output: dict) -> dict:
                 "tariff_max_gbp_per_mwh": max(r["unit_rate_gbp_per_mwh"] for r in crecs),
             }
 
+        # D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md real
+        # finding): the lane charter's own L2 bar needs the settlement
+        # ("regulatory") clock reconciled against a real bill's ("financial")
+        # clock for at least ONE bill -- but no settlement figure existed at
+        # bill-matching (monthly) granularity anywhere in this export, only
+        # portfolio totals and this same loop's ANNUAL per_customer above.
+        # Additive, new key only -- no existing consumer's shape changes.
+        # month_key = settlement_date[:7] ("YYYY-MM") matches a real bill's
+        # own period_start month exactly (both derive from the same
+        # simulation calendar, never approximated across different clocks).
+        per_customer_monthly: dict[str, dict[str, dict]] = {}
+        for r in yr_records:
+            cid = r["customer_id"]
+            month_key = r["settlement_date"][:7]
+            entry = per_customer_monthly.setdefault(cid, {}).setdefault(
+                month_key,
+                {"revenue_gbp": 0.0, "wholesale_cost_gbp": 0.0, "gross_gbp": 0.0,
+                 "capital_gbp": 0.0, "net_gbp": 0.0, "consumption_kwh": 0.0},
+            )
+            entry["revenue_gbp"] += r["revenue_gbp"]
+            entry["wholesale_cost_gbp"] += r.get("wholesale_cost_gbp", 0.0)
+            entry["gross_gbp"] += r["margin_gbp"]
+            entry["capital_gbp"] += r["capital_cost_gbp"]
+            entry["net_gbp"] += r["net_margin_gbp"]
+            entry["consumption_kwh"] += r.get("consumption_kwh", 0.0)
+
         treasury_end = max(yr_records, key=lambda r: (r["settlement_date"], r["settlement_period"]))[
             "treasury_cash_balance_gbp"
         ]
@@ -344,6 +370,7 @@ def extract_report_data(run_output: dict) -> dict:
             "commodity_split": commodity_split,
             "segment_split": segment_split,
             "per_customer": per_customer,
+            "per_customer_monthly": per_customer_monthly,
             "active_customer_ids": sorted({r["customer_id"] for r in yr_records}),
             "acquisitions": sorted(
                 [c["customer_id"] for c in CUSTOMERS if _year(c["acquisition_date"]) == year]

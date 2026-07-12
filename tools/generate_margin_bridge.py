@@ -184,11 +184,99 @@ def compute_bridge(data: dict) -> dict:
     }
 
 
+PREFERRED_WORKED_EXAMPLE_CUSTOMERS = ["C1", "C2", "C3", "C5", "C6"]
+
+
+def compute_one_bill_worked_example(data: dict, customer_id: str | None = None) -> dict | None:
+    """D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md): the
+    lane charter's own L2 bar -- 'the three clocks... reconciled... with the
+    gap EXPLAINED... for AT LEAST ONE REAL BILL', not just the portfolio
+    aggregate `compute_bridge()` computes above. Real per-bill (monthly)
+    settlement figures now exist (`saas/reporting/annual_report.py`'s new
+    `per_customer_monthly` export) at the exact same grain a real bill has,
+    closing the data-export gap the earlier DISCOVER pass on this atom
+    found and refused to paper over with an approximate annual-vs-monthly
+    join.
+
+    The three clocks, for one real bill:
+    - PHYSICAL: metered consumption (kWh) for that billing period.
+    - FINANCIAL: the bill's own ledger-equivalent net margin -- mirrors
+      `saas/ledger.py::derive_pnl()`'s real accounting exactly (billed
+      revenue, non-commodity offsets to zero net effect, wholesale + capital
+      cost deducted), not the raw bill total (which is a REVENUE figure, not
+      a comparable NET MARGIN figure -- comparing those two directly would
+      be the same class of overclaim the earlier DISCOVER pass refused).
+    - REGULATORY: the settlement engine's own net_margin_gbp for that exact
+      customer-month (`per_customer_monthly`).
+
+    Returns None (graceful degradation, not fabrication) if no issued bill
+    has a matching settlement month available -- e.g. against an older
+    cached run_output_latest.json predating the per_customer_monthly export."""
+    import sys as _sys
+    _sys.path.insert(0, str(REPO_ROOT))
+    from company.billing.pre_bill_validation import validate_bills
+
+    bills = data.get("bills", [])
+    issued_bills, _held = validate_bills(bills)
+    years_data = data.get("years", {})
+
+    candidates = [customer_id] if customer_id else PREFERRED_WORKED_EXAMPLE_CUSTOMERS
+    for cid in candidates:
+        cust_bills = [b for b in issued_bills if b.get("customer_id") == cid]
+        for bill in sorted(cust_bills, key=lambda b: b["period_end"], reverse=True):
+            year = bill["period_start"][:4]
+            month_key = bill["period_start"][:7]
+            monthly = years_data.get(year, {}).get("per_customer_monthly", {}).get(cid)
+            settlement = (monthly or {}).get(month_key)
+            if settlement is None:
+                continue
+            non_commodity = bill.get("non_commodity_amount_gbp", 0.0) or 0.0
+            financial_net_margin_gbp = (
+                bill["total_amount_gbp"] - non_commodity
+                - settlement["wholesale_cost_gbp"] - settlement["capital_gbp"]
+            )
+            regulatory_net_margin_gbp = settlement["net_gbp"]
+            gap_gbp = _round2(financial_net_margin_gbp - regulatory_net_margin_gbp)
+            return {
+                "customer_id": cid,
+                "period_start": bill["period_start"],
+                "period_end": bill["period_end"],
+                "physical_clock": {
+                    "consumption_kwh": _round2(bill.get("total_consumption_kwh", 0.0)),
+                },
+                "financial_clock": {
+                    "total_amount_gbp": _round2(bill["total_amount_gbp"]),
+                    "non_commodity_amount_gbp": _round2(non_commodity),
+                    "ledger_net_margin_gbp": _round2(financial_net_margin_gbp),
+                },
+                "regulatory_clock": {
+                    "revenue_gbp": _round2(settlement["revenue_gbp"]),
+                    "wholesale_cost_gbp": _round2(settlement["wholesale_cost_gbp"]),
+                    "capital_cost_gbp": _round2(settlement["capital_gbp"]),
+                    "net_margin_gbp": _round2(regulatory_net_margin_gbp),
+                },
+                "gap_gbp": gap_gbp,
+                "gap_explanation": (
+                    "Same mechanism as the portfolio-level bridge above, scoped to this one "
+                    "bill: for a non-pass-through (fixed) tariff, the settlement (regulatory) "
+                    "clock's revenue_gbp does not include policy/network cost recovery, while "
+                    "the bill separately charges and collects it as non_commodity_amount_gbp "
+                    "-- the ledger-equivalent financial clock recognises it, the regulatory "
+                    "clock's cost deduction does not have a matching revenue line."
+                    if abs(gap_gbp) > 1.0 else
+                    "Financial and regulatory clocks agree to within a rounding penny for this "
+                    "bill -- no material reconciling item."
+                ),
+            }
+    return None
+
+
 def generate(run_json_path: Path | None = None) -> dict:
     path = run_json_path or RUN_OUTPUT_PATH
     with open(path) as f:
         data = json.load(f)
     bridge = compute_bridge(data)
+    bridge["one_bill_worked_example"] = compute_one_bill_worked_example(data)
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
         json.dump(bridge, f, indent=2)
@@ -202,6 +290,14 @@ def generate(run_json_path: Path | None = None) -> dict:
             bridge["unexplained_remainder_gbp"],
         )
     )
+    if bridge["one_bill_worked_example"]:
+        ex = bridge["one_bill_worked_example"]
+        print(
+            f"Worked example: {ex['customer_id']} {ex['period_start']}..{ex['period_end']} "
+            f"gap={ex['gap_gbp']}"
+        )
+    else:
+        print("Worked example: none available (no issued bill has a matching settlement month)")
     return bridge
 
 
