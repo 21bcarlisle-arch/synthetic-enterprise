@@ -1677,6 +1677,8 @@ Estimated forward lifetime value of active billing accounts at each year-end.
 
 Annual change in gross margin decomposed into revenue and cost drivers.
 
+> **Basis: ledger/billed clock** (company.finance.double_entry journal, built from real issued bills). The Net Margin Bridge below reads a DIFFERENT clock (settlement, from the simulation's own per-period records) -- the two can diverge for the same year transition, primarily because non-commodity revenue recognition differs between the billed and settled bases for fixed-tariff records (see tools/generate_margin_bridge.py / the front page's reconciliation bridge for the quantified explanation).
+
 | Year | Revenue £ | Wholesale £ | Non-Commodity £ | Gross Margin £ | GM% | ΔRevenue £ | ΔWholesale £ | ΔNon-Comm £ | ΔGM £ |
 |------|-----------|-------------|-----------------|----------------|-----|------------|--------------|-------------|-------|
 | 2016 | £16,206.51 | £3,594.97 | £4,363.77 | £8,247.77 | 50.9% | — | — | — | — |
@@ -1697,6 +1699,8 @@ Annual change in gross margin decomposed into revenue and cost drivers.
 ## Net Margin Bridge (Year-on-Year Attribution)
 
 Decomposes each year's net margin change into: gross margin movement, bad debt, capital costs, policy levies, network costs.
+
+> **Basis: settlement clock** (the simulation's own per-period records, years[]-based). The Gross Margin Bridge above reads a DIFFERENT clock (ledger/billed, from the double-entry journal built off real issued bills) -- the two can diverge for the same year transition; see tools/generate_margin_bridge.py / the front page's reconciliation bridge for the quantified explanation.
 
 | Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Portfolio | Driver | RAG |
 |-----------|-------|---------|-----------|---------|---------|---------|---------|--------|-----|
