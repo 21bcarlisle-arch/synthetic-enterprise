@@ -1,13 +1,30 @@
 # Current Priorities
 
-**Agent-authored proposals awaiting director re-rank (2026-07-12, EPOCH_GATING_AND_ATOM_AUTHORSHIP.md
-Rule 2, `docs/design/maturity_map.yaml` `provenance: proposal`):** intended rank -- backlog, DISCOVER-
-eligible now, BUILD gated until ranked. (1) **F5_ofgem_licence_readiness** (epoch 5) -- the regulatory/
-licence-path gap: none of H3/H4/F4 model whether the simulated company could actually HOLD an Ofgem
-supply licence (fit-and-proper test, post-2021-crisis financial resilience/ring-fencing). (2)
-**A5_tournament_fitness_mortality** (epoch 4) -- the fitness-function/mortality-rule gap: neither
-W1_2_generate_futures nor A4_sim_approver defines what scores a company variant's survival or decides
-culling across generated-future runs; CURRICULUM per R13, director-authored not agent-tuned.
+**Agent-authored proposals RE-RANKED by director (2026-07-12, RERANK_AND_PROVISIONAL_PLAN.md,
+supersedes the "awaiting re-rank" note below):**
+1. **F5_ofgem_licence_readiness (epoch 5) -- ACCEPTED, DISCOVER now, BUILD gated to Epoch 5.**
+   Director's reasoning: the licence path IS the gate between "simulation" and "company" (capital
+   adequacy, systems/process requirements, fit-and-proper persons, reporting duties) -- what it
+   turns up may CONSTRAIN Epoch-3 design, so discovering it late is expensive. P1, front of the
+   DISCOVER-lane queue.
+2. **A5_tournament_fitness_mortality (epoch 4) -- ACCEPTED, FRAME OPTIONS ONLY, BUILD gated.**
+   Director's reasoning: frame the candidate fitness functions/mortality rules as options with
+   trade-offs; the agent may NOT choose the fitness function -- that is a values decision reserved
+   to the director (a tournament optimising purely for enterprise value would evolve the company
+   toward whatever maximises EV, including customer exploitation and regulatory gaming, with only
+   mortality rules/constraints standing in the way -- the alignment problem reproduced inside the
+   simulation). Frame it; he decides.
+
+Prior note (2026-07-12, EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 2, `docs/design/maturity_map.yaml`
+`provenance: proposal`) -- both proposals named real gaps nobody had mapped: neither H3/H4/F4 model
+whether the simulated company could actually HOLD an Ofgem supply licence; neither W1_2_generate_futures
+nor A4_sim_approver defines what scores a company variant's survival or decides culling across
+generated-future runs (CURRICULUM per R13, director-authored not agent-tuned).
+
+**Provisional plan (2026-07-12, RERANK_AND_PROVISIONAL_PLAN.md Part 2):** empirical cycle times,
+critical path, max-useful-concurrency, and director-hours bottleneck model -- `docs/design/PROVISIONAL_PLAN.md`,
+published on the Journey door (site/project/). LAW A guardrail (CLAUDE.md): the plan is a diagnostic
+and tie-breaker, never a target -- exit tests remain the only gate.
 
 **Last director review: 2026-07-08 22:57 UTC (director-direct in-console, supersedes the Phase RY
 Tier-3 opt-out below as front of queue).** Two P1 docs landed via the advisor staging bridge

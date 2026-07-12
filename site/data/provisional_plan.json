@@ -1,0 +1,157 @@
+{
+  "generated_at": "2026-07-12T18:45:25.379434+00:00",
+  "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
+  "confidence_tiers": {
+    "1": "HIGH",
+    "2": "HIGH",
+    "3": "MEDIUM",
+    "4": "COARSE",
+    "5": "COARSE"
+  },
+  "empirical_cycle_times": {
+    "transition_count": 29,
+    "median_cycle_days": 0.067,
+    "min_cycle_days": 0.006,
+    "max_cycle_days": 0.922,
+    "note": "Sub-1-day median across every observed level transition -- reflects dense agent-turn cadence (many turns/day), NOT literal human-scale build difficulty per level. The slowest transitions (up to ~0.9 days) correspond to atoms needing multiple Expert Hour passes (e.g. W5_1_banking_payment_rails' final L2->L3), which is the real signal in this data -- REVIEW ITERATIONS, not raw elapsed time, drive the slow tail.",
+    "slowest_transitions": [
+      {
+        "atom_id": "W5_1_banking_payment_rails",
+        "lane": "W5_banking_payment_rails",
+        "epoch": 2,
+        "from_level": 2,
+        "to_level": 3,
+        "loop_stage_to": "harden",
+        "date": "2026-07-12T15:53:27+01:00",
+        "cycle_days": 0.922
+      },
+      {
+        "atom_id": "W3_1_price_cap_binding",
+        "lane": "W3_industry_systems",
+        "epoch": 1,
+        "from_level": 1,
+        "to_level": 2,
+        "loop_stage_to": "harden",
+        "date": "2026-07-11T06:59:50+01:00",
+        "cycle_days": 0.626
+      },
+      {
+        "atom_id": "W5_1_banking_payment_rails",
+        "lane": "W5_banking_payment_rails",
+        "epoch": 2,
+        "from_level": 0,
+        "to_level": 1,
+        "loop_stage_to": "build",
+        "date": "2026-07-11T15:09:26+01:00",
+        "cycle_days": 0.272
+      },
+      {
+        "atom_id": "W1_reveal_over_time",
+        "lane": "W1_market_weather",
+        "epoch": 2,
+        "from_level": 0,
+        "to_level": 1,
+        "loop_stage_to": "build",
+        "date": "2026-07-10T21:51:18+01:00",
+        "cycle_days": 0.172
+      },
+      {
+        "atom_id": "D3_catchup_rebilling",
+        "lane": "D_billing_metering",
+        "epoch": 2,
+        "from_level": 2,
+        "to_level": 3,
+        "loop_stage_to": "harden",
+        "date": "2026-07-12T06:03:10+01:00",
+        "cycle_days": 0.112
+      }
+    ]
+  },
+  "critical_path_by_epoch": {
+    "2": {
+      "open_atoms": 10,
+      "critical_chain": [
+        "W1_reveal_over_time",
+        "D2_three_clocks",
+        "B1_margin_bridge"
+      ],
+      "critical_chain_length": 3
+    },
+    "1": {
+      "open_atoms": 3,
+      "critical_chain": [
+        "W1_reveal_over_time",
+        "D2_three_clocks",
+        "E2_revenue_reconciliation"
+      ],
+      "critical_chain_length": 3
+    },
+    "3": {
+      "open_atoms": 8,
+      "critical_chain": [
+        "W2_2_population_draw",
+        "W2_4_household_budget",
+        "W2_7_willingness_classification"
+      ],
+      "critical_chain_length": 3
+    },
+    "4": {
+      "open_atoms": 7,
+      "critical_chain": [
+        "A2_decision_rights_register",
+        "A3_approval_interface",
+        "A4_sim_approver",
+        "A5_tournament_fitness_mortality"
+      ],
+      "critical_chain_length": 4
+    },
+    "5": {
+      "open_atoms": 3,
+      "critical_chain": [
+        "H4_go_live_nfr_register"
+      ],
+      "critical_chain_length": 1
+    }
+  },
+  "concurrency": {
+    "total_open_atoms": 31,
+    "code_free_discover_frame_atoms": 26,
+    "atoms_with_real_file_scope": 5,
+    "max_concurrent_width_overall": 31,
+    "per_epoch": {
+      "2": {
+        "open_atoms": 10,
+        "max_concurrent_width": 10
+      },
+      "3": {
+        "open_atoms": 8,
+        "max_concurrent_width": 8
+      },
+      "4": {
+        "open_atoms": 7,
+        "max_concurrent_width": 7
+      },
+      "1": {
+        "open_atoms": 3,
+        "max_concurrent_width": 3
+      },
+      "5": {
+        "open_atoms": 3,
+        "max_concurrent_width": 3
+      }
+    },
+    "note": "Most open atoms today are DISCOVER/FRAME-stage with empty file_scope (code-free research/design work), which is why the arithmetic max width looks close to the full open-atom count -- this measures 'no file collision', not 'safe to run N engineers building code at once'. Real BUILD-stage file contention only shows up once these atoms declare non-empty file_scope on entering BUILD."
+  },
+  "director_hours": {
+    "window_days": 3.0,
+    "from_rich_touches": 27,
+    "substantive_staged_doc_touches": 28,
+    "routine_daemon_markers_excluded": 343,
+    "tier1_gates_closed_all_time": 7,
+    "estimated_director_hours_per_day": 5.09,
+    "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
+    "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
+  },
+  "re_forecast_cadence": "Every epoch boundary, and after every ~10 level transitions.",
+  "source_doc": "docs/design/PROVISIONAL_PLAN.md"
+}

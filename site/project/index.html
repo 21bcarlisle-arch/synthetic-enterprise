@@ -226,6 +226,17 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <div id="mm-view-body">
     <div style="color:var(--muted);font-size:12px">Loading maturity map...</div>
   </div>
+
+  <div class="sec">Provisional Plan -- Computed, Not Guessed</div>
+  <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    Empirical cycle times, critical path, concurrency width and the director-hours bottleneck --
+    every figure recomputed fresh from git history and the maturity map, never hand-typed
+    (docs/design/PROVISIONAL_PLAN.md). <strong>LAW A:</strong> this is a diagnostic and a
+    tie-breaker, NEVER a target -- exit tests remain the only gate.
+  </p>
+  <div id="pp-body">
+    <div style="color:var(--muted);font-size:12px">Loading provisional plan...</div>
+  </div>
 </div>
 
 </div><!-- /tab-overview -->
@@ -302,7 +313,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </div></div>
 
 <script>
-var D=null,PH=null,SYS=null,SYS2=null,TM=null,rendered={};
+var D=null,PH=null,SYS=null,SYS2=null,TM=null,PP=null,rendered={};
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function ageLabel(ts){if(!ts)return"unknown";var sec=(Date.now()-new Date(ts).getTime())/1000;if(sec<120)return Math.round(sec)+"s ago";if(sec<3600)return Math.round(sec/60)+"m ago";if(sec<86400)return(sec/3600).toFixed(1)+"h ago";return(sec/86400).toFixed(1)+"d ago";}
 function ageDot(ts,st){if(!ts)return"dot-grey";var h=(Date.now()-new Date(ts).getTime())/3600000;if(st==="error")return"dot-red";if(h>6)return"dot-red";if(h>1)return"dot-amber";return"dot-green";}
@@ -546,7 +557,38 @@ function renderMMCampaign(){
   }).join("");
 }
 
-Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];renderKpis();renderCharts();renderBuildStats();renderTestMix();if(MM){renderEpoch2Strip();renderMMView();}}).catch(function(e){console.error("Load error:",e);});
+function renderProvisionalPlan(){
+  var el=document.getElementById("pp-body");
+  if(!el||!PP)return;
+  var ct=PP.empirical_cycle_times||{},cp=PP.critical_path_by_epoch||{},cc=PP.concurrency||{},dh=PP.director_hours||{};
+  var tiers=PP.confidence_tiers||{};
+  var epochRows=Object.keys(cp).sort(function(a,b){return a-b;}).map(function(e){
+    var c=cp[e];
+    return '<div class="mm-atom-row"><span>Epoch '+e+' ('+(tiers[e]||"?")+' confidence)</span><span>'+
+      c.open_atoms+' open, critical chain '+c.critical_chain_length+' deep'+
+      (c.critical_chain&&c.critical_chain.length?': '+c.critical_chain.join(" &rarr; "):"")+'</span></div>';
+  }).join("");
+  el.innerHTML=
+    '<div class="disc-grid" style="margin-bottom:16px">'+
+    '<div class="disc"><h3>Empirical cycle time</h3><p style="margin-bottom:6px">'+ct.transition_count+
+      ' real level transitions observed; median '+ct.median_cycle_days+' days/step</p>'+
+      '<p style="color:var(--muted);font-size:11px">'+(ct.note||"")+'</p></div>'+
+    '<div class="disc"><h3>Concurrency width</h3><p style="margin-bottom:6px">'+cc.total_open_atoms+
+      ' atoms open, max concurrent width '+cc.max_concurrent_width_overall+' ('+
+      cc.code_free_discover_frame_atoms+' code-free DISCOVER/FRAME, '+cc.atoms_with_real_file_scope+
+      ' with real file_scope)</p><p style="color:var(--muted);font-size:11px">'+(cc.note||"")+'</p></div>'+
+    '<div class="disc"><h3>Director-hours bottleneck</h3><p style="margin-bottom:6px"><strong>~'+
+      dh.estimated_director_hours_per_day+' hours/day</strong> at current pace ('+dh.from_rich_touches+
+      ' steers + '+dh.substantive_staged_doc_touches+' staged-doc reviews / '+dh.window_days+' days)</p>'+
+      '<p style="color:var(--muted);font-size:11px">'+(dh.caveat||"")+'</p></div>'+
+    '</div>'+
+    '<div class="sub-sec" style="font-weight:600;margin-bottom:8px">Critical path by epoch</div>'+
+    epochRows+
+    '<p style="color:var(--muted);font-size:11px;margin-top:10px">Generated '+PP.generated_at+
+      ' -- re-forecast cadence: '+PP.re_forecast_cadence+'</p>';
+}
+
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];renderKpis();renderCharts();renderBuildStats();renderTestMix();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();}).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="../shared/director-comments.js" defer></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
