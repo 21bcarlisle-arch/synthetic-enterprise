@@ -450,7 +450,8 @@
           "level_current": 0,
           "level_target": 3,
           "notes": [
-            "2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md director addendum item 8). Late-payment interest is STATUTORY for business (Late Payment of Commercial Debts (Interest) Act 1998 / LPCDCA, 8%+base) and effectively EXCLUDED for domestic; late-payment CHARGES are largely regulated out of domestic T&Cs. Tariff ELIGIBILITY conditioned on payment behaviour is real commercial policy (DD-discount tariffs; good-payer gating) -- model as company-side POLICY OBJECTS with fairness/oracle constraints, not as free-floating parameters. Anchors: LPCDCA (business); Ofgem SLC / Consumer Duty (domestic charge restrictions). Build in M3."
+            "2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md director addendum item 8). Late-payment interest is STATUTORY for business (Late Payment of Commercial Debts (Interest) Act 1998 / LPCDCA, 8%+base) and effectively EXCLUDED for domestic; late-payment CHARGES are largely regulated out of domestic T&Cs. Tariff ELIGIBILITY conditioned on payment behaviour is real commercial policy (DD-discount tariffs; good-payer gating) -- model as company-side POLICY OBJECTS with fairness/oracle constraints, not as free-floating parameters. Anchors: LPCDCA (business); Ofgem SLC / Consumer Duty (domestic charge restrictions). Build in M3.",
+            "2026-07-12 DISCOVER addendum (self-refill draw, no BUILD code). Business-side statutory rate reconfirmed current: 11.75% (base 3.75% + 8pts, mid-2026) -- consistent with sibling atom W2_6's own finding, same real anchor, cross-checked not duplicated blind. Also found a live, current (2026) regulatory constraint directly relevant to this atom's own 'DD-discount tariffs / good-payer gating -- model as policy objects with fairness constraints' framing: Ofgem's Direct Debit Market Compliance Review is an ACTIVE enforcement effort (a real 2026 action sought improvements from 12 suppliers) requiring suppliers to set DD amounts off realistic consumption/tariff/seasonality estimates, avoid unnecessary large credit build-up, and actively return in-credit accounts toward a near-zero balance within 12 months. Implication for this atom's eventual build: a 'good-payer gating/DD-discount' policy object cannot be modelled as simply rewarding reliable payers with a discount in isolation -- real suppliers are simultaneously under an active regulatory obligation NOT to over-collect/over-hold credit from those same good payers, i.e. the fairness-constraint side of this atom's own 'policy objects with fairness/oracle constraints' phrase has a real, current, named regulatory anchor (this DD compliance review), not just an abstract fairness principle. No BUILD code; no level change."
           ]
         }
       ]
@@ -524,5 +525,5 @@
     }
   ],
   "total_atoms_with_notes": 43,
-  "total_notes": 100
+  "total_notes": 101
 }
