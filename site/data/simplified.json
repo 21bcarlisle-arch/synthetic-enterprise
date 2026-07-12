@@ -77,6 +77,15 @@
             "2026-07-10 DISCOVER finding, verified not assumed: MARGIN_REALISM Step 4's goal is substantially already built. Fixed/pass-through tariffs: decide_hedge_fraction() decided once per term (volatility as-of term start), held constant until the next renewal -- confirmed via real 2020 data (start_hf == avg_hf exactly for the large majority of customers). Deemed (out-of-contract/SVT-adjacent) tariffs: spot+premium, explicitly NO forward hedge -- correctly matches SVT tracking the cap's own wholesale-observation window. Flex tariffs: weekly re-hedge at rolling reference price -- matches a short-reset tariff's own commitment horizon. One honest exception NOT glossed over: a few I&C customers show hf changing within a calendar year, plausibly multiple genuine contract renewals (I&C terms are often 3-6 months in reality) rather than a mid-term re-decision bug -- NOT independently re-verified against the raw per-term log (not retained in the report-extracted shape), flagged as resting on a plausible inference, not a full re-derivation.",
             "2026-07-11 HARDEN-sweep gap CLOSED (commit 8dc14ca1): hedge_fraction was always on every settlement record but never reached a business surface (harden_sweep:live_site:B3_hedge_tariff_alignment). Added consumption-weighted avg_hedge_fraction to per_customer_lifetime (saas/reporting/annual_report.py) and threaded it into each per-customer site JSON (tools/generate_customer_data.py) plus a new visible 'Avg. Hedge Coverage' row on the customer portal account card (site/customers/index.html, right after Cost to Serve). 5 new tests (weighted-average math, None-when-zero-consumption, full JSON thread), browser-verified the row renders correctly (Playwright, injected test value, reverted after). Live data awaits the next natural sim run -- the field wasn't in run_output_latest.json generated before this fix landed."
           ]
+        },
+        {
+          "atom_id": "B4_competitor_field",
+          "atom_name": "Competitor field (price ceiling / undercut pressure)",
+          "level_current": 0,
+          "level_target": 1,
+          "notes": [
+            "2026-07-12 DISCOVER pass (self-refill draw, no BUILD code). Registration was entirely blank; checked internal code directly before assuming zero prior art -- and found something more precise than either 'nothing exists' or 'it's mis-registered': TWO separate, real, well-built, Ofgem/CMA-anchored modules that LOOK like they satisfy this atom's own scope, and NEITHER is wired into the real pricing decision. company/market/tariff_benchmarking.py models competitor tariff snapshots (CompetitorTariff, SupplierRank, activation-energy perceived-savings) from real public sources (Ofgem comparison tool, uSwitch, BEIS DUKES) -- confirmed via grep: ZERO non-test callers anywhere. company/pricing/renewal_pricing_engine.py computes a renewal price using SVT as a competitive ceiling and a real CMA-2016-calibrated conversion-decay curve (_RENEWAL_CONVERSION_DECAY_PER_PCT_ABOVE) -- also confirmed via grep: ZERO non-test callers. Cross-checked the REAL live pricing pathway directly: simulation/renewals.py (the actual call site building the historical replay's renewal schedule) has ZERO references to svt/competitor/ceiling of any kind. Conclusion: the real simulation's pricing decisions today have NO competitor-aware ceiling/undercut logic at all -- not because nothing was ever built, but because two real, non-trivial, real-data-anchored attempts exist and were never connected to the live decision path (the same 'paper compliance' class already found this session for company/crm/onboarding_journey.py and W2_10's payment_channel/dd_fail pipelines -- a recurring pattern worth naming: this codebase has repeatedly built a real capability module in isolation without the final wiring step). Concrete next FRAME question (not decided here): which of the two orphaned modules (or a combination) should be the one actually wired into simulation/renewals.py, and whether renewal_pricing_engine.py's SVT-only ceiling is sufficient for this atom's own L1 bar or whether tariff_benchmarking.py's fuller multi-competitor snapshot is needed. No BUILD code, no level change."
+          ]
         }
       ]
     },
@@ -546,6 +555,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 45,
-  "total_notes": 107
+  "total_atoms_with_notes": 46,
+  "total_notes": 108
 }
