@@ -256,3 +256,37 @@ def test_check_back_billing_cap_respected_passes_when_genuinely_written_off():
         "catchup_adjustment_gbp": assessment.capped_amount_gbp,
     }
     assert check_back_billing_cap_respected(bill) is True
+
+
+# --- BILL_TO_LEDGER_LINKAGE.md (2026-07-12): billed-clock reconciliation ---
+
+
+def test_billed_clock_reconciles_registered_as_structural_invariant():
+    from company.compliance.domain_invariants import BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS
+    assert BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS in ALL_INVARIANTS
+    assert BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS.jurisdiction == "UK"
+
+
+def test_check_billed_clock_reconciles_true_when_exact_match():
+    from company.compliance.domain_invariants import check_billed_clock_reconciles
+    bills = [{"total_amount_gbp": 73.04}, {"total_amount_gbp": 100.0}]
+    assert check_billed_clock_reconciles(173.04, bills) is True
+
+
+def test_check_billed_clock_reconciles_false_on_real_divergence():
+    from company.compliance.domain_invariants import check_billed_clock_reconciles
+    bills = [{"total_amount_gbp": 73.04}, {"total_amount_gbp": 100.0}]
+    # A held bill's amount leaked into total_billed_gbp but isn't in issued_bills.
+    assert check_billed_clock_reconciles(173.04 + 42.0, bills) is False
+
+
+def test_check_billed_clock_reconciles_tolerant_of_penny_rounding():
+    from company.compliance.domain_invariants import check_billed_clock_reconciles
+    bills = [{"total_amount_gbp": 73.045}]
+    assert check_billed_clock_reconciles(73.04, bills) is True
+
+
+def test_check_billed_clock_reconciles_empty_bills():
+    from company.compliance.domain_invariants import check_billed_clock_reconciles
+    assert check_billed_clock_reconciles(0.0, []) is True
+    assert check_billed_clock_reconciles(10.0, []) is False

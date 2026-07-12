@@ -347,6 +347,32 @@ BACK_BILLING_CAP_RESPECTED = StructuralInvariant(
 )
 
 
+# BILL_TO_LEDGER_LINKAGE.md (2026-07-12, P0): "for any period, revenue
+# recognised on the billed clock == sum of bills issued (to the penny;
+# divergence = held exception)". Investigation confirmed the board's
+# published headline (total_net_gbp, saas/reporting/annual_report.py:581)
+# is settlement-derived and structurally never reads bills at all -- a real,
+# already-existing SEPARATE P&L view (saas/ledger.py's derive_pnl(),
+# "financial.ledger.*"/"ledger_pnl" in the report) IS bill-derived (its
+# billing_event.amount_gbp is literally bill["total_amount_gbp"]), but until
+# this steer it recognised revenue for HELD bills too -- a bill the pre-bill
+# Tier-1 gate has not cleared for issue, which is a real revenue-recognition
+# error (you cannot recognise revenue for a bill you have not sent).
+# simulation/run_phase4c_on_phase2b.py now filters to validate_bills()'s
+# PASSING population before calling build_ledger() -- this check is the
+# regression guard so a future refactor can't silently reintroduce the gap.
+BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS = StructuralInvariant(
+    id="billed_clock_reconciles_with_issued_bills",
+    description=(
+        "The ledger's recognised billed revenue (sum of billing_event "
+        "amounts) must equal the sum of total_amount_gbp across only the "
+        "bills that actually passed the pre-bill Tier-1 gate (were "
+        "genuinely issued) -- never bills still HELD in the exception queue"
+    ),
+    source="Real revenue-recognition principle: a supplier cannot book revenue for an unissued bill",
+)
+
+
 ALL_INVARIANTS: list = [
     VAT_RESIDENTIAL, VAT_SME,
     STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
@@ -362,6 +388,7 @@ ALL_INVARIANTS: list = [
     NET_MARGIN_PCT_OF_REVENUE, GROSS_MARGIN_PCT_OF_REVENUE,
     BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
     BACK_BILLING_CAP_RESPECTED,
+    BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
 ]
 
 
@@ -489,6 +516,21 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     expected_written_off = assessment.written_off_gbp
     actual_written_off = bill.get("catchup_written_off_gbp", 0.0)
     return abs(actual_written_off - expected_written_off) <= 0.05
+
+
+def check_billed_clock_reconciles(total_billed_gbp: float, issued_bills: list) -> bool:
+    """`total_billed_gbp` is the ledger's own recognised-revenue figure
+    (saas.ledger.derive_pnl()'s `total_billed_gbp`, built from
+    billing_event amounts). `issued_bills` must be the population that
+    ACTUALLY fed build_ledger() -- i.e. validate_bills()'s passing half,
+    never the raw unfiltered bill list (which would include HELD bills
+    that were never issued and must not count as recognised revenue).
+    Exact-to-the-penny match expected by construction; a real divergence
+    means something in the pipeline silently changed what feeds the
+    ledger without updating this invariant -- fail loud, don't average
+    over it."""
+    expected = round(sum(b.get("total_amount_gbp", 0.0) for b in issued_bills), 2)
+    return abs(round(total_billed_gbp, 2) - expected) <= 0.01
 
 
 def invariant_count() -> int:

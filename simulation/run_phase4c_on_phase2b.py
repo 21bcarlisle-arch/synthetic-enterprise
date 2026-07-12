@@ -46,6 +46,7 @@ from company.billing.account_adjustment_register import (
     AdjustmentType,
 )
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from company.billing.pre_bill_validation import validate_bills
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
     MAX_CLARITY_SCORE,
@@ -648,12 +649,45 @@ def main(report_end: str | None = None, policy=None):
         + phase2b_result.get("fixed_cost_events", [])
         + [make_cost_to_serve_event(e["month"], e["amount_gbp"]) for e in cost_to_serve_ledger_events]
     )
+    # BILL_TO_LEDGER_LINKAGE.md (2026-07-12): a HELD bill (pre_bill_
+    # validation.py's Tier-1 gate) has NOT been issued to the customer --
+    # recognising its revenue in the ledger P&L before that gate clears it
+    # is a real accounting error (revenue recognition without an issued
+    # bill), confirmed live: this run's own held_bill_count means
+    # ledger_pnl.total_billed_gbp previously counted an un-issued bill's
+    # total_amount_gbp as recognised revenue. Only ISSUED (validate_bills()-
+    # passing) bills feed the ledger's revenue recognition; `bills` itself
+    # (the full, unfiltered list, held ones included) is left untouched for
+    # every other consumer (per-customer views, the exception queue tools/
+    # generate_billing_ledger.py builds separately) -- this fix is scoped
+    # to ledger revenue recognition specifically, not a wider bill-list change.
+    issued_bills, _held_bills_excluded_from_ledger = validate_bills(bills)
     ledger_events = build_ledger(
-        all_records, bills, payment_behaviour_module,
+        all_records, issued_bills, payment_behaviour_module,
         extra_events=extra_events or None,
     )
     ledger_pnl = derive_pnl(ledger_events)
     ledger_meta = ledger_summary(ledger_events)
+
+    # BILL_TO_LEDGER_LINKAGE.md Tier-1 invariant: the ledger's recognised
+    # billed revenue must reconcile to the penny with the bills that
+    # actually fed it. A whole-run aggregate check, not a per-bill gate --
+    # logged loudly rather than raising (this pipeline run already takes
+    # ~100 minutes; a divergence here is a real defect worth a visible flag,
+    # not a reason to discard a completed run), and surfaced on the report
+    # itself so it lands on a business surface, not just a log line.
+    from company.compliance.domain_invariants import check_billed_clock_reconciles
+    billed_clock_reconciles = check_billed_clock_reconciles(
+        ledger_pnl.get("total_billed_gbp", 0.0), issued_bills
+    )
+    if not billed_clock_reconciles:
+        print(
+            "WARNING: billed-clock invariant VIOLATED -- ledger_pnl.total_billed_gbp "
+            "does not reconcile with the sum of issued bills. See "
+            "BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS "
+            "(company/compliance/domain_invariants.py)."
+        )
+    ledger_meta["billed_clock_reconciles_with_issued_bills"] = billed_clock_reconciles
 
     return {
         "phase2b": phase2b_result,

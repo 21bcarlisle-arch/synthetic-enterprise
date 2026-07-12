@@ -623,3 +623,48 @@ def test_non_churned_customer_unaffected_by_other_customers_churning(force_estim
     records = _short_run_records(cid="C1", n_months=10)
     bills = build_monthly_bills(records, churned_ids={"SOME_OTHER_CUSTOMER"})
     assert bills[-1]["billing_basis"] == "estimated"
+
+
+# --- BILL_TO_LEDGER_LINKAGE.md (2026-07-12): held bills must not become
+# recognised revenue. This tests the exact integration pattern main() now
+# uses (validate_bills() -> build_ledger() -> derive_pnl()) -- main() itself
+# runs the full ~100-minute pipeline and isn't unit-testable directly, so
+# this proves the composition rather than invoking main(). ---
+
+def test_held_bill_revenue_excluded_from_ledger_pnl():
+    from company.billing.pre_bill_validation import validate_bills
+    from company.compliance.domain_invariants import check_billed_clock_reconciles
+    from saas.ledger import build_ledger, derive_pnl
+
+    good_bill = {
+        "customer_id": "C1", "period_start": "2024-01-01", "period_end": "2024-01-31",
+        "segment": "resi", "commodity": "electricity", "total_consumption_kwh": 300.0,
+        "commodity_amount_gbp": 44.55, "non_commodity_amount_gbp": 16.65,
+        "standing_charge_gbp": 9.30, "vat_gbp": 3.53, "total_amount_gbp": 74.03,
+    }
+    # 20% VAT on a resi bill -- the R10 C6 defect class, guaranteed HELD.
+    held_bill = {
+        "customer_id": "C2", "period_start": "2024-01-01", "period_end": "2024-01-31",
+        "segment": "resi", "commodity": "electricity", "total_consumption_kwh": 300.0,
+        "commodity_amount_gbp": 44.55, "non_commodity_amount_gbp": 16.65,
+        "standing_charge_gbp": 9.30, "vat_gbp": 14.10, "total_amount_gbp": 84.60,
+    }
+    bills = [good_bill, held_bill]
+    issued_bills, exceptions = validate_bills(bills)
+    assert len(issued_bills) == 1 and issued_bills[0]["customer_id"] == "C1"
+    assert len(exceptions) == 1 and exceptions[0].customer_id == "C2"
+
+    ledger_events = build_ledger([], issued_bills)
+    ledger_pnl = derive_pnl(ledger_events)
+
+    # The held bill's £84.60 must NOT appear in recognised revenue.
+    assert ledger_pnl["total_billed_gbp"] == pytest.approx(74.03)
+    assert check_billed_clock_reconciles(ledger_pnl["total_billed_gbp"], issued_bills) is True
+
+    # Sanity: feeding the UNFILTERED bill list (the pre-fix behaviour)
+    # would have wrongly recognised the held bill's revenue too, and the
+    # invariant would correctly catch that as a real divergence.
+    unfiltered_events = build_ledger([], bills)
+    unfiltered_pnl = derive_pnl(unfiltered_events)
+    assert unfiltered_pnl["total_billed_gbp"] == pytest.approx(74.03 + 84.60)
+    assert check_billed_clock_reconciles(unfiltered_pnl["total_billed_gbp"], issued_bills) is False
