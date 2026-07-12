@@ -204,7 +204,8 @@ def test_synthetic_violating_bill_reaches_the_exception_queue():
 def test_uncapped_catchup_bill_still_passes_normally():
     bill = _good_resi_bill(
         catchup_applied=True, catchup_direction="undercharge",
-        catchup_period_start="2024-01-01",
+        catchup_period_start="2024-01-01", catchup_period_end="2024-01-31",
+        catchup_raw_delta_gbp=10.0,
     )
     result = validate_bill(bill)
     assert not any("slc_21ba_back_billing_cap" in r for r in result.reasons)
@@ -217,7 +218,7 @@ def test_breach_silently_charged_in_full_is_held():
     bill = _good_resi_bill(
         period_end="2024-01-31",
         catchup_applied=True, catchup_direction="undercharge",
-        catchup_period_start="2022-06-01",
+        catchup_period_start="2022-06-01", catchup_period_end="2023-05-31",
         catchup_written_off_gbp=0.0, catchup_raw_delta_gbp=300.0,
         catchup_adjustment_gbp=300.0,
     )
@@ -227,15 +228,53 @@ def test_breach_silently_charged_in_full_is_held():
 
 
 def test_breach_genuinely_written_off_passes():
+    from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+    import datetime as _dt
+    assessment = BackBillingAssessment(
+        account_id="C1", billing_date=_dt.date(2024, 1, 31),
+        consumption_period_start=_dt.date(2022, 6, 1),
+        consumption_period_end=_dt.date(2023, 5, 31),
+        billed_amount_gbp=300.0, reason=BackBillingReason.ESTIMATED_READ_CORRECTED,
+        is_domestic=True,
+    )
+    assert assessment.cap_applies
     bill = _good_resi_bill(
         period_end="2024-01-31",
         catchup_applied=True, catchup_direction="undercharge",
-        catchup_period_start="2022-06-01",
-        catchup_written_off_gbp=100.0, catchup_raw_delta_gbp=300.0,
-        catchup_adjustment_gbp=200.0,
+        catchup_period_start="2022-06-01", catchup_period_end="2023-05-31",
+        catchup_written_off_gbp=assessment.written_off_gbp, catchup_raw_delta_gbp=300.0,
+        catchup_adjustment_gbp=assessment.capped_amount_gbp,
     )
     result = validate_bill(bill)
     assert not any("slc_21ba_back_billing_cap" in r for r in result.reasons)
+
+
+def test_breach_with_token_write_off_wrong_magnitude_is_held():
+    # invariant_redteam_2026-07-12.md Finding 3, wired end-to-end through
+    # the actual pre-bill gate: a symbolic write-off must not satisfy it.
+    bill = _good_resi_bill(
+        period_end="2024-01-31",
+        catchup_applied=True, catchup_direction="undercharge",
+        catchup_period_start="2019-01-01", catchup_period_end="2024-01-31",
+        catchup_written_off_gbp=0.01, catchup_raw_delta_gbp=5000.0,
+        catchup_adjustment_gbp=4999.99,
+    )
+    result = validate_bill(bill)
+    assert result.held is True
+    assert any("slc_21ba_back_billing_cap" in r for r in result.reasons)
+
+
+def test_breach_with_malformed_direction_is_held():
+    # invariant_redteam_2026-07-12.md Finding 4: fail closed, not open.
+    bill = _good_resi_bill(
+        period_end="2024-01-31",
+        catchup_applied=True, catchup_direction="Undercharge",
+        catchup_period_start="2022-06-01", catchup_period_end="2023-05-31",
+        catchup_raw_delta_gbp=300.0,
+    )
+    result = validate_bill(bill)
+    assert result.held is True
+    assert any("slc_21ba_back_billing_cap" in r for r in result.reasons)
 
 
 def test_zero_subtotal_bill_does_not_crash_vat_check():

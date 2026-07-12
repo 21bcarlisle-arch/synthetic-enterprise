@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Optional
 
+from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
 
 _CAP_ANCHOR_YEARS = range(2019, 2026)
@@ -418,28 +419,56 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     Overcharges (credits owed to the customer) are correctly never capped
     (company/billing/back_billing.py's documented asymmetry) -- not a gap,
     passes trivially.
+
+    R3/R4 self-correction (2026-07-12, invariant_redteam_2026-07-12.md,
+    same-session adversarial red-team on this exact function): the first
+    version had two real, executed-and-confirmed gaps this rewrite closes.
+    (a) Finding 3 -- only checked `written_off_gbp > 0` (existence), never
+    the MAGNITUDE, so a 1p token write-off against a five-year, £5,000
+    breach passed as "cap respected." Now independently recomputes the
+    expected write-off via `BackBillingAssessment` (the same real
+    mechanism `_resolve_catchup` itself uses -- R3, reuse not reinvent)
+    and compares magnitudes. (b) Finding 4 -- an unrecognised/missing
+    `catchup_direction`, or a missing period/delta field, silently
+    returned True (fail-OPEN). A Tier-1 compliance gate must fail CLOSED
+    on data it cannot verify -- HELD, not silently passed -- so those
+    paths now return False.
     """
     if not bill.get("catchup_applied"):
         return True
-    if bill.get("catchup_direction") != "undercharge":
-        return True
-    period_start_raw = bill.get("catchup_period_start")
-    billing_date_raw = bill.get("period_end")
-    if not period_start_raw or not billing_date_raw:
-        return True
-    period_start = datetime.fromisoformat(period_start_raw).date()
-    billing_date = datetime.fromisoformat(billing_date_raw).date()
-    protected_start = billing_date - timedelta(days=_BACK_BILLING_LIMIT_DAYS)
-    breaches_cap = period_start < protected_start
-    if not breaches_cap:
-        return True
 
-    written_off = bill.get("catchup_written_off_gbp", 0.0)
-    if written_off <= 0:
-        return False
-    raw_delta = bill.get("catchup_raw_delta_gbp", 0.0)
-    adjustment = bill.get("catchup_adjustment_gbp", 0.0)
-    return abs((adjustment + written_off) - raw_delta) <= 0.01
+    direction = bill.get("catchup_direction")
+    if direction not in ("undercharge", "overcharge"):
+        return False  # fail closed: unrecognised/missing direction
+    if direction == "overcharge":
+        return True  # credits are never capped -- correct, not a gap
+
+    period_start_raw = bill.get("catchup_period_start")
+    period_end_raw = bill.get("catchup_period_end")
+    billing_date_raw = bill.get("period_end")
+    raw_delta = bill.get("catchup_raw_delta_gbp")
+    if not period_start_raw or not period_end_raw or not billing_date_raw or raw_delta is None:
+        return False  # fail closed: cannot verify, so do not pass it
+
+    period_start = datetime.fromisoformat(period_start_raw).date()
+    period_end = datetime.fromisoformat(period_end_raw).date()
+    billing_date = datetime.fromisoformat(billing_date_raw).date()
+
+    assessment = BackBillingAssessment(
+        account_id=bill.get("customer_id", ""),
+        billing_date=billing_date,
+        consumption_period_start=period_start,
+        consumption_period_end=period_end,
+        billed_amount_gbp=raw_delta,
+        reason=BackBillingReason.ESTIMATED_READ_CORRECTED,
+        is_domestic=bill.get("segment", "resi") == "resi",
+    )
+    if not assessment.cap_applies:
+        return True  # genuinely doesn't breach the window -- nothing to write off
+
+    expected_written_off = assessment.written_off_gbp
+    actual_written_off = bill.get("catchup_written_off_gbp", 0.0)
+    return abs(actual_written_off - expected_written_off) <= 0.05
 
 
 def invariant_count() -> int:

@@ -158,7 +158,8 @@ def test_check_back_billing_cap_respected_passes_for_credits_never_capped():
 def test_check_back_billing_cap_respected_passes_when_within_window():
     bill = {
         "catchup_applied": True, "catchup_direction": "undercharge",
-        "catchup_period_start": "2019-06-01", "period_end": "2019-12-31",
+        "catchup_period_start": "2019-06-01", "catchup_period_end": "2019-06-30",
+        "period_end": "2019-12-31", "catchup_raw_delta_gbp": 100.0,
     }
     assert check_back_billing_cap_respected(bill) is True
 
@@ -168,18 +169,66 @@ def test_check_back_billing_cap_respected_fails_when_breach_not_written_off():
     # full (a real live gap this steer exists to catch) must be caught.
     bill = {
         "catchup_applied": True, "catchup_direction": "undercharge",
-        "catchup_period_start": "2018-06-01", "period_end": "2019-12-31",
+        "catchup_period_start": "2018-06-01", "catchup_period_end": "2019-05-31",
+        "period_end": "2019-12-31",
         "catchup_written_off_gbp": 0.0, "catchup_raw_delta_gbp": 600.0,
         "catchup_adjustment_gbp": 600.0,
     }
     assert check_back_billing_cap_respected(bill) is False
 
 
-def test_check_back_billing_cap_respected_passes_when_genuinely_written_off():
+def test_check_back_billing_cap_respected_fails_on_token_write_off_wrong_magnitude():
+    # invariant_redteam_2026-07-12.md Finding 3: a 1p symbolic write-off
+    # against a genuinely large, old breach must NOT pass just because
+    # written_off > 0 -- the magnitude must match what the law requires.
     bill = {
         "catchup_applied": True, "catchup_direction": "undercharge",
-        "catchup_period_start": "2018-06-01", "period_end": "2019-12-31",
-        "catchup_written_off_gbp": 200.0, "catchup_raw_delta_gbp": 600.0,
-        "catchup_adjustment_gbp": 400.0,
+        "catchup_period_start": "2019-01-01", "catchup_period_end": "2024-01-31",
+        "period_end": "2024-01-31",
+        "catchup_written_off_gbp": 0.01, "catchup_raw_delta_gbp": 5000.0,
+        "catchup_adjustment_gbp": 4999.99,
+    }
+    assert check_back_billing_cap_respected(bill) is False
+
+
+def test_check_back_billing_cap_respected_fails_on_malformed_direction():
+    # invariant_redteam_2026-07-12.md Finding 4: a case typo or unrecognised
+    # direction must fail CLOSED (HELD), not silently pass.
+    bill = {
+        "catchup_applied": True, "catchup_direction": "Undercharge",
+        "catchup_period_start": "2018-06-01", "catchup_period_end": "2019-05-31",
+        "period_end": "2019-12-31", "catchup_raw_delta_gbp": 600.0,
+    }
+    assert check_back_billing_cap_respected(bill) is False
+
+
+def test_check_back_billing_cap_respected_fails_on_missing_period_fields():
+    # Same finding: a missing catchup_period_end must fail closed too.
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "2018-06-01",
+        "period_end": "2019-12-31", "catchup_raw_delta_gbp": 600.0,
+    }
+    assert check_back_billing_cap_respected(bill) is False
+
+
+def test_check_back_billing_cap_respected_passes_when_genuinely_written_off():
+    from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+    import datetime as _dt
+    assessment = BackBillingAssessment(
+        account_id="C1", billing_date=_dt.date(2019, 12, 31),
+        consumption_period_start=_dt.date(2018, 6, 1),
+        consumption_period_end=_dt.date(2019, 5, 31),
+        billed_amount_gbp=600.0, reason=BackBillingReason.ESTIMATED_READ_CORRECTED,
+        is_domestic=True,
+    )
+    assert assessment.cap_applies  # sanity: this scenario genuinely breaches
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "2018-06-01", "catchup_period_end": "2019-05-31",
+        "period_end": "2019-12-31",
+        "catchup_written_off_gbp": assessment.written_off_gbp,
+        "catchup_raw_delta_gbp": 600.0,
+        "catchup_adjustment_gbp": assessment.capped_amount_gbp,
     }
     assert check_back_billing_cap_respected(bill) is True
