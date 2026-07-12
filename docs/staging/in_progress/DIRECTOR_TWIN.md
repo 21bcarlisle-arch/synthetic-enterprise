@@ -1,5 +1,21 @@
 # DIRECTOR_TWIN — the pretend principal (P0, capstone of the autonomy work)
 
+**IN PROGRESS, 2026-07-12 — what's done and what's still open (staging-directory-protocol note):**
+DONE: `background/director_twin.py` (`ask_twin`/`overturn`/`fidelity_metric`, 7 tests + one real
+live end-to-end verified `claude -p` call), `docs/design/DIRECTOR_CANON.md` v1 (the twin's brief),
+one-way-door routing (never answers a values question, verified), Q&A log
+(`docs/observability/director_twin_log.jsonl`) surfaced on the Journey door (site/project/) with a
+compact panel, overturn mechanism (versions/amends the canon), fidelity metric computing. A REAL
+security incident was found and fixed along the way: the first live test spawned an unrestricted
+`claude -p --dangerously-skip-permissions` peer sharing this repo, which autonomously committed and
+pushed on its own — full root-cause + fix in
+`docs/retrospectives/2026-07-12-director-twin-unrestricted-spawn.md`; `_default_invoke()` now runs
+with `--tools=` (no tool execution) from a scratch cwd outside the repo, verified. NOT YET DONE (the
+blocking sub-item): a dedicated top-level "Director door" nav section (today's surface is a panel
+bolted onto an existing page — a site-navigation change is a more consequential, user-facing
+decision than this pass should rush) and wiring the fidelity metric to the scrutiny dial's
+escalation physics (the dial itself isn't built yet).
+
 **Staged:** 2026-07-12 by advisor. **Director-decided, his words:** *"I am
 happy to have a pretend me, that quickly answers questions, a CEO bot for the
 SIM that gets replaced if we ever try for real. Also I can see the questions

@@ -1,5 +1,19 @@
 # Current Priorities
 
+**PROCEED_BY_DEFAULT + DIRECTOR_TWIN + MAKE_IT_STICK CLOSED IN FULL (2026-07-12, session-crash
+recovery), F5/A5 DISCOVER/FRAME landed, both DONE below -- both re-ranked items 1-2 (F5 DISCOVER,
+A5 FRAME) closed same session:** governance model replaced (see CLAUDE.md "PROCEED BY DEFAULT" /
+"MAKE IT STICK" / "DIRECTOR_TWIN, Law B"). Built as CODE not prose: `background/one_way_door.py`
+(the checkable predicate, 13 tests), `background/decision_log.py` (self-writing log, 7 tests, 3 real
+entries from this session), `background/director_twin.py` (builder-facing twin, 7 tests + one real
+live end-to-end `claude -p` call verified — 27s latency, correctly cited canon, correctly recognised
+the values-decision boundary without being asked to). `docs/design/DIRECTOR_CANON.md` v1 is the
+twin's brief. `docs/design/ESCALATION_REVERSIBILITY_AUDIT.md`: honest finding — only 7 real Tier-1
+gates exist (not 20), 4/7 (57%) were genuine safety-control one-way-doors even under the new model,
+2/7 would not need to have blocked, 1/7 borderline. **Registered follow-ups, NOT built this pass:**
+a dedicated top-level "Director door" nav section (current surface is a panel on the Journey door,
+site/project/) and wiring the fidelity metric to the scrutiny dial's escalation physics.
+
 **Agent-authored proposals RE-RANKED by director (2026-07-12, RERANK_AND_PROVISIONAL_PLAN.md,
 supersedes the "awaiting re-rank" note below):**
 1. **F5_ofgem_licence_readiness (epoch 5) -- ACCEPTED, DISCOVER now, BUILD gated to Epoch 5.**

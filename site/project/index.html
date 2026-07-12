@@ -237,6 +237,20 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <div id="pp-body">
     <div style="color:var(--muted);font-size:12px">Loading provisional plan...</div>
   </div>
+
+  <div class="sec">Director Twin -- Q&amp;A Log</div>
+  <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    Builder-facing "pretend principal" (DIRECTOR_TWIN.md): answers sequencing/scope/design
+    questions from a fixed canon (docs/design/DIRECTOR_CANON.md), cold-eyes (separate context,
+    never sees the builder's case), never learning from outcomes (Law B). Always routes
+    one-way-door questions -- above all the Epoch-4 fitness function -- to the real director
+    rather than answering. A full dedicated Director door is a registered follow-up; this is
+    a first surface. Overturn rate is the fidelity metric: how often the director reverses the
+    twin, published rather than hidden.
+  </p>
+  <div id="dt-body">
+    <div style="color:var(--muted);font-size:12px">Loading director twin log...</div>
+  </div>
 </div>
 
 </div><!-- /tab-overview -->
@@ -313,7 +327,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </div></div>
 
 <script>
-var D=null,PH=null,SYS=null,SYS2=null,TM=null,PP=null,rendered={};
+var D=null,PH=null,SYS=null,SYS2=null,TM=null,PP=null,DT=null,rendered={};
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function ageLabel(ts){if(!ts)return"unknown";var sec=(Date.now()-new Date(ts).getTime())/1000;if(sec<120)return Math.round(sec)+"s ago";if(sec<3600)return Math.round(sec/60)+"m ago";if(sec<86400)return(sec/3600).toFixed(1)+"h ago";return(sec/86400).toFixed(1)+"d ago";}
 function ageDot(ts,st){if(!ts)return"dot-grey";var h=(Date.now()-new Date(ts).getTime())/3600000;if(st==="error")return"dot-red";if(h>6)return"dot-red";if(h>1)return"dot-amber";return"dot-green";}
@@ -588,7 +602,26 @@ function renderProvisionalPlan(){
       ' -- re-forecast cadence: '+PP.re_forecast_cadence+'</p>';
 }
 
-Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];renderKpis();renderCharts();renderBuildStats();renderTestMix();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();}).catch(function(e){console.error("Load error:",e);});
+function renderDirectorTwin(){
+  var el=document.getElementById("dt-body");
+  if(!el||!DT)return;
+  var f=DT.fidelity||{};
+  var rateText=(f.overturn_rate==null)?"n/a (nothing answered yet)":(Math.round(f.overturn_rate*1000)/10)+"%";
+  var rows=(DT.recent_qa||[]).map(function(q){
+    var badge=q.routed_to_director?mmBadge("ROUTED TO DIRECTOR","amber"):(q.overturned?mmBadge("OVERTURNED","amber"):mmBadge("ANSWERED","green"));
+    var ans=q.routed_to_director?('<em style="color:var(--muted)">routed -- '+(q.category||"one-way door")+'</em>'):(q.answer||"").slice(0,220)+((q.answer||"").length>220?"...":"");
+    return '<div class="disc" style="margin-bottom:8px"><h3 style="font-size:12px">'+q.question+' '+badge+'</h3>'+
+      '<p style="font-size:11px;color:var(--muted)">'+ans+'</p></div>';
+  }).join("");
+  el.innerHTML=
+    '<div class="disc-grid" style="margin-bottom:16px">'+
+    '<div class="disc"><h3>Fidelity (overturn rate)</h3><p>'+rateText+' -- '+f.answered+' answered, '+
+      f.routed_to_director+' routed to director, '+f.overturned+' overturned. Canon v'+f.canon_version+'</p></div>'+
+    '</div>'+
+    (rows||'<p style="color:var(--muted);font-size:12px">No questions logged yet.</p>');
+}
+
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/director_twin.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];DT=rs[5];renderKpis();renderCharts();renderBuildStats();renderTestMix();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();if(DT)renderDirectorTwin();}).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="../shared/director-comments.js" defer></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>

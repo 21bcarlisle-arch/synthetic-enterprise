@@ -673,11 +673,19 @@ def test_maturity_map_draw_concurrent_does_not_grant_two_overlapping_atoms():
 
 
 def test_maturity_map_draw_concurrent_excludes_undeclared_scope_atom():
+    """2026-07-12 fixed a real flake: the unweighted `random` primary draw
+    (dial weights 3/2/1) had a genuine ~1-in-6 chance of picking
+    X3_undeclared as primary, at which point it WOULD legitimately appear in
+    `selected` (it's the primary pick itself) -- the assertion's own claim
+    ("regardless of draw order") was false. A fixed seed makes the primary
+    pick deterministic; the actual property under test (an undeclared-scope
+    atom can never join as an ADDITIONAL concurrent pick alongside a
+    declared one) is unaffected by which atom is drawn as primary first."""
     supervisor.MATURITY_MAP_PATH.write_text(_THREE_ATOMS_ONE_UNDECLARED_YAML)
-    selected = supervisor._maturity_map_draw_concurrent()
+    import random as random_module
+    rng = random_module.Random(7)  # picks a declared atom as primary
+    selected = supervisor._maturity_map_draw_concurrent(rng=rng)
     ids = {a["id"] for a in selected}
-    # The two declared-disjoint atoms join; the undeclared-scope one never
-    # can (fails closed), regardless of draw order.
     assert "X3_undeclared" not in ids
     assert ids == {"X1_declared_a", "X2_declared_b"}
 
