@@ -303,10 +303,11 @@
         {
           "atom_id": "H4_go_live_nfr_register",
           "atom_name": "Go-live NFR register (availability/SLOs, security, data protection, operational resilience, capacity, incident response)",
-          "level_current": 0,
+          "level_current": 1,
           "level_target": 1,
           "notes": [
-            "2026-07-11 REGISTERED (P2, advisor-staged, director-decided -- PRODUCTION_READINESS_BASELINE.md). Extends the existing obligations-register pattern to non-functional/operational production requirements: one entry per category (availability/SLOs, latency budgets, security incl. authn/authz/secrets/pen test, data protection incl. GDPR/encryption/backups, operational resilience linking the existing cyber-baseline obligation, change management/rollback, capacity, incident response), each recording what a real UK supplier needs, current measured state (fed by H3_production_readiness_nfr_evidence's Part A), go-live tier (blocker/should-have/post-live), and which epoch it lands in. This register is a direct input to Epoch 5 (go-live analysis), maintained from now -- placed at epoch:5 since that's where it's consumed, though the register itself starts being populated now. Depends on H3's Part A evidence existing before entries can carry a real 'current measured state' column."
+            "2026-07-11 REGISTERED (P2, advisor-staged, director-decided -- PRODUCTION_READINESS_BASELINE.md). Extends the existing obligations-register pattern to non-functional/operational production requirements: one entry per category (availability/SLOs, latency budgets, security incl. authn/authz/secrets/pen test, data protection incl. GDPR/encryption/backups, operational resilience linking the existing cyber-baseline obligation, change management/rollback, capacity, incident response), each recording what a real UK supplier needs, current measured state (fed by H3_production_readiness_nfr_evidence's Part A), go-live tier (blocker/should-have/post-live), and which epoch it lands in. This register is a direct input to Epoch 5 (go-live analysis), maintained from now -- placed at epoch:5 since that's where it's consumed, though the register itself starts being populated now. Depends on H3's Part A evidence existing before entries can carry a real 'current measured state' column.",
+            "2026-07-12 REGISTER POPULATED, level 0->1 (self-refill draw, no simulation/company code -- a design/registration document, matching this atom's own nature as a register not a runtime mechanism). Confirmed H3's own dependency is genuinely satisfied: H3_production_readiness_nfr_evidence reached L1 (target 1) on 2026-07-11/12 with real, measured Part A findings across all four sub-areas (recoverability, security, performance, availability). Built docs/design/H4_GO_LIVE_NFR_REGISTER.md: seven rows (availability/SLOs, latency budgets, security, data protection, operational resilience, capacity/scaling, incident response), each carrying a real 'current measured state' column quoted directly from H3's own findings (R9: measure, don't assert -- no new measurement performed here, only organised). Honest summary: three categories carry a real blocker-tier gap right now (availability: no redundancy/SLO; security: no dependency-vulnerability scan/pen test; capacity: two code-verified O(n^2) scaling patterns in simulation/run_phase2b.py) -- none are live-risk-tier under H3's own carve-out (no imminent danger, this is a simulation not a live service today). NOT yet done, why this stays L1 not higher: no mechanism keeps the register's 'current measured state' column fresh as the codebase changes (a point-in-time snapshot); no formal SLO-setting exercise has happened (availability/latency both read 'no target ever set', not 'measured against a target'); pip-audit still not installed. loop_stage build->harden (at target)."
           ]
         },
         {
@@ -558,5 +559,5 @@
     }
   ],
   "total_atoms_with_notes": 46,
-  "total_notes": 110
+  "total_notes": 111
 }

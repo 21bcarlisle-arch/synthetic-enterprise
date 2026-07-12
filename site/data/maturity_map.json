@@ -772,16 +772,16 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 5,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "idle",
+      "loop_stage": "harden",
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "H3_production_readiness_nfr_evidence",
         "H5_security_profiles"
       ],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "F4_company_internal_authz",
