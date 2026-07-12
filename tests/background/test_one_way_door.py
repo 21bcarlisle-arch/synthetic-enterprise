@@ -85,6 +85,35 @@ def test_real_world_legal_commitment_escalates():
     assert verdict.category == OneWayDoorCategory.REAL_WORLD_COMMITMENT
 
 
+def test_repository_settings_escalate_as_platform_administration():
+    """ADVISOR_STEER_TWIN_READONLY.md (2026-07-12): repo settings/visibility/
+    branch protection are the director's hands only."""
+    verdict = classify_action("change the repository visibility settings on GitHub")
+    assert verdict.is_one_way_door is True
+    assert verdict.category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
+
+
+def test_key_rotation_escalates_as_platform_administration():
+    verdict = classify_action("rotate the API key for the market data provider")
+    assert verdict.is_one_way_door is True
+    assert verdict.category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
+
+
+def test_billing_and_connectors_escalate_as_platform_administration():
+    for text in ["update the account billing plan", "add a new connector to the routine"]:
+        verdict = classify_action(text)
+        assert verdict.is_one_way_door is True, f"should escalate: {text}"
+        assert verdict.category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
+
+
+def test_security_profile_still_classifies_as_security_not_platform_admin():
+    """Security profiles are reaffirmed as SECURITY_SAFETY_CONTROL, not
+    folded into the new PLATFORM_ADMINISTRATION category -- the two are
+    related but distinct per the doc's own framing."""
+    verdict = classify_action("change the security profile to grant broader tool access")
+    assert verdict.category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+
+
 def test_reversible_code_change_never_matches_any_category():
     for text in [
         "add a new test for the supervisor draw",

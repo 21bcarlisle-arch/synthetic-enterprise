@@ -803,6 +803,36 @@ def test_maturity_map_self_refill_real_map_never_cannot_draw():
     assert supervisor._self_refill_draw() is not None
 
 
+def test_find_work_never_reports_map_exhausted_against_real_map_with_idle_atoms():
+    """ADVISOR_STEER_TWIN_READONLY.md (2026-07-12, director-decided): a live
+    supervisor daemon reported a GENUINE cannot-draw (52 atoms, 33 idle, 25 at
+    L0, "no drawable gap left") despite EPOCH_GATING_AND_ATOM_AUTHORSHIP.md
+    already requiring idle atoms to always be drawable for DISCOVER/FRAME.
+
+    Root-caused with real evidence (R4), not guessed: `ps aux` showed the
+    `supervisor` tmux session's `background/supervisor.py` process had been
+    running since 14:14, and the idle-discover-frame fix was committed at
+    17:40:51 -- textbook R2 ("committed != running"). Restarting the tmux
+    session (`tmux kill-session -t supervisor` + relaunch) immediately fixed
+    it live -- confirmed via the next real supervisor-wake doorbell showing a
+    genuine DISCOVER/FRAME grant instead of cannot-draw.
+
+    This test proves the INVARIANT itself against the real map (not just the
+    process-restart fix, which a test can't exercise) -- `find_work()` is the
+    exact function `find_work()`'s own callers (autonomous_runner.py,
+    session_watchdog.py) use, so this is the same code path that was
+    reporting the false cannot-draw, not a narrower proxy for it. Isolated
+    from PRIORITIES.md/staging/agenda so a pass here can ONLY come from the
+    maturity-map draw itself, never the backlog-prose fallback."""
+    real_map = supervisor.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
+    supervisor.MATURITY_MAP_PATH.write_text(real_map.read_text())
+    assert not supervisor.PRIORITIES_PATH.exists()
+    assert list(supervisor.STAGING_DIR.glob("*")) == []
+    reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+    assert exhausted is False
+    assert reason is not None
+
+
 def test_diagnose_map_blocked_set_reports_no_blockers_when_none_exist():
     supervisor.MATURITY_MAP_PATH.write_text(_MET_DEPENDENCY_YAML)
     diagnosis = supervisor.diagnose_map_blocked_set()

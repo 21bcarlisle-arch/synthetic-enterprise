@@ -40,6 +40,17 @@ class OneWayDoorCategory(Enum):
     IRRECOVERABLE_DATA_LOSS = "irrecoverable_data_loss"
     SECURITY_SAFETY_CONTROL = "security_safety_control"
     VALUES_DECISION = "values_decision"
+    # 2026-07-12, ADVISOR_STEER_TWIN_READONLY.md, director-decided verbatim:
+    # "Any changes to repo, keys, settings etc I should do." Distinct from
+    # SECURITY_SAFETY_CONTROL (which is about THIS harness's own safety
+    # mechanisms -- the verifier, staging flow, skip-permissions) -- this
+    # category is about platform/infrastructure CAPABILITY: repo settings/
+    # visibility/branch protection/GitHub controls, keys/tokens/secrets/
+    # credentials, account settings/connectors/billing/model entitlements,
+    # and anything else that changes what the machine is ALLOWED to do (as
+    # opposed to what it does). The director's hands only, never the twin's,
+    # never the agent's autonomous choice, regardless of reversibility.
+    PLATFORM_ADMINISTRATION = "platform_administration"
     REAL_CUSTOMER_OR_MARKET = "real_customer_or_market"
 
 
@@ -84,6 +95,14 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
     OneWayDoorCategory.REAL_CUSTOMER_OR_MARKET: [
         r"\breal customer\b", r"\bproduction (api )?key\b", r"\blive (nbp|trading|market) (feed|order)\b",
         r"\breal bank account\b",
+    ],
+    OneWayDoorCategory.PLATFORM_ADMINISTRATION: [
+        r"repo(sitory)? (settings|visibility)", r"branch protection", r"github (settings|controls|repo)",
+        r"\b(api )?keys?\b.*(creat|rotat|generat|revoke)", r"(creat|rotat|generat|revoke)\w*.*\b(api )?keys?\b",
+        r"\btokens?\b.*(creat|rotat|generat|revoke)", r"(creat|rotat|generat|revoke)\w*.*\btokens?\b",
+        r"\bcredential", r"\bsecrets?\b.*(creat|rotat|generat|expose)", r"(creat|rotat|generat|expose)\w*.*\bsecrets?\b",
+        r"account settings", r"\bconnector", r"\bbilling\b", r"\b(plan|model) entitlement",
+        r"change what.*(allowed|permitted) to do", r"grant.*(broader|new|additional) (access|permission)",
     ],
 }
 
