@@ -228,6 +228,95 @@ def test_build_timeline_falls_back_to_phase_id_label_when_no_title():
     assert timeline[0]["detail"] == "Phase ZZ"
 
 
+# --- Director page comment 2026-07-12 (/project/ timeline): "just a long
+# list... no filters or sort. No details behind. No link to epochs" ---
+
+def test_epoch_for_extracts_epoch_number():
+    from tools.generate_phases_json import _epoch_for
+    assert _epoch_for("Epoch-2 bounded start") == 2
+    assert _epoch_for("some text mentioning Epoch 3 midway") == 3
+    assert _epoch_for("no epoch mention here") is None
+
+
+def test_body_summary_returns_first_paragraph_not_header():
+    from tools.generate_phases_json import _body_summary
+    body = "### Phase AA -- Title (2026-07-01)\n\nThis is the real substance of the phase.\n\nSecond paragraph."
+    assert _body_summary(body) == "This is the real substance of the phase."
+
+
+def test_body_summary_empty_when_no_body_text():
+    from tools.generate_phases_json import _body_summary
+    assert _body_summary("### Phase AA (2026-07-01)\n") == ""
+
+
+def test_body_summary_truncates_long_paragraphs():
+    from tools.generate_phases_json import _body_summary
+    long_para = "x" * 600
+    body = "### Phase AA (2026-07-01)\n\n" + long_para
+    summary = _body_summary(body)
+    assert len(summary) == 503  # 500 + "..."
+    assert summary.endswith("...")
+
+
+def test_build_timeline_carries_epoch_and_summary():
+    from tools.generate_phases_json import _build_timeline
+    chronological = [
+        ("AA", "2026-07-01", 100, "Epoch-2 bounded start",
+         "### Phase AA -- Epoch-2 bounded start (2026-07-01)\n\nReal substance here.\n\nKEY FINDING: alpha happened.\n"),
+    ]
+    timeline = _build_timeline(chronological)
+    phase_row = next(e for e in timeline if e["type"] == "phase")
+    assert phase_row["epoch"] == 2
+    assert phase_row["summary"] == "Real substance here."
+    discovery_row = next(e for e in timeline if e["type"] == "discovery")
+    assert discovery_row["epoch"] == 2, "discovery rows inherit their phase's epoch"
+
+
+def test_build_timeline_epoch_none_when_not_mentioned():
+    from tools.generate_phases_json import _build_timeline
+    chronological = [("AA", "2026-07-01", 100, "Ordinary Title", "### Phase AA -- Ordinary Title (2026-07-01)\nno epoch mention.\n")]
+    timeline = _build_timeline(chronological)
+    assert timeline[0]["epoch"] is None
+
+
+def test_build_timeline_emits_one_marker_per_epoch_at_first_mention():
+    from tools.generate_phases_json import _build_timeline
+    chronological = [
+        ("AA", "2026-07-01", 100, "Epoch-1 kickoff", "### Phase AA -- Epoch-1 kickoff (2026-07-01)\nbody.\n"),
+        ("AB", "2026-07-02", 110, "Ordinary phase", "### Phase AB -- Ordinary phase (2026-07-02)\nbody.\n"),
+        ("AC", "2026-07-03", 120, "Epoch-2 bounded start", "### Phase AC -- Epoch-2 bounded start (2026-07-03)\nbody.\n"),
+        ("AD", "2026-07-04", 130, "Epoch-2 continues", "### Phase AD -- Epoch-2 continues (2026-07-04)\nbody.\n"),
+        ("AE", "2026-07-05", 140, "Epoch-3 starts", "### Phase AE -- Epoch-3 starts (2026-07-05)\nbody.\n"),
+    ]
+    timeline = _build_timeline(chronological)
+    markers = [e for e in timeline if e["type"] == "epoch_marker"]
+    assert len(markers) == 2, "one marker per epoch >= 2, at first mention only -- not one per phase, and not epoch 1"
+    assert {m["epoch"] for m in markers} == {2, 3}
+    marker2 = next(m for m in markers if m["epoch"] == 2)
+    assert marker2["date"] == "2026-07-03"
+    assert "Epoch-2 bounded start" in marker2["detail"]
+
+
+def test_build_timeline_epoch_1_never_gets_a_marker():
+    """Epoch 1 is the project's own foundational period -- marking it at
+    the date it happens to be first NAMED (long after the true start) would
+    be more misleading than no marker at all."""
+    from tools.generate_phases_json import _build_timeline
+    chronological = [
+        ("AA", "2026-06-07", 5, "Project start", "### Phase AA -- Project start (2026-06-07)\nbody.\n"),
+        ("AZ", "2026-07-10", 500, "Epoch 1 retrospective note", "### Phase AZ -- Epoch 1 retrospective note (2026-07-10)\nbody.\n"),
+    ]
+    timeline = _build_timeline(chronological)
+    assert [e for e in timeline if e["type"] == "epoch_marker"] == []
+
+
+def test_build_timeline_no_markers_when_no_epoch_ever_mentioned():
+    from tools.generate_phases_json import _build_timeline
+    chronological = [("AA", "2026-07-01", 100, "Ordinary", "### Phase AA -- Ordinary (2026-07-01)\nno epoch here.\n")]
+    timeline = _build_timeline(chronological)
+    assert [e for e in timeline if e["type"] == "epoch_marker"] == []
+
+
 def test_iter_phase_entries_matches_parse_build_history_ids_and_dates():
     from tools.generate_phases_json import _iter_phase_entries, _parse_build_history
     text = (

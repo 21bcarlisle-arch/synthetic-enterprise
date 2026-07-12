@@ -56,11 +56,17 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .mm-atom-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-top:1px solid var(--border);}
 .mm-atom-row:first-child{border-top:none;}
 .mm-badge{border-radius:4px;font-size:10px;font-weight:700;padding:1px 6px;white-space:nowrap;}
-.tl-row{display:flex;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
+.tl-row{display:flex;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.tl-row:hover{background:var(--surface2);}
 .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;margin-right:10px;}
 .tl-body{flex:1;}.tl-date{font-size:12px;color:var(--muted);margin-bottom:2px;}
-.tl-label{font-size:14px;font-weight:600;margin-bottom:4px;}.tl-detail{font-size:12px;color:var(--muted);line-height:1.5;}
+.tl-label{font-size:14px;font-weight:600;margin-bottom:4px;}.tl-detail{font-size:12px;color:var(--muted);line-height:1.5;display:none;}
+.tl-detail.expanded{display:block;}
 .tl-badge{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600;text-transform:uppercase;margin-left:8px;}
+.tl-epoch-badge{background:rgba(42,120,214,.15);color:var(--blue);border:1px solid rgba(42,120,214,.3);padding:1px 6px;border-radius:10px;font-size:9px;font-weight:600;margin-left:6px;}
+.tl-marker{background:var(--surface2);border-left:3px solid var(--blue);padding:8px 12px;margin:8px 0;font-size:12px;font-weight:600;color:var(--blue);cursor:default;}
+.tl-marker:hover{background:var(--surface2);}
+.tl-expand-hint{font-size:10px;color:var(--muted);margin-left:8px;font-weight:400;}
 .agent-grid{display:flex;flex-direction:column;gap:0;}
 .agent-row{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);}
 .agent-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
@@ -209,6 +215,18 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 
 <div id="tab-timeline" class="view"><div class="wrap">
   <div class="sec">Project Timeline</div>
+  <div id="tl-controls" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <div id="tl-type-btns" style="display:flex;gap:6px">
+      <button class="mm-view-btn active" data-type="all" onclick="setTlFilter('type','all')">All</button>
+      <button class="mm-view-btn" data-type="phase" onclick="setTlFilter('type','phase')">Phases</button>
+      <button class="mm-view-btn" data-type="discovery" onclick="setTlFilter('type','discovery')">Key Findings</button>
+    </div>
+    <select id="tl-epoch-select" class="mm-view-btn" style="cursor:pointer" onchange="setTlFilter('epoch',this.value)">
+      <option value="all">All epochs</option>
+    </select>
+    <button class="mm-view-btn" id="tl-sort-btn" onclick="toggleTlSort()">Newest first</button>
+    <span id="tl-count" style="font-size:11px;color:var(--muted);margin-left:auto"></span>
+  </div>
   <div id="tl-container" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:24px">
     <div style="color:var(--muted);font-size:12px">Loading...</div>
   </div>
@@ -274,10 +292,44 @@ function ageDot(ts,st){if(!ts)return"dot-grey";var h=(Date.now()-new Date(ts).ge
 function toggleReg(id){var row=document.getElementById(id);if(row)row.style.display=(row.style.display==="none"?"table-row":"none");}
 function switchTab(name){document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});document.getElementById("tab-"+name).classList.add("active");document.querySelector("[data-tab='"+name+"']").classList.add("active");if(!rendered[name]){renderTab(name);rendered[name]=true;}}
 function renderTab(n){if(n==="timeline")renderTimeline();else if(n==="system")renderSystem();}
-var MC_COLORS={"phase":"#2a78d6","discovery":"#fab219"};
+var MC_COLORS={"phase":"#2a78d6","discovery":"#fab219","epoch_marker":"#2a78d6"};
+// Director page comment 2026-07-12 (/project/ timeline: "just a long list...
+// no filters or sort. No details behind. No link to epochs") -- filter/sort
+// state + expandable detail, built on the epoch/summary fields
+// tools/generate_phases_json.py now emits.
+var tlFilter={type:"all",epoch:"all"};
+var tlSortDesc=true;
+var tlRows=[];
+function escHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function setTlFilter(key,val){tlFilter[key]=val;if(key==="type"){document.querySelectorAll("#tl-type-btns .mm-view-btn").forEach(function(b){b.classList.toggle("active",b.dataset.type===val);});}renderTimeline();}
+function toggleTlSort(){tlSortDesc=!tlSortDesc;document.getElementById("tl-sort-btn").textContent=tlSortDesc?"Newest first":"Oldest first";renderTimeline();}
+function toggleTlRow(i){var el=document.getElementById("tl-detail-"+i);if(el)el.classList.toggle("expanded");}
 function renderTimeline(){
-  var tl=(PH&&PH.timeline)||[];
-  var rows=tl.map(function(ms){var col=MC_COLORS[ms.type]||"#52514e";return '<div class="tl-row"><div class="tl-dot" style="background:'+col+'"></div><div class="tl-body"><div class="tl-date">'+ms.date+'<span class="tl-badge" style="color:'+col+'">'+ms.type+'</span></div><div class="tl-label">'+ms.label+'</div><div class="tl-detail">'+ms.detail+'</div></div></div>';}).join("");
+  var all=(PH&&PH.timeline)||[];
+  // Populate the epoch dropdown once (options don't change after first load).
+  var epochSel=document.getElementById("tl-epoch-select");
+  if(epochSel&&epochSel.options.length<=1){
+    var epochs=Array.from(new Set(all.map(function(e){return e.epoch;}).filter(function(e){return e!=null;}))).sort(function(a,b){return a-b;});
+    epochs.forEach(function(e){var opt=document.createElement("option");opt.value=e;opt.textContent="Epoch "+e;epochSel.appendChild(opt);});
+  }
+  var tl=all.filter(function(ms){
+    if(tlFilter.type!=="all"&&ms.type!==tlFilter.type&&ms.type!=="epoch_marker")return false;
+    if(tlFilter.epoch!=="all"&&String(ms.epoch)!==String(tlFilter.epoch))return false;
+    return true;
+  });
+  tl=tl.slice().sort(function(a,b){return tlSortDesc?(a.date<b.date?1:-1):(a.date>b.date?1:-1);});
+  tlRows=tl;
+  var countEl=document.getElementById("tl-count");
+  if(countEl)countEl.textContent=tl.length+" of "+all.length+" entries";
+  var rows=tl.map(function(ms,i){
+    if(ms.type==="epoch_marker"){
+      return '<div class="tl-marker">'+ms.date+' &mdash; '+escHtml(ms.label)+'</div>';
+    }
+    var col=MC_COLORS[ms.type]||"#52514e";
+    var epochBadge=ms.epoch!=null?'<span class="tl-epoch-badge">Epoch '+ms.epoch+'</span>':"";
+    var hasDetail=ms.summary&&ms.summary.length>0;
+    return '<div class="tl-row" onclick="toggleTlRow('+i+')"><div class="tl-dot" style="background:'+col+'"></div><div class="tl-body"><div class="tl-date">'+ms.date+'<span class="tl-badge" style="color:'+col+'">'+ms.type+'</span>'+epochBadge+(hasDetail?'<span class="tl-expand-hint">click to expand</span>':"")+'</div><div class="tl-label">'+escHtml(ms.label)+'</div><div class="tl-detail" id="tl-detail-'+i+'">'+escHtml(ms.summary||ms.detail)+'</div></div></div>';
+  }).join("");
   document.getElementById("tl-container").innerHTML=rows||'<div style="color:var(--muted);font-size:12px">No timeline data.</div>';
   if(PH){var tp=PH.test_progression||[];var ctx=document.getElementById("ct2");if(tp.length&&ctx)new Chart(ctx,{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:6,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}}});}
 }

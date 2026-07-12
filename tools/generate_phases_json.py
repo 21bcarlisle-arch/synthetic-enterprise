@@ -207,24 +207,91 @@ def _monotonic_test_progression(chronological):
     return [[d, tp_by_date[d]] for d in sorted(tp_by_date)]
 
 
+_EPOCH_RE = re.compile(r"[Ee]poch[\s-]?(\d+)")
+
+
+def _epoch_for(text):
+    """Best-effort epoch tag from a phase's own title+body text (e.g. "Epoch-2
+    bounded start"). Not authoritative -- docs/design/maturity_map.yaml's own
+    atoms are the epoch source of truth for capability atoms, but there is no
+    existing join key between a git-log-derived Section-4 phase and a
+    maturity-map atom, so this is a lightweight, honestly-partial heuristic
+    (director page comment 2026-07-12: "/project/ ... No link to epochs
+    etc."), not a fabricated mapping for phases that never mention one."""
+    m = _EPOCH_RE.search(text)
+    return int(m.group(1)) if m else None
+
+
+def _body_summary(body):
+    """First substantive paragraph of a phase's body (after its own header
+    line), for the timeline's expandable detail -- previously `detail` was
+    just "Phase X -- N tests", i.e. no real content behind a phase row at
+    all (same director comment: "No details behind")."""
+    _header, _, rest = body.partition("\n")
+    paras = [p.strip() for p in rest.split("\n\n") if p.strip()]
+    if not paras:
+        return ""
+    first = paras[0].replace("**", "")
+    return first[:500] + ("..." if len(first) > 500 else "")
+
+
 def _build_timeline(chronological):
     """Build the Project-tab timeline (phase + discovery rows) from oldest-first entries.
 
     Replaces the hand-curated PROJ array in site/project/index.html (PROJECT_TAB_OVERHAUL.md
     item 2, R-A: nothing hand-written, everything derives or dies) -- every row is generated
     from PROJECT_OVERVIEW.md Section 4, never hand-appended.
+
+    Additive fields (director page comment 2026-07-12, /project/ timeline: "just a long
+    list... no filters or sort. No details behind. No link to epochs"): `epoch` (best-effort,
+    see _epoch_for) and `summary` (the real first paragraph, see _body_summary) alongside the
+    existing `detail` (kept unchanged for back-compat with anything else reading this field).
     """
     timeline = []
     for phase_id, date, test_count, title, body in chronological:
         label = title or ("Phase " + phase_id)
         detail = "Phase " + phase_id + (" -- {:,} tests".format(test_count) if test_count else "")
-        timeline.append(dict(date=date, type="phase", phase_id=phase_id, label=label[:160], detail=detail))
+        epoch = _epoch_for(label) or _epoch_for(body)
+        timeline.append(dict(
+            date=date, type="phase", phase_id=phase_id, label=label[:160], detail=detail,
+            epoch=epoch, summary=_body_summary(body),
+        ))
         for finding in _extract_findings(body):
             capped = finding[:320] + ("..." if len(finding) > 320 else "")
             timeline.append(dict(
                 date=date, type="discovery", phase_id=phase_id,
                 label="Key Finding (Phase " + phase_id + ")", detail=capped,
+                epoch=epoch, summary=capped,
             ))
+    timeline.sort(key=lambda e: e["date"])
+
+    # Epoch-transition markers: the first dated entry that mentions a given
+    # epoch number >= 2 is an honest (if approximate) "this is roughly where
+    # Epoch N's work starts" anchor -- per-phase epoch tagging above is
+    # sparse (only phases whose own text mentions an epoch), so this is the
+    # more useful answer to "no link to epochs" without fabricating a false
+    # per-phase precision the source material doesn't have. Epoch 1 is
+    # deliberately NOT marked this way: it is the project's own foundational
+    # period, and the first phase to literally say "Epoch 1" (a later,
+    # retrospective reference) lands long after the project's real start --
+    # marking it "Epoch 1 begins" there would be more misleading than no
+    # marker at all. Epoch 1 is simply everything before the Epoch-2 marker.
+    seen_epochs = set()
+    markers = []
+    for entry in timeline:
+        if entry["type"] != "phase" or entry["epoch"] is None or entry["epoch"] < 2:
+            continue
+        if entry["epoch"] in seen_epochs:
+            continue
+        seen_epochs.add(entry["epoch"])
+        markers.append(dict(
+            date=entry["date"], type="epoch_marker", phase_id=None,
+            label="Epoch " + str(entry["epoch"]) + " begins (approx.)",
+            detail="First phase mentioning Epoch " + str(entry["epoch"])
+                   + " by name: \"" + entry["label"] + "\"",
+            epoch=entry["epoch"], summary="",
+        ))
+    timeline.extend(markers)
     timeline.sort(key=lambda e: e["date"])
     return timeline
 
