@@ -1,5 +1,34 @@
 # SUNDAY_WIDE — width is now the default (P1, to Monday 04:00 reset)
 
+**STATUS (2026-07-12 ~06:30Z): STANDING RULE, ACTIVE.** Not a one-off task —
+stays in `in_progress/` (excluded from supervisor's staging scan, same as
+`done/`) for the duration since it governs every turn through the Monday
+reset, not just this one.
+
+**Menu item 1 (C-suite cold walks, "do FIRST") COMPLETE, first pass:** 6
+parallel fresh-context personas (CEO/CFO/COO/CTO/CMO + VC-partner diligence)
+walked poesys.net hard-blindfolded per COLD_EYES_PROTOCOL.md. All 6 reports
+received, each independently verified (not taken at face value) and filed to
+`docs/observability/sanity_adjudication_ledger.json` (8 entries, key prefix
+`coldwalk:`): 2 confirmed real defects (the MARGIN_REALISM revenue/margin-
+basis ambiguity is still live and investor-visible on the Supplier page,
+now cross-referenced into PRIORITIES.md item 1; a genuine payment_channel-
+vs-arrears_engine DD-failure contradiction, same duplicated-computation class
+as the M2 payments audit, cross-referenced into PRIORITIES.md item 2), 2
+adjudicated false-positives (an annual-vs-monthly bill-shock scale mismatch;
+"pages stuck on Loading" was 4-of-6 personas hitting WebFetch's own no-JS-
+execution limit, not a real site defect — confirmed by the other 2 personas
+fetching the underlying JSON directly and finding real served data), and 4
+left honestly `open` pending real investigation (bad-debt plausibility
+through the 2021-22 crisis, a customer's extreme YoY tariff-vs-SVT swing, a
+successor-account acquisition-date mismatch, a cross-fuel cost-to-serve
+gap) — not force-adjudicated either way.
+
+Remaining menu items (discovery floods, hardening sweeps, charter deepening,
+ideation, the overdue parallel-lanes proposal) not yet started — pick up in a following
+turn once these six report back, per the fan-out-alongside-main-work
+instruction rather than serially.
+
 **Staged:** 2026-07-12 ~00:20Z by advisor, director-decided ("spike wasn't
 spikey enough — 30% used; more discovery, hardening, independent C-suite
 assessment, ideation in parallel"). Quality gates unchanged; evaluator

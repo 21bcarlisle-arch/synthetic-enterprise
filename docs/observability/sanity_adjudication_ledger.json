@@ -13,12 +13,82 @@
     "finding_key": "audit:high-consumption",
     "state": "adjudicated-false-positive"
   },
+  "audit:other:the total bill (gbp 58.66) is less than ": {
+    "adjudicated_at": "2026-07-12T02:42:38.172489+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C7 (2020-05-31): The total bill (GBP 58.66) is less than the sum of the commodity charge (GBP 96.05), non-commodity charge (GBP 44.96), and standing charge (GBP 8.37), which is implausible.; C1_2 (2023-02-28): The VAT amount of GBP 9.91 does not align with the expected VAT rate of 5% on the total charges excluding VAT.",
+    "finding_key": "audit:other:the total bill (gbp 58.66) is less than ",
+    "state": "open"
+  },
   "audit:vat-mismatch": {
     "adjudicated_at": "2026-07-11T05:02:08.839454+00:00",
     "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
     "evidence": "Confirmed by exact arithmetic on real bill data (customer C2, period 2022-07-31): net-of-VAT charges 162.40232409512363 * 0.05 = 8.120116204756... matches the reported vat_gbp (8.120116204756183) exactly. The bill correctly charges the UK domestic reduced VAT rate (5%), not the 20% standard rate Qwen assumed. Same class CLAUDE.md 2a already documented. See docs/design/SANITY_TRIAGE_2026_07_11.md.",
     "finding_key": "audit:vat-mismatch",
     "state": "adjudicated-false-positive"
+  },
+  "coldwalk:bad_debt_implausibly_low_through_2021_22_crisis": {
+    "adjudicated_at": "2026-07-12T05:12:14.189134+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk, COO AND CFO personas independently flagged: total_bad_debt_gbp in supplier.json (3,442.0 vs total_revenue_gbp 14,028,957.0, ~0.025% of revenue) across the full 2016-2025 window including the real 2021-22 supplier-failure crisis, where real UK suppliers saw bad debt spike to several percent of revenue. Two independent reviewers converging on the same figure is a real signal. NOT independently re-derived against external benchmarks in this triage pass (would need real Ofgem/industry bad-debt-rate research, matching this project's own MARGIN_REALISM-style diagnosis discipline) -- left open for a dedicated review rather than force-adjudicated.",
+    "finding_key": "coldwalk:bad_debt_implausibly_low_through_2021_22_crisis",
+    "state": "open"
+  },
+  "coldwalk:bill_shock_c1_2018_annual_vs_monthly_scale_mismatch": {
+    "adjudicated_at": "2026-07-12T05:12:14.188768+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk, COO persona: flagged C1's bill_shock_history entry 2018-12-31 as contradictory since C1's ANNUAL gross revenue fell 2017->2018 (470.81->391.99). Checked: bill_shock_pct is a MONTH-on-previous-bill comparison (saas/bill_generator.py), not an annual-vs-annual one -- a single December bill can genuinely spike >=20% over November even in a year whose full-year total is lower than the prior year (e.g. a milder summer, colder December). Not a contradiction; the persona compared two different timescales. Genuine, smaller finding worth registering: site/data/customer_sample.json's bill_shock_history exposes only the date, not the existing bill_shock_likely_seasonal distinction (docs/design/BILL_SHOCK_DEFINITION_FINDING.md) that was specifically built to let a viewer make this exact seasonal-vs-genuine call themselves -- a real \"evidence lands on business surfaces\" gap, not fixed here.",
+    "finding_key": "coldwalk:bill_shock_c1_2018_annual_vs_monthly_scale_mismatch",
+    "state": "adjudicated-false-positive"
+  },
+  "coldwalk:c1_2_successor_acquisition_date_mismatch": {
+    "adjudicated_at": "2026-07-12T05:12:14.189452+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk, COO persona: C1_2 (a successor/dual sub-account of C1) carries acquisition_date=2016-01-01, identical to the original C1 account, but its own first real billing activity is 2020 (gross_gbp=10.26, near-nil) jumping to material revenue in 2021. Either the acquisition_date field is wrong for a successor account, or this represents a different tenant who should carry their own start date. Not independently verified against saas/customers.py's SUCCESSOR_CUSTOMERS construction in this triage pass -- left open.",
+    "finding_key": "coldwalk:c1_2_successor_acquisition_date_mismatch",
+    "state": "open"
+  },
+  "coldwalk:c2_tariff_vs_svt_extreme_yoy_swing": {
+    "adjudicated_at": "2026-07-12T05:12:14.189294+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk, COO persona: customer C2's rate_vs_svt_pct swings from +46.63% (2022 renewal) to -60.45% (2023 renewal) year-on-year in back-to-back fixed-term renewals -- over 100 percentage points of swing for the same customer. Not independently verified against the renewal-pricing engine in this triage pass -- left open for investigation into company/pricing/ or company/billing/renewal_engine.py's renewal-rate-setting logic.",
+    "finding_key": "coldwalk:c2_tariff_vs_svt_extreme_yoy_swing",
+    "state": "open"
+  },
+  "coldwalk:cost_to_serve_cross_fuel_mismatch_same_household": {
+    "adjudicated_at": "2026-07-12T05:12:14.189608+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk, COO persona: C1 (electricity) cost_to_serve_gbp=274.94 over 5 years (~\u00a355/yr) vs C1g (gas, same household/tenancy) cost_to_serve_gbp=5.73 over the same period (~\u00a31.15/yr) -- a >40x gap in servicing cost for two fuels billed to the same customer. Not independently verified against saas/cost_to_serve.py's per-fuel allocation logic in this triage pass -- left open for investigation into whether this is a real per-fuel cost-driver difference (plausible: gas metering/service costs genuinely differ from electricity) or a modeling gap.",
+    "finding_key": "coldwalk:cost_to_serve_cross_fuel_mismatch_same_household",
+    "state": "open"
+  },
+  "coldwalk:margin_reconciliation:portfolio_vs_ledger": {
+    "adjudicated_at": "2026-07-12T05:12:14.187904+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE C-suite cold-walk (2026-07-12), CFO persona, independently verified by direct inspection of site/data/dashboard.json: three disagreeing net-margin figures on the live Supplier page -- portfolio.net_margin_gbp=1,524,057.56 vs financial.ledger.net_margin_gbp=6,426,694.25 vs financial.ledger.operating_net_margin_gbp=6,401,401.19 (~4.2x apart), no label distinguishing basis. This is the SAME ambiguity MARGIN_REALISM Step 1 (2026-07-10, docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md) already diagnosed (commodity-only vs full double-entry revenue/margin bases) and explicitly left as unclosed: \"reconciling every OTHER surface that shows a revenue or margin figure against this same ambiguity... remain real, undone work\". Step 1 only labelled ONE surface (the Annual P&L table caption); the Portfolio Summary / Ledger Totals blocks the CFO found are NOT covered. A fresh independent review re-catching this confirms it is still live and investor-visible -- escalating priority for the registered-but-unstarted MARGIN_REALISM Steps 2-6.",
+    "finding_key": "coldwalk:margin_reconciliation:portfolio_vs_ledger",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:no_js_fallback_rendering": {
+    "adjudicated_at": "2026-07-12T05:12:14.188967+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk: CEO/CMO/VC-partner personas (using WebFetch, a static HTML-only fetch tool with no JS execution) reported Supplier/Customers/Method/Project pages and the /simplified page as stuck on \"Loading...\" with no data. COO and CFO personas independently worked around this by fetching the underlying JSON data files directly (dashboard.json, supplier.json, customer_sample.json) and found real, substantive figures -- confirming the data IS being served correctly and a real JS-executing browser would render it fine. Not a site defect; a limitation of the static-fetch review method (4 of 6 personas hit this same tool wall independently, which is itself a useful signal about how non-JS-executing crawlers/AI agents/accessibility tools would experience the site -- registered as a real but lower-priority robustness consideration (no server-rendered fallback content), not a broken-site finding.",
+    "finding_key": "coldwalk:no_js_fallback_rendering",
+    "state": "adjudicated-false-positive"
+  },
+  "coldwalk:payment_channel_dd_fail_contradiction": {
+    "adjudicated_at": "2026-07-12T05:12:14.188230+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE cold-walk, COO persona, independently verified: site/data/customer_sample.json C1g has payment_channel=\"standard_credit\" yet payment_behaviour_analytics.metrics.dd_fail_rate=0.0667 and payment_miss_trajectory carries dd_failed counts in multiple years -- a standard-credit customer cannot have a DD failure. Root-caused: payment_channel is computed by simulation.household_segments.payment_channel_for_customer() (tools/generate_customer_sample.py), a static per-customer profile classification, while the dd_failed/method labels come from simulation.arrears_engine's payment_method()/payment_outcome() (via tools/generate_billing_ledger.py) -- an entirely separate, independently-dispatched per-bill computation. The two were never cross-referenced at build time. Same recurring class as the M2 payments audit's \"two duplicated-register pairs\" finding (docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md) -- registered for a future consolidation pass, not fixed here (would require deciding which system is authoritative and threading it through both call sites).",
+    "finding_key": "coldwalk:payment_channel_dd_fail_contradiction",
+    "state": "adjudicated-real"
+  },
+  "defect:estimated_bill_amount_on_true_consumption": {
+    "adjudicated_at": "2026-07-11T19:29:10.853975+00:00",
+    "adjudicated_by": "claude (ADVISOR_STEER_BILL_ARITHMETIC.md fix, 2026-07-11)",
+    "evidence": "Surfaced (not created) while fixing the director-witnessed reads-vs-usage rounding defect (331.1 vs 331.2 kWh, C1 July 2020). Root cause of the fix itself: three related quantities (opening_read_kwh, closing_read_kwh, consumption_kwh) were independently rounded from the same source instead of deriving displayed usage from the already-rounded displayed reads. Fixed uniformly for all bills (correct: a real UK bill's usage line is always closing-minus-opening of the PRINTED reads). Historical sweep under the OLD logic: 664 of 1588 rendered bills violated reads-vs-usage -- 239 were the rounding-class bug just fixed (230 Actual-read + 9 Estimated, both now 0 violations), but 425 were a LARGER, SEPARATE, PRE-EXISTING class (all Estimated-read bills, tens-of-kWh divergence, not a rounding artifact). Traced: simulation/meter_reads.py::generate_meter_read_log(bills, ...) takes ALREADY-COMPUTED bills as input and layers an actual/estimated READ-STATUS narrative on top, purely for observability -- it never feeds back into how the bill's amount was computed. The settlement/billing engine has no model for 'bill on the estimate, true-up later' at all -- every bill's commodity amount is computed from real (SIM-ground-truth) consumption throughout, regardless of what read-status narrative gets attached afterward. This is a genuine modeling simplification (the estimation-billing physics a real UK supplier follows -- Ofgem SLC rules on estimated billing and true-up -- is not implemented), not a NEW epistemic-wall leak: the settlement engine legitimately computing ground-truth revenue on the SIM side is not a company/** decision reading forbidden internals; the gap is fidelity, not the epistemic rule itself. Checked directly to rule this out: generate_meter_read_log is called AFTER bills already exist, confirming no company-side code path ever chose to use true consumption over an estimate -- the choice was never modeled at all. Consequence, now visibly surfaced rather than masked: deriving displayed usage from the printed (estimated) reads makes an estimated bill's usage line correctly match its own printed reads, but the bill's CHARGED AMOUNT still reflects true consumption -- so the DERIVED unit rate (amount / displayed usage) on an estimated bill can diverge from the actual tariff rate by up to ~48% (worst case, per-customer median) until a true-up model exists. Deliberately accepted rather than held back (the alternative -- reverting the reads-reconciliation fix for estimated bills only -- would re-introduce an inconsistent, class-violating rule the director's own instruction explicitly forbids: 'A bill's reads and billed quantity must reconcile EXACTLY', with no carve-out for estimated bills).",
+    "finding_key": "defect:estimated_bill_amount_on_true_consumption",
+    "state": "open"
   },
   "expert_hour:B2_opex_cost_to_serve": {
     "adjudicated_at": "2026-07-11T06:25:18.935512+00:00",
@@ -75,12 +145,5 @@
     "evidence": "C4 (electricity, resi) average unit rate 320.5 GBP/MWh in 2024 vs plausible band [84.0, 315.0] (~1.7% over). Investigated further (2026-07-11, spike item 2): monthly rate rises smoothly from 302.8 (Jan) to a 354.6 peak (Jun) as consumption falls (423 kWh/month in Jan down to 141 kWh/month in Jun) then partially recovers -- the same low-consumption-inflates-apparent-rate shape seen in the C1g gas finding above, suggesting a possibly shared root mechanism across both commodities rather than two unrelated coincidences. Still only a ~1.7% band breach (well within noise for a band with +-40%/+50% tolerance) -- not force-adjudicated. Registered alongside C1g as the same open follow-up: trace whether a shared billing mechanism (possibly a per-bill fixed cost component divided into an apparent per-kWh rate) explains the low-consumption-month rate inflation seen in both. RESOLVED (2026-07-11, standing-charge double-count fix): traced to a real defect, not a billing quirk -- possibility (b) from this finding's own open text. simulation/hedged_settlement.py / gas_settlement.py fold a real, year-calibrated, Ofgem-sourced standing charge into revenue_gbp (deliberate, tested); saas/bill_generator.py independently re-added a second, flat, non-year-varying standing charge on top -- so commodity_amount_gbp/consumption (this finding's own diagnostic ratio) included a per-day-fixed component, which inflates the apparent rate in low-consumption months exactly as this finding's own evidence described (the fixed \u00a3/day component matters more per kWh when kWh is low) -- confirming the 'shared root mechanism across both commodities' suspicion this finding and the C4:2024 finding both independently raised. Fixed: bill_generator.py now sources the standing charge from the settlement records' own field and subtracts it out of commodity_amount_gbp, so the ratio is genuinely pure commodity rate. Verified via 3 new real-settlement integration tests (not synthetic fixtures -- that gap was why this shipped uncaught), 1571+37 regression tests pass, epistemic PASS. Same fix also closed a related I&C fallback bug (I&C silently charged a resi-rate standing charge it should never have had). Quantified impact on the current run: ~\u00a314,105.77 ex-VAT over-billed across 1,588 bills (resi \u00a38,126, SME \u00a32,610, I&C \u00a33,370 -- the entire I&C figure should have been zero); ledger net_margin_gbp ~-0.22%. Board headline figures (settlement-derived, SC folded in correctly once) were NOT affected -- only the bill-driven ledger P&L and customer-facing invoice totals. sim_runner is running continuously; the next natural cycle regenerates corrected figures, no manual re-run forced.",
     "finding_key": "population:unit_rate_vs_cap_band:C4:2024",
     "state": "adjudicated-real"
-  },
-  "defect:estimated_bill_amount_on_true_consumption": {
-    "adjudicated_at": "2026-07-11T19:29:10.853975+00:00",
-    "adjudicated_by": "claude (ADVISOR_STEER_BILL_ARITHMETIC.md fix, 2026-07-11)",
-    "evidence": "Surfaced (not created) while fixing the director-witnessed reads-vs-usage rounding defect (331.1 vs 331.2 kWh, C1 July 2020). Root cause of the fix itself: three related quantities (opening_read_kwh, closing_read_kwh, consumption_kwh) were independently rounded from the same source instead of deriving displayed usage from the already-rounded displayed reads. Fixed uniformly for all bills (correct: a real UK bill's usage line is always closing-minus-opening of the PRINTED reads). Historical sweep under the OLD logic: 664 of 1588 rendered bills violated reads-vs-usage -- 239 were the rounding-class bug just fixed (230 Actual-read + 9 Estimated, both now 0 violations), but 425 were a LARGER, SEPARATE, PRE-EXISTING class (all Estimated-read bills, tens-of-kWh divergence, not a rounding artifact). Traced: simulation/meter_reads.py::generate_meter_read_log(bills, ...) takes ALREADY-COMPUTED bills as input and layers an actual/estimated READ-STATUS narrative on top, purely for observability -- it never feeds back into how the bill's amount was computed. The settlement/billing engine has no model for 'bill on the estimate, true-up later' at all -- every bill's commodity amount is computed from real (SIM-ground-truth) consumption throughout, regardless of what read-status narrative gets attached afterward. This is a genuine modeling simplification (the estimation-billing physics a real UK supplier follows -- Ofgem SLC rules on estimated billing and true-up -- is not implemented), not a NEW epistemic-wall leak: the settlement engine legitimately computing ground-truth revenue on the SIM side is not a company/** decision reading forbidden internals; the gap is fidelity, not the epistemic rule itself. Checked directly to rule this out: generate_meter_read_log is called AFTER bills already exist, confirming no company-side code path ever chose to use true consumption over an estimate -- the choice was never modeled at all. Consequence, now visibly surfaced rather than masked: deriving displayed usage from the printed (estimated) reads makes an estimated bill's usage line correctly match its own printed reads, but the bill's CHARGED AMOUNT still reflects true consumption -- so the DERIVED unit rate (amount / displayed usage) on an estimated bill can diverge from the actual tariff rate by up to ~48% (worst case, per-customer median) until a true-up model exists. Deliberately accepted rather than held back (the alternative -- reverting the reads-reconciliation fix for estimated bills only -- would re-introduce an inconsistent, class-violating rule the director's own instruction explicitly forbids: 'A bill's reads and billed quantity must reconcile EXACTLY', with no carve-out for estimated bills).",
-    "finding_key": "defect:estimated_bill_amount_on_true_consumption",
-    "state": "open"
   }
 }

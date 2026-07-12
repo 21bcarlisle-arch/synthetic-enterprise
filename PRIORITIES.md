@@ -8,8 +8,23 @@
 #   context evaluator at every phase close). Priority order for the window, THIS IS NOW "Next":
 #     1. MARGIN_REALISM steps 4-5 (hedge-tariff alignment, binding cap, bridge attribution) --
 #        closes the margin programme; director Expert Hour is its close, queue for Monday pack.
+#        NEW EVIDENCE (2026-07-12, SUNDAY_WIDE C-suite cold-walk, CFO persona, verified): the
+#        Step-1-diagnosed revenue/margin-basis ambiguity is STILL LIVE and investor-visible --
+#        site/data/dashboard.json carries 3 disagreeing net-margin figures (portfolio £1.52m vs
+#        ledger £6.43m vs operating £6.40m, ~4.2x apart, unlabelled) on the Supplier page's
+#        Portfolio Summary / Ledger Totals blocks, a surface Step 1's own labelling fix never
+#        reached. Filed: docs/observability/sanity_adjudication_ledger.json entry
+#        "coldwalk:margin_reconciliation:portfolio_vs_ledger" (adjudicated-real). A second,
+#        independent rediscovery of the same ambiguity (P-2: repeat escalates) -- steps 4-5
+#        should also close this specific surface, not just the hedge-tariff/cap items.
 #     2. Sanity follow-ups: remaining adjudications (the 2 open unit-rate findings), skeptic
 #        memory, prove the daily-digest alert mode live over a real cycle.
+#        4 MORE now open from the same 2026-07-12 cold-walk (adjudicated-real: payment_channel
+#        profile label vs arrears_engine's per-bill DD-failure dispatch, two independent never-
+#        reconciled computations, same class as M2's duplicated-register finding; 4 genuinely
+#        open, not yet investigated: bad-debt-implausibly-low-through-2021-22-crisis, C2's
+#        extreme YoY tariff-vs-SVT swing, C1_2 successor-account acquisition-date mismatch,
+#        cost-to-serve cross-fuel gap same household -- all in the adjudication ledger).
 #     3. Epoch-2 foundations continue, BOUNDED, until the advisor's epoch framing arrives
 #        (expected same day per the spike doc) -- its sequencing then takes over this slot.
 #        ARRIVED 2026-07-11 (docs/design/THE_VALUE_CYCLE_FRAMING.md, EPOCH2_RATIFIED.md):
