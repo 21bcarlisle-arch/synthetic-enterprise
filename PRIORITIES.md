@@ -1430,6 +1430,22 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **SLC 21BA back-billing protection not enforced for microbusinesses (2026-07-12,
+  second fresh Expert-Hour pass on D3_catchup_rebilling, Gap B)**:
+  `company/billing/back_billing.py`'s `BackBillingAssessment.cap_applies` and
+  `company/compliance/domain_invariants.py`'s `check_back_billing_cap_respected()`
+  both gate the 12-month recovery cap on `is_domestic`/`segment == "resi"`
+  only -- real UK Ofgem SLC 21BA back-billing protection also covers
+  microbusinesses (small non-domestic accounts), not domestic customers
+  alone. Today an SME/microbusiness catch-up bill gets zero cap protection
+  regardless of how old the unbilled period is. `BACK_BILLING_CAP_RESPECTED`'s
+  `source` field is deliberately narrowed to cite only what's actually
+  enforced (domestic) rather than overclaim microbusiness coverage the code
+  doesn't implement -- this entry is that citation's target, not a promise
+  of imminent build. Registered, not built: would need a microbusiness
+  detection signal (this project's segment model currently only has
+  resi/SME/I&C, with no narrower microbusiness-vs-larger-SME distinction)
+  before the cap could be correctly extended to that population.
 - **Successor-account `acquisition_date` overloaded as `supply_start` (2026-07-12,
   investigation fork on `coldwalk:c1_2_successor_acquisition_date_mismatch`)**:
   `saas/customers.py` deliberately and correctly keeps a successor account's

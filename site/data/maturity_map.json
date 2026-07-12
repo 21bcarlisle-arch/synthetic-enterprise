@@ -7,13 +7,13 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "harden",
       "dial_inherited": 4,
-      "expert_hour_status": "reopened",
+      "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "D1_bill_correctness",
