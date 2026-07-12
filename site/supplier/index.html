@@ -303,6 +303,19 @@ function card(label, value, sub='', klass='neu') {
     ${sub ? `<div class="card-sub">${sub}</div>` : ''}</div>`;
 }
 
+// E2_revenue_reconciliation (2026-07-12): number-passport basis note, same
+// source data as site/index.html's basisNote() -- portfolio.basis[key],
+// never hand-typed here -- so a figure on this page carries the same
+// clock/provisional/bridge-link disclosure the front page already has.
+function basisNote(key) {
+  const basis = ((D && D.portfolio && D.portfolio.basis) || {})[key];
+  if (!basis) return '';
+  const clock = escHtml(basis.clock || 'unstated');
+  const badge = basis.provisional ? ' · PROVISIONAL' : '';
+  const link = basis.bridge_available ? ' · see the reconciliation bridge on the front page' : '';
+  return `${clock} clock${badge}${link}`;
+}
+
 // EPOCH2_RATIFIED.md immediate effect 5 (2026-07-11): all headline public
 // figures are provisional pending M4 rederivation (the whole 2016-25 period
 // replays through the reveal engine) -- reuses the existing badge-amber
@@ -522,9 +535,9 @@ function renderOverview() {
   el('tab-overview').innerHTML = `
     ${provisionalBanner('Net Margin and Enterprise Value')}
     <div class="cards">
-      ${card('Net Margin', gbp(p.net_margin_gbp), '10-year total', cls(p.net_margin_gbp))}
+      ${card('Net Margin', gbp(p.net_margin_gbp), ['10-year total', basisNote('net_margin_gbp')].filter(Boolean).join(' · '), cls(p.net_margin_gbp))}
       ${card('Gross Margin', gbp(p.gross_margin_gbp), 'wholesale spread', cls(p.gross_margin_gbp))}
-      ${card('Enterprise Value', gbp(p.enterprise_value_gbp), 'CLV − acq cost', cls(p.enterprise_value_gbp))}
+      ${card('Enterprise Value', gbp(p.enterprise_value_gbp), ['CLV − acq cost', basisNote('enterprise_value_gbp')].filter(Boolean).join(' · '), cls(p.enterprise_value_gbp))}
       ${card('Treasury', gbp(p.treasury_end_gbp), `from ${gbp(p.treasury_start_gbp)}`, 'neu')}
       ${card('Retention', `${p.retention_retained}/${p.retention_offers}`, `${p.churn_count} accounts churned`, 'neu')}
       ${card('Committee', p.committee_interventions_total.toLocaleString(), `${p.bills_total.toLocaleString()} bills`, 'neu')}

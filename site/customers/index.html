@@ -382,6 +382,7 @@ function renderOverviewTab(){
     if(!d){html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span></div><div class=\"no-account-note\">No "+label.toLowerCase()+" account on this household.</div></div>";return;}
     html+="<div class=\"card\"><div class=\"account-card-title\"><span class=\"badge "+badgeCls+"\">"+label+"</span>"+esc(d.account_id)+"</div>"+
       "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+      "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
       "<div class=\"row\"><span class=\"rl\">Customer Lifetime Value</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
       (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">Forecast Annual Profit</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"")+
       "<div class=\"row\"><span class=\"rl\">Tariff</span><span>"+esc(d.tariff_name)+"</span></div>"+
@@ -418,6 +419,7 @@ function renderAccountsTab(){
       "<div class=\"row\"><span class=\"rl\">Customer since</span><span>"+esc(d.acquisition_date)+"</span></div>"+
       "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(d.lifetime_revenue_gbp)+"</span></div>"+
       "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+      "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
       "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
       (d.avg_hedge_fraction!=null?"<div class=\"row\"><span class=\"rl\">Avg. Hedge Coverage</span><span class=\"muted\">"+Math.round(d.avg_hedge_fraction*100)+"%</span></div>":"")+
       (annRows?"<table style=\"margin-top:10px\"><tr><th>Year</th><th>Gross</th><th>Net</th><th>Tariff Range</th></tr>"+annRows+"</table>"+
