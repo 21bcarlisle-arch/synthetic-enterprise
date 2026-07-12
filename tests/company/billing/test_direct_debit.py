@@ -186,3 +186,31 @@ def test_failure_reason_stored():
         failure_reason="insufficient_funds"
     )
     assert attempt.failure_reason == "insufficient_funds"
+
+
+def test_all_mandates_includes_every_status(monkeypatch):
+    b = _book()
+    b.create_mandate("C1", "12-34-**", "5678", 80.0, "2024-01-01")
+    b.create_mandate("C2", "12-34-**", "5678", 80.0, "2024-01-01")
+    b.cancel_mandate("C2")
+    all_m = b.all_mandates()
+    assert len(all_m) == 2
+    assert {m.customer_id for m in all_m} == {"C1", "C2"}
+
+
+def test_all_mandates_empty_book():
+    assert _book().all_mandates() == []
+
+
+def test_all_attempts_returns_every_recorded_attempt():
+    b = _book()
+    b.create_mandate("C1", "12-34-**", "5678", 80.0, "2024-01-01")
+    b.record_attempt(DDPaymentAttempt("DD-REF-001", "C1", "2024-01-29", 80.0, "collected"))
+    b.record_attempt(DDPaymentAttempt("DD-REF-002", "C1", "2024-02-29", 80.0, "failed"))
+    all_a = b.all_attempts()
+    assert len(all_a) == 2
+    assert [a.outcome for a in all_a] == ["collected", "failed"]
+
+
+def test_all_attempts_empty_book():
+    assert _book().all_attempts() == []

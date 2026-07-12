@@ -338,43 +338,96 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
     Still a cheap, blocking-call-free, no-comprehension read (module
     docstring's own constraint) -- one file read + one weighted choice, no
     network, no git. Returns None (graceful degradation) if the YAML is
-    missing, unreadable, malformed, or has no atom with a real gap."""
+    missing, unreadable, malformed, or has no atom with a real gap.
+
+    2026-07-12 (MULTI_ATOM_DRAW.md, P0): now a thin wrapper over
+    `_maturity_map_draw_concurrent()` -- that function's own primary-pick
+    step is this exact same read+filter+weighted-choice logic (previously
+    duplicated here; refactored out once, not re-duplicated, per R3's
+    "eliminate the mechanism, not patch it again"). Returns only the
+    primary pick's formatted string, so every existing caller/test of this
+    function keeps its exact prior behaviour -- byte-for-byte, including
+    RNG consumption (the concurrent function's own additional-candidate
+    scan is deterministic dial-order sorting, never touches `rng`)."""
+    atoms_drawn = _maturity_map_draw_concurrent(rng=rng)
+    return _format_atom_draw(atoms_drawn[0]) if atoms_drawn else None
+
+
+def _format_atom_draw(atom: dict) -> str:
+    """Shared formatting for one drawn atom's summary line -- factored out
+    so both the single-atom message (_maturity_map_draw's own return, kept
+    unchanged above) and the new multi-atom concurrent message below use
+    the identical format."""
+    return (
+        f"{atom['id']} -- {atom.get('name', '?')} "
+        f"(lane={atom.get('lane', '?')}, dial={atom.get('dial_inherited', '?')}, "
+        f"level {atom['level_current']}->{atom['level_target']}, "
+        f"loop_stage={atom.get('loop_stage', '?')})"
+    )
+
+
+def _atom_file_scope(atom: dict) -> frozenset | None:
+    """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted): the set of
+    file paths an atom's own BUILD work touches, per its schema-declared
+    `file_scope` list (backfilled for every atom from its own `evidence`
+    entries that are real .py paths -- derived from already-real,
+    per-atom-curated data, not invented). Returns None if the key is
+    genuinely absent (undeclared scope) -- distinct from an explicit empty
+    list (a genuinely code-free atom, e.g. read-only research/charter work,
+    which safely touches nothing and never conflicts with anything).
+    Constraint 3 of the staged instruction: 'do not pretend disjointness
+    that does not hold' -- an atom with undeclared scope must fail CLOSED
+    (never eligible for a concurrent grant), not be assumed safe."""
+    if "file_scope" not in atom:
+        return None
+    return frozenset(atom.get("file_scope") or [])
+
+
+def _atoms_file_disjoint(a: dict, b: dict) -> bool:
+    """True only if BOTH atoms have a declared file_scope and those scopes
+    share no path. Two atoms with both-empty scope are trivially disjoint
+    (neither touches any file, per _atom_file_scope's own convention)."""
+    scope_a = _atom_file_scope(a)
+    scope_b = _atom_file_scope(b)
+    if scope_a is None or scope_b is None:
+        return False
+    return not (scope_a & scope_b)
+
+
+def _maturity_map_draw_concurrent(rng: Any = None) -> list[dict]:
+    """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted, completes R3
+    "be wider" as a property of the granting model, not a standing
+    exhortation): "The supervisor draws ONE atom per turn. One atom = one
+    lane = serial BY CONSTRUCTION... width must be a property of the
+    granting model." Extends _maturity_map_draw's own dial-weighted primary
+    pick with as many ADDITIONAL candidates as are PROVABLY file-scope-
+    disjoint from every atom already selected -- checked via each atom's own
+    declared file_scope, never assumed (constraint 1/3 of the staged
+    instruction). Greedy in dial-weight order among the remainder, so the
+    next most important disjoint atom is preferred when several exist.
+
+    Deliberately duplicates (rather than refactors out of)
+    _maturity_map_draw's own candidate-filtering logic
+    (_dependencies_met/_is_valid_candidate) -- that function's 12+ existing
+    tests directly verify its exact behaviour byte-for-byte; this keeps that
+    guarantee intact rather than risking a regression from a shared-helper
+    refactor. Returns a list of chosen atom dicts (possibly just one, when
+    no disjoint additional candidate exists -- the old one-atom-per-cycle
+    behaviour, preserved as the natural special case of this one), or an
+    empty list if the map has no candidate at all."""
     try:
         import yaml
     except ImportError:
-        return None
+        return []
     try:
         atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
     except (OSError, yaml.YAMLError):
-        return None
+        return []
     if not isinstance(atoms, list):
-        return None
+        return []
     by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
 
     def _dependencies_met(atom: dict) -> bool:
-        """2026-07-10, real observed gap (first draw of W1_2_generate_futures
-        surfaced its own unmet dependency W1_reveal_over_time, level 0/3) --
-        a `depends_on` entry that isn't itself at/above its target level means
-        the atom's own foundation doesn't exist yet, so drawing it produces
-        real but premature/unbuildable "work". A dependency id not present in
-        the map at all is treated as unmet (fail closed, not silently
-        ignored) rather than assumed satisfied.
-
-        2026-07-12, R3_WORK_GRANTING_REDESIGN class-bug (ADVISOR_ANSWER_
-        CANNOT_DRAW.md, P0): the check above conflated two different things
-        under "unmet" -- a dependency still being actively built (a REAL
-        blocker) and a dependency deliberately PARKED at its current level
-        for this epoch (`loop_stage: idle` -- a documented, director-
-        sequenced deferral, not a gap anyone is working). W1_reveal_over_time
-        is parked at L2 (its final piece deferred to M4); D2_three_clocks
-        depends on it and is ITSELF correctly idle -- but atoms that depend
-        on D2_three_clocks (E2_revenue_reconciliation,
-        W5_1_banking_payment_rails) are NOT idle, and the old check blocked
-        them too, transitively, on a dependency nobody intends to advance
-        right now. A dependency with loop_stage=="idle" is now treated as MET
-        (parked-vs-unbuilt is representable via the atom's own existing
-        loop_stage field -- no new schema needed): a deliberate epoch-
-        deferral must not cascade into blocking unrelated dependent work."""
         for dep_id in atom.get("depends_on") or []:
             dep = by_id.get(dep_id)
             if dep is None:
@@ -388,21 +441,6 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
         return True
 
     def _is_valid_candidate(a: dict) -> bool:
-        """2026-07-10, HARDEN-stage adversarial review of this exact function
-        (H1_supervisor_turn_granting's own Expert Hour): a single malformed
-        atom (wrong type -- e.g. a quoted "2" instead of 2 -- or an explicit
-        `dial_inherited: null`) would previously raise TypeError from the
-        `<` comparison or `max()` below, uncaught until main()'s outer
-        try/except, which logs and moves on -- but does NOT fall through to
-        the backlog-prose fallback, because the exception aborts
-        find_work()'s whole function body before it reaches that later
-        line. Since this only matters when agenda+staging are BOTH empty
-        (exactly self-refill's own use case), an unhandled malformed atom
-        would silently reintroduce the identical idle-hole class of bug
-        this entire mechanism was built to eliminate. Isolating validation
-        per-atom means one bad edit degrades to "skip this one atom", not
-        "the whole draw silently stops working every cycle forever until a
-        human notices and fixes the YAML"."""
         if not isinstance(a, dict):
             return False
         level_current, level_target = a.get("level_current"), a.get("level_target")
@@ -417,28 +455,23 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
         if not has_gap:
             return False
         if a.get("loop_stage") == "idle":
-            # 2026-07-10, real observed gap: the third live draw surfaced
-            # W3_1_price_cap_binding (loop_stage=idle) -- per MATURITY_MAP.md
-            # Section 6's own schema, "idle" specifically means NOT currently
-            # in the Hardening Loop (parked -- e.g. explicitly sequenced
-            # after other steps in its own programme doc). Drawing it as if
-            # it were live discover/build work wastes a turn on something
-            # the map's own data already says isn't due yet.
             return False
         return _dependencies_met(a)
 
     candidates = [a for a in atoms if _is_valid_candidate(a)]
     if not candidates:
-        return None
+        return []
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
     picker = rng or random
-    chosen = picker.choices(candidates, weights=weights, k=1)[0]
-    return (
-        f"{chosen['id']} -- {chosen.get('name', '?')} "
-        f"(lane={chosen.get('lane', '?')}, dial={chosen.get('dial_inherited', '?')}, "
-        f"level {chosen['level_current']}->{chosen['level_target']}, "
-        f"loop_stage={chosen.get('loop_stage', '?')})"
-    )
+    primary = picker.choices(candidates, weights=weights, k=1)[0]
+
+    selected = [primary]
+    remaining = [c for c in candidates if c is not primary]
+    remaining.sort(key=lambda a: -(a.get("dial_inherited") or 1))
+    for atom in remaining:
+        if all(_atoms_file_disjoint(atom, s) for s in selected):
+            selected.append(atom)
+    return selected
 
 
 def _blocking_roots(atom_id: str, by_id: dict, _seen: set | None = None) -> set[str]:
@@ -526,10 +559,28 @@ def _self_refill_draw() -> str | None:
     find_work() can call it UNCONDITIONALLY (R3_WORK_GRANTING_REDESIGN.md
     requirement 2: "every granted turn ends with real work drawn... THEN
     draw the next atom from the map, always"), not merely as a fallback
-    reached only when nothing else fired."""
-    map_draw = _maturity_map_draw()
-    if map_draw:
-        return f"self-refill from maturity map (dial-weighted): {map_draw}"
+    reached only when nothing else fired.
+
+    MULTI_ATOM_DRAW.md (P0, 2026-07-12): the draw can now grant MORE THAN
+    ONE atom per cycle when additional candidates are provably file-scope-
+    disjoint from the primary pick (_maturity_map_draw_concurrent). The
+    single-atom message format is preserved byte-for-byte when only one
+    atom is drawn (the common case today, and the exact string this
+    function's own existing tests assert on) -- the multi-atom message only
+    appears when a genuine concurrent grant exists. The message itself
+    names the expected action ("one agent per atom") since R7 still applies:
+    this function states what exists, the granted session (reading its own
+    doorbell) decides to fan out via parallel Agent dispatches."""
+    atoms_drawn = _maturity_map_draw_concurrent()
+    if atoms_drawn:
+        if len(atoms_drawn) == 1:
+            return f"self-refill from maturity map (dial-weighted): {_format_atom_draw(atoms_drawn[0])}"
+        lines = "; ".join(_format_atom_draw(a) for a in atoms_drawn)
+        log(f"CONCURRENT self-refill: {len(atoms_drawn)} disjoint atoms this cycle -- {lines}")
+        return (
+            f"self-refill from maturity map -- {len(atoms_drawn)} CONCURRENT disjoint atoms "
+            f"granted this cycle (dispatch one Agent fork per atom, per MULTI_ATOM_DRAW.md): {lines}"
+        )
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"

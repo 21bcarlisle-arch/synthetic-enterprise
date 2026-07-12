@@ -39,6 +39,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import saas.payment_behaviour as payment_behaviour_module
+from simulation.dd_collection_book import build_dd_collection_book
 from company.billing.account_adjustment_register import (
     AccountAdjustmentRecord,
     AdjustmentDirection,
@@ -502,6 +503,22 @@ def build_monthly_bills(all_records: list[dict], churned_ids: set[str] | None = 
     return bills
 
 
+def _serialize_dd_collection_book(book) -> dict:
+    """JSON-safe form of a DirectDebitBook for the run-output surface
+    (2026-07-12, W5_1_banking_payment_rails L2->L3: this atom's decisive
+    remaining gap was 'zero live pipeline callers anywhere' -- this wiring
+    plus this serialisation close that gap). Every mandate and collection
+    attempt, not just the aggregate summary, so a per-customer business
+    surface (e.g. Customers tab) can render one real, evidenced instance."""
+    import dataclasses
+
+    return {
+        "summary": book.dd_summary(),
+        "mandates": [dataclasses.asdict(m) for m in book.all_mandates()],
+        "attempts": [dataclasses.asdict(a) for a in book.all_attempts()],
+    }
+
+
 def main(report_end: str | None = None, policy=None):
     phase2b_result = run_phase2b(report_end=report_end, policy=policy)
     all_records = phase2b_result["all_records"]
@@ -513,6 +530,23 @@ def main(report_end: str | None = None, policy=None):
     churned_ids = set(phase2b_result.get("churned_billing_accounts", []))
 
     bills = build_monthly_bills(all_records, churned_ids)
+
+    # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
+    # collection book (mandate setup/collection/amendment, real AUDDIS/ARUDD/
+    # ADDACS timing) had zero callers from any real run pipeline until now --
+    # an Expert Hour review named this the decisive blocker to L3 ("cannot
+    # live in time" without one). Purely additive and read-only against
+    # everything computed so far: reads `bills` and `phase2b_result`'s own
+    # `per_customer_behavioral`, uses its own independently-seeded RNG
+    # instances, and does not mutate `all_records`/`bills` or any other
+    # ground-truth structure. Same seed (42, the function's own default) as
+    # compute_emergent_bad_debt() below, so its success/failure pattern
+    # matches the real ground truth exactly (proven by
+    # tests/simulation/test_dd_collection_book.py's TestOutcomeSequence
+    # MatchesGroundTruth suite, including the amendment-firing path).
+    dd_collection_book = build_dd_collection_book(
+        bills, phase2b_result.get("per_customer_behavioral", {})
+    )
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
@@ -692,6 +726,7 @@ def main(report_end: str | None = None, policy=None):
     return {
         "phase2b": phase2b_result,
         "bills": bills,
+        "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
         "meter_read_log": meter_read_log,
         "credit_refund_log": credit_refund_log,
         "contact_centre_log": contact_centre_log,

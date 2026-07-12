@@ -1140,6 +1140,57 @@ def extract_arrears_case_load(data):
     return {"annual": rows}
 
 
+def extract_dd_rails(data):
+    """W5_1_banking_payment_rails (2026-07-12, L2->L3 attempt): the
+    rails-timed DD collection book (mandate setup/collection/amendment,
+    real AUDDIS/ARUDD/ADDACS timing, simulation/dd_collection_book.py) --
+    exposed on a business surface for the first time. An Expert Hour review
+    named "zero live pipeline callers, so it cannot live in time" as this
+    atom's decisive remaining gap; this is the wiring plus surface that
+    closes it. Portfolio summary plus one real, named customer example
+    (EVIDENCE_IN_BUSINESS_SURFACES.md's own requirement -- a spec/aggregate
+    alone is not evidence)."""
+    book = data.get("dd_collection_book") or {}
+    summary = book.get("summary") or {}
+    mandates = book.get("mandates") or []
+    attempts = book.get("attempts") or []
+
+    attempts_by_customer = defaultdict(list)
+    for a in attempts:
+        attempts_by_customer[a.get("customer_id")].append(a)
+
+    example = None
+    if mandates:
+        # The customer with the most observed rails history (most fully
+        # evidenced instance), not just the first one alphabetically.
+        best_cid = max(
+            attempts_by_customer, key=lambda cid: len(attempts_by_customer[cid])
+        ) if attempts_by_customer else mandates[0].get("customer_id")
+        mandate = next((m for m in mandates if m.get("customer_id") == best_cid), None)
+        if mandate:
+            cust_attempts = sorted(
+                attempts_by_customer.get(best_cid, []), key=lambda a: a.get("attempt_date", "")
+            )
+            example = {
+                "customer_id": best_cid,
+                "mandate_reference": mandate.get("mandate_reference"),
+                "monthly_amount_gbp": mandate.get("monthly_amount_gbp"),
+                "setup_confirmed_date": mandate.get("setup_confirmed_date"),
+                "last_amendment_confirmed_date": mandate.get("last_amendment_confirmed_date") or None,
+                "attempts": [
+                    {
+                        "attempt_date": a.get("attempt_date"),
+                        "amount_gbp": a.get("amount_gbp"),
+                        "outcome": a.get("outcome"),
+                        "failure_reason": a.get("failure_reason", ""),
+                    }
+                    for a in cust_attempts[:12]
+                ],
+            }
+
+    return {"summary": summary, "example_customer": example}
+
+
 def extract_run_history(history_path=None, max_entries=10):
     """Return last N run history entries, or [] if absent/invalid."""
     path = history_path or RUN_HISTORY_PATH
@@ -1435,6 +1486,7 @@ def generate(run_json_path=None):
         "management_accounts": extract_management_accounts(data),
         "monthly_ops": extract_monthly_ops(data),
         "arrears_case_load": extract_arrears_case_load(data),
+        "dd_rails": extract_dd_rails(data),
         "flexibility": extract_flexibility(data),
         "opex_ledger": extract_opex_ledger(data),
         "b2_taxonomy": extract_b2_taxonomy(data),

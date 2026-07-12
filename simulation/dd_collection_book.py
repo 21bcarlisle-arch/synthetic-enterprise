@@ -43,11 +43,13 @@ rather than re-asserting the original (partly wrong) reasoning:
   seasonal resi customer this fired an ADDACS amendment almost every month,
   modelling on-demand billing, not smoothed Variable DD (real Variable DD
   holds a periodic re-estimate fixed against normal seasonal swings). Now
-  compares the mandate's stored amount against a ROLLING MEAN of that
-  customer's own bill amounts seen so far in this book -- an amendment only
-  fires when the established average has genuinely drifted, not on every
-  bill's noise, and the mandate is amended TO the rolling mean, not to the
-  single triggering bill's amount.
+  compares the mandate's stored amount against a ROLLING MEDIAN (not mean --
+  a mean is dragged by a single outlier, a median correctly ignores one
+  anomalous bill while still moving once a majority of a trailing window
+  reflects a genuine sustained change) of that customer's own bill amounts
+  seen so far in this book -- an amendment only fires when the established
+  level has genuinely drifted, not on every bill's noise, and the mandate is
+  amended TO the median, never to the single triggering bill's amount.
 - FIXED: the mandate-setup "no calibrated rejection rate exists" claim was
   wrong -- this lane's OWN charter (docs/design/charters/
   W5_banking_payment_rails.md) cites GoCardless's public mandate-lifecycle
@@ -68,16 +70,43 @@ rather than re-asserting the original (partly wrong) reasoning:
   build has deliberately avoided throughout (see below). Left as a named,
   open simplification rather than silently implying (as an earlier version
   of this comment did) that the ordering doesn't matter.
-- STILL OPEN: this module has ZERO callers from any real run pipeline
-  (confirmed by grep) -- only exercised by its own test suite. The Expert
-  Hour verdict was explicit that this alone caps the atom below L3 ("lives
-  in time" / a business-surface consumer / R1 verified-by-fetch all fail
-  while nothing runs it). Wiring into the live pipeline + a rendered surface
-  is registered as the next real step, not attempted in this same pass.
+- FIXED (2026-07-12, second pass): "this module has ZERO callers from any
+  real run pipeline" -- wired into simulation/run_phase4c_on_phase2b.py's
+  main() (serialised via _serialize_dd_collection_book()), threaded through
+  saas/reporting/annual_report.py::extract_report_data() into
+  docs/reports/run_output_latest.json, exposed via
+  tools/generate_dashboard_data.py::extract_dd_rails(), and rendered on the
+  Supplier tab (site/supplier/index.html::ddRailsHtml()) with one real named
+  customer's mandate + actual collection history. Verified against a real
+  full run (not a fixture): 9 mandates, 751 collection attempts, 28 real
+  ARUDD failures across 1588 bills.
+- FIXED (2026-07-12, second Expert Hour review, phase-close-evaluator): a
+  real product-mechanic incoherence in the rendered surface itself (caught
+  by phase-close rule 0c, reading one instance as a human) -- the mandate's
+  own smoothed/re-estimated `monthly_amount_gbp` (a Fixed-DD-shaped figure)
+  sat directly above a collection table where every attempt's amount was the
+  raw, varying bill total, with no code path connecting the two. This
+  modelled no real UK DD product: a genuine smoothed Fixed DD collects the
+  fixed amount and tracks seasonal variation as a running balance; a genuine
+  Variable DD collects the real bill each cycle and has no fixed,
+  re-estimated mandate figure gating anything. This module has always
+  collected the real bill amount (`submit_collection(..., amount, ...)`
+  below uses the bill's own `total_amount_gbp`, never `mandate.
+  monthly_amount_gbp`) -- i.e. it always WAS Variable DD -- but the surface
+  and this docstring never said so, letting the mandate's estimated
+  reference figure read as if it were the actual collection size. Fixed by
+  labelling, not re-engineering: `site/supplier/index.html`'s example block
+  and portfolio KPI now state explicitly that this is Variable DD, the
+  mandate figure is an "estimated reference level" that never sizes or gates
+  a collection (only decides when an ADDACS re-estimation notice fires), and
+  the KPI is relabelled "Est. Reference Total" rather than the misleading
+  "Monthly Collection". No change to which cash amount is actually
+  collected -- ground truth stays exactly as compute_emergent_bad_debt()
+  computed it.
 - The M2 audit's duplicated-register finding (DirectDebitBook vs
   company/billing/dd_mandate_register.py) is NOT resolved by this module --
-  see that module's own docstring for the honest, corrected statement (the
-  original docstring here overclaimed "superseded"/"resolved").
+  see that module's own docstring for the honest, corrected statement (an
+  earlier version of this docstring overclaimed "superseded"/"resolved").
 
 The prior reasoning stands unchanged: same unchanged payment_outcome()
 decision (identical RNG seed and call sequence as compute_emergent_bad_debt())

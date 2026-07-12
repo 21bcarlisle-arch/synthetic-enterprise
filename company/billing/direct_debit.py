@@ -117,6 +117,17 @@ class DirectDebitBook:
     def active_mandates(self) -> list[DirectDebitMandate]:
         return [m for m in self._mandates.values() if m.status == "active"]
 
+    def all_mandates(self) -> list[DirectDebitMandate]:
+        """Every mandate regardless of status -- for serialising the whole
+        book to a report/dashboard surface (2026-07-12, W5_1_banking_
+        payment_rails L2->L3, wiring into the live run pipeline)."""
+        return list(self._mandates.values())
+
+    def all_attempts(self) -> list[DDPaymentAttempt]:
+        """Every recorded collection attempt across all customers, in the
+        order they were recorded -- same use as all_mandates()."""
+        return list(self._attempts)
+
     def record_attempt(self, attempt: DDPaymentAttempt) -> None:
         """Record a collection attempt and update mandate state."""
         self._attempts.append(attempt)

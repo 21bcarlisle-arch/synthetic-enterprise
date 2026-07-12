@@ -668,3 +668,45 @@ def test_held_bill_revenue_excluded_from_ledger_pnl():
     unfiltered_pnl = derive_pnl(unfiltered_events)
     assert unfiltered_pnl["total_billed_gbp"] == pytest.approx(74.03 + 84.60)
     assert check_billed_clock_reconciles(unfiltered_pnl["total_billed_gbp"], issued_bills) is False
+
+
+class TestSerializeDdCollectionBook:
+    """W5_1_banking_payment_rails L2->L3 (2026-07-12): the DD collection
+    book's serialisation for the run-output/report surface -- the wiring
+    that closed this atom's decisive 'zero live pipeline callers' gap."""
+
+    def test_serializes_summary_mandates_and_attempts(self):
+        from company.billing.direct_debit import DirectDebitBook, DDPaymentAttempt
+        from simulation.run_phase4c_on_phase2b import _serialize_dd_collection_book
+
+        book = DirectDebitBook()
+        book.create_mandate("C1", "00-00-**", "0000", 80.0, "2020-01-15")
+        book.record_attempt(DDPaymentAttempt("DD-C1-20200115-2020-01-31", "C1", "2020-01-31", 80.0, "collected"))
+
+        result = _serialize_dd_collection_book(book)
+
+        assert result["summary"]["total"] == 1
+        assert len(result["mandates"]) == 1
+        assert result["mandates"][0]["customer_id"] == "C1"
+        assert len(result["attempts"]) == 1
+        assert result["attempts"][0]["outcome"] == "collected"
+
+    def test_serializes_empty_book(self):
+        from company.billing.direct_debit import DirectDebitBook
+        from simulation.run_phase4c_on_phase2b import _serialize_dd_collection_book
+
+        result = _serialize_dd_collection_book(DirectDebitBook())
+        assert result == {"summary": {"total": 0, "active": 0, "suspended": 0, "cancelled": 0, "total_monthly_gbp": 0.0}, "mandates": [], "attempts": []}
+
+    def test_result_is_json_serializable(self):
+        import json
+        from company.billing.direct_debit import DirectDebitBook, DDPaymentAttempt
+        from simulation.run_phase4c_on_phase2b import _serialize_dd_collection_book
+
+        book = DirectDebitBook()
+        book.create_mandate("C1", "00-00-**", "0000", 80.0, "2020-01-15",
+                             setup_rails_reference="MANDATE-C1-2020-01-15",
+                             setup_confirmed_date="2020-01-17")
+        book.record_attempt(DDPaymentAttempt("REF", "C1", "2020-01-31", 80.0, "failed", failure_reason="Refer to Payer"))
+        result = _serialize_dd_collection_book(book)
+        json.dumps(result)  # must not raise

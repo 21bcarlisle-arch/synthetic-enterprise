@@ -465,6 +465,194 @@ def test_maturity_map_draw_weights_by_dial():
     assert sum("HIGH_DIAL" in r for r in results) >= 18  # overwhelmingly the high-dial atom
 
 
+# MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted): "the supervisor
+# draws ONE atom per turn... width must be a property of the granting model,
+# not a standing exhortation." The draw can now grant N>1 atoms per cycle
+# when their declared file_scope is provably disjoint.
+
+def test_atom_file_scope_absent_key_returns_none():
+    assert supervisor._atom_file_scope({"id": "A"}) is None
+
+
+def test_atom_file_scope_empty_list_returns_empty_frozenset():
+    assert supervisor._atom_file_scope({"id": "A", "file_scope": []}) == frozenset()
+
+
+def test_atom_file_scope_populated_list_returns_frozenset():
+    scope = supervisor._atom_file_scope({"id": "A", "file_scope": ["x.py", "y.py"]})
+    assert scope == frozenset({"x.py", "y.py"})
+
+
+def test_atoms_file_disjoint_true_for_non_overlapping_scopes():
+    a = {"id": "A", "file_scope": ["x.py"]}
+    b = {"id": "B", "file_scope": ["y.py"]}
+    assert supervisor._atoms_file_disjoint(a, b) is True
+
+
+def test_atoms_file_disjoint_false_for_overlapping_scopes():
+    a = {"id": "A", "file_scope": ["shared.py", "x.py"]}
+    b = {"id": "B", "file_scope": ["shared.py", "y.py"]}
+    assert supervisor._atoms_file_disjoint(a, b) is False
+
+
+def test_atoms_file_disjoint_true_for_both_empty_scopes():
+    """A genuinely code-free atom (e.g. read-only research/charter work)
+    never conflicts with anything, including another code-free atom."""
+    a = {"id": "A", "file_scope": []}
+    b = {"id": "B", "file_scope": []}
+    assert supervisor._atoms_file_disjoint(a, b) is True
+
+
+def test_atoms_file_disjoint_false_when_scope_undeclared():
+    """Constraint 3 of MULTI_ATOM_DRAW.md: 'do not pretend disjointness
+    that does not hold' -- an atom with NO file_scope key at all must fail
+    CLOSED (never eligible for a concurrent grant), not be assumed safe."""
+    a = {"id": "A", "file_scope": ["x.py"]}
+    b = {"id": "B"}  # no file_scope key
+    assert supervisor._atoms_file_disjoint(a, b) is False
+    assert supervisor._atoms_file_disjoint(b, a) is False
+
+
+_TWO_DISJOINT_ATOMS_YAML = """\
+- id: X1_disjoint_a
+  name: "Atom A, disjoint file scope"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["module_a.py"]
+- id: X2_disjoint_b
+  name: "Atom B, disjoint file scope"
+  lane: X_test_lane
+  dial_inherited: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["module_b.py"]
+"""
+
+_TWO_OVERLAPPING_ATOMS_YAML = """\
+- id: X1_overlap_a
+  name: "Atom A, overlapping file scope"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["shared_module.py"]
+- id: X2_overlap_b
+  name: "Atom B, overlapping file scope"
+  lane: X_test_lane
+  dial_inherited: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["shared_module.py"]
+"""
+
+_THREE_ATOMS_ONE_UNDECLARED_YAML = """\
+- id: X1_declared_a
+  name: "Atom A, declared disjoint scope"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["module_a.py"]
+- id: X2_declared_b
+  name: "Atom B, declared disjoint scope"
+  lane: X_test_lane
+  dial_inherited: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["module_b.py"]
+- id: X3_undeclared
+  name: "Atom C, no file_scope key at all"
+  lane: X_test_lane
+  dial_inherited: 1
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+"""
+
+
+def test_maturity_map_draw_concurrent_grants_two_disjoint_atoms():
+    supervisor.MATURITY_MAP_PATH.write_text(_TWO_DISJOINT_ATOMS_YAML)
+    selected = supervisor._maturity_map_draw_concurrent()
+    ids = {a["id"] for a in selected}
+    assert ids == {"X1_disjoint_a", "X2_disjoint_b"}
+
+
+def test_maturity_map_draw_concurrent_does_not_grant_two_overlapping_atoms():
+    supervisor.MATURITY_MAP_PATH.write_text(_TWO_OVERLAPPING_ATOMS_YAML)
+    selected = supervisor._maturity_map_draw_concurrent()
+    assert len(selected) == 1
+
+
+def test_maturity_map_draw_concurrent_excludes_undeclared_scope_atom():
+    supervisor.MATURITY_MAP_PATH.write_text(_THREE_ATOMS_ONE_UNDECLARED_YAML)
+    selected = supervisor._maturity_map_draw_concurrent()
+    ids = {a["id"] for a in selected}
+    # The two declared-disjoint atoms join; the undeclared-scope one never
+    # can (fails closed), regardless of draw order.
+    assert "X3_undeclared" not in ids
+    assert ids == {"X1_declared_a", "X2_declared_b"}
+
+
+def test_maturity_map_draw_concurrent_returns_single_atom_list_when_no_others_exist():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+    selected = supervisor._maturity_map_draw_concurrent()
+    assert len(selected) == 1
+    assert selected[0]["id"] == "X1_test_atom"
+
+
+def test_maturity_map_draw_concurrent_returns_empty_list_when_no_candidates():
+    supervisor.MATURITY_MAP_PATH.write_text(_NO_GAP_ATOM_YAML)
+    assert supervisor._maturity_map_draw_concurrent() == []
+
+
+def test_maturity_map_draw_concurrent_returns_empty_list_when_file_missing():
+    assert not supervisor.MATURITY_MAP_PATH.exists()
+    assert supervisor._maturity_map_draw_concurrent() == []
+
+
+def test_format_atom_draw_matches_prior_single_atom_message_format():
+    atom = {
+        "id": "X1_test_atom", "name": "Test atom", "lane": "X_test_lane",
+        "dial_inherited": 3, "level_current": 0, "level_target": 2, "loop_stage": "build",
+    }
+    formatted = supervisor._format_atom_draw(atom)
+    assert formatted == (
+        "X1_test_atom -- Test atom (lane=X_test_lane, dial=3, "
+        "level 0->2, loop_stage=build)"
+    )
+
+
+def test_self_refill_draw_single_atom_message_unchanged():
+    """The exact pre-MULTI_ATOM_DRAW message format, preserved when only
+    one atom is drawn -- existing callers/NTFY parsing must not break."""
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+    reason = supervisor._self_refill_draw()
+    assert reason == (
+        "self-refill from maturity map (dial-weighted): X1_test_atom -- "
+        "Test atom with a real gap (lane=X_test_lane, dial=3, level 0->2, loop_stage=discover)"
+    )
+
+
+def test_self_refill_draw_reports_concurrent_grant_and_logs_it(monkeypatch):
+    logged = []
+    monkeypatch.setattr(supervisor, "log", lambda msg: logged.append(msg))
+    supervisor.MATURITY_MAP_PATH.write_text(_TWO_DISJOINT_ATOMS_YAML)
+    reason = supervisor._self_refill_draw()
+    assert "2 CONCURRENT disjoint atoms" in reason
+    assert "X1_disjoint_a" in reason
+    assert "X2_disjoint_b" in reason
+    assert "one Agent fork per atom" in reason
+    assert any("CONCURRENT self-refill" in m for m in logged)
+
+
 _PARKED_DEPENDENCY_CASCADE_YAML = """\
 - id: W1_parked
   name: "Deliberately parked at its current level for this epoch"

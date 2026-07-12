@@ -1485,8 +1485,10 @@ function ddRailsHtml() {
       <div style="margin-top:.8rem">
         <div style="font-weight:600;font-size:.85em;margin-bottom:.3rem">Example: ${example.customer_id} (mandate ${example.mandate_reference})</div>
         <div style="color:var(--muted);font-size:.8em;margin-bottom:.4rem">
-          £${example.monthly_amount_gbp.toFixed(2)}/mo -- mandate confirmed ${example.setup_confirmed_date || '&mdash;'}
-          (real Bacs AUDDIS 2-working-day window)${example.last_amendment_confirmed_date ? ', last ADDACS amendment confirmed ' + example.last_amendment_confirmed_date : ''}.
+          Estimated reference level £${example.monthly_amount_gbp.toFixed(2)}/mo (illustrative only --
+          this is Variable DD, so the amount actually collected each cycle is the real bill below, not
+          this figure) -- mandate confirmed ${example.setup_confirmed_date || '&mdash;'}
+          (real Bacs AUDDIS 2-working-day window)${example.last_amendment_confirmed_date ? ', last ADDACS re-estimation confirmed ' + example.last_amendment_confirmed_date : ''}.
         </div>
         <table>
           <tr><th>Collection Date</th><th>Amount</th><th>Outcome</th><th>ARUDD Reason</th></tr>
@@ -1500,16 +1502,20 @@ function ddRailsHtml() {
         Real Bacs rails timing physics (simulation/bacs_rails.py) -- mandate setup on the real
         AUDDIS 2-working-day confirmation window, collections on the real 3-working-day
         submission-to-collection cycle, failures notified up to 2 working days after collection
-        day with a real ARUDD reason code, and amendments on a genuine sustained change in a
-        customer's own billed amount (smoothed via a rolling median, not a single bill's raw
-        swing). This module does not decide whether a payment succeeds -- that stays with the
-        existing calibrated arrears model; it decides WHEN the company finds out, and with what
-        real-world detail, the way a real Bacs integration would.
+        day with a real ARUDD reason code. This models VARIABLE DD -- every collection is the
+        real bill amount for that cycle (matching the existing ground-truth arrears model
+        exactly), never a fixed instalment. The mandate's own "estimated reference level" (below)
+        is illustrative only -- an ADDACS re-estimation notice fires when the customer's own
+        billed amount has genuinely, sustainedly drifted from it (smoothed via a rolling median,
+        not a single bill's swing), but it never sizes or gates an actual collection. This module
+        does not decide whether a payment succeeds -- that stays with the existing calibrated
+        arrears model; it decides WHEN the company finds out, and with what real-world detail,
+        the way a real Bacs integration would.
       </div>
       <div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
         <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Active Mandates</div><div class="kpi-value">${summary.active}</div><div class="kpi-sub">of ${summary.total} total</div></div>
         <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Suspended</div><div class="kpi-value${summary.suspended ? ' neg' : ''}">${summary.suspended}</div><div class="kpi-sub">2+ consecutive failures</div></div>
-        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Monthly Collection</div><div class="kpi-value">£${(summary.total_monthly_gbp || 0).toLocaleString('en-GB', {maximumFractionDigits:0})}</div><div class="kpi-sub">active mandates</div></div>
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Est. Reference Total</div><div class="kpi-value">£${(summary.total_monthly_gbp || 0).toLocaleString('en-GB', {maximumFractionDigits:0})}</div><div class="kpi-sub">mandate reference, not actual collected (Variable DD)</div></div>
       </div>
       ${exampleBlock}
     </div>`;

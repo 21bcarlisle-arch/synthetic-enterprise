@@ -161,6 +161,28 @@ def _run_output():
     }
 
 
+def test_extract_report_data_forwards_dd_collection_book():
+    """W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
+    collection book must reach the persisted run-output JSON, not be
+    silently dropped like the pre-existing dd_collection_book.py module was
+    before this wiring (its own Expert Hour review's decisive finding)."""
+    run_output = _run_output()
+    run_output["dd_collection_book"] = {
+        "summary": {"total": 1, "active": 1, "suspended": 0, "cancelled": 0, "total_monthly_gbp": 80.0},
+        "mandates": [{"customer_id": "C1", "mandate_reference": "DD-C1-20160101"}],
+        "attempts": [{"mandate_reference": "DD-C1-20160101", "customer_id": "C1", "outcome": "collected"}],
+    }
+    data = extract_report_data(run_output)
+    assert data["dd_collection_book"]["summary"]["total"] == 1
+    assert data["dd_collection_book"]["mandates"][0]["customer_id"] == "C1"
+    assert data["dd_collection_book"]["attempts"][0]["outcome"] == "collected"
+
+
+def test_extract_report_data_dd_collection_book_defaults_to_empty_dict():
+    data = extract_report_data(_run_output())  # no dd_collection_book key at all
+    assert data["dd_collection_book"] == {}
+
+
 def test_extract_report_data_splits_by_year():
     data = extract_report_data(_run_output())
 
