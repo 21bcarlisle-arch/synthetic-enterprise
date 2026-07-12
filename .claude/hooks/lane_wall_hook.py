@@ -11,13 +11,28 @@ current session declares itself a lane via the SE_LANE environment
 variable, deny Read/Grep/Glob calls whose target path falls on the OTHER
 side of the sim/company wall, and log every denial.
 
-No-op (returns 0 immediately) when SE_LANE is unset -- this is an opt-in
-pilot for sessions that declare a lane, not a standing restriction on every
-session. A normal interactive session (like the one that wrote this hook)
-is completely unaffected unless SE_LANE is explicitly exported first.
+No-op (returns 0 immediately) when SE_LANE is unset AND no `.se_lane`
+marker file is found -- this is an opt-in pilot for sessions/worktrees
+that declare a lane, not a standing restriction on every session. A
+normal interactive session (like the one that wrote this hook) is
+completely unaffected unless SE_LANE is explicitly exported or a
+`.se_lane` file sits in its cwd first.
 
   SE_LANE=supplier  -- company-builder lane: sim/** and simulation/** denied
   SE_LANE=sim       -- SIM-builder lane: company/** and saas/** denied
+
+2026-07-12 marker-file evolution (PARALLEL_LANES_PROPOSAL.md §3.1, the
+pilot's own registered follow-up): the env var works for one human's
+sequential focused session, but the Agent tool has no evident mechanism
+to propagate a custom env var into one spawned subagent's own tool-call
+environment -- so SUNDAY_WIDE's own parallel-fork-fan-out pattern couldn't
+be lane-scoped at all under the env-var-only design. A `.se_lane` file
+(containing just the lane name, e.g. "supplier" or "sim") in the current
+working directory is now checked as a second, independent activation
+path -- naturally scoping per-worktree (`EnterWorktree`/
+`Agent(isolation:"worktree")`) without needing env-var propagation
+through subagent spawning at all. Env var still wins if both are present
+(the more explicit, harder-to-leave-behind-by-accident signal).
 
 Denials are appended to docs/observability/lane_hook_denials.jsonl (one
 JSON object per line) -- "prove it on real M2 tasks; log denials" (the
@@ -51,6 +66,22 @@ SHARED_READABLE = ("docs/domain_artefact_library/",)
 
 _PATH_BEARING_TOOLS = {"Read", "Glob"}
 _GREP_TOOL = "Grep"
+_MARKER_FILE_NAME = ".se_lane"
+
+
+def _lane_from_marker_file() -> str | None:
+    """Read the lane declared by a `.se_lane` file in the current working
+    directory, if one exists. Deliberately only checks cwd (not walking up
+    parent directories) -- a worktree root IS the hook's cwd for any tool
+    call made from within it, so a marker one level up would be a
+    different worktree/repo, not this one's declaration."""
+    try:
+        marker = Path.cwd() / _MARKER_FILE_NAME
+        if marker.is_file():
+            return marker.read_text().strip()
+    except OSError:
+        pass
+    return None
 
 
 def _target_path(tool_name: str, tool_input: dict) -> str | None:
@@ -74,7 +105,7 @@ def _log_denial(lane: str, tool_name: str, path: str) -> None:
 
 
 def main() -> int:
-    lane = os.environ.get("SE_LANE")
+    lane = os.environ.get("SE_LANE") or _lane_from_marker_file()
     if not lane or lane not in _LANE_DENIES:
         return 0
 

@@ -17,7 +17,9 @@ LANE_WALL_HOOK = REPO_ROOT / ".claude" / "hooks" / "lane_wall_hook.py"
 DENIAL_LOG = REPO_ROOT / "docs" / "observability" / "lane_hook_denials.jsonl"
 
 
-def _run(payload: dict, env: dict | None = None) -> subprocess.CompletedProcess:
+def _run(
+    payload: dict, env: dict | None = None, cwd: Path | None = None
+) -> subprocess.CompletedProcess:
     import os
 
     full_env = dict(os.environ)
@@ -29,7 +31,7 @@ def _run(payload: dict, env: dict | None = None) -> subprocess.CompletedProcess:
         input=json.dumps(payload),
         capture_output=True,
         text=True,
-        cwd=REPO_ROOT,
+        cwd=str(cwd) if cwd is not None else REPO_ROOT,
         env=full_env,
     )
 
@@ -186,3 +188,68 @@ class TestLaneWallHook:
                 assert not pattern.match(path.lstrip("./")), (
                     f"{path!r} must stay shared-readable but matches lane {lane!r}'s deny pattern"
                 )
+
+
+# --- PARALLEL_LANES_PROPOSAL.md §3.1: marker-file lane-keying evolution ---
+
+
+class TestMarkerFileLaneKeying:
+    def test_marker_file_activates_supplier_lane(self, tmp_path):
+        (tmp_path / ".se_lane").write_text("supplier")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+        assert "SE_LANE=supplier" in result.stderr
+
+    def test_marker_file_activates_sim_lane(self, tmp_path):
+        (tmp_path / ".se_lane").write_text("sim")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "company/pricing/tariff_engine.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+
+    def test_marker_file_allows_own_side(self, tmp_path):
+        (tmp_path / ".se_lane").write_text("supplier")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "company/pricing/tariff_engine.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 0
+
+    def test_no_marker_file_is_a_noop(self, tmp_path):
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 0
+
+    def test_marker_file_with_unrecognized_lane_is_a_noop(self, tmp_path):
+        (tmp_path / ".se_lane").write_text("not_a_real_lane")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 0
+
+    def test_marker_file_content_is_stripped_of_whitespace(self, tmp_path):
+        (tmp_path / ".se_lane").write_text("supplier\n")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+
+    def test_env_var_wins_when_both_env_and_marker_file_present(self, tmp_path):
+        # Marker says sim, env var says supplier -- env var is the more
+        # explicit signal and must win.
+        (tmp_path / ".se_lane").write_text("sim")
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim/forward_curve.py"}},
+            env={"SE_LANE": "supplier"},
+            cwd=tmp_path,
+        )
+        assert result.returncode == 2
+        assert "SE_LANE=supplier" in result.stderr
