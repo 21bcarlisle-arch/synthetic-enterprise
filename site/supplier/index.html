@@ -1471,6 +1471,50 @@ function arrearsCaseLoadHtml() {
     </div>`;
 }
 
+function ddRailsHtml() {
+  var dd = D.dd_rails || {};
+  var summary = dd.summary || {};
+  var example = dd.example_customer;
+  if (!summary.total) return '';
+  var exampleRows = (example && example.attempts) ? example.attempts.map(function(a) {
+    var cls = a.outcome === 'collected' ? 'pos' : 'neg';
+    return '<tr><td>' + a.attempt_date + '</td><td>£' + a.amount_gbp.toFixed(2) + '</td>' +
+      '<td class="' + cls + '">' + a.outcome + '</td><td>' + (a.failure_reason || '&mdash;') + '</td></tr>';
+  }).join('') : '';
+  var exampleBlock = example ? `
+      <div style="margin-top:.8rem">
+        <div style="font-weight:600;font-size:.85em;margin-bottom:.3rem">Example: ${example.customer_id} (mandate ${example.mandate_reference})</div>
+        <div style="color:var(--muted);font-size:.8em;margin-bottom:.4rem">
+          £${example.monthly_amount_gbp.toFixed(2)}/mo -- mandate confirmed ${example.setup_confirmed_date || '&mdash;'}
+          (real Bacs AUDDIS 2-working-day window)${example.last_amendment_confirmed_date ? ', last ADDACS amendment confirmed ' + example.last_amendment_confirmed_date : ''}.
+        </div>
+        <table>
+          <tr><th>Collection Date</th><th>Amount</th><th>Outcome</th><th>ARUDD Reason</th></tr>
+          ${exampleRows}
+        </table>
+      </div>` : '';
+  return `
+    <div class="tbl-box">
+      <div class="tbl-title">Direct Debit Rails (Bacs)</div>
+      <div style="color:var(--muted);font-size:.85em;padding:0 0 .4rem">
+        Real Bacs rails timing physics (simulation/bacs_rails.py) -- mandate setup on the real
+        AUDDIS 2-working-day confirmation window, collections on the real 3-working-day
+        submission-to-collection cycle, failures notified up to 2 working days after collection
+        day with a real ARUDD reason code, and amendments on a genuine sustained change in a
+        customer's own billed amount (smoothed via a rolling median, not a single bill's raw
+        swing). This module does not decide whether a payment succeeds -- that stays with the
+        existing calibrated arrears model; it decides WHEN the company finds out, and with what
+        real-world detail, the way a real Bacs integration would.
+      </div>
+      <div class="kpi-row" style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Active Mandates</div><div class="kpi-value">${summary.active}</div><div class="kpi-sub">of ${summary.total} total</div></div>
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Suspended</div><div class="kpi-value${summary.suspended ? ' neg' : ''}">${summary.suspended}</div><div class="kpi-sub">2+ consecutive failures</div></div>
+        <div class="kpi-card" style="flex:1;min-width:120px"><div class="kpi-label">Monthly Collection</div><div class="kpi-value">£${(summary.total_monthly_gbp || 0).toLocaleString('en-GB', {maximumFractionDigits:0})}</div><div class="kpi-sub">active mandates</div></div>
+      </div>
+      ${exampleBlock}
+    </div>`;
+}
+
 function demandEstimationHtml() {
   var dem = (D.monthly_ops && D.monthly_ops.demand_estimation_annual) ? D.monthly_ops.demand_estimation_annual : [];
   if (!dem.length) return '';
@@ -1559,6 +1603,7 @@ function renderMonthly() {
     '<thead><tr><th>Month</th><th>Shocks</th><th>Avg%</th><th>Max%</th><th>Committee</th><th>Retention</th><th>Retained</th></tr></thead>' +
     '<tbody>' + trows + '</tbody></table></div></div>' +
     arrearsCaseLoadHtml() +
+    ddRailsHtml() +
     demandEstimationHtml() +
     flexibilityDispatchHtml();
 
