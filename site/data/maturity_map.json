@@ -7,11 +7,11 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 4,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "reopened",
       "depends_on": [],
       "at_target": false
     },
@@ -439,6 +439,70 @@
       "at_target": false
     },
     {
+      "id": "A2_decision_rights_register",
+      "name": "Decision-rights register + bitemporal decision-event logging",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
+      "id": "A3_approval_interface",
+      "name": "Approval interface (requests-awaiting-decision surface, human-operable)",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "A2_decision_rights_register"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "A4_sim_approver",
+      "name": "Sim-approver (policy-agent playing the human approver for tournament runs)",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "A3_approval_interface"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "H6_lane_wall_development_pilot",
+      "name": "Development-time epistemic wall (lane hook pilot, fork as enforcement not risk)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
       "id": "H1_supervisor_turn_granting",
       "name": "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)",
       "lane": "H_harness",
@@ -700,7 +764,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 39,
+  "total_atoms": 43,
   "epoch2_movements": [
     {
       "id": "M1",

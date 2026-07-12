@@ -1,12 +1,14 @@
 """Tests for company/compliance/domain_invariants.py -- DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2."""
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
+    BACK_BILLING_CAP_RESPECTED,
     VAT_RESIDENTIAL,
     VAT_SME,
     TDCV_ELEC_MEDIUM,
     TDCV_GAS_MEDIUM,
     UNIT_RATE_ELEC_RESI_BY_YEAR,
     RESI_CONSUMPTION_ENVELOPE_ELEC,
+    check_back_billing_cap_respected,
     check_vat,
     check_unit_rate_plausible,
     check_resi_consumption_plausible,
@@ -97,3 +99,71 @@ def test_yearly_range_invariant_derives_from_ofgem_price_cap_module():
     anchor_2022 = get_cap_unit_rate_gbp_per_mwh("electricity", 2022)
     low, high = UNIT_RATE_ELEC_RESI_BY_YEAR.plausible_range(2022)
     assert low < anchor_2022 < high
+
+
+# --- ADVISOR_STEER_BACKBILLING_GATE.md item 2: jurisdiction discipline ---
+
+
+def test_every_invariant_is_tagged_uk_jurisdiction():
+    # Every invariant in this library today IS UK law/market data -- this
+    # proves the field is structurally populated, not silently defaulted
+    # and forgotten. A future non-UK addition must set this explicitly
+    # rather than inherit the default.
+    for inv in ALL_INVARIANTS:
+        assert inv.jurisdiction == "UK"
+
+
+def test_rate_range_yearlyrange_invariants_all_expose_jurisdiction_field():
+    assert VAT_RESIDENTIAL.jurisdiction == "UK"
+    assert RESI_CONSUMPTION_ENVELOPE_ELEC.jurisdiction == "UK"
+    assert UNIT_RATE_ELEC_RESI_BY_YEAR.jurisdiction == "UK"
+
+
+# --- ADVISOR_STEER_BACKBILLING_GATE.md item 1(c): pre-bill Tier-1 cap invariant ---
+
+
+def test_back_billing_cap_respected_registered_as_uk_structural_invariant():
+    assert BACK_BILLING_CAP_RESPECTED.jurisdiction == "UK"
+    assert BACK_BILLING_CAP_RESPECTED in ALL_INVARIANTS
+
+
+def test_check_back_billing_cap_respected_passes_when_no_catchup():
+    assert check_back_billing_cap_respected({}) is True
+
+
+def test_check_back_billing_cap_respected_passes_for_credits_never_capped():
+    bill = {
+        "catchup_applied": True, "catchup_direction": "overcharge",
+        "catchup_period_start": "2015-01-01", "period_end": "2019-12-31",
+    }
+    assert check_back_billing_cap_respected(bill) is True
+
+
+def test_check_back_billing_cap_respected_passes_when_within_window():
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "2019-06-01", "period_end": "2019-12-31",
+    }
+    assert check_back_billing_cap_respected(bill) is True
+
+
+def test_check_back_billing_cap_respected_fails_when_breach_not_written_off():
+    # A bill that breaches the 12-month window but was silently charged in
+    # full (a real live gap this steer exists to catch) must be caught.
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "2018-06-01", "period_end": "2019-12-31",
+        "catchup_written_off_gbp": 0.0, "catchup_raw_delta_gbp": 600.0,
+        "catchup_adjustment_gbp": 600.0,
+    }
+    assert check_back_billing_cap_respected(bill) is False
+
+
+def test_check_back_billing_cap_respected_passes_when_genuinely_written_off():
+    bill = {
+        "catchup_applied": True, "catchup_direction": "undercharge",
+        "catchup_period_start": "2018-06-01", "period_end": "2019-12-31",
+        "catchup_written_off_gbp": 200.0, "catchup_raw_delta_gbp": 600.0,
+        "catchup_adjustment_gbp": 400.0,
+    }
+    assert check_back_billing_cap_respected(bill) is True

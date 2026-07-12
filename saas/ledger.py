@@ -225,6 +225,37 @@ def make_non_commodity_cost_event(bill: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def make_back_billing_write_off_event(bill: dict[str, Any]) -> dict[str, Any]:
+    """ADVISOR_STEER_BACKBILLING_GATE.md item 1: a named, visible P&L line
+    for the SLC 21BA back-billing cap's unrecoverable tranche -- "the
+    excess becomes a supplier loss (write-off ledger event), not revenue"
+    (REGULATORY_RULES_AS_FIDELITY_ORACLE.md finding #1).
+
+    `amount_gbp` is deliberately 0.0 -- this is a MEMO/visibility event, not
+    a second cash-impact event. The real cash effect already happened
+    correctly and silently: `bill["total_amount_gbp"]` (the billing_event
+    this bill produces) was built from `catchup["chargeable_gbp"]`, the
+    CAPPED amount, never the full raw delta -- so revenue already excludes
+    the written-off tranche, while `settlement_event` still charges the
+    company the true wholesale cost of the energy actually consumed. That
+    gap IS the write-off's margin impact, and it already flows correctly
+    through `derive_pnl`'s wholesale/revenue arithmetic. Adding a second
+    negative-amount event here would double-count it. What was missing
+    before this steer was not the cash effect but a NAMED, auditable line
+    saying why -- `write_off_amount_gbp` carries that figure for reporting.
+    """
+    return {
+        "transaction_id": _tid("back_billing_write_off", bill["customer_id"], bill["period_end"]),
+        "event_type": "back_billing_write_off_event",
+        "timestamp": bill["period_end"],
+        "customer_id": bill["customer_id"],
+        "amount_gbp": 0.0,
+        "write_off_amount_gbp": bill.get("catchup_written_off_gbp", 0.0),
+        "adjustment_id": bill.get("catchup_write_off_adjustment_id", ""),
+        "reason": bill.get("catchup_write_off_adjustment_reason", ""),
+    }
+
+
 def make_vat_remittance_event(bill: dict[str, Any]) -> dict[str, Any]:
     """Cash out: VAT collected from customer, remitted to HMRC.
 
@@ -292,6 +323,8 @@ def build_ledger(
             events.append(make_non_commodity_cost_event(b))
         if b.get("vat_gbp"):
             events.append(make_vat_remittance_event(b))
+        if b.get("catchup_written_off_gbp", 0.0) > 0:
+            events.append(make_back_billing_write_off_event(b))
 
         if payment_behaviour is not None:
             credit_risk = payment_behaviour.CREDIT_RISK_BY_CUSTOMER.get(
@@ -377,6 +410,12 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
     if cts_events:
         cts_cost = -sum(e["amount_gbp"] for e in cts_events)
         result["cost_to_serve_gbp"] = cts_cost
+
+    write_off_events = [e for e in events if e["event_type"] == "back_billing_write_off_event"]
+    if write_off_events:
+        result["back_billing_write_off_gbp"] = sum(
+            e["write_off_amount_gbp"] for e in write_off_events
+        )
 
     if acq_events or fixed_events or cts_events:
         acq = result.get("acquisition_spend_gbp", 0.0)

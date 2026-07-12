@@ -475,6 +475,32 @@ def test_resolve_catchup_undercharge_capped_when_period_predates_12_months():
     assert result["chargeable_gbp"] + result["written_off_gbp"] == pytest.approx(600.0, abs=0.02)
 
 
+def test_resolve_catchup_capped_undercharge_produces_write_off_adjustment():
+    """ADVISOR_STEER_BACKBILLING_GATE.md item 1: the unrecoverable tranche
+    must be a real write-off record, not just a bill-metadata number --
+    reuses company/billing/account_adjustment_register.py's
+    AdjustmentType.BACK_BILLING_CREDIT (built, tested, never wired before
+    this steer), auto-applied since SLC 21BA makes it a legal requirement
+    rather than a discretionary spend needing approval."""
+    pending = [{
+        "period_start": "2018-06-01", "period_end": "2019-05-31",
+        "true_total_amount_gbp": 600.0, "total_amount_gbp": 0.0,
+    }]
+    result = _resolve_catchup("C1", "resi", pending, "2019-12-31")
+    assert result["write_off_adjustment_id"] == "ADJ-BB-C1-2019-05-31"
+    assert result["write_off_adjustment_status"] == "applied"
+    assert "SLC 21BA" in result["write_off_adjustment_reason"]
+
+
+def test_resolve_catchup_no_write_off_adjustment_when_cap_does_not_apply():
+    pending = [{
+        "period_start": "2020-01-01", "period_end": "2020-01-31",
+        "true_total_amount_gbp": 150.0, "total_amount_gbp": 100.0,
+    }]
+    result = _resolve_catchup("C1", "resi", pending, "2020-02-29")
+    assert "write_off_adjustment_id" not in result
+
+
 def test_resolve_catchup_overcharge_never_capped_even_when_old():
     """A credit owed to the customer is never subject to the back-billing
     cap, however old -- the cap protects consumers from late demands, it

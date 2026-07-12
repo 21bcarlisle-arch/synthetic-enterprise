@@ -29,6 +29,7 @@ from enum import Enum
 from company.compliance.domain_invariants import (
     check_vat,
     check_resi_bill_consumption_plausible,
+    check_back_billing_cap_respected,
 )
 
 
@@ -93,6 +94,17 @@ def validate_bill(bill: dict) -> BillValidationResult:
                 f"slc_6_7_billing_accuracy: {kwh:.1f} kWh over {days:.0f} days is implausible "
                 f"for a resi {commodity} account"
             )
+
+    # ADVISOR_STEER_BACKBILLING_GATE.md item 1(c): a catch-up bill breaching
+    # the SLC 21BA 12-month window with no recorded fault attribution must be
+    # HELD unless the excess has genuinely been written off (not silently
+    # charged in full).
+    if not check_back_billing_cap_respected(bill):
+        reasons.append(
+            "slc_21ba_back_billing_cap: catch-up bill breaches the 12-month "
+            "recovery window with no recorded fault attribution but the "
+            "excess was not written off"
+        )
 
     outcome = ValidationOutcome.HELD if reasons else ValidationOutcome.PASS
     return BillValidationResult(

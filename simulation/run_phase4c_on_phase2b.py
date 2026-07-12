@@ -39,6 +39,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import saas.payment_behaviour as payment_behaviour_module
+from company.billing.account_adjustment_register import (
+    AccountAdjustmentRecord,
+    AdjustmentDirection,
+    AdjustmentStatus,
+    AdjustmentType,
+)
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
@@ -201,6 +207,8 @@ def _resolve_catchup(
     billing_date = datetime.fromisoformat(billing_date_iso).date()
     is_domestic = segment == "resi"
 
+    write_off_adjustment: AccountAdjustmentRecord | None = None
+
     if raw_delta_gbp > 0:
         assessment = BackBillingAssessment(
             account_id=customer_id,
@@ -215,13 +223,42 @@ def _resolve_catchup(
         written_off_gbp = assessment.written_off_gbp
         cap_applied = assessment.cap_applies
         direction = "undercharge"
+
+        # ADVISOR_STEER_BACKBILLING_GATE.md item 1: "the unrecoverable
+        # tranche is a WRITE-OFF -- a real P&L event (write-off machinery
+        # exists since the C1 fix)". That machinery is
+        # company/billing/account_adjustment_register.py's
+        # AdjustmentType.BACK_BILLING_CREDIT -- built and tested, never
+        # wired to this mechanism until now (R3: reuse the one real
+        # write-off mechanism rather than invent a second, competing one).
+        # Auto-applied, not pending-approval: SLC 21BA makes this
+        # write-off a legal requirement, not a discretionary goodwill
+        # spend the register's approval tiers were designed to gate.
+        if written_off_gbp > 0:
+            write_off_adjustment = AccountAdjustmentRecord(
+                record_id="ADJ-BB-" + customer_id + "-" + period_end,
+                account_id=customer_id,
+                adjustment_type=AdjustmentType.BACK_BILLING_CREDIT,
+                direction=AdjustmentDirection.CREDIT,
+                amount_gbp=round(written_off_gbp, 2),
+                reason=(
+                    "SLC 21BA 12-month back-billing cap: consumption "
+                    f"period {period_start} to {period_end} pre-dates the "
+                    "recoverable window with no recorded customer-fault "
+                    "attribution -- excess written off, not charged"
+                ),
+                raised_date=billing_date,
+                status=AdjustmentStatus.APPLIED,
+                approved_by="system:slc_21ba_cap",
+                applied_date=billing_date,
+            )
     else:
         chargeable_gbp = raw_delta_gbp
         written_off_gbp = 0.0
         cap_applied = False
         direction = "overcharge"
 
-    return {
+    result = {
         "period_start": period_start,
         "period_end": period_end,
         "periods_covered": len(pending_run),
@@ -232,6 +269,11 @@ def _resolve_catchup(
         "back_billing_cap_applied": cap_applied,
         "is_material": abs(chargeable_gbp) >= CATCHUP_MATERIALITY_THRESHOLD_GBP,
     }
+    if write_off_adjustment is not None:
+        result["write_off_adjustment_id"] = write_off_adjustment.record_id
+        result["write_off_adjustment_reason"] = write_off_adjustment.reason
+        result["write_off_adjustment_status"] = write_off_adjustment.status.value
+    return result
 
 
 def build_monthly_bills(all_records: list[dict], churned_ids: set[str] | None = None) -> list[dict]:
@@ -357,6 +399,10 @@ def build_monthly_bills(all_records: list[dict], churned_ids: set[str] | None = 
                     bill["catchup_written_off_gbp"] = catchup["written_off_gbp"]
                     bill["catchup_back_billing_cap_applied"] = catchup["back_billing_cap_applied"]
                     bill["catchup_is_material"] = catchup["is_material"]
+                    if "write_off_adjustment_id" in catchup:
+                        bill["catchup_write_off_adjustment_id"] = catchup["write_off_adjustment_id"]
+                        bill["catchup_write_off_adjustment_reason"] = catchup["write_off_adjustment_reason"]
+                        bill["catchup_write_off_adjustment_status"] = catchup["write_off_adjustment_status"]
                     bill["total_amount_gbp"] = round(
                         bill["total_amount_gbp"] + catchup["chargeable_gbp"], 2
                     )

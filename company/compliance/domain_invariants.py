@@ -28,6 +28,7 @@ automatically thereafter, never by patching the one instance.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
@@ -41,6 +42,20 @@ _GAS_CAP_BY_YEAR = {
 }
 
 
+# ADVISOR_STEER_BACKBILLING_GATE.md item 2 (2026-07-12, "jurisdiction
+# discipline for the oracle... add a jurisdiction field to the invariants
+# library schema so this is structural, not remembered"): every invariant
+# in this library today is UK-specific (VAT rates, Ofgem TDCV bands, Ofgem
+# price cap) but carried no explicit tag saying so. Defaults to "UK" for
+# every existing invariant (all genuinely are) -- a future non-UK addition
+# (AU/FR/BE, per REGULATORY_RULES_AS_FIDELITY_ORACLE.md's portability-lens
+# register) must set this explicitly rather than silently inheriting a
+# UK-only default, and any consumer validating UK output can assert
+# jurisdiction == "UK" structurally rather than relying on someone
+# remembering which invariants are which market's law.
+_UK = "UK"
+
+
 @dataclass(frozen=True)
 class RateInvariant:
     """An exact rate/proportion with a small tolerance (e.g. VAT -- there is
@@ -51,6 +66,7 @@ class RateInvariant:
     source: str
     value: float
     tolerance: float = 0.0005
+    jurisdiction: str = _UK
 
     def check(self, actual: float) -> bool:
         return abs(actual - self.value) <= self.tolerance
@@ -67,6 +83,7 @@ class RangeInvariant:
     low: float
     high: float
     unit: str
+    jurisdiction: str = _UK
 
     def check(self, actual: float) -> bool:
         return self.low <= actual <= self.high
@@ -92,6 +109,7 @@ class YearlyRangeInvariant:
     unit: str
     low_margin: float = 0.6   # allow down to 40% of the anchor (fixed-term downside)
     high_margin: float = 0.5  # allow up to 150% of the anchor
+    jurisdiction: str = _UK
 
     def plausible_range(self, year: int) -> tuple[float, float]:
         years = sorted(self.by_year)
@@ -265,6 +283,37 @@ BAD_DEBT_RATE_SME = RangeInvariant(
 )
 
 
+@dataclass(frozen=True)
+class StructuralInvariant:
+    """A named, sourced rule that isn't a single rate/range comparison --
+    a compound/structural check over a bill-shaped dict (e.g. 'a capped
+    back-billing amount was actually written off, not silently charged in
+    full'). The predicate lives in a same-named check_*() function below
+    (mirrors check_vat/check_resi_bill_consumption_plausible, which already
+    pair a metadata object with a separate predicate function) rather than
+    on the dataclass itself, since the input shape varies per rule."""
+    id: str
+    description: str
+    source: str
+    jurisdiction: str = _UK
+
+
+# ADVISOR_STEER_BACKBILLING_GATE.md item 1(c): "add the cap as a pre-bill
+# Tier-1 invariant (a catch-up bill breaching 12 months without a recorded
+# fault attribution is HELD)". Registered here as the named/sourced rule;
+# enforced by check_back_billing_cap_respected() below and wired into the
+# pre-bill validation gate (company/billing/pre_bill_validation.py).
+BACK_BILLING_CAP_RESPECTED = StructuralInvariant(
+    id="back_billing_cap_respected",
+    description=(
+        "A catch-up bill that breaches the SLC 21BA 12-month recovery "
+        "window, with no recorded customer-fault attribution, must not "
+        "charge the excess -- it must be written off, not billed"
+    ),
+    source="Ofgem SLC 21BA (domestic/microbusiness back-billing protection)",
+)
+
+
 ALL_INVARIANTS: list = [
     VAT_RESIDENTIAL, VAT_SME,
     STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
@@ -279,6 +328,7 @@ ALL_INVARIANTS: list = [
     UNIT_RATE_ELEC_RESI_BY_YEAR, UNIT_RATE_GAS_RESI_BY_YEAR,
     NET_MARGIN_PCT_OF_REVENUE, GROSS_MARGIN_PCT_OF_REVENUE,
     BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
+    BACK_BILLING_CAP_RESPECTED,
 ]
 
 
@@ -322,6 +372,51 @@ def check_resi_bill_consumption_plausible(fuel: str, kwh: float, days_in_period:
     )
     scale = days_in_period / _DAYS_PER_MONTH
     return invariant.low * scale <= kwh <= invariant.high * scale
+
+
+_BACK_BILLING_LIMIT_DAYS = 365
+
+
+def check_back_billing_cap_respected(bill: dict) -> bool:
+    """ADVISOR_STEER_BACKBILLING_GATE.md item 1(c) enforcement: "a catch-up
+    bill breaching 12 months without a recorded fault attribution is HELD."
+
+    Deliberately does NOT trust `bill["catchup_back_billing_cap_applied"]`
+    (the flag the assessment step already set) -- it independently
+    re-derives the SLC 21BA 12-month test from the bill's own catch-up
+    consumption period and accurate-bill date (`period_end`, the date this
+    exact bill was issued -- the clock anchors on the accurate bill, not
+    the read date, per the steer's element 2). A bill that breaches the
+    window must show the excess as a genuine write-off, not silently
+    charge it in full; that is what "HELD" means operationally here --
+    the excess is blocked from recovery, not that the bill itself is
+    withheld from the customer.
+
+    Overcharges (credits owed to the customer) are correctly never capped
+    (company/billing/back_billing.py's documented asymmetry) -- not a gap,
+    passes trivially.
+    """
+    if not bill.get("catchup_applied"):
+        return True
+    if bill.get("catchup_direction") != "undercharge":
+        return True
+    period_start_raw = bill.get("catchup_period_start")
+    billing_date_raw = bill.get("period_end")
+    if not period_start_raw or not billing_date_raw:
+        return True
+    period_start = datetime.fromisoformat(period_start_raw).date()
+    billing_date = datetime.fromisoformat(billing_date_raw).date()
+    protected_start = billing_date - timedelta(days=_BACK_BILLING_LIMIT_DAYS)
+    breaches_cap = period_start < protected_start
+    if not breaches_cap:
+        return True
+
+    written_off = bill.get("catchup_written_off_gbp", 0.0)
+    if written_off <= 0:
+        return False
+    raw_delta = bill.get("catchup_raw_delta_gbp", 0.0)
+    adjustment = bill.get("catchup_adjustment_gbp", 0.0)
+    return abs((adjustment + written_off) - raw_delta) <= 0.01
 
 
 def invariant_count() -> int:

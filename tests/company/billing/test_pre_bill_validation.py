@@ -198,6 +198,46 @@ def test_synthetic_violating_bill_reaches_the_exception_queue():
     assert any("does not reconcile" in r for r in payload[0]["reasons"])
 
 
+# --- ADVISOR_STEER_BACKBILLING_GATE.md item 1(c): pre-bill back-billing cap gate ---
+
+
+def test_uncapped_catchup_bill_still_passes_normally():
+    bill = _good_resi_bill(
+        catchup_applied=True, catchup_direction="undercharge",
+        catchup_period_start="2024-01-01",
+    )
+    result = validate_bill(bill)
+    assert not any("slc_21ba_back_billing_cap" in r for r in result.reasons)
+
+
+def test_breach_silently_charged_in_full_is_held():
+    # A catch-up bill whose consumption pre-dates the 12-month window but
+    # was NOT written off -- the exact live gap this steer was staged to
+    # catch; the pre-bill gate must HOLD it rather than let it issue.
+    bill = _good_resi_bill(
+        period_end="2024-01-31",
+        catchup_applied=True, catchup_direction="undercharge",
+        catchup_period_start="2022-06-01",
+        catchup_written_off_gbp=0.0, catchup_raw_delta_gbp=300.0,
+        catchup_adjustment_gbp=300.0,
+    )
+    result = validate_bill(bill)
+    assert result.held is True
+    assert any("slc_21ba_back_billing_cap" in r for r in result.reasons)
+
+
+def test_breach_genuinely_written_off_passes():
+    bill = _good_resi_bill(
+        period_end="2024-01-31",
+        catchup_applied=True, catchup_direction="undercharge",
+        catchup_period_start="2022-06-01",
+        catchup_written_off_gbp=100.0, catchup_raw_delta_gbp=300.0,
+        catchup_adjustment_gbp=200.0,
+    )
+    result = validate_bill(bill)
+    assert not any("slc_21ba_back_billing_cap" in r for r in result.reasons)
+
+
 def test_zero_subtotal_bill_does_not_crash_vat_check():
     bill = _good_resi_bill(
         commodity_amount_gbp=0.0, non_commodity_amount_gbp=0.0,

@@ -614,3 +614,59 @@ def test_make_retention_cost_event_different_customers_different_ids():
     ev1 = make_retention_cost_event("C1", "2021-01-01", 10.0, 0.3)
     ev2 = make_retention_cost_event("C2", "2021-01-01", 10.0, 0.3)
     assert ev1["transaction_id"] != ev2["transaction_id"]
+
+
+# --- ADVISOR_STEER_BACKBILLING_GATE.md item 1: back-billing write-off event ---
+
+
+def test_make_back_billing_write_off_event_is_zero_cash_memo():
+    from saas.ledger import make_back_billing_write_off_event
+    bill = _bill_9a()
+    bill["catchup_written_off_gbp"] = 42.0
+    bill["catchup_write_off_adjustment_id"] = "ADJ-BB-C1-2016-01-31"
+    bill["catchup_write_off_adjustment_reason"] = "SLC 21BA cap"
+    ev = make_back_billing_write_off_event(bill)
+    assert ev["event_type"] == "back_billing_write_off_event"
+    assert ev["amount_gbp"] == 0.0
+    assert ev["write_off_amount_gbp"] == 42.0
+    assert ev["adjustment_id"] == "ADJ-BB-C1-2016-01-31"
+
+
+def test_build_ledger_adds_write_off_event_only_when_catchup_written_off():
+    from saas.ledger import make_back_billing_write_off_event  # noqa: F401
+    bill_with = _bill_9a(customer_id="C1")
+    bill_with["catchup_written_off_gbp"] = 30.0
+    bill_without = _bill_9a(customer_id="C2")
+    events = build_ledger([], [bill_with, bill_without])
+    write_offs = [e for e in events if e["event_type"] == "back_billing_write_off_event"]
+    assert len(write_offs) == 1
+    assert write_offs[0]["customer_id"] == "C1"
+
+
+def test_derive_pnl_includes_back_billing_write_off_gbp_when_present():
+    bill = _bill_9a()
+    bill["catchup_written_off_gbp"] = 55.0
+    events = build_ledger([], [bill])
+    pnl = derive_pnl(events)
+    assert pnl["back_billing_write_off_gbp"] == pytest.approx(55.0)
+
+
+def test_derive_pnl_omits_back_billing_write_off_gbp_when_absent():
+    events = build_ledger([], [_bill_9a()])
+    pnl = derive_pnl(events)
+    assert "back_billing_write_off_gbp" not in pnl
+
+
+def test_back_billing_write_off_event_does_not_double_count_cash_position():
+    # The write-off's cash effect already happened via the capped
+    # billing_event amount -- this memo event must not further reduce the
+    # cash position.
+    bill = _bill_9a(commodity_amount=80.0, non_commodity=11.0, standing=5.0, vat=4.8)
+    bill["catchup_written_off_gbp"] = 999.0  # deliberately large, must not affect cash
+    events_with = build_ledger([], [bill])
+    bill_no_writeoff = dict(bill)
+    del bill_no_writeoff["catchup_written_off_gbp"]
+    events_without = build_ledger([], [bill_no_writeoff])
+    assert derive_cash_position(0.0, events_with) == pytest.approx(
+        derive_cash_position(0.0, events_without)
+    )
