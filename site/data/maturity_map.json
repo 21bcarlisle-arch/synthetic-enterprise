@@ -620,6 +620,21 @@
       "at_target": true
     },
     {
+      "id": "H7_skills_and_rules",
+      "name": "Harness skills/ and path-scoped rules/ -- procedure moved out of CLAUDE.md into decay-resistant mechanism",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 1,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false
+    },
+    {
       "id": "H1_supervisor_turn_granting",
       "name": "Supervisor self-refill (dial-weighted maturity-map draw, replacing the fragile prose-scan)",
       "lane": "H_harness",
@@ -916,7 +931,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 52,
+  "total_atoms": 53,
   "epoch2_movements": [
     {
       "id": "M1",
