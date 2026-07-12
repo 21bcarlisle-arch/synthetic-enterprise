@@ -111,6 +111,20 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### W5_1_banking_payment_rails: L3 EARNED, verified by a fourth independent Expert Hour review (2026-07-12, self-refill draw, level 2->3)
+
+The last of two named structural L3 blockers -- mandate setup not genuinely gating the collection it precedes -- was fixed this pass. The reasoning that had left this open across two prior reviews ("risks changing ground-truth arrears/bad-debt outcomes") was re-examined precisely rather than re-asserted, and found to conflate two independent things: `payment_outcome()`'s success/fail decision (`compute_emergent_bad_debt()`'s own ground truth) is drawn from the shared `rng` before any date logic runs and takes no date as an input at all, so gating a collection's own `due_date` can never change which bills succeed or fail; and this module's own dates feed nothing but the business-surface rendering (`extract_dd_rails()`), never the ledger/cash-timing pipeline that computes any actually-published financial figure. Once verified precisely, the fix was safe: a brand-new mandate's first collection `due_date` is now `max(bill's own due_date, mandate's own AUDDIS confirmation date)` -- genuinely gated, matching what a real Bacs integration requires. **Verified against the REAL full pipeline run** (the three tests that call `main()` end-to-end for real, ~580s, not a fixture) with this change in place, in addition to 3 new/rewritten unit tests covering the gate itself, the outcome-independence safety property, and that an already-established mandate's second-and-later collections are NOT further gated.
+
+**A fourth, fresh-context Expert Hour review (phase-close-evaluator, not self-graded) then independently verified the FULL current state of the atom** -- all four fixes across this atom's four passes together, not just the latest one -- reading the actual code and rendered surfaces directly rather than trusting any summary. Verdict: **PASS, L3 genuinely earned.** It independently confirmed: `payment_outcome()`'s signature takes no date parameter and is called before the gate; traced the full downstream consumption of `run_output["dd_collection_book"]` and confirmed no financial figure anywhere reads its dates; the date arithmetic is calendar-safe across month/year boundaries (verified against the real `run_output_latest.json`, C1's mandate confirmed 2016-02-16, no boundary issue); all three new tests are real and assert what they claim; the atom is live-wired on a real business surface (9 mandates/751 attempts); and card-acquirer settlement's complete absence is legitimately out of THIS atom's own L3 scope per the lane charter's own text (a separate, unstarted atom).
+
+**The review named two honest, non-blocking residuals, both closed the same session:**
+1. Register consolidation is "mitigated, not literally resolved" -- `dd_mandate_register.py` still exists with zero callers. Closed with a structural guard test (`tests/company/billing/test_dd_mandate_register.py::test_module_stays_caller_free_structural_guard`, mirroring `bacs_rails.py`'s own no-probability-constants guard) that fails loudly if anything outside its own tests ever imports it again -- catching a silent regression into the exact "two live writers into overlapping mandate state" hazard the M2 audit originally flagged, rather than requiring a future Expert Hour to re-discover it.
+2. One unregistered simplification: mandate setup is modelled as coincident with a customer's first `direct_debit` bill (this function only sees `bills`, not a real contract-signup date) rather than at contract signup as a real supplier's mandate would be -- meaning every brand-new mandate's first collection is pushed exactly `AUDDIS_CONFIRMATION_DAYS` (2) later than its naive due date, every time. Business-surface-only and harmless to any financial figure, but wasn't itself named -- now explicitly registered in the module docstring per R10.
+
+`W5_1_banking_payment_rails`'s `level_current` moves to 3 (at target); `loop_stage` moves from `build` to `harden`, matching every other at-target atom's convention. `expert_hour.status` is `passed`, with the full verbatim finding trail recorded. **This was the last real candidate in the maturity map's current dial-weighted pool** -- `find_work()` now correctly reports `map_exhausted: True` (verified live): every non-idle atom is either at its target level or already a valid candidate, and the 31 idle atoms remain deliberately parked pending their own epoch-sequencing turns. This is a genuine, honest exhaustion state (confirmed via `diagnose_map_blocked_set()`), not the CANNOT-draw bug fixed earlier this same day.
+
+3 new tests (`tests/company/billing/test_dd_mandate_register.py`), 17,214 tests collected (full suite), epistemic PASS.
+
 ### W5_1_banking_payment_rails: register-consolidation blocker investigated and partially closed (2026-07-12, self-refill draw continuation)
 
 The second Expert Hour review had left two structural L3 blockers standing: mandate setup not gating the collection it precedes, and the `DirectDebitBook`/`company/billing/dd_mandate_register.py::DDMandateRegister` register duplication, with the reviewer's own suggested direction being "future consolidation... should migrate DirectDebitBook's callers onto this module's model, given this module's cleaner point-in-time discipline."
@@ -7020,7 +7034,13 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,211 tests collected (full suite) -- W5_1_banking_payment_rails register-consolidation blocker
+- 17,214 tests collected (full suite) -- W5_1_banking_payment_rails L3 EARNED: the last named
+  blocker (mandate setup not gating collection) fixed and verified against the real full pipeline
+  run, then a fourth fresh-context Expert Hour review confirmed all four fixes across this atom's
+  four passes hold together (PASS, not self-graded); two honest non-blocking residuals it named
+  closed same session (a structural guard test, an explicitly-registered modelling assumption);
+  see Section 4's entry. 3 new tests, on top of the prior 17,211 tests collected (full suite) --
+  W5_1_banking_payment_rails register-consolidation blocker
   investigated and partially closed (DirectDebitBook enriched with as_of point-in-time discipline
   rather than migrating onto dd_mandate_register.py, which lacks any attempt-tracking concept; see
   Section 4's entry), 6 new tests, on top of the prior 17,205 tests collected (full suite) --

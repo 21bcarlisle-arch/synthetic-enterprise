@@ -658,16 +658,16 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 2,
-      "expert_hour_status": "needs_work",
+      "expert_hour_status": "passed",
       "depends_on": [
         "D2_three_clocks",
         "D_payments_maturity_audit"
       ],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "D_payments_maturity_audit",

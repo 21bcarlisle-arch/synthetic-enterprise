@@ -59,17 +59,23 @@ rather than re-asserting the original (partly wrong) reasoning:
   need a fallback-payment-method/retry mechanism that doesn't exist anywhere
   in this codebase yet; that is the honest limiting factor, registered as
   forward scope, not glossed over.
-- STILL OPEN, not fixed this pass (registered, not silently left in a
-  misleading comment): mandate setup is submitted and resolved in the same
-  step as the collection it precedes, rather than genuinely GATING the
-  collection on AUDDIS confirmation first -- a real Bacs integration would
-  refuse to submit a collection against an unconfirmed mandate. Changing
-  this would mean delaying a NEW DD customer's first collection date, which
-  risks changing ground-truth arrears/bad-debt outcomes already baked into
-  compute_emergent_bad_debt() -- the same class of change this atom's own
-  build has deliberately avoided throughout (see below). Left as a named,
-  open simplification rather than silently implying (as an earlier version
-  of this comment did) that the ordering doesn't matter.
+- FIXED (2026-07-12, third pass, closing the last named L3 blocker): mandate
+  setup used to be submitted and resolved in the same step as the collection
+  it precedes, rather than genuinely GATING the collection on AUDDIS
+  confirmation first. Re-examined the earlier "risks changing ground-truth
+  arrears/bad-debt outcomes" reasoning that had left this open twice before
+  -- it conflated two independent things. payment_outcome()'s success/fail
+  decision (compute_emergent_bad_debt()'s own ground truth) is drawn from
+  the shared `rng` BEFORE any date logic runs and takes no date as an input
+  at all -- gating a collection's own due_date can never change which bills
+  succeed or fail. And this module's own dates feed nothing but a business-
+  surface rendering (extract_dd_rails()) -- never the ledger/cash-timing
+  pipeline that computes any actually-published financial figure. Once that
+  was verified precisely (not just re-asserted), the fix was safe: a brand
+  new mandate's first collection due_date is now `max(bill's own due_date,
+  mandate's own AUDDIS confirmation date)` -- genuinely gated, matching what
+  a real Bacs integration would require. Verified against the real full
+  pipeline run (not just unit tests) with this change in place.
 - FIXED (2026-07-12, second pass): "this module has ZERO callers from any
   real run pipeline" -- wired into simulation/run_phase4c_on_phase2b.py's
   main() (serialised via _serialize_dd_collection_book()), threaded through
@@ -104,9 +110,27 @@ rather than re-asserting the original (partly wrong) reasoning:
   collected -- ground truth stays exactly as compute_emergent_bad_debt()
   computed it.
 - The M2 audit's duplicated-register finding (DirectDebitBook vs
-  company/billing/dd_mandate_register.py) is NOT resolved by this module --
-  see that module's own docstring for the honest, corrected statement (an
-  earlier version of this docstring overclaimed "superseded"/"resolved").
+  company/billing/dd_mandate_register.py) is NOT fully resolved by this
+  module -- see that module's own docstring for the honest, corrected
+  statement (an earlier version of this docstring overclaimed "superseded"/
+  "resolved"); the underlying reason it mattered (DirectDebitBook lacking a
+  point-in-time discipline) is closed, the literal duplication (the file
+  still exists, still unused) is not. `tests/company/billing/
+  test_dd_mandate_register.py::test_module_stays_caller_free_structural_guard`
+  now guards against the hazard the audit actually cared about (two live
+  writers into overlapping mandate state) recurring silently.
+- REGISTERED SIMPLIFICATION (2026-07-12, final Expert Hour review, not
+  itself L3-blocking but named per R10 rather than left implicit): mandate
+  setup is modelled as coincident with a customer's FIRST direct_debit bill
+  (this function only sees `bills`, not a real contract-signup date), not
+  at contract signup as a real supplier's mandate would be. This means
+  every brand-new mandate's first collection is pushed exactly
+  AUDDIS_CONFIRMATION_DAYS (2) later than its naive due_date, every time --
+  a real supplier's DD mandate would usually already be confirmed by the
+  time the first bill falls due, so this 2-day push is a modelling
+  artefact of not having signup-date input, not a claim about real DD
+  timing generally. Business-surface-only and harmless to any financial
+  figure (see the gating fix's own safety reasoning above).
 
 The prior reasoning stands unchanged: same unchanged payment_outcome()
 decision (identical RNG seed and call sequence as compute_emergent_bad_debt())
@@ -213,8 +237,7 @@ def build_dd_collection_book(
             # collections -- submit, then resolve on the real AUDDIS 2-day
             # confirmation window. Deterministic "success" outcome; see the
             # module docstring for the corrected, honest basis for that
-            # choice and the still-open gap (setup does not gate this bill's
-            # own collection date).
+            # choice.
             setup_ref = f"MANDATE-{cid}-{due_date.isoformat()}"
             setup_submission = submit_mandate_setup(setup_ref, cid, due_date)
             setup_resolved = resolve_submission(setup_submission, "success")
@@ -227,6 +250,20 @@ def build_dd_collection_book(
                 setup_rails_reference=setup_ref,
                 setup_confirmed_date=setup_resolved.expected_outcome_date.isoformat(),
             )
+            # FIXED (2026-07-12, third pass): a real Bacs integration cannot
+            # submit a collection against an unconfirmed mandate -- this
+            # bill's own collection due_date is now genuinely gated on the
+            # mandate's own AUDDIS confirmation, pushed out if it would
+            # otherwise land first. Safe by construction: payment_outcome()'s
+            # success/fail decision (above, from the shared `rng`) is
+            # entirely date-independent, so this never changes WHICH bills
+            # succeed or fail, only the observed collection date for a
+            # brand-new mandate's very first bill -- and this module's own
+            # output reaches only a business-surface rendering
+            # (tools/generate_dashboard_data.py::extract_dd_rails), never the
+            # ledger/cash-timing pipeline that computes any published
+            # financial figure, so no existing number is affected either way.
+            due_date = max(due_date, setup_resolved.expected_outcome_date)
         else:
             history = (customer_bill_history.get(cid) or [])[-_AMENDMENT_WINDOW_BILLS:]
             if history:

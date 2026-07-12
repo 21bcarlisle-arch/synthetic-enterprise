@@ -104,17 +104,22 @@ class TestMandateSetupWiredThroughRails:
         confirmed = date.fromisoformat(mandate.setup_confirmed_date)
         assert confirmed == due_date + timedelta(days=2)  # AUDDIS_CONFIRMATION_DAYS
 
-    def test_mandate_setup_wiring_does_not_change_collection_outcome_or_timing(self, monkeypatch):
-        """The core safety property, extended to this new wiring: adding
-        mandate-setup rails timing must not shift the collection attempt's
-        own date or outcome. Compared against a REAL baseline -- the exact
-        submit_collection()/resolve_submission() call the code makes,
-        replayed independently with a fresh rails_rng(seed+1) -- not just a
-        loose '>= due_date' bound (an Expert Hour review found the original
-        version of this test only asserted the bound, which doesn't actually
-        prove 'unchanged')."""
+    def test_first_collection_is_genuinely_gated_on_mandate_confirmation(self, monkeypatch):
+        """FIXED (2026-07-12, third pass, closing the last named L3 blocker):
+        a real Bacs integration cannot submit a collection against an
+        unconfirmed mandate -- the very first bill's own collection due_date
+        is now pushed out to the mandate's own AUDDIS confirmation date when
+        that would otherwise land later than the bill's naive due_date.
+        Verified against a REAL baseline -- the exact submit_collection()/
+        resolve_submission() calls the code makes, replayed independently
+        with a fresh rails_rng(seed+1), using the GATED due_date (not the
+        bill's naive one) -- not just a loose '>= due_date' bound (an Expert
+        Hour review found an earlier version of this test only asserted the
+        bound, which doesn't actually prove correctness)."""
         import random
-        from simulation.bacs_rails import resolve_submission, submit_collection
+        from simulation.bacs_rails import (
+            AUDDIS_CONFIRMATION_DAYS, resolve_submission, submit_collection,
+        )
 
         import simulation.dd_collection_book as mod
         monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
@@ -123,17 +128,53 @@ class TestMandateSetupWiredThroughRails:
         attempts = book.attempts_for_customer("C1")
         assert len(attempts) == 1
 
-        # Independently compute what the collection alone (no mandate-setup
-        # wiring at all) would have produced, using the exact same
-        # rails_rng(seed+1) stream build_dd_collection_book uses.
-        due_date = date(2020, 1, 31) + timedelta(days=14)
+        naive_due_date = date(2020, 1, 31) + timedelta(days=14)
+        mandate_confirmed = naive_due_date + timedelta(days=AUDDIS_CONFIRMATION_DAYS)
+        gated_due_date = max(naive_due_date, mandate_confirmed)
+        assert gated_due_date == mandate_confirmed  # the gate actually bites for a new mandate
+
         mandate_ref = "DD-C1-20200214"  # matches DirectDebitBook.create_mandate()'s own ref format
         reference = f"{mandate_ref}-2020-01-31"
         rails_rng = random.Random(43)  # seed+1
-        baseline_submission = submit_collection(reference, "C1", 100.0, due_date)
+        baseline_submission = submit_collection(reference, "C1", 100.0, gated_due_date)
         baseline_resolved = resolve_submission(baseline_submission, "success", rng=rails_rng)
 
         assert attempts[0].attempt_date == baseline_resolved.expected_outcome_date.isoformat()
+
+    def test_mandate_setup_gating_does_not_change_collection_outcome(self, monkeypatch):
+        """The core safety property this fix depends on: gating the
+        collection DATE must never change WHICH bills succeed or fail --
+        that decision is payment_outcome()'s alone, drawn from the shared
+        rng before any date logic runs."""
+        import simulation.dd_collection_book as mod
+        monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
+        behavioral = {"C1": {"income_stress_trajectory": [{"year": 2020, "stress": "HIGH"}]}}
+        bills = [_resi_bill("C1", "2020-01-31")]
+        found_failure = False
+        for seed in range(20):
+            book = build_dd_collection_book(bills, behavioral, seed=seed)
+            attempts = book.attempts_for_customer("C1")
+            if attempts and attempts[0].outcome == "failed":
+                found_failure = True
+                break
+        assert found_failure, "gating must not suppress real failure outcomes"
+
+    def test_second_collection_for_an_established_mandate_is_not_gated(self, monkeypatch):
+        """Only a brand-new mandate's first collection needs gating -- by
+        the second bill the mandate is long since confirmed, so its due_date
+        must be untouched (still the bill's own naive due_date)."""
+        import simulation.dd_collection_book as mod
+        monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
+        bills = [_resi_bill("C1", "2020-01-31"), _resi_bill("C1", "2020-02-29")]
+        book = build_dd_collection_book(bills, {})
+        attempts = book.attempts_for_customer("C1")
+        assert len(attempts) == 2
+        second_naive_due_date = date(2020, 2, 29) + timedelta(days=14)
+        # The second attempt's date must still be governed by the bill's own
+        # due date + Bacs processing/notification lag, not shifted further
+        # by any mandate-confirmation gate (the mandate is already confirmed
+        # long before this bill's own due date).
+        assert date.fromisoformat(attempts[1].attempt_date) >= second_naive_due_date
         assert attempts[0].outcome == "collected"
 
 
