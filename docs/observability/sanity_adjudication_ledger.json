@@ -20,6 +20,13 @@
     "finding_key": "audit:other:the total bill (gbp 58.66) is less than ",
     "state": "open"
   },
+  "audit:other:the total bill (gbp 72.07) is less than ": {
+    "adjudicated_at": "2026-07-12T05:13:54.775549+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C4 (2019-02-28): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation or application.; C7 (2017-05-31): The total bill (GBP 72.07) is less than the sum of the commodity charge (GBP 97.71), non-commodity charge (GBP 41.66), and standing charge (GBP 7.75), which is implausible.",
+    "finding_key": "audit:other:the total bill (gbp 72.07) is less than ",
+    "state": "open"
+  },
   "audit:vat-mismatch": {
     "adjudicated_at": "2026-07-11T05:02:08.839454+00:00",
     "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
@@ -28,11 +35,11 @@
     "state": "adjudicated-false-positive"
   },
   "coldwalk:bad_debt_implausibly_low_through_2021_22_crisis": {
-    "adjudicated_at": "2026-07-12T05:12:14.189134+00:00",
-    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
-    "evidence": "SUNDAY_WIDE cold-walk, COO AND CFO personas independently flagged: total_bad_debt_gbp in supplier.json (3,442.0 vs total_revenue_gbp 14,028,957.0, ~0.025% of revenue) across the full 2016-2025 window including the real 2021-22 supplier-failure crisis, where real UK suppliers saw bad debt spike to several percent of revenue. Two independent reviewers converging on the same figure is a real signal. NOT independently re-derived against external benchmarks in this triage pass (would need real Ofgem/industry bad-debt-rate research, matching this project's own MARGIN_REALISM-style diagnosis discipline) -- left open for a dedicated review rather than force-adjudicated.",
+    "adjudicated_at": "2026-07-12T08:03:44.813492+00:00",
+    "adjudicated_by": "claude (AFFORDABILITY_AS_SIM_PHYSICS.md, director-decided 2026-07-12)",
+    "evidence": "DIRECTOR-DECIDED (in-conversation, 2026-07-12; staged as docs/staging/AFFORDABILITY_AS_SIM_PHYSICS.md). REAL. Root cause: MISSING AFFORDABILITY MECHANISM -- payment behaviour is currently propensity-shaped; in reality arrears are the OUTPUT of a household budget meeting a price shock. Arrears must EMERGE from a household-budget-meets-price-shock model, not be propensity-shaped. LAW A (R12, anti-goal-seek): do NOT tune bad-debt rates toward benchmarks -- build the mechanism and let crisis-era arrears emerge. Harness-side measurement built this pass: company/compliance/crisis_bad_debt_validator.py + tests/company/compliance/test_crisis_bad_debt_validator.py (live xfail). It confirms the gap on BOTH representations of bad debt in run_output_latest.json: (a) HEADLINE (years[*].bad_debt_gbp -> total_bad_debt_gbp GBP3,442.20, the figure the CFO/COO personas flagged): crisis(2021-22) blended bad-debt rate 0.0074% of revenue vs pre-crisis(2016-19) 0.0471% -- step-up x0.16, i.e. crisis arrears are LOWER than pre-crisis and ~135x below the 1% anchored floor; (b) PnL ACCRUAL (management_accounts[*].income_statement.bad_debt_gbp): crisis rate 2.25% clears the 1% floor but is a broadly FLAT ~2.1-2.3% every year (step-up x1.05, no crisis spike) -- the propensity/rate-applied signature, not budget-shock-emergent. Anchors: resi bad-debt 1-3% of revenue (ASSUMPTIONS.md); UK domestic energy debt ~doubled 2020->2022 (~GBP4.43bn by 2025, Ofgem/Citizens Advice) [L]; Centrica CFO 2.3%->2.8% of revenue in the year [L]. Full W2_4.. atom cluster (household budget, life-event stream, SME distress twin, cant-pay/wont-pay 2x2, self-rationing, segment debt T&C, DD-attribution confound) registered NOT-YET-BUILT at epoch 3 (M3) in docs/design/maturity_map.yaml.",
     "finding_key": "coldwalk:bad_debt_implausibly_low_through_2021_22_crisis",
-    "state": "open"
+    "state": "adjudicated-real"
   },
   "coldwalk:bill_shock_c1_2018_annual_vs_monthly_scale_mismatch": {
     "adjudicated_at": "2026-07-12T05:12:14.188768+00:00",

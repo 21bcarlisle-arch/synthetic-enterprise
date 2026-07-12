@@ -358,6 +358,120 @@
   real_world_twin: "the ~8-supplier real GB domestic market"
   depends_on: []
 
+# --- W2_4..W2_10: affordability-as-sim-physics cluster (AFFORDABILITY_AS_SIM_PHYSICS.md,
+# director-decided 2026-07-12, from the CFO cold-walk finding
+# coldwalk:bad_debt_implausibly_low_through_2021_22_crisis, adjudicated-real). NOT BUILT --
+# registration only. Full mechanism rides M3 with the population draw (W2_2). The thin start
+# actually built this pass is harness-side ONLY: company/compliance/crisis_bad_debt_validator.py
+# (the honest measurement of the gap; currently and expectedly FAILING). LAW A / R12 applies
+# hard to the whole cluster: bad debt / arrears / adoption rates are DIAGNOSTICS, never targets --
+# they must EMERGE from the mechanism, never be tuned toward a benchmark.
+
+- id: W2_4_household_budget
+  name: "Household budget sketch as hidden SIM state (income band, essential-cost floor, discretionary margin, savings buffer, priority-of-debts stack)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md", "company/compliance/crisis_bad_debt_validator.py", "docs/observability/sanity_adjudication_ledger.json (coldwalk:bad_debt_implausibly_low_through_2021_22_crisis, adjudicated-real)"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md item 1, director-decided). The core of the adjudicated finding: arrears are currently propensity-shaped; in reality they are the OUTPUT of a household budget meeting a price shock. This atom is that hidden SIM state -- income band (ONS-anchored income distributions/deciles), an essential-cost floor, discretionary margin, a savings buffer, and a debt stack with PRIORITY-OF-DEBTS ordering (rent/mortgage, council tax, food before energy -- anchored to debt-advice-sector priority-vs-non-priority-debt practice, e.g. StepChange/Citizens Advice guidance). Financial state joins the archetype reality the per-run population draw (W2_2) varies. WALL DISCIPLINE (record verbatim, AFFORDABILITY item 4): the SIM knows the budget; the company sees ONLY missed payments, broken plans, and what the customer discloses -- affordability is INFERRED through interfaces, never read. Anchors named, none encoded yet. Build in M3 with the population draw. LAW A/R12: never tune the budget distributions to hit a bad-debt number."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real household's budget under a bill shock -- energy competes with priority debts and drops down the queue when money is tight"
+  depends_on: [W2_2_population_draw]
+
+- id: W2_5_life_event_stream
+  name: "Life-event stream (job loss, illness, divorce, retirement, new child) -- ONE shared W2 event generator"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md item 2, director-decided). ONE event generator serving BOTH the payment-difficulty triggers (this cluster) AND the adoption journey's key-moment conversion windows (C5_key_moment_conversion, registered 2026-07-11). Do NOT build two -- 'one substrate, two consumers', same principle as the reveal-over-time spine. Anchor event incidences to real UK population statistics (ONS life-events / labour-market flows / demographic rates) [L] where magnitudes are uncertain. Build in M3 with the population draw."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the real life-events (redundancy, illness, bereavement, new child) that push a household into or out of arrears and open conversion windows"
+  depends_on: [W2_2_population_draw]
+
+- id: W2_6_sme_distress_twin
+  name: "SME/I&C distress twin (sector shocks, insolvency events, late-payment culture)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md item 3, director-decided). The business-side twin of the household budget: sector shocks, insolvency events (bad debt PLUS a lost supply point, not just a write-off), and structural late-payment culture. Anchors: Companies House / Insolvency Service insolvency statistics; late-payment-culture surveys [L]. Note the segment T&C overlay differs materially for business (statutory late-payment interest applies -- see W2_9_segment_debt_tnc). Build in M3."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "real SME/I&C insolvency and late-payment behaviour -- a failed business is a bad debt AND a lost meter point"
+  depends_on: [W2_2_population_draw]
+
+- id: W2_7_willingness_classification
+  name: "Can't-pay vs won't-pay -- hidden ABILITY x WILLINGNESS 2x2, classified by the company under uncertainty"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md director addendum item 6). Hidden SIM state is a 2x2: ABILITY (the budget, W2_4-W2_6) x WILLINGNESS (attitudinal -- strategic/deliberate late- or non-payment DESPITE ability). Same missed payment, four truths; the company CANNOT observe the quadrant -- it must CLASSIFY under uncertainty from engagement signals, plan adherence, disclosure (the CLASSIFICATION capability is company-side, a C/F atom in effect; the hidden truth is generated here on the W2 side). Mis-classification physics both ways: can't-pay treated as won't-pay = customer harm + compliance breach (ability-to-pay rules exist for that quadrant); won't-pay treated as can't-pay = losses + moral hazard. Harness scores the company's classification accuracy vs hidden truth (answer-key pattern, same shape as the DD-attribution validation in W2_10). Anchor willingness incidence to Ofgem debt research / industry sources where possible -- tag [L] and VERIFY before encoding. Build in M3."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real collections team classifying can't-pay vs won't-pay from partial signals, with real regulatory and loss consequences for getting it wrong either way"
+  depends_on: [W2_4_household_budget]
+
+- id: W2_8_self_rationing
+  name: "Pay-but-don't-heat self-rationing (perfect payment record, consumption collapses below plausible living levels)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md director addendum item 7). SIM must GENERATE households whose payment record is PERFECT while consumption collapses below plausible living levels -- a vulnerability invisible in payment data, visible only in consumption analytics. Detection is a company-side C/F capability (self-disconnection / Consumer Duty class already in the regulatory oracle); a MISSED detection is a harm event. Generation lives here on the W2 side; the detection atom is its company-side consumer. Anchor 'plausible living level' floors to the same Ofgem TDCV bands already in domain_invariants.py (do not re-derive). Build in M3."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real self-rationing / self-disconnecting customer who pays on time but stops heating -- the vulnerability Consumer Duty requires suppliers to actively detect"
+  depends_on: [W2_4_household_budget]
+
+- id: W2_9_segment_debt_tnc
+  name: "Segment T&C / regulatory overlay on debt (statutory business late-payment interest, domestic late-charge exclusion, payment-conditioned tariff eligibility)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md director addendum item 8). Late-payment interest is STATUTORY for business (Late Payment of Commercial Debts (Interest) Act 1998 / LPCDCA, 8%+base) and effectively EXCLUDED for domestic; late-payment CHARGES are largely regulated out of domestic T&Cs. Tariff ELIGIBILITY conditioned on payment behaviour is real commercial policy (DD-discount tariffs; good-payer gating) -- model as company-side POLICY OBJECTS with fairness/oracle constraints, not as free-floating parameters. Anchors: LPCDCA (business); Ofgem SLC / Consumer Duty (domestic charge restrictions). Build in M3."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the real asymmetry: a business in arrears accrues statutory interest; a domestic customer largely cannot be charged late fees, but can be gated out of the cheapest tariffs"
+  depends_on: [W2_4_household_budget]
+
+- id: W2_10_dd_attribution_confound
+  name: "DD attribution confound -- first entry of the 'selection-bias traps the company must discover' class"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
+  simplifications: ["2026-07-12 REGISTERED, NOT BUILT (AFFORDABILITY_AS_SIM_PHYSICS.md director addendum item 9). NAMED ANALYTICAL TRAP -- registered here as the FIRST ENTRY of a named class: 'selection-bias traps the company must discover' (no separate trap-register infrastructure invented; the class lives as this atom + this note, per the staged doc's own 'note it clearly rather than invent infrastructure' instruction). The trap: the DD cohort looks like better payers PARTLY BY CONSTRUCTION -- failing payers drop OFF direct debit, so their bad debt lands in the cash/credit cohort. SIM truth contains the migration; the company's naive channel attribution (cost-to-serve and DD-discount-justification analytics built from observables) SHOULD BE CAPABLE OF BEING WRONG; the harness validates the company's attribution accuracy against ground truth (answer-key pattern, same shape as W2_7 willingness scoring). Live present-day relevance already logged: coldwalk:payment_channel_dd_fail_contradiction (adjudicated-real) -- payment_channel and dd_fail state computed by two independent pipelines that were never cross-referenced. Anchor: Ofgem payment-method debt research [L]. Build in M3."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's DD-discount business case that looks justified until you notice the DD cohort is clean because bad payers were already pushed off it"
+  depends_on: [W2_4_household_budget]
+
 - id: W3_1_price_cap_binding
   name: "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)"
   lane: W3_industry_systems
@@ -578,7 +692,7 @@
   loop_stage: idle
   dial_inherited: 1
   evidence: ["docs/staging/done/ADOPTION_JOURNEY_REGISTER.md"]
-  simplifications: ["2026-07-11 REGISTERED (P3, advisor-staged, director-decided -- ADOPTION_JOURNEY_REGISTER.md, do not start): adoption is state- and event-dependent -- these are events in the SIM's own event stream; the company's job is DETECTING/INFERRING the moment through the wall and acting within the window, never reading the SIM's ground truth directly. PLACEMENT: Epoch 4, same dependency block as C4_adoption_physics (C customer psychology partial, W2 population draw L0, M1 event stream in flight) -- do not build ahead of those. Non-negotiable: nudge mechanics stay two-sided under Consumer Duty -- gamified incentives and pressure at key moments have mis-selling/vulnerability edges the compliance organs must see."]
+  simplifications: ["2026-07-11 REGISTERED (P3, advisor-staged, director-decided -- ADOPTION_JOURNEY_REGISTER.md, do not start): adoption is state- and event-dependent -- these are events in the SIM's own event stream; the company's job is DETECTING/INFERRING the moment through the wall and acting within the window, never reading the SIM's ground truth directly. PLACEMENT: Epoch 4, same dependency block as C4_adoption_physics (C customer psychology partial, W2 population draw L0, M1 event stream in flight) -- do not build ahead of those. Non-negotiable: nudge mechanics stay two-sided under Consumer Duty -- gamified incentives and pressure at key moments have mis-selling/vulnerability edges the compliance organs must see.", "2026-07-12 SHARED SUBSTRATE NOTED (AFFORDABILITY_AS_SIM_PHYSICS.md item 2 / DoD): the life-event event generator these conversion windows ride on is now registered as W2_5_life_event_stream -- ONE W2 event generator serving BOTH this adoption/key-moment consumer AND the affordability/payment-difficulty triggers (W2_4 household budget). Do NOT build two. When this atom's build opens, consume W2_5, do not spin up a parallel event stream."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's CRM detecting a house-move/EV-purchase trigger from observable signals, not an internal customer database it shouldn't have"
   depends_on: [C4_adoption_physics, W1_reveal_over_time]

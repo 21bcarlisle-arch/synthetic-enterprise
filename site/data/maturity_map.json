@@ -362,6 +362,125 @@
       "at_target": false
     },
     {
+      "id": "W2_4_household_budget",
+      "name": "Household budget sketch as hidden SIM state (income band, essential-cost floor, discretionary margin, savings buffer, priority-of-debts stack)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_2_population_draw"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_5_life_event_stream",
+      "name": "Life-event stream (job loss, illness, divorce, retirement, new child) -- ONE shared W2 event generator",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_2_population_draw"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_6_sme_distress_twin",
+      "name": "SME/I&C distress twin (sector shocks, insolvency events, late-payment culture)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_2_population_draw"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_7_willingness_classification",
+      "name": "Can't-pay vs won't-pay -- hidden ABILITY x WILLINGNESS 2x2, classified by the company under uncertainty",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_4_household_budget"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_8_self_rationing",
+      "name": "Pay-but-don't-heat self-rationing (perfect payment record, consumption collapses below plausible living levels)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_4_household_budget"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_9_segment_debt_tnc",
+      "name": "Segment T&C / regulatory overlay on debt (statutory business late-payment interest, domestic late-charge exclusion, payment-conditioned tariff eligibility)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_4_household_budget"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "W2_10_dd_attribution_confound",
+      "name": "DD attribution confound -- first entry of the 'selection-bias traps the company must discover' class",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_4_household_budget"
+      ],
+      "at_target": false
+    },
+    {
       "id": "W3_1_price_cap_binding",
       "name": "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)",
       "lane": "W3_industry_systems",
@@ -764,7 +883,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 43,
+  "total_atoms": 50,
   "epoch2_movements": [
     {
       "id": "M1",
