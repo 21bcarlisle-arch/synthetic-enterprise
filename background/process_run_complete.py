@@ -760,6 +760,20 @@ def _process(marker_path_str):
     # comment above for why: a code fix can change correctness without
     # moving headline figures enough to break the fingerprint match.
     fingerprint = _run_fingerprint(data)
+    # R3 two-strike redesign (2026-07-12, director page comment "/project/
+    # data looks stale"): a real, code-only change (a new UI feature, a new
+    # billing mechanism with no material P&L impact) previously left every
+    # tracked headline figure unchanged, so the gate silently skipped
+    # publishing for ~5 hours straight across 7+ real commits -- the exact
+    # same class of incident FORCE_REPUBLISH_FLAG was built for (the
+    # hold-release case), recurring on a different trigger (an ordinary
+    # commit, not a hold release). Folding the producing commit's hash into
+    # the compared fingerprint closes the class generally: ANY new commit
+    # since the last published run now breaks the equality check and forces
+    # a republish, regardless of whether financial headline figures moved --
+    # while a genuinely unchanged commit across consecutive cycles (the
+    # common case) still skips exactly as before.
+    fingerprint["source_git_hash"] = git_hash
     last_fp = _read_last_fingerprint()
     forced = FORCE_REPUBLISH_FLAG.exists()
     if last_fp == fingerprint and not fingerprint["administration_event"] and not forced:

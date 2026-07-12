@@ -202,7 +202,9 @@ def test_change_detection_gate_skips_identical_run_when_not_forced(tmp_path, mon
     _full_isolation_setup(tmp_path, monkeypatch)
     marker, json_data = make_marker(tmp_path)
     prc.LAST_FINGERPRINT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    prc.LAST_FINGERPRINT_FILE.write_text(json.dumps(prc._run_fingerprint(json_data), sort_keys=True))
+    fp = prc._run_fingerprint(json_data)
+    fp["source_git_hash"] = "abc1234"  # matches make_marker()'s default git_hash -- genuinely nothing changed
+    prc.LAST_FINGERPRINT_FILE.write_text(json.dumps(fp, sort_keys=True))
 
     rc = prc.main(str(marker))
 
@@ -518,7 +520,9 @@ def test_gate_skips_identical_run(tmp_path, monkeypatch):
     data = _sample_data()
     json_path = tmp_path / "run_output_latest.json"
     json_path.write_text(json.dumps(data))
-    prc._write_last_fingerprint(prc._run_fingerprint(data))
+    fp = prc._run_fingerprint(data)
+    fp["source_git_hash"] = "abc"  # matches the marker's "Git: abc" below -- genuinely nothing changed
+    prc._write_last_fingerprint(fp)
 
     marker = staging / "run_complete_X.md"
     marker.write_text("# Run Complete\n\nGit: abc\nJSON: %s\nDuration: 200s\n" % json_path)
@@ -554,3 +558,61 @@ def test_gate_never_skips_admin_event(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "regenerate_report", lambda jp: (_ for _ in ()).throw(SystemExit("proceeded")))
     with pytest.raises(SystemExit):
         prc._process(str(marker))
+
+
+def test_gate_never_skips_when_git_hash_differs(tmp_path, monkeypatch):
+    """R3 two-strike redesign (2026-07-12, director page comment: '/project/
+    data looks stale'): a real new commit whose headline financial figures
+    happen to be identical to the last processed run must NOT be silently
+    skipped -- this is the exact class of incident FORCE_REPUBLISH_FLAG was
+    built for (see above), recurring on an ordinary commit rather than a
+    hold-release. Same fingerprint content, different producing commit."""
+    staging = tmp_path / "staging"
+    done = staging / "done"
+    staging.mkdir(parents=True)
+    done.mkdir()
+    monkeypatch.setattr(prc, "STAGING_DIR", staging)
+    monkeypatch.setattr(prc, "DONE_DIR", done)
+
+    data = _sample_data()
+    json_path = tmp_path / "run_output_latest.json"
+    json_path.write_text(json.dumps(data))
+    fp = prc._run_fingerprint(data)
+    fp["source_git_hash"] = "old0000"  # a DIFFERENT commit than the marker below
+    prc._write_last_fingerprint(fp)
+
+    marker = staging / "run_complete_Z.md"
+    marker.write_text("# Run Complete\n\nGit: new1111\nJSON: %s\nDuration: 200s\n" % json_path)
+
+    # Reaching regen proves the gate did NOT skip; stop there to keep the test cheap.
+    monkeypatch.setattr(prc, "regenerate_report", lambda jp: (_ for _ in ()).throw(SystemExit("proceeded")))
+    with pytest.raises(SystemExit):
+        prc._process(str(marker))
+
+
+def test_gate_skips_when_git_hash_matches_too(tmp_path, monkeypatch):
+    """Sanity converse of the above: identical fingerprint AND identical
+    producing commit still skips -- the fix must not make the gate skip
+    nothing at all."""
+    staging = tmp_path / "staging"
+    done = staging / "done"
+    staging.mkdir(parents=True)
+    done.mkdir()
+    monkeypatch.setattr(prc, "STAGING_DIR", staging)
+    monkeypatch.setattr(prc, "DONE_DIR", done)
+
+    data = _sample_data()
+    json_path = tmp_path / "run_output_latest.json"
+    json_path.write_text(json.dumps(data))
+    fp = prc._run_fingerprint(data)
+    fp["source_git_hash"] = "same0000"
+    prc._write_last_fingerprint(fp)
+
+    marker = staging / "run_complete_W.md"
+    marker.write_text("# Run Complete\n\nGit: same0000\nJSON: %s\nDuration: 200s\n" % json_path)
+
+    monkeypatch.setattr(prc, "regenerate_report", lambda jp: pytest.fail("gate did not skip"))
+
+    rc = prc._process(str(marker))
+    assert rc == 0
+    assert (done / marker.name).exists()
