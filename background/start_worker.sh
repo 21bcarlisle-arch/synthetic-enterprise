@@ -29,7 +29,18 @@ tmux set-environment -g DISABLE_AUTOUPDATER 1 2>/dev/null || true
 # watchdog, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
 # sim-runner all import background.ntfy_utils, which raises loudly at import
 # time if this isn't set — 2026-07-08 topic rotation,
-# docs/staging/NTFY_CHANNEL_HARDENING.md).
+# docs/staging/NTFY_CHANNEL_HARDENING.md). background-worker is in this set
+# too, INDIRECTLY: it does not import ntfy_utils itself, but it spawns
+# process_run_complete.py as a subprocess (background_worker.py's
+# process_leftover_run_markers()) which does, inheriting whatever env this
+# tmux session was started with. Found live 2026-07-12: this session's own
+# _start_session call was missing the "${NTFY_ENV_FLAGS[@]}" trailing
+# argument every sibling session below correctly passes, causing
+# process_run_complete.py to crash (RuntimeError at import) on every
+# leftover-marker pass once a real headline change reached maybe_ntfy() —
+# silently eating the run's own notification and leaving the marker to
+# retry next cycle indefinitely (matches the repeated "Failed to process
+# run_complete_*.md (rc=1)" entries in background-worker-log.md).
 # 2026-07-11, Option 2 floor (director in-console authorization): secrets
 # moved out of the working tree to ~/.config/synthetic-enterprise/ (see
 # background/secrets_location.py) -- check there FIRST, fall back to the
@@ -83,7 +94,8 @@ echo "Starting synthetic-enterprise autonomous stack..."
 
 _start_session "background-worker" \
   "python3 background/background_worker.py" \
-  "Qwen task queue, runs off-peak (not 16:00-19:00 GMT)"
+  "Qwen task queue, runs off-peak (not 16:00-19:00 GMT)" \
+  "${NTFY_ENV_FLAGS[@]}"
 
 _start_session "session-watchdog" \
   "python3 background/session_watchdog.py" \
