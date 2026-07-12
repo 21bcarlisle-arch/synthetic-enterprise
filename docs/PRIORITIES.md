@@ -1,5 +1,21 @@
 # Current Priorities
 
+**Recurring class found across today's DISCOVER sweep (2026-07-12, R10 -- class-level registration,
+not an instance fix): "orphaned capability modules"** -- real, non-trivial, real-data-anchored
+company-side modules that exist, pass their own tests, and are never wired to the live decision
+path they were clearly built for. Confirmed instances found this session alone:
+`company/crm/onboarding_journey.py`/`acquisition_journey.py` (SLC-deadline tracking, C2's own
+finding), `company/market/tariff_benchmarking.py` + `company/pricing/renewal_pricing_engine.py`
+(competitor-aware pricing, B4's own finding -- TWO separate attempts, both unwired),
+`company/billing/account_adjustment_register.py`'s harm-remediation types,
+`company/market/ppa_book.py`, `company/regulatory/solr.py`,
+`company/compliance/board_meeting_register.py` (A2's own third-investigation finding). Not proposing
+a mechanism to auto-detect this class (that's a real FRAME question for whoever picks this up --
+e.g. a lint-style check for modules with zero non-test importers) -- registering the PATTERN so a
+future consolidation/wiring pass treats it as one backlog item across N modules, not N separate
+one-off surprises re-discovered independently each time an atom's DISCOVER pass happens to trip
+over one.
+
 **ADVISOR_STEER_TWIN_READONLY.md CLOSED IN FULL (2026-07-12):** twin read-only proven (real failed-write
 test, `RUN_LIVE_TWIN_TESTS=1`); `PLATFORM_ADMINISTRATION` one-way-door category added (repo/GitHub
 settings, keys/secrets, account/billing/entitlements). CANNOT-draw root-caused as R2 (the `supervisor`
