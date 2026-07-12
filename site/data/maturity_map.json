@@ -210,13 +210,13 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 1,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": true
     },
     {
       "id": "E3_accrual_restatement",
