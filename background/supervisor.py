@@ -77,6 +77,7 @@ from __future__ import annotations
 import json
 import random
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -447,6 +448,103 @@ def _check_stuck_escalation(reason: str) -> None:
         _save_stuck_state(state)
 
 
+# Auto-clear (ADVISOR_STEER_OVERNIGHT.md item 2, 2026-07-11 -- authorized
+# in-console 2026-07-11 morning via mid-turn window message, genuineness
+# confirmed by Rich over NTFY the same day: "CONFIRMED: all recent mid-turn
+# window messages were genuinely me -- the sequencing/auto-clear one...
+# Act on all of them." docs/staging/done/from_rich_20260711_105502.md).
+# The feature was authorized but never built -- a real session sat at 649k
+# [tokens] begging for a manual /clear the same night this was staged.
+#
+# Approximation, stated plainly rather than hidden: there is no token-count
+# API available to an external daemon, so this uses the current session's
+# own transcript FILE SIZE (bytes) as a proxy, calibrated empirically
+# against this actual project's transcripts (JSONL structural overhead --
+# tool_use/tool_result blocks, timestamps, escaping -- inflates bytes/token
+# well above plain text's ~4:1 ratio; this session's own transcript ran
+# ~25 bytes/token at a self-reported ~649k-token mark). Recalibrate this
+# constant if it drifts badly from reality; it is a proxy, not a promise.
+AUTO_CLEAR_BYTES_THRESHOLD = 10_000_000  # ~400k tokens at the ~25 bytes/token calibration above
+CLAUDE_PROJECTS_DIR = Path.home() / ".claude" / "projects" / "-home-rich-synthetic-enterprise"
+AUTO_CLEAR_LOG_FILE = PROJECT_DIR / "docs" / "observability" / "supervisor-auto-clear-log.md"
+
+
+def _latest_transcript_size_bytes() -> int | None:
+    """Size in bytes of the most-recently-modified session transcript in
+    this project's Claude Code projects directory -- a proxy for "the
+    currently active session's context size" (there is no direct API to ask
+    an external daemon process for another process's live token count).
+    Returns None if the directory or any transcript is missing (fails
+    closed -- no transcript found means no auto-clear decision can be made,
+    not "assume huge and clear")."""
+    if not CLAUDE_PROJECTS_DIR.is_dir():
+        return None
+    transcripts = list(CLAUDE_PROJECTS_DIR.glob("*.jsonl"))
+    if not transcripts:
+        return None
+    latest = max(transcripts, key=lambda p: p.stat().st_mtime)
+    try:
+        return latest.stat().st_size
+    except OSError:
+        return None
+
+
+def _git_tree_clean() -> bool:
+    """True if the working tree has no uncommitted changes -- part of the
+    "clean boundary" test (work pushed, nothing in flight). Fails closed
+    (False, i.e. NOT clean / do not clear) on any error, since a spurious
+    clear mid-uncommitted-work is the harmful failure mode, not a missed
+    clear opportunity."""
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=PROJECT_DIR, capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode != 0:
+            return False
+        return result.stdout.strip() == ""
+    except Exception:
+        return False
+
+
+def should_auto_clear() -> bool:
+    """Both halves of the authorized condition: context > ~400k (transcript-
+    size proxy) AND a clean boundary (session idle -- reusing the exact same
+    is_session_idle() gate turn-granting itself trusts -- and the working
+    tree has no uncommitted changes, i.e. nothing in flight). Fails closed
+    (False) if the transcript size can't be determined at all, rather than
+    guessing."""
+    size = _latest_transcript_size_bytes()
+    if size is None or size < AUTO_CLEAR_BYTES_THRESHOLD:
+        return False
+    if not is_session_idle(SESSION_NAME):
+        return False
+    return _git_tree_clean()
+
+
+def maybe_auto_clear() -> bool:
+    """If should_auto_clear(), inject /clear via the same locked, idle-
+    gated, verified relay every other daemon uses, log the event, and
+    return True (caller should skip this cycle's normal turn-grant --
+    the NEXT cycle's ordinary idle-check + find_work()/grant_turn() flow
+    naturally serves as "re-grants with the standard boot" once the pane
+    goes idle again post-clear, so no separate boot injection is needed
+    here). Returns False (no-op) if the condition isn't met."""
+    if not should_auto_clear():
+        return False
+    size = _latest_transcript_size_bytes()
+    ok = send_keys_when_idle(SESSION_NAME, "/clear", "/clear")
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    AUTO_CLEAR_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(AUTO_CLEAR_LOG_FILE, "a") as f:
+        f.write(
+            f"\n- [{ts}] Auto-clear {'sent' if ok else 'FAILED to send'} "
+            f"-- transcript size {size} bytes (threshold {AUTO_CLEAR_BYTES_THRESHOLD})"
+        )
+    log(f"Auto-clear {'sent' if ok else 'FAILED to send'} -- transcript size {size} bytes")
+    return ok
+
+
 def grant_turn(reason: str) -> bool:
     """Attempt exactly one turn-grant via the locked, idle-gated, verified
     relay (background.tmux_relay.send_keys_when_idle) -- the same primitive
@@ -489,6 +587,13 @@ def run_cycle() -> None:
 
     if not is_session_idle(SESSION_NAME):
         log("Session busy -- skipping this cycle")
+        return
+
+    if maybe_auto_clear():
+        # Skip this cycle's normal turn-grant -- the pane just received
+        # /clear and needs to settle; the NEXT cycle's ordinary idle-check +
+        # find_work()/grant_turn() flow naturally re-grants with the
+        # standard boot once the pane goes idle again post-clear.
         return
 
     reason = find_work(resumed_from_pause)

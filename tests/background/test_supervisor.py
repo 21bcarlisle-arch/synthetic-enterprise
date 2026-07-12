@@ -18,6 +18,11 @@ import pytest
 from background import agenda as agenda_module
 from background import supervisor
 
+# Captured before the autouse fixture below patches maybe_auto_clear() out by
+# default -- TestAutoClear's own tests that exercise the real function
+# restore it explicitly via this reference.
+_REAL_MAYBE_AUTO_CLEAR = supervisor.maybe_auto_clear
+
 
 class _FakeClock:
     """A monotonically-advancing fake clock for time.time(), so stuck-
@@ -54,6 +59,15 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     (tmp_path / "staging").mkdir()
+    # Default off for every test in this file: maybe_auto_clear() reads the
+    # REAL transcript directory and REAL git status, so leaving it live would
+    # make run_cycle() tests nondeterministic (and, in the worst case, able
+    # to actually inject /clear into a live tmux session mid test-run) --
+    # discovered exactly this way, 2026-07-11, when the existing suite only
+    # passed by coincidence (the real working tree happened to be dirty at
+    # test-run time). Tests that specifically exercise auto-clear override
+    # this explicitly.
+    monkeypatch.setattr(supervisor, "maybe_auto_clear", lambda: False)
     _reset_supervisor_state()
     yield
     _reset_supervisor_state()
@@ -912,3 +926,156 @@ class TestFailureMode4DeliveredButNoProgress:
 
         assert len(ntfy_calls) == 1, "must escalate exactly once, not zero and not repeatedly"
         assert "swallowing turns" in ntfy_calls[0]
+
+
+class TestAutoClear:
+    """ADVISOR_STEER_OVERNIGHT.md item 2 (2026-07-11, authorized in-console
+    the same morning, confirmed genuine over NTFY): context > ~400k AND a
+    clean boundary (idle, nothing uncommitted) -> supervisor injects /clear,
+    the next cycle's ordinary flow re-grants with the standard boot."""
+
+    def test_should_auto_clear_false_when_no_transcript_found(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "_latest_transcript_size_bytes", lambda: None)
+        assert supervisor.should_auto_clear() is False
+
+    def test_should_auto_clear_false_when_under_threshold(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "_latest_transcript_size_bytes", lambda: 1_000)
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        monkeypatch.setattr(supervisor, "_git_tree_clean", lambda: True)
+        assert supervisor.should_auto_clear() is False
+
+    def test_should_auto_clear_false_when_busy(self, monkeypatch):
+        monkeypatch.setattr(
+            supervisor, "_latest_transcript_size_bytes",
+            lambda: supervisor.AUTO_CLEAR_BYTES_THRESHOLD + 1,
+        )
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: False)
+        monkeypatch.setattr(supervisor, "_git_tree_clean", lambda: True)
+        assert supervisor.should_auto_clear() is False
+
+    def test_should_auto_clear_false_when_tree_dirty(self, monkeypatch):
+        monkeypatch.setattr(
+            supervisor, "_latest_transcript_size_bytes",
+            lambda: supervisor.AUTO_CLEAR_BYTES_THRESHOLD + 1,
+        )
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        monkeypatch.setattr(supervisor, "_git_tree_clean", lambda: False)
+        assert supervisor.should_auto_clear() is False
+
+    def test_should_auto_clear_true_when_all_conditions_met(self, monkeypatch):
+        monkeypatch.setattr(
+            supervisor, "_latest_transcript_size_bytes",
+            lambda: supervisor.AUTO_CLEAR_BYTES_THRESHOLD + 1,
+        )
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        monkeypatch.setattr(supervisor, "_git_tree_clean", lambda: True)
+        assert supervisor.should_auto_clear() is True
+
+    def test_git_tree_clean_true_for_empty_porcelain_output(self, monkeypatch):
+        class _FakeResult:
+            returncode = 0
+            stdout = ""
+
+        monkeypatch.setattr(supervisor.subprocess, "run", lambda *a, **k: _FakeResult())
+        assert supervisor._git_tree_clean() is True
+
+    def test_git_tree_clean_false_for_nonempty_porcelain_output(self, monkeypatch):
+        class _FakeResult:
+            returncode = 0
+            stdout = " M some/file.py\n"
+
+        monkeypatch.setattr(supervisor.subprocess, "run", lambda *a, **k: _FakeResult())
+        assert supervisor._git_tree_clean() is False
+
+    def test_git_tree_clean_fails_closed_on_nonzero_exit(self, monkeypatch):
+        class _FakeResult:
+            returncode = 1
+            stdout = ""
+
+        monkeypatch.setattr(supervisor.subprocess, "run", lambda *a, **k: _FakeResult())
+        assert supervisor._git_tree_clean() is False
+
+    def test_git_tree_clean_fails_closed_on_exception(self, monkeypatch):
+        def _raise(*a, **k):
+            raise OSError("git not found")
+
+        monkeypatch.setattr(supervisor.subprocess, "run", _raise)
+        assert supervisor._git_tree_clean() is False
+
+    def test_latest_transcript_size_bytes_none_when_dir_missing(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(supervisor, "CLAUDE_PROJECTS_DIR", tmp_path / "nonexistent")
+        assert supervisor._latest_transcript_size_bytes() is None
+
+    def test_latest_transcript_size_bytes_none_when_no_jsonl_files(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(supervisor, "CLAUDE_PROJECTS_DIR", tmp_path)
+        assert supervisor._latest_transcript_size_bytes() is None
+
+    def test_latest_transcript_size_bytes_returns_most_recently_modified(self, tmp_path, monkeypatch):
+        import os
+        import time as time_mod
+
+        monkeypatch.setattr(supervisor, "CLAUDE_PROJECTS_DIR", tmp_path)
+        old = tmp_path / "old-session.jsonl"
+        old.write_text("x" * 100)
+        new = tmp_path / "new-session.jsonl"
+        new.write_text("y" * 500)
+        # Force distinct mtimes regardless of filesystem timestamp resolution.
+        now = time_mod.time()
+        os.utime(old, (now - 100, now - 100))
+        os.utime(new, (now, now))
+        assert supervisor._latest_transcript_size_bytes() == 500
+
+    def test_maybe_auto_clear_noop_when_condition_not_met(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "maybe_auto_clear", _REAL_MAYBE_AUTO_CLEAR)
+        monkeypatch.setattr(supervisor, "should_auto_clear", lambda: False)
+        send_calls = []
+        monkeypatch.setattr(
+            supervisor, "send_keys_when_idle",
+            lambda *a, **k: send_calls.append(a) or True,
+        )
+        assert supervisor.maybe_auto_clear() is False
+        assert send_calls == []
+
+    def test_maybe_auto_clear_sends_clear_and_logs_when_condition_met(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(supervisor, "maybe_auto_clear", _REAL_MAYBE_AUTO_CLEAR)
+        monkeypatch.setattr(supervisor, "should_auto_clear", lambda: True)
+        monkeypatch.setattr(supervisor, "_latest_transcript_size_bytes", lambda: 12_345_678)
+        send_calls = []
+        monkeypatch.setattr(
+            supervisor, "send_keys_when_idle",
+            lambda session, text, marker: send_calls.append((session, text, marker)) or True,
+        )
+        monkeypatch.setattr(supervisor, "AUTO_CLEAR_LOG_FILE", tmp_path / "auto-clear-log.md")
+        assert supervisor.maybe_auto_clear() is True
+        assert send_calls == [(supervisor.SESSION_NAME, "/clear", "/clear")]
+        log_content = (tmp_path / "auto-clear-log.md").read_text()
+        assert "Auto-clear sent" in log_content
+        assert "12345678" in log_content
+
+    def test_maybe_auto_clear_logs_failure_when_send_fails(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(supervisor, "maybe_auto_clear", _REAL_MAYBE_AUTO_CLEAR)
+        monkeypatch.setattr(supervisor, "should_auto_clear", lambda: True)
+        monkeypatch.setattr(supervisor, "_latest_transcript_size_bytes", lambda: 12_345_678)
+        monkeypatch.setattr(supervisor, "send_keys_when_idle", lambda *a, **k: False)
+        monkeypatch.setattr(supervisor, "AUTO_CLEAR_LOG_FILE", tmp_path / "auto-clear-log.md")
+        assert supervisor.maybe_auto_clear() is False
+        log_content = (tmp_path / "auto-clear-log.md").read_text()
+        assert "FAILED to send" in log_content
+
+    def test_run_cycle_skips_normal_grant_when_auto_clear_fires(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        monkeypatch.setattr(supervisor, "maybe_auto_clear", lambda: True)
+        grant_calls = []
+        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
+        agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
+        supervisor.run_cycle()
+        assert grant_calls == [], "auto-clear firing must skip this cycle's normal turn-grant"
+
+    def test_run_cycle_proceeds_normally_when_auto_clear_does_not_fire(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        monkeypatch.setattr(supervisor, "maybe_auto_clear", lambda: False)
+        grant_calls = []
+        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
+        agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
+        supervisor.run_cycle()
+        assert len(grant_calls) == 1
