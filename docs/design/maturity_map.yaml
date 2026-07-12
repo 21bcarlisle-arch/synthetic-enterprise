@@ -370,13 +370,13 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 1
-  loop_stage: idle
+  loop_stage: harden
   dial_inherited: 3
-  evidence: []
-  file_scope: []
-  simplifications: []
+  evidence: ["simulation/market_switching_propensity.py", "simulation/customer_events.py (real call site: p_churn_market)", "tests/simulation/test_market_switching_propensity.py (19 tests)", "docs/market_research/churn_price_elasticity.md"]
+  file_scope: ["simulation/market_switching_propensity.py"]
+  simplifications: ["2026-07-12 MIS-REGISTRATION CORRECTED, level 0->1 on decisive EXISTING evidence, no new code (self-refill draw, same correction class already applied this session to D2/G2/E2 -- an atom's own code got built as a byproduct of a different atom's work and was never credited here). This atom's registration was entirely blank (evidence:[], simplifications:[]), implying zero prior art -- checked directly rather than trusting the blank state, and found real, decisive, ALREADY-WIRED evidence: simulation/market_switching_propensity.py::MARKET_SAVINGS_BY_YEAR is a real, DESNZ/Ofgem-anchored, per-year (2016-2025) figure for the annual savings available from switching to the best competitor deal -- the docstring's own key empirical finding (2022 crisis: switching collapsed to 3-4% not because prices were high but because competitor fixed deals were 1,000+ GBP MORE expensive than SVT, the 'nowhere cheaper to go' effect) is real, sourced, and consistent with this atom's own name (a WORLD-SIDE competitor signal, not a company-side estimate -- verified this distinction directly: company/market/market_share_estimator.py is the DIFFERENT company-side inference logic, explicitly NOT this atom's scope). Confirmed genuinely wired, not dead code: simulation/customer_events.py:32/110 imports market_switching_multiplier() and multiplies it directly into the real p_churn_market churn-probability calculation for every simulated customer-year, with the multiplier value also exported into the run's own diagnostic output. 19 passing tests (tests/simulation/test_market_switching_propensity.py). Confirmed this exact file was not already credited to any other atom (grepped the whole map). HONEST LIMIT (why this stays L1, matching the atom's own modest level_target of 1, not claimed higher): this is an AGGREGATE, single-scalar signal (one 'savings available' number per year) -- a real, decisive, already-working answer to the PRIMARY real-world driver this atom's own docstring cites, but NOT a full 'field' of individuated competitor suppliers (their own market share, entry/exit, per-competitor tariff evolution) -- that richer, multi-entity model does not exist and would be the genuine L2+ gap if this atom's target were ever raised beyond 1. loop_stage build->harden (at target)."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the ~8-supplier real GB domestic market"
   depends_on: []
