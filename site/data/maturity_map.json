@@ -86,12 +86,10 @@
       "epoch": 2,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "D2_three_clocks"
-      ],
+      "depends_on": [],
       "at_target": false
     },
     {
