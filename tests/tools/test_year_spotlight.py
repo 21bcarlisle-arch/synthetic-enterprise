@@ -38,9 +38,17 @@ def test_trading_hedge_annual_has_all_years(dash):
 
 
 def test_crisis_year_2022_worse_than_2020(dash):
+    """D3 Expert-Hour finding (2026-07-12): compares ORGANIC (market/
+    consumption-driven) shocks, not the raw bill_shock_count -- a real
+    account-closure catch-up correction is a genuine shock but lands in
+    whatever year that customer happens to churn, independent of whether the
+    market itself was in crisis that year. Confirmed by direct diagnosis: the
+    raw count flips this comparison in exactly 2 cases (C3/C5's own account-
+    closure catch-up bills landing in calm-year 2020), which is precisely the
+    confound organic_bill_shock_count exists to exclude."""
     ann = {r["year"]: r for r in dash["financial"]["annual"]}
-    shocks_2022 = next((r["bill_shock_count"] for r in dash["customers"]["book_annual"] if r["year"] == 2022), 0)
-    shocks_2020 = next((r["bill_shock_count"] for r in dash["customers"]["book_annual"] if r["year"] == 2020), 0)
+    shocks_2022 = next((r["organic_bill_shock_count"] for r in dash["customers"]["book_annual"] if r["year"] == 2022), 0)
+    shocks_2020 = next((r["organic_bill_shock_count"] for r in dash["customers"]["book_annual"] if r["year"] == 2020), 0)
     assert shocks_2022 >= shocks_2020
 
 

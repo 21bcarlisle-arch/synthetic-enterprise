@@ -63,6 +63,7 @@ from simulation.arrears_engine import (
 from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
 from simulation.meter_reads import (
+    MeterReadEvent,
     generate_meter_read_log,
     meter_type_for_customer,
     simulate_read,
@@ -188,9 +189,13 @@ def _resolve_catchup(
     if not pending_run:
         return None
 
+    # `+ 0.0` normalises a floating-point -0.0 (a near-exact-zero sum can land
+    # on negative zero) to plain 0.0 -- cosmetic, but a customer-facing "-0.0"
+    # correction is a real, avoidable rendering artifact (Expert-Hour finding,
+    # 2026-07-12).
     raw_delta_gbp = round(
         sum(p["true_total_amount_gbp"] - p["total_amount_gbp"] for p in pending_run), 2
-    )
+    ) + 0.0
     period_start = pending_run[0]["period_start"]
     period_end = pending_run[-1]["period_end"]
     billing_date = datetime.fromisoformat(billing_date_iso).date()
@@ -222,14 +227,14 @@ def _resolve_catchup(
         "periods_covered": len(pending_run),
         "direction": direction,
         "raw_delta_gbp": raw_delta_gbp,
-        "chargeable_gbp": round(chargeable_gbp, 2),
-        "written_off_gbp": round(written_off_gbp, 2),
+        "chargeable_gbp": round(chargeable_gbp, 2) + 0.0,
+        "written_off_gbp": round(written_off_gbp, 2) + 0.0,
         "back_billing_cap_applied": cap_applied,
         "is_material": abs(chargeable_gbp) >= CATCHUP_MATERIALITY_THRESHOLD_GBP,
     }
 
 
-def build_monthly_bills(all_records: list[dict]) -> list[dict]:
+def build_monthly_bills(all_records: list[dict], churned_ids: set[str] | None = None) -> list[dict]:
     """Group `all_records` (from `simulation.settlement.run_settlement`) into
     one bill per customer per calendar month, in chronological order, via
     `saas.bill_generator.generate_bill`.
@@ -251,7 +256,17 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
     SVT-reversion and DD-recalculation event detection remain a separate,
     bigger piece of work needing new SIM state, registered in PRIORITIES.md,
     not built here).
+
+    `churned_ids` (D3 step 2 Expert-Hour finding, 2026-07-12): accounts that
+    churn/succeed mid a run of estimated bills would otherwise carry that
+    unresolved true-vs-billed delta into oblivion -- no more bills ever
+    arrive to fold a catch-up onto. Real UK practice (Ofgem SLC 21B) requires
+    a final bill at supply end, normally on a final read -- modelled here as
+    forcing the customer's LAST bill in this dataset to resolve as if that
+    final read had arrived, same as `company/billing/account_closure.py`'s
+    own (separately unwired) `receive_final_read()` concept.
     """
+    churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
     for record in all_records:
         customer_id = record["customer_id"]
@@ -285,7 +300,8 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
         trailing_actuals_kwh: list[float] = []
         consecutive_estimated = 0
         pending_estimated_run: list[dict] = []
-        for month in sorted(months):
+        sorted_months = sorted(months)
+        for month_idx, month in enumerate(sorted_months):
             # TRUE-consumption bill from the real settlement records -- the
             # unchanged actual-read path, and the source of the real unit rate
             # and standing charge an estimated bill reuses.
@@ -298,6 +314,22 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
                 true_bill["total_consumption_kwh"],
                 trailing_actuals_kwh, consecutive_estimated,
             )
+            is_final_bill_for_customer = month_idx == len(sorted_months) - 1
+            if (
+                event.status != "actual"
+                and is_final_bill_for_customer
+                and customer_id in churned_ids
+            ):
+                # SLC 21B final-bill-at-closure: force this closing account's
+                # last-ever bill to resolve on a final read rather than
+                # leaving a run of estimated bills (and their unresolved
+                # true-vs-billed delta) permanently unreconciled.
+                event = MeterReadEvent(
+                    customer_id=customer_id, period_end=true_bill["period_end"],
+                    meter_type=meter_type, delay_days=0, status="actual",
+                    true_consumption_kwh=true_bill["total_consumption_kwh"],
+                    consecutive_estimated_count=0, forced_catch_up=True,
+                )
             if event.status == "actual":
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
                 # D3 step 2: this real read resolves any pending run of
@@ -309,7 +341,12 @@ def build_monthly_bills(all_records: list[dict]) -> list[dict]:
                 catchup = _resolve_catchup(
                     customer_id, segment, pending_estimated_run, bill["period_end"]
                 )
-                if catchup is not None:
+                # Materiality gate (Expert-Hour finding, 2026-07-12): a real
+                # supplier doesn't bother billing/crediting a correction below
+                # CATCHUP_MATERIALITY_THRESHOLD_GBP -- previously computed and
+                # exposed but never actually consulted, so a genuinely £0.00
+                # correction was still stamped onto the bill as a real event.
+                if catchup is not None and catchup["is_material"]:
                     bill["catchup_applied"] = True
                     bill["catchup_period_start"] = catchup["period_start"]
                     bill["catchup_period_end"] = catchup["period_end"]
@@ -422,7 +459,13 @@ def main(report_end: str | None = None, policy=None):
     phase2b_result = run_phase2b(report_end=report_end, policy=policy)
     all_records = phase2b_result["all_records"]
 
-    bills = build_monthly_bills(all_records)
+    # D3 step 2 (Expert-Hour finding, 2026-07-12): computed here (moved
+    # earlier than its pre-existing use below, for generate_credit_refund_log)
+    # so a churning account's own last bill can force-resolve any pending
+    # estimated run rather than leaving it unreconciled forever.
+    churned_ids = set(phase2b_result.get("churned_billing_accounts", []))
+
+    bills = build_monthly_bills(all_records, churned_ids)
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
@@ -448,8 +491,8 @@ def main(report_end: str | None = None, policy=None):
     # activation -- company/billing/credit_refund.py already had the real
     # SLA mechanic but no caller anywhere in simulation/. DD customers who
     # churn carrying a positive DD-smoothing credit balance now raise a real
-    # refund event with an on-time/breach outcome.
-    churned_ids = set(phase2b_result.get("churned_billing_accounts", []))
+    # refund event with an on-time/breach outcome. `churned_ids` computed
+    # above, before build_monthly_bills.
     customer_segments = {
         c["customer_id"]: c.get("segment", "resi") for c in all_customers_for_meter_type
     }

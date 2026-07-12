@@ -23,6 +23,12 @@ def test_real_invoice_maps_id_date_amount_status():
     assert inv["status"] == "PAID"
 
 
+def test_real_invoice_credited_status_for_catchup_overcharge():
+    """Expert-Hour finding, 2026-07-12: a credit invoice must not read PAID."""
+    inv = _real_invoice(_raw_invoice(payment_status="credited", total_amount_gbp=-2.03))
+    assert inv["status"] == "CREDITED"
+
+
 def test_real_invoice_derives_unit_rate():
     inv = _real_invoice(_raw_invoice())
     assert inv["unit_rate_p_per_kwh"] == round(63.32 / 471.1 * 100, 2)

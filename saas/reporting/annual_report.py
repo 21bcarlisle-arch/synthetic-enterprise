@@ -275,6 +275,14 @@ def extract_report_data(run_output: dict) -> dict:
                 # could ever show the seasonal-vs-genuine distinction).
                 "bill_shock_yoy_pct": b.get("bill_shock_yoy_pct"),
                 "bill_shock_likely_seasonal": b.get("bill_shock_likely_seasonal", False),
+                # Additive 2026-07-12 (D3 Expert-Hour finding): a shock caused
+                # by a catch-up rebilling correction (an individual account's
+                # own read/closure timing) is a genuine shock but not a
+                # market/consumption-driven one -- same distinguishing need
+                # as bill_shock_likely_seasonal above, for a different
+                # confound. Consumers wanting only organic/market-driven
+                # shocks (e.g. a crisis-year comparison) should filter this.
+                "catchup_driven": bool(b.get("catchup_applied", False)),
             }
             for b in shocked
             if b["bill_shock_pct"] >= 0.20

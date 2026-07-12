@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-12. 2,500+ commits. 17,005 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
+*Last updated: 2026-07-12. 2,500+ commits. 17,017 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -110,6 +110,20 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### D3_catchup_rebilling: Expert Hour review, level 2->3 (2026-07-12, maturity-map self-refill continuing the same hot lane)
+
+A fresh-context Expert Hour review (UK billing-ops-veteran persona, no memory of the build -- matching the map's own HARDEN-stage method, `docs/design/MATURITY_MAP.md` section 1) walked the D3 build below. Verdict MIXED: the core financial mechanics (estimate priced at the real rate, SLC 31A proration, domestic-only/pre-2018 scoping, overcharge-never-capped asymmetry) were independently re-derived by hand against the C3g/INV470 flagship example and confirmed exactly correct. Two findings explicitly blocked a level-3 claim; both fixed the same session.
+
+**Finding 1 (churn/closure loses the reconciliation, confirmed on real data):** `C3`/`C3g`/`C5`/`C6` -- genuine churned/succeeded accounts -- each end their entire real billing history on 4-11 consecutive estimated bills with no resolving actual read ever arriving; the accumulated true-vs-billed delta simply vanished. `company/billing/account_closure.py` models exactly the real mechanism (Ofgem SLC 21B: final bill at supply end, normally on a final read) but was confirmed unwired anywhere in the pipeline. Fixed: `build_monthly_bills()` gained a `churned_ids` parameter; a closing account's own LAST bill now force-resolves on a final read (constructed directly rather than via `simulate_read()`'s probabilistic roll, since a real closure genuinely obtains one), folding any pending catch-up correction the same way a normal actual read would. Verified by directly diagnosing the effect: fed the identical cached settlement records through both the pre-fix and fixed code and confirmed exactly 2 new resolved catch-ups appear (C3 2020-06-29, C5 2020-12-29), nothing else changes.
+
+**Finding 2 (no direct tests for the compliance-critical cap arithmetic):** all of D3's prior tests covered estimate pricing or field-propagation given an already-fabricated bill dict; none constructed a real estimated run and asserted the proration/cap/write-off math or the overcharge-never-capped rule directly. Fixed: 7 new direct tests against `_resolve_catchup()` (undercharge with/without the cap applying, overcharge never capped however old, materiality flag, negative-zero normalisation, empty-run) plus 2 integration tests (materiality gating, churn-forced resolution) at the `build_monthly_bills()` level.
+
+**Two minor findings also fixed (not level-3-blocking, but genuine):** `CATCHUP_MATERIALITY_THRESHOLD_GBP` was computed (`is_material`) but never actually consulted -- an immaterial (<£5) correction was still stamped onto the bill as a real event; now gated. A credit invoice (customer owed money) displayed `payment_status: "PAID"` -- confusing, nothing was paid; added a `"credited"`/`"CREDITED"` status. **Registered, not fixed:** the underlying meter-read estimate technique (`simulation/meter_reads.py`: a flat, non-seasonal mean of the trailing 3 confirmed actuals) is pre-existing shared infrastructure, not part of D3's own build -- but D3 is the first thing to actually charge on it, making its lack of EAC/AQ-style seasonal profiling financially consequential for the first time (directly implicated in the flagship C3g example: a July-only trailing actual produces a flat estimate charged through deep winter).
+
+**One unrelated regression surfaced and fixed in the same session:** the closure-catchup fix flipped `tests/tools/test_year_spotlight.py::test_crisis_year_2022_worse_than_2020` (2020's shock count rose from 72 to 74). Root-caused via direct diagnosis (same identical-records technique as Finding 1) as a genuine confound, not a bug: 2 real closure-timed catch-up shocks landed in a calm year, which is real but not market-driven, unrelated to whether that year was itself a crisis year. Rather than loosen the test's threshold, added an additive `catchup_driven` flag to `bill_shock_events` (`saas/reporting/annual_report.py`, same pattern as the existing `bill_shock_likely_seasonal` distinction) and an `organic_bill_shock_count` alongside the existing raw count (`tools/generate_dashboard_data.py`); confirmed the organic comparison was 61 (2022) >= 60 (2020) all along -- exactly what the test was always trying to measure. Repointed the test at the organic figure.
+
+12 new tests this round, full suite (17,017 tests collected) + epistemic verifier re-run clean after every change, real full-run + live site regeneration re-verified (`site/data/dashboard.json`, `site/data/customers/*.json`).
 
 ### D3_catchup_rebilling: estimated billing on the real tariff rate + actual-read catch-up rebilling within the Ofgem SLC 31A cap (2026-07-12, director-named hot lane, maturity-map self-refill, level 0->2)
 
@@ -6885,7 +6899,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,005 tests collected (full suite) -- D3_catchup_rebilling built (estimated billing on the
+- 17,017 tests collected (full suite) -- D3_catchup_rebilling Expert Hour run, level 2->3 (2
+  blocking findings fixed: churn/closure reconciliation loss, missing direct cap-arithmetic tests;
+  see Section 4's entry), 12 new tests, on top of the prior 17,005 tests collected (full suite) --
+  D3_catchup_rebilling built (estimated billing on the
   real EAC/profile at the real tariff rate + actual-read catch-up rebilling within the Ofgem SLC
   31A 12-month cap; see Section 4's entry), 9 new tests, on top of the prior 16,724 tests
   collected (full suite) -- E1 Corporation Tax triplet surfaced on the Accounts

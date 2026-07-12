@@ -8,7 +8,7 @@ import pytest
 from tools.generate_dashboard_data import (
     _fmt, extract_portfolio, extract_financial, count_run_history_total,
     extract_regulatory, _SLC_OBLIGATIONS, extract_reputation, extract_opex_ledger,
-    extract_b2_taxonomy,
+    extract_b2_taxonomy, extract_customers,
 )
 import json
 
@@ -618,3 +618,40 @@ def test_extract_b2_taxonomy_under_hurdle_segment_flagged(tmp_path, monkeypatch)
     hurdle = result["segment_roce_hurdle"]
     assert hurdle["hurdle_set"] is True
     assert isinstance(hurdle["under_hurdle"], list)
+
+
+# D3 Expert-Hour finding (2026-07-12): organic_bill_shock_count excludes
+# catchup-driven shocks (an individual account's own read/closure timing,
+# not a market signal) -- for callers wanting the market-driven signal
+# specifically (e.g. a crisis-year comparison).
+
+def _year_data(active_ids, bill_shock_events):
+    return {
+        "active_customer_ids": active_ids,
+        "acquisitions": [],
+        "bill_shock_events": bill_shock_events,
+    }
+
+
+def test_extract_customers_organic_bill_shock_count_excludes_catchup_driven():
+    data = {"years": {"2022": _year_data(["C1"], [
+        {"customer_id": "C1", "bill_shock_pct": 0.30, "catchup_driven": False},
+        {"customer_id": "C1", "bill_shock_pct": 0.40, "catchup_driven": True},
+        {"customer_id": "C1", "bill_shock_pct": 0.25, "catchup_driven": False},
+    ])}}
+    result = extract_customers(data)
+    row = next(r for r in result["book_annual"] if r["year"] == 2022)
+    assert row["bill_shock_count"] == 3
+    assert row["organic_bill_shock_count"] == 2
+
+
+def test_extract_customers_organic_bill_shock_count_defaults_when_field_absent():
+    """A shock event predating this field (no catchup_driven key at all)
+    must count as organic, not silently vanish."""
+    data = {"years": {"2019": _year_data(["C1"], [
+        {"customer_id": "C1", "bill_shock_pct": 0.30},
+    ])}}
+    result = extract_customers(data)
+    row = next(r for r in result["book_annual"] if r["year"] == 2019)
+    assert row["bill_shock_count"] == 1
+    assert row["organic_bill_shock_count"] == 1

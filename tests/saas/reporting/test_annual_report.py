@@ -200,6 +200,10 @@ def test_extract_report_data_splits_by_year():
     assert y2017["committee_wake_ups"][0]["adjustments"] == {"C1": 0.8}
     assert len(y2017["bill_shock_events"]) == 1
     assert y2017["bill_shock_events"][0]["customer_id"] == "C1"
+    # D3 Expert-Hour finding (2026-07-12): a shock with no catchup_applied
+    # field on its source bill must default to catchup_driven=False, not
+    # crash or omit the key.
+    assert y2017["bill_shock_events"][0]["catchup_driven"] is False
     assert y2017["bad_debt_gbp"] == 4.0
 
     # revenue_gbp = margin + 100.0 per _record(); 110 + 112 + 105 + 95

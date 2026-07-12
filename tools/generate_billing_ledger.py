@@ -243,7 +243,15 @@ def generate(run_json_path=None, out_path=None):
             "issue_date": issue_date.isoformat(),
             "generation_delay_days": generation_delay_days,
             "due_date": due_date.isoformat(),
-            "payment_status": "disputed" if outcome == "dispute" else ("paid" if outcome == "success" else "overdue"),
+            # Expert-Hour finding, 2026-07-12: a credit invoice showing
+            # "PAID" is confusing -- nothing was paid, the supplier owes the
+            # customer. `is_credit` takes priority over the outcome-derived
+            # label (outcome is forced to "success" for a credit, see above).
+            "payment_status": (
+                "credited" if is_credit else
+                "disputed" if outcome == "dispute" else
+                ("paid" if outcome == "success" else "overdue")
+            ),
             "meter_serial": _meter_serial(cid, commodity),
             "mpan": _mpan(cid) if commodity == "electricity" else None,
             "mprn": _mprn(cid) if commodity == "gas" else None,

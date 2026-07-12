@@ -429,3 +429,171 @@ def test_estimated_bills_priced_at_real_rate_with_quantity_divergence():
             # a real quantity gap must move the £ total away from the true bill
             assert b["total_amount_gbp"] != pytest.approx(b["true_total_amount_gbp"])
     assert saw_quantity_divergence, "expected at least one real estimate-vs-true quantity gap"
+
+
+# --- D3 step 2: catch-up rebilling -- direct _resolve_catchup coverage,
+# Expert-Hour finding (2026-07-12): the cap/proration/materiality math had
+# only ever been exercised indirectly (via full-run integration and by-eye
+# instance checks), never with a constructed scenario asserting the actual
+# numbers. ------------------------------------------------------------------
+
+from simulation.run_phase4c_on_phase2b import _resolve_catchup
+
+
+def test_resolve_catchup_returns_none_for_empty_run():
+    assert _resolve_catchup("C1", "resi", [], "2020-01-31") is None
+
+
+def test_resolve_catchup_undercharge_no_cap_recent_period():
+    pending = [{
+        "period_start": "2020-01-01", "period_end": "2020-01-31",
+        "true_total_amount_gbp": 150.0, "total_amount_gbp": 100.0,
+    }]
+    result = _resolve_catchup("C1", "resi", pending, "2020-02-29")
+    assert result["direction"] == "undercharge"
+    assert result["raw_delta_gbp"] == pytest.approx(50.0)
+    assert result["chargeable_gbp"] == pytest.approx(50.0)
+    assert result["written_off_gbp"] == 0.0
+    assert result["back_billing_cap_applied"] is False
+    assert result["is_material"] is True
+
+
+def test_resolve_catchup_undercharge_capped_when_period_predates_12_months():
+    """Ofgem SLC 31A: the oldest sliver of a long-unresolved estimated run
+    falls outside the 12-month protected window as of the billing date --
+    that portion must be written off, not recovered."""
+    pending = [{
+        "period_start": "2018-06-01", "period_end": "2019-05-31",
+        "true_total_amount_gbp": 600.0, "total_amount_gbp": 0.0,
+    }]
+    result = _resolve_catchup("C1", "resi", pending, "2019-12-31")
+    assert result["direction"] == "undercharge"
+    assert result["raw_delta_gbp"] == pytest.approx(600.0)
+    assert result["back_billing_cap_applied"] is True
+    assert result["written_off_gbp"] > 0
+    assert result["chargeable_gbp"] < 600.0
+    assert result["chargeable_gbp"] + result["written_off_gbp"] == pytest.approx(600.0, abs=0.02)
+
+
+def test_resolve_catchup_overcharge_never_capped_even_when_old():
+    """A credit owed to the customer is never subject to the back-billing
+    cap, however old -- the cap protects consumers from late demands, it
+    does not let a supplier withhold a refund."""
+    pending = [{
+        "period_start": "2015-01-01", "period_end": "2015-12-31",
+        "true_total_amount_gbp": 0.0, "total_amount_gbp": 500.0,
+    }]
+    result = _resolve_catchup("C1", "resi", pending, "2019-12-31")
+    assert result["direction"] == "overcharge"
+    assert result["raw_delta_gbp"] == pytest.approx(-500.0)
+    assert result["chargeable_gbp"] == pytest.approx(-500.0)
+    assert result["written_off_gbp"] == 0.0
+    assert result["back_billing_cap_applied"] is False
+
+
+def test_resolve_catchup_materiality_flag():
+    small = [{
+        "period_start": "2020-01-01", "period_end": "2020-01-31",
+        "true_total_amount_gbp": 100.0, "total_amount_gbp": 99.0,
+    }]
+    assert _resolve_catchup("C1", "resi", small, "2020-02-28")["is_material"] is False
+
+    large = [{
+        "period_start": "2020-01-01", "period_end": "2020-01-31",
+        "true_total_amount_gbp": 200.0, "total_amount_gbp": 100.0,
+    }]
+    assert _resolve_catchup("C1", "resi", large, "2020-02-28")["is_material"] is True
+
+
+def test_resolve_catchup_negative_zero_normalized():
+    """Expert-Hour finding: a near-exact-zero sum must not surface as the
+    customer-facing '-0.0' rendering artifact."""
+    pending = [{
+        "period_start": "2020-01-01", "period_end": "2020-01-31",
+        "true_total_amount_gbp": 100.0, "total_amount_gbp": 100.0 + 1e-13,
+    }]
+    result = _resolve_catchup("C1", "resi", pending, "2020-02-28")
+    assert result["raw_delta_gbp"] == 0.0
+    assert str(result["raw_delta_gbp"]) != "-0.0"
+    assert str(result["chargeable_gbp"]) != "-0.0"
+
+
+def test_build_monthly_bills_suppresses_immaterial_catchup(force_actual_reads, monkeypatch):
+    """An immaterial correction (< CATCHUP_MATERIALITY_THRESHOLD_GBP) must
+    not be stamped onto the bill at all -- a real supplier wouldn't bother
+    (Expert-Hour finding: this threshold was computed but never consulted).
+    Controls the scenario directly (rather than hunting for a real run that
+    happens to produce a sub-threshold divergence) by monkeypatching
+    _resolve_catchup itself to return a fixed immaterial result."""
+    import simulation.run_phase4c_on_phase2b as mod
+
+    immaterial = {
+        "period_start": "2022-01-01", "period_end": "2022-01-31",
+        "periods_covered": 1, "direction": "undercharge",
+        "raw_delta_gbp": 1.0, "chargeable_gbp": 1.0, "written_off_gbp": 0.0,
+        "back_billing_cap_applied": False, "is_material": False,
+    }
+    monkeypatch.setattr(mod, "_resolve_catchup", lambda *a, **k: immaterial)
+
+    records = _sc_month_records("C1", 2022, 1, kwh=500.0, unit_rate=200.0)
+    records += _sc_month_records("C1", 2022, 2, kwh=500.0, unit_rate=200.0)
+    bills = build_monthly_bills(records)
+    assert bills, "expected bills"
+    assert all(not b.get("catchup_applied") for b in bills)
+
+
+# --- D3 step 2: churn/account-closure forces a final-read resolution
+# (Expert-Hour finding, 2026-07-12) --------------------------------------
+
+@pytest.fixture
+def force_estimated_reads(monkeypatch):
+    """Pin every meter read to 'estimated' (opposite of force_actual_reads)
+    so a customer's billing history can genuinely end on an unresolved run
+    without waiting on random draws."""
+    import simulation.meter_reads as mr
+
+    monkeypatch.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 0.0)
+    monkeypatch.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
+
+
+def _short_run_records(cid="C1", n_months=10, start_year=2022, start_month=1):
+    rng = random.Random(7)
+    records = []
+    for i in range(n_months):
+        year = start_year + (start_month - 1 + i) // 12
+        month = (start_month - 1 + i) % 12 + 1
+        kwh = 300.0 * (1 + rng.uniform(-0.05, 0.05))
+        records.extend(_sc_month_records(cid, year, month, kwh, unit_rate=200.0))
+    return records
+
+
+def test_churned_account_forces_final_read_resolution(force_estimated_reads):
+    """Without churned_ids, a run of estimated bills with no natural
+    forced-catch-up (fewer than MAX_CONSECUTIVE_ESTIMATED_PERIODS months)
+    stays estimated forever -- the true-vs-billed delta is never recovered.
+    A churning/succeeding account must instead force its own LAST bill to
+    resolve on a final read (Ofgem SLC 21B), same real mechanism
+    company/billing/account_closure.py's receive_final_read() models."""
+    records = _short_run_records(n_months=10)
+
+    bills_open = build_monthly_bills(records)
+    assert len(bills_open) == 10
+    assert bills_open[-1]["billing_basis"] == "estimated", (
+        "sanity: 10 months must be too few to trip the natural 12-month forced catch-up"
+    )
+
+    bills_closed = build_monthly_bills(records, churned_ids={"C1"})
+    assert len(bills_closed) == 10
+    assert bills_closed[-1]["billing_basis"] == "actual"
+    # only the FINAL bill is force-resolved -- earlier estimated bills for
+    # the same (still-mid-run) customer are untouched.
+    for b in bills_closed[:-1]:
+        assert b["billing_basis"] == "estimated"
+
+
+def test_non_churned_customer_unaffected_by_other_customers_churning(force_estimated_reads):
+    """churned_ids scoping is per-customer -- a customer NOT in the set is
+    unaffected even when other real customers in the same run are."""
+    records = _short_run_records(cid="C1", n_months=10)
+    bills = build_monthly_bills(records, churned_ids={"SOME_OTHER_CUSTOMER"})
+    assert bills[-1]["billing_basis"] == "estimated"

@@ -445,12 +445,19 @@ def extract_customers(data):
         acqs = len(ydata.get("acquisitions", []))
         bill_shocks = ydata.get("bill_shock_events", [])
         worst_shock = max((e.get("bill_shock_pct", 0) for e in bill_shocks), default=0)
+        # D3 Expert-Hour finding (2026-07-12): organic_bill_shock_count
+        # excludes catchup-driven shocks (an individual account's own read/
+        # closure timing, not a market/consumption signal) -- for callers
+        # that specifically want the market-driven signal (e.g. a crisis-
+        # year comparison), not the raw customer-experience total.
+        organic_shocks = [e for e in bill_shocks if not e.get("catchup_driven")]
         book_annual.append({
             "year": int(yr),
             "active_elec": len(elec_ids),
             "active_gas": len(gas_ids),
             "acquisitions": acqs,
             "bill_shock_count": len(bill_shocks),
+            "organic_bill_shock_count": len(organic_shocks),
             "worst_shock_pct": round(float(worst_shock) * 100, 1) if worst_shock else 0,
         })
 

@@ -31,7 +31,13 @@ CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 # total_written_off_gross_gbp). generate_billing_ledger sets payment_status=
 # "written_off" for any invoice whose arrears reached WRITTEN_OFF by the book
 # reference date.
-_STATUS_MAP = dict(paid="PAID", overdue="UNPAID", disputed="DISPUTED", written_off="WRITTEN_OFF")
+# D3 step 2, Expert-Hour finding (2026-07-12): a catch-up overcharge credit
+# (total_amount_gbp <= 0) is labelled CREDITED, not PAID -- nothing was paid,
+# the supplier owes the customer.
+_STATUS_MAP = dict(
+    paid="PAID", overdue="UNPAID", disputed="DISPUTED",
+    written_off="WRITTEN_OFF", credited="CREDITED",
+)
 
 
 def _real_invoice(inv):

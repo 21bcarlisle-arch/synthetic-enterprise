@@ -249,7 +249,9 @@ def test_d3_credit_invoice_has_no_fabricated_payment(tmp_path):
     cust = result["customers"]["C1"]
     assert cust["invoices"][0]["total_amount_gbp"] == -2.03
     assert cust["payments"] == []
-    assert cust["invoices"][0]["payment_status"] == "paid"
+    # Expert-Hour finding (2026-07-12): "paid" is misleading for a credit --
+    # nothing was paid, the supplier owes the customer.
+    assert cust["invoices"][0]["payment_status"] == "credited"
 
 
 def test_d3_catchup_fields_carried_through_to_invoice(tmp_path):
