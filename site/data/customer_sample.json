@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generated_at": "2026-07-12T00:08:14Z",
-    "git_commit": "5ca5e523",
+    "generated_at": "2026-07-12T00:32:33Z",
+    "git_commit": "3597c77c",
     "customer_count": 19,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
   },
@@ -1714,7 +1714,7 @@
       "acquisition_date": "2016-07-01",
       "lifetime_revenue_gbp": 3628.76,
       "lifetime_gross_gbp": 2388.88,
-      "lifetime_net_gbp": 189.71,
+      "lifetime_net_gbp": 189.47,
       "cost_to_serve_gbp": 219.95,
       "lifetime_net_after_cts_gbp": 2168.93,
       "clv_gbp": 6491.05,
@@ -1745,14 +1745,14 @@
         {
           "year": 2019,
           "gross_gbp": 626.84,
-          "net_gbp": -62.19,
+          "net_gbp": -62.48,
           "tariff_min_gbp_per_mwh": 120.68,
           "tariff_max_gbp_per_mwh": 126.89
         },
         {
           "year": 2020,
           "gross_gbp": 327.64,
-          "net_gbp": 44.15,
+          "net_gbp": 44.2,
           "tariff_min_gbp_per_mwh": 120.68,
           "tariff_max_gbp_per_mwh": 120.68
         }
@@ -2986,7 +2986,7 @@
       "acquisition_date": "2016-01-01",
       "lifetime_revenue_gbp": 12497.06,
       "lifetime_gross_gbp": 7830.58,
-      "lifetime_net_gbp": -168.08,
+      "lifetime_net_gbp": -180.63,
       "cost_to_serve_gbp": 599.87,
       "lifetime_net_after_cts_gbp": 7230.71,
       "clv_gbp": 10919.84,
@@ -3003,21 +3003,21 @@
         {
           "year": 2017,
           "gross_gbp": 1544.23,
-          "net_gbp": -36.46,
+          "net_gbp": -163.03,
           "tariff_min_gbp_per_mwh": 119.54,
           "tariff_max_gbp_per_mwh": 131.01
         },
         {
           "year": 2018,
           "gross_gbp": 1292.24,
-          "net_gbp": -630.62,
+          "net_gbp": -493.24,
           "tariff_min_gbp_per_mwh": 119.54,
           "tariff_max_gbp_per_mwh": 153.61
         },
         {
           "year": 2019,
           "gross_gbp": 1793.22,
-          "net_gbp": 230.66,
+          "net_gbp": 207.3,
           "tariff_min_gbp_per_mwh": 126.07,
           "tariff_max_gbp_per_mwh": 153.61
         },
@@ -3361,7 +3361,7 @@
       "acquisition_date": "2016-04-01",
       "lifetime_revenue_gbp": 39190.43,
       "lifetime_gross_gbp": 22706.35,
-      "lifetime_net_gbp": 1986.66,
+      "lifetime_net_gbp": 2070.34,
       "cost_to_serve_gbp": 959.77,
       "lifetime_net_after_cts_gbp": 21746.58,
       "clv_gbp": 19260.39,
@@ -3406,7 +3406,7 @@
         {
           "year": 2021,
           "gross_gbp": 2954.84,
-          "net_gbp": -0.69,
+          "net_gbp": 218.33,
           "tariff_min_gbp_per_mwh": 143.89,
           "tariff_max_gbp_per_mwh": 197.1
         },
@@ -3420,14 +3420,14 @@
         {
           "year": 2023,
           "gross_gbp": 4592.37,
-          "net_gbp": -615.29,
+          "net_gbp": -708.9,
           "tariff_min_gbp_per_mwh": 338.13,
           "tariff_max_gbp_per_mwh": 412.09
         },
         {
           "year": 2024,
           "gross_gbp": 1557.74,
-          "net_gbp": 814.14,
+          "net_gbp": 772.41,
           "tariff_min_gbp_per_mwh": 338.13,
           "tariff_max_gbp_per_mwh": 338.13
         }
