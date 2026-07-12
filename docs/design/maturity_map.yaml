@@ -821,3 +821,37 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real company's environment-tiering (dev/staging/prod) with progressively stricter controls, prod requiring genuine sign-off to change"
   depends_on: []
+
+- id: F5_ofgem_licence_readiness
+  name: "Ofgem supply licence readiness (fit-and-proper test, financial resilience/ring-fencing, Standard Licence Conditions go/no-go)"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 5
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence: []
+  file_scope: []
+  simplifications: ["2026-07-12 AUTHORED AS PROPOSAL (EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 2, self-refill draw): a real, distinct epoch-5 gap named directly by the staged instruction's own worked example ('the regulatory/licence path'), confirmed absent from the map by direct read of every existing F/H-lane epoch-5 atom. H3_production_readiness_nfr_evidence/H4_go_live_nfr_register cover NON-FUNCTIONAL/operational readiness (SRE-style: availability, security, capacity); F3_obligations_register covers ONGOING per-transaction compliance invariants (already L3, built); F4_company_internal_authz covers INTERNAL authz/segregation of duties. None of the three model whether the simulated company could actually HOLD an Ofgem electricity/gas supply licence in the first place: the Standard Licence Conditions threshold tests (the fit-and-proper persons test), the post-2021-crisis financial resilience/ring-fencing requirements introduced after the Bulb/Avro/et al. supplier failures (customer credit-balance protection, minimum capital adequacy), and the Capacity Market/Renewables Obligation registration obligations that attach to holding a licence at all -- a real UK supplier's board treats this as a distinct go/no-go gate, decided by Ofgem's licensing function, not its own ops/security review. PROPOSAL ONLY -- not ranked, not built. Immediately workable in DISCOVER (read the real Ofgem licensing framework/Standard Licence Conditions text, the 2021-22 supplier-failure post-mortems that produced the financial-resilience reforms) per Rule 1; BUILD stays gated (loop_stage: idle) until the director ranks and promotes it, per Rule 2."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an Ofgem supply licence application/renewal go-live gate, informed by the 2021-22 supplier-failure financial-resilience reforms"
+  depends_on: [H3_production_readiness_nfr_evidence]
+
+- id: A5_tournament_fitness_mortality
+  name: "Tournament fitness function + mortality rules (which company variants survive/die across generated-future runs)"
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 4
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 2
+  provenance: proposal
+  evidence: []
+  file_scope: []
+  simplifications: ["2026-07-12 AUTHORED AS PROPOSAL (EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 2): Epoch 4 (tournament/generative futures) already has W1_2_generate_futures (the scenario-generation engine, epoch 3) and A4_sim_approver (policy-agent playing the human approver for tournament runs, epoch 4) -- but neither defines what makes a tournament a TOURNAMENT: the fitness function scoring a company variant's performance across a generated-future run, and the mortality rule deciding which variants are killed/culled/selected-forward between generations. Confirmed absent from the map by direct read of every W1/A-lane atom. This is CURRICULUM per CLAUDE.md R13 (the baseline/curriculum split) -- same standing constraint already registered on W1_2_generate_futures: the fitness function and mortality thresholds are the director's own instrument, never agent-invented, even once BUILD is ranked. PROPOSAL ONLY -- not ranked, not built. Immediately workable in DISCOVER (real genetic-algorithm/evolutionary-strategy fitness-function literature; how real PE/turnaround firms actually score distressed-company survival; red-team the goal-seeking-leak risk this atom's own scoring mechanism could introduce, per R12) per Rule 1; BUILD stays gated (loop_stage: idle) pending director ranking AND the underlying generated-futures engine (W1_2_generate_futures) landing first."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a PE/turnaround firm's portfolio-company survival scoring across stress scenarios"
+  depends_on: [W1_2_generate_futures, A4_sim_approver]

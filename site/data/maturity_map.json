@@ -801,6 +801,41 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": true
+    },
+    {
+      "id": "F5_ofgem_licence_readiness",
+      "name": "Ofgem supply licence readiness (fit-and-proper test, financial resilience/ring-fencing, Standard Licence Conditions go/no-go)",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 5,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H3_production_readiness_nfr_evidence"
+      ],
+      "at_target": false
+    },
+    {
+      "id": "A5_tournament_fitness_mortality",
+      "name": "Tournament fitness function + mortality rules (which company variants survive/die across generated-future runs)",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_2_generate_futures",
+        "A4_sim_approver"
+      ],
+      "at_target": false
     }
   ],
   "lanes": {
@@ -883,7 +918,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 50,
+  "total_atoms": 52,
   "epoch2_movements": [
     {
       "id": "M1",

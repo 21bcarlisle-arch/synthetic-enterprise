@@ -1,5 +1,14 @@
 # Current Priorities
 
+**Agent-authored proposals awaiting director re-rank (2026-07-12, EPOCH_GATING_AND_ATOM_AUTHORSHIP.md
+Rule 2, `docs/design/maturity_map.yaml` `provenance: proposal`):** intended rank -- backlog, DISCOVER-
+eligible now, BUILD gated until ranked. (1) **F5_ofgem_licence_readiness** (epoch 5) -- the regulatory/
+licence-path gap: none of H3/H4/F4 model whether the simulated company could actually HOLD an Ofgem
+supply licence (fit-and-proper test, post-2021-crisis financial resilience/ring-fencing). (2)
+**A5_tournament_fitness_mortality** (epoch 4) -- the fitness-function/mortality-rule gap: neither
+W1_2_generate_futures nor A4_sim_approver defines what scores a company variant's survival or decides
+culling across generated-future runs; CURRICULUM per R13, director-authored not agent-tuned.
+
 **Last director review: 2026-07-08 22:57 UTC (director-direct in-console, supersedes the Phase RY
 Tier-3 opt-out below as front of queue).** Two P1 docs landed via the advisor staging bridge
 (commits 60bb6103, 282d72f2) and are now the front of the ranked queue, ahead of Phase RY:

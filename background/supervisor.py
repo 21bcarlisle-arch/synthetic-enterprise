@@ -474,6 +474,62 @@ def _maturity_map_draw_concurrent(rng: Any = None) -> list[dict]:
     return selected
 
 
+def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
+    """EPOCH_GATING_AND_ATOM_AUTHORSHIP.md (P0, 2026-07-12, director-prompted
+    "why can't it think of its own work for future epochs"): Rule 1 --
+    epoch gating (`loop_stage: idle`) gates BUILD only, never DISCOVER/
+    FRAME/research/red-team/charter/design work. `_maturity_map_draw_
+    concurrent()` correctly excludes every idle atom from BUILD candidacy
+    (that exclusion is untouched, and its own 12+ tests keep passing
+    unmodified) -- but until this function, an idle atom was excluded from
+    EVERY draw, so a map with a real BUILD gap always found one, while a
+    map with only idle atoms left silently reported "map_exhausted" even
+    though all 31 parked atoms had real DISCOVER/FRAME work available. This
+    is the second, separate tier `_self_refill_draw()` falls to: same
+    dial-weighted-random convention as the BUILD draw (deliberately
+    duplicated rather than shared, matching `_maturity_map_draw_
+    concurrent()`'s own stated preference for keeping existing tested
+    behaviour byte-for-byte rather than risking a shared-helper regression),
+    but selecting only from `loop_stage == "idle"` atoms with a real gap
+    (level_current < level_target) -- an idle atom already at/above target
+    has no work left, discover/frame or otherwise. Returns None (graceful
+    degradation) if the YAML is missing, unreadable, malformed, or has no
+    idle atom with a real gap -- same failure contract as the BUILD draw."""
+    try:
+        import yaml
+    except ImportError:
+        return None
+    try:
+        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return None
+    if not isinstance(atoms, list):
+        return None
+
+    def _is_valid_idle_candidate(a: dict) -> bool:
+        if not isinstance(a, dict):
+            return False
+        if a.get("loop_stage") != "idle":
+            return False
+        level_current, level_target = a.get("level_current"), a.get("level_target")
+        if level_current is None or level_target is None:
+            return False
+        dial = a.get("dial_inherited", 1)
+        try:
+            has_gap = level_current < level_target
+            _ = max(1, dial)
+        except TypeError:
+            return False
+        return has_gap
+
+    candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
+    if not candidates:
+        return None
+    weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    picker = rng or random
+    return picker.choices(candidates, weights=weights, k=1)[0]
+
+
 def _blocking_roots(atom_id: str, by_id: dict, _seen: set | None = None) -> set[str]:
     """Transitive dependency walk (ADVISOR_ANSWER_CANNOT_DRAW.md, P0,
     2026-07-12): finds the REAL blocking root(s) beneath `atom_id` -- the
@@ -570,7 +626,15 @@ def _self_refill_draw() -> str | None:
     appears when a genuine concurrent grant exists. The message itself
     names the expected action ("one agent per atom") since R7 still applies:
     this function states what exists, the granted session (reading its own
-    doorbell) decides to fan out via parallel Agent dispatches."""
+    doorbell) decides to fan out via parallel Agent dispatches.
+
+    EPOCH_GATING_AND_ATOM_AUTHORSHIP.md (2026-07-12): when no BUILD
+    candidate exists, falls to a SECOND tier -- `_idle_discover_frame_draw()`
+    -- before the PRIORITIES.md backlog fallback, so a map with real BUILD
+    work is unchanged, but a map with only epoch-parked atoms left now
+    grants real DISCOVER/FRAME work instead of falling all the way through
+    to backlog-or-nothing. The message explicitly forbids BUILD output on
+    this tier, matching Rule 1 (gating applies to BUILD only)."""
     atoms_drawn = _maturity_map_draw_concurrent()
     if atoms_drawn:
         if len(atoms_drawn) == 1:
@@ -580,6 +644,13 @@ def _self_refill_draw() -> str | None:
         return (
             f"self-refill from maturity map -- {len(atoms_drawn)} CONCURRENT disjoint atoms "
             f"granted this cycle (dispatch one Agent fork per atom, per MULTI_ATOM_DRAW.md): {lines}"
+        )
+    idle_atom = _idle_discover_frame_draw()
+    if idle_atom:
+        return (
+            "self-refill from maturity map -- DISCOVER/FRAME only, BUILD gated "
+            "pending epoch sequencing (EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 1; "
+            f"do NOT write BUILD code for this atom): {_format_atom_draw(idle_atom)}"
         )
     backlog_item = _actionable_backlog_item()
     if backlog_item:

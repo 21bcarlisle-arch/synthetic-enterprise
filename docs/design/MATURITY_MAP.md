@@ -83,6 +83,9 @@ The canonical store is **data, not prose** (`docs/design/maturity_map.yaml`), so
   level_target: 3
   loop_stage: discover               # discover|frame|build|verify|harden|idle
   dial_inherited: 4                  # from lane; may be overridden per-capability
+  provenance: director               # director|proposal -- proposal = agent-authored
+                                     # candidate atom (section 9 rule 7), DISCOVER/FRAME-
+                                     # workable immediately, BUILD-gated until ranked
   evidence: []                       # links: commits, surfaces, tests (fills as it moves)
   simplifications: []                # conscious corners cut, per section 5
   expert_hour: {status: not_attempted, last: null, findings: []}
@@ -137,6 +140,9 @@ Supervisor self-refill draws work from lanes proportional to dials, respecting l
 4. Every staged phase names its capability id(s). No phase without a cell is staged. (Advisor enforces.)
 5. Silent simplification = R10-class defect.
 6. The Expert Hour is run per lane at every L3/L4 claim, and opportunistically by the director whenever he pleases — his catches feed the register and the invariants library.
+7. **Epoch gating gates BUILD, never thought (2026-07-12, EPOCH_GATING_AND_ATOM_AUTHORSHIP.md, director-prompted).** A `loop_stage: idle` atom is parked for BUILD only. DISCOVER/FRAME/research/red-team/charter/design work on it is available RIGHT NOW and is itself the priority when the drawable BUILD set runs low — doing this makes epochs open faster, not slower. `background/supervisor.py::_idle_discover_frame_draw()` draws an idle atom (same dial-weighted convention as the BUILD draw) for exactly this class of work whenever no BUILD candidate exists; the granted session reads the atom's own `loop_stage` and does DISCOVER/FRAME output only, never writes BUILD code.
+8. **Atom authorship (same doc).** The agent may AUTHOR candidate atoms — decomposing the current/next epoch's charter into a proposal — marked `provenance: proposal`. A proposal is immediately DISCOVER/FRAME-workable (zero-risk, document output) via rule 7's mechanism; it may not enter BUILD until the director ranks/promotes it (dropping `provenance` or setting it to `director`, and moving `loop_stage` off idle, is the promotion act). Decomposition quality bar: each proposal names its lane, level definitions, evidence paths, file_scope, dependencies, and why it matters to its epoch. The director remains the sole priority authority — proposals are candidates, never self-promoted.
+9. **Structurally non-empty drawable set (same doc).** "Nothing to do" is impossible while ANY atom exists in any state: a real BUILD gap, or an idle atom (rule 7), or an agent-authored proposal (rule 8). An idle supervisor turn while parked atoms exist is a defect, not an honest "map exhausted" — tested directly (`tests/background/test_supervisor.py`).
 
 ---
 

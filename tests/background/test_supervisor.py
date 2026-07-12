@@ -465,6 +465,87 @@ def test_maturity_map_draw_weights_by_dial():
     assert sum("HIGH_DIAL" in r for r in results) >= 18  # overwhelmingly the high-dial atom
 
 
+# EPOCH_GATING_AND_ATOM_AUTHORSHIP.md (P0, 2026-07-12, director-prompted "why
+# can't it think of its own work for future epochs"): Rule 1 -- epoch gating
+# (loop_stage: idle) gates BUILD only, never DISCOVER/FRAME. A second draw
+# tier picks up idle atoms for exactly that class of work, so the drawable
+# set is never empty while ANY atom (build-candidate or idle) exists.
+
+def test_idle_discover_frame_draw_none_when_file_missing():
+    assert not supervisor.MATURITY_MAP_PATH.exists()
+    assert supervisor._idle_discover_frame_draw() is None
+
+
+def test_idle_discover_frame_draw_finds_idle_atom_with_real_gap():
+    """The exact fixture test_maturity_map_draw_excludes_idle_loop_stage
+    uses to prove the BUILD draw correctly EXCLUDES this atom -- here proving
+    the new idle-tier draw correctly INCLUDES it. Both must be true at once:
+    gating applies to BUILD, never to DISCOVER/FRAME."""
+    supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)
+    assert supervisor._maturity_map_draw() is None  # still gated from BUILD
+    result = supervisor._idle_discover_frame_draw()
+    assert result is not None
+    assert result["id"] == "X8_idle_atom"
+
+
+def test_idle_discover_frame_draw_excludes_idle_atom_already_at_target():
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: X_done_idle\n  lane: L\n  dial_inherited: 1\n  loop_stage: idle\n"
+        "  level_current: 2\n  level_target: 2\n"
+    )
+    assert supervisor._idle_discover_frame_draw() is None
+
+
+def test_idle_discover_frame_draw_excludes_non_idle_atom():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)  # loop_stage != idle
+    assert supervisor._idle_discover_frame_draw() is None
+
+
+def test_idle_discover_frame_draw_skips_malformed_atom_instead_of_crashing():
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: X_bad\n  lane: L\n  dial_inherited: null\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 1\n"
+    )
+    assert supervisor._idle_discover_frame_draw() is None  # degrades gracefully
+
+
+def test_idle_discover_frame_draw_weights_by_dial():
+    import random as random_module
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: LOW_DIAL_IDLE\n  lane: L\n  dial_inherited: 1\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 1\n"
+        "- id: HIGH_DIAL_IDLE\n  lane: H\n  dial_inherited: 100\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 1\n"
+    )
+    rng = random_module.Random(42)
+    results = [supervisor._idle_discover_frame_draw(rng=rng)["id"] for _ in range(20)]
+    assert sum(r == "HIGH_DIAL_IDLE" for r in results) >= 18
+
+
+def test_self_refill_draw_falls_to_idle_discover_frame_when_no_build_candidate():
+    """The actual DoD property: a map with ONLY idle atoms (no BUILD gap,
+    no PRIORITIES.md backlog) must still self-refill real work, not fall
+    through to nothing."""
+    supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)
+    reason = supervisor._self_refill_draw()
+    assert reason is not None
+    assert "DISCOVER/FRAME only" in reason
+    assert "X8_idle_atom" in reason
+
+
+def test_find_work_drawable_set_non_empty_when_only_idle_atoms_exist():
+    """EPOCH_GATING_AND_ATOM_AUTHORSHIP.md's own DoD: "a test that the
+    drawable set is non-empty whenever ANY atom exists in any state." A map
+    with only an idle atom (no PRIORITIES.md backlog, no staging, no
+    agenda) must NOT report map_exhausted=True -- that would be the exact
+    bug this doc corrected (an idle turn with a parked atom present)."""
+    supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)
+    reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None
+    assert exhausted is False
+    assert "DISCOVER/FRAME only" in reason
+
+
 # MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted): "the supervisor
 # draws ONE atom per turn... width must be a property of the granting model,
 # not a standing exhortation." The draw can now grant N>1 atoms per cycle
@@ -693,14 +774,25 @@ def test_maturity_map_draw_dependency_on_parked_idle_atom_does_not_block(monkeyp
     assert "E2_should_be_drawable" in result
 
 
-def test_maturity_map_draw_real_map_never_cannot_draw():
+def test_maturity_map_self_refill_real_map_never_cannot_draw():
     """The R3 invariant this bug broke: given the project's OWN real
-    maturity_map.yaml (not a synthetic fixture), the draw must return a
-    candidate, not None -- this is the exact regression the advisor's
-    escalation caught (50 atoms, 30 idle, 23 at L0, yet zero candidates)."""
+    maturity_map.yaml (not a synthetic fixture), self-refill must return
+    real work, not nothing -- this is the exact regression the advisor's
+    escalation caught (50 atoms, 30 idle, 23 at L0, yet zero candidates).
+
+    UPDATED 2026-07-12 (EPOCH_GATING_AND_ATOM_AUTHORSHIP.md): asserts on
+    `_self_refill_draw()` (the composite guarantee a granted turn cares
+    about), not the raw BUILD-only `_maturity_map_draw()` -- the real map
+    can now honestly have ZERO build candidates (every non-idle atom at
+    target, as of W5_1_banking_payment_rails earning L3) while still having
+    real DISCOVER/FRAME work on its many deliberately-parked idle atoms.
+    The old assertion (`_maturity_map_draw() is not None`) would have
+    reintroduced the exact class of bug this whole doc fixed -- treating
+    an honestly-exhausted BUILD set as "nothing to do" -- had it been left
+    in place against today's real, fully-built-out map."""
     real_map = supervisor.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
     supervisor.MATURITY_MAP_PATH.write_text(real_map.read_text())
-    assert supervisor._maturity_map_draw() is not None
+    assert supervisor._self_refill_draw() is not None
 
 
 def test_diagnose_map_blocked_set_reports_no_blockers_when_none_exist():
