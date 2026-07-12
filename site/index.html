@@ -39,6 +39,16 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .metric-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
 .metric-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
 .metric-value.pos { color: var(--green); }
+.metric-basis { font-size: 9px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+.metric-basis a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
+.metric-basis a:hover { border-bottom-color: var(--blue); }
+.bridge-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
+.bridge-table td { padding: 8px 6px; border-top: 1px solid var(--border); vertical-align: top; }
+.bridge-table .bt-label { font-weight: 600; }
+.bridge-table .bt-mech { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.bridge-table .bt-amount { text-align: right; white-space: nowrap; font-weight: 700; }
+.bridge-table tr.bt-total td { border-top: 2px solid var(--text); font-weight: 700; }
+.bt-open { color: var(--amber); }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
 .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 8px; }
 .chart-wrap { position: relative; height: 200px; }
@@ -63,6 +73,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .pulse-item .pv a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
 .pulse-item .pv a:hover { border-bottom-color: var(--blue); }
 .pulse-item .pn { font-size: 9px; color: var(--muted); margin-top: 3px; }
+.pulse-item .pn a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
+.pulse-item .pn a:hover { border-bottom-color: var(--blue); }
 .provisional-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: var(--amber);
   border: 1px solid var(--amber); border-radius: 4px; padding: 1px 4px; margin-left: 4px; vertical-align: middle; }
 .thesis-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 32px; }
@@ -143,6 +155,13 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <div class="sec">All-Time Figures</div>
   <div class="metric-row" id="metric-row">
     <div class="metric"><div class="metric-label">Loading</div><div class="metric-value">...</div></div>
+  </div>
+
+  <div class="thesis-card" id="bridge-card">
+    <div class="thesis-headline">Reconciliation Bridge: settled clock &rarr; billed clock <span class="provisional-badge">PROVISIONAL</span></div>
+    <p class="thesis-sentence" id="bridge-sentence">Loading...</p>
+    <div id="bridge-table-wrap" style="overflow-x:auto"></div>
+    <div class="thesis-caveat" id="bridge-caveat"></div>
   </div>
 
   <div class="sec">The Learning Curve</div>
@@ -246,18 +265,37 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 <script>
 function gbp(n){if(n==null)return "--";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return (n<0?"-":"")+"£"+s;}
 function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function freshnessStamp(dashboard){
+  var g=(dashboard&&dashboard.meta&&dashboard.meta.generated_at)||null;
+  if(!g)return "";
+  return "as of "+g.slice(0,10);
+}
+
+function basisNote(dashboard, key){
+  // NUMBER-PASSPORT rule (CLOCK_TRUTH_AND_THE_BRIDGE.md, 2026-07-12): every
+  // published financial figure carries basis + freshness + provisional,
+  // sourced from the data layer (portfolio.basis), never hand-typed here.
+  var basis=((dashboard&&dashboard.portfolio&&dashboard.portfolio.basis)||{})[key];
+  if(!basis)return "";
+  var clock=esc(basis.clock||"unstated");
+  var fresh=freshnessStamp(dashboard);
+  var badge=basis.provisional?'<span class="provisional-badge">PROVISIONAL</span>':"";
+  var link=basis.bridge_available?' -- <a href="#bridge-card">see the reconciliation bridge</a>':(basis.derived_from?' -- derived from '+esc(basis.derived_from)+', see bridge':"");
+  return '<div class="metric-basis">'+clock+' clock'+badge+(fresh?", "+fresh:"")+link+'</div>';
+}
+
 function renderMetrics(dashboard, phases){
   var p=(dashboard&&dashboard.portfolio)||{};
   var tp=(phases&&phases.test_progression)||[];
   var lastTests=tp.length?tp[tp.length-1][1]:null;
   var metrics=[
-    {l:"Net Margin (all-time)", v:gbp(p.net_margin_gbp), pos:(p.net_margin_gbp||0)>=0},
-    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp), pos:true},
-    {l:"Crisis Survived", v:"2021-22", pos:true},
-    {l:"Tests Passing", v:lastTests?lastTests.toLocaleString():"--", pos:true}
+    {l:"Net Margin (all-time)", v:gbp(p.net_margin_gbp), pos:(p.net_margin_gbp||0)>=0, basis:basisNote(dashboard,"net_margin_gbp")},
+    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp), pos:true, basis:basisNote(dashboard,"enterprise_value_gbp")},
+    {l:"Crisis Survived", v:"2021-22", pos:true, basis:""},
+    {l:"Tests Passing", v:lastTests?lastTests.toLocaleString():"--", pos:true, basis:""}
   ];
   document.getElementById("metric-row").innerHTML=metrics.map(function(m){
-    return '<div class="metric"><div class="metric-label">'+m.l+'</div><div class="metric-value'+(m.pos?" pos":"")+'">'+m.v+'</div></div>';
+    return '<div class="metric"><div class="metric-label">'+m.l+'</div><div class="metric-value'+(m.pos?" pos":"")+'">'+m.v+'</div>'+(m.basis||"")+'</div>';
   }).join("");
 }
 
@@ -278,7 +316,7 @@ function renderPulseStrip(dashboard, supplier, method){
     {l:"Bill Rendering", v:"Not yet public", n:"data correct, no live bill page (tracked)"},
     {l:"Prediction Tracking", v:esc(predVal), n:"pre-registered, misses kept"},
     {l:"Treasury", v:gbp(p.treasury_end_gbp), n:"end of window"},
-    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp)+'<span class="provisional-badge">PROVISIONAL</span>', n:"pre-M4 rederivation"}
+    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp)+'<span class="provisional-badge">PROVISIONAL</span>', n:'settled clock -- <a href="#bridge-card">see bridge</a>'}
   ];
   document.getElementById("pulse-strip").innerHTML=items.map(function(it){
     return '<div class="pulse-item"><div class="pl">'+it.l+'</div><div class="pv">'+it.v+'</div><div class="pn">'+(it.n||"")+'</div></div>';
@@ -361,6 +399,36 @@ function renderThesisChart(dashboard){
     }
   }]});
 }
+function renderMarginBridge(bridge){
+  // CLOCK_TRUTH_AND_THE_BRIDGE.md (2026-07-12, P0): publish the bridge, not
+  // just a number. Every reconciling item below is computed from the same
+  // run_output_latest.json the two headline figures come from
+  // (tools/generate_margin_bridge.py) -- never hardcoded here.
+  var sentEl=document.getElementById("bridge-sentence");
+  var wrapEl=document.getElementById("bridge-table-wrap");
+  var caveatEl=document.getElementById("bridge-caveat");
+  if(!bridge||bridge.settlement_net_margin_gbp==null){
+    if(sentEl)sentEl.textContent="Bridge data not yet available for this run.";
+    return;
+  }
+  var ratio=bridge.gap_ratio_x?bridge.gap_ratio_x+"x":"--";
+  if(sentEl)sentEl.innerHTML="The board's settled-clock headline ("+gbp(bridge.settlement_net_margin_gbp)+
+    ") and the bill-derived ledger view ("+gbp(bridge.ledger_net_margin_gbp)+") diverge by "+
+    gbp(bridge.total_gap_gbp)+" ("+ratio+"). Every reconciling item below is named, quantified, "+
+    "and evidenced from this run's own data -- not asserted.";
+  var rows=(bridge.items||[]).map(function(it){
+    var openTag=it.status==="open_item"?' <span class="bt-open">(open item)</span>':"";
+    return '<tr><td class="bt-label">'+esc(it.label)+openTag+'<div class="bt-mech">'+esc(it.mechanism)+'</div></td>'+
+      '<td class="bt-amount">'+gbp(it.amount_gbp)+'</td></tr>';
+  }).join("");
+  rows+='<tr class="bt-total"><td>Total explained</td><td class="bt-amount">'+gbp(bridge.explained_gbp)+'</td></tr>';
+  rows+='<tr class="bt-total"><td>Unexplained remainder'+(bridge.fully_explained?"":' <span class="bt-open">(OPEN DEFECT)</span>')+'</td><td class="bt-amount">'+gbp(bridge.unexplained_remainder_gbp)+'</td></tr>';
+  if(wrapEl)wrapEl.innerHTML='<table class="bridge-table">'+rows+'</table>';
+  if(caveatEl)caveatEl.textContent=bridge.fully_explained?
+    "Fully reconciled: every reconciling item accounts for the gap to within a rounding penny.":
+    "NOT fully reconciled -- the unexplained remainder above is an open defect, not a formatting gap.";
+}
+
 var LEARNING_WINDOW="recent"; // "recent" | "all"
 var LEARNING_PHASES_DATA=null;
 function renderLearningCurve(phases){
@@ -451,13 +519,15 @@ Promise.all([
   fetch("./data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/phases.json").then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/supplier.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
+  fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
+  fetch("./data/margin_bridge.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
 ]).then(function(rs){
   renderMetrics(rs[0], rs[1]);
   renderLearningCurve(rs[1]);
   renderCommitsChart(rs[1]);
   renderPulseStrip(rs[0], rs[2], rs[3]);
   renderThesisChart(rs[0]);
+  renderMarginBridge(rs[4]);
 }).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="./shared/director-comments.js" defer></script>
