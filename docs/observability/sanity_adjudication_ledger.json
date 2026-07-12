@@ -70,9 +70,9 @@
     "state": "open"
   },
   "coldwalk:margin_reconciliation:portfolio_vs_ledger": {
-    "adjudicated_at": "2026-07-12T05:12:14.187904+00:00",
-    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
-    "evidence": "SUNDAY_WIDE C-suite cold-walk (2026-07-12), CFO persona, independently verified by direct inspection of site/data/dashboard.json: three disagreeing net-margin figures on the live Supplier page -- portfolio.net_margin_gbp=1,524,057.56 vs financial.ledger.net_margin_gbp=6,426,694.25 vs financial.ledger.operating_net_margin_gbp=6,401,401.19 (~4.2x apart), no label distinguishing basis. This is the SAME ambiguity MARGIN_REALISM Step 1 (2026-07-10, docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md) already diagnosed (commodity-only vs full double-entry revenue/margin bases) and explicitly left as unclosed: \"reconciling every OTHER surface that shows a revenue or margin figure against this same ambiguity... remain real, undone work\". Step 1 only labelled ONE surface (the Annual P&L table caption); the Portfolio Summary / Ledger Totals blocks the CFO found are NOT covered. A fresh independent review re-catching this confirms it is still live and investor-visible -- escalating priority for the registered-but-unstarted MARGIN_REALISM Steps 2-6.",
+    "adjudicated_at": "2026-07-12T08:20:29.268046+00:00",
+    "adjudicated_by": "claude (second SUNDAY_WIDE cold-walk corroboration, 2026-07-12)",
+    "evidence": "SUNDAY_WIDE C-suite cold-walk (2026-07-12), CFO persona, independently verified by direct inspection of site/data/dashboard.json: three disagreeing net-margin figures on the live Supplier page -- portfolio.net_margin_gbp=1,524,057.56 vs financial.ledger.net_margin_gbp=6,426,694.25 vs financial.ledger.operating_net_margin_gbp=6,401,401.19 (~4.2x apart), no label distinguishing basis. This is the SAME ambiguity MARGIN_REALISM Step 1 (2026-07-10, docs/design/MARGIN_REALISM_STEP1_DIAGNOSIS.md) already diagnosed (commodity-only vs full double-entry revenue/margin bases) and explicitly left as unclosed: \"reconciling every OTHER surface that shows a revenue or margin figure against this same ambiguity... remain real, undone work\". Step 1 only labelled ONE surface (the Annual P&L table caption); the Portfolio Summary / Ledger Totals blocks the CFO found are NOT covered. A fresh independent review re-catching this confirms it is still live and investor-visible -- escalating priority for the registered-but-unstarted MARGIN_REALISM Steps 2-6. SECOND independent cold-walk (2026-07-12, competitor-intelligence-analyst persona, fresh context, no memory of the first pass) re-found the same class independently with different specific numbers: net margin +GBP1,524,167 (capabilities.json) vs -GBP8,317.21 (agent_status.json); treasury GBP3,827,153.05 (live_portfolio.json) vs GBP11,131.00 (agent_status.json); 2025 revenue GBP118,352 vs a disclosed \"gross margin\" of GBP6,431,113 (>5,400%, almost certainly a single-year-vs-portfolio-cumulative basis mismatch, the same class as the original finding). Two independent fresh-context personas landing on the same unresolved basis-ambiguity class is corroborating evidence, not a new finding -- strengthens rather than duplicates the existing entry. Still unresolved; MARGIN_REALISM Steps 2-6 remain the registered, unstarted fix.",
     "finding_key": "coldwalk:margin_reconciliation:portfolio_vs_ledger",
     "state": "adjudicated-real"
   },
@@ -83,12 +83,33 @@
     "finding_key": "coldwalk:no_js_fallback_rendering",
     "state": "adjudicated-false-positive"
   },
+  "coldwalk:no_privacy_policy_page": {
+    "adjudicated_at": "2026-07-12T08:20:42.317491+00:00",
+    "adjudicated_by": "claude (second SUNDAY_WIDE cold-walk, GC persona, 2026-07-12)",
+    "evidence": "General Counsel cold-walk persona (2026-07-12, second SUNDAY_WIDE round) found no privacy policy page exists (/privacy/ 404s) and none is linked from the homepage, despite the site displaying customer-level data. Independently verified: confirmed no privacy/data-protection page exists anywhere under site/. Severity assessed as LOW, not fixed this session: all customer records on this site are synthetic (simulation-generated, no real people's personal data), so this is a real gap but not a live GDPR/data-protection exposure the way it would be for a site handling genuine customer PII. Registered as backlog (PRIORITIES.md) rather than built now -- worth a simple disclosure page before this project is ever perceived as handling real customer data.",
+    "finding_key": "coldwalk:no_privacy_policy_page",
+    "state": "adjudicated-real"
+  },
   "coldwalk:payment_channel_dd_fail_contradiction": {
     "adjudicated_at": "2026-07-12T05:12:14.188230+00:00",
     "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
     "evidence": "SUNDAY_WIDE cold-walk, COO persona, independently verified: site/data/customer_sample.json C1g has payment_channel=\"standard_credit\" yet payment_behaviour_analytics.metrics.dd_fail_rate=0.0667 and payment_miss_trajectory carries dd_failed counts in multiple years -- a standard-credit customer cannot have a DD failure. Root-caused: payment_channel is computed by simulation.household_segments.payment_channel_for_customer() (tools/generate_customer_sample.py), a static per-customer profile classification, while the dd_failed/method labels come from simulation.arrears_engine's payment_method()/payment_outcome() (via tools/generate_billing_ledger.py) -- an entirely separate, independently-dispatched per-bill computation. The two were never cross-referenced at build time. Same recurring class as the M2 payments audit's \"two duplicated-register pairs\" finding (docs/design/M2_PAYMENTS_AUDIT_DD_RAILS.md) -- registered for a future consolidation pass, not fixed here (would require deciding which system is authoritative and threading it through both call sites).",
     "finding_key": "coldwalk:payment_channel_dd_fail_contradiction",
     "state": "adjudicated-real"
+  },
+  "coldwalk:supplier_failure_count_inconsistent_2021_22": {
+    "adjudicated_at": "2026-07-12T08:20:42.316913+00:00",
+    "adjudicated_by": "claude (second SUNDAY_WIDE cold-walk, CRO persona, 2026-07-12)",
+    "evidence": "CRO cold-walk persona (2026-07-12, second SUNDAY_WIDE round) found the same external fact (UK suppliers that failed in the 2021-22 crisis) stated FIVE different ways across site/index.html (\"around 30\"), site/sim/ (\"29\"), site/project/ (\"roughly 30\" and, separately on the same page, \"28\" and \"30+\"), and site/timeline/ (\"30+\") -- the exact same-page/cross-page reconciliation class COLD_EYES_PROTOCOL.md names (the \"11-vs-13\" class). No anchored citation exists in ASSUMPTIONS.md for an exact figure. FIXED same session: all 5 live-site mentions standardized to the hedged \"around 30\" phrasing (not a new precise digit, since none is independently sourced); regression-guarded by tests/tools/test_generate_shadow_html.py::test_2021_22_crisis_supplier_failure_count_is_single_sourced. Historical/archived docs (docs/vision/, docs/PROJECT_OVERVIEW.md build-history entries) deliberately left unchanged -- out of scope (not live customer-facing surfaces, and build-history entries are a record of what was said at the time, not retroactively rewritten).",
+    "finding_key": "coldwalk:supplier_failure_count_inconsistent_2021_22",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:test_count_metric_self_contradiction": {
+    "adjudicated_at": "2026-07-12T08:20:54.425076+00:00",
+    "adjudicated_by": "claude (second SUNDAY_WIDE cold-walk, competitor persona, 2026-07-12)",
+    "evidence": "Competitor-intelligence-analyst cold-walk persona (2026-07-12, second SUNDAY_WIDE round) claimed the homepage test-count claim (\"15,000+ tests\") contradicted a \"phases.json summary stat of 3,305\" and a \"latest phase row ... 11,100\". Independently verified: (1) direct WebFetch of the live homepage confirms it currently reads \"15,000+ tests\" (true: actual count is 17,061 per site/data/phases.json test_progression, a conservative/stale threshold claim, not a contradiction); (2) site/data/phases.json has NO field reading 3,305 -- the closest value is total_commits=3,338, a DIFFERENT, correctly-and-separately-labelled metric (\"Cumulative commits since project start\", confirmed via direct WebFetch showing the chart's exact label); (3) no 11,100 figure exists anywhere in the current phases.json timeline (every 2026-07-12 entry reads in the 17,000s). Conclusion: the persona conflated two correctly-labelled, genuinely-different metrics (commits vs tests), likely from a stale/cached live fetch or a misread, not a real same-metric self-contradiction. No site change made.",
+    "finding_key": "coldwalk:test_count_metric_self_contradiction",
+    "state": "adjudicated-false-positive"
   },
   "defect:estimated_bill_amount_on_true_consumption": {
     "adjudicated_at": "2026-07-11T19:29:10.853975+00:00",

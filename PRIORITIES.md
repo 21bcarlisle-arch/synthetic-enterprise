@@ -1430,6 +1430,30 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **Pre-bill Tier-1 gate materially overstates its own coverage (2026-07-12,
+  docs/observability/invariant_redteam_2026-07-12.md, adversarial red-team,
+  8 findings all CONFIRMED by execution)**: `pre_bill_validation.py`'s module
+  docstring claims "100% of bills... zero tolerance, continuous, not sampled",
+  but only 9 of 28 invariants in `domain_invariants.py`'s `ALL_INVARIANTS` are
+  ever actually wired into any `check_*()` consumer. 19 -- all 4 standing-charge,
+  all 5 non-commodity-cost, all 6 TDCV bands, both margin invariants -- are
+  never consumed anywhere; confirmed live: a non-commodity cost 250x its band
+  and a standing charge 43% over its band both PASS `validate_bill()` silently.
+  Also confirmed: non-resi (SME/I&C) bills get zero consumption-plausibility
+  check of any kind (negative and 1,666x-units-error consumption both pass);
+  segment is self-declared with no independent cross-check (a mislabeled SME
+  underpaying VAT by 15pp indefinitely is undetectable); the per-bill monthly
+  envelope has no cross-bill/annual visibility (a sustained implausible rate
+  just under the monthly ceiling issues for months before the differently-
+  cadenced population check could ever catch it); the `jurisdiction` field
+  added this session is schema-only, read by zero consumers. The two findings
+  most directly exploitable against the just-shipped back-billing cap (token
+  write-off passing on existence-not-magnitude; malformed/missing fields
+  failing OPEN not closed) were fixed same session (commit 207c37ad) -- these
+  6 broader gaps are NOT fixed, registered here as a real, evidenced backlog
+  item, not built now (a genuine class-level fix -- wiring the other 19
+  invariants, an SME consumption band, independent segment cross-checking --
+  is a substantial build, not a quick patch).
 - **three_horizon_clv.py wiring (2026-07-11, found while scoping the /customers/
   forecast-profit-and-cashflow director page comment)**: `company/core/three_horizon_clv.py`
   has real H1 (signing-time commitment)/H2 (running realized P&L)/H3 (genuinely forward-looking

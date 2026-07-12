@@ -29,6 +29,17 @@ ideation, the overdue parallel-lanes proposal) not yet started — pick up in a 
 turn once these six report back, per the fan-out-alongside-main-work
 instruction rather than serially.
 
+**Second wave, 2026-07-12 ~08:59Z (director-corrected — read-only lanes carry
+zero collision risk even while a build fork owns files):** 7 concurrent
+non-build forks launched alongside the (now-completed) AFFORDABILITY
+build fork: discovery x2 (PowerTAC tariff-taxonomy/lifecycle vs
+`company/billing/contract.py`; settlement/rebilling best practice for M2),
+red-team on the invariants library, charter-deepening the W2 affordability
+cluster, and 3 fresh cold-walk personas (CRO, General Counsel, competitor
+analyst) — none used in the first six-pack. All output to new files only
+(no shared-ledger/maturity-map writes mid-flight); findings to be
+integrated and filed once each reports back. Fan-out count this turn: 7.
+
 **Staged:** 2026-07-12 ~00:20Z by advisor, director-decided ("spike wasn't
 spikey enough — 30% used; more discovery, hardening, independent C-suite
 assessment, ideation in parallel"). Quality gates unchanged; evaluator

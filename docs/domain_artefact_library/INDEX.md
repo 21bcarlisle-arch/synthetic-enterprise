@@ -52,6 +52,17 @@ PowerTAC's two ADAPT verdicts (rate-type taxonomy, tariff lifecycle) have not ye
 checked against this project's actual `company/billing/contract.py`; Kill Bill's dunning
 ladder has not yet been compared against `arrears_engine.py`'s real collections logic.
 
+**PowerTAC follow-up completed** (2026-07-12): [powertac_2020_followup.md](powertac_2020_followup.md)
+— rate-type taxonomy 5/7 already covered (missing: sign-up incentives, consumption-tiered/block
+rates, latter low real-world value for GB domestic); lifecycle finding is fragmentation, not a
+missing state — at least 3 mutually-unaware `ContractStatus`-style enums exist across
+`company/billing/contract_manager.py`, `company/crm/contract_exposure_register.py`,
+`company/crm/customer_registry.py`, none wired to the live pricing path
+(`company/billing/contract.py`/`simulation/renewals.py`, which itself has no status field at
+all); concrete adoption candidate registered: consolidate onto one small closed lifecycle
+(PowerTAC-shaped) and build the currently-absent supplier-initiated tariff-withdrawal +
+forced-successor-migration mechanism.
+
 ## Still un-surveyed (registered, not started)
 
 UK market specs: REC / Energy Market Data Specification / DTC flow catalogue; MHHS
