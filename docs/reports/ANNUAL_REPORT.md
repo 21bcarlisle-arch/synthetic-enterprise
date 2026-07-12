@@ -1582,7 +1582,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-12T22:12:56Z
+Generated: 2026-07-12T22:26:23Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2496,7 +2496,7 @@ No individual customers outside ±40.0/80.0 thresholds.
 **SANITY CHECK: PASS** — all segments within benchmarks.
 ## Transaction Log
 
-Total events: 3,382,420
+Total events: 3,382,567
 
 | Event type | Count |
 |------------|-------|
@@ -2509,6 +2509,7 @@ Total events: 3,382,420
 | fixed_cost_event | 114 |
 | non_commodity_cost_event | 1,587 |
 | payment_received_event | 1,587 |
+| revenue_restatement_event | 147 |
 | settlement_event | 1,745,299 |
 | vat_remittance_event | 1,587 |
 
