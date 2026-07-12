@@ -1,5 +1,16 @@
 # Current Priorities
 
+**ADVISOR_STEER_TWIN_READONLY.md CLOSED IN FULL (2026-07-12):** twin read-only proven (real failed-write
+test, `RUN_LIVE_TWIN_TESTS=1`); `PLATFORM_ADMINISTRATION` one-way-door category added (repo/GitHub
+settings, keys/secrets, account/billing/entitlements). CANNOT-draw root-caused as R2 (the `supervisor`
+tmux daemon had stale pre-fix code loaded since 14:14; restarted, confirmed live via the next real
+draw). `diagnose_map_blocked_set()` message fixed so it can't be misread as "nothing to do" again.
+`D2_three_clocks` gating corrected with hard evidence (its bridge script has zero W1 imports; M2
+sequencing was already ratified 2026-07-11) — L0->L1, `tools/generate_margin_bridge.py` now wired
+into `background/process_run_complete.py`'s real pipeline every cycle, gated by a new
+`_check_bridge_reconciles()` invariant. Now drawing live for BUILD (confirmed via a real supervisor-wake
+doorbell). D2's own target-L2 (deeper materiality/timing reconciliation) remains open.
+
 **PROCEED_BY_DEFAULT + DIRECTOR_TWIN + MAKE_IT_STICK CLOSED IN FULL (2026-07-12, session-crash
 recovery), F5/A5 DISCOVER/FRAME landed, both DONE below -- both re-ranked items 1-2 (F5 DISCOVER,
 A5 FRAME) closed same session:** governance model replaced (see CLAUDE.md "PROCEED BY DEFAULT" /

@@ -4,9 +4,11 @@ staged in docs/staging/WEBSITE_INTEGRITY_AND_DESIGN.md Part A."""
 import json
 import inspect
 
+from tools import generate_dashboard_data
 from tools.generate_dashboard_data import (
     _load_build_info, _check_consistency, BUILD_INFO_PATH, count_company_modules,
     _derive_build_from_claude_md, _check_basis_labels_present, extract_portfolio,
+    _check_bridge_reconciles,
 )
 
 
@@ -198,6 +200,53 @@ def test_check_basis_labels_present_fails_when_note_missing(capsys):
     }
     assert _check_basis_labels_present(portfolio) is False
     assert "net_margin_gbp" in capsys.readouterr().err
+
+
+def test_check_bridge_reconciles_true_when_file_missing(tmp_path, monkeypatch):
+    """D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md): degrades
+    gracefully rather than blocking every dashboard generation before this
+    atom's own bridge output exists for the first time."""
+    monkeypatch.setattr(generate_dashboard_data, "MARGIN_BRIDGE_PATH", tmp_path / "margin_bridge.json")
+    assert _check_bridge_reconciles() is True
+
+
+def test_check_bridge_reconciles_passes_within_tolerance(tmp_path, monkeypatch):
+    bridge_path = tmp_path / "margin_bridge.json"
+    bridge_path.write_text(json.dumps({"unexplained_remainder_gbp": 0.01}))
+    monkeypatch.setattr(generate_dashboard_data, "MARGIN_BRIDGE_PATH", bridge_path)
+    assert _check_bridge_reconciles() is True
+
+
+def test_check_bridge_reconciles_fails_when_remainder_exceeds_tolerance(tmp_path, monkeypatch, capsys):
+    bridge_path = tmp_path / "margin_bridge.json"
+    bridge_path.write_text(json.dumps({"unexplained_remainder_gbp": 500.0}))
+    monkeypatch.setattr(generate_dashboard_data, "MARGIN_BRIDGE_PATH", bridge_path)
+    assert _check_bridge_reconciles() is False
+    err = capsys.readouterr().err
+    assert "BRIDGE-RECONCILE GATE FAILED" in err
+    assert "500" in err
+
+
+def test_check_bridge_reconciles_fails_when_remainder_missing(tmp_path, monkeypatch, capsys):
+    bridge_path = tmp_path / "margin_bridge.json"
+    bridge_path.write_text(json.dumps({"settlement_net_margin_gbp": 100.0}))
+    monkeypatch.setattr(generate_dashboard_data, "MARGIN_BRIDGE_PATH", bridge_path)
+    assert _check_bridge_reconciles() is False
+    assert "unexplained_remainder_gbp missing" in capsys.readouterr().err
+
+
+def test_check_bridge_reconciles_fails_closed_on_malformed_json(tmp_path, monkeypatch, capsys):
+    bridge_path = tmp_path / "margin_bridge.json"
+    bridge_path.write_text("not valid json{{{")
+    monkeypatch.setattr(generate_dashboard_data, "MARGIN_BRIDGE_PATH", bridge_path)
+    assert _check_bridge_reconciles() is False
+    assert "unreadable" in capsys.readouterr().err
+
+
+def test_check_bridge_reconciles_true_against_real_committed_bridge():
+    """The real, committed site/data/margin_bridge.json must itself pass --
+    it's already fully_explained with a 1-penny remainder."""
+    assert _check_bridge_reconciles() is True
 
 
 def test_check_basis_labels_present_skips_figures_not_in_this_portfolio():

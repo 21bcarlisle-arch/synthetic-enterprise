@@ -315,6 +315,19 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Frozen-policy baseline generation failed: {}".format(exc))
     try:
+        # D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md real
+        # finding): the settlement<->billed reconciliation bridge existed
+        # only as a standalone script, never wired into the run pipeline --
+        # "a first-class, always-on mechanism" per this atom's own
+        # registration text. Must run before generate_dashboard_data, which
+        # now reads its output (_check_bridge_reconciles).
+        from tools.generate_margin_bridge import generate as gen_bridge
+        bridge = gen_bridge(json_path)
+        log("Generated site/data/margin_bridge.json (gap={:,.2f}, unexplained={:,.2f})".format(
+            bridge.get("total_gap_gbp", 0.0), bridge.get("unexplained_remainder_gbp", 0.0)))
+    except Exception as exc:
+        log("Margin bridge generation failed: {}".format(exc))
+    try:
         from tools.generate_dashboard_data import generate
         ok = generate(json_path)
         if ok:

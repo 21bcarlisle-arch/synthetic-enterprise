@@ -595,12 +595,34 @@ def diagnose_map_blocked_set(atoms: list | None = None) -> str:
             blocked.append((a["id"], sorted(roots)))
 
     idle_count = sum(1 for a in atoms if isinstance(a, dict) and a.get("loop_stage") == "idle")
+    idle_below_target = sum(
+        1 for a in atoms if isinstance(a, dict) and a.get("loop_stage") == "idle"
+        and a.get("level_current") is not None and a.get("level_target") is not None
+        and a.get("level_current") < a.get("level_target")
+    )
     l0_count = sum(1 for a in atoms if isinstance(a, dict) and a.get("level_current") == 0)
     if not blocked:
+        # ADVISOR_STEER_TWIN_READONLY.md (2026-07-12, real confusion this
+        # caused): the OLD wording ("the map has genuinely no drawable gap
+        # left") is true only about the NON-IDLE/BUILD candidate set this
+        # function itself diagnoses -- but read on its own, it sounds like
+        # "nothing to draw at all", which is false whenever idle atoms below
+        # target exist (they are drawable for DISCOVER/FRAME via
+        # `_idle_discover_frame_draw()`, a completely separate tier this
+        # function says nothing about). Made that explicit rather than
+        # implicit, so this message can never again be misread as "nothing
+        # to do" when idle_below_target > 0.
+        idle_note = (
+            f" {idle_below_target} idle atom(s) remain below target and ARE drawable "
+            "for DISCOVER/FRAME work (a separate tier, see _idle_discover_frame_draw) "
+            "-- this message is scoped to BUILD-candidate blockage only, not \"nothing to do\"."
+            if idle_below_target else ""
+        )
         return (
             f"{len(atoms)} atoms, {idle_count} idle, {l0_count} at L0 -- no non-idle atom "
-            "is blocked by an unmet dependency; the map has genuinely no drawable gap left "
+            "is blocked by an unmet dependency; no NON-IDLE BUILD candidate is blocked "
             "(every non-idle atom is either at target or already a valid candidate)."
+            f"{idle_note}"
         )
     lines = [f"{atom_id} <- blocked by {', '.join(roots)}" for atom_id, roots in blocked]
     return (

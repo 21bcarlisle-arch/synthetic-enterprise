@@ -839,6 +839,19 @@ def test_diagnose_map_blocked_set_reports_no_blockers_when_none_exist():
     assert "no non-idle atom is blocked" in diagnosis.lower() or "no drawable gap" in diagnosis.lower()
 
 
+def test_diagnose_map_blocked_set_notes_idle_below_target_is_still_drawable():
+    """ADVISOR_STEER_TWIN_READONLY.md's real amendment (2026-07-12): the old
+    wording ("the map has genuinely no drawable gap left") reads exactly
+    like "nothing to do at all" even when idle atoms below target exist and
+    ARE drawable via the separate DISCOVER/FRAME tier -- this caused a real
+    misdiagnosis. The message must now say so explicitly whenever such atoms
+    exist, not just report the BUILD-only blockage."""
+    supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)  # X8_idle_atom, level 1->2
+    diagnosis = supervisor.diagnose_map_blocked_set()
+    assert "drawable for discover/frame" in diagnosis.lower()
+    assert "1 idle atom" in diagnosis.lower()
+
+
 def test_diagnose_map_blocked_set_finds_root_through_genuine_blocker():
     """A non-idle, non-parked prerequisite that itself has a real unmet gap
     IS a genuine root -- distinct from the parked case above."""

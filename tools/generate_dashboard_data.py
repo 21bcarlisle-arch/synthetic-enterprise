@@ -1506,7 +1506,8 @@ def generate(run_json_path=None):
     consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
     population_ok = _check_population_consistency(data, dashboard)
     basis_ok = _check_basis_labels_present(portfolio)
-    consistency_ok = consistency_ok and population_ok and basis_ok
+    bridge_ok = _check_bridge_reconciles()
+    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1605,6 +1606,44 @@ def _check_basis_labels_present(portfolio):
             "BASIS-LABEL GATE FAILED: headline figure(s) missing a basis label -- {}".format(
                 ", ".join(missing)
             ),
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+MARGIN_BRIDGE_PATH = PROJECT / "site" / "data" / "margin_bridge.json"
+BRIDGE_TOLERANCE_GBP = 5.0
+
+
+def _check_bridge_reconciles():
+    """D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md): the
+    settlement<->billed reconciliation this atom exists to build must be a
+    first-class, ALWAYS-ON mechanism, not a script someone remembers to run.
+    process_run_complete.py now regenerates site/data/margin_bridge.json
+    every cycle before this gate runs; this function is that gate --
+    unexplained_remainder_gbp drifting beyond a rounding tolerance means the
+    bridge (or the two clocks it reconciles) has silently broken, and that
+    must fail loudly here rather than ship a front door nobody can trust.
+    Missing file degrades gracefully (True) rather than blocking every other
+    dashboard generation on this one atom's own bridge existing yet."""
+    if not MARGIN_BRIDGE_PATH.exists():
+        return True
+    try:
+        bridge = json.loads(MARGIN_BRIDGE_PATH.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"BRIDGE-RECONCILE GATE FAILED: margin_bridge.json unreadable -- {exc}", file=sys.stderr)
+        return False
+    remainder = bridge.get("unexplained_remainder_gbp")
+    if remainder is None:
+        print("BRIDGE-RECONCILE GATE FAILED: unexplained_remainder_gbp missing", file=sys.stderr)
+        return False
+    if abs(remainder) > BRIDGE_TOLERANCE_GBP:
+        print(
+            f"BRIDGE-RECONCILE GATE FAILED: unexplained_remainder_gbp={remainder:,.2f} "
+            f"exceeds tolerance ({BRIDGE_TOLERANCE_GBP:,.2f}) -- the settlement<->billed "
+            "reconciliation no longer holds, investigate the mechanism (R4), do not raise "
+            "the tolerance to make this pass.",
             file=sys.stderr,
         )
         return False
