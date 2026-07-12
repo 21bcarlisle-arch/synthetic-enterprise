@@ -1718,6 +1718,27 @@ Decomposes each year's net margin change into: gross margin movement, bad debt, 
 
 > Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: negative = costs rose (margin impact). Portfolio: active customer count change.
 
+## Unbilled Revenue Accrual (Accrual Accounting View)
+
+An estimated-basis bill's revenue is recognised in full when issued (Phase 7a) -- that cash effect is correct and unchanged. This section shows how much of currently-recognised revenue is still PROVISIONAL (estimated, awaiting confirmation against a real meter read) versus already CONFIRMED, and how much has been RESTATED this run as D3's catch-up-rebilling resolved prior estimates.
+
+**Outstanding unbilled revenue accrual: £572,920.61** across 71 bill(s) not yet confirmed by an actual read.
+
+**Revenue restated this run: £7,276.01** across 147 catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view and D3_catchup_rebilling for the per-bill mechanism.
+
+| Customer | Outstanding Accrual £ |
+|----------|------------------------|
+| C_IC3g | £512,438.75 |
+| C_IC4 | £54,849.20 |
+| C1_2 | £2,259.26 |
+| C3g | £1,416.16 |
+| C3 | £1,197.23 |
+| C2 | £372.58 |
+| C1 | £186.18 |
+| C2g | £126.64 |
+| C4 | £45.50 |
+| C1g | £29.11 |
+
 ## Payment Portfolio Health (P2: Billing Infra)
 
 Year-by-year bad debt rate and high-churn-risk customer concentration.

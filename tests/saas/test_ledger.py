@@ -701,3 +701,124 @@ def test_back_billing_write_off_event_does_not_double_count_cash_position():
     assert derive_cash_position(0.0, events_with) == pytest.approx(
         derive_cash_position(0.0, events_without)
     )
+
+
+# --- E3_accrual_restatement: revenue restatement event + unbilled revenue accrual ---
+
+
+def test_make_revenue_restatement_event_is_zero_cash_memo():
+    from saas.ledger import make_revenue_restatement_event
+    bill = _bill_9a()
+    bill["catchup_applied"] = True
+    bill["catchup_raw_delta_gbp"] = 123.45
+    bill["catchup_adjustment_gbp"] = 100.0
+    bill["catchup_direction"] = "undercharge"
+    bill["catchup_periods_covered"] = 3
+    ev = make_revenue_restatement_event(bill)
+    assert ev["event_type"] == "revenue_restatement_event"
+    assert ev["amount_gbp"] == 0.0
+    assert ev["restated_gbp"] == pytest.approx(123.45)
+    assert ev["chargeable_gbp"] == pytest.approx(100.0)
+    assert ev["direction"] == "undercharge"
+    assert ev["periods_covered"] == 3
+
+
+def test_build_ledger_adds_restatement_event_only_when_catchup_applied():
+    bill_with = _bill_9a(customer_id="C1")
+    bill_with["catchup_applied"] = True
+    bill_with["catchup_raw_delta_gbp"] = 50.0
+    bill_without = _bill_9a(customer_id="C2")
+    events = build_ledger([], [bill_with, bill_without])
+    restatements = [e for e in events if e["event_type"] == "revenue_restatement_event"]
+    assert len(restatements) == 1
+    assert restatements[0]["customer_id"] == "C1"
+
+
+def test_derive_pnl_includes_revenue_restated_gbp_when_present():
+    bill = _bill_9a()
+    bill["catchup_applied"] = True
+    bill["catchup_raw_delta_gbp"] = 77.0
+    events = build_ledger([], [bill])
+    pnl = derive_pnl(events)
+    assert pnl["revenue_restated_gbp"] == pytest.approx(77.0)
+    assert pnl["revenue_restatement_count"] == 1
+
+
+def test_derive_pnl_omits_revenue_restated_gbp_when_absent():
+    events = build_ledger([], [_bill_9a()])
+    pnl = derive_pnl(events)
+    assert "revenue_restated_gbp" not in pnl
+
+
+def test_revenue_restatement_event_does_not_double_count_cash_position():
+    # Same discipline as the write-off memo: the cash effect already
+    # happened via the resolving bill's own total_amount_gbp (which already
+    # folds in catchup_adjustment_gbp) -- this memo must not affect cash.
+    bill = _bill_9a(commodity_amount=80.0, non_commodity=11.0, standing=5.0, vat=4.8)
+    bill["catchup_applied"] = True
+    bill["catchup_raw_delta_gbp"] = 999.0  # deliberately large, must not affect cash
+    events_with = build_ledger([], [bill])
+    bill_without_catchup = dict(bill)
+    del bill_without_catchup["catchup_applied"]
+    del bill_without_catchup["catchup_raw_delta_gbp"]
+    events_without = build_ledger([], [bill_without_catchup])
+    assert derive_cash_position(0.0, events_with) == pytest.approx(
+        derive_cash_position(0.0, events_without)
+    )
+
+
+def test_unbilled_revenue_accrual_empty_bills_returns_zero():
+    from saas.ledger import unbilled_revenue_accrual
+    result = unbilled_revenue_accrual([])
+    assert result["unbilled_revenue_gbp"] == 0.0
+    assert result["outstanding_bill_count"] == 0
+    assert result["by_customer"] == {}
+
+
+def test_unbilled_revenue_accrual_no_estimated_bills_returns_zero():
+    from saas.ledger import unbilled_revenue_accrual
+    result = unbilled_revenue_accrual([_bill_9a()])
+    assert result["unbilled_revenue_gbp"] == 0.0
+
+
+def test_unbilled_revenue_accrual_unresolved_estimated_bill_is_outstanding():
+    from saas.ledger import unbilled_revenue_accrual
+    bill = _bill_9a(period_start="2016-01-01", period_end="2016-01-31")
+    bill["billing_basis"] = "estimated"
+    result = unbilled_revenue_accrual([bill])
+    assert result["unbilled_revenue_gbp"] == pytest.approx(bill["total_amount_gbp"])
+    assert result["outstanding_bill_count"] == 1
+    assert result["by_customer"]["C1"] == pytest.approx(bill["total_amount_gbp"])
+
+
+def test_unbilled_revenue_accrual_resolved_by_later_catchup_is_not_outstanding():
+    from saas.ledger import unbilled_revenue_accrual
+    estimated = _bill_9a(period_start="2016-01-01", period_end="2016-01-31")
+    estimated["billing_basis"] = "estimated"
+    resolving = _bill_9a(period_start="2016-02-01", period_end="2016-02-29")
+    resolving["billing_basis"] = "actual"
+    resolving["catchup_applied"] = True
+    resolving["catchup_period_start"] = "2016-01-01"
+    resolving["catchup_period_end"] = "2016-01-31"
+    result = unbilled_revenue_accrual([estimated, resolving])
+    assert result["unbilled_revenue_gbp"] == 0.0
+    assert result["outstanding_bill_count"] == 0
+    assert result["by_customer"] == {}
+
+
+def test_unbilled_revenue_accrual_multiple_customers_isolated():
+    from saas.ledger import unbilled_revenue_accrual
+    c1_est = _bill_9a(customer_id="C1", period_start="2016-01-01", period_end="2016-01-31")
+    c1_est["billing_basis"] = "estimated"
+    c2_est = _bill_9a(customer_id="C2", period_start="2016-01-01", period_end="2016-01-31")
+    c2_est["billing_basis"] = "estimated"
+    c2_resolving = _bill_9a(customer_id="C2", period_start="2016-02-01", period_end="2016-02-29")
+    c2_resolving["billing_basis"] = "actual"
+    c2_resolving["catchup_applied"] = True
+    c2_resolving["catchup_period_start"] = "2016-01-01"
+    c2_resolving["catchup_period_end"] = "2016-01-31"
+    result = unbilled_revenue_accrual([c1_est, c2_est]  + [c2_resolving])
+    assert result["unbilled_revenue_gbp"] == pytest.approx(c1_est["total_amount_gbp"])
+    assert result["outstanding_bill_count"] == 1
+    assert "C2" not in result["by_customer"]
+    assert list(result["by_customer"].keys()) == ["C1"]

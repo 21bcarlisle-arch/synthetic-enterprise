@@ -7502,6 +7502,48 @@ def _section_net_margin_bridge(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_unbilled_revenue_accrual(data: dict) -> str:
+    """E3_accrual_restatement: accrual-accounting view of estimated-basis
+    billing -- how much currently-recognised revenue is still PROVISIONAL
+    (estimated, not yet confirmed against an actual meter read), and how
+    much revenue has been RESTATED this run as D3's catch-up-rebilling
+    mechanism resolved prior estimates against real reads."""
+    bills = data.get("bills") or []
+    if not bills:
+        return ""
+    from saas.ledger import unbilled_revenue_accrual
+    accrual = unbilled_revenue_accrual(bills)
+    total_restated = sum(
+        b.get("catchup_raw_delta_gbp", 0.0) for b in bills if b.get("catchup_applied")
+    )
+    restatement_count = sum(1 for b in bills if b.get("catchup_applied"))
+    lines = [
+        "## Unbilled Revenue Accrual (Accrual Accounting View)",
+        "",
+        "An estimated-basis bill's revenue is recognised in full when issued (Phase 7a) -- that "
+        "cash effect is correct and unchanged. This section shows how much of currently-recognised "
+        "revenue is still PROVISIONAL (estimated, awaiting confirmation against a real meter read) "
+        "versus already CONFIRMED, and how much has been RESTATED this run as D3's catch-up-rebilling "
+        "resolved prior estimates.",
+        "",
+        f"**Outstanding unbilled revenue accrual: {_fmt_gbp(accrual['unbilled_revenue_gbp'])}** "
+        f"across {accrual['outstanding_bill_count']} bill(s) not yet confirmed by an actual read.",
+        "",
+        f"**Revenue restated this run: {_fmt_gbp(total_restated)}** across {restatement_count} "
+        "catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view "
+        "and D3_catchup_rebilling for the per-bill mechanism.",
+        "",
+    ]
+    if accrual["by_customer"]:
+        lines += [
+            "| Customer | Outstanding Accrual £ |",
+            "|----------|------------------------|",
+        ]
+        for cid, gbp in sorted(accrual["by_customer"].items(), key=lambda kv: -kv[1])[:10]:
+            lines.append(f"| {cid} | {_fmt_gbp(gbp)} |")
+        lines.append("")
+    return "\n".join(lines)
+
 
 def _section_shadow_retention(data: dict) -> str:
     """Phase NW: Shadow universal-retention strategy P&L vs actual (P4: Shadow Ops)."""
@@ -8986,6 +9028,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_clv_evolution(data))                  # Phase BG
     sections.append(_section_gross_margin_bridge(data))            # Phase BE
     sections.append(_section_net_margin_bridge(data))             # Phase NT
+    sections.append(_section_unbilled_revenue_accrual(data))       # E3_accrual_restatement
     sections.append(_section_payment_health(data))               # Phase NU
     sections.append(_section_portfolio_composition(data))         # Phase NV
     sections.append(_section_shadow_retention(data))              # Phase NW

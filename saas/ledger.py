@@ -258,6 +258,93 @@ def make_back_billing_write_off_event(bill: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def make_revenue_restatement_event(bill: dict[str, Any]) -> dict[str, Any]:
+    """E3_accrual_restatement: a named, visible P&L line for D3's own real
+    catch-up-rebilling delta -- accrual accounting requires that estimated-
+    basis revenue recognised in one period, then corrected against an
+    actual read in a later period, is traceable as a RESTATEMENT of prior
+    accrued revenue, not indistinguishable from ordinary new-period revenue.
+
+    `amount_gbp` is deliberately 0.0 -- this is a MEMO/visibility event, same
+    pattern as `make_back_billing_write_off_event`. The real cash effect
+    already happened correctly via the resolving bill's own
+    `total_amount_gbp` (which already folds in `catchup_adjustment_gbp`) --
+    a second cash-impact event here would double-count it. This event
+    exists purely to make the restatement NAMED and auditable: how much of
+    today's billed revenue is a correction of a PRIOR period's estimate,
+    in which direction, and covering how many prior periods.
+    """
+    return {
+        "transaction_id": _tid("revenue_restatement", bill["customer_id"], bill["period_end"]),
+        "event_type": "revenue_restatement_event",
+        "timestamp": bill["period_end"],
+        "customer_id": bill["customer_id"],
+        "amount_gbp": 0.0,
+        "restated_gbp": bill.get("catchup_raw_delta_gbp", 0.0),
+        "chargeable_gbp": bill.get("catchup_adjustment_gbp", 0.0),
+        "direction": bill.get("catchup_direction", ""),
+        "periods_covered": bill.get("catchup_periods_covered", 0),
+    }
+
+
+def unbilled_revenue_accrual(bills: list[dict[str, Any]]) -> dict[str, Any]:
+    """E3_accrual_restatement: the accrual-accounting counterpart to D3's
+    customer-facing catch-up mechanism.
+
+    An estimated-basis bill's revenue is already recognised in full via its
+    own billing_event (Phase 7a) -- that cash/revenue effect is correct and
+    unchanged. What accrual accounting additionally requires is a way to
+    tell HOW MUCH of currently-recognised revenue is still PROVISIONAL
+    (estimated, not yet confirmed against an actual meter read) versus
+    CONFIRMED -- the real "unbilled revenue" asset a real supplier's
+    accounts would carry until the true-up lands.
+
+    A bill is OUTSTANDING (still provisional) if it is `billing_basis ==
+    "estimated"` and no LATER bill for the same customer has a
+    `catchup_applied` covering its period (`catchup_period_start` <=
+    this bill's `period_end` <= `catchup_period_end`) -- exactly the same
+    real period-range D3's own `_resolve_catchup()` already computes and
+    stamps on the resolving bill, reused here rather than re-derived.
+
+    Returns a dict: `unbilled_revenue_gbp` (portfolio total, GBP still
+    provisional as of the last bill in `bills`), `outstanding_bill_count`,
+    and `by_customer` (customer_id -> outstanding GBP, only customers with
+    a non-zero balance).
+    """
+    by_customer_estimated: dict[str, list[dict[str, Any]]] = {}
+    resolved_ranges: dict[str, list[tuple[str, str]]] = {}
+    for b in bills:
+        cid = b["customer_id"]
+        if b.get("billing_basis") == "estimated":
+            by_customer_estimated.setdefault(cid, []).append(b)
+        if b.get("catchup_applied"):
+            resolved_ranges.setdefault(cid, []).append(
+                (b.get("catchup_period_start", ""), b.get("catchup_period_end", ""))
+            )
+
+    unbilled_total = 0.0
+    outstanding_count = 0
+    by_customer: dict[str, float] = {}
+    for cid, est_bills in by_customer_estimated.items():
+        ranges = resolved_ranges.get(cid, [])
+        customer_total = 0.0
+        for b in est_bills:
+            period_end = b.get("period_end", "")
+            resolved = any(start <= period_end <= end for start, end in ranges)
+            if not resolved:
+                customer_total += b.get("total_amount_gbp", 0.0)
+                outstanding_count += 1
+        if customer_total:
+            by_customer[cid] = round(customer_total, 2)
+            unbilled_total += customer_total
+
+    return {
+        "unbilled_revenue_gbp": round(unbilled_total, 2),
+        "outstanding_bill_count": outstanding_count,
+        "by_customer": by_customer,
+    }
+
+
 def make_vat_remittance_event(bill: dict[str, Any]) -> dict[str, Any]:
     """Cash out: VAT collected from customer, remitted to HMRC.
 
@@ -327,6 +414,8 @@ def build_ledger(
             events.append(make_vat_remittance_event(b))
         if b.get("catchup_written_off_gbp", 0.0) > 0:
             events.append(make_back_billing_write_off_event(b))
+        if b.get("catchup_applied"):
+            events.append(make_revenue_restatement_event(b))
 
         if payment_behaviour is not None:
             credit_risk = payment_behaviour.CREDIT_RISK_BY_CUSTOMER.get(
@@ -440,6 +529,11 @@ def derive_pnl(events: list[dict[str, Any]]) -> dict[str, float]:
         result["back_billing_write_off_gbp"] = sum(
             e["write_off_amount_gbp"] for e in write_off_events
         )
+
+    restatement_events = [e for e in events if e["event_type"] == "revenue_restatement_event"]
+    if restatement_events:
+        result["revenue_restated_gbp"] = sum(e["restated_gbp"] for e in restatement_events)
+        result["revenue_restatement_count"] = len(restatement_events)
 
     if acq_events or fixed_events or cts_events:
         acq = result.get("acquisition_spend_gbp", 0.0)
