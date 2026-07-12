@@ -39,6 +39,19 @@ cluster, and 3 fresh cold-walk personas (CRO, General Counsel, competitor
 analyst) — none used in the first six-pack. All output to new files only
 (no shared-ledger/maturity-map writes mid-flight); findings to be
 integrated and filed once each reports back. Fan-out count this turn: 7.
+All 7 landed + integrated (commits 207c37ad self-correcting a real gap the
+red-team found in this session's own back-billing fix, d1ac193c for the
+rest); see docs/observability/sanity_adjudication_ledger.json and
+PRIORITIES.md's backlog for the adjudicated findings.
+
+**Third wave, 2026-07-12 ~09:23Z (using an idle wait on the routine
+run_complete pipeline productively, per "don't sit idle"):** 3 read-only
+investigation forks dispatched into the three findings the first six-pack
+left honestly `open` (never investigated) -- C1_2's successor
+acquisition-date mismatch, C2's extreme tariff-vs-SVT YoY swing, and the
+cross-fuel cost-to-serve gap (C1 vs C1g). Each told to read stable
+timestamped report snapshots, not `run_output_latest.json`, to avoid racing
+the concurrently-running report regeneration. Fan-out count this turn: 3.
 
 **Staged:** 2026-07-12 ~00:20Z by advisor, director-decided ("spike wasn't
 spikey enough — 30% used; more discovery, hardening, independent C-suite

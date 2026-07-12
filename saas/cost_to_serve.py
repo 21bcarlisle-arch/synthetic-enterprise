@@ -34,7 +34,21 @@ records plus the CUSTOMERS roster from saas/customers.py) and returns plain
 dicts. No imports from `sim/`.
 """
 
-SETTLEMENT_PERIODS_PER_YEAR = 17_520  # 48 periods/day * 365 days
+SETTLEMENT_PERIODS_PER_YEAR = 17_520  # 48 half-hourly periods/day * 365 days (electricity)
+
+# Cross-fuel cost-to-serve bug, self-caught same session (2026-07-12,
+# invariant/cold-walk investigation fork, coldwalk:cost_to_serve_cross_fuel_
+# mismatch_same_household): gas settlement is DAILY (simulation/gas_settlement.py,
+# "one period per gas day, not 48 half-hours"), not half-hourly like electricity
+# -- but this module divided the SAME annual overhead by the electricity-only
+# SETTLEMENT_PERIODS_PER_YEAR (17,520) regardless of commodity, then applied
+# that per-period rate once per record. A gas account only ever produces ~365
+# records/year, so it recovered just 365/17,520 (~2.1%) of its intended annual
+# overhead -- confirmed exactly: C1 (elec) recovered GBP54.99/yr (~full GBP55),
+# C1g (gas, same household) recovered GBP1.146/yr, a 48.0x gap matching
+# 17,520/365 to 3 significant figures. Fixed by keying the per-period rate on
+# actual settlement cadence per commodity, not one universal divisor.
+GAS_SETTLEMENT_PERIODS_PER_YEAR = 365  # one record per gas day
 
 # Annual fixed overhead per account (£), by segment: billing/IT/customer
 # service plus smart-meter operation.
@@ -55,6 +69,10 @@ BAD_DEBT_RATE = {
 
 FIXED_OVERHEAD_GBP_PER_PERIOD = {
     segment: annual / SETTLEMENT_PERIODS_PER_YEAR
+    for segment, annual in FIXED_OVERHEAD_GBP_PER_YEAR.items()
+}
+FIXED_OVERHEAD_GBP_PER_PERIOD_GAS = {
+    segment: annual / GAS_SETTLEMENT_PERIODS_PER_YEAR
     for segment, annual in FIXED_OVERHEAD_GBP_PER_YEAR.items()
 }
 
@@ -80,7 +98,7 @@ def get_bad_debt_rate(year: int, segment: str) -> float:
     year_rates = _BAD_DEBT_RATE_BY_YEAR.get(year, BAD_DEBT_RATE)
     return year_rates.get(segment, BAD_DEBT_RATE.get(segment, 0.02))
 
-def cost_to_serve_for_period(segment: str, revenue_gbp: float) -> float:
+def cost_to_serve_for_period(segment: str, revenue_gbp: float, commodity: str = "electricity") -> float:
     """Return the cost-to-serve (£) for one settlement period for one account.
 
     segment: "resi" or "SME" — must be a key in FIXED_OVERHEAD_GBP_PER_YEAR.
@@ -88,7 +106,15 @@ def cost_to_serve_for_period(segment: str, revenue_gbp: float) -> float:
         unused (cost-to-serve is fixed overhead only, see module docstring)
         but kept in the signature for call-site stability and in case a
         future revenue-scaled component (e.g. transaction fees) is added.
+    commodity: "electricity" (default, half-hourly cadence) or "gas" (daily
+        cadence) — the annual overhead is the same £ figure per segment
+        either way, but it must be divided by however many settlement
+        records THIS commodity actually produces per year, not a single
+        universal divisor (see GAS_SETTLEMENT_PERIODS_PER_YEAR's docstring
+        for the cross-fuel bug this parameter fixes).
     """
+    if commodity == "gas":
+        return FIXED_OVERHEAD_GBP_PER_PERIOD_GAS[segment]
     return FIXED_OVERHEAD_GBP_PER_PERIOD[segment]
 
 
@@ -124,7 +150,8 @@ def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -
     for record in settlement_records:
         customer_id = record["customer_id"]
         segment = segment_by_customer[customer_id]
-        cost = cost_to_serve_for_period(segment, record["revenue_gbp"])
+        commodity = record.get("commodity", "electricity")
+        cost = cost_to_serve_for_period(segment, record["revenue_gbp"], commodity)
         margin = record["margin_gbp"]
 
         if customer_id not in by_customer:
@@ -169,7 +196,8 @@ def build_cost_to_serve_ledger_events(
     for record in settlement_records:
         month = record["settlement_date"][:7]
         segment = segment_by_customer[record["customer_id"]]
-        cost = cost_to_serve_for_period(segment, record["revenue_gbp"])
+        commodity = record.get("commodity", "electricity")
+        cost = cost_to_serve_for_period(segment, record["revenue_gbp"], commodity)
         by_month[month] = by_month.get(month, 0.0) + cost
 
     return [

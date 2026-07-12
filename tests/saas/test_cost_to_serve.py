@@ -1,6 +1,10 @@
 from saas.cost_to_serve import (
     BAD_DEBT_RATE,
     FIXED_OVERHEAD_GBP_PER_PERIOD,
+    FIXED_OVERHEAD_GBP_PER_PERIOD_GAS,
+    FIXED_OVERHEAD_GBP_PER_YEAR,
+    GAS_SETTLEMENT_PERIODS_PER_YEAR,
+    SETTLEMENT_PERIODS_PER_YEAR,
     build_cost_to_serve,
     build_cost_to_serve_ledger_events,
     cost_to_serve_for_period,
@@ -12,13 +16,16 @@ CUSTOMERS = [
 ]
 
 
-def _record(customer_id, revenue_gbp, margin_gbp, settlement_date="2020-01-01"):
-    return {
+def _record(customer_id, revenue_gbp, margin_gbp, settlement_date="2020-01-01", commodity=None):
+    rec = {
         "customer_id": customer_id,
         "revenue_gbp": revenue_gbp,
         "margin_gbp": margin_gbp,
         "settlement_date": settlement_date,
     }
+    if commodity is not None:
+        rec["commodity"] = commodity
+    return rec
 
 
 def test_cost_to_serve_for_period_resi():
@@ -177,3 +184,56 @@ def test_ledger_events_totals_match_build_cost_to_serve_portfolio():
     events = build_cost_to_serve_ledger_events(records, CUSTOMERS)
     portfolio = build_cost_to_serve(records, CUSTOMERS)["portfolio"]["cost_to_serve_gbp"]
     assert sum(e["amount_gbp"] for e in events) == pytest.approx(portfolio)
+
+
+# --- coldwalk:cost_to_serve_cross_fuel_mismatch_same_household (2026-07-12) ---
+# Gas settlement is daily (~365 records/yr), electricity is half-hourly
+# (~17,520 records/yr) -- the SAME per-period rate applied to both cadences
+# recovered only 365/17,520 (~2.1%) of a gas account's intended annual
+# overhead, a confirmed 48x real-data gap (C1 elec GBP54.99/yr vs C1g gas
+# GBP1.146/yr for the same household).
+
+
+def test_gas_commodity_uses_gas_cadence_divisor():
+    elec_cost = cost_to_serve_for_period("resi", 10.0, commodity="electricity")
+    gas_cost = cost_to_serve_for_period("resi", 10.0, commodity="gas")
+    assert gas_cost == pytest.approx(FIXED_OVERHEAD_GBP_PER_PERIOD_GAS["resi"])
+    assert gas_cost == pytest.approx(elec_cost * (SETTLEMENT_PERIODS_PER_YEAR / GAS_SETTLEMENT_PERIODS_PER_YEAR))
+
+
+def test_commodity_defaults_to_electricity_for_backward_compatibility():
+    assert cost_to_serve_for_period("resi", 10.0) == cost_to_serve_for_period(
+        "resi", 10.0, commodity="electricity"
+    )
+
+
+def test_full_year_of_gas_records_recovers_the_full_annual_overhead():
+    # One record per gas day for a full year must recover ~the full annual
+    # figure -- not the 2.1% the bug produced.
+    records = [_record("C1", 10.0, 2.0, settlement_date=f"2020-01-{d:02d}", commodity="gas") for d in range(1, 29)]
+    total = sum(cost_to_serve_for_period("resi", 10.0, commodity="gas") for _ in records)
+    annual_rate_for_28_days = FIXED_OVERHEAD_GBP_PER_YEAR["resi"] * 28 / GAS_SETTLEMENT_PERIODS_PER_YEAR
+    assert total == pytest.approx(annual_rate_for_28_days)
+
+
+def test_build_cost_to_serve_reads_commodity_from_record():
+    records = [
+        _record("C1", revenue_gbp=10.0, margin_gbp=2.0, commodity="electricity"),
+        _record("C1", revenue_gbp=10.0, margin_gbp=2.0, commodity="gas"),
+    ]
+    result = build_cost_to_serve(records, CUSTOMERS)
+    expected = (
+        cost_to_serve_for_period("resi", 10.0, "electricity")
+        + cost_to_serve_for_period("resi", 10.0, "gas")
+    )
+    assert result["by_customer"]["C1"]["cost_to_serve_gbp"] == pytest.approx(expected)
+
+
+def test_build_cost_to_serve_defaults_to_electricity_when_commodity_absent():
+    # Old call sites / fixtures with no "commodity" key must keep behaving
+    # exactly as before this fix (electricity cadence).
+    records = [_record("C1", revenue_gbp=10.0, margin_gbp=2.0)]  # no commodity key
+    result = build_cost_to_serve(records, CUSTOMERS)
+    assert result["by_customer"]["C1"]["cost_to_serve_gbp"] == pytest.approx(
+        cost_to_serve_for_period("resi", 10.0)
+    )

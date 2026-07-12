@@ -1430,6 +1430,22 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   PASS.
 
 ## Backlog
+- **Successor-account `acquisition_date` overloaded as `supply_start` (2026-07-12,
+  investigation fork on `coldwalk:c1_2_successor_acquisition_date_mismatch`)**:
+  `saas/customers.py` deliberately and correctly keeps a successor account's
+  (e.g. C1_2) `acquisition_date` identical to its predecessor's so the internal
+  term-schedule anchor aligns with the real churn/activation date -- verified,
+  do NOT change this, it is load-bearing. The real gap is downstream:
+  `company/crm/customer_registry.py:133` writes `acquisition_date` straight
+  into a DB column named `supply_start`, so a successor's real supply-start
+  date is misreported by however many years elapsed before the predecessor
+  churned (confirmed: C1_2 stamped 2016-01-01, five years before its real
+  2020-12-30 activation). `lifecycle_tracker.py`/`acquisition_cohort.py` would
+  have the same problem if wired to a live call site (currently dormant, no
+  production caller found). Class fix (R10): a distinct field (e.g.
+  `real_start_date`) populated from the actual activation date, repointing
+  `customer_registry.py`'s `supply_start` at it -- a real, moderate-scope
+  change, not built this session.
 - **Pre-bill Tier-1 gate materially overstates its own coverage (2026-07-12,
   docs/observability/invariant_redteam_2026-07-12.md, adversarial red-team,
   8 findings all CONFIRMED by execution)**: `pre_bill_validation.py`'s module

@@ -49,25 +49,25 @@
     "state": "adjudicated-false-positive"
   },
   "coldwalk:c1_2_successor_acquisition_date_mismatch": {
-    "adjudicated_at": "2026-07-12T05:12:14.189452+00:00",
-    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
-    "evidence": "SUNDAY_WIDE cold-walk, COO persona: C1_2 (a successor/dual sub-account of C1) carries acquisition_date=2016-01-01, identical to the original C1 account, but its own first real billing activity is 2020 (gross_gbp=10.26, near-nil) jumping to material revenue in 2021. Either the acquisition_date field is wrong for a successor account, or this represents a different tenant who should carry their own start date. Not independently verified against saas/customers.py's SUCCESSOR_CUSTOMERS construction in this triage pass -- left open.",
+    "adjudicated_at": "2026-07-12T08:33:54.482735+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE third-wave investigation fork, 2026-07-12)",
+    "evidence": "Investigation fork (2026-07-12) found a MIXED but genuine result. The core billing mechanism is deliberate and CORRECT: saas/customers.py's own comment confirms acquisition_date is intentionally kept identical to the predecessor's so the term-schedule anchor aligns, while actual settlement starts at the real churn/activation date (verified: C1_2's first invoice genuinely lands 2020-12-30, five 365-day steps from the shared 2016-01-01 anchor, matching the flagged near-nil-2020 pattern exactly) -- this is NOT a bug, it is what makes the churn-to-successor handoff work without extra reconciliation logic. The REAL gap: acquisition_date is overloaded to also mean \"real relationship start date\" by other consumers -- confirmed company/crm/customer_registry.py:133 writes it straight into a DB column literally named supply_start, stamping a successor's real 2016-01-01 \"supply start\" five years before any actual meter/invoice activity. lifecycle_tracker.py/acquisition_cohort.py would also misreport tenure/cohort by ~5 years if wired to a real call site (currently DORMANT -- no production call site found for either this session). Registered, not fixed: the class fix (R10) is a distinct field (e.g. real_start_date) populated from the actual activation date, repointing customer_registry.py's supply_start at it -- a real, moderate-scope change, not a quick patch, and acquisition_date itself must NOT be changed (it is load-bearing for the verified term-alignment mechanism).",
     "finding_key": "coldwalk:c1_2_successor_acquisition_date_mismatch",
-    "state": "open"
+    "state": "adjudicated-real"
   },
   "coldwalk:c2_tariff_vs_svt_extreme_yoy_swing": {
-    "adjudicated_at": "2026-07-12T05:12:14.189294+00:00",
-    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
-    "evidence": "SUNDAY_WIDE cold-walk, COO persona: customer C2's rate_vs_svt_pct swings from +46.63% (2022 renewal) to -60.45% (2023 renewal) year-on-year in back-to-back fixed-term renewals -- over 100 percentage points of swing for the same customer. Not independently verified against the renewal-pricing engine in this triage pass -- left open for investigation into company/pricing/ or company/billing/renewal_engine.py's renewal-rate-setting logic.",
+    "adjudicated_at": "2026-07-12T08:33:54.482439+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE third-wave investigation fork, 2026-07-12)",
+    "evidence": "Investigation fork (2026-07-12) independently reproduced both figures exactly (2022: unit_rate=305.0, svt_rate=208.0 -> +46.63%; 2023: unit_rate=265.0, svt_rate=670.0 -> -60.45%) via simulation/run_phase2b.py::_build_churn_basis_risk and simulation/svt_rates.py directly. The quarter-lookup logic is correct (verified both March-31 boundary cases). The swing is real 2022-2023 UK market volatility, not a bug: the published Ofgem Default Tariff Cap genuinely rocketed to ~67p/kWh in Jan-Mar 2023 then crashed ~55% to 30.1p/kWh by Apr-Jul 2023 (H-confidence, Ofgem-sourced, docs/market_research/svt_rates_active_passive_2016_2025.md) while C2's own contracted rate moved far more modestly (305->265 GBP/MWh, ~13%, tracking the smoother wholesale forward curve) -- dividing a stable numerator by a genuinely-swinging denominator mechanically produces this exact class of >100pp swing. One documented caveat noted, not a defect: the comparison uses the notional Ofgem cap, not the EPG-adjusted rate customers actually paid Oct 2022-Jun 2023 -- already explicit in annual_report.py's own docstring, a labelled simplification not a hidden one. No code change made.",
     "finding_key": "coldwalk:c2_tariff_vs_svt_extreme_yoy_swing",
-    "state": "open"
+    "state": "adjudicated-false-positive"
   },
   "coldwalk:cost_to_serve_cross_fuel_mismatch_same_household": {
-    "adjudicated_at": "2026-07-12T05:12:14.189608+00:00",
-    "adjudicated_by": "claude (SUNDAY_WIDE cold-walk triage, 2026-07-12)",
-    "evidence": "SUNDAY_WIDE cold-walk, COO persona: C1 (electricity) cost_to_serve_gbp=274.94 over 5 years (~\u00a355/yr) vs C1g (gas, same household/tenancy) cost_to_serve_gbp=5.73 over the same period (~\u00a31.15/yr) -- a >40x gap in servicing cost for two fuels billed to the same customer. Not independently verified against saas/cost_to_serve.py's per-fuel allocation logic in this triage pass -- left open for investigation into whether this is a real per-fuel cost-driver difference (plausible: gas metering/service costs genuinely differ from electricity) or a modeling gap.",
+    "adjudicated_at": "2026-07-12T08:33:54.481993+00:00",
+    "adjudicated_by": "claude (SUNDAY_WIDE third-wave investigation fork, 2026-07-12)",
+    "evidence": "Investigation fork (2026-07-12) confirmed a genuine modelling bug, root-caused exactly. saas/cost_to_serve.py divided the SAME annual overhead by a single universal SETTLEMENT_PERIODS_PER_YEAR=17,520 (electricity half-hourly cadence) regardless of commodity, then applied that per-period rate once per settlement record. Gas settlement is DAILY (simulation/gas_settlement.py, ~365 records/yr), so a gas account only ever recovered 365/17,520 (~2.1%) of its intended annual overhead -- confirmed exactly: C1 (elec) recovered GBP54.99/yr (~full GBP55), C1g (gas, same household) recovered GBP1.146/yr, a 48.0x gap matching 17,520/365 to 3 significant figures precisely, no separate gas-cost driver anywhere in the module (FIXED_OVERHEAD_GBP_PER_YEAR is keyed by segment only, no fuel dimension). FIXED same session: cost_to_serve_for_period() now takes a commodity parameter and divides by the correct cadence per commodity (GAS_SETTLEMENT_PERIODS_PER_YEAR=365 for gas); both call sites (build_cost_to_serve, build_cost_to_serve_ledger_events) now read commodity from the settlement record, defaulting to electricity for backward compatibility with existing fixtures/call sites lacking the field. 6 new tests, all 38 cost-to-serve/bad-debt tests + 2,171 broader saas/tools/finance tests pass unchanged, epistemic verifier PASS.",
     "finding_key": "coldwalk:cost_to_serve_cross_fuel_mismatch_same_household",
-    "state": "open"
+    "state": "adjudicated-real"
   },
   "coldwalk:margin_reconciliation:portfolio_vs_ledger": {
     "adjudicated_at": "2026-07-12T08:20:29.268046+00:00",
