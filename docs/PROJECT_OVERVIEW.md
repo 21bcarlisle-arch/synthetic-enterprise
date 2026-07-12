@@ -111,6 +111,18 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### E2_revenue_reconciliation: idle-hole found and fixed via self-audit (2026-07-12, self-refill draw)
+
+The self-refill draw selected `E2_revenue_reconciliation` (`level_current: 2 -> level_target: 3`, `loop_stage: frame`), drawable because its `depends_on: [D2_three_clocks]` now counts as met -- `D2_three_clocks` is `loop_stage: idle` (deliberately parked, per the director's own epoch-sequencing decision), and the ADVISOR_ANSWER_CANNOT_DRAW.md fix earlier the same session made a parked dependency count as satisfied rather than blocking its dependents transitively.
+
+Re-read the atom's own lane charter (`docs/design/charters/E_finance_treasury.md`, written 2026-07-11 during the SPIKE_WEEKEND DISCOVER/FRAME charter flood) before assuming there was real FRAME-stage work to do. The charter is complete -- mission, sub-capability tree, L2/L3/L4 definitions per sub-atom, named best-practice references (FRS 102, HMRC Corporation Tax rates, IAS 8), lane roadmap, simplifications register -- and already states, in its own words, for E2 specifically: "Genuinely blocked, not stalled: the actual numerical reconciliation is D2_three_clocks's scope -- do not start it independently of that atom's own sequencing."
+
+This means `loop_stage: frame` was itself stale. E2's own 2026-07-10 simplifications entry had explicitly chosen `depends_on` over `loop_stage: idle` *specifically because* "E2's own loop_stage genuinely IS frame-appropriate work if/when D2 unblocks" -- i.e. writing the charter was real, legitimate work at the time. That work is now done, so the reasoning that justified `frame` over `idle` no longer holds, and no further independent FRAME output or BUILD action remains for this atom while D2 stays parked.
+
+This is the SAME class as idle-hole #8 (`D3_catchup_rebilling`/`W1_reveal_over_time`, 2026-07-11) -- a genuinely-correct block that goes stale with no mechanism to notice when the situation underneath it changes -- just manifesting on `loop_stage` rather than `depends_on` this time. Confirmed live via `background/health_check.py::_check_stale_dependencies()`: it flagged E2 as a stale-dependency candidate, and its own docstring had explicitly (and, as of this session, incorrectly) cited E2 as the canonical "deliberate, correctly-reasoned, NOT stale" counter-example as of 2026-07-11. Both fixed: `E2_revenue_reconciliation`'s `loop_stage` (`frame` -> `idle`) in `docs/design/maturity_map.yaml`, and the health-check docstring's own reference to E2 (kept as a live example of the check's actual purpose -- surfacing a question for review, not asserting a fixed answer -- rather than removed). `depends_on: [D2_three_clocks]` is unchanged; only the stale field was wrong. When D2 eventually starts building, this atom's dial-weighted candidacy naturally resumes once there is real independent work to select.
+
+No new code, no new tests -- a documentation/map-state accuracy fix. 17,174 tests collected (full suite, unchanged), epistemic PASS.
+
 ### W5_1_banking_payment_rails: L2->L3 attempt, honestly held at L2 after independent Expert Hour review (2026-07-12, self-refill draw)
 
 The maturity-map self-refill draw (fixed earlier the same session, see ADVISOR_ANSWER_CANNOT_DRAW.md below) selected `W5_1_banking_payment_rails` -- its own charter (`docs/design/charters/W5_banking_payment_rails.md`) named the L2->L3 gap precisely: mandate SETUP and AMENDMENT existed in `simulation/bacs_rails.py` (`submit_mandate_setup`/`submit_amendment`) but were unused; mandate creation still happened synchronously via `book.create_mandate()`.
@@ -6966,7 +6978,10 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,174 tests collected (full suite) -- W5_1_banking_payment_rails L2->L3 attempt, honestly held at L2
+- 17,174 tests collected (full suite, unchanged) -- E2_revenue_reconciliation idle-hole found and fixed
+  (loop_stage frame->idle, a stale-state finding after its lane charter was completed; see Section
+  4's entry), documentation/state-only fix, no new tests, on top of the prior 17,174 tests collected
+  (full suite) -- W5_1_banking_payment_rails L2->L3 attempt, honestly held at L2
   after a fresh-context Expert Hour review found real bugs (amendment-trigger operand conflation, a
   factually-wrong rejection-rate claim, an overclaimed register-consolidation "resolution") and one
   decisive structural blocker (zero live pipeline callers); all concrete bugs fixed, structural

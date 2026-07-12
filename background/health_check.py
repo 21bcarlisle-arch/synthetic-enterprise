@@ -122,12 +122,22 @@ def _check_stale_dependencies() -> str | None:
     decision). The dependency was real when set, then went stale when W1's
     own scope narrowed, with no mechanism to ever notice. Root-cause note (see
     D3's own maturity_map.yaml simplifications for the full audit): NOT every
-    non-idle-atom-blocked-by-idle-dependency instance is stale -- E2_revenue_
-    reconciliation's depends_on is a deliberate, correctly-reasoned block (its
-    own simplifications document choosing depends_on specifically over
-    loop_stage=idle) -- so this check SURFACES candidates for human/agent
-    review, it does not assert they are all bugs. Silence is not the goal;
-    visibility is.
+    non-idle-atom-blocked-by-idle-dependency instance is stale -- this check
+    SURFACES candidates for human/agent review, it does not assert they are
+    all bugs. Silence is not the goal; visibility is.
+
+    2026-07-12: this docstring previously cited E2_revenue_reconciliation as
+    the canonical "deliberate, correctly-reasoned, NOT stale" counter-example
+    (its own simplifications explicitly chose depends_on over loop_stage=idle
+    because writing its lane charter was still legitimate FRAME work at the
+    time). That charter was written the very next day and is now complete --
+    the reasoning that justified loop_stage=frame no longer holds, and E2's
+    own maturity_map.yaml entry was corrected to loop_stage=idle. Kept as a
+    live example of exactly the point above: a flag here is a candidate for
+    review, and review can conclude either "still deliberate, leave it" (as
+    E2 was in 2026-07-11) or "now genuinely stale, fix it" (as E2 became by
+    2026-07-12) -- the check's job is to keep surfacing the question, not to
+    answer it once and stop looking.
     """
     try:
         import yaml
