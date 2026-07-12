@@ -52,15 +52,28 @@ loaded in a way the real regulator is currently being challenged on.
   this is a live, unresolved regulatory problem space, not a solved one, reinforcing the atom's own
   framing that the company must classify under genuine uncertainty.
 
+## Second search attempt (2026-07-13) — two new real anchors, precise split still unresolved
+
+A second, more targeted search specifically for a StepChange/Citizens Advice can't-pay/won't-pay
+percentage split did not find one either — but surfaced two further real, current anchors:
+
+- **[L] 55% of StepChange clients with dual-fuel bill responsibility were in arrears (March
+  2023)** — an updated, higher figure than the 41% (H1 2024) already found above; both are real,
+  from the same real (self-selected, distressed) sub-population, at different points in time — worth
+  keeping both rather than treating either as definitive, since the real rate clearly moves.
+- **[L] 5.3 million people live in households in debt to their energy supplier (Citizens Advice)** —
+  a real, current, whole-population-scale figure (not sub-selected to debt-advice clients), a useful
+  denominator anchor distinct from the StepChange client-only figures above.
+
 ## What this does NOT yet resolve (honest, open items — R10)
 
-- **No precise, quotable numeric split for "genuine won't-pay incidence" was found** in this pass —
-  searched specifically for a StepChange/Citizens Advice report giving a direct percentage
-  comparison and did not locate one. This remains a real, named gap for the eventual BUILD/FRAME
-  pass to either find (a more targeted literature search, or a direct read of StepChange's "Plugging
-  the Gap" report in full) or explicitly acknowledge as un-anchorable to a precise external number,
-  requiring a director-set assumption instead (matching R13's curriculum-is-the-director's-instrument
-  principle if no real anchor exists).
+- **No precise, quotable numeric split for "genuine won't-pay incidence" was found after TWO
+  independent, targeted search attempts** — confirmed genuinely un-anchorable via this method, not
+  merely unsearched. The eventual BUILD/FRAME pass should either attempt a direct read of
+  StepChange's full "Plugging the Gap" report (not just search-engine summaries) or explicitly adopt
+  a director-set curriculum assumption instead (R13's curriculum-is-the-director's-instrument
+  principle), rather than a third search.
 - The whole-population (not self-selected/distressed-only) willingness incidence rate is not
-  directly evidenced by anything found this pass — the StepChange figure anchors a sub-population,
-  as noted above.
+  directly evidenced by anything found this pass — the StepChange figures anchor a sub-population;
+  the 5.3 million whole-population debt figure above is a real denominator anchor but does not
+  itself resolve the can't-pay/won't-pay split within it.
