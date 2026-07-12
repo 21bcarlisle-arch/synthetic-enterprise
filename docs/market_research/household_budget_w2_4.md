@@ -60,12 +60,26 @@ ordering claim is not well supported as stated**:
   pool, not a debt-stack entry). This is a real, precise correction for the next FRAME pass, not
   asserted as already fixed here (no code/ordering has been built).
 
+## Savings buffer — real, current (2026), income-band-segmented, closes a named gap
+
+- **[L] FCA Financial Lives data: households earning under £15,000/year — 22% have NO savings at
+  all, and over a third have less than £1,000.** Households earning over £50,000/year show the
+  opposite pattern: only a small share lack savings, and more than half hold over £10,000. This is
+  a real, decisive, INCOME-BAND-SEGMENTED anchor for the "savings buffer" component — the buffer is
+  not independent of the income band, it is strongly co-varying with it, and should be modelled as a
+  joint distribution (income band x savings buffer), not two independently-drawn parameters.
+- **[L] Population-wide: 1 in 10 UK adults have zero cash savings; a further 21% have less than
+  £1,000** — a real, current baseline even outside the lowest income band, useful as a sanity check
+  on whatever joint distribution this atom eventually encodes.
+- **[L] The FCA estimates ~8.9 million UK adults are in "serious financial difficulty"** (missed a
+  bill payment in the last 6 months) — a real, current, population-scale anchor connecting this
+  atom's own hidden-budget-state concept directly to observable real-world payment-difficulty
+  incidence, reinforcing that the model's eventual calibration target (real UK arrears/missed-payment
+  rates) has a genuine, sourceable population base to check against.
+
 ## Honest open items (R10)
 
 - No precise within-priority-tier secondary ordering (rent vs energy vs council tax, when all three
   are simultaneously in arrears and money is genuinely insufficient for all) was found — a real gap
   for a more targeted search or an explicit director-set curriculum assumption (R13) if no further
   real anchor is found.
-- The savings-buffer component (of the five named) was not separately anchored in this pass — no
-  targeted search was run for UK household savings/buffer statistics by income band; registered here
-  as a genuine remaining gap for the next DISCOVER pass on this atom, not silently skipped.
