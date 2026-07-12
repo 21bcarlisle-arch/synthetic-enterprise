@@ -1,5 +1,5 @@
 ## E2_revenue_reconciliation L3 EARNED (live-verified) + W1 Expert Hour PASS + W2_7 DISCOVER
-Last updated: 2026-07-12T21:33:56Z
+Last updated: 2026-07-12T21:54:23Z
 
 **Status:** self-refill cycle (idle-tier DISCOVER/FRAME + dial-weighted BUILD), all changes pushed
 and live-verified where R11 applies. Epistemic PASS throughout.
@@ -40,7 +40,7 @@ named as an open gap for the eventual build or a director-set curriculum assumpt
 docs/claude/phase-history.md for the full write-up. THE SUPERVISOR architecture rebuild -- see
 docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md.
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (504s / 8 min):
 - Net margin: £1,524,057.56 | Gross: £6,477,859.06 | Capital: £51,377
 - Treasury: £2,466,636 → £3,902,095 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,730,031.11 | Net after CTS: £6,407,919
