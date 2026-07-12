@@ -71,6 +71,39 @@ still guarantees a turn within POLL_INTERVAL_SECONDS.
 R7 applies to the granted-turn text itself: it carries ZERO content
 authority, a doorbell only ("work exists, read it from disk yourself"),
 never a directive -- same discipline as every other wake in this codebase.
+
+4. WORK-GRANTING REDESIGN (2026-07-12, R3_WORK_GRANTING_REDESIGN.md, P0,
+   9th idle variant, director-caught from the live console -- "the
+   director is hand-typing 'self-refill next atom' -- he is manually
+   performing the supervisor's core function"). Root cause named precisely
+   in the redesign order: granting was TRIGGER-DRIVEN ("doorbell -> if
+   nothing there -> idle") when it must be BACKLOG-DRIVEN ("doorbell (if
+   any) -> handle it -> THEN draw the next atom from the map, always").
+   The concrete bug: `find_work()`'s "unprocessed staging" check included
+   `run_complete_*.md` -- the auto-process daemon's OWN routine
+   coordination marker, landing every ~13min on sim_runner's own cadence,
+   needing no granted turn at all to be handled -- in the SAME list used to
+   decide "real work exists on the instruction channel." So as long as
+   that marker sat in docs/staging/ (nearly always), `find_work()` returned
+   "unprocessed staging -- run_complete_X.md" and NEVER reached the
+   self-refill draw below it. The granted session then correctly concluded
+   "that's the daemon's own work, nothing for me to do" -- individually
+   correct, collectively wrong: ~35 open map atoms sat idle while this
+   repeated every ~2 minutes. Fixed: (1) `_real_staged_instructions()`
+   excludes daemon markers from the instruction-channel check entirely
+   (`_is_daemon_marker()`); (2) the self-refill draw (`_self_refill_draw()`)
+   is now UNCONDITIONAL -- it runs and gets appended to the reason even
+   when a real agenda/urgent/staged item already fired, so a granted turn
+   is never JUST daemon housekeeping with no real capability-building work
+   attached; (3) `find_work()` now returns `(reason, map_exhausted)` --
+   `map_exhausted` is True only when the self-refill draw itself found
+   nothing (every atom blocked/complete, or the map unreadable), distinct
+   from "didn't draw because something else took priority" (requirement 4:
+   escalate on CANNOT-draw, never on didn't-draw); (4) an idle-turn counter
+   (`_record_idle_turn()`/`IDLE_TURN_COUNTER_FILE`) instruments the
+   "nothing to do" state directly rather than letting it pass silently
+   (requirement 1: target is zero, and every occurrence is now visible in
+   the log, not just inferred from its absence).
 """
 from __future__ import annotations
 
@@ -122,6 +155,18 @@ STUCK_THRESHOLD_SECONDS = 3600  # 1 hour wall-clock (2026-07-11 redesign, R3 sec
 # was never itself flagged as a gap until now).
 STUCK_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_stuck_state.json"
 
+# R3_WORK_GRANTING_REDESIGN.md requirement 1+4 (2026-07-12, P0, 9th idle
+# variant): "nothing to do" must be an impossible terminal state while the
+# map has open atoms -- instrument it, count it, alarm it, target zero.
+# This tracks the ONE case find_work() can now return no reason at all:
+# the self-refill draw itself found no candidate (every atom blocked/
+# complete/unreadable), distinct from "didn't draw because something else
+# took priority" (that always produces a real reason string). Escalates
+# once per TRANSITION into this state (R5: never repeat an unchanged
+# status), not on every cycle it persists.
+MAP_EXHAUSTED_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_map_exhausted_state.json"
+IDLE_TURN_COUNTER_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_idle_turn_count.json"
+
 # Names that live directly in docs/staging/ but are not real work items.
 _IGNORED_STAGING_NAMES = {".gitkeep"}
 
@@ -150,6 +195,41 @@ def _unprocessed_staging_files() -> list[str]:
         p.name for p in STAGING_DIR.iterdir()
         if p.is_file() and p.name not in _IGNORED_STAGING_NAMES
     )
+
+
+def _is_daemon_marker(name: str) -> bool:
+    """True for a routine internal pipeline marker (sim_runner.py/
+    process_run_complete.py's own coordination file), never a real
+    director/advisor instruction. These self-process on the daemon's own
+    cadence with no granted turn required at all -- confirmed directly,
+    2026-07-12: dozens of these were picked up and fully processed by
+    process_run_complete.py across this entire session with zero agent
+    action needed."""
+    return (
+        (name.startswith("run_complete_") and name.endswith(".md"))
+        or (name.startswith("run_pending_") and name.endswith(".md"))
+    )
+
+
+def _real_staged_instructions() -> list[str]:
+    """R3_WORK_GRANTING_REDESIGN.md (P0, 9th idle variant, director-caught
+    2026-07-12): daemon markers off the instruction channel. The prior
+    `_unprocessed_staging_files()` included run_complete_*.md in the SAME
+    list `find_work()` used to decide "real work exists on the instruction
+    channel" -- so as long as the auto-process daemon's own routine marker
+    sat in docs/staging/ (which it does almost continuously, landing every
+    ~13min), find_work() returned early with "unprocessed staging --
+    run_complete_X.md" and NEVER reached the maturity-map self-refill draw
+    below it. The granted session then correctly concluded "that's the
+    daemon's own work, nothing for me to do" and ended the turn -- which
+    was individually correct (it WASN'T a real instruction) but collectively
+    wrong, because "not a real instruction" should have fallen through to
+    "so draw the next atom from the map instead," never to "so end the
+    turn." This is the root cause named in the redesign order, not a
+    coincidence: ~35 open map atoms sat idle while this repeated every
+    ~2 minutes, because the doorbell-inspection step never got past a
+    marker that was never supposed to gate it in the first place."""
+    return [name for name in _unprocessed_staging_files() if not _is_daemon_marker(name)]
 
 
 def _urgent_from_rich_pending(staged: list[str]) -> str | None:
@@ -343,33 +423,78 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
     )
 
 
-def find_work(resumed_from_pause: bool) -> str | None:
-    """Return a human-readable reason string if real work exists on disk,
-    else None. Checked fresh every cycle -- no "already nudged" memory, by
-    design (that memory is exactly what caused failure #4's silent gap)."""
+def _self_refill_draw() -> str | None:
+    """The backlog-driven draw itself (maturity map, falling back to
+    PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
+    find_work() can call it UNCONDITIONALLY (R3_WORK_GRANTING_REDESIGN.md
+    requirement 2: "every granted turn ends with real work drawn... THEN
+    draw the next atom from the map, always"), not merely as a fallback
+    reached only when nothing else fired."""
+    map_draw = _maturity_map_draw()
+    if map_draw:
+        return f"self-refill from maturity map (dial-weighted): {map_draw}"
+    backlog_item = _actionable_backlog_item()
+    if backlog_item:
+        return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
+    return None
+
+
+def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
+    """Return (reason, map_exhausted). `reason` is a human-readable string
+    if any real work exists (an instruction-channel doorbell, and/or a
+    self-refill draw), else None. `map_exhausted` is True only when the
+    self-refill draw itself found no candidate at all (every atom
+    blocked/complete/unreadable) -- distinct from "didn't draw because an
+    agenda/urgent item took priority" (requirement 4: escalate on
+    CANNOT-draw, never on didn't-draw). Checked fresh every cycle -- no
+    "already nudged" memory, by design (that memory is exactly what caused
+    failure #4's silent gap).
+
+    R3_WORK_GRANTING_REDESIGN.md (P0, 9th idle variant, 2026-07-12,
+    director-caught): work-granting was TRIGGER-DRIVEN ("doorbell -> if
+    nothing there -> idle") when it must be BACKLOG-DRIVEN ("doorbell (if
+    any) -> handle it -> THEN draw the next atom from the map, always").
+    Two changes from the pre-redesign version: (1) the "unprocessed
+    staging" check now uses `_real_staged_instructions()`, which excludes
+    routine daemon markers (run_complete_*.md) -- these used to look like
+    "real work exists on the instruction channel" and short-circuit this
+    function before it ever reached the self-refill draw, even though the
+    daemon marker needed no granted turn to be handled at all. (2) the
+    self-refill draw is now UNCONDITIONAL: it runs and gets appended to the
+    reason even when a real agenda/urgent/staged item already fired, so a
+    granted turn is never JUST "here's today's daemon housekeeping" with no
+    real capability-building work attached."""
     if resumed_from_pause:
-        return "usage-limit pause just ended -- resume work"
+        return "usage-limit pause just ended -- resume work", False
+
+    primary: str | None = None
 
     agenda = agenda_module.load_agenda()
     if agenda:
-        return f"agenda open -- phase '{agenda.get('phase', '?')}', step '{agenda.get('step', '?')}'"
+        primary = f"agenda open -- phase '{agenda.get('phase', '?')}', step '{agenda.get('step', '?')}'"
+    else:
+        staged = _real_staged_instructions()
+        urgent = _urgent_from_rich_pending(staged)
+        if urgent:
+            primary = f"urgent from_rich queued -- {urgent}"
+        elif staged:
+            primary = f"unprocessed staging -- {', '.join(staged)}"
 
-    staged = _unprocessed_staging_files()
-    urgent = _urgent_from_rich_pending(staged)
-    if urgent:
-        return f"urgent from_rich queued -- {urgent}"
-    if staged:
-        return f"unprocessed staging -- {', '.join(staged)}"
+    refill = _self_refill_draw()
 
-    map_draw = _maturity_map_draw()
-    if map_draw:
-        return f"agenda+staging empty -- self-refill from maturity map (dial-weighted): {map_draw}"
+    if primary and refill:
+        return f"{primary}; ALSO -- {refill}", False
+    if primary:
+        return primary, False
+    if refill:
+        return f"agenda+staging empty -- {refill}", False
 
-    backlog_item = _actionable_backlog_item()
-    if backlog_item:
-        return f"agenda+staging empty -- self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
-
-    return None
+    # Nothing anywhere -- requirement 1: this must be an impossible
+    # terminal state while the map has open atoms, so reaching here means
+    # the map itself is genuinely exhausted (every atom blocked/complete)
+    # or unreadable, which is itself a finding worth surfacing once
+    # (see _check_map_exhausted_escalation), not a silent "idle, no work".
+    return None, True
 
 
 def _stuck_key(reason: str) -> str:
@@ -394,16 +519,16 @@ def _stuck_key(reason: str) -> str:
     agenda = agenda_module.load_agenda()
     if agenda:
         return json.dumps({"kind": "agenda", "updated_at": agenda.get("updated_at")}, sort_keys=True)
-    if reason.startswith("agenda+staging empty -- self-refill from PRIORITIES.md backlog"):
+    if "self-refill from PRIORITIES.md backlog" in reason:
         try:
             priorities_mtime = PRIORITIES_PATH.stat().st_mtime
         except OSError:
             priorities_mtime = None
         return json.dumps({"kind": "backlog", "priorities_mtime": priorities_mtime}, sort_keys=True)
-    non_transient_staged = [
-        name for name in _unprocessed_staging_files()
-        if not (name.startswith("run_complete_") and name.endswith(".md"))
-    ]
+    # Reuse the single source of truth for "what's a routine daemon marker"
+    # (_is_daemon_marker) rather than a second, independently-drifting copy
+    # of the same exclusion list.
+    non_transient_staged = _real_staged_instructions()
     return json.dumps({"kind": "staging", "reason": reason, "staged": non_transient_staged}, sort_keys=True)
 
 
@@ -446,6 +571,68 @@ def _check_stuck_escalation(reason: str) -> None:
         log(f"STUCK escalation sent -- ~{minutes}min unchanged -- {reason}")
         state["escalated"] = True
         _save_stuck_state(state)
+
+
+def _load_idle_turn_count() -> int:
+    if not IDLE_TURN_COUNTER_FILE.exists():
+        return 0
+    try:
+        return json.loads(IDLE_TURN_COUNTER_FILE.read_text()).get("count", 0)
+    except (json.JSONDecodeError, OSError):
+        return 0
+
+
+def _record_idle_turn() -> int:
+    """R3_WORK_GRANTING_REDESIGN.md requirement 1: instrument the impossible
+    state, don't just prevent it silently. Returns the new total (all-time,
+    persisted) count of cycles where find_work() found genuinely nothing --
+    target is zero; every increment is itself visible in the log, not just
+    inferred from its absence."""
+    count = _load_idle_turn_count() + 1
+    IDLE_TURN_COUNTER_FILE.parent.mkdir(parents=True, exist_ok=True)
+    IDLE_TURN_COUNTER_FILE.write_text(json.dumps({"count": count}, sort_keys=True))
+    return count
+
+
+def _load_map_exhausted_state() -> dict:
+    if not MAP_EXHAUSTED_STATE_FILE.exists():
+        return {}
+    try:
+        return json.loads(MAP_EXHAUSTED_STATE_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_map_exhausted_state(state: dict) -> None:
+    MAP_EXHAUSTED_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    MAP_EXHAUSTED_STATE_FILE.write_text(json.dumps(state, sort_keys=True))
+
+
+def check_map_exhausted_escalation(map_exhausted: bool) -> None:
+    """R3_WORK_GRANTING_REDESIGN.md requirement 4: escalate on CANNOT-draw,
+    never on didn't-draw. `map_exhausted` is True only when find_work()'s
+    self-refill draw genuinely found no candidate at all -- every atom
+    blocked/complete, or the map is unreadable. That is itself a real
+    finding (either the whole map is done, which would be remarkable, or
+    something is wrong with the map/its dependency graph) -- fire ONE NTFY
+    on the TRANSITION into this state (R5: never repeat an unchanged
+    status), not every cycle it persists, and clear cleanly the moment real
+    work resumes so a later genuine recurrence escalates again."""
+    state = _load_map_exhausted_state()
+    was_exhausted = state.get("exhausted", False)
+    if map_exhausted and not was_exhausted:
+        ntfy(
+            "Supervisor: the maturity-map self-refill draw found NO candidate "
+            "atom at all (every atom blocked/complete, or the map is "
+            "unreadable) with no agenda/urgent/staged instruction either -- "
+            "this is a genuine CANNOT-draw, not a routine idle tick. Check "
+            "docs/design/maturity_map.yaml directly."
+        )
+        log("MAP-EXHAUSTED escalation sent -- self-refill found no candidate at all")
+        _save_map_exhausted_state({"exhausted": True})
+    elif not map_exhausted and was_exhausted:
+        log("Map-exhausted state cleared -- real work available again")
+        _save_map_exhausted_state({"exhausted": False})
 
 
 # Auto-clear (ADVISOR_STEER_OVERNIGHT.md item 2, 2026-07-11 -- authorized
@@ -596,9 +783,11 @@ def run_cycle() -> None:
         # standard boot once the pane goes idle again post-clear.
         return
 
-    reason = find_work(resumed_from_pause)
+    reason, map_exhausted = find_work(resumed_from_pause)
+    check_map_exhausted_escalation(map_exhausted)
     if reason is None:
-        log("Idle, no work -- skipping")
+        total = _record_idle_turn()
+        log(f"Idle, no work -- map genuinely exhausted (all-time idle-turn count: {total})")
         return
 
     _check_stuck_escalation(reason)

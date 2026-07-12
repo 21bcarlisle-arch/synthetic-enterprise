@@ -49,6 +49,17 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(supervisor, "USAGE_PAUSE_FILE", tmp_path / ".usage_pause.json")
     monkeypatch.setattr(supervisor, "STUCK_STATE_FILE", tmp_path / ".supervisor_stuck_state.json")
+    # R3_WORK_GRANTING_REDESIGN.md additions (2026-07-12): isolate the two
+    # new state files the same way as STUCK_STATE_FILE above, and default
+    # `ntfy` to a no-op capturing no calls -- most tests in this file never
+    # cared about escalation before and must not crash (the real send_ntfy
+    # raises if SE_NTFY_TOPIC isn't configured) or pollute real observability
+    # files just because a test happens to reach a genuinely-idle state.
+    # Tests that specifically exercise map-exhausted escalation override
+    # `ntfy` explicitly, same convention as the existing stuck-escalation tests.
+    monkeypatch.setattr(supervisor, "MAP_EXHAUSTED_STATE_FILE", tmp_path / ".supervisor_map_exhausted_state.json")
+    monkeypatch.setattr(supervisor, "IDLE_TURN_COUNTER_FILE", tmp_path / ".supervisor_idle_turn_count.json")
+    monkeypatch.setattr(supervisor, "ntfy", lambda msg: None)
     # Isolated from the real, committed PRIORITIES.md -- defaults to a
     # nonexistent tmp_path file (no backlog found, matching the pre-existing
     # "nothing open" test expectations), never the real repo file.
@@ -76,18 +87,18 @@ def _isolate(tmp_path, monkeypatch):
 # ── find_work() ──
 
 def test_find_work_none_when_nothing_open():
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_detects_open_agenda():
     agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "PhaseX" in reason and "stepY" in reason
 
 
 def test_find_work_detects_unprocessed_staging():
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "SOME_DOC.md" in reason
 
 
@@ -104,19 +115,19 @@ def test_find_work_ignores_in_progress_subdirectory():
     in_progress = supervisor.STAGING_DIR / "in_progress"
     in_progress.mkdir()
     (in_progress / "PARKED_INSTRUCTION.md").write_text("still has one open sub-item")
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_ignores_gitkeep():
     (supervisor.STAGING_DIR / ".gitkeep").write_text("")
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_detects_urgent_from_rich_distinctly():
     (supervisor.STAGING_DIR / "from_rich_20260709_010000.md").write_text(
         "<!-- Dispatcher: URGENT (classified 2026-07-09 01:00 UTC) -->\nsomething is wrong"
     )
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "urgent from_rich queued" in reason
     assert "from_rich_20260709_010000.md" in reason
 
@@ -125,14 +136,14 @@ def test_find_work_normal_from_rich_counts_as_unprocessed_staging():
     (supervisor.STAGING_DIR / "from_rich_20260709_010000.md").write_text(
         "<!-- Dispatcher: NORMAL (classified 2026-07-09 01:00 UTC) -->\nfyi"
     )
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "unprocessed staging" in reason
 
 
 def test_find_work_agenda_takes_priority_over_staging():
     agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "agenda open" in reason
 
 
@@ -142,7 +153,7 @@ def test_find_work_self_refills_from_backlog_when_nothing_staged():
     supervisor.PRIORITIES_PATH.write_text(
         "## Backlog\n- Some item NOT YET STARTED -- do it\n"
     )
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert reason is not None
     assert "self-refill" in reason
 
@@ -151,19 +162,19 @@ def test_find_work_ignores_blocked_backlog_items():
     supervisor.PRIORITIES_PATH.write_text(
         "## Backlog\n- **BLOCKED** on something NOT YET STARTED, awaiting director\n"
     )
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_ignores_review_gate_backlog_items():
     supervisor.PRIORITIES_PATH.write_text(
         "## Backlog\n- **REVIEW GATE OPEN (Tier 1)** -- some item NOT YET STARTED\n"
     )
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_no_backlog_section_returns_none():
     supervisor.PRIORITIES_PATH.write_text("# Just a title, no backlog section\n")
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_ignores_backlog_heading_mentioned_in_prose_before_the_real_heading():
@@ -182,7 +193,7 @@ def test_find_work_ignores_backlog_heading_mentioned_in_prose_before_the_real_he
         "## Backlog\n"
         "- Some real item, no gap here\n"
     )
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
 def test_find_work_still_finds_real_backlog_item_past_a_prose_mention():
@@ -193,24 +204,31 @@ def test_find_work_still_finds_real_backlog_item_past_a_prose_mention():
         "## Backlog\n"
         "- Some item NOT YET STARTED -- do it\n"
     )
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert reason is not None
     assert "self-refill" in reason
 
 
 def test_find_work_missing_priorities_file_returns_none():
     assert not supervisor.PRIORITIES_PATH.exists()
-    assert supervisor.find_work(resumed_from_pause=False) is None
+    assert supervisor.find_work(resumed_from_pause=False)[0] is None
 
 
-def test_find_work_staging_and_agenda_still_win_over_backlog():
+def test_find_work_staging_wins_as_primary_but_self_refill_still_appended():
+    """R3_WORK_GRANTING_REDESIGN.md requirement 2: the self-refill draw is
+    now UNCONDITIONAL -- staging still wins as the PRIMARY reason, but a
+    real instruction on the channel no longer suppresses the self-refill
+    draw the way it used to (that suppression was itself part of the
+    trigger-driven bug: a real doorbell should ADD work, never crowd out
+    the backlog draw)."""
     supervisor.PRIORITIES_PATH.write_text(
         "## Backlog\n- Some item NOT YET STARTED\n"
     )
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, exhausted = supervisor.find_work(resumed_from_pause=False)
     assert "unprocessed staging" in reason
-    assert "self-refill" not in reason
+    assert "self-refill" in reason
+    assert exhausted is False
 
 
 # ── maturity-map dial-weighted draw (2026-07-10, director audit + R3 redesign
@@ -449,7 +467,7 @@ def test_maturity_map_draw_weights_by_dial():
 
 def test_find_work_self_refills_from_maturity_map_when_nothing_staged():
     supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert reason is not None
     assert "self-refill from maturity map" in reason
     assert "X1_test_atom" in reason
@@ -460,7 +478,7 @@ def test_find_work_maturity_map_wins_over_backlog_fallback():
     supervisor.PRIORITIES_PATH.write_text(
         "## Backlog\n- Some item NOT YET STARTED\n"
     )
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "maturity map" in reason
     assert "PRIORITIES.md backlog" not in reason
 
@@ -470,16 +488,20 @@ def test_find_work_falls_back_to_backlog_when_maturity_map_unavailable():
     supervisor.PRIORITIES_PATH.write_text(
         "## Backlog\n- Some item NOT YET STARTED\n"
     )
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     assert "self-refill from PRIORITIES.md backlog (fallback" in reason
 
 
-def test_find_work_staging_wins_over_maturity_map():
+def test_find_work_staging_wins_as_primary_but_maturity_map_still_appended():
+    """Same requirement-2 change as the backlog-vs-staging case above,
+    applied to the maturity-map draw specifically."""
     supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, exhausted = supervisor.find_work(resumed_from_pause=False)
     assert "unprocessed staging" in reason
-    assert "maturity map" not in reason
+    assert "maturity map" in reason
+    assert "X1_test_atom" in reason
+    assert exhausted is False
 
 
 def test_stuck_key_backlog_path_changes_when_priorities_md_edited():
@@ -523,7 +545,7 @@ def test_stuck_key_staging_path_ignores_run_complete_marker_churn():
     and going (sim_runner's own normal pipeline cadence) must NOT change the
     stuck key for an unrelated, genuinely-stuck staged doc."""
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("staged content")
-    reason = supervisor.find_work(resumed_from_pause=False)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
     key1 = supervisor._stuck_key(reason)
     (supervisor.STAGING_DIR / "run_complete_20260101T000000Z.md").write_text("marker")
     key2 = supervisor._stuck_key(reason)
@@ -531,7 +553,7 @@ def test_stuck_key_staging_path_ignores_run_complete_marker_churn():
 
 
 def test_find_work_resumed_from_pause_short_circuits():
-    reason = supervisor.find_work(resumed_from_pause=True)
+    reason, _ = supervisor.find_work(resumed_from_pause=True)
     assert "usage-limit pause just ended" in reason
 
 
@@ -1079,3 +1101,139 @@ class TestAutoClear:
         agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
         supervisor.run_cycle()
         assert len(grant_calls) == 1
+
+
+# ── R3_WORK_GRANTING_REDESIGN.md (P0, 9th idle variant, 2026-07-12) ──
+# Root cause: routine daemon markers (run_complete_*.md) looked like real
+# work on the instruction channel and short-circuited find_work() before
+# it ever reached the self-refill draw -- "nothing to do" must be an
+# impossible terminal state while the map has open atoms; escalate on
+# CANNOT-draw (map genuinely exhausted), never on didn't-draw (something
+# else took priority this cycle).
+
+class TestDaemonMarkersOffTheInstructionChannel:
+    def test_run_complete_marker_alone_is_not_a_real_instruction(self):
+        (supervisor.STAGING_DIR / "run_complete_20260101T000000Z.md").write_text("marker")
+        assert supervisor._real_staged_instructions() == []
+
+    def test_run_pending_marker_alone_is_not_a_real_instruction(self):
+        (supervisor.STAGING_DIR / "run_pending_20260101T000000Z.md").write_text("marker")
+        assert supervisor._real_staged_instructions() == []
+
+    def test_real_staged_doc_alongside_a_marker_is_still_detected(self):
+        (supervisor.STAGING_DIR / "run_complete_20260101T000000Z.md").write_text("marker")
+        (supervisor.STAGING_DIR / "REAL_INSTRUCTION.md").write_text("a real directive")
+        assert supervisor._real_staged_instructions() == ["REAL_INSTRUCTION.md"]
+
+    def test_only_a_run_complete_marker_present_falls_through_to_self_refill(self):
+        """The exact observed failure, reproduced directly: with ONLY a
+        routine run_complete_*.md marker staged and a real open map atom,
+        the old find_work() would have returned "unprocessed staging --
+        run_complete_X.md" and never drawn from the map at all. It must
+        now fall all the way through to the self-refill draw."""
+        (supervisor.STAGING_DIR / "run_complete_20260101T000000Z.md").write_text("marker")
+        supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+        reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+        assert reason is not None
+        assert "self-refill from maturity map" in reason
+        assert "X1_test_atom" in reason
+        assert "run_complete" not in reason
+        assert exhausted is False
+
+
+class TestBacklogDrivenGrantingByDefault:
+    """Requirement 5's first proof: (empty doorbell + open map) -> a draw
+    occurs."""
+
+    def test_empty_doorbell_with_open_map_atom_always_draws(self):
+        # No agenda, no staging at all (not even a marker), a real open
+        # atom on the map -- this must draw, not idle.
+        supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+        reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+        assert reason is not None
+        assert "X1_test_atom" in reason
+        assert exhausted is False
+
+    def test_real_instruction_present_still_also_draws_from_the_map(self):
+        agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
+        supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
+        reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+        assert "PhaseX" in reason
+        assert "X1_test_atom" in reason
+        assert exhausted is False
+
+
+class TestMapExhaustedEscalation:
+    """Requirement 5's second proof: (blocked map) -> an escalation fires."""
+
+    def test_genuinely_nothing_anywhere_returns_exhausted_true(self):
+        reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+        assert reason is None
+        assert exhausted is True
+
+    def test_map_with_only_blocked_atoms_is_exhausted(self):
+        supervisor.MATURITY_MAP_PATH.write_text(_UNMET_DEPENDENCY_YAML.split("- id: X5")[0])
+        # Only X4 (depends on X5, which is now absent) -- fails closed, unmet.
+        reason, exhausted = supervisor.find_work(resumed_from_pause=False)
+        assert reason is None
+        assert exhausted is True
+
+    def test_escalation_fires_on_transition_into_exhausted(self, monkeypatch):
+        ntfy_calls = []
+        monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+        supervisor.check_map_exhausted_escalation(True)
+        assert len(ntfy_calls) == 1
+        assert "CANNOT-draw" in ntfy_calls[0]
+
+    def test_escalation_does_not_repeat_while_still_exhausted(self, monkeypatch):
+        ntfy_calls = []
+        monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+        supervisor.check_map_exhausted_escalation(True)
+        supervisor.check_map_exhausted_escalation(True)
+        supervisor.check_map_exhausted_escalation(True)
+        assert len(ntfy_calls) == 1, "R5: never repeat an unchanged status"
+
+    def test_escalation_fires_again_after_recovering_then_exhausting_again(self, monkeypatch):
+        ntfy_calls = []
+        monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+        supervisor.check_map_exhausted_escalation(True)
+        supervisor.check_map_exhausted_escalation(False)  # real work resumed
+        supervisor.check_map_exhausted_escalation(True)  # exhausted again -- new transition
+        assert len(ntfy_calls) == 2
+
+    def test_no_escalation_when_never_exhausted(self, monkeypatch):
+        ntfy_calls = []
+        monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+        supervisor.check_map_exhausted_escalation(False)
+        assert ntfy_calls == []
+
+    def test_run_cycle_calls_escalation_check_and_records_idle_turn_when_exhausted(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        ntfy_calls = []
+        monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+        grant_calls = []
+        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
+        supervisor.run_cycle()
+        assert grant_calls == []
+        assert len(ntfy_calls) == 1
+        assert supervisor._load_idle_turn_count() == 1
+
+    def test_run_cycle_does_not_escalate_when_real_work_exists(self, monkeypatch):
+        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+        ntfy_calls = []
+        monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
+        agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
+        supervisor.run_cycle()
+        assert ntfy_calls == []
+        assert supervisor._load_idle_turn_count() == 0
+
+
+class TestIdleTurnCounter:
+    def test_counter_starts_at_zero(self):
+        assert supervisor._load_idle_turn_count() == 0
+
+    def test_counter_increments_and_persists(self):
+        assert supervisor._record_idle_turn() == 1
+        assert supervisor._record_idle_turn() == 2
+        assert supervisor._load_idle_turn_count() == 2
