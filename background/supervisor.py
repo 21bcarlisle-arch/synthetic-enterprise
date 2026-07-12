@@ -358,11 +358,29 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
         the atom's own foundation doesn't exist yet, so drawing it produces
         real but premature/unbuildable "work". A dependency id not present in
         the map at all is treated as unmet (fail closed, not silently
-        ignored) rather than assumed satisfied."""
+        ignored) rather than assumed satisfied.
+
+        2026-07-12, R3_WORK_GRANTING_REDESIGN class-bug (ADVISOR_ANSWER_
+        CANNOT_DRAW.md, P0): the check above conflated two different things
+        under "unmet" -- a dependency still being actively built (a REAL
+        blocker) and a dependency deliberately PARKED at its current level
+        for this epoch (`loop_stage: idle` -- a documented, director-
+        sequenced deferral, not a gap anyone is working). W1_reveal_over_time
+        is parked at L2 (its final piece deferred to M4); D2_three_clocks
+        depends on it and is ITSELF correctly idle -- but atoms that depend
+        on D2_three_clocks (E2_revenue_reconciliation,
+        W5_1_banking_payment_rails) are NOT idle, and the old check blocked
+        them too, transitively, on a dependency nobody intends to advance
+        right now. A dependency with loop_stage=="idle" is now treated as MET
+        (parked-vs-unbuilt is representable via the atom's own existing
+        loop_stage field -- no new schema needed): a deliberate epoch-
+        deferral must not cascade into blocking unrelated dependent work."""
         for dep_id in atom.get("depends_on") or []:
             dep = by_id.get(dep_id)
             if dep is None:
                 return False
+            if dep.get("loop_stage") == "idle":
+                continue
             dep_level = dep.get("level_current")
             dep_target = dep.get("level_target")
             if dep_level is None or dep_target is None or dep_level < dep_target:
@@ -420,6 +438,85 @@ def _maturity_map_draw(rng: Any = None) -> str | None:
         f"(lane={chosen.get('lane', '?')}, dial={chosen.get('dial_inherited', '?')}, "
         f"level {chosen['level_current']}->{chosen['level_target']}, "
         f"loop_stage={chosen.get('loop_stage', '?')})"
+    )
+
+
+def _blocking_roots(atom_id: str, by_id: dict, _seen: set | None = None) -> set[str]:
+    """Transitive dependency walk (ADVISOR_ANSWER_CANNOT_DRAW.md, P0,
+    2026-07-12): finds the REAL blocking root(s) beneath `atom_id` -- the
+    genuinely-unbuilt, non-idle, actively-in-scope atom(s) that must move
+    before `atom_id` can. Mirrors `_dependencies_met`'s parked-vs-unbuilt
+    rule exactly: a `loop_stage: idle` (parked) link is never a blocker and
+    is not descended into (its own state is a deliberate deferral, not
+    something the diagnostic should chase further); an atom already at/above
+    its own target is not a blocker either. A missing dependency id is
+    reported as its own root (`missing:<id>`) since that is a real map
+    defect, not something buildable. `_seen` guards against a cyclic
+    `depends_on` graph (not expected, but a diagnostic must not hang on one)."""
+    seen = _seen if _seen is not None else set()
+    if atom_id in seen:
+        return set()
+    seen.add(atom_id)
+    atom = by_id.get(atom_id)
+    if atom is None:
+        return {f"missing:{atom_id}"}
+    lc, lt = atom.get("level_current"), atom.get("level_target")
+    has_gap = lc is not None and lt is not None and lc < lt
+    if not has_gap:
+        return set()
+    if atom.get("loop_stage") == "idle":
+        return set()
+    roots: set[str] = set()
+    for dep_id in atom.get("depends_on") or []:
+        roots |= _blocking_roots(dep_id, by_id, seen)
+    return roots or {atom_id}
+
+
+def diagnose_map_blocked_set(atoms: list | None = None) -> str:
+    """Requirement 2/4 of ADVISOR_ANSWER_CANNOT_DRAW.md: on a genuine
+    CANNOT-draw, report the full blocked-set and its blocking roots across
+    ALL atoms with a real gap -- not just "no candidate" -- so the next
+    escalation diagnoses itself instead of requiring a human to re-derive
+    this by hand from the raw YAML (exactly what happened this time).
+    Read-only, reuses the same YAML `_maturity_map_draw()` reads; safe to
+    call whenever map_exhausted is True (rare by construction -- only fires
+    on the transition, see check_map_exhausted_escalation)."""
+    if atoms is None:
+        try:
+            import yaml
+            atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return "maturity map unreadable -- cannot diagnose the blocked-set"
+    if not isinstance(atoms, list):
+        return "maturity map malformed (not a list) -- cannot diagnose the blocked-set"
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
+
+    blocked = []
+    for a in atoms:
+        if not isinstance(a, dict) or "id" not in a:
+            continue
+        lc, lt = a.get("level_current"), a.get("level_target")
+        has_gap = lc is not None and lt is not None and lc < lt
+        if not has_gap or a.get("loop_stage") == "idle":
+            continue
+        roots: set[str] = set()
+        for dep_id in a.get("depends_on") or []:
+            roots |= _blocking_roots(dep_id, by_id)
+        if roots:
+            blocked.append((a["id"], sorted(roots)))
+
+    idle_count = sum(1 for a in atoms if isinstance(a, dict) and a.get("loop_stage") == "idle")
+    l0_count = sum(1 for a in atoms if isinstance(a, dict) and a.get("level_current") == 0)
+    if not blocked:
+        return (
+            f"{len(atoms)} atoms, {idle_count} idle, {l0_count} at L0 -- no non-idle atom "
+            "is blocked by an unmet dependency; the map has genuinely no drawable gap left "
+            "(every non-idle atom is either at target or already a valid candidate)."
+        )
+    lines = [f"{atom_id} <- blocked by {', '.join(roots)}" for atom_id, roots in blocked]
+    return (
+        f"{len(atoms)} atoms, {idle_count} idle, {l0_count} at L0, "
+        f"{len(blocked)} non-idle atom(s) genuinely blocked: " + "; ".join(lines)
     )
 
 
@@ -621,12 +718,17 @@ def check_map_exhausted_escalation(map_exhausted: bool) -> None:
     state = _load_map_exhausted_state()
     was_exhausted = state.get("exhausted", False)
     if map_exhausted and not was_exhausted:
+        # ADVISOR_ANSWER_CANNOT_DRAW.md (P0, 2026-07-12): the escalation
+        # itself was correct and valuable last time, but "no candidate" made
+        # the advisor re-derive the blocked-set and its roots by hand from
+        # the raw YAML. Upgraded to self-diagnose: report the blocked-set
+        # and its blocking roots directly in the NTFY.
+        diagnosis = diagnose_map_blocked_set()
         ntfy(
             "Supervisor: the maturity-map self-refill draw found NO candidate "
-            "atom at all (every atom blocked/complete, or the map is "
-            "unreadable) with no agenda/urgent/staged instruction either -- "
-            "this is a genuine CANNOT-draw, not a routine idle tick. Check "
-            "docs/design/maturity_map.yaml directly."
+            "atom at all with no agenda/urgent/staged instruction either -- "
+            "this is a genuine CANNOT-draw, not a routine idle tick. "
+            f"Diagnosis: {diagnosis}"
         )
         log("MAP-EXHAUSTED escalation sent -- self-refill found no candidate at all")
         _save_map_exhausted_state({"exhausted": True})

@@ -111,6 +111,18 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### ADVISOR_ANSWER_CANNOT_DRAW.md: maturity-map self-refill draw class-fix (2026-07-12, P0, advisor-staged)
+
+The supervisor's dial-weighted self-refill draw (`background/supervisor.py::_maturity_map_draw()`) escalated CANNOT-draw ("no candidate atom at all") despite the map having 30/50 atoms idle and 23 at L0 -- the advisor checked the raw YAML directly and confirmed the premise false: the map parses fine and has abundant open work, so the draw's own filter was excluding real work.
+
+**Root cause:** `_dependencies_met()` treated a dependency on a deliberately-PARKED atom (`loop_stage: idle` -- a documented, director-sequenced epoch deferral, e.g. `W1_reveal_over_time` parked at L2 with its final piece deferred to M4) identically to a dependency that is genuinely still being built. This cascaded transitively: `W1_reveal_over_time` (parked) blocks `D2_three_clocks` (itself correctly idle, awaiting its own epoch turn), which in turn wrongly blocked its own non-idle dependents `E2_revenue_reconciliation` and `W5_1_banking_payment_rails` -- the ONLY two atoms in the entire 50-atom map that had both a real gap and a non-idle `loop_stage`, and both were casualties of the same cascade. Matches R10 (class defect, not an instance) -- an earlier idle-hole was fixed as a one-off atom-level patch the night before; this is the same edge at scale.
+
+**Fix, as a class:** a dependency with `loop_stage == "idle"` now counts as met (parked-vs-unbuilt is representable via the atom's own existing `loop_stage` field -- no new schema field needed). A deliberate epoch-deferral no longer cascades into blocking unrelated dependent work. Verified against the REAL `docs/design/maturity_map.yaml`: the draw now returns `W5_1_banking_payment_rails` (previously impossible), and `find_work()`'s `map_exhausted` flag correctly reports `False`.
+
+**Diagnostic upgrade (requirement 4, "the escalation itself was correct and valuable -- don't weaken it, upgrade it"):** new `diagnose_map_blocked_set()` walks the full transitive dependency graph for every non-idle, gapped atom, distinguishing a genuine blocking root (a non-idle atom with its own unmet gap) from a parked one (skipped, per the fix above), and reports the blocked-set + its roots directly in the CANNOT-draw NTFY (`check_map_exhausted_escalation`) -- so a future genuine recurrence diagnoses itself instead of requiring the advisor to hand-derive it from the raw YAML again.
+
+7 new tests (`tests/background/test_supervisor.py`: a synthetic parked-cascade fixture matching the real W1/D2/E2 shape, a regression test against the REAL maturity_map.yaml asserting the draw is never CANNOT-draw, and 5 tests covering `diagnose_map_blocked_set()`'s root-finding including a 3-deep transitive case and the escalation NTFY's upgraded message), 17,166 tests collected (full suite), epistemic PASS.
+
 ### CLOCK_TRUTH_AND_THE_BRIDGE.md: reconciliation bridge + front-door passport pass (2026-07-12, P0, advisor-staged following BILL_TO_LEDGER_LINKAGE.md)
 
 The public consequence of BILL_TO_LEDGER_LINKAGE.md's finding: poesys.net's front door was publishing "NET MARGIN (ALL-TIME)" and "ENTERPRISE VALUE" with no basis label, sitting directly on top of the confirmed ~4.2x settlement-vs-bill divergence. Closed all 5 items of the staged DoD.
@@ -6936,7 +6948,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,159 tests collected (full suite) -- CLOCK_TRUTH_AND_THE_BRIDGE.md closed (reconciliation bridge
+- 17,166 tests collected (full suite) -- ADVISOR_ANSWER_CANNOT_DRAW.md closed (maturity-map self-refill
+  draw class-fix: a dependency on a deliberately-parked atom no longer cascades into blocking non-idle
+  dependents; new diagnose_map_blocked_set() upgrades the CANNOT-draw escalation to self-diagnose; see
+  Section 4's entry), 7 new tests, on top of the prior 17,159 tests collected (full suite) --
+  CLOCK_TRUTH_AND_THE_BRIDGE.md closed (reconciliation bridge
   between the settlement-derived board headline and the bill-derived ledger view, quantified and
   fully explained to a rounding penny; front-door passport pass with basis/freshness/provisional
   labelling; new page-consistency gate extension; new R14 standing rule; see Section 4's entry),

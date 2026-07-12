@@ -465,6 +465,102 @@ def test_maturity_map_draw_weights_by_dial():
     assert sum("HIGH_DIAL" in r for r in results) >= 18  # overwhelmingly the high-dial atom
 
 
+_PARKED_DEPENDENCY_CASCADE_YAML = """\
+- id: W1_parked
+  name: "Deliberately parked at its current level for this epoch"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 2
+  level_target: 3
+  loop_stage: idle
+- id: D2_blocked_and_idle
+  name: "Depends on the parked atom, itself correctly idle"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  depends_on: [W1_parked]
+- id: E2_should_be_drawable
+  name: "Depends transitively on the parked atom via an idle intermediate, but is itself NOT idle"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  depends_on: [D2_blocked_and_idle]
+"""
+
+
+def test_maturity_map_draw_dependency_on_parked_idle_atom_does_not_block(monkeypatch):
+    """ADVISOR_ANSWER_CANNOT_DRAW.md (P0, 2026-07-12): a dependency that is
+    deliberately PARKED (loop_stage: idle -- a documented epoch-deferral,
+    not an active gap) must not cascade into blocking a non-idle dependent,
+    even transitively through another idle atom. Mirrors the real
+    W1_reveal_over_time (parked) -> D2_three_clocks (idle) ->
+    E2_revenue_reconciliation (NOT idle, was wrongly blocked) cascade."""
+    supervisor.MATURITY_MAP_PATH.write_text(_PARKED_DEPENDENCY_CASCADE_YAML)
+    result = supervisor._maturity_map_draw()
+    assert result is not None
+    assert "E2_should_be_drawable" in result
+
+
+def test_maturity_map_draw_real_map_never_cannot_draw():
+    """The R3 invariant this bug broke: given the project's OWN real
+    maturity_map.yaml (not a synthetic fixture), the draw must return a
+    candidate, not None -- this is the exact regression the advisor's
+    escalation caught (50 atoms, 30 idle, 23 at L0, yet zero candidates)."""
+    real_map = supervisor.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
+    supervisor.MATURITY_MAP_PATH.write_text(real_map.read_text())
+    assert supervisor._maturity_map_draw() is not None
+
+
+def test_diagnose_map_blocked_set_reports_no_blockers_when_none_exist():
+    supervisor.MATURITY_MAP_PATH.write_text(_MET_DEPENDENCY_YAML)
+    diagnosis = supervisor.diagnose_map_blocked_set()
+    assert "no non-idle atom is blocked" in diagnosis.lower() or "no drawable gap" in diagnosis.lower()
+
+
+def test_diagnose_map_blocked_set_finds_root_through_genuine_blocker():
+    """A non-idle, non-parked prerequisite that itself has a real unmet gap
+    IS a genuine root -- distinct from the parked case above."""
+    supervisor.MATURITY_MAP_PATH.write_text(_UNMET_DEPENDENCY_YAML)
+    diagnosis = supervisor.diagnose_map_blocked_set()
+    assert "X4_dependent_atom" in diagnosis
+    assert "X5_prerequisite_atom" in diagnosis
+
+
+def test_diagnose_map_blocked_set_does_not_report_parked_chain_as_blocked():
+    supervisor.MATURITY_MAP_PATH.write_text(_PARKED_DEPENDENCY_CASCADE_YAML)
+    diagnosis = supervisor.diagnose_map_blocked_set()
+    assert "no non-idle atom is blocked" in diagnosis.lower()
+
+
+def test_diagnose_map_blocked_set_finds_deep_transitive_root():
+    """Root-finding must walk PAST a genuinely-blocked (non-idle, non-parked)
+    intermediate to report the deepest real blocker, not just the immediate
+    dependency."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: A_top\n  lane: X\n  dial_inherited: 1\n  level_current: 0\n  level_target: 2\n"
+        "  loop_stage: build\n  depends_on: [B_middle]\n"
+        "- id: B_middle\n  lane: X\n  dial_inherited: 1\n  level_current: 0\n  level_target: 2\n"
+        "  loop_stage: build\n  depends_on: [C_root_cause]\n"
+        "- id: C_root_cause\n  lane: X\n  dial_inherited: 1\n  level_current: 0\n  level_target: 3\n"
+        "  loop_stage: discover\n"
+    )
+    diagnosis = supervisor.diagnose_map_blocked_set()
+    assert "C_root_cause" in diagnosis
+
+
+def test_check_map_exhausted_escalation_ntfy_includes_diagnosis(monkeypatch):
+    sent = []
+    monkeypatch.setattr(supervisor, "ntfy", lambda msg: sent.append(msg))
+    supervisor.MATURITY_MAP_PATH.write_text(_UNMET_DEPENDENCY_YAML)
+    supervisor.check_map_exhausted_escalation(map_exhausted=True)
+    assert sent, "expected an NTFY on the exhausted transition"
+    assert "Diagnosis:" in sent[0]
+
+
 def test_find_work_self_refills_from_maturity_map_when_nothing_staged():
     supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)
     reason, _ = supervisor.find_work(resumed_from_pause=False)
