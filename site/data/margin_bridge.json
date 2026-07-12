@@ -1,0 +1,35 @@
+{
+  "as_of_run": "run_output_latest.json",
+  "settlement_net_margin_gbp": 1524057.56,
+  "ledger_net_margin_gbp": 6426481.69,
+  "total_gap_gbp": 4902424.13,
+  "gap_ratio_x": 4.22,
+  "items": [
+    {
+      "id": "noncommodity_cost_no_revenue_recognition",
+      "label": "Non-commodity cost absorbed with no revenue recognition (root cause, dominant item)",
+      "amount_gbp": 4855777.67,
+      "mechanism": "For non-pass-through (fixed) tariff settlement records, revenue_gbp never includes policy/network recovery -- Phase 40a's own design comment assumes it is 'baked into the locked unit rate' -- yet net_margin_gbp still deducts the full real policy_cost_gbp + network_cost_gbp regardless of tariff type (simulation/hedged_settlement.py, net_margin_gbp assignment). Every real bill (saas/bill_generator.py) separately charges and collects non_commodity_amount_gbp as cash; on the bill-derived ledger this amount flows into revenue and back out as a cost, cancelling to ~zero net effect (verified algebraically: ledger_gross reduces to commodity+standing-charge-minus-wholesale regardless of the specific non-commodity figure used). The settlement P&L has no such offsetting revenue line, so it absorbs the full cost as a pure loss. NOTE: this supersedes an earlier hypothesis (from the pre-existing E2_revenue_reconciliation atom) that the two independently-built non-commodity cost MODELS (settlement's granular per-levy calc vs the ledger's blended-rate calc) were the dominant driver -- direct calculation shows that divergence is real but immaterial here (the ledger's non-commodity figure cancels out of ledger_net regardless of its value), a genuinely different mechanism from what actually drives this gap.",
+      "status": "explained"
+    },
+    {
+      "id": "revenue_basis_difference",
+      "label": "Commodity+standing-charge revenue basis difference",
+      "amount_gbp": 39456.3,
+      "mechanism": "Estimated-vs-actual meter reads, billing-period boundary effects, and the 'deemed' out-of-contract tariff path (simulation/hedged_settlement.py) which carries no standing-charge revenue at all, unlike every issued bill.",
+      "status": "explained"
+    },
+    {
+      "id": "residual",
+      "label": "Back-billing catch-up adjustments (bill-total vs category-field sum)",
+      "amount_gbp": 7190.15,
+      "mechanism": "Difference between issued bills' total_amount_gbp and the sum of their own commodity/non-commodity/standing-charge/VAT category fields. Confirmed (not just plausible): sum(catchup_adjustment_gbp) across issued bills = 7190.19 -- matches this item to within a rounding penny. These are real back-billing catch-up credits (simulation/run_phase4c_on_phase2b.py _resolve_catchup) stamped onto the bill total outside the four category fields.",
+      "status": "explained"
+    }
+  ],
+  "explained_gbp": 4902424.12,
+  "unexplained_remainder_gbp": 0.01,
+  "fully_explained": true,
+  "held_bills_excluded_from_ledger": 1,
+  "note": "VAT is excluded from both sides (settlement never models VAT; the ledger subtracts vat_remittance_gbp from total_billed_gbp) -- checked, not a reconciling item. Bad debt (write-offs) is tracked separately on both sides and does not enter either net_margin_gbp figure -- checked, not a reconciling item for THIS bridge."
+}

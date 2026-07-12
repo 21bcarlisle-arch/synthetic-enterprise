@@ -221,6 +221,37 @@ def extract_portfolio(data):
         "churn_count": len(churned),
         "cost_to_serve_gbp": _fmt(data.get("cost_to_serve_portfolio_gbp", 0)),
         "net_after_cts_gbp": _fmt(data.get("net_margin_after_cost_to_serve_gbp", 0)),
+        # CLOCK_TRUTH_AND_THE_BRIDGE.md (2026-07-12, P0): the site's own
+        # NUMBER-PASSPORT rule requires basis + freshness + provisional on
+        # every published figure. net_margin_gbp is settlement-derived
+        # (total_net_gbp) and diverges materially (~4x) from the bill-derived
+        # ledger view -- see tools/generate_margin_bridge.py /
+        # site/data/margin_bridge.json for the quantified reconciliation.
+        # enterprise_value_gbp is computed FROM net_margin_gbp and inherits
+        # the same dependency.
+        "basis": {
+            "net_margin_gbp": {
+                "clock": "settled",
+                "provisional": True,
+                "bridge_available": True,
+                "bridge_url": "./data/margin_bridge.json",
+                "note": (
+                    "Settlement-derived (total_net_gbp). Diverges from the "
+                    "bill-derived ledger view (financial.ledger.net_margin_gbp) "
+                    "-- see the reconciliation bridge."
+                ),
+            },
+            "enterprise_value_gbp": {
+                "clock": "settled",
+                "provisional": True,
+                "derived_from": "net_margin_gbp",
+                "note": (
+                    "Derived from the settled-clock net margin above -- "
+                    "inherits its divergence from the bill-derived view until "
+                    "the bridge is applied to recompute it."
+                ),
+            },
+        },
     }
 
 
@@ -1422,7 +1453,8 @@ def generate(run_json_path=None):
 
     consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
     population_ok = _check_population_consistency(data, dashboard)
-    consistency_ok = consistency_ok and population_ok
+    basis_ok = _check_basis_labels_present(portfolio)
+    consistency_ok = consistency_ok and population_ok and basis_ok
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1488,6 +1520,38 @@ def _check_consistency(portfolio, insights, source_file, tolerance_gbp=1.0):
         print(
             "CONSISTENCY GATE FAILED (source={}): {} surface(s) disagree -- {}".format(
                 source_file, len(mismatches), "; ".join(mismatches)
+            ),
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+# Headline figures that must carry a basis label (CLAUDE.md standing rule,
+# CLOCK_TRUTH_AND_THE_BRIDGE.md 2026-07-12): "No financial figure is
+# published without its clock. A number whose basis is unstated is a defect,
+# not a formatting choice."
+_BASIS_REQUIRED_PORTFOLIO_KEYS = ("net_margin_gbp", "enterprise_value_gbp")
+
+
+def _check_basis_labels_present(portfolio):
+    """Extends the page-consistency invariant (CLOCK_TRUTH_AND_THE_BRIDGE.md):
+    any published financial figure lacking a basis label fails the gate. A
+    missing/incomplete portfolio.basis entry for a headline GBP figure is a
+    defect, caught here rather than shipping an unlabelled number to the
+    front door (the exact failure this rule exists to prevent)."""
+    basis = portfolio.get("basis", {}) or {}
+    missing = []
+    for key in _BASIS_REQUIRED_PORTFOLIO_KEYS:
+        if portfolio.get(key) is None:
+            continue
+        entry = basis.get(key)
+        if not entry or not entry.get("clock") or "provisional" not in entry or not entry.get("note"):
+            missing.append(key)
+    if missing:
+        print(
+            "BASIS-LABEL GATE FAILED: headline figure(s) missing a basis label -- {}".format(
+                ", ".join(missing)
             ),
             file=sys.stderr,
         )

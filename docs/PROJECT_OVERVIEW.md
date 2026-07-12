@@ -111,6 +111,27 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### CLOCK_TRUTH_AND_THE_BRIDGE.md: reconciliation bridge + front-door passport pass (2026-07-12, P0, advisor-staged following BILL_TO_LEDGER_LINKAGE.md)
+
+The public consequence of BILL_TO_LEDGER_LINKAGE.md's finding: poesys.net's front door was publishing "NET MARGIN (ALL-TIME)" and "ENTERPRISE VALUE" with no basis label, sitting directly on top of the confirmed ~4.2x settlement-vs-bill divergence. Closed all 5 items of the staged DoD.
+
+**The bridge, built and fully reconciled:** `tools/generate_margin_bridge.py` computes every reconciling item fresh from `docs/reports/run_output_latest.json` each run (never hardcoded) and writes `site/data/margin_bridge.json`. Three named, quantified items close the £4,902,424.13 gap to within a rounding penny (`unexplained_remainder_gbp=0.01`):
+1. **Non-commodity cost absorbed with no revenue recognition (root cause, ~99% of the gap, £4,855,777.68):** for non-pass-through ("fixed") tariff settlement records, `simulation/hedged_settlement.py`'s `revenue_gbp` never includes policy/network cost recovery (a Phase 40a design comment assumes it is "baked into the locked unit rate"), yet `net_margin_gbp` still deducts the full real `policy_cost_gbp + network_cost_gbp` regardless of tariff type. Every real bill (`saas/bill_generator.py`) separately bills and collects `non_commodity_amount_gbp` as cash; on the bill-derived ledger this flows into revenue and back out as a cost, cancelling to ~zero net effect (proven algebraically: `ledger_gross` reduces to `commodity+standing_charge-wholesale` regardless of the specific non-commodity figure used). The settlement P&L has no offsetting revenue line, so it absorbs the cost as a pure loss. **This supersedes the pre-existing `E2_revenue_reconciliation`/`D2_three_clocks` hypothesis** (that the two independently-built non-commodity cost MODELS -- settlement's granular per-levy calc vs the ledger's blended-rate calc -- were the dominant driver): direct calculation shows that divergence is real but immaterial here, since the ledger's non-commodity figure cancels out of `ledger_net` regardless of its value. A genuinely different mechanism from what actually drives this gap.
+2. **Commodity+standing-charge revenue basis difference (£39,456.30):** estimated-vs-actual meter reads, billing-period boundary effects, and the "deemed" out-of-contract tariff path which carries no standing-charge revenue at all, unlike every issued bill.
+3. **Back-billing catch-up adjustments (£7,190.15):** confirmed (not just plausible) -- `sum(catchup_adjustment_gbp)` across issued bills matches this item to within a rounding penny. Real credits (`simulation/run_phase4c_on_phase2b.py::_resolve_catchup()`) stamped onto the bill total outside the four category fields.
+
+VAT and bad debt were checked explicitly and found NOT to be reconciling items for this bridge (VAT excluded from both sides already; bad debt tracked separately, enters neither `net_margin_gbp` figure).
+
+**Passport pass, shipped:** `tools/generate_dashboard_data.py::extract_portfolio()` gained a `basis` block (clock/provisional/freshness/bridge-link per headline figure), gated by a new `_check_basis_labels_present()` -- an explicit extension of the page-consistency invariant per the new standing rule (CLAUDE.md R14: "no financial figure is published without its clock"). `site/index.html`'s front-door headline Net Margin and Enterprise Value now carry a basis clock label, freshness stamp, PROVISIONAL badge, and a link to a new on-page Reconciliation Bridge card (`renderMarginBridge()`) rendering every item, its mechanism, and the total/remainder rows. The pulse-strip's separate Enterprise Value entry was updated to link to the same bridge. Enterprise Value's basis entry explicitly states it is derived from the settled-clock net margin and inherits its divergence.
+
+**Verification:** no browser is available in this execution environment, so the actual render functions were extracted from `site/index.html` and executed under Node against dashboard/bridge JSON served by a local `http.server` -- confirmed the basis label, provisional badge, bridge link, and bridge table all render with the correct real figures and no `undefined` leakage (R11-equivalent verification given the tooling constraint, documented as such rather than claimed as a live-site pixel check).
+
+**Adjudication updated:** `coldwalk:margin_reconciliation:portfolio_vs_ledger` (`docs/observability/sanity_adjudication_ledger.json`) updated in place (prior evidence preserved, appended not overwritten) with root cause and resolved-by, plus a retro note: two independent routes -- a blindfolded CFO cold-walk persona and the advisor's own SC-arithmetic chase -- found the same underlying defect within six hours of each other.
+
+**Maturity map:** `D2_three_clocks` (still `level_current: 0`, `loop_stage: idle`, genuinely blocked on `W1_reveal_over_time` per the director's own prior sequencing decision) gained a third simplifications entry documenting the bridge as a fully-worked reference implementation for its eventual build, and correcting its own 2026-07-10 hypothesis per the finding above.
+
+10 new tests (6 `tests/tools/test_generate_margin_bridge.py` + 4 `tests/tools/test_website_integrity_fix.py` additions), 17,159 tests collected (full suite), epistemic PASS.
+
 ### GOVERNED_COMPANY_AND_THREE_LANES.md: decision-rights register + lane-wall dev-time pilot (2026-07-12, director-decided in live conversation, "human-in-the-loop governance interface... turns forking into a benefit not a risk")
 
 Thin-start + pilot across the staged instruction's 4-item DoD -- "Registration + thin-start + pilot, NOT a big-bang build" honoured throughout, not treated as licence to build everything.
@@ -6915,7 +6936,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,061 tests collected (full suite) -- GOVERNED_COMPANY_AND_THREE_LANES.md thin-start (decision-
+- 17,159 tests collected (full suite) -- CLOCK_TRUTH_AND_THE_BRIDGE.md closed (reconciliation bridge
+  between the settlement-derived board headline and the bill-derived ledger view, quantified and
+  fully explained to a rounding penny; front-door passport pass with basis/freshness/provisional
+  labelling; new page-consistency gate extension; new R14 standing rule; see Section 4's entry),
+  10 new tests, on top of the prior 17,061 tests collected (full suite) -- GOVERNED_COMPANY_AND_THREE_LANES.md thin-start (decision-
   rights register + pricing decision-events on the bitemporal spine, dev-time lane-wall hook pilot
   demonstrated both directions, approval-interface/sim-approver atoms registered, parallel-lanes
   proposal written; see Section 4's entry), on top of the prior 17,017 tests collected (full

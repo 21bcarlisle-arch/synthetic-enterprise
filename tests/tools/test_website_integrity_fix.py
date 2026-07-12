@@ -6,7 +6,7 @@ import inspect
 
 from tools.generate_dashboard_data import (
     _load_build_info, _check_consistency, BUILD_INFO_PATH, count_company_modules,
-    _derive_build_from_claude_md,
+    _derive_build_from_claude_md, _check_basis_labels_present, extract_portfolio,
 )
 
 
@@ -172,6 +172,44 @@ def test_check_consistency_skips_when_insights_absent(capsys):
 
 def test_check_consistency_skips_when_fields_missing():
     assert _check_consistency({}, {}, "x.json") is True
+
+
+def test_check_basis_labels_present_passes_for_real_extract_portfolio():
+    """CLOCK_TRUTH_AND_THE_BRIDGE.md (2026-07-12, P0) standing rule: 'No
+    financial figure is published without its clock.' extract_portfolio's own
+    output must satisfy the gate it's checked against."""
+    portfolio = extract_portfolio({"total_net_gbp": 100.0, "enterprise_value_gbp": 200.0})
+    assert _check_basis_labels_present(portfolio) is True
+
+
+def test_check_basis_labels_present_fails_when_basis_missing_entirely(capsys):
+    portfolio = {"net_margin_gbp": 100.0, "enterprise_value_gbp": 200.0}
+    assert _check_basis_labels_present(portfolio) is False
+    err = capsys.readouterr().err
+    assert "BASIS-LABEL GATE FAILED" in err
+    assert "net_margin_gbp" in err
+    assert "enterprise_value_gbp" in err
+
+
+def test_check_basis_labels_present_fails_when_note_missing(capsys):
+    portfolio = {
+        "net_margin_gbp": 100.0,
+        "basis": {"net_margin_gbp": {"clock": "settled", "provisional": True}},
+    }
+    assert _check_basis_labels_present(portfolio) is False
+    assert "net_margin_gbp" in capsys.readouterr().err
+
+
+def test_check_basis_labels_present_skips_figures_not_in_this_portfolio():
+    # A run with no enterprise_value_gbp at all shouldn't fail the gate over
+    # a figure that isn't being published.
+    portfolio = {
+        "net_margin_gbp": 100.0,
+        "basis": {
+            "net_margin_gbp": {"clock": "settled", "provisional": True, "note": "x"},
+        },
+    }
+    assert _check_basis_labels_present(portfolio) is True
 
 
 def test_process_run_complete_generates_insights_before_dashboard():
