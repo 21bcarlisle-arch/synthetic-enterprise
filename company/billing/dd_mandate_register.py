@@ -21,6 +21,28 @@ further wiring compounds the duplication") has not been carried out.
 Registered here per R10 (nothing may be simplified silently) as an OPEN gap
 for a future pass -- not closed by this note.
 
+CONSOLIDATION DIRECTION, investigated and corrected (2026-07-12): the
+earlier note above suggested a future migration should move DirectDebitBook's
+callers onto THIS module's model, given its cleaner as_of discipline. That
+direction turns out not to be a clean migration: this module has NO
+attempt-tracking concept at all ("This module tracks the mandate, not
+individual payments. See payment_ledger.py for individual payment records.",
+this docstring's own words above) -- migrating onto it would still need a
+second, bolted-on structure for collection attempts, i.e. it would not
+actually eliminate the duplication, just relocate half of it. The practical
+consolidation instead went the OTHER direction: DirectDebitBook gained an
+`as_of`-aware point-in-time discipline of its own
+(`DirectDebitMandate.last_status_change_date`, optional `as_of` params on
+`cancel_mandate()`/`reinstate_mandate()`) -- folding this module's real
+advantage into the module that already has a live caller and already tracks
+attempts, rather than migrating onto a register that would need a second
+bolt-on concept anyway. This module's own remaining real content (DDG
+compliance documentation, the richer FAILED/REINSTATED status enum) is
+still real and still unused -- retiring it outright is a bigger, more
+consequential step (deleting real historical work) not taken in this same
+pass; the go-forward recommendation is retirement once/if nothing further
+here is worth preserving, not a directive to keep it live.
+
 UK energy suppliers collect most domestic bills via BACS Direct Debit.
 The Direct Debit Guarantee (DDG) scheme, administered by Pay.UK/BACS,
 requires suppliers to:

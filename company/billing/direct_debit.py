@@ -40,6 +40,21 @@ class DirectDebitMandate:
     setup_confirmed_date: str = ""
     last_amendment_rails_reference: str = ""
     last_amendment_confirmed_date: str = ""
+    # Point-in-time discipline (2026-07-12, W5_1_banking_payment_rails L2->L3
+    # investigation into the M2 audit's duplicated-register finding,
+    # company/billing/dd_mandate_register.py vs this module): that module's
+    # DDMandateRegister requires an `as_of` date on every state-changing call
+    # (suspend/reinstate/cancel/update_amount) and stamps it here -- a real
+    # point-in-time discipline this module lacked. Investigation found a
+    # clean migration onto DDMandateRegister isn't actually available (it has
+    # no attempt-tracking concept at all -- "this module tracks the mandate,
+    # not individual payments", per its own docstring), so the practical
+    # consolidation is the other direction: fold DDMandateRegister's real
+    # advantage into the module that already has a live caller, rather than
+    # migrate onto a register that would need a second bolt-on concept
+    # anyway. Optional and additive -- existing callers that never pass
+    # `as_of` see identical behaviour to before.
+    last_status_change_date: str = ""
 
 
 @dataclass
@@ -141,20 +156,29 @@ class DirectDebitBook:
             m.failed_attempts += 1
             if m.failed_attempts >= 2:
                 m.status = "suspended"
+                m.last_status_change_date = attempt.attempt_date
 
-    def cancel_mandate(self, customer_id: str) -> bool:
+    def cancel_mandate(self, customer_id: str, as_of: str = "") -> bool:
+        """`as_of` (optional, ISO date string) records when this status
+        change was observed -- the point-in-time discipline enrichment
+        described on DirectDebitMandate.last_status_change_date. Omit for
+        identical behaviour to before this field existed."""
         m = self._mandates.get(customer_id)
         if m is None:
             return False
         m.status = "cancelled"
+        if as_of:
+            m.last_status_change_date = as_of
         return True
 
-    def reinstate_mandate(self, customer_id: str) -> bool:
+    def reinstate_mandate(self, customer_id: str, as_of: str = "") -> bool:
         m = self._mandates.get(customer_id)
         if m is None:
             return False
         m.status = "active"
         m.failed_attempts = 0
+        if as_of:
+            m.last_status_change_date = as_of
         return True
 
     def failed_mandates(self) -> list[DirectDebitMandate]:

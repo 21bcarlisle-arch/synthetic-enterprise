@@ -111,6 +111,20 @@ The system has four layers, each with a clean seam to the next:
 
 ## 4. Build History — Phase by Phase
 
+### W5_1_banking_payment_rails: register-consolidation blocker investigated and partially closed (2026-07-12, self-refill draw continuation)
+
+The second Expert Hour review had left two structural L3 blockers standing: mandate setup not gating the collection it precedes, and the `DirectDebitBook`/`company/billing/dd_mandate_register.py::DDMandateRegister` register duplication, with the reviewer's own suggested direction being "future consolidation... should migrate DirectDebitBook's callers onto this module's model, given this module's cleaner point-in-time discipline."
+
+**Investigated that suggestion directly before acting on it (R4 diagnosis discipline) rather than deferring again or rushing a migration on faith.** Reading `DDMandateRegister`'s own docstring closely: "This module tracks the mandate, not individual payments. See payment_ledger.py for individual payment records." It has genuinely no concept of a collection attempt at all -- migrating `DirectDebitBook`'s callers onto it would still need a second, bolted-on structure for attempts, which would not actually eliminate the duplication, only relocate half of it. This is a real, concrete finding that corrects the second reviewer's own suggested direction, not a excuse to leave the finding alone.
+
+**Fixed the consolidation the other, practical direction instead:** `DirectDebitMandate` (`company/billing/direct_debit.py`) gained `last_status_change_date`; `cancel_mandate()`/`reinstate_mandate()` gained optional `as_of` parameters that stamp it when provided (additive and fully backward-compatible -- an existing caller that never passes `as_of` sees identical behaviour to before, verified by a dedicated test). `record_attempt()`'s existing suspension-on-two-failures path now also stamps `last_status_change_date` from the failing attempt's own real date. This folds `DDMandateRegister`'s genuine advantage (per-state-change point-in-time discipline) into the module that already has a live caller and already tracks attempts, rather than migrating onto a register that would need a second bolt-on concept anyway.
+
+`company/billing/dd_mandate_register.py`'s own docstring is corrected with this finding and an explicit go-forward retirement recommendation -- NOT carried out in this same pass (deleting real, previously-built historical work, even though it has zero live callers, is a bigger and more consequential step than enriching the module that's actually used, left as an explicit future action rather than rushed).
+
+**Honest accounting of what this does and doesn't close:** the literal duplication is not fully resolved (`dd_mandate_register.py` itself still exists, still has zero callers) -- but the underlying REASON it mattered (DirectDebitBook genuinely lacking a point-in-time discipline) is now closed. `level_current` stays at 2: the OTHER named structural blocker (mandate setup not genuinely gating the collection it precedes) is completely unchanged by this pass, so L3 is clearly not yet earned by either reviewer's own stated bar -- no further review round was needed to confirm that, since one of the two explicitly-named blockers remains fully untouched.
+
+6 new tests (`tests/company/billing/test_direct_debit.py`), 17,211 tests collected (full suite), epistemic PASS.
+
 ### MULTI_ATOM_DRAW.md: concurrent multi-atom self-refill draw (2026-07-12, P0, director-prompted, advisor-staged)
 
 The structural problem, in the staged instruction's own words: "The supervisor draws ONE atom per turn. One atom = one lane = serial BY CONSTRUCTION... Width must be a property of the granting model, not a standing exhortation." Every burst of parallelism this weekend came from the advisor hand-feeding parallel work or the agent choosing to fork inside one task -- never from the machine itself.
@@ -7006,7 +7020,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,205 tests collected (full suite) -- MULTI_ATOM_DRAW.md closed (concurrent multi-atom self-refill
+- 17,211 tests collected (full suite) -- W5_1_banking_payment_rails register-consolidation blocker
+  investigated and partially closed (DirectDebitBook enriched with as_of point-in-time discipline
+  rather than migrating onto dd_mandate_register.py, which lacks any attempt-tracking concept; see
+  Section 4's entry), 6 new tests, on top of the prior 17,205 tests collected (full suite) --
+  MULTI_ATOM_DRAW.md closed (concurrent multi-atom self-refill
   draw, file_scope schema backfilled for all 50 atoms) + W5_1_banking_payment_rails's decisive L3
   pipeline-wiring gap closed for real plus a second Expert Hour review's Fixed-vs-Variable-DD
   product-mechanic fix (level held at 2, two structural blockers remain, openly registered; see
