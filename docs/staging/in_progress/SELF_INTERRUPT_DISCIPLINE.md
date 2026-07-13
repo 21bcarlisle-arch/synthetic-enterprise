@@ -1,3 +1,12 @@
+**UPDATE — ADVISOR WITHDREW THE ACCUSATION (commit 69c7e5a1, 07:10Z):** the "treadmill/grooming"
+charge was based on reading commit titles without the NTFYs (advisor's own R9 failure). My recovery
+work was confirmed correct INTERRUPT-class (blocked auto-process pipeline, two genuinely-stale daemons,
+a real health-check false-positive) and the leftover run_complete markers are outage-window duplicates
+being swept, NOT the R3 regression claimed. The QUEUE-by-default rule for genuinely-non-blocking
+findings STILL stands (now codified) — and the explicit calibration: do NOT defer a genuine machine
+blockage because of this doc. Full corrected text: `git show 69c7e5a1`. My actions below were all
+correct under the corrected framing; the one still-live item is the structural BUILD-gating escalation.
+
 **IN PROGRESS (2026-07-13). Actioned as INTERRUPT (accepted the justification).** DoD status:
 (1) Self-interrupt discipline codified — CLAUDE.md + `.claude/skills/staging-protocol/SKILL.md` (QUEUE
 by default, INTERRUPT only when machine-blocked). DONE. (2) Daemon markers off the instruction channel:
