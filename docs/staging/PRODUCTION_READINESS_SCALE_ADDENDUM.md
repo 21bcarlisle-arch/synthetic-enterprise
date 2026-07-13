@@ -25,6 +25,48 @@ Time compression can silently license logic that only works because a whole peri
 - **C-S4 Persistence behind an interface.** All durable state access goes through the append-only event-log abstraction; no decision logic may depend on the current storage form (in-memory / JSON-on-disk). The storage engine must be swappable without touching logic.
 - **C-S5 Time-scale invariance declaration.** Any company-side atom claiming maturity L3+ must state whether its logic is time-scale invariant (correct regardless of how fast events accumulate in wall-clock terms) and register any exception as a named simplification per R10.
 
+## ADVISOR AMENDMENTS (2026-07-13, director-approved) — each earned by a real incident
+
+**A1. C-S2 gains RNG SUBSTREAM DISCIPLINE (proven necessary last night).**
+Adding illness/divorce draws to the shared life-event generator broke two
+downstream sim runs (01:09Z incident, caught by process_run_complete's gate):
+new draws on a SHARED per-customer RNG stream shift every subsequent draw,
+destroying reproducibility. **Constraint:** each stochastic subsystem draws from
+its own NAMED, SEEDED substream, so adding a draw in one subsystem cannot
+perturb any other. Deterministic replay (C-S2) is not achievable without this.
+Retrofit is cheap now and impossible later.
+
+**A2. C-S3 has an immediate, already-discovered application.** This morning's
+A3_approval_interface FRAME pass found *"A2's schema cannot represent pending
+latency."* That IS C-S3, restated: an approval REQUEST and its ANSWER are
+separate events in time. The same law therefore governs (a) wall interface
+contracts and (b) the governance/approval interface. **Build it once, serve
+both** — and note that approval LATENCY is already established as physics
+(GOVERNED_COMPANY Part 1b: a pricing window closing while a request waits is a
+real cost). Do not solve these separately.
+
+**A3. SIMPLICITY GUARD (new, binding on all five constraints).** These
+constraints must be satisfied by the SIMPLEST construct that satisfies them. No
+speculative abstraction layers, no adapters-for-future-adapters, no
+infrastructure-shaped code with no infrastructure behind it. In particular C-S4
+("persistence behind an interface") is exactly the phrasing that breeds a
+repository pattern with three implementations in front of a JSON file — that
+would be a defect, not compliance. The WALL already provides the project's seam;
+these constraints add discipline, not architecture. If satisfying a constraint
+requires more than a thin, obvious construct, say so and escalate rather than
+building a cathedral.
+
+**A4. Seed C-S5's exception register** with the known first instance: the DD
+mandate submit-and-resolve-in-the-same-step bug (found by W5_1's Expert Hour).
+That is the proven exemplar of the time-compression class this constraint
+exists to catch.
+
+**A5. Coherence note (not a new stream).** C-S1 and C-S2 are the OPERATIONAL
+CONSEQUENCES of an architecture already ratified for Epoch 2 (events as
+primitive, bitemporal append-only truth). This addendum should be read as making
+that decision testable, not as introducing new architecture. Record it that way
+so nobody later mistakes it for a competing design.
+
 ## Explicitly open — NOT decided here
 
 - Which storage or transport technologies eventually sit behind C-S3/C-S4: a go-live-era decision, informed by Part B evidence. Do not select or trial them now.
@@ -36,3 +78,7 @@ Time compression can silently license logic that only works because a whole peri
 1. This addendum is folded into PRODUCTION_READINESS_BASELINE.md Part C when that draft finalises.
 2. The constraints enter CLAUDE.md's standing design constraints in a form a future Expert Hour or phase-close evaluator can test against real code.
 3. The builder's answer on retroactive application (open item 3) is recorded with its reasoning.
+4. RNG substream discipline (A1) implemented and proven: adding a draw to one
+   subsystem leaves all other subsystems' streams bit-identical (test it).
+5. C-S3 and the A3 approval-interface pending-latency gap are solved by ONE
+   mechanism, not two.
