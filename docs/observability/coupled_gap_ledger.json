@@ -48,30 +48,6 @@
     "run_git_commit": "d29055ed5c555d6ef667eceec80798f58a0902a5",
     "twin_atom_id": "C7_life_event_detection"
   },
-  "W2_9_segment_debt_tnc": {
-    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
-    "components": {
-      "class_counts": {
-        "business_terms": 50200,
-        "domestic_terms": 449800
-      },
-      "error_rate": 0.023,
-      "majority_class": "domestic_terms",
-      "n": 500000,
-      "n_wrong": 11500,
-      "positive_class": "business_terms",
-      "wrongly_applied": 8200,
-      "wrongly_withheld": 3300
-    },
-    "g0": 0.1004,
-    "gap": 0.2290836653386454,
-    "measured_at": "2026-07-13T21:45:31.021206+00:00",
-    "metric": "misapplication",
-    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
-    "raw_gap": 0.023,
-    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
-    "twin_atom_id": "C11_segment_debt_policy"
-  },
   "W2_6_sme_distress_twin": {
     "baseline": "always-predict-majority quadrant can/will (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
     "components": {
@@ -96,5 +72,52 @@
     "raw_gap": 0.6249629629629629,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C8_sme_credit_risk"
+  },
+  "W2_7_willingness_classification": {
+    "baseline": "always-predict-majority quadrant can/wont (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
+    "components": {
+      "fn_ability": 0.074875,
+      "fn_willingness": 0.254351,
+      "forborne": 7234,
+      "forborne_strategic_loss": 2882,
+      "harm_ratio_R": 8.0,
+      "majority_quadrant": "can_wont",
+      "n_arrears": 9934,
+      "pursued": 2700,
+      "pursued_cannot_expensive_error": 42,
+      "realised_gate_harm": 3218.0
+    },
+    "g0": 3.9369840950271793,
+    "gap": 0.12781897212989005,
+    "measured_at": "2026-07-13T22:09:30.628876+00:00",
+    "metric": "classification",
+    "note": "cost-weighted can't-pay/won't-pay 2x2 misclassification (W2_7 hidden ability x willingness -> identical observable is_in_arrears -> C9 classification from engagement/part-payment/disclosure/consumption); ability axis = the can-pay/cannot-pay confound, 8:1 harm on reading a genuine can't-pay as a strategic won't-pay. fn_ability is the harm path (vulnerable read as able); pursue/forbear gate outcomes in components.",
+    "raw_gap": 0.5032212603180994,
+    "run_git_commit": "4387baa5cbb14b3bd55e952dfc4669ee1592593f",
+    "twin_atom_id": "C9_cantpay_wontpay_classifier"
+  },
+  "W2_9_segment_debt_tnc": {
+    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
+    "components": {
+      "class_counts": {
+        "business_terms": 50200,
+        "domestic_terms": 449800
+      },
+      "error_rate": 0.023,
+      "majority_class": "domestic_terms",
+      "n": 500000,
+      "n_wrong": 11500,
+      "positive_class": "business_terms",
+      "wrongly_applied": 8200,
+      "wrongly_withheld": 3300
+    },
+    "g0": 0.1004,
+    "gap": 0.2290836653386454,
+    "measured_at": "2026-07-13T21:45:31.021206+00:00",
+    "metric": "misapplication",
+    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
+    "raw_gap": 0.023,
+    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
+    "twin_atom_id": "C11_segment_debt_policy"
   }
 }
