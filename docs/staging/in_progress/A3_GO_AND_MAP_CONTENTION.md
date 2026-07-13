@@ -1,3 +1,15 @@
+**IN PROGRESS (2026-07-13). Actioned as the director's GO + a QUEUE structural finding.** Status:
+(1) A3 GO — building A3 next (serialized: C2 is mid-build editing maturity_map.yaml right now, so
+dispatching A3 concurrently would hit the exact lost-update race item 2 names; A3 dispatches the
+instant C2 commits). (2) map-contention bottleneck — QUEUE, registering as a high-dial harness atom
+once C2 frees maturity_map.yaml; design will be a helper that does the full read-edit-regenerate-
+commit of the map inside one tree_lock critical section (map stays single source of truth, no lost
+writes), proven by a two-parallel-atom test. (3) reporting — DONE: staging skill now requires
+level-transitions-banked (incl. L0→L1) in every digest. A2 independent Expert Hour: will dispatch a
+fresh-context phase-close-evaluator (not a self-review) after the map-contention fix lands.
+
+---
+
 # A3: GO. Plus: the map file is the concurrency bottleneck (QUEUE)
 
 **Staged:** 2026-07-13 by advisor. Two items.
