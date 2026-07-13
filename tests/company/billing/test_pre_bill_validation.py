@@ -75,6 +75,101 @@ def test_c6_real_sme_consumption_on_a_resi_account_is_held():
     assert any("slc_6_7_billing_accuracy" in r for r in result.reasons)
 
 
+# --- INVARIANT_LIBRARY_REDTEAM.md C1 (2026-07-13): the vat_by_segment control
+# --- was a tautology; the independent consumption cross-check makes it real ---
+
+
+def test_arithmetic_vat_control_alone_is_a_tautology_on_a_mislabel():
+    # BEFORE the fix: a self-consistent mislabel (SME customer labelled resi,
+    # so VAT is computed at the domestic 5% to match the WRONG label) sails
+    # through the arithmetic label-vs-rate control -- proving it is inert
+    # against the exact C6 SME-as-Household class it is named for.
+    from company.compliance.domain_invariants import check_vat
+    from company.billing.pre_bill_validation import _actual_vat_rate
+
+    # A resi-labelled bill whose 5% VAT is internally consistent with that label
+    # but whose metered load (C6's real 2,346.8 kWh/mo) is I&C-scale.
+    subtotal = 700.0 + 200.0 + 9.0
+    mislabel = _good_resi_bill(
+        segment="resi", total_consumption_kwh=2346.8,
+        commodity_amount_gbp=700.0, non_commodity_amount_gbp=200.0,
+        standing_charge_gbp=9.0, vat_gbp=subtotal * 0.05,
+    )
+    # The arithmetic control passes it (tautology): 5% applied vs resi-implies-5%.
+    assert check_vat("resi", _actual_vat_rate(mislabel)) is True
+
+
+def test_mislabelled_sme_as_household_is_caught_by_vat_consumption_crosscheck():
+    # AFTER the fix: the SAME self-consistent mislabel is now HELD, and the
+    # reason cites the independent (label-free) consumption signal, not just the
+    # adjacent consumption-plausibility check.
+    subtotal = 700.0 + 200.0 + 9.0
+    mislabel = _good_resi_bill(
+        segment="resi", total_consumption_kwh=2346.8,
+        commodity_amount_gbp=700.0, non_commodity_amount_gbp=200.0,
+        standing_charge_gbp=9.0, vat_gbp=subtotal * 0.05,
+    )
+    result = validate_bill(mislabel)
+    assert result.held is True
+    # The vat_by_segment obligation now fires on a mislabel it previously could
+    # not touch -- the control is no longer a tautology.
+    assert any(
+        "vat_by_segment" in r and "SME-as-Household mislabel" in r
+        for r in result.reasons
+    )
+
+
+def test_moderate_sme_mislabel_below_absurdity_bound_relies_on_the_vat_crosscheck():
+    # A mislabelled SME whose load is I&C-scale but NOT grossly absurd. This
+    # documents that the VAT cross-check and the consumption-plausibility check
+    # share the anchored domestic ceiling: both trip together here. The point is
+    # that the vat_by_segment obligation now has independent detective power at
+    # all, attributed to the correct (tax-classification) control.
+    subtotal = 800.0 + 200.0 + 9.0
+    mislabel = _good_resi_bill(
+        segment="resi", total_consumption_kwh=3000.0,
+        commodity_amount_gbp=800.0, non_commodity_amount_gbp=200.0,
+        standing_charge_gbp=9.0, vat_gbp=subtotal * 0.05,
+    )
+    result = validate_bill(mislabel)
+    assert result.held is True
+    assert any("SME-as-Household mislabel" in r for r in result.reasons)
+
+
+def test_correct_ic_scale_sme_bill_not_flagged_by_vat_crosscheck():
+    # A legitimate SME bill: I&C-scale load billed correctly at 20%. The
+    # cross-check must NOT flag it (applied rate matches the consumption-implied
+    # non-domestic rate) -- no false positive.
+    subtotal = 4455.0 + 16.65 + 9.30
+    bill = _good_resi_bill(
+        segment="SME", total_consumption_kwh=45000.0,
+        commodity_amount_gbp=4455.0, vat_gbp=0.20 * subtotal,
+    )
+    result = validate_bill(bill)
+    assert not any("SME-as-Household mislabel" in r for r in result.reasons)
+
+
+def test_legit_small_business_on_domestic_consumption_not_flagged():
+    # The honest weak direction: a genuine small business (microbusiness /
+    # corner shop) consumes domestic-scale volumes and correctly pays 20%. The
+    # cross-check must NEVER flag this -- low consumption cannot refute a
+    # business label. This is a legit bill and must PASS.
+    bill = _good_resi_bill(segment="SME", total_consumption_kwh=300.0, vat_gbp=14.10)
+    result = validate_bill(bill)
+    assert result.outcome == ValidationOutcome.PASS
+    assert not any("SME-as-Household mislabel" in r for r in result.reasons)
+
+
+def test_electric_heated_resi_max_not_flagged_by_vat_crosscheck():
+    # The real observed electric-heated resi max (1,945 kWh/mo, within the
+    # anchored domestic envelope) at the correct 5% rate must NOT trip the VAT
+    # cross-check -- proves the domestic ceiling has headroom for genuine
+    # electric heating and does not false-positive real domestic customers.
+    bill = _good_resi_bill(total_consumption_kwh=1945.0, vat_gbp=3.53)
+    result = validate_bill(bill)
+    assert not any("SME-as-Household mislabel" in r for r in result.reasons)
+
+
 def test_real_resi_population_max_still_passes():
     # The real observed resi max in this sim's verified-correct population
     # (1,945 kWh/month) must never be flagged -- proves the bound sits

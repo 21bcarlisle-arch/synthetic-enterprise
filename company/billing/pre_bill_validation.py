@@ -28,6 +28,8 @@ from enum import Enum
 
 from company.compliance.domain_invariants import (
     check_vat,
+    check_vat_consistent_with_consumption,
+    consumption_implied_vat_rate,
     check_resi_bill_consumption_plausible,
     check_back_billing_cap_respected,
 )
@@ -85,6 +87,31 @@ def validate_bill(bill: dict) -> BillValidationResult:
             f"vat_by_segment: segment={segment!r} implies a different VAT rate than "
             f"the {actual_vat:.4f} applied on this bill"
         )
+
+    # INVARIANT_LIBRARY_REDTEAM.md C1 (2026-07-13, R10 C6 class): the arithmetic
+    # check_vat() above is a tautology against this pipeline -- VAT is derived
+    # from `segment` and re-derived from `segment`, so it can never catch a
+    # MISLABEL where the declared segment itself is wrong. This independent
+    # cross-check re-bases the expected rate on the metered load (a signal
+    # independent of the label): an I&C-scale consumption billed at the domestic
+    # 5% rate is the SME-as-Household undercharge and is HELD. One-directional by
+    # honest design (see check_vat_consistent_with_consumption docstring) -- it
+    # never flags a business rate on domestic-scale consumption, because a
+    # genuine microbusiness looks identical there.
+    if actual_vat is not None:
+        vat_kwh = bill.get("total_consumption_kwh", 0.0)
+        vat_days = _days_in_period(bill)
+        if not check_vat_consistent_with_consumption(
+            segment, commodity, actual_vat, vat_kwh, vat_days
+        ):
+            implied = consumption_implied_vat_rate(commodity, vat_kwh, vat_days)
+            reasons.append(
+                f"vat_by_segment: declared segment={segment!r} (VAT {actual_vat:.4f} "
+                f"applied) is contradicted by a metered load of {vat_kwh:.1f} kWh over "
+                f"{vat_days:.0f} days -- consumption independent of the label implies a "
+                f"non-domestic {implied:.2f} rate, so this looks like an "
+                f"SME-as-Household mislabel"
+            )
 
     if segment == "resi":
         days = _days_in_period(bill)
