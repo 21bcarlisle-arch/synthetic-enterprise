@@ -82,6 +82,41 @@ from pathlib import Path
 DEFAULT_SESSION_NAME = "claude"
 
 _RELAY_LOCK_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".tmux_relay.lock"
+# DEFECT_TMUX_PANE_INJECTION.md (2026-07-13, director P2): source-attributable
+# logging for EVERY send-keys injection, so a future storm is diagnosable in
+# seconds (which script, when, what) instead of an hour of SIGSTOP forensics.
+_INJECTION_LOG = Path(__file__).resolve().parent.parent / "docs" / "observability" / "injection-log.jsonl"
+
+
+def _log_injection(session: str, keys, outcome: str) -> None:
+    """Append one JSONL record per send_keys attempt: timestamp, the calling
+    script (walked off the stack), a payload hash + head, and the outcome
+    (sent/failed/suppressed_*). Best-effort -- never raises into the caller."""
+    try:
+        import hashlib
+        import inspect
+        import json
+
+        source = "unknown"
+        for fr in inspect.stack()[2:]:
+            base = fr.filename.rsplit("/", 1)[-1]
+            if base != "tmux_relay.py":
+                source = f"{base}:{fr.lineno}:{fr.function}"
+                break
+        payload = " ".join(str(k) for k in keys)
+        rec = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "source": source,
+            "session": session,
+            "outcome": outcome,
+            "payload_sha1_10": hashlib.sha1(payload.encode("utf-8", "replace")).hexdigest()[:10],
+            "payload_len": len(payload),
+            "payload_head": payload[:80],
+        }
+        with open(_INJECTION_LOG, "a") as f:
+            f.write(json.dumps(rec) + "\n")
+    except Exception:
+        pass
 # Short on purpose: a legitimate holder's critical section is a single
 # idle-check + send + ~1.5s verify sleep + re-capture, so a few seconds is
 # generous headroom. Daemons poll every 30-60s anyway, so a lock-contention
@@ -228,14 +263,17 @@ def send_keys(session: str, *keys: str) -> bool:
     if os.environ.get("PYTEST_CURRENT_TEST") is not None:
         return False
     if session != _configured_session_name():
+        _log_injection(session, keys, "suppressed_session_mismatch")
         return False
     try:
         result = subprocess.run(
             ["tmux", "send-keys", "-t", session, *keys],
             capture_output=True, timeout=5,
         )
+        _log_injection(session, keys, "sent" if result.returncode == 0 else "failed")
         return result.returncode == 0
     except Exception:
+        _log_injection(session, keys, "exception")
         return False
 
 
