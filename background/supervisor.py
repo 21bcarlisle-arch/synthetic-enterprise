@@ -122,6 +122,10 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background import agenda as agenda_module  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
+from background.coupled_triad import (  # noqa: E402
+    load_gap_ledger as _coupled_load_gap_ledger,
+    world_l3_blocked as _coupled_world_l3_blocked,
+)
 from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
 from background.tmux_relay import (  # noqa: E402
     ensure_live_tail, is_session_idle, pane_in_copy_mode, send_keys_when_idle,
@@ -516,6 +520,22 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
         return _dependencies_met(a)
 
     candidates = [a for a in atoms if _is_valid_candidate(a)]
+    # COUPLED_TRIAD binding rule 1 (director P1, COUPLED_TRIAD_DESIGN.md 4.1):
+    # a WORLD atom stepping toward L3 is excluded from the BUILD draw until its
+    # coupled company twin exists (>=L1) AND the pair's belief-vs-truth gap is
+    # measured in the gap ledger. BUILD-lane only -- LANE 2 (SITE) and LANE 3
+    # (DISCOVER/FRAME) are untouched, so a capped world atom still draws
+    # thinking work elsewhere. Fails closed (missing/empty ledger -> blocked).
+    if candidates:
+        _gap_ledger = _coupled_load_gap_ledger()
+        _kept = []
+        for _a in candidates:
+            _blocked, _reason = _coupled_world_l3_blocked(_a, atoms, _gap_ledger)
+            if _blocked:
+                log(f"COUPLED_TRIAD gate: excluding {_a.get('id')} from BUILD draw -- {_reason}")
+            else:
+                _kept.append(_a)
+        candidates = _kept
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
