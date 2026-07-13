@@ -559,6 +559,25 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("method.json generation failed: {}".format(exc))
     try:
+        # Door 4 THE PROOF + Door 3 THE COMPANY: their generators were built with
+        # the pages but NOT wired here, so the pages froze against their own live
+        # sources (Door-4 cold-eyes caught it: proof.json showed 60 atoms vs a live
+        # 61). Run AFTER the maturity-map/scorecard/dashboard regen above (their
+        # inputs) and BEFORE the GitHub-pages mirror below (so the mirror ships the
+        # fresh copies). R11 no-orphan-transition: a generated surface must ride the
+        # regen cycle or it silently decays.
+        from tools.generate_proof_data import generate as gen_proof
+        gen_proof()
+        log("Generated site/data/proof.json (Door 4 THE PROOF)")
+    except Exception as exc:
+        log("proof.json generation failed: {}".format(exc))
+    try:
+        from tools.generate_company_data import generate as gen_company
+        gen_company()
+        log("Generated site/data/company.json (Door 3 THE COMPANY)")
+    except Exception as exc:
+        log("company.json generation failed: {}".format(exc))
+    try:
         from tools.mirror_github_pages import mirror as mirror_gh_pages
         mirrored = mirror_gh_pages()
         log("Mirrored {} file(s) to docs/shadow + docs/state for GitHub Pages".format(len(mirrored)))
