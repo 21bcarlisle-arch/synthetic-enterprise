@@ -19,11 +19,12 @@
   **TAUTOLOGY**. Retained as documented defence-in-depth but structurally
   cannot catch the SME-as-Household mislabel it is named for; the independent
   cross-check that replaces it (`check_vat_consistent_with_consumption`) **fires**.
-- **2 FIXED** cumulatively (both Pass 1). **Pass 2 fixed 0** and registered **5 new
-  killer-pattern GAPS (KL-4..KL-8)** — every gap found is a semantics change across
-  multiple callers, so per SELF_INTERRUPT_DISCIPLINE (QUEUE-by-default) they are
-  ranked kill-list entries for the orchestrator, not fixed on sight. Every Pass-2
-  control still fires on its *core* named defect, so **Pass-2 theatre count is 0**.
+- **7 FIXED** cumulatively (Pass 1: 2; **F8, 2026-07-13: 5 — the entire KL-4..KL-8
+  gap set**). F8 gave each of KL-4..KL-8 a passing mutation test proving the control
+  now FIRES on its own named defect (before: theatre / passed-wrongly; after: fires),
+  each verified OUTCOME-SAFE against the live population (see per-gap notes below).
+  **The registered-gap count is now 0.** Every Pass-2 control still fires on its
+  *core* named defect, so **Pass-2 theatre count is 0**.
 - Plus a **structural-only** check of the LLM-judge evaluators (their read-only
   guarantee is asserted; their verdict *quality* is documented as **not
   deterministically mutation-testable** and NOT counted as covered).
@@ -31,9 +32,9 @@
 ### By killer pattern (cumulative, found across the library)
 | Killer pattern | Count | Controls |
 |---|---|---|
-| **TAUTOLOGY** | 2 | `check_vat` (THEATRE, mitigated); `social_obligation is_compliant` status-trust (KL-6, mitigated by independent `underspend_records`) |
-| **FAIL-OPEN** | 3 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (KL-7, listed); dashboard `_check_consistency` per-key skip (KL-8, listed) |
-| **FAIL-SILENT** | 4 | Qwen backstop unavailable (**FIXED** P1); population estimated-read empty-log (KL-4, listed); `consumer_duty` empty-register=GREEN (KL-5, listed); dashboard `_check_consistency` no-insights (KL-8, listed) |
+| **TAUTOLOGY** | 2 | `check_vat` (THEATRE, mitigated, retained); `social_obligation non_compliant` status-trust (**KL-6 FIXED F8** — folds independent `is_underspend`) |
+| **FAIL-OPEN** | 3 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (**KL-7 FIXED F8** — NOT_APPLICABLE / fail-closed on broken detection); dashboard `_check_consistency` per-key skip (**KL-8 FIXED F8** — one-sided key = mismatch) |
+| **FAIL-SILENT** | 4 | Qwen backstop unavailable (**FIXED** P1); population estimated-read empty-log (**KL-4 FIXED F8** — empty log flags); `consumer_duty` empty-register=GREEN (**KL-5 FIXED F8** — distinct NOT_ASSESSED state); dashboard `_check_consistency` no-insights (**KL-8 FIXED F8** — absent insights fails closed) |
 
 Plus **documented, sourced limitations** (not killer patterns): the YearlyRange
 pre-cap "cannot check" branch, the epistemic verifier's two coverage gaps, and several
@@ -141,12 +142,14 @@ Listed for honesty; **not** counted as theatre.
 | 27 | `process_run_complete` change-detection gate | skip a genuinely-changed run / spurious skip on corrupt memory | **FIRED** | **fails-CLOSED** on unreadable dedup memory (good); R11 near-identical class mitigated by `FORCE_REPUBLISH_FLAG`+`source_git_hash` |
 | — | LLM-judge evaluators (`phase-close-evaluator`, `epistemic-verifier`) | a judge able to Write/Edit its way to a PASS | **STRUCTURAL-ONLY** | read-only guarantee asserted; verdict quality NOT mutation-testable |
 
-### PASS-2 GAPS REGISTERED FOR THE ORCHESTRATOR (KL-4..KL-8)
-- **KL-4 (FAIL-SILENT)** `check_estimated_read_rate([])` returns clean — a total absence of reads is the most-broken state. *Fix:* alarm when reads are expected for the window but the log is empty. Not fixed (empty can be a legitimate first-run; `sanity_daemon` consumes it).
-- **KL-5 (FAIL-SILENT)** `ConsumerDutyRegister().overall_rag()` on an empty register = GREEN. Under FCA Consumer Duty an un-assessed outcome is a governance failure. *Fix:* add an explicit UNKNOWN/UN-ASSESSED state. Not fixed — 14+ callers treat GREEN as baseline.
-- **KL-6 (TAUTOLOGY)** `social_obligation.non_compliant()` trusts the self-declared `status` field, not spend-vs-target; a mislabelled-PAID underspend passes. Mitigated by the independent `underspend_records()`. *Fix:* fold `is_underspend` into `non_compliant()`.
-- **KL-7 (FAIL-OPEN)** `green_claims_audit.audit()` short-circuits `obligation==0` → 100% COMPLIANT; broken green-product detection reads compliant. *Fix:* cross-check obligation=0 against whether any active green product had billed consumption. Not fixed — zero obligation legitimately means no claims.
-- **KL-8 (FAIL-SILENT + FAIL-OPEN)** `_check_consistency` returns pass when `run_insights.json` is missing, and silently skips a one-sided missing headline key (same class as the R11 orphan-transition incident). *Fix:* treat an absent insights file as a hard failure once the pipeline guarantees it, and count a one-sided missing key as a mismatch.
+### PASS-2 GAPS KL-4..KL-8 — ALL CLOSED BY F8 (2026-07-13)
+Each closed with a passing mutation test proving the control now FIRES on its own
+named defect; each verified outcome-safe against the live population.
+- **KL-4 (FAIL-SILENT) — FIXED.** `check_estimated_read_rate([])` now returns a finding: a total absence of reads is the most-broken read-generation state and cannot read clean (R15). Outcome-safe: the live run's 1,588 reads (30% estimated) still read clean. *Test:* `test_population_estimated_read_rate_empty_log_fires`.
+- **KL-5 (FAIL-SILENT) — FIXED.** `ConsumerDutyRegister.overall_rag()` on an empty register now returns the distinct `OutcomeRAG.NOT_ASSESSED` state (not GREEN); `is_assessed()`/`needs_attention()` added as explicit flags. Outcome-safe: a populated all-green register still reads GREEN. (The register is instantiated only in tests in production — the "14+ callers" concern was overstated.) *Test:* `test_consumer_duty_empty_register_fires_not_green`.
+- **KL-6 (TAUTOLOGY) — FIXED.** `social_obligation.non_compliant()` now folds in the independent `is_underspend` evidence, so a mislabelled-PAID grossly-underspent obligation FIRES; the declared label can no longer manufacture compliance. Outcome-safe: a genuinely-met PAID full-spend obligation is still not flagged, and PROJECTED (not-yet-spent) obligations remain excluded. The status branch is retained AND cross-checked (defence-in-depth), not deleted. *Test:* `test_social_obligation_status_trust_tautology_now_fires`.
+- **KL-7 (FAIL-OPEN) — FIXED.** `green_claims_audit.audit()` no longer reads 100% COMPLIANT on a zero obligation: a genuine "no green claims made" returns the distinct `NOT_APPLICABLE` status, and a green product in use with a broken (zero) obligation fails CLOSED to `NON_COMPLIANT`. *Test:* `test_green_claims_audit_zero_obligation_fixed`.
+- **KL-8 (FAIL-SILENT + FAIL-OPEN) — FIXED.** `_check_consistency` now fails CLOSED (raising the consistency NTFY alarm) when `run_insights.json` is absent/empty — the pipeline guarantees the file is written immediately before this gate — and counts a one-sided missing headline key as a mismatch (a key absent on BOTH surfaces is legitimately not-published and still skipped). Outcome-safe: the real dashboard carries all 8 headline keys on both surfaces. *Test:* `test_dashboard_consistency_gate_no_insights_fixed`.
 
 ---
 

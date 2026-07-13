@@ -31,7 +31,9 @@ class GreenClaimsAuditResult:
     obligation_mwh: float           # REGOs the company must hold for green claims
     rego_held_mwh: float            # available + retired in this scheme year
     coverage_pct: float             # 100 * held / obligation (capped at 100 if >100)
-    status: Literal["COMPLIANT", "AT_RISK", "NON_COMPLIANT"]
+    # NOT_APPLICABLE (R15 KL-7 fix): no REGO obligation was computed because no
+    # green claim was made -- distinct from COMPLIANT ("claims made and backed").
+    status: Literal["COMPLIANT", "AT_RISK", "NON_COMPLIANT", "NOT_APPLICABLE"]
     shortfall_mwh: float            # max(0, obligation - held)
     green_products_active: int      # distinct active green product codes with consumption
     penalty_estimate_gbp: float     # rough enforcement cost if non-compliant
@@ -97,21 +99,37 @@ class GreenClaimsAuditor:
 
         held_mwh = self.portfolio_held_mwh(year)
 
-        if obligation_mwh == 0.0:
-            coverage_pct = 100.0
-        else:
-            coverage_pct = round(min(100.0, 100.0 * held_mwh / obligation_mwh), 2)
-
         shortfall_mwh = round(max(0.0, obligation_mwh - held_mwh), 4)
 
-        if coverage_pct >= self._COMPLIANT_THRESHOLD:
-            status = "COMPLIANT"
-        elif coverage_pct >= self._AT_RISK_THRESHOLD:
-            status = "AT_RISK"
+        # R15 (KL-7 fix, 2026-07-13): a zero obligation used to short-circuit to
+        # 100% COMPLIANT -- a FAIL-OPEN. Two distinct zero-obligation cases:
+        #   (a) no green product was in use (green_count == 0): a genuine
+        #       "no green claims made" -> NOT_APPLICABLE, NOT COMPLIANT. Absence
+        #       of a claim is not evidence the claim is backed.
+        #   (b) a green product WAS in use (green_count > 0) yet the obligation
+        #       still computed to zero: the obligation/detection path is broken
+        #       (green tariffs selling but nothing required). Fail CLOSED ->
+        #       NON_COMPLIANT so a broken detector can never read compliant.
+        if obligation_mwh == 0.0:
+            coverage_pct = 0.0
+            if green_count > 0:
+                status = "NON_COMPLIANT"
+            else:
+                status = "NOT_APPLICABLE"
         else:
-            status = "NON_COMPLIANT"
+            coverage_pct = round(min(100.0, 100.0 * held_mwh / obligation_mwh), 2)
+            if coverage_pct >= self._COMPLIANT_THRESHOLD:
+                status = "COMPLIANT"
+            elif coverage_pct >= self._AT_RISK_THRESHOLD:
+                status = "AT_RISK"
+            else:
+                status = "NON_COMPLIANT"
 
-        penalty_gbp = round(shortfall_mwh * _OFGEM_PENALTY_PER_MWH, 2) if status != "COMPLIANT" else 0.0
+        penalty_gbp = (
+            round(shortfall_mwh * _OFGEM_PENALTY_PER_MWH, 2)
+            if status in ("AT_RISK", "NON_COMPLIANT")
+            else 0.0
+        )
 
         return GreenClaimsAuditResult(
             year=year,

@@ -91,8 +91,12 @@ def test_estimated_read_rate_catches_all_actual():
     assert len(findings) == 1
 
 
-def test_estimated_read_rate_empty_log_is_clean():
-    assert check_estimated_read_rate([]) == []
+def test_estimated_read_rate_empty_log_fires():
+    # R15 (KL-4 fix): a total absence of reads is the most-broken read-generation
+    # state and must FLAG, never read clean (was a fail-silent gap).
+    findings = check_estimated_read_rate([])
+    assert len(findings) == 1
+    assert findings[0]["check"] == "estimated_read_rate_vs_industry_norms"
 
 
 def test_run_all_population_checks_concatenates_and_empty_is_clean():

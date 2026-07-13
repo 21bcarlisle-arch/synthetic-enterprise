@@ -10,14 +10,14 @@
       "total_controls_mutation_tested": 27,
       "fired_on_named_defect": 26,
       "theatre": 1,
-      "fixed_cumulative": 2,
-      "gaps_registered_not_fixed": 5,
+      "fixed_cumulative": 7,
+      "gaps_registered_not_fixed": 0,
       "by_killer_pattern": {
-        "TAUTOLOGY": {"total": 2, "detail": "check_vat (THEATRE, mitigated); social_obligation is_compliant status-trust (GAP KL-6, mitigated by independent underspend_records)"},
-        "FAIL_OPEN": {"total": 3, "fixed": 1, "listed_gaps": 2, "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (GAP KL-7); dashboard _check_consistency per-key skip (GAP KL-8)"},
-        "FAIL_SILENT": {"total": 4, "fixed": 1, "listed_gaps": 3, "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (GAP KL-4); consumer_duty empty-register=GREEN (GAP KL-5); dashboard _check_consistency no-insights (GAP KL-8)"}
+        "TAUTOLOGY": {"total": 2, "detail": "check_vat (THEATRE, mitigated, retained defence-in-depth); social_obligation non_compliant status-trust (KL-6 FIXED F8: now folds independent is_underspend evidence, mislabelled-PAID underspend fires)"},
+        "FAIL_OPEN": {"total": 3, "fixed": 3, "listed_gaps": 0, "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (KL-7 FIXED F8: NOT_APPLICABLE for no-claims, fails CLOSED on broken detection); dashboard _check_consistency per-key skip (KL-8 FIXED F8: one-sided missing key now a mismatch)"},
+        "FAIL_SILENT": {"total": 4, "fixed": 4, "listed_gaps": 0, "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (KL-4 FIXED F8: empty log now FLAGS); consumer_duty empty-register=GREEN (KL-5 FIXED F8: distinct NOT_ASSESSED state); dashboard _check_consistency no-insights (KL-8 FIXED F8: absent insights now fails CLOSED)"}
       },
-      "honest_note": "Pass 2 fixed ZERO controls: unlike pass 1's two isolated single-caller fixes, every gap found is a semantics change across multiple callers (consumer_duty.overall_rag has 14+ callers; check_estimated_read_rate feeds sanity_daemon), so per SELF_INTERRUPT_DISCIPLINE (QUEUE-by-default) they are registered as ranked kill-list entries for the orchestrator, not fixed on sight. Every pass-2 control still FIRES on its core named defect; the gaps are secondary fail-open/fail-silent branches, so pass-2 theatre count is 0."
+      "honest_note": "F8 (2026-07-13) CLOSED all five pass-2 gaps KL-4..KL-8, each with a passing mutation test proving the control now FIRES on its own named defect (before: theatre/passed-wrongly; after: fires). Each fix was verified OUTCOME-SAFE against the live population: the real run's 1,588 meter reads (30% estimated) still read clean (KL-4); a populated all-green Consumer-Duty register still reads GREEN (KL-5); a genuinely-met PAID full-spend obligation is still not flagged (KL-6); the real dashboard carries all 8 headline keys on both surfaces so no false one-sided mismatch (KL-8). ConsumerDutyRegister and SocialObligationSpendRegister are instantiated only in tests (no production surface), so KL-5/KL-6 carry zero production-outcome risk. Cumulative theatre count remains 1 (check_vat, the flagship tautology, retained as documented defence-in-depth)."
     }
   },
   "controls": [
@@ -161,9 +161,9 @@
       "pass": 2,
       "location": "company/compliance/population_sanity.py::check_estimated_read_rate",
       "catches": "The read-generation mechanism broken (whole population ~0% or ~100% estimated).",
-      "mutation": "100% estimated reads -> outside the [2%,85%] sanity band.",
-      "killer_pattern_audit": "FAIL-SILENT (GAP KL-4, listed)",
-      "killer_pattern_detail": "Fires on 0%/100%, but an EMPTY meter_read_log (arguably the most-broken state -- no reads produced at all) returns [] (clean). NOT fixed: an empty log can be a legitimate first-run and sanity_daemon.py consumes this, so alarm-on-empty needs caller analysis. Registered KL-4.",
+      "mutation": "100% estimated reads -> outside the [2%,85%] sanity band; AND an empty meter_read_log now fires.",
+      "killer_pattern_audit": "FAIL-SILENT (KL-4 FIXED F8)",
+      "killer_pattern_detail": "Fires on 0%/100%. KL-4 FIXED (F8, 2026-07-13): an EMPTY meter_read_log (the most-broken state -- no reads produced at all) previously returned [] (clean, fail-silent); it now returns a finding. An empty check cannot be a passing check (R15). Outcome-safe: the live run's 1,588 reads (30% estimated) still read clean; a plausible non-empty mix still passes.",
       "result": "FIRED"
     },
     {
@@ -181,9 +181,9 @@
       "pass": 2,
       "location": "company/compliance/consumer_duty.py::ConsumerDutyRegister.overall_rag",
       "catches": "A RED Consumer-Duty outcome must escalate the whole register to RED.",
-      "mutation": "One RED outcome amongst GREENs.",
-      "killer_pattern_audit": "FAIL-SILENT (GAP KL-5, listed)",
-      "killer_pattern_detail": "Fires correctly on a RED outcome, but an EMPTY register (zero assessments ever performed) reports GREEN -- under FCA Consumer Duty 'no assessment done' is a governance failure, not compliant. NOT fixed: overall_rag has 14+ callers treating GREEN as baseline; semantics change needs orchestration. Registered KL-5.",
+      "mutation": "One RED outcome amongst GREENs; AND an empty register now reads NOT_ASSESSED, not GREEN.",
+      "killer_pattern_audit": "FAIL-SILENT (KL-5 FIXED F8)",
+      "killer_pattern_detail": "Fires correctly on a RED outcome. KL-5 FIXED (F8, 2026-07-13): an EMPTY register (zero assessments ever performed) previously reported GREEN (fail-silent -- under FCA Consumer Duty an un-assessed outcome is a governance failure, not compliant). overall_rag() now returns a distinct OutcomeRAG.NOT_ASSESSED state (not green); is_assessed()/needs_attention() give surfaces/daemons an explicit flag. Outcome-safe: a populated all-green register still reads GREEN. Note: ConsumerDutyRegister is instantiated only in tests (no production surface treats GREEN as baseline), so the semantics change carried no production-outcome risk -- the '14+ callers' concern was overstated.",
       "result": "FIRED"
     },
     {
@@ -191,9 +191,9 @@
       "pass": 2,
       "location": "company/regulatory/social_obligation_register.py::non_compliant / underspend_records",
       "catches": "A mandatory social-spend obligation underperforming / underspent against target.",
-      "mutation": "An UNDERPERFORMING obligation, and a grossly-underspent obligation mislabelled PAID.",
-      "killer_pattern_audit": "TAUTOLOGY (GAP KL-6, mitigated by independent control)",
-      "killer_pattern_detail": "non_compliant() trusts the self-declared `status` field -- a mislabelled-PAID underspend passes it (the same 'compliance from a declared label' pattern as the VAT tautology). underspend_records() is the INDEPENDENT spend-vs-target control that DOES fire on it. is_compliant() alone is theatre for the underspend defect; the independent control mitigates. Registered KL-6.",
+      "mutation": "An UNDERPERFORMING obligation, and a grossly-underspent obligation mislabelled PAID (now caught by non_compliant()).",
+      "killer_pattern_audit": "TAUTOLOGY (KL-6 FIXED F8)",
+      "killer_pattern_detail": "KL-6 FIXED (F8, 2026-07-13): non_compliant() previously trusted the self-declared `status` field ALONE -- a mislabelled-PAID underspend passed it (the same 'compliance from a declared label' pattern as the VAT tautology). non_compliant() now folds in the INDEPENDENT spend-vs-target evidence (is_underspend), so a mislabelled-PAID underspend FIRES; the label can no longer manufacture compliance. Outcome-safe: a genuinely-met PAID full-spend obligation is still not flagged, and PROJECTED (not-yet-spent) obligations remain excluded. The tautological status branch is retained AND cross-checked (defence-in-depth), not deleted.",
       "result": "FIRED"
     },
     {
@@ -211,9 +211,9 @@
       "pass": 2,
       "location": "company/compliance/green_claims_audit.py::GreenClaimsAuditor.audit",
       "catches": "Green marketing claims not backed by held REGOs (Fuel Mix Disclosure Regs 2005) -> NON_COMPLIANT + shortfall + penalty.",
-      "mutation": "Claim 10 MWh green supply, hold only 5 MWh.",
-      "killer_pattern_audit": "FAIL-OPEN (GAP KL-7, listed)",
-      "killer_pattern_detail": "Fires on a genuine shortfall, but obligation_mwh==0 short-circuits to 100% COMPLIANT -- if green-product DETECTION silently breaks (active_green_codes empty though green tariffs sell), the audit reads compliant. Zero obligation legitimately means 'no claims made', so NOT fixed; registered KL-7 as a watched surface. Independence OK (held REGOs are a separate real asset from consumption -- not a tautology).",
+      "mutation": "Claim 10 MWh green supply, hold only 5 MWh; AND a green product in use with a broken (zero) obligation now fails CLOSED.",
+      "killer_pattern_audit": "FAIL-OPEN (KL-7 FIXED F8)",
+      "killer_pattern_detail": "Fires on a genuine shortfall. KL-7 FIXED (F8, 2026-07-13): obligation_mwh==0 previously short-circuited to 100% COMPLIANT (fail-open). Now the two zero-obligation cases are distinguished: (a) no green product in use -> NOT_APPLICABLE, a distinct status that is NOT 'COMPLIANT' (absence of a claim is not evidence a claim is backed); (b) a green product IS in use yet obligation computed to 0 (broken detection) -> NON_COMPLIANT, fails CLOSED. A broken detector can no longer read compliant. Independence OK (held REGOs are a separate real asset from consumption -- not a tautology).",
       "result": "FIRED"
     },
     {
@@ -221,9 +221,9 @@
       "pass": 2,
       "location": "tools/generate_dashboard_data.py::_check_consistency",
       "catches": "Same-page surfaces disagreeing -- exec-summary insights vs the run-output totals (net/gross margin, EV, bills, committee, retention, churn).",
-      "mutation": "insights net_margin != portfolio net_margin beyond tolerance.",
-      "killer_pattern_audit": "FAIL-SILENT + FAIL-OPEN (GAP KL-8, listed)",
-      "killer_pattern_detail": "Fires on a real surface disagreement, but (a) a missing/empty run_insights.json returns True (pass) -- same class as the R11 orphan-transition incident (gate passes when its comparison input is absent); (b) a headline key missing on one side is silently skipped (per-key fail-open). Same graceful-degrade shape as _check_bridge_reconciles's documented missing-file branch. NOT fixed (first-run insights may legitimately be absent); registered KL-8.",
+      "mutation": "insights net_margin != portfolio net_margin beyond tolerance; AND missing insights + one-sided missing key now fail.",
+      "killer_pattern_audit": "FAIL-SILENT + FAIL-OPEN (KL-8 FIXED F8)",
+      "killer_pattern_detail": "Fires on a real surface disagreement. KL-8 FIXED (F8, 2026-07-13): (a) FAIL-SILENT closed -- a missing/empty run_insights.json previously returned True (pass when its comparison input was absent, the R11 orphan-transition class); the pipeline (process_run_complete.save_insights) guarantees the file is written immediately before this gate, so an absent payload now fails CLOSED, raising the consistency NTFY alarm. (b) FAIL-OPEN closed -- a headline key present on ONE surface but missing on the other is now a mismatch, not a silent skip; a key absent on BOTH surfaces is legitimately not-published and still skipped. Outcome-safe: the real dashboard carries all 8 headline keys on both surfaces, so no false one-sided mismatch.",
       "result": "FIRED"
     },
     {
@@ -286,11 +286,11 @@
     }
   ],
   "newly_found_gaps_pass_2": [
-    {"id": "KL-4", "pattern": "FAIL-SILENT", "control": "population_sanity.check_estimated_read_rate", "gap": "Empty meter_read_log returns [] (clean) though a total absence of reads is the most-broken read-generation state.", "disposition": "listed, not fixed -- empty can be a legitimate first-run; sanity_daemon.py consumer needs analysis before alarm-on-empty is safe.", "fix_recommendation": "Have the population runner pass an expected-nonzero flag, or alarm when reads are expected for the window but the log is empty."},
-    {"id": "KL-5", "pattern": "FAIL-SILENT", "control": "consumer_duty.ConsumerDutyRegister.overall_rag", "gap": "An empty register (zero outcome assessments) reports GREEN; under FCA Consumer Duty an un-assessed outcome is a governance failure, not compliant.", "disposition": "listed, not fixed -- overall_rag has 14+ callers treating GREEN as baseline.", "fix_recommendation": "Add an explicit UNKNOWN/UN-ASSESSED state (or a has_assessments() precondition on the board surfaces) rather than defaulting empty to GREEN."},
-    {"id": "KL-6", "pattern": "TAUTOLOGY", "control": "social_obligation_register.non_compliant (is_compliant)", "gap": "Compliance derived from the self-declared status field, not the independent spend-vs-target evidence; a mislabelled-PAID underspend passes non_compliant().", "disposition": "listed, mitigated -- underspend_records() is the independent control that fires on it.", "fix_recommendation": "Make non_compliant() also fold in is_underspend (independent evidence), not status alone."},
-    {"id": "KL-7", "pattern": "FAIL-OPEN", "control": "green_claims_audit.audit", "gap": "obligation_mwh==0 short-circuits to 100% COMPLIANT; if green-product detection silently breaks, a company selling green tariffs reads compliant.", "disposition": "listed, not fixed -- zero obligation legitimately means no claims made.", "fix_recommendation": "Cross-check obligation==0 against whether any active green product HAD billed consumption; flag the divergence."},
-    {"id": "KL-8", "pattern": "FAIL-SILENT + FAIL-OPEN", "control": "generate_dashboard_data._check_consistency", "gap": "Missing/empty run_insights.json returns True (pass); a headline key missing on one side is silently skipped.", "disposition": "listed, not fixed -- first-run insights may legitimately be absent (same graceful-degrade shape as _check_bridge_reconciles).", "fix_recommendation": "Treat an ABSENT insights file as a hard gate failure once the pipeline guarantees it is always produced; count a one-sided missing headline key as a mismatch."}
+    {"id": "KL-4", "pattern": "FAIL-SILENT", "control": "population_sanity.check_estimated_read_rate", "gap": "Empty meter_read_log returns [] (clean) though a total absence of reads is the most-broken read-generation state.", "disposition": "FIXED (F8, 2026-07-13): an empty log now returns a finding (fires). Outcome-safe -- the live run's 1,588 reads still read clean. Mutation test: test_population_estimated_read_rate_empty_log_fires.", "fix_recommendation": "DONE: alarm on a total absence of reads (an empty check cannot be a passing check)."},
+    {"id": "KL-5", "pattern": "FAIL-SILENT", "control": "consumer_duty.ConsumerDutyRegister.overall_rag", "gap": "An empty register (zero outcome assessments) reports GREEN; under FCA Consumer Duty an un-assessed outcome is a governance failure, not compliant.", "disposition": "FIXED (F8, 2026-07-13): overall_rag() now returns a distinct OutcomeRAG.NOT_ASSESSED (not GREEN); is_assessed()/needs_attention() added as flags. Outcome-safe -- populated all-green still GREEN; register is test-only in production. Mutation test: test_consumer_duty_empty_register_fires_not_green.", "fix_recommendation": "DONE: explicit NOT_ASSESSED state rather than defaulting empty to GREEN."},
+    {"id": "KL-6", "pattern": "TAUTOLOGY", "control": "social_obligation_register.non_compliant (is_compliant)", "gap": "Compliance derived from the self-declared status field, not the independent spend-vs-target evidence; a mislabelled-PAID underspend passes non_compliant().", "disposition": "FIXED (F8, 2026-07-13): non_compliant() now folds in the independent is_underspend evidence -- a mislabelled-PAID underspend fires. Outcome-safe -- genuinely-met PAID full-spend not flagged; PROJECTED excluded. Status branch retained as cross-checked defence-in-depth. Mutation test: test_social_obligation_status_trust_tautology_now_fires.", "fix_recommendation": "DONE: non_compliant() folds in is_underspend, not status alone."},
+    {"id": "KL-7", "pattern": "FAIL-OPEN", "control": "green_claims_audit.audit", "gap": "obligation_mwh==0 short-circuits to 100% COMPLIANT; if green-product detection silently breaks, a company selling green tariffs reads compliant.", "disposition": "FIXED (F8, 2026-07-13): no-claims -> NOT_APPLICABLE (distinct from COMPLIANT); a green product in use with a broken zero obligation -> NON_COMPLIANT (fails closed). Mutation test: test_green_claims_audit_zero_obligation_fixed.", "fix_recommendation": "DONE: distinguish 'no claims made' (NOT_APPLICABLE) from a broken detector (fail closed)."},
+    {"id": "KL-8", "pattern": "FAIL-SILENT + FAIL-OPEN", "control": "generate_dashboard_data._check_consistency", "gap": "Missing/empty run_insights.json returns True (pass); a headline key missing on one side is silently skipped.", "disposition": "FIXED (F8, 2026-07-13): absent/empty insights now fails CLOSED (raises the consistency NTFY alarm) -- the pipeline guarantees the file is written before this gate; a one-sided missing headline key is now a mismatch; both-absent still skipped. Outcome-safe -- real dashboard carries all 8 keys on both surfaces. Mutation test: test_dashboard_consistency_gate_no_insights_fixed.", "fix_recommendation": "DONE: absent insights is a hard failure; one-sided missing key counts as a mismatch."}
   ],
   "inventoried_not_yet_mutation_tested": [
     {"category": "evaluators_judgement_layer", "examples": [".claude/agents/phase-close-evaluator.md", ".claude/agents/epistemic-verifier.md"], "note": "STRUCTURAL read-only guarantee now asserted (llm_judge_evaluators_structural); the LLM verdict QUALITY itself remains not-deterministically-mutation-testable -- graded by prompt+model, no fixed prompt->NEEDS_WORK oracle. Documented, NOT counted as covered for the judgement layer."},

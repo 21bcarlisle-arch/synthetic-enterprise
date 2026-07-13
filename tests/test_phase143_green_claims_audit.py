@@ -83,11 +83,13 @@ def test_non_compliant_when_coverage_below_90pct():
 
 
 def test_non_green_product_contributes_zero_obligation():
-    # STD_FIX_1YR is not green -- no obligation even with large consumption
+    # STD_FIX_1YR is not green -- no obligation even with large consumption.
+    # R15 (KL-7 fix): no green claim made -> NOT_APPLICABLE (distinct from
+    # COMPLIANT), not a false "compliant".
     auditor = _auditor(2020, 0.0)
     result = auditor.audit(2020, {"STD_FIX_1YR": 100_000.0}, date_str="2020-12-31")
     assert result.obligation_mwh == 0.0
-    assert result.status == "COMPLIANT"
+    assert result.status == "NOT_APPLICABLE"
     assert result.green_products_active == 0
 
 
@@ -106,7 +108,9 @@ def test_withdrawn_product_not_counted_after_withdrawal():
     result = auditor.audit(2024, {"IC_GREEN_CERT": 20_000.0}, date_str="2024-06-30")
     assert result.obligation_mwh == 0.0
     assert result.green_products_active == 0
-    assert result.status == "COMPLIANT"
+    # R15 (KL-7 fix): the product is withdrawn, so no active green claim ->
+    # NOT_APPLICABLE, not a false "compliant".
+    assert result.status == "NOT_APPLICABLE"
 
 
 def test_multiple_green_products_aggregate_obligation():
