@@ -93,6 +93,12 @@ def _log_injection(session: str, keys, outcome: str) -> None:
     script (walked off the stack), a payload hash + head, and the outcome
     (sent/failed/suppressed_*). Best-effort -- never raises into the caller."""
     try:
+        import sys
+        # Never write the production log from a test run. The send_keys tests
+        # deliberately delenv PYTEST_CURRENT_TEST to exercise the real path, so
+        # guard on pytest's module presence instead (stays imported regardless).
+        if "pytest" in sys.modules:
+            return
         import hashlib
         import inspect
         import json
