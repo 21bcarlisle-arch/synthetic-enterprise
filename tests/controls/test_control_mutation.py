@@ -286,6 +286,379 @@ def test_epistemic_verifier_clean_on_approved_seam_import():
         assert ev._scan_file(good) == []
 
 
+# ==========================================================================
+# PASS 2 (H12 L2->L3): the INVENTORIED-BUT-UNTESTED tail
+# CONTROLS_THAT_CANNOT_FAIL.md -- compliance trackers, health/page-consistency
+# gates, the daemon change-detection gate, and (structurally) the LLM judges.
+# Same doctrine: inject each control's named defect and assert it FIRES; audit
+# every one for TAUTOLOGY / FAIL-OPEN / FAIL-SILENT. Where a control has a
+# genuine not-applicable/degrade-gracefully branch we ASSERT that branch
+# explicitly so the kill list can cite it honestly rather than hide it, and
+# where a real fail-open/fail-silent gap exists that needs caller analysis we
+# pin its CURRENT behaviour in a test and register it as a kill-list entry.
+# ==========================================================================
+
+from company.compliance import population_sanity as ps
+from company.compliance.consumer_duty import (
+    ConsumerDutyRegister, OutcomeAssessment, DutyOutcome, OutcomeRAG,
+)
+from company.regulatory.social_obligation_register import (
+    SocialObligationSpendRegister, SocialObligationType, ObligationStatus,
+)
+from company.compliance.crisis_bad_debt_validator import validate_crisis_bad_debt
+
+
+# --------------------------------------------------------------------------
+# population_sanity.py -- population-level statistical checks
+# --------------------------------------------------------------------------
+
+def _resi_bill(cid, year, kwh, days, gbp=None, commodity="electricity"):
+    return {
+        "customer_id": cid, "segment": "resi", "commodity": commodity,
+        "period_end": f"{year}-12-31", "total_consumption_kwh": kwh,
+        "days_in_period": days, "commodity_amount_gbp": gbp if gbp is not None else 0.0,
+    }
+
+
+def test_population_consumption_distribution_fires_on_sme_scale_annual_load():
+    # CORRECT: ~3000 kWh/yr over a full year passes. MUTATE: 50,000 kWh/yr fires.
+    clean = [_resi_bill("C_ok", 2022, 1500.0, 183), _resi_bill("C_ok", 2022, 1500.0, 183)]
+    assert ps.check_consumption_distribution(clean) == []
+    absurd = [_resi_bill("C_bad", 2022, 25000.0, 183), _resi_bill("C_bad", 2022, 25000.0, 183)]
+    fired = ps.check_consumption_distribution(absurd)
+    assert fired and fired[0]["check"] == "consumption_distribution_vs_tdcv"
+
+
+def test_population_consumption_distribution_partial_year_is_documented_not_fail_open():
+    # DOCUMENTED not-applicable guard (SANITY_TRIAGE_2026_07_11): a partial-year
+    # joiner/leaver (< _MIN_DAYS_COVERAGE) is skipped, NOT flagged low. Asserted
+    # so the kill list cites it as a KNOWN scoped guard, not a surprise fail-open.
+    stub = [_resi_bill("C_stub", 2022, 128.68, 2)]  # 2-day stub, absurd as a full year
+    assert ps.check_consumption_distribution(stub) == []
+
+
+def test_population_unit_rate_bands_fire_on_absurd_rate():
+    year = min(di.UNIT_RATE_ELEC_RESI_BY_YEAR.by_year) + 3
+    anchor = di.UNIT_RATE_ELEC_RESI_BY_YEAR.by_year[year]  # GBP/MWh
+    # CORRECT: 1000 kWh billed at exactly the anchor GBP/MWh -> avg == anchor, in band.
+    clean = [_resi_bill("C_ok", year, 1000.0, 365, gbp=anchor)]
+    assert ps.check_unit_rate_bands(clean) == []
+    # MUTATE: same kWh billed at ~16x the anchor -> absurd average unit rate.
+    absurd = [_resi_bill("C_bad", year, 1000.0, 365, gbp=anchor * 16)]
+    fired = ps.check_unit_rate_bands(absurd)
+    assert fired and fired[0]["check"] == "unit_rate_vs_cap_band"
+
+
+def test_population_estimated_read_rate_fires_when_mechanism_broken():
+    # CORRECT: a plausible mix passes. MUTATE: 100% estimated -> mechanism broken.
+    mixed = [{"status": "estimated"}] * 3 + [{"status": "actual"}] * 7
+    assert ps.check_estimated_read_rate(mixed) == []
+    all_est = [{"status": "estimated"}] * 20
+    fired = ps.check_estimated_read_rate(all_est)
+    assert fired and fired[0]["check"] == "estimated_read_rate_vs_industry_norms"
+
+
+def test_population_estimated_read_rate_empty_log_is_fail_silent_gap():
+    # KILL-LIST GAP (KL-4, FAIL-SILENT): a TOTAL absence of reads -- arguably the
+    # most-broken read-generation state -- currently reads CLEAN ([]). Pinned as
+    # current behaviour and registered for the orchestrator (not fixed here: an
+    # empty log can also be a legitimate first-run, and sanity_daemon.py consumes
+    # this, so alarm-on-empty needs caller analysis before it is safe).
+    assert ps.check_estimated_read_rate([]) == []
+
+
+def test_population_payment_channel_mix_fires_when_everyone_on_one_method():
+    mixed = ([{"method": "direct_debit"}] * 7) + ([{"method": "standard_credit"}] * 3)
+    assert ps.check_payment_channel_mix(mixed) == []
+    all_dd = [{"method": "direct_debit"}] * 20
+    fired = ps.check_payment_channel_mix(all_dd)
+    assert fired and fired[0]["check"] == "payment_channel_mix_vs_desnz_anchor"
+
+
+# --------------------------------------------------------------------------
+# consumer_duty.py -- FCA Consumer Duty RAG aggregator
+# --------------------------------------------------------------------------
+
+def _duty_assessment(outcome, rag, date="2024-01-01"):
+    return OutcomeAssessment(
+        outcome=outcome, assessment_date=date, rag=rag,
+        metric_value=1.0, metric_name="m", narrative="n",
+    )
+
+
+def test_consumer_duty_overall_rag_fires_on_a_red_outcome():
+    reg = ConsumerDutyRegister()
+    reg.record_assessment(_duty_assessment(DutyOutcome.PRICE_AND_VALUE, OutcomeRAG.GREEN))
+    assert reg.overall_rag() == OutcomeRAG.GREEN
+    # MUTATE: a single RED outcome must escalate the whole register to RED.
+    reg.record_assessment(_duty_assessment(DutyOutcome.CONSUMER_SUPPORT, OutcomeRAG.RED, "2024-02-01"))
+    assert reg.overall_rag() == OutcomeRAG.RED
+    assert len(reg.red_outcomes()) == 1
+
+
+def test_consumer_duty_empty_register_green_is_fail_silent_gap():
+    # KILL-LIST GAP (KL-5, FAIL-SILENT): an EMPTY register -- zero outcome
+    # assessments ever performed -- reports GREEN (compliant). Under FCA
+    # Consumer Duty "no assessment done" is a governance failure, not "green".
+    # Pinned as current behaviour; NOT fixed here (overall_rag has 14+ callers
+    # that treat GREEN as the baseline -- a semantics change needs orchestration,
+    # per SELF_INTERRUPT_DISCIPLINE QUEUE-by-default).
+    assert ConsumerDutyRegister().overall_rag() == OutcomeRAG.GREEN
+
+
+# --------------------------------------------------------------------------
+# social_obligation_register.py -- mandatory social spend
+# --------------------------------------------------------------------------
+
+def test_social_obligation_underspend_surfaces_via_independent_evidence():
+    reg = SocialObligationSpendRegister()
+    # An obligation genuinely met (PAID, full spend) is compliant + not underspent.
+    reg.record_obligation(2024, SocialObligationType.WARM_HOME_DISCOUNT,
+                          target_gbp=1000.0, actual_spend_gbp=1000.0,
+                          status=ObligationStatus.PAID)
+    # MUTATE: an underperforming obligation must surface in non_compliant().
+    reg.record_obligation(2024, SocialObligationType.ENERGY_EFFICIENCY,
+                          target_gbp=1000.0, actual_spend_gbp=100.0,
+                          status=ObligationStatus.UNDERPERFORMING)
+    assert len(reg.non_compliant()) == 1
+    # The INDEPENDENT spend-vs-target view catches underspend regardless of the
+    # self-declared status label (see status-trust gap below).
+    assert len(reg.underspend_records()) == 1
+
+
+def test_social_obligation_status_trust_is_tautology_gap():
+    # KILL-LIST GAP (KL-6, TAUTOLOGY): is_compliant() trusts the self-declared
+    # `status` field, not the independent spend-vs-target evidence. A record
+    # mislabelled PAID while grossly underspent passes non_compliant() -- the
+    # same "compliance from a declared label" pattern as the flagship VAT
+    # tautology. underspend_records() is the independent control that DOES catch
+    # it; is_compliant() alone is theatre for the underspend defect.
+    reg = SocialObligationSpendRegister()
+    reg.record_obligation(2024, SocialObligationType.WARM_HOME_DISCOUNT,
+                          target_gbp=1_000_000.0, actual_spend_gbp=1.0,
+                          status=ObligationStatus.PAID)  # mislabelled
+    assert reg.non_compliant() == []                    # tautology: does NOT fire
+    assert len(reg.underspend_records()) == 1           # independent control fires
+
+
+# --------------------------------------------------------------------------
+# crisis_bad_debt_validator.py -- anchored crisis step-up diagnostic
+# --------------------------------------------------------------------------
+
+def test_crisis_bad_debt_validator_fires_on_flat_no_stepup_trajectory():
+    # A flat ~2%-of-revenue trajectory with NO crisis step-up must FAIL (this is
+    # the EXPECTED failing state the CFO cold-walk found -- the control's whole
+    # value is that it fires on exactly that).
+    flat_bd = {y: 200.0 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
+    flat_rev = {y: 10_000.0 for y in (2016, 2017, 2018, 2019, 2021, 2022)}
+    res = validate_crisis_bad_debt(flat_bd, flat_rev)
+    assert res.passed is False
+    assert any("step-up" in f for f in res.failures)
+
+
+def test_crisis_bad_debt_validator_passes_on_a_real_stepup():
+    # CORRECT: a genuine crisis step-up (rate >= floor and >= 1.2x pre-crisis)
+    # must PASS -- proving the control is not stuck-closed theatre.
+    bd = {2016: 100.0, 2017: 100.0, 2018: 100.0, 2019: 100.0, 2021: 300.0, 2022: 300.0}
+    rev = {y: 10_000.0 for y in bd}
+    res = validate_crisis_bad_debt(bd, rev)
+    assert res.passed is True
+
+
+def test_crisis_bad_debt_validator_fails_closed_on_missing_crisis_data():
+    # FAIL-CLOSED audit: no crisis-year data present must NOT read as a pass.
+    only_pre = {2016: 100.0, 2017: 100.0}
+    res = validate_crisis_bad_debt(only_pre, {2016: 10_000.0, 2017: 10_000.0})
+    assert res.passed is False
+    assert any("no crisis-year" in f for f in res.failures)
+
+
+# --------------------------------------------------------------------------
+# green_claims_audit.py -- REGO coverage vs green marketing claims
+# --------------------------------------------------------------------------
+
+def test_green_claims_audit_fires_on_uncovered_claim():
+    from company.compliance.green_claims_audit import GreenClaimsAuditor
+    from company.market.rego_portfolio import RegoPortfolio, RegoPurchase
+    p = RegoPortfolio()
+    p.buy(RegoPurchase(purchase_id="R1", purchase_date="2020-01-15", scheme_year=2020,
+                       mwh=5.0, price_per_mwh=1.0, generator="G", technology="wind_onshore"))
+    auditor = GreenClaimsAuditor(p)
+    # CORRECT: 5 MWh claim fully covered by 5 MWh held -> COMPLIANT.
+    ok = auditor.audit(2020, {"GREEN_FIX_1YR": 5_000.0}, date_str="2020-12-31")
+    assert ok.status == "COMPLIANT"
+    # MUTATE: claim 10 MWh of green supply, hold only 5 -> NON_COMPLIANT, shortfall.
+    bad = auditor.audit(2020, {"GREEN_FIX_1YR": 10_000.0}, date_str="2020-12-31")
+    assert bad.status == "NON_COMPLIANT"
+    assert bad.shortfall_mwh > 0 and bad.penalty_estimate_gbp > 0
+
+
+def test_green_claims_audit_zero_obligation_is_fail_open_gap():
+    # KILL-LIST GAP (KL-7, FAIL-OPEN): if the green-product DETECTION silently
+    # breaks (obligation computes to 0 though green tariffs are being sold), the
+    # audit returns COMPLIANT at 100% coverage. Zero obligation legitimately
+    # means "no green claims made", so this is NOT fixed here -- registered so a
+    # broken-detection regression is a known, watched surface, not a surprise.
+    from company.compliance.green_claims_audit import GreenClaimsAuditor
+    from company.market.rego_portfolio import RegoPortfolio
+    auditor = GreenClaimsAuditor(RegoPortfolio())
+    res = auditor.audit(2020, {}, date_str="2020-12-31")  # no consumption -> obligation 0
+    assert res.status == "COMPLIANT" and res.coverage_pct == 100.0
+
+
+# --------------------------------------------------------------------------
+# tools/generate_dashboard_data.py -- page-consistency gates (R14 + population)
+# --------------------------------------------------------------------------
+
+def test_dashboard_consistency_gate_fires_on_surface_disagreement():
+    import tools.generate_dashboard_data as gdd
+    portfolio = {"net_margin_gbp": 100.0}
+    # CORRECT: insights agree -> pass.
+    assert gdd._check_consistency(portfolio, {"net_margin_gbp": 100.0}, "run.json") is True
+    # MUTATE: exec-summary insights disagree with the totals -> gate fires.
+    assert gdd._check_consistency(portfolio, {"net_margin_gbp": 200.0}, "run.json") is False
+
+
+def test_dashboard_consistency_gate_no_insights_is_fail_silent_gap():
+    # KILL-LIST GAP (KL-8, FAIL-SILENT): a missing/empty run_insights.json makes
+    # the gate return True (pass) -- the SAME class as the R11 orphan-transition
+    # incident (a gate that passes when its comparison input is absent). Same
+    # graceful-degrade shape as _check_bridge_reconciles's documented missing-file
+    # branch; pinned here and registered rather than papered over.
+    import tools.generate_dashboard_data as gdd
+    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {}, "run.json") is True
+    # And the per-key skip (FAIL-OPEN): a headline key missing on one side is
+    # silently skipped, not flagged.
+    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {"insights": []}, "run.json") is True
+
+
+def test_dashboard_basis_label_gate_fires_on_unlabelled_headline_figure():
+    import tools.generate_dashboard_data as gdd
+    good_basis = {"clock": "settled", "provisional": True, "note": "x"}
+    clean = {"net_margin_gbp": 100.0, "enterprise_value_gbp": 50.0,
+             "basis": {"net_margin_gbp": good_basis, "enterprise_value_gbp": good_basis}}
+    assert gdd._check_basis_labels_present(clean) is True
+    # MUTATE: publish net margin with NO basis label -> R14 gate fires.
+    unlabelled = {"net_margin_gbp": 100.0, "basis": {}}
+    assert gdd._check_basis_labels_present(unlabelled) is False
+
+
+def test_dashboard_population_consistency_gate_fires_on_book_size_divergence():
+    import tools.generate_dashboard_data as gdd
+    data = {"years": {"2025": {"active_customer_ids": ["Z1", "Z2"]}}}
+    clean = {"customers": {"book_annual": [{"active_elec": 2, "active_gas": 0}]}, "opex_ledger": {}}
+    assert gdd._check_population_consistency(data, clean) is True
+    # MUTATE: the pulse-strip Book Size no longer reconciles to its source pop.
+    broken = {"customers": {"book_annual": [{"active_elec": 5, "active_gas": 0}]}, "opex_ledger": {}}
+    assert gdd._check_population_consistency(data, broken) is False
+
+
+# --------------------------------------------------------------------------
+# background/health_check.py -- the stack health control
+# --------------------------------------------------------------------------
+
+def test_health_check_fires_on_a_missing_daemon(monkeypatch):
+    import background.health_check as hc
+    present = {s: "python" for s in hc.EXPECTED_PANES if s != "supervisor"}
+    monkeypatch.setattr(hc, "_tmux_panes", lambda: present)
+    monkeypatch.setattr(hc, "_running_scripts", lambda: [])
+    monkeypatch.setattr(hc, "_check_pixel_verification_capability", lambda: None)
+    monkeypatch.setattr(hc, "_check_stale_running_code", lambda: None)
+    monkeypatch.setattr(hc, "_check_staging_age", lambda: None)
+    monkeypatch.setattr(hc, "_check_stale_dependencies", lambda: None)
+    all_ok, ok, problems = hc.run_health_check()
+    assert all_ok is False
+    assert any("supervisor" in p and "NOT RUNNING" in p for p in problems)
+
+
+def test_health_check_fails_closed_when_process_inspection_unavailable(monkeypatch):
+    # FAIL-SILENT audit (the key R15 property): if tmux AND ps both fail (return
+    # empty) the checker itself is effectively unavailable. It must ALARM (read
+    # every daemon as NOT RUNNING -> DEGRADED), never read clean. Proven here.
+    import background.health_check as hc
+    monkeypatch.setattr(hc, "_tmux_panes", lambda: {})
+    monkeypatch.setattr(hc, "_running_scripts", lambda: [])
+    monkeypatch.setattr(hc, "_check_pixel_verification_capability", lambda: None)
+    monkeypatch.setattr(hc, "_check_stale_running_code", lambda: None)
+    monkeypatch.setattr(hc, "_check_staging_age", lambda: None)
+    monkeypatch.setattr(hc, "_check_stale_dependencies", lambda: None)
+    all_ok, ok, problems = hc.run_health_check()
+    assert all_ok is False
+    assert len(problems) >= len(hc.EXPECTED_PANES)  # every daemon flagged, none silently clean
+
+
+def test_health_check_stale_running_code_fires_on_process_older_than_its_script(monkeypatch):
+    from datetime import datetime as _dt
+    import background.health_check as hc
+    # MUTATE: the supervisor process 'started' in the year 2000 -- long before its
+    # own (freshly-checked-out) script file was last modified -> stale, fires.
+    monkeypatch.setattr(hc, "_process_start_times_by_script",
+                        lambda: {"supervisor.py": _dt(2000, 1, 1)})
+    assert hc._check_stale_running_code() is not None
+    # CORRECT: a process started in the future is newer than its script -> clean.
+    monkeypatch.setattr(hc, "_process_start_times_by_script",
+                        lambda: {"supervisor.py": _dt(2100, 1, 1)})
+    assert hc._check_stale_running_code() is None
+
+
+# --------------------------------------------------------------------------
+# background/process_run_complete.py -- the change-detection (dedup) gate
+# --------------------------------------------------------------------------
+
+def test_change_detection_fingerprint_is_sensitive_to_meaningful_change():
+    # The dedup gate skips a run whose fingerprint MATCHES the last processed one.
+    # For that to be safe, a meaningful business change MUST flip the fingerprint,
+    # or a real change is silently withheld from the live site (the R11 incident
+    # class). Prove the fingerprint moves on a net-margin change.
+    import background.process_run_complete as prc
+    base = {"total_net_gbp": 1000.0, "bills_total": 10}
+    fp1 = prc._run_fingerprint(base)
+    fp2 = prc._run_fingerprint({**base, "total_net_gbp": 2000.0})
+    assert fp1 != fp2
+    # An administration event is always distinguishable (never dedup-skipped).
+    assert prc._run_fingerprint({**base, "administration_event": True})["administration_event"] is True
+
+
+def test_change_detection_read_last_fingerprint_fails_closed_on_corruption(monkeypatch, tmp_path):
+    # FAIL-CLOSED audit: if the gate's own memory (last-fingerprint file) is
+    # corrupt/unreadable, it must return None so the run is PROCESSED (not
+    # silently skipped by a spurious match). An unavailable dedup-memory must
+    # never manufacture a skip.
+    import background.process_run_complete as prc
+    corrupt = tmp_path / "fp.json"
+    corrupt.write_text("{not valid json")
+    monkeypatch.setattr(prc, "LAST_FINGERPRINT_FILE", corrupt)
+    assert prc._read_last_fingerprint() is None
+    missing = tmp_path / "nope.json"
+    monkeypatch.setattr(prc, "LAST_FINGERPRINT_FILE", missing)
+    assert prc._read_last_fingerprint() is None
+
+
+# --------------------------------------------------------------------------
+# LLM-judge evaluators -- what is HONESTLY testable (structure, not judgement)
+# --------------------------------------------------------------------------
+
+def test_llm_judge_evaluators_are_structurally_read_only():
+    """The phase-close-evaluator and epistemic-verifier AGENTS are LLM judges --
+    their verdict quality cannot be deterministically mutation-tested here (no
+    fixed prompt->NEEDS_WORK oracle). What IS testable, and matters, is the
+    STRUCTURAL guarantee that a judge cannot 'fix' its way to a PASS: its agent
+    definition must grant it NO Write/Edit/NotebookEdit tools. A grader that can
+    mutate the thing it grades is theatre. This asserts that invariant; the
+    judgement layer itself is documented as not-mutation-testable in the kill
+    list, not counted as covered."""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    for name in ("phase-close-evaluator", "epistemic-verifier"):
+        path = os.path.join(root, ".claude", "agents", f"{name}.md")
+        with open(path) as fh:
+            head = fh.read()[:600].lower()
+        tools_line = next((ln for ln in head.splitlines() if ln.startswith("tools:")), "")
+        assert tools_line, f"{name}: no tools: frontmatter line found"
+        for forbidden in ("write", "edit", "notebookedit"):
+            assert forbidden not in tools_line, \
+                f"{name} grants '{forbidden}' -- a judge that can mutate what it grades is theatre"
+
+
 # --------------------------------------------------------------------------
 # Registry integrity -- the kill list must stay honest / in sync
 # --------------------------------------------------------------------------
@@ -296,7 +669,7 @@ def test_control_registry_is_wellformed_and_in_sync():
         reg = json.load(fh)
     controls = reg["controls"]
     assert controls, "empty registry"
-    valid = {"FIRED", "THEATRE", "DID-NOT-FIRE"}
+    valid = {"FIRED", "THEATRE", "DID-NOT-FIRE", "STRUCTURAL-ONLY"}
     for c in controls:
         assert c["result"] in valid, f"{c['id']} has invalid result {c['result']}"
         assert c["location"] and c["catches"] and c["mutation"]

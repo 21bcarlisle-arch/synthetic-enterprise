@@ -5,35 +5,58 @@
   "generated_at": "2026-07-13",
   "method": "docs/design/control_registry.json + tests/controls/test_control_mutation.py",
   "headline": {
-    "inventoried": 13,
-    "mutation_tested": 13,
-    "fired": 12,
+    "inventoried": 27,
+    "mutation_tested": 27,
+    "fired": 26,
     "theatre": 1,
-    "note": "1 THEATRE control is the flagship vat_by_segment arithmetic check -- a tautology -- retained as documented defence-in-depth but structurally unable to catch the SME-as-Household mislabel it is named for. Its independent replacement fires."
+    "note": "Cumulative across two passes. Pass 1 covered the highest-tier customer-impacting set (13). Pass 2 extended to the inventoried-but-untested tail (14 more): the compliance trackers, the health / page-consistency gates, the daemon change-detection gate, plus a structural read-only check of the LLM-judge evaluators (their judgement quality is documented as not deterministically mutation-testable, not counted here). The 1 THEATRE control remains the flagship vat_by_segment arithmetic check -- a tautology, mitigated by an independent cross-check that fires. Pass 2 found 5 new killer-pattern GAPS (KL-4..KL-8) registered for the orchestrator; every pass-2 control still fires on its core named defect, so pass-2 theatre count is 0."
   },
   "killer_patterns": {
-    "tautology": {"count": 1, "examples": ["check_vat (vat_by_segment arithmetic)"], "status": "theatre, mitigated by independent cross-check"},
-    "fail_open": {"count": 1, "examples": ["pre-bill gate skipped VAT validation on subtotal <= 0"], "status": "FIXED this pass (fails closed)"},
-    "fail_silent": {"count": 1, "examples": ["Qwen internal-audit backstop returned clean when Ollama was down"], "status": "FIXED this pass (alarms on unavailability)"}
+    "tautology": {"count": 2, "examples": ["check_vat (vat_by_segment arithmetic) -- THEATRE", "social_obligation is_compliant status-trust (KL-6) -- mitigated by independent underspend check"], "status": "1 theatre (mitigated) + 1 gap (mitigated by independent control)"},
+    "fail_open": {"count": 3, "examples": ["pre-bill gate skipped VAT validation on subtotal <= 0 (FIXED)", "green_claims zero-obligation -> COMPLIANT (KL-7, listed)", "dashboard _check_consistency per-key skip (KL-8, listed)"], "status": "1 FIXED (pass 1) + 2 gaps registered"},
+    "fail_silent": {"count": 4, "examples": ["Qwen internal-audit backstop returned clean when Ollama was down (FIXED)", "population estimated-read empty-log -> clean (KL-4, listed)", "consumer_duty empty-register -> GREEN (KL-5, listed)", "dashboard _check_consistency no-insights -> pass (KL-8, listed)"], "status": "1 FIXED (pass 1) + 3 gaps registered"}
   },
   "controls": [
-    {"id": "rate_invariant_check", "name": "VAT / exact-rate invariant", "defect": "wrong exact rate", "result": "FIRED"},
-    {"id": "range_invariant_check", "name": "Plausible-band invariants (whole-library sweep)", "defect": "value outside plausible band", "result": "FIRED"},
-    {"id": "yearly_range_invariant_check", "name": "Year-specific unit-rate band", "defect": "unit rate order-of-magnitude off cap", "result": "FIRED", "note": "documented, sourced pre-cap limitation"},
-    {"id": "check_vat_arithmetic", "name": "vat_by_segment (arithmetic)", "defect": "SME-as-Household mislabel", "result": "THEATRE", "killer_pattern": "tautology"},
-    {"id": "check_vat_consistent_with_consumption", "name": "vat_by_segment (independent cross-check)", "defect": "SME-as-Household mislabel via metered load", "result": "FIRED"},
-    {"id": "check_resi_bill_consumption_plausible", "name": "Resi consumption plausibility", "defect": "SME-scale load on a resi record", "result": "FIRED"},
-    {"id": "check_back_billing_cap_respected", "name": "Back-billing cap (SLC 21BA)", "defect": "12-month breach not written off", "result": "FIRED", "note": "fails closed on missing/malformed data"},
-    {"id": "check_billed_clock_reconciles", "name": "Billed-clock reconciliation", "defect": "revenue booked for HELD bills", "result": "FIRED"},
-    {"id": "pre_bill_gate_validate_bill", "name": "Tier-1 pre-bill gate", "defect": "mislabel / non-positive-subtotal skip", "result": "FIRED", "killer_pattern": "fail_open (FIXED)"},
-    {"id": "check_reads_reconcile", "name": "Meter-read reconciliation", "defect": "usage != closing - opening reads", "result": "FIRED"},
-    {"id": "internal_audit_qwen_backstop", "name": "Qwen internal-audit backstop", "defect": "absurdity + checker unavailable", "result": "FIRED", "killer_pattern": "fail_silent (FIXED)"},
-    {"id": "obligations_derive_risk_tier", "name": "Obligations risk-tiering", "defect": "obligation mis-tiered below Tier 1", "result": "FIRED"},
-    {"id": "epistemic_verifier_scan", "name": "SIM/company wall scanner", "defect": "company code importing SIM internals", "result": "FIRED", "note": "minor coverage gaps listed"}
+    {"id": "rate_invariant_check", "name": "VAT / exact-rate invariant", "defect": "wrong exact rate", "result": "FIRED", "pass": 1},
+    {"id": "range_invariant_check", "name": "Plausible-band invariants (whole-library sweep)", "defect": "value outside plausible band", "result": "FIRED", "pass": 1},
+    {"id": "yearly_range_invariant_check", "name": "Year-specific unit-rate band", "defect": "unit rate order-of-magnitude off cap", "result": "FIRED", "pass": 1, "note": "documented, sourced pre-cap limitation"},
+    {"id": "check_vat_arithmetic", "name": "vat_by_segment (arithmetic)", "defect": "SME-as-Household mislabel", "result": "THEATRE", "pass": 1, "killer_pattern": "tautology"},
+    {"id": "check_vat_consistent_with_consumption", "name": "vat_by_segment (independent cross-check)", "defect": "SME-as-Household mislabel via metered load", "result": "FIRED", "pass": 1},
+    {"id": "check_resi_bill_consumption_plausible", "name": "Resi consumption plausibility", "defect": "SME-scale load on a resi record", "result": "FIRED", "pass": 1},
+    {"id": "check_back_billing_cap_respected", "name": "Back-billing cap (SLC 21BA)", "defect": "12-month breach not written off", "result": "FIRED", "pass": 1, "note": "fails closed on missing/malformed data"},
+    {"id": "check_billed_clock_reconciles", "name": "Billed-clock reconciliation", "defect": "revenue booked for HELD bills", "result": "FIRED", "pass": 1},
+    {"id": "pre_bill_gate_validate_bill", "name": "Tier-1 pre-bill gate", "defect": "mislabel / non-positive-subtotal skip", "result": "FIRED", "pass": 1, "killer_pattern": "fail_open (FIXED)"},
+    {"id": "check_reads_reconcile", "name": "Meter-read reconciliation", "defect": "usage != closing - opening reads", "result": "FIRED", "pass": 1},
+    {"id": "internal_audit_qwen_backstop", "name": "Qwen internal-audit backstop", "defect": "absurdity + checker unavailable", "result": "FIRED", "pass": 1, "killer_pattern": "fail_silent (FIXED)"},
+    {"id": "obligations_derive_risk_tier", "name": "Obligations risk-tiering", "defect": "obligation mis-tiered below Tier 1", "result": "FIRED", "pass": 1},
+    {"id": "epistemic_verifier_scan", "name": "SIM/company wall scanner", "defect": "company code importing SIM internals", "result": "FIRED", "pass": 1, "note": "minor coverage gaps listed"},
+
+    {"id": "population_consumption_distribution", "name": "Population consumption vs TDCV", "defect": "SME-scale annual load across a resi book", "result": "FIRED", "pass": 2, "note": "documented partial-year (<60d) not-applicable guard"},
+    {"id": "population_unit_rate_bands", "name": "Population unit rate vs Ofgem cap band", "defect": "population drifting off real market pricing", "result": "FIRED", "pass": 2},
+    {"id": "population_estimated_read_rate", "name": "Estimated-read rate vs industry norms", "defect": "read-generation mechanism broken (0%/100%)", "result": "FIRED", "pass": 2, "killer_pattern": "fail_silent (KL-4, gap)"},
+    {"id": "population_payment_channel_mix", "name": "Payment-channel mix vs DESNZ anchor", "defect": "everyone on one payment method", "result": "FIRED", "pass": 2},
+    {"id": "consumer_duty_overall_rag", "name": "Consumer Duty RAG aggregator", "defect": "a RED outcome not escalating the register", "result": "FIRED", "pass": 2, "killer_pattern": "fail_silent (KL-5, gap)"},
+    {"id": "social_obligation_compliance", "name": "Social-obligation spend compliance", "defect": "underperforming/underspent obligation", "result": "FIRED", "pass": 2, "killer_pattern": "tautology (KL-6, mitigated)"},
+    {"id": "crisis_bad_debt_validator", "name": "Crisis bad-debt step-up diagnostic", "defect": "flat trajectory with no 2021-22 crisis step-up", "result": "FIRED", "pass": 2, "note": "R12 diagnostic; fails closed on missing crisis data"},
+    {"id": "green_claims_audit", "name": "Green claims REGO coverage audit", "defect": "green claim not backed by held REGOs", "result": "FIRED", "pass": 2, "killer_pattern": "fail_open (KL-7, gap)"},
+    {"id": "dashboard_check_consistency", "name": "Page-consistency gate (surfaces agree)", "defect": "exec-summary insights disagree with totals", "result": "FIRED", "pass": 2, "killer_pattern": "fail_silent + fail_open (KL-8, gap)"},
+    {"id": "dashboard_basis_labels_r14", "name": "R14 basis-labels gate", "defect": "headline GBP figure with no basis (clock) label", "result": "FIRED", "pass": 2},
+    {"id": "dashboard_population_consistency", "name": "Page population-consistency gate", "defect": "Book Size not reconciling to source population", "result": "FIRED", "pass": 2},
+    {"id": "health_check_run", "name": "Stack health check", "defect": "an expected daemon not running", "result": "FIRED", "pass": 2, "note": "fails closed (alarms) when tmux+ps both unavailable"},
+    {"id": "health_check_stale_running_code", "name": "Stale-running-code check (R2/R3)", "defect": "daemon process older than its own script", "result": "FIRED", "pass": 2},
+    {"id": "change_detection_gate", "name": "Run change-detection (dedup) gate", "defect": "skipping a genuinely-changed run / spurious skip on corrupt memory", "result": "FIRED", "pass": 2, "note": "fingerprint sensitive to change; fails closed on unreadable dedup memory"},
+    {"id": "llm_judge_evaluators_structural", "name": "LLM-judge evaluators (structural)", "defect": "a judge able to Write/Edit its way to a PASS", "result": "STRUCTURAL-ONLY", "pass": 2, "note": "read-only guarantee asserted; verdict quality not deterministically mutation-testable"}
   ],
   "fixed_this_pass": [
-    {"control": "internal_audit (Qwen backstop)", "pattern": "FAIL-SILENT", "before": "returned clean when Ollama was down; audit passed by not running", "after": "third 'unavailable' verdict alarms; sanity daemon reports the outage"},
-    {"control": "pre-bill Tier-1 gate", "pattern": "FAIL-OPEN", "before": "subtotal <= 0 skipped all VAT validation", "after": "negative subtotal and VAT-on-nothing fail closed (HELD)"}
+    {"control": "internal_audit (Qwen backstop)", "pattern": "FAIL-SILENT", "before": "returned clean when Ollama was down; audit passed by not running", "after": "third 'unavailable' verdict alarms; sanity daemon reports the outage", "pass": 1},
+    {"control": "pre-bill Tier-1 gate", "pattern": "FAIL-OPEN", "before": "subtotal <= 0 skipped all VAT validation", "after": "negative subtotal and VAT-on-nothing fail closed (HELD)", "pass": 1}
   ],
-  "coverage_honesty": "Highest-tier / customer-impacting set complete. Evaluators, daemon scheduling logic, population-sanity checks, health/page-consistency gates, and other compliance trackers are inventoried but not yet mutation-tested -- see control_registry.json."
+  "newly_found_gaps": [
+    {"id": "KL-4", "pattern": "FAIL-SILENT", "control": "population estimated-read rate", "gap": "empty meter_read_log reads clean though total absence of reads is the most-broken state", "disposition": "listed (empty can be a legitimate first-run; sanity_daemon consumes it)"},
+    {"id": "KL-5", "pattern": "FAIL-SILENT", "control": "consumer_duty overall_rag", "gap": "empty register (zero assessments) reports GREEN; FCA Consumer Duty treats un-assessed as a governance failure", "disposition": "listed (overall_rag has 14+ callers treating GREEN as baseline)"},
+    {"id": "KL-6", "pattern": "TAUTOLOGY", "control": "social_obligation non_compliant", "gap": "compliance from the self-declared status field, not spend-vs-target; a mislabelled-PAID underspend passes", "disposition": "listed, mitigated by the independent underspend_records() control"},
+    {"id": "KL-7", "pattern": "FAIL-OPEN", "control": "green_claims audit", "gap": "obligation==0 short-circuits to 100% COMPLIANT; broken green-product detection reads compliant", "disposition": "listed (zero obligation legitimately means no claims made)"},
+    {"id": "KL-8", "pattern": "FAIL-SILENT + FAIL-OPEN", "control": "dashboard _check_consistency", "gap": "missing run_insights.json returns pass; a one-sided missing headline key is silently skipped", "disposition": "listed (first-run insights may legitimately be absent)"}
+  ],
+  "coverage_honesty": "Pass 2 reaches near-full apparatus coverage of the DETERMINISTIC controls: compliance trackers, health/page-consistency gates, and the daemon change-detection gate are now mutation-tested. Still honestly UNCOVERED: the LLM-judge evaluators' verdict QUALITY (only their read-only structure is asserted -- no fixed prompt->NEEDS_WORK oracle exists), the daemon SCHEDULING loops (cadence/cooldown/restart backoff), and the long tail of accumulator-style regulatory registers. See control_registry.json for the full list and the 5 registered gaps (KL-4..KL-8)."
 }
