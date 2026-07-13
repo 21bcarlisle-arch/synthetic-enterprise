@@ -33,6 +33,20 @@ fact that it just arrived:
   the self-refill draw itself being broken). If you can't name which of these four applies in one
   sentence, it isn't INTERRUPT — it's QUEUE.
 
+**Your OWN findings get the identical discipline (2026-07-13, SELF_INTERRUPT_DISCIPLINE.md, director-decided
+— STAGING_HAS_ONE_GEAR stopped the ADVISOR preempting the map; this stops YOU).** When you notice a
+harness imperfection mid-task — a false positive in a check, an undocumented coupling, a code smell, a
+missing test, an edge case — the default is **QUEUE, not fix-on-sight**: register it as an atom (lane,
+dial, file_scope) and let the draw rank it. The supply of harness imperfections is INFINITE; every fix
+reveals an edge case, every check needs a check. Fixing them on sight because they are in front of you
+and satisfying to close is a **treadmill** you can run forever, honestly and competently, while the
+actual company (the below-target atoms) does not move. INTERRUPT to fix a self-finding immediately ONLY
+when it genuinely blocks the machine (the draw is broken, daemons are dead, tests can't run, the site is
+publishing something false, data is at risk) — "the stale-code check has a false positive" is NOT that;
+it is a QUEUE item. If a finding is worth doing it is worth ranking; if it is not worth ranking it was
+not worth interrupting the company for. **Report atoms-below-target in every digest** — that number
+falling is the only success metric that matters.
+
 Retro-check yourself honestly at each staging poll: a run of several consecutive INTERRUPTs is itself
 a signal you're mis-classifying — the whole point of this discipline is that genuine INTERRUPTs are
 small and rare against a QUEUE default, not the common case.
