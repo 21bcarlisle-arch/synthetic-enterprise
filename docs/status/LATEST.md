@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T15:19:54Z
+Last updated: 2026-07-13T15:25:40Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (467s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -62,4 +62,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) When you swap the tree/suite configuration and BUILD's capabilities are unchanged, what would you have to observe changing for you to accept the narrowness as "inherent" — and if no such observable exists even in principle, what work is the word "inherent" doing that "currently wired this way" doesn't?
 - (T3_inherence) If all 24 atoms are genuinely read-only, zero-collision, and target-positive as claimed, what specific mechanism or shared resource would make applying two simultaneously behave differently than applying them sequentially — and does anyone actually possess a logged instance of that difference, or does the "one at a time" rule rest entirely on the untested fear that some undocumented coupling exists?
 - (T3_inherence) What are the two named open questions, and by what mechanism does merely updating a stale dependency's status actually resolve them rather than just relabel them as resolved without new evidence?
+- (T3_inherence) What does any of this — "tree/suite configuration," "BUILD's capabilities," the semantics of "inherent" versus "currently wired this way" — have to do with the only stated goal (a UK energy supplier's enterprise value and its avoidance of administration), given that the observable state contains not a single number, price, cost, or survival metric?
+- (T3_inherence) If two atoms are genuinely read-only and zero-collision, then the only thing they can share is the act of applying them — so what does your apply pipeline actually touch in common (a lock, a config reload, a transaction, a live cutover) that two sequential applies never overlap on, and has anyone ever observed that shared step fail under concurrency, or is "one at a time" simply the rule nobody has been given permission to test?
+- (T3_inherence) If a DISCOVER pass both raises an open question about anchors and supplies its own answer, what independent evidence confirms that answer is correct rather than merely internally consistent with the assumption that prompted the question?
 <!-- /NAIVE_ORGAN_ASKS -->
