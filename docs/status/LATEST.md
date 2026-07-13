@@ -1,43 +1,46 @@
-## Background-worker NTFY fix (root-caused recurring pipeline failures) + wide DISCOVER batch
-Last updated: 2026-07-13T08:35:39Z
+## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
+Last updated: 2026-07-13T08:45:07Z
 
-**Status:** self-refill cycle (idle-tier DISCOVER/FRAME), latest sim run processed successfully.
-Epistemic PASS throughout. All commits pushed.
+**Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
+Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
+Expert Hour) — see below.
 
-**Infra fix (real, root-caused, R4):** found and fixed the cause of repeated
-"Failed to process run_complete_*.md (rc=1)" entries in background-worker-log.md. The
-`background-worker` tmux session's own `start_worker.sh` launch was missing the
-`${NTFY_ENV_FLAGS[@]}` pass-through every sibling NTFY-touching session correctly has --
-so `process_run_complete.py` (spawned as a subprocess) crashed at import time whenever a real
-headline change reached its notification step, silently dropping the run and leaving the marker to
-retry indefinitely. Fixed the script, restarted the actual tmux session, and verified the running
-process's own environment now carries the NTFY vars. Confirmed working end-to-end: the next real
-run (`git=5a7e470f`, net margin £1,524,058) processed cleanly -- 17,117 tests passed, report
-regenerated, committed, pushed.
+**A3_approval_interface — BUILT to honest L1** (director's explicit "BUILD IT NOW"; commit
+`b7a26938`, pushed; epistemic PASS 498 files; 11 new tests, governance suite 35 passed / broader
+saas+governance 1557 passed). New `company/governance/approval_interface.py`: the human-operable
+requests-awaiting-decision surface (`approval_queue_as_of` → `ApprovalRequestView`) exposing
+decision class, a **link-shaped context pack + recommendation** (links not prose — a testable
+property), submit time, and accrued pending **latency** as-of a given time on the shared
+BitemporalEventLog; plus a real governance caller (`propose_hedge_mandate_change`) exercising the
+full submit→pending→resolve lifecycle. Epistemic wall respected (approver sees only the submitted
+pack). **Honestly held at L1, not L2:** no live run triggers the workflow yet (hedge-mandate-change
+execution doesn't exist; `COMPANY_MIN_HEDGE_FLOOR` is a constant) and Door 7 (the Director console
+surface) isn't built, so the surface is an API/dataclass, not an operable pixel (fails R11).
 
-**DISCOVER batch (BUILD stays gated per epoch sequencing throughout; no code written except the
-infra fix above and one earlier full E2 BUILD+live-verify already reported):**
-- **W1_2_generate_futures / W2_6_sme_distress_twin / W2_4_household_budget / W2_5_life_event_stream
-  / W2_8_self_rationing / W2_9_segment_debt_tnc / W2_2_population_draw:** each grounded in real,
-  current (2026) external data (NESO scenario practice vs. quant stochastic-generation methods;
-  UK insolvency sector concentration; ONS income deciles + JRF essential-cost floor; UK life-event
-  rates; National Energy Action self-disconnection polling; Ofgem DD compliance review; population-
-  synthesis/IPF methodology). One real correction found and flagged, not glossed over: the
-  household-budget atom's own registered debt-priority ordering ("food before energy") isn't well
-  supported -- real Citizens Advice/StepChange guidance treats energy as a PRIORITY debt alongside
-  rent/council tax, not ranked below them.
-- **W2_3_competitor_field / C2_discovery_through_interfaces:** mis-registration corrections on
-  existing evidence (same class as earlier D2/G2/E2 corrections this session) -- W2_3 was entirely
-  blank despite real, already-wired, DESNZ-anchored competitor-savings code
-  (`simulation/market_switching_propensity.py`) existing and driving real churn calculations; C2's
-  independently-actionable onboarding-wiring gap was re-verified still open, not stale.
+**THREE LANES adopted as standing structure** (THREE_LANES_STANDING.md, director-decided; full text
+`docs/design/THREE_LANES.md`, pointer in CLAUDE.md): BUILD is inherently narrow (one tree/suite/
+gate) — spend width where free. L1 BUILD serial (1–3 concurrent only on disjoint scopes; interim
+rule: orchestrator is sole `maturity_map.yaml` writer, forks report levels back). L2 SITE
+(`site/**`, disjoint) runs parallel to builds permanently. L3 DISCOVERY doc-only, never gated.
 
-**Prior (same session, already reported):** E2_revenue_reconciliation reached its L3 target
-(live-verified on poesys.net); W1_reveal_over_time's first Expert Hour passed with one low-severity
-finding; W2_7_willingness_classification's initial DISCOVER pass landed.
+**Backlog registered as atoms** (QUEUE, from THREE_LANES / WORKTREE_ISOLATION_AND_SEAMS / RETRO):
+`H10_worktree_isolation` (HIGH — native `isolation: worktree` per-fork, the proper fix for build
+width; supersedes the interim sole-writer rule), `H9_map_write_serialisation`, `SITE1_expert_doors`
+(constitution doors 3–8), `ARCH1_internal_seams` (Epoch-3: typed seams between billing/pricing/
+settlement/collections = the architecture AND velocity work, same work), `G3_method_ip_worktree_retro`
+(the 6 method laws from the worktree-miss retro, recorded as casebook IP).
 
-**Latest simulation results (2016–2025)** — auto-processed (459s / 8 min):
-- Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
-- Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
-- Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
-- Retention: 12 offers, 12/12 retained | 4 no-offer churns | 4 total churned accounts
+**In flight now:** W2_2_population_draw BUILD (continue synthetic customer acquisitions through
+2021-2025 — the book currently stops dead in 2020 — via an own-seeded RNG substream, C-S2); A2's
+independent Expert Hour (fresh-context evaluator judging its L2→L3 bar given A3's new module-level
+caller).
+
+**Atoms below target: 29** — an honest RISE from 24: A3 banked L0→L1 (−0 to count, still below its
+L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
+count; that is the honesty bar, not regression.
+
+**Latest simulation results (2016–2025)** — auto-processed, git `b6babbba`:
+- Net margin: £1,505,250 (8.0% of revenue — within the 2–5%+ plausibility band, diagnostic only)
+- Business survived the full window including the 2021-22 crisis; 12/12 retention offers retained.
+- All three queued run markers (`1f402a25`/`22d47bc3`/`b6babbba`) resolve to the same stable
+  ~£1.505M / 8.0% headline; latest (b6babbba) published, older two superseded — batched silently.
