@@ -1,0 +1,44 @@
+/* GENERATED from site/brand/tokens.json by tools/brand_compliance.generate_css.
+ * Do not edit by hand. Colour values live in tokens.json only (BRAND_CONSTITUTION.md).
+ * Regenerate: python3 -m tools.brand_compliance --write-css */
+:root {
+  --black: #0A0A0A;
+  --white: #FFFFFF;
+  --grey-40: #666666;
+  --grey-15: #D9D9D9;
+  --grey-05: #F4F4F4;
+  --blue-bright: #0047FF;
+  --blue-soft: #DCE7FF;
+  --red-bright: #E11900;
+  --red-soft: #FFDDD6;
+  --amber-bright: #F5A600;
+  --amber-soft: #FFF0C9;
+  --green-bright: #00873C;
+  --green-soft: #D6F2E0;
+  --font-house: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-size-micro: 11px;
+  --font-size-small: 13px;
+  --font-size-body: 15px;
+  --font-size-lead: 17px;
+  --font-size-title: 20px;
+  --font-size-wordmark: 26px;
+  --font-size-figure: 32px;
+  --font-size-total: 38px;
+  --font-size-display: 58px;
+  --space-0: 0px;
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 18px;
+  --space-5: 22px;
+  --space-6: 28px;
+  --space-7: 34px;
+  --space-8: 48px;
+  --space-9: 56px;
+  --space-10: 72px;
+  --border-hairline: 1px;
+}

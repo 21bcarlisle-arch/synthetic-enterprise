@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>poesys. — token adoption proof</title>
+<!--
+  BRAND1 token-adoption proof surface. Every colour/type/spacing value here is a var(--…)
+  reference resolved from site/brand/tokens.css (the deterministic projection of
+  site/brand/tokens.json). This file contains NO raw hex and NO soft-colour-as-text, and
+  tests/tools/test_brand_compliance.py asserts both. It is the smallest end-to-end
+  demonstration that a Poesys surface can be built entirely from tokens (BRAND_CONSTITUTION.md
+  §5 deliverable 1: "every surface consumes tokens, never raw values").
+-->
+<link rel="stylesheet" href="./tokens.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:var(--font-house);
+    background:var(--grey-05);
+    color:var(--black);
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{max-width:1060px;margin:0 auto;padding:var(--space-8) var(--space-4);}
+  .panel{background:var(--white);border:var(--border-hairline) solid var(--grey-15);padding:var(--space-9);}
+  .wordmark{font-size:var(--font-size-wordmark);font-weight:var(--font-weight-bold);letter-spacing:-0.02em;}
+  .eyebrow{font-size:var(--font-size-micro);letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-40);font-weight:var(--font-weight-semibold);margin:var(--space-7) 0 var(--space-4);}
+
+  /* BRAG status chips: soft = fill behind BLACK text; bright = the dot only (law 2 + 3). */
+  .hrow{display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) 0;border-top:var(--border-hairline) solid var(--grey-15);font-size:var(--font-size-body);}
+  .hrow:first-child{border-top:none;}
+  .lane{font-weight:var(--font-weight-semibold);}
+  .status{display:inline-flex;align-items:center;gap:var(--space-1);font-size:var(--font-size-small);font-weight:var(--font-weight-semibold);letter-spacing:0.02em;padding:5px 12px;color:var(--black);}
+  .dot{width:9px;height:9px;display:inline-block;}
+  .st-blue{background:var(--blue-soft);}   .st-blue .dot{background:var(--blue-bright);}
+  .st-green{background:var(--green-soft);} .st-green .dot{background:var(--green-bright);}
+  .st-amber{background:var(--amber-soft);} .st-amber .dot{background:var(--amber-bright);}
+  .st-red{background:var(--red-soft);}     .st-red .dot{background:var(--red-bright);}
+
+  .term{margin-top:var(--space-6);background:var(--black);color:var(--white);padding:var(--space-4);font-size:var(--font-size-small);letter-spacing:0.02em;line-height:1.7;}
+  .term .cmt{color:var(--grey-40);}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="panel">
+    <div class="wordmark">poesys.</div>
+    <div class="eyebrow">Company health — every value is a token</div>
+    <div class="hrow"><span class="lane">Billing &amp; metering</span><span class="status st-blue"><span class="dot"></span>VERIFIED DONE</span></div>
+    <div class="hrow"><span class="lane">Trading &amp; hedging</span><span class="status st-green"><span class="dot"></span>ON TRACK</span></div>
+    <div class="hrow"><span class="lane">Finance &amp; treasury</span><span class="status st-amber"><span class="dot"></span>AT RISK</span></div>
+    <div class="hrow"><span class="lane">Settlement true-up</span><span class="status st-red"><span class="dot"></span>NOT BUILT</span></div>
+
+    <div class="eyebrow">Glyph grammar survives without colour</div>
+    <div class="term">
+      <span class="cmt">// the same status reads in plain text — no colour required:</span><br>
+      billing .&nbsp;&nbsp;|&nbsp;&nbsp;trading _&nbsp;&nbsp;|&nbsp;&nbsp;gas read ~&nbsp;&nbsp;|&nbsp;&nbsp;settlement !&nbsp;&nbsp;&gt; details poesys.net/health
+    </div>
+  </div>
+</div>
+</body>
+</html>
