@@ -1,4 +1,22 @@
 {
+  "A7_harm_cost_weights_ratio": {
+    "first_asked_at": "2026-07-13T16:34:56.208606+00:00",
+    "how": "Sign the harm:loss weighting ratio R = HARM/LOSS for the can't-pay/won't-pay gap score (R13 curriculum, yours; full pack docs/design/HARM_COST_WEIGHTS_DECISION.md). HARM = wrongful aggressive collections vs someone who genuinely can't pay (ability-to-pay/Consumer-Duty breach, PPM-warrant redress, licence tail-risk). LOSS = soft treatment of a strategic won't-payer (bad debt, the 2021-22 insolvency mode). Recommended R~8:1 (band 5:1-10:1) -- heavily harm-averse but BOUNDED so both deaths stay possible. Decision rule at R=8: pursue only when >=89% confident it's a won't-payer, else forbear. FLIP-POINT R*(p)=(1-p)/p: at an ambiguous p=0.5 the flip is at just 1:1 -- above any harm-weighting, the coin-flip account is forborne; pursuit must be earned by confidence. ONE figure I could not source offline (placeholder H1): the per-wrongful-case redress amount + licence-loss tail probability -- repo only has the \u00a390m British Gas aggregate. Reply with the ratio (or a range) + whether you can give that figure; placeholder ships until you sign, never tuned toward a gap number.",
+    "item_id": "A7_harm_cost_weights_ratio",
+    "last_pinged_at": "2026-07-13T16:34:56.208606+00:00",
+    "resolved": true,
+    "what": "Sign the harm:loss weighting ratio (R13 curriculum) that turns the belief-vs-truth gap into a score",
+    "why": "The gap SCORE depends on these weights; the agent framed the decision (R~8:1, flip-point R*=1 at p=0.5) but must NEVER tune them toward a gap number (R13). Placeholders ship until you sign."
+  },
+  "W2_2_population_draw": {
+    "first_asked_at": "2026-07-13T11:08:04.111016+00:00",
+    "how": "Choose the customer-book growth profile the sim models from 2021 (the book currently stops acquiring at 2020: 18 hand-authored customers, zero new 2021-2025). The W2_2 mechanism is parameterised by acquisition rate, so any of these is a config, not a rebuild:\n  A. DO NOT activate - keep the static book. Simplest; but unrealistic (real suppliers keep acquiring).\n  B. Trickle continuation (~1 synthetic customer/yr, matching the 2017-2020 pace) - near-flat, steady-state supplier. Minimal-realism default that just fixes the \"stops dead at 2020\" artifact.\n  C. Modest growth (e.g. +5-10%/yr) - a growing book / expanding supplier.\n  D. A named scenario you author (growth-then-shrink, churn-driven decline, price-war attrition, etc.) - full curriculum control.\nThis is a curriculum decision (R13) - I present options, you choose; I do not default. Reply with A/B/C/D (and a rate/profile for C/D).",
+    "item_id": "W2_2_population_draw",
+    "last_pinged_at": "2026-07-13T11:08:04.111016+00:00",
+    "resolved": false,
+    "what": "Activate the synthetic per-run population draw in live runs? (curriculum decision, R13 - yours to author)",
+    "why": "W2_2 mechanism is built+verified (L1). Wiring it into live runs changes which world the company lives through every run = curriculum, reserved to you per R13 (twin-ruled). Held at L1 by governance, not missing capability."
+  },
   "ai-compute-costing-basis": {
     "first_asked_at": "2026-07-11T05:21:26.386758+00:00",
     "how": "Just tell me which costing basis you want and a \u00a3/hour oversight rate -- I'll wire both into saas/opex_ledger.py::ai_compute_and_oversight_cost_gbp_per_year() once you do.",

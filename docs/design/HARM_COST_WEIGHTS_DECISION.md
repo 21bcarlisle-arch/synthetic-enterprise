@@ -99,40 +99,49 @@ is never worthwhile, the company dies of the *other* cause. Both deaths are real
 
 ## 3. The decision rule and the flip-point (derived analytically)
 
-Let `p = P(account is genuinely CAN'T-pay | observables)` — the classifier's posterior.
+**Convention (standardised 2026-07-13 to the director's, after the advisor caught a
+convention-mixing inconsistency in the framing NTFY): `p = P(account is a strategic WON'T-pay |
+observables)` — the classifier's confidence that pursuit is warranted.** (An earlier draft used
+`p = P(can't-pay)` internally but stated the confidence bar as "won't-payer", mixing the two.)
 Expected costs:
 
 ```
-E[cost | PURSUE ]  = p·H + (1−p)·0 = p·H
-E[cost | FORBEAR]  = p·0 + (1−p)·L = (1−p)·L
+E[cost | PURSUE ]  = (1−p)·H + p·0 = (1−p)·H     (HARM if the account is actually can't-pay, prob 1−p)
+E[cost | FORBEAR]  = (1−p)·0 + p·L = p·L          (LOSS if the account is actually won't-pay, prob p)
 ```
 
 **Optimal policy — PURSUE iff `E[cost|PURSUE] < E[cost|FORBEAR]`:**
 
 ```
-p·H < (1−p)·L   ⟺   p/(1−p) < L/H   ⟺   p < 1/(R+1)          where R = H/L
+(1−p)·H < p·L   ⟺   (1−p)/p < L/H = 1/R   ⟺   p/(1−p) > R   ⟺   p > R/(R+1)     where R = H/L
 ```
 
 So there is a single **pursue threshold on classifier confidence**:
 
-> **PURSUE an account only if `p < p* = 1/(R+1)`** — i.e. only if the classifier is at least
-> `R/(R+1)` confident the account is a *strategic* (won't-pay) non-payer. Otherwise FORBEAR.
+> **PURSUE an account only if `p > p* = R/(R+1)`** — at the SIGNED **R = 8:1**, only if `p > 8/9 ≈
+> 0.889`, i.e. only if the classifier is ≥89% confident the account is a *strategic* (won't-pay)
+> non-payer. Otherwise FORBEAR.
 
 ### 3.1 THE FLIP-POINT (the interesting number)
 
 Hold an account's confidence `p` fixed and ask: *at what ratio `R` does its optimal action
-flip from PURSUE to FORBEAR?* Set `p = 1/(R*+1)` and solve:
+flip from PURSUE to FORBEAR?* Set `p = R*/(R*+1)` and solve:
 
 ```
-R*(p) = (1 − p) / p          — the ODDS the account is a strategic non-payer
+R*(p) = p / (1 − p)          — the ODDS the account is a strategic non-payer
 ```
 
 **The headline number: for the genuinely-ambiguous account (`p = 0.5`), `R* = 1`.** Above a
 mere **1:1** harm:loss weighting, *every account you cannot classify better than a coin-flip
-should be forborne.* Pursuit must be **earned by classifier confidence** — it is never the
-default once harm outweighs loss even slightly. This is the single most decision-relevant
-fact in the pack: the interesting action is not "how hard do we chase" but "how sure must we
-be before we chase at all," and that bar is set entirely by `R`.
+should be forborne.* Pursuit must be **earned by classifier confidence** — never the default
+once harm outweighs loss even slightly. (This headline holds under BOTH conventions — hence the
+trap below.)
+
+> **FORMULA-INVERSION TRAP (advisor's catch, director-flagged 2026-07-13 — a mutation-testing
+> lesson).** `R* = p/(1−p)` and its inverse `(1−p)/p` BOTH equal 1 at `p = 0.5`, so any test
+> written at the coin-flip point passes under either. An inverted gate would FORBEAR when it
+> should PURSUE and vice versa, invisibly. **The C9 decision gate MUST be mutation-tested at
+> `p = 0.9` AND `p = 0.1`, never only `p = 0.5`.**
 
 The flip is per-account (it is a function of `p`), which is exactly the trade-off the
 director's cat-and-mouse amendment demands — closing the harm gap (raise `R`) opens the loss
