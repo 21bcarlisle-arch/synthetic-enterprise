@@ -67,12 +67,25 @@ def build_price_bitemporal_log(
     output, just moves the aggregation earlier and lets the bitemporal log's
     one-record-per-valid_time model fit without losing information.
 
-    transaction_time == valid_time (midnight) is a documented, explicit
-    simplification: this dataset does not model real Elexon settlement-run
-    revisions (Initial/II/IF/SF) at the price level, so there is nothing to
-    restate yet -- a real restatement would be `.record()`d with a LATER
-    transaction_time for the same valid_time, which `history_as_known_at()`
-    already handles correctly by construction (see bitemporal_event_log.py).
+    transaction_time is set to START-OF-DAY on valid_time + 1 day, not
+    valid_time's own midnight (2026-07-13 fix, closing the same-day-price
+    boundary leak recorded in this atom's expert_hour finding,
+    docs/design/maturity_map.yaml::W1_reveal_over_time). A hedge decision's
+    decision_time is midnight(term_start=D); `history_as_known_at()` includes
+    every record with transaction_time <= decision_time. With the old
+    transaction_time == valid_time (midnight-of-D) encoding, a decision at
+    midnight(D) could see date D's OWN daily-mean spot price -- not actually
+    knowable at 00:00 on D. Setting transaction_time to midnight of D+1
+    means that record only becomes visible to a decision at midnight(D+1) or
+    later, so a decision at midnight(D) correctly excludes D's own price
+    while still seeing D-1 and everything earlier -- matching the strictly-
+    before window sim/risk_engine.py::calculate_sigma_recent() already uses
+    (`end_date = ref_date - 1`). This dataset still does not model real
+    Elexon settlement-run revisions (Initial/II/IF/SF) at the price level,
+    so there is nothing to restate yet beyond this one-day reveal delay -- a
+    real restatement would be `.record()`d with a LATER transaction_time for
+    the same valid_time, which `history_as_known_at()` already handles
+    correctly by construction (see bitemporal_event_log.py).
     """
     log = BitemporalEventLog()
     for commodity, records in (("electricity", elec_records), ("gas", gas_records)):
@@ -89,7 +102,9 @@ def build_price_bitemporal_log(
                 entity_id=commodity,
                 fact_type="daily_mean_spot_price",
                 valid_time=valid_date,
-                transaction_time=dt.datetime.combine(valid_date, dt.time.min),
+                transaction_time=dt.datetime.combine(
+                    valid_date + dt.timedelta(days=1), dt.time.min,
+                ),
                 value=mean_price,
             )
     return log

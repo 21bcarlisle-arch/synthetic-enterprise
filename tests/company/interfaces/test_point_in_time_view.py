@@ -194,15 +194,19 @@ class TestBuildPriceBitemporalLog:
         assert len(history) == 1
         assert history[0]["settlementDate"] == "2020-06-02"
 
-    def test_transaction_time_equals_valid_time_midnight(self):
-        """Documented simplification: no real settlement-run revision
-        modeling at the price level yet -- a future restatement would use
-        a LATER transaction_time, which history_as_known_at() already
-        handles correctly by construction."""
+    def test_transaction_time_is_start_of_next_day(self):
+        """2026-07-13 fix (closes the same-day-price boundary leak recorded
+        in this atom's expert_hour finding): transaction_time is midnight of
+        valid_time + 1 day, NOT valid_time's own midnight -- date D's price
+        only becomes 'known' at midnight of D+1, matching when a real
+        trading desk could actually observe it. A future settlement-run
+        restatement would still use a LATER transaction_time than this,
+        which history_as_known_at() already handles correctly by
+        construction."""
         elec = [{"settlementDate": "2020-06-01", "systemSellPrice": 40.0}]
         log = build_price_bitemporal_log(elec, [])
         recs = log.all_records()
-        assert recs[0].transaction_time == dt.datetime(2020, 6, 1, 0, 0)
+        assert recs[0].transaction_time == dt.datetime(2020, 6, 2, 0, 0)
 
 
 class TestGetPriceHistoryAsOf:
@@ -224,6 +228,30 @@ class TestGetPriceHistoryAsOf:
         history = view.get_price_history_as_of("electricity")
         assert len(history) == 1
         assert history[0]["settlementDate"] == "2020-06-01"
+
+    def test_same_day_price_not_visible_at_midnight_but_prior_day_is(self):
+        """2026-07-13 fix, the exact case named in this atom's expert_hour
+        finding: a hedge decision's decision_time is midnight(term_start=D).
+        Before the fix, transaction_time == valid_time meant D's own
+        daily-mean price was already visible at midnight(D) -- not actually
+        knowable that early. After the fix (transaction_time = midnight of
+        D+1), a decision at midnight(D) must NOT see D's own price but MUST
+        still see D-1's, matching the strictly-before window
+        sim/risk_engine.py::calculate_sigma_recent() already uses."""
+        elec = [
+            {"settlementDate": "2020-06-13", "systemSellPrice": 40.0},  # D-1
+            {"settlementDate": "2020-06-14", "systemSellPrice": 999.0},  # D (must NOT be seen)
+        ]
+        log = build_price_bitemporal_log(elec, [])
+        decision_at_midnight_D = PointInTimeView(dt.datetime(2020, 6, 14, 0, 0), bitemporal_log=log)
+        history = decision_at_midnight_D.get_price_history_as_of("electricity")
+        dates = [r["settlementDate"] for r in history]
+        assert dates == ["2020-06-13"]
+
+        decision_at_midnight_D_plus_1 = PointInTimeView(dt.datetime(2020, 6, 15, 0, 0), bitemporal_log=log)
+        history_after = decision_at_midnight_D_plus_1.get_price_history_as_of("electricity")
+        dates_after = [r["settlementDate"] for r in history_after]
+        assert dates_after == ["2020-06-13", "2020-06-14"]
 
     def test_returns_chronological_order(self):
         elec = [
