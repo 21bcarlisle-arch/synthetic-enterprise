@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T21:10:11Z
+Last updated: 2026-07-13T21:28:29Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (466s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -107,4 +107,5 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) If the forecast provably changes no order quantity or price today, was it ever wired into those decisions and later bypassed — or is there some other consumer (a survival/administration constraint, a report, a downstream model) that reads it on paths your "no change" test didn't exercise?
 - (T5_sustained_work_flat_goal) If 12 of the last 20 commits went into 'site' work, why has the enterprise-value goal metric stayed completely flat over that same window — is that concentration of effort producing any measurable movement in the north-star metric, or are we mistaking activity in one bucket for progress?
 - (T2_terminal_state) How can the claim be "complete" when the observable state shows 47 atoms still explicitly marked "open" — what definition of completeness treats 47 unresolved items as done?
+- (T7_repeated_fix_class_two_strike) If a "two_strike" policy means the mechanism is eliminated on the second failure, how has the same defect reached a third application (an R3 "strike two") without the earlier strikes having already forced its elimination?
 <!-- /NAIVE_ORGAN_ASKS -->
