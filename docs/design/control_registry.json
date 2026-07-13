@@ -4,7 +4,21 @@
     "spec": "docs/staging/CONTROLS_THAT_CANNOT_FAIL.md",
     "generated": "2026-07-13",
     "doctrine": "A control that CANNOT FAIL is worse than no control. For every control, inject the exact defect it exists to catch; it MUST fire. Audit for three killer patterns: TAUTOLOGY (checked value derived from the same source it is checked against), FAIL-OPEN (passes on missing/zero/empty/malformed), FAIL-SILENT (passes when the checker itself is unavailable).",
-    "coverage_note": "This pass mutation-tests the highest-tier / customer-impacting control set (invariant library, Tier-1 pre-bill gate, obligations tiering, the Qwen backstop, the epistemic verifier). The tail (evaluators, daemons, health-checks) is inventoried under inventoried_not_yet_mutation_tested for honesty and left for the orchestrator to register as atoms."
+    "coverage_note": "Pass 1 (commit e16f00de) mutation-tested the highest-tier / customer-impacting control set (invariant library, Tier-1 pre-bill gate, obligations tiering, the Qwen backstop, the epistemic verifier). Pass 2 (H12 L2->L3) extends to the inventoried-but-untested tail: the compliance trackers (population sanity, consumer duty, social obligation, crisis bad debt, green claims), the health / page-consistency gates (R14 basis labels, dashboard consistency + population consistency, background/health_check), the daemon change-detection (dedup) gate, and a STRUCTURAL check of the LLM-judge evaluators (judgement layer itself remains not-deterministically-mutation-testable, documented not counted as covered).",
+    "cumulative_counts": {
+      "as_of": "2026-07-13 (pass 2, H12 L2->L3)",
+      "total_controls_mutation_tested": 27,
+      "fired_on_named_defect": 26,
+      "theatre": 1,
+      "fixed_cumulative": 2,
+      "gaps_registered_not_fixed": 5,
+      "by_killer_pattern": {
+        "TAUTOLOGY": {"total": 2, "detail": "check_vat (THEATRE, mitigated); social_obligation is_compliant status-trust (GAP KL-6, mitigated by independent underspend_records)"},
+        "FAIL_OPEN": {"total": 3, "fixed": 1, "listed_gaps": 2, "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (GAP KL-7); dashboard _check_consistency per-key skip (GAP KL-8)"},
+        "FAIL_SILENT": {"total": 4, "fixed": 1, "listed_gaps": 3, "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (GAP KL-4); consumer_duty empty-register=GREEN (GAP KL-5); dashboard _check_consistency no-insights (GAP KL-8)"}
+      },
+      "honest_note": "Pass 2 fixed ZERO controls: unlike pass 1's two isolated single-caller fixes, every gap found is a semantics change across multiple callers (consumer_duty.overall_rag has 14+ callers; check_estimated_read_rate feeds sanity_daemon), so per SELF_INTERRUPT_DISCIPLINE (QUEUE-by-default) they are registered as ranked kill-list entries for the orchestrator, not fixed on sight. Every pass-2 control still FIRES on its core named defect; the gaps are secondary fail-open/fail-silent branches, so pass-2 theatre count is 0."
+    }
   },
   "controls": [
     {
@@ -120,13 +134,167 @@
       "killer_pattern_audit": "minor-fail-open (listed)",
       "killer_pattern_detail": "Fires reliably on the literal forbidden-import syntax. Two coverage limitations, low severity, LISTED not fixed: (1) _scan_file returns [] on FileNotFoundError (a missing file reads as clean); (2) only line-start import syntax is matched -- an importlib/getattr dynamic bypass is not caught. These are detection-coverage gaps, not a fail-open on the syntax it owns.",
       "result": "FIRED"
+    },
+
+    {
+      "id": "population_consumption_distribution",
+      "pass": 2,
+      "location": "company/compliance/population_sanity.py::check_consumption_distribution",
+      "catches": "A resi customer's summed annual consumption implausible against the TDCV-derived envelope (population version of the R10 C6 class).",
+      "mutation": "50,000 kWh/yr resi annual total over a full year (days >= 60).",
+      "killer_pattern_audit": "documented-not-applicable-guard",
+      "killer_pattern_detail": "A partial-year (< _MIN_DAYS_COVERAGE_FOR_ANNUAL_CHECK=60 days) joiner/leaver is SKIPPED, not flagged low -- a scoped, sourced guard (SANITY_TRIAGE_2026_07_11, C1_2's 2-day stub), asserted in test not hidden. Not a fail-open on the defect it owns.",
+      "result": "FIRED"
+    },
+    {
+      "id": "population_unit_rate_bands",
+      "pass": 2,
+      "location": "company/compliance/population_sanity.py::check_unit_rate_bands",
+      "catches": "A resi customer's average unit rate drifting off the real Ofgem-cap band for its year (a pricing bug applying a stale/wrong-year rate).",
+      "mutation": "~16x the anchored GBP/MWh for an in-band year.",
+      "killer_pattern_audit": "documented-not-applicable-guard",
+      "killer_pattern_detail": "kwh<=0 rows are skipped (no division possible) -- scoped guard, not a fail-open.",
+      "result": "FIRED"
+    },
+    {
+      "id": "population_estimated_read_rate",
+      "pass": 2,
+      "location": "company/compliance/population_sanity.py::check_estimated_read_rate",
+      "catches": "The read-generation mechanism broken (whole population ~0% or ~100% estimated).",
+      "mutation": "100% estimated reads -> outside the [2%,85%] sanity band.",
+      "killer_pattern_audit": "FAIL-SILENT (GAP KL-4, listed)",
+      "killer_pattern_detail": "Fires on 0%/100%, but an EMPTY meter_read_log (arguably the most-broken state -- no reads produced at all) returns [] (clean). NOT fixed: an empty log can be a legitimate first-run and sanity_daemon.py consumes this, so alarm-on-empty needs caller analysis. Registered KL-4.",
+      "result": "FIRED"
+    },
+    {
+      "id": "population_payment_channel_mix",
+      "pass": 2,
+      "location": "company/compliance/population_sanity.py::check_payment_channel_mix",
+      "catches": "The payment-channel archetype mechanism broken (everyone landing on one method).",
+      "mutation": "100% direct-debit -> outside the [55%,90%] band around the DESNZ 72-75% anchor.",
+      "killer_pattern_audit": "documented-not-applicable-guard",
+      "killer_pattern_detail": "total==0 (no DD/SC records) returns [] -- genuinely no data to judge. Scoped guard.",
+      "result": "FIRED"
+    },
+    {
+      "id": "consumer_duty_overall_rag",
+      "pass": 2,
+      "location": "company/compliance/consumer_duty.py::ConsumerDutyRegister.overall_rag",
+      "catches": "A RED Consumer-Duty outcome must escalate the whole register to RED.",
+      "mutation": "One RED outcome amongst GREENs.",
+      "killer_pattern_audit": "FAIL-SILENT (GAP KL-5, listed)",
+      "killer_pattern_detail": "Fires correctly on a RED outcome, but an EMPTY register (zero assessments ever performed) reports GREEN -- under FCA Consumer Duty 'no assessment done' is a governance failure, not compliant. NOT fixed: overall_rag has 14+ callers treating GREEN as baseline; semantics change needs orchestration. Registered KL-5.",
+      "result": "FIRED"
+    },
+    {
+      "id": "social_obligation_compliance",
+      "pass": 2,
+      "location": "company/regulatory/social_obligation_register.py::non_compliant / underspend_records",
+      "catches": "A mandatory social-spend obligation underperforming / underspent against target.",
+      "mutation": "An UNDERPERFORMING obligation, and a grossly-underspent obligation mislabelled PAID.",
+      "killer_pattern_audit": "TAUTOLOGY (GAP KL-6, mitigated by independent control)",
+      "killer_pattern_detail": "non_compliant() trusts the self-declared `status` field -- a mislabelled-PAID underspend passes it (the same 'compliance from a declared label' pattern as the VAT tautology). underspend_records() is the INDEPENDENT spend-vs-target control that DOES fire on it. is_compliant() alone is theatre for the underspend defect; the independent control mitigates. Registered KL-6.",
+      "result": "FIRED"
+    },
+    {
+      "id": "crisis_bad_debt_validator",
+      "pass": 2,
+      "location": "company/compliance/crisis_bad_debt_validator.py::validate_crisis_bad_debt",
+      "catches": "A bad-debt trajectory with NO real 2021-22 crisis step-up (the CFO cold-walk finding).",
+      "mutation": "A flat ~2%-of-revenue trajectory (fires); a genuine step-up (passes); missing crisis-year data (fails closed).",
+      "killer_pattern_audit": "clean (fails-closed on missing crisis data)",
+      "killer_pattern_detail": "R12 anti-goal-seek diagnostic: EXPECTED to fail against current output. Fires on flat/no-step-up, passes on a real >=1.2x step-up, and fails CLOSED (passed=False) when no crisis-year data is present -- an absent input never reads as a pass.",
+      "result": "FIRED"
+    },
+    {
+      "id": "green_claims_audit",
+      "pass": 2,
+      "location": "company/compliance/green_claims_audit.py::GreenClaimsAuditor.audit",
+      "catches": "Green marketing claims not backed by held REGOs (Fuel Mix Disclosure Regs 2005) -> NON_COMPLIANT + shortfall + penalty.",
+      "mutation": "Claim 10 MWh green supply, hold only 5 MWh.",
+      "killer_pattern_audit": "FAIL-OPEN (GAP KL-7, listed)",
+      "killer_pattern_detail": "Fires on a genuine shortfall, but obligation_mwh==0 short-circuits to 100% COMPLIANT -- if green-product DETECTION silently breaks (active_green_codes empty though green tariffs sell), the audit reads compliant. Zero obligation legitimately means 'no claims made', so NOT fixed; registered KL-7 as a watched surface. Independence OK (held REGOs are a separate real asset from consumption -- not a tautology).",
+      "result": "FIRED"
+    },
+    {
+      "id": "dashboard_check_consistency",
+      "pass": 2,
+      "location": "tools/generate_dashboard_data.py::_check_consistency",
+      "catches": "Same-page surfaces disagreeing -- exec-summary insights vs the run-output totals (net/gross margin, EV, bills, committee, retention, churn).",
+      "mutation": "insights net_margin != portfolio net_margin beyond tolerance.",
+      "killer_pattern_audit": "FAIL-SILENT + FAIL-OPEN (GAP KL-8, listed)",
+      "killer_pattern_detail": "Fires on a real surface disagreement, but (a) a missing/empty run_insights.json returns True (pass) -- same class as the R11 orphan-transition incident (gate passes when its comparison input is absent); (b) a headline key missing on one side is silently skipped (per-key fail-open). Same graceful-degrade shape as _check_bridge_reconciles's documented missing-file branch. NOT fixed (first-run insights may legitimately be absent); registered KL-8.",
+      "result": "FIRED"
+    },
+    {
+      "id": "dashboard_basis_labels_r14",
+      "pass": 2,
+      "location": "tools/generate_dashboard_data.py::_check_basis_labels_present",
+      "catches": "R14: a published headline GBP figure (net margin, enterprise value) lacking a complete basis label (clock/provisional/note).",
+      "mutation": "net_margin_gbp present with an empty basis map.",
+      "killer_pattern_audit": "clean",
+      "killer_pattern_detail": "Scoped correctly: a key with no published figure needs no basis (skip); a PRESENT figure with an incomplete basis entry fails CLOSED. Not a fail-open on the defect it owns.",
+      "result": "FIRED"
+    },
+    {
+      "id": "dashboard_population_consistency",
+      "pass": 2,
+      "location": "tools/generate_dashboard_data.py::_check_population_consistency",
+      "catches": "Two different populations rendered on one page as 'accounts/households' (R10 class, defect 2/3): pulse-strip Book Size not reconciling to the final-year active_customer_ids population.",
+      "mutation": "book_annual last-entry legs != len(final-year active_customer_ids).",
+      "killer_pattern_audit": "clean",
+      "result": "FIRED"
+    },
+    {
+      "id": "health_check_run",
+      "pass": 2,
+      "location": "background/health_check.py::run_health_check",
+      "catches": "An expected background daemon not running -> DEGRADED + NTFY.",
+      "mutation": "One EXPECTED_PANES daemon absent from both tmux and ps.",
+      "killer_pattern_audit": "clean (fails-closed on unavailable inspection)",
+      "killer_pattern_detail": "FAIL-SILENT audit PASSED: if tmux AND ps both fail (return empty), the checker is effectively unavailable and it ALARMS (every daemon reads NOT RUNNING -> DEGRADED), never reads clean. Alarm-on-absence, the correct behaviour.",
+      "result": "FIRED"
+    },
+    {
+      "id": "health_check_stale_running_code",
+      "pass": 2,
+      "location": "background/health_check.py::_check_stale_running_code",
+      "catches": "R2/R3 committed-!=-running: a daemon process started before its own script's last modification (running stale code).",
+      "mutation": "A process 'started' in 2000 against a freshly-checked-out script.",
+      "killer_pattern_audit": "clean",
+      "result": "FIRED"
+    },
+    {
+      "id": "change_detection_gate",
+      "pass": 2,
+      "location": "background/process_run_complete.py::_run_fingerprint / _read_last_fingerprint",
+      "catches": "Re-processing an identical run (dedup) -- and, critically, must NOT skip a run whose business surfaces genuinely changed (R11 orphan-transition class).",
+      "mutation": "A net-margin change must flip the fingerprint; a corrupt last-fingerprint file must not manufacture a skip.",
+      "killer_pattern_audit": "clean (fails-closed on unreadable dedup memory)",
+      "killer_pattern_detail": "Fingerprint is sensitive to meaningful change (net margin) and to administration_event. FAIL-CLOSED audit PASSED: _read_last_fingerprint returns None on corrupt/missing file so the run is PROCESSED, never silently skipped by a spurious match. The near-identical-figures fail-silent class (R11) is separately mitigated by FORCE_REPUBLISH_FLAG + source_git_hash in the fingerprint.",
+      "result": "FIRED"
+    },
+    {
+      "id": "llm_judge_evaluators_structural",
+      "pass": 2,
+      "location": ".claude/agents/phase-close-evaluator.md / epistemic-verifier.md",
+      "catches": "STRUCTURAL only: a judge must not be able to 'fix' its way to a PASS -- its agent definition must grant no Write/Edit/NotebookEdit tools.",
+      "mutation": "Assert the tools: frontmatter contains no write/edit tools.",
+      "killer_pattern_audit": "partial-coverage (judgement layer not deterministically testable)",
+      "killer_pattern_detail": "The verdict QUALITY of an LLM judge cannot be deterministically mutation-tested (no fixed prompt->NEEDS_WORK oracle). Only the read-only structural guarantee is asserted. Documented as NOT-mutation-testable for its judgement, NOT counted as covered for that layer.",
+      "result": "STRUCTURAL-ONLY"
     }
   ],
+  "newly_found_gaps_pass_2": [
+    {"id": "KL-4", "pattern": "FAIL-SILENT", "control": "population_sanity.check_estimated_read_rate", "gap": "Empty meter_read_log returns [] (clean) though a total absence of reads is the most-broken read-generation state.", "disposition": "listed, not fixed -- empty can be a legitimate first-run; sanity_daemon.py consumer needs analysis before alarm-on-empty is safe.", "fix_recommendation": "Have the population runner pass an expected-nonzero flag, or alarm when reads are expected for the window but the log is empty."},
+    {"id": "KL-5", "pattern": "FAIL-SILENT", "control": "consumer_duty.ConsumerDutyRegister.overall_rag", "gap": "An empty register (zero outcome assessments) reports GREEN; under FCA Consumer Duty an un-assessed outcome is a governance failure, not compliant.", "disposition": "listed, not fixed -- overall_rag has 14+ callers treating GREEN as baseline.", "fix_recommendation": "Add an explicit UNKNOWN/UN-ASSESSED state (or a has_assessments() precondition on the board surfaces) rather than defaulting empty to GREEN."},
+    {"id": "KL-6", "pattern": "TAUTOLOGY", "control": "social_obligation_register.non_compliant (is_compliant)", "gap": "Compliance derived from the self-declared status field, not the independent spend-vs-target evidence; a mislabelled-PAID underspend passes non_compliant().", "disposition": "listed, mitigated -- underspend_records() is the independent control that fires on it.", "fix_recommendation": "Make non_compliant() also fold in is_underspend (independent evidence), not status alone."},
+    {"id": "KL-7", "pattern": "FAIL-OPEN", "control": "green_claims_audit.audit", "gap": "obligation_mwh==0 short-circuits to 100% COMPLIANT; if green-product detection silently breaks, a company selling green tariffs reads compliant.", "disposition": "listed, not fixed -- zero obligation legitimately means no claims made.", "fix_recommendation": "Cross-check obligation==0 against whether any active green product HAD billed consumption; flag the divergence."},
+    {"id": "KL-8", "pattern": "FAIL-SILENT + FAIL-OPEN", "control": "generate_dashboard_data._check_consistency", "gap": "Missing/empty run_insights.json returns True (pass); a headline key missing on one side is silently skipped.", "disposition": "listed, not fixed -- first-run insights may legitimately be absent (same graceful-degrade shape as _check_bridge_reconciles).", "fix_recommendation": "Treat an ABSENT insights file as a hard gate failure once the pipeline guarantees it is always produced; count a one-sided missing headline key as a mismatch."}
+  ],
   "inventoried_not_yet_mutation_tested": [
-    {"category": "evaluators", "examples": [".claude/agents/phase-close-evaluator.md", ".claude/agents/epistemic-verifier.md"], "note": "LLM-judge adjudicators -- graded by prompt+model, no deterministic mutation harness in this pass."},
-    {"category": "daemons", "examples": ["background/sanity_daemon.py (population sanity)", "background/session_watchdog.py", "background/deadmans_switch"], "note": "The sanity daemon consumes internal_audit + population checks (both mutation-tested here); the daemon's own scheduling/dedup logic is not mutation-tested this pass."},
-    {"category": "population_sanity_checks", "examples": ["company/compliance/population_sanity.py"], "note": "Statistical population checks over run_output -- inventoried, not individually mutation-tested this pass."},
-    {"category": "health_checks", "examples": ["background/health_check", "tools/generate_dashboard_data.py::_check_consistency/_check_basis_labels_present (R14 page-consistency invariant)"], "note": "Dashboard/page-consistency gates -- inventoried, not mutation-tested this pass."},
-    {"category": "other_compliance_trackers", "examples": ["company/compliance/green_claims_audit.py", "company/compliance/consumer_duty.py", "company/regulatory/social_obligation_register.py", "company/compliance/crisis_bad_debt_validator.py"], "note": "Registered in the obligations register with existing_tracker pointers; their internal predicates are not mutation-tested this pass."}
+    {"category": "evaluators_judgement_layer", "examples": [".claude/agents/phase-close-evaluator.md", ".claude/agents/epistemic-verifier.md"], "note": "STRUCTURAL read-only guarantee now asserted (llm_judge_evaluators_structural); the LLM verdict QUALITY itself remains not-deterministically-mutation-testable -- graded by prompt+model, no fixed prompt->NEEDS_WORK oracle. Documented, NOT counted as covered for the judgement layer."},
+    {"category": "daemon_scheduling", "examples": ["background/sanity_daemon.py loop cadence/dedup", "background/session_watchdog.py restart logic", "background/deadmans_switch"], "note": "The change-detection (dedup) gate and health-check are now mutation-tested; the sanity/session/deadman daemons' own SCHEDULING loops (cadence, cooldown, restart backoff) are not individually mutation-tested this pass."},
+    {"category": "regulatory_trackers_tail", "examples": ["company/regulatory/* (50+ registers: ROC, REGO, CfD levy, price cap, GSOP, ombudsman, etc.)"], "note": "The highest-signal compliance trackers are now covered; the long tail of regulatory ledger/register modules is inventoried, not individually mutation-tested. Most are accumulator/reporting registers rather than fire/not-fire gates."}
   ]
 }

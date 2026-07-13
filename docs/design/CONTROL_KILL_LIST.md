@@ -10,26 +10,37 @@
 
 ---
 
-## HEADLINE (the honest number)
+## HEADLINE (the honest CUMULATIVE number, 2 passes)
 
-- **13 controls inventoried** in the highest-tier / customer-impacting set.
-- **13 mutation-tested this pass.**
-- **12 FIRED** on their own named defect.
+- **27 controls mutation-tested** cumulatively (Pass 1: 13 highest-tier / customer-impacting;
+  Pass 2 / H12 L2→L3: 14 more — the inventoried-but-untested tail).
+- **26 FIRED** on their own named defect.
 - **1 is THEATRE** — the flagship `vat_by_segment` arithmetic check (`check_vat`), a
-  **TAUTOLOGY**. It is retained as documented defence-in-depth but structurally
+  **TAUTOLOGY**. Retained as documented defence-in-depth but structurally
   cannot catch the SME-as-Household mislabel it is named for; the independent
   cross-check that replaces it (`check_vat_consistent_with_consumption`) **fires**.
+- **2 FIXED** cumulatively (both Pass 1). **Pass 2 fixed 0** and registered **5 new
+  killer-pattern GAPS (KL-4..KL-8)** — every gap found is a semantics change across
+  multiple callers, so per SELF_INTERRUPT_DISCIPLINE (QUEUE-by-default) they are
+  ranked kill-list entries for the orchestrator, not fixed on sight. Every Pass-2
+  control still fires on its *core* named defect, so **Pass-2 theatre count is 0**.
+- Plus a **structural-only** check of the LLM-judge evaluators (their read-only
+  guarantee is asserted; their verdict *quality* is documented as **not
+  deterministically mutation-testable** and NOT counted as covered).
 
-### By killer pattern (found across the library)
+### By killer pattern (cumulative, found across the library)
 | Killer pattern | Count | Controls |
 |---|---|---|
-| **TAUTOLOGY** | 1 | `check_vat` (vat_by_segment arithmetic) — THEATRE, mitigated by an independent control |
-| **FAIL-OPEN** | 1 (**FIXED**) | pre-bill gate skipped all VAT validation when subtotal ≤ 0 |
-| **FAIL-SILENT** | 1 (**FIXED**) | Qwen internal-audit backstop returned "clean" when Ollama was down |
+| **TAUTOLOGY** | 2 | `check_vat` (THEATRE, mitigated); `social_obligation is_compliant` status-trust (KL-6, mitigated by independent `underspend_records`) |
+| **FAIL-OPEN** | 3 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (KL-7, listed); dashboard `_check_consistency` per-key skip (KL-8, listed) |
+| **FAIL-SILENT** | 4 | Qwen backstop unavailable (**FIXED** P1); population estimated-read empty-log (KL-4, listed); `consumer_duty` empty-register=GREEN (KL-5, listed); dashboard `_check_consistency` no-insights (KL-8, listed) |
 
-Plus two **documented, sourced limitations** (not killer patterns): the YearlyRange
-pre-cap "cannot check" branch, and the epistemic verifier's two coverage gaps —
-both listed below, neither counted as theatre.
+Plus **documented, sourced limitations** (not killer patterns): the YearlyRange
+pre-cap "cannot check" branch, the epistemic verifier's two coverage gaps, and several
+scoped not-applicable guards in the population checks — all listed, none counted as theatre.
+Two Pass-2 controls PASSED their fail-audit as **fail-CLOSED (good)**: `health_check`
+alarms when tmux+ps are both unavailable, and the change-detection gate processes (never
+silently skips) when its dedup memory is unreadable.
 
 ---
 
@@ -110,23 +121,57 @@ Listed for honesty; **not** counted as theatre.
 
 ---
 
-## COVERAGE HONESTY — inventoried but NOT yet mutation-tested
+## PASS 2 (H12 L2→L3) — THE INVENTORIED-BUT-UNTESTED TAIL
 
-This pass completed the highest-tier / customer-impacting set. The following categories
-are inventoried in `control_registry.json` under `inventoried_not_yet_mutation_tested`
-and are **not** claimed as mutation-proven:
+| # | Control | Named defect | Result | Killer pattern / note |
+|---|---|---|---|---|
+| 14 | `population_sanity.check_consumption_distribution` | SME-scale annual load across a resi book | **FIRED** | documented <60-day not-applicable guard |
+| 15 | `population_sanity.check_unit_rate_bands` | population drifting off the Ofgem cap band | **FIRED** | kwh≤0 scoped skip |
+| 16 | `population_sanity.check_estimated_read_rate` | read-generation broken (0%/100%) | **FIRED** | **FAIL-SILENT gap KL-4** (empty log reads clean) |
+| 17 | `population_sanity.check_payment_channel_mix` | everyone on one payment method | **FIRED** | total=0 scoped skip |
+| 18 | `consumer_duty.overall_rag` | a RED outcome not escalating the register | **FIRED** | **FAIL-SILENT gap KL-5** (empty register = GREEN) |
+| 19 | `social_obligation` `non_compliant`/`underspend_records` | underperforming / underspent obligation | **FIRED** | **TAUTOLOGY gap KL-6** (status-trust; mitigated by independent `underspend_records`) |
+| 20 | `crisis_bad_debt_validator.validate_crisis_bad_debt` | flat trajectory, no 2021-22 crisis step-up | **FIRED** | R12 diagnostic; fails-closed on missing crisis data |
+| 21 | `green_claims_audit.audit` | green claim not backed by held REGOs | **FIRED** | **FAIL-OPEN gap KL-7** (obligation=0 → COMPLIANT) |
+| 22 | `generate_dashboard_data._check_consistency` | exec-summary insights disagree with totals | **FIRED** | **FAIL-SILENT+OPEN gap KL-8** (no-insights → pass; per-key skip) |
+| 23 | `generate_dashboard_data._check_basis_labels_present` (R14) | headline GBP figure with no basis/clock label | **FIRED** | fails-closed on a present-but-unlabelled figure |
+| 24 | `generate_dashboard_data._check_population_consistency` | Book Size not reconciling to source population | **FIRED** | — |
+| 25 | `health_check.run_health_check` | an expected daemon not running | **FIRED** | **fails-CLOSED** when tmux+ps both unavailable (good) |
+| 26 | `health_check._check_stale_running_code` (R2/R3) | daemon process older than its own script | **FIRED** | — |
+| 27 | `process_run_complete` change-detection gate | skip a genuinely-changed run / spurious skip on corrupt memory | **FIRED** | **fails-CLOSED** on unreadable dedup memory (good); R11 near-identical class mitigated by `FORCE_REPUBLISH_FLAG`+`source_git_hash` |
+| — | LLM-judge evaluators (`phase-close-evaluator`, `epistemic-verifier`) | a judge able to Write/Edit its way to a PASS | **STRUCTURAL-ONLY** | read-only guarantee asserted; verdict quality NOT mutation-testable |
 
-- **Evaluators** — `phase-close-evaluator`, `epistemic-verifier` agents (LLM-judge;
-  no deterministic mutation harness this pass).
-- **Daemons** — the sanity daemon's own scheduling/dedup logic (its two inputs,
-  internal_audit + population checks, ARE covered here).
-- **Population-sanity checks** — `company/compliance/population_sanity.py`.
-- **Health / page-consistency checks** — `tools/generate_dashboard_data.py`
-  (`_check_consistency`, `_check_basis_labels_present` / R14).
-- **Other compliance trackers** — green-claims, consumer-duty, social-obligation,
-  crisis-bad-debt validators (registered with `existing_tracker` pointers; internal
-  predicates not mutation-tested this pass).
+### PASS-2 GAPS REGISTERED FOR THE ORCHESTRATOR (KL-4..KL-8)
+- **KL-4 (FAIL-SILENT)** `check_estimated_read_rate([])` returns clean — a total absence of reads is the most-broken state. *Fix:* alarm when reads are expected for the window but the log is empty. Not fixed (empty can be a legitimate first-run; `sanity_daemon` consumes it).
+- **KL-5 (FAIL-SILENT)** `ConsumerDutyRegister().overall_rag()` on an empty register = GREEN. Under FCA Consumer Duty an un-assessed outcome is a governance failure. *Fix:* add an explicit UNKNOWN/UN-ASSESSED state. Not fixed — 14+ callers treat GREEN as baseline.
+- **KL-6 (TAUTOLOGY)** `social_obligation.non_compliant()` trusts the self-declared `status` field, not spend-vs-target; a mislabelled-PAID underspend passes. Mitigated by the independent `underspend_records()`. *Fix:* fold `is_underspend` into `non_compliant()`.
+- **KL-7 (FAIL-OPEN)** `green_claims_audit.audit()` short-circuits `obligation==0` → 100% COMPLIANT; broken green-product detection reads compliant. *Fix:* cross-check obligation=0 against whether any active green product had billed consumption. Not fixed — zero obligation legitimately means no claims.
+- **KL-8 (FAIL-SILENT + FAIL-OPEN)** `_check_consistency` returns pass when `run_insights.json` is missing, and silently skips a one-sided missing headline key (same class as the R11 orphan-transition incident). *Fix:* treat an absent insights file as a hard failure once the pipeline guarantees it, and count a one-sided missing key as a mismatch.
 
-**The standing rule this establishes:** no control may be counted as evidence for a
+---
+
+## COVERAGE HONESTY — what is now covered vs what genuinely can't be
+
+Pass 2 reaches **near-full apparatus coverage of the DETERMINISTIC controls**: the
+compliance trackers, the health / page-consistency gates (R14 + population + stack
+health), and the daemon change-detection gate are now mutation-tested. Still **honestly
+uncovered** (in `control_registry.json` under `inventoried_not_yet_mutation_tested`):
+
+- **LLM-judge verdict QUALITY** — `phase-close-evaluator`, `epistemic-verifier` agents.
+  Only their **read-only structure** is now asserted (a judge that can Write/Edit its way
+  to a PASS is theatre). Their actual *judgement* has no fixed prompt→NEEDS_WORK oracle
+  and is **not deterministically mutation-testable** — documented, NOT counted as covered.
+- **Daemon SCHEDULING loops** — the sanity/session-watchdog/deadman daemons' own cadence,
+  cooldown and restart-backoff logic (their control INPUTS are covered; the loops are not).
+- **The long tail of accumulator-style regulatory registers** (`company/regulatory/*`, 50+
+  modules) — mostly reporting/ledger accumulators rather than fire/not-fire gates.
+
+**The standing rule (now CLAUDE.md R15):** no control may be counted as evidence for a
 level promotion, an Expert-Hour pass, or a green suite unless it has a passing mutation
-test proving it fires on its own named defect. (For CLAUDE.md — orchestrator to land.)
+test proving it fires on its own named defect.
+
+**L3 assessment (honest):** this pass takes H12 to **near-full apparatus coverage of the
+deterministic control set** — a defensible L3 for that scope. It is **not** total coverage:
+the LLM-judge judgement layer is structurally-bounded only, and the daemon scheduling loops
+and regulatory accumulator tail remain inventoried-not-tested. L3 for the deterministic
+apparatus; the remaining categories are named, not hidden.
