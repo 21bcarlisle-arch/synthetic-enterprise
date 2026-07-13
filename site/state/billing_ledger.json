@@ -1,6 +1,6 @@
 {
   "meta": {
-    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_fab61288_20260713T143801Z.json",
+    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_2050dffbc_20260713T145103Z.json",
     "invoice_count": 1574,
     "customer_count": 18,
     "held_bill_count": 1,
@@ -70683,6 +70683,7 @@
       "customer_id": "C4g",
       "period_end": "2025-06-07",
       "reasons": [
+        "vat_by_segment: declared segment='resi' (VAT 0.0500 applied) is contradicted by a metered load of 3760.6 kWh over 7 days -- consumption independent of the label implies a non-domestic 0.20 rate, so this looks like an SME-as-Household mislabel",
         "slc_6_7_billing_accuracy: 3760.6 kWh over 7 days is implausible for a resi gas account"
       ]
     }

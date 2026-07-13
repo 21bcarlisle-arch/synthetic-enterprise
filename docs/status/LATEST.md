@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T14:50:03Z
+Last updated: 2026-07-13T15:03:13Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (468s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -53,4 +53,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) When you say BUILD is "inherently" narrow — is that a fixed property of what BUILD actually does, or just an artifact of how this one tree/suite happens to be configured, and what specifically would break if that scope were widened?
 - (T3_inherence) What actually justifies the claim that BUILD is "inherently narrow (1-3 max)" — is that a measured property of the work itself, or just an assertion, and what concretely goes wrong if it were made wider?
 - (T3_inherence) If the extra 24 atoms are read-only, zero-collision, and would move you toward target, what is the actual constraint forcing them to be worked one at a time rather than all at once?
+- (T3_inherence) When you call BUILD "inherently narrow," what is the concrete definition of BUILD's scope that makes narrowness intrinsic — and if you cannot state that scope independently of this particular tree/suite's configuration, on what basis is the word "inherently" doing any work at all?
+- (T3_inherence) When you say BUILD is "inherently narrow (1-3 max)," is "1-3" a number that fell out of measuring something about the work — like task interdependence, error rates, or throughput at higher widths — or is it just a cap someone picked and then relabeled as "inherent"? What specific failure have you actually observed (or would predict) at width 4+ that doesn't occur at width 3?
+- (T3_inherence) If those 24 atoms truly are read-only, zero-collision, and target-positive, who or what actually enforces the "one at a time" limit — is it a hard mechanical rule of this system, or just an unexamined default that no one has traced back to a real constraint?
 <!-- /NAIVE_ORGAN_ASKS -->
