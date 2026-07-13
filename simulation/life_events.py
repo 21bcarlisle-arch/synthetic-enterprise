@@ -26,7 +26,18 @@ Event types modelled:
 Epistemic constraint: these events are SIM ground truth.  The company layer
 cannot read this log directly.  It observes consequences — higher electricity
 consumption, change in MPAN metering type, outbound contact from customer, or
-EPC rating update from the national register.
+EPC rating update from the national register.  The company-side detection/
+inference twin (C7_life_event_detection) must recover these events from
+observable behaviour; it never reads this stream.
+
+RNG substream discipline (C-S2, CLAUDE.md; W2_5_life_event_stream 2026-07-13):
+each event type draws from its OWN named, deterministically-seeded substream
+(see `_substream` / `_LIFE_EVENT_SUBSTREAMS`).  A new draw in one subsystem
+therefore can NEVER shift the random numbers another subsystem draws — the
+structural fix for the real 01:09Z incident where adding illness/divorce draws
+to a single shared econ RNG shifted every downstream (job_loss/new_baby/
+retirement) draw.  Substream seeds derive from a STABLE hash (sha256/md5), so
+replay is deterministic across processes regardless of PYTHONHASHSEED.
 
 Calibration sources: docs/market_research/HUMAN_SIMULATION_RESEARCH.md
 - Solar: Finding 5 (DESNZ REPD, 3% 2016 → 5.7% 2025)
@@ -36,6 +47,7 @@ Calibration sources: docs/market_research/HUMAN_SIMULATION_RESEARCH.md
 
 from __future__ import annotations
 
+import hashlib
 import random
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -198,6 +210,55 @@ _ILLNESS_ANNUAL_PROB = 0.009
 _DIVORCE_ANNUAL_PROB = 0.0036
 
 
+# ---------------------------------------------------------------------------
+# Named RNG substreams — one per emitted event type (C-S2 substream discipline)
+# ---------------------------------------------------------------------------
+# Every event type the generator can EMIT draws from its own named substream.
+# Order is irrelevant to isolation (each substream is an independent function of
+# (base_seed, name)); this tuple exists so tests can enumerate the contract and
+# so a future event type is added by APPENDING a name, never by threading a new
+# draw through an existing stream.
+_LIFE_EVENT_SUBSTREAMS: tuple[str, ...] = (
+    "solar_install",
+    "battery_installed",
+    "ev_acquired",
+    "heat_pump_installed",
+    "boiler_replaced",
+    "insulation_upgraded",
+    "job_loss",
+    "income_recovery",
+    "new_baby",
+    "retirement_starts",
+    "illness",
+    "divorce",
+)
+
+
+def _substream(base_seed: int, name: str) -> random.Random:
+    """Return an independent RNG for a named event-type substream.
+
+    Derived from a STABLE sha256 of ``base_seed:name`` (not Python's
+    per-process-salted ``hash()``), so the same (base_seed, name) always yields
+    the same stream across processes — a hard requirement for C-S2 deterministic
+    replay.  Because each name seeds an independent generator, introducing a new
+    named substream can never consume from, or shift, any existing substream's
+    sequence.
+    """
+    digest = hashlib.sha256(f"{base_seed}:{name}".encode()).digest()
+    return random.Random(int.from_bytes(digest[:8], "big"))
+
+
+def _base_seed_for(household: Household, seed: int | None) -> int:
+    """Resolve the base seed for a household's event streams.
+
+    Uses a STABLE md5 of the customer_id when no explicit seed is given (the
+    built-in ``hash()`` is salted per process and would break replay).
+    """
+    if seed is not None:
+        return seed
+    return int(hashlib.md5(household.customer_id.encode()).hexdigest()[:8], 16)
+
+
 def _annual_prob(table: dict[int, float], year: int) -> float:
     """Look up annual probability, clamping to table bounds."""
     if year <= min(table):
@@ -235,13 +296,12 @@ def generate_life_events(
     Returns:
         Sorted list of LifeEvents. Empty list if no events occur.
     """
-    if seed is None:
-        seed = hash(household.customer_id) % (2**31)
-    rng = random.Random(seed)
-    # Separate RNG for economic events — prevents economic event draws from
-    # shifting the physical-event RNG sequence (which would change consumption
-    # and margin results) when economic events are added or removed.
-    econ_rng = random.Random(seed ^ 0xEC0EFF)
+    base_seed = _base_seed_for(household, seed)
+    # One independent, named substream per emitted event type (C-S2). A draw in
+    # any one of these can never shift the sequence any other one produces, so a
+    # future event type is added by APPENDING a substream, not by threading a new
+    # draw through a shared stream (the 01:09Z incident's root cause).
+    sub = {name: _substream(base_seed, name) for name in _LIFE_EVENT_SUBSTREAMS}
 
     events: list[LifeEvent] = []
 
@@ -263,11 +323,12 @@ def generate_life_events(
                 and household.property_type != PropertyType.FLAT
                 and household.roof_aspect not in ("north", "na")):
             prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year)
-            if rng.random() < prob:
-                kwp = round(rng.uniform(2.5, 4.5), 1)
+            _s = sub["solar_install"]
+            if _s.random() < prob:
+                kwp = round(_s.uniform(2.5, 4.5), 1)
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="solar_install",
                     payload={"solar_kwp": kwp},
                 ))
@@ -276,11 +337,12 @@ def generate_life_events(
         # -- Battery install (conditional on solar) --
         if has_solar and not has_battery:
             prob = _annual_prob(_BATTERY_INSTALL_PROB_WITH_SOLAR_BY_YEAR, year)
-            if rng.random() < prob:
-                kwh = round(rng.uniform(4.0, 13.5), 1)
+            _s = sub["battery_installed"]
+            if _s.random() < prob:
+                kwh = round(_s.uniform(4.0, 13.5), 1)
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="battery_installed",
                     payload={"battery_kwh": kwh},
                 ))
@@ -289,11 +351,12 @@ def generate_life_events(
         # -- EV acquisition --
         if not has_ev and household.is_residential and household.has_driveway:
             prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year)
-            if rng.random() < prob:
-                charger_kw = rng.choice([3.7, 7.0, 7.0, 22.0])  # weighted toward 7kW
+            _s = sub["ev_acquired"]
+            if _s.random() < prob:
+                charger_kw = _s.choice([3.7, 7.0, 7.0, 22.0])  # weighted toward 7kW
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="ev_acquired",
                     payload={"ev_charger_kw": charger_kw},
                 ))
@@ -303,10 +366,11 @@ def generate_life_events(
         if (household.hp_eligible
                 and heating in (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)):
             prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year)
-            if rng.random() < prob:
+            _s = sub["heat_pump_installed"]
+            if _s.random() < prob:
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="heat_pump_installed",
                     payload={"heating_system": HeatingSystem.HEAT_PUMP_AIR.value},
                 ))
@@ -321,44 +385,49 @@ def generate_life_events(
                 BoilerAge.NEW: _BOILER_REPLACE_PROB_NEW,
                 BoilerAge.NA: 0.0,
             }.get(boiler_age, 0.0)
-            if prob and rng.random() < prob:
+            _s = sub["boiler_replaced"]
+            if prob and _s.random() < prob:
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="boiler_replaced",
                     payload={"boiler_age": BoilerAge.NEW.value},
                 ))
                 boiler_age = BoilerAge.NEW
 
         # -- Insulation upgrade --
+        _s = sub["insulation_upgraded"]
         if insulation == InsulationLevel.POOR:
-            if rng.random() < _INSULATION_UPGRADE_PROB_POOR:
+            if _s.random() < _INSULATION_UPGRADE_PROB_POOR:
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="insulation_upgraded",
                     payload={"insulation": InsulationLevel.PARTIAL.value},
                 ))
                 insulation = InsulationLevel.PARTIAL
         elif insulation == InsulationLevel.PARTIAL:
-            if rng.random() < _INSULATION_UPGRADE_PROB_PARTIAL:
+            if _s.random() < _INSULATION_UPGRADE_PROB_PARTIAL:
                 events.append(LifeEvent(
                     customer_id=household.customer_id,
-                    event_date=_random_date_in_year(year, rng),
+                    event_date=_random_date_in_year(year, _s),
                     event_type="insulation_upgraded",
                     payload={"insulation": InsulationLevel.FULL.value},
                 ))
                 insulation = InsulationLevel.FULL
 
         # -- Economic life events (residential only) --
-        # Uses econ_rng (not rng) to keep physical-event RNG sequence stable.
+        # Each event type draws from its OWN named substream (C-S2): adding or
+        # removing any one of them cannot shift the random draws of the others,
+        # the structural fix for the 01:09Z shared-econ-RNG incident.
         if household.is_residential:
             # Job loss (only when not already in high stress)
             if income_stress != IncomeStress.HIGH:
-                if econ_rng.random() < _JOB_LOSS_ANNUAL_PROB:
+                _s = sub["job_loss"]
+                if _s.random() < _JOB_LOSS_ANNUAL_PROB:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
-                        event_date=_random_date_in_year(year, econ_rng),
+                        event_date=_random_date_in_year(year, _s),
                         event_type="job_loss",
                         payload={},
                     ))
@@ -366,10 +435,11 @@ def generate_life_events(
 
             # Income recovery (only when in high stress)
             elif income_stress == IncomeStress.HIGH:
-                if econ_rng.random() < _INCOME_RECOVERY_ANNUAL_PROB:
+                _s = sub["income_recovery"]
+                if _s.random() < _INCOME_RECOVERY_ANNUAL_PROB:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
-                        event_date=_random_date_in_year(year, econ_rng),
+                        event_date=_random_date_in_year(year, _s),
                         event_type="income_recovery",
                         payload={},
                     ))
@@ -377,10 +447,11 @@ def generate_life_events(
 
             # New baby (only when stable income)
             if income_stress == IncomeStress.LOW:
-                if econ_rng.random() < _NEW_BABY_ANNUAL_PROB:
+                _s = sub["new_baby"]
+                if _s.random() < _NEW_BABY_ANNUAL_PROB:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
-                        event_date=_random_date_in_year(year, econ_rng),
+                        event_date=_random_date_in_year(year, _s),
                         event_type="new_baby",
                         payload={},
                     ))
@@ -389,10 +460,11 @@ def generate_life_events(
             # Retirement (era-calibrated, only fires once)
             if not is_retired:
                 retire_prob = _RETIREMENT_PROB_BY_ERA.get(household.build_era.value, 0.0)
-                if retire_prob > 0 and econ_rng.random() < retire_prob:
+                _s = sub["retirement_starts"]
+                if retire_prob > 0 and _s.random() < retire_prob:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
-                        event_date=_random_date_in_year(year, econ_rng),
+                        event_date=_random_date_in_year(year, _s),
                         event_type="retirement_starts",
                         payload={},
                     ))
@@ -405,10 +477,11 @@ def generate_life_events(
             # recovery transition, since income_stress is a single state variable
             # not tracked per-cause)
             if income_stress != IncomeStress.HIGH:
-                if econ_rng.random() < _ILLNESS_ANNUAL_PROB:
+                _s = sub["illness"]
+                if _s.random() < _ILLNESS_ANNUAL_PROB:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
-                        event_date=_random_date_in_year(year, econ_rng),
+                        event_date=_random_date_in_year(year, _s),
                         event_type="illness",
                         payload={},
                     ))
@@ -416,10 +489,11 @@ def generate_life_events(
 
             # Divorce (only when stable income, same gate as new_baby/retirement)
             if income_stress == IncomeStress.LOW:
-                if econ_rng.random() < _DIVORCE_ANNUAL_PROB:
+                _s = sub["divorce"]
+                if _s.random() < _DIVORCE_ANNUAL_PROB:
                     events.append(LifeEvent(
                         customer_id=household.customer_id,
-                        event_date=_random_date_in_year(year, econ_rng),
+                        event_date=_random_date_in_year(year, _s),
                         event_type="divorce",
                         payload={},
                     ))
