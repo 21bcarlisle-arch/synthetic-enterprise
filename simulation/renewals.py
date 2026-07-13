@@ -14,12 +14,23 @@ increment.
 
 from datetime import date, datetime, time, timedelta, timezone
 
-from company.governance.decision_rights import DecisionClass, log_decision_event
+from company.governance.approval_interface import (
+    ContextLink,
+    ContextPack,
+    record_governance_decision,
+    request_governance_approval,
+)
+from company.governance.decision_rights import (
+    DecisionClass,
+    get_decision_log,
+    log_decision_event,
+)
 from company.pricing.tariff_engine import CompanyTariffEngine
 
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.hedging_strategy import MIN_HEDGE_FLOOR
+from simulation.bill_shock_tracker import BILL_SHOCK_THRESHOLD
 from simulation.policy_costs import (
     get_cm_levy_per_mwh,
     get_fit_levy_per_mwh,
@@ -38,6 +49,170 @@ NOTICE_DAYS = 42
 
 DEEMED_PREMIUM = 0.20  # 20% above spot — UK industry standard for out-of-contract rate
 FLEX_MARKUP_PER_MWH = 2.0  # £2/MWh trading desk markup for flex contracts
+
+# A3_approval_interface L2 (2026-07-13, docs/design/maturity_map.yaml
+# A3_approval_interface's own 2026-07-13 L2-PATH FRAME): a fixed-rate renewal
+# whose unit rate jumps more than this threshold versus the customer's PREVIOUS
+# fixed term is a NON-ROUTINE pricing move -- it exceeds the routine/automated
+# envelope the PRICING_MOVE DecisionClassDefinition describes (sla_hours=0.0,
+# expected_effort_minutes=2.0, rationale "routine... below any escalation
+# threshold"). The magnitude is NOT invented here: it reuses the company's own
+# already-existing, domain-calibrated bill-shock definition
+# (simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD -- "rate increase > 20%
+# vs the prior term"), so a governance escalation and a customer bill-shock are
+# the SAME observable, not two divergent numbers ("one architecture, not two").
+# Non-routine moves are routed through A3's approval workflow
+# (submit->pending->resolve, with real latency); routine moves keep logging a
+# single completed decision-event exactly as before.
+NON_ROUTINE_RATE_INCREASE_THRESHOLD = BILL_SHOCK_THRESHOLD
+# Deterministic, replay-safe approval latency (PRODUCTION_READINESS_SCALE_
+# ADDENDUM C-S2 idempotency/replay): the approval is resolved a fixed 1 day
+# after the notice-date submission -- still 41 days before term start, so the
+# pricing window never closes on it. This is what keeps the FIRST version
+# OUTCOME-NEUTRAL: approval is granted strictly inside the effective window,
+# before the rate ever takes effect, so the tariff applied is unchanged.
+APPROVAL_LATENCY_DAYS = 1
+
+
+def _route_pricing_move(
+    customer_id: str,
+    term_start: date,
+    term_start_str: str,
+    notice_date: date,
+    tariff_type: str,
+    segment: str,
+    company_fwd: float,
+    eac_kwh: int,
+    locked_policy: float,
+    locked_network: float,
+    unit_rate: float,
+    prev_fixed_unit_rate: float | None,
+) -> None:
+    """Log the per-term PRICING_MOVE governed decision.
+
+    ROUTINE moves (the vast majority) log a single COMPLETED decision-event,
+    exactly as the thin-start build did. A NON-ROUTINE move -- a fixed-rate
+    increase of more than NON_ROUTINE_RATE_INCREASE_THRESHOLD versus the
+    customer's previous fixed term -- is instead routed through A3's approval
+    workflow (request_governance_approval -> record_governance_decision),
+    recording a genuine pending->resolved pair with real latency on the
+    bitemporal log. This gives A2's submit/resolve pending path its first
+    LIVE-pipeline caller.
+
+    OUTCOME-NEUTRAL by construction: this function is a pure side effect on the
+    decision LOG. It never returns or mutates `unit_rate`; the caller applies
+    the identical rate whichever branch runs. The approval is granted inside the
+    42-day notice window (resolved_at is APPROVAL_LATENCY_DAYS after the
+    notice-date submission, still weeks before term_start), so no pricing window
+    ever closes on a pending request and no tariff is delayed, blocked, or
+    altered. The outcome-AFFECTING version (a window closing while approval
+    waits, which WOULD move margin) is a distinct, larger, later increment --
+    deliberately not built here.
+    """
+    request = {
+        "term_start": term_start_str,
+        "tariff_type": tariff_type,
+        "segment": segment,
+    }
+    is_non_routine = (
+        prev_fixed_unit_rate is not None
+        and prev_fixed_unit_rate > 0
+        and (unit_rate - prev_fixed_unit_rate) / prev_fixed_unit_rate
+        > NON_ROUTINE_RATE_INCREASE_THRESHOLD
+    )
+    if not is_non_routine:
+        # GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 (thin start, 2026-07-12):
+        # the routine pricing-organ decision -- a single completed decision-
+        # event. valid_time is the term the rate applies to; transaction_time is
+        # notice_date, when the company actually priced it.
+        log_decision_event(
+            DecisionClass.PRICING_MOVE,
+            entity_id=customer_id,
+            request=request,
+            context={
+                "company_forward_price_gbp_per_mwh": company_fwd,
+                "eac_kwh": eac_kwh,
+                "locked_policy_cost_gbp_per_mwh": locked_policy,
+                "locked_network_cost_gbp_per_mwh": locked_network,
+            },
+            decision={"unit_rate_gbp_per_mwh": unit_rate},
+            rationale=(
+                "cost-floor forward estimate plus standard risk premium "
+                "(naked_fraction={:.2f}); routine, below any escalation threshold "
+                "in this thin-start register".format(1 - MIN_HEDGE_FLOOR)
+            ),
+            valid_time=term_start,
+            transaction_time=datetime.combine(notice_date, time(), tzinfo=timezone.utc),
+        )
+        return
+
+    # Non-routine: route through A3's approval workflow. The context pack is
+    # LINKS not prose (approval_interface enforces this before it can queue).
+    increase_pct = (unit_rate - prev_fixed_unit_rate) / prev_fixed_unit_rate
+    submitted_at = datetime.combine(notice_date, time(), tzinfo=timezone.utc)
+    resolved_at = submitted_at + timedelta(days=APPROVAL_LATENCY_DAYS)
+    # Idempotency / replay safety (PRODUCTION_READINESS_SCALE_ADDENDUM C-S2):
+    # the module-level decision log is a shared singleton, reused across repeated
+    # builds of the same customer within one process/test session (the routine
+    # log_decision_event path tolerates this by appending harmlessly). If this
+    # exact term's pricing decision is ALREADY resolved as-known-at the resolve
+    # time -- a replayed/duplicate build -- routing again would append a second
+    # pending whose resolve then collides with the prior decided event. A replay
+    # must be harmless and reproduce identical state, so skip: the decision
+    # already exists, decided, on the log. request/record use the shared
+    # singleton (log defaulted), so the check reads that same singleton.
+    existing = get_decision_log().as_known_at(
+        resolved_at, customer_id, "decision_event:pricing_move", valid_time=term_start
+    )
+    if existing is not None and existing.value.status == "decided":
+        return
+    pack = ContextPack(
+        links=(
+            ContextLink(
+                "Company forward-price estimate",
+                "data://company/pricing/forward/{}".format(term_start_str),
+            ),
+            ContextLink(
+                "Prior fixed-term unit rate",
+                "data://company/pricing/prior_rate/{}".format(customer_id),
+            ),
+            ContextLink("Pricing-committee guidance", "site://director/door7/pricing"),
+        ),
+        recommendation=(
+            "APPROVE renewal rate {:.1f}->{:.1f} GBP/MWh (+{:.0%} vs prior term) "
+            "for {}".format(prev_fixed_unit_rate, unit_rate, increase_pct, customer_id)
+        ),
+    )
+    request_governance_approval(
+        DecisionClass.PRICING_MOVE,
+        entity_id=customer_id,
+        request={
+            **request,
+            "proposed_unit_rate_gbp_per_mwh": unit_rate,
+            "prior_unit_rate_gbp_per_mwh": prev_fixed_unit_rate,
+            "company_forward_price_gbp_per_mwh": company_fwd,
+        },
+        context_pack=pack,
+        valid_time=term_start,
+        submitted_at=submitted_at,
+    )
+    # The approver's verdict is an INPUT from outside the wall (the director now;
+    # A4's sim-approver in tournament runs) -- here in the OUTCOME-NEUTRAL first
+    # version it is granted within the effective window, so the applied rate is
+    # unchanged. A later outcome-affecting increment would let this verdict/
+    # timing actually move the tariff; that is explicitly not this pass.
+    record_governance_decision(
+        DecisionClass.PRICING_MOVE,
+        entity_id=customer_id,
+        valid_time=term_start,
+        approved=True,
+        rationale=(
+            "non-routine rate increase (+{:.0%} vs prior fixed term, above the "
+            "bill-shock threshold); approved WITHIN the 42-day notice window -- "
+            "outcome-neutral, the applied tariff is unchanged".format(increase_pct)
+        ),
+        resolved_at=resolved_at,
+    )
 
 
 def build_renewal_schedule(
@@ -80,6 +255,10 @@ def build_renewal_schedule(
     report_end = date.fromisoformat(report_end_date)
     terms = []
     first_term = True
+    # A3 L2: the customer's previous fixed-term unit rate, used to classify a
+    # renewal as routine vs non-routine (a > threshold increase). None until the
+    # first fixed term is priced, so the first term is always routine.
+    prev_fixed_unit_rate: float | None = None
 
     while term_start <= report_end:
         # Phase 40c: insert a deemed gap term before each renewal (except the first).
@@ -149,37 +328,28 @@ def build_renewal_schedule(
                 policy_cost_per_mwh=locked_policy,
                 network_cost_per_mwh=locked_network,
             )
-            # GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 (thin start,
-            # 2026-07-12): the real pricing-organ decision -- every fixed-
-            # rate renewal/new-term tariff, for every customer, across the
-            # whole historical replay -- logged as a bitemporal decision-
-            # event. valid_time is the term this rate applies to;
-            # transaction_time is notice_date, when the company actually
-            # priced it (Phase 34a's own 42-day notice-period model), not
-            # term_start itself.
-            log_decision_event(
-                DecisionClass.PRICING_MOVE,
-                entity_id=customer_id,
-                request={
-                    "term_start": term_start_str,
-                    "tariff_type": tariff_type,
-                    "segment": segment,
-                },
-                context={
-                    "company_forward_price_gbp_per_mwh": company_fwd,
-                    "eac_kwh": eac_kwh,
-                    "locked_policy_cost_gbp_per_mwh": locked_policy,
-                    "locked_network_cost_gbp_per_mwh": locked_network,
-                },
-                decision={"unit_rate_gbp_per_mwh": unit_rate},
-                rationale=(
-                    "cost-floor forward estimate plus standard risk premium "
-                    "(naked_fraction={:.2f}); routine, below any escalation threshold "
-                    "in this thin-start register".format(1 - MIN_HEDGE_FLOOR)
-                ),
-                valid_time=term_start,
-                transaction_time=datetime.combine(notice_date, time(), tzinfo=timezone.utc),
+            # GOVERNED_COMPANY_AND_THREE_LANES.md Part 1 + A3_approval_interface
+            # L2: log the per-term pricing-organ decision. Routine moves log a
+            # single completed decision-event (unchanged from the thin start);
+            # a non-routine move (a > threshold increase vs the prior fixed
+            # term) is routed through A3's approval workflow with real latency.
+            # This is OUTCOME-NEUTRAL: it never changes `unit_rate`, applied
+            # identically below whichever branch runs (see _route_pricing_move).
+            _route_pricing_move(
+                customer_id=customer_id,
+                term_start=term_start,
+                term_start_str=term_start_str,
+                notice_date=notice_date,
+                tariff_type=tariff_type,
+                segment=segment,
+                company_fwd=company_fwd,
+                eac_kwh=eac_kwh,
+                locked_policy=locked_policy,
+                locked_network=locked_network,
+                unit_rate=unit_rate,
+                prev_fixed_unit_rate=prev_fixed_unit_rate,
             )
+            prev_fixed_unit_rate = unit_rate
         next_start = term_start + timedelta(days=CONTRACT_LENGTH_DAYS)
         term_dict = {
             "customer_id": customer_id,
