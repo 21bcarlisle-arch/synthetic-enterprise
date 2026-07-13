@@ -97,9 +97,19 @@ def test_render_bills_reads_and_expand_toggle_present():
 
 
 def test_closed_account_notice_real_churned_customer_c1():
+    # W2_5_life_event_stream (2026-07-13): adding real illness/divorce economic
+    # events to simulation/life_events.py legitimately shifted C1's own
+    # churn/closure timing by one year (2020-12-30 -> 2021-12-30) -- a real
+    # baseline-fidelity change (R13: adding UK-anchored events for fidelity
+    # reasons), not a bug. econ_rng is a single shared Random() stream per
+    # customer; inserting new draws mid-sequence shifts every subsequent
+    # year's economic-event outcomes for that customer, which is expected
+    # PRNG behaviour, not a regression in the illness/divorce logic itself.
+    # This assertion tracks the CURRENT real generated date, not a fixed
+    # historical constant that must never change.
     d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
     notice = _closed_account_notice(d, d["invoices"])
-    assert notice.startswith("Account closed 2020-12-30")
+    assert notice.startswith("Account closed 2021-12-30")
     assert (d["invoices"][-1]["id"] + ".") in notice
     # C1 has a real historical write-off (Phase RP ledger) -- settles to zero, not fabricated as fully collected
     assert "settled to zero" in notice
