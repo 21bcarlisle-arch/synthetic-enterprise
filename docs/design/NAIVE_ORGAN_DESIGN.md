@@ -512,3 +512,77 @@ caught by hand."
 
 *DISCOVER/FRAME complete. BUILD gated (epoch 2, twin-approvable per canon v2 §3a —
 a self-audit organ, not a one-way door). No implementation written per Rule 1.*
+
+---
+
+## 8. Director amendment (2026-07-13, commit 0685dd26 [ADVISOR-STAGED]) — folded into BUILD
+
+The amendment scope-expands this atom: **ONE organ, TWO modes, THREE targets,
+THE LINE** — plus a mandatory doubt-machinery overlap audit done FIRST. Built into
+`background/naive_organ.py` as follows.
+
+### 8.0 Doubt-machinery overlap audit (done first — "adding another sceptic is not the same as being more sceptical")
+
+Four doubt mechanisms already run. Before adding a fifth, the audit confirms the
+organ *consolidates a missing job* rather than duplicating an existing one:
+
+| Mechanism | Its job | Vantage / brief | What it does NOT do |
+|---|---|---|---|
+| `director_twin.py` (approver) | ANSWERS "may the builder proceed?" from the director's CANON | Sees ONLY the canon (MAX director context) | Never questions a factual claim; never falsifies a plan; only rules on director-reserved authority |
+| `phase-close-evaluator` (agent) | PASS/NEEDS_WORK on a claimed-complete phase's diff+evidence | Fresh context, reads the diff | Scoped to a phase-close artefact; episodic, not standing; not watching live system claims |
+| `cold-eyes-walk` (skill) | Outside review of a *deployed public surface* (page/figure) | Blindfold + persona priming, priors-before-pixels | Aimed at business-facing artefacts, not the system's own internal claims/state |
+| **naive_organ (this)** | **QUESTIONS/FALSIFIES claims & plans from anyone** | **Amnesiac — ONLY goal + raw observable state + the bare claim** | **NEVER questions PURPOSE; never approves; never fixes** |
+
+**Clean division of labour:** the twin is the director-canon **APPROVER** (max
+director context, rules on authority); the organ is the claim/plan **FALSIFIER**
+(zero house context, attacks the claim's truth). They are structural inverses on
+BOTH axes — context (canon-max vs amnesiac) and act (approve vs interrogate). The
+evaluator and cold-eyes are *artefact-scoped and episodic*; the organ is
+*claim-scoped and standing*. No existing mechanism's job is "stand watch on the
+system's own live claims/plans and demand they survive a naive falsification, from
+anyone, about anything except purpose." The organ fills exactly that gap — it is
+the ONE consolidated doubt mechanism for that job, not a fourth parallel sceptic.
+(Concretely: the twin would *approve* "map exhausted" if canon allowed; only the
+organ independently recomputes the 31 open atoms and asks which is true.)
+
+### 8.1 TWO modes
+
+- **interrogate** — question a *claim* (system state/claims; a director claim of
+  fact/strategy). Rubric asks the single sharpest naive question about the
+  contradiction/flatness. Mode for the 7 system triggers and target 3.
+- **falsify** — try to *break a plan/claim*: enumerate the assumptions it rests on
+  and the concrete conditions under which it fails. Mode for target 2 (an
+  advisor-staged doc read BEFORE the agent acts on it).
+
+Both are the SAME organ (`ask_organ`), same amnesiac isolation, differing only in
+the rubric constant selected by `mode`. No separate devil's-advocate process —
+"ONE organ, do not proliferate."
+
+### 8.2 THREE targets
+
+1. **SYSTEM** (`target="system"`) — the original 7 trigger detectors over raw
+   observable state. Mode: interrogate.
+2. **ADVISOR** (`target="advisor"`) — `falsify_advisor_doc(doc_ref, doc_text)` runs
+   a FALSIFY pass on an advisor-staged doc *before the agent acts on it*. The
+   advisor is the least-protected seat (full context, writes plans AND reviews
+   outcomes, 3× R9 breaches in 3 days, no evaluator of its own). **The agent may
+   cite a falsify pass to push back on the advisor, and should.** Mode: falsify.
+3. **DIRECTOR** (`target="director"`) — `interrogate_claim(claim, source="director")`
+   questions the director's falsifiable statements of *fact/strategy* only. Mode:
+   interrogate.
+
+### 8.3 THE LINE — never PURPOSE (mechanised, not exhorted)
+
+The organ questions CLAIMS and PLANS from anyone but **NEVER questions PURPOSE** —
+values / the fitness function are the director's and are not falsifiable (same wall
+as canon Law B / R13). Enforced structurally: `ask_organ` runs
+`is_purpose_claim(claim_text)` BEFORE any Opus call; a purpose/values/fitness claim
+is *declined* (logged `verdict: "declined_purpose"`, no model spend). THE LINE is a
+code gate, not a prompt request; applies to all three targets identically.
+
+### 8.4 Anti-capture unchanged (Law-B-shaped)
+
+Rubrics + thresholds are fixed source constants; the invocation payload carries no
+prior questions/answers and no hit/miss feedback; hit-rate is a diagnostic for US,
+never a training signal for the organ. The only permitted change is a
+director/twin-authored source edit — never the organ learning from outcomes.
