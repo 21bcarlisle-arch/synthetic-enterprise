@@ -1,5 +1,19 @@
 # PRODUCTION_READINESS_SCALE_ADDENDUM
 
+**IN PROGRESS (2026-07-13):** DoD items 1/2/3/5 done -- constraints folded into CLAUDE.md (commit
+665fb1f8), retroactive-application decision recorded (remediation-on-touch), C-S3 + A3's own
+pending-latency mechanism built as ONE mechanism (company/governance/decision_rights.py's
+submit_decision_request()/resolve_decision_request()/pending_decision_requests_as_of(), 17 new
+tests). **Blocking sub-item still open: DoD item 4, RNG substream discipline (C-S2/A1) "implemented
+and proven".** Deliberately NOT built this pass -- a codebase-wide RNG-stream audit/refactor risks
+the actual simulation ground-truth output across the full 2016-2025 replay, and rushing it under
+time pressure would be irresponsible given the real 01:09Z incident this same class of change already
+caused once. What unblocks it: a dedicated, unrushed BUILD pass auditing every stochastic subsystem in
+simulation/ for shared-RNG exposure (see docs/PRIORITIES.md's own precise registration for the exact
+pattern to generalise -- life_events.py's existing rng/econ_rng XOR-salt split) and applying the
+named-substream-per-subsystem pattern consistently, with a real regression test proving one
+subsystem's new draw leaves every other subsystem's stream bit-identical.
+
 **Status:** Director-decided (2026-07-13). Addendum to PRODUCTION_READINESS_BASELINE.md Part C (standing design constraints).
 **Place in the epoch arc:** constrains Epoch 2 build and Epoch 3 walled-interface specification. Enables go-live scale; builds none of it. Nothing here changes epoch sequencing.
 
