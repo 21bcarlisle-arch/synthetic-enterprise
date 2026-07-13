@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>poesys. — brand visualisation</title>
+<style>
+  /* ---- tokens (the only place colour lives) ---- */
+  :root{
+    --black:#0A0A0A;
+    --white:#FFFFFF;
+    --grey-40:#666666;      /* tint of black, secondary text */
+    --grey-15:#D9D9D9;      /* hairlines */
+    --grey-05:#F4F4F4;      /* paper backdrop */
+
+    --blue-bright:#0047FF;  --blue-soft:#DCE7FF;
+    --red-bright:#E11900;   --red-soft:#FFDDD6;
+    --amber-bright:#F5A600; --amber-soft:#FFF0C9;
+    --green-bright:#00873C; --green-soft:#D6F2E0;
+
+    --font:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font);background:var(--grey-05);color:var(--black);-webkit-font-smoothing:antialiased;}
+
+  .frame{max-width:1060px;margin:0 auto;padding:48px 20px;}
+  .frame-label{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-40);margin-bottom:14px;}
+
+  /* ================= WEB PAGE MOCK ================= */
+  .site{background:var(--white);border:1px solid var(--grey-15);}
+  .site-inner{padding:0 56px;}
+  @media(max-width:640px){.site-inner{padding:0 22px;}}
+
+  header.site-head{display:flex;justify-content:space-between;align-items:baseline;padding:28px 0 26px;border-bottom:1px solid var(--black);}
+  .wordmark{font-size:26px;font-weight:700;letter-spacing:-0.02em;}
+  nav{display:flex;gap:26px;font-size:13px;font-weight:500;}
+  nav span{cursor:pointer;}
+  @media(max-width:640px){nav{display:none;}}
+
+  .hero{padding:72px 0 56px;border-bottom:1px solid var(--black);}
+  .hero h1{font-size:clamp(34px,5.4vw,58px);font-weight:700;letter-spacing:-0.03em;line-height:1.04;max-width:17ch;}
+  .hero p{margin-top:22px;font-size:17px;line-height:1.55;color:var(--grey-40);max-width:52ch;font-weight:400;}
+  .hero p b{color:var(--black);font-weight:600;}
+
+  /* status grammar */
+  .section-title{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;padding:26px 0 0;}
+  .health{border-bottom:1px solid var(--black);padding-bottom:34px;}
+  .health-rows{margin-top:18px;}
+  .hrow{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-top:1px solid var(--grey-15);font-size:15px;}
+  .hrow:first-child{border-top:none;}
+  .hrow .lane{font-weight:600;}
+  .status{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:0.02em;padding:5px 12px;}
+  .dot{width:9px;height:9px;display:inline-block;}
+  .st-blue{background:var(--blue-soft);}   .st-blue .dot{background:var(--blue-bright);}
+  .st-green{background:var(--green-soft);} .st-green .dot{background:var(--green-bright);}
+  .st-amber{background:var(--amber-soft);} .st-amber .dot{background:var(--amber-bright);}
+  .st-red{background:var(--red-soft);}     .st-red .dot{background:var(--red-bright);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:18px;margin-top:22px;font-size:11px;color:var(--grey-40);letter-spacing:0.04em;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+
+  /* figures */
+  .figures{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--black);}
+  @media(max-width:760px){.figures{grid-template-columns:repeat(2,1fr);}}
+  .fig{padding:28px 20px 26px 0;border-right:1px solid var(--grey-15);}
+  .fig:last-child{border-right:none;}
+  .fig .k{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-40);font-weight:500;}
+  .fig .v{font-size:clamp(22px,3vw,32px);font-weight:700;letter-spacing:-0.02em;margin-top:10px;}
+  .fig .clock{margin-top:10px;font-size:11px;color:var(--grey-40);line-height:1.5;}
+  .fig .clock i{font-style:normal;background:var(--amber-soft);padding:1px 6px;font-weight:600;color:var(--black);}
+
+  footer.site-foot{display:flex;justify-content:space-between;padding:22px 0 30px;font-size:12px;color:var(--grey-40);}
+
+  /* ================= BILL MOCK ================= */
+  .bill{background:var(--white);border:1px solid var(--grey-15);max-width:680px;margin:0 auto;padding:52px 54px 46px;}
+  @media(max-width:640px){.bill{padding:34px 22px;}}
+
+  .bill-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--black);padding-bottom:22px;}
+  .bill-head .doc{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--grey-40);}
+
+  .bill-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;padding:22px 0;font-size:13px;border-bottom:1px solid var(--grey-15);}
+  .bill-meta .k{color:var(--grey-40);}
+  .bill-meta .r{text-align:right;font-weight:600;}
+
+  .chip{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;letter-spacing:0.02em;}
+  .chip-green{background:var(--green-soft);}
+  .chip-amber{background:var(--amber-soft);}
+
+  .charges{width:100%;border-collapse:collapse;margin-top:6px;font-size:13.5px;}
+  .charges th{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey-40);font-weight:500;text-align:left;padding:18px 0 10px;border-bottom:1px solid var(--black);}
+  .charges th.num, .charges td.num{text-align:right;}
+  .charges td{padding:11px 0;border-bottom:1px solid var(--grey-15);vertical-align:top;}
+  .charges .fuel td{font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--grey-15);padding-top:20px;}
+  .charges .sub{color:var(--grey-40);font-size:12px;display:block;margin-top:3px;}
+  .charges .subtotal td{font-weight:600;}
+
+  .total{display:flex;justify-content:space-between;align-items:baseline;padding:24px 0 6px;}
+  .total .k{font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;}
+  .total .v{font-size:38px;font-weight:700;letter-spacing:-0.02em;}
+
+  .bill-note{margin-top:22px;padding:14px 16px;background:var(--amber-soft);font-size:12.5px;line-height:1.55;}
+  .bill-note b{font-weight:700;}
+  .bill-foot{margin-top:26px;padding-top:16px;border-top:1px solid var(--grey-15);font-size:11px;color:var(--grey-40);line-height:1.7;}
+
+  /* ================= GLYPH GRAMMAR ================= */
+  .glyphs{background:var(--white);border:1px solid var(--grey-15);padding:44px 56px 40px;}
+  @media(max-width:640px){.glyphs{padding:30px 22px;}}
+  .glyphs h2{font-size:20px;font-weight:700;letter-spacing:-0.02em;border-bottom:1px solid var(--black);padding-bottom:16px;}
+  .gtable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px;}
+  .gtable td{padding:14px 14px 14px 0;border-bottom:1px solid var(--grey-15);vertical-align:middle;}
+  .gtable .g{font-size:30px;font-weight:700;width:64px;}
+  .gtable .n{font-weight:600;width:110px;}
+  .gtable .m{color:var(--grey-40);line-height:1.5;}
+  .gtable .tw{width:120px;}
+  .term{margin-top:24px;background:var(--black);color:var(--white);padding:16px 18px;font-size:13px;letter-spacing:0.02em;line-height:1.7;}
+  .term .cmt{color:#8A8A8A;}
+</style>
+</head>
+<body>
+
+<!-- ============ 1. WEB PAGE ============ -->
+<div class="frame">
+  <div class="frame-label">1 · Web page — poesys.net front door</div>
+  <div class="site"><div class="site-inner">
+
+    <header class="site-head">
+      <div class="wordmark">poesys.</div>
+      <nav><span>company</span><span>customers</span><span>figures</span><span>method</span></nav>
+    </header>
+
+    <section class="hero">
+      <h1>The energy supplier that hides nothing.</h1>
+      <p>Poesys is a UK energy company built and run by AI. Every figure we publish carries its basis. Every miss stays on the record. <b>Black and white is how we write. Colour is only ever a status.</b></p>
+    </section>
+
+    <section class="health">
+      <div class="section-title">Company health</div>
+      <div class="health-rows">
+        <div class="hrow"><span class="lane">Billing &amp; metering</span><span class="status st-blue"><span class="dot"></span>VERIFIED DONE</span></div>
+        <div class="hrow"><span class="lane">Banking &amp; payment rails</span><span class="status st-blue"><span class="dot"></span>VERIFIED DONE</span></div>
+        <div class="hrow"><span class="lane">Trading &amp; hedging</span><span class="status st-green"><span class="dot"></span>ON TRACK</span></div>
+        <div class="hrow"><span class="lane">Finance &amp; treasury</span><span class="status st-amber"><span class="dot"></span>AT RISK</span></div>
+        <div class="hrow"><span class="lane">Settlement true-up</span><span class="status st-red"><span class="dot"></span>NOT BUILT</span></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:var(--blue-bright)"></span>blue — verified done</span>
+        <span><span class="dot" style="background:var(--green-bright)"></span>green — on track</span>
+        <span><span class="dot" style="background:var(--amber-bright)"></span>amber — at risk</span>
+        <span><span class="dot" style="background:var(--red-bright)"></span>red — blocked</span>
+      </div>
+    </section>
+
+    <section class="figures">
+      <div class="fig">
+        <div class="k">Net margin — all time</div>
+        <div class="v">~£1,505,250</div>
+        <div class="clock">// settled clock · <i>provisional</i><br>// as known at 13 Jul 2026</div>
+      </div>
+      <div class="fig">
+        <div class="k">Enterprise value</div>
+        <div class="v">~£7,281,749</div>
+        <div class="clock">// derived from settled margin<br>// inherits its divergence</div>
+      </div>
+      <div class="fig">
+        <div class="k">Bills issued 2016–25</div>
+        <div class="v">1,575</div>
+        <div class="clock">// full historical replay<br>// 29.7% on estimated reads</div>
+      </div>
+      <div class="fig">
+        <div class="k">Tests passing</div>
+        <div class="v">17,214</div>
+        <div class="clock">// full suite, live<br>// misses published</div>
+      </div>
+    </section>
+
+    <footer class="site-foot">
+      <span>poesys. — built and run by AI, directed by a human.</span>
+      <span>every figure carries its clock</span>
+    </footer>
+
+  </div></div>
+</div>
+
+<!-- ============ 2. CUSTOMER BILL ============ -->
+<div class="frame" style="padding-top:16px;">
+  <div class="frame-label">2 · Customer bill</div>
+  <div class="bill">
+
+    <div class="bill-head">
+      <div class="wordmark">poesys.</div>
+      <div class="doc">Energy statement</div>
+    </div>
+
+    <div class="bill-meta">
+      <span class="k">Account</span><span class="r">PSY-004471</span>
+      <span class="k">Invoice</span><span class="r">INV-2093</span>
+      <span class="k">Billing period</span><span class="r">1 – 31 May 2026</span>
+      <span class="k">Account status</span><span class="r"><span class="chip chip-green">IN CREDIT £23.10</span></span>
+    </div>
+
+    <table class="charges">
+      <tr><th>Charge</th><th class="num">Usage</th><th class="num">Rate</th><th class="num">£</th></tr>
+
+      <tr class="fuel"><td colspan="3">Electricity — actual read</td><td class="num"></td></tr>
+      <tr><td>Energy used<span class="sub">meter 2019 4471 · read 1 &amp; 31 May</span></td><td class="num">212 kWh</td><td class="num">24.50p/kWh</td><td class="num">51.94</td></tr>
+      <tr><td>Standing charge</td><td class="num">31 days</td><td class="num">54.10p/day</td><td class="num">16.77</td></tr>
+
+      <tr class="fuel"><td colspan="3">Gas — <span class="chip chip-amber">~ ESTIMATED READ</span></td><td class="num"></td></tr>
+      <tr><td>Energy used<span class="sub">// estimate from your last 3 actual reads</span></td><td class="num">~890 kWh</td><td class="num">6.24p/kWh</td><td class="num">55.54</td></tr>
+      <tr><td>Standing charge</td><td class="num">31 days</td><td class="num">31.60p/day</td><td class="num">9.80</td></tr>
+
+      <tr class="subtotal"><td colspan="3">Charges before VAT</td><td class="num">134.05</td></tr>
+      <tr><td colspan="3">VAT at 5%</td><td class="num">6.70</td></tr>
+    </table>
+
+    <div class="total"><span class="k">Total for May</span><span class="v">£140.75</span></div>
+
+    <div class="bill-note"><b>Your gas charge is an estimate.</b> When we receive an actual read we will re-bill this period at the same rates and correct the difference — up or down. If we undercharged you, the law caps what we can go back and charge to 12 months. If we overcharged you, there is no cap on your refund.</div>
+
+    <div class="bill-foot">
+      poesys. · unit rates fixed until 31 Mar 2027 · this statement was generated, checked and issued autonomously · every figure carries its basis — show our working &gt; poesys.net/figures
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 3. GLYPH GRAMMAR ============ -->
+<div class="frame" style="padding-top:16px;">
+  <div class="frame-label">3 · Glyph grammar — six characters, held absolutely</div>
+  <div class="glyphs">
+    <h2>Glyphs are information, never decoration.</h2>
+    <table class="gtable">
+      <tr>
+        <td class="g">.</td><td class="n">full stop</td>
+        <td class="m">Done. Verified, final, closed. The wordmark's own mark.</td>
+        <td class="tw"><span class="status st-blue"><span class="dot"></span>BLUE</span></td>
+      </tr>
+      <tr>
+        <td class="g">_</td><td class="n">cursor</td>
+        <td class="m">In build. Live now, being written, on track.</td>
+        <td class="tw"><span class="status st-green"><span class="dot"></span>GREEN</span></td>
+      </tr>
+      <tr>
+        <td class="g">~</td><td class="n">tilde</td>
+        <td class="m">Estimated. Provisional, approximate, awaiting an actual.</td>
+        <td class="tw"><span class="status st-amber"><span class="dot"></span>AMBER</span></td>
+      </tr>
+      <tr>
+        <td class="g">!</td><td class="n">bang</td>
+        <td class="m">Blocked. Failing, needs attention now.</td>
+        <td class="tw"><span class="status st-red"><span class="dot"></span>RED</span></td>
+      </tr>
+      <tr>
+        <td class="g">&gt;</td><td class="n">prompt</td>
+        <td class="m">Action. Go, next, follow. Every link and instruction.</td>
+        <td class="tw"></td>
+      </tr>
+      <tr>
+        <td class="g">//</td><td class="n">comment</td>
+        <td class="m">The working. Basis, provenance, clock labels — the company's annotations, published.</td>
+        <td class="tw"></td>
+      </tr>
+    </table>
+    <div class="term">
+      <span class="cmt">// the same grammar survives without colour — a digest in plain text:</span><br>
+      billing .&nbsp;&nbsp;|&nbsp;&nbsp;trading _&nbsp;&nbsp;|&nbsp;&nbsp;gas read ~&nbsp;&nbsp;|&nbsp;&nbsp;settlement !&nbsp;&nbsp;&gt; details poesys.net/health
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
