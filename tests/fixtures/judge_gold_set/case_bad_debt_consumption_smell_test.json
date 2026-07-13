@@ -1,0 +1,19 @@
+{
+  "case_id": "bad_debt_consumption_smell_test",
+  "director_verdict": "defect",
+  "defect_class": "population_implausible_figure",
+  "task_class": "billing",
+  "artefact": {
+    "description": "A customer's annual consumption figure that passed per-bill arithmetic and looked like just another sampled row.",
+    "customer": "C1_2",
+    "segment": "resi",
+    "annual_consumption_kwh_2020": 129,
+    "per_bill_status": "arithmetically consistent",
+    "surface_appearance": "one plausible row among many high/low-usage households"
+  },
+  "the_catch": "Director framing: 'did it catch true C6-class defects or cry wolf?' Amid a wall of FALSE positives (gas-in-kWh, correct 5% VAT flagged as 20%-mismatch, plausible I&C and high-resi usage), a REAL defect was present: C1_2's 129 kWh/2020 is implausibly LOW against the TDCV-derived envelope -- a first-ever 2-day stub bill (128.68 kWh over 2020-12-30..31) was being annualised as if it were a full year. The smell test had to separate the one true anomaly from the cry-wolf noise. A judge that waves the whole batch through (or that alarms on every row) fails the director's own test.",
+  "source": "docs/design/SANITY_TRIAGE_2026_07_11.md (finding 3, high-consumption SPLIT VERDICT)",
+  "detectable_by": [
+    "company.compliance.population_sanity.check_consumption_distribution"
+  ]
+}
