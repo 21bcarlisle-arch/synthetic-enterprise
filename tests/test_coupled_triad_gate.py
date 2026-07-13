@@ -160,7 +160,17 @@ def test_world_blocked_when_twin_below_l2(tmp_path):
     assert "C9" in reason
 
 
-def test_real_ledger_ships_empty():
-    # The shipped ledger must be an empty object -- no fabricated gaps.
+def test_real_ledger_has_no_fabricated_entries():
+    # Was "ships empty" until the first real coupled run (W2_5<->C7). The guard's
+    # intent is anti-fabrication: entries are allowed, but any non-null gap must
+    # be numeric and cite the run that produced it. gap_measured() then reflects
+    # only genuine measurements.
     data = json.loads(ct.GAP_LEDGER_PATH.read_text(encoding="utf-8"))
-    assert data == {}
+    assert isinstance(data, dict)
+    for world_id, entry in data.items():
+        assert isinstance(entry, dict), world_id
+        assert isinstance(entry.get("twin_atom_id"), str) and entry["twin_atom_id"], world_id
+        gap = entry.get("gap")
+        assert gap is None or (isinstance(gap, (int, float)) and not isinstance(gap, bool)), world_id
+        if gap is not None:
+            assert entry.get("run_git_commit"), world_id
