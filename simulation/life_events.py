@@ -10,8 +10,18 @@ Event types modelled:
 - boiler_replaced: old boiler replaced with new (resets boiler_age to NEW)
 - heat_pump_installed: gas boiler replaced with heat pump (changes heating_system)
 - battery_installed: battery storage added (typically after solar install)
-- smart_meter_installed: smart meter fitted (if not already)
+- smart_meter_installed: smart meter fitted (if not already) -- NOTE: this event type
+  is defined and handled by apply_events() but is NOT currently emitted by the
+  generator loop below (W2_5 Expert Hour finding, 2026-07-13) -- a real
+  smart-meter-rollout event generator is a separate, not-yet-built piece.
 - insulation_upgraded: loft or wall insulation improved (upgrades InsulationLevel)
+- job_loss / income_recovery: economic life event (income_stress -> HIGH / LOW)
+- new_baby: economic life event (income_stress LOW -> MODERATE)
+- retirement_starts: economic life event (income_stress LOW -> MODERATE)
+- illness: economic life event (income_stress -> HIGH, shares income_recovery's own
+  HIGH->LOW transition -- W2_5_life_event_stream, 2026-07-13)
+- divorce: economic life event (income_stress LOW -> MODERATE -- W2_5_life_event_stream,
+  2026-07-13)
 
 Epistemic constraint: these events are SIM ground truth.  The company layer
 cannot read this log directly.  It observes consequences — higher electricity
@@ -54,6 +64,8 @@ EventType = Literal[
     "income_recovery",
     "new_baby",
     "retirement_starts",
+    "illness",
+    "divorce",
 ]
 
 
@@ -167,6 +179,23 @@ _RETIREMENT_PROB_BY_ERA: dict[str, float] = {
     "1981_2000":  0.000,  # too young
     "post_2000":  0.000,  # too young
 }
+
+# Illness (serious/long-term, income_stress -> HIGH, W2_5_life_event_stream 2026-07-13):
+# no direct UK annual NEW-ONSET incidence rate was found (2026-07-13 DISCOVER pass,
+# two search attempts) -- ONS/Health Foundation data gives disability PREVALENCE
+# growth of ~0.9 percentage points/year (2019-2023), used here as an honestly-caveated
+# proxy. This is a NET figure (new onset minus recovery/death already netted out), so
+# it likely UNDERSTATES true gross onset incidence -- a real, named limitation, not
+# hidden. Recovery shares job_loss's own income_recovery transition (income_stress is
+# a single state variable in this model, not tracked per-cause).
+_ILLNESS_ANNUAL_PROB = 0.009
+
+# Divorce (income_stress LOW -> MODERATE, W2_5_life_event_stream 2026-07-13):
+# 102,678 divorces in England & Wales, 2023 (ONS) / 28.4 million UK households, 2023
+# (ONS Families and Households) =~ 0.36% per household/year. Applied to ALL households
+# (not conditioned on marital status, which this model does not track) -- same
+# simplification level as new_baby's own per-household (not per-fertile-age-woman) rate.
+_DIVORCE_ANNUAL_PROB = 0.0036
 
 
 def _annual_prob(table: dict[int, float], year: int) -> float:
@@ -371,6 +400,31 @@ def generate_life_events(
                     if income_stress == IncomeStress.LOW:
                         income_stress = IncomeStress.MODERATE
 
+            # Illness (serious/long-term; only when not already in high stress --
+            # shares job_loss's own HIGH-stress gate and income_recovery's own
+            # recovery transition, since income_stress is a single state variable
+            # not tracked per-cause)
+            if income_stress != IncomeStress.HIGH:
+                if econ_rng.random() < _ILLNESS_ANNUAL_PROB:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=_random_date_in_year(year, econ_rng),
+                        event_type="illness",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.HIGH
+
+            # Divorce (only when stable income, same gate as new_baby/retirement)
+            if income_stress == IncomeStress.LOW:
+                if econ_rng.random() < _DIVORCE_ANNUAL_PROB:
+                    events.append(LifeEvent(
+                        customer_id=household.customer_id,
+                        event_date=_random_date_in_year(year, econ_rng),
+                        event_type="divorce",
+                        payload={},
+                    ))
+                    income_stress = IncomeStress.MODERATE
+
     events.sort(key=lambda e: e.event_date)
     return events
 
@@ -444,6 +498,13 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
                 state["income_stress"] = IncomeStress.MODERATE
 
         elif event.event_type == "retirement_starts":
+            if state["income_stress"] == IncomeStress.LOW:
+                state["income_stress"] = IncomeStress.MODERATE
+
+        elif event.event_type == "illness":
+            state["income_stress"] = IncomeStress.HIGH
+
+        elif event.event_type == "divorce":
             if state["income_stress"] == IncomeStress.LOW:
                 state["income_stress"] = IncomeStress.MODERATE
 
