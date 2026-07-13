@@ -285,6 +285,48 @@ def test_is_session_idle_false_on_esc_to_interrupt_off_footer(monkeypatch):
     assert tmux_relay.is_session_idle("claude") is False
 
 
+def test_pane_has_pending_input_detects_chip_and_nonempty_prompt():
+    assert tmux_relay._pane_has_pending_input("❯ [Pasted text #330][Pasted text #331]\n") is True
+    assert tmux_relay._pane_has_pending_input("❯ half-typed command\n") is True
+    assert tmux_relay._pane_has_pending_input("❯ \n") is False
+    assert tmux_relay._pane_has_pending_input("") is False
+
+
+def test_send_keys_when_idle_refuses_when_input_box_has_pending_paste(monkeypatch):
+    """R3 redesign — accumulation guard: a [Pasted text] chip already in the box
+    means a prior injection is UNCONSUMED, so never pile on (format-independent)."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    pane = IDLE_PANE.replace("❯ \n", "❯ [Pasted text #330]\n")
+    calls = []
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": pane})()
+        return type("R", (), {"returncode": 0})()
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    assert tmux_relay.send_keys_when_idle("claude", "hi|1|abc", "abc") is False
+    assert not any(c[1] == "send-keys" for c in calls)  # never sent a single keystroke
+
+
+def test_send_keys_when_idle_refuses_when_pane_changes_between_captures(monkeypatch):
+    """R3 redesign — byte-stability: a processing pane mutates (the spinner's
+    elapsed-time counter ticks) even when no known busy glyph matches -> not
+    stable -> refuse, whatever the spinner text format is."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    seq = iter([IDLE_PANE, IDLE_PANE + "  a streamed output line\n"])
+    calls = []
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": next(seq, IDLE_PANE)})()
+        return type("R", (), {"returncode": 0})()
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    assert tmux_relay.send_keys_when_idle("claude", "hi|1|abc", "abc") is False
+    assert not any(c[1] == "send-keys" for c in calls)
+
+
 def test_send_keys_when_idle_noop_under_pytest():
     assert tmux_relay.send_keys_when_idle("claude", "hello|123|abc", "abc") is False
 
@@ -315,7 +357,8 @@ def test_send_keys_when_idle_success_when_idle_and_consumed(monkeypatch):
     # transition that replaces the old, structurally-broken "marker
     # absent" check (2026-07-10, STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md).
     landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
-    capture_sequence = iter([IDLE_PANE, landed_pane, BUSY_PANE, IDLE_PANE])
+    # leading IDLE_PANE x2 = _safe_to_inject's byte-stability re-capture (must match)
+    capture_sequence = iter([IDLE_PANE, IDLE_PANE, landed_pane, BUSY_PANE, IDLE_PANE])
     call_log = []
 
     def _run(cmd, **kw):
@@ -347,7 +390,7 @@ def test_send_keys_when_idle_succeeds_when_marker_stays_in_scrollback_after_cons
     busy_pane_marker_in_history = "❯ hello|123|abc123\n" + BUSY_PANE
     idle_pane_marker_in_history = "❯ hello|123|abc123\n" + IDLE_PANE
     capture_sequence = iter([
-        IDLE_PANE, landed_pane, busy_pane_marker_in_history, idle_pane_marker_in_history,
+        IDLE_PANE, IDLE_PANE, landed_pane, busy_pane_marker_in_history, idle_pane_marker_in_history,
     ])
 
     def _run(cmd, **kw):
@@ -424,7 +467,7 @@ def test_send_keys_when_idle_marker_survives_line_wrap(monkeypatch):
         "  immediate attention.]|1783534244|1650f1781210d13f20\n"
         "  009e6ac12d054b1a589c18da912f43b5afa14510911cd7\n"
     )
-    capture_sequence = iter([IDLE_PANE, wrapped_landed_pane, BUSY_PANE, IDLE_PANE])
+    capture_sequence = iter([IDLE_PANE, IDLE_PANE, wrapped_landed_pane, BUSY_PANE, IDLE_PANE])
 
     def _run(cmd, **kw):
         if cmd[1] == "capture-pane":
@@ -536,7 +579,8 @@ def test_send_keys_when_idle_clears_copy_mode_before_idle_check(monkeypatch):
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
     landed_pane = IDLE_PANE.replace("❯ \n", "❯ hello|123|abc123\n")
-    capture_sequence = iter([IDLE_PANE, landed_pane, BUSY_PANE, IDLE_PANE])
+    # leading IDLE_PANE x2 = _safe_to_inject's byte-stability re-capture (must match)
+    capture_sequence = iter([IDLE_PANE, IDLE_PANE, landed_pane, BUSY_PANE, IDLE_PANE])
     calls = []
 
     def _run(cmd, **kw):

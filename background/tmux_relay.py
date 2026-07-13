@@ -371,6 +371,54 @@ def _poll_until(session: str, want_idle: bool, timeout: float, interval: float) 
         time.sleep(interval)
 
 
+_INJECT_STABILITY_INTERVAL = 0.8
+
+
+def _pane_has_pending_input(content: str) -> bool:
+    """True if the pane's INPUT box already holds UNCONSUMED content -- a prior
+    injection that has not been submitted. Format-INDEPENDENT: keys on the input
+    prompt glyph and the literal paste-chip marker, never the moving spinner.
+
+    This is the accumulation guard (DEFECT_TMUX_PANE_INJECTION REOPENED): while
+    ANY input sits unconsumed, never inject more -- so a wrong idleness guess can
+    leave at most ONE chip, never the 300-deep [Pasted text #NNN] pile the
+    director saw."""
+    if not content:
+        return False
+    if "[Pasted text" in content or "[Image #" in content:
+        return True
+    for line in content.splitlines():
+        s = line.strip()
+        if s.startswith("❯"):
+            if s[len("❯"):].strip():
+                return True
+    return False
+
+
+def _safe_to_inject(session: str) -> bool:
+    """The injection gate, REDESIGNED (2026-07-13, DEFECT_TMUX_PANE_INJECTION
+    REOPENED, R3 -- pane-scrape idleness GUESSING failed twice against a moving
+    spinner format it does not control). Three format-INDEPENDENT conditions,
+    ALL required, so a wrong idleness guess can never convert into accumulated
+    pane input:
+      1. no unconsumed input already in the box (accumulation can't compound);
+      2. no known busy indicator (belt);
+      3. BYTE-STABLE across a short re-capture -- a processing session's pane
+         mutates every second because the spinner's elapsed-time counter TICKS
+         (and streamed output changes), whatever the spinner's text format is,
+         so instability is a format-proof 'busy' signal; only a genuinely idle
+         prompt is static.
+    Fails safe: any capture error or ambiguity returns False."""
+    c1 = capture_pane(session)
+    if not c1 or _pane_has_pending_input(c1) or _is_busy_content(c1):
+        return False
+    time.sleep(_INJECT_STABILITY_INTERVAL)
+    c2 = capture_pane(session)
+    if not c2 or c2 != c1 or _pane_has_pending_input(c2) or _is_busy_content(c2):
+        return False
+    return True
+
+
 def send_keys_when_idle(
     session: str, text: str, verify_marker: str,
     post_send_wait: float = 1.5, post_type_wait: float = 0.3,
@@ -425,7 +473,9 @@ def send_keys_when_idle(
     try:
         with relay_lock(timeout=_RELAY_LOCK_TIMEOUT_SECONDS):
             ensure_live_tail(session)
-            if not is_session_idle(session):
+            # REDESIGNED gate (R3): byte-stability + input-box-occupancy, not a
+            # single-snapshot spinner-format guess. See _safe_to_inject.
+            if not _safe_to_inject(session):
                 return False
             if not send_keys(session, text):
                 return False
