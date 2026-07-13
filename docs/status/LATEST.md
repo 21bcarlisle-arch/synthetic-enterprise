@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T15:03:13Z
+Last updated: 2026-07-13T15:19:54Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (468s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -56,4 +56,10 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) When you call BUILD "inherently narrow," what is the concrete definition of BUILD's scope that makes narrowness intrinsic — and if you cannot state that scope independently of this particular tree/suite's configuration, on what basis is the word "inherently" doing any work at all?
 - (T3_inherence) When you say BUILD is "inherently narrow (1-3 max)," is "1-3" a number that fell out of measuring something about the work — like task interdependence, error rates, or throughput at higher widths — or is it just a cap someone picked and then relabeled as "inherent"? What specific failure have you actually observed (or would predict) at width 4+ that doesn't occur at width 3?
 - (T3_inherence) If those 24 atoms truly are read-only, zero-collision, and target-positive, who or what actually enforces the "one at a time" limit — is it a hard mechanical rule of this system, or just an unexamined default that no one has traced back to a real constraint?
+- (T3_inherence) If BUILD's "narrowness" can only be demonstrated by pointing at the current tree/suite configuration, what observable would change — some capability BUILD gains or loses — the moment you swapped that configuration, and if the answer is "nothing," why is that dependence being described as "inherent" rather than simply "how it happens to be wired right now"?
+- (T3_inherence) If width 3 was itself just carried over from some earlier default rather than measured, what evidence would distinguish "we tested 4+ and it failed" from "we never ran anything wider than 3, so of course we've only ever observed success at 3"?
+- (T3_inherence) If 24 atoms are each independently read-only, zero-collision, and target-positive, what concrete failure or cost is supposed to occur if two or more are applied together — and has anyone actually observed that failure, or is "one at a time" just asserted without a single traced example of collision or harm?
+- (T3_inherence) When you swap the tree/suite configuration and BUILD's capabilities are unchanged, what would you have to observe changing for you to accept the narrowness as "inherent" — and if no such observable exists even in principle, what work is the word "inherent" doing that "currently wired this way" doesn't?
+- (T3_inherence) If all 24 atoms are genuinely read-only, zero-collision, and target-positive as claimed, what specific mechanism or shared resource would make applying two simultaneously behave differently than applying them sequentially — and does anyone actually possess a logged instance of that difference, or does the "one at a time" rule rest entirely on the untested fear that some undocumented coupling exists?
+- (T3_inherence) What are the two named open questions, and by what mechanism does merely updating a stale dependency's status actually resolve them rather than just relabel them as resolved without new evidence?
 <!-- /NAIVE_ORGAN_ASKS -->
