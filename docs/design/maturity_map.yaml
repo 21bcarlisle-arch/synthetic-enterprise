@@ -356,7 +356,7 @@
   epoch: 2
   level_current: 1
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/design/EPOCH2_EVIDENCE.md", "simulation/population_draw.py"]
   file_scope: [simulation/population_draw.py, tests/simulation/test_population_draw.py]
@@ -397,7 +397,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md", "company/compliance/crisis_bad_debt_validator.py", "docs/observability/sanity_adjudication_ledger.json (coldwalk:bad_debt_implausibly_low_through_2021_22_crisis, adjudicated-real)", "docs/market_research/household_budget_w2_4.md"]
   file_scope: ["company/compliance/crisis_bad_debt_validator.py", "simulation/household.py", "simulation/household_demand.py"]
@@ -413,7 +413,7 @@
   epoch: 3
   level_current: 2
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md", "docs/market_research/life_event_stream_w2_5.md", "simulation/life_events.py (real, wired, ONS-calibrated: job_loss/income_recovery/new_baby/retirement_starts/illness/divorce + solar/EV/heat-pump/smart-meter/insulation)", "simulation/household_demand.py (real call site: generate_life_events)", "simulation/run_phase2b.py (real production entry point importing household_demand)", "simulation/switching_propensity.py (real downstream consumer of income_stress)", "tests/simulation/test_life_events_internals.py + test_phase_b_life_events.py + tests/sim/test_phase_mv_economic_life_events.py + tests/company/crm/test_life_events.py (97 tests)", "company/crm/life_events.py + life_event_impact.py (broader taxonomy incl. divorce/serious_illness, confirmed orphaned -- zero non-test callers)"]
   file_scope: ["simulation/life_events.py"]
@@ -429,7 +429,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md", "docs/market_research/sme_distress_twin_w2_6.md"]
   file_scope: []
@@ -445,7 +445,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md", "docs/market_research/willingness_classification_incidence.md"]
   file_scope: []
@@ -461,7 +461,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
   file_scope: []
@@ -477,7 +477,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
   file_scope: []
@@ -493,7 +493,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   evidence: ["docs/staging/done/AFFORDABILITY_AS_SIM_PHYSICS.md"]
   file_scope: []
@@ -1090,7 +1090,7 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/staging/done/THE_COUPLED_TRIAD.md"]
@@ -1107,7 +1107,7 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1124,7 +1124,7 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1141,7 +1141,7 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1158,7 +1158,7 @@
   epoch: 2
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1175,7 +1175,7 @@
   epoch: 2
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1192,7 +1192,7 @@
   epoch: 2
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1209,7 +1209,7 @@
   epoch: 2
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
@@ -1430,4 +1430,21 @@
   simplifications: ["2026-07-13 REGISTERED (self-caught finding, SELF_INTERRUPT_DISCIPLINE QUEUE not fix-on-sight). GAP: background_worker.process_leftover_run_markers() retries a run_complete marker that returns rc=1 (process_run_complete 'Tests FAILED - not committing') FOREVER with no alert -- a self-inflicted regression (e16f00de5 negative-subtotal HELD over-firing on legitimate credit bills) jammed the entire publish pipeline for ~40min (13 markers piled up, site went stale) and nothing fired. The test gate correctly refused to publish (R1/R2), but a PERSISTENTLY-failing publish gate is a state transition that must alert (R5). FIX (mechanism, MAKE_IT_STICK): a consecutive-failure counter keyed on the (marker-set unchanged AND rc=1) condition that fires exactly ONE NTFY after N>=2 consecutive failed sweeps, and clears on the next success -- never repeats an unchanged status (R5). Must be mutation-tested (R15): the alert fires on a simulated persistent-rc=1, and does NOT fire on a single transient failure or a healthy drain. See memory feedback-control-false-positive-jams-pipeline."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an operations pipeline whose failed batch retries silently instead of paging someone -- the incident nobody sees until the dashboard is a day stale"
+  depends_on: []
+
+- id: H16_idle_detection_stability_gate
+  name: "tmux idle-detection byte-stability gate: only inject when the pane is UNCHANGED across a re-capture (close the residual mid-turn injection)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence: ["docs/observability/injection-log.jsonl", "docs/staging/done/DEFECT_TMUX_PANE_INJECTION.md"]
+  file_scope: [background/tmux_relay.py, tests/background/test_tmux_relay.py]
+  simplifications: ["2026-07-13 REGISTERED (DEFECT_TMUX_PANE_INJECTION.md residual, SELF_INTERRUPT QUEUE). The tmux idle-detector is_session_idle() is single-capture + fail-OPEN: it declares idle unless a KNOWN busy glyph matches. Broadened _is_busy_content (commit a4061c980) closed the states seen in the wild (Waiting-for-background-agent, Levitating, esc-to-interrupt anywhere), cutting the storm from multi-daemon bursts to single-source. RESIDUAL: the supervisor still injects a turn-grant in the BRIEF idle-looking window between an interactive session's tool calls (pane shows a bare prompt for a beat), which the pattern list cannot catch. FIX (the robust catch-all): a BYTE-STABILITY gate -- re-capture the pane after ~0.6s and only declare idle if UNCHANGED (a processing session is never static). Deferred here because it adds a second capture to is_session_idle, which the 4 send_keys_when_idle flow tests mock as an exact capture SEQUENCE -- they must be reworked around the extra capture. Mutation-test: a pane that mutates between captures reads busy; a static idle prompt reads idle. Diagnosability already shipped: docs/observability/injection-log.jsonl logs every send-keys (source script, ts, payload hash) -- this residual was PROVEN with it in seconds."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a watchdog that pages an operator only when the console is genuinely quiet, not in the half-second flicker between two log lines"
   depends_on: []
