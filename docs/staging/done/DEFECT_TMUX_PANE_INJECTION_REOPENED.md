@@ -1,3 +1,5 @@
+> **[CLOSED 2026-07-13, director-confirmed]** "Injection fix CONFIRMED -- no [Pasted text] accumulation since." R3 redesign held a >=30min clean window + director confirmation. Retro filed. H16 stability-gate now IMPLEMENTED in _safe_to_inject.
+
 > **[PARKED in_progress 2026-07-13]** R3 REDESIGN SHIPPED + OBSERVING (NOT closed -- director confirmation required). Root cause found: single-snapshot spinner-format idleness guessing; replaced with a format-INDEPENDENT gate _safe_to_inject (byte-stability: the spinner elapsed-timer ticks every second so a processing pane is never static, whatever the format; + input-box-occupancy: never inject while a [Pasted text] chip is unconsumed, so accumulation is impossible). Live-verified _safe_to_inject=False on a busy pane; 4 flow tests reworked + 3 new; source PROVEN via the injection log (supervisor grant_turn). OBSERVATION: 0 injections in ~17min busy (was ~1/2min). UNBLOCKS-TO-CLOSE: >=30min window clean + director confirmation. Banned closed language until then.
 
 # DEFECT_TMUX_PANE_INJECTION — REOPENED (R3 two-strike triggered)
