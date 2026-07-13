@@ -9,7 +9,11 @@ finding), `company/market/tariff_benchmarking.py` + `company/pricing/renewal_pri
 (competitor-aware pricing, B4's own finding -- TWO separate attempts, both unwired),
 `company/billing/account_adjustment_register.py`'s harm-remediation types,
 `company/market/ppa_book.py`, `company/regulatory/solr.py`,
-`company/compliance/board_meeting_register.py` (A2's own third-investigation finding). Not proposing
+`company/compliance/board_meeting_register.py` (A2's own third-investigation finding),
+`company/crm/vulnerability_register.py::VulnerabilityFlag.PPM_SELF_DISCONNECTED` (2026-07-13,
+W2_8_self_rationing's own finding -- the taxonomy/action-mapping slot exists, real and tested-shape,
+but no code anywhere ever SETS this flag; the missing piece is purely the detection algorithm, not a
+new taxonomy). Not proposing
 a mechanism to auto-detect this class (that's a real FRAME question for whoever picks this up --
 e.g. a lint-style check for modules with zero non-test importers) -- registering the PATTERN so a
 future consolidation/wiring pass treats it as one backlog item across N modules, not N separate
