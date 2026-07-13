@@ -147,13 +147,59 @@ def test_route_blocking_decision_non_oneway_proceeds_on_twin_answer(tmp_path, mo
     ans = director_twin.route_blocking_decision(
         "open-build-X", "should I open BUILD on atom X in the open epoch?",
         "n/a", context_pack="X is FRAME-ready, epoch 2 open",
-        invoke_fn=lambda p: "Approved, cites section 3a.\nCONFIDENCE: high",
+        invoke_fn=lambda p: "Approved, cites section 3a.\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
     )
     assert ans.routed_to_director is False
+    assert ans.defers_to_director is False
     assert "Approved" in ans.answer
     assert ans.confidence == "high"
+    assert director_twin.needs_director(ans) is False
     # a proceed answer must NOT register an [ACTION NEEDED] for the real director
     assert action_needed.open_items(tmp_path / "reg.json") == []
+
+
+def test_route_blocking_decision_twin_answer_deferring_to_director_escalates(tmp_path, monkeypatch):
+    """Root-cause regression (2026-07-13, director-reported W2_2 curriculum miss):
+    a twin ANSWER that reserves the decision to the director (not a one-way-door
+    classifier hit) MUST register [ACTION NEEDED] + NTFY, not be silently swallowed."""
+    from background import action_needed
+    monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "reg.json")
+    sent = []
+    import background.ntfy_utils as ntfy_utils
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, **k: sent.append(msg))
+    ans = director_twin.route_blocking_decision(
+        "W2_2_population_draw", "should I wire the population draw into live runs now?",
+        "director authors the curriculum change", context_pack="R13 curriculum split",
+        invoke_fn=lambda p: (
+            "Wait for director framing — this activation is his to author per R13.\n"
+            "DEFERS_TO_DIRECTOR: yes\nCONFIDENCE: high"
+        ),
+    )
+    # the twin ANSWERED (not a one-way door) but reserved it to the director
+    assert ans.routed_to_director is False
+    assert ans.defers_to_director is True
+    assert director_twin.needs_director(ans) is True
+    # ... which MUST escalate: durable [ACTION NEEDED] registered + NTFY'd
+    open_ids = [e["item_id"] for e in action_needed.open_items(tmp_path / "reg.json")]
+    assert "W2_2_population_draw" in open_ids
+    assert any("[ACTION NEEDED] W2_2_population_draw" in m for m in sent)
+
+
+def test_route_blocking_decision_unparseable_deferral_fails_safe_to_escalate(tmp_path, monkeypatch):
+    """If the twin omits the DEFERS_TO_DIRECTOR line, fail SAFE: treat as deferring
+    and escalate — a spurious escalation is far cheaper than a swallowed reservation."""
+    from background import action_needed
+    monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "reg.json")
+    sent = []
+    import background.ntfy_utils as ntfy_utils
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, **k: sent.append(msg))
+    ans = director_twin.route_blocking_decision(
+        "atom-Z", "some scope question", "n/a",
+        invoke_fn=lambda p: "An answer with no deferral line at all.\nCONFIDENCE: medium",
+    )
+    assert ans.defers_to_director is True
+    assert director_twin.needs_director(ans) is True
+    assert any("[ACTION NEEDED] atom-Z" in m for m in sent)
 
 
 def test_route_blocking_decision_oneway_registers_action_needed_and_waits(tmp_path, monkeypatch):

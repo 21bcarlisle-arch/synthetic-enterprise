@@ -62,6 +62,7 @@ class TwinAnswer:
     reason: str
     latency_seconds: float
     confidence: str | None = None  # high|medium|low, parsed from the twin's own answer (director spec, 2026-07-13)
+    defers_to_director: bool = False  # the twin's ANSWER itself reserves this decision to the director (e.g. R13 curriculum / canon §5), a director-reservation axis DISTINCT from the one-way-door classifier's routed_to_director. Parsed from a 'DEFERS_TO_DIRECTOR: yes|no' line. (2026-07-13 root-cause fix: a twin-answered curriculum reservation was silently not escalated to the director.)
 
 
 def _default_invoke(prompt: str) -> str:
@@ -163,7 +164,12 @@ def ask_twin(
         "below; per Law B, this canon is your entire world):\n"
         f"{question}\n\nCONTEXT PACK:\n{context_pack or '(none supplied)'}\n\n"
         "Answer directly and concisely (a few sentences), citing which canon section "
-        "supports your answer. End with a final line exactly of the form "
+        "supports your answer. Then TWO final lines, each exactly in the given form:\n"
+        "'DEFERS_TO_DIRECTOR: yes' if your answer reserves this decision to the director — "
+        "i.e. it is HIS to author/decide per canon (a curriculum/difficulty change per R13, a "
+        "values decision, a one-way door, or anything the canon marks director-reserved) and the "
+        "builder must NOT proceed unilaterally; otherwise 'DEFERS_TO_DIRECTOR: no' (the builder "
+        "may proceed on your answer).\n"
         "'CONFIDENCE: high' (or medium/low) — your confidence that this answer is what the "
         "director's canon actually requires (2026-07-13 director spec: confidence is logged)."
     )
@@ -175,11 +181,18 @@ def ask_twin(
     m = re.search(r"CONFIDENCE:\s*(high|medium|low)", answer_text or "", re.IGNORECASE)
     confidence = m.group(1).lower() if m else None
 
+    dm = re.search(r"DEFERS_TO_DIRECTOR:\s*(yes|no)", answer_text or "", re.IGNORECASE)
+    # Fail SAFE: if the twin didn't emit a parseable line, treat as deferring
+    # (better a spurious escalation than a silently-swallowed director-reservation
+    # -- the exact failure this fix exists to prevent).
+    defers_to_director = (dm.group(1).lower() == "yes") if dm else True
+
     _append_jsonl(TWIN_LOG_PATH, {
         "entry_id": entry_id,
         "question": question,
         "context_pack": context_pack,
         "routed_to_director": False,
+        "defers_to_director": defers_to_director,
         "answer": answer_text,
         "confidence": confidence,
         "latency_seconds": round(latency, 3),
@@ -188,7 +201,7 @@ def ask_twin(
     return TwinAnswer(
         entry_id=entry_id, question=question, routed_to_director=False,
         answer=answer_text, reason="answered from canon", latency_seconds=latency,
-        confidence=confidence,
+        confidence=confidence, defers_to_director=defers_to_director,
     )
 
 
@@ -217,15 +230,31 @@ def route_blocking_decision(
       by `ask_twin()` (`director_twin_log.jsonl`); the director reviews and may
       `overturn()` (amends the canon, versioned).
 
-    Returns the `TwinAnswer` either way — its `.routed_to_director` tells the
-    caller whether to PROCEED (False, act on `.answer`) or WAIT for the real
-    director (True). This is a voice, not a hand: it never itself performs the
-    approved action, it only returns the approver's answer for the builder to
-    act on."""
+    A decision is director-reserved on EITHER of two independent axes, and this
+    function escalates on BOTH (2026-07-13 root-cause fix, director-reported: a
+    twin-answered R13 CURRICULUM reservation for W2_2_population_draw was logged
+    but never surfaced, because escalation was gated only on axis 1):
+      1. `routed_to_director` — the one-way-door CLASSIFIER flagged the QUESTION
+         (Law B: the twin never answers these).
+      2. `defers_to_director` — the twin's own canon-based ANSWER reserves the
+         decision to the director (curriculum/values/anything canon marks his),
+         which the keyword classifier cannot catch. Fails safe: an unparseable
+         signal is treated as deferring.
+    In EITHER case a durable `[ACTION NEEDED]` is registered (dedicated NTFY +
+    daily re-ping) and the caller must WAIT — `needs_director(ans)` says so.
+
+    This is a voice, not a hand: it never performs the approved action, it only
+    returns the approver's answer for the builder to act on."""
     from background import action_needed
     ans = ask_twin(question, context_pack, uncertain=uncertain, invoke_fn=invoke_fn)
-    if ans.routed_to_director:
-        why = f"Genuine one-way door — the twin may never answer it (Law B). {ans.reason}"
+    if ans.routed_to_director or ans.defers_to_director:
+        if ans.routed_to_director:
+            why = f"Genuine one-way door — the twin may never answer it (Law B). {ans.reason}"
+        else:
+            why = (
+                "The twin's own canon-based answer reserves this decision to the director "
+                f"(director-authored per canon, not agent-buildable). Twin's answer: {ans.answer}"
+            )
         action_needed.register_item(item_id, question, how, why)
         try:
             from background.ntfy_utils import send_ntfy
@@ -233,6 +262,13 @@ def route_blocking_decision(
         except Exception:
             pass
     return ans
+
+
+def needs_director(ans: "TwinAnswer") -> bool:
+    """True if the builder must WAIT for the real director rather than proceed
+    on the twin's answer — the single predicate covering both director-reservation
+    axes (one-way-door classifier OR the twin's own canon-based deferral)."""
+    return ans.routed_to_director or ans.defers_to_director
 
 
 def overturn(entry_id: str, corrected_answer: str, reason: str) -> int:
