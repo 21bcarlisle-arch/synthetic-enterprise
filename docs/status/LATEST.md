@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T18:04:30Z
+Last updated: 2026-07-13T18:08:57Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (472s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -97,4 +97,6 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) What concrete decision this energy supplier faces now—hedging volume, pricing, capacity procurement—would change its action based on the output of a four-level weather-physics hierarchy, and if none does until Epoch 3, what specifically breaks if that registration is deleted rather than parked?
 - (T3_inherence) When the physics hierarchy and the naive forecast disagree, is there a single committed quantity or price anywhere downstream whose value would be numerically different as a result — and if you cannot name that variable and the disagreement threshold that flips it, on what basis do you believe the more sophisticated forecast is affecting enterprise value at all rather than just being computed and discarded?
 - (T3_inherence) If no decision this energy supplier currently faces would change based on the four-level weather-physics hierarchy until Epoch 3, what is the concrete cost of keeping that registration parked versus deleting it — and why is preserving a component that changes zero present actions being treated as valuable rather than as dead weight to be justified?
+- (T3_inherence) Can you point to one committed order quantity or submitted price in a real decision cycle where the physics forecast and the naive forecast actually produced different numbers, and if no such instance exists, what evidence distinguishes "the physics forecast never changes a decision" from "the physics forecast is wired into nothing downstream at all"?
+- (T3_inherence) What is the cost of keeping the registration parked measured against the cost of *reconstructing* it correctly at Epoch 3 (including the risk of getting it wrong or missing the moment it starts to matter) — and how confident are you that "changes zero decisions today" reliably predicts "will change zero decisions before Epoch 3," given that you'd have to delete it now but only find out you were wrong later?
 <!-- /NAIVE_ORGAN_ASKS -->
