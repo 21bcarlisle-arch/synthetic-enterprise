@@ -147,3 +147,58 @@ class TestRecordIdAndAllRecords:
         log = BitemporalEventLog()
         rec = log.record("a", "x", dt.date(2020, 1, 1), _dt(2020, 1, 1), 1, superseded_by_run="SF")
         assert rec.superseded_by_run == "SF"
+
+
+class TestAppendOnlyImmutability:
+    """R10 class regression for the Expert-Hour-demonstrated alias holes:
+    the log documents itself append-only ('Nothing is ever mutated or
+    deleted') but stored/returned payloads were shared by reference, so a
+    caller (on write) or a consumer (on read) could silently rewrite a past
+    record. Copy-on-write + copy-on-read closes this for every consumer."""
+
+    def test_mutating_caller_dict_after_record_does_not_change_store(self):
+        """Payload #1 (write side): a caller that mutates its own dict AFTER
+        record() must not rewrite the stored 'immutable' record."""
+        log = BitemporalEventLog()
+        payload = {"rate": 100}
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), payload)
+        payload["rate"] = 999  # caller mutates its own object after logging
+        rec = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert rec.value == {"rate": 100}
+
+    def test_mutating_as_known_at_return_does_not_corrupt_store(self):
+        """Payload #3 (read side): mutating a dict returned by as_known_at()
+        must not corrupt the store -- a second read returns the original."""
+        log = BitemporalEventLog()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), {"rate": 100})
+        first = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        first.value["rate"] = 999  # consumer mutates its returned copy
+        second = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert second.value == {"rate": 100}
+
+    def test_two_reads_do_not_alias_each_other(self):
+        """Reads must be decoupled from EACH OTHER too, not just the store."""
+        log = BitemporalEventLog()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), {"rate": 100})
+        a = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        b = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert a.value is not b.value
+        a.value["rate"] = 999
+        assert b.value == {"rate": 100}
+
+    def test_record_return_is_decoupled_from_store(self):
+        """record() returns a read, so it must not hand back a live alias
+        into the store either."""
+        log = BitemporalEventLog()
+        returned = log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), {"rate": 100})
+        returned.value["rate"] = 999  # mutate the returned record's payload
+        rec = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert rec.value == {"rate": 100}
+
+    def test_history_as_known_at_returns_decoupled_payloads(self):
+        log = BitemporalEventLog()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), {"rate": 100})
+        hist = log.history_as_known_at(_dt(2020, 6, 3), "elec_spot", "quote")
+        hist[0].value["rate"] = 999
+        again = log.history_as_known_at(_dt(2020, 6, 3), "elec_spot", "quote")
+        assert again[0].value == {"rate": 100}

@@ -29,8 +29,9 @@ this IS the seam, not a violation of it.
 """
 from __future__ import annotations
 
+import copy
 import datetime as dt
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 
@@ -62,6 +63,20 @@ class BitemporalEventLog:
         self._records: list[BitemporalRecord] = []
         self._next_id = 1
 
+    @staticmethod
+    def _decouple(rec: BitemporalRecord) -> BitemporalRecord:
+        """Return a record whose mutable payload is fully independent of
+        `rec`'s. `BitemporalRecord` itself is `frozen`, but `value` is `Any`
+        -- in practice a JSON-like dict, or a `DecisionEvent` whose own
+        request/context/decision fields are dicts -- so a shared reference to
+        `value` is a live alias through which a caller (on write) or a
+        consumer (on read) can silently rewrite a 'past' record, breaching the
+        append-only guarantee this class documents. Deep-copying the payload
+        and rewrapping via `dataclasses.replace` (record_id and both time axes
+        preserved) is what makes that impossible. Payloads are small; deepcopy
+        is correct and adequate here (see class/module notes)."""
+        return replace(rec, value=copy.deepcopy(rec.value))
+
     def record(
         self,
         entity_id: str,
@@ -71,18 +86,23 @@ class BitemporalEventLog:
         value: Any,
         superseded_by_run: str | None = None,
     ) -> BitemporalRecord:
+        # COPY-ON-WRITE: store a payload decoupled from the caller's object,
+        # so a caller that keeps and later mutates the dict it passed in
+        # cannot rewrite the stored ('immutable') record.
         rec = BitemporalRecord(
             record_id=self._next_id,
             entity_id=entity_id,
             fact_type=fact_type,
             valid_time=valid_time,
             transaction_time=transaction_time,
-            value=value,
+            value=copy.deepcopy(value),
             superseded_by_run=superseded_by_run,
         )
         self._records.append(rec)
         self._next_id += 1
-        return rec
+        # COPY-ON-READ (the return is a read): the caller must not receive a
+        # live alias into the store either.
+        return self._decouple(rec)
 
     def as_known_at(
         self,
@@ -107,7 +127,10 @@ class BitemporalEventLog:
         ]
         if not candidates:
             return None
-        return max(candidates, key=lambda r: (r.transaction_time, r.record_id))
+        # COPY-ON-READ: a returned payload is decoupled from the stored record
+        # AND from any other read, so mutating it can neither corrupt the store
+        # nor alias a sibling event (e.g. resolve reading a pending request).
+        return self._decouple(max(candidates, key=lambda r: (r.transaction_time, r.record_id)))
 
     def history_as_known_at(
         self,
@@ -131,11 +154,17 @@ class BitemporalEventLog:
             existing = latest_by_valid_time.get(r.valid_time)
             if existing is None or (r.transaction_time, r.record_id) > (existing.transaction_time, existing.record_id):
                 latest_by_valid_time[r.valid_time] = r
-        return sorted(latest_by_valid_time.values(), key=lambda r: r.valid_time)
+        # COPY-ON-READ: each returned record is decoupled from the store.
+        return [
+            self._decouple(r)
+            for r in sorted(latest_by_valid_time.values(), key=lambda r: r.valid_time)
+        ]
 
     def all_records(self) -> list[BitemporalRecord]:
         """Full, unfiltered log -- for tooling/debugging only. Company
         decision code must never call this; it defeats the entire point.
         Named loudly, not `_all_records`, so a reviewer immediately sees
         any call site using it is suspect."""
-        return list(self._records)
+        # COPY-ON-READ: decouple every payload, so even this debug/tooling
+        # surface cannot be used to mutate the store through an alias.
+        return [self._decouple(r) for r in self._records]

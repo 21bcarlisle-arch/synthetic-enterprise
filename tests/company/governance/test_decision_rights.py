@@ -442,3 +442,50 @@ def test_multiple_valid_times_for_same_entity_and_class_do_not_conflate():
     matching = [p for p in pending if p.entity_id == entity_id]
     assert len(matching) == 1, "jan is resolved -- only feb's request should remain pending"
     assert matching[0].request == {"period": "feb"}
+
+
+class TestDecisionEventImmutability:
+    """R10 class regression on the auditable decision register, encoding the
+    two EXACT Expert-Hour payloads that proved the append-only spine's
+    immutability was violable through payload aliasing (caller-mutates-after-
+    log, and resolve-aliases-pending). Both are now closed structurally by the
+    bitemporal log's copy-on-write + copy-on-read; these lock it forever."""
+
+    def test_mutating_request_dict_after_log_does_not_change_stored_event(self):
+        """Payload #1: a caller mutating the request dict AFTER
+        log_decision_event() must not rewrite the logged decision."""
+        log = BitemporalEventLog()
+        request = {"rate": 100}
+        log_decision_event(
+            DecisionClass.PRICING_MOVE, entity_id="cust_1",
+            request=request, context={}, decision={"unit_rate_gbp_per_mwh": 100},
+            rationale="routine", valid_time=dt.date(2020, 1, 1),
+            transaction_time=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc), log=log,
+        )
+        request["rate"] = 999  # caller mutates its own dict after logging
+        rec = log.as_known_at(
+            dt.datetime(2020, 1, 2, tzinfo=dt.timezone.utc),
+            "cust_1", "decision_event:pricing_move",
+        )
+        assert rec.value.request == {"rate": 100}
+
+    def test_resolve_does_not_alias_pending_events_dicts(self):
+        """Payload #2: resolve_decision_request()'s resolved event must NOT
+        alias the pending event's dicts -- mutating one must leave the other
+        unchanged."""
+        log = BitemporalEventLog()
+        pending = submit_decision_request(
+            DecisionClass.PRICING_MOVE, entity_id="cust_2",
+            request={"period": "jan"}, context={"eac_kwh": 3100},
+            valid_time=dt.date(2020, 1, 1),
+            submitted_at=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc), log=log,
+        )
+        resolved = resolve_decision_request(
+            DecisionClass.PRICING_MOVE, entity_id="cust_2", valid_time=dt.date(2020, 1, 1),
+            decision={"unit_rate_gbp_per_mwh": 50}, rationale="approved",
+            resolved_at=dt.datetime(2020, 1, 10, tzinfo=dt.timezone.utc), log=log,
+        )
+        assert pending.context is not resolved.context
+        assert pending.request is not resolved.request
+        resolved.context["eac_kwh"] = 99999  # mutate one...
+        assert pending.context == {"eac_kwh": 3100}  # ...the other is untouched
