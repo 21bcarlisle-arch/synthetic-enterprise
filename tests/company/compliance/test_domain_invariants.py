@@ -10,11 +10,71 @@ from company.compliance.domain_invariants import (
     RESI_CONSUMPTION_ENVELOPE_ELEC,
     check_back_billing_cap_respected,
     check_vat,
+    check_vat_consistent_with_consumption,
+    consumption_implied_vat_rate,
+    VAT_SEGMENT_MATCHES_CONSUMPTION,
     check_unit_rate_plausible,
     check_resi_consumption_plausible,
     vat_rate_for_segment,
     invariant_count,
 )
+
+
+# --- INVARIANT_LIBRARY_REDTEAM.md C1 (2026-07-13): VAT/segment independent
+# --- cross-check (the fix for the vat_by_segment tautology, R10 C6 class) ---
+
+
+def test_vat_segment_matches_consumption_registered_as_uk_structural_invariant():
+    assert VAT_SEGMENT_MATCHES_CONSUMPTION.jurisdiction == "UK"
+    assert VAT_SEGMENT_MATCHES_CONSUMPTION in ALL_INVARIANTS
+
+
+def test_consumption_implied_vat_rate_high_load_implies_business():
+    # An I&C-scale monthly load (C6's real 2,346.8 kWh/mo elec) is clearly above
+    # the anchored domestic ceiling -> implies the 20% business rate.
+    assert consumption_implied_vat_rate("electricity", 2346.8, 30) == VAT_SME.value
+
+
+def test_consumption_implied_vat_rate_domestic_load_implies_residential():
+    assert consumption_implied_vat_rate("electricity", 300.0, 30) == VAT_RESIDENTIAL.value
+
+
+def test_consumption_implied_vat_rate_indeterminate_signals():
+    # No usable signal -> None (sign/period/other-commodity invariants own these).
+    assert consumption_implied_vat_rate("electricity", 0.0, 30) is None
+    assert consumption_implied_vat_rate("electricity", 300.0, 0) is None
+    assert consumption_implied_vat_rate("water", 300.0, 30) is None
+
+
+def test_vat_control_is_a_tautology_but_crosscheck_catches_the_mislabel():
+    # The exact non-tautology demonstration: on a self-consistent SME-as-resi
+    # mislabel (5% applied, I&C-scale load), the arithmetic label-vs-rate control
+    # PASSES (tautology) while the independent consumption cross-check CATCHES it.
+    assert check_vat("resi", 0.05) is True  # inert: 5% vs resi-implies-5%
+    assert check_vat_consistent_with_consumption(
+        "resi", "electricity", 0.05, 2346.8, 30
+    ) is False  # caught: I&C load contradicts the domestic 5% rate
+
+
+def test_vat_crosscheck_passes_correct_ic_scale_sme():
+    # I&C load correctly billed at 20% -> consistent, not flagged.
+    assert check_vat_consistent_with_consumption(
+        "sme", "electricity", 0.20, 45000.0, 30
+    ) is True
+
+
+def test_vat_crosscheck_never_flags_business_rate_on_domestic_load():
+    # Honest weak direction: a small business on domestic-scale consumption
+    # paying 20% must NOT be flagged (a microbusiness looks identical).
+    assert check_vat_consistent_with_consumption(
+        "sme", "electricity", 0.20, 300.0, 30
+    ) is True
+
+
+def test_vat_crosscheck_passes_legit_domestic_bill():
+    assert check_vat_consistent_with_consumption(
+        "resi", "electricity", 0.05, 300.0, 30
+    ) is True
 
 
 def test_at_least_twenty_invariants_seeded():

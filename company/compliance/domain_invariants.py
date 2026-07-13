@@ -373,6 +373,30 @@ BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS = StructuralInvariant(
 )
 
 
+# INVARIANT_LIBRARY_REDTEAM.md (2026-07-13) C1: the flagship vat_by_segment
+# control was a production tautology -- it checked the bill's VAT rate against
+# the rate its own `segment` label implies, both derived from the same label,
+# so it could never catch a MISLABEL (the C6 SME-as-Household class it is named
+# for). This structural invariant registers the independent cross-check
+# (enforced by check_vat_consistent_with_consumption() above and wired into the
+# pre-bill validation gate): the applied VAT rate must be consistent with the
+# segment IMPLIED BY METERED CONSUMPTION, not only with the declared label.
+VAT_SEGMENT_MATCHES_CONSUMPTION = StructuralInvariant(
+    id="vat_segment_matches_consumption",
+    description=(
+        "The VAT rate applied to a bill must be consistent with the segment "
+        "IMPLIED BY METERED CONSUMPTION, not only with the bill's own declared "
+        "segment label -- a domestic (5%) rate on an I&C-scale metered load is "
+        "the C6 SME-as-Household mislabel. Independent of the label, so it "
+        "catches a mislabel the arithmetic label-vs-rate check (a tautology) "
+        "structurally cannot. One-directional: only a clearly non-domestic "
+        "load contradicts a domestic rate; low consumption cannot refute a "
+        "business label (a genuine microbusiness consumes domestic volumes)."
+    ),
+    source="HMRC VAT Notice 701/19 + Ofgem TDCV bands (INVARIANT_LIBRARY_REDTEAM.md C1; R10 C6 class)",
+)
+
+
 ALL_INVARIANTS: list = [
     VAT_RESIDENTIAL, VAT_SME,
     STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
@@ -389,6 +413,7 @@ ALL_INVARIANTS: list = [
     BAD_DEBT_RATE_RESI, BAD_DEBT_RATE_SME,
     BACK_BILLING_CAP_RESPECTED,
     BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
+    VAT_SEGMENT_MATCHES_CONSUMPTION,
 ]
 
 
@@ -404,6 +429,83 @@ def check_vat(segment: str, actual_rate: float) -> bool:
     expected = vat_rate_for_segment(segment)
     invariant = VAT_RESIDENTIAL if segment == "resi" else VAT_SME
     return invariant.check(actual_rate) and abs(actual_rate - expected) <= invariant.tolerance
+
+
+def consumption_implied_vat_rate(
+    commodity: str, kwh: float, days_in_period: float
+) -> Optional[float]:
+    """The VAT rate IMPLIED by metered consumption alone, independent of the
+    bill's declared `segment` label -- the independent signal the vat_by_segment
+    control needs so it stops checking the label against itself (C1 red-team,
+    docs/design/INVARIANT_LIBRARY_REDTEAM.md 2026-07-13; R10 C6
+    SME-as-Household class).
+
+    Returns:
+      - VAT_SME.value (0.20) when consumption is CLEARLY above the anchored
+        domestic ceiling (Ofgem TDCV bands + electric-heating headroom; the
+        RESI_CONSUMPTION_ENVELOPE_*_MONTHLY high bounds, calibrated with
+        headroom above the real observed resi max of 1,945 kWh/mo elec) -- the
+        load is I&C-scale, so a domestic 5% rate on it is the C6 mislabel.
+      - VAT_RESIDENTIAL.value (0.05) when consumption sits within the domestic
+        envelope. NOTE this does NOT prove the customer is domestic: a genuine
+        small business (corner shop / microbusiness) legitimately consumes
+        domestic volumes and correctly pays 20%. This branch is therefore only
+        ever used by the cross-check below to REFRAIN from flagging, never to
+        force a 5% rate onto a business.
+      - None when there is no usable signal (a non-elec/gas commodity, or a
+        non-positive kwh / period -- the separate sign / period invariants own
+        those cases, not this one).
+
+    Deliberately ONE-DIRECTIONAL in strength: only HIGH consumption carries
+    enough information to contradict a label; LOW consumption does not."""
+    if commodity not in ("electricity", "gas"):
+        return None
+    if kwh <= 0 or days_in_period <= 0:
+        return None
+    envelope = (
+        RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY if commodity == "electricity"
+        else RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY
+    )
+    domestic_ceiling = envelope.high * (days_in_period / _DAYS_PER_MONTH)
+    if kwh > domestic_ceiling:
+        return VAT_SME.value
+    return VAT_RESIDENTIAL.value
+
+
+def check_vat_consistent_with_consumption(
+    segment: str,
+    commodity: str,
+    actual_vat_rate: float,
+    kwh: float,
+    days_in_period: float,
+) -> bool:
+    """Independent cross-check for the `vat_by_segment` Tier-1 control.
+
+    The arithmetic `check_vat()` above compares the bill's VAT rate to the rate
+    its OWN `segment` label implies. Both sides are the same function of the
+    same label, so it is a tautology: it passes every bill the generator can
+    emit (`vat = subtotal * vat_rate(segment)`) and structurally CANNOT catch a
+    MISLABEL -- the exact C6 SME-as-Household class it is named for
+    (docs/design/INVARIANT_LIBRARY_REDTEAM.md C1, 2026-07-13). This check
+    re-bases the expected rate on `consumption_implied_vat_rate()` -- a signal
+    independent of the label -- so a mislabelled customer whose VAT is
+    self-consistent with its WRONG label is still caught.
+
+    Returns True (consistent / not-refutable) UNLESS the metered load is clearly
+    I&C-scale (implied 20%) AND the bill applied a domestic (5%) rate -- the C6
+    undercharge. The reverse (a business rate on domestic-scale consumption) is
+    NEVER flagged: small businesses legitimately consume domestic volumes, so
+    low consumption cannot refute a business label without false-positiving
+    every microbusiness. Honest signal strength: strong in one direction only,
+    which is why the flag is a hard HELD only for the well-anchored direction."""
+    implied = consumption_implied_vat_rate(commodity, kwh, days_in_period)
+    if implied is None or implied == VAT_RESIDENTIAL.value:
+        # No usable signal, or the weak (non-flaggable) direction: consumption
+        # looks domestic, which a genuine small business also does.
+        return True
+    # implied == VAT_SME.value: consumption is clearly non-domestic. The applied
+    # rate MUST be the business rate; a domestic (5%) rate here is the mislabel.
+    return abs(actual_vat_rate - VAT_SME.value) <= VAT_SME.tolerance
 
 
 def check_unit_rate_plausible(fuel: str, year: int, unit_rate_gbp_per_mwh: float) -> bool:
