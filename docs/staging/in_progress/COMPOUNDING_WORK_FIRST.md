@@ -1,3 +1,5 @@
+> **[PARKED in_progress 2026-07-13]** MEASURE-FIRST done (experiment-cycle-profile.md; Epoch-4 gap = ~10x). A8_experiment_loop_speed registered (your authorised moratorium breach). ARCH1 re-ranked to BUILD, thin-start on billing/payments/service where the affordability cluster lands. OPEN until: ARCH1 seams cut + cluster built against them + a fast inner loop with a mechanical never-publish guard.
+
 # COMPOUNDING WORK GOES FIRST — two re-ranks (P0, director-decided)
 
 **Staged:** 2026-07-13 by advisor, **director-decided**. Disposition: INTERRUPT
