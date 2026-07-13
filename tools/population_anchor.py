@@ -134,10 +134,18 @@ def _bad_debt_check(years_data: dict) -> list:
         revenue = yd.get("revenue_gbp", 1.0)
         rate = bad_debt / revenue if revenue > 0 else 0.0
         upper = BAD_DEBT_CRISIS_HIGH if yr in (2021, 2022, 2023) else BAD_DEBT_BENCHMARK_HIGH
+        # Two-sided plausibility band (R12: the World-door RAG is divergence
+        # MAGNITUDE, not a performance verdict). WITHIN [low, upper] matches
+        # realistic bad debt -> GREEN. ABOVE the upper ceiling -> RED (real
+        # credit-loss risk). BELOW the 0.5% floor is a FIDELITY divergence, not
+        # a triumph: no real supplier runs ~0% bad debt, so an implausibly-low
+        # rate (the sim currently under-models write-offs) must flag AMBER,
+        # never read GREEN (director-caught on /world/, 2026-07-13 -- matches
+        # how _complaint_check already flags below its own floor).
         rag = "GREEN"
         if rate > upper:
             rag = "RED"
-        elif rate > BAD_DEBT_BENCHMARK_LOW:
+        elif rate < BAD_DEBT_BENCHMARK_LOW:
             rag = "AMBER"
         findings.append({
             "year": yr,

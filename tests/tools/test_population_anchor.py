@@ -57,17 +57,25 @@ def test_churn_by_year_has_ofgem_benchmark():
     assert result[2022]["ofgem_benchmark"] == OFGEM_SWITCHING_RATE[2022]
 
 
-def test_bad_debt_green():
-    years = {"2020": {"bad_debt_gbp": 1000, "revenue_gbp": 500000}}
+def test_bad_debt_within_band_is_green():
+    # WITHIN the plausible 0.5-2.5% band = realistic bad debt -> GREEN (the
+    # World-door RAG is divergence magnitude, R12; zero divergence = green).
+    years = {"2020": {"bad_debt_gbp": 5000, "revenue_gbp": 500000}}  # 1.0%
     findings = _bad_debt_check(years)
     assert findings[0]["rag"] == "GREEN"
-    assert findings[0]["bad_debt_rate"] == 0.2
+    assert findings[0]["bad_debt_rate"] == 1.0
 
 
-def test_bad_debt_amber():
-    years = {"2020": {"bad_debt_gbp": 5000, "revenue_gbp": 500000}}
-    findings = _bad_debt_check(years)
-    assert findings[0]["rag"] == "AMBER"
+def test_bad_debt_below_floor_is_amber():
+    # Implausibly LOW bad debt (below the 0.5% floor) is a FIDELITY divergence,
+    # not a triumph -- no real supplier runs ~0% write-offs, so it must flag
+    # AMBER, never read GREEN (director-caught on /world/, 2026-07-13).
+    low = _bad_debt_check({"2020": {"bad_debt_gbp": 1000, "revenue_gbp": 500000}})  # 0.2%
+    assert low[0]["rag"] == "AMBER"
+    assert low[0]["bad_debt_rate"] == 0.2
+    # the exact reported case: 0.0% bad debt (sim under-models write-offs)
+    zero = _bad_debt_check({"2020": {"bad_debt_gbp": 0.0, "revenue_gbp": 500000}})
+    assert zero[0]["rag"] == "AMBER"
 
 
 def test_bad_debt_red_non_crisis():
