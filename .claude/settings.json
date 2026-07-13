@@ -57,16 +57,6 @@
         ]
       }
     ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 .claude/hooks/flag_unregistered_blocking_question.py"
-          }
-        ]
-      }
-    ],
     "InstructionsLoaded": [
       {
         "matcher": "path_glob_match",

@@ -1,7 +1,13 @@
 # REVIEW GATE (Tier 1 — one-way door): retire the flag_unregistered_blocking_question.py Stop hook
 
-**Status:** OPEN — awaiting live, in-conversation confirmation (or Rich clearing this gate himself in
-`docs/review_gates/done/`). NOT yet actioned.
+**Status:** CLOSED — APPROVED. Confirmed live, in-conversation, 2026-07-13, verbatim: "Retire the old
+advisory Stop hook (flag_unregistered_blocking_question.py) — approved. The new atomic
+escalate_if_one_way_door() supersedes it; two overlapping mechanisms is a decay source. Close the
+review gate." Actioned same turn: de-registered the `Stop` hook entry from `.claude/settings.json`,
+deleted `.claude/hooks/flag_unregistered_blocking_question.py` and its own test file
+(`tests/tools/test_flag_unregistered_blocking_question_hook.py`, which tested only the now-deleted
+hook). Confirmed via grep no other live code references the retired hook (only this gate's own text
+and the staged doc that named the retirement remain, both historical).
 
 ## Decision needed
 

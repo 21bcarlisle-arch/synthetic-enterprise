@@ -131,6 +131,16 @@ from background.health_check import run_health_check  # noqa: E402
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
+# 2026-07-13, director-decided live in-console: every judgment failure this
+# weekend was a MAIN-SESSION failure (map "exhausted" misread, a tautological
+# self-refill draw, tree-safety conflated with serialism) while the BUILD
+# agents (interface-steward/saas-engineer/sim-engineer, per MODEL_SELECTION_
+# POLICY.md) were already on Opus. The main interactive session -- the one
+# actually doing FRAME/DISCOVER-tier judgment work, epoch framing, and
+# root-cause diagnosis -- was still on Sonnet. Switched to match: same model
+# ID as background/director_twin.py::TWIN_MODEL, for the same reason (the
+# work this session actually does is judgment-tier, not volume-tier).
+MAIN_SESSION_MODEL = "claude-opus-4-8"
 CHECK_INTERVAL_SECONDS = 60
 CONFIRM_POLL_INTERVAL_SECONDS = 60
 CONFIRM_TIMEOUT_SECONDS = 4 * 3600  # 4 hours
@@ -904,7 +914,7 @@ def restart_claude(resume: bool = True) -> None:
     subprocess.run([
         "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
         "-e", "DISABLE_AUTOUPDATER=1",
-        claude_bin, "--dangerously-skip-permissions", "-c", RESUME_INSTRUCTION,
+        claude_bin, "--dangerously-skip-permissions", "--model", MAIN_SESSION_MODEL, "-c", RESUME_INSTRUCTION,
     ])
 
     if not wait_for_claude_launch():

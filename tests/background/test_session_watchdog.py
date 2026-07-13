@@ -119,6 +119,14 @@ def test_usage_limit_detected_ignores_discussion_of_the_pattern():
     )
 
 
+def test_main_session_model_is_opus():
+    """2026-07-13, director-decided live in-console: the main interactive
+    session does judgment-tier work (FRAME/DISCOVER, epoch framing,
+    root-cause diagnosis) and must run Opus, matching TWIN_MODEL's own
+    tier for the same reason."""
+    assert watchdog.MAIN_SESSION_MODEL == "claude-opus-4-8"
+
+
 def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     """WATCHDOG_NO_SENDKEYS.md (2026-07-04): the launch must not use
     tmux send-keys at all -- claude is the pane's command itself, with
@@ -153,11 +161,12 @@ def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     # No send-keys anywhere in the launch sequence.
     assert send_keys_calls == []
     # claude is launched directly as the pane's command: --dangerously-skip-permissions,
-    # -c, and RESUME_INSTRUCTION are argv elements, never typed in.
+    # --model, -c, and RESUME_INSTRUCTION are argv elements, never typed in.
     assert len(new_session_calls) == 1
     launch = new_session_calls[0]
-    assert launch[-4:] == [
-        "/fake/nvm/bin/claude", "--dangerously-skip-permissions", "-c", watchdog.RESUME_INSTRUCTION,
+    assert launch[-6:] == [
+        "/fake/nvm/bin/claude", "--dangerously-skip-permissions",
+        "--model", watchdog.MAIN_SESSION_MODEL, "-c", watchdog.RESUME_INSTRUCTION,
     ]
     assert "-e" in launch
     assert launch[launch.index("-e") + 1] == "DISABLE_AUTOUPDATER=1"
