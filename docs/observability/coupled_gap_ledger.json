@@ -1,33 +1,4 @@
 {
-  "W2_4_household_budget": {
-    "baseline": "TV(truth, national/blind prior) -- the no-book-info belief",
-    "components": {
-      "belief_dist": {
-        "comfortable": 0.496,
-        "managing": 0.079,
-        "negative": 0.0723,
-        "stretched": 0.3527
-      },
-      "missed_hardship_rate": 0.0,
-      "per_customer_accuracy": 0.5573,
-      "truth_dist": {
-        "comfortable": 0.7413,
-        "managing": 0.1313,
-        "negative": 0.0727,
-        "stretched": 0.0547
-      },
-      "tv": 0.298,
-      "tv_prior": 0.491333
-    },
-    "g0": 0.49133333333333334,
-    "gap": 0.6065128900949797,
-    "measured_at": "2026-07-13T21:44:49.715740+00:00",
-    "metric": "belief",
-    "note": "TV(company belief, hidden truth) over the affordability-band book composition (W2_4 hidden budgets -> observable payment/arrears/consumption -> C6 inference), normalised to the blind national prior. Non-zero and NOT recoverable to zero: the observable channel is strictly coarser than the hidden budget (can't-pay-on-savings pays cleanly; managing vs comfortable are indistinguishable from payments).",
-    "raw_gap": 0.298,
-    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
-    "twin_atom_id": "C6_affordability_inference"
-  },
   "W2_5_life_event_stream": {
     "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
     "components": {
@@ -48,28 +19,29 @@
     "run_git_commit": "d29055ed5c555d6ef667eceec80798f58a0902a5",
     "twin_atom_id": "C7_life_event_detection"
   },
-  "W2_9_segment_debt_tnc": {
-    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
+  "W2_6_sme_distress_twin": {
+    "baseline": "always-predict-majority quadrant can/will (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
     "components": {
-      "class_counts": {
-        "business_terms": 50200,
-        "domestic_terms": 449800
-      },
-      "error_rate": 0.023,
-      "majority_class": "domestic_terms",
-      "n": 500000,
-      "n_wrong": 11500,
-      "positive_class": "business_terms",
-      "wrongly_applied": 8200,
-      "wrongly_withheld": 3300
+      "attribution_delta_naive": 0.2208999206619064,
+      "attribution_delta_true": 0.44023397761953204,
+      "attribution_gap": 0.9929114338312627,
+      "attribution_raw": 0.21933405695762564,
+      "belief_late": 8823,
+      "culture_over_called_distress": 69,
+      "distress_missed_as_culture": 1884,
+      "fn_ability": 0.544194,
+      "fn_willingness": 0.03001,
+      "harm_ratio_R": 8.0,
+      "majority_quadrant": "can_will",
+      "true_late": 7864
     },
-    "g0": 0.1004,
-    "gap": 0.2290836653386454,
-    "measured_at": "2026-07-13T21:45:31.021206+00:00",
-    "metric": "misapplication",
-    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
-    "raw_gap": 0.023,
+    "g0": 1.317037037037037,
+    "gap": 0.47452193475815524,
+    "measured_at": "2026-07-13T21:45:59.331340+00:00",
+    "metric": "classification",
+    "note": "cost-weighted distress-vs-culture misclassification (W2_6 hidden distress/culture -> identical observable is_paying_late -> C8 attribution); ability axis = the can-pay/cannot-pay confound, 8:1 harm on reading real distress as mere habit. attribution_gap (fraction of late-payment wrongly attributed to distress) attached in components.",
+    "raw_gap": 0.6249629629629629,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
-    "twin_atom_id": "C11_segment_debt_policy"
+    "twin_atom_id": "C8_sme_credit_risk"
   }
 }
