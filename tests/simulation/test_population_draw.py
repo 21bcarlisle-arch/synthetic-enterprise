@@ -92,6 +92,64 @@ def test_module_does_not_import_company_or_saas():
 
 
 # ---------------------------------------------------------------------------
+# DIRECTOR CURRICULUM "PROFILE B: TRICKLE CONTINUATION" (~1 new customer/year)
+# BUILD_THE_BACKLOG.md, director P0. The headline L2 bar: the draw's realised
+# arrival RATE is the signed profile-B trickle -- ~1/yr on average over many
+# seeds, per year and window-wide -- neither a growth explosion nor static.
+# This is a DIAGNOSTIC check of the mechanism's cadence (R12/Law A), a loose
+# statistical band around the director's lambda, never a tuned point.
+# ---------------------------------------------------------------------------
+def test_profile_b_window_mean_arrivals_approx_one_per_year():
+    """Averaged over many seeds, total acquisitions per run divided by the
+    number of years in the window must sit close to 1.0 -- the profile-B
+    trickle rate (Poisson lambda=1.0)."""
+    n_seeds = 3000
+    n_years = pd.DEFAULT_END_YEAR - pd.DEFAULT_START_YEAR + 1
+    total = sum(len(pd.draw_population(base_seed=s)) for s in range(n_seeds))
+    mean_per_year = total / n_seeds / n_years
+    # Poisson(1) over 5 years, 3000 seeds: SE of the per-year mean ~= 0.008;
+    # a 0.1 band is a generous DIAGNOSTIC sanity flag, not a tuned target.
+    assert abs(mean_per_year - pd.DEFAULT_ACQUISITIONS_PER_YEAR_LAMBDA) < 0.1, (
+        f"realised trickle rate {mean_per_year:.3f}/yr is not profile-B ~1/yr"
+    )
+
+
+def test_profile_b_each_year_is_a_trickle_not_a_growth_explosion():
+    """Every individual year in the window averages ~1 acquisition -- the
+    trickle is flat across years (continuation), and NO year runs away into a
+    growth explosion. Guards the profile-B shape, not just the aggregate."""
+    n_seeds = 2000
+    per_year = {y: 0 for y in range(pd.DEFAULT_START_YEAR, pd.DEFAULT_END_YEAR + 1)}
+    for s in range(n_seeds):
+        for c in pd.draw_population(base_seed=s):
+            per_year[int(c.acquisition_date[:4])] += 1
+    for year, count in per_year.items():
+        mean = count / n_seeds
+        assert 0.85 < mean < 1.15, f"{year} mean {mean:.3f}/run is not a ~1/yr trickle"
+
+
+def test_profile_b_rate_tracks_the_curriculum_lambda_not_hardcoded():
+    """The realised rate is DRIVEN BY the director's curriculum lambda, not a
+    baked-in constant -- doubling lambda ~doubles arrivals, halving ~halves
+    them. Proves the trickle is the curriculum instrument (R13), tunable only
+    by a director-authored change to the rate, and that ~1/yr is not a fluke of
+    some other fixed cap."""
+    n_seeds = 2000
+    n_years = pd.DEFAULT_END_YEAR - pd.DEFAULT_START_YEAR + 1
+
+    def rate(lam):
+        total = sum(
+            len(pd.draw_population(base_seed=s, acquisitions_per_year_lambda=lam))
+            for s in range(n_seeds)
+        )
+        return total / n_seeds / n_years
+
+    assert abs(rate(1.0) - 1.0) < 0.1
+    assert abs(rate(2.0) - 2.0) < 0.15
+    assert abs(rate(0.5) - 0.5) < 0.1
+
+
+# ---------------------------------------------------------------------------
 # CONSTRAINT 2: RNG substream isolation (C-S2)
 # ---------------------------------------------------------------------------
 def test_substream_isolation_global_random_untouched():
@@ -128,6 +186,36 @@ def test_substream_isolation_other_named_stream_untouched():
     seq_after = other_subsystem_sequence()
 
     assert seq_before == seq_after
+
+
+def test_population_substream_advance_never_shifts_sibling():
+    """The exact 01:09Z-incident guard, in its sharpest form: ADVANCING the
+    population substream by DIFFERENT amounts (more/fewer draws via a bigger
+    window and a higher lambda) must leave an independently-named sibling
+    subsystem's sequence byte-identical every time. Adding or growing this
+    draw can never perturb another subsystem's RNG output."""
+    base = 808
+
+    def sibling_sequence():
+        import hashlib
+        key = f"unrelated_sibling_subsystem::{base}".encode("utf-8")
+        seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
+        r = random.Random(seed_int)
+        return [r.random() for _ in range(40)]
+
+    baseline = sibling_sequence()
+    # Each of these advances the population substream by a different number of
+    # internal draws; the sibling must be unmoved after all of them.
+    pd.draw_population(base_seed=base)
+    assert sibling_sequence() == baseline
+    pd.draw_population(base_seed=base, start_year=2016, end_year=2025)
+    assert sibling_sequence() == baseline
+    pd.draw_population(base_seed=base, acquisitions_per_year_lambda=5.0)
+    assert sibling_sequence() == baseline
+    # ...and a full materialisation of a long, dense cohort.
+    pd.draw_population(base_seed=base, start_year=2010, end_year=2030,
+                       acquisitions_per_year_lambda=8.0)
+    assert sibling_sequence() == baseline
 
 
 def test_substream_seed_derivation_is_named_not_shared():

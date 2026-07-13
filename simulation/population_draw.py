@@ -114,11 +114,17 @@ DEFAULT_SEGMENT_WEIGHTS: Dict[str, float] = {"resi": 0.80, "SME": 0.15, "I&C": 0
 DEFAULT_COMMODITY_WEIGHTS: Dict[str, float] = {"electricity": 0.72, "gas": 0.28}
 DEFAULT_BAND_WEIGHTS: Dict[str, float] = {"LOW": 0.30, "MEDIUM": 0.45, "HIGH": 0.25}
 
-# Acquisition cadence: the hand-authored cast's own established 2017-2020
-# trickle was ~1 new customer/year. A real supplier's book grows by a small
-# fraction per period, not a full reshuffle -- so acquisitions/year are drawn
-# from Poisson(lambda=1.0), matching that cadence. This is a DIAGNOSTIC rate
-# (R12/Law A), never tuned toward an outcome.
+# Acquisition cadence -- DIRECTOR CURRICULUM "PROFILE B: TRICKLE CONTINUATION"
+# (BUILD_THE_BACKLOG.md, director P0, signed). Profile B is a TRICKLE: roughly
+# one new customer joins per year on average, stochastically -- not a growth
+# explosion, not static. This is the director's CURRICULUM instrument (R13:
+# "population draws" are named/versioned/director-authored, never agent-tuned),
+# and it matches the hand-authored cast's own established 2017-2020 cadence
+# (~1 new customer/year). Realised as Poisson(lambda=1.0) acquisitions/year, so
+# the per-year mean and the whole-window mean both land at ~1/yr. This is a
+# DIAGNOSTIC rate (R12/Law A), never tuned toward a company-P&L outcome; a
+# different curriculum profile is a director-authored change of this constant,
+# not an agent-side adjustment.
 DEFAULT_ACQUISITIONS_PER_YEAR_LAMBDA = 1.0
 
 DEFAULT_START_YEAR = 2021
