@@ -578,6 +578,18 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("company.json generation failed: {}".format(exc))
     try:
+        # Door 5 THE WORLD: the two-sided epistemic-wall page (SIM ground truth vs
+        # COMPANY observation + divergence) + the anchors register. Wired here for
+        # the SAME R11 no-orphan-transition reason as Door 3/4 above -- a generated
+        # surface must ride the regen cycle or it silently freezes against its live
+        # sources (the exact orphaned-generator defect Door 4's cold-eyes caught).
+        # Runs AFTER the dashboard/sim_data/anchoring regen it reads from.
+        from tools.generate_world_data import generate as gen_world
+        gen_world()
+        log("Generated site/data/world.json (Door 5 THE WORLD)")
+    except Exception as exc:
+        log("world.json generation failed: {}".format(exc))
+    try:
         from tools.mirror_github_pages import mirror as mirror_gh_pages
         mirrored = mirror_gh_pages()
         log("Mirrored {} file(s) to docs/shadow + docs/state for GitHub Pages".format(len(mirrored)))
@@ -665,6 +677,17 @@ def git_commit_push(git_hash, net_margin):
     site_track_record_json = PROJECT_DIR / "site" / "state" / "track_record_scorecard.json"
     if site_track_record_json.exists():
         files.append(str(site_track_record_json))
+    # Door 5 THE WORLD (two-sided epistemic-wall page + anchors register): the
+    # page and its generated data file must be tracked here or the auto-commit
+    # pipeline never picks up the freshly-regenerated world.json (same reasoning
+    # as the Platform/Method blocks above -- a regenerated-but-uncommitted file
+    # stays frozen on the live site).
+    site_world_html = PROJECT_DIR / "site" / "world" / "index.html"
+    if site_world_html.exists():
+        files.append(str(site_world_html))
+    site_world_json = PROJECT_DIR / "site" / "data" / "world.json"
+    if site_world_json.exists():
+        files.append(str(site_world_json))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
