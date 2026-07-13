@@ -1,3 +1,6 @@
+> **[PARKED to in_progress/ 2026-07-13]** SITE/brand build fork DISPATCHED (worktree) to implement light-default per the DoD (flip tokens, re-tune BRAG for white + WCAG, convert doors, update agent brand rules, compliance test fails a dark-base page).
+> **BLOCKING SUB-ITEM:** none director-side -- this is an ungated SITE build in progress; will move to done/ when the fork merges + doors verify.
+
 # BRAND: light mode is the default — black on white (P1, director-decided)
 
 **Staged:** 2026-07-13 by advisor, **director-decided**. Disposition: QUEUE
