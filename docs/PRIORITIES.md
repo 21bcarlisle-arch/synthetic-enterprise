@@ -13,7 +13,12 @@ finding), `company/market/tariff_benchmarking.py` + `company/pricing/renewal_pri
 `company/crm/vulnerability_register.py::VulnerabilityFlag.PPM_SELF_DISCONNECTED` (2026-07-13,
 W2_8_self_rationing's own finding -- the taxonomy/action-mapping slot exists, real and tested-shape,
 but no code anywhere ever SETS this flag; the missing piece is purely the detection algorithm, not a
-new taxonomy). Not proposing
+new taxonomy), `company/crm/life_events.py` + `life_event_impact.py` (2026-07-13,
+W2_5_life_event_stream's own finding -- a real, well-structured DIVORCE/SERIOUS_ILLNESS/MARRIAGE/
+DEATH/etc. taxonomy with severity/impact-score/recommended-action mappings, zero non-test callers;
+the SIM-side generator, simulation/life_events.py, is real and wired but only covers 3 of 5 named
+life events, and nothing connects the company-side taxonomy to any real detection/inference logic
+at all). Not proposing
 a mechanism to auto-detect this class (that's a real FRAME question for whoever picks this up --
 e.g. a lint-style check for modules with zero non-test importers) -- registering the PATTERN so a
 future consolidation/wiring pass treats it as one backlog item across N modules, not N separate
