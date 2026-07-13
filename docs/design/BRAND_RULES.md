@@ -6,6 +6,23 @@ PDF, report, board pack, deck, digest, or NTFY. Colour/type/spacing values live 
 place: `site/brand/tokens.json`. Do not hardcode a value that a token already names.
 Enforced by `tests/tools/test_brand_compliance.py` (`python3 -m pytest tests/tools/test_brand_compliance.py`).
 
+## Ground: light by default, dark as a sparing accent (BRAND_CONSTITUTION.md §3a — non-negotiable)
+
+**Born light.** The DEFAULT ground for every surface — site page, document, export, chart,
+board pack, deck — is **black on white**: `background:var(--surface-base)` (white),
+`color:var(--ink-base)` (structural black). Use `var(--surface-sunken)` (grey-05) for recessed
+backdrops. Never set a page's base/`body` background to a dark colour.
+
+**Dark is an ACCENT, used sparingly, for impact only** — the named `var(--surface-accent-dark)`
+role (black ground, `var(--ink-on-accent)` white). Legitimate: ONE hero moment, a single
+statement panel, a deliberate full-bleed break, a headline figure. It is punctuation, not
+paper. **If dark is the base of a page it has become a theme — a compliance defect.** The
+canonical example of correct sparing use is the `.term` terminal block in
+`site/brand/proof.html` / the §7 exemplar: one small black panel on an otherwise white page.
+Enforced: `tools/brand_compliance.base_surface_is_dark` FAILS a page whose base surface is dark
+(mutation-tested — a synthetic dark-base page fails, a light page with a sparing dark accent
+passes).
+
 ## The 6 laws (BRAND_CONSTITUTION.md §4 — non-negotiable)
 
 1. **Colour is information, never decoration.** If it is coloured, it is a defined status or a
@@ -55,6 +72,8 @@ on the consumption figure; CTAs end `>`. (Every published figure still carries i
 
 ## Before you emit a surface — checklist
 
+- [ ] Base/`body` surface is light — `var(--surface-base)` + `var(--ink-base)`; dark only as a
+      sparing `var(--surface-accent-dark)` accent, never the page base. (`base_surface_is_dark` = False)
 - [ ] Every colour is a `var(--…)` / token reference, not a hex literal. (`find_raw_hex` = 0)
 - [ ] No soft colour used as `color:`, border, outline or stroke. (`find_soft_as_text` = 0)
 - [ ] Any coloured thing is a status or a named data category (law 1); everything else B/W/grey.
