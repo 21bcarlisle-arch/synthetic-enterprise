@@ -688,6 +688,19 @@ def git_commit_push(git_hash, net_margin):
     site_world_json = PROJECT_DIR / "site" / "data" / "world.json"
     if site_world_json.exists():
         files.append(str(site_world_json))
+    # Door 4 THE PROOF + Door 3 THE COMPANY: their generators were wired into the
+    # regen block above, but their data/page files were NOT added to this commit-
+    # list -- so they regenerated every run yet the fresh copy was never committed,
+    # leaving the deployed pages frozen (the same orphaned-at-commit gap Door 5
+    # closed for world.json; caught by Door 5's cold-eyes). Track them here too.
+    for _door_file in (
+        PROJECT_DIR / "site" / "proof" / "index.html",
+        PROJECT_DIR / "site" / "data" / "proof.json",
+        PROJECT_DIR / "site" / "company" / "index.html",
+        PROJECT_DIR / "site" / "data" / "company.json",
+    ):
+        if _door_file.exists():
+            files.append(str(_door_file))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
