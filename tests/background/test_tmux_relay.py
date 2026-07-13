@@ -235,6 +235,37 @@ def test_is_session_idle_fails_safe_on_capture_error(monkeypatch):
     assert tmux_relay.is_session_idle("claude") is False
 
 
+def _busy_pane_with(footer_or_status: str) -> str:
+    # A prompt that looks idle to the OLD detector (no spinner-timer, footer is
+    # the ordinary bypass-permissions line) but carries a current busy indicator.
+    return (
+        "  some output line\n"
+        "────────────────────────────────────────────────────────\n"
+        "❯ \n"
+        "────────────────────────────────────────────────────────\n"
+        f"  {footer_or_status}\n"
+    )
+
+
+def test_is_session_idle_false_when_waiting_for_background_agent(monkeypatch):
+    """DEFECT_TMUX_PANE_INJECTION.md: "Waiting for background agent…" is shown
+    the entire time a background fork runs and MUST read busy -- the old
+    fail-open detector missed it and injected mid-turn."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    pane = _busy_pane_with("Waiting for background agent… (esc to interrupt)")
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning(pane))
+    assert tmux_relay.is_session_idle("claude") is False
+
+
+def test_is_session_idle_false_on_esc_to_interrupt_off_footer(monkeypatch):
+    """An "esc to interrupt" hint anywhere (not only on the bypass-permissions
+    footer line) must read busy."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    pane = _busy_pane_with("Levitating… (12s · esc to interrupt)")
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning(pane))
+    assert tmux_relay.is_session_idle("claude") is False
+
+
 def test_send_keys_when_idle_noop_under_pytest():
     assert tmux_relay.send_keys_when_idle("claude", "hello|123|abc", "abc") is False
 

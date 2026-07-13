@@ -300,20 +300,45 @@ def _flatten(text: str) -> str:
     return re.sub(r"\s+", "", text)
 
 
-def is_session_idle(session: str) -> bool:
-    """Best-effort idle detection: True only if the pane shows neither a
-    busy spinner/status line nor an "esc"-hint footer. Fails safe -- any
-    capture error, or genuine ambiguity, returns False (never assume idle
-    when we can't actually confirm it)."""
-    content = capture_pane(session)
-    if not content:
-        return False
+def _is_busy_content(content: str) -> bool:
+    """True if the pane content shows ANY busy indicator. Broadened beyond the
+    original spinner+footer-"esc" check (DEFECT_TMUX_PANE_INJECTION.md): the
+    old fail-OPEN check declared idle whenever its two specific patterns were
+    absent, so newer Claude Code busy states -- "Waiting for background agent…"
+    (shown the ENTIRE time a background fork runs), "Levitating…", or an
+    "esc to interrupt" hint on a line OTHER than the bypass-permissions footer
+    -- slipped through and got injected mid-turn."""
     if _BUSY_SPINNER_LINE.search(content):
-        return False
+        return True
+    flat = _flatten(content).lower()
+    # "esc to interrupt" anywhere (wrap-safe via the flattened capture), plus
+    # current gerund status words the spinner-timer regex alone can miss.
+    if "esctointerrupt" in flat:
+        return True
+    if "waitingforbackground" in flat or "levitating" in flat:
+        return True
+    # Legacy: an "esc" hint on the bypass-permissions footer line.
     footer_line = next(
         (line for line in content.splitlines() if _FOOTER_LINE_MARKER in line), ""
     )
     if _BUSY_FOOTER_HINT in footer_line.lower():
+        return True
+    return False
+
+
+def is_session_idle(session: str) -> bool:
+    """Best-effort idle detection: True only if the pane shows no busy
+    indicator. Fails safe -- any capture error or a busy pattern returns False
+    (never assume idle when we can't actually confirm it).
+
+    NOTE: still single-capture (fail-open on an UNKNOWN busy state). The
+    broadened `_is_busy_content` closes the states seen in the wild
+    (DEFECT_TMUX_PANE_INJECTION.md); the stronger byte-stability gate (a
+    processing pane is never static) is queued separately (H16) because it
+    needs the send_keys_when_idle flow tests reworked around the extra
+    capture."""
+    content = capture_pane(session)
+    if not content or _is_busy_content(content):
         return False
     return True
 
