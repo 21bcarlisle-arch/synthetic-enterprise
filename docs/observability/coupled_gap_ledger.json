@@ -137,5 +137,28 @@
     "raw_gap": 54335.41,
     "run_git_commit": "5ab272494d47b12325a210008180ddefdd1caf53",
     "twin_atom_id": "C10_self_rationing_detection"
+  },
+  "W2_7_willingness_classification": {
+    "baseline": "always-predict-majority quadrant can/wont (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
+    "components": {
+      "fn_ability": 0.074875,
+      "fn_willingness": 0.254351,
+      "forborne": 7234,
+      "forborne_strategic_loss": 2882,
+      "harm_ratio_R": 8.0,
+      "majority_quadrant": "can_wont",
+      "n_arrears": 9934,
+      "pursued": 2700,
+      "pursued_cannot_expensive_error": 42,
+      "realised_gate_harm": 3218.0
+    },
+    "g0": 3.9369840950271793,
+    "gap": 0.12781897212989005,
+    "measured_at": "2026-07-13T22:09:30.628876+00:00",
+    "metric": "classification",
+    "note": "cost-weighted can't-pay/won't-pay 2x2 misclassification (W2_7 hidden ability x willingness -> identical observable is_in_arrears -> C9 classification from engagement/part-payment/disclosure/consumption); ability axis = the can-pay/cannot-pay confound, 8:1 harm on reading a genuine can't-pay as a strategic won't-pay. fn_ability is the harm path (vulnerable read as able); pursue/forbear gate outcomes in components.",
+    "raw_gap": 0.5032212603180994,
+    "run_git_commit": "4387baa5cbb14b3bd55e952dfc4669ee1592593f",
+    "twin_atom_id": "C9_cantpay_wontpay_classifier"
   }
 }
