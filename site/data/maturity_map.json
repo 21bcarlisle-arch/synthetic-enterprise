@@ -181,17 +181,15 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W1_reveal_over_time"
-      ],
+      "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -380,7 +378,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "W2_3_competitor_field",
@@ -564,7 +562,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W4_1_typed_adapters",

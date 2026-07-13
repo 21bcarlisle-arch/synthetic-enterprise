@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
@@ -45,9 +45,37 @@ _FLOOR_AREA_BASELINE_M2: dict[str, float] = {
 UK_AVG_DOMESTIC_ELEC_KWH = 3100.0
 UK_AVG_DOMESTIC_GAS_KWH = 12000.0
 
+# Source string used when an attribute has never been discovered via any
+# observable event -- it is a population-average assumption, not a ground-truth
+# read (see company/crm/property_discovery.py). Belongs here, not in
+# property_discovery.py, so Property's own default-provenance behaviour is
+# self-contained and doesn't require the discovery module to be imported.
+UNCONFIRMED_DEFAULT_SOURCE = 'unconfirmed_default'
+
+# The physical attributes this belief layer tracks discovery confidence for.
+# (has_gas is treated as known-at-signup-by-construction -- a customer always
+# tells us what fuel(s) they want supplied -- so it is not part of this list.)
+TRACKED_BELIEF_FIELDS = (
+    'property_type', 'tenure', 'epc_rating', 'floor_area_m2',
+    'bedrooms', 'occupants', 'has_solar_pv', 'electric_vehicle',
+)
+
 
 @dataclass(frozen=True)
 class Property:
+    """The company's BELIEF about a customer's home -- not a read of the
+    sim-side ground-truth Property (saas/property_model.py). Every physical
+    attribute below is a value the company currently BELIEVES to be true;
+    `provenance` records, per attribute, how confident we are and how we
+    came to believe it (self-disclosure, an EPC-certificate lookup, a tariff
+    registration, an engineer visit, or -- absent any of those -- an
+    unconfirmed population-average default). A belief may differ from
+    reality; that imperfection is the point (real_world_twin: a real
+    supplier only learns a property's true attributes via meter install/
+    survey/customer disclosure). Never populate this from
+    saas/property_model.py -- use company/crm/property_discovery.py's
+    discovery functions instead.
+    """
     uprn: str
     property_type: PropertyType
     tenure: TenureType
@@ -58,6 +86,34 @@ class Property:
     has_gas: bool = True
     has_solar_pv: bool = False
     electric_vehicle: bool = False
+    # attribute name -> {'source': str, 'confidence': float (0..1), 'as_of': date}
+    # Excluded from equality/hash: two beliefs about the same physical facts
+    # should compare equal regardless of how/when we came to hold them.
+    provenance: dict = field(default_factory=dict, compare=False)
+
+    def confidence_for(self, attribute: str) -> float:
+        """0.0 (never discovered -- default assumption) to 1.0 (certain)."""
+        return self.provenance.get(attribute, {}).get('confidence', 0.0)
+
+    def source_for(self, attribute: str) -> str:
+        return self.provenance.get(attribute, {}).get('source', UNCONFIRMED_DEFAULT_SOURCE)
+
+    def as_of_for(self, attribute: str):
+        return self.provenance.get(attribute, {}).get('as_of')
+
+    def is_discovered(self, attribute: str) -> bool:
+        """True once at least one observable discovery event has touched
+        this attribute (as opposed to it still holding its unconfirmed
+        default)."""
+        return self.source_for(attribute) != UNCONFIRMED_DEFAULT_SOURCE
+
+    @property
+    def overall_confidence(self) -> float:
+        """Mean discovery confidence across every tracked attribute -- a
+        single 0..1 gauge of how well the company actually knows this home,
+        as opposed to how much of it is still assumed."""
+        values = [self.confidence_for(f) for f in TRACKED_BELIEF_FIELDS]
+        return round(sum(values) / len(values), 3) if values else 0.0
 
     @property
     def consumption_multiplier(self) -> float:

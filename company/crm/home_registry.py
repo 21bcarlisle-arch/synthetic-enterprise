@@ -1,9 +1,25 @@
 from __future__ import annotations
+import datetime as dt
 from dataclasses import replace
 from typing import Optional
-from company.crm.property_model import EPCRating, Property, PropertyType, TenureType
+from company.crm.property_model import (
+    EPCRating, Property, PropertyType, TenureType, TRACKED_BELIEF_FIELDS,
+)
+from company.crm import property_discovery
 
 class HomeRegistry:
+    """Company-side belief store, keyed by account_id.
+
+    Populate it via the discovery methods below (register_from_signup /
+    record_epc_lookup / record_tariff_registration / record_engineer_visit)
+    -- each corresponds to a real OBSERVABLE event a UK supplier could
+    actually witness. `register()` remains available for tests/callers that
+    already hold a fully-formed Property (e.g. constructed via the
+    discovery module themselves), but nothing in this class or its callers
+    may build that Property from sim-side ground truth
+    (saas/property_model.py) -- see company/crm/property_discovery.py.
+    """
+
     def __init__(self):
         self._profiles = {}
 
@@ -12,11 +28,65 @@ class HomeRegistry:
             raise TypeError("prop must be a Property instance")
         self._profiles[account_id] = prop
 
-    def upgrade_epc(self, account_id, new_rating):
+    def register_from_signup(self, account_id, uprn, as_of=None, **disclosed):
+        """Open a belief for a brand-new account from the onboarding
+        disclosure event (company/crm/property_discovery.open_belief_from_signup).
+        `disclosed` accepts property_type/tenure/bedrooms/occupants/has_gas --
+        anything omitted is filled from an unconfirmed population-average
+        default, never from ground truth."""
+        as_of = as_of or dt.date.today()
+        prop = property_discovery.open_belief_from_signup(uprn, as_of, **disclosed)
+        self._profiles[account_id] = prop
+        return prop
+
+    def record_epc_lookup(self, account_id, epc_rating, as_of=None):
+        """An EPC-certificate-register lookup event."""
+        as_of = as_of or dt.date.today()
         prop = self.get_profile(account_id)
-        upgraded = replace(prop, epc_rating=new_rating)
-        self._profiles[account_id] = upgraded
-        return upgraded
+        updated = property_discovery.apply_epc_lookup(prop, epc_rating, as_of)
+        self._profiles[account_id] = updated
+        return updated
+
+    def record_tariff_registration(self, account_id, as_of=None, **kwargs):
+        """The customer registers for an EV/solar-export tariff."""
+        as_of = as_of or dt.date.today()
+        prop = self.get_profile(account_id)
+        updated = property_discovery.apply_tariff_registration(prop, as_of, **kwargs)
+        self._profiles[account_id] = updated
+        return updated
+
+    def record_engineer_visit(self, account_id, as_of=None, **kwargs):
+        """A meter-engineer site visit corrects floor area/bedrooms/occupants."""
+        as_of = as_of or dt.date.today()
+        prop = self.get_profile(account_id)
+        updated = property_discovery.apply_engineer_visit(prop, as_of, **kwargs)
+        self._profiles[account_id] = updated
+        return updated
+
+    def upgrade_epc(self, account_id, new_rating, as_of=None):
+        """Kept for existing callers: a re-lookup that finds a new EPC
+        rating (e.g. following an insulation upgrade). Delegates to the
+        same discovery path as record_epc_lookup so provenance is always
+        stamped, never silently mutated."""
+        return self.record_epc_lookup(account_id, new_rating, as_of=as_of)
+
+    def belief_confidence(self, account_id):
+        """Per-attribute {source, confidence, as_of} plus the overall
+        confidence gauge for this account's current belief."""
+        prop = self.get_profile(account_id)
+        return {
+            "overall_confidence": prop.overall_confidence,
+            "attributes": {
+                name: {
+                    "value": getattr(prop, name).value if hasattr(getattr(prop, name), 'value')
+                             else getattr(prop, name),
+                    "source": prop.source_for(name),
+                    "confidence": prop.confidence_for(name),
+                    "as_of": str(prop.as_of_for(name)) if prop.as_of_for(name) else None,
+                }
+                for name in TRACKED_BELIEF_FIELDS
+            },
+        }
 
     def get_profile(self, account_id):
         try:
