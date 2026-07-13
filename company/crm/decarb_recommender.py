@@ -69,6 +69,15 @@ class MeasureRecommendation:
 class DecarbonisationPlan:
     customer_id: str
     recommendations: tuple
+    # How confident the company is in the BELIEF this plan was built on
+    # (0..1), when the plan was derived from the discovered property belief
+    # layer (company/crm/home_registry.py) rather than from caller-supplied
+    # attributes. None when the plan was built from explicit attributes with
+    # no attached belief-confidence. A low value here means the company is
+    # recommending measures on a poorly-known home -- e.g. an EPC band that is
+    # still an unconfirmed population-average default, not a real register
+    # lookup -- and the recommendation should be treated as provisional.
+    belief_confidence: Optional[float] = None
 
     @property
     def total_potential_savings_gbp(self) -> float:
@@ -78,12 +87,25 @@ class DecarbonisationPlan:
     def top_measure(self) -> Optional[MeasureRecommendation]:
         return self.recommendations[0] if self.recommendations else None
 
+    @property
+    def is_provisional_on_weak_belief(self) -> bool:
+        """True when the plan rests on a belief the company barely knows.
+
+        The company acts on what it has observed, at the confidence it has:
+        below this threshold the recommendation is driven mostly by
+        unconfirmed population-average defaults (see property_discovery.py),
+        so it should be surfaced as 'we think, pending confirmation' rather
+        than presented as settled."""
+        return self.belief_confidence is not None and self.belief_confidence < 0.5
+
     def summary(self) -> dict:
         return {
             'customer_id': self.customer_id,
             'recommendation_count': len(self.recommendations),
             'total_potential_savings_gbp': round(self.total_potential_savings_gbp, 2),
             'top_measure': self.top_measure.measure.value if self.top_measure else None,
+            'belief_confidence': self.belief_confidence,
+            'provisional_on_weak_belief': self.is_provisional_on_weak_belief,
         }
 
 
@@ -95,6 +117,7 @@ def recommend_measures(
     has_solar: bool = False,
     is_fuel_poor: bool = False,
     eco4_eligible: bool = False,
+    belief_confidence: Optional[float] = None,
 ) -> DecarbonisationPlan:
     recs: List[MeasureRecommendation] = []
     priority = 1
@@ -162,4 +185,53 @@ def recommend_measures(
         priority,
     ))
 
-    return DecarbonisationPlan(customer_id=customer_id, recommendations=tuple(recs))
+    return DecarbonisationPlan(
+        customer_id=customer_id,
+        recommendations=tuple(recs),
+        belief_confidence=belief_confidence,
+    )
+
+
+# Coarse heating-system inference from the one fuel fact the belief layer
+# tracks (has_gas). The belief layer does NOT carry a heating-system
+# attribute, so this is an explicit assumption, not a discovered fact -- a
+# gas-supplied home is assumed to run a gas boiler, an all-electric home a
+# storage heater. A caller who has a better-observed heating system (e.g.
+# from an engineer visit) should pass it explicitly.
+def _assume_heating_system(has_gas: bool) -> str:
+    return 'gas_boiler' if has_gas else 'storage_heater'
+
+
+def recommend_from_registry(
+    home_registry,
+    account_id: str,
+    heating_system: Optional[str] = None,
+) -> DecarbonisationPlan:
+    """Build a decarbonisation plan from the company's DISCOVERED belief
+    about a customer's home, at the confidence the company actually holds --
+    NOT from a direct read of sim-side ground truth.
+
+    This is the epistemic wall in action: the recommender never touches
+    saas/property_model.py. It reads only company/crm/home_registry.py's
+    belief (get_profile / belief_confidence), which was itself built purely
+    from observable discovery events (signup disclosure, EPC-register
+    lookup, tariff registration, engineer visit -- see property_discovery.py).
+    A belief may legitimately differ from the customer's real home; the plan
+    carries the belief's overall confidence so a weakly-known home yields a
+    plan flagged provisional (DecarbonisationPlan.is_provisional_on_weak_belief),
+    exactly as a real supplier would treat a recommendation made off an
+    assumed rather than a verified EPC band.
+    """
+    prop = home_registry.get_profile(account_id)
+    belief = home_registry.belief_confidence(account_id)
+    heating = heating_system if heating_system is not None else _assume_heating_system(prop.has_gas)
+    return recommend_measures(
+        customer_id=account_id,
+        epc_rating=prop.epc_rating.value,
+        property_type=prop.property_type.value,
+        heating_system=heating,
+        has_solar=prop.has_solar_pv,
+        is_fuel_poor=prop.is_fuel_poor,
+        eco4_eligible=prop.eco4_eligible,
+        belief_confidence=belief['overall_confidence'],
+    )

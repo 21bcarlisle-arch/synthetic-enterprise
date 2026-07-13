@@ -131,12 +131,35 @@ class OnboardingJourney:
 
 
 class OnboardingJourneyTracker:
+    """Tracks each new customer's onboarding journey AND, when wired to a
+    HomeRegistry, opens the company's first belief about that customer's
+    property from what they disclose at signup.
 
-    def __init__(self) -> None:
+    The belief is OPENED from the signup disclosure event (moderate
+    confidence, unverified) -- never constructed from sim-side ground truth
+    (saas/property_model.py). Later property facts (a real EPC-register
+    lookup, an EV/export-tariff registration, a meter-engineer survey) are
+    modelled as SEPARATE discovery events that arrive over time during and
+    after onboarding, not assumed known in a single batch at signup
+    (portability constraints C-S1/C-S3: observations arrive one at a time,
+    possibly late) -- record them via record_epc_lookup / the registry's
+    own record_tariff_registration / record_engineer_visit as they occur.
+    """
+
+    def __init__(self, home_registry=None) -> None:
         self._journeys: List[OnboardingJourney] = []
+        # Optional company-side belief store (company/crm/home_registry.py).
+        # When present, start_journey opens a property belief from the
+        # customer's signup disclosure. Injected, not constructed here, so
+        # one registry is shared across the whole customer-ops stack.
+        self._home_registry = home_registry
 
     def start_journey(
-        self, account_id: str, switch_request_date: dt.date
+        self,
+        account_id: str,
+        switch_request_date: dt.date,
+        uprn: Optional[str] = None,
+        property_disclosure: Optional[dict] = None,
     ) -> OnboardingJourney:
         event = OnboardingEvent(
             OnboardingStage.SWITCH_REQUESTED, switch_request_date
@@ -147,7 +170,31 @@ class OnboardingJourneyTracker:
             events=(event,),
         )
         self._journeys.append(j)
+        # Signup IS the first observable discovery event: open the company's
+        # belief about this home from what the customer disclosed. Only when
+        # a belief store is wired and we have a property to key it on.
+        if self._home_registry is not None and uprn is not None:
+            self._home_registry.register_from_signup(
+                account_id,
+                uprn,
+                as_of=switch_request_date,
+                **(property_disclosure or {}),
+            )
         return j
+
+    def record_epc_lookup(self, account_id: str, epc_rating, as_of: dt.date):
+        """A real EPC-certificate-register lookup fired during/after
+        onboarding -- a later discovery event, arriving over time, that
+        upgrades the belief's EPC confidence from the unconfirmed signup
+        default to a register-backed value. No-op (returns None) if no
+        belief store is wired."""
+        if self._home_registry is None:
+            return None
+        return self._home_registry.record_epc_lookup(account_id, epc_rating, as_of=as_of)
+
+    @property
+    def home_registry(self):
+        return self._home_registry
 
     def advance_stage(
         self, account_id: str, stage: OnboardingStage, occurred_at: dt.date, notes: str = ""
