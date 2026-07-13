@@ -41,16 +41,21 @@ def test_parse_audit_response_case_insensitive_verdict():
     assert result["verdict"] == "flagged"
 
 
-def test_parse_audit_response_empty_defaults_clean_not_flagged():
-    # Fail-safe: an unavailable model must never fabricate a finding.
+def test_parse_audit_response_empty_is_unavailable_not_clean():
+    # F6 FAIL-SILENT FIX (CONTROLS_THAT_CANNOT_FAIL.md): an empty response means
+    # the model was unreachable. That is NOT clean -- an unavailable check is a
+    # FAILED check. It must never fabricate a per-bill finding either, so the
+    # verdict is a distinct third state, "unavailable".
     result = parse_audit_response("")
-    assert result["verdict"] == "clean"
-    assert "unavailable" in result["note"]
+    assert result["verdict"] == "unavailable"
+    assert "unavailable" in result["note"].lower()
 
 
-def test_parse_audit_response_malformed_defaults_clean():
+def test_parse_audit_response_malformed_is_unavailable_not_clean():
+    # A response with no parseable VERDICT line is unusable output -- we cannot
+    # assert clean from it, so it is unavailable (fail closed), not clean.
     result = parse_audit_response("some unrelated text with no VERDICT line")
-    assert result["verdict"] == "clean"
+    assert result["verdict"] == "unavailable"
 
 
 def test_build_audit_prompt_includes_bill_fields():
@@ -105,10 +110,27 @@ def test_run_internal_audit_all_clean_returns_empty():
     assert findings == []
 
 
-def test_run_internal_audit_model_unavailable_is_silent_not_fabricated():
+def test_run_internal_audit_model_unavailable_alarms_not_silent():
+    # F6 FAIL-SILENT FIX: when the model is unreachable the audit did NOT run --
+    # it must ALARM (a checker_unavailable finding), not return an empty (=clean)
+    # list. It still fabricates no finding against any specific bill.
     bills = [_bill("C1"), _bill("C2")]
     findings = run_internal_audit(bills, n_samples=2, seed=1, call_qwen_fn=lambda p: "")
-    assert findings == []
+    assert len(findings) == 1
+    assert findings[0]["kind"] == "checker_unavailable"
+    assert findings[0]["customer_id"] is None
+    assert "did NOT run" in findings[0]["note"]
+
+
+def test_run_internal_audit_partial_unavailability_still_alarms():
+    # Even one unreachable sample among otherwise-clean ones must alarm.
+    bills = [_bill("C1"), _bill("C2")]
+
+    def flaky_qwen(prompt):
+        return "VERDICT: clean\nNOTE: fine" if "C1" in prompt else ""
+
+    findings = run_internal_audit(bills, n_samples=2, seed=1, call_qwen_fn=flaky_qwen)
+    assert any(f.get("kind") == "checker_unavailable" for f in findings)
 
 
 def test_run_internal_audit_no_bills():

@@ -15,10 +15,20 @@ obligations (billing accuracy, VAT-by-segment) concentrate there.
 
 Same fail-safe contract as background/discovery_agent.py's `_call_qwen()`
 (a separate copy, not imported, so this module has no dependency on the
-discovery daemon): a failed/unavailable Ollama call returns "" and this
-module treats that as clean (no finding) rather than fabricating one --
-an audit sampler that can't reach its own model must fail silent, not
-false-positive.
+discovery daemon): a failed/unavailable Ollama call returns "".
+
+FAIL-SILENT FIX (2026-07-13, CONTROLS_THAT_CANNOT_FAIL.md, F6 class):
+this module PREVIOUSLY treated an unreachable model as "clean" (verdict
+defaulted to clean, no finding) so that on every autonomous run where
+Ollama happened to be down the audit passed by NOT RUNNING -- the exact
+FAIL-SILENT killer pattern the controls-that-cannot-fail doctrine names.
+An unavailable check is a FAILED check. The verdict now has a THIRD state,
+"unavailable", distinct from both "clean" and "flagged": it never
+fabricates a finding against a specific bill (that would false-positive a
+correct bill), but it DOES alarm -- run_internal_audit / run_phase_close_
+audit surface a `kind="checker_unavailable"` finding when the model could
+not be reached, so a caller (background/sanity_daemon.py) sees a non-empty
+findings list and reports the outage instead of logging "0 flagged".
 """
 from __future__ import annotations
 
@@ -82,16 +92,31 @@ NOTE: <one sentence>
 /no_think"""
 
 
+CHECKER_UNAVAILABLE = "unavailable"
+
+
 def parse_audit_response(response: str) -> dict:
-    verdict = "clean"
-    note = "Qwen assessment unavailable"
-    if response:
-        verdict_match = re.search(r"VERDICT:\s*(clean|flagged)", response, re.IGNORECASE)
-        note_match = re.search(r"NOTE:\s*(.+)", response)
-        if verdict_match:
-            verdict = verdict_match.group(1).lower()
-        if note_match:
-            note = note_match.group(1).strip()
+    """Parse the model's verdict. THREE states, not two:
+      - "flagged"      -- the model reached a verdict and flagged the artefact.
+      - "clean"        -- the model reached a verdict and passed the artefact.
+      - "unavailable"  -- the model returned nothing usable (empty response =
+                          Ollama down/timed out, OR a response with no parseable
+                          VERDICT line = unusable output). This is NOT clean: an
+                          unavailable check is a FAILED check (F6 fail-silent
+                          fix, CONTROLS_THAT_CANNOT_FAIL.md). The caller alarms
+                          on it rather than passing.
+    """
+    if not response:
+        return {"verdict": CHECKER_UNAVAILABLE, "note": "Qwen assessment unavailable (empty response -- model unreachable)"}
+    verdict_match = re.search(r"VERDICT:\s*(clean|flagged)", response, re.IGNORECASE)
+    note_match = re.search(r"NOTE:\s*(.+)", response)
+    if not verdict_match:
+        return {
+            "verdict": CHECKER_UNAVAILABLE,
+            "note": "Qwen response carried no parseable VERDICT line -- treating as unavailable, not clean",
+        }
+    verdict = verdict_match.group(1).lower()
+    note = note_match.group(1).strip() if note_match else "Qwen assessment unavailable"
     return {"verdict": verdict, "note": note}
 
 
@@ -115,6 +140,7 @@ def run_internal_audit(
     rng = random.Random(seed)
     sampled = sample_bills_risk_based(bills, n_samples, rng)
     findings = []
+    unavailable = 0
     for bill in sampled:
         response = call_qwen_fn(build_audit_prompt(bill))
         result = parse_audit_response(response)
@@ -124,6 +150,25 @@ def run_internal_audit(
                 "period_end": bill.get("period_end"),
                 "note": result["note"],
             })
+        elif result["verdict"] == CHECKER_UNAVAILABLE:
+            unavailable += 1
+    # F6 FAIL-SILENT FIX: an unavailable checker ALARMS, it does not pass
+    # silently. If the model could not be reached for any sampled bill, emit a
+    # single checker_unavailable finding so a non-empty findings list forces the
+    # caller to report the outage (CONTROLS_THAT_CANNOT_FAIL.md). Prepended so it
+    # is never lost behind real flags. Shape-compatible with the flagged findings
+    # (customer_id/period_end/note) so sanity_daemon's formatting is unaffected.
+    if unavailable and sampled:
+        findings.insert(0, {
+            "kind": "checker_unavailable",
+            "customer_id": None,
+            "period_end": None,
+            "note": (
+                f"Internal audit checker (Qwen/Ollama) unavailable for "
+                f"{unavailable}/{len(sampled)} sampled bills -- the audit did NOT "
+                f"run; treat as a FAILED check, not clean"
+            ),
+        })
     return findings
 
 
@@ -174,8 +219,24 @@ def run_phase_close_audit(
     names = list(artefacts.keys())
     sampled_names = rng.sample(names, k=min(n_samples, len(names))) if names else []
     findings = []
+    unavailable = 0
     for name in sampled_names:
         result = audit_artefact(name, artefacts[name], call_qwen_fn=call_qwen_fn)
         if result["verdict"] == "flagged":
             findings.append(result)
+        elif result["verdict"] == CHECKER_UNAVAILABLE:
+            unavailable += 1
+    # F6 FAIL-SILENT FIX (same contract as run_internal_audit): alarm on an
+    # unreachable checker rather than reporting a clean phase-close pass.
+    if unavailable and sampled_names:
+        findings.insert(0, {
+            "kind": "checker_unavailable",
+            "artefact_name": None,
+            "verdict": CHECKER_UNAVAILABLE,
+            "note": (
+                f"Phase-close audit checker (Qwen/Ollama) unavailable for "
+                f"{unavailable}/{len(sampled_names)} sampled artefacts -- the audit "
+                f"did NOT run; treat as a FAILED check, not clean"
+            ),
+        })
     return findings
