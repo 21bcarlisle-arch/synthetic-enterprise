@@ -33,6 +33,11 @@ from typing import Optional
 
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+from company.compliance.segment_debt_policy import (
+    LPCDCA_EFFECTIVE_FROM,
+    check_debt_terms_lawful_for_segment as _check_debt_terms_lawful_for_segment,
+    select_debt_terms as _select_debt_terms,
+)
 
 _CAP_ANCHOR_YEARS = range(2019, 2026)
 _ELEC_CAP_BY_YEAR = {
@@ -397,6 +402,84 @@ VAT_SEGMENT_MATCHES_CONSUMPTION = StructuralInvariant(
 )
 
 
+# --- Segment debt T&C (atom C11_segment_debt_policy; world twin W2_9) ---
+#
+# The company applies debt terms & conditions from OBSERVABLE segment +
+# PUBLISHED regulation only (company/compliance/segment_debt_policy.py). These
+# three structural invariants register the law the company reads; the checker
+# below (delegating to that module) is the Tier-1 control that FIRES when a
+# wrong-segment T&C is applied. The correct-side is derived independently of
+# the applied terms (anti-tautology, R15).
+
+DEBT_INTEREST_BUSINESS_ONLY = StructuralInvariant(
+    id="debt_interest_business_only",
+    description=(
+        "Statutory late-payment interest (base rate + 8pts) applies to BUSINESS "
+        "debts only (SME/I&C) under LPCDCA 1998; it is EXCLUDED for domestic "
+        "customers, whose energy debt is a consumer contract the Act does not "
+        "cover. Charging a domestic arrears account statutory interest is the "
+        "named wrong-segment defect this control fires on."
+    ),
+    source=(
+        "Late Payment of Commercial Debts (Interest) Act 1998 (business "
+        "statutory interest; domestic consumer debt excluded)"
+    ),
+    # REGULATION_COMMONS_DOCTRINE.md item 3 backfill: the Act's real
+    # commencement date, cited not fabricated (initially small-business
+    # creditors; extended to all B2B debt by 7 Aug 2002). No effective_to:
+    # still in force.
+    effective_from=LPCDCA_EFFECTIVE_FROM,
+)
+
+DEBT_NO_DOMESTIC_LATE_CHARGES = StructuralInvariant(
+    id="debt_no_domestic_late_charges",
+    description=(
+        "A DOMESTIC arrears account carries NO late-payment charge -- domestic "
+        "late-payment charges are largely regulated out under Ofgem SLC / "
+        "Consumer Duty fairness. A late charge applied to a domestic account is "
+        "the named wrong-segment defect this control fires on. Business "
+        "commercial T&C may include a late charge, so this bites domestic only."
+    ),
+    source="Ofgem Standard Licence Conditions / Consumer Duty (domestic charge restrictions)",
+    # effective_from left None per this module's own convention (no single
+    # registered date anchored in this codebase's evidence; treat as in force
+    # for all modelled years -- fabricating a date would be worse).
+)
+
+DEBT_TARIFF_ELIGIBILITY_PAYMENT_CONDITIONED = StructuralInvariant(
+    id="debt_tariff_eligibility_payment_conditioned",
+    description=(
+        "Payment-conditioned tariff eligibility (DD-discount / good-payer "
+        "gating) is LAWFUL for both segments, but constrained: a DD tariff must "
+        "be set off a realistic consumption estimate and must not be used to "
+        "over-collect credit (Ofgem Direct Debit Market Compliance Review). "
+        "Modelled as a permitted-but-constrained policy flag, not a free "
+        "parameter -- so 'good payer discount' cannot be read as licence to "
+        "over-hold credit from the same reliable payers."
+    ),
+    source="Ofgem Direct Debit Market Compliance Review (active 2026 enforcement)",
+)
+
+
+def check_debt_terms_lawful_for_segment(segment, applied, as_of) -> bool:
+    """Tier-1 control for the segment-debt-T&C invariants above: returns False
+    (FIRES) when a wrong-segment debt T&C is applied (a domestic late charge,
+    statutory interest on a domestic account, or a business interest charge at
+    the wrong statutory rate). Independent of the applied terms and fails
+    closed on missing/malformed input (R15). Delegates to
+    company/compliance/segment_debt_policy.py -- the company's own reading of
+    the law, never a SIM ground-truth read."""
+    return _check_debt_terms_lawful_for_segment(segment, applied, as_of)
+
+
+def correct_debt_terms_for_segment(segment, as_of):
+    """The correct debt T&C the company should apply to a segment on a date --
+    the company's OWN policy object (segment_debt_policy.select_debt_terms).
+    Exposed here so consumers reach the whole segment-debt library through one
+    module, matching vat_rate_for_segment's placement."""
+    return _select_debt_terms(segment, as_of)
+
+
 ALL_INVARIANTS: list = [
     VAT_RESIDENTIAL, VAT_SME,
     STANDING_CHARGE_ELEC_RESI, STANDING_CHARGE_ELEC_SME,
@@ -414,6 +497,9 @@ ALL_INVARIANTS: list = [
     BACK_BILLING_CAP_RESPECTED,
     BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
     VAT_SEGMENT_MATCHES_CONSUMPTION,
+    DEBT_INTEREST_BUSINESS_ONLY,
+    DEBT_NO_DOMESTIC_LATE_CHARGES,
+    DEBT_TARIFF_ELIGIBILITY_PAYMENT_CONDITIONED,
 ]
 
 
