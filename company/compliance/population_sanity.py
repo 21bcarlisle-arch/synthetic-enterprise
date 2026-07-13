@@ -127,9 +127,23 @@ def check_estimated_read_rate(meter_read_log: list) -> list[dict]:
     meter non-communication, ~83% traditional non-actual-read rate) --
     if the whole population somehow shows ~0% or ~100% estimated, the
     read-generation mechanism itself is broken, not just one customer's
-    data."""
+    data.
+
+    R15 (KL-4 fix, 2026-07-13): a TOTAL absence of reads is the MOST-broken
+    read-generation state, not a clean one -- an empty log previously read
+    clean (FAIL-SILENT). A real book always produces reads (the live run
+    carries 1,588), so an empty log means the read-generation mechanism
+    produced nothing at all; it must FLAG, never pass silently. An empty
+    check cannot be a passing check."""
     if not meter_read_log:
-        return []
+        return [{
+            "check": "estimated_read_rate_vs_industry_norms",
+            "customer_id": None,
+            "year": None,
+            "detail": "No meter reads present at all (0 reads) -- the read-generation "
+                      "mechanism produced nothing, the most-broken state; a total absence "
+                      "of reads cannot read clean (R15 fail-silent guard).",
+        }]
     estimated = sum(1 for r in meter_read_log if r.get("status") == "estimated")
     rate = estimated / len(meter_read_log)
     low, high = _ESTIMATED_READ_RATE_SANITY_BAND

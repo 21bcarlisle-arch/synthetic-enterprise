@@ -167,13 +167,28 @@ def test_check_consistency_within_tolerance_passes():
     assert _check_consistency(portfolio, insights, "x.json", tolerance_gbp=1.0) is True
 
 
-def test_check_consistency_skips_when_insights_absent(capsys):
+def test_check_consistency_fails_closed_when_insights_absent(capsys):
+    # R15 (KL-8 fix): an absent/empty run_insights.json is NOT a benign skip --
+    # the pipeline guarantees the file is written immediately before this gate,
+    # so a missing comparison input is a real failure and must fail CLOSED
+    # (raising the consistency alarm), not pass silently.
     portfolio = {"net_margin_gbp": 1445258.0}
-    assert _check_consistency(portfolio, None, "x.json") is True
+    assert _check_consistency(portfolio, None, "x.json") is False
+    assert "CONSISTENCY GATE FAILED" in capsys.readouterr().err
+    assert _check_consistency(portfolio, {}, "x.json") is False
 
 
-def test_check_consistency_skips_when_fields_missing():
-    assert _check_consistency({}, {}, "x.json") is True
+def test_check_consistency_skips_key_absent_on_both_surfaces():
+    # A headline key absent on BOTH surfaces is legitimately not-published and is
+    # still skipped (net margin agrees; all other keys absent both sides).
+    assert _check_consistency({"net_margin_gbp": 100.0}, {"net_margin_gbp": 100.0}, "x.json") is True
+
+
+def test_check_consistency_fires_on_one_sided_key(capsys):
+    # R15 (KL-8 fix, fail-open closed): a headline key present on one surface but
+    # missing on the other is a real disagreement, no longer a silent skip.
+    assert _check_consistency({"net_margin_gbp": 100.0}, {"gross_margin_gbp": 5.0}, "x.json") is False
+    assert "CONSISTENCY GATE FAILED" in capsys.readouterr().err
 
 
 def test_check_basis_labels_present_passes_for_real_extract_portfolio():

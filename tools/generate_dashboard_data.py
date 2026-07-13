@@ -1554,16 +1554,42 @@ def _check_consistency(portfolio, insights, source_file, tolerance_gbp=1.0):
     just loaded, so a step-ordering regression upstream can silently re-introduce
     a stale/mismatched exec summary next to correct totals. Checks the full set
     of headline numbers (net/gross margin, enterprise value, bills, committee
-    interventions, retention, churn), not just net margin."""
+    interventions, retention, churn), not just net margin.
+
+    R15 (KL-8 fix, 2026-07-13): two killer patterns closed. (a) FAIL-SILENT --
+    a missing/empty run_insights.json used to return True (pass), so the gate
+    passed precisely when its comparison input was absent (the R11 orphan-
+    transition class). The pipeline guarantees run_insights.json is written
+    immediately before this gate runs (process_run_complete.save_insights), so
+    an absent/empty insights payload here is a real failure, not a benign
+    first-run -- it now FAILS (which raises the consistency NTFY alarm). (b)
+    FAIL-OPEN -- a headline key present on ONE surface but missing on the other
+    was silently skipped; that is a genuine surface disagreement and is now a
+    mismatch. A key absent on BOTH surfaces is legitimately not-published and
+    is still skipped."""
     if not insights:
-        print("CONSISTENCY GATE: no run_insights.json present -- skipping check", file=sys.stderr)
-        return True
+        print(
+            "CONSISTENCY GATE FAILED: run_insights.json is absent/empty -- the exec-summary "
+            "comparison input is missing, so surface agreement cannot be verified (R15 KL-8 "
+            "fail-silent guard; the pipeline guarantees this file is written before this gate).",
+            file=sys.stderr,
+        )
+        return False
 
     mismatches = []
     for p_key, label, area, i_key in _CONSISTENCY_CHECKS:
         p_val = portfolio.get(p_key)
         i_val = _insights_metric(insights, area, i_key)
-        if p_val is None or i_val is None:
+        if p_val is None and i_val is None:
+            continue  # neither surface publishes this figure -- nothing to reconcile
+        if (p_val is None) != (i_val is None):
+            # one-sided: the figure exists on one surface but not the other --
+            # a real disagreement, not a skip (R15 KL-8 fail-open guard).
+            mismatches.append(
+                "{}: dashboard={} vs insights={} (present on one surface only)".format(
+                    label, p_val, i_val
+                )
+            )
             continue
         tol = tolerance_gbp if p_key.endswith("_gbp") else 0
         if abs(p_val - i_val) > tol:

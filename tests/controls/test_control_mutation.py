@@ -358,13 +358,18 @@ def test_population_estimated_read_rate_fires_when_mechanism_broken():
     assert fired and fired[0]["check"] == "estimated_read_rate_vs_industry_norms"
 
 
-def test_population_estimated_read_rate_empty_log_is_fail_silent_gap():
-    # KILL-LIST GAP (KL-4, FAIL-SILENT): a TOTAL absence of reads -- arguably the
-    # most-broken read-generation state -- currently reads CLEAN ([]). Pinned as
-    # current behaviour and registered for the orchestrator (not fixed here: an
-    # empty log can also be a legitimate first-run, and sanity_daemon.py consumes
-    # this, so alarm-on-empty needs caller analysis before it is safe).
-    assert ps.check_estimated_read_rate([]) == []
+def test_population_estimated_read_rate_empty_log_fires():
+    # KL-4 FIXED (FAIL-SILENT): a TOTAL absence of reads -- the most-broken
+    # read-generation state -- previously read CLEAN ([]) (theatre). Now the
+    # empty log FIRES: an empty check cannot be a passing check (R15).
+    # BEFORE: check_estimated_read_rate([]) == []  (passed wrongly / fail-silent)
+    # AFTER : it returns a finding.
+    fired = ps.check_estimated_read_rate([])
+    assert fired and fired[0]["check"] == "estimated_read_rate_vs_industry_norms"
+    # OUTCOME-SAFE: a plausible non-empty mix still reads clean (no false positive).
+    assert ps.check_estimated_read_rate(
+        [{"status": "estimated"}] * 3 + [{"status": "actual"}] * 7
+    ) == []
 
 
 def test_population_payment_channel_mix_fires_when_everyone_on_one_method():
@@ -396,14 +401,27 @@ def test_consumer_duty_overall_rag_fires_on_a_red_outcome():
     assert len(reg.red_outcomes()) == 1
 
 
-def test_consumer_duty_empty_register_green_is_fail_silent_gap():
-    # KILL-LIST GAP (KL-5, FAIL-SILENT): an EMPTY register -- zero outcome
-    # assessments ever performed -- reports GREEN (compliant). Under FCA
-    # Consumer Duty "no assessment done" is a governance failure, not "green".
-    # Pinned as current behaviour; NOT fixed here (overall_rag has 14+ callers
-    # that treat GREEN as the baseline -- a semantics change needs orchestration,
-    # per SELF_INTERRUPT_DISCIPLINE QUEUE-by-default).
-    assert ConsumerDutyRegister().overall_rag() == OutcomeRAG.GREEN
+def test_consumer_duty_empty_register_fires_not_green():
+    # KL-5 FIXED (FAIL-SILENT): an EMPTY register -- zero outcome assessments
+    # ever performed -- previously reported GREEN (theatre: absence read as
+    # compliant). Under FCA Consumer Duty "no assessment done" is a governance
+    # failure. Now it reports the distinct NOT_ASSESSED state (NOT green), and
+    # the register flags it.
+    # BEFORE: ConsumerDutyRegister().overall_rag() == OutcomeRAG.GREEN
+    # AFTER : it is NOT_ASSESSED, and needs_attention() fires.
+    reg = ConsumerDutyRegister()
+    assert reg.overall_rag() == OutcomeRAG.NOT_ASSESSED
+    assert reg.overall_rag() != OutcomeRAG.GREEN
+    assert reg.is_assessed() is False
+    assert reg.needs_attention() is True
+    # OUTCOME-SAFE: a genuinely populated all-green register still reads GREEN
+    # (no false positive on legitimate compliance).
+    reg.record_assessment(_duty_assessment(DutyOutcome.PRICE_AND_VALUE, OutcomeRAG.GREEN))
+    reg.record_assessment(_duty_assessment(DutyOutcome.CONSUMER_SUPPORT, OutcomeRAG.GREEN))
+    reg.record_assessment(_duty_assessment(DutyOutcome.PRODUCTS_AND_SERVICES, OutcomeRAG.GREEN))
+    reg.record_assessment(_duty_assessment(DutyOutcome.CONSUMER_UNDERSTANDING, OutcomeRAG.GREEN))
+    assert reg.overall_rag() == OutcomeRAG.GREEN
+    assert reg.needs_attention() is False
 
 
 # --------------------------------------------------------------------------
@@ -426,19 +444,34 @@ def test_social_obligation_underspend_surfaces_via_independent_evidence():
     assert len(reg.underspend_records()) == 1
 
 
-def test_social_obligation_status_trust_is_tautology_gap():
-    # KILL-LIST GAP (KL-6, TAUTOLOGY): is_compliant() trusts the self-declared
-    # `status` field, not the independent spend-vs-target evidence. A record
-    # mislabelled PAID while grossly underspent passes non_compliant() -- the
-    # same "compliance from a declared label" pattern as the flagship VAT
-    # tautology. underspend_records() is the independent control that DOES catch
-    # it; is_compliant() alone is theatre for the underspend defect.
+def test_social_obligation_status_trust_tautology_now_fires():
+    # KL-6 FIXED (TAUTOLOGY): non_compliant() previously trusted the self-declared
+    # `status` field ALONE -- a record mislabelled PAID while grossly underspent
+    # passed it (the same "compliance from a declared label" pattern as the
+    # flagship VAT tautology). non_compliant() now also folds in the INDEPENDENT
+    # spend-vs-target evidence (is_underspend), so the mislabel can no longer
+    # manufacture compliance.
+    # BEFORE: reg.non_compliant() == []           (tautology: did NOT fire)
+    # AFTER : reg.non_compliant() catches it via independent underspend evidence.
     reg = SocialObligationSpendRegister()
     reg.record_obligation(2024, SocialObligationType.WARM_HOME_DISCOUNT,
                           target_gbp=1_000_000.0, actual_spend_gbp=1.0,
-                          status=ObligationStatus.PAID)  # mislabelled
-    assert reg.non_compliant() == []                    # tautology: does NOT fire
-    assert len(reg.underspend_records()) == 1           # independent control fires
+                          status=ObligationStatus.PAID)  # mislabelled PAID
+    assert len(reg.non_compliant()) == 1                # now FIRES on the mislabel
+    assert len(reg.underspend_records()) == 1           # independent control also fires
+    # OUTCOME-SAFE: a genuinely-met PAID obligation (full spend) is NOT flagged.
+    ok = SocialObligationSpendRegister()
+    ok.record_obligation(2024, SocialObligationType.WARM_HOME_DISCOUNT,
+                         target_gbp=1000.0, actual_spend_gbp=1000.0,
+                         status=ObligationStatus.PAID)
+    assert ok.non_compliant() == []
+    # OUTCOME-SAFE: a PROJECTED under-target obligation (not yet spent) is NOT a
+    # breach -- projections legitimately show spend below target.
+    proj = SocialObligationSpendRegister()
+    proj.record_obligation(2024, SocialObligationType.ENERGY_EFFICIENCY,
+                           target_gbp=3000.0, actual_spend_gbp=0.0,
+                           status=ObligationStatus.PROJECTED)
+    assert proj.non_compliant() == []
 
 
 # --------------------------------------------------------------------------
@@ -493,17 +526,33 @@ def test_green_claims_audit_fires_on_uncovered_claim():
     assert bad.shortfall_mwh > 0 and bad.penalty_estimate_gbp > 0
 
 
-def test_green_claims_audit_zero_obligation_is_fail_open_gap():
-    # KILL-LIST GAP (KL-7, FAIL-OPEN): if the green-product DETECTION silently
-    # breaks (obligation computes to 0 though green tariffs are being sold), the
-    # audit returns COMPLIANT at 100% coverage. Zero obligation legitimately
-    # means "no green claims made", so this is NOT fixed here -- registered so a
-    # broken-detection regression is a known, watched surface, not a surprise.
+def test_green_claims_audit_zero_obligation_fixed(monkeypatch):
+    # KL-7 FIXED (FAIL-OPEN): a zero obligation previously short-circuited to
+    # COMPLIANT at 100% coverage (theatre -- broken green-product detection read
+    # compliant). Now the two zero-obligation cases are distinguished:
     from company.compliance.green_claims_audit import GreenClaimsAuditor
     from company.market.rego_portfolio import RegoPortfolio
+    from company.billing.tariff_products import TariffCatalogue
+
+    # (a) OUTCOME-SAFE: no green product in use -> a genuine "no claims made" is
+    #     NOT_APPLICABLE, a distinct state that is NOT "COMPLIANT".
+    # BEFORE: res.status == "COMPLIANT" and res.coverage_pct == 100.0
+    # AFTER : res.status == "NOT_APPLICABLE" (never a false "compliant").
     auditor = GreenClaimsAuditor(RegoPortfolio())
-    res = auditor.audit(2020, {}, date_str="2020-12-31")  # no consumption -> obligation 0
-    assert res.status == "COMPLIANT" and res.coverage_pct == 100.0
+    na = auditor.audit(2020, {}, date_str="2020-12-31")  # no consumption
+    assert na.status == "NOT_APPLICABLE"
+    assert na.status != "COMPLIANT"
+
+    # (b) FIRES: a green product IS in use (billed consumption) yet the obligation
+    #     detection is broken and computes to 0 -- must fail CLOSED, not read
+    #     compliant. Simulate the broken detector by forcing the REGO requirement
+    #     to 0 while a real green tariff carries consumption.
+    monkeypatch.setattr(TariffCatalogue, "rego_requirement_mwh",
+                        staticmethod(lambda kwh, code: 0.0))
+    broken = auditor.audit(2020, {"GREEN_FIX_1YR": 5000.0}, date_str="2020-12-31")
+    assert broken.green_products_active > 0        # a green product WAS in use
+    assert broken.obligation_mwh == 0.0            # detection produced zero obligation
+    assert broken.status == "NON_COMPLIANT"        # fails closed, not compliant
 
 
 # --------------------------------------------------------------------------
@@ -519,17 +568,23 @@ def test_dashboard_consistency_gate_fires_on_surface_disagreement():
     assert gdd._check_consistency(portfolio, {"net_margin_gbp": 200.0}, "run.json") is False
 
 
-def test_dashboard_consistency_gate_no_insights_is_fail_silent_gap():
-    # KILL-LIST GAP (KL-8, FAIL-SILENT): a missing/empty run_insights.json makes
-    # the gate return True (pass) -- the SAME class as the R11 orphan-transition
-    # incident (a gate that passes when its comparison input is absent). Same
-    # graceful-degrade shape as _check_bridge_reconciles's documented missing-file
-    # branch; pinned here and registered rather than papered over.
+def test_dashboard_consistency_gate_no_insights_fixed():
+    # KL-8 FIXED (FAIL-SILENT + FAIL-OPEN): the gate previously passed when its
+    # comparison input was absent -- the SAME class as the R11 orphan-transition
+    # incident. The pipeline guarantees run_insights.json is written immediately
+    # before this gate runs, so an absent payload is a real failure.
     import tools.generate_dashboard_data as gdd
-    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {}, "run.json") is True
-    # And the per-key skip (FAIL-OPEN): a headline key missing on one side is
-    # silently skipped, not flagged.
-    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {"insights": []}, "run.json") is True
+    # (a) FAIL-SILENT closed: missing/empty insights now FAILS (was True).
+    # BEFORE: _check_consistency({"net_margin_gbp": 100.0}, {}, "run.json") is True
+    # AFTER : it is False.
+    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {}, "run.json") is False
+    # (b) FAIL-OPEN closed: a headline key present on one surface but missing on
+    # the other is a disagreement, not a silent skip (was True).
+    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {"insights": []}, "run.json") is False
+    # OUTCOME-SAFE: genuinely-agreeing surfaces still pass. net margin agrees on
+    # both surfaces; every other headline key is absent on BOTH surfaces and is
+    # legitimately not-published, so it is still skipped (not a false mismatch).
+    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {"net_margin_gbp": 100.0}, "run.json") is True
 
 
 def test_dashboard_basis_label_gate_fires_on_unlabelled_headline_figure():

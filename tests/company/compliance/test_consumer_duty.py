@@ -76,8 +76,11 @@ def test_overall_rag_green_all_green():
 
 
 def test_overall_rag_empty():
+    # R15 (KL-5 fix): an un-assessed register is a governance gap, not GREEN.
     reg = ConsumerDutyRegister()
-    assert reg.overall_rag() == OutcomeRAG.GREEN
+    assert reg.overall_rag() == OutcomeRAG.NOT_ASSESSED
+    assert reg.is_assessed() is False
+    assert reg.needs_attention() is True
 
 
 def test_outcomes_summary_keys():

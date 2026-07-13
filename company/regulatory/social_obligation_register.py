@@ -132,8 +132,24 @@ class SocialObligationSpendRegister:
         return [r for r in self._records if r.obligation_type == obligation_type]
 
     def non_compliant(self) -> List[SocialObligationRecord]:
-        return [r for r in self._records if not r.is_compliant
-                and r.status != ObligationStatus.PROJECTED]
+        """Obligations that are non-compliant on EITHER of two independent
+        signals (a record is flagged if it fails one, per R15 KL-6):
+
+          1. the self-declared `status` label (not PAID/COMPLIANT), and
+          2. INDEPENDENT spend-vs-target evidence (`is_underspend`).
+
+        R15 (KL-6 fix, 2026-07-13): previously this trusted the `status` label
+        ALONE -- a TAUTOLOGY, the same "compliance from a declared label"
+        pattern as the flagship VAT check. A record mislabelled PAID while
+        grossly underspent passed silently. Folding in `is_underspend` (the
+        independent control that already existed via underspend_records())
+        means a mislabelled-PAID underspend now fires, so the label can no
+        longer manufacture compliance. PROJECTED records are still excluded --
+        a projection legitimately shows spend below target because it has not
+        happened yet (an in-progress underspend is not a breach)."""
+        return [r for r in self._records
+                if r.status != ObligationStatus.PROJECTED
+                and (not r.is_compliant or r.is_underspend)]
 
     def underspend_records(self) -> List[SocialObligationRecord]:
         return [r for r in self._records if r.is_underspend]

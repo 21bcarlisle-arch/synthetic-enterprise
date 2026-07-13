@@ -15,6 +15,11 @@ class OutcomeRAG(str, Enum):
     GREEN = "green"
     AMBER = "amber"
     RED = "red"
+    # R15 (KL-5 fix, 2026-07-13): "no assessment performed" is a distinct
+    # governance state, NOT green. Under FCA Consumer Duty an un-assessed
+    # outcome is a governance failure, not compliance -- an empty register
+    # must never read GREEN (that was a FAIL-SILENT: absence read as clean).
+    NOT_ASSESSED = "not_assessed"
 
 
 @dataclass(frozen=True)
@@ -52,11 +57,26 @@ class ConsumerDutyRegister:
     def red_outcomes(self) -> list[OutcomeAssessment]:
         return [a for a in self._assessments if a.rag == OutcomeRAG.RED]
 
+    def is_assessed(self) -> bool:
+        """True iff at least one of the four Consumer-Duty outcomes has ever
+        been assessed. Surfaces/daemons should treat False as a flag (an
+        un-assessed register is a governance gap), never as compliance."""
+        return any(self.latest_for_outcome(o) is not None for o in DutyOutcome)
+
+    def needs_attention(self) -> bool:
+        """The board/daemon flag: True when the register is NOT solidly GREEN --
+        i.e. RED, AMBER, or NOT_ASSESSED. A convenience wrapper so callers do
+        not accidentally treat NOT_ASSESSED as GREEN."""
+        return self.overall_rag() != OutcomeRAG.GREEN
+
     def overall_rag(self) -> OutcomeRAG:
         latest = [self.latest_for_outcome(o) for o in DutyOutcome]
         active = [a for a in latest if a is not None]
+        # R15 (KL-5 fix): an empty register (no outcome ever assessed) is a
+        # governance failure, NOT compliant. Return the distinct NOT_ASSESSED
+        # state rather than defaulting silently to GREEN.
         if not active:
-            return OutcomeRAG.GREEN
+            return OutcomeRAG.NOT_ASSESSED
         if any(a.rag == OutcomeRAG.RED for a in active):
             return OutcomeRAG.RED
         if any(a.rag == OutcomeRAG.AMBER for a in active):
@@ -77,6 +97,8 @@ class ConsumerDutyRegister:
             }
         return {
             "overall_rag": self.overall_rag().value,
+            "assessed": self.is_assessed(),
+            "needs_attention": self.needs_attention(),
             "red_outcomes": len(self.red_outcomes()),
             "outcomes": result,
         }

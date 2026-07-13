@@ -34,9 +34,11 @@ def test_non_compliant_when_no_rego():
 
 
 def test_non_green_products_ignored():
+    # R15 (KL-7 fix): no green product in use -> a genuine "no green claims made"
+    # is NOT_APPLICABLE (distinct from COMPLIANT), never a false "compliant".
     a = GreenClaimsAuditor(RegoPortfolio())
     result = a.audit(2022, {"STD1": 1_000_000})
-    assert result.status == "COMPLIANT"
+    assert result.status == "NOT_APPLICABLE"
     assert result.obligation_mwh == 0.0
     assert result.green_products_active == 0
 
@@ -91,10 +93,13 @@ def test_wrong_year_rego_not_counted():
     assert result.status != "COMPLIANT"
 
 
-def test_empty_consumption_is_compliant():
+def test_empty_consumption_is_not_applicable():
+    # R15 (KL-7 fix): no consumption -> no claims made -> NOT_APPLICABLE, a
+    # distinct state from COMPLIANT (a zero obligation is not evidence of a
+    # backed claim).
     a = GreenClaimsAuditor(RegoPortfolio())
     result = a.audit(2022, {})
-    assert result.status == "COMPLIANT"
+    assert result.status == "NOT_APPLICABLE"
     assert result.obligation_mwh == 0.0
 
 
