@@ -1082,6 +1082,23 @@
   evidence: ["docs/design/CONTROL_KILL_LIST.md", "docs/design/control_registry.json"]
   file_scope: [company/compliance, tools/generate_dashboard_data.py]
   simplifications: ["2026-07-13 REGISTERED (H12 pass-2 mutation-test findings, CONTROL_KILL_LIST.md KL-4..KL-8). Five real controls that do not fire on their named defect -- QUEUE-d (multi-caller semantics changes, not fix-on-sight): KL-4 FAIL-SILENT population_sanity.check_estimated_read_rate([]) reads clean though a total absence of reads is the most-broken state; KL-5 FAIL-SILENT ConsumerDutyRegister().overall_rag() reports GREEN on an EMPTY register (un-assessed = a governance failure under FCA Consumer Duty -- important); KL-6 TAUTOLOGY social_obligation.non_compliant() trusts the self-declared status field (mislabelled-PAID underspend passes; mitigated by independent underspend_records()); KL-7 FAIL-OPEN green_claims_audit.audit() short-circuits obligation==0 -> 100pct COMPLIANT (broken green-product detection reads compliant); KL-8 FAIL-SILENT+OPEN _check_consistency passes when run_insights.json is missing and silently skips a one-sided missing headline key (same class as the R11 orphan-transition incident). FIX (per R15/R10, the CLASS): each must FIRE on its named defect -- empty/zero/missing input fails CLOSED or ALARMS; self-status replaced by an independent signal (KL-6 like F5). Each fix gets a mutation test proving it now fires. loop_stage idle: rank for BUILD (KL-5 + KL-7 highest -- customer/regulatory-facing false-GREEN)."]
+
+- id: A6_coupled_triad_gap_metric
+  name: "The coupled triad: SIM depth -> company copes through the wall -> harness measures the belief-vs-truth GAP (the gap is the score)"
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/done/THE_COUPLED_TRIAD.md"]
+  file_scope: [docs/design, background/supervisor.py, tools]
+  simplifications: ["2026-07-13 REGISTERED (THE_COUPLED_TRIAD.md, director-decided, P1 rank HIGH, QUEUE -- changes what 'done' MEANS on the map, applied to level definitions + the draw, not a one-off build). THE GAP IS THE SCORE. Problem: the W-lane (world) and company lanes advance as INDEPENDENT ladders -- a world mechanism can hit its target while the supplier has never once been tested against it; depth nobody has to cope with is scenery, not physics. Fix (structural): every capability is a 3-part loop -- (1) SIM adds depth; (2) the COMPANY must DISCOVER + COPE through the wall only (missed payments, broken plans, disclosure, observable behaviour -- never told, and ALLOWED to be wrong); (3) the HARNESS measures the belief-vs-truth GAP (hidden SIM truth vs company belief/action). Falling gap = learning; no gap = cheating (read the answer); static gap = not adapting (a finding). TWO BINDING RULES (going into CLAUDE.md): no SIM/world atom reaches L3 ('fails like reality') until the company has been tested against it and the gap measured; no company capability is complete until it has faced a world that can defeat it. GAP as a first-class metric alongside levels, per coupled pair (classification accuracy for cant-pay/wont-pay 2x2; attribution error for the DD confound; belief error for the population draw; detection-rate + false-negative-harm for self-rationing), reported every digest + on The Proof door. RUN AT SMALL SCALE NOW (this IS the Epoch-4 tournament engine -- the arms race between a deepening world and a coping company -- not deferred): couple the affordability cluster W2_4..W2_10 to their company-side twins and draw as triads. Draw consequence: coupled atoms drawn as pairs/triads; a world atom's promotion BLOCKS on its company-response test existing. Design fork dispatched (docs/design/COUPLED_TRIAD_DESIGN.md: the gap-metric formula + the W2_4-W2_10 coupling table + the level-definition amendment + the draw-coupling mechanism). loop_stage idle: DISCOVER/FRAME (the design) now; BUILD ranks HIGH -- it re-defines the score itself."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "measuring how wrong a supplier's model of its own customers is, and whether that error is shrinking as the world changes"
+  depends_on: []
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "closing the specific compliance controls an auditor proved were reporting compliant when they should have flagged"
   depends_on: []
