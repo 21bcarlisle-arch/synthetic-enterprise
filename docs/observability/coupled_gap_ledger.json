@@ -1,4 +1,25 @@
 {
+  "W2_10_dd_attribution_confound": {
+    "baseline": "full naive effect is confound (delta_true=0); delta_naive=0.0492857, delta_true=0.0238621",
+    "components": {
+      "arrears_rate_dd": 0.1311908736783528,
+      "arrears_rate_non_dd": 0.1804765291607397,
+      "company_confound_flag": true,
+      "dd_share": 0.7188,
+      "delta_naive": 0.04928565548238689,
+      "delta_true": 0.023862123750000002,
+      "n_dd": 14376,
+      "n_non_dd": 5624
+    },
+    "g0": 0.04928565548238689,
+    "gap": 0.5158403897351521,
+    "measured_at": "2026-07-13T22:06:40.528539+00:00",
+    "metric": "attribution",
+    "note": "fraction of the company's DD-discount business case that is SELECTION artefact: C12 delta_naive (observed non-DD arrears rate - DD arrears rate, credited wholesale to the DD channel) vs W2_10 delta_true (the do-operator causal DD effect). The DD cohort is pre-selected clean by the hidden organisation confound, so delta_naive over-credits the channel; the company cannot see this and does not correct for it.",
+    "raw_gap": 0.02542353173238689,
+    "run_git_commit": "b318892cea32362e6fdfd0fb41a1e0762c97d2b0",
+    "twin_atom_id": "C12_channel_attribution_analytics"
+  },
   "W2_4_household_budget": {
     "baseline": "TV(truth, national/blind prior) -- the no-book-info belief",
     "components": {
@@ -48,30 +69,6 @@
     "run_git_commit": "d29055ed5c555d6ef667eceec80798f58a0902a5",
     "twin_atom_id": "C7_life_event_detection"
   },
-  "W2_9_segment_debt_tnc": {
-    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
-    "components": {
-      "class_counts": {
-        "business_terms": 50200,
-        "domestic_terms": 449800
-      },
-      "error_rate": 0.023,
-      "majority_class": "domestic_terms",
-      "n": 500000,
-      "n_wrong": 11500,
-      "positive_class": "business_terms",
-      "wrongly_applied": 8200,
-      "wrongly_withheld": 3300
-    },
-    "g0": 0.1004,
-    "gap": 0.2290836653386454,
-    "measured_at": "2026-07-13T21:45:31.021206+00:00",
-    "metric": "misapplication",
-    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
-    "raw_gap": 0.023,
-    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
-    "twin_atom_id": "C11_segment_debt_policy"
-  },
   "W2_6_sme_distress_twin": {
     "baseline": "always-predict-majority quadrant can/will (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
     "components": {
@@ -96,5 +93,29 @@
     "raw_gap": 0.6249629629629629,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C8_sme_credit_risk"
+  },
+  "W2_9_segment_debt_tnc": {
+    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
+    "components": {
+      "class_counts": {
+        "business_terms": 50200,
+        "domestic_terms": 449800
+      },
+      "error_rate": 0.023,
+      "majority_class": "domestic_terms",
+      "n": 500000,
+      "n_wrong": 11500,
+      "positive_class": "business_terms",
+      "wrongly_applied": 8200,
+      "wrongly_withheld": 3300
+    },
+    "g0": 0.1004,
+    "gap": 0.2290836653386454,
+    "measured_at": "2026-07-13T21:45:31.021206+00:00",
+    "metric": "misapplication",
+    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
+    "raw_gap": 0.023,
+    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
+    "twin_atom_id": "C11_segment_debt_policy"
   }
 }
