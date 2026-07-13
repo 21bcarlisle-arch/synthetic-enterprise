@@ -6,19 +6,20 @@
 <title>Build Timeline -- Synthetic Enterprise</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
-body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;margin:0;padding:24px;font-size:13px}
+/* Light default (BRAND_CONSTITUTION.md §3a): black on white, dark reserved as a sparing accent. */
+body{background:#ffffff;color:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;margin:0;padding:24px;font-size:13px}
 h1{font-size:18px;margin:0 0 4px}
-.meta{color:#7d8590;font-size:11px;margin-bottom:24px}
-.investor{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:24px;font-size:13px}
-.investor h2{font-size:14px;color:#58a6ff;margin:0 0 8px}
+.meta{color:#666666;font-size:11px;margin-bottom:24px}
+.investor{background:#f4f4f4;border:1px solid #d9d9d9;border-radius:8px;padding:16px;margin-bottom:24px;font-size:13px}
+.investor h2{font-size:14px;color:#0047ff;margin:0 0 8px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.chart-box{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;height:240px;position:relative}
-.chart-title{font-size:11px;color:#7d8590;margin-bottom:8px}
+.chart-box{background:#f4f4f4;border:1px solid #d9d9d9;border-radius:6px;padding:16px;height:240px;position:relative}
+.chart-title{font-size:11px;color:#666666;margin-bottom:8px}
 .chart-box canvas{width:100%!important}
 table{width:100%;border-collapse:collapse;margin-top:24px;font-size:11px}
-th{text-align:left;color:#7d8590;font-weight:500;padding:5px 8px;border-bottom:1px solid #30363d}
-td{padding:4px 8px;border-bottom:1px solid #21262d}
-.ms{background:#1f3d5c;color:#58a6ff;padding:1px 5px;border-radius:3px;font-size:10px}
+th{text-align:left;color:#666666;font-weight:500;padding:5px 8px;border-bottom:1px solid #d9d9d9}
+td{padding:4px 8px;border-bottom:1px solid #eeeeee}
+.ms{background:#dce7ff;color:#0047ff;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600}
 </style>
 </head>
 <body>
@@ -37,13 +38,13 @@ td{padding:4px 8px;border-bottom:1px solid #21262d}
 <div class="investor">
 <h2>Build Evidence</h2>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
-<div><span style="color:#7d8590">Started</span><br>June 2026</div>
-<div><span style="color:#7d8590">Current</span><br>Phase 259 | 3,413 tests</div>
-<div><span style="color:#7d8590">Company modules</span><br>194 files</div>
-<div><span style="color:#7d8590">Simulation</span><br>9.5 years x 18 customers x 48 HH/day</div>
-<div><span style="color:#7d8590">Net margin (latest)</span><br>GBP6,322,836 | Treasury GBP3,796,762</div>
-<div><span style="color:#7d8590">Crisis</span><br>Survived 2021-22 (around 30 real suppliers failed)</div>
-<div><span style="color:#7d8590">Built by</span><br>1 human (strategy) + Claude + Qwen</div>
+<div><span style="color:#666666">Started</span><br>June 2026</div>
+<div><span style="color:#666666">Current</span><br>Phase 259 | 3,413 tests</div>
+<div><span style="color:#666666">Company modules</span><br>194 files</div>
+<div><span style="color:#666666">Simulation</span><br>9.5 years x 18 customers x 48 HH/day</div>
+<div><span style="color:#666666">Net margin (latest)</span><br>GBP6,322,836 | Treasury GBP3,796,762</div>
+<div><span style="color:#666666">Crisis</span><br>Survived 2021-22 (around 30 real suppliers failed)</div>
+<div><span style="color:#666666">Built by</span><br>1 human (strategy) + Claude + Qwen</div>
 </div>
 </div>
 
@@ -52,7 +53,7 @@ td{padding:4px 8px;border-bottom:1px solid #21262d}
 <div class="chart-box"><div class="chart-title">Cumulative tests over time</div><canvas id="c2"></canvas></div>
 </div>
 
-<h2 style="font-size:14px;color:#58a6ff;margin:24px 0 8px">Phase Log</h2>
+<h2 style="font-size:14px;color:#0047ff;margin:24px 0 8px">Phase Log</h2>
 <table id="phase-table">
 <tr><th>#</th><th>Date</th><th>Description</th><th>Tests</th></tr>
 </table>
@@ -98,13 +99,13 @@ const lineOpts = {
   responsive:true, maintainAspectRatio:false,
   plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
   scales:{
-    x:{grid:{color:'rgba(48,54,61,.4)'},ticks:{maxRotation:45,color:'#7d8590',font:{size:9}}},
-    y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{color:'#7d8590',font:{size:10}}}
+    x:{grid:{color:'rgba(0,0,0,.08)'},ticks:{maxRotation:45,color:'#666666',font:{size:9}}},
+    y:{grid:{color:'rgba(0,0,0,.08)'},ticks:{color:'#666666',font:{size:10}}}
   }
 };
 
-new Chart(document.getElementById('c1'),{type:'line',data:{labels:datesArr,datasets:[{data:phaseArr,borderColor:'#58a6ff',backgroundColor:'rgba(88,166,255,.08)',fill:true,tension:.2,pointRadius:0}]},options:lineOpts});
-new Chart(document.getElementById('c2'),{type:'line',data:{labels:datesArr,datasets:[{data:testArr,borderColor:'#3fb950',backgroundColor:'rgba(63,185,80,.08)',fill:true,tension:.2,pointRadius:0}]},options:lineOpts});
+new Chart(document.getElementById('c1'),{type:'line',data:{labels:datesArr,datasets:[{data:phaseArr,borderColor:'#0047ff',backgroundColor:'rgba(0,71,255,.08)',fill:true,tension:.2,pointRadius:0}]},options:lineOpts});
+new Chart(document.getElementById('c2'),{type:'line',data:{labels:datesArr,datasets:[{data:testArr,borderColor:'#00873c',backgroundColor:'rgba(0,135,60,.08)',fill:true,tension:.2,pointRadius:0}]},options:lineOpts});
 
 // Build table
 const tbl = document.getElementById('phase-table');

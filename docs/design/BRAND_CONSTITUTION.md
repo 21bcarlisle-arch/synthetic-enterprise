@@ -45,18 +45,53 @@ the ratified exemplar (§7); these are the starting canon — refinements for
 contrast/accessibility may be proposed but any palette change is **director-ratified only**
 (brand dials face the director, same law as R13 curriculum dials):
 
-| Role  | Bright    | Soft      |
-|-------|-----------|-----------|
-| Blue  | `#0047FF` | `#DCE7FF` |
-| Red   | `#E11900` | `#FFDDD6` |
-| Amber | `#F5A600` | `#FFF0C9` |
-| Green | `#00873C` | `#D6F2E0` |
+| Role  | Bright    | Soft      | Bright vs white (WCAG) |
+|-------|-----------|-----------|------------------------|
+| Blue  | `#0047FF` | `#DCE7FF` | 6.28:1 (AA)            |
+| Red   | `#E11900` | `#FFDDD6` | 4.84:1 (AA)            |
+| Amber | `#AA6700` | `#FFF0C9` | 4.52:1 (AA)            |
+| Green | `#00873C` | `#D6F2E0` | 4.63:1 (AA)            |
 
 Black `#0A0A0A`, white `#FFFFFF`; greys are tints of black for hairlines/secondary text only.
+
+**Amber re-tune (director-ratified 2026-07-13, BRAND_LIGHT_MODE_DEFAULT.md):** with the LIGHT
+ground now the default (§3a), the BRAG brights were contrast-checked against white. Three
+cleared WCAG AA unchanged. Amber's prior `#F5A600` read only **2.03:1** on white (fails even
+the 3:1 large-text/UI floor — it glowed on black but went garish/illegible on white), so it
+was darkened to the warmest ochre-amber that clears AA, `#AA6700` (4.52:1). Softs are pale
+fills behind black text and are unaffected. This is the one palette value the light-default
+switch changed.
 
 **BRAG status semantics (decided, universal):**
 blue = **verified done** (earned — expert-hour-passed / at target, never self-declared);
 green = **on track**; amber = **at risk / provisional / estimated**; red = **blocked / failing**.
+
+## 3a. Ground: light is the default, dark is a sparing accent (director-decided 2026-07-13)
+
+**BRAND_LIGHT_MODE_DEFAULT.md, director verbatim:** *"My only niggle is the black background
+in the new webpages. I prefer black on white to white on black. Same for docs etc. Only white
+on black for impact, used sparingly."*
+
+- **DEFAULT: black on white.** Light background (`surface.base` = white, `surface.sunken` =
+  grey-05), dark ink (`ink.base` = structural black). This is the ground state for the site,
+  for documents, and for any generated artefact. New work is **born light**.
+- **Dark (white-on-black) is an ACCENT, used SPARINGLY, for IMPACT only** — the named
+  `surface.accent-dark` role (structural black, `ink.on-accent` white). Legitimate uses: a
+  hero moment, a single statement panel, a deliberate full-bleed break between sections, a
+  headline figure. It is **punctuation, not paper**.
+- **Rule of thumb / compliance line:** if dark is the BASE of a page (the body/root surface),
+  it has stopped being impact and become a theme — precisely what the director does not want.
+  A page whose base surface is dark **fails** brand compliance
+  (`tools/brand_compliance.base_surface_is_dark`, mutation-tested). If in doubt, light.
+- **Rationale (recorded so it survives):** the brand's own philosophy is architectural,
+  restrained — colour as information, not decoration. On a black field the BRAG palette glows
+  and shouts, so nothing signals; on white it reads as information. The restraint is the point.
+  Practically, this is a document-heavy, evidence-heavy identity (tables, ledgers, passports,
+  long-form method) — light is what long-form reading and printed/exported documents want.
+- **Preserved exemplar of correct sparing dark use:** the §7 exemplar's terminal status block
+  (`.term`, black ground / white ink demonstrating the glyph grammar surviving without colour)
+  and `site/brand/proof.html`'s matching block are the documented ACCENT case — one small dark
+  panel on an otherwise white page. That is the ceiling for dark: a single panel, not a theme.
 
 ## 4. The laws (decided, non-negotiable)
 
@@ -138,7 +173,7 @@ terminal demonstration.
 
     --blue-bright:#0047FF;  --blue-soft:#DCE7FF;
     --red-bright:#E11900;   --red-soft:#FFDDD6;
-    --amber-bright:#F5A600; --amber-soft:#FFF0C9;
+    --amber-bright:#AA6700; --amber-soft:#FFF0C9;
     --green-bright:#00873C; --green-soft:#D6F2E0;
 
     --font:"Helvetica Neue", Helvetica, Arial, sans-serif;

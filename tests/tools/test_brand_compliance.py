@@ -17,7 +17,9 @@ from tools.brand_compliance import (
     BRAND_DIR,
     CSS_PATH,
     TOKENS_PATH,
+    base_surface_is_dark,
     color_values,
+    contrast_ratio,
     find_raw_hex,
     find_soft_as_text,
     generate_css,
@@ -75,7 +77,9 @@ def test_palette_values_match_ratified_constitution():
     ratified = {
         "blue-bright": "#0047FF", "blue-soft": "#DCE7FF",
         "red-bright": "#E11900", "red-soft": "#FFDDD6",
-        "amber-bright": "#F5A600", "amber-soft": "#FFF0C9",
+        # amber-bright re-tuned #F5A600 -> #AA6700 for WCAG AA on the light ground
+        # (BRAND_LIGHT_MODE_DEFAULT.md, director-ratified 2026-07-13).
+        "amber-bright": "#AA6700", "amber-soft": "#FFF0C9",
         "green-bright": "#00873C", "green-soft": "#D6F2E0",
         "black": "#0A0A0A", "white": "#FFFFFF",
     }
@@ -129,6 +133,70 @@ def test_consuming_surfaces_have_no_soft_as_text():
     for surface in _consuming_surfaces():
         hits = find_soft_as_text(surface.read_text(), names, hexes)
         assert hits == [], f"{surface.name} uses a soft colour as text/thin-line: {hits}"
+
+
+# ---- light-default ground: semantic surface/ink tokens + WCAG AA on white (§3a) -------------
+
+def test_semantic_surface_and_ink_tokens_codify_light_default():
+    """The light-default constitution (§3a) must be codified in tokens, not just prose:
+    a light base + sunken surface, dark ink, and dark as a NAMED accent surface."""
+    values = color_values(load_tokens())
+    assert values["surface-base"] == "#FFFFFF", "base ground must be light (white)"
+    assert values["surface-sunken"] == "#F4F4F4", "sunken backdrop must be light (grey-05)"
+    assert values["surface-accent-dark"] == "#0A0A0A", "dark must be a NAMED accent surface"
+    assert values["ink-base"] == "#0A0A0A", "default ink is structural black on the light ground"
+    assert values["ink-on-accent"] == "#FFFFFF", "ink on the dark accent is white"
+    # The default ground pairs light surface with dark ink (black-on-white), not the reverse.
+    assert contrast_ratio(values["surface-base"], values["ink-base"]) >= 4.5
+
+
+def test_brag_brights_meet_wcag_aa_on_white():
+    """Every bright status must read as information on the white ground -- WCAG AA (>=4.5:1).
+    Guards the re-tune: the old amber #F5A600 was 2.03:1 and would fail this."""
+    values = color_values(load_tokens())
+    white = values["white"]
+    for role in ("blue", "red", "amber", "green"):
+        ratio = contrast_ratio(values[f"{role}-bright"], white)
+        assert ratio >= 4.5, f"{role}-bright {values[f'{role}-bright']} = {ratio:.2f}:1 on white, below AA"
+
+
+# ---- dark-as-base FAILS; light + sparing dark accent PASSES (§3a, mutation-tested) ----------
+
+def test_base_surface_is_dark_mutation_check():
+    """R15 mutation check: the control must FIRE on its named defect (a dark base surface) and
+    PASS the intended-good case (a light page carrying a sparing dark accent panel)."""
+    tokens = load_tokens()
+    # MUTANT 1: dark base via the named accent token used (wrongly) as the page ground -> FAIL.
+    dark_token = "<style>body{background:var(--surface-accent-dark);color:var(--ink-on-accent);}</style>"
+    assert base_surface_is_dark(dark_token, tokens) is True
+    # MUTANT 2: dark base via a raw dark hex (the GitHub-dark #0d1117 the director objected to) -> FAIL.
+    dark_hex = "<style>body{background:#0d1117;color:#e6edf3;}</style>"
+    assert base_surface_is_dark(dark_hex, tokens) is True
+    # GOOD 1: light base with a SPARING dark accent on a child panel -> PASS (accent != base).
+    light_accent = (
+        "<style>body{background:var(--surface-base);color:var(--ink-base);}"
+        ".hero{background:var(--surface-accent-dark);color:var(--ink-on-accent);}</style>"
+    )
+    assert base_surface_is_dark(light_accent, tokens) is False
+    # GOOD 2: plain white page -> PASS.
+    assert base_surface_is_dark("<style>body{background:#FFFFFF;color:#0A0A0A;}</style>", tokens) is False
+    # GOOD 3: light base declared via the page's own :root custom property -> resolved + PASS.
+    page_root = "<style>:root{--bg:#f9f9f7;}body{background:var(--bg);}</style>"
+    assert base_surface_is_dark(page_root, tokens) is False
+    # An unresolved base reference is indeterminate (None), which callers treat as a failure.
+    assert base_surface_is_dark("<style>body{background:var(--nope);}</style>", tokens) is None
+
+
+def test_consuming_surfaces_have_a_light_base():
+    """Every token-consuming brand surface must have a LIGHT base (dark is a sparing accent
+    only, never the page ground). Fail-closed: None (unresolvable) also fails."""
+    tokens = load_tokens()
+    for surface in _consuming_surfaces():
+        verdict = base_surface_is_dark(surface.read_text(), tokens)
+        assert verdict is False, (
+            f"{surface.name}: base surface is dark or unresolvable ({verdict!r}); "
+            "dark is an accent, not the page ground (BRAND_CONSTITUTION.md §3a)"
+        )
 
 
 # ---- exemplar preserved verbatim ------------------------------------------------------------

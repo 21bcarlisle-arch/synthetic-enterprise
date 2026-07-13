@@ -93,6 +93,108 @@ def find_soft_as_text(css_text: str, soft_names: Iterable[str], soft_hexes: Iter
     return [m.group(0).strip() for m in pat.finditer(css_text)]
 
 
+# ---- light-default / dark-as-accent (BRAND_CONSTITUTION.md §3a) ------------------------------
+# The base (body/html) surface of a page must be light; dark is a sparing ACCENT applied to a
+# child element (hero/panel), never the page ground. `base_surface_is_dark` resolves the base
+# background through the page's own :root custom properties AND the brand tokens, then judges it
+# by WCAG relative luminance. It looks ONLY at the base surface, so a light page carrying a
+# sparing dark accent panel passes, while a dark-ground page fails.
+
+# A CSS named colour we may meet as a bare background keyword (minimal set that actually occurs).
+_NAMED_COLORS = {"white": "#FFFFFF", "black": "#000000", "transparent": None}
+
+# body/html rule -> its background(-color) value (first background declaration in the rule body).
+_BASE_BG_RE = re.compile(
+    r"(?:^|[^A-Za-z-])(?:body|html)\b[^{}]*\{[^{}]*?\bbackground(?:-color)?\s*:\s*([^;}]+)",
+    re.IGNORECASE,
+)
+_VAR_REF_RE = re.compile(r"var\(\s*(--[A-Za-z0-9_-]+)\s*(?:,([^)]*))?\)")
+_CUSTOM_PROP_RE = re.compile(r"(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+)")
+_HEX_ANY_RE = re.compile(r"#[0-9A-Fa-f]{3,8}\b")
+
+# Threshold: WCAG relative luminance below which a surface needs light text (the standard
+# ~0.18 crossover where black vs white text give roughly equal contrast). Below it = "dark".
+_DARK_LUMINANCE_MAX = 0.18
+
+
+def _srgb_to_linear(c: float) -> float:
+    c = c / 255.0
+    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def relative_luminance(hex_color: str) -> float:
+    """WCAG relative luminance of a #RGB / #RRGGBB colour."""
+    h = hex_color.lstrip("#")
+    if len(h) == 3:
+        h = "".join(ch * 2 for ch in h)
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return 0.2126 * _srgb_to_linear(r) + 0.7152 * _srgb_to_linear(g) + 0.0722 * _srgb_to_linear(b)
+
+
+def contrast_ratio(a: str, b: str) -> float:
+    """WCAG contrast ratio between two colours (>=1)."""
+    la, lb = relative_luminance(a), relative_luminance(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def _var_map(text: str, tokens: dict | None) -> dict[str, str]:
+    """Custom-property name -> value, from the brand tokens plus the page's own :root."""
+    m: dict[str, str] = {}
+    if tokens is not None:
+        for name, val in color_values(tokens).items():
+            m[f"--{name}"] = val
+    for name, val in _CUSTOM_PROP_RE.findall(text):
+        m[name] = val.strip()
+    return m
+
+
+def _resolve_color(value: str, var_map: dict[str, str], _depth: int = 0) -> str | None:
+    """Resolve a CSS background value to a #hex, following var(--x[, fallback]) and named colours.
+
+    Returns None if it cannot be resolved (an unresolved reference is treated as indeterminate,
+    NOT as light -- callers fail closed)."""
+    value = value.strip()
+    if _depth > 12 or not value:
+        return None
+    var_m = _VAR_REF_RE.search(value)
+    if var_m:
+        ref = var_map.get(var_m.group(1))
+        if ref is not None:
+            resolved = _resolve_color(ref, var_map, _depth + 1)
+            if resolved is not None:
+                return resolved
+        if var_m.group(2):  # var() fallback
+            return _resolve_color(var_m.group(2), var_map, _depth + 1)
+        return None
+    hex_m = _HEX_ANY_RE.search(value)
+    if hex_m:
+        return hex_m.group(0)
+    for name, hx in _NAMED_COLORS.items():
+        if re.search(rf"\b{name}\b", value, re.IGNORECASE):
+            return hx
+    return None
+
+
+def base_surface_is_dark(text: str, tokens: dict | None = None) -> bool | None:
+    """Judge a page's BASE surface (body/html background) against the light-default law.
+
+    Returns True if the base surface is dark (a brand-compliance defect -- dark must be a
+    sparing accent, never the page ground), False if it is light, and None if the base
+    background references something that cannot be resolved to a colour (indeterminate --
+    callers should treat None as a failure, fail-closed, per R15). A page with no explicit
+    base background renders on the browser default (white) and is therefore light -> False.
+    """
+    var_map = _var_map(text, tokens)
+    m = _BASE_BG_RE.search(text)
+    if not m:
+        return False  # no explicit base surface -> default white -> light
+    resolved = _resolve_color(m.group(1), var_map)
+    if resolved is None:
+        return None  # unresolved reference -> indeterminate (fail closed at the call site)
+    return relative_luminance(resolved) < _DARK_LUMINANCE_MAX
+
+
 def generate_css(tokens: dict) -> str:
     """Deterministic ``:root`` CSS custom-property projection of the token source.
 
