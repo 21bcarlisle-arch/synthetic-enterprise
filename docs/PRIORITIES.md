@@ -25,6 +25,19 @@ future consolidation/wiring pass treats it as one backlog item across N modules,
 one-off surprises re-discovered independently each time an atom's DISCOVER pass happens to trip
 over one.
 
+**Real, ACTIVE defect found (2026-07-13, W2_6_sme_distress_twin's own DISCOVER pass, R10 class-level
+registration): residential life events fire unconditionally for SME/I&C customers too.**
+`simulation/life_events.py::generate_life_events()` has zero segment/property_type gate anywhere in
+its body -- confirmed via live execution against real I&C/SME customer records (C5/C6/C_IC1-4) that
+job_loss, new_baby, retirement_starts, illness, and divorce can all fire for a commercial
+warehouse/office building exactly as for a household, and the resulting income_stress transition
+feeds `simulation/arrears_engine.py`'s payment-default modelling for that same commercial account.
+This is the same absurdity class as the C6 SME-as-Household VAT precedent (R10) -- not a missing
+capability, an ACTIVE one applying the wrong real-world semantics to live simulation output today.
+Fix (not built yet, BUILD-gated, lives in W2_5_life_event_stream's file_scope not W2_6's): gate these
+demographic events to segment=='resi' only; W2_6's own SME/I&C sector-shock/insolvency generator is
+the intended replacement for the business population, not an extension of the residential one.
+
 **ADVISOR_STEER_TWIN_READONLY.md CLOSED IN FULL (2026-07-12):** twin read-only proven (real failed-write
 test, `RUN_LIVE_TWIN_TESTS=1`); `PLATFORM_ADMINISTRATION` one-way-door category added (repo/GitHub
 settings, keys/secrets, account/billing/entitlements). CANNOT-draw root-caused as R2 (the `supervisor`
