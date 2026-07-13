@@ -6,7 +6,7 @@ Binding rule 1: "No SIM/world atom reaches L3 ('fails like reality') until the
 company has been tested against it and the belief-vs-truth GAP has been
 measured." Mechanised here as a BUILD-lane draw gate: a WORLD atom may not be
 drawn for BUILD toward L3 unless (a) its coupled company twin exists in the map
-with level_current >= 1, AND (b) a non-null gap measurement exists for the pair
+with level_current >= 2, AND (b) a non-null gap measurement exists for the pair
 in the gap ledger.
 
 This is HARNESS/orchestration code. It reads the maturity map (atom levels +
@@ -228,12 +228,13 @@ def world_l3_blocked(world_atom: dict, atoms: list, ledger: dict):
     by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and a.get("id")}
     twin = by_id.get(twin_id)
     twin_level = twin.get("level_current") if isinstance(twin, dict) else None
-    if not isinstance(twin_level, int) or twin_level < 1:
+    if not isinstance(twin_level, int) or twin_level < 2:
         return (
             True,
             f"{world_id} targets L3 but its coupled twin {twin_id} is at "
-            f"level_current={twin_level} (<1) -- the company has not yet been "
-            "built to face this world (binding rule 1).",
+            f"level_current={twin_level} (<2) -- the company capability is not yet "
+            "mechanically real (L2) enough to have coped with this world "
+            "(binding rule 1, design section 4.1).",
         )
 
     if not gap_measured(world_id, ledger):

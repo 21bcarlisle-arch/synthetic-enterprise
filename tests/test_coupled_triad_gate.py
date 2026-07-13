@@ -93,7 +93,7 @@ def test_gap_measured_rejects_boolean_gap():
 # --- world_l3_blocked: the gate ----------------------------------------------
 
 def test_world_l3_blocked_when_no_gap_entry(tmp_path):
-    atoms = _atoms(world_lc=2, twin_lc=1)
+    atoms = _atoms(world_lc=2, twin_lc=2)   # twin ready (>=L2) -> block is on the gap, not the twin
     ledger = ct.load_gap_ledger(_write_ledger(tmp_path, {}))
     blocked, reason = ct.world_l3_blocked(atoms[0], atoms, ledger)
     assert blocked is True
@@ -101,7 +101,7 @@ def test_world_l3_blocked_when_no_gap_entry(tmp_path):
 
 
 def test_world_l3_allowed_when_gap_measured_and_twin_ready(tmp_path):
-    atoms = _atoms(world_lc=2, twin_lc=1)
+    atoms = _atoms(world_lc=2, twin_lc=2)   # twin mechanically real (>=L2, design 4.1)
     ledger = ct.load_gap_ledger(_write_ledger(tmp_path, {
         "W2_7_willingness_classification": {
             "twin_atom_id": "C9_cantpay_wontpay_classifier",
@@ -148,13 +148,15 @@ def test_world_blocked_when_twin_missing(tmp_path):
     assert "twin" in reason.lower()
 
 
-def test_world_blocked_when_twin_below_l1(tmp_path):
-    atoms = _atoms(world_lc=2, twin_lc=0)    # twin exists but unbuilt (lc=0<1)
+def test_world_blocked_when_twin_below_l2(tmp_path):
+    # Threshold is L2 (design 4.1): a twin built only to L1, even WITH a measured
+    # gap, is not yet mechanically-real enough to have coped -> still blocked.
+    atoms = _atoms(world_lc=2, twin_lc=1)    # twin exists, L1, but <L2
     ledger = ct.load_gap_ledger(_write_ledger(tmp_path, {
         "W2_7_willingness_classification": {"gap": 0.5}  # gap measured...
     }))
     blocked, reason = ct.world_l3_blocked(atoms[0], atoms, ledger)
-    assert blocked is True                   # ...but twin not ready -> still blocked
+    assert blocked is True                   # ...but twin below L2 -> still blocked
     assert "C9" in reason
 
 
