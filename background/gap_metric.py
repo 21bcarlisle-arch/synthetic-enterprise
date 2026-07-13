@@ -382,6 +382,88 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
 
 
 # ---------------------------------------------------------------------------
+# (e) Misapplication gap -- wrong-CLASS applied vs the answer key (W2_9)
+# ---------------------------------------------------------------------------
+
+def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
+                       *, positive_class=None) -> GapResult:
+    """Categorical misapplication gap (formula e): the fraction of cases where
+    the company applied the WRONG class, normalised to a no-skill baseline.
+
+    Used by the W2_9 <-> C11 segment-debt pair: `truth_labels[i]` is the
+    obligation class the world says is CORRECT for case i (from the TRUE
+    segment); `applied_labels[i]` is the class the company actually applied
+    (C11 acting on the OBSERVED segment). A mismatch = wrong-segment T&C
+    applied (a compliance/fairness error).
+
+        raw_gap = mean( truth[i] != applied[i] )                # error rate
+        g0      = mean( truth[i] != majority_class(truth) )     # blind baseline
+        gap     = raw_gap / g0
+
+    The blind baseline g0 is a NO-SKILL applier that always applies the single
+    majority obligation class -- so gap=1 means the company does no better than
+    that, gap=0 means it applied the correct class everywhere (structurally
+    reachable here only if segment observation were perfect, i.e. no wall).
+    R15 INDEPENDENCE: the truth labels come from a DIFFERENT source than the
+    applied labels (world true-segment vs company observed-segment) -- the check
+    is not reading its expected value from the thing it grades, so a real
+    mislabel produces a real, non-tautological gap.
+
+    FAIL LOUD on empty/mismatched input (a control that cannot see its
+    population is unavailable = failed, not a silent pass)."""
+    truth = list(truth_labels)
+    applied = list(applied_labels)
+    if not truth:
+        raise ValueError("misapplication_gap: empty population")
+    if len(truth) != len(applied):
+        raise ValueError("truth_labels and applied_labels must be the same length")
+
+    n = len(truth)
+    n_wrong = sum(1 for t, a in zip(truth, applied) if t != a)
+    raw_gap = n_wrong / n
+
+    counts: dict = {}
+    for t in truth:
+        counts[t] = counts.get(t, 0) + 1
+    majority = max(counts, key=lambda c: counts[c])
+    g0 = sum(1 for t in truth if t != majority) / n
+
+    # Directional error components: for a named positive_class (e.g. the
+    # business-terms class), report how often it was wrongly withheld vs wrongly
+    # applied -- the two compliance directions have different real-world harm
+    # (a domestic account charged business interest is the unlawful direction).
+    components: dict = {
+        "n": n,
+        "n_wrong": n_wrong,
+        "error_rate": round(raw_gap, 6),
+        "majority_class": str(majority),
+        "class_counts": {str(k): v for k, v in sorted(counts.items(), key=lambda kv: str(kv[0]))},
+    }
+    if positive_class is not None:
+        wrongly_applied = sum(
+            1 for t, a in zip(truth, applied)
+            if a == positive_class and t != positive_class
+        )
+        wrongly_withheld = sum(
+            1 for t, a in zip(truth, applied)
+            if t == positive_class and a != positive_class
+        )
+        components["positive_class"] = str(positive_class)
+        components["wrongly_applied"] = wrongly_applied
+        components["wrongly_withheld"] = wrongly_withheld
+
+    baseline = (
+        f"no-skill applier: always apply the majority class {majority!r} "
+        f"(mis-serves {g0:.4f} of the population)"
+    )
+    return _normalise(
+        raw_gap, g0, baseline, "misapplication", components=components,
+        note="fraction of accounts on the wrong-class T&C, normalised to the "
+             "blind majority-class applier",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Deterministic bootstrap CI (C-S2: named RNG substream, reproducible)
 # ---------------------------------------------------------------------------
 
