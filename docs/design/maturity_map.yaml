@@ -1003,6 +1003,57 @@
   evidence: ["docs/design/BRAND_CONSTITUTION.md"]
   file_scope: [site, tools, docs/design/BRAND_CONSTITUTION.md]
   simplifications: ["2026-07-13 REGISTERED (BRAND_CONSTITUTION.md, director-decided/ratified live 'love it', Tier 3 flag-and-proceed, QUEUE). Lane-2 SITE per THREE_LANES -- site/** + document templates, disjoint from BUILD, runs parallel, never gates an epoch; director-authorised to run alongside builds. The visual+verbal identity authority for EVERY Poesys surface (site, charts, bill PDFs, reports, board packs, decks, digests, NTFYs); sits ABOVE SITE_CONSTITUTION.md/POESYS_SITE_BRIEF.md and WINS on visual-identity conflicts (reconcile, don't fork). KEY CONSTRAINT: every Poesys artefact is AI-generated, so the brand book's consumer is the AGENT -- it must be machine-readable tokens + short testable rules + canonical exemplars, so any agent produces on-brand output BY CONSTRUCTION and drift is test-detectable. DECIDED (do not re-litigate): identity = radically plain/honest, 'the energy supplier that hides nothing', architectural simplicity, black+white carry all structure, no ornament; the company's existing honesty conventions (clock/basis labels, provisional badges, published misses) ARE the brand voice (formalise, invent nothing). PALETTE 'BRAG' = black+white + blue/red/amber/green each bright+soft (12 values), with fixed semantics: blue=verified-done (earned, expert-hour-passed/at-target, never self-declared), green=on-track, amber=at-risk/provisional/estimated, red=blocked/failing. 6 LAWS (colour is information never decoration; bright=live soft=historical/fill; soft never as text/thin-line; ONE neo-grotesque typeface, hierarchy via weight/size/space; glyphs are information not decoration, 6 is the ceiling; type-only identity, wordmark lowercase 'poesys.' WITH the full stop). GLYPH GRAMMAR (6, held absolutely, work in plain text incl NTFY/digest/commits): . =done/verified(blue), _ =in-build/on-track(green), ~ =estimated/provisional(amber), ! =blocked/failing(red), > =action/next/CTA, // =the working/basis/provenance. DELIVERABLES (required properties, impl is the agent's): (1) ONE machine-readable design-tokens JSON (W3C format) = the sole home of every colour/type/spacing value, every surface consumes tokens never raw values; (2) an agent-loaded brand-rules file (CLAUDE.md-style short imperative testable statements, referenced before generating any visual surface); (3) canonical exemplar preserved verbatim (the ratified §7 mock -- front door + customer bill + glyph grammar -- generation COPIES from it, never reinterprets); (4) enforcement testable in the harness (no raw colour value outside the token source; soft-colour-as-text detectable/blocked). DoD: token source is sole colour home + the LIVE site consumes it end-to-end (R11 rendered-pixel, director's eyes); rules file loaded by visual-surface generators; exemplar preserved + site front door and one real customer bill demonstrably follow it (BRAG chips, ~///> in live use); brand-compliance harness check passes. ROLLOUT of remaining surfaces (charts, PDFs, reports, decks, NTFY/digest glyph conventions) registers as FOLLOW-UP atoms -- batch honestly, no big-bang. OPEN (genuine, everything else decided): self-hosted typeface selection (agent proposes, DIRECTOR RATIFIES -- brand dial faces the director, same law as R13 curriculum; any palette/dial change is director-ratified only), enforcement mechanism design, token file location/format, rollout sequencing, reconciliation pass vs SITE_CONSTITUTION/POESYS_SITE_BRIEF so there is exactly one visual-identity authority. loop_stage idle: SITE-lane build (director-authorised, runs parallel), DISCOVER/FRAME (token schema, enforcement mechanism, typeface options) workable now; R11 live-pixel DoD needs the director's eyes (no autonomous network). The ratified exemplar is preserved verbatim inside docs/design/BRAND_CONSTITUTION.md §7 (established as the standing visual-identity authority, moved out of staging).", "2026-07-13 BUILT L0->L2 (worktree fork, commit 954cf6b0, merged to main aceed951; orchestrator-verified 9/9 brand-compliance tests + epistemic PASS on merged main). The 4 deliverables built: site/brand/tokens.json (W3C design-tokens, the 12 BRAG colours + b/w/greys + type/spacing/weights, sole colour home) + tokens.css (byte-pinned projection); docs/design/BRAND_RULES.md (agent-loaded, 6 laws + glyph grammar verbatim + typeface-is-a-director-dial note); site/brand/exemplar.html (the section-7 mock verbatim, drift-guarded byte-equal to the constitution); tools/brand_compliance.py + tests/tools/test_brand_compliance.py (9 assertions -- no raw hex outside the token source, soft-colour-as-text flagged, palette drift-guard vs constitution). proof.html demonstrates one surface consuming tokens with zero raw hex. Typeface + palette left as director dials (not self-decided, R13-shaped). HONEST L2 not L3: L3 needs the LIVE production site CSS refactored to consume the tokens end-to-end + R11 live-pixel verification (director eyes / no autonomous network) -- the CSS adoption is autonomously buildable (SITE-lane follow-up), the pixel is the director residual. loop_stage build (token-adoption rollout is real remaining build)."]
+
+- id: F5_vat_control_independent_signal
+  name: "VAT-by-segment control must check against a segment signal INDEPENDENT of the bill's own label (currently a tautology)"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence: ["docs/design/INVARIANT_LIBRARY_REDTEAM.md"]
+  file_scope: [company/compliance/domain_invariants.py, company/billing/pre_bill_validation.py]
+  simplifications: ["2026-07-13 REGISTERED (INVARIANT_LIBRARY_REDTEAM.md top-1, HIGH -- a live Tier-1 control giving FALSE assurance). saas/bill_generator.py:158 computes vat = subtotal * vat_rate(segment); pre_bill_validation.py:60-68 re-derives the rate by dividing back and checks it against vat_rate_for_segment(segment) (domain_invariants.py:395-406) -- BOTH sides are the same function of the same segment field, so the check passes for every bill the generator can emit and STRUCTURALLY CANNOT catch its own named C6 SME-as-Household mislabel class (the exact R10 absurdity class it was built for). FIX (class, per R10): re-base the expected VAT/segment on an INDEPENDENT observable signal (e.g. consumption band / meter profile / tariff registration) so a mislabelled segment produces a MISMATCH the gate catches, not a tautology. loop_stage idle: DISCOVER/FRAME the independent-signal choice now; BUILD is a real compliance fix to rank."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier's VAT control that cross-checks the declared customer class against independent evidence, not against its own label"
+  depends_on: []
+
+- id: F6_bill_integrity_structural
+  name: "Structural bill-integrity invariants: arithmetic footing + non-negativity/fail-CLOSED + temporal sanity"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence: ["docs/design/INVARIANT_LIBRARY_REDTEAM.md"]
+  file_scope: [company/billing/pre_bill_validation.py, company/compliance/domain_invariants.py]
+  simplifications: ["2026-07-13 REGISTERED (INVARIANT_LIBRARY_REDTEAM.md confirmed gaps 2-4+6). No arithmetic footing (a GBP999,999 total on an GBP88 bill passes -- line items are never asserted to sum to the total); no sign/non-negativity check AND the gate fails OPEN when subtotal<=0 (a zero/negative bill skips validation entirely); unguarded temporal impossibility (a reversed-date bill is silently clamped to 1 day instead of rejected); and the Qwen internal-audit backstop FAILS SILENT -- returns 'clean' when Ollama is unreachable, i.e. on effectively every autonomous run (false assurance). FIX (class): add load-bearing structural invariants -- line-items-sum-to-total footing, non-negativity with FAIL-CLOSED on non-positive subtotal, start<=end temporal sanity that REJECTS not clamps; and make the audit backstop fail-CLOSED/flag when the model is unreachable. loop_stage idle: rank for BUILD."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "basic billing-system sanity controls (foots, no negative charges, dates make sense) that any real biller has"
+  depends_on: []
+
+- id: F7_obligations_register_coverage
+  name: "Obligations register coverage + traceability: physical-harm rows, resolve-or-degrade tracker, enforcing-invariant key"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence: ["docs/design/INVARIANT_LIBRARY_REDTEAM.md"]
+  file_scope: [company/compliance/obligations_register.py]
+  simplifications: ["2026-07-13 REGISTERED (INVARIANT_LIBRARY_REDTEAM.md top-3). Register coverage gaps: physical-harm obligation rows (gas-safety, self-disconnection) under-represented; the existing_tracker field is unresolved/degraded in places; and obligation rows do not carry the KEY of the invariant that enforces them, so SLC-31A-vs-21BA style drift between an obligation and its enforcement can go undetected. Also the enforcement is bills-only -- annual statements, DD resets, refunds are ungated surfaces a bad value can reach a customer through. FIX: extend register coverage + carry an enforcing-invariant key per row (traceability) + widen the gate surface beyond bills. loop_stage idle: rank for BUILD."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a compliance obligations matrix where every duty maps to the control that enforces it, audited for coverage"
+  depends_on: []
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a challenger brand's design system delivered as machine-consumable tokens+rules so every generated surface is on-brand by construction, not by a human interpreting a PDF style guide"
   depends_on: []
