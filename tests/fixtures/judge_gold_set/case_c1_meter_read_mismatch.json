@@ -1,0 +1,16 @@
+{
+  "case_id": "c1_meter_read_mismatch",
+  "director_verdict": "defect",
+  "defect_class": "cross_source_state_mismatch",
+  "task_class": "site_presentation",
+  "artefact": {
+    "description": "The C1 customer record and its /account/C1/smart-meter portal page, rendering cleanly with zero console errors.",
+    "customer": "C1",
+    "meter_type_rendered": "traditional",
+    "property_model_asset_profile": "smart",
+    "surface_appearance": "page loads, upgrade CTA shown, nothing visibly broken"
+  },
+  "the_catch": "Director-flagged (from_rich): the static C1-C4 customer records carried NO smart_meter flag, so meter_type_for_customer() silently defaulted every one to 'traditional' -- contradicting property_model's own asset-profile table which already said C1 is smart. Two sources of the same truth disagreed; the portal rendered the wrong one. A clean render and passing arithmetic are exactly what a weak judge signs off; the catch is a cross-source consistency check a render-layer judge never performs.",
+  "source": "docs/PROJECT_OVERVIEW.md (Gas/elec clarity + C1 smart-meter fix, director-flagged)",
+  "detectable_by": null
+}

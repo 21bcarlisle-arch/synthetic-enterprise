@@ -1,0 +1,16 @@
+{
+  "case_id": "naked_hedging_volatility_leak",
+  "director_verdict": "defect",
+  "defect_class": "point_in_time_data_leak_in_a_headline_finding",
+  "task_class": "pricing",
+  "artefact": {
+    "description": "A flagship chart/thesis proposed for the public site: the population converged to near-naked hedging (hedge fraction ~0.00) during the calm 2016-2020 years.",
+    "claimed_finding": "The company learns to run naked during calm markets -- a behavioural risk-appetite finding.",
+    "presentation": "Chart + narrative, internally coherent, ready to publish."
+  },
+  "the_catch": "The director held publication ('naked-hedging claim from the site vs hold until I've read the full writeup') and the finding was re-derived: the low hedge fraction traced to a POINT-IN-TIME DATA LEAK in the volatility lookback (future data used in the vol calc). Re-derived blind, the population stays hedged 0.80-0.90 throughout including the calm years. The headline was an artefact of a foresight bug, not a behaviour -- a judge that signs off a finding without checking the epistemic wall on its inputs is a weak judge.",
+  "source": "docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md; CLAUDE.md Sequencing principles (regime-change blindness, REVISED 2026-07-10)",
+  "detectable_by": [
+    "tools.epistemic_verifier"
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "standing_rule": "Where a control cannot be mutation-tested, it must be OUTCOME-tested. No verdict-producing organ escapes measurement.",
+  "outcome_correlation": {
+    "per_judge_class": {
+      "phase-close-evaluator|harness_supervisor": {
+        "passes": 1,
+        "passes_with_later_defect": 0,
+        "total_post_close_defects": 0,
+        "error_rate": 0.0
+      }
+    },
+    "per_judge": {
+      "phase-close-evaluator": {
+        "passes": 1,
+        "passes_with_later_defect": 0,
+        "total_post_close_defects": 0,
+        "error_rate": 0.0
+      }
+    },
+    "overall": {
+      "passes": 1,
+      "passes_with_later_defect": 0,
+      "total_post_close_defects": 0,
+      "error_rate": 0.0
+    }
+  },
+  "gold_set": {
+    "cases": [
+      {
+        "case_id": "bad_debt_consumption_smell_test",
+        "director_verdict": "defect",
+        "defect_class": "population_implausible_figure",
+        "source": "docs/design/SANITY_TRIAGE_2026_07_11.md (finding 3, high-consumption SPLIT VERDICT)"
+      },
+      {
+        "case_id": "c1_meter_read_mismatch",
+        "director_verdict": "defect",
+        "defect_class": "cross_source_state_mismatch",
+        "source": "docs/PROJECT_OVERVIEW.md (Gas/elec clarity + C1 smart-meter fix, director-flagged)"
+      },
+      {
+        "case_id": "c6_sme_as_household_vat",
+        "director_verdict": "defect",
+        "defect_class": "wrong_customer_class_billing",
+        "source": "docs/staging/done/DOMAIN_SENSE_AND_COMPLIANCE.md; CLAUDE.md R10; docs/design/SANITY_TRIAGE_2026_07_11.md"
+      },
+      {
+        "case_id": "naked_hedging_volatility_leak",
+        "director_verdict": "defect",
+        "defect_class": "point_in_time_data_leak_in_a_headline_finding",
+        "source": "docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md; CLAUDE.md Sequencing principles (regime-change blindness, REVISED 2026-07-10)"
+      }
+    ],
+    "rubber_stamp_baseline": {
+      "total_cases": 4,
+      "caught": 0,
+      "missed": 4,
+      "recall": 0.0,
+      "misses": [
+        {
+          "case_id": "bad_debt_consumption_smell_test",
+          "returned": "pass",
+          "defect_class": "population_implausible_figure"
+        },
+        {
+          "case_id": "c1_meter_read_mismatch",
+          "returned": "pass",
+          "defect_class": "cross_source_state_mismatch"
+        },
+        {
+          "case_id": "c6_sme_as_household_vat",
+          "returned": "pass",
+          "defect_class": "wrong_customer_class_billing"
+        },
+        {
+          "case_id": "naked_hedging_volatility_leak",
+          "returned": "pass",
+          "defect_class": "point_in_time_data_leak_in_a_headline_finding"
+        }
+      ]
+    },
+    "oracle_ceiling": {
+      "total_cases": 4,
+      "caught": 4,
+      "missed": 0,
+      "recall": 1.0,
+      "misses": []
+    },
+    "note": "Real LLM-judge (phase-close-evaluator, cold-eyes) recall against these cases accrues live -- each case must be put to the judge as a fresh-context artefact; the baseline (rubber-stamp=0.0) and ceiling (oracle=1.0) bound the score and prove the scorer discriminates now."
+  },
+  "consistency": {
+    "metric": "flip_rate = fraction of repeated-identical-input verdicts disagreeing with the modal verdict",
+    "accrues_live": true,
+    "note": "Each real repeated invocation of an Opus judge on identical evidence appends a sample; flip_rate>0 means the judge is noise and its verdict cannot support a promotion. No real invocation happens under the publish path (cost/no-network), so this accrues over live judge runs."
+  },
+  "independence": {
+    "metric": "disagreement_rate = fraction of differently-primed judges on one artefact not holding the majority verdict",
+    "accrues_live": true,
+    "note": "Systematic disagreement between independent judges on the same artefact is a finding about the JUDGE. Accrues as real independent judges are run on shared artefacts."
+  }
+}

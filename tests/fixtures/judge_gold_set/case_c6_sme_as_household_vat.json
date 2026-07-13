@@ -1,0 +1,21 @@
+{
+  "case_id": "c6_sme_as_household_vat",
+  "director_verdict": "defect",
+  "defect_class": "wrong_customer_class_billing",
+  "task_class": "billing",
+  "artefact": {
+    "description": "An SME customer's bill, rendered and passing every render-layer check.",
+    "customer_segment_declared": "SME",
+    "vat_rate_applied": 0.20,
+    "vat_treatment_used": "domestic reduced-rate logic (as if residential)",
+    "non_commodity_revenue_lines": "absent",
+    "headline": "Bill totals reconcile; VAT arithmetic internally consistent."
+  },
+  "the_catch": "An SME was billed on the residential/household code path: the 20% figure looked right for a business but the underlying treatment (VAT class selection, absent non-commodity revenue lines) was the household path misapplied to a business customer. Same class surfaced three times (C6 SME-as-household, a 4.3-sigma bill, missing non-commodity revenue) before it was fixed as a CLASS, not an instance -- which is exactly why R10 exists.",
+  "source": "docs/staging/done/DOMAIN_SENSE_AND_COMPLIANCE.md; CLAUDE.md R10; docs/design/SANITY_TRIAGE_2026_07_11.md",
+  "detectable_by": [
+    "company.compliance.domain_invariants.check_vat",
+    "company.compliance.domain_invariants.check_vat_consistent_with_consumption",
+    "company.compliance.domain_invariants.check_resi_bill_consumption_plausible"
+  ]
+}

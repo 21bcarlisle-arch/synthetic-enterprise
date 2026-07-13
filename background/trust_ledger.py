@@ -158,6 +158,59 @@ def entries_for_class(task_class: TaskClass) -> list[dict]:
     return [e for e in _load_ledger() if e.get("task_class") == task_class.value]
 
 
+def record_post_close_defect(
+    subject: str,
+    defects: int = 1,
+    *,
+    discovered_at: Optional[str] = None,
+    notes: str = "",
+) -> dict:
+    """OUTCOME-CORRELATION linkage (JUDGING_THE_JUDGES.md Part 1, approach 4).
+
+    A judge's verdict QUALITY cannot be mutation-tested, so it is OUTCOME-tested:
+    a PASS whose work LATER proves defective is a bad verdict, and that is the
+    judge's empirical error. `record_verdict` captures `defects_found_post_close`
+    only at record time; but a defect found LATER (a subsequent run, an Expert
+    Hour, a director catch) has to be attributed back to the PASS that let it
+    through. This is that attachment -- the minimal linkage the staged doc asks
+    for.
+
+    Finds the most-recent PASS entry whose `subject` matches (defects can only be
+    attributed to a verdict that actually PASSED the work -- a NEEDS_WORK verdict
+    already caught something, so a later defect is not ITS error), increments its
+    `defects_found_post_close` by `defects`, and returns the updated entry.
+    Raises KeyError if there is no PASS entry for that subject (a defect cannot be
+    charged to a judge that never passed the work).
+
+    This is deliberately NOT gated by INDEPENDENT_EVALUATORS: recording a verdict
+    is a trust-granting act (must be an independent grader), but recording that
+    reality later disagreed with a verdict is a fact about the world, and the
+    world is allowed to falsify any grader.
+    """
+    if defects < 1:
+        raise ValueError("defects must be >= 1 (a linkage records a real later-found defect)")
+    entries = _load_ledger()
+    match_idx = None
+    for i, e in enumerate(entries):
+        if e.get("subject") == subject and e.get("verdict") == Verdict.PASS.value:
+            match_idx = i  # keep last -> most recent PASS on this subject
+    if match_idx is None:
+        raise KeyError(
+            f"no PASS verdict recorded for subject {subject!r} -- a later-found "
+            "defect can only be charged to a judge that actually passed the work"
+        )
+    e = entries[match_idx]
+    e["defects_found_post_close"] = int(e.get("defects_found_post_close", 0)) + int(defects)
+    e["rework_required"] = True
+    stamp = discovered_at or datetime.now(timezone.utc).date().isoformat()
+    tail = f"[post-close defect x{defects} discovered {stamp}]"
+    if notes:
+        tail += f" {notes}"
+    e["notes"] = (e.get("notes", "") + " " + tail).strip()
+    _save_ledger(entries)
+    return e
+
+
 def autonomy_level(task_class: TaskClass, window: int = 10, earn_threshold: float = 0.8) -> str:
     """Diagnostic only (Law A) -- describes the record, changes nothing
     about what tools/permissions are actually available (PROCEED_BY_DEFAULT's
