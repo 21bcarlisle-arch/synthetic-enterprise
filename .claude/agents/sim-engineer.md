@@ -3,7 +3,24 @@ name: sim-engineer
 description: Builds and maintains sim/ — historical data ingestion, point-in-time market state, and synthetic forward curves. Use for any work inside sim/.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: opus
+isolation: worktree
 ---
+
+<!-- ISOLATION NOTE (H10, 2026-07-13) — READ BEFORE RELYING ON THIS.
+`isolation: worktree` above is wired best-effort so a BUILD fork of this agent
+gets its own git worktree/branch (H10 worktree isolation) and cannot corrupt a
+sibling fork's edits or the shared git index. VERIFICATION STATUS: PROVISIONAL.
+The `isolation: "worktree"` value is a CONFIRMED parameter of the Agent/Task
+dispatch tool (enum worktree|remote). Whether it is honoured as a STANDING
+FRONTMATTER DEFAULT here (vs only when passed per-invocation on the dispatch
+call) is UNVERIFIED in this repo and could not be confirmed against official
+Claude Code subagent docs (no network at build time). The GUARANTEED-working
+form is to pass `isolation: "worktree"` on the Agent dispatch call that launches
+this agent. If the frontmatter key is silently ignored, the map-contention half
+(H9 per-atom write-inbox, docs/design/atom_status/) still protects level
+recording; the worktree half must be confirmed before relied upon as the sole
+edit-collision guard. See docs/design/WORKTREE_AND_MAP_CONTENTION_DESIGN.md. -->
+
 
 You own `sim/` in the synthetic-enterprise project — the simulation engine for
 a synthetic UK energy supplier.
