@@ -1039,3 +1039,53 @@ def test_wait_for_api_connectivity_ntfys_on_first_failure_then_recovers(monkeypa
     assert any("restored" in m.lower() for m in ntfy_msgs), (
         f"Expected NTFY about connectivity restored, got: {ntfy_msgs}"
     )
+
+
+# ── Post-restart daemon health check (2026-07-13, ANTI_LIVELOCK_AND_WIDTH.md
+# adjacent director request, live in-console: "after any session restart,
+# verify the full daemon set and alarm if any are missing") ──
+
+def test_verify_daemon_set_after_restart_logs_ok_and_does_not_ntfy(monkeypatch):
+    logs = []
+    ntfy_msgs = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, **k: logs.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_msgs.append(msg))
+    monkeypatch.setattr(watchdog, "run_health_check", lambda: (True, ["ok1", "ok2"], []))
+
+    watchdog._verify_daemon_set_after_restart()
+
+    assert not ntfy_msgs, "a healthy stack must never NTFY (routine-noise discipline)"
+    assert any("OK" in m for m in logs)
+
+
+def test_verify_daemon_set_after_restart_ntfys_on_missing_daemon(monkeypatch):
+    logs = []
+    ntfy_msgs = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, **k: logs.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_msgs.append(msg))
+    monkeypatch.setattr(
+        watchdog, "run_health_check",
+        lambda: (False, ["ok1"], ["  ✗ supervisor — NOT RUNNING (supervisor.py)"]),
+    )
+
+    watchdog._verify_daemon_set_after_restart()
+
+    assert len(ntfy_msgs) == 1
+    assert "supervisor" in ntfy_msgs[0]
+    assert any("DEGRADED" in m for m in logs)
+
+
+def test_verify_daemon_set_after_restart_survives_health_check_exception(monkeypatch):
+    """A broken health check must not crash the restart flow itself --
+    log the failure and move on, same defensive posture as every other
+    best-effort step in restart_claude()."""
+    logs = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, **k: logs.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: (_ for _ in ()).throw(AssertionError("must not be called")))
+    def _boom():
+        raise RuntimeError("tmux unavailable")
+    monkeypatch.setattr(watchdog, "run_health_check", _boom)
+
+    watchdog._verify_daemon_set_after_restart()  # must not raise
+
+    assert any("failed to run" in m for m in logs)

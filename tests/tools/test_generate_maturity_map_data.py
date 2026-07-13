@@ -87,3 +87,48 @@ def test_epoch2_movements_have_exit_test_and_status():
         assert m["exit_test"]
         assert m["status"] in {"not_started", "in_progress", "audit_complete", "done"}
         assert m["status_note"]
+
+
+# ── Anti-livelock stall tracker merge (2026-07-13, ANTI_LIVELOCK_AND_WIDTH.md) ──
+
+def test_every_atom_has_stalled_field_defaulting_false():
+    generate()
+    data = json.loads(OUT_PATH.read_text())
+    for atom in data["atoms"]:
+        assert "stalled" in atom
+        assert isinstance(atom["stalled"], bool)
+
+
+def test_stalled_atom_from_tracker_surfaces_true(monkeypatch, tmp_path):
+    """The tracker lives in its own file (ATOM_STALL_STATE_FILE), never
+    written into maturity_map.yaml itself -- merged in at generation time.
+    Uses a real atom id from the live map so the merge is exercised against
+    genuine data, isolating only the tracker file."""
+    import tools.generate_maturity_map_data as gen_module
+
+    real_data = json.loads(OUT_PATH.read_text()) if OUT_PATH.exists() else None
+    if not real_data:
+        generate()
+        real_data = json.loads(OUT_PATH.read_text())
+    some_id = real_data["atoms"][0]["id"]
+
+    tracker_path = tmp_path / ".atom_stall_tracker.json"
+    tracker_path.write_text(json.dumps({some_id: {"stalled": True, "consecutive_unchanged": 2}}))
+    monkeypatch.setattr(gen_module, "ATOM_STALL_STATE_FILE", tracker_path)
+
+    ok = gen_module.generate()
+    assert ok is True
+    data = json.loads(OUT_PATH.read_text())
+    atom = next(a for a in data["atoms"] if a["id"] == some_id)
+    assert atom["stalled"] is True
+    assert atom["stall_consecutive_unchanged"] == 2
+
+
+def test_missing_tracker_file_defaults_every_atom_unstalled(monkeypatch, tmp_path):
+    import tools.generate_maturity_map_data as gen_module
+    monkeypatch.setattr(gen_module, "ATOM_STALL_STATE_FILE", tmp_path / "does_not_exist.json")
+
+    ok = gen_module.generate()
+    assert ok is True
+    data = json.loads(OUT_PATH.read_text())
+    assert all(a["stalled"] is False for a in data["atoms"])

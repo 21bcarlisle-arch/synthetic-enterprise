@@ -127,6 +127,7 @@ from background.ntfy_utils import (  # noqa: E402
 )
 from background.agent_status import update_agent_status  # noqa: E402
 from background.tmux_relay import send_keys_when_idle  # noqa: E402
+from background.health_check import run_health_check  # noqa: E402
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -930,6 +931,43 @@ def restart_claude(resume: bool = True) -> None:
     count = restarts_in_last_hour()
     log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, "
         "direct launch, claude -c resume, no send-keys)")
+    _verify_daemon_set_after_restart()
+
+
+def _verify_daemon_set_after_restart() -> None:
+    """Daemon-liveness startup invariant (2026-07-13, director-requested
+    live in-console: "after any session restart, verify the full daemon
+    set and alarm if any are missing"). A tmux `kill-session`/`new-session`
+    cycle only ever touches the `claude` session itself -- every OTHER
+    daemon (supervisor, staging-watcher, sanity-daemon, etc.) lives in its
+    own separate tmux session and is untouched by this restart -- but
+    "should be unaffected" is exactly the kind of claim MAKE_IT_STICK says
+    must be a mechanism, not a remembered assumption: if the underlying
+    event that killed the `claude` session (a host reboot, an OOM kill, a
+    manual `tmux kill-server`) took other sessions down with it too, this
+    is the one place that would otherwise go unnoticed until something
+    downstream (no self-refill, no staging processing) is missed by a
+    human. Reuses background/health_check.py's own EXPECTED_PANES set and
+    run_health_check() directly (no new daemon-list to keep in sync) --
+    logs the result either way, NTFYs only on a genuine miss (never a
+    routine "all healthy" alert, matching this project's own noise
+    discipline)."""
+    try:
+        all_ok, ok_lines, problem_lines = run_health_check()
+    except Exception as exc:
+        log(f"Post-restart daemon health check itself failed to run: {exc}")
+        return
+    if all_ok:
+        log(f"Post-restart daemon health check: OK ({len(ok_lines)} checks healthy)")
+        return
+    log(f"Post-restart daemon health check: DEGRADED -- {len(problem_lines)} problem(s): "
+        + "; ".join(problem_lines))
+    ntfy(
+        "Post-restart daemon health check: DEGRADED after a Claude Code "
+        f"session restart -- {len(problem_lines)} problem(s):\n"
+        + "\n".join(problem_lines),
+        needs_input=True,
+    )
 
 
 def queue_downtime_tasks() -> None:

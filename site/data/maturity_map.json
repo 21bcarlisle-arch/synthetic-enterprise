@@ -13,7 +13,9 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "D1_bill_correctness",
@@ -28,7 +30,9 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "D2_three_clocks",
@@ -43,7 +47,9 @@
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_reveal_over_time",
@@ -58,7 +64,9 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_2_generate_futures",
@@ -75,7 +83,9 @@
       "depends_on": [
         "W1_reveal_over_time"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "B1_margin_bridge",
@@ -90,7 +100,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "B2_opex_cost_to_serve",
@@ -105,7 +117,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "B3_hedge_tariff_alignment",
@@ -120,7 +134,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "B4_competitor_field",
@@ -137,7 +153,9 @@
       "depends_on": [
         "W2_3_competitor_field"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C1_segment_layers",
@@ -152,7 +170,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C2_discovery_through_interfaces",
@@ -169,7 +189,9 @@
       "depends_on": [
         "W1_reveal_over_time"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -184,7 +206,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "E1_ledger_double_entry",
@@ -199,7 +223,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "E2_revenue_reconciliation",
@@ -214,7 +240,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "E3_accrual_restatement",
@@ -229,7 +257,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F1_epistemic_verifier",
@@ -244,7 +274,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F2_sanity_daemon",
@@ -259,7 +291,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F3_obligations_register",
@@ -274,7 +308,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G1_test_progression_metrics",
@@ -289,7 +325,9 @@
       "dial_inherited": 2,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G2_event_log_shared_with_spine",
@@ -306,7 +344,9 @@
       "depends_on": [
         "W1_reveal_over_time"
       ],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_1_archetype_layers",
@@ -321,7 +361,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_2_population_draw",
@@ -336,7 +378,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_3_competitor_field",
@@ -351,7 +395,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_4_household_budget",
@@ -368,7 +414,9 @@
       "depends_on": [
         "W2_2_population_draw"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_5_life_event_stream",
@@ -383,7 +431,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_6_sme_distress_twin",
@@ -400,7 +450,9 @@
       "depends_on": [
         "W2_2_population_draw"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_7_willingness_classification",
@@ -417,7 +469,9 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_8_self_rationing",
@@ -434,7 +488,9 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_9_segment_debt_tnc",
@@ -451,7 +507,9 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_10_dd_attribution_confound",
@@ -468,7 +526,9 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -483,7 +543,9 @@
       "dial_inherited": 2,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W3_2_settlement_timetable",
@@ -500,7 +562,9 @@
       "depends_on": [
         "D2_three_clocks"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W4_1_typed_adapters",
@@ -515,7 +579,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W4_2_verifier_timing_extension",
@@ -530,7 +596,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A1_learn_loop_chair",
@@ -545,7 +613,9 @@
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A2_decision_rights_register",
@@ -560,7 +630,9 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A3_approval_interface",
@@ -577,7 +649,9 @@
       "depends_on": [
         "A2_decision_rights_register"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A4_sim_approver",
@@ -594,7 +668,9 @@
       "depends_on": [
         "A3_approval_interface"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H6_lane_wall_development_pilot",
@@ -609,7 +685,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H7_skills_and_rules",
@@ -624,7 +702,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H1_supervisor_turn_granting",
@@ -639,7 +719,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H2_tree_lock_concurrency",
@@ -654,7 +736,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W5_1_banking_payment_rails",
@@ -672,7 +756,9 @@
         "D2_three_clocks",
         "D_payments_maturity_audit"
       ],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "D_payments_maturity_audit",
@@ -687,7 +773,9 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C4_adoption_physics",
@@ -706,7 +794,9 @@
         "W2_2_population_draw",
         "W1_reveal_over_time"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C5_key_moment_conversion",
@@ -724,7 +814,9 @@
         "C4_adoption_physics",
         "W1_reveal_over_time"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -742,7 +834,9 @@
         "C4_adoption_physics",
         "D1_bill_correctness"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H3_production_readiness_nfr_evidence",
@@ -757,7 +851,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H4_go_live_nfr_register",
@@ -775,7 +871,9 @@
         "H3_production_readiness_nfr_evidence",
         "H5_security_profiles"
       ],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F4_company_internal_authz",
@@ -790,7 +888,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H5_security_profiles",
@@ -805,7 +905,9 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": true
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F5_ofgem_licence_readiness",
@@ -822,7 +924,9 @@
       "depends_on": [
         "H3_production_readiness_nfr_evidence"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A5_tournament_fitness_mortality",
@@ -840,7 +944,9 @@
         "W1_2_generate_futures",
         "A4_sim_approver"
       ],
-      "at_target": false
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {

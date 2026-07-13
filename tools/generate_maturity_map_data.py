@@ -19,6 +19,18 @@ import yaml
 PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 OUT_PATH = PROJECT / "site" / "data" / "maturity_map.json"
+# ANTI_LIVELOCK_AND_WIDTH.md (P0, 2026-07-13): the anti-livelock stall
+# tracker (background/supervisor.py::ATOM_STALL_STATE_FILE) lives in its
+# OWN small observability file, never written into maturity_map.yaml
+# itself -- that file is the canonical, hand-curated per-atom registry
+# every FRAME/DISCOVER/BUILD pass this session edits directly, and having
+# a background daemon ALSO write to it would be a real concurrent-writer
+# collision risk (two independent processes racing a read-modify-write-
+# commit cycle on the same file). Merging the tracker's stalled flag in
+# here at JSON-generation time gives "a stalled atom surfaces ... on the
+# map" (the staged instruction's own requirement) with zero write risk to
+# the source YAML.
+ATOM_STALL_STATE_FILE = PROJECT / "docs" / "observability" / ".atom_stall_tracker.json"
 
 # MATURITY_MAP.md Section 8 (the director-ratified equaliser table) restated
 # here in structured form -- lane-level dial/loop-stage-now, distinct from
@@ -86,15 +98,26 @@ def _load_atoms():
         return yaml.safe_load(f)
 
 
+def _load_stall_state() -> dict:
+    if not ATOM_STALL_STATE_FILE.exists():
+        return {}
+    try:
+        return json.loads(ATOM_STALL_STATE_FILE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
 def generate():
     atoms = _load_atoms()
     if not isinstance(atoms, list):
         return False
+    stall_state = _load_stall_state()
 
     out_atoms = []
     for a in atoms:
         if not isinstance(a, dict):
             continue
+        stall_entry = stall_state.get(a.get("id"), {})
         out_atoms.append({
             "id": a.get("id"),
             "name": a.get("name"),
@@ -110,6 +133,8 @@ def generate():
             "depends_on": a.get("depends_on", []),
             "at_target": a.get("level_current") is not None and a.get("level_target") is not None
                 and a["level_current"] >= a["level_target"],
+            "stalled": bool(stall_entry.get("stalled")),
+            "stall_consecutive_unchanged": stall_entry.get("consecutive_unchanged"),
         })
 
     data = {

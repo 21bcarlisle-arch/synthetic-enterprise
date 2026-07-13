@@ -59,6 +59,7 @@ def _isolate(tmp_path, monkeypatch):
     # `ntfy` explicitly, same convention as the existing stuck-escalation tests.
     monkeypatch.setattr(supervisor, "MAP_EXHAUSTED_STATE_FILE", tmp_path / ".supervisor_map_exhausted_state.json")
     monkeypatch.setattr(supervisor, "IDLE_TURN_COUNTER_FILE", tmp_path / ".supervisor_idle_turn_count.json")
+    monkeypatch.setattr(supervisor, "ATOM_STALL_STATE_FILE", tmp_path / ".atom_stall_tracker.json")
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: None)
     # Isolated from the real, committed PRIORITIES.md -- defaults to a
     # nonexistent tmp_path file (no backlog found, matching the pre-existing
@@ -520,6 +521,138 @@ def test_idle_discover_frame_draw_weights_by_dial():
     rng = random_module.Random(42)
     results = [supervisor._idle_discover_frame_draw(rng=rng)["id"] for _ in range(20)]
     assert sum(r == "HIGH_DIAL_IDLE" for r in results) >= 18
+
+
+# ANTI_LIVELOCK_AND_WIDTH.md (P0, 2026-07-13): idle-tier width (item 2) and
+# the anti-livelock stall tracker (item 1). Both are opt-in on the existing
+# draw functions (exclude_stalled defaults False everywhere above), so none
+# of the tests above needed to change.
+
+def test_idle_discover_frame_draw_concurrent_grants_multiple_distinct_atoms():
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: IDLE_A\n  lane: L\n  dial_inherited: 3\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 2\n"
+        "- id: IDLE_B\n  lane: L\n  dial_inherited: 3\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 2\n"
+        "- id: IDLE_C\n  lane: L\n  dial_inherited: 3\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 2\n"
+    )
+    selected = supervisor._idle_discover_frame_draw_concurrent(width=6)
+    assert len(selected) == 3  # all three real candidates, none duplicated
+    assert len({a["id"] for a in selected}) == 3
+
+
+def test_idle_discover_frame_draw_concurrent_respects_width_cap():
+    lines = "".join(
+        f"- id: IDLE_{i}\n  lane: L\n  dial_inherited: 1\n  loop_stage: idle\n"
+        f"  level_current: 0\n  level_target: 1\n"
+        for i in range(10)
+    )
+    supervisor.MATURITY_MAP_PATH.write_text(lines)
+    selected = supervisor._idle_discover_frame_draw_concurrent(width=4)
+    assert len(selected) == 4
+
+
+def test_idle_discover_frame_draw_concurrent_returns_empty_list_when_no_candidates():
+    supervisor.MATURITY_MAP_PATH.write_text(_ONE_GAP_ATOM_YAML)  # loop_stage != idle
+    assert supervisor._idle_discover_frame_draw_concurrent() == []
+
+
+def test_idle_discover_frame_draw_concurrent_default_excludes_nothing_stalled():
+    """exclude_stalled defaults False -- pre-existing/other callers never
+    silently start filtering just because the tracker file happens to
+    exist from another test's or process's own prior run."""
+    supervisor.MATURITY_MAP_PATH.write_text(_IDLE_ATOM_YAML)
+    supervisor._save_atom_stall_state({"X8_idle_atom": {"fingerprint": "x", "consecutive_unchanged": 5, "stalled": True}})
+    selected = supervisor._idle_discover_frame_draw_concurrent()
+    assert len(selected) == 1
+    assert selected[0]["id"] == "X8_idle_atom"
+
+
+# ── Anti-livelock stall tracker ──
+
+def test_atom_fingerprint_stable_for_unchanged_atom():
+    atom = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications": ["a", "b"], "expert_hour": {"last": "2026-07-12"}}
+    assert supervisor._atom_fingerprint(atom) == supervisor._atom_fingerprint(dict(atom))
+
+
+def test_atom_fingerprint_changes_when_simplifications_grow():
+    before = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications": ["a"]}
+    after = {"level_current": 2, "level_target": 3, "loop_stage": "idle", "simplifications": ["a", "b"]}
+    assert supervisor._atom_fingerprint(before) != supervisor._atom_fingerprint(after)
+
+
+def test_record_atom_draw_and_check_stall_ratchets_then_flags():
+    fp = "same-fingerprint"
+    stalled1, count1 = supervisor._record_atom_draw_and_check_stall("X", fp)
+    assert (stalled1, count1) == (False, 1)
+    stalled2, count2 = supervisor._record_atom_draw_and_check_stall("X", fp)
+    assert (stalled2, count2) == (True, 2)  # ATOM_STALL_THRESHOLD == 2
+
+
+def test_record_atom_draw_and_check_stall_resets_on_real_change():
+    supervisor._record_atom_draw_and_check_stall("X", "fp1")
+    supervisor._record_atom_draw_and_check_stall("X", "fp1")  # now stalled
+    stalled, count = supervisor._record_atom_draw_and_check_stall("X", "fp2")  # genuinely changed
+    assert (stalled, count) == (False, 1)
+
+
+def test_is_atom_stalled_reads_persisted_flag():
+    assert not supervisor._is_atom_stalled("Y")
+    supervisor._record_atom_draw_and_check_stall("Y", "fp")
+    supervisor._record_atom_draw_and_check_stall("Y", "fp")
+    assert supervisor._is_atom_stalled("Y")
+
+
+def test_maturity_map_draw_concurrent_exclude_stalled_prefers_other_candidate():
+    """The actual DoD property (item 1): after 2 consecutive unchanged
+    draws of the same atom, a genuinely different candidate is preferred."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: SPINNING\n  lane: L\n  dial_inherited: 100\n"
+        "  level_current: 1\n  level_target: 2\n"
+        "- id: ALTERNATIVE\n  lane: L\n  dial_inherited: 1\n"
+        "  level_current: 1\n  level_target: 2\n"
+    )
+    import random as random_module
+    rng = random_module.Random(1)
+    # Draw twice with the identical fixture (identical fingerprint each time) --
+    # the high-dial atom wins both, the second one crosses ATOM_STALL_THRESHOLD.
+    first = supervisor._maturity_map_draw_concurrent(rng=rng, exclude_stalled=True)[0]
+    second = supervisor._maturity_map_draw_concurrent(rng=rng, exclude_stalled=True)[0]
+    assert first["id"] == "SPINNING"
+    assert second["id"] == "SPINNING"
+    assert supervisor._is_atom_stalled("SPINNING")
+    third = supervisor._maturity_map_draw_concurrent(rng=rng, exclude_stalled=True)[0]
+    assert third["id"] == "ALTERNATIVE"  # deprioritised, not re-selected a third time
+
+
+def test_maturity_map_draw_concurrent_exclude_stalled_falls_back_when_all_stalled():
+    """Soft deprioritisation, never a hard exclusion: if literally every
+    candidate is already flagged stalled, still return something rather
+    than reporting false exhaustion."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: ONLY_ONE\n  lane: L\n  dial_inherited: 1\n"
+        "  level_current: 1\n  level_target: 2\n"
+    )
+    supervisor._record_atom_draw_and_check_stall("ONLY_ONE", "fp")
+    supervisor._record_atom_draw_and_check_stall("ONLY_ONE", "fp")
+    assert supervisor._is_atom_stalled("ONLY_ONE")
+    selected = supervisor._maturity_map_draw_concurrent(exclude_stalled=True)
+    assert len(selected) == 1
+    assert selected[0]["id"] == "ONLY_ONE"
+
+
+def test_maturity_map_draw_concurrent_default_ignores_stall_state():
+    """exclude_stalled defaults False -- byte-for-byte preserves every
+    pre-existing test/caller of this function."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: ONLY_ONE\n  lane: L\n  dial_inherited: 1\n"
+        "  level_current: 1\n  level_target: 2\n"
+    )
+    supervisor._record_atom_draw_and_check_stall("ONLY_ONE", "fp")
+    supervisor._record_atom_draw_and_check_stall("ONLY_ONE", "fp")
+    selected = supervisor._maturity_map_draw_concurrent()  # no exclude_stalled kwarg
+    assert selected[0]["id"] == "ONLY_ONE"
 
 
 def test_self_refill_draw_falls_to_idle_discover_frame_when_no_build_candidate():
