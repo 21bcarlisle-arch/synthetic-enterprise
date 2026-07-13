@@ -1,1 +1,22 @@
-{}
+{
+  "W2_5_life_event_stream": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 1085,
+      "flagged_size": 4225,
+      "miss_rate": 0.012739,
+      "missed": 14,
+      "missed_harm": 23.0,
+      "total_harm": 2825.0,
+      "truth_size": 1099
+    },
+    "g0": 2825.0,
+    "gap": 0.008141592920353982,
+    "measured_at": "2026-07-13T21:32:34.443227+00:00",
+    "metric": "detection",
+    "note": "harm-weighted fraction of detectable life-event distress the company MISSED (W2_5 hidden events -> observable payment disruption -> C7 detection); miss-only metric, blind to false positives.",
+    "raw_gap": 23.0,
+    "run_git_commit": "d29055ed5c555d6ef667eceec80798f58a0902a5",
+    "twin_atom_id": "C7_life_event_detection"
+  }
+}

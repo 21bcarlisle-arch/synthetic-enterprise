@@ -275,10 +275,22 @@ def test_bootstrap_ci_named_substreams_differ():
 
 
 # ===========================================================================
-# Real ledger stays empty (no fabricated gaps shipped) -- mirrors gate test
+# Real ledger holds only NON-FABRICATED measurements -- mirrors gate test.
+# (Was "ships empty" until the first real coupled run; W2_5<->C7 populated it.
+# The guard's true intent is anti-fabrication, not emptiness: any non-null gap
+# must be numeric AND provenance-stamped with the run that produced it.)
 # ===========================================================================
 
-def test_real_ledger_ships_empty():
+def test_real_ledger_has_no_fabricated_entries():
     data = json.loads(gm.GAP_LEDGER_PATH.read_text(encoding="utf-8")) \
         if gm.GAP_LEDGER_PATH.is_file() else {}
-    assert data == {}
+    assert isinstance(data, dict)
+    for world_id, entry in data.items():
+        assert isinstance(entry, dict), world_id
+        assert isinstance(entry.get("twin_atom_id"), str) and entry["twin_atom_id"], world_id
+        gap = entry.get("gap")
+        assert gap is None or (isinstance(gap, (int, float)) and not isinstance(gap, bool)), world_id
+        if gap is not None:
+            # a measured gap must cite the run that produced it -- not hand-typed
+            assert entry.get("run_git_commit"), world_id
+            assert entry.get("measured_at"), world_id
