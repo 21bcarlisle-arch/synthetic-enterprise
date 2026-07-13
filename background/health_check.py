@@ -71,13 +71,30 @@ def _running_scripts() -> list[str]:
 
 
 def _process_start_times_by_script() -> dict[str, "datetime"]:
-    """{script_basename: earliest real process start time (UTC)} for every
-    currently-running python process whose command line names one of
-    EXPECTED_PANES' own scripts. Uses `ps -eo lstart,args` (one call, no
-    per-PID lookups) -- lstart's fixed-width `%c` format ("Mon Jul 13
-    06:52:48 2026") is parsed directly, in the machine's own local
-    timezone (matches file mtimes, which are also local-time-based via
-    os.stat -- both sides of the later comparison use the same clock)."""
+    """{script_basename: LATEST real python-daemon start time (UTC)} for every
+    currently-running python process actually EXECUTING one of EXPECTED_PANES'
+    own scripts. Uses `ps -eo lstart,args` (one call, no per-PID lookups) --
+    lstart's fixed-width `%c` format ("Mon Jul 13 06:52:48 2026") is parsed
+    directly, in the machine's own local timezone (matches file mtimes, which
+    are also local-time-based via os.stat -- both sides of the later
+    comparison use the same clock).
+
+    2026-07-13 precision fix (found live, false-positive): the previous
+    version matched ANY process whose command line merely CONTAINED the
+    script path -- which wrongly includes the launcher/wrapper command lines
+    that name the script as an ARGUMENT, not as the thing they execute:
+      - `tmux new-session -d -s background-worker ... python3 background/background_worker.py`
+        (a lingering launcher process, alive since the ORIGINAL session
+        creation -- its ancient start time made a freshly-restarted daemon
+        read as "stale")
+      - `sh -c python3 background/background_worker.py` (the pane's wrapper
+        shell -- the real daemon is its python3 CHILD, a separate process)
+    Both are excluded now by requiring the process's own EXECUTABLE (first
+    argv token) to be a python interpreter. And because a restart can leave
+    an old orphan briefly co-existing with the new process, this takes the
+    LATEST start time per script (the authoritative just-restarted process),
+    so a genuinely-completed restart reads green rather than being dragged
+    stale by a lingering older match."""
     try:
         out = subprocess.check_output(
             ["ps", "-eo", "lstart,args"], text=True, timeout=5,
@@ -94,13 +111,24 @@ def _process_start_times_by_script() -> dict[str, "datetime"]:
         if len(line) < 25:
             continue
         lstart_str, args = line[:24], line[25:]
+        tokens = args.split()
+        if not tokens:
+            continue
+        # The process's OWN executable must be a python interpreter -- this is
+        # what distinguishes the real daemon (`python3 background/foo.py`) from
+        # a `tmux .../`sh -c` line that merely names the script as an argument.
+        exe = tokens[0].rsplit("/", 1)[-1]
+        if not exe.startswith("python"):
+            continue
         for script in EXPECTED_PANES.values():
-            if script in args and script not in result:
+            if script in args:
                 try:
                     started = datetime.strptime(lstart_str, "%a %b %d %H:%M:%S %Y")
                 except ValueError:
                     continue
-                result[script] = started
+                # Latest wins: the just-restarted process is authoritative.
+                if script not in result or started > result[script]:
+                    result[script] = started
     return result
 
 

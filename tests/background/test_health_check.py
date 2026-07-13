@@ -199,6 +199,12 @@ def test_process_running_without_tmux_pane_still_passes(monkeypatch):
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: present)
     monkeypatch.setattr(health_check, "_running_scripts", lambda: ["python3 background/dispatcher.py"])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    # Mock the machine-state-dependent checks so this asserts the intended
+    # pane/process logic, not whatever the live host happens to look like
+    # (a genuinely-stale real daemon would otherwise flip all_ok here).
+    monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
@@ -220,6 +226,12 @@ def test_main_returns_0_when_all_ok(monkeypatch, tmp_path):
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
     monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    # Mock machine-state-dependent checks -- otherwise a genuinely-stale real
+    # daemon (or a broken Playwright) on the host running the suite would make
+    # this "all ok" test fail for reasons unrelated to main()'s own logic.
+    monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
     monkeypatch.setattr(health_check, "LOG_FILE", tmp_path / "health.md")
     monkeypatch.setattr(health_check, "send_ntfy", lambda *a, **k: None)
     monkeypatch.setattr(sys, "argv", ["health_check.py"])
@@ -365,6 +377,57 @@ class TestCheckStaleRunningCode:
         only judges staleness for processes it can actually find running."""
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         monkeypatch.setattr(health_check.subprocess, "check_output", lambda *a, **k: _fake_ps_lstart_output([]))
+        assert health_check._check_stale_running_code() is None
+
+    def test_tmux_launcher_line_does_not_masquerade_as_the_daemon(self, monkeypatch, tmp_path):
+        """2026-07-13 precision-fix regression guard (found live): a lingering
+        `tmux new-session ... python3 background/X.py` launcher process, alive
+        since the ORIGINAL session creation, names the script as an ARGUMENT.
+        The previous 'script in args' match picked up its ancient start time
+        and reported a FRESHLY-RESTARTED daemon as stale. The launcher's own
+        executable is `tmux`, not python, so it must be ignored; the real,
+        newer `python3 background/X.py` process is the one that counts."""
+        script_dir = tmp_path / "background"
+        script_dir.mkdir()
+        script = script_dir / "supervisor.py"
+        script.write_text("# v2")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        from datetime import datetime, timedelta
+        mtime_dt = datetime.fromtimestamp(script.stat().st_mtime)
+        ancient = (mtime_dt - timedelta(days=10)).strftime("%a %b %d %H:%M:%S %Y")   # the tmux launcher
+        fresh = (mtime_dt + timedelta(minutes=3)).strftime("%a %b %d %H:%M:%S %Y")    # the real restarted daemon
+        monkeypatch.setattr(
+            health_check.subprocess, "check_output",
+            lambda *a, **k: _fake_ps_lstart_output([
+                (ancient, "tmux new-session -d -s supervisor -c /home/rich/synthetic-enterprise python3 background/supervisor.py"),
+                (ancient, "sh -c python3 background/supervisor.py"),   # the wrapper shell -- also not the daemon
+                (fresh, "python3 background/supervisor.py"),           # the real, fresh daemon
+            ]),
+        )
+        # Fresh daemon started AFTER the script's mtime -> not stale, despite
+        # the ancient tmux/sh lines naming the same script.
+        assert health_check._check_stale_running_code() is None
+
+    def test_latest_python_process_wins_over_an_older_orphan(self, monkeypatch, tmp_path):
+        """If a restart briefly leaves an old python orphan alongside the new
+        process, the authoritative (latest-started) one decides staleness --
+        a completed restart must read green even before the orphan exits."""
+        script_dir = tmp_path / "background"
+        script_dir.mkdir()
+        script = script_dir / "supervisor.py"
+        script.write_text("# v2")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        from datetime import datetime, timedelta
+        mtime_dt = datetime.fromtimestamp(script.stat().st_mtime)
+        old = (mtime_dt - timedelta(minutes=30)).strftime("%a %b %d %H:%M:%S %Y")
+        new = (mtime_dt + timedelta(minutes=2)).strftime("%a %b %d %H:%M:%S %Y")
+        monkeypatch.setattr(
+            health_check.subprocess, "check_output",
+            lambda *a, **k: _fake_ps_lstart_output([
+                (old, "python3 background/supervisor.py"),
+                (new, "python3 background/supervisor.py"),
+            ]),
+        )
         assert health_check._check_stale_running_code() is None
 
     def test_ps_failure_degrades_gracefully(self, monkeypatch):
