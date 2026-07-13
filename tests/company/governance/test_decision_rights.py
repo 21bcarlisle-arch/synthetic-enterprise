@@ -268,3 +268,177 @@ def test_pending_decision_requests_as_of_filters_by_class():
     only_hedge = pending_decision_requests_as_of(decision_time, decision_class=DecisionClass.HEDGE_MANDATE_CHANGE)
     assert len(only_hedge) == 1
     assert only_hedge[0].entity_id == "m1"
+
+
+# ── 2026-07-13 HARDEN pass (new adversarial edge cases, not re-covering
+# double-resolve/resolve-without-submit already tested above) ──
+
+def test_as_known_at_correct_under_out_of_order_insertion():
+    """The bitemporal precedence rule is transaction_time-based, not
+    insertion-order-based -- prove it directly by inserting the LATER
+    transaction_time event FIRST (lower record_id) and the EARLIER one
+    SECOND (higher record_id), matching a real late-arriving-but-earlier
+    correction landing in whatever order the caller happens to invoke it."""
+    vt = dt.date(2020, 1, 1)
+    t1 = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    t2 = dt.datetime(2020, 1, 1, 15, tzinfo=dt.timezone.utc)
+    # Insert the LATER transaction_time record first (record_id=1).
+    log_decision_event(
+        DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={},
+        decision={"unit_rate_gbp_per_mwh": 60.0}, rationale="second one",
+        valid_time=vt, transaction_time=t2,
+    )
+    # Insert the EARLIER transaction_time record second (record_id=2).
+    log_decision_event(
+        DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={},
+        decision={"unit_rate_gbp_per_mwh": 50.0}, rationale="first one",
+        valid_time=vt, transaction_time=t1,
+    )
+    log = get_decision_log()
+    # As of t1, only the t1-transaction_time record is visible, regardless
+    # of it having been inserted AFTER the t2 record.
+    as_of_t1 = log.as_known_at(t1, "C1", "decision_event:pricing_move", valid_time=vt)
+    assert as_of_t1.value.decision["unit_rate_gbp_per_mwh"] == 50.0
+    # As of t2, the t2-transaction_time record wins on transaction_time
+    # despite having the LOWER record_id (inserted first).
+    as_of_t2 = log.as_known_at(t2, "C1", "decision_event:pricing_move", valid_time=vt)
+    assert as_of_t2.value.decision["unit_rate_gbp_per_mwh"] == 60.0
+
+
+def test_resolve_before_submission_transaction_time_raises_not_negative_elapsed():
+    """Adversarial non-causal call: resolving strictly BEFORE the request
+    was even submitted. The bitemporal guard (as_known_at's transaction_time
+    <= decision_time filter) structurally prevents this -- the submission
+    itself is not yet visible at that decision_time, so no pending record is
+    found at all, and the caller gets the honest "no pending request found"
+    error rather than a silently-computed NEGATIVE actual_elapsed_seconds."""
+    vt = dt.date(2020, 1, 1)
+    submitted_at = dt.datetime(2020, 1, 1, 15, tzinfo=dt.timezone.utc)
+    earlier_resolve_attempt = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-non-causal",
+        request={}, context={}, valid_time=vt, submitted_at=submitted_at,
+    )
+    with pytest.raises(ValueError, match="No pending decision request found"):
+        resolve_decision_request(
+            DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-non-causal",
+            valid_time=vt, decision={"x": 1}, rationale="r",
+            resolved_at=earlier_resolve_attempt,
+        )
+
+
+def test_resolve_at_exact_same_instant_as_submission_gives_zero_elapsed():
+    """Boundary case for the <= in as_known_at's filter: resolving at the
+    EXACT same transaction_time as submission is the earliest causally-valid
+    moment (not causally invalid like the strictly-before case above) and
+    must succeed with a real, non-negative zero elapsed -- not off-by-one
+    excluded by a strict '<' that would reject t==t."""
+    vt = dt.date(2020, 1, 1)
+    same_instant = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-zero-elapsed",
+        request={}, context={}, valid_time=vt, submitted_at=same_instant,
+    )
+    resolved = resolve_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-zero-elapsed",
+        valid_time=vt, decision={"approved": True}, rationale="instant decision",
+        resolved_at=same_instant,
+    )
+    assert resolved.actual_elapsed_seconds == 0.0
+    assert resolved.status == "decided"
+
+
+def test_replayed_identical_log_decision_event_is_harmless():
+    """C-S2 idempotency: processing an identical event twice must be
+    harmless -- a real retry/replay of the exact same logged decision must
+    not change the answer as_known_at() gives, even though the append-only
+    log genuinely stores two records (never mutates, never dedupes storage;
+    the OBSERVABLE state is what must stay stable)."""
+    vt = dt.date(2020, 1, 1)
+    tt = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    kwargs = dict(
+        entity_id="C-replay", request={"term_start": "2020-01-01"},
+        context={"company_fwd": 45.0}, decision={"unit_rate_gbp_per_mwh": 52.3},
+        rationale="cost-floor plus risk premium", valid_time=vt, transaction_time=tt,
+    )
+    log_decision_event(DecisionClass.PRICING_MOVE, **kwargs)
+    log_decision_event(DecisionClass.PRICING_MOVE, **kwargs)  # exact replay
+    log = get_decision_log()
+    assert len(log.all_records()) == 2, "append-only storage still records both -- never silently dedup on write"
+    as_known = log.as_known_at(tt, "C-replay", "decision_event:pricing_move", valid_time=vt)
+    assert as_known.value.decision["unit_rate_gbp_per_mwh"] == 52.3, "replay must not change the answer"
+
+
+def test_replayed_submit_decision_request_does_not_duplicate_in_pending_surface():
+    """A duplicate submission (e.g. a real caller retry) for the SAME
+    (entity_id, decision_class, valid_time) must not appear twice in the
+    requests-awaiting-decision surface -- pending_decision_requests_as_of()
+    dedupes by key, not by raw record count, so a retried submit is
+    harmless from the approval-queue consumer's point of view."""
+    vt = dt.date(2020, 1, 1)
+    submitted_at = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    kwargs = dict(
+        entity_id="mandate-retried", request={"proposed_floor": 0.9},
+        context={"current_floor": 0.85}, valid_time=vt, submitted_at=submitted_at,
+    )
+    submit_decision_request(DecisionClass.HEDGE_MANDATE_CHANGE, **kwargs)
+    submit_decision_request(DecisionClass.HEDGE_MANDATE_CHANGE, **kwargs)  # retried submit
+    log = get_decision_log()
+    assert len(log.all_records()) == 2, "both raw submissions are stored -- append-only, never dedup on write"
+    decision_time = dt.datetime(2020, 1, 2, tzinfo=dt.timezone.utc)
+    pending = pending_decision_requests_as_of(decision_time, decision_class=DecisionClass.HEDGE_MANDATE_CHANGE)
+    matching = [p for p in pending if p.entity_id == "mandate-retried"]
+    assert len(matching) == 1, "the pending SURFACE must dedupe by key, not show one row per raw record"
+
+
+def test_pending_request_never_resolved_stays_pending_indefinitely():
+    """A pending request with no resolution ever recorded must show
+    status=='pending' no matter how far forward decision_time is pushed --
+    never silently timing out or flipping to decided on its own. SLA breach
+    is a fact for a CONSUMER of this surface (e.g. a future dashboard) to
+    flag, not something this logging layer may quietly resolve for it."""
+    vt = dt.date(2020, 1, 1)
+    submit_decision_request(
+        DecisionClass.LEGAL_CONTRACTUAL_COMMITMENT, entity_id="never-answered",
+        request={}, context={}, valid_time=vt,
+        submitted_at=dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    far_future = dt.datetime(2035, 1, 1, tzinfo=dt.timezone.utc)
+    pending = pending_decision_requests_as_of(
+        far_future, decision_class=DecisionClass.LEGAL_CONTRACTUAL_COMMITMENT,
+    )
+    matching = [p for p in pending if p.entity_id == "never-answered"]
+    assert len(matching) == 1
+    assert matching[0].status == "pending"
+
+
+def test_multiple_valid_times_for_same_entity_and_class_do_not_conflate():
+    """Two DIFFERENT valid_time requests for the SAME (entity_id,
+    decision_class) are genuinely distinct governed decisions (e.g. two
+    separate mandate-change proposals for the same mandate id, about two
+    different periods) -- resolving one must not affect the other, and both
+    must appear independently in the pending surface until each is
+    individually resolved."""
+    entity_id = "mandate-multi-period"
+    vt_jan = dt.date(2020, 1, 1)
+    vt_feb = dt.date(2020, 2, 1)
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id=entity_id,
+        request={"period": "jan"}, context={}, valid_time=vt_jan,
+        submitted_at=dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id=entity_id,
+        request={"period": "feb"}, context={}, valid_time=vt_feb,
+        submitted_at=dt.datetime(2020, 2, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    resolve_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id=entity_id, valid_time=vt_jan,
+        decision={"approved": True}, rationale="jan resolved",
+        resolved_at=dt.datetime(2020, 1, 2, tzinfo=dt.timezone.utc),
+    )
+    decision_time = dt.datetime(2020, 3, 1, tzinfo=dt.timezone.utc)
+    pending = pending_decision_requests_as_of(decision_time, decision_class=DecisionClass.HEDGE_MANDATE_CHANGE)
+    matching = [p for p in pending if p.entity_id == entity_id]
+    assert len(matching) == 1, "jan is resolved -- only feb's request should remain pending"
+    assert matching[0].request == {"period": "feb"}

@@ -380,7 +380,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "W2_3_competitor_field",
@@ -564,7 +564,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "W4_1_typed_adapters",
@@ -626,13 +626,13 @@
       "epoch": 2,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "A3_approval_interface",
