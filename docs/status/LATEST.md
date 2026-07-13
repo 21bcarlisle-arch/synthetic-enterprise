@@ -1,5 +1,5 @@
 ## Background-worker NTFY fix (root-caused recurring pipeline failures) + wide DISCOVER batch
-Last updated: 2026-07-13T02:15:02Z
+Last updated: 2026-07-13T02:28:33Z
 
 **Status:** self-refill cycle (idle-tier DISCOVER/FRAME), latest sim run processed successfully.
 Epistemic PASS throughout. All commits pushed.
@@ -36,7 +36,7 @@ infra fix above and one earlier full E2 BUILD+live-verify already reported):**
 (live-verified on poesys.net); W1_reveal_over_time's first Expert Hour passed with one low-severity
 finding; W2_7_willingness_classification's initial DISCOVER pass landed.
 
-**Latest simulation results (2016–2025)** — auto-processed (492s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (502s / 8 min):
 - Net margin: £1,505,286.33 | Gross: £6,455,406.22 | Capital: £51,273
 - Treasury: £2,466,636 → £3,883,451 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,815.13 | Net after CTS: £6,385,545
