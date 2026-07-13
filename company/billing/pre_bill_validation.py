@@ -95,11 +95,28 @@ def validate_bill(bill: dict) -> BillValidationResult:
     # is VAT on nothing -- both now fail CLOSED (HELD) instead of skipping the gate.
     subtotal = _bill_subtotal(bill)
     vat_gbp = bill.get("vat_gbp", 0.0)
-    if subtotal < 0:
+    # A catch-up OVERCHARGE correction produces a legitimate CREDIT bill whose
+    # subtotal (and VAT) are genuinely negative -- a refund, not an absurdity
+    # (D3_catchup_rebilling; test_d3_credit_invoice_has_no_fabricated_payment).
+    # The 2026-07-13 fail-open fix wrongly held ALL negative subtotals; that
+    # over-fired on legitimate credits and jammed the publish pipeline. Exempt
+    # the credit, but do NOT skip its VAT validation (that would re-open the
+    # fail-open): validate the rate on magnitudes, which is sign-invariant since
+    # a credit's VAT and subtotal share sign. Other credit-note types would
+    # extend this same positive-indicator exemption, never a blanket negative pass.
+    is_credit = bool(bill.get("catchup_applied")) and bill.get("catchup_direction") == "overcharge"
+    if subtotal < 0 and not is_credit:
         reasons.append(
             f"slc_6_7_billing_accuracy: bill subtotal GBP {subtotal:.2f} is negative "
             f"(commodity + non-commodity + standing charge) -- an absurd bill, HELD"
         )
+    elif subtotal < 0 and is_credit:
+        credit_rate = vat_gbp / subtotal  # both negative -> positive effective VAT rate
+        if not check_vat(segment, credit_rate):
+            reasons.append(
+                f"vat_by_segment: credit bill effective VAT rate {credit_rate:.4f} is "
+                f"inconsistent with segment={segment!r} -- HELD"
+            )
     elif subtotal <= 0 and abs(vat_gbp) > 0.005:
         reasons.append(
             f"vat_by_segment: VAT of GBP {vat_gbp:.2f} charged on a non-positive "
