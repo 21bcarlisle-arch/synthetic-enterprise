@@ -1,0 +1,39 @@
+{
+  "title": "The Control Kill List",
+  "subtitle": "We mutation-tested our own controls. For every control we injected the exact defect it exists to catch. A control that does not fire on its own named defect is theatre.",
+  "spec": "CONTROLS_THAT_CANNOT_FAIL.md",
+  "generated_at": "2026-07-13",
+  "method": "docs/design/control_registry.json + tests/controls/test_control_mutation.py",
+  "headline": {
+    "inventoried": 13,
+    "mutation_tested": 13,
+    "fired": 12,
+    "theatre": 1,
+    "note": "1 THEATRE control is the flagship vat_by_segment arithmetic check -- a tautology -- retained as documented defence-in-depth but structurally unable to catch the SME-as-Household mislabel it is named for. Its independent replacement fires."
+  },
+  "killer_patterns": {
+    "tautology": {"count": 1, "examples": ["check_vat (vat_by_segment arithmetic)"], "status": "theatre, mitigated by independent cross-check"},
+    "fail_open": {"count": 1, "examples": ["pre-bill gate skipped VAT validation on subtotal <= 0"], "status": "FIXED this pass (fails closed)"},
+    "fail_silent": {"count": 1, "examples": ["Qwen internal-audit backstop returned clean when Ollama was down"], "status": "FIXED this pass (alarms on unavailability)"}
+  },
+  "controls": [
+    {"id": "rate_invariant_check", "name": "VAT / exact-rate invariant", "defect": "wrong exact rate", "result": "FIRED"},
+    {"id": "range_invariant_check", "name": "Plausible-band invariants (whole-library sweep)", "defect": "value outside plausible band", "result": "FIRED"},
+    {"id": "yearly_range_invariant_check", "name": "Year-specific unit-rate band", "defect": "unit rate order-of-magnitude off cap", "result": "FIRED", "note": "documented, sourced pre-cap limitation"},
+    {"id": "check_vat_arithmetic", "name": "vat_by_segment (arithmetic)", "defect": "SME-as-Household mislabel", "result": "THEATRE", "killer_pattern": "tautology"},
+    {"id": "check_vat_consistent_with_consumption", "name": "vat_by_segment (independent cross-check)", "defect": "SME-as-Household mislabel via metered load", "result": "FIRED"},
+    {"id": "check_resi_bill_consumption_plausible", "name": "Resi consumption plausibility", "defect": "SME-scale load on a resi record", "result": "FIRED"},
+    {"id": "check_back_billing_cap_respected", "name": "Back-billing cap (SLC 21BA)", "defect": "12-month breach not written off", "result": "FIRED", "note": "fails closed on missing/malformed data"},
+    {"id": "check_billed_clock_reconciles", "name": "Billed-clock reconciliation", "defect": "revenue booked for HELD bills", "result": "FIRED"},
+    {"id": "pre_bill_gate_validate_bill", "name": "Tier-1 pre-bill gate", "defect": "mislabel / non-positive-subtotal skip", "result": "FIRED", "killer_pattern": "fail_open (FIXED)"},
+    {"id": "check_reads_reconcile", "name": "Meter-read reconciliation", "defect": "usage != closing - opening reads", "result": "FIRED"},
+    {"id": "internal_audit_qwen_backstop", "name": "Qwen internal-audit backstop", "defect": "absurdity + checker unavailable", "result": "FIRED", "killer_pattern": "fail_silent (FIXED)"},
+    {"id": "obligations_derive_risk_tier", "name": "Obligations risk-tiering", "defect": "obligation mis-tiered below Tier 1", "result": "FIRED"},
+    {"id": "epistemic_verifier_scan", "name": "SIM/company wall scanner", "defect": "company code importing SIM internals", "result": "FIRED", "note": "minor coverage gaps listed"}
+  ],
+  "fixed_this_pass": [
+    {"control": "internal_audit (Qwen backstop)", "pattern": "FAIL-SILENT", "before": "returned clean when Ollama was down; audit passed by not running", "after": "third 'unavailable' verdict alarms; sanity daemon reports the outage"},
+    {"control": "pre-bill Tier-1 gate", "pattern": "FAIL-OPEN", "before": "subtotal <= 0 skipped all VAT validation", "after": "negative subtotal and VAT-on-nothing fail closed (HELD)"}
+  ],
+  "coverage_honesty": "Highest-tier / customer-impacting set complete. Evaluators, daemon scheduling logic, population-sanity checks, health/page-consistency gates, and other compliance trackers are inventoried but not yet mutation-tested -- see control_registry.json."
+}

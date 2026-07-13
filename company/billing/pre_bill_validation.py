@@ -59,12 +59,16 @@ def _days_in_period(bill: dict) -> float:
     return max((end - start).days + 1, 1)
 
 
-def _actual_vat_rate(bill: dict) -> float | None:
-    subtotal = (
+def _bill_subtotal(bill: dict) -> float:
+    return (
         bill.get("commodity_amount_gbp", 0.0)
         + bill.get("non_commodity_amount_gbp", 0.0)
         + bill.get("standing_charge_gbp", 0.0)
     )
+
+
+def _actual_vat_rate(bill: dict) -> float | None:
+    subtotal = _bill_subtotal(bill)
     if subtotal <= 0:
         return None
     return bill.get("vat_gbp", 0.0) / subtotal
@@ -80,6 +84,27 @@ def validate_bill(bill: dict) -> BillValidationResult:
     reasons: list[str] = []
     segment = bill.get("segment", "resi")
     commodity = bill.get("commodity", "electricity")
+
+    # FAIL-OPEN FIX (2026-07-13, CONTROLS_THAT_CANNOT_FAIL.md): _actual_vat_rate()
+    # returns None whenever the subtotal is <= 0, which PREVIOUSLY caused BOTH VAT
+    # checks below to be silently skipped -- a bill with a zero/negative subtotal
+    # sailed through the Tier-1 gate with no VAT validation at all (the exact
+    # "passes when data is missing/zero/malformed" killer pattern). A genuinely
+    # empty bill (zero subtotal AND zero VAT) is legitimate and still passes; but
+    # a negative subtotal is absurd, and any VAT charged on a non-positive subtotal
+    # is VAT on nothing -- both now fail CLOSED (HELD) instead of skipping the gate.
+    subtotal = _bill_subtotal(bill)
+    vat_gbp = bill.get("vat_gbp", 0.0)
+    if subtotal < 0:
+        reasons.append(
+            f"slc_6_7_billing_accuracy: bill subtotal GBP {subtotal:.2f} is negative "
+            f"(commodity + non-commodity + standing charge) -- an absurd bill, HELD"
+        )
+    elif subtotal <= 0 and abs(vat_gbp) > 0.005:
+        reasons.append(
+            f"vat_by_segment: VAT of GBP {vat_gbp:.2f} charged on a non-positive "
+            f"subtotal GBP {subtotal:.2f} -- VAT on nothing, cannot be validated, HELD"
+        )
 
     actual_vat = _actual_vat_rate(bill)
     if actual_vat is not None and not check_vat(segment, actual_vat):

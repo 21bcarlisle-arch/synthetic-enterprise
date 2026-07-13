@@ -1,0 +1,132 @@
+{
+  "_meta": {
+    "title": "Control registry -- mutation-test apparatus for the company's controls",
+    "spec": "docs/staging/CONTROLS_THAT_CANNOT_FAIL.md",
+    "generated": "2026-07-13",
+    "doctrine": "A control that CANNOT FAIL is worse than no control. For every control, inject the exact defect it exists to catch; it MUST fire. Audit for three killer patterns: TAUTOLOGY (checked value derived from the same source it is checked against), FAIL-OPEN (passes on missing/zero/empty/malformed), FAIL-SILENT (passes when the checker itself is unavailable).",
+    "coverage_note": "This pass mutation-tests the highest-tier / customer-impacting control set (invariant library, Tier-1 pre-bill gate, obligations tiering, the Qwen backstop, the epistemic verifier). The tail (evaluators, daemons, health-checks) is inventoried under inventoried_not_yet_mutation_tested for honesty and left for the orchestrator to register as atoms."
+  },
+  "controls": [
+    {
+      "id": "rate_invariant_check",
+      "location": "company/compliance/domain_invariants.py::RateInvariant.check",
+      "catches": "An exact rate (e.g. VAT 5% resi / 20% SME) charged at the wrong value.",
+      "mutation": "Pass a rate outside +/- tolerance of the anchored value.",
+      "killer_pattern_audit": "clean",
+      "result": "FIRED"
+    },
+    {
+      "id": "range_invariant_check",
+      "location": "company/compliance/domain_invariants.py::RangeInvariant.check",
+      "catches": "A value (standing charge, non-commodity cost, TDCV band, margin, bad-debt) outside its plausible [low,high] envelope.",
+      "mutation": "Pass low-epsilon and high+epsilon; both must be rejected. Applied as a sweep across every RangeInvariant in ALL_INVARIANTS.",
+      "killer_pattern_audit": "clean",
+      "result": "FIRED"
+    },
+    {
+      "id": "yearly_range_invariant_check",
+      "location": "company/compliance/domain_invariants.py::YearlyRangeInvariant.check",
+      "catches": "A year-specific unit rate wildly off its anchored Ofgem cap band (order-of-magnitude / wrong-year error).",
+      "mutation": "Pass 10x the anchor for an in-band year.",
+      "killer_pattern_audit": "documented-fail-open",
+      "killer_pattern_detail": "check() returns True for any year < min(by_year) (pre-2019, before the Ofgem cap existed). This is a DELIBERATE, sourced limitation (no valid anchor pre-dates the cap; extrapolating backwards produced real false positives on genuine competitive-market pricing, Phase 5) -- not an accidental fail-open. Documented, retained, listed not fixed.",
+      "result": "FIRED"
+    },
+    {
+      "id": "check_vat_arithmetic",
+      "location": "company/compliance/domain_invariants.py::check_vat",
+      "catches": "NAMED defect: the SME-as-Household VAT MISLABEL (C6 / R10 class). Actually catches only: a VAT rate inconsistent with the bill's OWN declared segment label.",
+      "mutation": "Mislabel an SME as resi with VAT self-consistently computed at 5%.",
+      "killer_pattern_audit": "TAUTOLOGY",
+      "killer_pattern_detail": "Derives the expected rate from `segment` and checks it against a VAT figure the generator also derived from `segment` (vat = subtotal * vat_rate(segment)). Both sides are the same function of the same label, so it passes every bill and structurally CANNOT catch a mislabel -- the exact defect it is named for. This is the flagship tautology the red-team found.",
+      "result": "THEATRE",
+      "mitigated_by": "check_vat_consistent_with_consumption (independent cross-check on metered load) -- FIRES on the mislabel. check_vat is retained as honest defence-in-depth against the narrower rate-vs-declared-label defect, documented as a tautology in-code."
+    },
+    {
+      "id": "check_vat_consistent_with_consumption",
+      "location": "company/compliance/domain_invariants.py::check_vat_consistent_with_consumption",
+      "catches": "The SME-as-Household mislabel, via a signal INDEPENDENT of the label: an I&C-scale metered load billed at the domestic 5% rate.",
+      "mutation": "I&C-scale kWh (>domestic ceiling) with a 5% rate applied.",
+      "killer_pattern_audit": "clean",
+      "killer_pattern_detail": "Honestly one-directional: low consumption never refutes a business label (a real microbusiness consumes domestic volumes). The True-on-no-signal branch is a documented signal-strength boundary, not a fail-open -- it is the non-flaggable direction by design.",
+      "result": "FIRED"
+    },
+    {
+      "id": "check_resi_bill_consumption_plausible",
+      "location": "company/compliance/domain_invariants.py::check_resi_bill_consumption_plausible",
+      "catches": "A resi bill whose per-period consumption is implausible (order-of-magnitude error, SME-scale load on a resi record).",
+      "mutation": "50,000 kWh over ~30 days on a resi account.",
+      "killer_pattern_audit": "clean",
+      "result": "FIRED"
+    },
+    {
+      "id": "check_back_billing_cap_respected",
+      "location": "company/compliance/domain_invariants.py::check_back_billing_cap_respected",
+      "catches": "A catch-up bill breaching the SLC 21BA 12-month window whose excess was NOT written off (silently charged in full), or a token write-off against a large breach.",
+      "mutation": "A 4-year, GBP 5,000 undercharge catch-up with catchup_written_off_gbp = 0.",
+      "killer_pattern_audit": "fail-closed (good)",
+      "killer_pattern_detail": "Independently re-derives the write-off via BackBillingAssessment (does not trust the bill's own cap-applied flag). Returns False (HELD) on missing/unrecognised direction, missing period fields, and malformed date strings -- fails CLOSED on data it cannot verify. Hardened by a prior same-session red-team.",
+      "result": "FIRED"
+    },
+    {
+      "id": "check_billed_clock_reconciles",
+      "location": "company/compliance/domain_invariants.py::check_billed_clock_reconciles",
+      "catches": "The ledger's recognised billed revenue diverging from the sum of actually-issued (gate-passing) bills -- revenue recognised for HELD/unissued bills.",
+      "mutation": "total_billed_gbp that does not equal the sum of issued bill amounts.",
+      "killer_pattern_audit": "clean",
+      "result": "FIRED"
+    },
+    {
+      "id": "pre_bill_gate_validate_bill",
+      "location": "company/billing/pre_bill_validation.py::validate_bill",
+      "catches": "Tier-1 preventive gate: any bill failing VAT-by-segment, resi consumption plausibility, or the back-billing cap is HELD, never issued.",
+      "mutation": "A mislabelled SME-as-resi bill (via the consumption cross-check) and a non-positive-subtotal-with-VAT bill.",
+      "killer_pattern_audit": "FAIL-OPEN (FIXED this pass)",
+      "killer_pattern_detail": "_actual_vat_rate() returns None when subtotal <= 0, which PREVIOUSLY skipped BOTH VAT checks silently -- a zero/negative-subtotal bill passed the gate with no VAT validation. FIXED: negative subtotal and any VAT charged on a non-positive subtotal now fail CLOSED (HELD). A legitimately-empty zero/zero bill still passes the VAT guard.",
+      "result": "FIRED"
+    },
+    {
+      "id": "check_reads_reconcile",
+      "location": "company/billing/pre_bill_validation.py::check_reads_reconcile",
+      "catches": "A rendered bill whose usage line does not equal printed closing minus printed opening meter reads (the 331.1-vs-331.2 rounding-compound defect).",
+      "mutation": "billed usage that disagrees with closing-minus-opening at 1dp.",
+      "killer_pattern_audit": "documented-not-applicable-guard",
+      "killer_pattern_detail": "Returns True when any of the three reads is None (a bill carrying no meter reads -- genuinely not applicable). This is scoped correctly: it is a reads-reconciliation control and a bill with no reads has nothing to reconcile. Not a fail-open on the defect it owns.",
+      "result": "FIRED"
+    },
+    {
+      "id": "internal_audit_qwen_backstop",
+      "location": "company/compliance/internal_audit.py::run_internal_audit / parse_audit_response",
+      "catches": "Absurdities a human auditor would catch but no automated invariant was written for yet (the motivating SME-as-Household case).",
+      "mutation": "call_qwen returning '' (Ollama down) -- the checker itself unavailable.",
+      "killer_pattern_audit": "FAIL-SILENT (FIXED this pass)",
+      "killer_pattern_detail": "PREVIOUSLY returned verdict 'clean' on an empty/unparseable response, so on every autonomous run where Ollama was down the audit passed by NOT RUNNING. FIXED: a third verdict state 'unavailable' now ALARMS -- run_internal_audit / run_phase_close_audit emit a kind='checker_unavailable' finding so the caller reports the outage instead of logging 0 flagged. Still fabricates no per-bill finding.",
+      "result": "FIRED"
+    },
+    {
+      "id": "obligations_derive_risk_tier",
+      "location": "company/compliance/obligations_register.py::derive_risk_tier / tier_1_obligations",
+      "catches": "Mis-tiering a customer-impacting obligation below Tier 1 (which would drop it out of the 100%-continuous preventive-gate treatment).",
+      "mutation": "Assert a CUSTOMER_FINANCIAL+HIGH obligation (vat_by_segment) and a PHYSICAL_HARM+LOW obligation (PSR) both resolve to TIER_1.",
+      "killer_pattern_audit": "classifier-not-gate",
+      "killer_pattern_detail": "This is a pure classifier, not a fire/not-fire defect-catcher. Mutation-tested for correct tiering; a downgrade in the mapping would misroute an obligation. obligations_without_a_tracker() honestly surfaces uncovered obligations (existing_tracker=None) rather than papering over them.",
+      "result": "FIRED"
+    },
+    {
+      "id": "epistemic_verifier_scan",
+      "location": "tools/epistemic_verifier.py::_scan_file / scan",
+      "catches": "Company-layer code importing SIM internals directly (bypassing the company/interfaces/sim_interface.py seam) -- an epistemic-wall violation.",
+      "mutation": "A company/ file containing `from simulation.foo import bar`.",
+      "killer_pattern_audit": "minor-fail-open (listed)",
+      "killer_pattern_detail": "Fires reliably on the literal forbidden-import syntax. Two coverage limitations, low severity, LISTED not fixed: (1) _scan_file returns [] on FileNotFoundError (a missing file reads as clean); (2) only line-start import syntax is matched -- an importlib/getattr dynamic bypass is not caught. These are detection-coverage gaps, not a fail-open on the syntax it owns.",
+      "result": "FIRED"
+    }
+  ],
+  "inventoried_not_yet_mutation_tested": [
+    {"category": "evaluators", "examples": [".claude/agents/phase-close-evaluator.md", ".claude/agents/epistemic-verifier.md"], "note": "LLM-judge adjudicators -- graded by prompt+model, no deterministic mutation harness in this pass."},
+    {"category": "daemons", "examples": ["background/sanity_daemon.py (population sanity)", "background/session_watchdog.py", "background/deadmans_switch"], "note": "The sanity daemon consumes internal_audit + population checks (both mutation-tested here); the daemon's own scheduling/dedup logic is not mutation-tested this pass."},
+    {"category": "population_sanity_checks", "examples": ["company/compliance/population_sanity.py"], "note": "Statistical population checks over run_output -- inventoried, not individually mutation-tested this pass."},
+    {"category": "health_checks", "examples": ["background/health_check", "tools/generate_dashboard_data.py::_check_consistency/_check_basis_labels_present (R14 page-consistency invariant)"], "note": "Dashboard/page-consistency gates -- inventoried, not mutation-tested this pass."},
+    {"category": "other_compliance_trackers", "examples": ["company/compliance/green_claims_audit.py", "company/compliance/consumer_duty.py", "company/regulatory/social_obligation_register.py", "company/compliance/crisis_bad_debt_validator.py"], "note": "Registered in the obligations register with existing_tracker pointers; their internal predicates are not mutation-tested this pass."}
+  ]
+}
