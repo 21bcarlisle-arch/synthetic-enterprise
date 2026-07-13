@@ -1261,3 +1261,156 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a board setting the risk-appetite ratio between customer-harm and bad-debt, knowing both extremes have killed real suppliers"
   depends_on: [A6_coupled_triad_gap_metric]
+
+- id: W1_3_national_weather_signal
+  name: "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). the CORE physics primitive. Architectural steer (director: the mechanism is ours): model a latent BLOCKING-HIGH weather regime (hidden-Markov / persistence state) that jointly drives cold + low-wind + high-pressure, so COLD-AND-STILL arises MECHANISTICALLY, not from a fitted Gaussian correlation that under-weights tail dependence. Cold-and-still is THE single most important GB power correlation -- draw temp and wind independently and the supplier-killing winter tail never occurs and every hedge looks fine (a lie). Solar anti-correlated with heating demand seasonally+diurnally; wind droughts persist days. DoD: temporal autocorrelation present; the joint cold-still tail demonstrated (SHOW the tail); winter-tail report compared to a real GB worst week (if our worst week is milder than reality, physics still wrong). loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_2_generate_futures]
+
+- id: W1_4_regional_weather_field
+  name: "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L2, conditional on L1. Spatial correlation: neighbouring regions covary (Cornwall and Aberdeen are NOT independent draws) -- a distance-keyed covariance field. AGGREGATION CONSISTENCY is the feasible-test and MUST be an invariant true BY CONSTRUCTION (project/rescale regional deviations so the demand-weighted aggregate == national), not by luck: a world where every region freezes while national is mild is impossible by construction. R15 mutation test: perturb one region off-manifold and assert the reconciliation invariant FIRES (residual > tol). Regional weather is COMPANY-KNOWABLE (genuinely public) -- lives on the public side of the wall. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_3_national_weather_signal]
+
+- id: W1_5_premise_demand_shape
+  name: "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L3, conditional on L2. Layered randomness (NOT flat): national signal + correlated regional deviation + premise-specific weather response + idiosyncratic noise. AGGREGATION-CONSISTENCY invariant #2: summed+scaled premise demand must reconcile to national demand -- if the premises do not add up to the country the physics is wrong. Mutation-tested (R15) same as L2. Couples to the customer archetypes (W2 cluster) for thermal/occupancy characteristics. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_4_regional_weather_field]
+
+- id: W1_6_physics_price_signal
+  name: "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L4, closes the physics chain. Renewable output (wind/solar) is itself a function of the L1 weather, so a cold-still day = high heating demand AND low wind output AND tight margin AND price spike, all from ONE coherent weather draw. Price is an OUTPUT; drawing it independently breaks the chain. Ties into the existing merit-order/SSP machinery. This is why a naive sim under-prices winter risk. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_3_national_weather_signal, W1_5_premise_demand_shape]
+
+- id: C13_weather_normalisation
+  name: "Weather-normalisation twin (COUPLED): the company INFERS its book's weather-sensitivity from confounded meter data -- gap = predicted vs actual demand under a given weather outturn (world twin of W1_5)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). COUPLED-TRIAD company-side twin of the weather physics (director: 'register the company-side twin and measure the gap'). WALL: the company CAN see published national+regional forecasts/outturns, wholesale prices, its own meter reads; it CANNOT see each property's true thermal characteristics, how its book actually responds, or the counterfactual. THEREFORE the gap: it must infer book weather-sensitivity (weather-normalisation) from CONFOUNDED meter data -- genuinely hard, genuinely done badly in industry, allowed to be wrong. GAP = predicted vs actual demand under a weather outturn, normalised to a no-skill baseline (per A6). Creates the REAL trade-off (make both extremes bite): GB has NO regional forward market, so hedge-to-national leaves a regionally-skewed book exposed when its region deviates, while protecting regionally means basis risk + illiquidity + cost -- where the company sits on that frontier is strategy and must be visible (couples to B_commercial hedging). NOTE: extend background/coupled_triad.py::_AUTHORITATIVE_COUPLING with W1_5<->C13 when this twin opens for BUILD. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_5_premise_demand_shape, A6_coupled_triad_gap_metric]
+
+- id: W1_7_renewable_capacity_trends
+  name: "Renewable capacity + generation-mix evolution over time"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). FOLLOW-ON, explicitly LATER per director sequencing ('Physics first' -- do NOT build now; registered so the sequence is visible). Renewable capacity + generation-mix evolution over time. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_6_physics_price_signal]
+
+- id: W1_8_zonal_locational_pricing
+  name: "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). FOLLOW-ON, explicitly LATER per director sequencing ('Physics first' -- do NOT build now; registered so the sequence is visible). Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today). loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_6_physics_price_signal]
+
+- id: W1_9_dsr_flex_markets
+  name: "Demand-side response / flexibility markets"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). FOLLOW-ON, explicitly LATER per director sequencing ('Physics first' -- do NOT build now; registered so the sequence is visible). Demand-side response / flexibility markets. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_6_physics_price_signal]
+
+- id: W1_10_ev_heatpump_geography
+  name: "EV + heat-pump adoption geography (spatially-varying load growth)"
+  lane: W1_market_weather
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). FOLLOW-ON, explicitly LATER per director sequencing ('Physics first' -- do NOT build now; registered so the sequence is visible). EV + heat-pump adoption geography (spatially-varying load growth). loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
+  depends_on: [W1_5_premise_demand_shape]
