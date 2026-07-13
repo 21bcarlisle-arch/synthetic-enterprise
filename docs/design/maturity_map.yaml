@@ -1207,14 +1207,14 @@
   lane: F_risk_compliance
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
   file_scope: []
-  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_9 segment debt T&C / regulatory overlay (statutory business late-payment interest, domestic late-charge exclusion, payment-conditioned tariff eligibility). SIM holds the correct per-segment obligation; the company must apply the right policy -- partly a company/compliance/domain_invariants.py extension. GAP = compliance + fairness gap (wrong-segment T&C applied). Couples to the F5/F-lane segment-independence work. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_9_segment_debt_tnc) with a non-degenerate gap measured; and W2_9_segment_debt_tnc's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  simplifications: ["2026-07-13 BUILT to L2 (BUILD_THE_BACKLOG P0, fork, company/compliance/segment_debt_policy.py + 3 domain_invariants, 28 tests incl mutation, epistemic PASS, 1906 compliance/billing green). Company applies segment-correct debt T&C from OBSERVABLE segment + published regulation (own reading, misreading stays possible). L3 REMAINS: gap vs W2_9 measured by A6 + pre_bill wiring. || 2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_9 segment debt T&C / regulatory overlay (statutory business late-payment interest, domestic late-charge exclusion, payment-conditioned tariff eligibility). SIM holds the correct per-segment obligation; the company must apply the right policy -- partly a company/compliance/domain_invariants.py extension. GAP = compliance + fairness gap (wrong-segment T&C applied). Couples to the F5/F-lane segment-independence work. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_9_segment_debt_tnc) with a non-degenerate gap measured; and W2_9_segment_debt_tnc's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
   depends_on: [W2_9_segment_debt_tnc, A6_coupled_triad_gap_metric]
