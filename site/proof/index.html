@@ -124,6 +124,10 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     to the file it came from.
   </p>
 
+  <!-- 0. FINDINGS WITH A NUMBER (FEATURED) -->
+  <div class="sec">Findings We Can Put A Number On</div>
+  <div id="principles"><div class="muted">Loading...</div></div>
+
   <!-- 1. INCIDENT -> RULE TIMELINE -->
   <div class="sec">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
   <div class="card">
@@ -330,6 +334,20 @@ function renderRetros(d){
   }).join(""):'<div class="muted">No retrospectives written yet.</div>';
 }
 
+function renderPrinciples(d){
+  var ps=d.principles||[];
+  document.getElementById("principles").innerHTML=ps.length?ps.map(function(p){
+    return '<div class="card" style="border-left:3px solid var(--accent,#2a7)">'+
+      '<div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">'+esc(p.title)+'</div>'+
+      '<div style="font-size:18px;font-weight:600;margin:6px 0 10px">'+esc(p.number)+'</div>'+
+      '<p style="margin:0 0 8px">'+esc(p.claim)+'</p>'+
+      '<p class="muted" style="margin:0 0 8px"><em>'+esc(p.why)+'</em></p>'+
+      '<div class="muted" style="font-size:11px">Basis: '+esc(p.basis)+
+        ' &middot; <a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a></div>'+
+      '</div>';
+  }).join(""):'<div class="card muted">No numbered findings recorded yet.</div>';
+}
+
 function renderBuild(d){
   var parts=[];
   if(d.phase)parts.push("Phase "+d.phase);
@@ -340,6 +358,7 @@ function renderBuild(d){
 }
 
 fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderPrinciples(d);
   renderTimeline(d);
   renderVerification(d);
   renderOpenWork(d);

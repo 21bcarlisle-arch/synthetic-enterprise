@@ -327,6 +327,38 @@ def _get(d, *path):
     return cur
 
 
+def _principles():
+    """Findings we can put a NUMBER on — the sharpest is featured first.
+
+    Director-featured (DIRECTOR_ANSWER_HARM_WEIGHTS.md, 2026-07-13): the
+    harm:loss ratio R is a SIGNED curriculum constant (R13, director-authored,
+    versioned), so the value is stated here directly, not derived from a run.
+    """
+    return [
+        dict(
+            title="Pursuit must be earned by confidence",
+            number="R = 8:1  →  pursue an arrears account only above ~89% confidence",
+            claim=(
+                "The director signed the harm:loss weighting at R = 8:1 (harm from "
+                "wrongly chasing someone who genuinely can't pay, over loss from "
+                "going soft on a strategic won't-payer). Under that ratio the "
+                "cost-optimal collections policy is to PURSUE an account only when "
+                "the classifier is more than R/(R+1) ~ 89% confident it is a "
+                "strategic non-payer — otherwise FORBEAR. At even odds (a "
+                "coin-flip account) the flip-point is 1:1, so above ANY harm-"
+                "aversion the ambiguous account is forborne."
+            ),
+            why=(
+                "Regulation implicitly demands exactly this — pursuit is never the "
+                "default, it is earned by confidence — yet no supplier can "
+                "articulate the bar. We put a number on it."
+            ),
+            basis="curriculum constant (director-signed, versioned) — not a run output",
+            source="docs/design/HARM_COST_WEIGHTS_DECISION.md",
+        ),
+    ]
+
+
 def generate():
     try:
         dashboard = json.loads(DASHBOARD_PATH.read_text())
@@ -348,6 +380,7 @@ def generate():
         verification=_verification_stack(atoms),
         open_work=_open_work(atoms),
         predictions=_predictions_ledger(),
+        principles=_principles(),
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
