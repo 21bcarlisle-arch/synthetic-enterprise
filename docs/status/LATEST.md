@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T14:42:05Z
+Last updated: 2026-07-13T14:50:03Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (476s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (461s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -50,4 +50,7 @@ count; that is the honesty bar, not regression.
 - (T1_idle_turns_with_open_atoms) If the supervisor has been idle for 102 turns while 29 atoms remain open, what is it waiting for — and how do you know those idle turns are a deliberate strategy rather than the system silently stalled or stuck?
 - (T3_inherence) What does "BUILD is inherently narrow (one tree/suite/...)" actually have to do with keeping a UK energy supplier solvent and out of administration, and on what evidence is that fragment being treated as a claim worth examining rather than an arbitrary snippet of a code comment?
 - (T3_inherence) When you say each of these seven triggers is "a real catch from this weekend," how many false positives did the same detector raise over that period — that is, how often did it flag one of these patterns and the flag turn out to be wrong?
+- (T3_inherence) When you say BUILD is "inherently" narrow — is that a fixed property of what BUILD actually does, or just an artifact of how this one tree/suite happens to be configured, and what specifically would break if that scope were widened?
+- (T3_inherence) What actually justifies the claim that BUILD is "inherently narrow (1-3 max)" — is that a measured property of the work itself, or just an assertion, and what concretely goes wrong if it were made wider?
+- (T3_inherence) If the extra 24 atoms are read-only, zero-collision, and would move you toward target, what is the actual constraint forcing them to be worked one at a time rather than all at once?
 <!-- /NAIVE_ORGAN_ASKS -->
