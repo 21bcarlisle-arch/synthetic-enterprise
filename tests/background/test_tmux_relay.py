@@ -247,6 +247,25 @@ def _busy_pane_with(footer_or_status: str) -> str:
     )
 
 
+def test_is_session_idle_false_for_spinner_with_trailing_token_counter(monkeypatch):
+    """DEFECT_TMUX_PANE_INJECTION.md root cause: Claude Code now appends a token
+    counter INSIDE the spinner parens -- "(19m 43s · ↓ 64.5k tokens)" -- so the
+    elapsed-time "s" is no longer adjacent to the closing ")". The old
+    end-anchored regex stopped matching and every busy turn read as idle. The
+    live-captured busy pane below MUST read busy."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    pane = (
+        "  ● doing the thing\n"
+        "✽ Metamorphosing… (19m 43s · ↓ 64.5k tokens)\n"
+        "────────────────────────────────────────────────────────\n"
+        "❯ [Pasted text #330][Pasted text #331]\n"
+        "────────────────────────────────────────────────────────\n"
+        "  ⏵⏵ bypass permissions on (shift+tab to cycle)\n"
+    )
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _mock_run_returning(pane))
+    assert tmux_relay.is_session_idle("claude") is False
+
+
 def test_is_session_idle_false_when_waiting_for_background_agent(monkeypatch):
     """DEFECT_TMUX_PANE_INJECTION.md: "Waiting for background agent…" is shown
     the entire time a background fork runs and MUST read busy -- the old

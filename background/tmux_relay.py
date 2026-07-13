@@ -180,7 +180,16 @@ def relay_lock(timeout: float = _RELAY_LOCK_TIMEOUT_SECONDS):
 # last 30 lines the whole time. Real work (a staged BUDGET_UNCONSTRAINED.md)
 # went undelivered for hours as a direct result -- this is the exact bug R4
 # was supposed to have already caught, in the same function, one day older.
-_BUSY_SPINNER_LINE = re.compile(r"^\s*\S\s+\S.*\(\d+(?:m\s*\d+\s*)?s\)\s*$", re.MULTILINE)
+# NOTE (DEFECT_TMUX_PANE_INJECTION.md, 2026-07-13): the elapsed-time token is
+# no longer at the END of the line -- Claude Code now appends a token counter
+# INSIDE the parens, e.g. "✽ Metamorphosing… (19m 43s · ↓ 64.5k tokens)". The
+# old `\)\s*$` end-anchor stopped matching, so EVERY busy turn read as idle and
+# daemons injected mid-turn (the input box filled with 300+ [Pasted text #NNN]).
+# Anchor on a word boundary after the "s" instead, so any trailing content
+# inside/after the parens is tolerated. Still requires a real "(<N>s)"/"(<N>m
+# <N>s)" live timer (a bare ellipsis on a static completed-task-list line must
+# NOT match -- see test_busy_spinner_requires_elapsed_time_suffix_not_just_ellipsis).
+_BUSY_SPINNER_LINE = re.compile(r"^\s*\S\s+\S.*\(\d+(?:m\s*\d+\s*)?s\b", re.MULTILINE)
 
 # Claude Code's footer shows an "esc to interrupt"-style hint (sometimes
 # truncated to "esc …" in a narrow pane) only while a turn is actively
