@@ -104,3 +104,60 @@ def due_for_reping(path: Path | None = None, now: str | None = None) -> list[dic
         if (now_dt - last_pinged).total_seconds() >= RE_PING_SECONDS:
             due.append(entry)
     return due
+
+
+def escalate_if_one_way_door(
+    item_id: str,
+    description: str,
+    how: str,
+    *,
+    explicit_category=None,
+    uncertain: bool = False,
+    path: Path | None = None,
+    send_ntfy_fn=None,
+) -> "OneWayDoorVerdict":  # noqa: F821 -- imported lazily below, forward ref for typing only
+    """ACTION_NEEDED_REDESIGN_AND_BOOTSTRAP.md (P0, 2026-07-13, director-
+    decided, "the single least reliable mechanism in the harness... [ACTION
+    NEEDED] fires IF AND ONLY IF the one-way-door predicate returns true.
+    No judgement, no remembering, no separate heuristic. One code path.").
+
+    Root cause of every prior failure of this rule (per
+    .claude/hooks/flag_unregistered_blocking_question.py's own retired
+    diagnosis): CLASSIFYING something as blocking and REGISTERING it were
+    two separate steps, with nothing forcing the second to follow the
+    first -- the agent could correctly judge "this needs Rich" in prose and
+    still forget register_item(). This function is the fix: classification
+    and registration+alerting happen in ONE atomic call, so there is no
+    seam left for the second step to be forgotten. There is deliberately
+    NO separate prose-heuristic safety net layered on top any more (that
+    hook is retired, not just deprioritised) -- PROCEED_BY_DEFAULT already
+    shrinks the genuine one-way-door surface to small and rare, which is
+    exactly what the director's own diagnosis says makes a single, clean,
+    testable code path sufficient at last.
+
+    Delegates the actual classification to
+    background.one_way_door.classify_action() (imported here, not at
+    module level, to keep action_needed.py's own existing zero-dependency
+    footprint for every caller that never needs the one-way-door check).
+    Returns the verdict either way; registers + alerts ONLY when
+    verdict.is_one_way_door is True -- everything else is a silent no-op
+    matching PROCEED_BY_DEFAULT's own "everything else: proceed" rule.
+
+    `send_ntfy_fn` is injectable for tests (defaults to the real
+    background.ntfy_utils.send_ntfy) -- this function sends its own alert
+    directly rather than returning a message for the caller to remember to
+    send, which is precisely the seam being closed."""
+    from background.one_way_door import classify_action
+
+    verdict = classify_action(description, explicit_category=explicit_category, uncertain=uncertain)
+    if not verdict.is_one_way_door:
+        return verdict
+
+    category_label = verdict.category.value if verdict.category else "uncertain"
+    why = f"One-way-door category: {category_label} -- {verdict.reason}"
+    register_item(item_id, what=description, how=how, why=why, path=path)
+
+    if send_ntfy_fn is None:
+        from background.ntfy_utils import send_ntfy as send_ntfy_fn
+    send_ntfy_fn(format_action_needed(item_id, description, how, why))
+    return verdict
