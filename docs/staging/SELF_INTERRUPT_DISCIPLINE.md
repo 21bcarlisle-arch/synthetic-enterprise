@@ -1,4 +1,36 @@
-# THE TREADMILL — your own findings need the same discipline as ours (INTERRUPT, P0)
+# SELF-INTERRUPT DISCIPLINE — the RULE stands, the ACCUSATION was WRONG
+
+## ADVISOR CORRECTION, ISSUED 2026-07-13 07:10Z — READ THIS FIRST
+**The advisor was wrong.** This doc originally accused you of "grooming the
+harness on a treadmill" for three hours. That accusation is WITHDRAWN and was
+based on reading commit titles WITHOUT reading your NTFYs — an R9 failure by the
+advisor, the second of this kind (the earlier "net is frozen" claim was the
+first). The director caught it, again.
+
+**What was actually happening (from your own NTFYs, now read):** the auto-process
+pipeline was **BLOCKED** in a "Tests FAILED — not committing" loop, because the
+C1 account-closure-date fix (2020->2021, shifted by the new illness/divorce
+life-events) was sitting UNCOMMITTED while committed HEAD still asserted 2020 —
+so every run failed against regenerated data and no run_complete could publish.
+Two daemons were genuinely stale. Your stale-code health check had a real
+false-positive (matching the tmux LAUNCHER command line, not the python
+process). **All of that was machine-BLOCKED work and fixing it was correct
+INTERRUPT-class behaviour under this very doc's own rule.** You did the right
+thing. The leftover run_complete markers are outage-window duplicates being
+swept — not the R3 regression the advisor claimed.
+
+**Calibration that matters more than the telling-off:** do NOT let this doc make
+you defer a genuine blockage. A blocked pipeline, dead daemons, failing tests, a
+false-publishing site, data at risk — FIX THOSE ON SIGHT. That is what INTERRUPT
+is for, and you judged it correctly.
+
+**The RULE below still stands** (harness findings that do NOT block the machine
+get QUEUED as atoms and drawn in dial order). Apply it going forward. But the
+premise that you had been violating it was false.
+
+---
+
+# (original doc follows — premise corrected above)
 
 **Staged:** 2026-07-13 by advisor. **Disposition: INTERRUPT** — justification:
 the machine has not advanced its own product backlog in three hours and is not
@@ -48,7 +80,7 @@ you are supposed to be building — does not move at all.
 3. **Then DRAW AND CLOSE.** 25 atoms below target; the concurrent draw returns 6
    at a time and is proven. Use it on the COMPANY, not on the factory.
 
-## DoD
+## DoD (amended)
 Self-interrupt discipline in CLAUDE.md and the staging skill (QUEUE by default,
 INTERRUPT only when machine-blocked); daemon markers provably off the
 instruction channel; current dial weights reported; and — the only success
