@@ -1051,6 +1051,23 @@
   evidence: ["docs/design/INVARIANT_LIBRARY_REDTEAM.md"]
   file_scope: [company/compliance/obligations_register.py]
   simplifications: ["2026-07-13 REGISTERED (INVARIANT_LIBRARY_REDTEAM.md top-3). Register coverage gaps: physical-harm obligation rows (gas-safety, self-disconnection) under-represented; the existing_tracker field is unresolved/degraded in places; and obligation rows do not carry the KEY of the invariant that enforces them, so SLC-31A-vs-21BA style drift between an obligation and its enforcement can go undetected. Also the enforcement is bills-only -- annual statements, DD resets, refunds are ungated surfaces a bad value can reach a customer through. FIX: extend register coverage + carry an enforcing-invariant key per row (traceability) + widen the gate surface beyond bills. loop_stage idle: rank for BUILD."]
+
+- id: H12_mutation_test_controls
+  name: "Mutation-test the entire control apparatus: every control must fire on its own named defect (kill list + the 3 killer patterns)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md", "docs/design/INVARIANT_LIBRARY_REDTEAM.md"]
+  file_scope: [tests/controls, company/compliance, tools/epistemic_verifier.py]
+  simplifications: ["2026-07-13 REGISTERED (CONTROLS_THAT_CANNOT_FAIL.md, director P0, rank HIGHEST -- prompted by the F5 VAT-tautology red-team finding). Doctrine (now R15 in CLAUDE.md): a control that CANNOT FAIL is worse than none -- it manufactures confidence. For EVERY control (invariant/Tier-1 gate/validator/evaluator/daemon/health-check): MUTATION-TEST it -- inject the exact defect it exists to catch, it MUST fire; a control that does not fire on its named defect is theatre (delete/rebuild). Audit for the 3 KILLER PATTERNS: TAUTOLOGY (checked value derived from the same source it checks -- the VAT case, an independence violation), FAIL-OPEN (passes on missing/zero/empty/malformed -- e.g. subtotal<=0 skips the gate), FAIL-SILENT (passes when the CHECKER ITSELF is unavailable -- the Qwen backstop returning clean when Ollama is down = every autonomous run; an unavailable check is a FAILED check, must ALARM on absence). DoD: every control mutation-tested with results published; kill list with COUNTS (N tested, M fired, K theatre) published on The Proof door + site/data/; R15 standing rule in CLAUDE.md (DONE); any level-promotion/Expert-Hour/green-suite that rested on a theatre control RE-OPENED (retro-apply); F6/F7 closed as part of the CLASS not as instances. Report the theatre count honestly, however embarrassing. Pitch: auditing our own controls and finding our flagship Tier-1 check could not fail is one of the strongest artefacts this project will produce (every real supplier has tautological/fail-open/fail-silent controls nobody audits -- exactly why regulators keep finding the same harms after the same controls passed). First mutation-test fork dispatched (harness + inventory + kill list on the compliance/billing/verifier/backstop core). loop_stage build: this is the highest-ranked BUILD on the map -- nothing is graded reliably until it lands."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulator or internal auditor mutation-testing a supplier's compliance controls and publishing which ones were theatre"
+  depends_on: []
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a compliance obligations matrix where every duty maps to the control that enforces it, audited for coverage"
   depends_on: []
