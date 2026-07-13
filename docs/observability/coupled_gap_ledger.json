@@ -48,30 +48,6 @@
     "run_git_commit": "d29055ed5c555d6ef667eceec80798f58a0902a5",
     "twin_atom_id": "C7_life_event_detection"
   },
-  "W2_9_segment_debt_tnc": {
-    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
-    "components": {
-      "class_counts": {
-        "business_terms": 50200,
-        "domestic_terms": 449800
-      },
-      "error_rate": 0.023,
-      "majority_class": "domestic_terms",
-      "n": 500000,
-      "n_wrong": 11500,
-      "positive_class": "business_terms",
-      "wrongly_applied": 8200,
-      "wrongly_withheld": 3300
-    },
-    "g0": 0.1004,
-    "gap": 0.2290836653386454,
-    "measured_at": "2026-07-13T21:45:31.021206+00:00",
-    "metric": "misapplication",
-    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
-    "raw_gap": 0.023,
-    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
-    "twin_atom_id": "C11_segment_debt_policy"
-  },
   "W2_6_sme_distress_twin": {
     "baseline": "always-predict-majority quadrant can/will (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
     "components": {
@@ -96,5 +72,49 @@
     "raw_gap": 0.6249629629629629,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C8_sme_credit_risk"
+  },
+  "W2_8_self_rationing": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 133,
+      "flagged_size": 133,
+      "miss_rate": 0.307292,
+      "missed": 59,
+      "missed_harm": 54335.41,
+      "total_harm": 175606.37,
+      "truth_size": 192
+    },
+    "g0": 175606.37,
+    "gap": 0.30941593975207166,
+    "measured_at": "2026-07-13T22:09:20.633906+00:00",
+    "metric": "detection",
+    "note": "harm-weighted fraction of DETECTABLE silent self-rationing the company MISSED (W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection). The gap is driven by the smart-meter/baseline coverage blind spot: a rationer without a usable prior baseline is indistinguishable from a low-need home. Miss-only metric; false positives reported separately.",
+    "raw_gap": 54335.41,
+    "run_git_commit": "5ab272494d47b12325a210008180ddefdd1caf53",
+    "twin_atom_id": "C10_self_rationing_detection"
+  },
+  "W2_9_segment_debt_tnc": {
+    "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
+    "components": {
+      "class_counts": {
+        "business_terms": 50200,
+        "domestic_terms": 449800
+      },
+      "error_rate": 0.023,
+      "majority_class": "domestic_terms",
+      "n": 500000,
+      "n_wrong": 11500,
+      "positive_class": "business_terms",
+      "wrongly_applied": 8200,
+      "wrongly_withheld": 3300
+    },
+    "g0": 0.1004,
+    "gap": 0.2290836653386454,
+    "measured_at": "2026-07-13T21:45:31.021206+00:00",
+    "metric": "misapplication",
+    "note": "fraction of arrears accounts on the WRONG-segment debt T&C (W2_9 true segment vs C11 applied-from-observed segment); a compliance/fairness gap driven by real onboarding segment misclassification, normalised to a blind majority-class applier.",
+    "raw_gap": 0.023,
+    "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
+    "twin_atom_id": "C11_segment_debt_policy"
   }
 }
