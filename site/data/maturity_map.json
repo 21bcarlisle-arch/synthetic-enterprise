@@ -191,7 +191,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -380,7 +380,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "W2_3_competitor_field",
@@ -554,7 +554,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 2,
