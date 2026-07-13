@@ -117,5 +117,25 @@
     "raw_gap": 0.023,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C11_segment_debt_policy"
+  },
+  "W2_8_self_rationing": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 133,
+      "flagged_size": 133,
+      "miss_rate": 0.307292,
+      "missed": 59,
+      "missed_harm": 54335.41,
+      "total_harm": 175606.37,
+      "truth_size": 192
+    },
+    "g0": 175606.37,
+    "gap": 0.30941593975207166,
+    "measured_at": "2026-07-13T22:09:20.633906+00:00",
+    "metric": "detection",
+    "note": "harm-weighted fraction of DETECTABLE silent self-rationing the company MISSED (W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection). The gap is driven by the smart-meter/baseline coverage blind spot: a rationer without a usable prior baseline is indistinguishable from a low-need home. Miss-only metric; false positives reported separately.",
+    "raw_gap": 54335.41,
+    "run_git_commit": "5ab272494d47b12325a210008180ddefdd1caf53",
+    "twin_atom_id": "C10_self_rationing_detection"
   }
 }
