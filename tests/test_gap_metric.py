@@ -189,6 +189,54 @@ def test_detection_uniform_harm_equals_miss_rate():
 
 
 # ===========================================================================
+# (e) Misapplication gap -- wrong-class applied vs answer key (W2_9 <-> C11)
+# ===========================================================================
+
+def test_misapplication_perfect_gap_zero():
+    truth = ["domestic_terms"] * 8 + ["business_terms"] * 2
+    r = gm.misapplication_gap(truth, list(truth))
+    assert r.gap == 0.0
+    assert r.raw_gap == 0.0
+
+
+def test_misapplication_blind_majority_gap_one():
+    # A no-skill applier that always applies the majority class 'domestic_terms'
+    # scores gap == 1 exactly (does no better than the baseline it defines).
+    truth = ["domestic_terms"] * 8 + ["business_terms"] * 2
+    applied = ["domestic_terms"] * 10
+    r = gm.misapplication_gap(truth, applied)
+    assert r.gap == pytest.approx(1.0)
+    assert r.g0 == pytest.approx(0.2)
+
+
+def test_misapplication_mid_case_between_zero_and_one():
+    # Company gets 1 of the 2 business accounts right -> 1 wrong of 10.
+    truth = ["domestic_terms"] * 8 + ["business_terms"] * 2
+    applied = ["domestic_terms"] * 9 + ["business_terms"]
+    r = gm.misapplication_gap(truth, applied)
+    assert 0.0 < r.gap < 1.0
+    assert r.raw_gap == pytest.approx(0.1)     # 1/10 wrong
+    assert r.gap == pytest.approx(0.5)          # 0.1 / 0.2 baseline
+
+
+def test_misapplication_directional_components():
+    truth = ["domestic_terms", "domestic_terms", "business_terms", "business_terms"]
+    # One domestic wrongly given business terms (unlawful direction); one
+    # business wrongly left on domestic terms (withheld).
+    applied = ["business_terms", "domestic_terms", "domestic_terms", "business_terms"]
+    r = gm.misapplication_gap(truth, applied, positive_class="business_terms")
+    assert r.components["wrongly_applied"] == 1
+    assert r.components["wrongly_withheld"] == 1
+
+
+def test_misapplication_fails_loud_on_empty_and_mismatch():
+    with pytest.raises(ValueError):
+        gm.misapplication_gap([], [])
+    with pytest.raises(ValueError):
+        gm.misapplication_gap(["a"], ["a", "b"])
+
+
+# ===========================================================================
 # Ledger write -- the contract coupled_triad.py reads
 # ===========================================================================
 
