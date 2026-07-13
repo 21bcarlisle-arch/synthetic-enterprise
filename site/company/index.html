@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- The Company</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://poesys.net/company/">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+}
+:root[data-theme="light"] {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 44px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 12px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.kpi-basis { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: ui-monospace, monospace; }
+.pos { color: var(--green); } .neg { color: var(--red); } .neu { color: var(--blue); }
+.evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.evlink:hover { border-bottom-color: var(--blue); }
+.passport { font-size: 10px; color: var(--muted); line-height: 1.6; margin-top: 12px;
+  border-top: 1px dashed var(--border); padding-top: 10px; }
+.passport b { color: var(--text); font-weight: 600; }
+.badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
+.badge.provisional { color: var(--amber); border: 1px solid var(--amber); }
+.badge.green { color: var(--green); border: 1px solid var(--green); }
+.badge.amber { color: var(--amber); border: 1px solid var(--amber); }
+.badge.red { color: var(--red); border: 1px solid var(--red); }
+.badge.blue { color: var(--blue); border: 1px solid var(--blue); }
+.badge.manual, .badge.grey { color: var(--muted); border: 1px solid var(--border); }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px; border-bottom: 1px solid var(--border); }
+.tbl td { padding: 8px; border-top: 1px solid var(--border); vertical-align: top; }
+.tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl .code { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); white-space: nowrap; }
+.table-scroll { overflow-x: auto; }
+.bridge-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.bridge-row:last-child { border-bottom: none; }
+.bridge-row .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+.hh-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 4px; }
+.hh-attr { background: var(--surface2); border-radius: 6px; padding: 8px 10px; }
+.hh-attr .l { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.hh-attr .v { font-size: 13px; font-weight: 600; margin-top: 2px; }
+.arrears-case { border-left: 2px solid var(--amber); padding: 4px 0 4px 12px; margin-top: 12px; }
+.arrears-head { font-size: 12px; font-weight: 600; }
+.arrears-stage { font-size: 11px; color: var(--muted); line-height: 1.55; padding: 2px 0 2px 12px; position: relative; }
+.arrears-stage::before { content: "\2192"; position: absolute; left: 0; color: var(--amber); }
+.stage-tag { font-family: ui-monospace, monospace; color: var(--text); }
+.rag-legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 14px; font-size: 11px; color: var(--muted); }
+details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin-top: 10px; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../company/" class="nav-link active">Company</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../project/" class="nav-link">Project</a>
+</nav>
+<div class="wrap">
+
+  <div class="hero-h">The Company</div>
+  <p class="hero-p">
+    The board pack. What a real energy supplier's board would read at quarter-close:
+    the trading and risk position, the finance on all three clocks it actually keeps
+    (settled, billed, banked -- they diverge, and the divergence is shown, not smoothed),
+    one household seen the whole way down to its arrears, and the compliance organs with
+    their honest RED and AMBER kept. Every figure carries its clock (R14) and links to the
+    file it came from.
+  </p>
+
+  <!-- 1. THREE-CLOCK FINANCE -->
+  <div class="sec">Finance &mdash; the three clocks a supplier actually keeps</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px" id="finance-intro">Loading...</p>
+    <div class="kpis" id="finance-kpis"></div>
+  </div>
+  <div class="card">
+    <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
+    <p class="muted" style="margin-bottom:12px" id="bridge-intro">Loading...</p>
+    <div id="bridge-body"><div class="muted">Loading...</div></div>
+    <div class="passport" id="finance-passport"></div>
+  </div>
+
+  <!-- 2. TRADING & RISK -->
+  <div class="sec">Trading &amp; Risk &mdash; the book's hedge position &amp; limits</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px" id="trading-intro">Loading...</p>
+    <div class="kpis" id="trading-kpis"></div>
+    <div class="table-scroll">
+      <table class="tbl">
+        <thead><tr><th>Year</th><th class="num">Avg hedge</th><th class="num">Min</th><th class="num">Max</th></tr></thead>
+        <tbody id="hedge-body"><tr><td colspan="4" class="muted">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="passport" id="trading-passport"></div>
+  </div>
+
+  <!-- 3. HOUSEHOLD DRILL-DOWN -->
+  <div class="sec">Household drill-down &mdash; one real account, the whole way down</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px" id="hh-intro">Loading...</p>
+    <div class="hh-grid" id="hh-attrs"></div>
+    <div class="kpis" id="hh-kpis" style="margin-top:14px"></div>
+    <div id="hh-arrears" style="margin-top:6px"></div>
+    <details><summary>Show this household's life events &amp; annual P&amp;L &rarr;</summary>
+      <div id="hh-detail" style="margin-top:10px"></div>
+    </details>
+    <div class="passport" id="hh-passport"></div>
+  </div>
+
+  <!-- 4. COMPLIANCE ORGANS -->
+  <div class="sec">Compliance organs &mdash; the obligations register &amp; tiered controls</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:8px" id="oblig-intro">Loading...</p>
+    <div class="rag-legend">
+      <span><span class="badge green">GREEN</span> compliant</span>
+      <span><span class="badge amber">AMBER</span> at risk</span>
+      <span><span class="badge red">RED</span> breach / failing</span>
+      <span><span class="badge manual">MANUAL</span> manual attestation</span>
+    </div>
+    <div class="kpis" id="oblig-kpis"></div>
+    <div class="table-scroll">
+      <table class="tbl">
+        <thead><tr><th>Code</th><th>Obligation</th><th>Domain</th><th>Status</th></tr></thead>
+        <tbody id="oblig-body"><tr><td colspan="4" class="muted">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div style="margin-top:16px" id="tiered-block"></div>
+    <div class="passport" id="oblig-passport"></div>
+  </div>
+
+  <div class="card">
+    <p class="muted" id="build-note">Loading...</p>
+  </div>
+
+</div>
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
+// Money formatter. `prov` prepends the brand's provisional tilde (~) per BRAND_CONSTITUTION.
+function gbp(v, prov){
+  if(v==null) return "--";
+  var n=Math.abs(Number(v));
+  var s = n>=1e6 ? (n/1e6).toFixed(2)+"M" : n>=1e3 ? (n/1e3).toFixed(1)+"k" : n.toFixed(0);
+  return (prov?"~":"")+(v<0?"-":"")+"£"+s;
+}
+function gbpFull(v){ return v==null?"--":(v<0?"-":"")+"£"+Number(Math.abs(v)).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pct(v){ return v==null?"--":Number(v).toFixed(2)+"%"; }
+function ragClass(s){ s=(s||"").toUpperCase(); if(s==="GREEN")return"green"; if(s==="AMBER")return"amber"; if(s==="RED")return"red"; if(s==="BLUE")return"blue"; return"manual"; }
+function el(id){ return document.getElementById(id); }
+
+// A KPI tile with a `//` basis line (R14: clock always shown).
+function kpiTile(label, value, basis, klass){
+  return '<div class="kpi"><div class="kpi-l">'+esc(label)+'</div>'+
+    '<div class="kpi-v '+(klass||"")+'">'+value+'</div>'+
+    (basis?'<div class="kpi-basis">// '+esc(basis)+'</div>':'')+'</div>';
+}
+
+function renderFinance(d){
+  var f=d.finance||{};
+  var b=f.settled_basis||{};
+  var settledProv = !!b.provisional;
+  el("finance-intro").innerHTML=
+    "The company keeps three clocks and they do not agree -- that is the point. The <b>settled</b> "+
+    "clock is the settlement-derived P&amp;L; the <b>billed</b> clock is what customers were actually "+
+    "invoiced; the <b>banked</b> clock is cash actually collected. A number without its clock is a "+
+    "defect here, not a rounding choice.";
+  var netCls = (f.settled_net_margin_gbp>=0)?"pos":"neg";
+  var kpis=[
+    kpiTile("Net margin", gbp(f.settled_net_margin_gbp, settledProv), (b.clock||"settled")+" clock"+(settledProv?" · provisional":""), netCls),
+    kpiTile("Net margin", gbp(f.billed_net_margin_gbp), "billed clock (bill-derived ledger)", (f.billed_net_margin_gbp>=0?"pos":"neg")),
+    kpiTile("Revenue billed", gbp(f.billed_revenue_gbp), "billed clock · "+num(f.invoice_count)+" invoices"),
+    kpiTile("Revenue banked", gbp(f.banked_revenue_gbp), "banked clock · cash collected"),
+    kpiTile("Collection rate", pct(f.collection_rate_pct), "banked ÷ billed"),
+    kpiTile("Treasury (end)", gbp(f.treasury_end_gbp), "banked clock · from "+gbp(f.treasury_start_gbp)),
+    kpiTile("Corp. tax "+esc(f.latest_year), gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
+    kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived")
+  ];
+  el("finance-kpis").innerHTML=kpis.join("");
+
+  var r=f.reconciliation||{};
+  el("bridge-intro").innerHTML=
+    "The settled and billed net-margin figures diverge by <b>"+gbpFull(r.gap_gbp)+"</b> ("+esc(r.gap_ratio_x)+
+    "x). A real supplier reconciles the two with explicit bridging items rather than picking whichever "+
+    "number flatters -- here is the bridge, "+esc(r.item_count)+" item(s), dominated by one root cause. "+
+    'Source: <a class="evlink" href="'+esc(r.evidence_url)+'" target="_blank" rel="noopener">'+esc(r.evidence)+' &rarr;</a>';
+  var rows=
+    '<div class="bridge-row"><span>Settled net margin <span class="badge provisional">PROVISIONAL</span></span><span class="amt '+netCls+'">'+gbpFull(f.settled_net_margin_gbp)+'</span></div>'+
+    '<div class="bridge-row"><span>'+esc(r.dominant_item_label||"Dominant bridging item")+'</span><span class="amt">'+gbpFull(r.dominant_item_gbp)+'</span></div>'+
+    ((r.item_count>1)?'<div class="bridge-row"><span class="muted">+ '+esc(r.item_count-1)+' further bridging item(s)</span><span class="amt muted">'+gbpFull((r.gap_gbp||0)-(r.dominant_item_gbp||0))+'</span></div>':'')+
+    '<div class="bridge-row"><span><b>Billed net margin (ledger)</b></span><span class="amt '+(f.billed_net_margin_gbp>=0?"pos":"neg")+'"><b>'+gbpFull(f.billed_net_margin_gbp)+'</b></span></div>'+
+    (r.fully_explained?'':'<div class="bridge-row"><span class="muted">Unexplained remainder</span><span class="amt muted">'+gbpFull(r.unexplained_remainder_gbp)+'</span></div>');
+  el("bridge-body").innerHTML=rows;
+
+  var p=f.passport||{};
+  el("finance-passport").innerHTML="<b>Passport.</b> "+esc(p.rule||"")+". Sources: "+
+    (p.sources||[]).map(function(s){return esc(s);}).join("; ")+".";
+}
+
+function renderTrading(d){
+  var t=d.trading_risk||{};
+  el("trading-intro").innerHTML=
+    "The book runs a heavily hedged position -- forward-buying the bulk of forecast volume so that "+
+    "wholesale spikes hit customers' costs, not the company's solvency. The VaR limit caps how much "+
+    "term revenue may be exposed. Basis-risk is the error of the company's OWN forward curve against the "+
+    "sim's ground truth: it builds the curve from observables and never reads the sim's internals.";
+  var kpis=[
+    kpiTile("Avg hedge "+esc(t.latest_hedge_year), t.latest_avg_hf!=null?(t.latest_avg_hf*100).toFixed(1)+"%":"--", "share of forecast volume forward-bought"),
+    kpiTile("Hedge range", (t.latest_min_hf!=null?(t.latest_min_hf*100).toFixed(0)+"%":"--")+" – "+(t.latest_max_hf!=null?(t.latest_max_hf*100).toFixed(0)+"%":"--"), "min–max across the book"),
+    kpiTile("VaR limit", t.var_limit_pct_of_term_revenue!=null?(t.var_limit_pct_of_term_revenue*100).toFixed(0)+"%":"--", "of term revenue"),
+    kpiTile("Basis-risk error", t.forward_curve_mean_abs_error_pct!=null?(t.forward_curve_mean_abs_error_pct*100).toFixed(1)+"%":"--", "mean abs, company vs sim curve · "+num(t.forward_term_count)+" terms")
+  ];
+  el("trading-kpis").innerHTML=kpis.join("");
+  var ha=t.hedge_annual||[];
+  el("hedge-body").innerHTML=ha.length?ha.map(function(h){
+    return '<tr><td>'+esc(h.year)+'</td>'+
+      '<td class="num">'+(h.avg_hf!=null?(h.avg_hf*100).toFixed(1)+"%":"--")+'</td>'+
+      '<td class="num">'+(h.min_hf!=null?(h.min_hf*100).toFixed(0)+"%":"--")+'</td>'+
+      '<td class="num">'+(h.max_hf!=null?(h.max_hf*100).toFixed(0)+"%":"--")+'</td></tr>';
+  }).join(""):'<tr><td colspan="4" class="muted">No hedge series.</td></tr>';
+  var p=t.passport||{};
+  el("trading-passport").innerHTML="<b>Passport.</b> "+esc(p.note||"")+" Sources: "+(p.sources||[]).map(esc).join("; ")+".";
+}
+
+function renderHousehold(d){
+  var h=d.household||{};
+  if(!h.available){ el("hh-intro").textContent="Household drill-down source not available at generation time."; return; }
+  el("hh-intro").innerHTML=
+    "Account <b>"+esc(h.id)+"</b> -- a real residential household acquired "+esc(h.acquisition_date)+", "+
+    "carried the whole way down: who it is, its lifetime economics on the settled clock, its own billed-vs-"+
+    "banked cash, and the actual arrears cases behind that gap. Absorbed as-is from the supplier view.";
+  var attrs=[
+    ["Segment", esc(h.segment)+(h.dual_fuel?" · dual fuel":"")],
+    ["Payment", esc(h.payment_channel)],
+    ["Engagement", esc(h.engagement_level)],
+    ["Tenure", esc(h.tenure)],
+    ["Occupancy", esc(h.occupancy)],
+    ["Home", esc(h.home_type)],
+    ["Smart meter", h.smart_meter?"yes":"no"],
+    ["Fuel poverty", h.fuel_poverty?"yes":"no"],
+    ["Latest churn", h.latest_churn_probability!=null?(h.latest_churn_probability*100).toFixed(0)+"%":"--"]
+  ];
+  el("hh-attrs").innerHTML=attrs.map(function(a){
+    return '<div class="hh-attr"><div class="l">'+a[0]+'</div><div class="v">'+a[1]+'</div></div>';
+  }).join("");
+  var netCls=(h.lifetime_net_gbp>=0)?"pos":"neg";
+  el("hh-kpis").innerHTML=[
+    kpiTile("Lifetime net", gbpFull(h.lifetime_net_gbp), "settled clock · net of cost-to-serve "+gbp(h.cost_to_serve_gbp), netCls),
+    kpiTile("CLV", gbp(h.clv_gbp), "modelled lifetime value"),
+    kpiTile("Billed", gbpFull(h.billed_gbp), "billed clock · "+num(h.invoice_count)+" invoices"),
+    kpiTile("Banked", gbpFull(h.banked_gbp), "banked clock · cash collected"),
+    kpiTile("Balance", gbpFull(h.balance_gbp), "billed − banked", (h.balance_gbp<0?"neg":"neu")),
+    kpiTile("Failed payments", num(h.failed_payment_count), num(h.arrears_case_count)+" arrears case(s)")
+  ].join("");
+  var cases=h.arrears_cases||[];
+  el("hh-arrears").innerHTML=cases.length?('<div class="muted" style="margin-top:6px">The real collection journeys behind the balance:</div>'+cases.map(function(c){
+    return '<div class="arrears-case"><div class="arrears-head">'+esc(c.case_id)+' &middot; '+gbpFull(c.arrears_gbp)+' &middot; opened '+esc(c.opened_date)+'</div>'+
+      (c.stages||[]).map(function(s){
+        return '<div class="arrears-stage"><span class="stage-tag">'+esc(s.stage)+'</span> '+esc(s.date)+(s.note?' &mdash; '+esc(s.note):'')+'</div>';
+      }).join("")+'</div>';
+  }).join("")):'<div class="muted" style="margin-top:6px">No arrears cases -- fully collected.</div>';
+
+  var life=h.life_events||[];
+  var pnl=h.annual_pnl||[];
+  var detail='';
+  if(life.length){
+    detail+='<div class="muted" style="font-weight:600;margin-bottom:4px">Life events</div>';
+    detail+=life.map(function(e){ return '<div class="muted">'+esc(e.date)+' &middot; '+esc(e.event_type)+'</div>'; }).join("");
+  }
+  if(pnl.length){
+    detail+='<div class="muted" style="font-weight:600;margin:12px 0 4px">Annual P&amp;L (settled clock)</div>';
+    detail+='<div class="table-scroll"><table class="tbl"><thead><tr><th>Year</th><th class="num">Gross</th><th class="num">Net</th></tr></thead><tbody>'+
+      pnl.map(function(r){ return '<tr><td>'+esc(r.year)+'</td><td class="num">'+gbp(r.gross_gbp)+'</td><td class="num '+(r.net_gbp>=0?"pos":"neg")+'">'+gbp(r.net_gbp)+'</td></tr>'; }).join("")+
+      '</tbody></table></div>';
+  }
+  el("hh-detail").innerHTML=detail||'<div class="muted">No further detail.</div>';
+  var p=h.passport||{};
+  el("hh-passport").innerHTML="<b>Passport.</b> "+esc(p.note||"")+" Sources: "+(p.sources||[]).map(esc).join("; ")+".";
+}
+
+function renderCompliance(d){
+  var c=d.compliance||{};
+  var reg=c.obligations_register||{};
+  var sc=reg.status_counts||{};
+  el("oblig-intro").innerHTML=
+    "The obligations register is the company's own compliance reading of published licence conditions "+
+    "(Ofgem SLCs). It is graded <b>"+esc(reg.overall_rag)+"</b> overall as of "+esc(reg.latest_year)+
+    " -- a real supplier can misread the law and be fined for it, so the AMBER items are kept in view, not smoothed away.";
+  el("oblig-kpis").innerHTML=[
+    kpiTile("Obligations", num(reg.count), "SLC licence conditions tracked"),
+    kpiTile("Green", num(sc.GREEN||0), "compliant", "pos"),
+    kpiTile("Amber", num(sc.AMBER||0), "at risk", "neu"),
+    kpiTile("Red", num(sc.RED||0), "breach", (sc.RED?"neg":""))
+  ].join("");
+  el("oblig-body").innerHTML=(reg.items||[]).map(function(o){
+    return '<tr><td class="code">'+esc(o.code)+'</td><td>'+esc(o.description)+
+      (o.notes?'<br><span class="muted">'+esc(o.notes)+'</span>':'')+'</td>'+
+      '<td class="muted">'+esc(o.domain)+'</td>'+
+      '<td><span class="badge '+ragClass(o.status)+'">'+esc(o.status)+'</span></td></tr>';
+  }).join("")||'<tr><td colspan="4" class="muted">No obligations.</td></tr>';
+
+  var ti=c.tiered_controls||{};
+  var tiersHtml=(ti.tiers||[]).filter(function(t){return t.item_count>0;}).map(function(t){
+    var rows=(t.items||[]).map(function(i){
+      return '<tr><td class="code">'+esc(i.id)+'</td><td>'+esc(i.name)+'<br><span class="muted">'+esc(i.source)+
+        (i.testing_depth?' &middot; '+esc(i.testing_depth):'')+(i.basis?' &middot; '+esc(i.basis):'')+'</span></td>'+
+        '<td><span class="badge '+ragClass(i.status)+'">'+esc(i.status)+'</span></td></tr>';
+    }).join("");
+    return '<div class="muted" style="font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em;margin:14px 0 6px">'+
+      esc(t.tier.replace("_"," "))+' &middot; '+esc(t.item_count)+' control(s)</div>'+
+      '<div class="table-scroll"><table class="tbl"><thead><tr><th>Control</th><th>Obligation</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }).join("");
+  el("tiered-block").innerHTML=
+    '<div class="muted" style="margin-bottom:6px">Tiered controls -- overall <span class="badge '+ragClass(ti.overall_rag)+'">'+esc(ti.overall_rag)+
+    '</span>, '+esc(ti.held_bill_count)+' bill(s) held by the pre-issue validation gate. Tier 1 obligations get '+
+    'full-population testing every bill run; lower tiers are sampled or manually attested.</div>'+tiersHtml;
+
+  var p=c.passport||{};
+  el("oblig-passport").innerHTML="<b>Passport.</b> "+esc(p.note||"")+" Sources: "+(p.sources||[]).map(esc).join("; ")+".";
+}
+
+function renderBuild(d){
+  var parts=[];
+  if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
+  if(d.dashboard_generated_at)parts.push("data "+d.dashboard_generated_at);
+  if(d.generated_at)parts.push("page data generated "+d.generated_at);
+  el("build-note").textContent=parts.length?("This board pack is a rendering of repo data only — "+parts.join(" · ")):"Build stats unavailable.";
+}
+
+fetch("../data/company.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderFinance(d);
+  renderTrading(d);
+  renderHousehold(d);
+  renderCompliance(d);
+  renderBuild(d);
+}).catch(function(e){
+  console.error("company.json load error:",e);
+  el("finance-intro").innerHTML='<span style="color:var(--red)">Could not load company.json</span>';
+});
+</script>
+<script src="../shared/director-comments.js" defer></script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</body>
+</html>
