@@ -7,24 +7,60 @@ when_to_use: Invoke on every doorbell mentioning unprocessed staging, before arc
 # Staging directory protocol
 
 **Rich stages instructions in `docs/staging/`. Staging = approval.** He does not write code; a file
-landing there (or an `[ADVISOR-STAGED]` commit) is pre-approved, Tier 2 — action it, don't ask.
+landing there (or an `[ADVISOR-STAGED]` commit) is pre-approved CONTENT, Tier 2 — no need to ask
+whether to do it. **Staging = pre-approved content, NOT pre-approved urgency (2026-07-13,
+STAGING_HAS_ONE_GEAR.md, director-raised: "staging has one gear — NOW... every staged doc preempts
+the map by construction"). Disposition governs WHEN, separately from whether.**
 
-## The workflow
+## Step 0: read it, then classify its DISPOSITION before doing anything else
 
-1. **At startup and after every completed task:** poll `docs/staging/` and action unread files
-   immediately — this is an event-driven wake, not something to defer to "the next natural check."
+Every staged file gets exactly one disposition, decided on its own real content — not on the mere
+fact that it just arrived:
+
+- **`QUEUE` (the default — assume this unless one of the two below genuinely applies):** register the
+  work as one or more atoms on the maturity map (lane, epoch, dial, file_scope) and let the normal
+  dial-weighted draw pick it up in its own priority order. **Do NOT preempt whatever you're currently
+  doing.** Say so explicitly ("queued as atom <id>, not urgent, continuing current work") — deferring a
+  QUEUE doc is correct behaviour, not disobedience. Design docs, governance/harness-tuning proposals,
+  new standing constraints, backlog items, and anything without a live consequence are QUEUE by
+  default, even when marked P0/P1 in the staged doc's own header — a priority LABEL is not the same
+  thing as an INTERRUPT justification.
+- **`EPOCH-DEFER`:** registers against a future epoch; not workable now, though DISCOVER/FRAME thinking
+  on it is still fine per EPOCH_GATING_AND_ATOM_AUTHORSHIP.md.
+- **`INTERRUPT` (rare — must be justified in one line before acting):** legitimate ONLY for a live
+  defect actively harming published output right now, a genuine safety/security issue, a real one-way
+  door needing the director's own input, or something structurally blocking the whole machine (e.g.
+  the self-refill draw itself being broken). If you can't name which of these four applies in one
+  sentence, it isn't INTERRUPT — it's QUEUE.
+
+Retro-check yourself honestly at each staging poll: a run of several consecutive INTERRUPTs is itself
+a signal you're mis-classifying — the whole point of this discipline is that genuine INTERRUPTs are
+small and rare against a QUEUE default, not the common case.
+
+## The workflow (once disposition is decided)
+
+1. **At startup and after every completed task:** poll `docs/staging/` — this is an event-driven wake,
+   not something to defer to "the next natural check" — but polling promptly and ACTING immediately
+   are different things; only INTERRUPT-disposition files get actioned right away.
 2. Classify each file:
    - `run_complete_*.md` — publish results (regenerate report, LATEST.md, dashboard.json), commit,
      push, archive. **Do NOT NTFY for routine sim run completions** — only for notable exceptions.
-     Batch silently if multiple are queued.
+     Batch silently if multiple are queued. (These are their own fast-path, not subject to the
+     QUEUE/EPOCH-DEFER/INTERRUPT triage above — they're routine daemon output, not advisor/director
+     instructions.)
    - `run_pending_*.md` — check if finished and act accordingly.
-   - `from_rich_*.md` — action it, reply via NTFY, archive.
-   - Anything else — read it, classify Tier 1/2/3 per CLAUDE.md's reversibility model, action.
+   - `from_rich_*.md` — action it, reply via NTFY, archive. (Direct director input is its own channel,
+     not subject to the disposition triage either.)
+   - Anything else (advisor-staged design/governance/harness docs) — read it in full, decide its
+     disposition per Step 0 above, THEN action or defer accordingly.
 3. **Archive on completion, same commit:** move a fully-actioned file to `docs/staging/done/` in the
    SAME commit that closes the work — never leave a fully-built file sitting in the scanned root (it
    re-grants a supervisor turn every ~2min indefinitely with nothing new to do). If only part of a
    multi-item instruction is done, move it to `docs/staging/in_progress/` instead, with a note at the
-   top stating the specific blocking sub-item and what unblocks it.
+   top stating the specific blocking sub-item and what unblocks it. A QUEUE-dispositioned doc that's
+   been registered as atoms is NOT yet "done" — it archives only once the atoms it spawned are
+   actually drawn and closed, or it can sit correctly in the scanned root/a `queued/` note until then
+   (do not force-archive prematurely just to clear the directory).
 4. **Verify the archive actually happened.** After running `mv`, `ls` the destination before
    claiming it's archived — narrating the move isn't doing it (this has been gotten wrong before).
 5. **Duplicate re-materialization:** a background sync/advisor-bridge process can re-write a staged

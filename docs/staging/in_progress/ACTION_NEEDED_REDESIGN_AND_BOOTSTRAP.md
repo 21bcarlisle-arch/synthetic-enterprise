@@ -1,3 +1,16 @@
+**IN PROGRESS (2026-07-13):** Item 1 (redesign) DONE -- commit 6cdbbbff:
+background/action_needed.py::escalate_if_one_way_door() built, tested, live end-to-end
+NTFY-verified; hmac:invalid reconciliation confirmed already-answered-and-still-true.
+One sub-item held open pending live director confirmation, not blocked on unclear
+next steps: retiring the old flag_unregistered_blocking_question.py Stop hook is
+itself flagged SECURITY_SAFETY_CONTROL by the very predicate this redesign built --
+see docs/review_gates/FLAG_UNREGISTERED_BLOCKING_QUESTION_HOOK_RETIREMENT_TIER1.md
+(open). **Item 2 (harness bootstrap/DR): QUEUE-dispositioned per STAGING_HAS_ONE_GEAR.md's
+own new discipline** -- registered as docs/design/maturity_map.yaml's H8_harness_bootstrap_dr
+(epoch 5, dial 1), to be drawn in its own priority order rather than actioned immediately
+mid-turn. What unblocks full closure: the review gate resolving (either way) and H8
+being drawn/built through to a real, measured, tested bootstrap.
+
 # [ACTION NEEDED] two-strike REDESIGN + harness bootstrap/DR (P0 / P1)
 
 **Staged:** 2026-07-13 by advisor, director-raised. Note: trust ledger, skills/

@@ -806,6 +806,22 @@
   real_world_twin: "a real supplier's go-live readiness register presented to its board/regulator before launch"
   depends_on: [H3_production_readiness_nfr_evidence, H5_security_profiles]
 
+- id: H8_harness_bootstrap_dr
+  name: "Harness bootstrap + disaster recovery (reproduce the machine that runs the company, not just its data)"
+  lane: H_harness
+  value_stream: meter_to_cash
+  epoch: 5
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  evidence: ["docs/staging/ACTION_NEEDED_REDESIGN_AND_BOOTSTRAP.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as QUEUE, not actioned immediately (self-refill/staging disposition, STAGING_HAS_ONE_GEAR.md's own new discipline applied live: this doc is real, director-raised, P1-labelled, but is a resilience-improvement design/build task with no live consequence right now -- not a live defect, safety issue, one-way door, or machine-blocker -- so it is QUEUE-dispositioned, registered here rather than interrupting in-progress map work). Real, precise scope from the staged doc: PRODUCTION_READINESS_EVIDENCE_PASS.md (H3's own Part A) already confirmed company/data/*.db is backed up via the GitHub mirror, but the MACHINE that operates the company (daemons, hooks, .claude/settings.json, systemd/tmux topology, env files, launcher scripts, model routing) has never been reproduced from a clean state -- a real, named single point of failure, not hypothetical. Concrete DoD from the staged doc: (1) inventory everything the harness needs that is NOT in the repo (env files, secrets locations, systemd units, tmux layout, external services); (2) a real bootstrap path (script or documented sequence) reconstructing a working harness from the repo + a secrets file; (3) TESTED for real on a clean directory/container/second machine, not a thought experiment -- measured time-to-working recorded, not assumed; (4) secrets never enter the repo (Option 2 floor already established); (5) the measured RTO feeds H4_go_live_nfr_register's recoverability entry. Depends on H4 existing to receive that feed (already at target, dependency met). Real next step (not decided here): the actual inventory pass (grep tmux session names, systemd user units, .env.* files, secrets_location.py's resolved paths) plus designing the real clean-environment test -- neither attempted yet, genuinely greenfield, deliberately deferred per QUEUE disposition rather than rushed mid-turn."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real ops team's disaster-recovery runbook and its own tested RTO, not just an offsite database backup"
+  depends_on: [H4_go_live_nfr_register]
+
 - id: F4_company_internal_authz
   name: "Company-internal authz (roles, maker-checker, segregation of duties)"
   lane: F_risk_compliance

@@ -876,6 +876,25 @@
       "stall_consecutive_unchanged": null
     },
     {
+      "id": "H8_harness_bootstrap_dr",
+      "name": "Harness bootstrap + disaster recovery (reproduce the machine that runs the company, not just its data)",
+      "lane": "H_harness",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 5,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H4_go_live_nfr_register"
+      ],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
       "id": "F4_company_internal_authz",
       "name": "Company-internal authz (roles, maker-checker, segregation of duties)",
       "lane": "F_risk_compliance",
@@ -1029,7 +1048,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 53,
+  "total_atoms": 54,
   "epoch2_movements": [
     {
       "id": "M1",
