@@ -1,5 +1,5 @@
 ## Background-worker NTFY fix (root-caused recurring pipeline failures) + wide DISCOVER batch
-Last updated: 2026-07-13T05:42:18Z
+Last updated: 2026-07-13T05:53:53Z
 
 **Status:** self-refill cycle (idle-tier DISCOVER/FRAME), latest sim run processed successfully.
 Epistemic PASS throughout. All commits pushed.
