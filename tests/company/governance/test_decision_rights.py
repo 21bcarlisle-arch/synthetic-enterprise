@@ -13,6 +13,9 @@ from company.governance.decision_rights import (
     log_decision_event,
     get_decision_log,
     reset_decision_log,
+    submit_decision_request,
+    resolve_decision_request,
+    pending_decision_requests_as_of,
 )
 from company.interfaces.bitemporal_event_log import BitemporalEventLog
 
@@ -113,3 +116,155 @@ def test_reset_decision_log_clears_shared_state():
     assert len(get_decision_log().all_records()) == 1
     reset_decision_log()
     assert len(get_decision_log().all_records()) == 0
+
+
+def test_log_decision_event_status_defaults_decided():
+    """Additive schema change (C-S3/A3 pending-latency mechanism) must not
+    disturb the meaning of every pre-existing call -- status defaults to
+    'decided' exactly as if the field never existed for old callers."""
+    event = log_decision_event(
+        DecisionClass.PRICING_MOVE, entity_id="C1", request={}, context={}, decision={"x": 1},
+        rationale="r", valid_time=dt.date(2020, 1, 1),
+    )
+    assert event.status == "decided"
+
+
+# ── PRODUCTION_READINESS_SCALE_ADDENDUM.md C-S3 / A3_approval_interface
+# pending-latency mechanism (2026-07-13) ──
+
+def test_submit_decision_request_records_pending_with_no_decision_yet():
+    vt = dt.date(2020, 1, 1)
+    event = submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1",
+        request={"proposed_floor": 0.9}, context={"current_floor": 0.85},
+        valid_time=vt, submitted_at=dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    assert event.status == "pending"
+    assert event.decision == {}
+    assert event.rationale == ""
+    assert event.actual_effort_minutes is None
+    assert event.actual_elapsed_seconds is None
+
+
+def test_resolve_decision_request_records_a_real_revision_not_an_edit():
+    vt = dt.date(2020, 1, 1)
+    submitted_at = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    resolved_at = dt.datetime(2020, 1, 1, 15, tzinfo=dt.timezone.utc)  # 6h later
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1",
+        request={"proposed_floor": 0.9}, context={"current_floor": 0.85},
+        valid_time=vt, submitted_at=submitted_at,
+    )
+    resolved = resolve_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1", valid_time=vt,
+        decision={"approved_floor": 0.9}, rationale="within VaR tolerance",
+        resolved_at=resolved_at,
+    )
+    assert resolved.status == "decided"
+    assert resolved.decision == {"approved_floor": 0.9}
+    assert resolved.actual_elapsed_seconds == 6 * 3600
+    # Both events are real, distinct, append-only records -- not an edit.
+    log = get_decision_log()
+    assert len(log.all_records()) == 2
+
+
+def test_as_known_at_shows_pending_before_resolution_decided_after():
+    """The whole point of the mechanism: a decision_time between submission
+    and resolution genuinely sees 'pending', never a fabricated answer."""
+    vt = dt.date(2020, 1, 1)
+    submitted_at = dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc)
+    resolved_at = dt.datetime(2020, 1, 1, 15, tzinfo=dt.timezone.utc)
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1",
+        request={}, context={}, valid_time=vt, submitted_at=submitted_at,
+    )
+    resolve_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1", valid_time=vt,
+        decision={"approved": True}, rationale="ok", resolved_at=resolved_at,
+    )
+    log = get_decision_log()
+    mid_point = dt.datetime(2020, 1, 1, 12, tzinfo=dt.timezone.utc)
+    as_of_mid = log.as_known_at(mid_point, "mandate-1", "decision_event:hedge_mandate_change")
+    assert as_of_mid.value.status == "pending"
+    as_of_after = log.as_known_at(resolved_at, "mandate-1", "decision_event:hedge_mandate_change")
+    assert as_of_after.value.status == "decided"
+    assert as_of_after.value.decision == {"approved": True}
+
+
+def test_resolve_decision_request_raises_without_a_pending_submission():
+    with pytest.raises(ValueError, match="No pending decision request found"):
+        resolve_decision_request(
+            DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="never-submitted",
+            valid_time=dt.date(2020, 1, 1), decision={}, rationale="",
+            resolved_at=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc),
+        )
+
+
+def test_resolve_decision_request_raises_if_already_resolved():
+    vt = dt.date(2020, 1, 1)
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1",
+        request={}, context={}, valid_time=vt,
+        submitted_at=dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    resolve_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1", valid_time=vt,
+        decision={"x": 1}, rationale="r",
+        resolved_at=dt.datetime(2020, 1, 1, 15, tzinfo=dt.timezone.utc),
+    )
+    with pytest.raises(ValueError, match="No pending decision request found"):
+        resolve_decision_request(
+            DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-1", valid_time=vt,
+            decision={"x": 2}, rationale="second answer",
+            resolved_at=dt.datetime(2020, 1, 1, 16, tzinfo=dt.timezone.utc),
+        )
+
+
+def test_pending_decision_requests_as_of_finds_open_requests_only():
+    vt = dt.date(2020, 1, 1)
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-still-pending",
+        request={}, context={}, valid_time=vt,
+        submitted_at=dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-resolved",
+        request={}, context={}, valid_time=vt,
+        submitted_at=dt.datetime(2020, 1, 1, 9, tzinfo=dt.timezone.utc),
+    )
+    resolve_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="mandate-resolved", valid_time=vt,
+        decision={"x": 1}, rationale="r",
+        resolved_at=dt.datetime(2020, 1, 1, 10, tzinfo=dt.timezone.utc),
+    )
+    decision_time = dt.datetime(2020, 1, 1, 12, tzinfo=dt.timezone.utc)
+    pending = pending_decision_requests_as_of(decision_time)
+    assert len(pending) == 1
+    assert pending[0].entity_id == "mandate-still-pending"
+
+
+def test_pending_decision_requests_as_of_excludes_future_submissions():
+    """The reveal-over-time law applies here too: a request submitted
+    AFTER decision_time must not appear as pending yet."""
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="future-mandate",
+        request={}, context={}, valid_time=dt.date(2020, 6, 1),
+        submitted_at=dt.datetime(2020, 6, 1, tzinfo=dt.timezone.utc),
+    )
+    early_decision_time = dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc)
+    assert pending_decision_requests_as_of(early_decision_time) == []
+
+
+def test_pending_decision_requests_as_of_filters_by_class():
+    submit_decision_request(
+        DecisionClass.HEDGE_MANDATE_CHANGE, entity_id="m1", request={}, context={},
+        valid_time=dt.date(2020, 1, 1), submitted_at=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc),
+    )
+    submit_decision_request(
+        DecisionClass.SPEND_ABOVE_THRESHOLD, entity_id="s1", request={}, context={},
+        valid_time=dt.date(2020, 1, 1), submitted_at=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc),
+    )
+    decision_time = dt.datetime(2020, 1, 2, tzinfo=dt.timezone.utc)
+    only_hedge = pending_decision_requests_as_of(decision_time, decision_class=DecisionClass.HEDGE_MANDATE_CHANGE)
+    assert len(only_hedge) == 1
+    assert only_hedge[0].entity_id == "m1"

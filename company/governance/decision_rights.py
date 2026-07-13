@@ -159,7 +159,24 @@ DECISION_RIGHTS_REGISTER: dict[DecisionClass, DecisionClassDefinition] = {
 class DecisionEvent:
     """One governed decision, request -> context -> decision -> rationale,
     on the bitemporal spine (two timestamps: valid_time is what the decision
-    is ABOUT, transaction_time is when it was actually made)."""
+    is ABOUT, transaction_time is when it was actually made).
+
+    PRODUCTION_READINESS_SCALE_ADDENDUM.md (2026-07-13, director-decided,
+    C-S3 "asynchronous wall contracts" + its own amendment A2, "C-S3 and
+    A3_approval_interface's pending-latency gap are the SAME law -- build
+    one mechanism, serve both"): `status` makes the request/answer split
+    explicit. Defaults to "decided" so every pre-existing call to
+    log_decision_event() (which always supplied request+decision+rationale
+    together, in one call) keeps its exact prior meaning unchanged -- this
+    field is additive, not a breaking schema change. A genuinely pending
+    request (submit_decision_request() below) is recorded with
+    status="pending", decision={}, rationale="" -- then resolved via a
+    SECOND event for the SAME (entity_id, decision_class, valid_time) at a
+    LATER transaction_time (resolve_decision_request()), reusing
+    BitemporalEventLog's own already-proven revise-over-time semantics
+    (the identical mechanism W1's price-history spine already uses for a
+    real settlement restatement) rather than inventing a second one --
+    per the addendum's own SIMPLICITY GUARD."""
     decision_class: DecisionClass
     entity_id: str
     request: dict[str, Any]
@@ -172,6 +189,7 @@ class DecisionEvent:
     actual_elapsed_seconds: Optional[float]
     valid_time: dt.date
     transaction_time: dt.datetime
+    status: str = "decided"
 
 
 # Thin-start shared log: a module-level singleton is the minimal viable
@@ -225,6 +243,143 @@ def log_decision_event(
         value=event,
     )
     return event
+
+
+def submit_decision_request(
+    decision_class: DecisionClass,
+    entity_id: str,
+    request: dict[str, Any],
+    context: dict[str, Any],
+    valid_time: dt.date,
+    submitted_at: dt.datetime | None = None,
+    log: BitemporalEventLog | None = None,
+) -> DecisionEvent:
+    """Record a decision AWAITING a real answer -- C-S3/A3's pending-latency
+    mechanism (see DecisionEvent's own docstring). decision={}/rationale=""
+    is the honest "not yet known" state, matching this project's existing
+    R12 discipline (BitemporalEventLog.as_known_at() never fabricates a
+    value that doesn't exist) -- never invented, never defaulted to
+    something plausible-looking. Raises KeyError for an unregistered
+    decision_class, same discipline as log_decision_event()."""
+    definition = DECISION_RIGHTS_REGISTER[decision_class]
+    tt = submitted_at or dt.datetime.now(dt.timezone.utc)
+    event = DecisionEvent(
+        decision_class=decision_class,
+        entity_id=entity_id,
+        request=request,
+        context=context,
+        decision={},
+        rationale="",
+        expected_effort_minutes=definition.expected_effort_minutes,
+        actual_effort_minutes=None,
+        expected_elapsed_seconds=definition.sla_hours * 3600,
+        actual_elapsed_seconds=None,
+        valid_time=valid_time,
+        transaction_time=tt,
+        status="pending",
+    )
+    target_log = log if log is not None else _DECISION_LOG
+    target_log.record(
+        entity_id=entity_id,
+        fact_type="decision_event:" + decision_class.value,
+        valid_time=valid_time,
+        transaction_time=tt,
+        value=event,
+    )
+    return event
+
+
+def resolve_decision_request(
+    decision_class: DecisionClass,
+    entity_id: str,
+    valid_time: dt.date,
+    decision: dict[str, Any],
+    rationale: str,
+    resolved_at: dt.datetime,
+    actual_effort_minutes: float | None = None,
+    log: BitemporalEventLog | None = None,
+) -> DecisionEvent:
+    """Answer a pending request -- records a SECOND DecisionEvent for the
+    SAME (entity_id, decision_class, valid_time) at a LATER transaction_time
+    than the original submission. This is a genuine bitemporal REVISION,
+    not an edit -- reuses BitemporalEventLog's own append-only, never-
+    mutate semantics exactly as W1's price-history spine already does for a
+    real settlement restatement (per the Simplicity Guard: one mechanism,
+    not two). `actual_elapsed_seconds` is computed from the real gap
+    between submission and resolution, never estimated -- the whole point
+    of splitting submit/resolve is to measure this honestly. Raises
+    ValueError if no pending request exists for this key (resolving
+    something that was never submitted is a real caller bug, not a
+    silently-accepted no-op)."""
+    target_log = log if log is not None else _DECISION_LOG
+    fact_type = "decision_event:" + decision_class.value
+    pending = target_log.as_known_at(resolved_at, entity_id, fact_type, valid_time=valid_time)
+    if pending is None or pending.value.status != "pending":
+        raise ValueError(
+            f"No pending decision request found for entity_id={entity_id!r}, "
+            f"decision_class={decision_class.value!r}, valid_time={valid_time} -- "
+            "resolve_decision_request() answers an existing submission, it "
+            "does not create one."
+        )
+    submitted_event: DecisionEvent = pending.value
+    elapsed = (resolved_at - submitted_event.transaction_time).total_seconds()
+    event = DecisionEvent(
+        decision_class=decision_class,
+        entity_id=entity_id,
+        request=submitted_event.request,
+        context=submitted_event.context,
+        decision=decision,
+        rationale=rationale,
+        expected_effort_minutes=submitted_event.expected_effort_minutes,
+        actual_effort_minutes=actual_effort_minutes,
+        expected_elapsed_seconds=submitted_event.expected_elapsed_seconds,
+        actual_elapsed_seconds=elapsed,
+        valid_time=valid_time,
+        transaction_time=resolved_at,
+        status="decided",
+    )
+    target_log.record(
+        entity_id=entity_id,
+        fact_type=fact_type,
+        valid_time=valid_time,
+        transaction_time=resolved_at,
+        value=event,
+    )
+    return event
+
+
+def pending_decision_requests_as_of(
+    decision_time: dt.datetime,
+    decision_class: DecisionClass | None = None,
+    log: BitemporalEventLog | None = None,
+) -> list[DecisionEvent]:
+    """The real "requests-awaiting-decision" surface A3_approval_interface
+    needs (its own registration's core scope) -- every decision whose
+    LATEST known state as of `decision_time` is still status=="pending".
+    Read-only; never calls the log's own all_records() directly outside
+    this narrow, explicitly-scoped scan (matches the existing discipline
+    already applied to every other reporting-only reader of this log)."""
+    target_log = log if log is not None else _DECISION_LOG
+    classes = [decision_class] if decision_class is not None else list(DECISION_RIGHTS_REGISTER.keys())
+    seen_keys: set[tuple[str, str, dt.date]] = set()
+    pending: list[DecisionEvent] = []
+    for rec in target_log.all_records():  # named loudly on purpose (see its own docstring); this is the one narrow, explicitly-scoped reader allowed to use it
+        fact_type = rec.fact_type
+        if not fact_type.startswith("decision_event:"):
+            continue
+        dc_value = fact_type.split(":", 1)[1]
+        if decision_class is not None and dc_value != decision_class.value:
+            continue
+        if rec.transaction_time > decision_time:
+            continue
+        key = (rec.entity_id, fact_type, rec.valid_time)
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        latest = target_log.as_known_at(decision_time, rec.entity_id, fact_type, valid_time=rec.valid_time)
+        if latest is not None and latest.value.status == "pending":
+            pending.append(latest.value)
+    return pending
 
 
 def get_decision_log() -> BitemporalEventLog:

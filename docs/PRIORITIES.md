@@ -56,6 +56,24 @@ where the re-verification writes its findings (a new expert_hour-shaped entry on
 separate docs/observability/daily-walk-log.md -- avoiding a second, parallel evidence trail that
 drifts from the atom's own simplifications history).
 
+**P0/P1, registered not built (2026-07-13, PRODUCTION_READINESS_SCALE_ADDENDUM.md C-S2/A1, "implemented
+and proven"): RNG substream discipline, codebase-wide.** Deliberately NOT attempted this pass -- a
+real, broad refactor risking the actual simulation ground-truth output across the full 2016-2025
+replay, exactly the class of change this session already treated with extra caution elsewhere (the
+W2_6 residential-life-events-firing-for-SME defect was found and registered, not fixed blind, for the
+identical reason). Real, already-proven pattern to generalise (not invent): simulation/life_events.py
+already splits its own two internal streams this way -- `rng = random.Random(seed)` (physical events)
+and `econ_rng = random.Random(seed ^ 0xEC0EFF)` (economic events), a named XOR-salted substream
+derived from one shared per-customer seed, proven necessary by the real 01:09Z incident (adding
+illness/divorce draws to the single shared stream shifted every subsequent draw). Real next BUILD
+step: audit every OTHER stochastic subsystem in simulation/ (household_segments.py's archetype draws,
+nudge_physics.py's susceptibility draws, payment_behaviour.py, hedge_decision.py's VaR sampling if
+any, etc.) for shared-RNG exposure the same way, and apply the identical named-substream-per-subsystem
+pattern -- not a new mechanism, the SAME one life_events.py already uses internally, applied
+consistently codebase-wide. A real, testable exit criterion per the addendum's own DoD: adding a new
+draw to any one subsystem must leave every OTHER subsystem's own stream bit-identical (a real
+regression test, not an assertion).
+
 **ADVISOR_STEER_TWIN_READONLY.md CLOSED IN FULL (2026-07-12):** twin read-only proven (real failed-write
 test, `RUN_LIVE_TWIN_TESTS=1`); `PLATFORM_ADMINISTRATION` one-way-door category added (repo/GitHub
 settings, keys/secrets, account/billing/entitlements). CANNOT-draw root-caused as R2 (the `supervisor`
