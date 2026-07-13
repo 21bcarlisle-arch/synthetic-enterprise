@@ -29,10 +29,22 @@ def _isolate(tmp_path, monkeypatch):
     yield
 
 
+# A realistic, non-degenerate population read log: ~10% estimated, well
+# inside population_sanity._ESTIMATED_READ_RATE_SANITY_BAND. This is the
+# DEFAULT so that a test exercising the audit/digest/channel-mix streams is
+# not spuriously tripped by the R15 empty-read guard (KL-4, 2026-07-13):
+# check_estimated_read_rate([]) now CORRECTLY FIRES -- a total absence of
+# reads is the most-broken state, never a clean one. A real book always
+# produces reads (the live run carries 1,588), so the degenerate empty log
+# is not the state these tests mean to exercise. Tests that specifically
+# assert the empty-read guard pass meter_read_log=[] explicitly.
+_CLEAN_READS = [{"status": "actual"}] * 90 + [{"status": "estimated"}] * 10
+
+
 def _write_run_output(path, bills=None, meter_read_log=None):
     path.write_text(json.dumps({
         "bills": bills or [],
-        "meter_read_log": meter_read_log or [],
+        "meter_read_log": _CLEAN_READS if meter_read_log is None else meter_read_log,
     }))
 
 
@@ -66,6 +78,35 @@ def test_run_cycle_clean_population_no_ntfy(monkeypatch):
     sanity_daemon.run_cycle()
     assert calls == []
     assert "Clean" in sanity_daemon.LOG_FILE.read_text()
+
+
+def test_run_cycle_empty_meter_reads_fires_r15_guard(monkeypatch):
+    """KL-4 / R15 (2026-07-13, CONTROLS_THAT_CANNOT_FAIL.md): a TOTAL absence
+    of meter reads is the most-broken read-generation state, not a clean one.
+    check_estimated_read_rate([]) must FIRE, and run_cycle must surface it as
+    a NEW population-level NTFY -- an empty check can never be a passing check.
+    This is the new correct contract; the old behaviour read clean (fail-silent)."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[], meter_read_log=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1
+    assert "No meter reads present at all" in calls[0]
+
+
+def test_run_cycle_empty_meter_reads_guard_dedups_not_per_cycle_spam(monkeypatch):
+    """The R15 empty-read guard must NOT re-NTFY every cycle -- it is a
+    standing finding after its first sighting, deduped by the durable
+    adjudication ledger exactly like every other finding (director's
+    "an alarm that repeats unactionably kills the immune system"). Confirms
+    the new correct control does not become a source of real-data spam."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[], meter_read_log=[])
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    sanity_daemon.run_cycle()
+    sanity_daemon.run_cycle()
+    sanity_daemon.run_cycle()
+    assert len(calls) == 1  # fires once, then a standing known finding -- no repeat
 
 
 def test_run_cycle_sends_one_ntfy_for_new_findings(monkeypatch):
