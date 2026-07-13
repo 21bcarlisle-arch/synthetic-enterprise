@@ -135,3 +135,43 @@ def test_live_twin_cannot_actually_write_a_file():
     assert not proof_path.exists(), (
         "the twin actually wrote a file -- it has write capability and is NOT read-only"
     )
+
+
+# ── route_blocking_decision(): the "hook, not habit" for any blocking state
+# (2026-07-13, director in-console, canon v2 §3a) ──
+
+def test_route_blocking_decision_non_oneway_proceeds_on_twin_answer(tmp_path, monkeypatch):
+    monkeypatch.setattr(director_twin, "action_needed", __import__("background.action_needed", fromlist=["x"]), raising=False)
+    from background import action_needed
+    monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "reg.json")
+    ans = director_twin.route_blocking_decision(
+        "open-build-X", "should I open BUILD on atom X in the open epoch?",
+        "n/a", context_pack="X is FRAME-ready, epoch 2 open",
+        invoke_fn=lambda p: "Approved, cites section 3a.\nCONFIDENCE: high",
+    )
+    assert ans.routed_to_director is False
+    assert "Approved" in ans.answer
+    assert ans.confidence == "high"
+    # a proceed answer must NOT register an [ACTION NEEDED] for the real director
+    assert action_needed.open_items(tmp_path / "reg.json") == []
+
+
+def test_route_blocking_decision_oneway_registers_action_needed_and_waits(tmp_path, monkeypatch):
+    from background import action_needed
+    monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "reg.json")
+    sent = []
+    import background.ntfy_utils as ntfy_utils
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda msg, **k: sent.append(msg))
+    invoked = []
+    ans = director_twin.route_blocking_decision(
+        "spend-Y", "should I spend real money on Y?", "director decides",
+        invoke_fn=lambda p: invoked.append(p) or "should never be called",
+    )
+    # one-way door: twin refuses (never invokes the model), routes to the real director
+    assert ans.routed_to_director is True
+    assert ans.answer is None
+    assert invoked == []
+    # and a durable [ACTION NEEDED] was registered + NTFY'd
+    open_ids = [e["item_id"] for e in action_needed.open_items(tmp_path / "reg.json")]
+    assert "spend-Y" in open_ids
+    assert any("[ACTION NEEDED] spend-Y" in m for m in sent)

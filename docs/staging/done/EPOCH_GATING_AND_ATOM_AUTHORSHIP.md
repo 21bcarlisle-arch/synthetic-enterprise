@@ -30,6 +30,19 @@ discipline or the exit-test model:
 a cold one.** Build remains gated on the director opening the epoch. Nothing
 else is.
 
+**AMENDMENT (2026-07-13, director in-console authorization, DIRECTOR_CANON.md v2
+§3a):** "the director opening the epoch / opening BUILD" is now DIRECTOR_TWIN's
+standing-approver call, not a wait on the real director. BUILD-within-the-open-
+epoch (and epoch sequencing, scope, priority-within-dials) is delegated to the
+twin: a blocking/awaiting-approval state auto-routes via
+`background/director_twin.py::route_blocking_decision`, the twin answers from
+canon in seconds (logged, director-reviewable, overturnable), and the builder
+proceeds on its answer — so an all-idle (all-BUILD-gated) map never freezes
+waiting on a human. Only genuine one-way doors and the Epoch-4 fitness function
+still route to the real director. First exercised 2026-07-13: the twin APPROVED
+(confidence high) opening BUILD on the six ranked Epoch-2 atoms
+(`director_twin_log.jsonl` entry 2026-07-13T07:33:20).
+
 ## Rule 2 — You may AUTHOR atoms
 When the drawable set runs low, decomposing the current and next epochs'
 charters into candidate atoms IS your next task. Author them:

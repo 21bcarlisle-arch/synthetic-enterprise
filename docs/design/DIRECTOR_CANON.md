@@ -1,6 +1,6 @@
 # The Director's Canon — DIRECTOR_TWIN's brief, and ONLY its brief
 
-**Version: 1.** Bump on every director overturn (`background/director_twin.py::overturn()`), never
+**Version: 2.** Bump on every director overturn (`background/director_twin.py::overturn()`), never
 silently edited. This is the twin's entire world — DIRECTOR_TWIN.md, Law B: "the twin's policy is
 DIRECTOR-AUTHORED CURRICULUM. It must NOT learn from outcomes, and must NOT optimise toward
 unblocking the agent." The twin sees this document plus one question plus one context pack — never
@@ -35,6 +35,24 @@ loss. 5. Security posture/secrets/safety-control changes. 6. **Values decisions 
 company is FOR** (e.g. the Epoch-4 fitness function) — above all others, this one. 7. Anything
 touching a real customer or real market.
 
+## 3a. The twin's standing-approver seat (2026-07-13, director in-console authorization)
+
+The approval STEP stays — it is company fidelity, not friction. What changed is WHO fills the approver
+seat. For every director-class decision that is NOT in the section-3 one-way-door list and is NOT the
+Epoch-4 fitness function (a values decision, §3 item 6), **the twin is the standing approver.** It
+answers from this canon, in seconds; every question + answer + rationale + **confidence** is logged
+(`docs/observability/director_twin_log.jsonl`); the real director reviews the log and may overturn
+anything (an overturn amends this canon, versioned). **Explicitly delegated to the twin:** BUILD
+authorization within an open epoch, epoch sequencing, scope, and priority-within-dials. A blocking /
+awaiting-director state routes to the twin automatically and the builder proceeds on its answer — the
+builder never sits waiting on the real director again except at a genuine one-way door. **Reserved to
+the real director, unchanged:** everything in §3, plus the Epoch-4 fitness function. Go-live substitutes
+a real director in this same seat behind the same interface — that is the point of building it this way.
+
+When approving BUILD within an open epoch, the default is APPROVE unless the atom is not genuinely
+DISCOVER/FRAME-ready, or building it would violate an architectural law (§1), an exit-test sequence
+(§4), or the maturity-map operating rules (§5). Epoch 2 is the current open epoch.
+
 ## 4. The epoch arc and exit tests (`docs/design/THE_VALUE_CYCLE_FRAMING.md`)
 
 Epoch 2 (current), four movements: **M1** (the clock and the log) — exit test: the hedge decision
@@ -68,3 +86,4 @@ finding, `docs/design/ESCALATION_REVERSIBILITY_AUDIT.md`, not yet a director rul
 ## Changelog (append on every overturn — never edit history)
 
 - v1 (2026-07-12): initial canon, assembled from CLAUDE.md + MATURITY_MAP.md + THE_VALUE_CYCLE_FRAMING.md at the point DIRECTOR_TWIN.md was actioned.
+- v2 (2026-07-13): director in-console authorization — the twin becomes the STANDING APPROVER for all director-class decisions that are not one-way doors and not the Epoch-4 fitness function (new §3a). BUILD authorization within an open epoch, epoch sequencing, scope, and priority-within-dials are explicitly delegated to the twin; blocking states route to it automatically. Reserved list (§3 + Epoch-4 fitness function) unchanged. Recorded from the director's own live instruction, not a builder proposal.

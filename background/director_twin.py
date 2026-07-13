@@ -61,6 +61,7 @@ class TwinAnswer:
     answer: str | None
     reason: str
     latency_seconds: float
+    confidence: str | None = None  # high|medium|low, parsed from the twin's own answer (director spec, 2026-07-13)
 
 
 def _default_invoke(prompt: str) -> str:
@@ -162,12 +163,17 @@ def ask_twin(
         "below; per Law B, this canon is your entire world):\n"
         f"{question}\n\nCONTEXT PACK:\n{context_pack or '(none supplied)'}\n\n"
         "Answer directly and concisely (a few sentences), citing which canon section "
-        "supports your answer."
+        "supports your answer. End with a final line exactly of the form "
+        "'CONFIDENCE: high' (or medium/low) — your confidence that this answer is what the "
+        "director's canon actually requires (2026-07-13 director spec: confidence is logged)."
     )
     invoke = invoke_fn or _default_invoke
     start = time.time()
     answer_text = invoke(prompt)
     latency = time.time() - start
+
+    m = re.search(r"CONFIDENCE:\s*(high|medium|low)", answer_text or "", re.IGNORECASE)
+    confidence = m.group(1).lower() if m else None
 
     _append_jsonl(TWIN_LOG_PATH, {
         "entry_id": entry_id,
@@ -175,13 +181,58 @@ def ask_twin(
         "context_pack": context_pack,
         "routed_to_director": False,
         "answer": answer_text,
+        "confidence": confidence,
         "latency_seconds": round(latency, 3),
         "canon_version": current_canon_version(),
     })
     return TwinAnswer(
         entry_id=entry_id, question=question, routed_to_director=False,
         answer=answer_text, reason="answered from canon", latency_seconds=latency,
+        confidence=confidence,
     )
+
+
+def route_blocking_decision(
+    item_id: str,
+    question: str,
+    how: str,
+    context_pack: str = "",
+    *,
+    uncertain: bool = False,
+    invoke_fn: InvokeFn | None = None,
+) -> TwinAnswer:
+    """THE builder's single call for any blocking / awaiting-director state
+    (2026-07-13, director in-console authorization, canon v2 §3a: "wire it as
+    a HOOK, not a habit ... you should never sit waiting on me again except at
+    a genuine one-way door"). Routes the decision through the standing-approver
+    seat:
+
+    - `ask_twin()` classifies via the one-way-door predicate. For a GENUINE
+      one-way door it returns `routed_to_director=True` (Law B: the twin NEVER
+      answers these) — this function then registers a durable `[ACTION NEEDED]`
+      for the REAL director (dedicated NTFY + daily re-ping) and the builder
+      waits.
+    - Otherwise the twin answers from canon in seconds; the builder proceeds
+      on `ans.answer`. Every question + answer + confidence is already logged
+      by `ask_twin()` (`director_twin_log.jsonl`); the director reviews and may
+      `overturn()` (amends the canon, versioned).
+
+    Returns the `TwinAnswer` either way — its `.routed_to_director` tells the
+    caller whether to PROCEED (False, act on `.answer`) or WAIT for the real
+    director (True). This is a voice, not a hand: it never itself performs the
+    approved action, it only returns the approver's answer for the builder to
+    act on."""
+    from background import action_needed
+    ans = ask_twin(question, context_pack, uncertain=uncertain, invoke_fn=invoke_fn)
+    if ans.routed_to_director:
+        why = f"Genuine one-way door — the twin may never answer it (Law B). {ans.reason}"
+        action_needed.register_item(item_id, question, how, why)
+        try:
+            from background.ntfy_utils import send_ntfy
+            send_ntfy(action_needed.format_action_needed(item_id, question, how, why))
+        except Exception:
+            pass
+    return ans
 
 
 def overturn(entry_id: str, corrected_answer: str, reason: str) -> int:
