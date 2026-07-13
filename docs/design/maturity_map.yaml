@@ -356,7 +356,7 @@
   epoch: 2
   level_current: 1
   level_target: 2
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   evidence: ["docs/design/EPOCH2_EVIDENCE.md", "simulation/population_draw.py"]
   file_scope: [simulation/population_draw.py, tests/simulation/test_population_draw.py]
