@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T18:08:57Z
+Last updated: 2026-07-13T18:13:16Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,7 +39,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (498s / 8 min):
 - Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
 - Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
 - Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
@@ -99,4 +99,6 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) If no decision this energy supplier currently faces would change based on the four-level weather-physics hierarchy until Epoch 3, what is the concrete cost of keeping that registration parked versus deleting it — and why is preserving a component that changes zero present actions being treated as valuable rather than as dead weight to be justified?
 - (T3_inherence) Can you point to one committed order quantity or submitted price in a real decision cycle where the physics forecast and the naive forecast actually produced different numbers, and if no such instance exists, what evidence distinguishes "the physics forecast never changes a decision" from "the physics forecast is wired into nothing downstream at all"?
 - (T3_inherence) What is the cost of keeping the registration parked measured against the cost of *reconstructing* it correctly at Epoch 3 (including the risk of getting it wrong or missing the moment it starts to matter) — and how confident are you that "changes zero decisions today" reliably predicts "will change zero decisions before Epoch 3," given that you'd have to delete it now but only find out you were wrong later?
+- (T3_inherence) If nobody can produce even one order quantity or price that came out different because the physics forecast existed, on what basis is that forecast being counted as part of the decision system at all rather than inert code that touches neither enterprise value nor the survival constraint?
+- (T3_inherence) Given the north star is enterprise value under a survival constraint, what evidence shows that a locational weather dimension actually changes any decision the business will make — rather than being an architectural preference — such that building it *first* is worth delaying the futures engine that the value case presumably rests on?
 <!-- /NAIVE_ORGAN_ASKS -->
