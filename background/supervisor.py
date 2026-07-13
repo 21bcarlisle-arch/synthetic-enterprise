@@ -191,6 +191,15 @@ ATOM_STALL_THRESHOLD = 2  # consecutive same-fingerprint draws before deprioriti
 # message, not assumed understood.
 IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 6
 
+# THREE_LANES.md (2026-07-13, director-decided, "mechanise the three-lane
+# draw so the supervisor draws SITE and DISCOVERY every cycle regardless of
+# BUILD's state"): the SITE lane (`site/**`, disjoint by construction) is an
+# ungated parallel lane -- it draws site-scoped atoms below target regardless
+# of loop_stage. `site/**` shares no path with `sim/**`/`company/**`, so like
+# the idle/DISCOVER-FRAME tier it needs no cross-atom disjointness scan; a
+# modest width cap keeps a single grant readable while still fanning out.
+SITE_LANE_CONCURRENT_WIDTH = 3
+
 # R3_WORK_GRANTING_REDESIGN.md requirement 1+4 (2026-07-12, P0, 9th idle
 # variant): "nothing to do" must be an impossible terminal state while the
 # map has open atoms -- instrument it, count it, alarm it, target zero.
@@ -595,6 +604,7 @@ def _idle_discover_frame_draw_concurrent(
     rng: Any = None,
     width: int = IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH,
     exclude_stalled: bool = False,
+    exclude_ids: frozenset[str] | set[str] = frozenset(),
 ) -> list[dict]:
     """ANTI_LIVELOCK_AND_WIDTH.md item 2 (P0, 2026-07-13, director-prompted,
     "use the width you built"): `_maturity_map_draw_concurrent()` already
@@ -638,6 +648,8 @@ def _idle_discover_frame_draw_concurrent(
             return False
         if a.get("loop_stage") != "idle":
             return False
+        if a.get("id") in exclude_ids:
+            return False
         level_current, level_target = a.get("level_current"), a.get("level_target")
         if level_current is None or level_target is None:
             return False
@@ -650,6 +662,107 @@ def _idle_discover_frame_draw_concurrent(
         return has_gap
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
+    if exclude_stalled and candidates:
+        stall_state = _load_atom_stall_state()
+        non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
+        if non_stalled:
+            candidates = non_stalled
+    if not candidates:
+        return []
+
+    weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    picker = rng or random
+    primary = picker.choices(candidates, weights=weights, k=1)[0]
+    if exclude_stalled:
+        stalled_now, count = _record_atom_draw_and_check_stall(primary["id"], _atom_fingerprint(primary))
+        if count == ATOM_STALL_THRESHOLD:
+            log(
+                f"ANTI-LIVELOCK: {primary['id']} deprioritised after {count} "
+                "consecutive draws with no state change -- a future draw "
+                "prefers a different candidate until this atom's own state changes."
+            )
+
+    selected = [primary]
+    remaining = [c for c in candidates if c is not primary]
+    remaining.sort(key=lambda a: -(a.get("dial_inherited") or 1))
+    for atom in remaining:
+        if len(selected) >= width:
+            break
+        selected.append(atom)
+    return selected
+
+
+def _is_site_atom(a: dict) -> bool:
+    """THREE_LANES.md Lane 2: an atom belongs to the SITE lane if ANY of its
+    declared `file_scope` entries is exactly `site` or begins `site/` (e.g.
+    `SITE1_expert_doors` -> ["site"], `BRAND1_identity_system` -> ["site",
+    ...]). `site/**` is disjoint by construction from `sim/**`/`company/**`,
+    so this lane is ungated and runs alongside BUILD permanently. An atom
+    with no `file_scope` (undeclared) is never a SITE atom -- membership is a
+    positive property, never assumed."""
+    if not isinstance(a, dict):
+        return False
+    for path in a.get("file_scope") or []:
+        p = str(path)
+        if p == "site" or p.startswith("site/"):
+            return True
+    return False
+
+
+def _site_lane_draw_concurrent(
+    rng: Any = None,
+    width: int = SITE_LANE_CONCURRENT_WIDTH,
+    exclude_stalled: bool = False,
+    exclude_ids: frozenset[str] | set[str] = frozenset(),
+) -> list[dict]:
+    """THREE_LANES.md (2026-07-13, director-decided, "the supervisor draws
+    SITE and DISCOVERY every cycle regardless of BUILD's state"): the SITE
+    lane draw. Selects `site/**`-scoped atoms (per `_is_site_atom`) that have
+    a real gap (`level_current < level_target`), drawn for BUILD **regardless
+    of loop_stage** -- SITE is an ungated parallel lane, so an idle/parked
+    site atom (e.g. `SITE1_expert_doors`) is still drawable here even though
+    epoch gating parks it for the sim/company BUILD lane. `site/**` is
+    disjoint by construction from every other lane, so -- exactly like the
+    idle/DISCOVER-FRAME tier -- this needs no cross-atom file-scope
+    disjointness scan: it picks the dial-weighted primary (the module's
+    standard convention), then fills up to `width` distinct additional slots
+    in dial-weight order.
+
+    `exclude_ids` de-dups across lanes: `_self_refill_draw()` passes the ids
+    already drawn by the BUILD lane (BUILD wins over SITE for a given atom),
+    so a site-scoped atom that is itself an active BUILD candidate is granted
+    once, in the BUILD lane. `exclude_stalled` mirrors the other draws'
+    opt-in anti-livelock backoff exactly (default False preserves every
+    non-production caller). Same graceful-degradation contract as the other
+    draws: returns [] on a missing/unreadable/malformed map or no candidate."""
+    try:
+        import yaml
+    except ImportError:
+        return []
+    try:
+        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return []
+    if not isinstance(atoms, list):
+        return []
+
+    def _is_valid_site_candidate(a: dict) -> bool:
+        if not _is_site_atom(a):
+            return False
+        if a.get("id") in exclude_ids:
+            return False
+        level_current, level_target = a.get("level_current"), a.get("level_target")
+        if level_current is None or level_target is None:
+            return False
+        dial = a.get("dial_inherited", 1)
+        try:
+            has_gap = level_current < level_target
+            _ = max(1, dial)
+        except TypeError:
+            return False
+        return has_gap
+
+    candidates = [a for a in atoms if _is_valid_site_candidate(a)]
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
@@ -810,42 +923,86 @@ def _self_refill_draw() -> str | None:
     only).
 
     ANTI_LIVELOCK_AND_WIDTH.md (P0, 2026-07-13): this is the ONE production
-    entry point that opts into `exclude_stalled=True` on both draw tiers
+    entry point that opts into `exclude_stalled=True` on every draw lane
     (every other caller/test keeps the default False, i.e. unaffected) --
     the anti-livelock backoff and the idle-tier width fix both apply here,
     where a real turn is actually about to be granted, not at the low-level
-    draw functions' own default behaviour. `log()`s the atoms-drawn-per-
-    cycle count on every concurrent grant (either tier) so a digest/log
-    reader can see width=1 vs width>1 directly, per the staged instruction's
-    own DoD ("report atoms-drawn-per-cycle in every digest")."""
-    atoms_drawn = _maturity_map_draw_concurrent(exclude_stalled=True)
-    if atoms_drawn:
-        if len(atoms_drawn) == 1:
-            return f"self-refill from maturity map (dial-weighted): {_format_atom_draw(atoms_drawn[0])}"
-        lines = "; ".join(_format_atom_draw(a) for a in atoms_drawn)
-        log(f"CONCURRENT self-refill: {len(atoms_drawn)} disjoint BUILD atoms this cycle (atoms-drawn-per-cycle={len(atoms_drawn)}) -- {lines}")
-        return (
-            f"self-refill from maturity map -- {len(atoms_drawn)} CONCURRENT disjoint atoms "
-            f"granted this cycle (dispatch one Agent fork per atom, per MULTI_ATOM_DRAW.md): {lines}"
-        )
-    idle_atoms = _idle_discover_frame_draw_concurrent(exclude_stalled=True)
-    if idle_atoms:
-        if len(idle_atoms) == 1:
-            return (
-                "self-refill from maturity map -- DISCOVER/FRAME only, BUILD gated "
-                "pending epoch sequencing (EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 1; "
-                f"do NOT write BUILD code for this atom): {_format_atom_draw(idle_atoms[0])}"
+    draw functions' own default behaviour.
+
+    THREE_LANES.md (2026-07-13, director-decided, in-console: "mechanise the
+    three-lane draw so the supervisor draws SITE and DISCOVERY every cycle
+    regardless of BUILD's state. Prose decays; you proved it in three
+    hours."): this is the durable anti-decay mechanism replacing the old
+    if/elif CASCADE -- which tried the BUILD tier first and RETURNED the
+    moment any BUILD atom existed, so it NEVER reached the DISCOVER/FRAME
+    tier while BUILD had work and had NO SITE lane at all. A gated/empty
+    BUILD lane is NEVER a reason for SITE/DISCOVERY to idle. All THREE lanes
+    now draw EVERY cycle and combine into ONE grant message:
+      * Lane 1 BUILD -- `_maturity_map_draw_concurrent` (loop_stage=build,
+        below target, disjoint scopes; 1-3 concurrent).
+      * Lane 2 SITE  -- `_site_lane_draw_concurrent` (site/**-scoped, below
+        target, REGARDLESS of loop_stage -- an ungated parallel lane).
+      * Lane 3 DISCOVERY -- `_idle_discover_frame_draw_concurrent` (idle
+        atoms, real DISCOVER/FRAME gap, doc-only, no BUILD code).
+    De-dup runs strictly across lanes: an atom drawn in an earlier lane is
+    excluded from later ones (BUILD wins over SITE wins over DISCOVERY), so a
+    site-scoped BUILD candidate is granted once, in the BUILD lane. The
+    per-lane `atoms-drawn-per-cycle` counts are `log()`ged EVERY cycle so a
+    digest/log reader sees each lane's independent activity directly, per the
+    staged instruction's own DoD. `map_exhausted` (find_work) is True only
+    when ALL THREE lanes AND the backlog fallback are genuinely empty."""
+    build_atoms = _maturity_map_draw_concurrent(exclude_stalled=True)
+    drawn_ids: set[str] = {a["id"] for a in build_atoms if "id" in a}
+
+    site_atoms = _site_lane_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
+    drawn_ids |= {a["id"] for a in site_atoms if "id" in a}
+
+    discovery_atoms = _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
+
+    # DoD: per-lane atoms-drawn-per-cycle logged EVERY cycle (not only on a
+    # concurrent grant) so a starved lane is visible as a zero, not a silence.
+    log(
+        "THREE-LANE self-refill (atoms-drawn-per-cycle): "
+        f"BUILD={len(build_atoms)}, SITE={len(site_atoms)}, DISCOVERY={len(discovery_atoms)}"
+    )
+
+    # Preserve the exact pre-existing single-atom BUILD message byte-for-byte
+    # -- but ONLY when a lone BUILD atom is genuinely all there is this cycle
+    # (existing callers/NTFY parsing depend on this exact string).
+    if len(build_atoms) == 1 and not site_atoms and not discovery_atoms:
+        return f"self-refill from maturity map (dial-weighted): {_format_atom_draw(build_atoms[0])}"
+
+    sections: list[str] = []
+    if build_atoms:
+        lines = "; ".join(_format_atom_draw(a) for a in build_atoms)
+        if len(build_atoms) == 1:
+            sections.append(f"LANE 1 BUILD (1 atom, dispatch one Agent fork): {lines}")
+        else:
+            sections.append(
+                f"LANE 1 BUILD ({len(build_atoms)} CONCURRENT disjoint atoms -- dispatch one "
+                f"Agent fork per atom, per MULTI_ATOM_DRAW.md): {lines}"
             )
-        lines = "; ".join(_format_atom_draw(a) for a in idle_atoms)
-        log(f"CONCURRENT idle-tier self-refill: {len(idle_atoms)} DISCOVER/FRAME atoms this cycle (atoms-drawn-per-cycle={len(idle_atoms)}) -- {lines}")
-        return (
-            f"self-refill from maturity map -- {len(idle_atoms)} CONCURRENT DISCOVER/FRAME atoms "
-            "granted this cycle, BUILD gated pending epoch sequencing "
-            "(EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 1; do NOT write BUILD code for any of "
-            "these atoms -- dispatch one Agent fork per atom, per MULTI_ATOM_DRAW.md; each fork "
-            "must independently read-edit-commit docs/design/maturity_map.yaml inside its own "
-            f"tree_lock acquisition, never a batched shared edit): {lines}"
+    if site_atoms:
+        lines = "; ".join(_format_atom_draw(a) for a in site_atoms)
+        sections.append(
+            f"LANE 2 SITE ({len(site_atoms)} atom(s) -- build site/** in parallel; an UNGATED "
+            "lane, disjoint by construction from sim/company (THREE_LANES.md), drawn regardless "
+            "of loop_stage; dispatch one Agent fork per atom and pixel-verify each per R11): "
+            + lines
         )
+    if discovery_atoms:
+        lines = "; ".join(_format_atom_draw(a) for a in discovery_atoms)
+        sections.append(
+            f"LANE 3 DISCOVER/FRAME only ({len(discovery_atoms)} atom(s) -- BUILD gated pending "
+            "epoch sequencing (EPOCH_GATING_AND_ATOM_AUTHORSHIP.md Rule 1; do NOT write BUILD "
+            "code for any of these atoms); dispatch one Agent fork per atom, each independently "
+            "read-edit-commit docs/design/maturity_map.yaml inside its own tree_lock "
+            "acquisition, never a batched shared edit): " + lines
+        )
+
+    if sections:
+        return "self-refill from maturity map -- THREE-LANE draw: " + " || ".join(sections)
+
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"

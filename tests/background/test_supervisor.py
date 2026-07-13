@@ -872,7 +872,126 @@ def test_self_refill_draw_reports_concurrent_grant_and_logs_it(monkeypatch):
     assert "X1_disjoint_a" in reason
     assert "X2_disjoint_b" in reason
     assert "one Agent fork per atom" in reason
-    assert any("CONCURRENT self-refill" in m for m in logged)
+    # THREE_LANES.md: per-lane atoms-drawn-per-cycle logged every cycle.
+    assert any("atoms-drawn-per-cycle" in m for m in logged)
+    assert any("BUILD=2" in m for m in logged)
+
+
+# THREE_LANES.md (2026-07-13, director-decided, in-console: "mechanise the
+# three-lane draw so the supervisor draws SITE and DISCOVERY every cycle
+# regardless of BUILD's state"). The regression these tests lock down: the old
+# if/elif cascade RETURNED the moment a BUILD atom existed, so SITE and
+# DISCOVERY never drew while BUILD had work, and there was no SITE lane at all.
+
+_THREE_LANE_ALL_POPULATED_YAML = """\
+- id: BUILD_ATOM
+  name: "A real BUILD-lane atom (sim/company scope, not site)"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  file_scope: ["sim/module_a.py"]
+- id: SITE_ATOM_IDLE
+  name: "A site-scoped atom, parked idle -- still drawable for the SITE lane"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  file_scope: ["site"]
+- id: DISCOVERY_ATOM
+  name: "An idle non-site atom -- DISCOVER/FRAME only"
+  lane: X_test_lane
+  dial_inherited: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+"""
+
+
+def test_site_lane_draws_site_atom_regardless_of_loop_stage():
+    """Lane 2: a `site/**`-scoped atom that is loop_stage=idle (epoch-parked
+    for the sim/company BUILD lane) is STILL drawn by the SITE lane -- SITE is
+    an ungated parallel lane, disjoint by construction."""
+    supervisor.MATURITY_MAP_PATH.write_text(_THREE_LANE_ALL_POPULATED_YAML)
+    selected = supervisor._site_lane_draw_concurrent()
+    ids = {a["id"] for a in selected}
+    assert "SITE_ATOM_IDLE" in ids  # drawn despite loop_stage=idle
+
+
+def test_site_lane_ignores_non_site_and_at_target_atoms():
+    supervisor.MATURITY_MAP_PATH.write_text(_THREE_LANE_ALL_POPULATED_YAML)
+    selected = supervisor._site_lane_draw_concurrent()
+    ids = {a["id"] for a in selected}
+    assert "DISCOVERY_ATOM" not in ids  # no site file_scope
+    assert "BUILD_ATOM" not in ids  # sim/ scope, not site
+
+
+def test_site_lane_recognises_site_prefixed_paths():
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: DEEP_SITE\n  lane: L\n  dial_inherited: 1\n  loop_stage: build\n"
+        "  level_current: 0\n  level_target: 1\n  file_scope: [\"site/supplier/index.html\"]\n"
+    )
+    selected = supervisor._site_lane_draw_concurrent()
+    assert {a["id"] for a in selected} == {"DEEP_SITE"}
+
+
+def test_self_refill_draws_all_three_lanes_even_when_build_is_non_empty(monkeypatch):
+    """THE regression: with a non-empty BUILD lane, SITE and DISCOVERY MUST
+    still draw in the same cycle -- the old cascade returned on BUILD and left
+    both idle. One grant message carries all three clearly-labelled sections."""
+    logged = []
+    monkeypatch.setattr(supervisor, "log", lambda msg: logged.append(msg))
+    supervisor.MATURITY_MAP_PATH.write_text(_THREE_LANE_ALL_POPULATED_YAML)
+    reason = supervisor._self_refill_draw()
+    assert reason is not None
+    # All three lanes present in the single grant message.
+    assert "LANE 1 BUILD" in reason and "BUILD_ATOM" in reason
+    assert "LANE 2 SITE" in reason and "SITE_ATOM_IDLE" in reason
+    assert "LANE 3 DISCOVER/FRAME only" in reason and "DISCOVERY_ATOM" in reason
+    assert "pixel-verify" in reason  # SITE lane R11 instruction
+    # Per-lane counts logged every cycle, each lane drew exactly one here.
+    assert any("BUILD=1, SITE=1, DISCOVERY=1" in m for m in logged)
+
+
+def test_self_refill_dedups_site_atom_out_of_discovery_lane():
+    """De-dup: BUILD wins over SITE wins over DISCOVERY. A site-scoped idle
+    atom is a SITE atom, so it appears in the SITE section, never also in the
+    DISCOVERY section (which draws idle atoms)."""
+    supervisor.MATURITY_MAP_PATH.write_text(_THREE_LANE_ALL_POPULATED_YAML)
+    reason = supervisor._self_refill_draw()
+    # SITE_ATOM_IDLE appears exactly once (in the SITE section).
+    assert reason.count("SITE_ATOM_IDLE") == 1
+
+
+def test_self_refill_dedups_site_scoped_build_atom_into_build_lane():
+    """A site-scoped atom that is itself an active BUILD candidate
+    (loop_stage=build) is granted once, in the BUILD lane -- BUILD wins over
+    SITE -- never duplicated into the SITE section."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: SITE_BUILD\n  lane: L\n  dial_inherited: 3\n  loop_stage: build\n"
+        "  level_current: 0\n  level_target: 2\n  file_scope: [\"site\"]\n"
+    )
+    reason = supervisor._self_refill_draw()
+    # Drawn once via the BUILD lane; never duplicated into a SITE section.
+    assert "LANE 2 SITE" not in reason
+    assert reason.count("SITE_BUILD") == 1
+
+
+def test_self_refill_site_and_discovery_draw_when_build_is_empty():
+    """No BUILD candidate at all, but a SITE atom and a DISCOVERY atom exist
+    -- both must still draw (a gated/empty BUILD lane never idles the others)."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: SITE_ONLY\n  lane: L\n  dial_inherited: 3\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 2\n  file_scope: [\"site\"]\n"
+        "- id: DISCOVERY_ONLY\n  lane: L\n  dial_inherited: 3\n  loop_stage: idle\n"
+        "  level_current: 0\n  level_target: 2\n"
+    )
+    reason = supervisor._self_refill_draw()
+    assert "LANE 2 SITE" in reason and "SITE_ONLY" in reason
+    assert "LANE 3 DISCOVER/FRAME only" in reason and "DISCOVERY_ONLY" in reason
+    assert "LANE 1 BUILD" not in reason
 
 
 _PARKED_DEPENDENCY_CASCADE_YAML = """\
