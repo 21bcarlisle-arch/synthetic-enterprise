@@ -1414,3 +1414,20 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "GB weather-driven demand and price physics -- coherent national signal, feasible regional deviation, premise-level response, price as the output of the merit order"
   depends_on: [W1_5_premise_demand_shape]
+
+- id: H15_publish_gate_failure_alert
+  name: "Alert on a persistently-jammed publish pipeline: N consecutive auto-process rc=1 fires one NTFY (silent-retry-forever gap)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence: ["docs/observability/sim-runner-log.md", "docs/observability/background-worker-log.md"]
+  file_scope: [background/background_worker.py, background/process_run_complete.py]
+  simplifications: ["2026-07-13 REGISTERED (self-caught finding, SELF_INTERRUPT_DISCIPLINE QUEUE not fix-on-sight). GAP: background_worker.process_leftover_run_markers() retries a run_complete marker that returns rc=1 (process_run_complete 'Tests FAILED - not committing') FOREVER with no alert -- a self-inflicted regression (e16f00de5 negative-subtotal HELD over-firing on legitimate credit bills) jammed the entire publish pipeline for ~40min (13 markers piled up, site went stale) and nothing fired. The test gate correctly refused to publish (R1/R2), but a PERSISTENTLY-failing publish gate is a state transition that must alert (R5). FIX (mechanism, MAKE_IT_STICK): a consecutive-failure counter keyed on the (marker-set unchanged AND rc=1) condition that fires exactly ONE NTFY after N>=2 consecutive failed sweeps, and clears on the next success -- never repeats an unchanged status (R5). Must be mutation-tested (R15): the alert fires on a simulated persistent-rc=1, and does NOT fire on a single transient failure or a healthy drain. See memory feedback-control-false-positive-jams-pipeline."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an operations pipeline whose failed batch retries silently instead of paging someone -- the incident nobody sees until the dashboard is a day stale"
+  depends_on: []
