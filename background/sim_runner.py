@@ -129,6 +129,20 @@ def run_simulation() -> bool:
         f"4. NTFY Rich with headline net margin, gross margin, enterprise value.\n"
     )
 
+    # UNDOCUMENTED COUPLING, now documented (2026-07-13, director-flagged):
+    # this call passes ONLY the marker just written above -- this loop never
+    # re-scans staging/ for a DIFFERENT, earlier marker this exact process
+    # may have skipped on a prior iteration. process_run_complete.py's own
+    # `main()` returns 0 (the SAME "success" code checked below) both when
+    # it genuinely processes a marker AND when its own lock is already held
+    # by a concurrent instance and it silently skips -- rc==0 here does NOT
+    # distinguish "processed" from "someone else was already running, this
+    # marker was left untouched." There is no retry of a skipped marker
+    # anywhere in this file. The real safety net is entirely external:
+    # background/background_worker.py::process_leftover_run_markers()
+    # unconditionally re-globs every run_complete_*.md in staging/ at the
+    # top of its own loop, every cycle -- it, not this function, is what
+    # actually guarantees a lock-skipped marker still gets processed.
     processor = Path(__file__).parent / 'process_run_complete.py'
     try:
         proc_result = subprocess.run(
@@ -137,7 +151,8 @@ def run_simulation() -> bool:
             timeout=1200,  # process_run_complete has a 600s test timeout internally; give it room
         )
         if proc_result.returncode == 0:
-            log('Auto-processed run complete marker')
+            log('Auto-processed run complete marker (or it was lock-skipped -- '
+                'rc==0 either way; background_worker.py catches a real skip)')
         else:
             log('Auto-process failed (rc={}) -- marker left for background_worker'.format(proc_result.returncode))
     except subprocess.TimeoutExpired:

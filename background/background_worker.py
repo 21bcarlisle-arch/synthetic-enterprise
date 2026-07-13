@@ -52,7 +52,26 @@ DONE_DIR = STAGING_DIR / "done"
 
 
 def process_leftover_run_markers():
-    """Process any run_complete_*.md markers that process_run_complete.py left behind."""
+    """Process any run_complete_*.md markers that process_run_complete.py left behind.
+
+    UNDOCUMENTED COUPLING, now documented (2026-07-13, director-flagged): this
+    function is the ENTIRE real safety net for a marker that
+    `background/sim_runner.py` itself skipped -- sim_runner.py only ever
+    passes process_run_complete.py the ONE marker it just wrote each
+    iteration, and process_run_complete.py's own lock-skip path returns 0
+    (indistinguishable from a genuine success to that caller), so a marker
+    left behind because another instance was already running is NEVER
+    retried by sim_runner.py itself. This function's own unconditional glob
+    of every `run_complete_*.md` still in staging/ -- called at the TOP of
+    background_worker.py's main loop, every cycle, "regardless of peak
+    hours" per that call site's own comment -- is what actually keeps the
+    promise the skip-path's own log line makes ("will be picked up... next
+    cycle"). If this function is ever removed, disabled, or made
+    conditional, a lock-skipped marker becomes permanently orphaned with no
+    other mechanism to rescue it -- see tests/background/
+    test_background_worker.py's own test asserting this glob is genuinely
+    unconditional (not gated behind queue state, peak-hours, or any other
+    check) for the regression guard on this exact property."""
     markers = sorted(STAGING_DIR.glob("run_complete_*.md"))
     if not markers:
         return

@@ -746,10 +746,30 @@ def maybe_ntfy(data, net_margin, insights=None):
 
 
 def main(marker_path_str):
+    """UNDOCUMENTED COUPLING, now documented (2026-07-13, director-flagged):
+    a lock-skip below returns 0 -- the SAME exit code as a genuine success
+    -- because `main()`'s only two outcomes from its caller's point of view
+    are "ran to completion" (0) or "a real processing error" (return 1,
+    inside `_process()`). `background/sim_runner.py`'s own caller
+    (`subprocess.run([...processor..., marker], ...)`) cannot tell a
+    lock-skip apart from a real success by exit code alone, and it only
+    ever calls this with the ONE marker it just created THIS cycle -- it
+    never re-scans staging/ for a marker it was told (by this exact log
+    line) would be "picked up next cycle if still present." That promise
+    is not kept by this function or by sim_runner.py; it is kept ENTIRELY
+    by `background/background_worker.py::process_leftover_run_markers()`,
+    which unconditionally re-globs every `run_complete_*.md` in staging/ at
+    the top of its own loop, every cycle, regardless of peak hours or queue
+    state -- see that function's own docstring for the other half of this
+    coupling. A marker skipped here WILL still be processed, just not by
+    sim_runner.py's own retry (there is none) -- by background_worker.py's
+    sweep instead."""
     with _run_lock() as acquired:
         if not acquired:
             log("Another process_run_complete instance is already running -- "
-                "skipping {} (will be picked up next cycle if still present)".format(
+                "skipping {} (will be picked up by background_worker.py's "
+                "process_leftover_run_markers() sweep, not by sim_runner.py "
+                "itself retrying)".format(
                     Path(marker_path_str).name))
             return 0
         return _process(marker_path_str)
