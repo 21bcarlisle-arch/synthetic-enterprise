@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T08:45:07Z
+Last updated: 2026-07-13T08:58:07Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,8 +39,8 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed, git `b6babbba`:
-- Net margin: £1,505,250 (8.0% of revenue — within the 2–5%+ plausibility band, diagnostic only)
-- Business survived the full window including the 2021-22 crisis; 12/12 retention offers retained.
-- All three queued run markers (`1f402a25`/`22d47bc3`/`b6babbba`) resolve to the same stable
-  ~£1.505M / 8.0% headline; latest (b6babbba) published, older two superseded — batched silently.
+**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
+- Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
+- Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
+- Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
+- Retention: 12 offers, 12/12 retained | 4 no-offer churns | 4 total churned accounts
