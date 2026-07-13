@@ -70,6 +70,86 @@ def _running_scripts() -> list[str]:
         return []
 
 
+def _process_start_times_by_script() -> dict[str, "datetime"]:
+    """{script_basename: earliest real process start time (UTC)} for every
+    currently-running python process whose command line names one of
+    EXPECTED_PANES' own scripts. Uses `ps -eo lstart,args` (one call, no
+    per-PID lookups) -- lstart's fixed-width `%c` format ("Mon Jul 13
+    06:52:48 2026") is parsed directly, in the machine's own local
+    timezone (matches file mtimes, which are also local-time-based via
+    os.stat -- both sides of the later comparison use the same clock)."""
+    try:
+        out = subprocess.check_output(
+            ["ps", "-eo", "lstart,args"], text=True, timeout=5,
+        )
+    except Exception:
+        return {}
+    result: dict[str, "datetime"] = {}
+    for line in out.splitlines()[1:]:  # skip the header row
+        line = line.strip()
+        if not line:
+            continue
+        # lstart is always exactly 24 chars wide in `ps`'s own fixed format
+        # ("Mon Jul 13 06:52:48 2026"), args is everything after.
+        if len(line) < 25:
+            continue
+        lstart_str, args = line[:24], line[25:]
+        for script in EXPECTED_PANES.values():
+            if script in args and script not in result:
+                try:
+                    started = datetime.strptime(lstart_str, "%a %b %d %H:%M:%S %Y")
+                except ValueError:
+                    continue
+                result[script] = started
+    return result
+
+
+def _check_stale_running_code() -> str | None:
+    """R2/R3 class ("committed != running", now a REPEAT occurrence --
+    2026-07-13, ANTI_LIVELOCK_AND_WIDTH.md's own fix sat committed on disk
+    for 17 real minutes while the live supervisor.py process, started
+    2026-07-12 20:29, kept running the pre-fix code -- the identical class
+    already found once before for the same daemon, "supervisor tmux daemon
+    had stale pre-fix code loaded since 14:14"). A manual restart fixed the
+    incident both times; per R3 (two-strike redesign), the manual fix is
+    not enough the second time -- this function is the mechanism, not
+    another one-off restart.
+
+    For every EXPECTED_PANES daemon, compares its own script file's mtime
+    against its actual running process's start time (via `ps`, not assumed
+    from the tmux pane's own shell -- `_start_session()` launches
+    `sh -c "python3 <script>"`, so the real long-lived process is a CHILD
+    of the pane's own PID, not the pane PID itself). A process that started
+    BEFORE its own script was last modified is running stale code -- flagged
+    as a real, named finding, never silently "probably fine."
+
+    Named limitation, not hidden: only checks each daemon's OWN top-level
+    script file, not every module it transitively imports (e.g. supervisor.py
+    importing a changed background/tree_lock.py would not be caught here) --
+    a real, cheaper, high-precision check for the exact incident class that
+    has now recurred twice, not a general "any code changed anywhere"
+    scanner (which would flag near-constantly and erode the signal, the
+    same "cries wolf" risk this project already avoids for the epistemic
+    verifier and the stale-dependency check)."""
+    started_by_script = _process_start_times_by_script()
+    background_dir = PROJECT_DIR / "background"
+    stale = []
+    for session, script in EXPECTED_PANES.items():
+        started = started_by_script.get(script)
+        if started is None:
+            continue  # not running at all -- the existing pane/process check already covers this
+        script_path = background_dir / script
+        if not script_path.is_file():
+            continue
+        mtime = datetime.fromtimestamp(script_path.stat().st_mtime)
+        if mtime > started:
+            age_min = (mtime - started).total_seconds() / 60
+            stale.append(f"{session} ({script}): running since {started:%Y-%m-%d %H:%M}, own script modified {mtime:%Y-%m-%d %H:%M} ({age_min:.0f}min of drift)")
+    if stale:
+        return "Stale running code (restart to pick up committed changes): " + "; ".join(stale)
+    return None
+
+
 def _check_pixel_verification_capability() -> str | None:
     """Return warning string if real browser pixel-verification (Playwright)
     is not actually launchable right now.
@@ -223,6 +303,12 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
         problem_lines.append(f"  ✗ {pixel_warn}")
     else:
         ok_lines.append("  ✓ pixel-verification (Playwright) available")
+
+    stale_code_warn = _check_stale_running_code()
+    if stale_code_warn:
+        problem_lines.append(f"  ✗ {stale_code_warn}")
+    else:
+        ok_lines.append("  ✓ no daemon running code older than its own committed changes")
 
     # Informational, not a hard failure (idle-hole #8): a flagged candidate
     # can be a genuine, expected, long-lived block (E2/W5_1-style, reviewed

@@ -173,12 +173,13 @@ def test_all_processes_running_reports_ok(monkeypatch):
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
     monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
     monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 3  # +1 staging, +1 pixel-verification, +1 stale-deps
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 4  # +1 staging, +1 pixel-verification, +1 stale-deps, +1 stale-code
 
 
 def test_missing_process_reported_as_problem(monkeypatch):
@@ -302,3 +303,88 @@ def test_ok_lines_are_all_strings(monkeypatch):
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
     assert all(isinstance(line, str) for line in ok_lines)
     assert all(isinstance(line, str) for line in problem_lines)
+
+
+# ── _check_stale_running_code() (2026-07-13, R3 two-strike redesign -- the
+# same "committed != running" incident already found once for supervisor.py
+# ("stale pre-fix code loaded since 14:14") recurred a second time
+# (ANTI_LIVELOCK_AND_WIDTH.md's own fix sat committed for 17 real minutes
+# while the live process kept running the pre-fix code) -- a manual
+# restart is no longer sufficient the second time; this is the mechanism.) ──
+
+def _fake_ps_lstart_output(entries):
+    """entries: list of (lstart_str, args_str). Mimics `ps -eo lstart,args`'s
+    real fixed-width output (24-char lstart column + a space + args)."""
+    header = "                  STARTED CMD\n"
+    lines = [f"{lstart:<24} {args}" for lstart, args in entries]
+    return header + "\n".join(lines)
+
+
+class TestCheckStaleRunningCode:
+    def test_no_processes_running_returns_none(self, monkeypatch):
+        monkeypatch.setattr(health_check.subprocess, "check_output", lambda *a, **k: _fake_ps_lstart_output([]))
+        assert health_check._check_stale_running_code() is None
+
+    def test_process_started_after_script_modified_is_clean(self, monkeypatch, tmp_path):
+        script_dir = tmp_path / "background"
+        script_dir.mkdir()
+        script = script_dir / "supervisor.py"
+        script.write_text("# v1")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        # ps reports a start time comfortably AFTER the file's own mtime
+        from datetime import datetime, timedelta
+        mtime_dt = datetime.fromtimestamp(script.stat().st_mtime)
+        started = (mtime_dt + timedelta(minutes=5)).strftime("%a %b %d %H:%M:%S %Y")
+        monkeypatch.setattr(
+            health_check.subprocess, "check_output",
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+        )
+        assert health_check._check_stale_running_code() is None
+
+    def test_process_started_before_script_modified_is_flagged(self, monkeypatch, tmp_path):
+        script_dir = tmp_path / "background"
+        script_dir.mkdir()
+        script = script_dir / "supervisor.py"
+        script.write_text("# v1")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        from datetime import datetime, timedelta
+        mtime_dt = datetime.fromtimestamp(script.stat().st_mtime)
+        started = (mtime_dt - timedelta(minutes=17)).strftime("%a %b %d %H:%M:%S %Y")
+        monkeypatch.setattr(
+            health_check.subprocess, "check_output",
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+        )
+        result = health_check._check_stale_running_code()
+        assert result is not None
+        assert "supervisor" in result
+        assert "17min" in result or "18min" in result  # rounding tolerance
+
+    def test_process_not_found_at_all_is_not_flagged_here(self, monkeypatch, tmp_path):
+        """A genuinely-not-running daemon is the EXISTING pane/process
+        check's job (a real problem, reported separately) -- this function
+        only judges staleness for processes it can actually find running."""
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        monkeypatch.setattr(health_check.subprocess, "check_output", lambda *a, **k: _fake_ps_lstart_output([]))
+        assert health_check._check_stale_running_code() is None
+
+    def test_ps_failure_degrades_gracefully(self, monkeypatch):
+        def _boom(*a, **k):
+            raise OSError("ps unavailable")
+        monkeypatch.setattr(health_check.subprocess, "check_output", _boom)
+        assert health_check._check_stale_running_code() is None
+
+    def test_run_health_check_surfaces_stale_code_as_a_problem(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
+        monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+        monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+        monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
+        monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
+        monkeypatch.setattr(
+            health_check, "_check_stale_running_code",
+            lambda: "Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-12 20:29, own script modified 2026-07-13 05:35 (546min of drift)",
+        )
+
+        all_ok, ok_lines, problem_lines = health_check.run_health_check()
+
+        assert not all_ok
+        assert any("supervisor" in line and "Stale running code" in line for line in problem_lines)
