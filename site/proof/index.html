@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Proof</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+}
+:root[data-theme="light"] {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 720px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 44px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.evlink:hover { border-bottom-color: var(--blue); }
+.badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
+.badge.provisional { color: var(--amber); border: 1px solid var(--amber); }
+.badge.ok { color: var(--green); border: 1px solid var(--green); }
+.badge.open { color: var(--amber); border: 1px solid var(--amber); }
+/* timeline */
+.tl-row { position: relative; padding: 0 0 4px 118px; margin-bottom: 14px; border-left: 2px solid var(--border); margin-left: 8px; }
+.tl-row:last-child { margin-bottom: 0; }
+.tl-date { position: absolute; left: 14px; top: 0; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tl-rule-id { color: var(--blue); font-weight: 700; margin-right: 6px; }
+.tl-rule-name { font-size: 13px; font-weight: 600; }
+.tl-rule-text { font-size: 12px; color: var(--text); line-height: 1.55; margin: 6px 0; }
+.tl-incident { font-size: 11px; color: var(--muted); line-height: 1.6; border-left: 2px solid var(--amber); padding-left: 10px; margin-top: 6px; }
+.tl-incident-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--amber); letter-spacing: .05em; display: block; margin-bottom: 3px; }
+.tl-links { margin-top: 6px; font-size: 10px; }
+/* review / findings */
+.rev { border-bottom: 1px solid var(--border); padding: 12px 0; }
+.rev:last-child { border-bottom: none; }
+.rev-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.rev-name { font-size: 13px; font-weight: 600; }
+.rev-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+.rev-date { font-size: 11px; color: var(--muted); }
+.findings { margin: 8px 0 0 0; padding-left: 0; list-style: none; }
+.findings li { font-size: 12px; color: var(--text); line-height: 1.55; padding: 4px 0 4px 16px; position: relative; }
+.findings li::before { content: "\2713"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+/* open work table */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--border); }
+.tbl td { padding: 8px 8px; border-top: 1px solid var(--border); vertical-align: top; }
+.tbl .aid { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); white-space: nowrap; }
+.lvl { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
+.lvl .arr { color: var(--muted); font-weight: 400; }
+.table-scroll { overflow-x: auto; }
+/* ledger rows */
+.lg-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.lg-row:last-child { border-bottom: none; }
+.lg-note { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 4px; }
+.o-target { color: var(--green); font-weight: 600; }
+.o-off { color: var(--red); font-weight: 600; }
+.o-inconc { color: var(--muted); }
+.o-ungraded { color: var(--amber); }
+.held { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.held:last-child { border-bottom: none; }
+.held-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
+.held-note { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 4px; }
+details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin-top: 10px; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
+  <a href="../proof/" class="nav-link active">Proof</a>
+  <a href="../project/" class="nav-link">Project</a>
+</nav>
+<div class="wrap">
+
+  <div class="hero-h">The Proof</div>
+  <p class="hero-p">
+    The credibility door. Not a claim that this company is good -- a rendering of its
+    honesty and learning discipline, made checkable. Every failure turned into a permanent
+    rule; every verification pass and the defects it caught; every level held honestly below
+    target with a named blocker; the open-work list unhidden; and a pre-registered predictions
+    ledger graded against reality, misses and ungraded entries kept. Every figure below links
+    to the file it came from.
+  </p>
+
+  <!-- 1. INCIDENT -> RULE TIMELINE -->
+  <div class="sec">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
+  <div class="card">
+    <p class="muted" id="timeline-intro">Loading...</p>
+  </div>
+  <div class="card"><div id="timeline"><div class="muted">Loading...</div></div></div>
+
+  <!-- 2. VERIFICATION STACK / NEEDS_WORK HISTORY -->
+  <div class="sec">Verification Stack &mdash; Expert-Hour passes &amp; the defects they caught</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px">
+      Each atom on the maturity map faces an adversarial "Expert Hour" cold-eyes review before a
+      level is banked. These are the reviews that PASSED and the real defects (NEEDS_WORK findings)
+      they surfaced and forced fixed -- the honesty discipline shown working, not asserted.
+    </p>
+    <div class="kpis" id="verify-kpis"></div>
+    <p class="muted" id="banked-note"></p>
+  </div>
+  <div class="card"><div id="reviews"><div class="muted">Loading...</div></div></div>
+
+  <div class="sec">Honest Holds &mdash; levels not rounded up</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px" id="held-intro">Loading...</p>
+    <details><summary>Show the honest-hold register &rarr;</summary>
+      <div id="holds" style="margin-top:10px"><div class="muted">Loading...</div></div>
+    </details>
+  </div>
+
+  <!-- 3. OPEN DEFECTS / OPEN WORK -->
+  <div class="sec">Open Work &mdash; every below-target atom, unhidden</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px" id="openwork-intro">Loading...</p>
+    <div class="table-scroll">
+      <table class="tbl">
+        <thead><tr><th>Atom</th><th>Lane</th><th>Epoch</th><th>Level</th><th>Named next step</th></tr></thead>
+        <tbody id="openwork-body"><tr><td colspan="5" class="muted">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. PREDICTIONS LEDGER (CENTREPIECE) -->
+  <div class="sec">Predictions Ledger &mdash; pre-registered, graded against reality</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px" id="pred-intro">Loading...</p>
+    <div class="kpis" id="pred-kpis"></div>
+    <div id="pred-body"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="sec">Retrospective Library</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px">
+      The full-text retrospectives behind the timeline above -- written when a multi-day or
+      multi-false-claim problem closes, or a harness rule changes.
+    </p>
+    <div id="retro-list"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="card">
+    <p class="muted" id="build-note">Loading...</p>
+  </div>
+
+</div>
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
+function fmtBytes(n){if(n==null)return "--";if(n<1024)return n+" B";return (n/1024).toFixed(0)+" KB";}
+
+function renderTimeline(d){
+  var tl=d.timeline||[];
+  document.getElementById("timeline-intro").textContent=
+    d.rule_count+" permanent rules (R1-R"+d.rule_count+"), each traced to the real incident that forged it and, "+
+    "where one exists, to the retrospective that documents it. Not written in the abstract -- earned.";
+  var el=document.getElementById("timeline");
+  el.innerHTML=tl.map(function(r){
+    var links=(r.retro_links||[]).map(function(l){
+      return '<a class="evlink" href="'+esc(l.link)+'" target="_blank" rel="noopener">retro: '+esc(l.filename)+' &rarr;</a>';
+    }).join(" ");
+    var src=r.source?'<a class="evlink" href="#" onclick="return false" title="'+esc(r.source)+'">source: '+esc(r.source)+'</a>':"";
+    return '<div class="tl-row"><span class="tl-date">'+esc(r.date)+'</span>'+
+      '<div><span class="tl-rule-id">'+esc(r.id)+'</span><span class="tl-rule-name">'+esc(r.name)+'</span></div>'+
+      '<div class="tl-rule-text">'+esc(r.rule)+'</div>'+
+      '<div class="tl-incident"><span class="tl-incident-label">The incident that forged it</span>'+esc(r.incident)+'</div>'+
+      '<div class="tl-links">'+(links||'<span class="muted">source: '+esc(r.source)+'</span>')+'</div></div>';
+  }).join("")||'<div class="muted">No timeline data.</div>';
+}
+
+function renderVerification(d){
+  var v=d.verification||{};
+  var kpis=[
+    {l:"Expert-Hour passes",v:num(v.expert_hour_passed)},
+    {l:"Defects caught",v:num(v.findings_caught_total)},
+    {l:"Honest holds",v:num(v.held_count)},
+    {l:"Atoms tracked",v:num(v.atom_count)},
+    {l:"EH not yet run",v:num(v.expert_hour_not_attempted)}
+  ];
+  document.getElementById("verify-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
+  }).join("");
+  var lb=v.levels_banked||{};
+  var lbStr=Object.keys(lb).map(function(k){return lb[k]+" at L"+k;}).join(", ");
+  document.getElementById("banked-note").innerHTML="Levels banked (honest, not rounded up): "+esc(lbStr)+
+    '. Evidence: <a class="evlink" href="#" onclick="return false" title="docs/design/maturity_map.yaml">docs/design/maturity_map.yaml</a>.';
+
+  var reviews=v.reviews||[];
+  document.getElementById("reviews").innerHTML=reviews.map(function(r){
+    var findings=(r.findings||[]).map(function(f){return '<li>'+esc(f)+'</li>';}).join("");
+    return '<div class="rev"><div class="rev-head">'+
+      '<div><span class="rev-name">'+esc(r.atom_name)+'</span> <span class="rev-id">'+esc(r.atom_id)+'</span> '+
+      '<span class="badge ok">PASSED</span></div>'+
+      '<div class="rev-date">'+esc(r.lane_name||"")+(r.last?' &middot; '+esc(r.last):"")+'</div></div>'+
+      '<ul class="findings">'+findings+'</ul></div>';
+  }).join("")||'<div class="muted">No Expert-Hour reviews recorded.</div>';
+
+  var holds=v.honest_holds||[];
+  document.getElementById("held-intro").textContent=
+    v.held_count+" atoms carry an explicit honest-hold or Expert-Hour finding note -- a level deliberately "+
+    "held below target with the reason stated, rather than claimed complete.";
+  document.getElementById("holds").innerHTML=holds.map(function(h){
+    return '<div class="held"><span class="held-id">'+esc(h.atom_id)+'</span> '+esc(h.atom_name)+
+      ' <span class="lvl">L'+esc(h.level_current)+'<span class="arr"> &rarr; </span>L'+esc(h.level_target)+'</span>'+
+      '<div class="held-note">'+esc(h.note)+'</div></div>';
+  }).join("")||'<div class="muted">No honest-hold notes.</div>';
+}
+
+function renderOpenWork(d){
+  var ow=d.open_work||[];
+  document.getElementById("openwork-intro").textContent=
+    ow.length+" atoms sit below their target level. This is the whole open-work list, epoch-ordered -- "+
+    "the page an expert checks to see whether the gaps are named or hidden.";
+  document.getElementById("openwork-body").innerHTML=ow.map(function(o){
+    return '<tr><td><span class="aid">'+esc(o.atom_id)+'</span><br><span class="muted">'+esc(o.atom_name)+'</span></td>'+
+      '<td>'+esc(o.lane_name||"")+'</td>'+
+      '<td>E'+esc(o.epoch)+'</td>'+
+      '<td class="lvl">L'+esc(o.level_current)+'<span class="arr"> &rarr; </span>L'+esc(o.level_target)+'</td>'+
+      '<td>'+esc(o.next_step)+'</td></tr>';
+  }).join("")||'<tr><td colspan="5" class="muted">No below-target atoms.</td></tr>';
+}
+
+function outcomeClass(o){
+  o=(o||"").toLowerCase();
+  if(o.indexOf("on_target")>=0||o==="on target")return "o-target";
+  if(o.indexOf("off_target")>=0)return "o-off";
+  if(o.indexOf("ungraded")>=0||o.indexOf("no_grading")>=0)return "o-ungraded";
+  return "o-inconc";
+}
+function renderPredictions(d){
+  var p=d.predictions||{};
+  var intro=document.getElementById("pred-intro");
+  if(!p.available){
+    intro.textContent="Predictions ledger source not available at generation time.";
+    document.getElementById("pred-body").innerHTML="";
+    return;
+  }
+  intro.innerHTML="The real shadow-live decision log: hedge stance, renewal-price flags and retention EVs are "+
+    "pre-registered <em>before</em> the outcome is known, then graded against what actually happened. "+
+    "Clock started "+esc(p.clock_started)+". Source: "+
+    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a>. '+
+    "The mostly-ungraded state below is the honest early picture -- kept, not hidden.";
+  var r=p.renewal||{},h=p.hedge||{},rt=p.retention||{};
+  var kpis=[
+    {l:"Log entries",v:num(p.log_entry_count)},
+    {l:"Renewals graded",v:num(r.graded)},
+    {l:"Renewals inconclusive",v:num(r.inconclusive)},
+    {l:"Hedge graded",v:num(h.graded)},
+    {l:"Hedge ungraded",v:num(h.ungraded)},
+    {l:"Retention EVs graded",v:num(rt.graded)}
+  ];
+  document.getElementById("pred-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
+  }).join("");
+
+  var html="";
+  html+='<div class="sec" style="margin-top:8px;font-size:10px">Renewal-price flags</div>';
+  var rrows=(r.graded_entries||[]).concat(r.inconclusive_entries||[]);
+  if(rrows.length){
+    html+=rrows.map(function(e){
+      return '<div class="lg-row"><span>'+esc(e.cid||"")+' &middot; renewal '+esc(e.renewal_date||"--")+
+        ' &middot; proposed '+esc(e.proposed_rate_gbp_per_mwh!=null?e.proposed_rate_gbp_per_mwh:"--")+' &pound;/MWh</span>'+
+        '<span class="'+outcomeClass(e.outcome)+'">'+esc(e.outcome||"")+'</span></div>';
+    }).join("");
+  } else { html+='<div class="muted">No renewal-price flags logged yet.</div>'; }
+
+  html+='<div class="sec" style="margin-top:16px;font-size:10px">Hedge recommendations</div>';
+  var hrows=h.entries||[];
+  if(hrows.length){
+    html+=hrows.map(function(e){
+      return '<div class="lg-row"><span>'+esc(e.decision_run_at||"")+' &middot; '+esc(e.hedge_recommendation||"")+'</span>'+
+        '<span class="'+outcomeClass(e.outcome)+'">'+esc(e.outcome||"")+'</span></div>';
+    }).join("");
+  } else { html+='<div class="muted">No hedge recommendations logged yet.</div>'; }
+
+  html+='<div class="sec" style="margin-top:16px;font-size:10px">Retention EVs</div>';
+  html+='<div class="lg-note">'+esc(rt.logged||0)+' logged, '+esc(rt.graded||0)+' graded. '+esc(rt.note||"")+'</div>';
+  document.getElementById("pred-body").innerHTML=html;
+}
+
+function renderRetros(d){
+  var lib=d.retro_library||[];
+  document.getElementById("retro-list").innerHTML=lib.length?lib.map(function(r){
+    return '<div class="rev"><div class="rev-head"><div><span class="rev-name">'+esc(r.title)+'</span> '+
+      '<span class="rev-date">'+esc(r.date||"")+'</span></div>'+
+      '<a class="evlink" href="'+esc(r.link)+'" target="_blank" rel="noopener">Read &rarr; ('+fmtBytes(r.size_bytes)+')</a>'+
+      '</div></div>';
+  }).join(""):'<div class="muted">No retrospectives written yet.</div>';
+}
+
+function renderBuild(d){
+  var parts=[];
+  if(d.phase)parts.push("Phase "+d.phase);
+  if(d.test_count)parts.push(Number(d.test_count).toLocaleString()+" tests");
+  if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
+  if(d.generated_at)parts.push("generated "+d.generated_at);
+  document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
+}
+
+fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderTimeline(d);
+  renderVerification(d);
+  renderOpenWork(d);
+  renderPredictions(d);
+  renderRetros(d);
+  renderBuild(d);
+}).catch(function(e){
+  console.error("proof.json load error:",e);
+  document.getElementById("timeline").innerHTML='<div class="muted" style="color:var(--red)">Could not load proof.json</div>';
+});
+</script>
+<script src="../shared/director-comments.js" defer></script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</body>
+</html>
