@@ -6,14 +6,43 @@ spawned in CI (slow, non-deterministic, costs real tokens) — mirrors
 test_director_twin.py. The amnesia is proven at the PROCESS level (empty cwd,
 tools off, payload closed over four explicit args), not by prose.
 """
+import json
 import subprocess
+from pathlib import Path
 
 import pytest
+import yaml
 
 from background import naive_organ as organ
 
 
 CANARY = "NAIVE_ORGAN_CANARY_7Q3"
+
+# The frozen weekend fixture (design §4.1) — the real observable surfaces AS THEY
+# READ during the 2026-07-11 incidents, reconstructed from git history.
+WEEKEND_FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "naive_organ" / "weekend_20260711"
+
+
+def _load_weekend_fixture() -> dict:
+    """Build the organ's observable-state dict from the FROZEN FILES on disk
+    (not an inline literal) — the same dict shape `load_state()` assembles at
+    runtime, so the replay exercises the real detectors against the real weekend
+    state. gitlog subjects are split hash-off exactly as `load_state` does."""
+    d = WEEKEND_FIXTURE
+    atoms = yaml.safe_load((d / "maturity_map.yaml").read_text())
+    runhist = json.loads((d / "run_history.json").read_text())
+    idle = json.loads((d / "idle_counter.json").read_text())
+    gitlog_subjects = [ln.split(" ", 1)[1]
+                       for ln in (d / "gitlog.txt").read_text().splitlines() if " " in ln]
+    return {
+        "atoms": atoms,
+        "runhist": runhist,
+        "insights": {},
+        "agent_status": {},
+        "claims_text": (d / "claims.txt").read_text(),
+        "gitlog_subjects": gitlog_subjects,
+        "idle_count": idle.get("count", 0),
+    }
 
 
 # ── PA-2: empty-cwd / no-bypass assertion (structural, survives refactors) ──
@@ -143,6 +172,89 @@ def test_seed_replay_rediscovers_at_least_three_weekend_catches():
     assert any(t.startswith("T2") for t in triggered), "T2 terminal-state must fire"
     assert any(t.startswith("T3") for t in triggered), "T3 inherence must fire"
     assert any(t.startswith("T7") for t in triggered), "T7 repeated-fix-class must fire"
+
+
+# ── DoD seed-replay: the FROZEN weekend fixture (design §4), not an inline dict.
+# Blind replay — the organ, given only the amnesiac inputs, must independently
+# rediscover >= 3 of the 7 real catches the director caught by hand. ──
+def test_fixture_exists_and_encodes_the_weekend_state():
+    """The frozen fixture is real (31 atoms below target, flat net, the live
+    claim strings), so the replay below is a closed-loop replay of the actual
+    weekend state (R4), not a hand-tuned pass."""
+    state = _load_weekend_fixture()
+    assert len(organ.open_atoms(state["atoms"])) == 31, "the '31 BELOW target' weekend state"
+    vals = organ._net_margins(state["runhist"], 3)
+    assert vals and max(vals) - min(vals) < organ.FLAT_METRIC_EPSILON_GBP, "flat net=£1,505,286"
+    assert "exhausted" in state["claims_text"].lower()
+
+
+def test_seed_replay_from_frozen_fixture_rediscovers_at_least_three_catches(tmp_path):
+    """DoD: run the full detector suite over the FROZEN fixture and assert >= 3
+    distinct trigger families rediscover the real catches, with the three named
+    canonical ones (T2 exhausted+open, T3 inherence, T7 repeated-fix-class)
+    among them. Opus is STUBBED for determinism — the FIRING is what we assert
+    mechanically; real-Opus question-wording is the L3 residual."""
+    state = _load_weekend_fixture()
+
+    fired = organ.run_detectors(state)
+    families = {t.trigger_id[:2] for t in fired}
+    assert len(families) >= 3, f"expected >= 3 of 7 catches rediscovered, got {sorted(families)}"
+
+    ids = {t.trigger_id for t in fired}
+    assert any(t.startswith("T2") for t in ids), "T2: 'exhausted' while 31 atoms open"
+    assert any(t.startswith("T3") for t in ids), "T3: 'build must be narrow' inherence claim"
+    assert any(t.startswith("T7") for t in ids), "T7: repeated [ACTION NEEDED]/idle fix-class"
+
+    # T2 reports the open-atom count computed FROM THE FIXTURE MAP (31), not hardcoded
+    t2 = next(t for t in fired if t.trigger_id.startswith("T2"))
+    assert t2.observed_value["open_atoms"] == 31
+
+    # every firing produces a well-formed, OPEN log record with a non-empty question
+    log = tmp_path / "log.jsonl"
+    written = organ.run_system_organ(
+        state, invoke_fn=lambda p: "which is true?", log_path=log, max_new=None)
+    assert len(written) >= 3
+    for rec in written:
+        assert rec["verdict"] == "open"
+        assert rec["question"], "the amnesiac organ must have produced a question"
+        assert rec["fired_on"]["claim"]
+
+
+def test_run_organ_cycle_and_digest_section_are_wired(tmp_path, monkeypatch):
+    """The LIVE HOOK: run_organ_cycle() loads state + fires the organ (Opus
+    injected), and render_digest_section() emits the 'NAIVE ORGAN asks:' sink
+    with the open questions. max_new bounds new questions per cycle."""
+    monkeypatch.setattr(organ, "load_state", lambda **kw: _load_weekend_fixture())
+    log = tmp_path / "log.jsonl"
+
+    written = organ.run_organ_cycle(
+        invoke_fn=lambda p: "a sharp naive question?", log_path=log, max_new=2)
+    assert len(written) == 2, "max_new must cap NEW questions per cycle"
+
+    section = organ.render_digest_section(log_path=log)
+    assert section.startswith("**NAIVE ORGAN asks:**")
+    assert "a sharp naive question?" in section
+
+    # a fresh cycle re-fires the un-asked triggers (still debounced on the open ones)
+    more = organ.run_organ_cycle(
+        invoke_fn=lambda p: "another question?", log_path=log, max_new=None)
+    assert more, "un-asked triggers surface on the next cycle"
+
+
+def test_falsify_staged_doc_reads_from_disk(tmp_path):
+    """TARGET 2 entry point is real + callable: read an advisor-staged doc from
+    disk and run a FALSIFY pass on it before the agent acts."""
+    doc = tmp_path / "ADVISOR_PLAN.md"
+    doc.write_text("PLAN: open every BUILD atom at once; it is obviously safe.")
+    prompts = []
+    log = tmp_path / "log.jsonl"
+    rec = organ.falsify_staged_doc(
+        doc, invoke_fn=lambda p: prompts.append(p) or "assumption: file scopes disjoint",
+        log_path=log)
+    assert rec["mode"] == organ.MODE_FALSIFY
+    assert rec["target"] == organ.TARGET_ADVISOR
+    assert "MODE: FALSIFY" in prompts[0]
+    assert "open every BUILD atom" in prompts[0], "the doc text on disk reached the payload"
 
 
 # ── the answer-writer REJECTS an empty-evidence answer (mechanism) ──

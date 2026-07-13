@@ -673,11 +673,18 @@ def ask_organ(trigger: Trigger, *, invoke_fn: InvokeFn | None = None,
 
 
 def run_system_organ(state: dict, *, invoke_fn: InvokeFn | None = None,
-                     log_path: Path | None = None) -> list[dict]:
+                     log_path: Path | None = None,
+                     max_new: int | None = None) -> list[dict]:
     """TARGET 1 — the SYSTEM. Run detectors, ask the organ once per fired
-    trigger (with debounce). Returns the records written."""
+    trigger (with debounce). Returns the records written.
+
+    `max_new` caps the number of NEW records produced in one pass (bounds Opus
+    latency on the live publish path; any un-asked triggers surface next cycle).
+    None = no cap (the test/analysis default)."""
     written = []
     for trig in run_detectors(state):
+        if max_new is not None and len(written) >= max_new:
+            break
         rec = ask_organ(trig, invoke_fn=invoke_fn, log_path=log_path)
         if rec is not None:
             written.append(rec)
@@ -819,3 +826,85 @@ def hit_rate(*, log_path: Path | None = None) -> dict:
         "open": sum(1 for e in entries if e.get("verdict") == "open"),
         "declined_purpose": sum(1 for e in entries if e.get("verdict") == "declined_purpose"),
     }
+
+
+# ── THE LIVE HOOK (L2): the organ is called from the observability/publish cycle
+# (background/process_run_complete.py::run_naive_organ_step). This is what makes
+# the organ FIRE ON REAL CONDITIONS instead of staying dormant. It loads the real
+# observable world, runs the 7 SYSTEM detectors, and asks the amnesiac Opus
+# process once per NEW fired contradiction (debounced). Output = QUESTIONS to the
+# log + the digest section below, NEVER actions (safe by construction —
+# SELF_INTERRUPT_DISCIPLINE QUEUE). ──
+def run_organ_cycle(*, invoke_fn: InvokeFn | None = None,
+                    log_path: Path | None = None,
+                    max_new: int | None = 3,
+                    gitlog_window: str = "3 days ago") -> list[dict]:
+    """Assemble the observable world from disk (load_state), run the SYSTEM
+    organ, and return the records written this cycle. `max_new` bounds Opus
+    latency on the publish path (default 3; un-asked triggers surface next
+    cycle, still debounced). This is the single entry point the live pipeline
+    calls — tests inject `invoke_fn`/`log_path` so no real Opus is spawned."""
+    state = load_state(gitlog_window=gitlog_window)
+    return run_system_organ(state, invoke_fn=invoke_fn, log_path=log_path,
+                            max_new=max_new)
+
+
+def render_digest_section(*, log_path: Path | None = None,
+                          hours: int = STALE_ANSWER_HOURS) -> str:
+    """The DIGEST sink (design §3.2 sink 1). Render the 'NAIVE ORGAN asks:'
+    section from the OPEN questions in the log; '' when none are open. An open
+    question past the staleness bound is marked [unanswered >Nh] (the
+    action_needed daily-reping shape) — a SELF-finding that QUEUEs, never
+    interrupts (SELF_INTERRUPT_DISCIPLINE)."""
+    log_path = log_path or ORGAN_LOG_PATH
+    opens = open_questions(log_path=log_path)
+    if not opens:
+        return ""
+    stale_ids = {e.get("entry_id") for e in stale_questions(hours=hours, log_path=log_path)}
+    lines = ["**NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE "
+             "(`answer_question`) or mark a miss. Never actions."]
+    for e in opens:
+        q = (e.get("question") or "").strip().replace("\n", " ")
+        tid = e.get("trigger_id", "?")
+        stale = " [unanswered >{}h]".format(hours) if e.get("entry_id") in stale_ids else ""
+        lines.append("- ({}){} {}".format(tid, stale, q))
+    return "\n".join(lines)
+
+
+# ── TARGET 2 entry point, made callable (not dormant). Read an advisor-staged
+# doc from disk and FALSIFY it BEFORE the agent acts. Invoked by the agent per
+# the staging protocol, or from the CLI:
+#   python3 -m background.naive_organ falsify docs/staging/SOME_DOC.md
+def falsify_staged_doc(doc_path, *, invoke_fn: InvokeFn | None = None,
+                       log_path: Path | None = None) -> dict | None:
+    """Run a FALSIFY pass on an advisor-staged doc read from disk. Returns the
+    log record (assumptions that must hold + conditions under which the plan
+    fails) — the agent may cite it to push back on the advisor, and should."""
+    p = Path(doc_path)
+    text = p.read_text(encoding="utf-8")
+    return falsify_advisor_doc(str(p), text, invoke_fn=invoke_fn, log_path=log_path)
+
+
+def _main(argv: list[str]) -> int:
+    """CLI so the organ is real and callable from a shell, not only importable.
+      python3 -m background.naive_organ cycle            # run the SYSTEM organ now
+      python3 -m background.naive_organ falsify <path>   # FALSIFY a staged doc
+    """
+    if len(argv) >= 2 and argv[1] == "cycle":
+        written = run_organ_cycle()
+        print("naive organ cycle: {} new question(s) asked".format(len(written)))
+        section = render_digest_section()
+        if section:
+            print("\n" + section)
+        return 0
+    if len(argv) >= 3 and argv[1] == "falsify":
+        rec = falsify_staged_doc(argv[2])
+        print(json.dumps(rec, indent=1, sort_keys=True) if rec else "no record (debounced or empty)")
+        return 0
+    print("usage: python3 -m background.naive_organ [cycle | falsify <doc_path>]")
+    return 1
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(_main(sys.argv))
