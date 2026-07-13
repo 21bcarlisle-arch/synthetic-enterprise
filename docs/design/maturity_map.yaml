@@ -1099,6 +1099,125 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "measuring how wrong a supplier's model of its own customers is, and whether that error is shrinking as the world changes"
   depends_on: []
+
+- id: C9_cantpay_wontpay_classifier
+  name: "Can't-pay vs won't-pay classifier: the company classifies each arrears account under uncertainty (world twin of W2_7)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_7 SME/household willingness -- THE ARCHETYPE coupled pair (design doc highest priority). SIM holds the hidden ABILITYxWILLINGNESS 2x2; the company must CLASSIFY each arrears account through the wall (payment behaviour, engagement, disclosure -- never told) and is ALLOWED to be wrong. GAP = cost-weighted 2x2 misclassification rate / majority-baseline, plus both directional false-negative rates (miss a can't-pay -> wrongful enforcement harm; miss a won't-pay -> revenue leak). The harm-cost matrix C is CURRICULUM (R13, director-authored, never agent-tuned toward the gap number) -- ship placeholder weights pending sign-off. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_7_willingness_classification) with a non-degenerate gap measured; and W2_7_willingness_classification's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_7_willingness_classification, A6_coupled_triad_gap_metric]
+
+- id: C10_self_rationing_detection
+  name: "Self-rationing detection: the company detects pay-but-don't-heat before harm (world twin of W2_8)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_8 self-rationing. SIM knows who is heating-vs-eating (consumption collapses below plausible living levels despite a perfect payment record); the company must DETECT it through observables (consumption drop, no arrears signal) -- the hard case because the payment record looks healthy. GAP = harm-weighted fraction of detectable self-rationing harm MISSED (detection rate + false-negative harm). Wires the orphaned VulnerabilityFlag.PPM_SELF_DISCONNECTED taxonomy slot that has no detector today. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_8_self_rationing) with a non-degenerate gap measured; and W2_8_self_rationing's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_8_self_rationing, A6_coupled_triad_gap_metric]
+
+- id: C7_life_event_detection
+  name: "Life-event detection + response: the company notices job loss/illness/divorce/etc through the wall (world twin of W2_5)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_5 life-event stream. SIM holds the hidden life event; the company must DETECT the change through observable behaviour (payment disruption, contact, consumption shift) and respond -- never told. Wires the orphaned company/crm/life_events.py + vulnerability_register.py. GAP = detection gap (harm-weighted missed-detection fraction). NOTE: W2_5 is already L2, so per the coupled-triad binding rule its L3 is now BLOCKED until this twin exists and the gap is measured. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_5_life_event_stream) with a non-degenerate gap measured; and W2_5_life_event_stream's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_5_life_event_stream, A6_coupled_triad_gap_metric]
+
+- id: C6_affordability_inference
+  name: "Affordability inference + book-mix belief: the company infers each customer's ability-to-pay and its book composition through the wall (world twin of W2_4/W2_2)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_4 household budget + W2_2 population draw. SIM holds the hidden budget (income band, essential-cost floor, discretionary margin, savings buffer) and the true archetype/segment mix; the company must INFER affordability + its own book composition from observables. GAP = belief error, total-variation distance TV(company_belief, hidden_truth) over the budget/mix distribution. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_4_household_budget) with a non-degenerate gap measured; and W2_4_household_budget's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_4_household_budget, A6_coupled_triad_gap_metric]
+
+- id: C12_channel_attribution_analytics
+  name: "Channel attribution analytics: the company's naive attribution SHOULD be capable of being wrong (world twin of W2_10)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_10 DD attribution confound (first selection-bias trap). SIM holds the true migration/attribution; the company's naive channel-attribution analytics must be capable of being WRONG (attributing a DD-migration effect to a channel). GAP = attribution error |delta_naive - delta_true| / |delta_naive| (fraction of the measured effect that is actually confound). This is the archetypal selection-bias-trap the company must discover it is falling into. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_10_dd_attribution_confound) with a non-degenerate gap measured; and W2_10_dd_attribution_confound's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_10_dd_attribution_confound, A6_coupled_triad_gap_metric]
+
+- id: C8_sme_credit_risk
+  name: "SME/I&C credit-risk model: the company assesses business distress through the wall (world twin of W2_6)"
+  lane: C_customer_ops
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_6 SME/I&C distress twin (sector shocks, insolvency, late-payment culture). SIM holds the hidden distress state; the company must assess credit risk from observables (payment pattern, sector, late-payment behaviour). GAP = classification/attribution gap (misclassified distress + attribution of late payment to culture-vs-distress). Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_6_sme_distress_twin) with a non-degenerate gap measured; and W2_6_sme_distress_twin's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_6_sme_distress_twin, A6_coupled_triad_gap_metric]
+
+- id: C11_segment_debt_policy
+  name: "Segment-correct debt policy objects: the company applies the right debt T&C per segment (world twin of W2_9)"
+  lane: F_risk_compliance
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/COUPLED_TRIAD_DESIGN.md"]
+  file_scope: []
+  simplifications: ["2026-07-13 REGISTERED as a COUPLED-TRIAD company-side twin (COUPLED_TRIAD_DESIGN.md, director P1 THE_COUPLED_TRIAD.md, provenance proposal). W2_9 segment debt T&C / regulatory overlay (statutory business late-payment interest, domestic late-charge exclusion, payment-conditioned tariff eligibility). SIM holds the correct per-segment obligation; the company must apply the right policy -- partly a company/compliance/domain_invariants.py extension. GAP = compliance + fairness gap (wrong-segment T&C applied). Couples to the F5/F-lane segment-independence work. Per the two binding rules (CLAUDE.md/A6): this company atom is not complete until it has faced the defeating world (W2_9_segment_debt_tnc) with a non-degenerate gap measured; and W2_9_segment_debt_tnc's L3 blocks until this twin + gap exist. loop_stage idle: DISCOVER/FRAME workable now (the company-side capability design), BUILD ranks per dial. The gap metric + harm-cost weights (CURRICULUM, director-signed) are defined in A6_coupled_triad_gap_metric."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier building its own model of customers it can only observe through bills and contact, and being scored on how wrong that model is"
+  depends_on: [W2_9_segment_debt_tnc, A6_coupled_triad_gap_metric]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "closing the specific compliance controls an auditor proved were reporting compliant when they should have flagged"
   depends_on: []
