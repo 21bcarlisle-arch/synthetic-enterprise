@@ -1,5 +1,5 @@
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T18:17:42Z
+Last updated: 2026-07-13T18:21:52Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -103,4 +103,5 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) Given the north star is enterprise value under a survival constraint, what evidence shows that a locational weather dimension actually changes any decision the business will make — rather than being an architectural preference — such that building it *first* is worth delaying the futures engine that the value case presumably rests on?
 - (T3_inherence) What decision rule or downstream computation actually consumes the physics forecast's output, and can you point to a single input (an order quantity or price) whose value would provably change if that forecast were replaced with a constant or removed entirely?
 - (T3_inherence) If the north star is enterprise value under an absolute survival constraint, what makes "physics first" the right ordering rather than whichever lever — renewables trends, zonal pricing, or DSR — most directly moves the survival-risk or valuation numbers you're actually being measured on?
+- (T3_inherence) If replacing the physics forecast with a constant provably changes no order quantity or price, then what is that forecast for — and does anything in the system actually read its output, or is it computed and discarded?
 <!-- /NAIVE_ORGAN_ASKS -->
