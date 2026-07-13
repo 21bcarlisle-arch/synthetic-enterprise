@@ -38,6 +38,24 @@ Fix (not built yet, BUILD-gated, lives in W2_5_life_event_stream's file_scope no
 demographic events to segment=='resi' only; W2_6's own SME/I&C sector-shock/insolvency generator is
 the intended replacement for the business population, not an extension of the residential one.
 
+**P2, elevated (2026-07-13, TRUST_LEDGER_AND_BILLING_CHECK.md item 2, "DONE-IS-MONITORED"): the daily
+Expert-Hour walk re-verifying already-CLOSED atoms is registered (docs/design/POESYS_SITE_BRIEF.md,
+SITE_CONSTITUTION.md) but never built.** Real risk it exists to catch: a closed atom that silently
+regresses is this project's own most expensive defect class -- four stale-surface incidents this
+project already lived through (the fixed-code-but-no-republish hedge-fix hold, the CANNOT-draw stale
+supervisor daemon, W1's own same-day-price EWMA finding sitting undetected for a day, the
+payment_channel/dd_fail contradiction sitting adjudicated-real-but-unconsolidated) all match this
+exact shape: something already closed silently drifted wrong and nobody re-checked. Now genuinely cheap to
+build (director's own framing, 2026-07-13): cold-eyes personas already exist
+(.claude/skills/cold-eyes-walk/SKILL.md), and the multi-atom concurrent draw (this session's own
+ANTI_LIVELOCK_AND_WIDTH.md fix, idle-tier width=6) can run them wide, in parallel, at zero collision
+risk, over the set of already-at-target atoms. Real next FRAME/BUILD step (not decided here): design
+the sampling cadence (all closed atoms every day is expensive at scale; a rotating subset, or
+priority-weighted toward high-dial/high-real-world-twin-risk atoms, is the likely real answer) and
+where the re-verification writes its findings (a new expert_hour-shaped entry on the atom, or a
+separate docs/observability/daily-walk-log.md -- avoiding a second, parallel evidence trail that
+drifts from the atom's own simplifications history).
+
 **ADVISOR_STEER_TWIN_READONLY.md CLOSED IN FULL (2026-07-12):** twin read-only proven (real failed-write
 test, `RUN_LIVE_TWIN_TESTS=1`); `PLATFORM_ADMINISTRATION` one-way-door category added (repo/GitHub
 settings, keys/secrets, account/billing/entitlements). CANNOT-draw root-caused as R2 (the `supervisor`
