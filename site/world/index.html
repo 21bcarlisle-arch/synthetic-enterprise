@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- The World</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+}
+:root[data-theme="light"] {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 44px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.evlink:hover { border-bottom-color: var(--blue); }
+.badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
+.badge.GREEN { color: var(--green); border: 1px solid var(--green); }
+.badge.AMBER { color: var(--amber); border: 1px solid var(--amber); }
+.badge.RED { color: var(--red); border: 1px solid var(--red); }
+.badge.UNKNOWN, .badge.OTHER { color: var(--muted); border: 1px solid var(--border); }
+.badge.OK { color: var(--green); border: 1px solid var(--green); }
+.badge.WARN { color: var(--amber); border: 1px solid var(--amber); }
+.badge.REFRESH { color: var(--blue); border: 1px solid var(--blue); }
+.badge.GAP { color: var(--red); border: 1px solid var(--red); }
+.badge.N\/A { color: var(--muted); border: 1px solid var(--border); }
+/* the two-sided wall */
+.cross { margin-bottom: 16px; }
+.cross-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.cross-name { font-size: 15px; font-weight: 700; }
+.cross-sub { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+.wall { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: stretch; }
+.wall-side { background: var(--surface2); border-radius: 8px; padding: 14px 16px; }
+.wall-side.sim { border-left: 3px solid var(--purple); }
+.wall-side.company { border-left: 3px solid var(--teal); }
+.wall-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 14px; min-width: 92px; }
+.wall-glyph { font-family: ui-monospace, monospace; font-size: 22px; color: var(--muted); line-height: 1; }
+.wall-div-v { font-size: 18px; font-weight: 800; letter-spacing: -0.4px; margin-top: 6px; text-align: center; }
+.wall-div-l { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-top: 4px; text-align: center; }
+.wall-side-l { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+.wall-side-v { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+.wall-side-u { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
+.wall-side .who { font-size: 9px; font-weight: 700; letter-spacing: .05em; }
+.who.sim { color: var(--purple); }
+.who.company { color: var(--teal); }
+.mech { font-size: 12px; color: var(--text); line-height: 1.6; margin-top: 12px; border-left: 2px solid var(--border); padding-left: 12px; }
+.mech-l { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .05em; display: block; margin-bottom: 3px; }
+.basis { font-size: 10px; color: var(--muted); margin-top: 10px; }
+.passport { font-size: 10px; color: var(--muted); margin-top: 8px; }
+@media (max-width: 640px) {
+  .wall { grid-template-columns: 1fr; }
+  .wall-mid { flex-direction: row; gap: 12px; padding: 10px 0; }
+  .wall-glyph { transform: rotate(90deg); }
+}
+/* ladder */
+.ladder { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.rung { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 11px; flex: 1 1 120px; }
+.rung .r-run { font-family: ui-monospace, monospace; font-weight: 700; color: var(--blue); }
+.rung .r-time { color: var(--muted); font-size: 10px; }
+/* mini bar series */
+.series { display: flex; align-items: flex-end; gap: 3px; height: 54px; margin-top: 12px; }
+.series .b { flex: 1; background: var(--blue); border-radius: 2px 2px 0 0; min-height: 2px; opacity: .8; position: relative; }
+.series .b.crisis { background: var(--red); }
+.series-x { display: flex; gap: 3px; margin-top: 3px; }
+.series-x span { flex: 1; font-size: 8px; color: var(--muted); text-align: center; overflow: hidden; }
+/* anchors */
+.anchor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.anchor { background: var(--surface2); border-radius: 8px; padding: 14px; }
+.anchor-m { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+.anchor-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 2px 0; }
+.anchor-row .k { color: var(--muted); }
+.anchor-note { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px; border-bottom: 1px solid var(--border); }
+.tbl td { padding: 8px; border-top: 1px solid var(--border); vertical-align: top; }
+.table-scroll { overflow-x: auto; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
+details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin-top: 10px; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../world/" class="nav-link active">World</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../project/" class="nav-link">Project</a>
+</nav>
+<div class="wrap">
+
+  <div class="hero-h">The World</div>
+  <p class="hero-p" id="hero-p">
+    The two-sided wall. This company cannot see inside the simulation it runs in -- it discovers
+    its world only the way a real UK supplier would. Below, on four real crossings, the SIM's
+    ground truth on one side, the COMPANY's own view on the other, and the honest gap between
+    them. The gap is not a defect: it is the wall working. Every figure links to the file it
+    came from.
+  </p>
+
+  <!-- THE TWO-SIDED WALL -->
+  <div class="sec">The Wall &mdash; SIM ground truth <span style="font-family:ui-monospace,monospace">//</span> COMPANY observation</div>
+  <div class="card">
+    <p class="muted" id="wall-intro">Loading...</p>
+    <p class="muted" id="wall-band" style="margin-top:8px"></p>
+  </div>
+  <div id="crossings"><div class="card"><div class="muted">Loading...</div></div></div>
+
+  <!-- SIM GROUND TRUTH DEPTH -->
+  <div class="sec">SIM Ground Truth &mdash; the realised world the company is blindfolded to</div>
+  <div class="card">
+    <p class="muted" id="sim-intro">Loading...</p>
+    <div id="sim-depth" style="margin-top:12px"></div>
+  </div>
+
+  <!-- ANCHORS: RUNTIME -->
+  <div class="sec">Anchors Register &mdash; runtime calibration vs external benchmarks</div>
+  <div class="card">
+    <p class="muted" id="anchors-intro">Loading...</p>
+    <div class="kpis" id="anchor-kpis" style="margin-top:14px"></div>
+    <div class="anchor-grid" id="anchor-runtime"></div>
+  </div>
+
+  <!-- ANCHORS: LIBRARY -->
+  <div class="sec">Assumption Library &mdash; every calibrated value vs its industry benchmark</div>
+  <div class="card">
+    <p class="muted" id="lib-intro">Loading...</p>
+    <div class="kpis" id="lib-kpis" style="margin-top:14px"></div>
+    <details><summary>Show the full assumption library &rarr;</summary>
+      <div id="lib-body" style="margin-top:12px"><div class="muted">Loading...</div></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <p class="muted" id="build-note">Loading...</p>
+  </div>
+
+</div>
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
+function ragBadge(r){r=r||"UNKNOWN";return '<span class="badge '+esc(r)+'">'+esc(r)+'</span>';}
+
+function renderWall(d){
+  var w=d.wall||{};
+  document.getElementById("wall-intro").textContent=w.intro||"";
+  document.getElementById("wall-band").innerHTML='<em>'+esc(w.band_note||"")+'</em>';
+  var cx=w.crossings||[];
+  document.getElementById("crossings").innerHTML=cx.map(function(c){
+    var series="";
+    if(c.series&&c.series.length){
+      var vals=c.series.map(function(s){return (s.value!=null?s.value:(s.mean!=null?s.mean:0));});
+      var mx=Math.max.apply(null,vals.map(Math.abs).concat([0.0001]));
+      series='<div class="series">'+c.series.map(function(s,i){
+        var v=(s.value!=null?s.value:(s.mean!=null?s.mean:0));
+        var h=Math.round(100*Math.abs(v)/mx);
+        var cls=s.is_crisis?"b crisis":"b";
+        var t=(s.year!=null?s.year+": ":"")+v;
+        return '<div class="'+cls+'" style="height:'+Math.max(h,3)+'%" title="'+esc(t)+'"></div>';
+      }).join("")+'</div>'+
+      '<div class="series-x">'+c.series.map(function(s){return '<span>'+esc(String(s.year!=null?s.year:"").toString().slice(-2))+'</span>';}).join("")+'</div>'+
+      '<div class="basis">Series: '+esc(c.series_unit||"")+'</div>';
+    }
+    var ladder="";
+    if(c.settlement_ladder&&c.settlement_ladder.length){
+      ladder='<div class="ladder">'+c.settlement_ladder.map(function(r){
+        return '<div class="rung"><div class="r-run">'+esc(r.run)+'</div>'+esc(r.name)+
+          '<div class="r-time">'+esc(r.timing)+' &middot; '+esc(r.reads)+'</div></div>';
+      }).join("")+'</div>';
+    }
+    return '<div class="card cross">'+
+      '<div class="cross-head"><span class="cross-name">'+esc(c.name)+'</span> '+ragBadge(c.rag)+
+        ' <span class="muted">divergence band</span></div>'+
+      '<div class="cross-sub">'+esc(c.subtitle)+'</div>'+
+      '<div class="wall">'+
+        '<div class="wall-side sim"><div class="who sim">SIM &mdash; GROUND TRUTH</div>'+
+          '<div class="wall-side-l">'+esc(c.sim_truth_label)+'</div>'+
+          '<div class="wall-side-v">'+esc(c.sim_truth_value!=null?c.sim_truth_value:"--")+'</div>'+
+          '<div class="wall-side-u">'+esc(c.sim_truth_unit||"")+'</div></div>'+
+        '<div class="wall-mid"><div class="wall-glyph">//</div>'+
+          '<div class="wall-div-v">'+esc(c.divergence_value!=null?c.divergence_value:"--")+'</div>'+
+          '<div class="wall-div-l">'+esc(c.divergence_label||"gap")+'</div></div>'+
+        '<div class="wall-side company"><div class="who company">COMPANY &mdash; OBSERVED</div>'+
+          '<div class="wall-side-l">'+esc(c.company_view_label)+'</div>'+
+          '<div class="wall-side-v">'+esc(c.company_view_value!=null?c.company_view_value:"--")+'</div>'+
+          '<div class="wall-side-u">'+esc(c.company_view_unit||"")+'</div></div>'+
+      '</div>'+
+      '<div class="mech"><span class="mech-l">The mechanism</span>'+esc(c.mechanism||"")+'</div>'+
+      ladder+
+      series+
+      '<div class="basis">Basis: '+esc(c.basis||"")+'</div>'+
+      '<div class="passport">Evidence: <a class="evlink" href="'+esc(c.evidence_url||"#")+'" target="_blank" rel="noopener">'+esc(c.evidence||"")+'</a></div>'+
+    '</div>';
+  }).join("")||'<div class="card"><div class="muted">No wall crossings available.</div></div>';
+}
+
+function renderSimDepth(d){
+  var bf=(d.wall&&d.wall.crossings||[]).filter(function(c){return c.id==="blindfold";})[0];
+  var intro=document.getElementById("sim-intro");
+  intro.innerHTML="The simulation is settled half-hourly against the REAL Elexon system sell price since "+
+    esc(d.sim_window||"2016")+" ("+num(d.sim_total_records)+" settlement records). It holds the entire "+
+    "realised path -- including the 2021-22 crisis that ended around 30 real UK suppliers. The company "+
+    "priced through it blindfolded. Annual mean SSP (&pound;/MWh); crisis years in red.";
+  if(!bf||!bf.series){document.getElementById("sim-depth").innerHTML='<div class="muted">Sim series unavailable.</div>';return;}
+  var vals=bf.series.map(function(s){return s.mean||0;});
+  var mx=Math.max.apply(null,vals.concat([1]));
+  var html='<div class="series" style="height:80px">'+bf.series.map(function(s){
+    var h=Math.round(100*(s.mean||0)/mx);
+    return '<div class="'+(s.is_crisis?"b crisis":"b")+'" style="height:'+Math.max(h,3)+'%" title="'+esc(s.year+": £"+s.mean+"/MWh (peak £"+s.max+")")+'"></div>';
+  }).join("")+'</div>'+
+  '<div class="series-x">'+bf.series.map(function(s){return '<span>'+esc(s.year)+'</span>';}).join("")+'</div>'+
+  '<div class="basis" style="margin-top:8px">Basis: '+esc(bf.basis||"")+'. Evidence: '+
+    '<a class="evlink" href="'+esc(bf.evidence_url||"#")+'" target="_blank" rel="noopener">'+esc(bf.evidence||"")+'</a></div>';
+  document.getElementById("sim-depth").innerHTML=html;
+}
+
+function renderAnchorsRuntime(d){
+  var a=(d.anchors&&d.anchors.runtime)||{};
+  document.getElementById("anchors-intro").textContent=(d.anchors&&d.anchors.intro)||"";
+  var kpis=[
+    {l:"Overall calibration",v:a.overall_rag||"--"},
+    {l:"Benchmarks tracked",v:num((a.cards||[]).length)}
+  ];
+  document.getElementById("anchor-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+'</div></div>';
+  }).join("");
+  document.getElementById("anchor-runtime").innerHTML=(a.cards||[]).map(function(c){
+    return '<div class="anchor"><div class="anchor-m">'+esc(c.metric)+' '+ragBadge(c.rag)+'</div>'+
+      '<div class="anchor-row"><span class="k">SIM</span><span>'+esc(c.sim_value!=null?c.sim_value:"--")+'</span></div>'+
+      '<div class="anchor-row"><span class="k">Benchmark</span><span>'+esc(c.benchmark_value!=null?c.benchmark_value:"--")+'</span></div>'+
+      (c.ratio!=null?'<div class="anchor-row"><span class="k">Ratio</span><span>'+esc(c.ratio)+'x</span></div>':'')+
+      (c.note?'<div class="anchor-note">'+esc(c.note)+'</div>':'')+
+    '</div>';
+  }).join("")||'<div class="muted">No runtime anchors available.</div>';
+  if(a.evidence){
+    document.getElementById("anchor-runtime").innerHTML+=
+      '<div class="passport" style="grid-column:1/-1">Evidence: <a class="evlink" href="'+esc(a.evidence_url||"#")+'" target="_blank" rel="noopener">'+esc(a.evidence)+'</a></div>';
+  }
+}
+
+function renderLibrary(d){
+  var lib=(d.anchors&&d.anchors.library)||{};
+  document.getElementById("lib-intro").innerHTML=
+    "The human-readable provenance trail: "+num(lib.row_count)+" calibrated assumptions across "+
+    num(lib.section_count)+" domains, each a SIM value against an industry benchmark with its source "+
+    "and a checked status. Warnings and open refreshes are shown, not hidden. Source: "+
+    '<a class="evlink" href="'+esc(lib.evidence_url||"#")+'" target="_blank" rel="noopener">'+esc(lib.evidence||"ASSUMPTIONS.md")+'</a>.';
+  var counts=lib.counts||{};
+  var order=["OK","WARN","REFRESH","GAP","N/A","OTHER"];
+  document.getElementById("lib-kpis").innerHTML=order.filter(function(k){return counts[k];}).map(function(k){
+    return '<div class="kpi"><div class="kpi-l">'+esc(k)+'</div><div class="kpi-v">'+num(counts[k])+'</div></div>';
+  }).join("");
+  var html=(lib.sections||[]).map(function(s){
+    var rows=(s.rows||[]).map(function(r){
+      return '<tr><td>'+esc(r.assumption)+'</td><td>'+esc(r.sim_value)+'</td><td>'+esc(r.benchmark)+'</td>'+
+        '<td class="muted">'+esc(r.source)+'</td><td>'+ragBadge(r.status)+'</td></tr>';
+    }).join("");
+    return '<div style="font-size:13px;font-weight:600;margin:16px 0 6px">'+esc(s.section)+' <span class="muted">('+s.rows.length+')</span></div>'+
+      '<div class="table-scroll"><table class="tbl"><thead><tr><th>Assumption</th><th>SIM</th><th>Benchmark</th><th>Source</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }).join("");
+  document.getElementById("lib-body").innerHTML=html||'<div class="muted">Assumption library not available.</div>';
+}
+
+function renderBuild(d){
+  var parts=[];
+  if(d.phase)parts.push("Phase "+d.phase);
+  if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
+  if(d.dashboard_generated_at)parts.push("data "+d.dashboard_generated_at);
+  if(d.generated_at)parts.push("generated "+d.generated_at);
+  document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
+}
+
+fetch("../data/world.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderWall(d);
+  renderSimDepth(d);
+  renderAnchorsRuntime(d);
+  renderLibrary(d);
+  renderBuild(d);
+}).catch(function(e){
+  console.error("world.json load error:",e);
+  document.getElementById("crossings").innerHTML='<div class="card"><div class="muted" style="color:var(--red)">Could not load world.json</div></div>';
+});
+</script>
+<script src="../shared/director-comments.js" defer></script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</body>
+</html>
