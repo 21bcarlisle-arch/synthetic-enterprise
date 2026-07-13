@@ -381,10 +381,8 @@
       "level_target": 3,
       "loop_stage": "harden",
       "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W2_2_population_draw"
-      ],
+      "expert_hour_status": "passed",
+      "depends_on": [],
       "at_target": false
     },
     {
