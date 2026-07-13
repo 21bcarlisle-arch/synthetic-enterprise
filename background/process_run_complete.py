@@ -19,6 +19,12 @@ LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
 RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.lock"
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
+# H11_naive_organ (L2): the deliberately-amnesiac question organ's log + the
+# LATEST.md digest block it feeds. The organ FIRES from run_naive_organ_step()
+# below, wired into the live publish cycle.
+NAIVE_ORGAN_LOG = PROJECT_DIR / "docs" / "observability" / "naive_organ_log.jsonl"
+ORGAN_BLOCK_START = "<!-- NAIVE_ORGAN_ASKS -->"
+ORGAN_BLOCK_END = "<!-- /NAIVE_ORGAN_ASKS -->"
 # Change-detection gate (DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, 2026-07-08):
 # the sim is deterministic over frozen historical data, so every ~10-min cycle
 # produced a byte-identical £1,535,308 result and yet still regenerated every
@@ -240,6 +246,52 @@ def update_latest_md(data, elapsed_s, git_hash="unknown"):
         text,
     )
     LATEST_MD.write_text(text)
+
+
+def _update_latest_md_organ_section():
+    """Maintain the 'NAIVE ORGAN asks:' block in LATEST.md (the digest sink,
+    design §3.2). Managed between HTML-comment markers, same shape as the
+    'Latest simulation results' block — replaced in place, appended on first
+    run."""
+    from background import naive_organ
+    section = naive_organ.render_digest_section()
+    body = section if section else "_No open naive-organ questions._"
+    block = "{}\n{}\n{}".format(ORGAN_BLOCK_START, body, ORGAN_BLOCK_END)
+    text = LATEST_MD.read_text()
+    if ORGAN_BLOCK_START in text and ORGAN_BLOCK_END in text:
+        s = text.index(ORGAN_BLOCK_START)
+        e = text.index(ORGAN_BLOCK_END) + len(ORGAN_BLOCK_END)
+        text = text[:s] + block + text[e:]
+    else:
+        text = text.rstrip() + "\n\n" + block + "\n"
+    LATEST_MD.write_text(text)
+
+
+def run_naive_organ_step():
+    """H11_naive_organ LIVE HOOK (L2 = habitual firing). Run the 7 SYSTEM
+    detectors over the live observable state (map + run_history + logs) and ask
+    the amnesiac Opus organ once per NEW fired contradiction (debounced). Output
+    is QUESTIONS to naive_organ_log.jsonl + the 'NAIVE ORGAN asks:' block in
+    LATEST.md — NEVER actions (safe by construction, SELF_INTERRUPT_DISCIPLINE
+    QUEUE), so this cannot change what the pipeline does, only surface doubt.
+
+    Fully defensive: any failure is logged and swallowed — the organ NEVER
+    breaks publishing. Skipped under pytest (PYTEST_CURRENT_TEST) so the test
+    suite never spawns a real `claude -p` Opus subprocess, and via
+    NAIVE_ORGAN_DISABLE=1 as a kill switch."""
+    if os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("NAIVE_ORGAN_DISABLE") == "1":
+        return
+    try:
+        from background import naive_organ
+        written = naive_organ.run_organ_cycle(max_new=3)
+        log("Naive organ: {} new question(s) asked (open: {})".format(
+            len(written), naive_organ.hit_rate()["open"]))
+    except Exception as exc:
+        log("Naive organ cycle skipped: {}".format(exc))
+    try:
+        _update_latest_md_organ_section()
+    except Exception as exc:
+        log("Naive organ digest section skipped: {}".format(exc))
 
 
 def run_fast_tests(git_hash: str):
@@ -624,6 +676,10 @@ def git_commit_push(git_hash, net_margin):
     site_sample = PROJECT_DIR / "site" / "data" / "customer_sample.json"
     site_shadow = PROJECT_DIR / "site" / "shadow"
     files = [str(report), str(LATEST_MD)]
+    # H11_naive_organ: commit the organ's question log alongside the run whose
+    # publish cycle produced it (LATEST.md's digest block is already tracked).
+    if NAIVE_ORGAN_LOG.exists():
+        files.append(str(NAIVE_ORGAN_LOG))
     if site_index.exists():
         files.append(str(site_index))
     if site_data.exists():
@@ -934,6 +990,10 @@ def _process(marker_path_str):
         log("Run insights saved: {}".format(run_insights.executive_summary[:80]))
     except Exception as exc:
         log("Run insights generation skipped: {}".format(exc))
+
+    # H11_naive_organ live hook: run AFTER run_history.json is appended above so
+    # the flat-metric detectors (T1/T5) see this run's figure. Questions only.
+    run_naive_organ_step()
 
     log("Generating site/data/dashboard.json")
     consistency_ok = generate_dashboard_json(json_path, git_hash)

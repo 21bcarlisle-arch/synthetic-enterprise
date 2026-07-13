@@ -1,0 +1,245 @@
+# FROZEN FIXTURE — weekend of 2026-07-11, reconstructed from git history
+# (793ef089/9a2c9cf5 '31 BELOW target', the exact map state the director
+# caught by hand). Real atom shape (top-level list of atoms), trimmed to the
+# fields the organ's detectors read as DATA (never the prose rationales).
+#
+# 31 atoms below target + 3 at target -> detect_t2 must independently
+# recompute open==31 from THIS file, not a hardcoded number.
+- id: A1_cash_engine
+  name: "weekend atom 1"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: A2_credit_control
+  name: "weekend atom 2"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: A3_approval_interface
+  name: "weekend atom 3"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: B2_opex_taxonomy
+  name: "weekend atom 4"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: C1_pricing_ladder
+  name: "weekend atom 5"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: C4_cost_to_serve
+  name: "weekend atom 6"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: D2_three_clocks
+  name: "weekend atom 7"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: D4_settlement_recon
+  name: "weekend atom 8"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: E1_hedge_policy
+  name: "weekend atom 9"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: E3_var_engine
+  name: "weekend atom 10"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: F2_churn_model
+  name: "weekend atom 11"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: F5_retention_offers
+  name: "weekend atom 12"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: G3_forward_curve
+  name: "weekend atom 13"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: G6_weather_engine
+  name: "weekend atom 14"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: H9_map_write_serialisation
+  name: "weekend atom 15"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: H10_worktree_isolation
+  name: "weekend atom 16"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: H12_digest_rollup
+  name: "weekend atom 17"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: I1_regulatory_register
+  name: "weekend atom 18"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: I4_price_cap_engine
+  name: "weekend atom 19"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: J2_smart_meter_feed
+  name: "weekend atom 20"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: K1_collections_ladder
+  name: "weekend atom 21"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: K3_bad_debt_model
+  name: "weekend atom 22"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: L2_multi_segment
+  name: "weekend atom 23"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: L5_product_taxonomy
+  name: "weekend atom 24"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: M1_scenario_battery
+  name: "weekend atom 25"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: M4_stress_regimes
+  name: "weekend atom 26"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: N2_device_layer
+  name: "weekend atom 27"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: N5_async_wall
+  name: "weekend atom 28"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: O1_go_live_nfr
+  name: "weekend atom 29"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: P2_rbac_audit
+  name: "weekend atom 30"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: Q1_multi_geography
+  name: "weekend atom 31"
+  lane: H_harness
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+- id: D3_catchup_rebilling
+  name: "at target"
+  lane: H_harness
+  epoch: 2
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+- id: H1_stop_hook
+  name: "at target"
+  lane: H_harness
+  epoch: 2
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
+- id: R1_consumer_verify
+  name: "at target"
+  lane: H_harness
+  epoch: 2
+  level_current: 3
+  level_target: 3
+  loop_stage: harden
