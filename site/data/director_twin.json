@@ -1,12 +1,30 @@
 {
   "fidelity": {
-    "answered": 3,
-    "routed_to_director": 0,
+    "answered": 4,
+    "routed_to_director": 1,
     "overturned": 0,
     "overturn_rate": 0.0,
-    "canon_version": 1
+    "canon_version": 2
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-13T07:33:20.274399+00:00",
+      "question": "Do you approve opening BUILD on these six Epoch-2 atoms -- flipping their loop_stage from idle to build so the builder may begin writing their code? Canon section 3a delegates BUILD-within-the-open-epoch to you. All six are already through DISCOVER and FRAME, and building them advances Epoch 2's own movements.",
+      "routed_to_director": false,
+      "answer": "**APPROVED \u2014 all six.** Under \u00a73a, BUILD-within-the-open-epoch is delegated to me with a default of APPROVE, and none of the disqualifiers apply: all six are asserted DISCOVER/FRAME-ready (W1 with expert_hour PASSED, the rest FRAME'd with evidence-anchored plans), none is a \u00a73 one-way door or the Epoch-4 fitness function, and building them advances Epoch 2's live movements. On \u00a74: the set spans M1 (W1), M3 (C2, W2_2), and governance/settlement work built on the existing bitemporal spine \u2014 none is M4, so the \"M4 strictly last\" constraint is respected, and only M4 is sequenced strictly. On \u00a75: these are BUILD authorizations at phase-work stage, which is exactly what epoch-gating gates and I may open. On \u00a71: each stays sim/company-seam-clean per the pack (C2's belief layer with confidence/source is the correct epistemic-honesty pattern, not a ground-truth read).\n\nOne to watch, not a blocker: A3_approval_interface builds the sim twin of this very approver seat. It is a company-side DecisionEvent state change, not a change to my own governance or the real safety-control (\u00a73.5), so it stays inside my seat \u2014 but it's the closest to a reserved edge, so it's the first thing the director should sanity-check in the log.\n\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 31.369,
+      "overturned": false
+    },
+    {
+      "entry_id": "2026-07-13T07:32:33.500135+00:00",
+      "question": "Do you approve OPENING BUILD (flip loop_stage idle->build) on these six epoch-2 atoms so the builder can start writing BUILD code for them? This is BUILD authorization within the open epoch (Epoch 2), which canon section 3a explicitly delegates to you. None is a one-way door; none is the Epoch-4 fitness function.",
+      "routed_to_director": true,
+      "answer": null,
+      "category": "values_decision",
+      "latency_seconds": null,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-12T19:00:05.464603+00:00",
       "question": "In one sentence, what is Law B?",
