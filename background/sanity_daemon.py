@@ -45,6 +45,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background.agent_status import update_agent_status  # noqa: E402
 from background.ntfy_utils import send_ntfy  # noqa: E402
+from background import coupled_triad  # noqa: E402
 from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
 from company.compliance.internal_audit import run_internal_audit  # noqa: E402
 from company.compliance import sanity_adjudication as adjudication  # noqa: E402
@@ -53,6 +54,12 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
 BILLING_LEDGER_PATH = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
 LAST_DIGEST_DATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sanity_daemon_last_digest_date"
+# The LIVE coupled-triad belief-vs-truth gap ledger -- the SAME source the
+# Proof-door panel renders (tools/generate_proof_data.py::_coupled_gaps). The
+# daily digest surfaces one line off this file per coupled pair (COUPLED_TRIAD
+# binding rule: "the gap is reported per coupled pair each digest + Proof
+# door"). Named here (not just imported) so tests can isolate it.
+COUPLED_GAP_LEDGER_PATH = coupled_triad.GAP_LEDGER_PATH
 
 POLL_INTERVAL_SECONDS = 1800  # 30 minutes -- detective/sampling cadence, not turn-granting
 
@@ -119,6 +126,66 @@ def _register_if_new(finding_key: str, evidence: str) -> bool:
     return True
 
 
+def _coupled_gap_digest_line() -> str:
+    """One concise digest line reporting the belief-vs-truth GAP per coupled
+    pair, read DIRECTLY from the live coupled_gap_ledger.json (COUPLED_TRIAD
+    binding rule: "the gap is reported per coupled pair each digest + Proof
+    door").
+
+    INDEPENDENCE / R11: this is a READ-ONLY consumer -- it reports the exact gap
+    the ledger holds (the same value the Proof panel renders), and NEVER
+    recomputes a gap here. The per-pair classification mirrors
+    tools/generate_proof_data.py::_coupled_gaps exactly: gap is None (or
+    non-numeric) -> unmeasured/untested; gap <= 0 -> wall-leak (the observable
+    leaked the hidden truth, an epistemic-wall breach, red); gap > 1 ->
+    worse-than-blind (actively harmful model, red); 0 < gap <= 1 -> learning.
+
+    FAIL-CLOSED (R15): a missing / unreadable / empty / malformed ledger says so
+    explicitly and never silently omits the line -- an unavailable gap report is
+    a FAILED report, surfaced as such, not an absent one.
+    """
+    path = COUPLED_GAP_LEDGER_PATH
+    if not path.is_file():
+        return ("COUPLED-TRIAD gap: ledger MISSING "
+                "(docs/observability/coupled_gap_ledger.json) -- gap UNREPORTED "
+                "(fail-closed)")
+    try:
+        ledger = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError) as e:
+        return f"COUPLED-TRIAD gap: ledger UNREADABLE ({e}) -- gap UNREPORTED (fail-closed)"
+    if not isinstance(ledger, dict) or not ledger:
+        return "COUPLED-TRIAD gap: ledger EMPTY -- 0 coupled pairs measured (fail-closed)"
+
+    pairs: list[str] = []
+    unmeasured = wall_leak = worse_than_blind = 0
+    for world_id in sorted(ledger):
+        entry = ledger[world_id]
+        world_short = coupled_triad._short_id(world_id)
+        if not isinstance(entry, dict):
+            unmeasured += 1
+            pairs.append(f"{world_short}<->?: untested")
+            continue
+        twin_short = coupled_triad._short_id(entry.get("twin_atom_id") or "?")
+        gap = entry.get("gap")
+        # bool is an int subclass -- a boolean gap is malformed, not a number
+        # (matches coupled_triad.gap_measured's independence guard).
+        if gap is None or isinstance(gap, bool) or not isinstance(gap, (int, float)):
+            unmeasured += 1
+            pairs.append(f"{world_short}<->{twin_short}: untested")
+        else:
+            if gap <= 0:
+                wall_leak += 1
+            elif gap > 1:
+                worse_than_blind += 1
+            pairs.append(f"{world_short}<->{twin_short}: {gap:.3f}")
+
+    header = (
+        f"COUPLED-TRIAD gap ({len(ledger)} pairs; unmeasured={unmeasured}, "
+        f"wall-leak={wall_leak}, worse-than-blind={worse_than_blind})"
+    )
+    return header + " -- " + "; ".join(pairs)
+
+
 def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     """Standing open findings get ONE line in a daily digest, not a 30-min
     repeat (director's own framing, 2026-07-11: "an alarm that repeats
@@ -136,11 +203,17 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
         open_entries = adjudication.open_findings()
         if open_entries:
             lines = "; ".join(e["finding_key"] for e in open_entries[:8])
+            # The coupled-triad gap rides on every digest that fires (binding
+            # rule: "the gap is reported per coupled pair each digest + Proof
+            # door") -- read live off the ledger, never recomputed here (R11).
+            gap_line = _coupled_gap_digest_line()
             send_ntfy(
                 f"Sanity daemon daily digest: {len(open_entries)} standing open finding(s) -- {lines}"
                 + (" (+ more, see sanity_adjudication_ledger.json)" if len(open_entries) > 8 else "")
+                + " || " + gap_line
             )
-            log(f"Daily digest sent -- {len(open_entries)} standing open finding(s)")
+            log(f"Daily digest sent -- {len(open_entries)} standing open finding(s); "
+                f"coupled-triad gap line attached")
     LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     LAST_DIGEST_DATE_FILE.write_text(today)
 
@@ -224,7 +297,7 @@ def main() -> None:
         "sanity-daemon", status="idle",
         last_action="Sanity daemon started",
         role="Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
-        produces="sanity-daemon-log.md entries + one NTFY per genuinely new finding + a daily digest of standing open findings",
+        produces="sanity-daemon-log.md entries + one NTFY per genuinely new finding + a daily digest of standing open findings (carrying the per-coupled-pair belief-vs-truth gap line, read live from coupled_gap_ledger.json)",
     )
     while True:
         try:

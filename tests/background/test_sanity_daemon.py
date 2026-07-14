@@ -22,6 +22,11 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(sanity_adjudication, "LEDGER_PATH", tmp_path / "sanity_adjudication_ledger.json")
     # Isolated from the real daily-digest date marker.
     monkeypatch.setattr(sanity_daemon, "LAST_DIGEST_DATE_FILE", tmp_path / ".last_digest_date")
+    # Isolated from the real, committed coupled_gap_ledger.json -- a test that
+    # exercises the daily digest's coupled-triad gap line controls the ledger
+    # content itself (defaults to a nonexistent tmp file, so the digest line
+    # reads fail-closed "ledger MISSING" unless a test writes it).
+    monkeypatch.setattr(sanity_daemon, "COUPLED_GAP_LEDGER_PATH", tmp_path / "coupled_gap_ledger.json")
     # Phase 6's internal audit calls a real local Ollama model by default --
     # never let a test hit that network service; default to "nothing
     # flagged" unless a test explicitly overrides this.
@@ -382,6 +387,99 @@ def test_categorize_audit_note_buckets_known_false_positive_shapes():
     assert sanity_daemon._categorize_audit_note(
         "Something entirely novel and unrelated to any known shape."
     ).startswith("other:")
+
+
+# --- COUPLED-TRIAD gap surfacing in the daily digest (A6_gap_digest_surfacing) ---
+
+
+def _write_gap_ledger(path, entries):
+    """entries: {world_id: (twin_id, gap)}."""
+    path.write_text(json.dumps({
+        wid: {"twin_atom_id": twin, "gap": gap, "metric": "belief",
+              "measured_at": "2026-07-13T00:00:00+00:00"}
+        for wid, (twin, gap) in entries.items()
+    }))
+
+
+def test_coupled_gap_digest_line_reflects_ledger_values():
+    """R11 / independence: the digest line reports the EXACT gap the ledger
+    holds (formatted to 3dp, the same precision the Proof panel renders), for
+    each coupled pair -- it never recomputes a gap."""
+    _write_gap_ledger(sanity_daemon.COUPLED_GAP_LEDGER_PATH, {
+        "W2_4_household_budget": ("C6_affordability_inference", 0.6065128900949797),
+        "W2_7_willingness_classification": ("C9_cantpay_wontpay_classifier", 0.12781897212989005),
+    })
+    line = sanity_daemon._coupled_gap_digest_line()
+    # The rendered value equals the ledger value at 3dp (the pixel == the number).
+    assert "W2_4<->C6: 0.607" in line
+    assert "W2_7<->C9: 0.128" in line
+    assert "2 pairs" in line
+    assert "unmeasured=0" in line and "wall-leak=0" in line and "worse-than-blind=0" in line
+
+
+def test_coupled_gap_digest_line_counts_unmeasured_leak_and_worse_than_blind():
+    """The anti-decay counts (unmeasured / wall-leak / worse-than-blind) mirror
+    the Proof panel's classification exactly: null gap -> unmeasured; gap<=0 ->
+    wall-leak (observable leaked the hidden truth); gap>1 -> worse than blind."""
+    _write_gap_ledger(sanity_daemon.COUPLED_GAP_LEDGER_PATH, {
+        "W2_4_household_budget": ("C6_affordability_inference", 0.42),   # learning
+        "W2_5_life_event_stream": ("C7_life_event_detection", None),     # unmeasured
+        "W2_6_sme_distress_twin": ("C8_sme_credit_risk", 0.0),           # wall-leak
+        "W2_7_willingness_classification": ("C9_cantpay_wontpay_classifier", 1.4),  # worse
+    })
+    line = sanity_daemon._coupled_gap_digest_line()
+    assert "unmeasured=1" in line
+    assert "wall-leak=1" in line
+    assert "worse-than-blind=1" in line
+    assert "untested" in line  # the null-gap pair renders as untested
+
+
+def test_coupled_gap_digest_line_fail_closed_when_ledger_missing():
+    """R15 fail-closed: a missing ledger is announced explicitly, never a
+    silent omission."""
+    assert not sanity_daemon.COUPLED_GAP_LEDGER_PATH.exists()
+    line = sanity_daemon._coupled_gap_digest_line()
+    assert "MISSING" in line and "fail-closed" in line
+
+
+def test_coupled_gap_digest_line_fail_closed_when_ledger_empty():
+    sanity_daemon.COUPLED_GAP_LEDGER_PATH.write_text("{}")
+    line = sanity_daemon._coupled_gap_digest_line()
+    assert "EMPTY" in line and "fail-closed" in line
+
+
+def test_coupled_gap_digest_line_fail_closed_when_ledger_malformed():
+    sanity_daemon.COUPLED_GAP_LEDGER_PATH.write_text("not json {")
+    line = sanity_daemon._coupled_gap_digest_line()
+    assert "UNREADABLE" in line and "fail-closed" in line
+
+
+def test_daily_digest_carries_live_coupled_gap_line(monkeypatch):
+    """End-to-end (R11): when the daily digest fires, the NTFY it sends carries
+    the per-coupled-pair gap line whose values EQUAL the live ledger's values.
+    Proves the wiring, not just the helper."""
+    _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
+    _write_gap_ledger(sanity_daemon.COUPLED_GAP_LEDGER_PATH, {
+        "W2_4_household_budget": ("C6_affordability_inference", 0.6065128900949797),
+    })
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(
+        sanity_daemon, "run_internal_audit",
+        lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
+                                      "note": "Gas consumption is reported in kWh, not gas."}],
+    )
+    sanity_daemon.run_cycle()  # cycle 1: fresh audit alert, digest skipped same day
+    assert len(calls) == 1
+
+    sanity_daemon.LAST_DIGEST_DATE_FILE.unlink()  # simulate a new UTC day
+    sanity_daemon.run_cycle()  # cycle 2: standing finding -> digest fires
+    assert len(calls) == 2
+    digest = calls[1]
+    assert "daily digest" in digest.lower()
+    assert "COUPLED-TRIAD gap" in digest
+    # The digest value equals the ledger value (0.6065... -> 0.607 at 3dp).
+    assert "W2_4<->C6: 0.607" in digest
 
 
 def test_run_cycle_population_and_audit_ntfys_are_independent(monkeypatch):
