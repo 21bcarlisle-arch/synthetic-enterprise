@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T16:26:09Z
+Last updated: 2026-07-14T16:40:33Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T16:21:14Z
+Last updated: 2026-07-14T16:35:32Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (492s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -116,13 +116,13 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] If the whole safeguard reduces to a label — "read/fetch-only tools, connectors stripped" — what actually verifies at run time that a tool tagged read-only cannot mutate state or reach an account, rather than merely being described as unable to?
 - (T3_inherence) [unanswered >24h] If world difficulty and company capability never gate each other, can you point to a single state variable through which a given "depth" actually changes the enterprise-value or survival numbers — and if you cannot, what is the word "physics" naming other than a label attached to scenery that never touches the score?
 - (T3_inherence) [unanswered >24h] When you say Bacs "physics"—a fixed 3-day settlement cycle and standardized reason codes that are just administrative rules—what makes you confident the sim reproduces the parts that actually threaten survival (timing of cash outflows/inflows against liquidity), rather than just replaying the schedule as if it were an immutable law of nature?
-- (T3_inherence) When you vary "depth" while holding world difficulty and company capability decoupled, does any number in the enterprise-value or survival calculation actually change — and if you can name the exact state variable it flows through, why call it "physics" rather than that variable, and if you cannot, on what basis do you claim "physics" is in the model at all?
-- (T3_inherence) When Bacs settlement is modeled as a fixed 3-day "physics," does the sim also reproduce the ways that timing can actually break under stress—payment recalls, failed direct debits, indemnity claims, batch cutoff misses, or a bank/Bacs delaying or freezing your access—or does it guarantee inflows and outflows arrive exactly on schedule regardless of the firm's liquidity condition?
-- (T3_inherence) When you hold world difficulty and company capability fixed and change only "depth," can you point to a single line in the enterprise-value or survival formula whose output moves — and if so, name that variable; if not, what would anyone lose by deleting the word "physics" from the model entirely?
-- (T3_inherence) When the firm's liquidity is stressed, does the sim ever let a scheduled Bacs inflow fail to arrive on day 3 — via recall, failed direct debit, indemnity clawback, cutoff miss, or a bank freezing access — or is the 3-day delay the only deviation it can ever produce, so that every settlement is guaranteed to land intact regardless of the firm's condition?
-- (T3_inherence) If "depth" never changes any variable in the enterprise-value or survival formulas, what evidence is there that "physics" was ever wired into the model rather than just named in it — and who has actually traced that path rather than assuming it exists?
-- (T3_inherence) Can you point to a single concrete run where changing "depth" produced a different number in an enterprise-value or survival output — and if no such run exists, on what basis is "physics" claimed to be part of the model at all rather than a label attached to inert code?
-- (T3_inherence) If "physics" is genuinely wired into the enterprise-value or survival calculations, why has no one simply run the model twice with two different "depth" values and shown the two outputs differ — and if that trivial test has never been run, what specifically has been stopping it?
+- (T3_inherence) [unanswered >24h] When you vary "depth" while holding world difficulty and company capability decoupled, does any number in the enterprise-value or survival calculation actually change — and if you can name the exact state variable it flows through, why call it "physics" rather than that variable, and if you cannot, on what basis do you claim "physics" is in the model at all?
+- (T3_inherence) [unanswered >24h] When Bacs settlement is modeled as a fixed 3-day "physics," does the sim also reproduce the ways that timing can actually break under stress—payment recalls, failed direct debits, indemnity claims, batch cutoff misses, or a bank/Bacs delaying or freezing your access—or does it guarantee inflows and outflows arrive exactly on schedule regardless of the firm's liquidity condition?
+- (T3_inherence) [unanswered >24h] When you hold world difficulty and company capability fixed and change only "depth," can you point to a single line in the enterprise-value or survival formula whose output moves — and if so, name that variable; if not, what would anyone lose by deleting the word "physics" from the model entirely?
+- (T3_inherence) [unanswered >24h] When the firm's liquidity is stressed, does the sim ever let a scheduled Bacs inflow fail to arrive on day 3 — via recall, failed direct debit, indemnity clawback, cutoff miss, or a bank freezing access — or is the 3-day delay the only deviation it can ever produce, so that every settlement is guaranteed to land intact regardless of the firm's condition?
+- (T3_inherence) [unanswered >24h] If "depth" never changes any variable in the enterprise-value or survival formulas, what evidence is there that "physics" was ever wired into the model rather than just named in it — and who has actually traced that path rather than assuming it exists?
+- (T3_inherence) [unanswered >24h] Can you point to a single concrete run where changing "depth" produced a different number in an enterprise-value or survival output — and if no such run exists, on what basis is "physics" claimed to be part of the model at all rather than a label attached to inert code?
+- (T3_inherence) [unanswered >24h] If "physics" is genuinely wired into the enterprise-value or survival calculations, why has no one simply run the model twice with two different "depth" values and shown the two outputs differ — and if that trivial test has never been run, what specifically has been stopping it?
 - (T3_inherence) When you say "run the model twice with two different 'depth' values," has anyone actually confirmed that a "depth" input exists and is even read by the enterprise-value or survival code — or is the whole premise resting on an assumption that such a knob is wired in at all?
 - (T7_repeated_fix_class_refill_draw) If all three examples describe designing and gating a single "coupled-triad draw" mechanism (binding rule 1), what independent evidence shows these were three distinct fixes that actually refilled a draw — rather than one design being re-described three times under a label that doesn't match the work?
 - (T3_inherence) What evidence shows that merging this weather-physics design doc actually moves enterprise value or survival probability, rather than just adding modeling machinery whose payoff is assumed but never measured against the north star?
@@ -164,4 +164,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) If affordability really is being held fixed as "physics," who set that constraint and what would the enterprise value look like if it were relaxed — and if no one can produce that counterfactual number, on what basis is anyone asserting the low bad debt is "healthy" rather than evidence of suppressed revenue?
 - (T3_inherence) If the only state this system ever observes is a token and a sentence about that token, by what recorded mechanism has any such observation ever changed a number the energy supplier acts on — and can you point to a single past instance where it did?
 - (T3_inherence) If the healthy-book world and the affordability-choke world both produce the same low bad-debt number, which *other* observable — approval/rejection rates on applications, revenue per eligible customer, or the count of would-be customers turned away — would diverge between them, and has anyone actually looked at that number before declaring affordability an untouchable constraint?
+- (T3_inherence) When you say the two tracks "never gate each other," can you point to a single concrete state in which advancing to a given depth changes what actions are available or what outcomes are reachable — and if you cannot, what observable difference is left between that depth being "physics" and it being a decorative label with no causal handle on enterprise value or survival?
+- (T3_inherence) Can you exhibit one concrete run where two scenarios identical in every other input but differing only in "physics"/"depth" produce different enterprise-value or survival numbers — and if no such pair exists, on what basis is "physics" counted as part of the state at all rather than as inert scenery?
+- (T3_inherence) When a Direct Debit you've already counted as collected gets reversed days later under one of those "standardized reason codes," does the sim actually open the liquidity hole between the outflow you funded and the inflow that never arrives—or does it quietly net the reversal against the original schedule, which is exactly the survival-threatening timing you're claiming it reproduces?
 <!-- /NAIVE_ORGAN_ASKS -->
