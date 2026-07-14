@@ -23,7 +23,11 @@ from tools.brand_compliance import (
     find_raw_hex,
     find_soft_as_text,
     generate_css,
+    linked_css_text,
     load_tokens,
+    page_style_css,
+    resolve_var,
+    resolved_page_css,
     soft_color_hexes,
     soft_color_names,
 )
@@ -31,7 +35,21 @@ from tools.brand_compliance import (
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXEMPLAR_PATH = BRAND_DIR / "exemplar.html"
 PROOF_PATH = BRAND_DIR / "proof.html"
+BRAND_CSS_PATH = BRAND_DIR / "brand.css"
 CONSTITUTION_PATH = REPO_ROOT / "docs" / "design" / "BRAND_CONSTITUTION.md"
+
+# Live production pages that have ADOPTED the brand: they link site/brand/brand.css, carry no
+# raw colour in their <style>, and render the wordmark. This list is the enforced adoption
+# frontier -- it GROWS as the rollout proceeds (charts/PDFs/remaining pages are declared
+# follow-up atoms; a page joins here only once its CSS surface is genuinely token-only).
+_ADOPTED_LIVE_SURFACES = [
+    REPO_ROOT / "site" / "index.html",          # the front door (BRAND_CONSTITUTION.md DoD)
+    REPO_ROOT / "site" / "method" / "index.html",
+    REPO_ROOT / "site" / "platform" / "index.html",
+    REPO_ROOT / "site" / "project" / "index.html",
+    REPO_ROOT / "site" / "sim" / "index.html",
+    REPO_ROOT / "site" / "simplified" / "index.html",
+]
 
 # Files under site/brand/ that are NOT plain consuming surfaces, with the reason each is exempt
 # from the "no raw hex" rule:
@@ -197,6 +215,128 @@ def test_consuming_surfaces_have_a_light_base():
             f"{surface.name}: base surface is dark or unresolvable ({verdict!r}); "
             "dark is an accent, not the page ground (BRAND_CONSTITUTION.md §3a)"
         )
+
+
+# ---- shared brand stylesheet: the single linkable brand surface (no raw hex) ----------------
+
+def test_shared_brand_css_exists_and_imports_the_token_projection():
+    css = BRAND_CSS_PATH.read_text()
+    assert '@import "tokens.css"' in css, "brand.css must consume the token projection, not re-home colour"
+
+
+def test_shared_brand_css_has_no_raw_hex():
+    """brand.css maps the site's semantic vars + components onto tokens ONLY -- a raw hex here
+    would make it a second, independent colour home (the exact defect the token source prevents)."""
+    raw = find_raw_hex(BRAND_CSS_PATH.read_text())
+    assert raw == [], f"brand.css hardcodes colour value(s) {raw}; reference tokens via var()"
+
+
+def test_shared_brand_css_has_no_soft_as_text():
+    tokens = load_tokens()
+    hits = find_soft_as_text(BRAND_CSS_PATH.read_text(), soft_color_names(tokens), soft_color_hexes(tokens))
+    assert hits == [], f"brand.css uses a soft colour as text/thin-line: {hits}"
+
+
+# ---- live-site adoption: the production pages consume tokens end-to-end (L3 DoD) -------------
+
+def test_adopted_pages_link_the_shared_brand_stylesheet():
+    for page in _ADOPTED_LIVE_SURFACES:
+        assert page.exists(), f"{page} missing"
+        assert "brand/brand.css" in page.read_text(), f"{page.name} does not link the brand stylesheet"
+
+
+def test_adopted_pages_css_surface_is_token_only():
+    """Each adopted page's <style> must carry NO raw colour -- it consumes the linked tokens.
+    (Chart.js palettes in <script> are a declared follow-up atom and are out of this scope.)"""
+    for page in _ADOPTED_LIVE_SURFACES:
+        raw = find_raw_hex(page_style_css(page.read_text()))
+        assert raw == [], f"{page.name} <style> hardcodes colour(s) {raw}; consume brand tokens"
+
+
+def test_adopted_pages_have_no_soft_as_text():
+    tokens = load_tokens()
+    names, hexes = soft_color_names(tokens), soft_color_hexes(tokens)
+    for page in _ADOPTED_LIVE_SURFACES:
+        hits = find_soft_as_text(page_style_css(page.read_text()), names, hexes)
+        assert hits == [], f"{page.name} uses a soft colour as text/thin-line: {hits}"
+
+
+def test_adopted_pages_have_a_light_base_through_the_linked_cascade():
+    """Resolve each page the way a browser would (its <style> + the CSS it links, following
+    @import) and assert the BASE surface is light -- dark is a sparing accent, never the ground
+    (§3a). Fail-closed: None (unresolvable) fails too."""
+    tokens = load_tokens()
+    for page in _ADOPTED_LIVE_SURFACES:
+        verdict = base_surface_is_dark(resolved_page_css(page), tokens)
+        assert verdict is False, (
+            f"{page.name}: base surface is dark or unresolvable ({verdict!r}) through its linked CSS"
+        )
+
+
+def test_adopted_pages_carry_the_wordmark_not_the_legacy_symbol():
+    """Type-only identity (law 6): the nav shows lowercase `poesys.` with the full stop, and the
+    legacy zap-symbol logo (&#9889;) is gone."""
+    for page in _ADOPTED_LIVE_SURFACES:
+        html = page.read_text()
+        assert "nav-logo wordmark" in html, f"{page.name} missing the wordmark class"
+        assert "poesys." in html, f"{page.name} missing the poesys. wordmark"
+        assert "&#9889;" not in html, f"{page.name} still renders the legacy zap symbol"
+
+
+def test_adopted_pages_resolve_brag_status_colours_end_to_end():
+    """R11 value-level: the live cascade must resolve the site's semantic colours to the
+    ratified BRAG tokens -- ground light/ink black, and the four status colours exact. (The
+    live-pixel-with-director's-eyes check is the declared residual; this proves the value chain.)"""
+    tokens = load_tokens()
+    expected = {
+        "--bg": "#F4F4F4", "--text": "#0A0A0A",
+        "--green": "#00873C", "--red": "#E11900",
+        "--amber": "#AA6700", "--blue": "#0047FF",
+    }
+    for page in _ADOPTED_LIVE_SURFACES:
+        css = resolved_page_css(page)
+        for var, hexval in expected.items():
+            got = resolve_var(var, css, tokens)
+            assert got is not None and got.upper() == hexval, (
+                f"{page.name}: {var} resolved to {got!r}, expected {hexval} (BRAG token)"
+            )
+
+
+# ---- R15 mutation checks: the new live-site controls must FIRE on their named defects --------
+
+def test_css_token_consumption_control_mutation_check():
+    """The 'CSS surface is token-only' control must PASS a token-only style and FIRE on a raw
+    hex reintroduced into a page's <style>."""
+    good = "<style>body{background:var(--bg);color:var(--text);}</style>"
+    assert find_raw_hex(page_style_css(good)) == []          # PASS: token-only
+    mutant = "<style>body{background:#0d1117;color:var(--text);}</style>"
+    assert find_raw_hex(page_style_css(mutant)) == ["#0d1117"]  # FIRE: raw hex reintroduced
+
+
+def test_linked_cascade_light_base_control_mutation_check(tmp_path):
+    """The linked-cascade light-base control must PASS a page linking a stylesheet that maps the
+    ground to a light token, and FIRE when a linked stylesheet maps the ground to the dark
+    accent token (dark-as-base -- the §3a defect), proving the resolver follows the <link>."""
+    tokens = load_tokens()
+    (tmp_path / "light.css").write_text(":root{--bg:var(--surface-sunken);}")
+    (tmp_path / "dark.css").write_text(":root{--bg:var(--surface-accent-dark);}")
+    body = "<style>body{background:var(--bg);}</style>"
+    page = tmp_path / "page.html"
+
+    page.write_text(body + '<link rel="stylesheet" href="light.css">')
+    assert base_surface_is_dark(resolved_page_css(page), tokens) is False   # GOOD
+
+    page.write_text(body + '<link rel="stylesheet" href="dark.css">')
+    assert base_surface_is_dark(resolved_page_css(page), tokens) is True    # MUTANT fires
+
+
+def test_linked_css_follows_import_chain():
+    """brand.css @imports tokens.css; a page linking brand.css must therefore see the token
+    custom properties (else the whole adoption cascade is hollow)."""
+    front_door = REPO_ROOT / "site" / "index.html"
+    linked = linked_css_text(front_door)
+    assert "--surface-sunken" in linked, "token projection not reached through brand.css @import"
+    assert "--bg:" in linked, "brand.css semantic mapping not reached via the <link>"
 
 
 # ---- exemplar preserved verbatim ------------------------------------------------------------

@@ -451,3 +451,35 @@ terminal demonstration.
 - Enforcement mechanism design, token file location/format details, rollout sequencing.
 - Reconciliation pass against SITE_CONSTITUTION.md / POESYS_SITE_BRIEF.md wording so there
   is exactly one visual-identity authority (this document).
+
+---
+
+## 10. Live-site adoption (L2→L3, 2026-07-13/14)
+
+The token source (§5.1) is only real when the LIVE site consumes it. The adoption mechanism:
+
+- **`site/brand/brand.css`** — the single stylesheet a production page links. It `@import`s
+  `tokens.css` (the byte-pinned projection of `tokens.json`, the sole colour home) and maps the
+  site's long-standing semantic variables (`--bg`, `--surface`, `--text`, `--green`, `--red`,
+  `--amber`, `--blue`, and the legacy `--teal`/`--purple`) onto BRAG tokens. It contains **no
+  raw hex** (`test_shared_brand_css_has_no_raw_hex`). The off-brand accents collapse onto the
+  four BRAG status colours — colour is information, never decoration (law 1). It also carries the
+  reusable brand components (`.wordmark`, `.brag--*` status chips, glyph helpers) so on-brand
+  output is produced by construction.
+
+- **Adopted pages** link `brand.css`, delete their own `:root` palette, and render the `poesys.`
+  wordmark in place of the legacy `⚡ Poesys` symbol (law 6, type-only identity). The enforced
+  **adoption frontier** (`tests/tools/test_brand_compliance.py::_ADOPTED_LIVE_SURFACES`) is:
+  `site/index.html` (front door), `method/`, `platform/`, `project/`, `sim/`, `simplified/`.
+  Each is proven: no raw hex in its `<style>`, a light base surface resolved **through the linked
+  cascade** (the harness follows `<link>` + `@import`), and the semantic colours resolving to the
+  ratified BRAG token hexes end-to-end (`test_adopted_pages_resolve_brag_status_colours_end_to_end`).
+
+- **The frontier grows.** A page joins only once its CSS surface is genuinely token-only.
+  Chart.js palettes (`<script>` colour strings), bill PDFs, reports/decks, and the remaining
+  pages — including the generator-templated `company/` and `method-casebook/` — are declared
+  follow-up atoms (batch honestly, no big-bang), consistent with §8.5.
+
+- **R11 residual:** the live-pixel-with-the-director's-eyes check is his to make. Autonomously,
+  the harness resolves the live CSS cascade to the token values (the strongest check without a
+  browser); the rendered-pixel confirmation on the deployed site remains the director's.
