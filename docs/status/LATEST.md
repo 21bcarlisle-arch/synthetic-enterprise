@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T16:11:54Z
+Last updated: 2026-07-14T16:26:09Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T16:06:59Z
+Last updated: 2026-07-14T16:21:14Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -111,11 +111,11 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] What decision, action, or signal that reaches the supplier's finances actually consumes this "inherence_token" and "sentence" as input, and can you point to the specific place where that consumption happens — or is this state merely being described and inspected in a loop that never touches revenue, cost, or the survival constraint at all?
 - (T3_inherence) [unanswered >24h] If low bad debt looks identical in both worlds, which number moves in only one of them — rejected/declined applications, quotes-to-conversions, or served-demand versus addressable-demand — and if you cannot name that number, why is "affordability" being treated as a fixed constraint rather than a dial whose setting you'd have to measure before calling it untouchable?
 - (T3_inherence) [unanswered >24h] When you log that "the approver picks and the pick is logged," what mechanism actually forces a director's discretionary override to bind against the survival constraint — or is the logging merely a record that no one is accountable for acting on, letting a well-documented bad pick still push the company into administration?
-- (T3_inherence) When world difficulty and company capability advance on separate tracks that never gate each other, what forces any given depth to ever be experienced as a real constraint rather than as inert scenery — and if nothing does, on what basis is the claim's word "physics" earned at all?
-- (T3_inherence) If the simulated approver is a director-authored curriculum standing in for the real director, what guarantees that the real director's actual decisions at go-live match the curriculum the whole system was optimized against—and if they diverge, which side is treated as wrong?
-- (T3_inherence) If the whole safeguard reduces to a label — "read/fetch-only tools, connectors stripped" — what actually verifies at run time that a tool tagged read-only cannot mutate state or reach an account, rather than merely being described as unable to?
-- (T3_inherence) If world difficulty and company capability never gate each other, can you point to a single state variable through which a given "depth" actually changes the enterprise-value or survival numbers — and if you cannot, what is the word "physics" naming other than a label attached to scenery that never touches the score?
-- (T3_inherence) When you say Bacs "physics"—a fixed 3-day settlement cycle and standardized reason codes that are just administrative rules—what makes you confident the sim reproduces the parts that actually threaten survival (timing of cash outflows/inflows against liquidity), rather than just replaying the schedule as if it were an immutable law of nature?
+- (T3_inherence) [unanswered >24h] When world difficulty and company capability advance on separate tracks that never gate each other, what forces any given depth to ever be experienced as a real constraint rather than as inert scenery — and if nothing does, on what basis is the claim's word "physics" earned at all?
+- (T3_inherence) [unanswered >24h] If the simulated approver is a director-authored curriculum standing in for the real director, what guarantees that the real director's actual decisions at go-live match the curriculum the whole system was optimized against—and if they diverge, which side is treated as wrong?
+- (T3_inherence) [unanswered >24h] If the whole safeguard reduces to a label — "read/fetch-only tools, connectors stripped" — what actually verifies at run time that a tool tagged read-only cannot mutate state or reach an account, rather than merely being described as unable to?
+- (T3_inherence) [unanswered >24h] If world difficulty and company capability never gate each other, can you point to a single state variable through which a given "depth" actually changes the enterprise-value or survival numbers — and if you cannot, what is the word "physics" naming other than a label attached to scenery that never touches the score?
+- (T3_inherence) [unanswered >24h] When you say Bacs "physics"—a fixed 3-day settlement cycle and standardized reason codes that are just administrative rules—what makes you confident the sim reproduces the parts that actually threaten survival (timing of cash outflows/inflows against liquidity), rather than just replaying the schedule as if it were an immutable law of nature?
 - (T3_inherence) When you vary "depth" while holding world difficulty and company capability decoupled, does any number in the enterprise-value or survival calculation actually change — and if you can name the exact state variable it flows through, why call it "physics" rather than that variable, and if you cannot, on what basis do you claim "physics" is in the model at all?
 - (T3_inherence) When Bacs settlement is modeled as a fixed 3-day "physics," does the sim also reproduce the ways that timing can actually break under stress—payment recalls, failed direct debits, indemnity claims, batch cutoff misses, or a bank/Bacs delaying or freezing your access—or does it guarantee inflows and outflows arrive exactly on schedule regardless of the firm's liquidity condition?
 - (T3_inherence) When you hold world difficulty and company capability fixed and change only "depth," can you point to a single line in the enterprise-value or survival formula whose output moves — and if so, name that variable; if not, what would anyone lose by deleting the word "physics" from the model entirely?
@@ -162,4 +162,6 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) When was the token "inherent" and this self-referential sentence ever generated by, or validated against, any real input from the energy supplier's operations—and if you cannot point to that link, what evidence do you have that this system was ever wired to the stated goal rather than merely asserting it?
 - (T3_inherence) When the shared apply step failed in the real system — not in theory, but on some actual date — what concretely happened to the business, and if that failure has never once occurred, on what measured basis does "one at a time" claim to be protecting against administration rather than against nothing?
 - (T3_inherence) If affordability really is being held fixed as "physics," who set that constraint and what would the enterprise value look like if it were relaxed — and if no one can produce that counterfactual number, on what basis is anyone asserting the low bad debt is "healthy" rather than evidence of suppressed revenue?
+- (T3_inherence) If the only state this system ever observes is a token and a sentence about that token, by what recorded mechanism has any such observation ever changed a number the energy supplier acts on — and can you point to a single past instance where it did?
+- (T3_inherence) If the healthy-book world and the affordability-choke world both produce the same low bad-debt number, which *other* observable — approval/rejection rates on applications, revenue per eligible customer, or the count of would-be customers turned away — would diverge between them, and has anyone actually looked at that number before declaring affordability an untouchable constraint?
 <!-- /NAIVE_ORGAN_ASKS -->
