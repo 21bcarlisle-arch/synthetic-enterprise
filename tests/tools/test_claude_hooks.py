@@ -10,7 +10,6 @@ HARNESS_BEST_PRACTICE_ASSESSMENT.md).
 import json
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 import pytest
@@ -19,16 +18,15 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 BLOCK_SUDO = REPO_ROOT / ".claude" / "hooks" / "block_sudo.py"
 BLOCK_CLAIM = REPO_ROOT / ".claude" / "hooks" / "block_unevidenced_claim.py"
 BLOCK_PIT_READ = REPO_ROOT / ".claude" / "hooks" / "block_point_in_time_read.py"
-MARKER = REPO_ROOT / "docs" / "observability" / ".last_live_verification"
 
 
-def _run(script: Path, payload: dict) -> subprocess.CompletedProcess:
+def _run(script: Path, payload: dict, cwd: Path = REPO_ROOT) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(script)],
         input=json.dumps(payload),
         capture_output=True,
         text=True,
-        cwd=REPO_ROOT,
+        cwd=cwd,
     )
 
 
@@ -67,47 +65,119 @@ class TestBlockSudo:
         assert result.returncode == 0
 
 
+def _git(cwd: Path, *args: str) -> str:
+    proc = subprocess.run(
+        ["git", *args],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=True,
+        env={
+            "GIT_AUTHOR_NAME": "t",
+            "GIT_AUTHOR_EMAIL": "t@t",
+            "GIT_COMMITTER_NAME": "t",
+            "GIT_COMMITTER_EMAIL": "t@t",
+            "GIT_CONFIG_GLOBAL": "/dev/null",
+            "GIT_CONFIG_SYSTEM": "/dev/null",
+            "PATH": __import__("os").environ.get("PATH", ""),
+            "HOME": str(cwd),
+        },
+    )
+    return proc.stdout.strip()
+
+
+@pytest.fixture
+def git_repo(tmp_path):
+    """A working repo with an origin remote.
+
+    Yields (work_dir, pushed_sha, unpushed_sha) where:
+      * pushed_sha IS reachable on origin/main (genuinely published)
+      * unpushed_sha is committed locally but NOT on origin
+    This lets a mutation test prove the hook fires on its named defect
+    (a false claim citing a commit that never reached origin).
+    """
+    origin = tmp_path / "origin.git"
+    work = tmp_path / "work"
+    origin.mkdir()
+    work.mkdir()
+    _git(origin, "init", "--bare", "-b", "main")
+    _git(work, "init", "-b", "main")
+    _git(work, "remote", "add", "origin", str(origin))
+    (work / "a.txt").write_text("a\n")
+    _git(work, "add", "a.txt")
+    _git(work, "commit", "-m", "first")
+    _git(work, "push", "origin", "main")
+    _git(work, "fetch", "origin")
+    pushed_sha = _git(work, "rev-parse", "HEAD")
+    # A second commit that is committed locally but never pushed.
+    (work / "b.txt").write_text("b\n")
+    _git(work, "add", "b.txt")
+    _git(work, "commit", "-m", "second (unpushed)")
+    unpushed_sha = _git(work, "rev-parse", "HEAD")
+    yield work, pushed_sha, unpushed_sha
+
+
+def _ntfy(message: str) -> dict:
+    cmd = (
+        "python3 -c \"from background.ntfy_utils import send_ntfy; "
+        f"send_ntfy('{message}')\""
+    )
+    return {"tool_name": "Bash", "tool_input": {"command": cmd}}
+
+
 class TestBlockUnevidencedClaim:
-    def setup_method(self):
-        if MARKER.exists():
-            MARKER.unlink()
+    # --- R15 MUTATION TEST: the control must FAIL on its named defect --------
+    def test_passes_claim_citing_sha_genuinely_on_origin(self, git_repo):
+        """Legitimate case: the cited SHA really is on origin -> hook PASSES."""
+        work, pushed_sha, _ = git_repo
+        result = _run(BLOCK_CLAIM, _ntfy(f"Bug fixed and deployed, commit {pushed_sha}"), cwd=work)
+        assert result.returncode == 0, result.stderr
 
-    def teardown_method(self):
-        if MARKER.exists():
-            MARKER.unlink()
-
-    def test_blocks_claim_with_no_marker(self):
-        cmd = "python3 -c \"from background.ntfy_utils import send_ntfy; send_ntfy('Bug fixed and confirmed live')\""
-        result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}})
+    def test_blocks_claim_citing_sha_not_on_origin(self, git_repo):
+        """MUTATION: a claim citing a committed-but-unpushed SHA is the named
+        defect (false 'fixed/deployed'). The hook MUST fire -- proves it is
+        not a tautology satisfiable by a local artifact the agent controls."""
+        work, _, unpushed_sha = git_repo
+        result = _run(BLOCK_CLAIM, _ntfy(f"Bug fixed and deployed, commit {unpushed_sha}"), cwd=work)
         assert result.returncode == 2
-        assert "no evidence marker exists" in result.stderr
+        assert "origin" in result.stderr
 
-    def test_allows_claim_with_fresh_marker(self):
-        MARKER.parent.mkdir(parents=True, exist_ok=True)
-        MARKER.touch()
-        cmd = "python3 -c \"from background.ntfy_utils import send_ntfy; send_ntfy('Bug fixed and confirmed live')\""
-        result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}})
+    def test_blocks_claim_citing_bogus_sha(self, git_repo):
+        """A fabricated SHA is not a real object on origin -> BLOCK."""
+        work, _, _ = git_repo
+        result = _run(BLOCK_CLAIM, _ntfy("Fixed and confirmed live, commit deadbeefcafe1234"), cwd=work)
+        assert result.returncode == 2
+
+    def test_blocks_claim_with_no_sha(self, git_repo):
+        """Claim word but no verifiable evidence token -> fail closed."""
+        work, _, _ = git_repo
+        result = _run(BLOCK_CLAIM, _ntfy("Bug fixed and confirmed live"), cwd=work)
+        assert result.returncode == 2
+        assert "commit SHA" in result.stderr
+
+    def test_blocks_when_no_origin_ref_resolvable(self, tmp_path):
+        """FAIL-SILENT guard: if the origin tracking ref cannot be resolved
+        (check unavailable) the hook must BLOCK, never pass by default."""
+        lonely = tmp_path / "lonely"
+        lonely.mkdir()
+        _git(lonely, "init", "-b", "main")
+        (lonely / "x.txt").write_text("x\n")
+        _git(lonely, "add", "x.txt")
+        _git(lonely, "commit", "-m", "only")
+        sha = _git(lonely, "rev-parse", "HEAD")  # a real local commit, but no origin
+        result = _run(BLOCK_CLAIM, _ntfy(f"Fixed and live, commit {sha}"), cwd=lonely)
+        assert result.returncode == 2
+
+    # --- pass-through behaviour (unchanged contract on non-claims) -----------
+    def test_allows_non_claim_ntfy_message(self, git_repo):
+        work, _, _ = git_repo
+        result = _run(BLOCK_CLAIM, _ntfy("Status update: still investigating"), cwd=work)
         assert result.returncode == 0
 
-    def test_blocks_claim_with_stale_marker(self):
-        MARKER.parent.mkdir(parents=True, exist_ok=True)
-        MARKER.touch()
-        old = time.time() - (31 * 60)
-        import os
-        os.utime(MARKER, (old, old))
-        cmd = "python3 -c \"from background.ntfy_utils import send_ntfy; send_ntfy('Deployed and verified live')\""
-        result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}})
-        assert result.returncode == 2
-        assert "old" in result.stderr
-
-    def test_allows_non_claim_ntfy_message(self):
-        cmd = "python3 -c \"from background.ntfy_utils import send_ntfy; send_ntfy('Status update: still investigating')\""
-        result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}})
-        assert result.returncode == 0
-
-    def test_ignores_non_send_ntfy_bash_command(self):
+    def test_ignores_non_send_ntfy_bash_command(self, git_repo):
+        work, _, _ = git_repo
         cmd = "echo 'this is fixed and live'"
-        result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}})
+        result = _run(BLOCK_CLAIM, {"tool_name": "Bash", "tool_input": {"command": cmd}}, cwd=work)
         assert result.returncode == 0
 
     def test_ignores_non_bash_tool(self):
