@@ -136,6 +136,93 @@ def test_measurement_coverage_is_none_on_empty_record(_isolated_ledger):
     assert cov["all_measured"] is False    # nothing measured is NOT all-clear
 
 
+# ── THE CLOSE-PATH CALLER (H14_close_path_caller): the wiring end-to-end ──────
+def test_record_close_verdict_appends_a_pass_to_the_ledger(_isolated_ledger):
+    """A PASS through the close-path caller lands in the trust ledger and is
+    picked up by outcome_error_rates -- proving the caller actually feeds the
+    starved metric, not just returns a dict."""
+    res = jv.record_close_verdict(
+        "billing", "pass", "phase-close-evaluator", "atom_H14_x")
+    assert res["charged_regression"] is False       # a PASS charges no one
+    assert res["post_close_defect"] is None
+    j = jv.outcome_error_rates()["per_judge"]["phase-close-evaluator"]
+    assert j["passes"] == 1
+
+
+def test_needs_work_on_a_previously_passed_atom_charges_the_prior_pass(_isolated_ledger):
+    """THE H14 wiring: a NEEDS_WORK on an atom a judge PREVIOUSLY passed is a
+    post-close defect, charged back to that earlier PASS. This is the caller the
+    module was missing -- record_post_close_defect finally has a real invoker."""
+    # earlier close: the evaluator PASSED this atom
+    jv.record_close_verdict("pricing", "pass", "phase-close-evaluator", "atom_regressor")
+    before = jv.outcome_error_rates()["per_judge"]["phase-close-evaluator"]
+    assert before["passes_with_later_defect"] == 0
+
+    # later close: a re-review FAILS the same atom -> post-close defect
+    res = jv.record_close_verdict("pricing", "needs_work", "phase-close-evaluator", "atom_regressor")
+    assert res["charged_regression"] is True
+    assert res["post_close_defect"]["defects_found_post_close"] == 1
+
+    after = jv.outcome_error_rates()["per_judge"]["phase-close-evaluator"]
+    assert after["passes_with_later_defect"] == 1   # the prior PASS now carries a real defect
+
+
+def test_first_ever_needs_work_charges_no_one(_isolated_ledger):
+    """A NEEDS_WORK on never-passed work is the judge CATCHING a problem, not its
+    error -- no prior PASS exists to charge, and the caller must not raise."""
+    res = jv.record_close_verdict("billing", "needs_work", "cold-eyes-walk", "atom_never_passed")
+    assert res["charged_regression"] is False
+    assert res["post_close_defect"] is None
+
+
+def test_close_caller_rejects_a_self_reported_grader(_isolated_ledger):
+    """The Goodhart safeguard survives the wrapper: the caller delegates to
+    record_verdict, so a non-whitelisted evaluator name still raises -- the close
+    path cannot launder a self-reported verdict into the ledger."""
+    with pytest.raises(ValueError):
+        jv.record_close_verdict("billing", "pass", "the-builder-itself", "atom_z")
+
+
+def test_wired_post_close_defect_moves_measurement_off_zero_end_to_end(_isolated_ledger):
+    """R11 for this atom: a SIMULATED post-close defect, driven entirely through
+    the wired caller (no direct record_post_close_defect call), must move the
+    organ's measured outcome-error rate OFF 0.0 and keep it MEASURED. This is the
+    rendered-value proof that the wiring closes the loop, not just that it runs."""
+    organ = "phase-close-evaluator"
+    # three real closes the judge PASSED -> enough to be MEASURED, rate a clean 0.0
+    subjects = ["atom_a", "atom_b", "atom_c"]
+    for s in subjects:
+        jv.record_close_verdict("harness_supervisor", "pass", organ, s)
+    baseline = jv.outcome_error_rates()["per_judge"][organ]
+    assert baseline["escapes_measurement"] is False
+    assert baseline["error_rate"] == 0.0            # measured, and (so far) clean
+
+    # a later re-review fails one of them -> post-close defect via the WIRED path
+    jv.record_close_verdict("harness_supervisor", "needs_work", organ, "atom_a")
+
+    after = jv.outcome_error_rates()["per_judge"][organ]
+    assert after["escapes_measurement"] is False    # still measured
+    assert after["error_rate"] > 0.0                # ... and NO LONGER a clean 0.0
+    assert after["passes_with_later_defect"] == 1
+    # and the published coverage view reflects the same real ledger
+    cov = jv.measurement_coverage()
+    assert organ in cov["measured_judges"]
+
+
+def test_record_close_cli_records_end_to_end(_isolated_ledger, capsys):
+    """The concrete command the phase-close skill/agent run: the CLI path feeds
+    the same ledger and reports when it closed the outcome loop."""
+    jv.record_close_verdict("site_presentation", "pass", "cold-eyes-walk", "atom_cli")
+    rc = jv._main(["record-close", "--task-class", "site_presentation",
+                   "--verdict", "needs_work", "--evaluator", "cold-eyes-walk",
+                   "--subject", "atom_cli"])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "outcome loop closed" in out
+    j = jv.outcome_error_rates()["per_judge"]["cold-eyes-walk"]
+    assert j["passes_with_later_defect"] == 1
+
+
 # ── APPROACH 2: CONSISTENCY ───────────────────────────────────────────────────
 def test_consistency_flip_rate_zero_when_judge_never_flips():
     assert jv.consistency_flip_rate(["pass", "pass", "pass"])["flip_rate"] == 0.0
