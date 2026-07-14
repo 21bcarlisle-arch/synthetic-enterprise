@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T18:13:57Z
+Last updated: 2026-07-14T18:22:29Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T18:09:14Z
+Last updated: 2026-07-14T18:17:47Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,8 +76,8 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
-- Net margin: £1,521,069.65 | Gross: £5,277,470.08 | Capital: £51,604
+**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
+- Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
 - Retention: 12 offers, 12/12 retained | 5 no-offer churns | 5 total churned accounts
@@ -138,9 +138,9 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] What is the cost of keeping the registration parked measured against the cost of *reconstructing* it correctly at Epoch 3 (including the risk of getting it wrong or missing the moment it starts to matter) — and how confident are you that "changes zero decisions today" reliably predicts "will change zero decisions before Epoch 3," given that you'd have to delete it now but only find out you were wrong later?
 - (T3_inherence) [unanswered >24h] If nobody can produce even one order quantity or price that came out different because the physics forecast existed, on what basis is that forecast being counted as part of the decision system at all rather than inert code that touches neither enterprise value nor the survival constraint?
 - (T3_inherence) [unanswered >24h] Given the north star is enterprise value under a survival constraint, what evidence shows that a locational weather dimension actually changes any decision the business will make — rather than being an architectural preference — such that building it *first* is worth delaying the futures engine that the value case presumably rests on?
-- (T3_inherence) What decision rule or downstream computation actually consumes the physics forecast's output, and can you point to a single input (an order quantity or price) whose value would provably change if that forecast were replaced with a constant or removed entirely?
-- (T3_inherence) If the north star is enterprise value under an absolute survival constraint, what makes "physics first" the right ordering rather than whichever lever — renewables trends, zonal pricing, or DSR — most directly moves the survival-risk or valuation numbers you're actually being measured on?
-- (T3_inherence) If replacing the physics forecast with a constant provably changes no order quantity or price, then what is that forecast for — and does anything in the system actually read its output, or is it computed and discarded?
+- (T3_inherence) [unanswered >24h] What decision rule or downstream computation actually consumes the physics forecast's output, and can you point to a single input (an order quantity or price) whose value would provably change if that forecast were replaced with a constant or removed entirely?
+- (T3_inherence) [unanswered >24h] If the north star is enterprise value under an absolute survival constraint, what makes "physics first" the right ordering rather than whichever lever — renewables trends, zonal pricing, or DSR — most directly moves the survival-risk or valuation numbers you're actually being measured on?
+- (T3_inherence) [unanswered >24h] If replacing the physics forecast with a constant provably changes no order quantity or price, then what is that forecast for — and does anything in the system actually read its output, or is it computed and discarded?
 - (T3_inherence) If the forecast provably changes no order quantity or price today, was it ever wired into those decisions and later bypassed — or is there some other consumer (a survival/administration constraint, a report, a downstream model) that reads it on paths your "no change" test didn't exercise?
 - (T5_sustained_work_flat_goal) If 12 of the last 20 commits went into 'site' work, why has the enterprise-value goal metric stayed completely flat over that same window — is that concentration of effort producing any measurable movement in the north-star metric, or are we mistaking activity in one bucket for progress?
 - (T2_terminal_state) How can the claim be "complete" when the observable state shows 47 atoms still explicitly marked "open" — what definition of completeness treats 47 unresolved items as done?
@@ -180,4 +180,6 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) What actual, measurable difference does the four-level weather-physics hierarchy produce in any decision the supplier makes before Epoch 3—and if the honest answer is "none," on what basis is keeping that registration justified over any other unused component you have not flagged?
 - (T3_inherence) When you trace the physics forecast forward, does it feed any committed decision variable that the naive forecast doesn't already feed identically — and if the only consumer of the more sophisticated number is a log, a dashboard, or another model that itself has no committed output, what evidence distinguishes "affecting enterprise value" from "being computed and discarded"?
 - (T3_inherence) If keeping the registration parked truly changes zero present actions, what is the cost and risk of *re-creating* it when Epoch 3 arrives — and does anyone actually know whether that cost is lower than the near-zero cost of leaving it parked, or is "dead weight" being asserted without pricing the deletion?
+- (T3_inherence) Since this challenge has itself gone unanswered for over 24 hours, what is the actual reason no one has produced even a single decision cycle's order quantity or price computed both ways — is it that the two forecasts are known to always coincide, that the comparison has never been logged, or that no one can currently trace whether the physics forecast reaches any order-or-price code path at all?
+- (T3_inherence) Can anyone point to a specific decision rule or line where the physics forecast's output is actually read and changes an order quantity or price — and if so, why has that not been produced in over 24 hours, while if not, what is the forecast wired into at all?
 <!-- /NAIVE_ORGAN_ASKS -->
