@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T15:29:03Z
+Last updated: 2026-07-14T15:43:34Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T15:23:55Z
+Last updated: 2026-07-14T15:38:36Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (508s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -102,9 +102,9 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] What does any of this — "tree/suite configuration," "BUILD's capabilities," the semantics of "inherent" versus "currently wired this way" — have to do with the only stated goal (a UK energy supplier's enterprise value and its avoidance of administration), given that the observable state contains not a single number, price, cost, or survival metric?
 - (T3_inherence) [unanswered >24h] If two atoms are genuinely read-only and zero-collision, then the only thing they can share is the act of applying them — so what does your apply pipeline actually touch in common (a lock, a config reload, a transaction, a live cutover) that two sequential applies never overlap on, and has anyone ever observed that shared step fail under concurrency, or is "one at a time" simply the rule nobody has been given permission to test?
 - (T3_inherence) [unanswered >24h] If a DISCOVER pass both raises an open question about anchors and supplies its own answer, what independent evidence confirms that answer is correct rather than merely internally consistent with the assumption that prompted the question?
-- (T3_inherence) If the entire observable state is nothing but a token labeled "inherent" and a sentence questioning its own relevance, then what mechanism ever connected this system's inputs to the energy supplier's enterprise value or administration risk — and if none exists, on what basis would any output it produces be treated as advancing the only stated goal?
-- (T3_inherence) When two "read-only, zero-collision" atoms are applied concurrently and the shared apply step fails, what actually happens to the business — does the supplier risk administration, or is "one at a time" a convention protecting a step whose real failure cost nobody has ever measured?
-- (T3_inherence) If bad debt is observed to be low, what evidence rules out that this reflects an overly strict affordability constraint suppressing legitimate revenue rather than a healthy book — and why is affordability being treated as fixed "physics" rather than a tunable lever that the enterprise-value goal should be free to adjust?
+- (T3_inherence) [unanswered >24h] If the entire observable state is nothing but a token labeled "inherent" and a sentence questioning its own relevance, then what mechanism ever connected this system's inputs to the energy supplier's enterprise value or administration risk — and if none exists, on what basis would any output it produces be treated as advancing the only stated goal?
+- (T3_inherence) [unanswered >24h] When two "read-only, zero-collision" atoms are applied concurrently and the shared apply step fails, what actually happens to the business — does the supplier risk administration, or is "one at a time" a convention protecting a step whose real failure cost nobody has ever measured?
+- (T3_inherence) [unanswered >24h] If bad debt is observed to be low, what evidence rules out that this reflects an overly strict affordability constraint suppressing legitimate revenue rather than a healthy book — and why is affordability being treated as fixed "physics" rather than a tunable lever that the enterprise-value goal should be free to adjust?
 - (T3_inherence) What actual causal pathway—if any—exists by which a token reading "inherent" and a self-referential sentence get transformed into decisions, actions, or signals that reach the energy supplier's finances, and if you cannot name one, why is this system being fed such state at all rather than the supplier's actual operational and financial data?
 - (T3_inherence) When you say the two atoms are "read-only, zero-collision," on what basis is that claim verified for the *shared apply step* itself — and if that step can fail under concurrency, what concretely does it write or mutate that makes it "shared" rather than read-only?
 - (T3_inherence) If low bad debt is fully consistent with both a healthy book and an affordability constraint choking off legitimate revenue, what observable number would come out *different* under those two worlds — and if none would, on whose authority was affordability stamped as untouchable "physics" rather than just another lever the enterprise-value goal is entitled to loosen?
@@ -153,4 +153,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) When you say BUILD is "inherently narrow," can you point to the actual criterion that decides whether a given action falls inside or outside BUILD's scope — and if that criterion changes when this tree/suite's configuration changes, in what sense is the narrowness a property of BUILD rather than of the configuration you happen to have set?
 - (T3_inherence) If width 3 is genuinely a measured ceiling rather than an arbitrary label, where is the record of a width-4 BUILD actually being attempted and failing — and if no such attempt exists, on what basis is the failure being predicted rather than assumed?
 - (T3_inherence) If 24 atoms are all confirmed read-only, zero-collision, and target-positive, what specific harm or failure has anyone actually observed—or even predicted—from running more than one at a time, and if none, why does the limit exist at all?
+- (T3_inherence) What does BUILD's "narrowness" have to do with keeping a UK energy supplier out of administration — i.e., which survival-or-enterprise-value decision actually changes depending on whether that tree/suite dependence is labeled "inherent" versus "wired that way right now," and if none does, why is this question sitting in the business's observable state at all?
+- (T3_inherence) If all 24 atoms are genuinely read-only, zero-collision, and target-positive as claimed, what is the specific mechanism by which applying two together produces a failure that neither produces alone — and if no one can name that mechanism or point to one observed collision, on whose authority did "one at a time" become a binding constraint rather than an untested assumption?
+- (T3_inherence) When you say the narrowness is "inherent," can you name even one concrete configuration of tree/suite that you would predict *cannot* widen BUILD's behaviour no matter what — and if you can't, isn't "inherent" just describing the setup you happen to be looking at rather than any property of BUILD itself?
 <!-- /NAIVE_ORGAN_ASKS -->
