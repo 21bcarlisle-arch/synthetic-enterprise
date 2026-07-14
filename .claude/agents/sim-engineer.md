@@ -19,7 +19,22 @@ form is to pass `isolation: "worktree"` on the Agent dispatch call that launches
 this agent. If the frontmatter key is silently ignored, the map-contention half
 (H9 per-atom write-inbox, docs/design/atom_status/) still protects level
 recording; the worktree half must be confirmed before relied upon as the sole
-edit-collision guard. See docs/design/WORKTREE_AND_MAP_CONTENTION_DESIGN.md. -->
+edit-collision guard. See docs/design/WORKTREE_AND_MAP_CONTENTION_DESIGN.md.
+
+2026-07-14 UPDATE (H10 L2->L3): standing-frontmatter worktree isolation is now
+OBSERVED-WORKING at scale -- concurrent BUILD forks each run in their own
+`.git/worktrees/<id>` checkout with an independent index (50 live isolated
+worktrees observed during a single build wave), so a fork's edits and commits
+cannot reach a sibling's tree. Enforcement is no longer convention-only: before
+committing, a fork asserts `background.tree_lock.assert_changes_within_scope(
+file_scope, repo_dir=<worktree>)`, which raises `ScopeViolation` if any changed
+file falls outside the atom's declared `file_scope` OR touches a PROTECTED path
+(docs/design/maturity_map.yaml is orchestrator-/integrator-written ONLY -- a
+fork can never write the map even if it mis-declares it in scope). The guard is
+mutation-tested (tests/background/test_worktree_isolation.py: neutering it makes
+the fire-tests fail). For the rare cross-worktree op that touches SHARED git
+state, `tree_lock.shared_tree_lock()` anchors one lock in git-common-dir;
+per-tree `tree_lock()` deliberately does not serialise across worktrees. -->
 
 
 You own `sim/` in the synthetic-enterprise project — the simulation engine for
