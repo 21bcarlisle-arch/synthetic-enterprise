@@ -1,0 +1,94 @@
+/* ============================================================================
+ * Poesys shared brand stylesheet  (BRAND_CONSTITUTION.md / BRAND_RULES.md)
+ * ----------------------------------------------------------------------------
+ * The single stylesheet a live Poesys page links to inherit the brand identity.
+ * It (1) pulls in the token custom-properties from tokens.css (the byte-pinned
+ * projection of tokens.json, the SOLE home of every colour value), (2) maps the
+ * site's long-standing semantic variables onto BRAG tokens so a page that links
+ * this file and deletes its own :root palette consumes tokens end-to-end, and
+ * (3) carries the reusable brand components (wordmark, BRAG status chips, glyph
+ * helpers) so on-brand output is produced BY CONSTRUCTION.
+ *
+ * THIS FILE CONTAINS NO RAW HEX. Every colour is a var() reference into the
+ * token source. A raw hex value here would be a brand-compliance defect
+ * (tests/tools/test_brand_compliance.py::test_shared_brand_css_has_no_raw_hex).
+ * ==========================================================================*/
+@import "tokens.css";
+
+:root {
+  /* -- site semantic palette -> BRAG tokens (light-default ground, §3a) ----
+   * The site historically improvised a per-page palette (teal logo, decorative
+   * purple, off-BRAG greens/reds). Colour is INFORMATION, never decoration
+   * (law 1): the off-brand accents collapse onto the four BRAG status colours,
+   * and the ground is the light-default surface/ink roles. */
+  --bg:       var(--surface-sunken);   /* page ground: light paper backdrop */
+  --surface:  var(--surface-base);     /* cards/panels: white, pop on the ground */
+  --surface2: var(--grey-05);          /* recessed/hover fill (one light level in canon) */
+  --border:   var(--grey-15);          /* hairlines */
+  --text:     var(--ink-base);         /* structural black on the light ground */
+  --muted:    var(--grey-40);          /* secondary text (tint of black) */
+
+  --green: var(--green-bright);        /* on track */
+  --red:   var(--red-bright);          /* blocked / failing */
+  --amber: var(--amber-bright);        /* at risk / provisional / estimated */
+  --blue:  var(--blue-bright);         /* verified done / links */
+  --teal:  var(--blue-bright);         /* BRAG has no teal -> collapse to blue */
+  --purple:var(--blue-bright);         /* BRAG has no purple -> colour is information */
+}
+
+/* ============================================================================
+ * Brand components  (reusable; copy nothing, apply a class)
+ * ==========================================================================*/
+
+/* -- wordmark: lowercase `poesys.` WITH the full stop, house face, black (law 6).
+ * Type-only identity: no symbol, no drawn logo. Overrides the legacy
+ * `.nav-logo{color:var(--teal)}` via the two-class selector. */
+.wordmark,
+.nav-logo.wordmark {
+  font-family: var(--font-house);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  color: var(--ink-base);
+  text-decoration: none;
+}
+
+/* -- BRAG status chips: soft fill behind BLACK text (law 3 -- soft is never
+ * text/thin-line). The bright twin is available for a leading dot marker. */
+.brag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  font-size: var(--font-size-micro);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-base);
+  background: var(--grey-05);
+}
+.brag::before { content: ""; font-weight: var(--font-weight-bold); }
+.brag--done     { background: var(--blue-soft); }
+.brag--done::before     { content: "."; color: var(--blue-bright); }
+.brag--on-track { background: var(--green-soft); }
+.brag--on-track::before { content: "_"; color: var(--green-bright); }
+.brag--at-risk  { background: var(--amber-soft); }
+.brag--at-risk::before  { content: "~"; color: var(--amber-bright); }
+.brag--blocked  { background: var(--red-soft); }
+.brag--blocked::before  { content: "!"; color: var(--red-bright); }
+
+/* -- glyph grammar helpers (§6). Native characters of the house face; work in
+ * any medium. Each glyph has exactly one meaning, everywhere, forever. */
+.g-done::after    { content: " ."; color: var(--blue-bright);  font-weight: var(--font-weight-bold); }
+.g-build::after   { content: " _"; color: var(--green-bright); font-weight: var(--font-weight-bold); }
+.g-est::before    { content: "~";  color: var(--amber-bright); }              /* estimated figure */
+.g-blocked::after { content: " !"; color: var(--red-bright);   font-weight: var(--font-weight-bold); }
+
+/* CTA / action: ends with the prompt glyph `>`. */
+.cta::after { content: " >"; }
+
+/* `//` comment: the working -- basis, provenance, clock labels. Muted, never a
+ * status colour (a basis line is not itself a status). */
+.basis {
+  color: var(--muted);
+  font-size: var(--font-size-micro);
+}
+.basis::before { content: "// "; }

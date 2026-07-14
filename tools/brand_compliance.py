@@ -195,6 +195,70 @@ def base_surface_is_dark(text: str, tokens: dict | None = None) -> bool | None:
     return relative_luminance(resolved) < _DARK_LUMINANCE_MAX
 
 
+# ---- live-site adoption: follow a page's linked stylesheets (+ @import) ----------------------
+# A production page consumes the brand by LINKING site/brand/brand.css (which @imports the
+# token projection). To judge such a page the way a browser resolves it, we concatenate the
+# page's own <style> blocks with the CSS it links, following one level of @import. This is what
+# makes "the live site consumes tokens end-to-end" testable rather than asserted.
+
+_STYLESHEET_LINK_RE = re.compile(r"<link\b[^>]*\brel\s*=\s*[\"']stylesheet[\"'][^>]*>", re.IGNORECASE)
+_HREF_RE = re.compile(r"href\s*=\s*[\"']([^\"']+)[\"']", re.IGNORECASE)
+_IMPORT_RE = re.compile(r"@import\s+(?:url\()?\s*[\"']([^\"')]+)[\"']")
+_STYLE_BLOCK_RE = re.compile(r"<style[^>]*>(.*?)</style>", re.IGNORECASE | re.DOTALL)
+
+
+def page_style_css(html_text: str) -> str:
+    """Concatenated contents of every ``<style>`` block in a page (the CSS surface itself)."""
+    return "\n".join(_STYLE_BLOCK_RE.findall(html_text))
+
+
+def linked_css_text(page_path: Path) -> str:
+    """CSS a page links via ``<link rel=stylesheet>``, following one+ levels of ``@import``.
+
+    Local (relative) hrefs only; remote stylesheets are skipped (the brand is self-hosted).
+    Missing files are skipped rather than raising, so the caller sees whatever resolves.
+    """
+    page_path = Path(page_path)
+    html = page_path.read_text()
+    parts: list[str] = []
+    seen: set[Path] = set()
+
+    def _add(css_path: Path) -> None:
+        css_path = css_path.resolve()
+        if css_path in seen or not css_path.exists():
+            return
+        seen.add(css_path)
+        css = css_path.read_text()
+        for imp in _IMPORT_RE.findall(css):
+            _add(css_path.parent / imp)
+        parts.append(css)
+
+    for link in _STYLESHEET_LINK_RE.findall(html):
+        href_m = _HREF_RE.search(link)
+        if not href_m:
+            continue
+        href = href_m.group(1)
+        if href.startswith(("http://", "https://", "//", "data:")):
+            continue
+        _add(page_path.parent / href)
+    return "\n".join(parts)
+
+
+def resolved_page_css(page_path: Path) -> str:
+    """A page's own ``<style>`` CSS plus the CSS it links -- the cascade a browser would see."""
+    page_path = Path(page_path)
+    return page_style_css(page_path.read_text()) + "\n" + linked_css_text(page_path)
+
+
+def resolve_var(var_name: str, css_text: str, tokens: dict | None = None) -> str | None:
+    """Resolve ``var(--name)`` to a ``#hex`` through the given CSS's custom properties + tokens.
+
+    Returns None if the chain cannot be resolved to a colour (an unresolved reference)."""
+    if not var_name.startswith("--"):
+        var_name = f"--{var_name.lstrip('-')}"
+    return _resolve_color(f"var({var_name})", _var_map(css_text, tokens))
+
+
 def generate_css(tokens: dict) -> str:
     """Deterministic ``:root`` CSS custom-property projection of the token source.
 
