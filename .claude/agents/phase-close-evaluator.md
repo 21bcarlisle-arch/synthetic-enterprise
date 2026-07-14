@@ -67,6 +67,28 @@ it, so a wrapper script can parse the verdict. Then:
   question and what's missing or wrong. Written so the next session's prompt can be built
   directly from your list.
 
+## Record your verdict (REQUIRED last step — closes the judge outcome loop)
+
+After you have decided PASS or NEEDS_WORK, record it so this project can measure whether YOUR
+verdicts hold up (H14_close_path_caller / R15 outcome-testing). Run exactly this, with your own
+verdict, the task class, and the atom id or reviewed commit SHA as `--subject`:
+
+```
+python3 -m background.judge_validation record-close \
+  --task-class <billing|pricing|harness_supervisor|site_presentation|docs_discovery> \
+  --verdict <pass|needs_work> \
+  --evaluator phase-close-evaluator \
+  --subject <atom-id-or-commit-sha>
+```
+
+This is the ONLY thing that feeds the trust ledger from the real close path. It matters most on a
+`needs_work`: if a PRIOR close recorded a PASS on this same `--subject`, that earlier PASS let a
+defect through, and this command charges the post-close defect back to it — turning "a NEEDS_WORK
+on a previously-passed atom" into a measured error against whichever judge passed it. Skipping it
+leaves the judges permanently unmeasured (`escapes_measurement=True`), which R15 forbids as
+promotion evidence. The command is idempotent to re-run only in that it always appends a fresh
+verdict — record once per real close.
+
 ## What NOT to do
 
 - Do not edit, write, or run the application yourself — you have no Write/Edit tools; if asked

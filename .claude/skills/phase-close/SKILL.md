@@ -19,6 +19,14 @@ when_to_use: Invoke before claiming any phase/atom/staged-instruction complete, 
 6. **Retro check:** if this phase closed a multi-day/multi-false-claim problem, or ~50 phases/2 weeks have passed since the last retro, or a harness rule changed — run the `incident-retro` skill before closing.
 6a. **Harness pruning ritual (HARNESS_BEST_PRACTICE_ADOPTION.md item 6):** after each model upgrade, disable one harness piece at a time and observe what's still load-bearing; retire what isn't. Run this alongside the retro check above, not as a separate cadence.
 6b. **Archive on completion (director-caught, recurring class):** if this phase closes a staged instruction fully, move it to `docs/staging/done/` in THIS SAME commit — never leave a fully-built file sitting in the scanned staging root (re-grants a supervisor turn every ~2min indefinitely with nothing new to do). If only PART of a staged instruction is done, move it to `docs/staging/in_progress/` instead — never leave a partially-done file in the root either. State the specific blocking sub-item and what unblocks it at the top of the parked file.
+6c. **Record any judging-organ verdict (H14_close_path_caller, 2026-07-14 — closes the judge outcome-correlation loop):** if this close ran the `phase-close-evaluator` agent or a `cold-eyes-walk` pass (any INDEPENDENT_EVALUATORS verdict), record that verdict so the trust ledger can measure whether the judge was right — this is the ONLY real caller of the outcome loop; without it every judge reads `escapes_measurement=True` forever (R15-forbidden as promotion evidence). Run:
+    ```
+    python3 -m background.judge_validation record-close \
+      --task-class <billing|pricing|harness_supervisor|site_presentation|docs_discovery> \
+      --verdict <pass|needs_work> --evaluator <phase-close-evaluator|cold-eyes-walk> \
+      --subject <atom-id-or-commit-sha>
+    ```
+    On a `needs_work` for an atom a PRIOR close PASSed, this charges the post-close defect back to the judge that missed it (moving its measured error rate off 0.0). **Honesty about enforceability:** this is a markdown instruction the closer runs, not a guaranteed hook — a skipped instruction leaves the ledger un-fed. The mechanism (`background/judge_validation.py::record_close_verdict` + this one CLI command) is as enforce-able as a skill/agent surface allows; making it un-skippable would need a Stop-hook, out of this atom's scope.
 7. Commit and push (see the `staging-protocol` skill for the tree-lock/re-fetch discipline on a shared working tree).
 
 `PROJECT_OVERVIEW.md` is updated at phase close. Run-complete pipeline does NOT update it.

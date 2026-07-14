@@ -80,6 +80,95 @@ VERDICT_PASS = "pass"
 MIN_PASSES_FOR_MEASURED_RATE = 3
 
 
+# ── THE CLOSE-PATH CALLER (H14_close_path_caller, 2026-07-14) ─────────────────
+# The honest residual H14 exists to fix: `outcome_error_rates` and
+# `measurement_coverage` were CORRECT but starved -- nothing in the real close
+# path ever fed the trust ledger, so a judge's post-close error rate could never
+# accrue and every organ read `escapes_measurement=True` forever. The organs that
+# actually PRODUCE verdicts on this project are the phase-close-evaluator AGENT
+# and the cold-eyes-walk SKILL -- markdown surfaces. A markdown surface can only
+# INSTRUCT a call, it cannot GUARANTEE one; so the enforce-able part of the fix is
+# this single, tested Python entry point (+ its `record-close` CLI) that both the
+# phase-close skill and the evaluator agent are told to run as their last step.
+# The evaluator agent has Bash, so "run this one command" is a concrete mechanism,
+# not a hope -- but be honest: an agent can still skip a prose instruction, so the
+# guarantee is exactly as strong as the agent following its own SKILL/agent brief,
+# no stronger. What this DOES remove is the "there is no caller at all" gap: after
+# this, the moment any evaluator's verdict is recorded through here, the outcome
+# loop closes and coverage begins to move off 0.0.
+def record_close_verdict(
+    task_class,
+    verdict,
+    evaluator_name: str,
+    subject: str,
+    *,
+    evaluated_at: Optional[str] = None,
+    notes: str = "",
+) -> dict:
+    """Record ONE close-path verdict AND close the outcome-correlation loop.
+
+    Call this at phase close with the JUDGING ORGAN (`evaluator_name`, e.g.
+    "phase-close-evaluator" / "cold-eyes-walk") and the ATOM under judgement
+    (`subject`, e.g. the atom id or the reviewed commit SHA). Two effects:
+
+      1. The verdict is appended to the trust ledger (`trust_ledger.record_verdict`,
+         which still enforces the INDEPENDENT_EVALUATORS whitelist -- a
+         self-reported grader name raises).
+
+      2. THE WIRING H14 WAS MISSING: if this verdict is NEEDS_WORK and a PRIOR
+         PASS exists for the SAME subject, that earlier PASS let a defect through
+         -- so the post-close defect is attributed back to it via
+         `trust_ledger.record_post_close_defect`. A NEEDS_WORK on a
+         previously-PASSed atom is precisely "a defect found after it was closed",
+         and charging it to the PASS that missed it is what moves that judge's
+         measured error rate off 0.0. If no prior PASS exists (a first-ever
+         NEEDS_WORK on never-passed work), nothing is charged -- that judge caught
+         the problem, it is not its error.
+
+    Returns {"verdict_entry": <dict>, "post_close_defect": <dict or None>,
+             "charged_regression": <bool>}. `charged_regression` is True iff a
+    prior PASS was found and debited -- the observable signal that the outcome
+    loop actually closed on this call.
+    """
+    # Accept enums or their string values (the CLI passes strings).
+    tc = task_class if isinstance(task_class, tl.TaskClass) else tl.TaskClass(str(task_class))
+    vd = verdict if isinstance(verdict, tl.Verdict) else tl.Verdict(str(verdict))
+
+    entry = tl.record_verdict(
+        task_class=tc,
+        verdict=vd,
+        evaluator_name=evaluator_name,
+        subject=subject,
+        evaluated_at=evaluated_at,
+        notes=notes,
+    )
+    verdict_entry = {**{k: getattr(entry, k) for k in (
+        "evaluator_name", "subject", "evaluated_at", "rework_required", "notes")},
+        "task_class": entry.task_class.value, "verdict": entry.verdict.value}
+
+    post_close_defect = None
+    charged = False
+    if vd == tl.Verdict.NEEDS_WORK:
+        # A re-review that fails a previously-PASSed subject IS a post-close
+        # defect against the judge that passed it. record_post_close_defect
+        # raises KeyError when there is no prior PASS -- which is the legitimate
+        # "first-ever NEEDS_WORK, nothing to charge" case, not an error.
+        try:
+            post_close_defect = tl.record_post_close_defect(
+                subject, 1, discovered_at=evaluated_at,
+                notes=f"NEEDS_WORK from {evaluator_name} on previously-passed {subject}")
+            charged = True
+        except KeyError:
+            post_close_defect = None
+            charged = False
+
+    return {
+        "verdict_entry": verdict_entry,
+        "post_close_defect": post_close_defect,
+        "charged_regression": charged,
+    }
+
+
 # ── APPROACH 1: OUTCOME CORRELATION ──────────────────────────────────────────
 def outcome_error_rates(entries: Optional[list[dict]] = None) -> dict:
     """Per (evaluator, task_class): the judge's empirical error rate =
@@ -325,3 +414,53 @@ def summary(entries: Optional[list[dict]] = None,
                      "on shared artefacts."),
         },
     }
+
+
+# ── CLI: the concrete command the close path runs ────────────────────────────
+# The phase-close skill and the phase-close-evaluator agent are INSTRUCTED to run
+# this at close (the agent has Bash). It is the single, tested command that feeds
+# the trust ledger, so the instruction is "run one line", not "write code".
+def _main(argv: Optional[list[str]] = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="python3 -m background.judge_validation",
+        description="Record a phase-close verdict so the judge outcome-correlation loop closes.")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    rc = sub.add_parser("record-close",
+                        help="Record one judging-organ verdict on an atom (feeds the trust ledger).")
+    rc.add_argument("--task-class", required=True,
+                    help=f"one of: {', '.join(c.value for c in tl.TaskClass)}")
+    rc.add_argument("--verdict", required=True,
+                    help=f"one of: {', '.join(v.value for v in tl.Verdict)}")
+    rc.add_argument("--evaluator", required=True,
+                    help=f"the judging organ; one of: {', '.join(sorted(tl.INDEPENDENT_EVALUATORS))}")
+    rc.add_argument("--subject", required=True,
+                    help="the atom id or reviewed commit SHA under judgement")
+    rc.add_argument("--evaluated-at", default=None, help="ISO date (default: today, real)")
+    rc.add_argument("--notes", default="", help="free-text note")
+
+    sub.add_parser("coverage", help="Print current measurement coverage over the trust ledger.")
+
+    args = parser.parse_args(argv)
+
+    if args.cmd == "record-close":
+        result = record_close_verdict(
+            args.task_class, args.verdict, args.evaluator, args.subject,
+            evaluated_at=args.evaluated_at, notes=args.notes)
+        print(json.dumps(result, indent=2, default=str))
+        if result["charged_regression"]:
+            print(f"\n[outcome loop closed] a prior PASS on {args.subject!r} was debited a "
+                  "post-close defect -- that judge's measured error rate has moved.")
+        return 0
+
+    if args.cmd == "coverage":
+        print(json.dumps(measurement_coverage(), indent=2))
+        return 0
+
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())
