@@ -98,6 +98,27 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .held-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
 .held-note { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 4px; }
 details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin-top: 10px; }
+/* coupled-triad gap panel */
+.gap-row { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.gap-row:last-child { border-bottom: none; }
+.gap-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.gap-pair { font-size: 13px; font-weight: 600; }
+.gap-pair .wc { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
+.gap-pair .arr2 { color: var(--muted); font-weight: 400; margin: 0 4px; }
+.gap-metric { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.gap-val { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 18px; letter-spacing: -0.4px; }
+.gap-bar { height: 7px; border-radius: 4px; background: var(--surface2); margin: 8px 0 6px; overflow: hidden; position: relative; }
+.gap-bar > span { display: block; height: 100%; border-radius: 4px; }
+.gap-bar.untested { background: repeating-linear-gradient(45deg, var(--surface2), var(--surface2) 5px, var(--border) 5px, var(--border) 10px); }
+.chip { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; border-radius: 4px; padding: 2px 6px; vertical-align: middle; }
+.chip.red { color: var(--red); border: 1px solid var(--red); }
+.chip.amber { color: var(--amber); border: 1px solid var(--amber); }
+.chip.blue { color: var(--blue); border: 1px solid var(--blue); }
+.chip.block { color: var(--red); border: 1px solid var(--red); margin-left: 6px; }
+.gap-note { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 6px; }
+.gap-basis { font-size: 10px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.gap-alarm { border-left: 3px solid var(--amber); background: var(--surface2); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: var(--text); margin-bottom: 12px; }
+.gap-fail { border-left: 3px solid var(--red); background: var(--surface2); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: var(--red); }
 </style>
 </head>
 <body>
@@ -127,6 +148,15 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   <!-- 0. FINDINGS WITH A NUMBER (FEATURED) -->
   <div class="sec">Findings We Can Put A Number On</div>
   <div id="principles"><div class="muted">Loading...</div></div>
+
+  <!-- 0b. COUPLED-TRIAD GAP PANEL -->
+  <div class="sec">The Gap &mdash; what the world knows vs what the company believes</div>
+  <div class="card">
+    <p class="muted" id="gap-intro">Loading...</p>
+    <div class="kpis" id="gap-kpis"></div>
+    <div id="gap-alarms"></div>
+  </div>
+  <div class="card"><div id="coupled-gaps"><div class="muted">Loading...</div></div></div>
 
   <!-- 1. INCIDENT -> RULE TIMELINE -->
   <div class="sec">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
@@ -348,6 +378,107 @@ function renderPrinciples(d){
   }).join(""):'<div class="card muted">No numbered findings recorded yet.</div>';
 }
 
+// The reading convention (COUPLED_TRIAD_DESIGN.md 1.2 / 5.2) applied to the NUMBER
+// itself, so the rendered pixel derives from the measured value -- the panel is a
+// control that classifies, not a passive echo of a server-side label (R15).
+//  value null   -> untested depth (amber): a world atom's depth nobody has measured coping for
+//  value <= 0   -> wall leak (red): gap=0 means observables leaked theta, a defect not a triumph
+//  value > 1    -> worse than blind (red): an actively harmful model
+//  0<value<=1   -> learning (blue): learned some but not all of the hidden structure
+function classifyGap(v){
+  if(v==null) return {chip:"untested", sev:"amber", label:"untested depth"};
+  if(v<=0) return {chip:"leak", sev:"red", label:"wall leak (gap 0)"};
+  if(v>1) return {chip:"worse than blind", sev:"red", label:"worse than blind"};
+  return {chip:"learning", sev:"blue", label:"learning (0<gap≤1)"};
+}
+function fmtGap(v){ return v==null?"—":Number(v).toFixed(3); }
+
+function renderCoupledGaps(d){
+  var intro=document.getElementById("gap-intro");
+  var body=document.getElementById("coupled-gaps");
+  var kp=document.getElementById("gap-kpis");
+  var alarms=document.getElementById("gap-alarms");
+  var cg=d.coupled_gaps;
+  // Fail closed and VISIBLE: a missing/unavailable data side must never render as a
+  // silently empty panel (R15 fail-silent guard) -- say so, in red.
+  if(!cg || cg.available===false){
+    intro.textContent="Every capability is a three-loop: the SIM adds hidden depth, the company must "+
+      "discover and cope with it through the wall only, and the harness measures the gap between the "+
+      "two. The gap is the score.";
+    kp.innerHTML="";
+    alarms.innerHTML="";
+    body.innerHTML='<div class="gap-fail">Coupled-gap data not available at generation time'+
+      (cg&&cg.note?': '+esc(cg.note):'')+'. The gap panel cannot be shown — this is a failure, not an empty state.</div>';
+    return;
+  }
+  var pairs=cg.pairs||[];
+  intro.innerHTML="Every capability is a three-loop: the SIM adds hidden depth (household budgets, "+
+    "life events, willingness, self-rationing, channel migration); the company must discover and cope "+
+    "with it <em>through the wall only</em>, and is allowed to be wrong; the harness — the one layer "+
+    "that holds both the hidden truth and the company's observable-only belief — measures the gap. "+
+    "<strong>The gap is the score.</strong> 1 = no better than a blind prior; 0 = a wall leak (a defect, "+
+    "not a triumph); between is honest, partial learning. Source: "+
+    '<a class="evlink" href="#" onclick="return false" title="'+esc(cg.source)+'">'+esc(cg.source)+'</a>.';
+
+  var kpis=[
+    {l:"Coupled pairs",v:num(cg.pair_count)},
+    {l:"Measured",v:num(cg.measured)},
+    {l:"Unmeasured",v:num(cg.unmeasured)},
+    {l:"Blocks L3",v:num(cg.blocks_l3_count)},
+    {l:"Wall leaks",v:num(cg.wall_leak_count)},
+    {l:"Worse than blind",v:num(cg.worse_than_blind_count)}
+  ];
+  kp.innerHTML=kpis.map(function(k){
+    return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
+  }).join("");
+
+  // Anti-decay alarm (design 5.1): a mechanically-real (>=L2) world atom whose gap is
+  // unmeasured is "depth nobody copes with yet" -- the binding-rule-1 failure, made visible.
+  var uge=cg.unmeasured_ge_l2||[];
+  alarms.innerHTML = uge.length
+    ? '<div class="gap-alarm"><strong>'+uge.length+' ≥L2 world atom'+(uge.length>1?'s':'')+
+        ' with no measured gap</strong> — depth nobody copes with yet (binding rule 1): '+
+        esc(uge.join(", "))+'.</div>'
+    : '';
+
+  body.innerHTML=pairs.map(function(p){
+    var c=classifyGap(p.value);
+    var barPct = p.value==null ? 0 : Math.max(0, Math.min(1, p.value))*100;
+    var barCol = c.sev==="red" ? "var(--red)" : c.sev==="amber" ? "var(--amber)" : "var(--blue)";
+    var bar = p.value==null
+      ? '<div class="gap-bar untested"></div>'
+      : '<div class="gap-bar"><span style="width:'+barPct.toFixed(0)+'%;background:'+barCol+'"></span></div>';
+    var block = p.blocks_l3
+      ? '<span class="chip block" title="'+esc(p.blocks_l3_reason||"coupling not closed")+'">blocks L3</span>'
+      : '';
+    var comp = (p.components && Object.keys(p.components).length)
+      ? '<details><summary>Components &amp; measurement basis &rarr;</summary>'+
+          '<div class="gap-note">'+Object.keys(p.components).map(function(k){
+            var v=p.components[k];
+            return esc(k)+': '+esc(typeof v==="number"?Number(v).toFixed(4):String(v));
+          }).join(" &middot; ")+'</div></details>'
+      : '';
+    return '<div class="gap-row">'+
+      '<div class="gap-head">'+
+        '<div><div class="gap-pair"><span class="wc">'+esc(p.world_atom)+'</span>'+
+          '<span class="arr2">&#8646;</span><span class="wc">'+esc(p.company_atom)+'</span>'+block+'</div>'+
+          '<div class="gap-metric">'+esc(p.metric||"—")+' gap'+
+            (p.world_level!=null?' &middot; world L'+esc(p.world_level):'')+
+            (p.company_level!=null?' &middot; company L'+esc(p.company_level):'')+'</div></div>'+
+        '<div style="text-align:right"><div class="gap-val" style="color:'+barCol+'">'+fmtGap(p.value)+'</div>'+
+          '<span class="chip '+c.sev+'">'+esc(c.chip)+'</span></div>'+
+      '</div>'+
+      bar+
+      (p.note?'<div class="gap-note">'+esc(p.note)+'</div>':'')+
+      '<div class="gap-basis">baseline g0 '+esc(fmtGap(p.baseline_g0))+
+        (p.raw_gap!=null?' &middot; raw '+esc(fmtGap(p.raw_gap)):'')+
+        (p.measured_at?' &middot; measured '+esc(String(p.measured_at).slice(0,10)):'')+
+        (p.run_git_commit?' &middot; run '+esc(String(p.run_git_commit).slice(0,8)):'')+'</div>'+
+      comp+
+    '</div>';
+  }).join("")||'<div class="gap-fail">No coupled pairs in the ledger — the affordability cluster should show 7. An empty list is a failure, not an empty state.</div>';
+}
+
 function renderBuild(d){
   var parts=[];
   if(d.phase)parts.push("Phase "+d.phase);
@@ -359,6 +490,7 @@ function renderBuild(d){
 
 fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
   renderPrinciples(d);
+  renderCoupledGaps(d);
   renderTimeline(d);
   renderVerification(d);
   renderOpenWork(d);
