@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T14:33:39Z
+Last updated: 2026-07-14T14:46:52Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T14:29:04Z
+Last updated: 2026-07-14T14:42:16Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (452s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -84,9 +84,9 @@ count; that is the honesty bar, not regression.
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
-- (T1_idle_turns_with_open_atoms) If the supervisor has been idle for 102 turns while 29 atoms remain open, what is it waiting for — and how do you know those idle turns are a deliberate strategy rather than the system silently stalled or stuck?
-- (T3_inherence) What does "BUILD is inherently narrow (one tree/suite/...)" actually have to do with keeping a UK energy supplier solvent and out of administration, and on what evidence is that fragment being treated as a claim worth examining rather than an arbitrary snippet of a code comment?
-- (T3_inherence) When you say each of these seven triggers is "a real catch from this weekend," how many false positives did the same detector raise over that period — that is, how often did it flag one of these patterns and the flag turn out to be wrong?
+- (T1_idle_turns_with_open_atoms) [unanswered >24h] If the supervisor has been idle for 102 turns while 29 atoms remain open, what is it waiting for — and how do you know those idle turns are a deliberate strategy rather than the system silently stalled or stuck?
+- (T3_inherence) [unanswered >24h] What does "BUILD is inherently narrow (one tree/suite/...)" actually have to do with keeping a UK energy supplier solvent and out of administration, and on what evidence is that fragment being treated as a claim worth examining rather than an arbitrary snippet of a code comment?
+- (T3_inherence) [unanswered >24h] When you say each of these seven triggers is "a real catch from this weekend," how many false positives did the same detector raise over that period — that is, how often did it flag one of these patterns and the flag turn out to be wrong?
 - (T3_inherence) When you say BUILD is "inherently" narrow — is that a fixed property of what BUILD actually does, or just an artifact of how this one tree/suite happens to be configured, and what specifically would break if that scope were widened?
 - (T3_inherence) What actually justifies the claim that BUILD is "inherently narrow (1-3 max)" — is that a measured property of the work itself, or just an assertion, and what concretely goes wrong if it were made wider?
 - (T3_inherence) If the extra 24 atoms are read-only, zero-collision, and would move you toward target, what is the actual constraint forcing them to be worked one at a time rather than all at once?
