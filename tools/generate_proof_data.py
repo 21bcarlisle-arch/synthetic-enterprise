@@ -30,6 +30,7 @@ MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 RETRO_DIR = PROJECT / "docs" / "retrospectives"
 SCORECARD_PATH = PROJECT / "site" / "state" / "track_record_scorecard.json"
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
+CONTROL_REGISTRY_PATH = PROJECT / "docs" / "design" / "control_registry.json"
 OUT_PATH = PROJECT / "site" / "data" / "proof.json"
 
 # Evidence-link bases (same convention as generate_method_data.py's retro links)
@@ -401,6 +402,104 @@ def _coupled_gaps(atoms):
     )
 
 
+def _control_killlist():
+    """The CONTROL KILL-LIST rendered onto the Proof door (R15,
+    CONTROLS_THAT_CANNOT_FAIL.md): which of the company's controls have been
+    MUTATION-PROVEN to fire on their own named defect, and which remain theatre.
+
+    Read STRAIGHT from the real mutation-test inventory
+    (docs/design/control_registry.json) -- the same registry the mutation-test
+    suite (tests/controls/test_control_mutation.py) keeps in sync -- NEVER a
+    hand-maintained list on the page (SITE_CONSTITUTION rule 5: the site is a
+    rendering, never an author; no tautology: the page cannot claim a control
+    fires that the inventory does not record firing).
+
+    Per-control classification is derived from the inventory's `result`, and it
+    FAILS CLOSED (R15): a control counts as mutation-proven ONLY on an explicit
+    FIRED. Every other state is surfaced, never silently dropped --
+      * FIRED            -> chip "proven",         severity green.
+      * THEATRE          -> chip "theatre",        severity red   (cannot fire on
+        its named defect; a control that cannot fail is worse than none).
+      * STRUCTURAL-ONLY  -> chip "structural_only", severity amber (an LLM-judge
+        layer that is not deterministically mutation-testable -- documented,
+        counted as NOT mutation-proven, never as covered).
+      * anything else / missing result -> FAIL CLOSED to chip "theatre",
+        severity red: an unrecognised or absent result is an UNVERIFIED control,
+        and an unverified control is a failed control -- shown red, not omitted.
+
+    Cumulative counts are RECOMPUTED here from the per-control rows (not copied
+    from the registry's own _meta summary) so the panel and the inventory cannot
+    silently diverge -- a drift between them is a real defect the R11 test pins.
+    """
+    try:
+        reg = json.loads(CONTROL_REGISTRY_PATH.read_text())
+    except Exception:
+        # Fail closed: an unreadable inventory cannot manufacture a green panel.
+        return dict(available=False,
+                    note="control_registry.json not readable at generation time")
+
+    controls_raw = reg.get("controls")
+    if not isinstance(controls_raw, list) or not controls_raw:
+        return dict(available=False,
+                    note="control_registry.json has no controls array")
+
+    meta = reg.get("_meta") if isinstance(reg.get("_meta"), dict) else {}
+    last_verified = meta.get("generated")
+
+    def _classify(result):
+        # Explicit, fail-closed mapping. Only FIRED is mutation-proven.
+        if result == "FIRED":
+            return True, True, "proven", "green"
+        if result == "THEATRE":
+            return True, False, "theatre", "red"
+        if result == "STRUCTURAL-ONLY":
+            return False, False, "structural_only", "amber"
+        # Unknown / missing -> an unverified control is a FAILED control (R15).
+        return False, False, "theatre", "red"
+
+    rows = []
+    for c in controls_raw:
+        c = c if isinstance(c, dict) else {}
+        result = c.get("result")
+        mutation_tested, fires, chip, severity = _classify(result)
+        rows.append(dict(
+            name=c.get("id"),
+            location=c.get("location"),
+            catches=c.get("catches"),
+            mutation=c.get("mutation"),
+            killer_pattern=c.get("killer_pattern_audit"),
+            mutation_tested=mutation_tested,
+            fires_on_defect=fires,
+            result=result,
+            chip=chip,
+            severity=severity,
+            last_verified=last_verified,
+        ))
+    rows.sort(key=lambda r: (r["severity"] != "red", r["severity"] != "amber",
+                             r.get("name") or ""))
+
+    controls_total = len(rows)
+    mutation_proven = sum(1 for r in rows if r["fires_on_defect"])
+    theatre_remaining = sum(1 for r in rows if r["chip"] == "theatre")
+    structural_only = sum(1 for r in rows if r["chip"] == "structural_only")
+    mutation_tested_count = sum(1 for r in rows if r["mutation_tested"])
+
+    return dict(
+        available=True,
+        source="docs/design/control_registry.json",
+        doctrine="docs/staging/CONTROLS_THAT_CANNOT_FAIL.md",
+        last_verified=last_verified,
+        as_of=(meta.get("cumulative_counts") or {}).get("as_of") if isinstance(
+            meta.get("cumulative_counts"), dict) else None,
+        controls_total=controls_total,
+        mutation_tested=mutation_tested_count,
+        mutation_proven=mutation_proven,
+        theatre_remaining=theatre_remaining,
+        structural_only=structural_only,
+        controls=rows,
+    )
+
+
 def _predictions_ledger():
     """The centrepiece: the REAL shadow-live pre-registered decision log
     (site/state/track_record_scorecard.json). A real source exists, so it is
@@ -504,6 +603,7 @@ def generate():
         verification=_verification_stack(atoms),
         open_work=_open_work(atoms),
         coupled_gaps=_coupled_gaps(atoms),
+        control_killlist=_control_killlist(),
         predictions=_predictions_ledger(),
         principles=_principles(),
     )
