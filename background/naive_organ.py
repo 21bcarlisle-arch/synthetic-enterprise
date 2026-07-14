@@ -273,23 +273,33 @@ def _load_json(path: Path, default):
 
 
 def _last_commit_epoch() -> float:
-    """Most recent commit timestamp on the current branch, or 0.0 if git is
-    unavailable/fails. The SAME independent progress signal deadmans_switch uses
-    (2026-07-14 module docstring): no daemon's own logging can move the commit
-    clock, only real work does — so a silent wedge cannot masquerade as activity.
-    Returns 0.0 on ANY failure, which T8 reads as 'infinite silence' and FIRES on
-    (fail toward asking, never toward assuming health — R15 fail-silent doctrine:
-    an unavailable liveness check is a FAILED check)."""
+    """Timestamp of the most recent MEANINGFUL commit on the current branch, or
+    0.0 if git is unavailable/fails OR the recent window is nothing but flat
+    auto-process no-ops.
+
+    R10 CLASS-CLOSURE + R15 FAIL-OPEN FIX (2026-07-14): keys on MEANINGFUL commits
+    via the deadman's SHARED discriminator (deadmans_switch._last_meaningful_commit_epoch
+    / _is_auto_process_commit) — ONE primitive, not two copies. Keying on ANY commit
+    (`git log -1`) is a FAIL-OPEN control (R15): the auto-process publish loop commits
+    an identical-net no-op ("Auto-process run complete: ... net=£1,521,070") every
+    ~15min carrying zero forward work, which would REFRESH the silence clock and mask
+    an idle executor. That is the EXACT defect the deadman had and was fixed for the
+    same day (deadmans_switch fail-open regression); T8 shares the fixed discriminator
+    so the class is closed, not patched twice. Only a non-auto-process commit — real
+    forward work — moves this signal.
+
+    Returns 0.0 on ANY failure (git unreadable, import unavailable) OR an all-no-op
+    window, which T8 reads as effectively infinite silence and FIRES on (fail toward
+    asking, never toward assuming health — R15 fail-silent doctrine: an unavailable
+    liveness check is a FAILED check)."""
     try:
-        r = subprocess.run(
-            ["git", "log", "-1", "--format=%ct"],
-            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=10,
-        )
-        if r.returncode == 0 and r.stdout.strip():
-            return float(r.stdout.strip())
+        # Lazy import: deadmans_switch pulls ntfy_utils (import-time env check), so
+        # importing it at module top would couple naive_organ's importability to the
+        # ntfy env. A failed import here is a failed liveness check -> 0.0 -> T8 fires.
+        from background.deadmans_switch import _last_meaningful_commit_epoch
+        return _last_meaningful_commit_epoch()
     except Exception:
-        pass
-    return 0.0
+        return 0.0
 
 
 def load_state(*, gitlog_window: str = "3 days ago") -> dict:
@@ -326,7 +336,8 @@ def load_state(*, gitlog_window: str = "3 days ago") -> dict:
         "claims_text": claims_text,
         "gitlog_subjects": gitlog_subjects,
         "idle_count": (idle_state or {}).get("count", 0) if isinstance(idle_state, dict) else 0,
-        # T8 silence signal (independent commit clock + wall-clock now). Present
+        # T8 silence signal (independent MEANINGFUL commit clock + wall-clock now,
+        # auto-process no-ops excluded — see _last_commit_epoch, R10/R15). Present
         # ONLY when assembled from live disk — hand-built test/fixture states omit
         # it, and detect_t8 no-fires on its absence (a state that didn't collect
         # the signal must not manufacture a silence alarm).
@@ -616,11 +627,14 @@ def detect_t8(state: dict) -> list[Trigger]:
     T8 fires on SILENCE: no commit/publish inside the normal cadence -> the organ
     independently checks the raw state and asks 'why is it quiet?'.
 
-    It reads the git COMMIT CLOCK (state['last_commit_epoch'], the independent
-    signal — no daemon's own logging can move it), so it can fire precisely WHEN
-    THE SYSTEM IS QUIET, which the publish-coupled organ never could (it woke on
-    the very pipeline that had died — the 6h blackout, 22:12->04:00). Overlaps the
-    deadman DELIBERATELY: the deadman ALARMS, the organ QUESTIONS.
+    It reads the MEANINGFUL git commit clock (state['last_commit_epoch'], the
+    independent signal — no daemon's own logging, and no flat auto-process no-op,
+    can move it; see _last_commit_epoch for the R10/R15 class-closure), so it can
+    fire precisely WHEN THE SYSTEM IS QUIET, which the publish-coupled organ never
+    could (it woke on the very pipeline that had died — the 6h blackout,
+    22:12->04:00) AND which an any-commit clock could never see either (the ~15min
+    auto-process no-ops would keep refreshing it). Overlaps the deadman
+    DELIBERATELY: the deadman ALARMS, the organ QUESTIONS.
 
     FAIL-SILENT DOCTRINE (R15): last_commit_epoch == 0.0 means the clock itself
     was unavailable — an unavailable liveness check is a FAILED check, so silence

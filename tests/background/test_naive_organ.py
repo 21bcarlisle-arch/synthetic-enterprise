@@ -464,6 +464,63 @@ def test_t8_is_registered_and_wired_into_run_detectors():
     assert any(t.trigger_id == "T8_expected_output_absent" for t in fired)
 
 
+# ── R15 MUTATION TEST — FAIL-OPEN on auto-process no-ops (the deadman's twin
+# defect, closed at the CLASS level). Keying T8's silence clock on ANY commit lets
+# the ~15min auto-process no-op ("Auto-process run complete: ... net=£1,521,070",
+# zero forward work) refresh the clock and mask an idle executor. T8 must key on
+# MEANINGFUL commits, sharing deadmans_switch's discriminator. ──
+def test_t8_fires_when_only_auto_process_noops_since_the_last_real_commit(monkeypatch):
+    """R15 mutation test for the FAIL-OPEN defect: last real work 4h ago, then
+    NOTHING but auto-process no-ops every ~12min since. Meaningful silence is 4h
+    (> the 3h cadence, zero forward progress) -> T8 must FIRE ('why is it quiet?').
+    The MUTATION — reverting _last_commit_epoch to the newest commit of ANY kind
+    (the production defect) — reads 12min and goes SILENT, masking the idle window.
+    _last_commit_epoch reuses deadmans_switch._last_meaningful_commit_epoch (R10
+    class-closure: one shared discriminator, not two copies)."""
+    from background import deadmans_switch
+
+    real_commit_epoch = _NOW - 4 * 3600  # last meaningful forward work: 4h ago
+    # newest-first: a wall of flat auto-process no-ops (~3h span) on top of it
+    noops = [(_NOW - 12 * 60 * i,
+              "Auto-process run complete: report + LATEST.md + site/ "
+              "(git=abc123, net=£1,521,070)")
+             for i in range(1, 16)]
+    commits = noops + [(real_commit_epoch, "[build] H12_mutation_test_controls L2->L3")]
+    monkeypatch.setattr(deadmans_switch, "_recent_commits", lambda n=200: commits)
+
+    # the SHARED primitive skips the no-ops to the real commit — 4h ago
+    meaningful = organ._last_commit_epoch()
+    assert meaningful == real_commit_epoch, "must skip auto-process no-ops to real work"
+
+    fires = organ.detect_t8(_silent_state(0, last_commit_epoch=meaningful))
+    assert len(fires) == 1, "4h with no meaningful progress MUST fire T8"
+    assert fires[0].trigger_id == "T8_expected_output_absent"
+    assert fires[0].observed_value["silence_hours"] == 4.0
+
+    # THE MUTATION (revert to any-commit) -> the newest no-op is 12min ago -> SILENT.
+    # This is the exact production defect the fix closes: a no-op clock cannot see
+    # silence while auto-process churns.
+    any_commit_epoch = commits[0][0]
+    assert (_NOW - any_commit_epoch) < organ.EXPECTED_OUTPUT_CADENCE_SECONDS
+    assert organ.detect_t8(_silent_state(0, last_commit_epoch=any_commit_epoch)) == [], (
+        "any-commit keying (the defect) masks the idle window — T8 stays silent"
+    )
+
+
+def test_last_commit_epoch_ignores_auto_process_noops(monkeypatch):
+    """Unit-level proof the shared discriminator is wired in: given only
+    auto-process no-ops in the window, _last_commit_epoch returns 0.0 (no
+    meaningful commit found) — which T8 reads as effectively infinite silence and
+    FIRES on, never as recent activity."""
+    from background import deadmans_switch
+    only_noops = [(_NOW - 60 * i, "Auto-process run complete: ... net=£1,521,070")
+                  for i in range(1, 6)]
+    monkeypatch.setattr(deadmans_switch, "_recent_commits", lambda n=200: only_noops)
+    assert organ._last_commit_epoch() == 0.0, "all-no-op window -> no meaningful commit"
+    # and that 0.0 makes T8 fire (fail-closed / fail toward asking)
+    assert len(organ.detect_t8(_silent_state(0, last_commit_epoch=0.0))) == 1
+
+
 # ── INDEPENDENT WALL CLOCK (director gap #1): the daemon fires with NO publish ──
 def test_run_daemon_fires_the_organ_off_its_own_clock_not_a_publish(tmp_path, monkeypatch):
     """The organ's schedule must NOT be wake-coupled to the publish cycle. Prove
