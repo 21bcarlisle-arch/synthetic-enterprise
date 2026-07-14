@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Director</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+}
+:root[data-theme="light"] {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 720px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 44px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.kpi-s { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.kpi.good .kpi-v { color: var(--green); }
+.kpi.alarm { border: 1px solid var(--red); }
+.kpi.alarm .kpi-v { color: var(--red); }
+.evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.evlink:hover { border-bottom-color: var(--blue); }
+.badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
+.badge.ok { color: var(--green); border: 1px solid var(--green); }
+.badge.reserved { color: var(--purple); border: 1px solid var(--purple); }
+.badge.routed { color: var(--amber); border: 1px solid var(--amber); }
+.banner { border-left: 3px solid var(--purple); background: var(--surface2); padding: 12px 14px; border-radius: 6px; font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
+.q-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.q-row:last-child { border-bottom: none; }
+.q-q { font-size: 13px; font-weight: 600; }
+.q-a { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 6px; white-space: pre-wrap; }
+.q-meta { font-size: 10px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.qq-item { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.qq-item:last-child { border-bottom: none; }
+.qq-name { font-family: ui-monospace, monospace; font-size: 12px; }
+.qq-time { font-size: 10px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.plan-note { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 10px; }
+.fail { border-left: 3px solid var(--red); background: var(--surface2); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: var(--red); }
+.tier-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.tier-row:last-child { border-bottom: none; }
+.tier-row .t-conf { font-weight: 600; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../project/" class="nav-link">Project</a>
+  <a href="../director/" class="nav-link active">Director</a>
+</nav>
+<div class="wrap">
+
+  <div class="hero-h">The Director's Bench</div>
+  <p class="hero-p">
+    The governance door. A read-only rendering of the machine's relationship to its
+    principal: the twin that answers the builder from a fixed canon, the anti-decay
+    metrics that alarm when a human becomes a bottleneck, the action-needed queue, and
+    the provisional plan as a diagnostic (never a target). Every figure is generated
+    from repo data only.
+  </p>
+
+  <div class="banner" id="ro-banner">
+    <b>Read-only.</b> This surface renders published state. It cannot act. Every write
+    the director owns &mdash; repo/keys/settings, curriculum difficulty, dials, the Epoch-4
+    fitness function &mdash; is a one-way door reserved to the director's own console
+    (CLAUDE.md, one-way-door categories 5/6/8; ADVISOR_STEER_TWIN_READONLY.md). The twin
+    below <em>answers</em>; it never <em>acts</em>.
+  </div>
+
+  <!-- 1. TWIN FIDELITY / ANTI-DECAY -->
+  <div class="sec">Director-Twin Fidelity &mdash; the voice, measured</div>
+  <div class="card">
+    <p class="muted" id="twin-intro">Loading...</p>
+    <div class="kpis" id="twin-kpis"></div>
+    <div class="muted" id="twin-passport"></div>
+  </div>
+
+  <!-- 2. ACTION-NEEDED QUEUE + DIRECTOR HOURS -->
+  <div class="sec">Action-Needed Queue &amp; Director-Hours</div>
+  <div class="card">
+    <p class="muted" id="queue-intro">Loading...</p>
+    <div class="kpis" id="queue-kpis"></div>
+    <div id="queue-body"><div class="muted">Loading...</div></div>
+    <div class="muted" id="queue-passport"></div>
+  </div>
+
+  <!-- 3. TWIN Q&A HISTORY -->
+  <div class="sec">What The Twin Was Asked</div>
+  <div class="card">
+    <p class="muted" id="qa-intro">Loading...</p>
+    <div id="qa-body"><div class="muted">Loading...</div></div>
+  </div>
+
+  <!-- 4. PROVISIONAL PLAN DIAGNOSTIC -->
+  <div class="sec">The Provisional Plan &mdash; a diagnostic, never a target (Law A)</div>
+  <div class="card">
+    <p class="muted" id="plan-intro">Loading...</p>
+    <div class="kpis" id="plan-kpis"></div>
+    <div id="plan-body"></div>
+    <div class="plan-note" id="plan-passport"></div>
+  </div>
+
+  <!-- 5. CURRICULUM RACK (director-reserved) -->
+  <div class="sec">Curriculum Rack &amp; Dials</div>
+  <div class="card">
+    <div id="curriculum-note"><div class="muted">Loading...</div></div>
+  </div>
+
+</div>
+
+<script>
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function num(n){return Number(n).toLocaleString();}
+function shortTime(s){ if(!s) return ""; return String(s).slice(0,16).replace("T"," "); }
+
+/* 1. TWIN FIDELITY -------------------------------------------------------- */
+function renderTwin(d){
+  var t=(d&&d.twin)||{};
+  var f=t.fidelity||{};
+  document.getElementById("twin-intro").innerHTML=
+    "The builder-facing twin answers the agent's sequencing/scope/design questions from a "+
+    "fixed director-authored canon (Law B: it must NOT learn from outcomes). One-way-door "+
+    "questions are never answered &mdash; they route to the director. These counters are the "+
+    "fidelity record.";
+  var qa=t.recent_qa||[];
+  var lats=qa.map(function(q){return Number(q.latency_seconds||0);}).filter(function(x){return x>0;});
+  var medLat = lats.length ? lats.slice().sort(function(a,b){return a-b;})[Math.floor((lats.length-1)/2)] : null;
+  var kpis=[
+    {l:"Answered",v:num(f.answered||0),cls:""},
+    {l:"Routed to director",v:num(f.routed_to_director||0),cls:"",s:"one-way doors, not answered"},
+    {l:"Overturned",v:num(f.overturned||0),cls:(f.overturned>0?"alarm":"good"),s:"director reversals"},
+    {l:"Overturn rate",v:((Number(f.overturn_rate||0)*100).toFixed(1))+"%",cls:(Number(f.overturn_rate||0)>0?"alarm":"good")},
+    {l:"Canon version",v:"v"+num(f.canon_version||0),s:"director-versioned"},
+    {l:"Median answer latency",v:(medLat==null?"n/a":medLat.toFixed(1)+"s"),s:"across "+lats.length+" answered"}
+  ];
+  document.getElementById("twin-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+  document.getElementById("twin-passport").innerHTML=
+    "<b>Passport.</b> "+esc(t.note||"")+" Source: <a class=\"evlink\" href=\"../data/director_twin.json\">director_twin.json</a>.";
+}
+
+/* 2. ACTION-NEEDED QUEUE + DIRECTOR HOURS --------------------------------- */
+function renderQueue(d){
+  var sys=(d&&d.sys)||{};
+  var plan=(d&&d.plan)||{};
+  var dh=plan.director_hours||{};
+  var q=sys.staging_queue||[];
+  document.getElementById("queue-intro").innerHTML=
+    "Files awaiting the agent's action in docs/staging/ (the director stages instructions here; "+
+    "staging = approval). The anti-decay objective (MAKE_IT_STICK) is to MINIMISE director-hours "+
+    "&mdash; the only genuinely scarce resource.";
+  var kpis=[
+    {l:"Staging queue",v:num(q.length),cls:(q.length>3?"alarm":""),s:"files awaiting action"},
+    {l:"Director-hours / day",v:(dh.estimated_director_hours_per_day!=null?dh.estimated_director_hours_per_day.toFixed(2):"n/a"),s:"estimated (anchored)"},
+    {l:"from_rich touches",v:num(dh.from_rich_touches||0),s:(dh.window_days||"?")+"-day window"},
+    {l:"Tier-1 gates closed",v:num(dh.tier1_gates_closed_all_time||0),s:"all-time, director-authenticated"}
+  ];
+  document.getElementById("queue-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+  if(!q.length){
+    document.getElementById("queue-body").innerHTML='<div class="muted">Queue empty &mdash; nothing awaiting action.</div>';
+  } else {
+    document.getElementById("queue-body").innerHTML=q.map(function(it){
+      return '<div class="qq-item"><span class="qq-name">'+esc(it.filename)+'</span>'+
+        '<span class="qq-time">'+esc(shortTime(it.modified_at))+' &middot; '+num(it.size_bytes||0)+' B</span></div>';
+    }).join("");
+  }
+  document.getElementById("queue-passport").innerHTML=
+    "<b>Passport.</b> "+esc(dh.caveat||"")+" Sources: <a class=\"evlink\" href=\"../data/system_status.json\">system_status.json</a>; "+
+    "<a class=\"evlink\" href=\"../data/provisional_plan.json\">provisional_plan.json</a>.";
+}
+
+/* 3. TWIN Q&A HISTORY ----------------------------------------------------- */
+function renderQA(d){
+  var t=(d&&d.twin)||{};
+  var qa=t.recent_qa||[];
+  document.getElementById("qa-intro").innerHTML=
+    "The actual questions the twin fielded, verbatim, with latency and whether they were "+
+    "answered or routed to the director. Empty answers are kept &mdash; not hidden.";
+  if(!qa.length){
+    document.getElementById("qa-body").innerHTML='<div class="fail">No twin Q&amp;A recorded &mdash; an empty history is a failure to render, not an empty state.</div>';
+    return;
+  }
+  document.getElementById("qa-body").innerHTML=qa.map(function(q){
+    var routed=q.routed_to_director?'<span class="badge routed">ROUTED</span>':'<span class="badge ok">ANSWERED</span>';
+    var ans=q.answer&&q.answer.length?esc(q.answer):'<em>(empty answer &mdash; kept for honesty)</em>';
+    return '<div class="q-row"><div class="q-q">'+esc(q.question)+' '+routed+'</div>'+
+      '<div class="q-a">'+ans+'</div>'+
+      '<div class="q-meta">'+esc(shortTime(q.entry_id))+
+      (q.latency_seconds!=null?' &middot; '+Number(q.latency_seconds).toFixed(2)+'s':'')+
+      (q.overturned?' &middot; OVERTURNED':'')+'</div></div>';
+  }).join("");
+}
+
+/* 4. PROVISIONAL PLAN ----------------------------------------------------- */
+function renderPlan(d){
+  var plan=(d&&d.plan)||{};
+  var ect=plan.empirical_cycle_times||{};
+  var conc=plan.concurrency||{};
+  document.getElementById("plan-intro").innerHTML=
+    "Dates are forecasts; exit tests remain the ONLY gate. No atom is promoted, and no "+
+    "verification shortened, to hit a forecast. Re-forecast cadence: "+esc(plan.re_forecast_cadence||"")+".";
+  var kpis=[
+    {l:"Observed transitions",v:num(ect.transition_count||0),s:"level moves measured"},
+    {l:"Median cycle",v:(ect.median_cycle_days!=null?ect.median_cycle_days.toFixed(3)+"d":"n/a"),s:"per level transition"},
+    {l:"Open atoms",v:num(conc.total_open_atoms||0),s:"across all epochs"},
+    {l:"Real file_scope atoms",v:num(conc.atoms_with_real_file_scope||0),s:"BUILD-contended"}
+  ];
+  document.getElementById("plan-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+  var ct=plan.confidence_tiers||{};
+  var rows=Object.keys(ct).map(function(k){
+    return '<div class="tier-row"><span>Epoch '+esc(k)+'</span><span class="t-conf">'+esc(ct[k])+'</span></div>';
+  }).join("");
+  document.getElementById("plan-body").innerHTML=rows?('<div style="margin-top:8px">'+rows+'</div>'):'';
+  document.getElementById("plan-passport").innerHTML=
+    esc(plan.law_a||"")+' <a class="evlink" href="../data/provisional_plan.json">provisional_plan.json</a>';
+}
+
+/* 5. CURRICULUM RACK (reserved) ------------------------------------------- */
+function renderCurriculum(d){
+  document.getElementById("curriculum-note").innerHTML=
+    '<p class="muted">The curriculum (which worlds the company lives through) and the difficulty '+
+    'dials are the DIRECTOR\'s by right (R13; one-way-door category 6). Difficulty changes are '+
+    'named, versioned, director-authored artefacts &mdash; never silent parameter drift, and never '+
+    'adjusted by the agent in response to company outcomes. <span class="badge reserved">DIRECTOR-RESERVED</span></p>'+
+    '<p class="muted" style="margin-top:10px">This door does not render a write UI for the rack: a static '+
+    'rendering cannot authenticate the director, and category-8 platform administration is console-only. '+
+    'Building a fake-auth dials panel here would be theatre. Honest partial &gt; false complete.</p>';
+}
+
+function renderAll(d){
+  renderTwin(d);
+  renderQueue(d);
+  renderQA(d);
+  renderPlan(d);
+  renderCurriculum(d);
+}
+
+Promise.all([
+  fetch("../data/director_twin.json?t="+Date.now()).then(function(r){return r.json();}),
+  fetch("../data/provisional_plan.json?t="+Date.now()).then(function(r){return r.json();}),
+  fetch("../data/system_status.json?t="+Date.now()).then(function(r){return r.json();})
+]).then(function(res){
+  renderAll({twin:res[0],plan:res[1],sys:res[2]});
+}).catch(function(e){
+  console.error("director door load error:",e);
+  document.getElementById("twin-intro").innerHTML='<span style="color:var(--red)">Could not load director data.</span>';
+});
+</script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</body>
+</html>
