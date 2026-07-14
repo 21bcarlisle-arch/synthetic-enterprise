@@ -83,6 +83,17 @@ SUSTAINED_WINDOW_M = 20           # T5: trailing commits classified
 FIXCLASS_MIN_COUNT = 3            # T7: same fix-class applied >= N times
 FIXCLASS_WINDOW_W = 40            # T7: trailing commits fingerprinted
 STALE_ANSWER_HOURS = 24           # a question open beyond this is re-surfaced
+# T8 (EXPECTED OUTPUT ABSENT, 2026-07-14 NAIVE_ORGAN_BLIND_SPOT_AND_USAGE_WRITE.md):
+# the normal publish/commit cadence is well under an hour; 3h of TOTAL silence
+# (no commit/publish) is anomalous and the organ independently asks "why is it
+# quiet?". Reads the git COMMIT CLOCK (the same independent signal the deadman
+# uses — no daemon's own logging can move it), so it fires precisely WHEN THE
+# SYSTEM IS SILENT — the one condition the publish-coupled organ could never see.
+EXPECTED_OUTPUT_CADENCE_SECONDS = 3 * 60 * 60
+# The organ's OWN wall-clock poll (director gap #1): the daemon runs run_organ_cycle
+# on THIS timer, NOT on publish events, so an outside view never again dies with
+# the pipeline it audits. Independent of process_run_complete entirely.
+ORGAN_POLL_INTERVAL_SECONDS = 30 * 60
 
 # ── THE GOAL: a single fixed sentence, passed as a literal constant, NOT read
 # from CLAUDE.md (the amnesia depends on this — see design §2.1). ──
@@ -261,6 +272,26 @@ def _load_json(path: Path, default):
         return default
 
 
+def _last_commit_epoch() -> float:
+    """Most recent commit timestamp on the current branch, or 0.0 if git is
+    unavailable/fails. The SAME independent progress signal deadmans_switch uses
+    (2026-07-14 module docstring): no daemon's own logging can move the commit
+    clock, only real work does — so a silent wedge cannot masquerade as activity.
+    Returns 0.0 on ANY failure, which T8 reads as 'infinite silence' and FIRES on
+    (fail toward asking, never toward assuming health — R15 fail-silent doctrine:
+    an unavailable liveness check is a FAILED check)."""
+    try:
+        r = subprocess.run(
+            ["git", "log", "-1", "--format=%ct"],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=10,
+        )
+        if r.returncode == 0 and r.stdout.strip():
+            return float(r.stdout.strip())
+    except Exception:
+        pass
+    return 0.0
+
+
 def load_state(*, gitlog_window: str = "3 days ago") -> dict:
     """Assemble the organ's observable world from disk + git. Test code builds
     the dict directly and never calls this."""
@@ -295,6 +326,12 @@ def load_state(*, gitlog_window: str = "3 days ago") -> dict:
         "claims_text": claims_text,
         "gitlog_subjects": gitlog_subjects,
         "idle_count": (idle_state or {}).get("count", 0) if isinstance(idle_state, dict) else 0,
+        # T8 silence signal (independent commit clock + wall-clock now). Present
+        # ONLY when assembled from live disk — hand-built test/fixture states omit
+        # it, and detect_t8 no-fires on its absence (a state that didn't collect
+        # the signal must not manufacture a silence alarm).
+        "last_commit_epoch": _last_commit_epoch(),
+        "now": time.time(),
     }
 
 
@@ -571,7 +608,58 @@ def detect_t7(state: dict) -> list[Trigger]:
     return fires
 
 
-ALL_DETECTORS = [detect_t1, detect_t2, detect_t3, detect_t4, detect_t5, detect_t6, detect_t7]
+def detect_t8(state: dict) -> list[Trigger]:
+    """Trigger #8 — EXPECTED OUTPUT ABSENT (2026-07-14,
+    NAIVE_ORGAN_BLIND_SPOT_AND_USAGE_WRITE.md, director gap #2). The first seven
+    triggers ALL fire on a CLAIM (false health, terminal state, inherence…); this
+    outage was the system saying NOTHING, and silence was not in the trigger set.
+    T8 fires on SILENCE: no commit/publish inside the normal cadence -> the organ
+    independently checks the raw state and asks 'why is it quiet?'.
+
+    It reads the git COMMIT CLOCK (state['last_commit_epoch'], the independent
+    signal — no daemon's own logging can move it), so it can fire precisely WHEN
+    THE SYSTEM IS QUIET, which the publish-coupled organ never could (it woke on
+    the very pipeline that had died — the 6h blackout, 22:12->04:00). Overlaps the
+    deadman DELIBERATELY: the deadman ALARMS, the organ QUESTIONS.
+
+    FAIL-SILENT DOCTRINE (R15): last_commit_epoch == 0.0 means the clock itself
+    was unavailable — an unavailable liveness check is a FAILED check, so silence
+    reads as effectively infinite and the organ FIRES (asks) rather than assuming
+    health. ABSENT signal (key missing -> None) is different: a state that never
+    collected the signal (a hand-built claim-only fixture) must NOT manufacture a
+    silence alarm, so it no-fires."""
+    last_commit = state.get("last_commit_epoch")
+    if last_commit is None:
+        return []
+    now = state.get("now") or time.time()
+    silence = now - float(last_commit)
+    if silence < EXPECTED_OUTPUT_CADENCE_SECONDS:
+        return []
+    hours = silence / 3600.0
+    return [Trigger(
+        trigger_id="T8_expected_output_absent",
+        mode=MODE_INTERROGATE,
+        claim_text=(
+            "The system has produced no commit/publish for {:.1f}h, yet nothing "
+            "reports a problem.".format(hours)
+        ),
+        evidence_refs=("git log -1 --format=%ct", "deadmans-switch-log.md"),
+        observed_value={
+            "silence_seconds": round(silence),
+            "silence_hours": round(hours, 2),
+            "cadence_threshold_seconds": EXPECTED_OUTPUT_CADENCE_SECONDS,
+            "last_commit_epoch": float(last_commit),
+            "clock_available": float(last_commit) > 0.0,
+        },
+        fire_reason=(
+            "no commit/publish for {:.1f}h (> {:.1f}h cadence) — expected output "
+            "absent; why is it quiet?".format(hours, EXPECTED_OUTPUT_CADENCE_SECONDS / 3600.0)
+        ),
+    )]
+
+
+ALL_DETECTORS = [detect_t1, detect_t2, detect_t3, detect_t4, detect_t5, detect_t6,
+                 detect_t7, detect_t8]
 
 
 def _dedupe_by_claim(triggers: list[Trigger]) -> list[Trigger]:
@@ -849,6 +937,134 @@ def run_organ_cycle(*, invoke_fn: InvokeFn | None = None,
                             max_new=max_new)
 
 
+# ── THE INDEPENDENT WALL CLOCK (L3, director gap #1, 2026-07-14). The organ must
+# run on its OWN timer, NOT wake-coupled to the PUBLISH cycle it audits. An
+# outside view on a dependent clock died with the system in the 6h blackout —
+# there were no publishes, so the publish-hooked organ never woke. This loop is
+# the structural fix: it is the SOLE thing that makes the organ fire when the
+# system is SILENT (the one time it matters). Runs OUT OF BAND, exactly like
+# deadmans_switch.main — no import of process_run_complete, no dependence on any
+# publish event. Deploy from cron/systemd (platform step, director-owned):
+#   */30 * * * * cd <repo> && python3 -m background.naive_organ daemon-once
+# or as a long-lived tmux daemon:  python3 -m background.naive_organ daemon ──
+def run_daemon(*, poll_interval: int = ORGAN_POLL_INTERVAL_SECONDS,
+               invoke_fn: InvokeFn | None = None, log_path: Path | None = None,
+               max_new: int | None = 3, once: bool = False,
+               sleep_fn: Callable[[float], None] = time.sleep,
+               max_cycles: int | None = None) -> int:
+    """Independent wall-clock loop. Each tick runs run_organ_cycle REGARDLESS of
+    whether any publish happened — so T8 (silence) can fire during a blackout.
+    `once=True` runs a single cycle and returns (the cron-tick shape).
+    `sleep_fn`/`max_cycles` are injectable so a test drives the loop without real
+    time. Returns the number of cycles run. NEVER raises — a doubt organ that
+    crashes its own loop is a fail-silent doubt organ."""
+    cycles = 0
+    while True:
+        try:
+            run_organ_cycle(invoke_fn=invoke_fn, log_path=log_path, max_new=max_new)
+        except Exception:
+            pass
+        cycles += 1
+        if once or (max_cycles is not None and cycles >= max_cycles):
+            return cycles
+        try:
+            sleep_fn(poll_interval)
+        except Exception:
+            return cycles
+
+
+# ── SHARED-FAILURE-DOMAIN SELF-AUDIT (L3 meta-task, 2026-07-14). 'Which doubt
+# mechanisms share a failure domain with what they monitor?' A doubt mechanism
+# woken by the very thing it doubts cannot fire when that thing dies. The
+# deadman refreshing its OWN clock and the organ waking on the pipeline it audits
+# are the SAME defect in two organs — this audit names them, with the 6h outage
+# as the worked example, so the class is visible not just the instances. ──
+@dataclass(frozen=True)
+class DoubtMechanism:
+    name: str
+    monitors: str
+    wake_signal: str
+    shares_failure_domain: bool
+    note: str
+
+
+DOUBT_MACHINERY_AUDIT: tuple[DoubtMechanism, ...] = (
+    DoubtMechanism(
+        name="deadmans_switch (pre-2026-07-14)",
+        monitors="forward progress — is the system committing?",
+        wake_signal="progress signal = max mtime across docs/observability/",
+        shares_failure_domain=True,
+        note="THE DEFECT (fixed): its own 15-min log write touched "
+             "docs/observability/, refreshing the very signal it read — so a 6h "
+             "wedge logged 'activity 0min ago' every cycle. A watchdog whose "
+             "liveness signal it can itself move can never fire.",
+    ),
+    DoubtMechanism(
+        name="deadmans_switch (post-2026-07-14)",
+        monitors="forward progress — is the system committing?",
+        wake_signal="progress signal = git COMMIT clock only",
+        shares_failure_domain=False,
+        note="FIXED: no daemon's logging can move the commit clock; only real "
+             "work does.",
+    ),
+    DoubtMechanism(
+        name="naive_organ (pre-2026-07-14)",
+        monitors="the system's own claims/state (the 7 claim-triggers)",
+        wake_signal="the PUBLISH cycle it audits (process_run_complete)",
+        shares_failure_domain=True,
+        note="THE DEFECT (fixed here): an outside view on a dependent clock. In "
+             "the 6h blackout there were no publishes, so the organ never woke — "
+             "it died with the pipeline. The SAME shape as the deadman's "
+             "self-refreshed clock.",
+    ),
+    DoubtMechanism(
+        name="naive_organ (post-2026-07-14)",
+        monitors="the system's claims/state AND its SILENCE (T8)",
+        wake_signal="its OWN wall-clock daemon (run_daemon), independent of publishes",
+        shares_failure_domain=False,
+        note="FIXED here: the wake clock no longer shares a failure domain with "
+             "the audited pipeline; T8 reads the independent git commit clock and "
+             "fires ON silence — exactly when the old coupling went blind.",
+    ),
+    DoubtMechanism(
+        name="director_twin approver",
+        monitors="BUILD-open decisions / director-canon authority",
+        wake_signal="event-driven route_blocking_decision on a blocking state",
+        shares_failure_domain=False,
+        note="reads a fixed canon; Law-B no-learn keeps it uncoupled from the "
+             "outcomes it rules on.",
+    ),
+    DoubtMechanism(
+        name="phase-close-evaluator / cold-eyes / Expert-Hour",
+        monitors="a specific artefact at close time",
+        wake_signal="episodic — invoked at a phase/atom close",
+        shares_failure_domain=False,
+        note="artefact-scoped + episodic, not a continuous liveness monitor, so "
+             "it has no silent-death-with-the-pipeline class.",
+    ),
+)
+
+
+def shared_failure_domain_audit() -> list[dict]:
+    """Return the doubt-machinery audit as plain dicts (digest/Proof-door sink).
+    The question it answers: which doubt mechanisms share a failure domain with
+    what they monitor? Data, not prose — so a future organ can be added to the
+    table and re-audited, not re-argued."""
+    return [
+        {"name": m.name, "monitors": m.monitors, "wake_signal": m.wake_signal,
+         "shares_failure_domain": m.shares_failure_domain, "note": m.note}
+        for m in DOUBT_MACHINERY_AUDIT
+    ]
+
+
+def shared_failure_domain_findings() -> list[dict]:
+    """Only the mechanisms whose wake clock shares a failure domain with what
+    they audit — the ones that CAN go silently blind. Post-fix, this should
+    contain only historical (pre-fix) rows; a NEW live row here is a defect to
+    fix, not a note to file."""
+    return [e for e in shared_failure_domain_audit() if e["shares_failure_domain"]]
+
+
 def render_digest_section(*, log_path: Path | None = None,
                           hours: int = STALE_ANSWER_HOURS) -> str:
     """The DIGEST sink (design §3.2 sink 1). Render the 'NAIVE ORGAN asks:'
@@ -887,8 +1103,11 @@ def falsify_staged_doc(doc_path, *, invoke_fn: InvokeFn | None = None,
 
 def _main(argv: list[str]) -> int:
     """CLI so the organ is real and callable from a shell, not only importable.
-      python3 -m background.naive_organ cycle            # run the SYSTEM organ now
+      python3 -m background.naive_organ cycle            # run the SYSTEM organ once
+      python3 -m background.naive_organ daemon-once      # one wall-clock tick (cron)
+      python3 -m background.naive_organ daemon           # independent wall-clock loop
       python3 -m background.naive_organ falsify <path>   # FALSIFY a staged doc
+      python3 -m background.naive_organ audit            # shared-failure-domain audit
     """
     if len(argv) >= 2 and argv[1] == "cycle":
         written = run_organ_cycle()
@@ -897,11 +1116,29 @@ def _main(argv: list[str]) -> int:
         if section:
             print("\n" + section)
         return 0
+    # INDEPENDENT WALL CLOCK (director gap #1) — not wake-coupled to the publish
+    # cycle. `daemon-once` is the cron-tick shape; `daemon` is the long-lived loop.
+    if len(argv) >= 2 and argv[1] == "daemon-once":
+        n = run_daemon(once=True)
+        print("naive organ wall-clock tick: {} cycle(s) run".format(n))
+        section = render_digest_section()
+        if section:
+            print("\n" + section)
+        return 0
+    if len(argv) >= 2 and argv[1] == "daemon":
+        print("naive organ independent wall-clock daemon: poll every {}s "
+              "(Ctrl-C to stop)".format(ORGAN_POLL_INTERVAL_SECONDS))
+        run_daemon()
+        return 0
     if len(argv) >= 3 and argv[1] == "falsify":
         rec = falsify_staged_doc(argv[2])
         print(json.dumps(rec, indent=1, sort_keys=True) if rec else "no record (debounced or empty)")
         return 0
-    print("usage: python3 -m background.naive_organ [cycle | falsify <doc_path>]")
+    if len(argv) >= 2 and argv[1] == "audit":
+        print(json.dumps(shared_failure_domain_audit(), indent=1, sort_keys=True))
+        return 0
+    print("usage: python3 -m background.naive_organ "
+          "[cycle | daemon-once | daemon | falsify <doc_path> | audit]")
     return 1
 
 
