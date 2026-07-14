@@ -403,3 +403,72 @@ def test_zero_subtotal_bill_does_not_crash_vat_check():
     # No VAT reason possible with a zero subtotal (nothing to rate-check);
     # consumption reason still applies independently.
     assert not any("vat_by_segment" in r for r in result.reasons)
+
+
+# --- F6_bill_integrity_structural: footing, non-negativity, temporal sanity ---
+# Wired end-to-end through the actual pre-bill gate. Each defect must HOLD; each
+# legitimate edge (credit note, no declared total, sane period) must still PASS.
+
+
+def test_bill_that_does_not_foot_is_held():
+    # A GBP 999,999 total on GBP 70 of line items -- the named footing defect.
+    bill = _good_resi_bill(total_amount_gbp=999999.0)
+    result = validate_bill(bill)
+    assert result.held is True
+    assert any("does not foot" in r for r in result.reasons)
+
+
+def test_correctly_footing_bill_passes():
+    # commodity + non-commodity + standing + VAT = 44.55 + 16.65 + 9.30 + 3.53
+    bill = _good_resi_bill(total_amount_gbp=74.03)
+    result = validate_bill(bill)
+    assert result.outcome == ValidationOutcome.PASS
+
+
+def test_bill_without_declared_total_still_passes():
+    # The existing fixtures omit total_amount_gbp -- footing is not-applicable,
+    # not a fail-open hold.
+    result = validate_bill(_good_resi_bill())
+    assert not any("does not foot" in r for r in result.reasons)
+
+
+def test_negative_line_item_on_normal_bill_is_held():
+    bill = _good_resi_bill(standing_charge_gbp=-9.30)
+    result = validate_bill(bill)
+    assert result.held is True
+    assert any("line item is negative" in r for r in result.reasons)
+
+
+def test_legitimate_overcharge_credit_note_is_not_held_for_sign():
+    # A D3 catch-up overcharge credit: negative amounts are correct, must PASS
+    # the sign check (and its VAT is validated on magnitudes, not skipped).
+    subtotal = -70.50
+    credit = _good_resi_bill(
+        commodity_amount_gbp=-44.55, non_commodity_amount_gbp=-16.65,
+        standing_charge_gbp=-9.30, vat_gbp=subtotal * 0.05,
+        total_amount_gbp=subtotal * 1.05,
+        catchup_applied=True, catchup_direction="overcharge",
+    )
+    result = validate_bill(credit)
+    assert not any("line item is negative" in r for r in result.reasons)
+
+
+def test_reversed_date_bill_is_rejected_not_clamped():
+    # The named temporal defect: period_start after period_end. Previously
+    # silently clamped to a 1-day period by _days_in_period() and issued.
+    bill = _good_resi_bill(period_start="2024-02-28", period_end="2024-01-01")
+    result = validate_bill(bill)
+    assert result.held is True
+    assert any("temporally impossible" in r for r in result.reasons)
+
+
+def test_footing_check_is_sign_invariant_credit_still_foots():
+    # A correctly-footing credit note passes footing; a mis-footing one is held.
+    subtotal = -70.50
+    good_credit = _good_resi_bill(
+        commodity_amount_gbp=-44.55, non_commodity_amount_gbp=-16.65,
+        standing_charge_gbp=-9.30, vat_gbp=round(subtotal * 0.05, 2),
+        total_amount_gbp=round(subtotal * 1.05, 2),
+        catchup_applied=True, catchup_direction="overcharge",
+    )
+    assert not any("does not foot" in r for r in validate_bill(good_credit).reasons)
