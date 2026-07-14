@@ -1,5 +1,42 @@
+## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
+Last updated: 2026-07-14T04:33:59Z
+
+**One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
+Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
+on a busy pane those keystrokes aren't recognised as a slash command and piled UNSUBMITTED in the
+input box. The accumulation guard then correctly refused every legitimate turn grant ("Turn grant
+not delivered" throughout `supervisor-log`), so no turns ran and no commit landed for ~6h. Nothing
+alarmed because the dead-man's switch was **fail-silent (R15)**: its "alive" signal was
+`max(commit, ANY observability-dir mtime)` — every daemon's per-cycle log (incl. the switch's OWN
+write) refreshed it, so it logged "activity recent (0min ago)" every cycle while staged files
+climbed 31→59. A watchdog that refreshes its own liveness signal can never fire.
+
+**Fix 1 — one gate for ALL pane writers + verify-or-rollback** (commit `3825780e7`, pushed):
+all three raw `send-keys` sites in `session_watchdog` routed through the shared gated relay;
+new `tmux_relay.read_slash_dialog_when_idle` (idle+empty+byte-stable, read-back verify, Ctrl-U
+rollback). MECHANISM: `test_no_raw_tmux_send_keys_outside_relay_module` greps the tree and fails
+if any raw send-keys reappears (was RED on the 3 sites before the fix).
+**Fix 2 — deadman de-fanged of the fail-silent hole**: progress signal is now the git COMMIT clock
+ALONE (observability-mtime term deleted); two tiers, both suppressed only in a declared usage pause —
+[BLOCKED] (queued work + no commit ≥45min, the outage class) and [STALL] (no commit ≥90min, the
+wedged-but-empty backstop). Mutation-tested: `test_daemon_log_writes_do_not_mask_a_stale_commit`
+replays the exact outage and asserts the alarm fires. 136 background tests pass; epistemic PASS.
+Both daemons respawned and confirmed on new code (deadman log now reads "commit recent").
+
+**Weather BUILD-open — routed to the twin (governance wiring), verdict: HOLD.** Per the delegation,
+`route_blocking_decision` put the Epoch-3 weather-physics BUILD-open (W1_2→W1_3) to the standing
+approver. Twin answer (high confidence, NOT director-reserved, no human wait): **no, not yet** —
+the open epoch is Epoch 2, so opening Epoch-3 BUILD would skip Epoch 2's exit tests (§4/§5); the
+§3a APPROVE-default is for BUILD *within* the open epoch only. DISCOVER/FRAME weather work stands.
+
+**Residual (chronic, pre-dates the blackout):** ~61 `run_complete_*.md` in staging (oldest 07:28
+*yesterday*) — the auto-processor is alive and draining newest-first but chronically behind. Flagged
+as an atom, not conflated with the acute incident.
+
+---
+
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-13T21:28:29Z
+Last updated: 2026-07-14T04:31:58Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -39,11 +76,11 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
-- Net margin: £1,505,249.80 | Gross: £6,455,328.74 | Capital: £51,232
-- Treasury: £2,466,636 → £3,883,415 | 38 committee interventions | 1575 bills issued
-- Enterprise value: £7,281,749.29 | Net after CTS: £6,385,467
-- Retention: 12 offers, 12/12 retained | 4 no-offer churns | 4 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (500s / 8 min):
+- Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
+- Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
+- Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
+- Retention: 12 offers, 12/12 retained | 5 no-offer churns | 5 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
