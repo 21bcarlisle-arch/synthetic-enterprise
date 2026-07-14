@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T15:00:32Z
+Last updated: 2026-07-14T15:14:37Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T14:55:55Z
+Last updated: 2026-07-14T15:09:43Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (485s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -90,9 +90,9 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] When you say BUILD is "inherently" narrow — is that a fixed property of what BUILD actually does, or just an artifact of how this one tree/suite happens to be configured, and what specifically would break if that scope were widened?
 - (T3_inherence) [unanswered >24h] What actually justifies the claim that BUILD is "inherently narrow (1-3 max)" — is that a measured property of the work itself, or just an assertion, and what concretely goes wrong if it were made wider?
 - (T3_inherence) [unanswered >24h] If the extra 24 atoms are read-only, zero-collision, and would move you toward target, what is the actual constraint forcing them to be worked one at a time rather than all at once?
-- (T3_inherence) When you call BUILD "inherently narrow," what is the concrete definition of BUILD's scope that makes narrowness intrinsic — and if you cannot state that scope independently of this particular tree/suite's configuration, on what basis is the word "inherently" doing any work at all?
-- (T3_inherence) When you say BUILD is "inherently narrow (1-3 max)," is "1-3" a number that fell out of measuring something about the work — like task interdependence, error rates, or throughput at higher widths — or is it just a cap someone picked and then relabeled as "inherent"? What specific failure have you actually observed (or would predict) at width 4+ that doesn't occur at width 3?
-- (T3_inherence) If those 24 atoms truly are read-only, zero-collision, and target-positive, who or what actually enforces the "one at a time" limit — is it a hard mechanical rule of this system, or just an unexamined default that no one has traced back to a real constraint?
+- (T3_inherence) [unanswered >24h] When you call BUILD "inherently narrow," what is the concrete definition of BUILD's scope that makes narrowness intrinsic — and if you cannot state that scope independently of this particular tree/suite's configuration, on what basis is the word "inherently" doing any work at all?
+- (T3_inherence) [unanswered >24h] When you say BUILD is "inherently narrow (1-3 max)," is "1-3" a number that fell out of measuring something about the work — like task interdependence, error rates, or throughput at higher widths — or is it just a cap someone picked and then relabeled as "inherent"? What specific failure have you actually observed (or would predict) at width 4+ that doesn't occur at width 3?
+- (T3_inherence) [unanswered >24h] If those 24 atoms truly are read-only, zero-collision, and target-positive, who or what actually enforces the "one at a time" limit — is it a hard mechanical rule of this system, or just an unexamined default that no one has traced back to a real constraint?
 - (T3_inherence) If BUILD's "narrowness" can only be demonstrated by pointing at the current tree/suite configuration, what observable would change — some capability BUILD gains or loses — the moment you swapped that configuration, and if the answer is "nothing," why is that dependence being described as "inherent" rather than simply "how it happens to be wired right now"?
 - (T3_inherence) If width 3 was itself just carried over from some earlier default rather than measured, what evidence would distinguish "we tested 4+ and it failed" from "we never ran anything wider than 3, so of course we've only ever observed success at 3"?
 - (T3_inherence) If 24 atoms are each independently read-only, zero-collision, and target-positive, what concrete failure or cost is supposed to occur if two or more are applied together — and has anyone actually observed that failure, or is "one at a time" just asserted without a single traced example of collision or harm?
@@ -147,4 +147,7 @@ count; that is the honesty bar, not regression.
 - (T7_repeated_fix_class_two_strike) If a "two_strike" policy means the mechanism is eliminated on the second failure, how has the same defect reached a third application (an R3 "strike two") without the earlier strikes having already forced its elimination?
 - (T3_inherence) What evidence connects `route_blocking_decision` sending the W1_2→W1_3 weather-physics BUILD-open "to the standing" with any change in the supplier's enterprise value or its distance from administration — or is "the standing" just an internal state transition with no demonstrated bearing on the north star?
 - (T3_inherence) What is the rest of the sentence — specifically, what property or scope of the whole system is being claimed to follow from "BUILD is inherently narrow (one tree/suite/...)," and does that claimed consequence actually hold, or does calling BUILD "narrow" quietly assume the very thing it's being used to justify?
+- (T3_inherence) When you say "inherently narrow," can you name the specific thing BUILD *does* that constrains its scope — as opposed to a config choice — and show what would actually fail if that scope were widened, rather than just asserting it would?
+- (T3_inherence) When you say BUILD is "inherently narrow (1-3 max)," what is the "1-3" actually counting — parallel tasks, people, work-items, something else — and what specific failure did you observe (or predict) at 4+ that you did not see at 3?
+- (T3_inherence) If those 24 atoms are genuinely read-only, zero-collision, and target-advancing, who or what actually verified those three properties — and if they were verified all at once, why can that same batched verification not authorize working them all at once?
 <!-- /NAIVE_ORGAN_ASKS -->
