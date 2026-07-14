@@ -10,20 +10,20 @@ the last partial). The business survived the full window.
 - Final treasury: £3,898,728.86
   (£1,432,092.64 net change)
 - Solvency signal (final year): £424,931/customer (9 customers, OK; Ofgem floor £130/customer)
-- Customer bills (all-in): £22,617,077.77
-  VAT remitted to HMRC: (£3,748,111.36) | Revenue (ex-VAT): £18,868,966.41
-  Non-commodity pass-through: (£4,793,528.88)
-- Gross margin: £6,475,837.81
+- Customer bills (all-in): £20,674,694.22
+  VAT remitted to HMRC: (£3,427,700.54) | Revenue (ex-VAT): £17,246,993.67
+  Non-commodity pass-through: (£4,369,923.88)
+- Gross margin: £5,277,470.08
 - Capital costs: £51,604.44
-- Net margin: £6,424,233.38
-- Capital cost ratio: 0.8% of gross
-- Net margin as % of revenue: 34.0%
+- Net margin: £5,225,865.64
+- Capital cost ratio: 1.0% of gross
+- Net margin as % of revenue: 30.3%
   (industry benchmark for a retail energy supplier: 2-5%)
 - Risk committee (Context Handshake) interventions: 38
 - Bills issued: 1588, average clarity 0.783,
   service quality score 0.883
 - Enterprise value (CLV sum across 14 billing accounts): £7,803,339.73
-- Cost to serve (whole portfolio): £23,293.21, net margin after cost to serve: £6,400,940.17
+- Cost to serve (whole portfolio): £23,293.21, net margin after cost to serve: £5,202,572.44
 - Hedge effectiveness (whole window): hedging cost £4,218,742.46 vs. a fully unhedged book (commodity-only: actual net £1,432,092.64 vs. naked net £5,650,835.10)
 
 - **2021** (crisis year): net margin £75,403.21, 0 risk committee wake-up(s).
@@ -41,7 +41,7 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 | Churn blind miss rate | 3/5 departures (60%) | **RED** | Company did not forecast these churns |
 | Demand estimation error | Peak mean 2.4%, max 7.5% | **AMBER** | EAC drift from asset acquisitions; smart meters eliminate |
 | Pricing basis risk (worst year) | 2025: +34.0% mean over-estimate | **RED** | Over-priced contracts help margin but create churn risk |
-| Net margin % of revenue | 34.0% (benchmark: 2-5%) | **GREEN** | Within/above industry range |
+| Net margin % of revenue | 30.3% (benchmark: 2-5%) | **GREEN** | Within/above industry range |
 
 **Board Action Required:** Churn blind miss rate, Pricing basis risk (worst year) — RED rating(s) require immediate attention.
 
@@ -49,15 +49,15 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
-The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £6,475,837.81, capital £51,604.44, net £6,424,233.38. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
+The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £5,277,470.08, capital £51,604.44, net £5,225,865.64. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
 
-- **Capital cost as % of gross margin**: 0.8% (commodity basis, comparable to old model) / 0.8% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
+- **Capital cost as % of gross margin**: 0.8% (commodity basis, comparable to old model) / 1.0% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
 - **2021 net margin**: £75,403.21 under the new mandate vs. £-1,096.43 under the old reactive model.
-- **Net margin as % of revenue**: this run 34.0%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
+- **Net margin as % of revenue**: this run 30.3%; old-model run Not available in current run output (see REPORTING_BACKLOG.md) (revenue wasn't captured in that snapshot).
 
 **Whole-run net margin, three ways:**
 
-- Mandate-hedged (actual, this run, Phase 9a): £6,424,233.38
+- Mandate-hedged (actual, this run, Phase 9a): £5,225,865.64
 - Old reactive model (actual, commodity-only): £26,779.56
 - Fully naked (this run's counterfactual, commodity-only): £5,650,835.10
 - Fully naked (old run's counterfactual, commodity-only): £33,476.19
@@ -1380,19 +1380,19 @@ Key per-customer and margin metrics by year.
 
 | Year | Customers | EBIT% | Revenue/Customer £ | GM/Customer £ | Bad Debt% |
 |------|-----------|-------|--------------------|--------------|-----------|
-| 2016 | 13 | 41.3% | £1,247 | £634 | 1.62% |
-| 2017 | 14 | 32.8% | £24,835 | £8,873 | 2.02% |
-| 2018 | 15 | 41.0% | £40,018 | £17,555 | 2.23% |
-| 2019 | 17 | 40.3% | £96,609 | £41,347 | 2.13% |
-| 2020 | 19 | 40.2% | £97,823 | £41,979 | 2.35% |
-| 2021 | 14 | 28.9% | £172,452 | £54,382 | 2.22% |
-| 2022 | 14 | 22.1% | £302,747 | £74,880 | 2.27% |
-| 2023 | 14 | 24.9% | £248,921 | £69,207 | 2.50% |
-| 2024 | 14 | 38.9% | £213,884 | £89,318 | 2.44% |
-| 2025 | 11 | 39.8% | £116,727 | £51,041 | 3.35% |
+| 2016 | 13 | 40.4% | £1,215 | £611 | 1.65% |
+| 2017 | 14 | 21.9% | £18,676 | £4,684 | 1.92% |
+| 2018 | 15 | 34.5% | £33,137 | £12,512 | 2.41% |
+| 2019 | 17 | 37.4% | £88,747 | £35,436 | 2.13% |
+| 2020 | 19 | 37.3% | £88,511 | £35,402 | 2.28% |
+| 2021 | 14 | 25.1% | £158,333 | £44,029 | 2.28% |
+| 2022 | 14 | 18.2% | £282,849 | £58,898 | 2.24% |
+| 2023 | 14 | 21.7% | £233,491 | £57,515 | 2.50% |
+| 2024 | 14 | 33.5% | £182,369 | £66,611 | 2.52% |
+| 2025 | 11 | 40.0% | £116,699 | £51,016 | 3.14% |
 
-**Best EBIT%: 2016 (41.3%)** | **Worst EBIT%: 2022 (22.1%)**
-**Peak revenue/customer: 2022 (£302,747)**
+**Best EBIT%: 2016 (40.4%)** | **Worst EBIT%: 2022 (18.2%)**
+**Peak revenue/customer: 2022 (£282,849)**
 
 > Note: Revenue/customer driven by customer mix (I&C customers 10-100× resi volumes).
 
@@ -1404,19 +1404,19 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 5.91% | 6% | OK | 15.4% | 8% | ! |
-| 2017 | 5.75% | 6% | OK | 35.7% | 8% | ! |
-| 2018 | 6.43% | 6% | ~ | 13.3% | 8% | ~ |
-| 2019 | 5.65% | 6% | OK | 47.1% | 8% | ! |
-| 2020 | 5.45% | 6% | OK | 0.0% | 8% | OK |
-| 2021 | 5.18% | 8% | OK | 7.1% | 12% | OK |
-| 2022 | 6.45% | 8% | OK | 35.7% | 12% | ! |
-| 2023 | 6.25% | 8% | OK | 28.6% | 12% | ! |
-| 2024 | 5.51% | 6% | OK | 21.4% | 8% | ! |
-| 2025 | 5.99% | 6% | OK | 18.2% | 8% | ! |
+| 2016 | 5.91% | 6% | OK | 23.1% | 8% | ! |
+| 2017 | 5.75% | 6% | OK | 14.3% | 8% | ~ |
+| 2018 | 6.43% | 6% | ~ | 20.0% | 8% | ! |
+| 2019 | 5.65% | 6% | OK | 11.8% | 8% | ~ |
+| 2020 | 5.45% | 6% | OK | 26.3% | 8% | ! |
+| 2021 | 5.18% | 8% | OK | 14.3% | 12% | ~ |
+| 2022 | 6.45% | 8% | OK | 14.3% | 12% | ~ |
+| 2023 | 6.25% | 8% | OK | 21.4% | 12% | ! |
+| 2024 | 5.51% | 6% | OK | 14.3% | 8% | ~ |
+| 2025 | 5.99% | 6% | OK | 0.0% | 8% | OK |
 
 **Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
-**Arrears:** 2 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
+**Arrears:** 1 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
 
 ## Plausibility vs Industry
 
@@ -1424,19 +1424,19 @@ Key metrics vs UK retail energy norms (Ofgem/Cornwall Insight). OK = within rang
 
 | Year | Net margin% | Gross margin% | Bad debt% | Churn% |
 |------|-------------|---------------|-----------|--------|
-| 2016 | !41.3% | !50.9% | OK1.62% | ~0% |
-| 2017 | !32.8% | !35.7% | OK2.02% | ~0% |
-| 2018 | !41.0% | !43.9% | OK2.23% | ~0% |
-| 2019 | !40.3% | !42.8% | OK2.13% | ~0% |
-| 2020 | !40.2% | !42.9% | OK2.35% | OK16% |
-| 2021 | !28.9% | !31.5% | OK2.22% | ~0% |
-| 2022 | !22.1% | ~24.7% | OK2.27% | ~0% |
-| 2023 | !24.9% | ~27.8% | OK2.50% | ~0% |
-| 2024 | !38.9% | !41.8% | OK2.44% | OK14% |
-| 2025 | !39.8% | !43.7% | OK3.35% | ~0% |
+| 2016 | !40.4% | !50.2% | OK1.65% | ~0% |
+| 2017 | !21.9% | ~25.1% | OK1.92% | ~0% |
+| 2018 | !34.5% | !37.8% | OK2.41% | ~0% |
+| 2019 | !37.4% | !39.9% | OK2.13% | ~0% |
+| 2020 | !37.3% | !40.0% | OK2.28% | OK16% |
+| 2021 | !25.1% | ~27.8% | OK2.28% | ~0% |
+| 2022 | ~18.2% | ~20.8% | OK2.24% | ~0% |
+| 2023 | !21.7% | ~24.6% | OK2.50% | ~0% |
+| 2024 | !33.5% | !36.5% | OK2.52% | OK14% |
+| 2025 | !40.0% | !43.7% | OK3.14% | ~0% |
 
 **Benchmark ranges:** Net margin %: −5 to +8% green | Gross margin %: 0–20% green | Bad debt %: 0–5% green | Annual churn %: 3–35% green.
-**RED — review required: 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025**
+**RED — review required: 2016, 2017, 2018, 2019, 2020, 2021, 2023, 2024, 2025**
 
 ## Churn Prediction Calibration
 
@@ -1580,7 +1580,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-14T17:08:39Z
+Generated: 2026-07-14T17:43:38Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -1679,18 +1679,18 @@ Annual change in gross margin decomposed into revenue and cost drivers.
 
 | Year | Revenue £ | Wholesale £ | Non-Commodity £ | Gross Margin £ | GM% | ΔRevenue £ | ΔWholesale £ | ΔNon-Comm £ | ΔGM £ |
 |------|-----------|-------------|-----------------|----------------|-----|------------|--------------|-------------|-------|
-| 2016 | £16,206.51 | £3,594.97 | £4,363.77 | £8,247.77 | 50.9% | — | — | — | — |
-| 2017 | £347,687.40 | £111,055.45 | £112,416.49 | £124,215.46 | 35.7% | +£331,480.89 | +£107,460.48 | +£108,052.72 | +£115,967.69 |
-| 2018 | £600,266.54 | £172,874.18 | £164,071.67 | £263,320.69 | 43.9% | +£252,579.14 | +£61,818.73 | +£51,655.17 | +£139,105.23 |
-| 2019 | £1,642,347.98 | £496,238.21 | £443,205.99 | £702,903.77 | 42.8% | +£1,042,081.44 | +£323,364.03 | +£279,134.32 | +£439,583.08 |
-| 2020 | £1,858,635.50 | £431,614.76 | £629,415.51 | £797,605.23 | 42.9% | +£216,287.52 | £-64,623.45 | +£186,209.52 | +£94,701.46 |
-| 2021 | £2,414,322.55 | £972,018.99 | £680,957.47 | £761,346.09 | 31.5% | +£555,687.05 | +£540,404.23 | +£51,541.96 | £-36,259.14 |
-| 2022 | £4,238,464.98 | £2,389,640.00 | £800,510.57 | £1,048,314.41 | 24.7% | +£1,824,142.43 | +£1,417,621.01 | +£119,553.10 | +£286,968.32 |
-| 2023 | £3,484,887.42 | £1,639,848.16 | £876,136.62 | £968,902.63 | 27.8% | £-753,577.56 | £-749,791.84 | +£75,626.06 | £-79,411.78 |
-| 2024 | £2,994,377.75 | £931,927.11 | £812,004.87 | £1,250,445.77 | 41.8% | £-490,509.67 | £-707,921.05 | £-64,131.76 | +£281,543.14 |
-| 2025 | £1,284,000.63 | £452,103.87 | £270,445.93 | £561,450.83 | 43.7% | £-1,710,377.11 | £-479,823.24 | £-541,558.93 | £-688,994.94 |
+| 2016 | £15,798.13 | £3,594.97 | £4,266.17 | £7,937.00 | 50.2% | — | — | — | — |
+| 2017 | £261,457.47 | £111,055.45 | £84,831.53 | £65,570.49 | 25.1% | +£245,659.34 | +£107,460.48 | +£80,565.36 | +£57,633.50 |
+| 2018 | £497,058.56 | £172,874.18 | £136,503.09 | £187,681.29 | 37.8% | +£235,601.08 | +£61,818.73 | +£51,671.56 | +£122,110.79 |
+| 2019 | £1,508,704.10 | £496,238.21 | £410,061.51 | £602,404.37 | 39.9% | +£1,011,645.54 | +£323,364.03 | +£273,558.42 | +£414,723.08 |
+| 2020 | £1,681,708.26 | £431,614.76 | £577,453.55 | £672,639.95 | 40.0% | +£173,004.16 | £-64,623.45 | +£167,392.03 | +£70,235.58 |
+| 2021 | £2,216,660.00 | £972,018.99 | £628,228.93 | £616,412.08 | 27.8% | +£534,951.74 | +£540,404.23 | +£50,775.39 | £-56,227.87 |
+| 2022 | £3,959,883.06 | £2,389,640.00 | £745,673.98 | £824,569.08 | 20.8% | +£1,743,223.06 | +£1,417,621.01 | +£117,445.05 | +£208,157.00 |
+| 2023 | £3,268,875.48 | £1,639,848.16 | £823,812.61 | £805,214.71 | 24.6% | £-691,007.58 | £-749,791.84 | +£78,138.63 | £-19,354.37 |
+| 2024 | £2,553,163.95 | £931,927.11 | £688,685.09 | £932,551.75 | 36.5% | £-715,711.53 | £-707,921.05 | £-135,127.52 | +£127,337.04 |
+| 2025 | £1,283,684.66 | £452,103.87 | £270,407.42 | £561,173.37 | 43.7% | £-1,269,479.29 | £-479,823.24 | £-418,277.67 | £-371,378.38 |
 
-**Best GM year: 2016 (50.9%)** | **Worst GM year: 2022 (24.7%)**
+**Best GM year: 2016 (50.2%)** | **Worst GM year: 2022 (20.8%)**
 
 > Note: Non-commodity costs include network (DUoS/TNUoS), policy levies (RO/CfD/CCL/CM/FiT), and mutualization.
 
@@ -1800,19 +1800,19 @@ Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.
 
 | Year | Equity | Monthly Rev | FRA Ratio | RAG | Compliant |
 |------|--------|-------------|-----------|-----|-----------|
-| 2016 | £2,473,323.59 | £1,350.54 | 1831.4x | ✓ GREEN | Yes |
-| 2017 | £2,587,285.87 | £28,973.95 | 89.3x | ✓ GREEN | Yes |
-| 2018 | £2,833,135.41 | £50,022.21 | 56.6x | ✓ GREEN | Yes |
-| 2019 | £3,495,050.08 | £136,862.33 | 25.5x | ✓ GREEN | Yes |
-| 2020 | £4,242,656.40 | £154,886.29 | 27.4x | ✓ GREEN | Yes |
-| 2021 | £4,941,165.01 | £201,193.55 | 24.6x | ✓ GREEN | Yes |
-| 2022 | £5,876,274.93 | £353,205.41 | 16.6x | ✓ GREEN | Yes |
-| 2023 | £6,744,171.11 | £290,407.28 | 23.2x | ✓ GREEN | Yes |
-| 2024 | £7,908,071.29 | £249,531.48 | 31.7x | ✓ GREEN | Yes |
-| 2025 | £8,419,352.98 | £107,000.05 | 78.7x | ✓ GREEN | Yes |
+| 2016 | £2,473,014.07 | £1,316.51 | 1878.5x | ✓ GREEN | Yes |
+| 2017 | £2,530,341.86 | £21,788.12 | 116.1x | ✓ GREEN | Yes |
+| 2018 | £2,701,957.51 | £41,421.55 | 65.2x | ✓ GREEN | Yes |
+| 2019 | £3,266,186.39 | £125,725.34 | 26.0x | ✓ GREEN | Yes |
+| 2020 | £3,894,145.73 | £140,142.35 | 27.8x | ✓ GREEN | Yes |
+| 2021 | £4,450,851.13 | £184,721.67 | 24.1x | ✓ GREEN | Yes |
+| 2022 | £5,169,756.28 | £329,990.26 | 15.7x | ✓ GREEN | Yes |
+| 2023 | £5,879,394.32 | £272,406.29 | 21.6x | ✓ GREEN | Yes |
+| 2024 | £6,734,071.99 | £212,763.66 | 31.6x | ✓ GREEN | Yes |
+| 2025 | £7,247,768.12 | £106,973.72 | 67.8x | ✓ GREEN | Yes |
 
-**Weakest year:** 2022 — 16.6x (equity £5,876,274.93 vs monthly revenue £353,205.41). RAG: GREEN.
-**Strongest year:** 2016 — 1831.4x.
+**Weakest year:** 2022 — 15.7x (equity £5,169,756.28 vs monthly revenue £329,990.26). RAG: GREEN.
+**Strongest year:** 2016 — 1878.5x.
 
 ## I&C Broker / TPI Commission (Phase OA)
 
@@ -1844,18 +1844,18 @@ Zero-mean: adjustments go both ways. Crisis years bias toward supplier credit.
 
 | Year | Revenue £ | Pool Outstanding £ | Max Adverse £ | RAG | Crisis |
 |------|-----------|---------------------|---------------|-----|--------|
-| 2016 | £16,206.51 | £6,023.42 | £51.20 | ✓ GREEN |  |
-| 2017 | £347,687.40 | £129,223.82 | £1,098.40 | ✓ GREEN |  |
-| 2018 | £600,266.54 | £223,099.06 | £1,896.34 | ✓ GREEN |  |
-| 2019 | £1,642,347.98 | £610,406.00 | £5,188.45 | ✓ GREEN |  |
-| 2020 | £1,858,635.50 | £690,792.86 | £5,871.74 | ✓ GREEN |  |
-| 2021 | £2,414,322.55 | £897,323.21 | £7,627.25 | ✓ GREEN | CREDIT EXPECTED |
-| 2022 | £4,238,464.98 | £1,575,296.15 | £13,390.02 | ✓ GREEN | CREDIT EXPECTED |
-| 2023 | £3,484,887.42 | £1,295,216.49 | £11,009.34 | ✓ GREEN |  |
-| 2024 | £2,994,377.75 | £1,112,910.40 | £9,459.74 | ✓ GREEN |  |
-| 2025 | £1,284,000.63 | £477,220.24 | £4,056.37 | ✓ GREEN |  |
+| 2016 | £15,798.13 | £5,871.64 | £49.91 | ✓ GREEN |  |
+| 2017 | £261,457.47 | £97,175.03 | £825.99 | ✓ GREEN |  |
+| 2018 | £497,058.56 | £184,740.10 | £1,570.29 | ✓ GREEN |  |
+| 2019 | £1,508,704.10 | £560,735.02 | £4,766.25 | ✓ GREEN |  |
+| 2020 | £1,681,708.26 | £625,034.90 | £5,312.80 | ✓ GREEN |  |
+| 2021 | £2,216,660.00 | £823,858.63 | £7,002.80 | ✓ GREEN | CREDIT EXPECTED |
+| 2022 | £3,959,883.06 | £1,471,756.54 | £12,509.93 | ✓ GREEN | CREDIT EXPECTED |
+| 2023 | £3,268,875.48 | £1,214,932.05 | £10,326.92 | ✓ GREEN |  |
+| 2024 | £2,553,163.95 | £948,925.93 | £8,065.87 | ✓ GREEN |  |
+| 2025 | £1,283,684.66 | £477,102.80 | £4,055.37 | ✓ GREEN |  |
 
-**Peak reconciliation exposure:** 2022 — max adverse £13,390 (4.5 months weighted tail).
+**Peak reconciliation exposure:** 2022 — max adverse £12,510 (4.5 months weighted tail).
 
 _Note: Outstanding pool ≈ current-year revenue × (weighted outstanding months ÷ 12)._
 _Max adverse = pool × blended variance rate (0.5% HH + 4% non-HH, portfolio-weighted)._
@@ -1867,16 +1867,16 @@ WATCH = within 20% of threshold. BREACH = threshold crossed.
 
 | Year | Customers | Net Assets | Treasury | Cash Wks | Bad Debt % | Overall |
 |------|-----------|------------|----------|----------|------------|---------|
-| 2016 | 13 | £2,473,323.59 | £2,467,441.30 | 35691w | 0.64% | ✗ BREACH |
-| 2017 | 14 | £2,587,285.87 | £2,498,923.22 | 1170w | 0.18% | ✗ BREACH |
-| 2018 | 15 | £2,833,135.41 | £2,487,793.14 | 748w | 0.08% | ✗ BREACH |
-| 2019 | 17 | £3,495,050.08 | £2,611,617.09 | 274w | 0.00% | ✗ BREACH |
-| 2020 | 19 | £4,242,656.40 | £2,923,984.85 | 352w | -0.00% | ✗ BREACH |
-| 2021 | 14 | £4,941,165.01 | £2,957,451.74 | 158w | 0.02% | ✗ BREACH |
-| 2022 | 14 | £5,876,274.93 | £3,161,018.31 | 69w | 0.00% | ✗ BREACH |
-| 2023 | 14 | £6,744,171.11 | £3,384,517.32 | 107w | 0.09% | ✗ BREACH |
-| 2024 | 14 | £7,908,071.29 | £3,772,457.43 | 211w | -0.00% | ✗ BREACH |
-| 2025 | 11 | £8,419,352.98 | £3,824,376.26 | 440w | -0.00% | ✗ BREACH |
+| 2016 | 13 | £2,473,014.07 | £2,467,441.30 | 35691w | 0.64% | ✗ BREACH |
+| 2017 | 14 | £2,530,341.86 | £2,498,923.22 | 1170w | 0.18% | ✗ BREACH |
+| 2018 | 15 | £2,701,957.51 | £2,487,793.14 | 748w | 0.08% | ✗ BREACH |
+| 2019 | 17 | £3,266,186.39 | £2,611,617.09 | 274w | 0.00% | ✗ BREACH |
+| 2020 | 19 | £3,894,145.73 | £2,923,984.85 | 352w | -0.00% | ✗ BREACH |
+| 2021 | 14 | £4,450,851.13 | £2,957,451.74 | 158w | 0.02% | ✗ BREACH |
+| 2022 | 14 | £5,169,756.28 | £3,161,018.31 | 69w | 0.00% | ✗ BREACH |
+| 2023 | 14 | £5,879,394.32 | £3,384,517.32 | 107w | 0.09% | ✗ BREACH |
+| 2024 | 14 | £6,734,071.99 | £3,772,457.43 | 211w | -0.00% | ✗ BREACH |
+| 2025 | 11 | £7,247,768.12 | £3,824,376.26 | 440w | -0.00% | ✗ BREACH |
 
 **BREACH years:** 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 — board escalation required.
 
@@ -1950,7 +1950,7 @@ ROC buy-out cost is the maximum supplier exposure; ROC market purchases reduce a
 | 2025 | 4,265.1 | 0.389 ROC/MWh | 1,659.1 | £58.10 | £96,395 |
 | **Total** | **66,591.4** | | | | **£1,268,875** |
 
-RO cost as % of total revenue (2016-2025): **6.7%** (industry benchmark 5-10%)
+RO cost as % of total revenue (2016-2025): **7.4%** (industry benchmark 5-10%)
 
 > Note: actual RO cost depends on ROC market prices. Buy-out price is the regulatory ceiling.
 ## Feed-in Tariff (FiT) Levelisation Levy
@@ -1972,7 +1972,7 @@ Ofgem FiT levelisation redistributes FiT payment obligations across all licensed
 | 2025 | 4,265.1 | GBP0.00 (scheme closed) | NIL |
 | **Total** | | | **GBP115,749.11** |
 
-FiT levy as % of total revenue (levy years 2016-2019): **0.6%** (industry benchmark ~1-2%)
+FiT levy as % of total revenue (levy years 2016-2019): **0.7%** (industry benchmark ~1-2%)
 
 > FiT levy ended 2019-20. Post-2019 cost is NIL as levelisation rates fell to zero.
 ## Climate Change Levy (CCL) Observatory
@@ -2026,17 +2026,17 @@ Phases: ECO2 (2015-2018, GBP3.20/MWh), ECO3 (2018-2022, GBP4.50/MWh), ECO4 (2022
 | Year | ECO Phase | Rate (GBP/MWh) | Domestic Cust | Status | Counterfactual Liability |
 |------|----------|---------------|--------------|--------|------------------------|
 | 2016 | ECO2 | GBP3.20 | 13 | OK (exempt) | GBP0 |
-| 2017 | ECO2 | GBP3.20 | 13 | OK (exempt) | GBP7 |
-| 2018 | ECO3 | GBP4.50 | 13 | OK (exempt) | GBP18 |
-| 2019 | ECO3 | GBP4.50 | 13 | OK (exempt) | GBP49 |
-| 2020 | ECO3 | GBP4.50 | 14 | OK (exempt) | GBP56 |
-| 2021 | ECO3 | GBP4.50 | 9 | OK (exempt) | GBP72 |
-| 2022 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP192 |
-| 2023 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP158 |
-| 2024 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP136 |
+| 2017 | ECO2 | GBP3.20 | 13 | OK (exempt) | GBP6 |
+| 2018 | ECO3 | GBP4.50 | 13 | OK (exempt) | GBP15 |
+| 2019 | ECO3 | GBP4.50 | 13 | OK (exempt) | GBP45 |
+| 2020 | ECO3 | GBP4.50 | 14 | OK (exempt) | GBP50 |
+| 2021 | ECO3 | GBP4.50 | 9 | OK (exempt) | GBP66 |
+| 2022 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP180 |
+| 2023 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP148 |
+| 2024 | ECO4 | GBP6.80 | 9 | OK (exempt) | GBP116 |
 | 2025 | ECO4 | GBP6.80 | 6 | OK (exempt) | GBP58 |
 
-Counterfactual total 2016-2025 (if 150k domestic): **GBP746**
+Counterfactual total 2016-2025 (if 150k domestic): **GBP684**
 
 > Actual ECO liability: NIL -- domestic customer count is far below threshold.
 > Counterfactual shows obligation rate if portfolio scaled to 150,000 domestic customers.
@@ -2048,16 +2048,16 @@ Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid an
 | Year | Elec MWh | Grid Intensity | Elec CO2 (t) | Gas MWh | Gas CO2 (t) | Total CO2 (t) | Low Carbon % |
 |------|----------|---------------|-------------|---------|------------|-------------|-------------|
 | 2016 | 0 | 315g/kWh | 0.0 | 0 | 0.0 | 0.0 | 45% |
-| 2017 | 2 | 290g/kWh | 0.7 | 0 | 0.0 | 0.7 | 49% |
-| 2018 | 4 | 274g/kWh | 1.1 | 0 | 0.1 | 1.2 | 51% |
-| 2019 | 11 | 244g/kWh | 2.7 | 1 | 0.2 | 2.9 | 57% |
-| 2020 | 12 | 225g/kWh | 2.8 | 1 | 0.2 | 3.0 | 59% (decarbonising) |
-| 2021 | 16 | 243g/kWh | 3.9 | 2 | 0.3 | 4.2 | 56% (decarbonising) |
-| 2022 | 28 | 237g/kWh | 6.7 | 3 | 0.5 | 7.2 | 57% (decarbonising) |
-| 2023 | 23 | 219g/kWh | 5.1 | 2 | 0.4 | 5.5 | 59% (decarbonising) |
-| 2024 | 20 | 196g/kWh | 3.9 | 2 | 0.4 | 4.3 | 64% (decarbonising) |
+| 2017 | 2 | 290g/kWh | 0.5 | 0 | 0.0 | 0.5 | 49% |
+| 2018 | 3 | 274g/kWh | 0.9 | 0 | 0.1 | 1.0 | 51% |
+| 2019 | 10 | 244g/kWh | 2.5 | 1 | 0.2 | 2.7 | 57% |
+| 2020 | 11 | 225g/kWh | 2.5 | 1 | 0.2 | 2.7 | 59% (decarbonising) |
+| 2021 | 15 | 243g/kWh | 3.6 | 1 | 0.3 | 3.9 | 56% (decarbonising) |
+| 2022 | 26 | 237g/kWh | 6.3 | 3 | 0.5 | 6.8 | 57% (decarbonising) |
+| 2023 | 22 | 219g/kWh | 4.8 | 2 | 0.4 | 5.2 | 59% (decarbonising) |
+| 2024 | 17 | 196g/kWh | 3.3 | 2 | 0.3 | 3.6 | 64% (decarbonising) |
 | 2025 | 9 | 175g/kWh | 1.5 | 1 | 0.2 | 1.7 | 68% (decarbonising) |
-| **Total** | | | | | | **30.7 t** | |
+| **Total** | | | | | | **28.1 t** | |
 
 > Grid emission intensity declining: 2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction). Carbon disclosure per SECR/ESOS.
 ## Risk Committee Activity (2016-2025)
@@ -2477,7 +2477,7 @@ Lifetime net margin: £1,521,069.65 across 19 billing accounts. Revenue: £14,02
 | Capital cost | -£51,604 | 0.4% |
 | **Net supply margin** | **£1,521,070** | **10.8%** |
 
-> *The ledger's `net_margin_gbp` (£6,424,233) is gross − capital only, not final net.*
+> *The ledger's `net_margin_gbp` (£5,225,866) is gross − capital only, not final net.*
 
 ### Segment Net Margin vs Benchmark
 | Segment | Revenue | Gross% | Net% | Benchmark | Status |
@@ -2494,42 +2494,40 @@ No individual customers outside ±40.0/80.0 thresholds.
 **SANITY CHECK: PASS** — all segments within benchmarks.
 ## Transaction Log
 
-Total events: 3,382,567
+Total events: 3,381,708
 
 | Event type | Count |
 |------------|-------|
 | acquisition_spend_event | 4 |
-| back_billing_write_off_event | 2 |
-| bad_debt_event | 1,562 |
-| billing_event | 1,587 |
+| bad_debt_event | 1,440 |
+| billing_event | 1,440 |
 | capital_charge_event | 1,628,977 |
 | cost_to_serve_event | 114 |
 | fixed_cost_event | 114 |
-| non_commodity_cost_event | 1,587 |
-| payment_received_event | 1,587 |
-| revenue_restatement_event | 147 |
+| non_commodity_cost_event | 1,440 |
+| payment_received_event | 1,440 |
 | settlement_event | 1,745,299 |
-| vat_remittance_event | 1,587 |
+| vat_remittance_event | 1,440 |
 
 **Cash-flow waterfall (from ledger)**
 
 | Flow | Amount |
 |------|--------|
-| Customer bills (all-in) | £22,617,077.77 |
-|   Less: VAT remitted to HMRC | (£3,748,111.36) |
-| = Revenue (ex-VAT) | £18,868,966.41 |
-| Less: non-commodity pass-through | (£4,793,528.88) |
+| Customer bills (all-in) | £20,674,694.22 |
+|   Less: VAT remitted to HMRC | (£3,427,700.54) |
+| = Revenue (ex-VAT) | £17,246,993.67 |
+| Less: non-commodity pass-through | (£4,369,923.88) |
 | Wholesale cost (settlement events) | (£7,599,599.72) |
-| Gross margin | £6,475,837.81 |
+| Gross margin | £5,277,470.08 |
 | Capital charges | (£51,604.44) |
-| Net margin | £6,424,233.38 |
+| Net margin | £5,225,865.64 |
 
-_Cash reconciliation: of £22,617,077.77 billed, bad debt of £452,575.76 was written off, leaving £22,164,624.07 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £9,719,891.04._
+_Cash reconciliation: of £20,674,694.22 billed, bad debt of £413,562.05 was written off, leaving £20,261,132.17 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £8,240,004.14._
 
 | Acquisition spend | (£862.50) |
 | Fixed overhead | (£5,700.00) |
 | Cost to serve | (£23,293.21) |
-| Operating net margin | £6,394,377.67 |
+| Operating net margin | £5,196,009.94 |
 
 ## Annual Management Accounts
 
@@ -2537,30 +2535,30 @@ Year-by-year income statement from company accounting records. All figures £.
 
 | Year | Revenue | Wholesale | Non-Commod | Gross Margin | Bad Debt | OpEx | Net Margin |
 |------|---------|-----------|-----------|--------------|----------|------|------------|
-| 2016 | £16,206.51 | £3,594.97 | £4,363.77 | £8,247.77 | £262.70 | £1,474.07 | £6,687.37 (41.3%) |
-| 2017 | £347,687.40 | £111,055.45 | £112,416.49 | £124,215.46 | £7,034.86 | £8,979.73 | £113,962.28 (32.8%) |
-| 2018 | £600,266.54 | £172,874.18 | £164,071.67 | £263,320.69 | £13,404.07 | £15,848.60 | £245,849.54 (41.0%) |
-| 2019 | £1,642,347.98 | £496,238.21 | £443,205.99 | £702,903.77 | £34,977.14 | £38,421.29 | £661,914.67 (40.3%) |
-| 2020 | £1,858,635.50 | £431,614.76 | £629,415.51 | £797,605.23 | £43,688.90 | £48,036.05 | £747,606.32 (40.2%) |
-| 2021 | £2,414,322.55 | £972,018.99 | £680,957.47 | £761,346.09 | £53,574.19 | £57,233.77 | £698,508.62 (28.9%) |
-| 2022 | £4,238,464.98 | £2,389,640.00 | £800,510.57 | £1,048,314.41 | £96,273.95 | £99,933.12 | £935,109.91 (22.1%) |
-| 2023 | £3,484,887.42 | £1,639,848.16 | £876,136.62 | £968,902.63 | £87,275.75 | £90,934.63 | £867,896.18 (24.9%) |
-| 2024 | £2,994,377.75 | £931,927.11 | £812,004.87 | £1,250,445.77 | £73,084.71 | £77,045.93 | £1,163,900.18 (38.9%) |
-| 2025 | £1,284,000.63 | £452,103.87 | £270,445.93 | £561,450.83 | £42,999.49 | £44,524.27 | £511,281.69 (39.8%) |
-| **Total** | **£18,881,197.25** | | | | | | **£5,952,716.76 (31.5%)** |
+| 2016 | £15,798.13 | £3,594.97 | £4,266.17 | £7,937.00 | £261.44 | £1,472.81 | £6,377.85 (40.4%) |
+| 2017 | £261,457.47 | £111,055.45 | £84,831.53 | £65,570.49 | £5,024.39 | £6,969.26 | £57,327.79 (21.9%) |
+| 2018 | £497,058.56 | £172,874.18 | £136,503.09 | £187,681.29 | £11,998.55 | £14,443.09 | £171,615.65 (34.5%) |
+| 2019 | £1,508,704.10 | £496,238.21 | £410,061.51 | £602,404.37 | £32,163.53 | £35,607.68 | £564,228.87 (37.4%) |
+| 2020 | £1,681,708.26 | £431,614.76 | £577,453.55 | £672,639.95 | £38,370.59 | £42,717.75 | £627,959.34 (37.3%) |
+| 2021 | £2,216,660.00 | £972,018.99 | £628,228.93 | £616,412.08 | £50,443.39 | £54,102.98 | £556,705.40 (25.1%) |
+| 2022 | £3,959,883.06 | £2,389,640.00 | £745,673.98 | £824,569.08 | £88,733.39 | £92,392.55 | £718,905.15 (18.2%) |
+| 2023 | £3,268,875.48 | £1,639,848.16 | £823,812.61 | £805,214.71 | £81,845.98 | £85,504.86 | £709,638.04 (21.7%) |
+| 2024 | £2,553,163.95 | £931,927.11 | £688,685.09 | £932,551.75 | £64,413.20 | £68,374.42 | £854,677.67 (33.5%) |
+| 2025 | £1,283,684.66 | £452,103.87 | £270,407.42 | £561,173.37 | £40,307.59 | £41,832.37 | £513,696.13 (40.0%) |
+| **Total** | **£17,246,993.67** | | | | | | **£4,781,131.90 (27.7%)** |
 
-**Best year:** 2024 — net £1,163,900.18 (38.9% margin)
-**Worst year:** 2016 — net £6,687.37 (41.3% margin)
+**Best year:** 2024 — net £854,677.67 (33.5% margin)
+**Worst year:** 2016 — net £6,377.85 (40.4% margin)
 
 ### Balance Sheet (Year End 2025)
 
 | Item | Value |
 |------|-------|
-| Cash | £8,419,230.92 |
-| Trade Receivables | £122.06 |
-| **Total Assets** | **£8,419,352.98** |
+| Cash | £7,247,768.12 |
+| Trade Receivables | £0.00 |
+| **Total Assets** | **£7,247,768.12** |
 | Opening Capital | £2,466,636.22 |
-| Current Period Profit | £5,952,716.76 |
+| Current Period Profit | £4,781,131.90 |
 
 ## Budget vs Actual
 
@@ -2568,16 +2566,16 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 
 | Year | Bud Revenue | Act Revenue | Rev% | Bud Net | Act Net | Net% | RAG |
 |------|-------------|-------------|------|---------|---------|------|-----|
-| 2016 | £14,671.69 | £16,206.51 | +10.5% | £6,592.99 | £6,687.37 | +1.4% | GREEN |
-| 2017 | £16,138.86 | £347,687.40 | +2054.3% | £7,252.29 | £113,962.28 | +1471.4% | RED |
-| 2018 | £386,623.75 | £600,266.54 | +55.3% | £128,424.00 | £245,849.54 | +91.4% | RED |
-| 2019 | £675,851.95 | £1,642,347.98 | +143.0% | £281,335.50 | £661,914.67 | +135.3% | RED |
-| 2020 | £1,816,630.04 | £1,858,635.50 | +2.3% | £736,963.94 | £747,606.32 | +1.4% | GREEN |
-| 2021 | £2,028,952.42 | £2,414,322.55 | +19.0% | £833,649.22 | £698,508.62 | -16.2% | RED |
-| 2022 | £2,607,611.88 | £4,238,464.98 | +62.5% | £790,935.58 | £935,109.91 | +18.2% | RED |
-| 2023 | £4,508,414.67 | £3,484,887.42 | -22.7% | £1,029,561.00 | £867,896.18 | -15.7% | RED |
-| 2024 | £3,512,844.39 | £2,994,377.75 | -14.8% | £893,105.75 | £1,163,900.18 | +30.3% | RED |
-| 2025 | £3,145,356.42 | £1,284,000.63 | -59.2% | £1,315,150.33 | £511,281.69 | -61.1% | RED |
+| 2016 | £14,671.69 | £15,798.13 | +7.7% | £6,592.99 | £6,377.85 | -3.3% | GREEN |
+| 2017 | £16,138.86 | £261,457.47 | +1520.0% | £7,252.29 | £57,327.79 | +690.5% | RED |
+| 2018 | £386,623.75 | £497,058.56 | +28.6% | £128,424.00 | £171,615.65 | +33.6% | RED |
+| 2019 | £675,851.95 | £1,508,704.10 | +123.2% | £281,335.50 | £564,228.87 | +100.6% | RED |
+| 2020 | £1,816,630.04 | £1,681,708.26 | -7.4% | £736,963.94 | £627,959.34 | -14.8% | AMBER |
+| 2021 | £2,028,952.42 | £2,216,660.00 | +9.3% | £833,649.22 | £556,705.40 | -33.2% | RED |
+| 2022 | £2,607,611.88 | £3,959,883.06 | +51.9% | £790,935.58 | £718,905.15 | -9.1% | AMBER |
+| 2023 | £4,508,414.67 | £3,268,875.48 | -27.5% | £1,029,561.00 | £709,638.04 | -31.1% | RED |
+| 2024 | £3,512,844.39 | £2,553,163.95 | -27.3% | £893,105.75 | £854,677.67 | -4.3% | GREEN |
+| 2025 | £3,145,356.42 | £1,283,684.66 | -59.2% | £1,315,150.33 | £513,696.13 | -60.9% | RED |
 
 ## Growth & Acquisition
 
@@ -2608,7 +2606,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 | 2025 | (£300.00) |
 
 **Total fixed cost:** £5,700.00 over simulation window
-**Operating net margin** (energy margin less acquisition spend & fixed costs): £6,417,670.88
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £5,219,303.14
 
 ## 2016
 
