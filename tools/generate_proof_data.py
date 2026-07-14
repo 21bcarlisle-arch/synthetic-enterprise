@@ -277,6 +277,130 @@ def _open_work(atoms):
     return out
 
 
+def _coupled_gaps(atoms):
+    """The COUPLED-TRIAD Proof-door panel data (COUPLED_TRIAD_DESIGN.md 5.2):
+    "The gap between what the world knows and what the company believes."
+
+    One row per coupled (world <-> company) pair, read straight from the
+    belief-vs-truth gap ledger (docs/observability/coupled_gap_ledger.json) and
+    the maturity map -- the same "read the ledger, never invent" discipline the
+    verification stack uses. The harness is the ONLY layer holding both the
+    hidden SIM truth and the company's observable-only belief; this panel renders
+    what it measured, it never recomputes a gap here (SITE_CONSTITUTION rule 5:
+    the site is a rendering, never an author).
+
+    The panel is a CONTROL surface and must be able to FAIL (R15), so the reading
+    convention is encoded, not just displayed:
+      * value is None (no measurement)  -> chip "untested", severity amber.
+        A world atom sitting >=L2 with no measured gap is "depth nobody copes
+        with yet" -- the binding-rule-1 failure mode made visible, never hidden.
+      * value <= 0                      -> chip "leak", severity red. A gap of
+        exactly 0 means the observables leaked theta (an epistemic-wall breach in
+        spirit), a defect, NOT a triumph (design 1.2 / the W2_7 "perfect
+        classifier = defect" clause).
+      * value > 1                       -> chip "worse_than_blind", severity red.
+      * 0 < value <= 1                  -> chip "measured", severity blue -- the
+        company has learned some, but not all, of the hidden structure (the
+        honest steady state). Trend (falling/static/rising) needs a measurement
+        history store and is reported as "single" until one exists.
+
+    `blocks_l3` re-uses the live draw gate (background.coupled_triad.
+    world_l3_blocked) so the panel and the orchestrator's BUILD draw read the
+    SAME predicate -- the pixel cannot drift from the mechanism.
+    """
+    try:
+        from background.coupled_triad import (
+            build_coupling,
+            load_gap_ledger,
+            world_l3_blocked,
+        )
+    except Exception:
+        return dict(available=False,
+                    note="background.coupled_triad not importable at generation time")
+
+    ledger = load_gap_ledger()
+    coupling = build_coupling(atoms)
+    by_id = {a.get("id"): a for a in atoms if isinstance(a, dict) and a.get("id")}
+
+    def _row(world_id, twin_id):
+        entry = ledger.get(world_id) if isinstance(ledger, dict) else None
+        entry = entry if isinstance(entry, dict) else {}
+        gap = entry.get("gap")
+        # bool is a subclass of int; a boolean gap is malformed, not a value.
+        numeric = isinstance(gap, (int, float)) and not isinstance(gap, bool)
+        value = float(gap) if numeric else None
+
+        world = by_id.get(world_id) or {}
+        twin = by_id.get(twin_id) or {}
+        blocked, block_reason = (False, "")
+        try:
+            blocked, block_reason = world_l3_blocked(world, atoms, ledger)
+        except Exception:
+            blocked, block_reason = (False, "gate not evaluable")
+
+        if value is None:
+            chip, severity = "untested", "amber"
+        elif value <= 0:
+            chip, severity = "leak", "red"
+        elif value > 1:
+            chip, severity = "worse_than_blind", "red"
+        else:
+            chip, severity = "measured", "blue"
+
+        return dict(
+            world_atom=world_id,
+            world_name=world.get("name"),
+            world_level=world.get("level_current"),
+            company_atom=twin_id,
+            company_name=twin.get("name"),
+            company_level=twin.get("level_current"),
+            metric=entry.get("metric"),
+            value=value,
+            baseline_g0=entry.get("g0"),
+            baseline_desc=entry.get("baseline"),
+            raw_gap=entry.get("raw_gap"),
+            components=entry.get("components"),
+            note=entry.get("note"),
+            measured_at=entry.get("measured_at"),
+            run_git_commit=entry.get("run_git_commit"),
+            trend="single",  # one point on record; history store is a follow-up
+            history=[value] if value is not None else [],
+            chip=chip,
+            severity=severity,
+            blocks_l3=bool(blocked),
+            blocks_l3_reason=block_reason if blocked else None,
+        )
+
+    rows = [_row(w, c) for w, c in sorted(coupling.items())]
+    # Defensive: surface any ledger entry whose world atom is not in the live
+    # coupling (a registration/rename drift), rather than silently dropping it.
+    covered = set(coupling)
+    for world_id, entry in (ledger.items() if isinstance(ledger, dict) else []):
+        if world_id in covered or not isinstance(entry, dict):
+            continue
+        rows.append(_row(world_id, entry.get("twin_atom_id")))
+
+    measured = sum(1 for r in rows if r["value"] is not None)
+    # Anti-decay metric (design 5.1): a coupled world atom that is mechanically
+    # real (>=L2) but whose gap is unmeasured -- depth with no measured coping.
+    unmeasured_ge_l2 = [
+        r["world_atom"] for r in rows
+        if r["value"] is None and isinstance(r["world_level"], int) and r["world_level"] >= 2
+    ]
+    return dict(
+        available=True,
+        source="docs/observability/coupled_gap_ledger.json",
+        pair_count=len(rows),
+        measured=measured,
+        unmeasured=len(rows) - measured,
+        blocks_l3_count=sum(1 for r in rows if r["blocks_l3"]),
+        wall_leak_count=sum(1 for r in rows if r["chip"] == "leak"),
+        worse_than_blind_count=sum(1 for r in rows if r["chip"] == "worse_than_blind"),
+        unmeasured_ge_l2=unmeasured_ge_l2,
+        pairs=rows,
+    )
+
+
 def _predictions_ledger():
     """The centrepiece: the REAL shadow-live pre-registered decision log
     (site/state/track_record_scorecard.json). A real source exists, so it is
@@ -379,6 +503,7 @@ def generate():
         retro_library=retros,
         verification=_verification_stack(atoms),
         open_work=_open_work(atoms),
+        coupled_gaps=_coupled_gaps(atoms),
         predictions=_predictions_ledger(),
         principles=_principles(),
     )
