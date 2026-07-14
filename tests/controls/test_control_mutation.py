@@ -734,3 +734,232 @@ def test_control_registry_is_wellformed_and_in_sync():
     vat = next(c for c in controls if c["id"] == "check_vat_arithmetic")
     assert vat["result"] == "THEATRE"
     assert vat["killer_pattern_audit"] == "TAUTOLOGY"
+
+
+# ==========================================================================
+# PASS 3 (H12 L2->L3): the epistemic-verifier's OWN coverage gaps (KL-2) and
+# the deterministic COMPLIANCE ACCUMULATOR-REGISTER TAIL.
+# CONTROLS_THAT_CANNOT_FAIL.md -- the verifier is itself a control, and it had
+# two killer-pattern gaps of its own (fail-silent on a missing file it was
+# asked to check; fail-open on any SIM import the line-anchored regex did not
+# match: stray whitespace, a bare `import simulation`, a same-line compound
+# import). The registers below are governance controls (FCA Fair Value, board
+# quorum, LPCDCA statutory-interest lawfulness) not yet mutation-tested. Same
+# doctrine: inject each control's named defect and assert it FIRES; audit each
+# for TAUTOLOGY / FAIL-OPEN / FAIL-SILENT, asserting documented
+# not-applicable/degrade branches explicitly so the kill list can cite them.
+# ==========================================================================
+
+# --------------------------------------------------------------------------
+# tools/epistemic_verifier.py -- KL-2: the verifier's own killer-pattern gaps
+# --------------------------------------------------------------------------
+
+def _scan_src(src):
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "m.py")
+        with open(p, "w") as fh:
+            fh.write(src)
+        return ev._scan_file(p)
+
+
+def test_verifier_fires_on_whitespace_and_bare_sim_import_forms():
+    # KL-2 FAIL-OPEN FIXED: the line-anchored regex only matched exact
+    # `from simulation.` / `import simulation.` at line start. Any variant the
+    # AST now catches used to read CLEAN (theatre). Each MUST fire.
+    # (a) stray double-space after the keyword.
+    assert len(_scan_src("from  simulation.weather_engine import temperature\n")) == 1
+    # (b) bare package import with no dotted tail (`import simulation`).
+    assert len(_scan_src("import simulation\n")) == 1
+    assert len(_scan_src("import sim\n")) == 1
+    # (c) a compound same-physical-line import -- never at a matchable line start.
+    assert len(_scan_src("import os; import simulation.weather_engine\n")) == 1
+    # (d) an aliased import.
+    assert len(_scan_src("import simulation.weather_engine as we\n")) == 1
+    # (e) an import nested inside a function body (indented, deferred).
+    assert len(_scan_src("def f():\n    from simulation.var import x\n    return x\n")) == 1
+
+
+def test_verifier_does_not_false_fire_on_lookalike_names():
+    # OUTCOME-SAFE: the approved seam, and modules that merely START with the
+    # forbidden letters but are different packages, must NOT fire.
+    assert _scan_src("from company.interfaces.sim_interface import get_market_price\n") == []
+    assert _scan_src("import simplejson\n") == []            # not the `sim` package
+    assert _scan_src("from similarity import score\n") == []  # not `sim.`
+    # The approved orchestration modules remain exempt (structural, not epistemic).
+    assert _scan_src("from simulation.run_segments import run\n") == []
+    assert _scan_src("import simulation.run_phase4c_on_phase2b\n") == []
+
+
+def test_verifier_missing_file_alarms_not_clean():
+    # KL-2 FAIL-SILENT FIXED: a file the verifier was ASKED to scan but cannot
+    # read previously returned [] -- read as a clean PASS (theatre: an
+    # unavailable check manufacturing confidence). It must now surface a
+    # check_unavailable finding so the overall scan cannot silently pass.
+    # BEFORE: ev._scan_file("/no/such/file.py") == []   (fail-silent clean)
+    # AFTER : it returns a check_unavailable finding.
+    findings = ev._scan_file("/no/such/directory/nope.py")
+    assert findings and findings[0].get("kind") == "check_unavailable"
+    # The finding carries the keys _format_report needs (no KeyError on report).
+    for key in ("file", "line", "code", "description", "why"):
+        assert key in findings[0]
+    # An unparseable-but-readable file still gets inspected via the regex
+    # fallback rather than skipped -- a broken file is not silently clean.
+    assert _scan_src("def (:\n") is not None  # returns a list, not a crash
+
+
+def test_verifier_syntaxerror_fallback_still_catches_the_import():
+    # A file with a genuine syntax error further down must STILL have its
+    # forbidden import caught by the line-regex fallback (unparseable != clean).
+    src = "from simulation.weather_engine import temperature\ndef (:\n"
+    assert len(_scan_src(src)) >= 1
+
+
+# --------------------------------------------------------------------------
+# segment_debt_policy.py -- the LPCDCA Tier-1 lawfulness control
+# --------------------------------------------------------------------------
+
+from datetime import date as _date
+from company.compliance import segment_debt_policy as sdp
+
+
+def test_debt_terms_control_fires_on_unlawful_domestic_interest():
+    as_of = _date(2022, 3, 1)
+    # CORRECT: a domestic account with neither interest nor a late charge passes.
+    clean = {"interest_applied": False, "late_charge_applied": False}
+    assert sdp.check_debt_terms_lawful_for_segment("resi", clean, as_of) is True
+    # MUTATE: LPCDCA statutory interest charged to a DOMESTIC account is unlawful.
+    assert sdp.check_debt_terms_lawful_for_segment(
+        "resi", {"interest_applied": True, "late_charge_applied": False}, as_of) is False
+    # MUTATE: a late-payment CHARGE on a domestic account is unlawful.
+    assert sdp.check_debt_terms_lawful_for_segment(
+        "resi", {"interest_applied": False, "late_charge_applied": True}, as_of) is False
+
+
+def test_debt_terms_control_fires_on_wrong_statutory_rate_for_business():
+    as_of = _date(2022, 3, 1)  # H1 2022 -> base 0.25% -> statutory 8.25%
+    expected = sdp.statutory_interest_rate(as_of)
+    assert expected is not None
+    # CORRECT: business interest at exactly the statutory rate is lawful.
+    ok = {"interest_applied": True, "late_charge_applied": False, "interest_rate": expected}
+    assert sdp.check_debt_terms_lawful_for_segment("sme", ok, as_of) is True
+    # MUTATE: over-charging interest (wrong statutory rate) FIRES.
+    wrong = {"interest_applied": True, "late_charge_applied": False,
+             "interest_rate": expected + 0.05}
+    assert sdp.check_debt_terms_lawful_for_segment("sme", wrong, as_of) is False
+
+
+def test_debt_terms_control_fails_closed_on_missing_or_unrecognised_input():
+    as_of = _date(2022, 3, 1)
+    # FAIL-CLOSED audit: an unrecognised segment must HELD (False), not pass.
+    ok_payload = {"interest_applied": False, "late_charge_applied": False}
+    assert sdp.check_debt_terms_lawful_for_segment("banana", ok_payload, as_of) is False
+    # FAIL-CLOSED: a malformed / missing applied payload must HELD.
+    assert sdp.check_debt_terms_lawful_for_segment("resi", None, as_of) is False
+    assert sdp.check_debt_terms_lawful_for_segment("resi", {"interest_applied": True}, as_of) is False
+    # FAIL-CLOSED: business interest applied but the rate cannot be priced
+    # (a date outside the anchored 2016-2025 statutory history) must HELD, never
+    # guess -- an unverifiable control is a failed control.
+    out_of_range = _date(2035, 1, 1)
+    assert sdp.statutory_interest_rate(out_of_range) is None
+    assert sdp.check_debt_terms_lawful_for_segment(
+        "sme", {"interest_applied": True, "late_charge_applied": False, "interest_rate": 0.0825},
+        out_of_range) is False
+
+
+def test_canonical_segment_raises_on_the_mislabel_class():
+    # INDEPENDENCE / R10: an unknown segment spelling must RAISE, never silently
+    # default to domestic (the SME-as-Household mislabel class this guards).
+    import pytest as _pytest
+    with _pytest.raises(ValueError):
+        sdp.canonical_segment("household-ish")
+    with _pytest.raises(ValueError):
+        sdp.canonical_segment(None)
+
+
+# --------------------------------------------------------------------------
+# fair_value_assessment_register.py -- FCA Consumer Duty fair-value control
+# --------------------------------------------------------------------------
+
+from company.compliance.fair_value_assessment_register import (
+    FairValueAssessmentRegister, ProductCategory, FairValueOutcome,
+)
+
+
+def test_fair_value_register_fires_on_poor_value_and_overdue_review():
+    reg = FairValueAssessmentRegister()
+    fair = reg.create_assessment(
+        product_id="P_fair", product_category=ProductCategory.STANDARD_VARIABLE,
+        assessment_date=_date(2024, 1, 1), outcome=FairValueOutcome.FAIR_VALUE,
+        cost_to_serve_gbp_pa=100.0, revenue_per_customer_gbp_pa=200.0, customer_count=10)
+    poor = reg.create_assessment(
+        product_id="P_poor", product_category=ProductCategory.STANDARD_VARIABLE,
+        assessment_date=_date(2022, 1, 1), outcome=FairValueOutcome.POOR_VALUE,
+        cost_to_serve_gbp_pa=190.0, revenue_per_customer_gbp_pa=200.0, customer_count=10)
+    # MUTATE: a poor-value product must surface (the whole point of the register).
+    assert [r.product_id for r in reg.poor_value_products()] == ["P_poor"]
+    assert poor.is_poor_value is True and fair.is_poor_value is False
+    # MUTATE: an assessment older than the 12-month review cycle is OVERDUE.
+    as_of = _date(2024, 6, 1)
+    overdue_ids = {r.product_id for r in reg.overdue_reviews(as_of)}
+    assert "P_poor" in overdue_ids       # assessed 2022 -> long overdue, fires
+    assert "P_fair" not in overdue_ids   # assessed 2024-01 -> within the cycle
+
+
+def test_fair_value_register_create_rejects_impossible_economics():
+    # FAIL-CLOSED audit: negative cost/revenue/customer counts are absurd inputs
+    # and must RAISE, never be silently recorded (a corrupt assessment would
+    # poison every downstream fair-value rate).
+    import pytest as _pytest
+    reg = FairValueAssessmentRegister()
+    with _pytest.raises(ValueError):
+        reg.create_assessment("P", ProductCategory.STANDARD_VARIABLE, _date(2024, 1, 1),
+                              FairValueOutcome.FAIR_VALUE, -1.0, 200.0, 10)
+    with _pytest.raises(ValueError):
+        reg.create_assessment("P", ProductCategory.STANDARD_VARIABLE, _date(2024, 1, 1),
+                              FairValueOutcome.FAIR_VALUE, 100.0, 200.0, -5)
+
+
+def test_fair_value_compliance_rate_empty_is_none_not_false_hundred_percent():
+    # FAIL-SILENT audit (same class as KL-5): an EMPTY register must NOT report
+    # a compliant-looking 100%. It returns None (not-assessed), a distinct state
+    # that a caller cannot mistake for compliance.
+    reg = FairValueAssessmentRegister()
+    assert reg.fair_value_compliance_rate_pct() is None
+    # OUTCOME-SAFE: a populated all-fair register reads a genuine 100%.
+    reg.create_assessment("P", ProductCategory.STANDARD_VARIABLE, _date(2024, 1, 1),
+                          FairValueOutcome.FAIR_VALUE, 100.0, 200.0, 10)
+    assert reg.fair_value_compliance_rate_pct() == 100.0
+
+
+# --------------------------------------------------------------------------
+# board_meeting_register.py -- governance quorum control
+# --------------------------------------------------------------------------
+
+from company.compliance.board_meeting_register import (
+    BoardMeetingRegister, MeetingType, MeetingStatus,
+)
+
+
+def test_board_quorum_control_fires_when_too_few_directors_attend():
+    reg = BoardMeetingRegister()
+    m = reg.schedule(MeetingType.BOARD, _date(2024, 3, 1), directors_total=6)
+    # CORRECT: 3 of 6 present meets the >=50% quorum -> HELD, quorum_met True.
+    held = reg.record_held(m.meeting_id, directors_present=3, resolutions=[])
+    assert held.status == MeetingStatus.HELD
+    assert held.quorum_met is True
+    # MUTATE: only 2 of 6 present -> quorum FAILS, the meeting is not validly held.
+    m2 = reg.schedule(MeetingType.BOARD, _date(2024, 6, 1), directors_total=6)
+    failed = reg.record_held(m2.meeting_id, directors_present=2, resolutions=[])
+    assert failed.status == MeetingStatus.QUORUM_FAILED
+    assert failed.quorum_met is False
+    assert failed.was_held is False
+
+
+def test_board_quorum_fails_closed_on_zero_directors():
+    # FAIL-CLOSED audit: a meeting with zero directors on the board (or none
+    # present) can never meet quorum -- quorum_met must be False, not a
+    # divide-by-zero or a vacuous True.
+    reg = BoardMeetingRegister()
+    m = reg.schedule(MeetingType.EMERGENCY, _date(2024, 3, 1), directors_total=0)
+    rec = reg.record_held(m.meeting_id, directors_present=0, resolutions=[])
+    assert rec.quorum_met is False
