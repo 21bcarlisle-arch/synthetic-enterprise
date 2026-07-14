@@ -234,7 +234,7 @@ def test_run_cycle_does_not_reping_resolved_items(monkeypatch):
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
     action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
-    action_needed.resolve_item("a")
+    action_needed.resolve_item("a", "answered")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))

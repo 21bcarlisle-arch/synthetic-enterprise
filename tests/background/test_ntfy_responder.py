@@ -176,9 +176,30 @@ def test_write_to_staging_creates_file(tmp_path, monkeypatch):
     assert "Hello from Rich" in path.read_text()
 
 
-def test_write_to_staging_rejects_short_message():
-    path = responder._write_to_staging("Hi")
-    assert path is None
+def test_write_to_staging_rejects_short_message_when_nothing_is_open(tmp_path, monkeypatch):
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    import background.action_needed as an
+    monkeypatch.setattr(an, "open_items", lambda *a, **k: [])
+    assert responder._write_to_staging("Hi") is None
+
+
+def test_write_to_staging_keeps_short_reply_when_a_director_question_is_open(tmp_path, monkeypatch):
+    """The evaporation fix: a terse answer (A/B/C/D, 'yes') to an OPEN
+    [ACTION NEEDED] item must NOT be dropped by the <25-char filter."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    import background.action_needed as an
+    monkeypatch.setattr(an, "open_items", lambda *a, **k: [{"item_id": "q"}])
+    path = responder._write_to_staging("B")
+    assert path is not None and path.exists()
+    assert "B" in path.read_text()
+
+
+def test_write_to_staging_long_message_always_staged(tmp_path, monkeypatch):
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    import background.action_needed as an
+    monkeypatch.setattr(an, "open_items", lambda *a, **k: [])  # even with nothing open
+    path = responder._write_to_staging("this is a sufficiently long steering message")
+    assert path is not None and path.exists()
 
 
 def test_content_hash_consistent():

@@ -177,7 +177,19 @@ def _write_to_staging(message: str) -> Path | None:
     picks it up on its next staging-directory poll. Returns the path written, or
     None if the message is too short to warrant staging (plain status pings)."""
     if len(message) < 25:
-        return None
+        # A short message is normally a status ping to ignore -- UNLESS a
+        # director question is open, in which case a terse "B" / "yes" is the
+        # EXPECTED shape of the answer, not noise. Silently dropping it is
+        # exactly what let the W2_2 curriculum answer evaporate (2026-07-14
+        # retro): A/B/C/D answers are inherently under 25 chars. When anything
+        # is awaiting the director, stage the short reply; only drop it when
+        # nothing is open (a genuine status ping).
+        try:
+            from background.action_needed import open_items
+            if not open_items():
+                return None
+        except Exception:
+            return None  # can't confirm an open item -> keep the old safe default
     staging_dir = PROJECT_DIR / "docs" / "staging"
     staging_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")

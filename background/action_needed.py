@@ -80,14 +80,54 @@ def register_item(
     return register[item_id]
 
 
-def resolve_item(item_id: str, path: Path | None = None) -> None:
-    """Rich answered it -- stop re-pinging. Kept in the register (not
-    deleted) so there's a durable record of what was asked and when it
-    closed."""
+def resolve_item(
+    item_id: str, answer: str, path: Path | None = None, now: str | None = None,
+) -> None:
+    """Rich answered it -- record the ANSWER verbatim and stop re-pinging.
+
+    `answer` is REQUIRED and non-empty: resolving without recording WHAT was
+    decided is the exact defect that let the W2_2 curriculum answer evaporate
+    (2026-07-14 retro, docs/retrospectives/2026-07-14-evaporated-director-
+    decision.md). The old signature flipped a boolean and stored nothing, so
+    even the happy path lost the decision content. Kept in the register (not
+    deleted) as a durable record of what was asked, what was decided, and when."""
+    if not answer or not answer.strip():
+        raise ValueError(
+            "resolve_item requires a non-empty answer -- a resolved item with no "
+            "recorded decision content is the evaporation defect this argument closes."
+        )
     register = load_register(path)
     if item_id in register:
         register[item_id]["resolved"] = True
+        register[item_id]["answer"] = answer
+        register[item_id]["resolved_at"] = now or datetime.now(timezone.utc).isoformat()
         save_register(register, path)
+
+
+def confirm_and_resolve(
+    item_id: str, answer: str, path: Path | None = None,
+    send_ntfy_fn=None, now: str | None = None,
+) -> bool:
+    """Record a director decision AND confirm it back, so a silent drop is
+    impossible (2026-07-14 landed-verification class: alarms and injections
+    both verify they landed at their destination; decisions must too).
+
+    Resolves the item (storing the answer) then sends a [RECORDED] confirmation
+    the director can see -- the receipt that closes the loop. Returns True if a
+    confirmation was sent. `send_ntfy_fn` is injectable for tests (defaults to
+    background.ntfy_utils.send_ntfy); a send failure never rolls back the
+    durable record -- the answer is stored first, confirmation is best-effort."""
+    resolve_item(item_id, answer, path=path, now=now)
+    if send_ntfy_fn is None:
+        from background.ntfy_utils import send_ntfy as send_ntfy_fn  # lazy: keep zero-dep footprint
+    try:
+        send_ntfy_fn(
+            f"[RECORDED] {item_id}\nDecision: {answer}",
+            headers={"X-Tags": "white_check_mark"},
+        )
+        return True
+    except Exception:
+        return False
 
 
 def open_items(path: Path | None = None) -> list[dict]:

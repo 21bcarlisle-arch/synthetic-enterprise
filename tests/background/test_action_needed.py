@@ -43,15 +43,61 @@ def test_register_item_preserves_first_asked_at_on_reregister(path):
 
 def test_resolve_item_marks_resolved_not_deleted(path):
     action_needed.register_item("a", "what", "how", "why", path=path)
-    action_needed.resolve_item("a", path=path)
+    action_needed.resolve_item("a", "answered", path=path)
     entry = action_needed.load_register(path)["a"]
     assert entry["resolved"] is True
+    assert entry["answer"] == "answered"  # answer stored, not just a boolean flipped
+
+
+def test_resolve_item_rejects_empty_answer_and_leaves_item_open(path):
+    """The evaporation defect closed: you cannot resolve without recording the
+    decision content. A rejected resolve must leave the item OPEN (still nagging)."""
+    action_needed.register_item("a", "w", "h", "y", path=path)
+    for bad in ("", "   ", None):
+        with pytest.raises(ValueError):
+            action_needed.resolve_item("a", bad, path=path)
+    open_ids = {e["item_id"] for e in action_needed.open_items(path=path)}
+    assert open_ids == {"a"}  # never silently closed
+
+
+def test_resolve_item_stores_answer_and_timestamp(path):
+    action_needed.register_item("a", "w", "h", "y", path=path)
+    action_needed.resolve_item("a", "Profile B", path=path, now="2026-07-14T00:00:00+00:00")
+    entry = action_needed.load_register(path)["a"]
+    assert entry["resolved"] is True
+    assert entry["answer"] == "Profile B"
+    assert entry["resolved_at"] == "2026-07-14T00:00:00+00:00"
+
+
+def test_confirm_and_resolve_sends_confirmation_and_resolves(path):
+    action_needed.register_item("a", "w", "h", "y", path=path)
+    sent = []
+    ok = action_needed.confirm_and_resolve(
+        "a", "Profile B", path=path,
+        send_ntfy_fn=lambda msg, headers=None: sent.append(msg),
+    )
+    assert ok is True
+    assert len(sent) == 1
+    assert "Profile B" in sent[0] and "a" in sent[0]  # the receipt names item + decision
+    assert action_needed.load_register(path)["a"]["resolved"] is True
+
+
+def test_confirm_and_resolve_keeps_durable_record_even_if_send_fails(path):
+    """A confirmation send failure must NOT roll back the recorded decision --
+    the answer is stored first, the receipt is best-effort."""
+    action_needed.register_item("a", "w", "h", "y", path=path)
+    def boom(msg, headers=None):
+        raise RuntimeError("ntfy unreachable")
+    ok = action_needed.confirm_and_resolve("a", "Profile B", path=path, send_ntfy_fn=boom)
+    assert ok is False
+    entry = action_needed.load_register(path)["a"]
+    assert entry["resolved"] is True and entry["answer"] == "Profile B"
 
 
 def test_open_items_excludes_resolved(path):
     action_needed.register_item("a", "w", "h", "y", path=path)
     action_needed.register_item("b", "w", "h", "y", path=path)
-    action_needed.resolve_item("b", path=path)
+    action_needed.resolve_item("b", "answered", path=path)
     open_ids = {e["item_id"] for e in action_needed.open_items(path=path)}
     assert open_ids == {"a"}
 
@@ -76,7 +122,7 @@ def test_due_for_reping_returns_item_after_24h(path):
 def test_due_for_reping_excludes_resolved(path):
     asked_at = datetime(2026, 7, 10, 5, 0, 0, tzinfo=timezone.utc)
     action_needed.register_item("a", "w", "h", "y", path=path, now=asked_at.isoformat())
-    action_needed.resolve_item("a", path=path)
+    action_needed.resolve_item("a", "answered", path=path)
     later = (asked_at + timedelta(days=5)).isoformat()
     assert action_needed.due_for_reping(path=path, now=later) == []
 
