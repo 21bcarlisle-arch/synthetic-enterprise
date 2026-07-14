@@ -30,6 +30,19 @@ is the git commit clock, which no daemon's logging can move -- only real
 work moves it. (The NTFY path was never the problem; it is a direct HTTPS
 POST to ntfy.sh, independent of the tmux stack. Detection was the failure.)
 
+FAIL-OPEN REGRESSION, fixed 2026-07-14 (director-named THEATRE control):
+keying liveness on ANY git commit was itself a fail-open control. The
+auto-process publish loop commits every ~15min ("Auto-process run complete:
+... net=£1,521,070") -- flat no-ops with identical net figures and zero
+forward work -- yet each one REFRESHED the staleness clock. So the switch
+reported "not blocked" straight through a real 83-min executor-idle window
+(22:03-23:26) and NEVER fired: a liveness signal a no-op background loop can
+refresh is not a liveness signal (the exact watchdog-self-refresh lesson,
+R15 FAIL-OPEN). The fix: liveness keys on MEANINGFUL progress only --
+_last_meaningful_commit_epoch() ignores flat auto-process run-complete
+commits, so a window of nothing-but-auto-process now looks as stale as it
+truly is and trips the alarm.
+
 Two alarm tiers, both suppressed only during a declared usage pause
 (.usage_pause.json -- a known-quiet window, not a stall):
   - [BLOCKED]: queued work on disk (docs/staging/ not yet in done/) AND no
@@ -69,6 +82,11 @@ USAGE_PAUSE_FILENAME = ".usage_pause.json"  # a declared known-quiet window
 
 _IGNORED_STAGING_NAMES = {".gitkeep"}
 
+# Subject prefix of the auto-process publish loop's flat run-complete commits.
+# These land every ~15min with identical net figures and carry NO forward work,
+# so they must NOT count as liveness (the 2026-07-14 fail-open defect).
+_AUTO_PROCESS_SUBJECT_PREFIX = "Auto-process run complete"
+
 _last_escalation_ts: float | None = None
 
 
@@ -81,28 +99,66 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def _last_commit_epoch() -> float:
-    """Most recent commit timestamp on the current branch, or 0.0 if git
-    isn't available/fails -- fails toward "looks stale," never toward
-    silently assuming recent activity that didn't happen."""
+def _recent_commits(n: int = 200) -> list[tuple[float, str]]:
+    """(epoch, subject) for the last n commits, newest first. Returns [] if git
+    is unavailable/fails -- an unreadable commit history is treated as NO known
+    progress (fails toward "looks stale," R15 fail-closed), never as recent
+    activity that didn't happen. n=200 spans ~50h of pure auto-process cadence,
+    comfortably past both thresholds even in a marker flood."""
     try:
         result = subprocess.run(
-            ["git", "log", "-1", "--format=%ct"],
+            ["git", "log", f"-{n}", "--format=%ct%x00%s"],
             cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=10,
         )
         if result.returncode == 0 and result.stdout.strip():
-            return float(result.stdout.strip())
+            out: list[tuple[float, str]] = []
+            for line in result.stdout.splitlines():
+                if "\x00" not in line:
+                    continue
+                ct_str, subject = line.split("\x00", 1)
+                try:
+                    out.append((float(ct_str), subject))
+                except ValueError:
+                    continue
+            return out
     except Exception:
         pass
+    return []
+
+
+def _is_auto_process_commit(subject: str) -> bool:
+    """A flat auto-process run-complete commit -- the sim-publish loop's ~15min
+    no-op. These carry no forward work, so they don't count as liveness."""
+    return subject.strip().startswith(_AUTO_PROCESS_SUBJECT_PREFIX)
+
+
+def _last_meaningful_commit_epoch() -> float:
+    """Timestamp of the most recent commit that represents MEANINGFUL PROGRESS,
+    not a flat auto-process no-op.
+
+    Meaningful = a commit whose message is NOT an auto-process run-complete. (A
+    genuine maturity_map.yaml level_current change is by construction never an
+    auto-process commit -- those touch only report/LATEST.md/site/ -- so its
+    subject already passes this filter; the two conditions coincide.)
+
+    Fails toward 0.0 ("looks stale") when git is unreadable OR when the window
+    contains nothing but auto-process commits -- in the latter case the last
+    real commit is genuinely older than the whole window, so "very stale" is the
+    honest answer and the alarm should fire. No daemon's logging, and no no-op
+    publish loop, can move this signal; only real work does."""
+    for epoch, subject in _recent_commits():
+        if not _is_auto_process_commit(subject):
+            return epoch
     return 0.0
 
 
 def last_activity_epoch() -> float:
-    """The ONLY forward-progress signal: the git commit clock. Deliberately
-    NOT max()'d with docs/observability/ mtimes any more -- that made the
-    switch fail-silent (see module docstring, 2026-07-14 regression). No
-    daemon's logging can move this; only real work does."""
-    return _last_commit_epoch()
+    """The ONLY forward-progress signal: the MEANINGFUL git commit clock.
+    Deliberately NOT max()'d with docs/observability/ mtimes (that made the
+    switch fail-silent, 2026-07-14) and deliberately NOT keyed on any commit
+    (that made it fail-open on flat auto-process no-ops, 2026-07-14). Only a
+    non-auto-process commit -- real forward work -- moves this."""
+    return _last_meaningful_commit_epoch()
 
 
 def _usage_pause_active() -> bool:

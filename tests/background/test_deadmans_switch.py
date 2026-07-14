@@ -109,19 +109,117 @@ def test_recovering_to_clean_resets_escalation_state(monkeypatch):
     assert dms._last_escalation_ts is None
 
 
-def test_last_commit_epoch_returns_zero_on_git_failure(monkeypatch):
+def test_recent_commits_returns_empty_on_git_failure(monkeypatch):
+    """Fail-closed primitive: an unreadable commit history is NO known progress,
+    never assumed-recent activity (R15 fail-closed)."""
     def _raise(*a, **k):
         raise Exception("no git")
     monkeypatch.setattr(dms.subprocess, "run", _raise)
-    assert dms._last_commit_epoch() == 0.0
+    assert dms._recent_commits() == []
+    # ...and that propagates to 0.0 ("looks stale") at the meaningful clock:
+    assert dms._last_meaningful_commit_epoch() == 0.0
 
 
-def test_last_activity_epoch_is_the_commit_clock_only(monkeypatch):
-    """The 2026-07-14 fix: progress is the git commit clock ALONE. There is no
-    longer an observability-mtime term to contaminate it."""
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: 12345.0)
+def test_meaningful_clock_fails_closed_and_trips_blocked_when_git_unreadable(monkeypatch):
+    """End-to-end: git unreadable -> meaningful epoch 0.0 -> since_commit ~= now
+    -> with queued work the alarm MUST fire. An unavailable check is a FAILED
+    check (R15 FAIL-SILENT), never a silent pass."""
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: [])  # git unreadable
+    (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1
+    assert "[BLOCKED]" in calls[0]
+
+
+def test_last_activity_epoch_is_the_meaningful_commit_clock_only(monkeypatch):
+    """The 2026-07-14 fixes: progress is the MEANINGFUL git commit clock ALONE
+    (no observability-mtime term to contaminate it; no any-commit term for the
+    auto-process no-op loop to refresh)."""
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: 12345.0)
     assert dms.last_activity_epoch() == 12345.0
     assert not hasattr(dms, "_last_observability_write_epoch")
+
+
+def test_is_auto_process_commit_classifier():
+    """The flat-no-op discriminator: real auto-process publish subjects are
+    excluded; any genuine forward-work subject (including a maturity_map level
+    bump) is kept."""
+    assert dms._is_auto_process_commit(
+        "Auto-process run complete: report + LATEST.md + site/ (git=abc, net=£1,521,070)"
+    )
+    assert not dms._is_auto_process_commit("[build] deadman_liveness_fix")
+    assert not dms._is_auto_process_commit("[build] H12_mutation_test_controls L2->L3")
+    assert not dms._is_auto_process_commit("Wave-1 integration: bank F7->L2")
+
+
+def test_flat_auto_process_commits_do_not_refresh_liveness(monkeypatch):
+    """R15 MUTATION TEST -- director-named THEATRE control (2026-07-14). PROVES
+    the fixed control FIRES on its own named defect.
+
+    The OLD deadman keyed liveness on ANY git commit, so the auto-process publish
+    loop's ~15min flat no-op commits (identical net=£1,521,070, no forward work)
+    refreshed the staleness clock and the switch reported 'not blocked' straight
+    through the real 83-min executor-idle window (22:03-23:26) -- it NEVER fired.
+
+    Here the ONLY commits inside the last 47min are auto-process run-completes;
+    the last MEANINGFUL commit is 50min old and staged work is queued. The alarm
+    MUST fire now (50min > 45min BLOCKED threshold). Mutation proof: revert
+    last_activity_epoch to keying on the newest commit of ANY kind and this goes
+    green->red -- the 2-min-old auto-process no-op would mask the stall exactly
+    as it did in production."""
+    now = time.time()
+    commits = [
+        (now - 2 * 60, "Auto-process run complete: report + LATEST.md + site/ (git=aa1, net=£1,521,070)"),
+        (now - 17 * 60, "Auto-process run complete: report + LATEST.md + site/ (git=bb2, net=£1,521,070)"),
+        (now - 32 * 60, "Auto-process run complete: report + LATEST.md + site/ (git=cc3, net=£1,521,070)"),
+        (now - 47 * 60, "Auto-process run complete: report + LATEST.md + site/ (git=dd4, net=£1,521,070)"),
+        (now - 50 * 60, "[build] real forward progress landed here"),
+    ]
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
+    (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1
+    assert "[BLOCKED]" in calls[0]
+    assert "STEER_INSTRUCTION.md" in calls[0]
+    # Staleness is measured from the MEANINGFUL commit (50min), NOT the 2-min-old
+    # auto-process no-op -- the whole point of the fix.
+    assert "50 min" in calls[0]
+
+
+def test_recent_meaningful_commit_is_not_blocked_despite_auto_process_noise(monkeypatch):
+    """The legitimate case -- the fixed control must NOT false-fire. A real
+    (non-auto-process) commit landed 5min ago; auto-process no-ops surround it.
+    Even with staged work queued, this is healthy: no alarm."""
+    now = time.time()
+    commits = [
+        (now - 3 * 60, "Auto-process run complete: report + LATEST.md + site/ (git=ee5, net=£1,521,070)"),
+        (now - 5 * 60, "[build] deadman_liveness_fix"),  # genuine progress, 5min ago
+        (now - 20 * 60, "Auto-process run complete: report + LATEST.md + site/ (git=ff6, net=£1,521,070)"),
+    ]
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
+    (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert calls == []
+    assert "not blocked" in dms.LOG_FILE.read_text()
+
+
+def test_all_auto_process_window_looks_stale(monkeypatch):
+    """A window containing NOTHING but auto-process no-ops has no meaningful
+    commit -- the real one is older than the whole window, so the honest answer
+    is 0.0 ('very stale'), which trips the alarm rather than masking the wedge."""
+    now = time.time()
+    commits = [
+        (now - i * 60, "Auto-process run complete: report + LATEST.md + site/ (git=x, net=£1,521,070)")
+        for i in range(1, 40)
+    ]
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
+    assert dms._last_meaningful_commit_epoch() == 0.0
 
 
 def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
@@ -135,7 +233,7 @@ def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
     The alarm MUST fire now; if this test ever goes green->red the fail-silent
     signal has been reintroduced."""
     (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 6 * 3600)
     # The contaminating writes that masked the stall before:
     (dms.OBSERVABILITY_DIR / "supervisor-log.md").write_text("supervisor just logged")
     (dms.OBSERVABILITY_DIR / "deadmans-switch-log.md").write_text("the switch's own write")
@@ -151,7 +249,7 @@ def test_silent_stall_fires_with_empty_queue(monkeypatch):
     """Backstop tier: a wedged main session with NOTHING queued still trips an
     alarm once no commit has landed for SILENT_STALL_THRESHOLD_SECONDS."""
     assert dms._unprocessed_staging_files() == []  # genuinely empty queue
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 2 * 3600)
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -165,7 +263,7 @@ def test_usage_pause_suppresses_the_alarm(monkeypatch):
     suppressed even with queued work and a very stale commit."""
     from datetime import datetime, timedelta, timezone
     (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 6 * 3600)
     resume_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
     (dms.OBSERVABILITY_DIR / dms.USAGE_PAUSE_FILENAME).write_text(
         json.dumps({"resume_at": resume_at})
@@ -182,7 +280,7 @@ def test_expired_usage_pause_does_not_suppress(monkeypatch):
     alarm must fire (fails toward alarming, never suppresses on a stale file)."""
     from datetime import datetime, timedelta, timezone
     (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 6 * 3600)
     past = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     (dms.OBSERVABILITY_DIR / dms.USAGE_PAUSE_FILENAME).write_text(
         json.dumps({"resume_at": past})
@@ -283,7 +381,7 @@ def test_run_complete_markers_do_not_count_as_blocked_work(monkeypatch):
     for i in range(30):
         (dms.STAGING_DIR / f"run_complete_2026071{i:02d}.md").write_text("marker")
     assert dms._unprocessed_staging_files() == []  # markers excluded from queued work
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 60)  # recent commit
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 60)  # recent commit
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -296,7 +394,7 @@ def test_run_complete_pile_with_stale_commit_still_stalls(monkeypatch):
     (this is the exact blackout shape -- markers piling while nothing commits)."""
     for i in range(30):
         (dms.STAGING_DIR / f"run_complete_2026071{i:02d}.md").write_text("marker")
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 2 * 3600)
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
