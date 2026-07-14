@@ -8103,11 +8103,21 @@ def _section_management_accounts(data: dict) -> str:
     worst_yr = min(margin_by_year, key=lambda y: margin_by_year[y])
     best_inc = ma[best_yr].get("income_statement", {})
     worst_inc = ma[worst_yr].get("income_statement", {})
+
+    def _margin_pct(inc):
+        # Guard the class: a year's revenue can be exactly 0.0 in a truncated /
+        # short window (e.g. a --fast single-year run that accrued no revenue).
+        # .get(..., 1) only defends against a MISSING key, not a present 0.0 —
+        # so divide-guard on the value, matching the table loop's `if rev > 0`.
+        rev = inc.get("revenue_gbp", 0.0) or 0.0
+        net = inc.get("net_margin_gbp", 0.0) or 0.0
+        return (net / rev * 100) if rev > 0 else 0.0
+
     lines += [
         "**Best year:** " + best_yr + " — net " + _fmt_gbp(best_inc.get("net_margin_gbp", 0)) +
-        " (" + ("%.1f%%" % (best_inc.get("net_margin_gbp", 0) / best_inc.get("revenue_gbp", 1) * 100)) + " margin)",
+        " (" + ("%.1f%%" % _margin_pct(best_inc)) + " margin)",
         "**Worst year:** " + worst_yr + " — net " + _fmt_gbp(worst_inc.get("net_margin_gbp", 0)) +
-        " (" + ("%.1f%%" % (worst_inc.get("net_margin_gbp", 0) / worst_inc.get("revenue_gbp", 1) * 100)) + " margin)",
+        " (" + ("%.1f%%" % _margin_pct(worst_inc)) + " margin)",
         "",
     ]
     # Balance sheet summary for latest year

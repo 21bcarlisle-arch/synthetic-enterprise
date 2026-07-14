@@ -160,3 +160,31 @@ def test_zero_net_margin_handled():
     d = _make_data({"2020": _make_year(5000, 3000, 1000, 1000, 500, 500, 0)})
     result = _section_management_accounts(d)
     assert "0" in result
+
+
+# Regression (2026-07-14, fix_management_accounts_render_crash): a truncated /
+# short window (e.g. a --fast single-year run) can produce a year whose
+# revenue_gbp is exactly 0.0. The best/worst-year commentary divided net margin
+# by revenue with a .get(..., 1) default that only defends a MISSING key, not a
+# present 0.0 — so it crashed with ZeroDivisionError AFTER the fitness JSON was
+# written, adding rc!=0 noise to sim runs. It must render (degrading the margin
+# pct to 0.0%) instead of crashing.
+def test_truncated_window_zero_revenue_year_renders_no_crash():
+    from saas.reporting.annual_report import _section_management_accounts
+    d = _make_data({"2016": _make_year(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)})
+    result = _section_management_accounts(d)
+    assert result != ""
+    assert "Annual Management Accounts" in result
+    assert "0.0% margin" in result  # degraded, not crashed
+
+
+def test_truncated_window_zero_revenue_multi_year_renders_no_crash():
+    from saas.reporting.annual_report import _section_management_accounts
+    # A partial window where some years accrued revenue and one did not.
+    d = _make_data({
+        "2016": _make_year(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        "2017": _make_year(1000, 400, 200, 400, 20, 30, 350),
+    })
+    result = _section_management_accounts(d)
+    assert "Best year:" in result
+    assert "Worst year:" in result
