@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "title": "Guided tours",
+    "intro": "Expert-Hour tours: guided paths through the doors of this site for the three visitors who most often turn up. Pick the one that fits you. Each tour is a short ordered walk — ten stops — that answers the question that visitor actually asks, in the order they'd ask it. These are the same paths the daily HARDEN walk uses to keep every door honest.",
+    "source": "docs/design/SITE_CONSTITUTION.md Door 8 (persona Expert-Hour tours)"
+  },
+  "personas": [
+    {
+      "id": "regulator",
+      "label": "The Regulator",
+      "one_liner": "Is this business inside the rules, and can it prove it when it isn't?",
+      "intro": "You care about compliance, consumer protection and whether claims survive scrutiny. This walk goes straight at the obligations, the honesty surfaces, and the places the company is allowed to be wrong.",
+      "stops": [
+        { "n": 1, "title": "Start at the honest gap", "url": "../world/", "look_at": "The two-sided wall", "why": "The company cannot see inside its own market. Everything downstream is an approximation — see the gap stated openly before you judge any number." },
+        { "n": 2, "title": "The obligations register", "url": "../company/", "look_at": "Regulatory obligations keyed by regime and date", "why": "Each rule carries an effective-from / effective-to date, so a rule only ever binds over the window it was actually in force." },
+        { "n": 3, "title": "The price cap in force", "url": "../company/", "look_at": "Ofgem default-tariff cap constraint", "why": "The binding domestic pricing constraint, indexed to the quarter it took effect — the first thing a regulator checks." },
+        { "n": 4, "title": "Held and rejected", "url": "../proof/#holds", "look_at": "Controls that stopped a bad artefact shipping", "why": "A control is only evidence if it can fire. See the holds it actually raised, not a green light with nothing behind it." },
+        { "n": 5, "title": "Mutation-tested controls", "url": "../proof/#killlist", "look_at": "The kill list", "why": "Each control here has been deliberately broken to prove it fires (R15). A control that cannot fail is theatre — this is where the theatre is caught." },
+        { "n": 6, "title": "Open defects, in public", "url": "../proof/", "look_at": "The open-defects list", "why": "Honesty is a visitor surface here, not a buried artefact. Known problems are shown, not hidden." },
+        { "n": 7, "title": "Incident to rule", "url": "../method/#retro-list", "look_at": "The forging-incidents timeline", "why": "Every hard rule (R1–R15) traces to a real mistake. See how a failure became a standing control." },
+        { "n": 8, "title": "Every number's clock", "url": "../proof/", "look_at": "Basis labels (settled / billed / banked)", "why": "No financial figure is published without its clock. A basis-less number is treated as a defect (R14)." },
+        { "n": 9, "title": "What's provisional", "url": "../simplified/", "look_at": "Simplifications register", "why": "Where the model is deliberately simpler than reality, it says so — with the simplification named and registered." },
+        { "n": 10, "title": "The predictions ledger", "url": "../proof/", "look_at": "Prediction-vs-realised record", "why": "The strongest evidence a claim is honest: a dated forecast sitting next to what actually happened. Close the tour here." }
+      ]
+    },
+    {
+      "id": "investor",
+      "label": "The Investor",
+      "one_liner": "Does it make money, does the money survive a crisis, and can I trust the figures?",
+      "intro": "You care about margin, cash, risk and the credibility of the numbers. This walk goes at the P&L, the treasury, the crisis the business priced through, and the proof that the headline figures are not marketing.",
+      "stops": [
+        { "n": 1, "title": "The thesis", "url": "../", "look_at": "Front-door pulse strip and thesis chart", "why": "The claim in one line, with the live book, treasury and enterprise value — and a link to the last real bill behind it." },
+        { "n": 2, "title": "Net position", "url": "../supplier/#ch-overview-net", "look_at": "Net result over time", "why": "The bottom line, with its basis stated. Start from the number everyone quotes, then go behind it." },
+        { "n": 3, "title": "The margin bridge", "url": "../supplier/#bridge-intro", "look_at": "What builds and erodes margin", "why": "Margin decomposed into its drivers — treated as a diagnostic, never a target to tune toward (R12)." },
+        { "n": 4, "title": "Segment economics", "url": "../supplier/#ch-seg-margin-pct", "look_at": "Margin by customer segment", "why": "Flat pricing makes some customers net-negative. See which segments actually pay their way." },
+        { "n": 5, "title": "Treasury vs profit", "url": "../supplier/#ch-treasury", "look_at": "Cash and collateral over time", "why": "Accounting profit is not cash. See what actually lands after settlement lag and hedging margin calls." },
+        { "n": 6, "title": "The crisis it survived", "url": "../world/", "look_at": "The 2021–22 price spike in the realised path", "why": "Around thirty real UK suppliers failed here. The company priced through the same realised prices, blindfolded." },
+        { "n": 7, "title": "Risk position", "url": "../supplier/#ch-var", "look_at": "Value at Risk and hedge fraction", "why": "How exposed the book is, and how much is bought forward — built from what the company could observe, not from ground truth." },
+        { "n": 8, "title": "Enterprise value, labelled", "url": "../proof/", "look_at": "EV with its PROVISIONAL badge", "why": "The valuation is an estimate and says so. Provisional figures here are explicitly retractable." },
+        { "n": 9, "title": "The verification stack", "url": "../proof/", "look_at": "How each figure is checked to the rendered pixel", "why": "Every user-visible number is verified against the live surface (R11), not just the code that made it." },
+        { "n": 10, "title": "Predictions vs realised", "url": "../proof/", "look_at": "The predictions ledger", "why": "The centrepiece: dated forecasts against outcomes. If the figures were marketing, this is where it would show. Close here." }
+      ]
+    },
+    {
+      "id": "engineer",
+      "label": "The Engineer",
+      "one_liner": "How is this actually built, and where is the hard part?",
+      "intro": "You care about the architecture, the seams, the data and how correctness is enforced. This walk goes at the wall, the simulation depth, the platform, and the method that keeps it all honest.",
+      "stops": [
+        { "n": 1, "title": "The wall as an interface", "url": "../world/", "look_at": "SIM ground truth // COMPANY observation", "why": "The core architectural constraint: the company layer reads observables only, never simulation internals. The seam is the go-live seam." },
+        { "n": 2, "title": "Simulation depth", "url": "../sim/", "look_at": "The realised world the company is blindfolded to", "why": "Half-hourly settlement against the real Elexon record since 2016 — the ground truth the company has to approximate." },
+        { "n": 3, "title": "The data catalogue", "url": "../platform/#catalogue", "look_at": "Real external feeds (Elexon, NESO, weather)", "why": "Where the ground truth comes from. Real data in, no synthetic price path for the settled history." },
+        { "n": 4, "title": "The platform", "url": "../platform/", "look_at": "The software that runs the company", "why": "The billing, settlement and decision machinery — the parts that would swap for real endpoints behind unchanged interfaces at go-live." },
+        { "n": 5, "title": "The coupled triad", "url": "../proof/#coupled-gaps", "look_at": "SIM depth ↔ company coping ↔ measured gap", "why": "Every capability is a three-loop, and the belief-vs-truth gap is the score. This is where the gap per pair is reported." },
+        { "n": 6, "title": "The maturity map", "url": "../project/", "look_at": "Atoms and their L0–L3 levels", "why": "The build backlog as a map. Levels are claims about how thoroughly something is built and verified — and can be demoted." },
+        { "n": 7, "title": "The epoch arc", "url": "../project/", "look_at": "Epochs and their exit tests", "why": "The narrative order of the build vs the compounding-return order it's actually built in. Exit tests are the only gate." },
+        { "n": 8, "title": "Controls that can fail", "url": "../proof/#killlist", "look_at": "Mutation-tested kill list", "why": "The engineering heart of the honesty machinery: a control counts only once a mutation test proves it fires on its own defect (R15)." },
+        { "n": 9, "title": "Incident to rule", "url": "../method/#retro-list", "look_at": "Retrospectives behind R1–R15", "why": "The rule set is not designed up front — each rule is forged from a specific real failure. Read how." },
+        { "n": 10, "title": "The method, whole", "url": "../method/", "look_at": "How the pieces fit into a repeatable way of building", "why": "Step back and see the method as one system: wall, triad, maturity map, mutation-tested controls. Close here." }
+      ]
+    }
+  ]
+}

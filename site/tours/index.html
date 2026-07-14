@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Guided Tours</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+}
+:root[data-theme="light"] {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 8px; }
+.tab { flex: 1 1 200px; text-align: left; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px; cursor: pointer; user-select: none; transition: border-color .15s; }
+.tab:hover { border-color: var(--blue); }
+.tab.active { border-color: var(--blue); border-left-width: 3px; }
+.tab-label { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.tab-one { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.tour-intro { font-size: 13px; line-height: 1.7; color: var(--text); background: var(--surface2);
+  border-radius: 10px; padding: 16px 18px; margin: 18px 0 6px; }
+.tour-intro .q { font-style: italic; color: var(--muted); display: block; margin-bottom: 6px; }
+.stops { list-style: none; counter-reset: none; margin-top: 18px; }
+.stop { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--border); }
+.stop:first-child { border-top: none; }
+.stop-n { flex: 0 0 30px; height: 30px; border-radius: 50%; background: var(--surface2);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-family: ui-monospace, monospace; font-weight: 700; font-size: 13px; color: var(--blue); }
+.stop-body { flex: 1; min-width: 0; }
+.stop-title { font-size: 14px; font-weight: 700; }
+.stop-title a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.stop-title a:hover { border-bottom-color: var(--blue); color: var(--blue); }
+.stop-look { font-size: 12px; color: var(--blue); margin: 3px 0 4px; }
+.stop-why { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.empty { color: var(--muted); font-size: 13px; padding: 24px 0; }
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px; }
+  .tab { flex: 1 1 100%; }
+  .stop-n { flex-basis: 26px; height: 26px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../world/" class="nav-link">World</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../method/" class="nav-link">Method</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../tours/" class="nav-link active">Tours</a>
+  <a href="../glossary/" class="nav-link">Glossary</a>
+</nav>
+<div class="wrap">
+
+  <div class="hero-h" id="hero-h">Guided tours</div>
+  <p class="hero-p" id="hero-p">Loading...</p>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="tour"><div class="empty">Loading...</div></div>
+
+</div>
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+
+var STATE = { data: null, persona: null };
+
+function renderIntro(d){
+  var m = d.meta||{};
+  document.getElementById("hero-h").textContent = m.title || "Guided tours";
+  document.getElementById("hero-p").textContent = m.intro || "";
+}
+
+function renderTabs(d){
+  var ps = d.personas||[];
+  document.getElementById("tabs").innerHTML = ps.map(function(p){
+    var active = (p.id === STATE.persona) ? " active" : "";
+    return '<div class="tab' + active + '" data-persona="' + esc(p.id) + '">' +
+      '<div class="tab-label">' + esc(p.label) + '</div>' +
+      '<div class="tab-one">' + esc(p.one_liner) + '</div>' +
+    '</div>';
+  }).join("");
+}
+
+function currentPersona(d){
+  var ps = d.personas||[];
+  return ps.filter(function(p){ return p.id === STATE.persona; })[0] || ps[0] || null;
+}
+
+function renderTour(d){
+  var p = currentPersona(d);
+  if (!p){ document.getElementById("tour").innerHTML = '<div class="empty">No tours available.</div>'; return; }
+  var stops = (p.stops||[]).slice().sort(function(a,b){ return (a.n||0) - (b.n||0); });
+  var html = '<div class="tour-intro"><span class="q">&ldquo;' + esc(p.one_liner) + '&rdquo;</span>' + esc(p.intro) + '</div>';
+  html += '<ol class="stops">' + stops.map(function(s){
+    return '<li class="stop">' +
+      '<div class="stop-n">' + esc(s.n) + '</div>' +
+      '<div class="stop-body">' +
+        '<div class="stop-title"><a href="' + esc(s.url||"#") + '">' + esc(s.title) + ' &rarr;</a></div>' +
+        '<div class="stop-look">Look at: ' + esc(s.look_at) + '</div>' +
+        '<div class="stop-why">' + esc(s.why) + '</div>' +
+      '</div>' +
+    '</li>';
+  }).join("") + '</ol>';
+  document.getElementById("tour").innerHTML = html;
+}
+
+function renderTours(d){
+  STATE.data = d;
+  if (!STATE.persona && d.personas && d.personas.length) STATE.persona = d.personas[0].id;
+  renderIntro(d);
+  renderTabs(d);
+  renderTour(d);
+}
+
+function wireEvents(){
+  var t = document.getElementById("tabs");
+  if (t) t.addEventListener("click", function(e){
+    var tab = e.target.closest ? e.target.closest(".tab") : null;
+    if (!tab) return;
+    STATE.persona = tab.getAttribute("data-persona");
+    if (STATE.data){ renderTabs(STATE.data); renderTour(STATE.data); }
+  });
+}
+
+if (typeof document !== "undefined" && document.addEventListener) {
+  document.addEventListener("DOMContentLoaded", function(){
+    wireEvents();
+    fetch("../data/tours.json")
+      .then(function(r){ return r.json(); })
+      .then(renderTours)
+      .catch(function(){
+        document.getElementById("tour").innerHTML = '<div class="empty">Could not load tour data.</div>';
+      });
+  });
+}
+</script>
+</body>
+</html>
