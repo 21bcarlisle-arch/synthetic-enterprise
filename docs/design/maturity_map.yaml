@@ -1465,3 +1465,17 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an org that cannot afford to run the experiments its own strategy requires until it makes experiments cheap"
   depends_on: [ARCH1_internal_seams]
+- id: H17_autonomous_build_executor
+  name: "Autonomous build-executor: a governed headless-turn executor that CONSUMES the Rule-0 self-refill draw and lands work (the map moves without the interactive session as sole executor); ALSO the Epoch-4 tournament substrate"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/design/AUTONOMOUS_EXECUTOR_SPEC.md"]
+  file_scope: [background, tools, tests]
+  depends_on: [A8_experiment_loop_speed, ARCH1_internal_seams]
+  simplifications: ["2026-07-15 FRAMED + REGISTERED (director chose (b) 2026-07-14; BUILD = his P1 next active session). Spec + req-1 primitive exhumation + L1/L2/L3: docs/design/AUTONOMOUS_EXECUTOR_SPEC.md. Rebuild-not-resurrect (old runner retired for operational governance, not the concept). loop_stage idle: BUILD-open AND ACTIVATION reserved to the director -- a headless-turn executor replaces the banned keystroke injection; activation is safety-relevant. Inherits walls/dials/Rule-0, one-way-doors->director, twin->rest, gate-verified pushes, tripwires (budget/concurrency/visible-heartbeat/durable-kill). IS the Epoch-4 tournament substrate -> re-ranks A8 (fold its runner in, do not finish standalone)."]
