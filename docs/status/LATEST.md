@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-14T16:40:33Z
+Last updated: 2026-07-14T16:54:25Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-14T16:35:32Z
+Last updated: 2026-07-14T16:49:40Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (492s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -123,7 +123,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] If "depth" never changes any variable in the enterprise-value or survival formulas, what evidence is there that "physics" was ever wired into the model rather than just named in it — and who has actually traced that path rather than assuming it exists?
 - (T3_inherence) [unanswered >24h] Can you point to a single concrete run where changing "depth" produced a different number in an enterprise-value or survival output — and if no such run exists, on what basis is "physics" claimed to be part of the model at all rather than a label attached to inert code?
 - (T3_inherence) [unanswered >24h] If "physics" is genuinely wired into the enterprise-value or survival calculations, why has no one simply run the model twice with two different "depth" values and shown the two outputs differ — and if that trivial test has never been run, what specifically has been stopping it?
-- (T3_inherence) When you say "run the model twice with two different 'depth' values," has anyone actually confirmed that a "depth" input exists and is even read by the enterprise-value or survival code — or is the whole premise resting on an assumption that such a knob is wired in at all?
+- (T3_inherence) [unanswered >24h] When you say "run the model twice with two different 'depth' values," has anyone actually confirmed that a "depth" input exists and is even read by the enterprise-value or survival code — or is the whole premise resting on an assumption that such a knob is wired in at all?
 - (T7_repeated_fix_class_refill_draw) If all three examples describe designing and gating a single "coupled-triad draw" mechanism (binding rule 1), what independent evidence shows these were three distinct fixes that actually refilled a draw — rather than one design being re-described three times under a label that doesn't match the work?
 - (T3_inherence) What evidence shows that merging this weather-physics design doc actually moves enterprise value or survival probability, rather than just adding modeling machinery whose payoff is assumed but never measured against the north star?
 - (T3_inherence) Given the goal is to maximise enterprise value while never entering administration, how does a "GB weather-physics hierarchy" connect to either objective — that is, what decision does this weather model actually drive, and where is the evidence it improves survival or value rather than just adding modelling complexity?
@@ -167,4 +167,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) When you say the two tracks "never gate each other," can you point to a single concrete state in which advancing to a given depth changes what actions are available or what outcomes are reachable — and if you cannot, what observable difference is left between that depth being "physics" and it being a decorative label with no causal handle on enterprise value or survival?
 - (T3_inherence) Can you exhibit one concrete run where two scenarios identical in every other input but differing only in "physics"/"depth" produce different enterprise-value or survival numbers — and if no such pair exists, on what basis is "physics" counted as part of the state at all rather than as inert scenery?
 - (T3_inherence) When a Direct Debit you've already counted as collected gets reversed days later under one of those "standardized reason codes," does the sim actually open the liquidity hole between the outflow you funded and the inflow that never arrives—or does it quietly net the reversal against the original schedule, which is exactly the survival-threatening timing you're claiming it reproduces?
+- (T3_inherence) If varying "depth" leaves every number in the enterprise-value and survival calculation untouched, then what observation could anyone ever make that would come out differently depending on whether "physics" is in the model or not — and if there is none, in what sense is "physics" part of the model rather than just a label attached to it?
+- (T3_inherence) When the simulated firm is actually starving for cash, does the model's Bacs "physics" ever turn against it—recalls, failed DDs, frozen access—or does the 3-day rule mechanically guarantee that inflows always land on time precisely in the scenarios where a real bank or Bacs would be most likely to delay, freeze, or claw back your money?
+- (T3_inherence) When you vary "depth" with world difficulty and capability held fixed, does any input that actually feeds the enterprise-value or survival formula change value — and if not, what observable outcome would ever differ between "depth = physics on" and "depth deleted"?
 <!-- /NAIVE_ORGAN_ASKS -->
