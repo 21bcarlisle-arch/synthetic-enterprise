@@ -119,6 +119,17 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
 .gap-basis { font-size: 10px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
 .gap-alarm { border-left: 3px solid var(--amber); background: var(--surface2); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: var(--text); margin-bottom: 12px; }
 .gap-fail { border-left: 3px solid var(--red); background: var(--surface2); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: var(--red); }
+/* control kill-list panel */
+.chip.green { color: var(--green); border: 1px solid var(--green); }
+.kpi.alarm { border: 1px solid var(--red); }
+.kpi.alarm .kpi-v { color: var(--red); }
+.kl-name { font-family: ui-monospace, monospace; font-size: 11px; }
+tr.kl-theatre td:first-child { border-left: 3px solid var(--red); }
+tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
+.kl-pattern { font-size: 11px; font-weight: 600; }
+.kl-fires { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.kl-fires .no { color: var(--red); font-weight: 700; }
+.kl-fires .yes { color: var(--green); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -157,6 +168,17 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div id="gap-alarms"></div>
   </div>
   <div class="card"><div id="coupled-gaps"><div class="muted">Loading...</div></div></div>
+
+  <!-- 0c. CONTROL KILL-LIST -->
+  <div class="sec">Controls That Cannot Fail &mdash; the kill-list (R15)</div>
+  <div class="card">
+    <p class="muted" id="kl-intro">Loading...</p>
+    <div class="kpis" id="kl-kpis"></div>
+    <div id="kl-alarms"></div>
+  </div>
+  <div class="card">
+    <div class="table-scroll"><div id="killlist"><div class="muted">Loading...</div></div></div>
+  </div>
 
   <!-- 1. INCIDENT -> RULE TIMELINE -->
   <div class="sec">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
@@ -479,6 +501,105 @@ function renderCoupledGaps(d){
   }).join("")||'<div class="gap-fail">No coupled pairs in the ledger — the affordability cluster should show 7. An empty list is a failure, not an empty state.</div>';
 }
 
+// The reading convention applied to a CONTROL itself (R15 / CONTROLS_THAT_CANNOT_FAIL.md):
+// this render is not a passive echo of a server-side label -- it re-classifies each control
+// by its result/severity so the panel is a control surface that can catch a mislabel, and
+// it fails closed and VISIBLE when the kill-list is absent. Three killer patterns to surface:
+// TAUTOLOGY / FAIL-OPEN / FAIL-SILENT. THEATRE = a control proven NOT to fire on its own defect.
+//   THEATRE / severity red  -> red chip, sorted to the top (the thing an expert must see first)
+//   STRUCTURAL-ONLY / amber -> amber chip (real but not deterministically mutation-testable)
+//   FIRED / proven / green  -> green chip (mutation proves it fires on its named defect)
+function classifyControl(c){
+  var sev=(c && c.severity ? String(c.severity) : "").toLowerCase();
+  var res=(c && c.result ? String(c.result) : "").toUpperCase();
+  if(res.indexOf("THEATRE")>=0 || sev==="red") return {sev:"red", rank:0};
+  if(res.indexOf("STRUCTURAL")>=0 || sev==="amber") return {sev:"amber", rank:1};
+  return {sev:"green", rank:2};
+}
+function renderKilllist(d){
+  var intro=document.getElementById("kl-intro");
+  var kp=document.getElementById("kl-kpis");
+  var alarms=document.getElementById("kl-alarms");
+  var body=document.getElementById("killlist");
+  var ck=d.control_killlist;
+  // Fail closed and VISIBLE (R15 fail-silent guard): absent / available:false / no controls
+  // must never render as a silently missing panel -- say so, in red.
+  if(!ck || ck.available===false || !(ck.controls && ck.controls.length)){
+    intro.textContent="No control counts as evidence for a promotion unless a mutation test proves it "+
+      "fires on its own named defect. This is the kill-list: every control, the defect it must catch, "+
+      "and whether it actually fired.";
+    kp.innerHTML=""; alarms.innerHTML="";
+    body.innerHTML='<div class="gap-fail">Control kill-list not available at generation time'+
+      (ck&&ck.note?': '+esc(ck.note):'')+
+      '. The kill-list cannot be shown &mdash; this is a failure, not an empty state (R15).</div>';
+    return;
+  }
+  var controls=ck.controls.slice();
+  controls.forEach(function(c){ c.__cls=classifyControl(c); });
+  // THEATRE (red) sorts to the top, then structural (amber), then proven (green); name-stable.
+  controls.sort(function(a,b){
+    return (a.__cls.rank-b.__cls.rank) || String(a.name||"").localeCompare(String(b.name||""));
+  });
+
+  intro.innerHTML="A control that cannot fail is worse than none. Each control here is mutation-tested: "+
+    "its own named defect is injected and the control must fire. The three killer patterns &mdash; "+
+    "<strong>TAUTOLOGY</strong> (checks a value derived from the same source), <strong>FAIL-OPEN</strong> "+
+    "(passes on missing/empty/malformed), <strong>FAIL-SILENT</strong> (passes when the checker itself is "+
+    "unavailable) &mdash; are what turns a control into theatre. THEATRE rows are proven NOT to fire and are "+
+    "sorted to the top, in red. Source: "+
+    '<a class="evlink" href="#" onclick="return false" title="'+esc(ck.source||"")+'">'+esc(ck.source||"control registry")+'</a>'+
+    (ck.doctrine?' &middot; <a class="evlink" href="#" onclick="return false" title="'+esc(ck.doctrine)+'">'+esc(ck.doctrine)+'</a>':'')+'.';
+
+  var theatreAlarm = (ck.theatre_remaining!=null && ck.theatre_remaining>0);
+  var kpis=[
+    {l:"Controls total",v:num(ck.controls_total)},
+    {l:"Mutation-proven",v:num(ck.mutation_proven)},
+    {l:"Theatre remaining",v:num(ck.theatre_remaining),alarm:theatreAlarm}
+  ];
+  kp.innerHTML=kpis.map(function(k){
+    return '<div class="kpi'+(k.alarm?' alarm':'')+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
+  }).join("");
+
+  // R15 self-consistency control: the number of THEATRE (red) rows the panel actually renders
+  // must equal the published theatre_remaining. A mismatch means the header count and the row
+  // classification disagree -- a defect in the kill-list, made VISIBLE in red, not swallowed.
+  var theatreRows=controls.filter(function(c){ return c.__cls.sev==="red"; }).length;
+  var mismatch = (ck.theatre_remaining!=null && theatreRows!==Number(ck.theatre_remaining));
+  if(mismatch){
+    alarms.innerHTML='<div class="gap-fail"><strong>Count mismatch</strong>: '+theatreRows+
+      ' theatre control'+(theatreRows===1?'':'s')+' classified from the rows, but the header claims '+
+      esc(ck.theatre_remaining)+' theatre remaining. The kill-list is internally inconsistent &mdash; '+
+      'this is a defect (R15), not an empty state.</div>';
+  } else if(theatreAlarm){
+    alarms.innerHTML='<div class="gap-alarm"><strong>'+ck.theatre_remaining+' theatre control'+
+      (Number(ck.theatre_remaining)===1?'':'s')+' remaining</strong> &mdash; proven NOT to fire on its own '+
+      'named defect (R15). A control that cannot fail is worse than none: it must be fixed or retired.</div>';
+  } else {
+    alarms.innerHTML='';
+  }
+
+  body.innerHTML='<table class="tbl">'+
+    '<thead><tr><th>Control</th><th>Killer pattern</th><th>Result</th><th>Verified</th></tr></thead><tbody>'+
+    controls.map(function(c){
+      var cls=c.__cls;
+      var fires = c.fires_on_defect===true
+        ? '<span class="yes">fires on defect &#10003;</span>'
+        : (c.fires_on_defect===false
+            ? '<span class="no">does NOT fire &#10007;</span>'
+            : '<span>fire-on-defect n/a</span>');
+      var mut = c.mutation_tested===true ? 'mutation-tested' : (c.mutation_tested===false ? 'not mutation-tested' : '');
+      return '<tr class="'+(cls.sev==="red"?"kl-theatre":"")+'">'+
+        '<td><span class="kl-name">'+esc(c.name)+'</span>'+
+          (c.location?'<br><span class="muted">'+esc(c.location)+'</span>':'')+
+          (c.catches?'<br><span class="muted">'+esc(c.catches)+'</span>':'')+'</td>'+
+        '<td><div class="kl-pattern">'+esc(c.killer_pattern||"&mdash;")+'</div>'+
+          '<div class="kl-fires">'+fires+(mut?' &middot; '+esc(mut):'')+'</div></td>'+
+        '<td><span class="chip '+cls.sev+'">'+esc(c.result||"&mdash;")+'</span></td>'+
+        '<td class="muted">'+esc(c.last_verified||"&mdash;")+'</td></tr>';
+    }).join("")+
+    '</tbody></table>';
+}
+
 function renderBuild(d){
   var parts=[];
   if(d.phase)parts.push("Phase "+d.phase);
@@ -491,6 +612,7 @@ function renderBuild(d){
 fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
   renderPrinciples(d);
   renderCoupledGaps(d);
+  renderKilllist(d);
   renderTimeline(d);
   renderVerification(d);
   renderOpenWork(d);
