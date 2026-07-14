@@ -6,7 +6,8 @@
         "passes": 1,
         "passes_with_later_defect": 0,
         "total_post_close_defects": 0,
-        "error_rate": 0.0
+        "error_rate": 0.0,
+        "escapes_measurement": true
       }
     },
     "per_judge": {
@@ -14,15 +15,28 @@
         "passes": 1,
         "passes_with_later_defect": 0,
         "total_post_close_defects": 0,
-        "error_rate": 0.0
+        "error_rate": 0.0,
+        "escapes_measurement": true
       }
     },
     "overall": {
       "passes": 1,
       "passes_with_later_defect": 0,
       "total_post_close_defects": 0,
-      "error_rate": 0.0
+      "error_rate": 0.0,
+      "escapes_measurement": true
     }
+  },
+  "measurement_coverage": {
+    "min_passes_for_measured_rate": 3,
+    "judges_with_a_pass_record": 1,
+    "measured_judges": [],
+    "unmeasured_judges": [
+      "phase-close-evaluator"
+    ],
+    "coverage": 0.0,
+    "all_measured": false,
+    "note": "Coverage is the fraction of verdict-organs with a MEASURED outcome-error rate (>= min_passes PASS verdicts). Unmeasured organs escape measurement (R15-forbidden as promotion evidence) until the post-close linkage accrues over live runs; a 0.0 computed error over a thin record is NOT a clean bill of health."
   },
   "gold_set": {
     "cases": [

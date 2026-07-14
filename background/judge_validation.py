@@ -72,6 +72,13 @@ JudgeFn = Callable[[dict], str]
 VERDICT_DEFECT = "defect"
 VERDICT_PASS = "pass"
 
+# Below this many PASS verdicts we do NOT claim a judge has a MEASURED error
+# rate -- a 0.0 computed over one verdict is not "this judge is perfect", it is
+# "this judge is unmeasured", and reporting it as 0.0 with no flag is the R15
+# FAIL-OPEN pattern (a control that passes on an empty/thin record). Mirrors
+# trust_ledger.autonomy_level's own >=3 floor, for the same reason.
+MIN_PASSES_FOR_MEASURED_RATE = 3
+
 
 # ── APPROACH 1: OUTCOME CORRELATION ──────────────────────────────────────────
 def outcome_error_rates(entries: Optional[list[dict]] = None) -> dict:
@@ -85,15 +92,23 @@ def outcome_error_rates(entries: Optional[list[dict]] = None) -> dict:
     reality found after it signed off.
 
     Returns {"per_judge_class": {...}, "per_judge": {...}, "overall": {...}}.
-    `error_rate` is None where there are zero PASS verdicts (never claim an error
-    rate from an empty record -- R12 anti-goal-seek applied to the metric itself).
+    Each bucket carries:
+      - `error_rate`: (passes_with_later_defect / passes), or None on zero passes.
+      - `escapes_measurement`: True when `passes` < MIN_PASSES_FOR_MEASURED_RATE
+        -- the sample is too thin to have MEASURED this judge at all. This is the
+        load-bearing honesty of H14: a verdict-organ showing error_rate 0.0 over
+        one PASS is NOT a measured-perfect judge, it is an UNMEASURED one, and
+        R15 forbids a control that reads as passing when it is really unmeasured
+        (FAIL-OPEN). `error_rate` is still computed (a provisional signal) but a
+        consumer must gate any promotion claim on `escapes_measurement is False`.
     """
     if entries is None:
         entries = tl._load_ledger()
 
     def _blank():
         return {"passes": 0, "passes_with_later_defect": 0,
-                "total_post_close_defects": 0, "error_rate": None}
+                "total_post_close_defects": 0, "error_rate": None,
+                "escapes_measurement": True}
 
     per_jc: dict = defaultdict(_blank)
     per_j: dict = defaultdict(_blank)
@@ -115,12 +130,45 @@ def outcome_error_rates(entries: Optional[list[dict]] = None) -> dict:
         if bucket["passes"] > 0:
             bucket["error_rate"] = round(
                 bucket["passes_with_later_defect"] / bucket["passes"], 4)
+        bucket["escapes_measurement"] = bucket["passes"] < MIN_PASSES_FOR_MEASURED_RATE
         return bucket
 
     return {
         "per_judge_class": {f"{j}|{k}": _finalise(v) for (j, k), v in per_jc.items()},
         "per_judge": {j: _finalise(v) for j, v in per_j.items()},
         "overall": _finalise(overall),
+    }
+
+
+def measurement_coverage(entries: Optional[list[dict]] = None) -> dict:
+    """The forbidden-state rollup H14 exists to surface: which verdict-organs
+    have a MEASURED error rate, and which currently ESCAPE measurement.
+
+    "A verdict-organ with no measured error rate escapes measurement (forbidden)"
+    -- so we do not merely compute the rate, we compute and PUBLISH how many
+    organs are still unmeasured. Coverage = measured_judges / total_judges over
+    the judges that have recorded at least one PASS. A coverage below 1.0 is not
+    an error to hide; it is the honest statement of how much of the verdict
+    surface is still un-outcome-tested, and the number that must fall over live
+    runs as `record_post_close_defect` accrues.
+    """
+    rates = outcome_error_rates(entries)
+    per_j = rates["per_judge"]
+    measured = sorted(j for j, b in per_j.items() if not b["escapes_measurement"])
+    unmeasured = sorted(j for j, b in per_j.items() if b["escapes_measurement"])
+    total = len(per_j)
+    return {
+        "min_passes_for_measured_rate": MIN_PASSES_FOR_MEASURED_RATE,
+        "judges_with_a_pass_record": total,
+        "measured_judges": measured,
+        "unmeasured_judges": unmeasured,
+        "coverage": round(len(measured) / total, 4) if total else None,
+        "all_measured": (total > 0 and not unmeasured),
+        "note": ("Coverage is the fraction of verdict-organs with a MEASURED "
+                 "outcome-error rate (>= min_passes PASS verdicts). Unmeasured "
+                 "organs escape measurement (R15-forbidden as promotion evidence) "
+                 "until the post-close linkage accrues over live runs; a 0.0 "
+                 "computed error over a thin record is NOT a clean bill of health."),
     }
 
 
@@ -248,6 +296,7 @@ def summary(entries: Optional[list[dict]] = None,
             "No verdict-producing organ escapes measurement."
         ),
         "outcome_correlation": outcome_error_rates(entries),
+        "measurement_coverage": measurement_coverage(entries),
         "gold_set": {
             "cases": [{"case_id": c.get("case_id"),
                        "director_verdict": c.get("director_verdict"),
