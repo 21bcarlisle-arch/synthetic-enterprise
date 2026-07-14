@@ -350,3 +350,155 @@ def test_check_billed_clock_reconciles_empty_bills():
     from company.compliance.domain_invariants import check_billed_clock_reconciles
     assert check_billed_clock_reconciles(0.0, []) is True
     assert check_billed_clock_reconciles(10.0, []) is False
+
+
+# --- F6_rebuild: structural bill-integrity invariants (INVARIANT_LIBRARY_REDTEAM
+# --- gaps 2-4; R10 class-level, R15 mutation-tested per control) ---
+
+from company.compliance.domain_invariants import (  # noqa: E402
+    BILL_FOOTS,
+    BILL_LINE_ITEMS_NON_NEGATIVE,
+    BILL_PERIOD_TEMPORAL_SANE,
+    check_bill_foots,
+    check_bill_line_items_non_negative,
+    check_bill_period_sane,
+    is_credit_bill,
+)
+
+
+def _footing_bill(**overrides):
+    """A well-formed bill whose total foots to its components."""
+    bill = {
+        "customer_id": "C1",
+        "period_start": "2024-01-01",
+        "period_end": "2024-01-31",
+        "commodity_amount_gbp": 50.0,
+        "non_commodity_amount_gbp": 20.0,
+        "standing_charge_gbp": 8.0,
+        "vat_gbp": 3.9,
+        "total_amount_gbp": 81.9,
+    }
+    bill.update(overrides)
+    return bill
+
+
+def test_f6_invariants_registered_as_uk_structural():
+    for inv in (BILL_FOOTS, BILL_LINE_ITEMS_NON_NEGATIVE, BILL_PERIOD_TEMPORAL_SANE):
+        assert inv in ALL_INVARIANTS
+        assert inv.jurisdiction == "UK"
+        assert inv.source and len(inv.source) >= 5
+
+
+# BILL_FOOTS -------------------------------------------------------------------
+
+def test_bill_foots_passes_when_total_matches_components():
+    assert check_bill_foots(_footing_bill()) is True
+
+
+def test_bill_foots_mutation_fires_on_mistotalled_bill():
+    # R15 mutation test: the exact named defect -- a GBP 999,999 total printed
+    # on ~GBP 82 of line items -- MUST fire (return False), never pass.
+    assert check_bill_foots(_footing_bill(total_amount_gbp=999999.0)) is False
+
+
+def test_bill_foots_includes_catchup_adjustment_component():
+    # The regression that sank the first F6: a catch-up bill's total legitimately
+    # exceeds the four category lines by exactly catchup_adjustment_gbp. With the
+    # adjustment in the footing set the bill foots and is NOT held.
+    bill = _footing_bill(total_amount_gbp=122.9, catchup_adjustment_gbp=41.0)
+    assert check_bill_foots(bill) is True
+    # ...and without the adjustment present, that same total would NOT foot.
+    assert check_bill_foots(_footing_bill(total_amount_gbp=122.9)) is False
+
+
+def test_bill_foots_not_applicable_when_no_total_declared():
+    bill = _footing_bill()
+    del bill["total_amount_gbp"]
+    assert check_bill_foots(bill) is True
+
+
+def test_bill_foots_fails_closed_on_unreadable_total():
+    assert check_bill_foots(_footing_bill(total_amount_gbp="lots")) is False
+
+
+def test_bill_foots_fails_closed_on_unreadable_component():
+    assert check_bill_foots(_footing_bill(commodity_amount_gbp="fifty")) is False
+
+
+def test_bill_foots_tolerant_of_penny_rounding():
+    assert check_bill_foots(_footing_bill(total_amount_gbp=81.93)) is True
+
+
+def test_bill_foots_sign_invariant_for_credit_note():
+    # A legitimate credit note (all components negative) foots normally.
+    credit = _footing_bill(
+        commodity_amount_gbp=-50.0, non_commodity_amount_gbp=-20.0,
+        standing_charge_gbp=-8.0, vat_gbp=-3.9, total_amount_gbp=-81.9,
+    )
+    assert check_bill_foots(credit) is True
+
+
+# BILL_LINE_ITEMS_NON_NEGATIVE -------------------------------------------------
+
+def test_non_negative_passes_on_a_clean_bill():
+    assert check_bill_line_items_non_negative(_footing_bill()) is True
+
+
+def test_non_negative_mutation_fires_on_negative_charge():
+    # R15 mutation test: a negative standing charge on a NON-credit bill MUST fire.
+    assert check_bill_line_items_non_negative(_footing_bill(standing_charge_gbp=-8.0)) is False
+
+
+def test_non_negative_exempts_genuine_overcharge_credit_note():
+    credit = _footing_bill(
+        commodity_amount_gbp=-50.0, vat_gbp=-3.9,
+        catchup_applied=True, catchup_direction="overcharge",
+    )
+    assert is_credit_bill(credit) is True
+    assert check_bill_line_items_non_negative(credit) is True
+
+
+def test_non_negative_does_not_exempt_an_undercharge_catchup():
+    # An undercharge catch-up is not a credit; a negative line item on it is
+    # still absurd and must fire.
+    bill = _footing_bill(
+        standing_charge_gbp=-8.0,
+        catchup_applied=True, catchup_direction="undercharge",
+    )
+    assert is_credit_bill(bill) is False
+    assert check_bill_line_items_non_negative(bill) is False
+
+
+def test_non_negative_fails_closed_on_unreadable_amount():
+    assert check_bill_line_items_non_negative(_footing_bill(vat_gbp="none")) is False
+
+
+def test_non_negative_tolerant_of_tiny_rounding_artefact():
+    assert check_bill_line_items_non_negative(_footing_bill(vat_gbp=-0.001)) is True
+
+
+# BILL_PERIOD_TEMPORAL_SANE ----------------------------------------------------
+
+def test_period_sane_passes_on_forward_period():
+    assert check_bill_period_sane(_footing_bill()) is True
+
+
+def test_period_sane_mutation_fires_on_reversed_dates():
+    # R15 mutation test: the exact named defect -- start after end -- MUST fire,
+    # never be silently clamped to a 1-day period.
+    reversed_bill = _footing_bill(period_start="2024-01-31", period_end="2024-01-01")
+    assert check_bill_period_sane(reversed_bill) is False
+
+
+def test_period_sane_allows_equal_start_and_end():
+    assert check_bill_period_sane(_footing_bill(period_start="2024-01-01", period_end="2024-01-01")) is True
+
+
+def test_period_sane_fails_closed_on_missing_dates():
+    bill = _footing_bill()
+    del bill["period_start"]
+    assert check_bill_period_sane(bill) is False
+
+
+def test_period_sane_fails_closed_on_unparseable_dates():
+    assert check_bill_period_sane(_footing_bill(period_start="01/06/2018")) is False

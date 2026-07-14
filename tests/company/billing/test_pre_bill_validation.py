@@ -403,3 +403,88 @@ def test_zero_subtotal_bill_does_not_crash_vat_check():
     # No VAT reason possible with a zero subtotal (nothing to rate-check);
     # consumption reason still applies independently.
     assert not any("vat_by_segment" in r for r in result.reasons)
+
+
+# --- F6_rebuild: structural bill-integrity controls wired end-to-end through
+# --- the pre-bill gate (INVARIANT_LIBRARY_REDTEAM.md gaps 2-4) ---
+
+def _integrity_bill(**overrides):
+    """A well-formed resi bill that passes the gate: 5% VAT, plausible
+    consumption, total foots to components."""
+    bill = {
+        "customer_id": "C1",
+        "period_start": "2024-01-01",
+        "period_end": "2024-01-31",
+        "segment": "resi",
+        "commodity": "electricity",
+        "total_consumption_kwh": 300.0,
+        "commodity_amount_gbp": 44.55,
+        "non_commodity_amount_gbp": 16.65,
+        "standing_charge_gbp": 9.30,
+        "vat_gbp": 3.53,
+        "total_amount_gbp": 74.03,  # 44.55+16.65+9.30+3.53
+    }
+    bill.update(overrides)
+    return bill
+
+
+def test_footing_clean_bill_passes():
+    result = validate_bill(_integrity_bill())
+    assert result.outcome == ValidationOutcome.PASS
+    assert result.reasons == []
+
+
+def test_mistotalled_bill_is_held_through_the_gate():
+    # The REDTEAM C2 exploit: GBP 999,999 total on ~GBP 74 of lines, previously
+    # PASS. Now HELD.
+    result = validate_bill(_integrity_bill(total_amount_gbp=999999.0))
+    assert result.held is True
+    assert any("does not foot" in r for r in result.reasons)
+
+
+def test_negative_charge_bill_is_held_through_the_gate():
+    result = validate_bill(_integrity_bill(standing_charge_gbp=-9.30, total_amount_gbp=55.43))
+    assert result.held is True
+    assert any("negative" in r for r in result.reasons)
+
+
+def test_reversed_period_bill_is_held_through_the_gate():
+    # REDTEAM C4: a reversed-date bill was silently clamped to 1 day and issued.
+    # Now REJECTED (HELD) as a date error rather than passing on a coincidental
+    # consumption band.
+    result = validate_bill(
+        _integrity_bill(period_start="2024-01-31", period_end="2024-01-01")
+    )
+    assert result.held is True
+    assert any("temporally impossible" in r for r in result.reasons)
+
+
+def test_legitimate_catchup_bill_still_passes_the_gate():
+    # REGRESSION GUARD (why the first F6 was dropped): a real back-billing
+    # catch-up bill's total legitimately exceeds its four category lines by the
+    # catch-up adjustment. The footing check MUST include that adjustment so the
+    # bill is not wrongly HELD -- otherwise 147 real bills leave the margin
+    # bridge's issued population and its residual shifts.
+    bill = _integrity_bill(
+        total_amount_gbp=74.03 + 41.0,
+        catchup_applied=True, catchup_direction="undercharge",
+        catchup_period_start="2023-06-01", catchup_period_end="2023-12-31",
+        catchup_raw_delta_gbp=41.0, catchup_adjustment_gbp=41.0,
+    )
+    result = validate_bill(bill)
+    assert not any("does not foot" in r for r in result.reasons)
+    assert result.outcome == ValidationOutcome.PASS
+
+
+def test_overcharge_credit_note_not_held_for_negative_lines():
+    # A genuine overcharge credit note has negative components; it must not be
+    # held by the non-negativity control (is_credit_bill exemption), and its
+    # negative total still foots to its negative components.
+    credit = _integrity_bill(
+        commodity_amount_gbp=-44.55, non_commodity_amount_gbp=-16.65,
+        standing_charge_gbp=-9.30, vat_gbp=-3.53, total_amount_gbp=-74.03,
+        catchup_applied=True, catchup_direction="overcharge",
+    )
+    result = validate_bill(credit)
+    assert not any("negative" in r for r in result.reasons)
+    assert not any("does not foot" in r for r in result.reasons)
