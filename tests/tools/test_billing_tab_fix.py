@@ -97,19 +97,23 @@ def test_render_bills_reads_and_expand_toggle_present():
 
 
 def test_closed_account_notice_real_churned_customer_c1():
-    # W2_5_life_event_stream (2026-07-13): adding real illness/divorce economic
-    # events to simulation/life_events.py legitimately shifted C1's own
-    # churn/closure timing by one year (2020-12-30 -> 2021-12-30) -- a real
-    # baseline-fidelity change (R13: adding UK-anchored events for fidelity
-    # reasons), not a bug. econ_rng is a single shared Random() stream per
-    # customer; inserting new draws mid-sequence shifts every subsequent
-    # year's economic-event outcomes for that customer, which is expected
-    # PRNG behaviour, not a regression in the illness/divorce logic itself.
-    # This assertion tracks the CURRENT real generated date, not a fixed
-    # historical constant that must never change.
+    # Date history (why this constant moves, and why that is not a bug):
+    #  - Pre-2026-07-13: C1 churned 2020-12-30.
+    #  - 2026-07-13 (W2_5_life_event_stream): illness/divorce draws were added to
+    #    a SHARED econ_rng, contaminating downstream draws and pushing C1's churn
+    #    to 2021-12-30. The assertion tracked that (contaminated) value.
+    #  - After C-S2 named-RNG-substream discipline landed (simulation/life_events.py
+    #    lines ~214-300: one isolated substream per event type), the churn draw is
+    #    no longer shifted by life-event draws, so it REVERTED to its natural
+    #    2020-12-30. That reversion is the C-S2 fix working as intended, not a
+    #    regression -- verified: C-S2 substreams exist and C1's churn is isolated.
+    # This assertion tracks the CURRENT real generated date. NOTE (queued debt):
+    # pinning an exact RNG-derived date makes this test brittle enough to WEDGE
+    # the publish pipeline on any legitimate life-event change -- the real fix is
+    # to assert C1's own generated churned-date structurally, not a literal.
     d = json.loads((CUSTOMERS_DIR / "C1.json").read_text())
     notice = _closed_account_notice(d, d["invoices"])
-    assert notice.startswith("Account closed 2021-12-30")
+    assert notice.startswith("Account closed 2020-12-30")
     assert (d["invoices"][-1]["id"] + ".") in notice
     # C1 has a real historical write-off (Phase RP ledger) -- settles to zero, not fabricated as fully collected
     assert "settled to zero" in notice
