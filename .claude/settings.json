@@ -53,6 +53,10 @@
           {
             "type": "command",
             "command": "python3 .claude/hooks/log_director_input.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/stamp_human_presence.py"
           }
         ]
       }

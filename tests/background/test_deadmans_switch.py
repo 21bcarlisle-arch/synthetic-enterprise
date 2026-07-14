@@ -134,7 +134,7 @@ def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
     state: a stale commit (6h) with freshly-written daemon logs in the obs dir.
     The alarm MUST fire now; if this test ever goes green->red the fail-silent
     signal has been reintroduced."""
-    (dms.STAGING_DIR / "run_complete_x.md").write_text("queued")
+    (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
     monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
     # The contaminating writes that masked the stall before:
     (dms.OBSERVABILITY_DIR / "supervisor-log.md").write_text("supervisor just logged")
@@ -144,7 +144,7 @@ def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
     dms.run_cycle()
     assert len(calls) == 1
     assert "[BLOCKED]" in calls[0]
-    assert "run_complete_x.md" in calls[0]
+    assert "STEER_INSTRUCTION.md" in calls[0]
 
 
 def test_silent_stall_fires_with_empty_queue(monkeypatch):
@@ -164,7 +164,7 @@ def test_usage_pause_suppresses_the_alarm(monkeypatch):
     KNOWN-quiet window -- no commit for hours is expected, so both tiers are
     suppressed even with queued work and a very stale commit."""
     from datetime import datetime, timedelta, timezone
-    (dms.STAGING_DIR / "run_complete_x.md").write_text("queued")
+    (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
     monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
     resume_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
     (dms.OBSERVABILITY_DIR / dms.USAGE_PAUSE_FILENAME).write_text(
@@ -181,7 +181,7 @@ def test_expired_usage_pause_does_not_suppress(monkeypatch):
     """A usage pause whose resume_at has passed is NOT a live pause -- the
     alarm must fire (fails toward alarming, never suppresses on a stale file)."""
     from datetime import datetime, timedelta, timezone
-    (dms.STAGING_DIR / "run_complete_x.md").write_text("queued")
+    (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
     monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
     past = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
     (dms.OBSERVABILITY_DIR / dms.USAGE_PAUSE_FILENAME).write_text(
@@ -270,3 +270,35 @@ def test_run_cycle_repings_resets_the_daily_clock(monkeypatch):
 
     dms.run_cycle()  # immediately again -- clock was just reset, must stay silent
     assert len(calls) == 1
+
+
+def test_run_complete_markers_do_not_count_as_blocked_work(monkeypatch):
+    """R3 completeness (2026-07-14, director: 'run_complete markers are STILL
+    landing in docs/staging -- the R3 exclusion is incomplete'): a pile of
+    auto-process markers is NOT a director-instruction backlog, so it must never
+    raise [BLOCKED] on its own. With a recent commit and only markers queued, the
+    deadman stays silent -- the pile is processing lag, surfaced by the commit
+    clock ([STALL]) only if it ever means genuine inactivity, never a false
+    [BLOCKED]."""
+    for i in range(30):
+        (dms.STAGING_DIR / f"run_complete_2026071{i:02d}.md").write_text("marker")
+    assert dms._unprocessed_staging_files() == []  # markers excluded from queued work
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 60)  # recent commit
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert calls == []  # 30 markers + recent commit -> no alarm
+
+
+def test_run_complete_pile_with_stale_commit_still_stalls(monkeypatch):
+    """But markers do NOT blind the backstop: if the commit clock is genuinely
+    stale, [STALL] still fires even though the only things 'queued' are markers
+    (this is the exact blackout shape -- markers piling while nothing commits)."""
+    for i in range(30):
+        (dms.STAGING_DIR / f"run_complete_2026071{i:02d}.md").write_text("marker")
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 2 * 3600)
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1
+    assert "[STALL]" in calls[0]

@@ -71,9 +71,7 @@ other caller -- closing the gap rather than adding a second bespoke guard.
 """
 from __future__ import annotations
 
-import datetime as _dt
 import fcntl
-import json
 import os
 import re
 import subprocess
@@ -83,14 +81,20 @@ from pathlib import Path
 
 DEFAULT_SESSION_NAME = "claude"
 
-# Director-present hold (2026-07-14, director: "you still pasted 3 things just
-# now ... as I type"): while the director is actively steering the interactive
-# session, NO daemon may inject into the pane -- the human is using it. The
-# supervisor's legitimate autonomous turn-grants were landing in his live input
-# box during interactive steering (injection-log: supervisor.py:grant_turn). This
-# is the human-presence arm of the one-gate rule, enforced in `_safe_to_inject`
-# so EVERY gated writer honours it, not just the supervisor.
-_DIRECTOR_PRESENT_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".director_present.json"
+# Director-present hold (2026-07-14, director: "you still pasted 3 things ... as
+# I type" then "presence must AUTO-EXPIRE after N minutes without human
+# keystrokes ... a machine I switch off by looking at it"): while the director is
+# actively steering, NO daemon may inject into the pane. Presence is derived from
+# genuine HUMAN keystroke recency -- the UserPromptSubmit hook
+# (.claude/hooks/stamp_human_presence.py) writes .human_last_input on every real
+# human prompt (NOT on machine-injected turns), and presence is TRUE only within
+# PRESENCE_TTL_SECONDS of that stamp. So it self-refreshes when he types and
+# self-EXPIRES when he goes quiet -- no manual arm/release, and the machine's own
+# injected turns can never refresh it (the self-refreshing-signal disease that
+# felled the deadman). Enforced in `_safe_to_inject` so EVERY gated writer honours
+# it, not just the supervisor.
+_HUMAN_LAST_INPUT_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".human_last_input"
+PRESENCE_TTL_SECONDS = 300  # 5 min without a human keystroke -> absent, autonomous resumes
 
 _RELAY_LOCK_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".tmux_relay.lock"
 # DEFECT_TMUX_PANE_INJECTION.md (2026-07-13, director P2): source-attributable
@@ -407,35 +411,33 @@ def _pane_has_pending_input(content: str) -> bool:
 
 
 def _director_present() -> bool:
-    """True if a director-present hold is active (`.director_present.json` with a
-    future `until`): the interactive session marks the director as actively
-    steering, and while it holds NO daemon may inject into the pane. Fails safe
-    toward NOT present (absent / malformed / expired -> autonomous operation
-    resumes normally) so a stale hold can never permanently freeze the loop."""
+    """True iff a genuine human keystroke landed within the last
+    PRESENCE_TTL_SECONDS (`.human_last_input`, stamped by the UserPromptSubmit
+    hook on real human prompts only). Self-expiring: N minutes after the last
+    keystroke it goes False on its own and autonomous injection resumes -- no one
+    has to detect absence or clear anything. Fails safe toward NOT present
+    (absent / malformed stamp -> autonomous resumes) so a bad stamp can never
+    freeze the loop the way the fixed-TTL hold could."""
     try:
-        data = json.loads(_DIRECTOR_PRESENT_FILE.read_text(encoding="utf-8"))
-        until = _dt.datetime.fromisoformat(data["until"])
-    except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError, TypeError, OSError):
+        stamp = int(_HUMAN_LAST_INPUT_FILE.read_text(encoding="utf-8").strip())
+    except (FileNotFoundError, ValueError, OSError):
         return False
-    if until.tzinfo is None:
-        until = until.replace(tzinfo=_dt.timezone.utc)
-    return _dt.datetime.now(_dt.timezone.utc) < until
+    return (time.time() - stamp) < PRESENCE_TTL_SECONDS
 
 
-def mark_director_present(minutes: float = 30.0) -> None:
-    """Called by the interactive session when the director is actively steering,
-    to HOLD all autonomous pane injection for `minutes` (refresh on each
-    interaction). Bounded TTL so the hold auto-expires when he goes quiet and the
-    autonomous loop resumes without anyone clearing anything."""
-    until = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(minutes=minutes)).isoformat()
-    _DIRECTOR_PRESENT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    _DIRECTOR_PRESENT_FILE.write_text(json.dumps({"until": until}), encoding="utf-8")
+def mark_director_present() -> None:
+    """Manual override / test aid: stamp a human keystroke NOW, holding autonomous
+    injection for PRESENCE_TTL_SECONDS. Normally the hook does this automatically;
+    this exists for an explicit hold and for tests."""
+    _HUMAN_LAST_INPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _HUMAN_LAST_INPUT_FILE.write_text(str(int(time.time())), encoding="utf-8")
 
 
 def clear_director_present() -> None:
-    """Release the hold immediately (autonomous injection resumes next cycle)."""
+    """Release immediately (autonomous injection resumes next cycle). Rarely
+    needed now that presence self-expires; kept for an explicit override."""
     try:
-        _DIRECTOR_PRESENT_FILE.unlink()
+        _HUMAN_LAST_INPUT_FILE.unlink()
     except FileNotFoundError:
         pass
 

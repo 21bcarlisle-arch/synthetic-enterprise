@@ -123,12 +123,23 @@ def _usage_pause_active() -> bool:
     return datetime.now(timezone.utc) < resume_at
 
 
+def _is_daemon_marker(name: str) -> bool:
+    """Auto-process markers (run_complete_/run_pending_*.md) are the pipeline's
+    OWN coordination files, not director instructions -- they must not count as
+    'blocked on queued work' (R3, extended 2026-07-14 per director: 'run_complete
+    markers are STILL landing in docs/staging -- the R3 exclusion is incomplete').
+    A pile of unarchived markers is auto-process LAG; if that ever means genuine
+    inactivity it surfaces via the [STALL] tier (the commit clock, which no marker
+    can move), never as a false [BLOCKED] on instructions that don't exist."""
+    return (name.startswith("run_complete_") or name.startswith("run_pending_")) and name.endswith(".md")
+
+
 def _unprocessed_staging_files() -> list[str]:
     if not STAGING_DIR.is_dir():
         return []
     return sorted(
         p.name for p in STAGING_DIR.iterdir()
-        if p.is_file() and p.name not in _IGNORED_STAGING_NAMES
+        if p.is_file() and p.name not in _IGNORED_STAGING_NAMES and not _is_daemon_marker(p.name)
     )
 
 
