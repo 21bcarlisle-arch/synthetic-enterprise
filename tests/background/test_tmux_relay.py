@@ -2,7 +2,17 @@
 tmux send-keys relay (2026-07-08 incident: see the module's own docstring)."""
 import os
 
+import pytest
+
 from background import tmux_relay
+
+
+@pytest.fixture(autouse=True)
+def _isolate_director_hold(tmp_path, monkeypatch):
+    """Point the director-present hold at an isolated (absent) tmp file so the
+    real, possibly-armed .director_present.json can never leak into a test and
+    make _safe_to_inject refuse. Tests that exercise the hold override this."""
+    monkeypatch.setattr(tmux_relay, "_DIRECTOR_PRESENT_FILE", tmp_path / ".director_present.json")
 
 
 def test_send_keys_is_a_noop_under_pytest(monkeypatch):
@@ -774,3 +784,53 @@ def test_no_raw_tmux_send_keys_outside_relay_module():
         "the shared gated relay (send_keys / send_keys_when_idle / "
         "read_slash_dialog_when_idle):\n" + "\n".join(offenders)
     )
+
+
+# --- director-present hold (2026-07-14: "you still pasted 3 things ... as I type") ---
+
+def test_safe_to_inject_refuses_while_director_present(monkeypatch, tmp_path):
+    """The human-presence arm of the one-gate rule: while the director is
+    actively steering (a fresh .director_present.json), NO daemon may inject --
+    send_keys_when_idle must refuse before typing anything, even on a perfectly
+    idle pane. This is what stops the supervisor's turn-grants landing in his
+    live input box."""
+    import datetime as dt
+    import json as _json
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    hold = tmp_path / ".director_present.json"
+    hold.write_text(_json.dumps({"until": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(minutes=30)).isoformat()}))
+    monkeypatch.setattr(tmux_relay, "_DIRECTOR_PRESENT_FILE", hold)
+    calls = []
+    monkeypatch.setattr(
+        tmux_relay.subprocess, "run",
+        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"returncode": 0, "stdout": IDLE_PANE})(),
+    )
+    assert tmux_relay.send_keys_when_idle("claude", "hi|1|abc", "abc") is False
+    assert not any(c[1] == "send-keys" for c in calls)  # never typed a keystroke
+
+
+def test_safe_to_inject_allows_when_director_hold_expired(monkeypatch, tmp_path):
+    """Fail-safe: a stale/expired hold must NOT freeze the autonomous loop --
+    once `until` has passed, injection proceeds normally again."""
+    import datetime as dt
+    import json as _json
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    hold = tmp_path / ".director_present.json"
+    hold.write_text(_json.dumps({"until": (dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=1)).isoformat()}))
+    monkeypatch.setattr(tmux_relay, "_DIRECTOR_PRESENT_FILE", hold)
+    # idle+stable pane so _safe_to_inject would pass but for the (expired) hold
+    landed = IDLE_PANE.replace("❯ \n", "❯ hi|1|abc\n")
+    seq = iter([IDLE_PANE, IDLE_PANE, landed, BUSY_PANE, IDLE_PANE])
+    def _run(cmd, **kw):
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": next(seq)})()
+        return type("R", (), {"returncode": 0})()
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    assert tmux_relay.send_keys_when_idle("claude", "hi|1|abc", "abc") is True  # proceeds
+
+
+def test_director_present_absent_file_is_not_present():
+    """No hold file at all -> not present -> autonomous injection allowed."""
+    assert tmux_relay._director_present() in (False,)  # real file may or may not exist; must be bool False when absent

@@ -71,7 +71,9 @@ other caller -- closing the gap rather than adding a second bespoke guard.
 """
 from __future__ import annotations
 
+import datetime as _dt
 import fcntl
+import json
 import os
 import re
 import subprocess
@@ -80,6 +82,15 @@ from contextlib import contextmanager
 from pathlib import Path
 
 DEFAULT_SESSION_NAME = "claude"
+
+# Director-present hold (2026-07-14, director: "you still pasted 3 things just
+# now ... as I type"): while the director is actively steering the interactive
+# session, NO daemon may inject into the pane -- the human is using it. The
+# supervisor's legitimate autonomous turn-grants were landing in his live input
+# box during interactive steering (injection-log: supervisor.py:grant_turn). This
+# is the human-presence arm of the one-gate rule, enforced in `_safe_to_inject`
+# so EVERY gated writer honours it, not just the supervisor.
+_DIRECTOR_PRESENT_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".director_present.json"
 
 _RELAY_LOCK_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / ".tmux_relay.lock"
 # DEFECT_TMUX_PANE_INJECTION.md (2026-07-13, director P2): source-attributable
@@ -395,12 +406,48 @@ def _pane_has_pending_input(content: str) -> bool:
     return False
 
 
+def _director_present() -> bool:
+    """True if a director-present hold is active (`.director_present.json` with a
+    future `until`): the interactive session marks the director as actively
+    steering, and while it holds NO daemon may inject into the pane. Fails safe
+    toward NOT present (absent / malformed / expired -> autonomous operation
+    resumes normally) so a stale hold can never permanently freeze the loop."""
+    try:
+        data = json.loads(_DIRECTOR_PRESENT_FILE.read_text(encoding="utf-8"))
+        until = _dt.datetime.fromisoformat(data["until"])
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError, TypeError, OSError):
+        return False
+    if until.tzinfo is None:
+        until = until.replace(tzinfo=_dt.timezone.utc)
+    return _dt.datetime.now(_dt.timezone.utc) < until
+
+
+def mark_director_present(minutes: float = 30.0) -> None:
+    """Called by the interactive session when the director is actively steering,
+    to HOLD all autonomous pane injection for `minutes` (refresh on each
+    interaction). Bounded TTL so the hold auto-expires when he goes quiet and the
+    autonomous loop resumes without anyone clearing anything."""
+    until = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(minutes=minutes)).isoformat()
+    _DIRECTOR_PRESENT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    _DIRECTOR_PRESENT_FILE.write_text(json.dumps({"until": until}), encoding="utf-8")
+
+
+def clear_director_present() -> None:
+    """Release the hold immediately (autonomous injection resumes next cycle)."""
+    try:
+        _DIRECTOR_PRESENT_FILE.unlink()
+    except FileNotFoundError:
+        pass
+
+
 def _safe_to_inject(session: str) -> bool:
     """The injection gate, REDESIGNED (2026-07-13, DEFECT_TMUX_PANE_INJECTION
     REOPENED, R3 -- pane-scrape idleness GUESSING failed twice against a moving
-    spinner format it does not control). Three format-INDEPENDENT conditions,
-    ALL required, so a wrong idleness guess can never convert into accumulated
-    pane input:
+    spinner format it does not control). Conditions, ALL required, so a wrong
+    idleness guess can never convert into accumulated pane input:
+      0. NO director-present hold -- while the human is actively steering the
+         session, no daemon may type into his box (2026-07-14, added after the
+         supervisor's turn-grants kept landing in the live input box as he typed);
       1. no unconsumed input already in the box (accumulation can't compound);
       2. no known busy indicator (belt);
       3. BYTE-STABLE across a short re-capture -- a processing session's pane
@@ -409,6 +456,8 @@ def _safe_to_inject(session: str) -> bool:
          so instability is a format-proof 'busy' signal; only a genuinely idle
          prompt is static.
     Fails safe: any capture error or ambiguity returns False."""
+    if _director_present():
+        return False
     c1 = capture_pane(session)
     if not c1 or _pane_has_pending_input(c1) or _is_busy_content(c1):
         return False
