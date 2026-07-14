@@ -147,6 +147,11 @@ _start_session "director-comments" \
   "DIRECTOR_COMMENTS_BOX.md -- polls the dedicated comments-only ntfy topic, validates the PIN server-side, stages accepted director page comments" \
   "${NTFY_ENV_FLAGS[@]}"
 
+_start_session "naive-organ" \
+  "python3 -m background.naive_organ daemon" \
+  "H11 L3 (NAIVE_ORGAN_BLIND_SPOT_AND_USAGE_WRITE.md): the independent outside-view skeptic on its OWN wall-clock timer (NOT publish-coupled), so it can fire when the system is silent; trigger #8 EXPECTED OUTPUT ABSENT reads the independent git commit clock" \
+  "${NTFY_ENV_FLAGS[@]}"
+
 # RETIRED 2026-07-08 (docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md, director-approved
 # Option A of docs/review_gates/AUTONOMOUS_RUNNER_STILL_RUNNING.md). Deliberately stopped:
 # waste + tree-race source + budget burn. Single-writer mode = the watchdog-managed
