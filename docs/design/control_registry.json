@@ -6,15 +6,16 @@
     "doctrine": "A control that CANNOT FAIL is worse than no control. For every control, inject the exact defect it exists to catch; it MUST fire. Audit for three killer patterns: TAUTOLOGY (checked value derived from the same source it is checked against), FAIL-OPEN (passes on missing/zero/empty/malformed), FAIL-SILENT (passes when the checker itself is unavailable).",
     "coverage_note": "Pass 1 (commit e16f00de) mutation-tested the highest-tier / customer-impacting control set (invariant library, Tier-1 pre-bill gate, obligations tiering, the Qwen backstop, the epistemic verifier). Pass 2 (H12 L2->L3) extends to the inventoried-but-untested tail: the compliance trackers (population sanity, consumer duty, social obligation, crisis bad debt, green claims), the health / page-consistency gates (R14 basis labels, dashboard consistency + population consistency, background/health_check), the daemon change-detection (dedup) gate, and a STRUCTURAL check of the LLM-judge evaluators (judgement layer itself remains not-deterministically-mutation-testable, documented not counted as covered).",
     "cumulative_counts": {
-      "as_of": "2026-07-13 (pass 2, H12 L2->L3)",
-      "total_controls_mutation_tested": 27,
-      "fired_on_named_defect": 26,
+      "as_of": "2026-07-14 (pass 4: two director-named THEATRE controls fixed + registered)",
+      "total_controls_mutation_tested": 29,
+      "fired_on_named_defect": 28,
       "theatre": 1,
-      "fixed_cumulative": 7,
+      "fixed_cumulative": 9,
       "gaps_registered_not_fixed": 0,
+      "pass_4_note": "2026-07-14: two controls the director named as theatre were fixed and mutation-proven, then registered here so the kill list stays honest. (1) deadman_meaningful_liveness (FAIL-OPEN): the deadman keyed liveness on ANY commit, so auto-process flat no-op run-completes masked the real 83-min executor-idle window -- now keyed on the newest MEANINGFUL commit and fails closed on unreadable git; fires on test_flat_auto_process_commits_do_not_refresh_liveness. (2) claim_evidence_hook (TAUTOLOGY): a self-certifying 'fixed/deployed' send_ntfy claim now requires an INDEPENDENT witness (the cited SHA reachable on origin/main, checked by git), fails closed on no/bogus SHA or unresolvable origin ref; fires on test_blocks_claim_citing_sha_not_on_origin.",
       "by_killer_pattern": {
-        "TAUTOLOGY": {"total": 2, "detail": "check_vat (THEATRE, mitigated, retained defence-in-depth); social_obligation non_compliant status-trust (KL-6 FIXED F8: now folds independent is_underspend evidence, mislabelled-PAID underspend fires)"},
-        "FAIL_OPEN": {"total": 3, "fixed": 3, "listed_gaps": 0, "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (KL-7 FIXED F8: NOT_APPLICABLE for no-claims, fails CLOSED on broken detection); dashboard _check_consistency per-key skip (KL-8 FIXED F8: one-sided missing key now a mismatch)"},
+        "TAUTOLOGY": {"total": 3, "detail": "check_vat (THEATRE, mitigated, retained defence-in-depth); social_obligation non_compliant status-trust (KL-6 FIXED F8: now folds independent is_underspend evidence, mislabelled-PAID underspend fires); claim_evidence_hook (FIXED 2026-07-14: a self-certifying completion claim now demands an on-origin SHA witness, fires on a committed-but-unpushed SHA)"},
+        "FAIL_OPEN": {"total": 4, "fixed": 4, "listed_gaps": 0, "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (KL-7 FIXED F8: NOT_APPLICABLE for no-claims, fails CLOSED on broken detection); dashboard _check_consistency per-key skip (KL-8 FIXED F8: one-sided missing key now a mismatch); deadman_meaningful_liveness (FIXED 2026-07-14: no-op auto-process commits no longer refresh the liveness clock, fires on a stale meaningful commit)"},
         "FAIL_SILENT": {"total": 4, "fixed": 4, "listed_gaps": 0, "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (KL-4 FIXED F8: empty log now FLAGS); consumer_duty empty-register=GREEN (KL-5 FIXED F8: distinct NOT_ASSESSED state); dashboard _check_consistency no-insights (KL-8 FIXED F8: absent insights now fails CLOSED)"}
       },
       "honest_note": "F8 (2026-07-13) CLOSED all five pass-2 gaps KL-4..KL-8, each with a passing mutation test proving the control now FIRES on its own named defect (before: theatre/passed-wrongly; after: fires). Each fix was verified OUTCOME-SAFE against the live population: the real run's 1,588 meter reads (30% estimated) still read clean (KL-4); a populated all-green Consumer-Duty register still reads GREEN (KL-5); a genuinely-met PAID full-spend obligation is still not flagged (KL-6); the real dashboard carries all 8 headline keys on both surfaces so no false one-sided mismatch (KL-8). ConsumerDutyRegister and SocialObligationSpendRegister are instantiated only in tests (no production surface), so KL-5/KL-6 carry zero production-outcome risk. Cumulative theatre count remains 1 (check_vat, the flagship tautology, retained as documented defence-in-depth)."
@@ -133,6 +134,26 @@
       "mutation": "A company/ file containing `from simulation.foo import bar`.",
       "killer_pattern_audit": "minor-fail-open (listed)",
       "killer_pattern_detail": "Fires reliably on the literal forbidden-import syntax. Two coverage limitations, low severity, LISTED not fixed: (1) _scan_file returns [] on FileNotFoundError (a missing file reads as clean); (2) only line-start import syntax is matched -- an importlib/getattr dynamic bypass is not caught. These are detection-coverage gaps, not a fail-open on the syntax it owns.",
+      "result": "FIRED"
+    },
+    {
+      "id": "deadman_meaningful_liveness",
+      "pass": 4,
+      "location": "background/deadmans_switch.py::last_activity_epoch / _last_meaningful_commit_epoch / _is_auto_process_commit / run_cycle",
+      "catches": "auto-process no-op commits masking executor idle -- a genuine executor stall where the ONLY recent git activity is the ~15min auto-process publish loop's flat no-op run-completes (identical net figure, no forward work).",
+      "mutation": "A window whose only sub-45min commits are auto-process run-completes, the last MEANINGFUL commit 50min old, staged work queued -> the BLOCKED alarm must fire (staleness measured from the meaningful commit, not the 2-min-old no-op). tests/background/test_deadmans_switch.py::test_flat_auto_process_commits_do_not_refresh_liveness.",
+      "killer_pattern_audit": "FAIL-OPEN (FIXED 2026-07-14)",
+      "killer_pattern_detail": "Director-named THEATRE control (2026-07-14): the OLD deadman keyed liveness on ANY git commit, so the auto-process publish loop's flat no-op commits refreshed the staleness clock and the switch reported 'not blocked' straight through the real 83-min executor-idle window (22:03-23:26) -- it NEVER fired (fail-open on no-op activity). FIXED: last_activity_epoch() now keys only on the newest MEANINGFUL (non-auto-process) commit via _is_auto_process_commit; also fails CLOSED (trips BLOCKED) when git is unreadable (test_meaningful_clock_fails_closed_and_trips_blocked_when_git_unreadable). Outcome-safe: a real 5-min-old forward commit surrounded by auto-process noise does NOT false-fire (test_recent_meaningful_commit_is_not_blocked_despite_auto_process_noise).",
+      "result": "FIRED"
+    },
+    {
+      "id": "claim_evidence_hook",
+      "pass": 4,
+      "location": ".claude/hooks/block_unevidenced_claim.py",
+      "catches": "a false fixed/deployed claim not backed by an on-origin SHA -- a send_ntfy claim asserting work 'fixed/deployed/live' citing a commit that is only local (never reached origin) or fabricated, or citing no SHA at all.",
+      "mutation": "A send_ntfy claim citing a committed-but-unpushed SHA (the named defect) -> the PreToolUse hook must BLOCK (exit non-zero, 'origin' in stderr). tests/tools/test_claude_hooks.py::TestBlockUnevidencedClaim::test_blocks_claim_citing_sha_not_on_origin.",
+      "killer_pattern_audit": "TAUTOLOGY (FIXED 2026-07-14)",
+      "killer_pattern_detail": "A completion claim self-certifying 'done' is the tautology class -- the claim asserts its own truth. FIXED: the hook demands an INDEPENDENT witness (the SHA must be reachable on origin/main, checked by git, not by the claimant's word) before a fixed/deployed/live send_ntfy is allowed. Fails CLOSED: no SHA cited -> BLOCK ('commit SHA' in stderr, test_blocks_claim_with_no_sha); a bogus SHA -> BLOCK (test_blocks_claim_citing_bogus_sha); the origin tracking ref unresolvable -> BLOCK, an unverifiable check is a failed check (test_blocks_when_no_origin_ref_resolvable). Outcome-safe: a claim citing a SHA genuinely on origin PASSES (test_passes_claim_citing_sha_genuinely_on_origin); a non-claim ntfy passes (test_allows_non_claim_ntfy_message).",
       "result": "FIRED"
     },
 
@@ -294,7 +315,7 @@
   ],
   "inventoried_not_yet_mutation_tested": [
     {"category": "evaluators_judgement_layer", "examples": [".claude/agents/phase-close-evaluator.md", ".claude/agents/epistemic-verifier.md"], "note": "STRUCTURAL read-only guarantee now asserted (llm_judge_evaluators_structural); the LLM verdict QUALITY itself remains not-deterministically-mutation-testable -- graded by prompt+model, no fixed prompt->NEEDS_WORK oracle. Documented, NOT counted as covered for the judgement layer."},
-    {"category": "daemon_scheduling", "examples": ["background/sanity_daemon.py loop cadence/dedup", "background/session_watchdog.py restart logic", "background/deadmans_switch"], "note": "The change-detection (dedup) gate and health-check are now mutation-tested; the sanity/session/deadman daemons' own SCHEDULING loops (cadence, cooldown, restart backoff) are not individually mutation-tested this pass."},
+    {"category": "daemon_scheduling", "examples": ["background/sanity_daemon.py loop cadence/dedup", "background/session_watchdog.py restart logic"], "note": "The change-detection (dedup) gate, health-check, and (pass 4) the deadman's meaningful-liveness control are now mutation-tested; the sanity/session daemons' own SCHEDULING loops (cadence, cooldown, restart backoff) are not individually mutation-tested this pass."},
     {"category": "regulatory_trackers_tail", "examples": ["company/regulatory/* (50+ registers: ROC, REGO, CfD levy, price cap, GSOP, ombudsman, etc.)"], "note": "The highest-signal compliance trackers are now covered; the long tail of regulatory ledger/register modules is inventoried, not individually mutation-tested. Most are accumulator/reporting registers rather than fire/not-fire gates."}
   ]
 }

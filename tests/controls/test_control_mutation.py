@@ -736,6 +736,53 @@ def test_control_registry_is_wellformed_and_in_sync():
     assert vat["killer_pattern_audit"] == "TAUTOLOGY"
 
 
+def test_fixed_theatre_controls_are_registered_in_the_killlist():
+    """The two director-named THEATRE controls fixed 2026-07-14 (the deadman
+    meaningful-liveness FAIL-OPEN and the claim-evidence-hook TAUTOLOGY) MUST
+    appear in the kill list as FIRED and resolve to their real source + mutation
+    test -- so the kill list rendered on the Proof door stays HONEST and current.
+    A FIRED result is only permitted here because a real mutation test proves each
+    fires on its own named defect (asserted below by locating those tests)."""
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    with open(os.path.join(root, "docs/design/control_registry.json")) as fh:
+        controls = json.load(fh)["controls"]
+    by_id = {c["id"]: c for c in controls}
+
+    expected = {
+        "deadman_meaningful_liveness": {
+            "src": "background/deadmans_switch.py",
+            "audit_contains": "FAIL-OPEN",
+            "catch_contains": "auto-process no-op commits masking executor idle",
+            "test_file": "tests/background/test_deadmans_switch.py",
+            "test_name": "test_flat_auto_process_commits_do_not_refresh_liveness",
+        },
+        "claim_evidence_hook": {
+            "src": ".claude/hooks/block_unevidenced_claim.py",
+            "audit_contains": "TAUTOLOGY",
+            "catch_contains": "not backed by an on-origin SHA",
+            "test_file": "tests/tools/test_claude_hooks.py",
+            "test_name": "test_blocks_claim_citing_sha_not_on_origin",
+        },
+    }
+    for cid, exp in expected.items():
+        assert cid in by_id, f"{cid} missing from the kill list"
+        c = by_id[cid]
+        # A FIRED result is only honest if the source, the mutation test, and the
+        # named test function all really exist -- no fabricated FIRED.
+        assert c["result"] == "FIRED", f"{cid} not FIRED"
+        assert exp["src"] in c["location"], f"{cid} location does not cite {exp['src']}"
+        assert exp["audit_contains"] in c["killer_pattern_audit"], f"{cid} wrong killer pattern"
+        assert exp["catch_contains"] in c["catches"], f"{cid} catch clause drifted"
+        assert exp["test_name"] in c["mutation"], f"{cid} does not reference its mutation test"
+        # The referenced mutation test must actually exist on disk (resolves).
+        test_path = os.path.join(root, exp["test_file"])
+        assert os.path.exists(test_path), f"{cid} references a missing test file {exp['test_file']}"
+        with open(test_path) as fh:
+            body = fh.read()
+        assert f"def {exp['test_name']}" in body, \
+            f"{cid} references {exp['test_name']} but it is not defined in {exp['test_file']}"
+
+
 # ==========================================================================
 # PASS 3 (H12 L2->L3): the epistemic-verifier's OWN coverage gaps (KL-2) and
 # the deterministic COMPLIANCE ACCUMULATOR-REGISTER TAIL.
