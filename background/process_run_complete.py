@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -62,6 +63,23 @@ FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish
 # per PUSH_THROTTLE_SECONDS; the next successful push carries every commit
 # accumulated since the last one.
 PUSH_THROTTLE_SECONDS = 30 * 60
+# H15_publish_gate_failure_alert (2026-07-14): the publish gate (fast-test
+# suite + the processor's return code) can fail SILENTLY and repeatedly. The
+# real worked example was pytest OOM-killed (rc=-9 -> "Tests FAILED - not
+# committing") every ~10-min cycle for ~45min while run_complete markers piled
+# up unpublished with NO alert -- a silent pipeline wedge. This state file
+# tracks recent consecutive publish-gate FAILURES: N within a window fires ONE
+# [ACTION NEEDED] alert (re-armed by a cooldown so a persistently-wedged
+# pipeline can't spam), and a clean publish CLEARS it. R15: the mechanism is
+# mutation-tested to FIRE on N consecutive failures, to NOT fire on a single
+# transient failure or after recovery, and to FAIL-CLOSED (fire on the first
+# failure) when its own gate-state file is unreadable rather than silently
+# resetting the counter -- an unavailable check is a failed check.
+PUBLISH_GATE_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_gate_state.json"
+PUBLISH_GATE_FAILURE_THRESHOLD = 3          # N consecutive failures inside the window
+PUBLISH_GATE_WINDOW_SECONDS = 60 * 60       # 1h: a wedge fails every ~10min, so 3/hour is the signal
+PUBLISH_GATE_COOLDOWN_SECONDS = 60 * 60     # re-arm: at most one alert NTFY per hour while it stays wedged
+PUBLISH_GATE_ITEM_ID = "publish_gate_wedged"
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.tree_lock import tree_lock  # noqa: E402
@@ -844,6 +862,155 @@ def _run_history_max_net():
         return max((h.get("net_margin_gbp", 0) for h in history), default=0.0)
     except Exception:
         return 0.0
+
+
+# ── H15: publish-gate failure alerting (silent-wedge detector) ───────────────
+
+def _classify_gate_failure(rc):
+    """Cheap OOM-vs-regression classification from a processor return code.
+
+    A negative code == the child was killed by signal -rc (subprocess
+    convention); -9 = SIGKILL, overwhelmingly the OOM-killer / a resource
+    limit rather than a code regression. A positive non-zero code is a real
+    processing/test failure ('Tests FAILED', report regen failed, ...)."""
+    if rc is None:
+        return "unknown"
+    try:
+        rc = int(rc)
+    except (TypeError, ValueError):
+        return "unknown"
+    if rc < 0:
+        return "resource_kill" if rc == -9 else "signal_kill"
+    if rc == 0:
+        return "pass"
+    return "test_regression"
+
+
+def _gate_failure_label(kind):
+    return {
+        "resource_kill": "resource kill (SIGKILL/OOM -- almost certainly memory, NOT a code regression)",
+        "signal_kill": "killed by a signal (a resource/environment problem, not a normal test failure)",
+        "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
+        "unknown": "unknown cause (return code unavailable)",
+    }.get(kind, kind)
+
+
+def _read_publish_gate_state():
+    """Load the wedge-state file. FAIL-CLOSED (R15 fail-silent doctrine): an
+    unreadable/corrupt state is itself a failed check -- signalled via
+    state_unavailable=True so the current failure escalates immediately rather
+    than being lost to a silent reset that would suppress the alarm."""
+    if not PUBLISH_GATE_STATE_FILE.exists():
+        return {"failures": [], "alerted_at": None, "state_unavailable": False}
+    try:
+        st = json.loads(PUBLISH_GATE_STATE_FILE.read_text())
+        if not isinstance(st, dict):
+            raise ValueError("gate state is not an object")
+        st.setdefault("failures", [])
+        st.setdefault("alerted_at", None)
+        st["state_unavailable"] = False
+        return st
+    except (json.JSONDecodeError, OSError, ValueError):
+        return {"failures": [], "alerted_at": None, "state_unavailable": True}
+
+
+def _write_publish_gate_state(state):
+    out = {"failures": state.get("failures", []), "alerted_at": state.get("alerted_at")}
+    PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+
+
+def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_fn):
+    window_min = PUBLISH_GATE_WINDOW_SECONDS // 60
+    n = len(recent)
+    detail = _gate_failure_label(kind)
+    count_phrase = "an unknown number of" if unavailable else str(n)
+    what = ("The run-complete PUBLISH GATE has failed {} time(s) in a row within the "
+            "last {} min -- the site/report pipeline is WEDGED and run_complete markers "
+            "are piling up unpublished. Latest cause: {} (rc={}, git={}).").format(
+                count_phrase, window_min, detail, rc, git_hash)
+    if unavailable:
+        what += (" NOTE: the gate-state file was unreadable, so this alert fired "
+                 "fail-closed on the first failure rather than risk staying silent.")
+    how = ("Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure "
+           "lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
+           "NOT a code bug; rc>0 means run the fast suite locally to find the regression. "
+           "The alarm clears automatically on the next clean publish.")
+    why = ("A silently-wedged publish gate stops the live site and report updating with "
+           "NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).")
+    msg = "[ACTION NEEDED] {}\nWhat: {}\nHow: {}\nWhy: {}".format(PUBLISH_GATE_ITEM_ID, what, how, why)
+    if send_ntfy_fn is None:
+        from background.ntfy_utils import send_ntfy as send_ntfy_fn
+    send_ntfy_fn(msg)
+    # Durable register + daily re-ping while it stays wedged (best-effort -- a
+    # register failure must never suppress the NTFY that already went out).
+    try:
+        from background import action_needed
+        action_needed.register_item(PUBLISH_GATE_ITEM_ID, what=what, how=how, why=why)
+    except Exception as exc:
+        log("Publish-gate action_needed register skipped: {}".format(exc))
+    return msg
+
+
+def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None, send_ntfy_fn=None):
+    """Record ONE publish-gate failure and fire a single [ACTION NEEDED] alert
+    once N failures accumulate within the window (re-armed by a cooldown so a
+    persistently-wedged pipeline can't spam). Returns a small result dict for
+    callers/tests. Fully defensive -- never raises into the caller (a
+    monitoring failure must not break the pipeline it monitors)."""
+    try:
+        now = float(now) if now is not None else time.time()
+        state = _read_publish_gate_state()
+        unavailable = bool(state.get("state_unavailable"))
+        kind = _classify_gate_failure(rc)
+        failures = [f for f in state.get("failures", [])
+                    if isinstance(f, dict) and now - float(f.get("ts", 0)) <= PUBLISH_GATE_WINDOW_SECONDS]
+        failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind, "git_hash": git_hash})
+        count = len(failures)
+        threshold_met = unavailable or count >= PUBLISH_GATE_FAILURE_THRESHOLD
+        last_alert = state.get("alerted_at")
+        armed = last_alert is None or (now - float(last_alert)) >= PUBLISH_GATE_COOLDOWN_SECONDS
+        fired = False
+        alerted_at = last_alert
+        if threshold_met and armed:
+            _fire_publish_gate_alert(failures, kind, rc, git_hash, unavailable, send_ntfy_fn)
+            alerted_at = now
+            fired = True
+        _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at})
+        log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
+            count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
+        return {"count": count, "kind": kind, "threshold_met": threshold_met, "fired": fired}
+    except Exception as exc:
+        log("record_publish_gate_failure error (swallowed): {}".format(exc))
+        return {"count": 0, "kind": "error", "threshold_met": False, "fired": False}
+
+
+def record_publish_gate_success(*, now=None):
+    """A clean publish (or a clean skip) CLEARS the wedge state: resets the
+    consecutive-failure streak, re-arms the alarm, and resolves the durable
+    action_needed item if one was open. Idempotent; never raises."""
+    try:
+        had_state = False
+        if PUBLISH_GATE_STATE_FILE.exists():
+            prev = _read_publish_gate_state()
+            had_state = bool(prev.get("failures")) or prev.get("alerted_at") is not None
+        _write_publish_gate_state({"failures": [], "alerted_at": None})
+        if had_state:
+            log("Publish gate recovered -- cleared wedge state, re-armed alarm.")
+            try:
+                from background import action_needed
+                reg = action_needed.load_register()
+                if PUBLISH_GATE_ITEM_ID in reg and not reg[PUBLISH_GATE_ITEM_ID].get("resolved"):
+                    ts = datetime.now(timezone.utc).isoformat()
+                    action_needed.resolve_item(
+                        PUBLISH_GATE_ITEM_ID,
+                        answer="Auto-resolved: the publish gate recovered and a run published cleanly at {}.".format(ts))
+            except Exception as exc:
+                log("Publish-gate action_needed resolve skipped: {}".format(exc))
+        return had_state
+    except Exception as exc:
+        log("record_publish_gate_success error (swallowed): {}".format(exc))
+        return False
 
 
 def maybe_ntfy(data, net_margin, insights=None):

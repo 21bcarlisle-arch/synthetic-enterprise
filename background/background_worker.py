@@ -87,6 +87,36 @@ def process_leftover_run_markers():
             log(f"Processed {marker.name}")
         else:
             log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle")
+        # H15_publish_gate_failure_alert: feed every processing outcome into the
+        # publish-gate wedge detector. This sweep is the recurring caller that
+        # actually manifests a silent wedge -- process_run_complete returns
+        # rc!=0 every cycle (test-fail / OOM SIGKILL rc=-9 / report-regen fail)
+        # and leaves the marker in staging, so N consecutive failures here == a
+        # stalled pipeline that must raise ONE [ACTION NEEDED] alert.
+        _record_publish_gate_outcome(marker, result.returncode)
+
+
+def _record_publish_gate_outcome(marker, rc):
+    """H15: route a run-complete processing return code into the publish-gate
+    failure detector (background/process_run_complete.py). Defensive by
+    construction -- a monitoring failure must never break the marker sweep or
+    the loop that calls it."""
+    try:
+        from background import process_run_complete as prc
+        if rc == 0:
+            prc.record_publish_gate_success()
+        else:
+            git_hash = "unknown"
+            try:
+                git_hash = prc.parse_marker(marker).get("git_hash", "unknown")
+            except Exception:
+                pass
+            prc.record_publish_gate_failure(
+                f"process_run_complete rc={rc} on {marker.name}",
+                rc=rc, git_hash=git_hash,
+            )
+    except Exception as exc:
+        log(f"publish-gate outcome recording skipped for {marker.name}: {exc}")
 
 
 def main():
