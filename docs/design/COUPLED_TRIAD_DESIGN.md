@@ -346,6 +346,24 @@ Anti-decay metrics (MAKE_IT_STICK, alarmed every digest):
 
 ### 5.2 The Proof door (`site/data/proof.json` + `site/proof/index.html`)
 
+> **LANDED — DATA side (2026-07-14, A6 L2→L3 fork).** `tools/generate_proof_data.py::_coupled_gaps(atoms)`
+> is built and wired into `generate()`, so every publish (the pipeline calls
+> `generate_proof_data.generate()` in `process_run_complete.py`, fresh — no restart needed) emits a
+> `coupled_gaps` block read straight from `docs/observability/coupled_gap_ledger.json` + the map. It
+> renders all 7 affordability-cluster pairs, each with `metric`, `value`, `baseline_g0`, `components`,
+> `measured_at`, `run_git_commit`, a `chip`/`severity` per the reading convention below, and a
+> `blocks_l3` field that **re-uses the live draw gate** (`background.coupled_triad.world_l3_blocked`) so
+> the pixel cannot drift from the mechanism. Anti-decay summary counts are included
+> (`unmeasured`, `unmeasured_ge_l2`, `wall_leak_count`, `worse_than_blind_count`). The panel is a
+> **control that can FAIL (R15)**: `tests/tools/test_generate_proof_coupled_gaps.py` mutation-tests
+> that it fires on its named defects — a null/absent gap → `untested`/amber + anti-decay count; a gap
+> of exactly 0 → `leak`/red (a wall breach, not a triumph); a gap > 1 → `worse_than_blind`/red; an
+> empty ledger → **fails closed** (all pairs still shown untested, never a silently empty panel). Two
+> deltas from the sketch below: `trend` is `"single"` until a measurement-history store exists (a
+> follow-up — the ledger keeps only the latest point per pair), and the **HTML render**
+> (`site/proof/index.html` panel + digest §5.1) is a **SITE-lane follow-up** (that file is outside the
+> A6 fork's `file_scope`); the data it consumes is now live.
+
 Add a `coupled_gaps` block to `proof.json`, built by `tools/generate_proof_data.py` (a new
 `_coupled_gaps(atoms)` helper alongside `_verification_stack`), reading each atom's `gap`/
 `couples_with` fields — the same "read the map, don't invent" pattern the existing verification
