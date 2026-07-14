@@ -402,6 +402,71 @@ VAT_SEGMENT_MATCHES_CONSUMPTION = StructuralInvariant(
 )
 
 
+# --- Structural bill-integrity invariants (atom F6_rebuild) ---
+#
+# INVARIANT_LIBRARY_REDTEAM.md (2026-07-13) gaps 2-4: three load-bearing
+# structural sanity controls any real biller has, absent until now. Registered
+# as the named/sourced CLASS rules (R10 -- closure is the class, not the
+# instance); enforced by the same-named check_*() predicates below and wired
+# into the pre-bill validation gate. Each is mutation-tested (R15): inject its
+# exact named defect and the control MUST fire. All fail CLOSED on
+# missing/malformed input (an unverifiable value is a failed check, never a
+# pass).
+#
+# REBUILD NOTE (F6_rebuild): the first F6 build was DROPPED because its footing
+# check omitted catchup_adjustment_gbp from the total, so it HELD every
+# legitimate back-billing catch-up bill -- moving 147 real bills out of the
+# margin bridge's issued population and shifting its residual (41 -> 58). The
+# catch-up adjustment is a legitimate component of a catch-up bill's printed
+# total, stamped on OUTSIDE the four category line-item fields (verified against
+# the real run population: total - sum(four line items) == catchup_adjustment_gbp
+# to the penny for all 147 catch-up bills in run_output_latest.json; the margin
+# bridge's Item 3 accounts for exactly this amount). So the footing component
+# set here includes it.
+
+BILL_FOOTS = StructuralInvariant(
+    id="bill_foots",
+    description=(
+        "A bill's declared total (total_amount_gbp) must equal the sum of its "
+        "own components -- commodity + non-commodity + standing charge + VAT, "
+        "PLUS any catch-up (back-billing) adjustment stamped onto the total "
+        "outside the four category fields -- to the penny. Named defect: a GBP "
+        "999,999 total printed on GBP 88 of line items, which passed because the "
+        "total was never asserted to foot. Not-applicable only when no total is "
+        "declared (nothing to disagree with the components); a present-but-"
+        "unreadable total fails CLOSED. Sign-invariant, so a legitimate credit "
+        "note (total and components share sign) foots normally."
+    ),
+    source="Basic biller arithmetic footing (INVARIANT_LIBRARY_REDTEAM.md gap 2; R10)",
+)
+
+BILL_LINE_ITEMS_NON_NEGATIVE = StructuralInvariant(
+    id="bill_line_items_non_negative",
+    description=(
+        "No bill line item (commodity, non-commodity, standing charge, VAT) may "
+        "be negative -- a negative charge is an absurd bill. The ONE legitimate "
+        "exception is a catch-up OVERCHARGE correction, a genuine CREDIT note "
+        "whose amounts are correctly negative (D3_catchup_rebilling); it is "
+        "exempted exactly as the pre-bill gate's subtotal check already exempts "
+        "it, and its VAT rate is still validated on magnitudes. Malformed "
+        "(non-numeric) amounts fail CLOSED."
+    ),
+    source="Basic biller sign sanity -- no negative charges (INVARIANT_LIBRARY_REDTEAM.md gap 3; R10)",
+)
+
+BILL_PERIOD_TEMPORAL_SANE = StructuralInvariant(
+    id="bill_period_temporal_sane",
+    description=(
+        "A bill's period_start must not fall AFTER its period_end. Named defect: "
+        "a reversed-date bill was silently CLAMPED to a 1-day period by "
+        "_days_in_period() and issued, rather than REJECTED. Missing or "
+        "unparseable period dates fail CLOSED -- a bill with no readable period "
+        "cannot be validated (REJECT, never the previous silent clamp)."
+    ),
+    source="Basic biller temporal sanity -- dates make sense (INVARIANT_LIBRARY_REDTEAM.md gap 4; R10)",
+)
+
+
 # --- Segment debt T&C (atom C11_segment_debt_policy; world twin W2_9) ---
 #
 # The company applies debt terms & conditions from OBSERVABLE segment +
@@ -497,6 +562,9 @@ ALL_INVARIANTS: list = [
     BACK_BILLING_CAP_RESPECTED,
     BILLED_CLOCK_RECONCILES_WITH_ISSUED_BILLS,
     VAT_SEGMENT_MATCHES_CONSUMPTION,
+    BILL_FOOTS,
+    BILL_LINE_ITEMS_NON_NEGATIVE,
+    BILL_PERIOD_TEMPORAL_SANE,
     DEBT_INTEREST_BUSINESS_ONLY,
     DEBT_NO_DOMESTIC_LATE_CHARGES,
     DEBT_TARIFF_ELIGIBILITY_PAYMENT_CONDITIONED,
@@ -719,6 +787,107 @@ def check_billed_clock_reconciles(total_billed_gbp: float, issued_bills: list) -
     over it."""
     expected = round(sum(b.get("total_amount_gbp", 0.0) for b in issued_bills), 2)
     return abs(round(total_billed_gbp, 2) - expected) <= 0.01
+
+
+# --- Structural bill-integrity predicates (atom F6_rebuild) ---
+
+# Penny-rounding headroom across several independently-rounded components.
+_FOOTING_TOLERANCE_GBP = 0.05
+
+# The four category charge lines that any bill carries and that must be
+# non-negative on a non-credit bill.
+_LINE_ITEM_KEYS = (
+    "commodity_amount_gbp",
+    "non_commodity_amount_gbp",
+    "standing_charge_gbp",
+    "vat_gbp",
+)
+
+# The full set of components that must foot to the printed total. catchup_
+# adjustment_gbp is a legitimate FIFTH component on a back-billing catch-up
+# bill -- it is added to total_amount_gbp OUTSIDE the four category fields (a
+# genuine adjustment, positive on an undercharge, negative on an overcharge
+# credit). Omitting it was the defect that sank the first F6 build (see the
+# BILL_FOOTS docstring / rebuild note above): it must be in the footing sum so
+# a real catch-up bill foots and is not wrongly HELD.
+_FOOTING_COMPONENT_KEYS = _LINE_ITEM_KEYS + ("catchup_adjustment_gbp",)
+
+
+def is_credit_bill(bill: dict) -> bool:
+    """A catch-up OVERCHARGE correction is a genuine CREDIT note whose monetary
+    amounts are legitimately negative (D3_catchup_rebilling). The single, named,
+    positive-indicator exemption to bill-sign sanity -- never a blanket negative
+    pass. Shared by check_bill_line_items_non_negative() here and the pre-bill
+    gate's subtotal check so the two can never diverge (identical to the
+    predicate the gate already applied inline)."""
+    return bool(bill.get("catchup_applied")) and bill.get("catchup_direction") == "overcharge"
+
+
+def check_bill_foots(bill: dict) -> bool:
+    """BILL_FOOTS enforcement: a declared total_amount_gbp must equal the sum of
+    the bill's own components (commodity + non-commodity + standing + VAT + any
+    catch-up adjustment) to within a penny-rounding tolerance.
+
+    Not-applicable (True) only when NO total is declared -- there is then nothing
+    to disagree with the components, and generate_billing_ledger recomputes the
+    total from the same components downstream. A PRESENT but non-numeric total
+    fails CLOSED (R15: a total we cannot read cannot be reconciled). A component
+    that is present but non-numeric also fails CLOSED. Sign-invariant, so it
+    holds equally for a legitimate credit note (total and components share
+    sign)."""
+    if "total_amount_gbp" not in bill:
+        return True
+    try:
+        declared = float(bill.get("total_amount_gbp"))
+    except (TypeError, ValueError):
+        return False  # fail closed: a total we cannot read cannot be reconciled
+    footed = 0.0
+    for key in _FOOTING_COMPONENT_KEYS:
+        raw = bill.get(key, 0.0)
+        if raw is None:
+            raw = 0.0
+        try:
+            footed += float(raw)
+        except (TypeError, ValueError):
+            return False  # fail closed: a component we cannot read cannot foot
+    return abs(declared - footed) <= _FOOTING_TOLERANCE_GBP
+
+
+def check_bill_line_items_non_negative(bill: dict) -> bool:
+    """BILL_LINE_ITEMS_NON_NEGATIVE enforcement: every category line item
+    (commodity, non-commodity, standing charge, VAT) must be non-negative,
+    EXCEPT for a legitimate credit note (is_credit_bill). A malformed
+    (non-numeric) amount fails CLOSED. Uses the same penny tolerance so a
+    -0.00x rounding artefact is not mistaken for a genuine negative charge."""
+    if is_credit_bill(bill):
+        return True
+    for key in _LINE_ITEM_KEYS:
+        raw = bill.get(key, 0.0)
+        if raw is None:
+            raw = 0.0
+        try:
+            val = float(raw)
+        except (TypeError, ValueError):
+            return False  # fail closed
+        if val < -_FOOTING_TOLERANCE_GBP:
+            return False
+    return True
+
+
+def check_bill_period_sane(bill: dict) -> bool:
+    """BILL_PERIOD_TEMPORAL_SANE enforcement: period_start must not fall after
+    period_end. Missing or unparseable period dates fail CLOSED -- REJECT, never
+    the previous silent clamp-to-1-day in _days_in_period()."""
+    start_raw = bill.get("period_start")
+    end_raw = bill.get("period_end")
+    if not start_raw or not end_raw:
+        return False  # fail closed: a bill must carry a readable period
+    try:
+        start = date.fromisoformat(start_raw)
+        end = date.fromisoformat(end_raw)
+    except (ValueError, TypeError):
+        return False  # fail closed: unparseable dates
+    return start <= end
 
 
 def invariant_count() -> int:

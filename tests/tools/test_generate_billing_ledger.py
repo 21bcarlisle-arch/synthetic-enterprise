@@ -266,6 +266,12 @@ def test_d3_catchup_fields_carried_through_to_invoice(tmp_path):
         "catchup_adjustment_gbp": 110.0,
         "catchup_written_off_gbp": 10.0,
         "catchup_back_billing_cap_applied": True,
+        # The real pipeline folds the chargeable catch-up adjustment INTO the
+        # bill total (simulation/run_phase4c_on_phase2b.py:408-409); this fixture
+        # must match, else it is internally inconsistent (total that does not foot
+        # to its own components + catch-up), which the F6 bill-footing gate now
+        # correctly HOLDS. Base four-line total 8000 + chargeable adjustment 110.
+        "total_amount_gbp": 8110.0,
     })
     rj = tmp_path / "run.json"
     rj.write_text(json.dumps(_run([bill])))

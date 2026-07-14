@@ -32,6 +32,10 @@ from company.compliance.domain_invariants import (
     consumption_implied_vat_rate,
     check_resi_bill_consumption_plausible,
     check_back_billing_cap_respected,
+    check_bill_foots,
+    check_bill_line_items_non_negative,
+    check_bill_period_sane,
+    is_credit_bill,
 )
 
 
@@ -85,6 +89,38 @@ def validate_bill(bill: dict) -> BillValidationResult:
     segment = bill.get("segment", "resi")
     commodity = bill.get("commodity", "electricity")
 
+    # F6_rebuild (INVARIANT_LIBRARY_REDTEAM.md gaps 2-4): the three structural
+    # sanity controls any real biller has, enforced as class invariants in
+    # domain_invariants.py -- arithmetic footing (total foots to its own
+    # components, catch-up adjustment included), sign non-negativity, and
+    # temporal sanity (start <= end, REJECTED not silently clamped). Each HOLDS
+    # the bill (Tier-1) rather than issuing an absurd artefact; each fails
+    # CLOSED on missing/malformed input. Additive and side-effect-free: they add
+    # HELD reasons only, never touch any bill-amount computation, so the
+    # margin-bridge residual and ledger P&L are untouched (the footing check
+    # includes catchup_adjustment_gbp precisely so no legitimate catch-up bill
+    # is wrongly HELD -- the regression that sank the first F6 build).
+    if not check_bill_foots(bill):
+        reasons.append(
+            f"slc_6_7_billing_accuracy: declared total GBP "
+            f"{bill.get('total_amount_gbp')} does not foot to the sum of its "
+            f"components (commodity + non-commodity + standing charge + VAT + "
+            f"catch-up adjustment) -- HELD"
+        )
+    if not check_bill_line_items_non_negative(bill):
+        reasons.append(
+            "slc_6_7_billing_accuracy: a bill line item is negative "
+            "(commodity/non-commodity/standing charge/VAT) on a non-credit "
+            "bill -- an absurd charge, HELD"
+        )
+    if not check_bill_period_sane(bill):
+        reasons.append(
+            f"slc_6_7_billing_accuracy: bill period is temporally impossible or "
+            f"unreadable (period_start={bill.get('period_start')!r} > "
+            f"period_end={bill.get('period_end')!r}, or missing/malformed) -- "
+            f"REJECTED not clamped, HELD"
+        )
+
     # FAIL-OPEN FIX (2026-07-13, CONTROLS_THAT_CANNOT_FAIL.md): _actual_vat_rate()
     # returns None whenever the subtotal is <= 0, which PREVIOUSLY caused BOTH VAT
     # checks below to be silently skipped -- a bill with a zero/negative subtotal
@@ -104,7 +140,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
     # fail-open): validate the rate on magnitudes, which is sign-invariant since
     # a credit's VAT and subtotal share sign. Other credit-note types would
     # extend this same positive-indicator exemption, never a blanket negative pass.
-    is_credit = bool(bill.get("catchup_applied")) and bill.get("catchup_direction") == "overcharge"
+    is_credit = is_credit_bill(bill)
     if subtotal < 0 and not is_credit:
         reasons.append(
             f"slc_6_7_billing_accuracy: bill subtotal GBP {subtotal:.2f} is negative "
