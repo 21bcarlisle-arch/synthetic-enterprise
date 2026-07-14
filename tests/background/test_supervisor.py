@@ -1916,3 +1916,36 @@ class TestIdleTurnCounter:
         assert supervisor._record_idle_turn() == 1
         assert supervisor._record_idle_turn() == 2
         assert supervisor._load_idle_turn_count() == 2
+
+
+# --- RULE 0 (2026-07-14, director): the draw is provably non-empty while any atom exists ---
+def _write_map(tmp_path, yaml_text):
+    (tmp_path / "maturity_map.yaml").write_text(yaml_text)
+
+
+def test_rule0_harden_draw_picks_an_at_target_atom(tmp_path):
+    _write_map(tmp_path,
+        "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n  dial_inherited: 3\n  file_scope: [company/x.py]\n")
+    a = supervisor._rule0_harden_draw()
+    assert a is not None and a["id"] == "A_done"
+
+
+def test_rule0_harden_draw_none_on_empty_map_a_true_wall(tmp_path):
+    _write_map(tmp_path, "[]")
+    assert supervisor._rule0_harden_draw() is None
+
+
+def test_self_refill_yields_to_harden_when_all_atoms_at_target(tmp_path):
+    # every atom at target -> BUILD/SITE/DISCOVERY all empty. RULE 0: the feasible
+    # set is a dial defect, not a reason to hold -> yield to HARDEN, never None.
+    _write_map(tmp_path,
+        "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n  dial_inherited: 3\n  file_scope: [company/x.py]\n"
+        "- id: B_done\n  level_current: 2\n  level_target: 2\n  loop_stage: idle\n  dial_inherited: 2\n  file_scope: [site/y.html]\n")
+    res = supervisor._self_refill_draw()
+    assert res is not None, "RULE 0 violation: draw returned empty while at-target atoms exist"
+    assert "RULE 0" in res and "HARDEN" in res
+
+
+def test_self_refill_none_only_on_genuinely_empty_map(tmp_path):
+    _write_map(tmp_path, "[]")  # zero atoms = a true wall, the one legitimate None
+    assert supervisor._self_refill_draw() is None

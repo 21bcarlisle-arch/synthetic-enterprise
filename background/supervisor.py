@@ -914,6 +914,48 @@ def diagnose_map_blocked_set(atoms: list | None = None) -> str:
     )
 
 
+def _rule0_harden_draw(rng: Any = None) -> dict | None:
+    """RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): the default state of
+    the company is WORKING; an empty feasible set is a DEFECT IN THE DIALS, not a
+    reason to hold. This is the FINAL widen tier of `_self_refill_draw()` -- when
+    every below-target lane (BUILD/SITE/DISCOVERY) AND the backlog are empty, the
+    below-target dial itself is yielded and this draws HARDEN/red-team work on an
+    AT-target atom (level_current == level_target, target > 0). A shipped atom is
+    never 'done': its exit tests can be re-verified, its controls mutation-re-
+    tested, its invariants red-teamed, its real-world fidelity widened. Same
+    dial-weighted-random convention as the other draws. Returns None only if the
+    map has zero at-target atoms -- a genuinely empty map is a WALL, effectively
+    never reached with 88 atoms."""
+    try:
+        import yaml
+    except ImportError:
+        return None
+    try:
+        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return None
+    if not isinstance(atoms, list):
+        return None
+
+    def _is_hardenable(a: dict) -> bool:
+        if not isinstance(a, dict):
+            return False
+        lc, lt = a.get("level_current"), a.get("level_target")
+        if lc is None or lt is None:
+            return False
+        try:
+            return lc == lt and lt > 0
+        except TypeError:
+            return False
+
+    candidates = [a for a in atoms if _is_hardenable(a)]
+    if not candidates:
+        return None
+    weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    picker = rng or random
+    return picker.choices(candidates, weights=weights, k=1)[0]
+
+
 def _self_refill_draw() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
     PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
@@ -1026,6 +1068,25 @@ def _self_refill_draw() -> str | None:
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
+
+    # RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): an empty feasible set
+    # is a DEFECT IN THE DIALS, not a reason to hold. Every below-target lane and
+    # the backlog are empty -> yield the below-target dial and draw HARDEN/red-
+    # team work on an at-target atom, so the draw is provably non-empty while ANY
+    # atom exists. Only a map with zero at-target atoms (a genuinely empty map =
+    # a wall) returns None.
+    harden_atom = _rule0_harden_draw()
+    if harden_atom is not None:
+        log(
+            "RULE 0: all below-target lanes + backlog empty -> yielded the below-target "
+            f"dial to HARDEN/red-team at-target atom {harden_atom.get('id')}"
+        )
+        return (
+            "RULE 0 self-refill (dial yielded -- no below-target work anywhere; the to-do "
+            f"list is never empty): HARDEN/red-team the AT-target atom {_format_atom_draw(harden_atom)} "
+            "-- re-verify its exit tests still hold, mutation-re-test a control, red-team its "
+            "invariants, or widen its real-world fidelity. NTFY the director this dial was yielded."
+        )
     return None
 
 
