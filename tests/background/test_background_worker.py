@@ -26,6 +26,14 @@ def _isolate(tmp_path, monkeypatch):
     staging.mkdir()
     monkeypatch.setattr(background_worker, "STAGING_DIR", staging)
     monkeypatch.setattr(background_worker, "LOG_FILE", tmp_path / "log.md")
+    # H15: _record_publish_gate_outcome() imports process_run_complete and
+    # writes its wedge-state + log files. Redirect BOTH to per-test temp paths
+    # so the sweep never touches the real docs/observability/ files (same
+    # test-isolation-leak class as the fingerprint/log redirects in
+    # test_process_run_complete.py).
+    import background.process_run_complete as prc
+    monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "prc_log.md")
     yield
 
 
@@ -93,6 +101,59 @@ def test_a_failed_marker_does_not_stop_the_others_being_attempted(monkeypatch):
     background_worker.process_leftover_run_markers()  # must not raise
     # Both were at least attempted (rc doesn't matter for this assertion --
     # the point is the loop kept going, not that both "succeeded").
+
+
+def test_failing_marker_records_publish_gate_failure(monkeypatch):
+    """H15 wiring: an rc!=0 processing outcome is fed into the publish-gate
+    failure detector so consecutive silent failures can raise an alert."""
+    marker = background_worker.STAGING_DIR / "run_complete_20260714T000000Z.md"
+    marker.write_text("# Simulation Run Complete\nGit: deadbee\n")
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=-9))
+
+    recorded = []
+    import background.process_run_complete as prc
+    monkeypatch.setattr(prc, "record_publish_gate_failure",
+                        lambda *a, **k: recorded.append((a, k)) or {"fired": False})
+    monkeypatch.setattr(prc, "record_publish_gate_success",
+                        lambda *a, **k: pytest.fail("success must not be recorded on rc!=0"))
+
+    background_worker.process_leftover_run_markers()
+
+    assert len(recorded) == 1
+    assert recorded[0][1]["rc"] == -9              # OOM SIGKILL surfaced verbatim
+    assert recorded[0][1]["git_hash"] == "deadbee"  # parsed from the marker
+
+
+def test_successful_marker_records_publish_gate_success(monkeypatch):
+    """H15 wiring: an rc==0 outcome CLEARS the wedge state (re-arm)."""
+    marker = background_worker.STAGING_DIR / "run_complete_20260714T010000Z.md"
+    marker.write_text("# Simulation Run Complete\nGit: cafef00\n")
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=0))
+
+    cleared = []
+    import background.process_run_complete as prc
+    monkeypatch.setattr(prc, "record_publish_gate_success",
+                        lambda *a, **k: cleared.append(True))
+    monkeypatch.setattr(prc, "record_publish_gate_failure",
+                        lambda *a, **k: pytest.fail("failure must not be recorded on rc==0"))
+
+    background_worker.process_leftover_run_markers()
+
+    assert cleared == [True]
+
+
+def test_publish_gate_recording_failure_never_breaks_the_sweep(monkeypatch):
+    """A monitoring failure must never abort marker processing."""
+    marker = background_worker.STAGING_DIR / "run_complete_20260714T020000Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=1))
+    import background.process_run_complete as prc
+    monkeypatch.setattr(prc, "record_publish_gate_failure",
+                        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    background_worker.process_leftover_run_markers()  # must not raise
 
 
 def test_processing_order_is_deterministic_sorted(monkeypatch):
