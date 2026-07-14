@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-10T00:05:21Z",
+  "generated_at": "2026-07-14T20:52:30Z",
   "source_year": 2025,
-  "treasury_gbp": 3827153.05,
+  "treasury_gbp": 3824376.26,
   "active_customer_count": 11,
   "customers": [
     {
@@ -11,7 +11,7 @@
       "current_rate_gbp_per_mwh": 253.0087,
       "last_renewal_date": "2024-12-29",
       "next_renewal_estimate": "2025-12-29",
-      "eac_kwh_per_year": 9550.0,
+      "eac_kwh_per_year": 9163.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 233.0
     },
@@ -22,9 +22,9 @@
       "current_rate_gbp_per_mwh": 190.0,
       "last_renewal_date": "2025-03-30",
       "next_renewal_estimate": "2026-03-30",
-      "eac_kwh_per_year": 5008.0,
+      "eac_kwh_per_year": 5248.0,
       "hedge_fraction": 0.8943,
-      "net_gbp_2025": 53.08
+      "net_gbp_2025": 40.13
     },
     {
       "cid": "C2g",
@@ -33,9 +33,9 @@
       "current_rate_gbp_per_mwh": 52.0,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
-      "eac_kwh_per_year": 18045.0,
+      "eac_kwh_per_year": 18117.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 90.43
+      "net_gbp_2025": 90.64
     },
     {
       "cid": "C7",
@@ -44,7 +44,7 @@
       "current_rate_gbp_per_mwh": 210.0,
       "last_renewal_date": "2024-12-29",
       "next_renewal_estimate": "2025-12-29",
-      "eac_kwh_per_year": 12720.0,
+      "eac_kwh_per_year": 13004.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 19.93
     },
@@ -55,9 +55,9 @@
       "current_rate_gbp_per_mwh": 190.0,
       "last_renewal_date": "2025-03-30",
       "next_renewal_estimate": "2026-03-30",
-      "eac_kwh_per_year": 11537.0,
+      "eac_kwh_per_year": 11720.0,
       "hedge_fraction": 0.8943,
-      "net_gbp_2025": 103.1
+      "net_gbp_2025": 100.5
     },
     {
       "cid": "C9",
@@ -66,7 +66,7 @@
       "current_rate_gbp_per_mwh": 210.0,
       "last_renewal_date": "2024-06-29",
       "next_renewal_estimate": "2025-06-29",
-      "eac_kwh_per_year": 12154.0,
+      "eac_kwh_per_year": 12173.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 225.43
     },
@@ -74,10 +74,10 @@
       "cid": "C_IC1",
       "commodity": "electricity",
       "segment": "I&C",
-      "current_rate_gbp_per_mwh": 152.3098,
+      "current_rate_gbp_per_mwh": 152.3737,
       "last_renewal_date": "2018-01-31",
       "next_renewal_estimate": "2019-01-31",
-      "eac_kwh_per_year": 1964372.0,
+      "eac_kwh_per_year": 1964141.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 63404.31
     },
@@ -88,7 +88,7 @@
       "current_rate_gbp_per_mwh": 185.7087,
       "last_renewal_date": "2019-01-31",
       "next_renewal_estimate": "2020-01-31",
-      "eac_kwh_per_year": 984415.0,
+      "eac_kwh_per_year": 983739.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 29994.92
     },
@@ -96,21 +96,21 @@
       "cid": "C_IC3",
       "commodity": "electricity",
       "segment": "I&C",
-      "current_rate_gbp_per_mwh": 112.6658,
+      "current_rate_gbp_per_mwh": 112.5188,
       "last_renewal_date": "2024-12-30",
       "next_renewal_estimate": "2025-12-30",
-      "eac_kwh_per_year": 3939699.0,
+      "eac_kwh_per_year": 3936105.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 19935.55
+      "net_gbp_2025": 19697.97
     },
     {
       "cid": "C_IC3g",
       "commodity": "gas",
       "segment": "I&C",
-      "current_rate_gbp_per_mwh": 48.2183,
+      "current_rate_gbp_per_mwh": 48.2458,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
-      "eac_kwh_per_year": 4962383.0,
+      "eac_kwh_per_year": 4989006.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 4449.79
     },
@@ -121,7 +121,7 @@
       "current_rate_gbp_per_mwh": 273.778,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
-      "eac_kwh_per_year": 2929150.0,
+      "eac_kwh_per_year": 2961742.0,
       "hedge_fraction": 0.0,
       "net_gbp_2025": 2483.52
     }

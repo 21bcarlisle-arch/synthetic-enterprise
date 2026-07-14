@@ -1420,9 +1420,9 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 1
   provenance: proposal
   evidence: ["docs/observability/sim-runner-log.md", "docs/observability/background-worker-log.md"]
