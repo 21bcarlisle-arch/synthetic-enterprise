@@ -384,3 +384,148 @@ def test_hit_rate_is_a_diagnostic(tmp_path):
     hr = organ.hit_rate(log_path=log)
     assert hr["hits"] == 1 and hr["misses"] == 0
     assert hr["hit_rate"] == 1.0
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# L2 -> L3 (2026-07-14, NAIVE_ORGAN_BLIND_SPOT_AND_USAGE_WRITE.md): the organ
+# runs on its OWN wall clock (director gap #1) + T8 EXPECTED OUTPUT ABSENT
+# (director gap #2), with the R15 mutation test against THIS outage, plus the
+# shared-failure-domain self-audit.
+# ═══════════════════════════════════════════════════════════════════════════
+
+_NOW = 1_800_000_000.0  # a fixed wall-clock 'now' for deterministic silence maths
+_SIX_HOURS = 6 * 3600
+
+
+def _silent_state(silence_seconds: float, *, last_commit_epoch=None) -> dict:
+    """A minimal live-shaped state carrying the T8 silence signal. Defaults to a
+    commit `silence_seconds` in the past; `last_commit_epoch` overrides directly
+    (e.g. 0.0 to simulate an unavailable clock)."""
+    lce = last_commit_epoch if last_commit_epoch is not None else _NOW - silence_seconds
+    return {
+        "atoms": [], "runhist": [], "insights": {}, "agent_status": {},
+        "claims_text": "", "gitlog_subjects": [], "idle_count": 0,
+        "last_commit_epoch": lce, "now": _NOW,
+    }
+
+
+# ── R15 MUTATION TEST — the 6h blackout: silent 6h -> the organ FIRES ──
+def test_t8_fires_on_the_six_hour_blackout():
+    """R15 mutation test against THIS outage (NAIVE_ORGAN_BLIND_SPOT §DoD):
+    reproduce the 6h silent wedge (22:12->04:00, no commit/publish) as the named
+    defect and prove T8 fires on it. 6h > the 3h cadence -> the organ asks 'why
+    is it quiet?' — the exact question the publish-coupled organ never could."""
+    fires = organ.detect_t8(_silent_state(_SIX_HOURS))
+    assert len(fires) == 1
+    t = fires[0]
+    assert t.trigger_id == "T8_expected_output_absent"
+    assert t.mode == organ.MODE_INTERROGATE
+    assert t.observed_value["silence_hours"] == 6.0
+    assert t.observed_value["clock_available"] is True
+
+
+# ── the control CAN pass (not fail-open / not a tautology): recent commit -> silent ──
+def test_t8_does_not_fire_when_a_commit_is_recent():
+    """A control that always fires is as useless as one that never does. A commit
+    10 min ago is inside cadence -> T8 must NOT fire, proving it discriminates on
+    the real signal rather than firing unconditionally."""
+    assert organ.detect_t8(_silent_state(10 * 60)) == []
+    # exactly at the threshold is still inside (>= cadence fires; < does not)
+    assert organ.detect_t8(_silent_state(organ.EXPECTED_OUTPUT_CADENCE_SECONDS - 1)) == []
+    assert len(organ.detect_t8(_silent_state(organ.EXPECTED_OUTPUT_CADENCE_SECONDS + 1))) == 1
+
+
+# ── FAIL-SILENT DOCTRINE (R15): an unavailable clock is a FAILED check -> fire ──
+def test_t8_fires_when_the_commit_clock_is_unavailable():
+    """last_commit_epoch == 0.0 means git itself was unreachable. Per R15's
+    fail-silent doctrine an unavailable liveness check is a FAILED check — so the
+    organ must FIRE (ask), never assume health. Silence reads as effectively
+    infinite (now - 0)."""
+    fires = organ.detect_t8(_silent_state(0, last_commit_epoch=0.0))
+    assert len(fires) == 1
+    assert fires[0].observed_value["clock_available"] is False
+
+
+# ── ABSENT signal (a claim-only fixture that never collected it) must not alarm ──
+def test_t8_no_fires_when_the_silence_signal_was_never_collected():
+    """A hand-built claim-only state (no last_commit_epoch key) never gathered the
+    silence signal, so T8 must NOT manufacture an alarm from its absence — that
+    keeps every existing claim-driven fixture/replay clean and is the honest
+    distinction from the clock-unavailable (0.0) case above."""
+    state = {"atoms": [], "runhist": [], "claims_text": "", "gitlog_subjects": [],
+             "idle_count": 0, "agent_status": {}, "insights": {}}
+    assert "last_commit_epoch" not in state
+    assert organ.detect_t8(state) == []
+
+
+def test_t8_is_registered_and_wired_into_run_detectors():
+    assert organ.detect_t8 in organ.ALL_DETECTORS
+    fired = organ.run_detectors(_silent_state(_SIX_HOURS))
+    assert any(t.trigger_id == "T8_expected_output_absent" for t in fired)
+
+
+# ── INDEPENDENT WALL CLOCK (director gap #1): the daemon fires with NO publish ──
+def test_run_daemon_fires_the_organ_off_its_own_clock_not_a_publish(tmp_path, monkeypatch):
+    """The organ's schedule must NOT be wake-coupled to the publish cycle. Prove
+    the daemon runs run_organ_cycle on its OWN tick — here it asks a T8 question
+    about a 6h silence while NO publish/process_run_complete ever ran. This is the
+    condition the old publish-hooked organ went blind on (it woke on the pipeline
+    that had died)."""
+    monkeypatch.setattr(organ, "load_state", lambda **kw: _silent_state(_SIX_HOURS))
+    log = tmp_path / "log.jsonl"
+    prompts = []
+
+    cycles = organ.run_daemon(
+        invoke_fn=lambda p: prompts.append(p) or "why is it quiet?",
+        log_path=log, once=True)
+    assert cycles == 1
+    opens = organ.open_questions(log_path=log)
+    assert any(e["trigger_id"] == "T8_expected_output_absent" for e in opens), (
+        "the daemon must fire T8 on silence with no publish having occurred"
+    )
+    assert prompts, "the amnesiac organ was invoked off the wall clock, not a publish"
+
+
+def test_run_daemon_loops_on_its_own_timer_and_never_raises(monkeypatch):
+    """The loop is driven by an injected sleep so no real time passes; it must run
+    the configured number of cycles and NEVER propagate an exception (a doubt
+    organ that crashes its own loop is itself fail-silent)."""
+    ticks = {"cycles": 0, "sleeps": 0}
+
+    def _boom(**kw):
+        ticks["cycles"] += 1
+        raise RuntimeError("cycle blew up")
+
+    monkeypatch.setattr(organ, "run_organ_cycle", _boom)
+    n = organ.run_daemon(sleep_fn=lambda s: ticks.__setitem__("sleeps", ticks["sleeps"] + 1),
+                         max_cycles=3, poll_interval=0)
+    assert n == 3, "the loop ran its cycles despite every cycle raising"
+    assert ticks["cycles"] == 3
+    assert ticks["sleeps"] == 2, "sleeps between cycles, not after the last"
+
+
+# ── SHARED-FAILURE-DOMAIN SELF-AUDIT (L3 meta-task): the organ questions its OWN
+# coupling, with the 6h outage as the worked example ──
+def test_shared_failure_domain_audit_flags_the_pre_fix_couplings():
+    audit = organ.shared_failure_domain_audit()
+    by_name = {e["name"]: e for e in audit}
+
+    # the two organs that shared a failure domain with what they monitored
+    assert by_name["naive_organ (pre-2026-07-14)"]["shares_failure_domain"] is True
+    assert by_name["deadmans_switch (pre-2026-07-14)"]["shares_failure_domain"] is True
+    # both are FIXED now — the post-fix rows are uncoupled
+    assert by_name["naive_organ (post-2026-07-14)"]["shares_failure_domain"] is False
+    assert by_name["deadmans_switch (post-2026-07-14)"]["shares_failure_domain"] is False
+    # the twin/cold-eyes are not continuous liveness monitors -> no silent-death class
+    assert by_name["director_twin approver"]["shares_failure_domain"] is False
+
+
+def test_shared_failure_domain_findings_are_only_historical_post_fix():
+    """Post-fix, the only rows admitting a shared failure domain are the PRE-fix
+    historical ones — no LIVE mechanism may still share a clock with what it
+    audits, or that is a defect to fix, not a note to file."""
+    findings = organ.shared_failure_domain_findings()
+    names = {f["name"] for f in findings}
+    assert names == {"naive_organ (pre-2026-07-14)", "deadmans_switch (pre-2026-07-14)"}
+    for f in findings:
+        assert "pre-2026-07-14" in f["name"], "a LIVE shared-failure-domain row is a defect"
