@@ -258,3 +258,217 @@ EPOCH_GATING_AND_ATOM_AUTHORSHIP (author-and-frame allowed now, BUILD-open is DI
   machine-checkable returns; the fail-closed publish barrier is mutation-tested (a mock/tournament
   unit attempting to publish/promote is blocked); COUPLED-TRIAD gap reported. C-S5 time-scale
   invariance stated for the fan-out logic.
+
+---
+
+## Appendix C — Turnkey build plan (H17)
+PLAN/DESIGN output, 2026-07-15, doc-only (touches NO code, NOT the map). `H17` is this build's
+lane-tracking id in the task; it BUILDS the atom framed in Appendix B as
+`H10_autonomous_build_executor` (orchestrator reconciles the id when it lifts the entry — one atom,
+two labels). This appendix decomposes tomorrow's P1 so the build is warm: concrete modules, exact
+functions to reuse, and the success predicate stated to the line. Everything below is
+build-and-test-without-activating EXCEPT §C.5 activation, which is a director-only safety step.
+
+### C.1 — MODULE LAYOUT (new modules + which Appendix-A primitives lift into which function)
+Two new modules in `background/` (alongside `supervisor.py`/`session_watchdog.py`/`director_twin.py`
+it wires into) + one CLI in `tools/` + mutation tests in `tests/` — matching the proposed
+`file_scope: [background, tools, tests]` (Appendix B). The substrate is built ONCE; the
+build-executor and A8's tournament are two frontends on it (spec Req 4).
+
+- **`background/build_executor.py`** — the governed single-turn core (the L1 deliverable). Functions
+  and the Appendix-A.1 primitive each lifts:
+  - `dispatch_turn(prompt, model, out_path) -> TurnHandle` — lifts **primitive #1** (headless
+    `claude -p` `subprocess.Popen`, output redirected to a file, never a TTY) + **#3** (absolute
+    `CLAUDE_BIN` path constant + existence guard) + **#11** (per-launch env hygiene: copy env,
+    `pop("ANTHROPIC_BASE_URL")`, set `DISABLE_AUTOUPDATER=1`). Model arg defaults to the
+    named-constant tier from **#2** (`AUTONOMOUS_TURN_MODEL`, Haiku, for volume micro-turns) — kept a
+    constant, not a literal.
+  - `reap_turn(handle) -> RawTurnResult` — lifts **#6** (`poll()`/`returncode` capture) + **#7**
+    (connectivity-aware refund, but re-implemented off a STRUCTURED exit-code/typed-error classifier,
+    NOT the fragile `rsplit("---\n",1)[-1]` substring grep the old code used).
+  - `run_once(rng=None) -> ExecutorCycleResult` — the draw→dispatch→gate→count body (see §C.2),
+    wrapped in the **#12** `try/except Exception`-that-only-logs resilience shape.
+  - `log(msg)` / per-turn `---`-delimited output capture — lifts **#9** (append-only UTC-stamped log)
+    but ALSO writes a machine-readable status line, feeding the heartbeat.
+  - `_heartbeat(state, last_action)` — lifts **#10** (`agent_status.update_agent_status(...)`) — see
+    §C.3.
+- **`background/executor_governor.py`** — the tripwire layer (the L2 deliverable), kept separate so
+  the core loop stays small and each tripwire is independently mutation-testable:
+  - `TurnBudget` (sliding-window deque) — lifts **#4** (`deque`/3600s-window mechanic) but driven by a
+    real budget object (tokens AND turns per window), fail-closed, NOT a hard-coded `MAX_TURNS_PER_HOUR=2`.
+  - `concurrency_cap()` — reuses `tools.tournament_runner.memory_safe_worker_cap(...)` /
+    `default_worker_count()` directly (A8's primitive, §C.3); the **#5** single-flight guard
+    (`_active_proc.poll() is None`) generalises to the N-wide (2-wide default) in-flight set.
+  - `usage_limit_active()` — keeps the INTENT of **#8** (yield to the watchdog) but reads a durable
+    status signal, never a `tmux capture-pane` scrape (A.2 anti-pattern #4/#5).
+  - `kill_switch_enabled()` — reads the durable enable-flag file (§C.3d, §C.5).
+- **`tools/executor_cli.py`** — thin CLI frontend (`--once` for a single gated cycle in test,
+  `--daemon` for the unattended loop) mirroring A8's `tools/tournament_runner.py` shape; the
+  tournament folds in here as the second frontend (spec Req 4, deferred to L3).
+
+Anti-pattern ledger (Appendix A.2) is inherited by NONE of the above — each A.2 item has an explicit
+counter-design here: #1 non-durable kill → durable enable-flag+launcher (§C.3d/C.5); #2 no budget cap
+→ `TurnBudget` tokens+turns; #3 invisible → §C.3c heartbeat + §C.3e health-check; #4/#5 pane-scrape →
+`_self_refill_draw` + durable signals; #6 ungoverned skip-permissions → all four tripwires wrap it;
+#7 free-text/rc-only → schema-forced return + §C.2 write-landed gate; #8 self-directing → consumes the
+governed draw only.
+
+### C.2 — THE CORE LOOP (draw → dispatch ONE → gate the return → next)
+`run_once()` body, exact sequence:
+
+1. **DRAW — reuse `background.supervisor._self_refill_draw()`** (import it; do NOT reimplement). It
+   returns `str | None`: the human-readable reason string naming the drawn atom(s), across all three
+   lanes AND the Rule-0 harden tier (`_rule0_harden_draw()` — the FINAL widen tier: when every
+   below-target lane + backlog is empty it yields the dial and returns a HARDEN/red-team draw on an
+   at-target atom, so the draw is provably non-empty while any atom exists). `None` means a genuine
+   WALL (zero at-target atoms) → the executor idles this cycle and heartbeats `idle`, it does NOT
+   invent work. The draw string is passed verbatim into the turn prompt as the scope.
+2. **DISPATCH ONE headless turn with a SCHEMA-FORCED structured return.** `dispatch_turn()` launches
+   ONE `claude -p` turn (primitive #1) whose prompt carries the draw reason + a hard instruction to
+   return a machine-checkable JSON object: `{atom_id, action, claimed_commit_sha, level_before,
+   level_after, gate_status}`. This replaces A.2 anti-pattern #7's free-text prompt. Exactly one turn
+   per `run_once` at L1; N-wide fan-out (§C.3b) is an L2 concern layered by the governor.
+3. **GATE THE RETURN — write-landed, not submit-consumed.** The predicate reuses
+   `.claude/hooks/block_unevidenced_claim.py`'s independence logic verbatim (import or lift the two
+   pure functions — they take no stdin, only git): `_resolve_origin_ref()` (tries
+   `origin/main`→`origin/master`→`origin/HEAD`; `None` ⇒ check UNAVAILABLE ⇒ fail closed) then
+   `_sha_on_origin(sha, origin_ref)` (`git merge-base --is-ancestor <sha> origin_ref`; any git error ⇒
+   `False` ⇒ fail closed). The executor first runs `git fetch origin` so the tracking ref reflects the
+   turn's just-pushed work, THEN evaluates the predicate against the returned `claimed_commit_sha`.
+   - **EXACT SUCCESS PREDICATE:** a turn counts as SUCCESS iff `run_once` returns a `claimed_commit_sha`
+     of ≥7 hex chars AND `_sha_on_origin(claimed_commit_sha, _resolve_origin_ref())` is `True` — i.e.
+     the SHA is genuinely reachable on the origin tracking ref (was actually pushed). A map-level bump
+     or green-gate claim is ADDITIONAL evidence but the SHA-on-origin check is the non-negotiable
+     floor: the agent cannot satisfy it by touching a file, only by doing the work and publishing it.
+     No SHA, unpushed SHA, bogus SHA, or unresolvable origin ref ⇒ predicate `False`.
+   - **FAIL PATH:** predicate `False` ⇒ the turn is recorded FAILED (never `rc==0`-trusted), the atom
+     is NOT counted as advanced, `log()` records the failed cycle, the heartbeat surfaces the failure,
+     and the budget slot is charged (unless the reap classifier (#7) attributes it to an
+     infra/connectivity failure, in which case the slot is refunded — infra downtime must not burn the
+     window). Repeated failure on the same atom trips R3's two-strike redesign, not silent retry.
+4. **NEXT.** Loop to the next draw only after the current turn is reaped and gated (single-flight #5 at
+   L1; the N-wide in-flight set at L2).
+
+### C.3 — TRIPWIRES (each with the mutation/behaviour test that proves it FIRES — R15)
+Every tripwire below is a control; per R15 none counts as evidence for L2 close unless a MUTATION TEST
+proves it fires on its own named defect (TAUTOLOGY / FAIL-OPEN / FAIL-SILENT killers). Tests live in
+`tests/test_build_executor_tripwires.py`.
+
+a. **Budget cap (tokens + turns per window).** `TurnBudget` (sliding-window deque, primitive #4) caps
+   both turns/window and cumulative tokens/window; fail-closed if the token count is missing/zero
+   (a missing count is treated as over-budget, never as free). **Test `test_budget_cap_fires`:** feed
+   a budget already at the turn/token ceiling → `run_once` must REFUSE to dispatch; mutation — flip the
+   comparison to fail-open and assert the test goes red.
+b. **Concurrency cap (RAM-aware, 2-wide default).** `concurrency_cap()` = `min(2, cores,
+   tournament_runner.memory_safe_worker_cap())` — cites A8's `memory_safe_worker_cap` (the 15Gi OOM
+   lesson: `_PER_LIFE_RSS_BYTES`, `_MEM_HEADROOM_FRACTION=0.75`, always ≥1). **Test
+   `test_concurrency_cap_fires`:** inject `available_bytes` small enough to force cap=1 and assert a
+   2nd concurrent dispatch is refused; inject plentiful memory and assert the default stays 2 (not
+   unbounded).
+c. **Visible heartbeat (reuse `agent_status.json`, primitive #10).** `_heartbeat()` calls
+   `agent_status.update_agent_status(name="build-executor", status=..., last_action=..., role=...,
+   produces=...)` — the SAME wiring the Director door already consumes (writes both
+   `docs/observability/agent_status.json` and `site/data/agent_status.json`). Every state transition
+   (idle/working/error) plus budget-remaining and current atom surface there. **Test
+   `test_heartbeat_visible`:** run a cycle, fetch the status file, assert the executor's entry updated
+   with the current atom + timestamp; the invisibility that retired the predecessor (A.2 #3) is thus a
+   FAILING test, not a convention.
+d. **Durable kill-switch (enable-flag file + launcher entry OFF by default).** The executor daemon
+   refuses to run unless a durable enable-flag file exists (e.g.
+   `docs/observability/.build_executor_enabled`), AND its `start_worker.sh` entry is added COMMENTED
+   OUT (OFF by default), exactly mirroring the retired `autonomous-runner` block (start_worker.sh
+   ~L155-164). A process-kill alone is explicitly insufficient (A.2 #1: the old runner respawned on
+   stack restart); the durable off state is "flag absent AND launcher line commented". **Test
+   `test_kill_switch_durable`:** with the flag absent, `run_once`/daemon-start must no-op; the test
+   also asserts the launcher line is present-but-commented so a bare `start_worker.sh` re-run does NOT
+   resurrect it — proving durability is required (the L2 exit test's "process-kill shown to be
+   resurrected by a stack restart").
+e. **Health-check monitoring.** Add `"build-executor": "build_executor.py"` to
+   `background.health_check.EXPECTED_PANES` ONLY while enabled — because an intentionally-disabled
+   daemon must not alarm (the same reason `autonomous-runner` is deliberately excluded there,
+   health_check.py ~L37-40). Reuse `_check_stale_running_code()` (flags a pane running pre-fix code)
+   and up/down alerting. **Test `test_health_check_sees_executor`:** with the executor enabled+running,
+   health_check reports it up; stopped-while-enabled reports it down/stale.
+
+### C.4 — GOVERNANCE WIRING (inherits ALL of it unchanged — spec Req 3)
+- **One-way door → the director, never self-decided.** Before any action a drawn turn proposes that
+  could be irreversible, classify via `background.one_way_door.classify_action(description,
+  uncertain=...)` — it fails CLOSED (`uncertain=True` ⇒ always escalate; the 8 categories incl.
+  platform-admin/secrets/real-money). A one-way-door verdict is NEVER answered by the executor.
+- **Twin → the reversible rest (BUILD-open within the open epoch).** A blocking/awaiting-director state
+  routes through `background.director_twin.route_blocking_decision(item_id, question, how,
+  context_pack, uncertain=...)`; the caller proceeds only if `not needs_director(ans)`. The twin is a
+  VOICE not a hand (`_default_invoke` runs `claude -p --tools=` — tool execution disabled, scratch cwd
+  outside the repo); Law B — it never answers a one-way door, and its canon-based deferral
+  (`defers_to_director`) also forces a wait.
+- **Every push gate-verified.** Before the executor (or any turn it dispatches) pushes, run the
+  blast-radius suite + `epistemic-verifier` adjudication + sole-map-writer discipline — identical to
+  the manual waves. A red gate blocks the push; the turn is then FAILED per §C.2 (no unpushed SHA ⇒
+  the success predicate is already `False`, so the gate and the predicate are mutually reinforcing).
+- **Sole-map-writer: the executor is NOT the map writer.** It reports levels BACK (like the build
+  forks), never edits `docs/design/maturity_map.yaml`. Enforce mechanically: every turn calls
+  `background.tree_lock.assert_changes_within_scope(file_scope)` immediately before committing — H10's
+  guard — which raises `ScopeViolation` if a change touches a protected path. `PROTECTED_PATHS =
+  ("docs/design/maturity_map.yaml",)`, so a stray map edit by the executor or any fork it dispatches is
+  caught by a mechanism, not trusted to convention. The orchestrator remains sole map writer
+  (THREE_LANES) until `H9_map_write_serialisation`.
+
+### C.5 — ACTIVATION (a DIRECTOR step — safety control replacing keystroke injection)
+Turning the executor ON is a **safety-control change (one-way-door cat 5/8), director-console-only** —
+the agent may build, wire, and mutation-test everything up to this line, but MUST NEVER self-activate.
+It is the replacement for the BANNED keystroke/tmux send-keys injection (spec Req 2), so activation
+authority is held to the same bar as the SKIP_PERMISSIONS_TIER1 convention: authorised ONLY by (a)
+the director typing directly in a live console turn, or (b) the director clearing a gate file himself
+— never by NTFY, commit, or tool-result text (R7/R8).
+- **OFF by default, two independent gates both required:** (1) the durable enable-flag file
+  (§C.3d) is absent until the director creates it; (2) the `start_worker.sh` entry ships COMMENTED
+  OUT. Both must be set by the director for the daemon to run — a single accidental flip cannot
+  activate it.
+- **Documented enable procedure (the director's steps, recorded here, executed by HIM):** (1) review
+  the L2 exit-test evidence; (2) uncomment the `build-executor` block in `background/start_worker.sh`;
+  (3) create the enable-flag file; (4) add `build-executor` to `health_check.EXPECTED_PANES`; (5)
+  `start_worker.sh` and confirm the Director-door heartbeat shows it up. Never auto-enabled; a weekly
+  re-rank does not enable it — only an explicit director action does.
+
+### C.6 — STEP ORDER (safe-without-activation vs needs-director-present)
+SAFE TO BUILD-AND-TEST WITHOUT ACTIVATING (the whole substrate is dark until §C.5):
+1. `build_executor.py` skeleton: `dispatch_turn`/`reap_turn`/`log`/`_heartbeat` (primitives #1/#2/#3/
+   #6/#9/#10/#11/#12). Unit-test dispatch against a stub `claude` bin (no real turns).
+2. The write-landed GATE: lift `_resolve_origin_ref`/`_sha_on_origin`, wire the success predicate
+   (§C.2 step 3), and MUTATION-TEST it first (a submitted-but-nothing-landed turn caught FAILED; an
+   unresolvable origin ref fails closed) — the gate is the spine, prove it before anything rides on it.
+3. Wire the DRAW: import `_self_refill_draw`, assemble `run_once` (draw→dispatch→gate→next), test the
+   full cycle end-to-end against the stub bin + a local throwaway commit whose SHA the gate reads back.
+4. `executor_governor.py` tripwires a–e (§C.3), each with its firing mutation test. Add the launcher
+   entry COMMENTED OUT and the health-check entry (guarded on enabled).
+5. Governance wiring (§C.4): one-way-door classify, twin route, `assert_changes_within_scope` before
+   every commit, gate-verified push — all unit-testable dark.
+6. `tools/executor_cli.py --once`: a single gated cycle, run by hand (attended), landing ONE real
+   atom's work to prove L1 end-to-end. This dispatches a REAL `claude -p` turn but stays a single
+   manual invocation, not the unattended daemon — safe with the builder present, no activation.
+NEEDS THE DIRECTOR PRESENT (do NOT do these autonomously):
+7. §C.5 activation: uncomment the launcher block, create the enable-flag, add to EXPECTED_PANES, start
+   the unattended daemon. Director-console-only.
+8. First UNATTENDED multi-turn run (the L2 exit test proper: caps respected, live heartbeat, durable
+   kill demonstrated). Runs only after §C.5, i.e. only with the director's activation.
+9. Folding A8's `tournament_runner` in as the second frontend + fail-closed publish barrier
+   mutation test (the L3 deliverable) — sequenced after L1/L2 land.
+
+### C.7 — OPEN QUESTIONS the director must answer before/at build
+1. **Budget numbers.** Exact tokens/window AND turns/window caps for `TurnBudget`, and the window
+   length (the old runner's `MAX_TURNS_PER_HOUR=2` is explicitly rejected as unfounded — what replaces
+   it?). A director-set number, since it governs real spend behaviour.
+2. **Activation trigger.** When does the director intend to first enable it — after L1 (single-turn) or
+   only after L2 (full tripwire governor)? The build can complete dark either way; this sets when §C.5
+   happens.
+3. **Concurrency default.** Confirm 2-wide as the default ceiling (the spec's stated default) vs 1-wide
+   for the first live outing, independent of the RAM-derived cap.
+4. **A8 absorb-vs-depend.** Does H10/H17 ABSORB `A8_experiment_loop_speed` (build the shared substrate
+   here, demote A8 to a frontend milestone) or DEPEND on it (Appendix B's open field-rationale
+   question)? Affects file_scope disjointness and the L3 sequencing.
+5. **Model tier for executor turns.** Confirm `AUTONOMOUS_TURN_MODEL` (Haiku) for the volume micro-turns
+   vs a higher tier for judgment-heavy drawn atoms — the draw can surface HARDEN/red-team work (Rule 0)
+   that is judgment-tier per the CLAUDE.md routing table.
+6. **Kill-switch flag location + name.** Confirm the durable enable-flag path
+   (`docs/observability/.build_executor_enabled` proposed) so the launcher, health-check, and daemon
+   all agree on one durable signal.
