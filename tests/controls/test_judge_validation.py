@@ -65,6 +65,77 @@ def test_outcome_error_rate_is_none_on_empty_record(_isolated_ledger):
     assert rates["overall"]["error_rate"] is None  # never claim a rate from nothing
 
 
+# ── R15 FAIL-OPEN: a thin record must not read as a measured-clean judge ──────
+def test_thin_record_escapes_measurement_not_a_clean_bill(_isolated_ledger):
+    """THE fail-open mutation for this metric: one PASS with no post-close defect
+    computes error_rate 0.0. If that 0.0 were reported as a clean judge, an
+    unmeasured organ would silently pass -- the R15 FAIL-OPEN pattern. The metric
+    must instead flag `escapes_measurement=True`: 0.0 over one verdict is
+    UNMEASURED, not perfect."""
+    tl.record_verdict(tl.TaskClass.BILLING, tl.Verdict.PASS,
+                      evaluator_name="phase-close-evaluator", subject="commit_thin")
+    j = jv.outcome_error_rates()["per_judge"]["phase-close-evaluator"]
+    assert j["error_rate"] == 0.0          # the raw computed signal
+    assert j["escapes_measurement"] is True  # ... but honestly flagged as unmeasured
+
+
+def test_error_rate_is_measured_only_after_enough_passes(_isolated_ledger):
+    """The floor mirrors autonomy_level's >=3: a genuinely-measured 0.0 (a judge
+    that passed >= MIN times and reality never disagreed) is a real clean bill and
+    must NOT carry the escapes_measurement flag -- so the flag discriminates
+    unmeasured-thin from measured-clean, it is not always-on theatre."""
+    for i in range(jv.MIN_PASSES_FOR_MEASURED_RATE):
+        tl.record_verdict(tl.TaskClass.BILLING, tl.Verdict.PASS,
+                          evaluator_name="cold-eyes-walk", subject=f"commit_m{i}")
+    j = jv.outcome_error_rates()["per_judge"]["cold-eyes-walk"]
+    assert j["passes"] == jv.MIN_PASSES_FOR_MEASURED_RATE
+    assert j["error_rate"] == 0.0
+    assert j["escapes_measurement"] is False  # measured, and clean
+
+
+def test_a_measured_judge_whose_pass_later_fails_shows_a_real_error_rate(_isolated_ledger):
+    """OUTCOME-test (R15 extension): the strongest validation. A judge with a
+    measured record whose PASS later proves defective must show a non-zero error
+    rate -- the metric FIRES on the judge's own named failure (a pass that later
+    failed), exactly as a mutation test fires a mechanical control."""
+    for i in range(4):
+        tl.record_verdict(tl.TaskClass.PRICING, tl.Verdict.PASS,
+                          evaluator_name="epistemic-verifier", subject=f"px_{i}")
+    tl.record_post_close_defect("px_0", 1, notes="later-found pricing defect")
+    j = jv.outcome_error_rates()["per_judge"]["epistemic-verifier"]
+    assert j["passes"] == 4
+    assert j["passes_with_later_defect"] == 1
+    assert j["error_rate"] == 0.25          # 1 of 4 passes later proved defective
+    assert j["escapes_measurement"] is False
+
+
+# ── measurement coverage: which verdict-organs escape measurement (forbidden) ──
+def test_measurement_coverage_names_the_unmeasured_organ(_isolated_ledger):
+    tl.record_verdict(tl.TaskClass.BILLING, tl.Verdict.PASS,
+                      evaluator_name="phase-close-evaluator", subject="commit_u1")
+    cov = jv.measurement_coverage()
+    assert cov["unmeasured_judges"] == ["phase-close-evaluator"]
+    assert cov["measured_judges"] == []
+    assert cov["coverage"] == 0.0          # 100% of verdict-organs escape measurement
+    assert cov["all_measured"] is False
+
+
+def test_measurement_coverage_all_measured_when_every_judge_has_enough(_isolated_ledger):
+    for i in range(jv.MIN_PASSES_FOR_MEASURED_RATE):
+        tl.record_verdict(tl.TaskClass.SITE_PRESENTATION, tl.Verdict.PASS,
+                          evaluator_name="cold-eyes-walk", subject=f"s{i}")
+    cov = jv.measurement_coverage()
+    assert cov["measured_judges"] == ["cold-eyes-walk"]
+    assert cov["coverage"] == 1.0
+    assert cov["all_measured"] is True
+
+
+def test_measurement_coverage_is_none_on_empty_record(_isolated_ledger):
+    cov = jv.measurement_coverage()
+    assert cov["coverage"] is None
+    assert cov["all_measured"] is False    # nothing measured is NOT all-clear
+
+
 # ── APPROACH 2: CONSISTENCY ───────────────────────────────────────────────────
 def test_consistency_flip_rate_zero_when_judge_never_flips():
     assert jv.consistency_flip_rate(["pass", "pass", "pass"])["flip_rate"] == 0.0
@@ -156,9 +227,52 @@ def test_summary_wires_all_four_approaches_and_the_standing_rule():
     assert s["independence"]["accrues_live"] is True
 
 
+def test_summary_surfaces_measurement_coverage(_isolated_ledger):
+    """The forbidden-state must reach the published surface, not just the library:
+    summary() carries measurement_coverage so a reader sees which verdict-organs
+    escape measurement."""
+    tl.record_verdict(tl.TaskClass.BILLING, tl.Verdict.PASS,
+                      evaluator_name="phase-close-evaluator", subject="commit_s1")
+    s = jv.summary()
+    assert "measurement_coverage" in s
+    assert s["measurement_coverage"]["unmeasured_judges"] == ["phase-close-evaluator"]
+
+
 def test_published_json_is_serialisable():
     # the site publisher must be able to write it
     json.dumps(jv.summary())
+
+
+# ── R11: the PUBLISHED site value must reflect the REAL computed rate ─────────
+def test_published_site_data_reflects_the_real_computed_rate(tmp_path, monkeypatch):
+    """R11 (verify to the rendered value): the generator writes site/data, and the
+    number it publishes must EQUAL what the library computes from the same ledger
+    -- not a stale or hand-edited figure. We seed a ledger with a real
+    pass-that-later-failed, run the actual generator against a temp output, then
+    assert the on-disk published error_rate and coverage match a fresh
+    computation over that same ledger."""
+    import importlib
+    gen = importlib.import_module("tools.generate_judge_validation_data")
+
+    ledger = tmp_path / "trust_ledger.json"
+    out = tmp_path / "judge_validation.json"
+    monkeypatch.setattr(tl, "LEDGER_PATH", ledger)
+    monkeypatch.setattr(gen, "OUT_PATH", out)
+
+    for i in range(4):
+        tl.record_verdict(tl.TaskClass.BILLING, tl.Verdict.PASS,
+                          evaluator_name="phase-close-evaluator", subject=f"b{i}")
+    tl.record_post_close_defect("b0", 1)
+
+    gen.main()
+
+    published = json.loads(out.read_text())
+    computed = jv.outcome_error_rates()  # same (monkeypatched) ledger
+    assert published["outcome_correlation"]["overall"]["error_rate"] == \
+        computed["overall"]["error_rate"] == 0.25
+    assert published["measurement_coverage"]["measured_judges"] == \
+        jv.measurement_coverage()["measured_judges"] == ["phase-close-evaluator"]
+    assert published["measurement_coverage"]["coverage"] == 1.0
 
 
 def test_gold_case_detectable_by_names_real_importable_controls():
