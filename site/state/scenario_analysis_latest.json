@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-13T21:28:24Z",
-  "portfolio_as_of": "2026-07-13T21:25:06Z",
-  "active_customers": 12,
+  "generated_at": "2026-07-14T11:39:06Z",
+  "portfolio_as_of": "2026-07-14T11:35:33Z",
+  "active_customers": 11,
   "projection_months": 12,
   "scenarios": {
     "base": {
@@ -12,8 +12,7 @@
       "gas_12m_forward_gbp_per_mwh": 55.08,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C4",
-        "C4g",
+        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -32,8 +31,7 @@
       "gas_12m_forward_gbp_per_mwh": 35.7,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C4",
-        "C4g",
+        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -52,8 +50,7 @@
       "gas_12m_forward_gbp_per_mwh": 93.84,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C4",
-        "C4g",
+        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -72,8 +69,7 @@
       "gas_12m_forward_gbp_per_mwh": 110.16,
       "hedge_recommendation": "INCREASE",
       "hedge_affected_customers": [
-        "C4",
-        "C4g",
+        "C1_2",
         "C7",
         "C9",
         "C_IC1",
@@ -86,8 +82,8 @@
     }
   },
   "portfolio_exposure_delta_gbp": {
-    "bull": -399610.38,
-    "bear": 799220.76,
-    "crisis": 1566272.44
+    "bull": -399124.53,
+    "bear": 798249.07,
+    "crisis": 1565119.84
   }
 }

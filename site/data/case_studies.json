@@ -1,20 +1,20 @@
 {
   "meta": {
-    "generated_at": "2026-07-13T21:24:22Z",
+    "generated_at": "2026-07-14T11:34:50Z",
     "git_commit": "unknown",
-    "household_count": 13,
+    "household_count": 14,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "77 timeline + reaction-chain entries on record",
-      "account_id": "C8",
-      "base_account_id": "C8",
+      "headline": "69 timeline + reaction-chain entries on record",
+      "account_id": "C7",
+      "base_account_id": "C7",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C8",
+        "acc": "C7",
         "tab": "timeline"
       }
     },
@@ -46,20 +46,20 @@
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "2 debt write-off event(s) in the arrears cascade",
-      "account_id": "C1",
-      "base_account_id": "C1",
+      "headline": "5 debt write-off event(s) in the arrears cascade",
+      "account_id": "C4",
+      "base_account_id": "C4",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C1",
+        "acc": "C4",
         "tab": "timeline",
-        "year": 2016
+        "year": 2018
       }
     },
     {
       "category": "Notable life event",
-      "headline": "Job loss (2024) -- Real downstream drift: income stress low -> high",
+      "headline": "Job loss (2023) -- Real downstream drift: income stress low -> high",
       "account_id": "C3",
       "base_account_id": "C3",
       "segment": "resi",
@@ -67,18 +67,18 @@
       "link": {
         "acc": "C3",
         "tab": "timeline",
-        "year": 2024
+        "year": 2023
       }
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 37% (2017 to 2024) but never once answered a survey -- invisible to the company's measurement instrument",
-      "account_id": "C4",
-      "base_account_id": "C4",
-      "segment": "resi",
+      "headline": "True satisfaction fell 12% (2019 to 2024) but never once answered a survey -- invisible to the company's measurement instrument",
+      "account_id": "C_IC2",
+      "base_account_id": "C_IC2",
+      "segment": "I&C",
       "commodity": "electricity",
       "link": {
-        "acc": "C4",
+        "acc": "C_IC2",
         "tab": "timeline",
         "year": 2024
       }
