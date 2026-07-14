@@ -476,6 +476,22 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/data/customer_sample.json")
     except Exception as exc:
         log("Customer sample generation failed: {}".format(exc))
+    # R11 no-orphan-transition fix (2026-07-14, surfaced by SITE1 Director-door
+    # cold-eyes): these two generators were NOT wired into the pipeline, so
+    # site/data/director_twin.json + provisional_plan.json froze/drifted after
+    # every run. Wire them so the director-facing surfaces stay current.
+    try:
+        from tools.generate_director_twin_data import main as gen_twin
+        gen_twin()
+        log("Generated site/data/director_twin.json")
+    except Exception as exc:
+        log("Director twin data generation failed: {}".format(exc))
+    try:
+        from tools.generate_provisional_plan_data import main as gen_plan
+        gen_plan()
+        log("Generated site/data/provisional_plan.json")
+    except Exception as exc:
+        log("Provisional plan data generation failed: {}".format(exc))
     try:
         # Must run after generate_customer_reaction_chain (timeline/reaction_chain
         # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
