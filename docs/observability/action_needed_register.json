@@ -9,11 +9,14 @@
     "why": "The gap SCORE depends on these weights; the agent framed the decision (R~8:1, flip-point R*=1 at p=0.5) but must NEVER tune them toward a gap number (R13). Placeholders ship until you sign."
   },
   "W2_2_population_draw": {
+    "answer": "Profile B \u2014 trickle continuation at ~1 synthetic customer/yr from 2021, matching the 2017-2020 acquisition pace (near-flat, steady-state supplier). Director-decided in-console 2026-07-14 (re-affirmed; first decided 2026-07-13, answer evaporated with no channel record).",
     "first_asked_at": "2026-07-13T11:08:04.111016+00:00",
     "how": "Choose the customer-book growth profile the sim models from 2021 (the book currently stops acquiring at 2020: 18 hand-authored customers, zero new 2021-2025). The W2_2 mechanism is parameterised by acquisition rate, so any of these is a config, not a rebuild:\n  A. DO NOT activate - keep the static book. Simplest; but unrealistic (real suppliers keep acquiring).\n  B. Trickle continuation (~1 synthetic customer/yr, matching the 2017-2020 pace) - near-flat, steady-state supplier. Minimal-realism default that just fixes the \"stops dead at 2020\" artifact.\n  C. Modest growth (e.g. +5-10%/yr) - a growing book / expanding supplier.\n  D. A named scenario you author (growth-then-shrink, churn-driven decline, price-war attrition, etc.) - full curriculum control.\nThis is a curriculum decision (R13) - I present options, you choose; I do not default. Reply with A/B/C/D (and a rate/profile for C/D).",
     "item_id": "W2_2_population_draw",
-    "last_pinged_at": "2026-07-13T11:08:04.111016+00:00",
-    "resolved": false,
+    "last_pinged_at": "2026-07-14T11:09:49.170842+00:00",
+    "resolution_basis": "director-console-turn (authenticated); R13 curriculum, versioned artifact docs/design/curriculum/W2_2_acquisition_curriculum.md",
+    "resolved": true,
+    "resolved_at": "2026-07-14",
     "what": "Activate the synthetic per-run population draw in live runs? (curriculum decision, R13 - yours to author)",
     "why": "W2_2 mechanism is built+verified (L1). Wiring it into live runs changes which world the company lives through every run = curriculum, reserved to you per R13 (twin-ruled). Held at L1 by governance, not missing capability."
   },
