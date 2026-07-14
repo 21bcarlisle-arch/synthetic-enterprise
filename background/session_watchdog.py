@@ -126,7 +126,11 @@ from background.ntfy_utils import (  # noqa: E402
     was_sent_by_us,
 )
 from background.agent_status import update_agent_status  # noqa: E402
-from background.tmux_relay import send_keys_when_idle  # noqa: E402
+from background.tmux_relay import (  # noqa: E402
+    send_keys,
+    send_keys_when_idle,
+    read_slash_dialog_when_idle,
+)
 from background.health_check import run_health_check  # noqa: E402
 
 SESSION_NAME = "claude"
@@ -627,15 +631,27 @@ def _save_command_since(since: float) -> None:
     NTFY_COMMAND_SINCE_FILE.write_text(json.dumps({"since": since}), encoding="utf-8")
 
 
-def _relay_inbound_command(message: str) -> None:
+def _relay_inbound_command(message: str) -> bool:
     """Type `message` (plus INBOUND_COMMAND_SUFFIX) into the 'claude' tmux
     session as a new chat input, so Claude picks it up and replies via NTFY
-    per the suffix's instruction. Claude Code queues input typed while busy,
-    so this is safe whether the session is idle or mid-task."""
+    per the suffix's instruction.
+
+    Routed through the shared, gated `send_keys_when_idle` (2026-07-14,
+    DEFECT_TMUX_PANE_INJECTION REOPENED): the old RAW `tmux send-keys` here
+    bypassed the injection gate on the false premise that "Claude Code queues
+    input typed while busy" — the same premise the `/usage` storm disproved (a
+    long keystroke burst arriving mid-turn corrupts/piles up in the input box,
+    it is NOT cleanly queued). Now it injects only when the pane is idle and
+    verifies the text both landed and was consumed. Returns True iff delivery
+    was confirmed; False means the pane was busy/unconfirmed and the caller
+    must retry next cycle (never advance the watermark past an undelivered
+    steering message)."""
     log(f"Inbound NTFY command from Rich: {message!r} — relaying to session")
-    subprocess.run([
-        "tmux", "send-keys", "-t", SESSION_NAME, message + INBOUND_COMMAND_SUFFIX, "Enter"
-    ])
+    text = message + INBOUND_COMMAND_SUFFIX
+    # Marker = a distinctive slice of the actual message (not the constant
+    # suffix), so verification keys on THIS command's text landing.
+    marker = message.strip()[:40] or text[:40]
+    return send_keys_when_idle(SESSION_NAME, text, marker)
 
 
 def check_inbound_commands(pane_text: str, since: float) -> float:
@@ -691,7 +707,14 @@ def check_inbound_commands(pane_text: str, since: float) -> float:
         if message.strip().lower() == "/usage":
             _handle_usage_command()
         else:
-            _relay_inbound_command(message)
+            if not _relay_inbound_command(message):
+                # Pane busy / delivery unconfirmed — leave `since` just before
+                # this message so it (and anything after it) is retried next
+                # cycle, exactly like the permission-prompt deferral above.
+                # Never advance past an undelivered steering message.
+                log("Inbound command not yet delivered (session busy) — "
+                    "deferring to next cycle")
+                return latest
         latest = max(latest, msg_time)
 
     return latest
@@ -1036,7 +1059,13 @@ def handle_usage_limit() -> None:
             restart_claude(resume=True)
             return
 
-        subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, RESUME_INSTRUCTION, "Enter"])
+        # Recovery path: the pane is showing a usage-limit message, NOT an idle
+        # prompt, so the idle gate would (correctly) refuse — this is the one
+        # legitimate send into a non-idle pane. Still routed through the shared,
+        # logged `send_keys` primitive (never a raw subprocess call) so it is
+        # visible in injection-log.jsonl and session-guarded like every other
+        # pane write (2026-07-14, DEFECT_TMUX_PANE_INJECTION REOPENED).
+        send_keys(SESSION_NAME, RESUME_INSTRUCTION, "Enter")
         time.sleep(5)
         if not usage_limit_detected(capture_pane()):
             log("Usage limit cleared — session resumed in place")
@@ -1082,12 +1111,16 @@ def check_session_usage() -> tuple[int, str, str] | None:
     Returns (pct_used, reset_time, tz_name), or None if the output couldn't
     be parsed (e.g. the dialog didn't render within the wait — treated as
     "unknown, don't pause" by callers).
+
+    Routed through the shared, gated `read_slash_dialog_when_idle` (2026-07-14,
+    DEFECT_TMUX_PANE_INJECTION REOPENED): the old RAW `tmux send-keys /usage`
+    here bypassed the injection gate entirely and, on a busy pane, piled the
+    unrecognised "/usage" keystrokes up in the input box once per cycle. Now it
+    injects ONLY when the pane is idle+empty+byte-stable (a slash command can
+    never submit mid-turn anyway), verifies the dialog rendered by parsing it,
+    and clears the input line if it didn't — so it can never accumulate.
     """
-    subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, "/usage", "Enter"])
-    time.sleep(2)
-    pane_text = capture_pane()
-    subprocess.run(["tmux", "send-keys", "-t", SESSION_NAME, "Escape"])
-    return parse_usage_pane(pane_text)
+    return read_slash_dialog_when_idle(SESSION_NAME, "/usage", parse_usage_pane)
 
 
 def usage_pause_active() -> bool:

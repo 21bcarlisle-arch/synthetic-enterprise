@@ -656,3 +656,121 @@ def test_send_keys_when_idle_fails_safe_when_lock_held_by_another_daemon(monkeyp
 
     assert result is False
     assert calls == []  # never even attempted the idle check -- lock held elsewhere
+
+
+# --- read_slash_dialog_when_idle (DEFECT_TMUX_PANE_INJECTION REOPENED, 2026-07-14) ---
+# The /usage storm's root cause: a SECOND kind of pane write (a bare slash
+# command) fired raw, ungated, once per cycle, piling unrecognised keystrokes
+# into the input box on a busy pane. These prove the gated helper (a) never
+# injects unless the pane is idle+stable, (b) verifies the dialog rendered, and
+# (c) rolls back a stuck input line if it did not.
+
+_USAGE_DIALOG_PANE = (
+    "Current session · Resets 4:59pm (Europe/London)\n"
+    "33% used\n"
+    "────────────────────────────────────────────────────────\n"
+    "❯ \n"
+)
+
+
+def test_read_slash_dialog_when_idle_noop_under_pytest():
+    """Same structural guarantee as every other sender: a genuine no-op while
+    PYTEST_CURRENT_TEST is set, so no test can ever fire /usage into a live pane."""
+    assert tmux_relay.read_slash_dialog_when_idle("claude", "/usage", lambda t: t) is None
+
+
+def test_read_slash_dialog_when_idle_refuses_when_busy(monkeypatch):
+    """The whole point: a slash command can NEVER be submitted mid-turn, so on a
+    busy pane the helper must send nothing at all (returns None = unknown)."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    calls = []
+    def _run(cmd, **kw):
+        calls.append(cmd)
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": BUSY_PANE})()
+        return type("R", (), {"returncode": 0})()
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+    parse_calls = []
+    result = tmux_relay.read_slash_dialog_when_idle(
+        "claude", "/usage", lambda t: parse_calls.append(t))
+    assert result is None
+    assert not any(c[1] == "send-keys" for c in calls)  # never typed /usage
+    assert parse_calls == []
+
+
+def test_read_slash_dialog_when_idle_success_parses_and_dismisses(monkeypatch):
+    """Idle+byte-stable pane: /usage is sent, the rendered dialog parses (the
+    read-back proof that the submit landed), and the dialog is dismissed with
+    Escape -- no rollback Ctrl-U needed on success."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    # _safe_to_inject captures IDLE twice (byte-stability), then the dialog capture.
+    capture_seq = iter([IDLE_PANE, IDLE_PANE, _USAGE_DIALOG_PANE])
+    sent = []
+    def _run(cmd, **kw):
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": next(capture_seq)})()
+        if cmd[1] == "send-keys":
+            sent.append(cmd[4:])  # trailing keys after -t <session>
+        return type("R", (), {"returncode": 0})()
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+
+    def _parse(text):
+        return (33, "4:59pm", "Europe/London") if "Current session" in text else None
+
+    result = tmux_relay.read_slash_dialog_when_idle("claude", "/usage", _parse)
+    assert result == (33, "4:59pm", "Europe/London")
+    assert ["/usage", "Enter"] in sent      # the command was submitted
+    assert ["Escape"] in sent               # dialog dismissed
+    assert ["C-u"] not in sent              # no rollback needed on success
+
+
+def test_read_slash_dialog_when_idle_rolls_back_input_when_dialog_never_renders(monkeypatch):
+    """Belt-and-braces: if the pane was idle enough to send but the dialog did
+    NOT render (parse -> None), the command may be sitting unrecognised in the
+    box -- clear it with Ctrl-U so it can never accumulate into the [Pasted
+    text #NNN] pile the director saw."""
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.setattr(tmux_relay.time, "sleep", lambda *_: None)
+    capture_seq = iter([IDLE_PANE, IDLE_PANE, IDLE_PANE])  # dialog never appears
+    sent = []
+    def _run(cmd, **kw):
+        if cmd[1] == "capture-pane":
+            return type("R", (), {"returncode": 0, "stdout": next(capture_seq)})()
+        if cmd[1] == "send-keys":
+            sent.append(cmd[4:])
+        return type("R", (), {"returncode": 0})()
+    monkeypatch.setattr(tmux_relay.subprocess, "run", _run)
+
+    result = tmux_relay.read_slash_dialog_when_idle("claude", "/usage", lambda t: None)
+    assert result is None
+    assert ["/usage", "Enter"] in sent
+    assert ["Escape"] in sent
+    assert ["C-u"] in sent                  # rolled back the stuck input line
+
+
+def test_no_raw_tmux_send_keys_outside_relay_module():
+    """MECHANISM, not prose (MAKE_IT_STICK + R10 'ONE gate for ALL pane
+    writers', DEFECT_TMUX_PANE_INJECTION REOPENED 2026-07-14): every pane write
+    in background/ must go through tmux_relay's gated, logged, verify-or-rollback
+    primitives -- never a raw `subprocess.run(["tmux","send-keys",...])`. This
+    test greps the whole tree and FAILS the moment any raw send-keys reappears,
+    so the rule cannot silently decay. It was RED before the fix (3 raw sites in
+    session_watchdog.py) and is the anti-regression guard now. tmux_relay.py is
+    the one allowed home for the primitive itself."""
+    import pathlib
+    import re
+    bg = pathlib.Path(__file__).resolve().parents[2] / "background"
+    offenders = []
+    for py in sorted(bg.glob("*.py")):
+        if py.name == "tmux_relay.py":
+            continue
+        for i, line in enumerate(py.read_text().splitlines(), 1):
+            if re.search(r"send-keys", line) and "subprocess" in line:
+                offenders.append(f"{py.name}:{i}: {line.strip()}")
+    assert not offenders, (
+        "Raw `tmux send-keys` found outside tmux_relay.py -- route it through "
+        "the shared gated relay (send_keys / send_keys_when_idle / "
+        "read_slash_dialog_when_idle):\n" + "\n".join(offenders)
+    )

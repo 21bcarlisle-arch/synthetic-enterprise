@@ -502,3 +502,61 @@ def send_keys_when_idle(
         session, want_idle=True,
         timeout=completion_timeout, interval=poll_interval,
     )
+
+
+def read_slash_dialog_when_idle(
+    session: str, command: str, parse, dismiss_key: str = "Escape",
+    render_wait: float = 2.0,
+):
+    """Inject a bare slash command (e.g. "/usage") that opens a transient
+    dialog, read the dialog back, parse it, and dismiss it -- but ONLY when
+    the pane is safe to inject into, under the SAME cross-daemon relay lock and
+    the SAME `_safe_to_inject` gate as every other pane writer.
+
+    This exists because a slash command is a SECOND kind of pane write that
+    `send_keys_when_idle` (built for chat text confirmed by a busy->idle turn)
+    does not model: a slash command opens a modal dialog rather than starting a
+    turn, so there is no busy transition to confirm against. Before this helper,
+    `check_session_usage` fired `/usage` + Enter with a RAW, unguarded
+    `subprocess.run(["tmux","send-keys",...])` -- no idle check, no lock, no
+    log, no verification -- so on a busy/mid-turn pane the keystrokes were NOT
+    recognised as a slash command (a slash command is only recognised as the
+    ENTIRE input on an idle prompt) and piled up UNSUBMITTED in the input box,
+    once per watchdog cycle: the "/usage repeated dozens of times" the director
+    saw (DEFECT_TMUX_PANE_INJECTION REOPENED, 2026-07-14, R10 'ONE gate for ALL
+    pane writers'). Routing it here closes that second bypass.
+
+    Verify-submit-landed-or-roll-back (director's explicit requirement):
+      * refuse entirely unless `_safe_to_inject` (idle + empty box + byte-stable)
+        -- a slash command can NEVER be submitted mid-turn, so if we can't
+        confirm idle we send nothing at all (returns None = "unknown");
+      * after sending, `parse(pane_text)` succeeding IS the read-back proof the
+        command was recognised and its dialog rendered (submit landed);
+      * always dismiss the dialog (`dismiss_key`); and if parse FAILED -- the
+        command may be sitting unrecognised in the box -- clear the input line
+        (Ctrl-U) so it can never accumulate into the [Pasted text #NNN] pile.
+
+    Returns `parse()`'s result, or None (no-op under pytest, pane not safe,
+    lock contended, or dialog never rendered). Every send is logged via the
+    shared `send_keys` primitive, so a future storm is diagnosable from
+    injection-log.jsonl like any other pane write."""
+    if os.environ.get("PYTEST_CURRENT_TEST") is not None:
+        return None
+    try:
+        with relay_lock(timeout=_RELAY_LOCK_TIMEOUT_SECONDS):
+            ensure_live_tail(session)
+            if not _safe_to_inject(session):
+                return None  # never inject a slash command into a non-idle pane
+            if not send_keys(session, command, "Enter"):
+                return None
+            time.sleep(render_wait)
+            pane_text = capture_pane(session, lines=60)
+            result = parse(pane_text)
+            send_keys(session, dismiss_key)
+            if result is None:
+                # Dialog never rendered -- the command may be sitting unconsumed
+                # in the input line. Clear it (Ctrl-U) so it cannot accumulate.
+                send_keys(session, "C-u")
+            return result
+    except RelayLockTimeout:
+        return None  # another daemon is mid-send -- retry next cycle

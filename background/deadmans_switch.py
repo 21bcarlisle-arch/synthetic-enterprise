@@ -9,25 +9,41 @@ could fail for the exact same underlying reason (a misread of what the
 terminal is showing), so this one uses none of it: no tmux capture, no
 regex on pane content, no is_session_idle() call anywhere in this file.
 
-Signals used instead -- objective, external, and something a stuck
+Signal used instead -- objective, external, and something a stuck
 supervisor cannot itself corrupt:
-  - the most recent git commit timestamp (real forward progress, this
-    project's own definition of "done" throughout)
-  - the most recent modification time across any file in
-    docs/observability/ (any daemon actively logging counts as "the
-    process tree is alive and doing something," even mid-task with no
-    commit yet -- e.g. a multi-hour sim-runner GPU pass)
+  - the most recent git COMMIT timestamp (real forward progress, this
+    project's own definition of "done" throughout).
 
-BLOCKED alert class: if neither signal has moved for
-BLOCKED_THRESHOLD_SECONDS AND there is real unprocessed work on disk
-(docs/staging/ files not yet in done/), sends one NTFY tagged [BLOCKED] --
-visually distinct from routine daemon NTFYs -- and re-escalates on a
-slower cadence while the condition persists (not silent forever past the
-first alert, not spammy either, matching R5's "never repeat an unchanged
-status" applied with a bounded re-alert rather than a single one-shot).
+FAIL-SILENT REGRESSION, fixed 2026-07-14 (director P0, "the entire stack
+went dark 22:12->04:00 -- no commits, no auto-process, and no ntfy telling
+me it stopped"): the previous version ALSO trusted "the most recent mtime
+across any file in docs/observability/" as an alive signal. That signal is
+CONTAMINATED -- every background daemon (supervisor, sanity, health-check,
+and this very switch's OWN 15-min log write) touches that directory each
+cycle regardless of whether the main session is making any progress. So
+during a 6-hour wedge (a jammed input box refusing every turn grant) the
+switch logged "activity recent (0min ago) -- not blocked" every single
+cycle while staged files climbed 31->59 and no commit landed. A watchdog
+whose liveness signal is refreshed by the watchdog itself can never fire:
+the textbook fail-silent control (R15). The fix: the ONLY progress signal
+is the git commit clock, which no daemon's logging can move -- only real
+work moves it. (The NTFY path was never the problem; it is a direct HTTPS
+POST to ntfy.sh, independent of the tmux stack. Detection was the failure.)
+
+Two alarm tiers, both suppressed only during a declared usage pause
+(.usage_pause.json -- a known-quiet window, not a stall):
+  - [BLOCKED]: queued work on disk (docs/staging/ not yet in done/) AND no
+    commit for BLOCKED_THRESHOLD_SECONDS. The 2026-07-14 outage class --
+    fires within ~45min instead of never.
+  - [STALL]: no commit for SILENT_STALL_THRESHOLD_SECONDS regardless of
+    staging -- the backstop for a wedged-but-empty tree.
+Both re-escalate on a bounded cadence (RE_ESCALATE_SECONDS) while the
+condition persists (R5: never repeat an unchanged status, but don't go
+silent forever either).
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import time
@@ -44,9 +60,12 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "deadmans-switch-log.md"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 OBSERVABILITY_DIR = PROJECT_DIR / "docs" / "observability"
 
-POLL_INTERVAL_SECONDS = 900       # 15 minutes -- a safety net, not a turn-granter
-BLOCKED_THRESHOLD_SECONDS = 90 * 60   # 90 minutes of zero activity + queued work = BLOCKED
+POLL_INTERVAL_SECONDS = 300       # 5 minutes -- a safety net, not a turn-granter
+BLOCKED_THRESHOLD_SECONDS = 45 * 60   # 45 min of no commit + queued work = BLOCKED
+SILENT_STALL_THRESHOLD_SECONDS = 90 * 60  # 90 min of no commit at all = STALL (backstop)
 RE_ESCALATE_SECONDS = 60 * 60         # re-alert hourly while still stuck
+
+USAGE_PAUSE_FILENAME = ".usage_pause.json"  # a declared known-quiet window
 
 _IGNORED_STAGING_NAMES = {".gitkeep"}
 
@@ -78,23 +97,30 @@ def _last_commit_epoch() -> float:
     return 0.0
 
 
-def _last_observability_write_epoch() -> float:
-    """Most recent mtime across any file directly in docs/observability/ --
-    any daemon actively logging (sim-runner mid-run, supervisor's own
-    per-cycle log line, etc.) counts as evidence the process tree is alive
-    and doing something, independent of whether a commit has landed yet."""
-    latest = 0.0
-    try:
-        for p in OBSERVABILITY_DIR.iterdir():
-            if p.is_file():
-                latest = max(latest, p.stat().st_mtime)
-    except OSError:
-        pass
-    return latest
-
-
 def last_activity_epoch() -> float:
-    return max(_last_commit_epoch(), _last_observability_write_epoch())
+    """The ONLY forward-progress signal: the git commit clock. Deliberately
+    NOT max()'d with docs/observability/ mtimes any more -- that made the
+    switch fail-silent (see module docstring, 2026-07-14 regression). No
+    daemon's logging can move this; only real work does."""
+    return _last_commit_epoch()
+
+
+def _usage_pause_active() -> bool:
+    """True if a usage pause is currently declared (.usage_pause.json with a
+    future resume_at, written by the session when it self-pauses at ~90%). A
+    declared pause is a KNOWN-quiet window, not a stall, so both alarm tiers
+    are suppressed while it holds. Read directly (no session_watchdog import)
+    so this stays independent of that stack. Fails toward 'not paused' (alarm
+    active) on any malformed/absent file -- never suppresses on ambiguity."""
+    pause_file = OBSERVABILITY_DIR / USAGE_PAUSE_FILENAME
+    try:
+        data = json.loads(pause_file.read_text(encoding="utf-8"))
+        resume_at = datetime.fromisoformat(data["resume_at"])
+    except (FileNotFoundError, json.JSONDecodeError, KeyError, ValueError, OSError):
+        return False
+    if resume_at.tzinfo is None:
+        resume_at = resume_at.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) < resume_at
 
 
 def _unprocessed_staging_files() -> list[str]:
@@ -127,36 +153,54 @@ def run_cycle() -> None:
 
     _reping_open_action_needed_items()
 
-    staged = _unprocessed_staging_files()
-    if not staged:
-        log("Clean -- no unprocessed staging files")
+    # A declared usage pause is a known-quiet window, not a stall -- suppress
+    # both tiers (but keep re-ping above, which is a different alert class).
+    if _usage_pause_active():
+        log("Usage pause active -- known-quiet window, alarm suppressed")
         _last_escalation_ts = None
         return
 
     now = time.time()
-    idle_seconds = now - last_activity_epoch()
+    since_commit = now - last_activity_epoch()
+    staged = _unprocessed_staging_files()
 
-    if idle_seconds < BLOCKED_THRESHOLD_SECONDS:
-        log(
-            f"Work queued ({len(staged)} file(s)) but activity recent "
-            f"({idle_seconds / 60:.0f}min ago) -- not blocked"
-        )
+    blocked = bool(staged) and since_commit >= BLOCKED_THRESHOLD_SECONDS
+    silent_stall = since_commit >= SILENT_STALL_THRESHOLD_SECONDS
+
+    if not (blocked or silent_stall):
+        if staged:
+            log(
+                f"Work queued ({len(staged)} file(s)) but commit recent "
+                f"({since_commit / 60:.0f}min ago) -- not blocked"
+            )
+        else:
+            log(f"Clean -- no queued work, last commit {since_commit / 60:.0f}min ago")
+            _last_escalation_ts = None
         return
 
     if _last_escalation_ts is not None and (now - _last_escalation_ts) < RE_ESCALATE_SECONDS:
         log(
-            f"BLOCKED (still) -- {idle_seconds / 60:.0f}min idle, {len(staged)} file(s) "
-            f"queued -- suppressed (re-alerts hourly)"
+            f"STALL (still) -- {since_commit / 60:.0f}min since commit, "
+            f"{len(staged)} file(s) queued -- suppressed (re-alerts hourly)"
         )
         return
 
-    shown = ", ".join(staged[:3]) + ("..." if len(staged) > 3 else "")
-    send_ntfy(
-        f"[BLOCKED] Dead-man's switch: {idle_seconds / 60:.0f} min with no commit or "
-        f"observability-log activity, and {len(staged)} unprocessed staging file(s) "
-        f"({shown}). The supervisor/tmux stack may be stuck -- check the session directly."
-    )
-    log(f"BLOCKED NTFY sent -- {idle_seconds / 60:.0f}min idle, {len(staged)} file(s) queued")
+    if blocked:
+        shown = ", ".join(staged[:3]) + ("..." if len(staged) > 3 else "")
+        send_ntfy(
+            f"[BLOCKED] Dead-man's switch: {since_commit / 60:.0f} min since the last git "
+            f"COMMIT, and {len(staged)} unprocessed staging file(s) ({shown}). The "
+            f"supervisor/tmux stack or the main session may be stuck (e.g. a jammed input "
+            f"box refusing turn grants) -- check the session directly."
+        )
+        log(f"BLOCKED NTFY sent -- {since_commit / 60:.0f}min since commit, {len(staged)} file(s) queued")
+    else:  # silent_stall with an empty queue -- the backstop tier
+        send_ntfy(
+            f"[STALL] Dead-man's switch: {since_commit / 60:.0f} min with no git commit and "
+            f"no queued work moving. The main session may be wedged even though nothing is "
+            f"queued -- check it directly."
+        )
+        log(f"STALL NTFY sent -- {since_commit / 60:.0f}min since commit, empty queue")
     _last_escalation_ts = now
 
 

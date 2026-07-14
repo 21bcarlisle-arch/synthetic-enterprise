@@ -1,6 +1,7 @@
 """Tests for background/deadmans_switch.py -- director-flagged incident,
 2026-07-09 (block-escalation didn't reach him for hours; this is deliberately
 independent of the tmux/supervisor stack that failed)."""
+import json
 import time
 
 import pytest
@@ -29,6 +30,7 @@ def _isolate(tmp_path, monkeypatch):
 
 
 def test_no_staged_files_is_clean_no_ntfy(monkeypatch):
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)  # recent commit
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -38,6 +40,7 @@ def test_no_staged_files_is_clean_no_ntfy(monkeypatch):
 
 def test_gitkeep_alone_does_not_count_as_staged_work(monkeypatch):
     (dms.STAGING_DIR / ".gitkeep").write_text("")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)  # recent commit
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -92,13 +95,16 @@ def test_blocked_ntfy_re_escalates_after_re_escalate_window(monkeypatch):
 
 def test_recovering_to_clean_resets_escalation_state(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").write_text("staged")
-    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - (2 * 3600))
+    activity = {"epoch": time.time() - (2 * 3600)}
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: activity["epoch"])
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
 
+    # Genuine recovery: the queue drains AND a fresh commit lands.
     (dms.STAGING_DIR / "SOME_DOC.md").unlink()
+    activity["epoch"] = time.time()
     dms.run_cycle()
     assert dms._last_escalation_ts is None
 
@@ -110,20 +116,82 @@ def test_last_commit_epoch_returns_zero_on_git_failure(monkeypatch):
     assert dms._last_commit_epoch() == 0.0
 
 
-def test_last_observability_write_epoch_reflects_real_mtimes(monkeypatch):
-    f = dms.OBSERVABILITY_DIR / "some-log.md"
-    f.write_text("entry")
-    epoch = dms._last_observability_write_epoch()
-    assert epoch > 0
-    assert abs(epoch - time.time()) < 5
+def test_last_activity_epoch_is_the_commit_clock_only(monkeypatch):
+    """The 2026-07-14 fix: progress is the git commit clock ALONE. There is no
+    longer an observability-mtime term to contaminate it."""
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: 12345.0)
+    assert dms.last_activity_epoch() == 12345.0
+    assert not hasattr(dms, "_last_observability_write_epoch")
 
 
-def test_last_activity_epoch_takes_the_max_of_both_signals(monkeypatch):
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: 100.0)
-    monkeypatch.setattr(dms, "_last_observability_write_epoch", lambda: 200.0)
-    assert dms.last_activity_epoch() == 200.0
-    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: 300.0)
-    assert dms.last_activity_epoch() == 300.0
+def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
+    """MUTATION/REGRESSION GUARD for the 2026-07-14 fail-silent outage (R15 --
+    the control must fire on its own named defect): the OLD deadman used the
+    observability-dir mtime as an 'alive' signal, so its own 15-min log write
+    (plus every other daemon's) reset the staleness clock every cycle -- it
+    logged 'activity recent (0min ago)' for 6 hours straight while the session
+    was wedged and staged files climbed 31->59. Here we reproduce EXACTLY that
+    state: a stale commit (6h) with freshly-written daemon logs in the obs dir.
+    The alarm MUST fire now; if this test ever goes green->red the fail-silent
+    signal has been reintroduced."""
+    (dms.STAGING_DIR / "run_complete_x.md").write_text("queued")
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
+    # The contaminating writes that masked the stall before:
+    (dms.OBSERVABILITY_DIR / "supervisor-log.md").write_text("supervisor just logged")
+    (dms.OBSERVABILITY_DIR / "deadmans-switch-log.md").write_text("the switch's own write")
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1
+    assert "[BLOCKED]" in calls[0]
+    assert "run_complete_x.md" in calls[0]
+
+
+def test_silent_stall_fires_with_empty_queue(monkeypatch):
+    """Backstop tier: a wedged main session with NOTHING queued still trips an
+    alarm once no commit has landed for SILENT_STALL_THRESHOLD_SECONDS."""
+    assert dms._unprocessed_staging_files() == []  # genuinely empty queue
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 2 * 3600)
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1
+    assert "[STALL]" in calls[0]
+
+
+def test_usage_pause_suppresses_the_alarm(monkeypatch):
+    """A declared usage pause (.usage_pause.json, future resume_at) is a
+    KNOWN-quiet window -- no commit for hours is expected, so both tiers are
+    suppressed even with queued work and a very stale commit."""
+    from datetime import datetime, timedelta, timezone
+    (dms.STAGING_DIR / "run_complete_x.md").write_text("queued")
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
+    resume_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+    (dms.OBSERVABILITY_DIR / dms.USAGE_PAUSE_FILENAME).write_text(
+        json.dumps({"resume_at": resume_at})
+    )
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert calls == []
+    assert "Usage pause active" in dms.LOG_FILE.read_text()
+
+
+def test_expired_usage_pause_does_not_suppress(monkeypatch):
+    """A usage pause whose resume_at has passed is NOT a live pause -- the
+    alarm must fire (fails toward alarming, never suppresses on a stale file)."""
+    from datetime import datetime, timedelta, timezone
+    (dms.STAGING_DIR / "run_complete_x.md").write_text("queued")
+    monkeypatch.setattr(dms, "_last_commit_epoch", lambda: time.time() - 6 * 3600)
+    past = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    (dms.OBSERVABILITY_DIR / dms.USAGE_PAUSE_FILENAME).write_text(
+        json.dumps({"resume_at": past})
+    )
+    calls = []
+    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1
+    assert "[BLOCKED]" in calls[0]
 
 
 def test_blocked_message_names_the_supervisor_stack_explicitly(monkeypatch):
@@ -144,6 +212,7 @@ def test_run_cycle_repings_a_due_action_needed_item(monkeypatch):
         "routines-env-id", "send the environment_id", "via claude.ai/code",
         "RemoteTrigger needs it", now=asked_at.isoformat(),
     )
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -154,6 +223,7 @@ def test_run_cycle_repings_a_due_action_needed_item(monkeypatch):
 
 def test_run_cycle_does_not_reping_within_24h(monkeypatch):
     action_needed.register_item("a", "w", "h", "y")  # just registered, now
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -165,6 +235,7 @@ def test_run_cycle_does_not_reping_resolved_items(monkeypatch):
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
     action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
     action_needed.resolve_item("a")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -179,6 +250,7 @@ def test_run_cycle_reping_is_independent_of_staging_activity_check(monkeypatch):
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
     action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
     assert dms._unprocessed_staging_files() == []  # staging genuinely clean
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
@@ -190,6 +262,7 @@ def test_run_cycle_repings_resets_the_daily_clock(monkeypatch):
     from datetime import datetime, timedelta, timezone
     asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
     action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
     dms.run_cycle()
