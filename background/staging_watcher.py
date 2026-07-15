@@ -114,37 +114,16 @@ FROM_RICH_SUPERSEDE_MIN_AGE_SECONDS = 30 * 60
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
+from background.ntfy_utils import send_ntfy  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
-from background.tmux_relay import send_keys_when_idle  # noqa: E402
 
-# Names of new staged files whose wake hasn't yet been confirmed-delivered
-# (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md root-cause fix, 2026-07-08:
-# a wake can land partially in a busy pane and never submit -- retry each
-# cycle until send_keys_when_idle() actually confirms consumption). In-memory
-# only: a daemon restart before delivery drops the retry, but `seen` already
-# covers the file so it won't be re-notified either -- the NTFY sent at
-# notification time is the durable fallback, this is a bonus reliability
-# layer on top of it, not the sole guarantee.
-_pending_wake_names: set[str] = set()
-
-# Bounded retry (2026-07-10, docs/design/STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md):
-# tmux_relay.py's send_keys_when_idle() confirms consumption by checking that
-# its wake marker is absent from the pane afterward -- but Claude Code's own
-# terminal UI keeps a submitted turn visible in scrollback indefinitely, so
-# that check can structurally never pass. Every genuinely-successful wake
-# gets misclassified as failed and retried forever (1103 historical
-# occurrences of the retry log line; two confirmed live duplicate deliveries
-# observed directly). The real fix belongs in tmux_relay.py (a shared,
-# actively-in-use relay module across 3 daemons) and deserves its own
-# careful pass, not a rushed live edit. This is a narrow, single-daemon-
-# scoped mitigation of the SYMPTOM only: give up retrying the same still-
-# open staged file(s) after _WAKE_GIVE_UP_SECONDS of unconfirmed attempts,
-# rather than hammering the session indefinitely -- supervisor.py's
-# independent poll (background/supervisor.py::find_work(), no tmux-relay
-# dependency) remains the durable path for genuinely open staging work.
-_pending_wake_first_attempt: dict[str, float] = {}
-_WAKE_GIVE_UP_SECONDS = 600.0
+# PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the staging
+# watcher NO LONGER types a wake into the live 'claude' pane. Keystroke
+# injection is deleted (banned; five deaths). It still NOTIFIES Rich by NTFY
+# when a genuinely-new staged instruction lands; the session picks the file up
+# via STAGING + the pull-loop draw (supervisor.find_work polls staging on its
+# own, no tmux dependency), which was always the durable guarantee anyway --
+# the tmux wake was only ever a best-effort latency shortcut on top of it.
 
 
 def log(msg: str) -> None:
@@ -298,62 +277,6 @@ def check_monthly_maintenance(now: datetime) -> None:
     _save_maintenance_state(month_key)
 
 
-def _relay_wake_to_claude(new_names: list[str]) -> bool:
-    """Attempt ONE turn-injection into the existing 'claude' tmux session
-    naming the new staged file(s) -- the event-driven replacement for the
-    retired autonomous-runner poll loop (docs/review_gates/done/
-    AUTONOMOUS_RUNNER_STILL_RUNNING.md). No new process, single-writer
-    preserved.
-
-    FAST-PATH HINT, not the guarantee (2026-07-09, doorbell failure #4):
-    background/supervisor.py is the sole authority that guarantees a new
-    staged file eventually gets a turn. This wake just shortens the wait
-    from "up to 2 minutes" to "seconds" on the common case where it works.
-
-    Names only, never file contents -- matches this watcher's existing
-    "announce, don't act" discipline.
-
-    Root-cause fix (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md,
-    2026-07-08): a live incident showed a signed wake landing PARTIALLY in
-    the target pane's input box and never submitting -- "Claude Code queues
-    input typed while busy" does not reliably hold for longer text bursts.
-    Uses background.tmux_relay.send_keys_when_idle, which (a) refuses to
-    send at all unless the pane currently shows no busy indicator, and (b)
-    verifies after sending that the text was actually consumed, not just
-    that the subprocess call exit-coded zero. Returns False on ANY of:
-    pytest-suppressed, session busy, send failed, or the text still stuck
-    in the pane afterward -- callers must retry next cycle, never treat a
-    False as "delivered anyway."
-
-    HMAC-signed (docs/staging/NTFY_CHANNEL_HARDENING.md, 2026-07-08): the
-    text is wrapped with `sign_wake_message` before being typed into the
-    session, so anything appearing in that pane in this exact wake format
-    without a valid trailing signature is distinguishable as not genuinely
-    from this watcher -- see CLAUDE.md R7 (injected wake text carries zero
-    authority regardless) for how the agent must treat it either way. The
-    trailing HMAC hex digest doubles as the consumption-verification marker.
-    """
-    names = ", ".join(new_names)
-    message = (
-        f"[STAGING WATCHER: new staged instruction(s) landed -- {names}. "
-        "Per the Staging Directory Protocol, read docs/staging/ now and "
-        "action per CLAUDE.md's tiered model (Tier 2 if pre-approved/"
-        "already-queued, classify if novel) -- this is an event-driven "
-        "wake, not a poll nudge, so do not wait for the next natural "
-        "staging check.]"
-    )
-    signed = sign_wake_message(message)
-    marker = signed.rsplit("|", 1)[-1]
-    try:
-        return send_keys_when_idle(SESSION_NAME, signed, marker)
-    except Exception:
-        # Defense in depth: send_keys_when_idle() already swallows its own
-        # subprocess failures, but this catch means the watcher's poll loop
-        # is also protected against any future regression in that
-        # guarantee, or a test double that doesn't replicate it.
-        return False
-
-
 def _done_dir() -> Path:
     """docs/staging/done/, derived from STAGING_DIR at CALL time so tests that
     monkeypatch STAGING_DIR get a matching done/ dir (see action_needed.py's
@@ -477,74 +400,14 @@ def check_once(seen: set[str]) -> set[str]:
             log(f"Notified: {name}")
             actionable.append(name)
     if actionable:
-        _pending_wake_names.update(actionable)
-        log(f"Queued wake for: {', '.join(actionable)} (attempted in main loop, retried if session busy)")
+        # PULL-LOOP MIGRATION (2026-07-15): no tmux wake -- the NTFY above tells
+        # Rich; the session draws the file via staging + the pull-loop.
+        log(f"New actionable staged file(s) notified: {', '.join(actionable)} "
+            "(served via staging + pull-loop draw, no pane injection)")
     if new_files:
         seen = files
         save_seen(seen)
     return seen
-
-
-def _attempt_pending_wake() -> None:
-    """Attempt delivery of any queued new-staged-file wake
-    (`_pending_wake_names`) -- called once per main() cycle. Only clears the
-    pending set on a CONFIRMED-delivered wake (idle pane + consumption
-    verified); on failure (busy, or stuck-unconsumed), leaves it queued for
-    the next cycle's retry, per the root-cause fix's "never fire into a
-    mid-turn session, hold and retry" requirement.
-
-    Doorbell failure #6 fix (2026-07-10): a name whose file has since been
-    archived to done/ (processed during a long busy stretch, e.g. a
-    multi-hour session that never once showed as idle) was retried forever
-    -- 140+ retries observed live for one already-actioned file, spamming a
-    stale wake every cycle indefinitely. Before each attempt, drop any name
-    no longer present in docs/staging/ as moot (already handled) instead of
-    retrying it blind.
-
-    Bounded-retry fix (2026-07-10, docs/design/
-    STAGING_WATCHER_WAKE_CONFIRMATION_BUG.md): a name that is genuinely
-    STILL staged (not stale/archived, per the check above) but has been
-    unconfirmed for over _WAKE_GIVE_UP_SECONDS is dropped too -- the
-    underlying tmux_relay.py consumption check can structurally never
-    confirm a real terminal-UI send (see that finding doc), so retrying
-    indefinitely just repeats an already-delivered wake every cycle.
-    supervisor.py's own independent poll (no tmux-relay dependency) remains
-    the durable path for genuinely open staging work.
-    """
-    if not _pending_wake_names:
-        return
-    live = current_files()
-    stale = _pending_wake_names - live
-    if stale:
-        log(f"Dropping stale wake (already archived, no longer staged): {', '.join(sorted(stale))}")
-        _pending_wake_names.difference_update(stale)
-        for name in stale:
-            _pending_wake_first_attempt.pop(name, None)
-    if not _pending_wake_names:
-        return
-
-    now = time.monotonic()
-    for name in _pending_wake_names:
-        _pending_wake_first_attempt.setdefault(name, now)
-
-    names = sorted(_pending_wake_names)
-    oldest_attempt = min(_pending_wake_first_attempt.get(n, now) for n in names)
-    if now - oldest_attempt > _WAKE_GIVE_UP_SECONDS:
-        log(f"Giving up on wake retry after {int(_WAKE_GIVE_UP_SECONDS)}s unconfirmed "
-            f"(known tmux_relay consumption-check limitation) -- relying on "
-            f"supervisor.py's independent poll for: {', '.join(names)}")
-        _pending_wake_names.clear()
-        for n in names:
-            _pending_wake_first_attempt.pop(n, None)
-        return
-
-    if _relay_wake_to_claude(names):
-        log(f"Wake delivered (confirmed) to '{SESSION_NAME}' session for: {', '.join(names)}")
-        _pending_wake_names.clear()
-        for n in names:
-            _pending_wake_first_attempt.pop(n, None)
-    else:
-        log(f"Wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: {', '.join(names)}")
 
 
 def main() -> None:
@@ -594,11 +457,6 @@ def main() -> None:
             seen = check_once(seen)
         except Exception as e:
             log(f"Watcher error: {e}")
-
-        try:
-            _attempt_pending_wake()
-        except Exception as e:
-            log(f"Pending-wake attempt error: {e}")
 
         # Archive-on-answer sweep: move any answered/superseded/stale
         # from_rich_*.md to done/ so it stops re-granting supervisor turns.

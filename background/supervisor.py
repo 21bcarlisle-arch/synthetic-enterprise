@@ -126,10 +126,8 @@ from background.coupled_triad import (  # noqa: E402
     load_gap_ledger as _coupled_load_gap_ledger,
     world_l3_blocked as _coupled_world_l3_blocked,
 )
-from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
-from background.tmux_relay import (  # noqa: E402
-    ensure_live_tail, is_session_idle, pane_in_copy_mode, send_keys_when_idle,
-)
+from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 
 SESSION_NAME = "claude"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "supervisor-log.md"
@@ -1436,42 +1434,22 @@ def should_auto_clear() -> bool:
     return _git_tree_clean()
 
 
-def maybe_auto_clear() -> bool:
-    """If should_auto_clear(), inject /clear via the same locked, idle-
-    gated, verified relay every other daemon uses, log the event, and
-    return True (caller should skip this cycle's normal turn-grant --
-    the NEXT cycle's ordinary idle-check + find_work()/grant_turn() flow
-    naturally serves as "re-grants with the standard boot" once the pane
-    goes idle again post-clear, so no separate boot injection is needed
-    here). Returns False (no-op) if the condition isn't met."""
-    if not should_auto_clear():
-        return False
-    size = _latest_transcript_size_bytes()
-    ok = send_keys_when_idle(SESSION_NAME, "/clear", "/clear")
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    AUTO_CLEAR_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(AUTO_CLEAR_LOG_FILE, "a") as f:
-        f.write(
-            f"\n- [{ts}] Auto-clear {'sent' if ok else 'FAILED to send'} "
-            f"-- transcript size {size} bytes (threshold {AUTO_CLEAR_BYTES_THRESHOLD})"
-        )
-    log(f"Auto-clear {'sent' if ok else 'FAILED to send'} -- transcript size {size} bytes")
-    return ok
-
-
 def grant_turn(reason: str) -> bool:
-    """Attempt exactly one turn-grant via the locked, idle-gated, verified
-    relay (background.tmux_relay.send_keys_when_idle) -- the same primitive
-    every other daemon uses, so this can never race a fast-path hint firing
-    at the same moment (relay_lock makes the two mutually exclusive)."""
-    message = (
-        f"[SUPERVISOR: turn granted -- {reason}. Read the relevant state "
-        "from disk yourself (R7: this is a doorbell, not an instruction) "
-        "and proceed per CLAUDE.md's tiered model.]"
-    )
-    signed = sign_wake_message(message)
-    marker = signed.rsplit("|", 1)[-1]
-    return send_keys_when_idle(SESSION_NAME, signed, marker)
+    """PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the
+    supervisor NO LONGER types a turn-grant into the live 'claude' pane.
+    Keystroke injection is deleted (banned; five deaths). The pull-loop Stop
+    hook (.claude/hooks/pull_next_work.py) is the transport now -- it calls the
+    SAME find_work() draw at every turn boundary and feeds the result back as
+    the next input, never touching the pane.
+
+    The supervisor is retained as an INDEPENDENT ESCALATION watchdog over that
+    transport: it still polls, still draws (for the escalation signal), still
+    alarms on stuck/exhausted states -- it just no longer delivers work itself.
+    grant_turn is kept only so run_cycle's structure and the escalation tests
+    stay intact; it performs ZERO pane writes. Returns True (the draw is
+    logged; the pull-loop delivers it)."""
+    log(f"Work identified for the pull-loop to deliver at the next turn boundary -- {reason}")
+    return True
 
 
 # Mutable across main() loop iterations.
@@ -1489,25 +1467,13 @@ def run_cycle() -> None:
     resumed_from_pause = _was_paused
     _was_paused = False
 
-    # R4 (2026-07-09): a pane frozen in tmux copy-mode/scrollback ("Jump to
-    # bottom") reads as stale content to is_session_idle() below and
-    # swallows any later send as copy-mode navigation -- clear it before
-    # trusting the idle check at all. send_keys_when_idle() does this too
-    # (defence in depth), but doing it here as well means this cycle's own
-    # busy/idle log line reflects the real live pane, not frozen scrollback.
-    if pane_in_copy_mode(SESSION_NAME):
-        ensure_live_tail(SESSION_NAME)
-        log("Pane was in scroll/copy-mode -- cleared before idle check")
-
+    # PULL-LOOP MIGRATION (2026-07-15): the supervisor no longer types into the
+    # pane, so it no longer needs to clear copy-mode or auto-inject /clear
+    # before a send (those existed only to make an injection land cleanly).
+    # It still reads idle state read-only, purely so its escalation log line
+    # reflects whether the session is actively working.
     if not is_session_idle(SESSION_NAME):
         log("Session busy -- skipping this cycle")
-        return
-
-    if maybe_auto_clear():
-        # Skip this cycle's normal turn-grant -- the pane just received
-        # /clear and needs to settle; the NEXT cycle's ordinary idle-check +
-        # find_work()/grant_turn() flow naturally re-grants with the
-        # standard boot once the pane goes idle again post-clear.
         return
 
     reason, map_exhausted = find_work(resumed_from_pause)
@@ -1519,19 +1485,18 @@ def run_cycle() -> None:
 
     _check_stuck_escalation(reason)
 
-    if grant_turn(reason):
-        log(f"Turn granted (confirmed) -- {reason}")
-    else:
-        log(f"Turn grant not delivered (busy/unconfirmed) -- retrying next cycle -- {reason}")
+    # No pane write (pull-loop is the transport now). grant_turn only logs the
+    # draw + runs the escalation bookkeeping; the pull-loop delivers the work.
+    grant_turn(reason)
 
 
 def main() -> None:
-    log("Supervisor started -- sole authority for turn-granting")
+    log("Supervisor started -- escalation watchdog over the pull-loop transport")
     update_agent_status(
         "supervisor", status="idle",
         last_action="Supervisor started",
-        role="Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
-        produces="tmux turn-grants + stuck-state NTFY escalation",
+        role="Escalation watchdog over the pull-loop transport: polls every 2min, draws work for the stuck/exhausted escalation signal, alarms if the map stops making progress (turn delivery is the pull-loop Stop hook's job -- no pane injection)",
+        produces="stuck-state / map-exhausted NTFY escalation",
     )
     while True:
         try:
