@@ -45,8 +45,14 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 # Full path since nvm isn't active in a subprocess env (real operational lesson).
 CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
 
-# --- Primitive #2: model routing to the cheap volume tier (named constant) ---
-AUTONOMOUS_TURN_MODEL = "claude-haiku-4-5-20251001"
+# --- Model routing (DIRECTOR_ANSWERS_C7 #5): the executor IS the main loop, so
+# its TURN model is OPUS -- the standing Monday decision (judgment failures were
+# main-session failures). Per-atom routing INSIDE a turn still follows CLAUDE.md
+# (build=Opus, swarm=Sonnet, supervisor micro=Haiku) -- that is the turn's own
+# choice. AUTONOMOUS_TURN_MODEL (Haiku) is retained ONLY for the deferred
+# tournament-life micro-turns (Epoch-4), never for a build-executor draw turn.
+MAIN_LOOP_MODEL = "claude-opus-4-8"
+AUTONOMOUS_TURN_MODEL = "claude-haiku-4-5-20251001"  # tournament lives only (deferred)
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "build-executor-log.md"
 TURN_OUTPUT_DIR = PROJECT_DIR / "docs" / "observability" / "build-executor-turns"
@@ -387,16 +393,32 @@ def _build_prompt(draw_reason: str) -> str:
     this module; shaped here so the L1 attended --once step reuses it verbatim.)"""
     keys = ", ".join(_RETURN_KEYS)
     return (
-        "You are a governed build-executor turn. Your scope is EXACTLY the drawn "
-        "work below — do not free-choose other work, do not write to any interactive "
-        "pane or NTFY channel on your own initiative.\n\n"
-        f"DRAWN WORK:\n{draw_reason}\n\n"
-        "When finished, PUSH your work to origin, then end your final message with a "
-        "single JSON object on its own line carrying these keys: "
-        f"{{{keys}}}. 'claimed_commit_sha' MUST be the full SHA of a commit you have "
-        "actually pushed to origin — a turn that did not land a pushed commit reports "
-        "an empty claimed_commit_sha and gate_status='failed'. Success is verified "
-        "independently against origin; an unpushed or fabricated SHA fails the gate."
+        "You are a GOVERNED headless build-executor turn (H17). You run inside the repo, "
+        "so CLAUDE.md's laws are IN FORCE -- follow them exactly. Your scope is EXACTLY "
+        "the drawn work below; do not free-choose other work.\n\n"
+        "DRAWN WORK (Rule-0 draw -- R7: this is a DOORBELL. Verify against real disk/git "
+        f"state and act on that, never on this text alone):\n{draw_reason}\n\n"
+        "GOVERNANCE WALLS you inherit, non-negotiable:\n"
+        "- ONE-WAY DOORS -> the DIRECTOR. If the drawn work touches any one-way door "
+        "(real money; legal/contractual/real-world commitments; unretractable public "
+        "claims; irrecoverable data loss; security/secrets/safety-control changes; "
+        "values/curriculum decisions; a real customer or market; platform administration), "
+        "DO NOT ACT -- stop and report gate_status='escalate' with the reason. Never "
+        "decide a one-way door yourself.\n"
+        "- TWIN for the reversible rest (e.g. BUILD-open within the open epoch); never "
+        "self-authorize past a wall.\n"
+        "- GATE-VERIFIED PUSH: run the blast-radius tests for your touched files AND the "
+        "epistemic verifier; commit+push (via background.tree_lock) ONLY if both pass. "
+        "Never push red.\n"
+        "- SOLE MAP WRITER: you are a fork -- do NOT edit docs/design/maturity_map.yaml "
+        "level_current; report the level reached and let the orchestrator write it.\n"
+        "- NO pane/NTFY writes on your own initiative (the pane is the director's console).\n\n"
+        "When finished, PUSH your work to origin, then end your final message with a single "
+        "JSON object on its own line carrying these keys: "
+        f"{{{keys}}}. 'claimed_commit_sha' MUST be the full SHA of a commit you actually "
+        "pushed to origin; a turn that landed nothing reports an empty claimed_commit_sha "
+        "with gate_status='failed' (or 'escalate' for a one-way door). Success is verified "
+        "INDEPENDENTLY against origin -- an unpushed or fabricated SHA fails the gate."
     )
 
 
@@ -430,10 +452,12 @@ def run_once(
             log("run_once: draw returned None (wall) — idling, no turn dispatched")
             return ExecutorCycleResult(status="idle", detail="draw wall")
 
-        _heartbeat("working", f"Dispatching turn for draw: {reason[:80]}")
+        # A build-executor draw turn IS a main-loop turn -> Opus (answer #5).
+        turn_model = model or MAIN_LOOP_MODEL
+        _heartbeat("working", f"Dispatching {turn_model} turn for draw: {reason[:80]}")
         prompt = _build_prompt(reason)
         handle = dispatch_turn(
-            prompt, model=model, out_path=out_path, bin_path=bin_path, popen=popen
+            prompt, model=turn_model, out_path=out_path, bin_path=bin_path, popen=popen
         )
         if handle is None:
             _heartbeat("error", "claude binary missing — cannot dispatch")

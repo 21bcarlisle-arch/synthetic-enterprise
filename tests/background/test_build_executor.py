@@ -332,7 +332,10 @@ def test_module_has_no_daemon_entrypoint():
     assert not hasattr(build_executor, "main")
 
 
-def test_no_enable_flag_created_by_import(tmp_path):
-    """Importing / exercising the module must not create the enable-flag."""
-    flag = build_executor.PROJECT_DIR / "docs" / "observability" / ".build_executor_enabled"
-    assert not flag.exists()
+def test_module_never_references_the_console_only_flag():
+    """The console-only kill switch (DIRECTOR_ANSWERS_C7 #6) is director-reserved:
+    no agent code may create or modify it. This module reads no flag and creates
+    none -- assert structurally (its source never even names the flag path), which
+    holds regardless of whether the director has currently enabled it."""
+    src = (build_executor.PROJECT_DIR / "background" / "build_executor.py").read_text()
+    assert ".build_executor_enabled" not in src, "executor module must not touch the console-only flag"
