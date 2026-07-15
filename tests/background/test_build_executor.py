@@ -156,15 +156,21 @@ def test_reap_turn_captures_rc():
     class _Proc:
         returncode = 0
 
+        def poll(self):
+            return 0  # already exited
+
         def wait(self, timeout=None):
             return 0
 
     handle = build_executor.TurnHandle(
         proc=_Proc(), out_path=Path("/nonexistent"), prompt="p", model="m"
     )
+    # No landed evidence (out_path unreadable) + an exited child -> verdict via exit.
     raw = build_executor.reap_turn(handle)
     assert raw.rc == 0
     assert raw.infra_failure is False
+    assert raw.landed is False
+    assert raw.surfaced_via == "exit"
 
 
 def test_classify_infra_failure(tmp_path):
@@ -187,6 +193,110 @@ def test_parse_structured_return_picks_last_sha_object(tmp_path):
     )
     ret = build_executor._parse_structured_return(out)
     assert ret["claimed_commit_sha"] == "deadbeef"
+
+
+# ===========================================================================
+# THE LANDED-EVIDENCE GATE ON reap_turn (R15 mutation test): the verdict must
+# surface when work LANDS, never when the process DIES.
+# ===========================================================================
+def test_reap_surfaces_landed_before_a_hanging_child_exits(git_repo, tmp_path, monkeypatch):
+    """MUTATION TEST (named defect: hung-but-successful child blocks the verdict).
+
+    A child that LANDS its work — prints a structured return whose claimed_commit_sha
+    is genuinely on origin — and then HANGS FOREVER must NOT block the cycle. reap_turn
+    surfaces landed=True the instant the evidence is on origin and reaps the surplus
+    child; it never waits for the process to exit.
+
+    Mutation intent: the prior design blocked on `proc.wait(timeout)` FIRST, so this
+    hanging child would wedge the reap for the full 30-min bound and surface via
+    'timeout'. The assertions surfaced_via=='landed' and timed_out is False go RED
+    under that (reverted) design — that is the control proving the gate fires.
+    """
+    work, pushed_sha, _ = git_repo
+    monkeypatch.chdir(work)
+    out = tmp_path / "turn.out"
+    payload = {
+        "atom_id": "H10", "action": "build",
+        "claimed_commit_sha": pushed_sha, "gate_status": "green",
+    }
+    # Prints the landed return, flushes, then sleeps far past the reap timeout below.
+    stub = tmp_path / "hang_stub.py"
+    stub.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys, time\n"
+        f"sys.stdout.write({json.dumps(json.dumps(payload))} + '\\n'); sys.stdout.flush()\n"
+        "time.sleep(3600)\n"
+    )
+    stub.chmod(0o755)
+
+    handle = build_executor.dispatch_turn("SCOPE", out_path=out, bin_path=stub, model="m")
+    assert handle is not None
+    # timeout=30 is only a safety net; a correct gate returns in well under a second.
+    raw = build_executor.reap_turn(handle, fetch=False, poll_interval=0.02, timeout=30)
+
+    assert raw.landed is True
+    assert raw.surfaced_via == "landed"
+    assert raw.claimed_sha == pushed_sha
+    assert raw.timed_out is False
+    # The surplus (still-hanging) child was reaped, not left running.
+    assert handle.proc.poll() is not None
+
+
+def test_reap_surfaces_failed_when_child_dies_without_landing(tmp_path):
+    """Companion: a child that EXITS without landing surfaces a FAILED verdict just as
+    promptly (via 'exit'), never a false success. Deterministic fakes, no wall clock."""
+    class _DeadProc:
+        returncode = 1
+
+        def poll(self):
+            return 1  # exited non-zero, nothing landed
+
+        def wait(self, timeout=None):
+            return 1
+
+    out = tmp_path / "turn.out"
+    out.write_text("some non-JSON turn output, no structured return\n")
+    handle = build_executor.TurnHandle(proc=_DeadProc(), out_path=out, prompt="p", model="m")
+    raw = build_executor.reap_turn(handle, fetch=False, sleep=lambda _s: None)
+    assert raw.landed is False
+    assert raw.surfaced_via == "exit"
+    assert raw.claimed_sha is None
+
+
+def test_reap_does_not_reach_timeout_when_work_lands(tmp_path):
+    """The deadline is never consulted to a firing once landed evidence is in hand:
+    an injected monotonic that would blow a tiny timeout on its 2nd read still yields
+    a 'landed' verdict, proving landing short-circuits the timeout path."""
+    class _HangingProc:
+        returncode = None
+
+        def poll(self):
+            return None  # never exits on its own
+
+        def kill(self):
+            self.returncode = -9
+
+        def wait(self, timeout=None):
+            return self.returncode
+
+    landed_ev = build_executor.LandedEvidence(
+        landed=True, claimed_sha="abc1234",
+        structured_return={"claimed_commit_sha": "abc1234"},
+    )
+    handle = build_executor.TurnHandle(
+        proc=_HangingProc(), out_path=tmp_path / "x.out", prompt="p", model="m"
+    )
+    raw = build_executor.reap_turn(
+        handle,
+        probe=lambda: landed_ev,
+        timeout=0,               # a deadline already in the past...
+        monotonic=lambda: 100.0, # ...but landing on the first probe never checks it
+        sleep=lambda _s: None,
+    )
+    assert raw.landed is True
+    assert raw.surfaced_via == "landed"
+    assert raw.timed_out is False
+    assert handle.proc.returncode == -9  # surplus hanging child was killed
 
 
 # ===========================================================================
@@ -252,6 +362,7 @@ def test_run_once_success_on_pushed_sha(git_repo, tmp_path, monkeypatch):
         bin_path=stub,
         fetch=False,  # local fixture already has origin/main; no network
         out_path=tmp_path / "turn.out",
+        poll_interval=0.01,
     )
     assert result.status == "success", result.detail
     assert result.landed is True
@@ -270,6 +381,7 @@ def test_run_once_failed_on_unpushed_sha(git_repo, tmp_path, monkeypatch):
         bin_path=stub,
         fetch=False,
         out_path=tmp_path / "turn.out",
+        poll_interval=0.01,
     )
     assert result.status == "failed"
     assert result.landed is False
@@ -293,6 +405,7 @@ def test_run_once_failed_when_no_sha_returned(git_repo, tmp_path, monkeypatch):
         bin_path=stub,
         fetch=False,
         out_path=tmp_path / "turn.out",
+        poll_interval=0.01,
     )
     assert result.status == "failed"
     assert result.claimed_sha is None

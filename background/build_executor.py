@@ -34,6 +34,7 @@ import json
 import os
 import re
 import subprocess
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -67,6 +68,13 @@ _AGENT_PRODUCES = "write-landed build turns (origin-verified commit SHAs)"
 # Reap wait bound (seconds). A real drawn turn can run for minutes; this is a
 # generous cap so a hung child cannot wedge a manual --once cycle forever.
 REAP_TIMEOUT_SECONDS = 30 * 60
+
+# Landed-evidence poll cadence (seconds). The verdict is gated on LANDED evidence,
+# not process exit, so reap_turn polls the turn's output for its schema-forced
+# return; this bounds how often it looks. Cheap when no return has appeared yet
+# (no claimed_sha -> no git fetch), so a tight cadence costs nothing while the
+# child is still thinking.
+REAP_POLL_INTERVAL_SECONDS = 5
 
 # A candidate git SHA: 7..40 hex chars, whole token (mirrors the hook's contract).
 _SHA_RE = re.compile(r"\A[0-9a-f]{7,40}\Z", re.IGNORECASE)
@@ -144,17 +152,39 @@ class TurnHandle:
 
 @dataclass
 class RawTurnResult:
-    """Reaped turn: exit-code capture (#6) + structured infra classification (#7)."""
+    """Reaped turn: exit-code capture (#6) + structured infra classification (#7).
+
+    The VERDICT fields (landed / claimed_sha / structured_return / surfaced_via) are
+    gated on LANDED EVIDENCE, surfaced the moment work lands on origin, NEVER on the
+    child's exit -- so a child that lands its work and then hangs cannot block a true
+    result. `surfaced_via` records which termination signal settled the verdict:
+    'landed' (work on origin, child may still have been running), 'exit' (process
+    exited), or 'timeout' (killed at the reap bound)."""
 
     rc: int
     out_path: Path
     infra_failure: bool = False
     timed_out: bool = False
+    landed: bool = False
+    claimed_sha: str | None = None
+    structured_return: dict | None = None
+    surfaced_via: str = ""
+
+
+@dataclass
+class LandedEvidence:
+    """What the gate reads off the turn's captured output, INDEPENDENT of process
+    exit: the schema-forced structured return and whether its claimed_commit_sha is
+    genuinely on origin. This -- not `rc` -- is the verdict."""
+
+    landed: bool = False
+    claimed_sha: str | None = None
+    structured_return: dict | None = None
 
 
 @dataclass
 class ExecutorCycleResult:
-    """Outcome of one run_once cycle. status in {success, failed, idle, error, skipped}."""
+    """Outcome of one run_once cycle. status in {success, failed, escalated, idle, error, skipped}."""
 
     status: str
     atom_reason: str | None = None
@@ -266,34 +296,130 @@ def _classify_infra_failure(rc: int, out_path: Path) -> bool:
     return any(marker in tail for marker in _INFRA_MARKERS)
 
 
-def reap_turn(handle: TurnHandle, *, timeout: int = REAP_TIMEOUT_SECONDS) -> RawTurnResult:
-    """Wait for the dispatched turn, capture its return code, classify infra failure.
+def _landed_evidence(out_path: Path, *, fetch: bool = True) -> LandedEvidence:
+    """Read the turn's LANDED evidence from its captured output -- the ONLY thing the
+    verdict is gated on. Parses the schema-forced return; if it carries a
+    claimed_commit_sha, fetches origin (so the tracking ref reflects a just-pushed
+    turn) then evaluates write_landed.
 
-    A single gated cycle blocks on the one child (single-flight, primitive #5 at L1);
-    the N-wide in-flight set is a later governor concern, out of scope here.
+    Cheap while the turn is still thinking: no claimed_sha in the output yet -> no
+    fetch, no git at all -- so this is safe to call on a tight poll from reap_turn.
+    """
+    ret = _parse_structured_return(out_path)
+    claimed = (ret or {}).get("claimed_commit_sha") or None
+    if not claimed:
+        return LandedEvidence(landed=False, claimed_sha=None, structured_return=ret)
+    if fetch:
+        _git_fetch()
+    return LandedEvidence(landed=write_landed(claimed), claimed_sha=claimed, structured_return=ret)
+
+
+def _reap_surplus_child(proc: Any) -> int:
+    """The turn's work has already LANDED, so the child is now surplus. Reap it
+    WITHOUT blocking on a hang: already-exited -> take its rc; still-running (the
+    hung-but-landed case the whole design exists for) -> kill it and move on. The
+    verdict is already true; a slow/hung teardown must never delay it."""
+    try:
+        rc = proc.poll()
+    except Exception:  # pragma: no cover - defensive
+        rc = None
+    if rc is not None:
+        return rc
+    try:
+        proc.kill()
+    except Exception:  # pragma: no cover - defensive
+        pass
+    try:
+        return proc.wait(timeout=30)
+    except Exception:  # pragma: no cover - defensive
+        return 0  # landed already; the teardown rc is immaterial to the verdict
+
+
+def reap_turn(
+    handle: TurnHandle,
+    *,
+    timeout: int = REAP_TIMEOUT_SECONDS,
+    poll_interval: float = REAP_POLL_INTERVAL_SECONDS,
+    fetch: bool = True,
+    probe: Callable[[], LandedEvidence] | None = None,
+    sleep: Callable[[float], None] = time.sleep,
+    monotonic: Callable[[], float] = time.monotonic,
+) -> RawTurnResult:
+    """Surface the turn's VERDICT on LANDED EVIDENCE, not on process exit.
+
+    THE CONTRACT (mutation-tested, test_reap_surfaces_verdict_on_landing_not_exit):
+    the moment the turn's work is landed on origin -- its schema-forced return names
+    a claimed_commit_sha genuinely reachable on the origin ref -- the verdict surfaces
+    IMMEDIATELY. A child that lands its work and then HANGS can never block a true
+    result; a child that DIES without landing surfaces a FAILED verdict just as
+    promptly. Process exit is one termination signal among {landed | exit | timeout},
+    never THE gate. This corrects the prior design, which blocked on proc.wait(timeout)
+    first and so let a hung-but-successful child wedge the cycle for the full 30 min.
+
+    `probe`/`sleep`/`monotonic` are injectable so the mutation test drives a
+    hung-but-landed child deterministically, with no wall-clock waits.
     """
     proc = handle.proc
+    probe = probe or (lambda: _landed_evidence(handle.out_path, fetch=fetch))
+
+    deadline = monotonic() + timeout
+    ev = LandedEvidence()
+    rc: int | None = None
     timed_out = False
-    try:
-        rc = proc.wait(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        try:
-            proc.kill()
-        except Exception:  # pragma: no cover - defensive
-            pass
-        try:
-            rc = proc.wait(timeout=30)
-        except Exception:  # pragma: no cover - defensive
-            rc = -1
-        timed_out = True
-        log(f"turn timed out after {timeout}s — killed (out={handle.out_path.name})")
+    surfaced_via = ""
+
+    while True:
+        ev = probe()
+        if ev.landed:
+            # Work is on origin -> the verdict is TRUE now, regardless of whether the
+            # child has exited. Reap the surplus child without blocking on a hang.
+            surfaced_via = "landed"
+            rc = _reap_surplus_child(proc)
+            break
+
+        if proc.poll() is not None:
+            # Exited without landed evidence in hand. Take one final read (the return
+            # may have been flushed at exit), then settle the verdict.
+            surfaced_via = "exit"
+            rc = proc.returncode if proc.returncode is not None else -1
+            ev = probe()
+            break
+
+        if monotonic() >= deadline:
+            surfaced_via = "timeout"
+            timed_out = True
+            try:
+                proc.kill()
+            except Exception:  # pragma: no cover - defensive
+                pass
+            try:
+                rc = proc.wait(timeout=30)
+            except Exception:  # pragma: no cover - defensive
+                rc = -1
+            log(f"turn timed out after {timeout}s — killed (out={handle.out_path.name})")
+            break
+
+        sleep(poll_interval)
 
     if rc is None:  # pragma: no cover - defensive
         rc = -1
-
-    infra = _classify_infra_failure(rc, handle.out_path)
-    log(f"reaped turn (rc={rc}, infra_failure={infra}, timed_out={timed_out})")
-    return RawTurnResult(rc=rc, out_path=handle.out_path, infra_failure=infra, timed_out=timed_out)
+    # Infra classification only matters on the FAIL path -- a landed turn is a success
+    # however its child exited or was reaped.
+    infra = False if ev.landed else _classify_infra_failure(rc, handle.out_path)
+    log(
+        f"reaped turn (surfaced_via={surfaced_via}, landed={ev.landed}, rc={rc}, "
+        f"infra_failure={infra}, timed_out={timed_out})"
+    )
+    return RawTurnResult(
+        rc=rc,
+        out_path=handle.out_path,
+        infra_failure=infra,
+        timed_out=timed_out,
+        landed=ev.landed,
+        claimed_sha=ev.claimed_sha,
+        structured_return=ev.structured_return,
+        surfaced_via=surfaced_via,
+    )
 
 
 # =============================================================================
@@ -430,6 +556,7 @@ def run_once(
     fetch: bool = True,
     out_path: Path | None = None,
     model: str | None = None,
+    poll_interval: float = REAP_POLL_INTERVAL_SECONDS,
 ) -> ExecutorCycleResult:
     """ONE gated cycle: draw -> dispatch ONE headless turn -> gate the return -> record.
 
@@ -463,15 +590,13 @@ def run_once(
             _heartbeat("error", "claude binary missing — cannot dispatch")
             return ExecutorCycleResult(status="error", atom_reason=reason, detail="binary missing")
 
-        raw = reap_turn(handle)
-        ret = _parse_structured_return(handle.out_path)
-        claimed_sha = (ret or {}).get("claimed_commit_sha") or None
-
-        # GATE: write-landed, not submit-consumed. Fetch first so the tracking ref
-        # reflects the turn's just-pushed work, THEN evaluate the predicate.
-        if fetch:
-            _git_fetch()
-        landed = write_landed(claimed_sha)
+        # Reap on LANDED EVIDENCE (not process exit): the verdict, claimed SHA and
+        # structured return all come back off the RawTurnResult. reap_turn has already
+        # fetched + evaluated write_landed, surfacing the moment work landed on origin.
+        raw = reap_turn(handle, fetch=fetch, poll_interval=poll_interval)
+        ret = raw.structured_return
+        claimed_sha = raw.claimed_sha
+        landed = raw.landed
 
         if landed:
             _heartbeat("idle", f"Turn LANDED (sha={claimed_sha[:12]}) for: {reason[:60]}")
@@ -485,6 +610,28 @@ def run_once(
                 infra_failure=raw.infra_failure,
                 structured_return=ret,
                 detail="write-landed on origin",
+            )
+
+        # WALL — the turn refused a one-way door (gate_status='escalate'). This is NOT
+        # a failure: it is a governance boundary only the director may cross. Surface a
+        # distinct 'escalated' status so the loop STOPS and alerts, never silently
+        # retries a wall (C.4: a one-way door is never answered by the executor).
+        if (ret or {}).get("gate_status") == "escalate":
+            _heartbeat(
+                "blocked",
+                f"Turn ESCALATED a one-way door for: {reason[:60]}",
+                anomaly="one-way-door escalation — director decision required",
+            )
+            log(f"run_once ESCALATED: turn hit a wall (gate_status=escalate) on: {reason}")
+            return ExecutorCycleResult(
+                status="escalated",
+                atom_reason=reason,
+                claimed_sha=None,
+                landed=False,
+                rc=raw.rc,
+                infra_failure=raw.infra_failure,
+                structured_return=ret,
+                detail="one-way-door escalation — director decision required",
             )
 
         # FAIL PATH — never rc-trusted. Turn recorded FAILED; atom NOT counted advanced.
