@@ -12,7 +12,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
 .nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
@@ -56,6 +56,22 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .tr-outcome-off_target, .tr-outcome-renewed_off_target { color: var(--red); font-weight: 600; }
 .tr-outcome-churned { color: var(--amber); font-weight: 600; }
 .tr-outcome-pending, .tr-outcome-inconclusive, .tr-outcome-ungraded { color: var(--muted); }
+/* Long file paths shown inline in <code> must not force horizontal scroll on a
+   phone. break-word only wraps when a token would otherwise overflow, so desktop
+   is unaffected. */
+code { overflow-wrap: break-word; }
+/* mobile pass (SITE1_expert_doors): phone-legible method door, no horizontal body
+   scroll. The role/tier/rule/infra blocks are auto-fill grids that already reflow;
+   this tightens chrome and lets the loop/track-record rows stack. Desktop
+   (>640px) layout is unchanged. */
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px; }
+  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
+  .sec { margin-top: 28px; }
+  .card { padding: 16px; }
+  .loop-row, .tr-row { flex-wrap: wrap; gap: 4px 10px; }
+  .loop-fn { overflow-wrap: anywhere; }
+}
 </style>
 </head>
 <body>

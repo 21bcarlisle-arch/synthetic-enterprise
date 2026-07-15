@@ -76,6 +76,20 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .tier-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
 .tier-row:last-child { border-bottom: none; }
 .tier-row .t-conf { font-weight: 600; }
+/* mobile pass (SITE1_expert_doors): phone-legible governance door, no horizontal
+   body scroll. KPI grids already auto-fit; this tightens chrome and lets the
+   queue rows / verbatim Q&A wrap long filenames and paths. Desktop (>640px)
+   layout is unchanged. */
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px; }
+  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
+  .hero-h { font-size: 22px; }
+  .sec { margin-top: 32px; }
+  .card { padding: 16px; }
+  .qq-item { flex-wrap: wrap; gap: 4px 12px; }
+  .qq-name { overflow-wrap: anywhere; }
+  .q-a { overflow-wrap: break-word; }
+}
 </style>
 </head>
 <body>
