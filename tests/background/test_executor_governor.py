@@ -11,6 +11,10 @@ import pytest
 
 from background import agent_status, build_executor, executor_governor
 
+# Capture the REAL reconcile default before the autouse fixture patches it, so the
+# fail-closed-on-error test can exercise the genuine fallback logic.
+_ORIG_DEFAULT_RECONCILE = executor_governor._default_reconcile_check
+
 
 # ---------------------------------------------------------------------------
 # Isolation: side-effect files -> tmp; NTFY/action-needed -> captured (no network)
@@ -22,6 +26,9 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(agent_status, "SITE_STATUS_FILE", tmp_path / "site_agent_status.json")
     # Redirect THE kill-switch flag to tmp so tests never touch the console-only real one.
     monkeypatch.setattr(executor_governor._pull_hook, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
+    # Default the map-reconciliation check to "reconciled" so loop tests are deterministic
+    # and never coupled to the real docs/design/atom_status/ state (its own tests cover it).
+    monkeypatch.setattr(executor_governor, "_default_reconcile_check", lambda: [])
 
 
 def _enable(tmp_path):
@@ -137,6 +144,48 @@ def test_run_loop_stops_and_alerts_on_wall(tmp_path):
     assert summary.stop_reason == "wall_escalated"
     assert summary.cycles == 1
     assert alerts == ["wall_escalated"]
+
+
+# ===========================================================================
+# MAP RECONCILIATION — an unfolded level report STOPS the loop (fail-closed, F2)
+# ===========================================================================
+def test_run_loop_stops_when_map_unreconciled(tmp_path):
+    """A non-empty reconcile check (an atom's level report never folded into the map)
+    STOPS the loop BEFORE dispatch and alerts -- the draw reads level_current, so the
+    loop must not run off a possibly-mis-ranked map. Mutation intent: without the
+    reconcile gate, dispatch would proceed -- the 0-cycles + alert assert prove it gates."""
+    _enable(tmp_path)
+    dispatched = {"n": 0}
+    alerts = []
+
+    def _never():
+        dispatched["n"] += 1
+        return _FakeResult("success")
+
+    summary = executor_governor.run_loop(
+        run_once_fn=_never,
+        max_cycles=5,
+        reconcile_check=lambda: ["ARCH1_internal_seams"],  # an unfolded level report
+        alert=lambda result, kind="": alerts.append(kind),
+        sleep=lambda _s: None,
+    )
+    assert summary.stop_reason == "map_unreconciled"
+    assert summary.cycles == 0
+    assert dispatched["n"] == 0
+    assert alerts == ["map_unreconciled"]
+
+
+def test_run_loop_default_reconcile_is_fail_closed_on_error(monkeypatch):
+    """If the reconcile primitive itself raises, the default resolves to a divergence
+    sentinel (never a silent pass) -- an unreadable reconciliation signal is a FAILED
+    check (R15 fail-silent killer)."""
+    import tools.merge_atom_status as mas
+
+    def _boom(*a, **k):
+        raise RuntimeError("inbox dir unreadable")
+
+    monkeypatch.setattr(mas, "unfolded_inbox_ids", _boom)
+    assert _ORIG_DEFAULT_RECONCILE() == ["<reconcile-check-error>"]
 
 
 # ===========================================================================

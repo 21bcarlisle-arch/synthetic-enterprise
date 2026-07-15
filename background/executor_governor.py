@@ -154,6 +154,22 @@ class LoopSummary:
     cycles: int
 
 
+@dataclass
+class _UnreconciledResult:
+    """A shim so _alert_wall can render a map-reconciliation stop uniformly with the other
+    self-stops (it reads .atom_reason / .detail)."""
+
+    unfolded_ids: list[str]
+
+    @property
+    def atom_reason(self) -> str:
+        return f"unfolded level report(s) for: {', '.join(self.unfolded_ids)}"
+
+    @property
+    def detail(self) -> str:
+        return "map unreconciled — an atom's level never folded into maturity_map.yaml"
+
+
 def _turn_tokens(result: Any) -> int | None:
     """Per-turn token cost for the budget, or None if unmetered. Unbuilt today (plain
     `claude -p` emits no usage) — wiring `--output-format json` + parsing usage is the
@@ -171,6 +187,14 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
             "Review docs/observability/build-executor-log.md and the escalated item; the "
             "director decides the one-way door, then re-enables via the console flag if "
             "appropriate. The loop will NOT retry a wall on its own."
+        )
+    elif kind == "map_unreconciled":
+        what = "Headless executor STOPPED: map UNRECONCILED (a level report never folded)."
+        how = (
+            "An atom_status inbox is unfolded -- a fork's level_current never reached "
+            "maturity_map.yaml (self-report vs external truth, MAP_TRUTH_RECONCILIATION.md). "
+            "Run `python3 -m tools.merge_atom_status`, commit the map, then re-enable. Do "
+            "NOT re-enable with the map unreconciled -- the draw would rank off a stale level."
         )
     else:
         what = "Headless executor STOPPED: repeated turn failures (R3 two-strike)."
@@ -190,6 +214,20 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         build_executor.log(f"_alert_wall failed ({kind}): {exc}")
 
 
+def _default_reconcile_check() -> list[str]:
+    """Fail-closed map reconciliation (MAP_TRUTH_RECONCILIATION.md F2): atom ids whose
+    level report never reached the canonical map (an unfolded inbox at rest). Reuses the
+    control's ONE primitive. Any error resolves to a sentinel divergence so the loop
+    STOPS -- an unreadable reconciliation signal is a failed check, never a silent pass."""
+    try:
+        from tools.merge_atom_status import unfolded_inbox_ids
+
+        return unfolded_inbox_ids()
+    except Exception as exc:  # unreadable signal -> treat as divergence (fail-closed)
+        build_executor.log(f"reconcile check errored -> treating as unreconciled: {exc}")
+        return ["<reconcile-check-error>"]
+
+
 def run_loop(
     *,
     budget: TurnBudget | None = None,
@@ -197,6 +235,7 @@ def run_loop(
     run_once_fn: Callable[[], Any] | None = None,
     kill_switch: Callable[[], bool] | None = None,
     alert: Callable[..., None] | None = None,
+    reconcile_check: Callable[[], list[str]] | None = None,
     sleep: Callable[[float], None] = time.sleep,
     idle_backoff_seconds: float = IDLE_BACKOFF_SECONDS,
     max_consecutive_failures: int = MAX_CONSECUTIVE_FAILURES,
@@ -206,6 +245,10 @@ def run_loop(
 
     STOPS (and heartbeats the reason) on the FIRST of:
       * kill switch OFF        — the director removed the durable console flag (the kill);
+      * map UNRECONCILED       — an atom's level report never reached the map (an unfolded
+                                 inbox at rest); fail-closed, alert + stop (the draw reads
+                                 level_current, so a mis-folded level would mis-rank work —
+                                 MAP_TRUTH_RECONCILIATION.md F2);
       * budget exhausted       — TurnBudget window is full;
       * WALL (escalated)       — a turn refused a one-way door; alert + stop (never retry);
       * repeated failure       — R3 two-strike: an atom failed to land twice running;
@@ -224,6 +267,7 @@ def run_loop(
     run_once_fn = run_once_fn or build_executor.run_once
     kill_switch = kill_switch or kill_switch_enabled
     alert = alert or _alert_wall
+    reconcile_check = reconcile_check or _default_reconcile_check
 
     cycles = 0
     consecutive_failures = 0
@@ -236,6 +280,14 @@ def run_loop(
             break
         if not kill_switch():
             stop_reason = "kill_switch_off"
+            break
+        # Fail-closed map reconciliation: an unfolded level report (self-report vs external
+        # truth) STOPS the loop before it draws off a possibly-mis-ranked map (F2).
+        unreconciled = reconcile_check()
+        if unreconciled:
+            stop_reason = "map_unreconciled"
+            build_executor.log(f"run_loop: map UNRECONCILED (unfolded: {unreconciled}) — stopping")
+            alert(_UnreconciledResult(unreconciled), kind="map_unreconciled")
             break
         if budget is not None and not budget.can_dispatch():
             stop_reason = "budget_exhausted"

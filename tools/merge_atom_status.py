@@ -73,6 +73,20 @@ def load_inboxes(inbox_dir: Path = INBOX_DIR) -> list[dict]:
     return inboxes
 
 
+def unfolded_inbox_ids(inbox_dir: Path = INBOX_DIR) -> list[str]:
+    """Atom ids with a write-inbox still present AT REST — a RECONCILIATION FAILURE.
+
+    `merge()` clears an inbox only AFTER folding its level/evidence into the canonical
+    map, so anything left here is a fork's level report that never reached the map: the
+    self-report-vs-external-truth divergence signal (docs/design/MAP_TRUTH_RECONCILIATION.md
+    F2). Reuses `load_inboxes` so there is ONE definition of "an inbox," never two that
+    drift. A NON-EMPTY return is fail-closed: the unwatched executor loop treats it as a
+    STOP (an unreconciled map is a failed map — the draw reads level_current, so a
+    mis-folded level would silently mis-rank work). A malformed inbox raises via
+    load_inboxes — an unreadable reconciliation signal is itself a failure, never ignored."""
+    return [str(ib.get("id") or "<no-id>") for ib in load_inboxes(inbox_dir)]
+
+
 # --------------------------------------------------------------------------
 # Pre-flight conflict detection
 # --------------------------------------------------------------------------
