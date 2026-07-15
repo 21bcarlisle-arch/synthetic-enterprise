@@ -38,6 +38,20 @@ SCAN_ROOTS = [REPO_ROOT / "background", REPO_ROOT / ".claude"]
 # The guard file itself is excluded (it names the token in prose/fixtures).
 _SELF = Path(__file__).resolve()
 
+
+def _is_ephemeral_worktree(path: Path) -> bool:
+    """True for a path inside .claude/worktrees/ -- an EPHEMERAL, gitignored git
+    worktree (a disposable per-fork copy of the whole repo), NOT the live tree this
+    control governs. Those copies hold pre-migration snapshots (e.g. the DELETED
+    background/tmux_relay.py, and old *_relay tests that legitimately named send-keys),
+    so scanning them re-flags code that no longer exists in the live tree and jams the
+    publish pipeline on a false positive. A genuine re-introduction only matters once
+    MERGED into the live tree, where the scan below still catches it -- so excluding the
+    copies loses zero real coverage (R10 class-fix, 2026-07-15: fix the whole
+    ephemeral-copy class, not the instances)."""
+    parts = path.parts
+    return ".claude" in parts and "worktrees" in parts
+
 _SHELL_TMUX = re.compile(r"tmux.*send-keys", re.IGNORECASE)
 _INJECTOR = re.compile(r"\b[xy]dotool\b.*\b(type|key)\b", re.IGNORECASE)
 _QUOTED_SENDKEYS = re.compile(r"""['"]send-keys['"]""")
@@ -99,6 +113,8 @@ def scan_tree_for_pane_writes(roots=SCAN_ROOTS):
         for py in sorted(root.rglob("*.py")):
             if py.resolve() == _SELF:
                 continue
+            if _is_ephemeral_worktree(py):
+                continue  # disposable fork copy, not the live tree (see _is_ephemeral_worktree)
             hits = scan_file_for_pane_writes(py)
             if hits:
                 try:
@@ -184,6 +200,33 @@ def test_guard_does_NOT_fire_on_prose_or_readonly_calls(tmp_path):
     (tmp_path / "prose.py").write_text(_PROSE_ONLY, encoding="utf-8")
     (tmp_path / "readonly.py").write_text(_CLEAN, encoding="utf-8")
     assert scan_tree_for_pane_writes([tmp_path]) == {}
+
+
+def test_guard_excludes_ephemeral_worktrees_but_still_catches_live_code(tmp_path):
+    """R10 class-fix (2026-07-15): a send-keys file inside .claude/worktrees/ (a
+    disposable per-fork repo copy, gitignored) is IGNORED, while the SAME injection in
+    live .claude/ code is still caught. Proves the exclusion is scoped to ephemeral
+    copies only -- it does not blind the guard to real re-introductions.
+
+    Mutation intent: without _is_ephemeral_worktree, the worktree copy would be flagged
+    (the exact false positive that jammed the pipeline); with it, only the live file is.
+    """
+    claude = tmp_path / ".claude"
+    # A pre-migration snapshot in an ephemeral fork worktree -> must be IGNORED.
+    wt = claude / "worktrees" / "agent-deadbeef" / "background"
+    wt.mkdir(parents=True)
+    (wt / "old_relay.py").write_text(_ARGV_INJECTION, encoding="utf-8")
+    # The SAME injection in live .claude/ code -> must be CAUGHT.
+    live = claude / "hooks"
+    live.mkdir(parents=True)
+    (live / "rogue_hook.py").write_text(_ARGV_INJECTION, encoding="utf-8")
+
+    offenders = scan_tree_for_pane_writes([claude])
+    flagged = set(offenders)
+    assert any("rogue_hook.py" in f for f in flagged), "live-code injection must still be caught"
+    assert not any("worktrees" in f for f in flagged), (
+        f"ephemeral worktree copy must be excluded, got: {flagged}"
+    )
 
 
 def test_guard_does_not_fail_open_on_unparseable_file(tmp_path):
