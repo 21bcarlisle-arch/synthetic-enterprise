@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-15T18:05:44Z
+Last updated: 2026-07-15T18:20:31Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-15T18:00:12Z
+Last updated: 2026-07-15T18:15:01Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (488s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -174,12 +174,12 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] If "physics" has never once changed an enterprise-value or survival number across any run, what observable output would you expect to differ if that code were deleted entirely — and if the answer is "none," what distinguishes it from a comment?
 - (T3_inherence) [unanswered >24h] If running the model with two different "depth" values would change the enterprise-value or survival outputs, can anyone point to the specific line where "depth" (or "physics") actually feeds into those calculations — or is the honest answer that no such connection exists, which is why the trivial test was never bothered with?
 - (T3_inherence) [unanswered >24h] For a UK energy supplier whose only two objectives are surviving and maximising value, what specific decision would come out differently if the weather-physics hierarchy said "high wind tomorrow" versus "low wind" — and if you can't name that decision and show the money or survival-risk it moves, why is this model in the system at all rather than a cheaper off-the-shelf forecast or none?
-- (T3_inherence) When the "GB weather-physics hierarchy" is swapped for a naive forecast, does any downstream number the supplier actually acts on — a hedge volume, a procurement quantity, a dispatch setpoint — change by a non-zero amount, and if you cannot point to that specific number and its delta, what evidence distinguishes this hierarchy from decorative scaffolding that merely feeds itself?
-- (T3_inherence) What concrete decision this energy supplier faces in the current epoch would change based on the output of that weather-physics hierarchy and twin — and if none does, why is any effort being spent building it now rather than deferring registration until such a decision exists?
-- (T3_inherence) If the physics-based forecast diverges from the naive one, can you name a single trade, hedge, or dispatch order in the last 24 hours whose volume or price was demonstrably different because of that divergence — and if you cannot, what is the forecast being computed *for*?
-- (T3_inherence) What actual, measurable difference does the four-level weather-physics hierarchy produce in any decision the supplier makes before Epoch 3—and if the honest answer is "none," on what basis is keeping that registration justified over any other unused component you have not flagged?
-- (T3_inherence) When you trace the physics forecast forward, does it feed any committed decision variable that the naive forecast doesn't already feed identically — and if the only consumer of the more sophisticated number is a log, a dashboard, or another model that itself has no committed output, what evidence distinguishes "affecting enterprise value" from "being computed and discarded"?
-- (T3_inherence) If keeping the registration parked truly changes zero present actions, what is the cost and risk of *re-creating* it when Epoch 3 arrives — and does anyone actually know whether that cost is lower than the near-zero cost of leaving it parked, or is "dead weight" being asserted without pricing the deletion?
+- (T3_inherence) [unanswered >24h] When the "GB weather-physics hierarchy" is swapped for a naive forecast, does any downstream number the supplier actually acts on — a hedge volume, a procurement quantity, a dispatch setpoint — change by a non-zero amount, and if you cannot point to that specific number and its delta, what evidence distinguishes this hierarchy from decorative scaffolding that merely feeds itself?
+- (T3_inherence) [unanswered >24h] What concrete decision this energy supplier faces in the current epoch would change based on the output of that weather-physics hierarchy and twin — and if none does, why is any effort being spent building it now rather than deferring registration until such a decision exists?
+- (T3_inherence) [unanswered >24h] If the physics-based forecast diverges from the naive one, can you name a single trade, hedge, or dispatch order in the last 24 hours whose volume or price was demonstrably different because of that divergence — and if you cannot, what is the forecast being computed *for*?
+- (T3_inherence) [unanswered >24h] What actual, measurable difference does the four-level weather-physics hierarchy produce in any decision the supplier makes before Epoch 3—and if the honest answer is "none," on what basis is keeping that registration justified over any other unused component you have not flagged?
+- (T3_inherence) [unanswered >24h] When you trace the physics forecast forward, does it feed any committed decision variable that the naive forecast doesn't already feed identically — and if the only consumer of the more sophisticated number is a log, a dashboard, or another model that itself has no committed output, what evidence distinguishes "affecting enterprise value" from "being computed and discarded"?
+- (T3_inherence) [unanswered >24h] If keeping the registration parked truly changes zero present actions, what is the cost and risk of *re-creating* it when Epoch 3 arrives — and does anyone actually know whether that cost is lower than the near-zero cost of leaving it parked, or is "dead weight" being asserted without pricing the deletion?
 - (T3_inherence) Since this challenge has itself gone unanswered for over 24 hours, what is the actual reason no one has produced even a single decision cycle's order quantity or price computed both ways — is it that the two forecasts are known to always coincide, that the comparison has never been logged, or that no one can currently trace whether the physics forecast reaches any order-or-price code path at all?
 - (T3_inherence) Can anyone point to a specific decision rule or line where the physics forecast's output is actually read and changes an order quantity or price — and if so, why has that not been produced in over 24 hours, while if not, what is the forecast wired into at all?
 - (T3_inherence) If the physics forecast's output is never consumed by any decision rule that sets an order quantity or price, then on what basis is it called a "forecast" at all rather than a number computed and discarded — and who, if anyone, has ever traced even one such consuming path end to end?
