@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-15T22:47:35Z
+Last updated: 2026-07-15T22:53:00Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-15T22:42:18Z
+Last updated: 2026-07-15T22:47:39Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
