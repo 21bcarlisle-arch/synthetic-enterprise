@@ -1479,3 +1479,42 @@
   file_scope: [background, tools, tests]
   depends_on: [A8_experiment_loop_speed, ARCH1_internal_seams]
   simplifications: ["2026-07-15 FRAMED + REGISTERED (director chose (b) 2026-07-14; BUILD = his P1 next active session). Spec + req-1 primitive exhumation + L1/L2/L3: docs/design/AUTONOMOUS_EXECUTOR_SPEC.md. Rebuild-not-resurrect (old runner retired for operational governance, not the concept). loop_stage idle: BUILD-open AND ACTIVATION reserved to the director -- a headless-turn executor replaces the banned keystroke injection; activation is safety-relevant. Inherits walls/dials/Rule-0, one-way-doors->director, twin->rest, gate-verified pushes, tripwires (budget/concurrency/visible-heartbeat/durable-kill). IS the Epoch-4 tournament substrate -> re-ranks A8 (fold its runner in, do not finish standalone)."]
+- id: G4_unified_failure_register
+  name: "Unified Failure Register: one append-only cross-retro index with GLOBAL per-class strike-counting (Nth-strike is a class property), theme-tagged, surfaced on the Method door -- so two-strike/R3 redesigns fire on time, not years late"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md"]
+  file_scope: [docs/retrospectives, tools, tests]
+  simplifications: ["2026-07-15 REGISTERED (RETRO_ACTIONS_THE_THREE_GAPS.md ATOM 1, director-approved QUEUE, ranked highest). Class-level gap: 11 retros, nothing indexes ACROSS them; strikes counted within a retro not across -> two-strike redesigns fired late (wake-doorbell + tmux-injection both hit third strike independently). Mechanism: append-only register keyed by theme tag with GLOBAL strike-count per class, appended by the retro ritual (skill) so it cannot be skipped."]
+- id: H18_harness_self_mutation_audit
+  name: "Harness-self mutation audit: point R15 INWARD -- mutation-test the controls that watch the controls (the verdict organs / meta-controls), not just the SIM/compliance controls H12 covered"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md"]
+  file_scope: [tests/controls, background, tools]
+  simplifications: ["2026-07-15 REGISTERED (RETRO_ACTIONS ATOM 2, QUEUE). H12 mutation-tested SIM/compliance controls; the controls that watch the controls were not audited. Extend the kill-list/mutation discipline to the meta-controls (deadman, naive organ, claim-hook, supervisor draw, H15) as a class."]
+- id: W4_3_external_truth_wall
+  name: "Name the EXTERNAL-TRUTH WALL constitutionally: the five failure themes are one failure at different altitudes -- the boundary between what the machine KNOWS and what is EXTERNALLY TRUE; make it a first-class architectural law"
+  lane: W4_the_wall
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: ["docs/staging/done/RETRO_ACTIONS_THE_THREE_GAPS.md"]
+  file_scope: [docs/design, CLAUDE.md]
+  simplifications: ["2026-07-15 REGISTERED (RETRO_ACTIONS ATOM 3, QUEUE, constitutional). All five themes (fail-silent, shared-domain, local-vs-global, prose-decay, transport-vs-content) are one failure at different altitudes: trusting an internal signal as external truth. Name it as a law alongside the epistemic wall."]
