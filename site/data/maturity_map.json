@@ -85,7 +85,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 20
     },
     {
       "id": "B1_margin_bridge",
@@ -155,7 +155,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "C1_segment_layers",
@@ -181,15 +181,15 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -370,15 +370,15 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W2_3_competitor_field",
@@ -404,15 +404,15 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_2_population_draw"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 2
     },
@@ -423,15 +423,15 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "W2_6_sme_distress_twin",
@@ -440,17 +440,17 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_2_population_draw"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "W2_7_willingness_classification",
@@ -459,17 +459,17 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W2_8_self_rationing",
@@ -478,17 +478,17 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "W2_9_segment_debt_tnc",
@@ -497,17 +497,17 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W2_10_dd_attribution_confound",
@@ -516,15 +516,15 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_4_household_budget"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 2
     },
@@ -552,17 +552,17 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 2,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "D2_three_clocks"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "W4_1_typed_adapters",
@@ -596,7 +596,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "A1_learn_loop_chair",
@@ -613,7 +613,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 41
     },
     {
       "id": "A2_decision_rights_register",
@@ -622,13 +622,13 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "passed_execute_after_fix",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 2
     },
@@ -639,17 +639,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "A2_decision_rights_register"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "A4_sim_approver",
@@ -668,7 +668,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 23
     },
     {
       "id": "H6_lane_wall_development_pilot",
@@ -794,7 +794,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "C5_key_moment_conversion",
@@ -814,7 +814,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 25
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -834,7 +834,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 28
     },
     {
       "id": "H3_production_readiness_nfr_evidence",
@@ -890,7 +890,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "F4_company_internal_authz",
@@ -907,7 +907,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 35
     },
     {
       "id": "H5_security_profiles",
@@ -943,7 +943,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 18
     },
     {
       "id": "A5_tournament_fitness_mortality",
@@ -961,6 +961,733 @@
         "W1_2_generate_futures",
         "A4_sim_approver"
       ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 50
+    },
+    {
+      "id": "H9_map_write_serialisation",
+      "name": "Concurrent BUILD forks do not lost-update maturity_map.yaml (map stays single source of truth)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "SITE1_expert_doors",
+      "name": "SITE CONSTITUTION doors 3-8 built (the surfaces an expert actually inspects), pixel-verified",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 276
+    },
+    {
+      "id": "H10_worktree_isolation",
+      "name": "Concurrent BUILD atoms run in isolated git worktrees (native isolation: worktree), map read-during-build",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 38
+    },
+    {
+      "id": "ARCH1_internal_seams",
+      "name": "Typed internal seams between billing/pricing/settlement/collections, enforced like the epistemic wall (Epoch 3)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 284
+    },
+    {
+      "id": "G3_method_ip_worktree_retro",
+      "name": "Record the worktree-miss retro as durable method IP (5 findings + meta) in the casebook; wire Finding-1 trigger",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 55
+    },
+    {
+      "id": "H11_naive_organ",
+      "name": "The Naive Organ: a deliberately-amnesiac agent that questions the SYSTEM's claims/state (manufactures the outside view)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 194
+    },
+    {
+      "id": "BRAND1_identity_system",
+      "name": "Poesys brand identity as an AI-usable schema: design-tokens source + agent-loaded rules + preserved exemplar + live-site adoption + brand-compliance check",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 212
+    },
+    {
+      "id": "F5_vat_control_independent_signal",
+      "name": "VAT-by-segment control must check against a segment signal INDEPENDENT of the bill's own label (currently a tautology)",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
+    },
+    {
+      "id": "F6_bill_integrity_structural",
+      "name": "Structural bill-integrity invariants: arithmetic footing + non-negativity/fail-CLOSED + temporal sanity",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
+    },
+    {
+      "id": "F7_obligations_register_coverage",
+      "name": "Obligations register coverage + traceability: physical-harm rows, resolve-or-degrade tracker, enforcing-invariant key",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 17
+    },
+    {
+      "id": "H12_mutation_test_controls",
+      "name": "Mutation-test the entire control apparatus: every control must fire on its own named defect (kill list + the 3 killer patterns)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 157
+    },
+    {
+      "id": "F8_control_gap_fixes_kl4_kl8",
+      "name": "Close the 5 mutation-found control gaps (KL-4..KL-8): fail-silent/fail-open/tautology in compliance trackers + the consistency gate",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "A6_coupled_triad_gap_metric",
+      "name": "The coupled triad: SIM depth -> company copes through the wall -> harness measures the belief-vs-truth GAP (the gap is the score)",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 123
+    },
+    {
+      "id": "C9_cantpay_wontpay_classifier",
+      "name": "Can't-pay vs won't-pay classifier: the company classifies each arrears account under uncertainty (world twin of W2_7)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_7_willingness_classification",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "C10_self_rationing_detection",
+      "name": "Self-rationing detection: the company detects pay-but-don't-heat before harm (world twin of W2_8)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_8_self_rationing",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
+    },
+    {
+      "id": "C7_life_event_detection",
+      "name": "Life-event detection + response: the company notices job loss/illness/divorce/etc through the wall (world twin of W2_5)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_5_life_event_stream",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 6
+    },
+    {
+      "id": "C6_affordability_inference",
+      "name": "Affordability inference + book-mix belief: the company infers each customer's ability-to-pay and its book composition through the wall (world twin of W2_4/W2_2)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_4_household_budget",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "C12_channel_attribution_analytics",
+      "name": "Channel attribution analytics: the company's naive attribution SHOULD be capable of being wrong (world twin of W2_10)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_10_dd_attribution_confound",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "C8_sme_credit_risk",
+      "name": "SME/I&C credit-risk model: the company assesses business distress through the wall (world twin of W2_6)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_6_sme_distress_twin",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
+    },
+    {
+      "id": "C11_segment_debt_policy",
+      "name": "Segment-correct debt policy objects: the company applies the right debt T&C per segment (world twin of W2_9)",
+      "lane": "F_risk_compliance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
+    },
+    {
+      "id": "H14_judge_validation",
+      "name": "Judge validation: outcome-test the verdict-producing organs we cannot mutation-test (consistency + independence + gold set + outcome correlation)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H12_mutation_test_controls"
+      ],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 340
+    },
+    {
+      "id": "A7_harm_cost_weights_decision",
+      "name": "Harm-cost weights decision framing (can't-pay/won't-pay HARM vs LOSS): anchors, ratio, and the pursue->forbear flip-point -- for the director",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "W1_3_national_weather_signal",
+      "name": "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_2_generate_futures"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 14
+    },
+    {
+      "id": "W1_4_regional_weather_field",
+      "name": "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_3_national_weather_signal"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13
+    },
+    {
+      "id": "W1_5_premise_demand_shape",
+      "name": "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_4_regional_weather_field"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15
+    },
+    {
+      "id": "W1_6_physics_price_signal",
+      "name": "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_3_national_weather_signal",
+        "W1_5_premise_demand_shape"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 70
+    },
+    {
+      "id": "C13_weather_normalisation",
+      "name": "Weather-normalisation twin (COUPLED): the company INFERS its book's weather-sensitivity from confounded meter data -- gap = predicted vs actual demand under a given weather outturn (world twin of W1_5)",
+      "lane": "C_customer_ops",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_5_premise_demand_shape",
+        "A6_coupled_triad_gap_metric"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 57
+    },
+    {
+      "id": "W1_7_renewable_capacity_trends",
+      "name": "Renewable capacity + generation-mix evolution over time",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_6_physics_price_signal"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 58
+    },
+    {
+      "id": "W1_8_zonal_locational_pricing",
+      "name": "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_6_physics_price_signal"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 73
+    },
+    {
+      "id": "W1_9_dsr_flex_markets",
+      "name": "Demand-side response / flexibility markets",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_6_physics_price_signal"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 62
+    },
+    {
+      "id": "W1_10_ev_heatpump_geography",
+      "name": "EV + heat-pump adoption geography (spatially-varying load growth)",
+      "lane": "W1_market_weather",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_5_premise_demand_shape"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 63
+    },
+    {
+      "id": "H15_publish_gate_failure_alert",
+      "name": "Alert on a persistently-jammed publish pipeline: N consecutive auto-process rc=1 fires one NTFY (silent-retry-forever gap)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16
+    },
+    {
+      "id": "H16_idle_detection_stability_gate",
+      "name": "tmux idle-detection byte-stability gate: only inject when the pane is UNCHANGED across a re-capture (close the residual mid-turn injection)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "A8_experiment_loop_speed",
+      "name": "Experiment-loop speed: cut the inner-loop cycle time that makes the Epoch-4 evolutionary tournament arithmetically feasible (mock-interface + parallelism + tiered tests)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "ARCH1_internal_seams"
+      ],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H17_autonomous_build_executor",
+      "name": "Autonomous build-executor: a governed headless-turn executor that CONSUMES the Rule-0 self-refill draw and lands work (the map moves without the interactive session as sole executor); ALSO the Epoch-4 tournament substrate",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "A8_experiment_loop_speed",
+        "ARCH1_internal_seams"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 25
+    },
+    {
+      "id": "G4_unified_failure_register",
+      "name": "Unified Failure Register: one append-only cross-retro index with GLOBAL per-class strike-counting (Nth-strike is a class property), theme-tagged, surfaced on the Method door -- so two-strike/R3 redesigns fire on time, not years late",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15
+    },
+    {
+      "id": "H18_harness_self_mutation_audit",
+      "name": "Harness-self mutation audit: point R15 INWARD -- mutation-test the controls that watch the controls (the verdict organs / meta-controls), not just the SIM/compliance controls H12 covered",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 23
+    },
+    {
+      "id": "W4_3_external_truth_wall",
+      "name": "Name the EXTERNAL-TRUTH WALL constitutionally: the five failure themes are one failure at different altitudes -- the boundary between what the machine KNOWS and what is EXTERNALLY TRUE; make it a first-class architectural law",
+      "lane": "W4_the_wall",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 19
+    },
+    {
+      "id": "G5_effort_sizing_discipline",
+      "name": "Pre-build effort sizing (S/M/L/XL) calibrated against git-timestamped actuals: decomposition trigger + honest remaining-effort + estimate-vs-actual learning signal",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "G6_method_lens_audit",
+      "name": "Audit our harness against the mature PROCESS/delivery disciplines (Lean/Kanban/ToC/SRE/Agile), not just the novel-AI ones: name what we have, adopt known refinements, surface unhit gaps",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 2
@@ -1046,7 +1773,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 54,
+  "total_atoms": 94,
   "epoch2_movements": [
     {
       "id": "M1",
