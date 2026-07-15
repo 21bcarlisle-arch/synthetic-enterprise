@@ -23,6 +23,7 @@ unauthenticated access (public topics only).
 Delegation note: hand-written (orchestration-adjacent, per protocol).
 """
 
+import fcntl
 import hashlib
 import hmac
 import json
@@ -85,17 +86,40 @@ def verify_wake_message(signed: str, max_age_seconds: int = 300) -> str | None:
 
 
 def record_sent_id(msg_id: str) -> None:
-    """Append `msg_id` to SENT_IDS_FILE, keeping at most MAX_SENT_IDS entries."""
-    ids: list[str] = []
-    if SENT_IDS_FILE.is_file():
-        try:
-            ids = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            ids = []
-    ids.append(msg_id)
-    ids = ids[-MAX_SENT_IDS:]
+    """Append `msg_id` to SENT_IDS_FILE (keeping at most MAX_SENT_IDS), under
+    an exclusive file lock so concurrent daemon sends cannot LOSE an id via a
+    read-modify-write race.
+
+    A lost id is exactly the echo-loop defect this file exists to prevent
+    (2026-07-15, inbound_tagging_and_rate_guard): multiple daemons
+    (health_check, action_needed, session_watchdog, the responder's own
+    replies) can call send_ntfy concurrently on this one shared tree; the
+    previous unlocked read-append-write meant two overlapping senders each read
+    the same list, appended their own id, and the last writer clobbered the
+    other's id. An unrecorded id makes was_sent_by_us() return False for our
+    OWN outbound, so ntfy_responder captures it as INBOUND and stages a bogus
+    from_rich -- which was observed live for our own [ACTION NEEDED] and
+    [HEALTH CHECK] sends. The flock serialises the whole read-modify-write; the
+    write is atomic (tmp + os.replace) so a concurrent was_sent_by_us() reader
+    never sees a truncated/partial file."""
     SENT_IDS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    SENT_IDS_FILE.write_text(json.dumps(ids), encoding="utf-8")
+    lock_path = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + ".lock")
+    with open(lock_path, "w") as lock_f:
+        fcntl.flock(lock_f, fcntl.LOCK_EX)
+        try:
+            ids: list[str] = []
+            if SENT_IDS_FILE.is_file():
+                try:
+                    ids = json.loads(SENT_IDS_FILE.read_text(encoding="utf-8"))
+                except json.JSONDecodeError:
+                    ids = []
+            ids.append(msg_id)
+            ids = ids[-MAX_SENT_IDS:]
+            tmp_path = SENT_IDS_FILE.with_name(SENT_IDS_FILE.name + ".tmp")
+            tmp_path.write_text(json.dumps(ids), encoding="utf-8")
+            os.replace(tmp_path, SENT_IDS_FILE)
+        finally:
+            fcntl.flock(lock_f, fcntl.LOCK_UN)
 
 
 def was_sent_by_us(msg_id: str | None) -> bool:

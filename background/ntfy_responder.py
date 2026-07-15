@@ -33,6 +33,7 @@ import re
 import subprocess
 import sys
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -52,6 +53,23 @@ MAX_SEEN_HASHES = 500
 POLL_INTERVAL_SECONDS = 20
 RUN_LOG_GLOB = "*_run.log"
 RUN_LOG_FRESH_SECONDS = 3600  # ignore run logs not touched in the last hour
+
+# --- Inbound flood guard (2026-07-15, inbound_tagging_and_rate_guard part B) ---
+# A machine-cadence flood (e.g. an echo loop of our own un-tagged status
+# replies, or a hostile/faulty publisher hammering the topic) must NOT reach
+# the scanned staging root, where each staged from_rich re-grants supervisor
+# turns. Detection is by a rolling window: N inbound in the window, OR K
+# identical bodies in the window, = flood. Flood messages are QUARANTINED
+# (written to docs/staging/quarantine/, which supervisor.py's iterdir()+is_file()
+# scan excludes automatically) -- never dropped silently, so nothing is lost and
+# a real message caught in the tail of a flood can still be recovered by hand.
+# On flood we also SUPPRESS the status reply: the reply is precisely what feeds
+# an echo loop. One alert per FLOOD_ALERT_COOLDOWN_SECONDS.
+FLOOD_WINDOW_SECONDS = 600          # rolling 10-minute window
+FLOOD_MAX_IN_WINDOW = 8             # >= this many inbound in the window = flood
+FLOOD_IDENTICAL_THRESHOLD = 3       # >= this many identical bodies in window = flood
+FLOOD_ALERT_COOLDOWN_SECONDS = 3600
+FLOOD_MAX_TRACKED_EVENTS = 500      # hard cap on retained (ts, hash) events
 
 PROGRESS_RE = re.compile(
     r"progress: ([\d,]+) settlement periods processed "
@@ -198,6 +216,86 @@ def _write_to_staging(message: str) -> Path | None:
     return path
 
 
+def _rate_state_file() -> Path:
+    """Resolved at CALL time from the module global PROJECT_DIR (same pattern as
+    _write_to_staging) so a test's monkeypatch of PROJECT_DIR redirects it."""
+    return PROJECT_DIR / "background" / ".ntfy_responder_rate.json"
+
+
+def _quarantine_dir() -> Path:
+    """docs/staging/quarantine/ -- a subdirectory, so supervisor.py's
+    iterdir()+is_file() staging scan skips it automatically (verified against
+    _unprocessed_staging_files)."""
+    return PROJECT_DIR / "docs" / "staging" / "quarantine"
+
+
+def _load_rate_state() -> dict:
+    p = _rate_state_file()
+    if p.exists():
+        try:
+            state = json.loads(p.read_text())
+            if isinstance(state, dict):
+                state.setdefault("events", [])
+                state.setdefault("last_alert", 0)
+                return state
+        except (json.JSONDecodeError, ValueError, OSError):
+            pass
+    return {"events": [], "last_alert": 0}
+
+
+def _save_rate_state(state: dict) -> None:
+    p = _rate_state_file()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(state))
+
+
+def _register_inbound_and_detect_flood(
+    content_hash: str, now: float, state: dict
+) -> tuple[bool, str | None]:
+    """Record this inbound arrival in the rolling window and decide whether we
+    are in a flood. Mutates `state["events"]` in place (caller persists it).
+
+    A flood is EITHER a raw-rate flood (>= FLOOD_MAX_IN_WINDOW inbound within
+    FLOOD_WINDOW_SECONDS -- catches distinct-body echo loops whose bodies vary,
+    e.g. our own status replies that differ only by GPU%/HEAD) OR an
+    identical-body flood (>= FLOOD_IDENTICAL_THRESHOLD copies of one body in the
+    window -- caught BEFORE the replay-dedup so it is quarantined and preserved
+    rather than silently deduped)."""
+    window_start = now - FLOOD_WINDOW_SECONDS
+    events = [e for e in state.get("events", []) if e[0] >= window_start]
+    events.append([now, content_hash])
+    events = events[-FLOOD_MAX_TRACKED_EVENTS:]
+    state["events"] = events
+
+    count = len(events)
+    identical = sum(1 for e in events if e[1] == content_hash)
+    minutes = FLOOD_WINDOW_SECONDS // 60
+    if identical >= FLOOD_IDENTICAL_THRESHOLD:
+        return True, f"{identical} identical-body messages within {minutes}min"
+    if count >= FLOOD_MAX_IN_WINDOW:
+        return True, f"{count} inbound messages within {minutes}min"
+    return False, None
+
+
+def _quarantine(message: str, reason: str) -> Path:
+    """Preserve a flood message in docs/staging/quarantine/ (NOT the scanned
+    root). Fail-safe: nothing is ever dropped -- this file is the durable
+    record so a genuine message caught in a flood tail can be recovered."""
+    qdir = _quarantine_dir()
+    qdir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    path = qdir / f"from_rich_QUARANTINED_{ts}_{uuid.uuid4().hex[:8]}.md"
+    path.write_text(
+        "# QUARANTINED inbound NTFY message (flood guard)\n\n"
+        f"Reason: {reason}\n\n"
+        "The responder detected a machine-cadence flood and withheld this "
+        "message from the scanned staging root. Nothing is dropped -- this file "
+        "preserves the content for manual review.\n\n---\n\n"
+        f"{message}\n"
+    )
+    return path
+
+
 def build_status_reply(staged_path: Path | None = None) -> str:
     classification = "instruction" if staged_path else "status ping"
     action = "queued for Claude Code" if staged_path else "no action (message too short)"
@@ -252,6 +350,36 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
             continue
 
         h = _content_hash(message)
+
+        # Flood guard (2026-07-15): register every inbound arrival and detect a
+        # machine-cadence flood BEFORE the replay-dedup below -- an
+        # identical-body flood would otherwise be silently dropped by dedup and
+        # never counted, and a distinct-body echo loop would restage forever.
+        # On flood: QUARANTINE (preserve, never drop) into the UNSCANNED
+        # docs/staging/quarantine/ dir, alert once with cooldown, and DO NOT
+        # reply -- the status reply is what feeds an echo loop.
+        rate_state = _load_rate_state()
+        flooding, flood_reason = _register_inbound_and_detect_flood(
+            h, record.get("time", time.time()), rate_state
+        )
+        if flooding:
+            qpath = _quarantine(message, flood_reason)
+            now_ts = time.time()
+            if now_ts - rate_state.get("last_alert", 0) >= FLOOD_ALERT_COOLDOWN_SECONDS:
+                rate_state["last_alert"] = now_ts
+                send_ntfy(
+                    f"[FLOOD GUARD] Inbound NTFY flood quarantined ({flood_reason}). "
+                    "Messages preserved in docs/staging/quarantine/, withheld from the "
+                    f"scanned staging root. No further alerts for "
+                    f"{FLOOD_ALERT_COOLDOWN_SECONDS // 60}min.",
+                    headers={"X-Priority": "4", "X-Tags": "rotating_light"},
+                )
+            _save_rate_state(rate_state)
+            log(f"Quarantined inbound flood message {record.get('id')!r} -> "
+                f"{qpath.name} ({flood_reason})")
+            continue
+        _save_rate_state(rate_state)
+
         if h in seen_set:
             log(f"Duplicate content ignored (hash={h[:8]}, id={record.get('id')!r}): {message[:60]!r}")
             continue
