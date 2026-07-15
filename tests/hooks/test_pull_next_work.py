@@ -83,6 +83,35 @@ def test_fail_safe_allows_stop_when_draw_raises(tmp_path, monkeypatch):
     assert mod.decide({"stop_hook_active": False}) is None
 
 
+def test_instrumented_three_consecutive_boundaries_draw_and_continue(tmp_path, monkeypatch):
+    """ACTIVATION PROOF (DIRECTOR_ANSWERS_C7 #2): with work available, THREE
+    consecutive turn boundaries each DRAW and CONTINUE, and the pull-loop LOG
+    records each -- with ZERO pane writes (the hook spawns no process). This is
+    the instrumented proof that gates the flag-flip."""
+    import importlib.util, sys, types
+    spec = importlib.util.spec_from_file_location("pull_next_work", HOOK_PATH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    log = tmp_path / "pull-loop-log.md"
+    monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
+    monkeypatch.setattr(mod, "LOG_FILE", log)
+    monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".state.json")
+    (tmp_path / ".build_executor_enabled").write_text("")  # enabled (test flag, not the console one)
+    draws = iter([("BUILD SITE1_expert_doors", False), ("BUILD F6_bill_integrity", False), ("HARDEN A6_gap", False)])
+    fake = types.ModuleType("background.supervisor")
+    fake.find_work = lambda resumed_from_pause=False: next(draws)
+    monkeypatch.setitem(sys.modules, "background.supervisor", fake)
+
+    reasons = []
+    for _ in range(3):  # three consecutive turn boundaries
+        out = mod.decide({"stop_hook_active": False})
+        assert out is not None and out["decision"] == "block", "boundary must draw + continue"
+        reasons.append(out["reason"])
+
+    assert "SITE1" in reasons[0] and "F6" in reasons[1] and "A6" in reasons[2]  # distinct real work each
+    assert log.read_text().count("BLOCK+continue") == 3  # instrumented: 3 boundaries logged
+
+
 def test_checkpoint_cadence_injects_compact(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=("keep building", False))
     last = None
