@@ -71,6 +71,16 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/pull_next_work.py"
+          }
+        ]
+      }
     ]
   }
 }
