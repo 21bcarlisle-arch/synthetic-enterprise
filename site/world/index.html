@@ -83,9 +83,18 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .basis { font-size: 10px; color: var(--muted); margin-top: 10px; }
 .passport { font-size: 10px; color: var(--muted); margin-top: 8px; }
 @media (max-width: 640px) {
+  /* mobile pass (SITE1_expert_doors): the wall stacks vertically (already present);
+     this extends it to chrome/hero so the whole door is phone-legible with no
+     horizontal body scroll. The library table scrolls inside .table-scroll.
+     Desktop (>640px) layout is unchanged. */
   .wall { grid-template-columns: 1fr; }
   .wall-mid { flex-direction: row; gap: 12px; padding: 10px 0; }
   .wall-glyph { transform: rotate(90deg); }
+  .wrap { padding: 28px 16px; }
+  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
+  .hero-h { font-size: 22px; }
+  .sec { margin-top: 32px; }
+  .card { padding: 16px; }
 }
 /* ladder */
 .ladder { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
