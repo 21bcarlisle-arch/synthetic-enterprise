@@ -82,6 +82,35 @@ ADVISOR_PREFIX = "[ADVISOR-STAGED]"
 MAINTENANCE_STATE_FILE = PROJECT_DIR / "background" / ".maintenance_reminder_sent.json"
 MAINTENANCE_DOC = PROJECT_DIR / "docs" / "operations" / "MAINTENANCE.md"
 
+# Archive-on-answer mechanism (2026-07-14, director triage #3: "archive-on-
+# answer never landed"). A stale from_rich_*.md ("Are you busy?") re-jammed
+# the director's box TWICE because answered messages were never moved to
+# docs/staging/done/ -- so supervisor.py kept granting a turn on it every
+# ~2min and dispatcher.py kept re-surfacing it. This is the MECHANISM (a
+# sweep this daemon runs every cycle), NOT a convention the interactive agent
+# must remember to honour. It never deletes -- only moves to done/.
+#
+# Two machine-checkable "no longer live" signals, both non-agent-dependent:
+#   (A) SUPERSEDED -- a strictly-newer from_rich_*.md sits in the root, i.e.
+#       the director engaged again; the older ping is moot. Gated by a
+#       minimum age so a genuine multi-part instruction sent as a burst
+#       (several messages within minutes) is NOT swept mid-conversation.
+#   (B) STALE -- older than an absolute backstop threshold; the last/only
+#       lingering message that no newer engagement will ever supersede must
+#       still stop re-granting turns. A day-old ping sitting in the scanned
+#       root is exactly the spam this closes; moved (recoverable), never lost.
+DONE_DIRNAME = "done"
+# Absolute backstop: a from_rich older than this is swept even with no newer
+# engagement (the last-message case). Generous -- the supervisor grants a
+# turn within ~2min of a real instruction landing, so a genuinely-open item
+# is actioned in minutes, never left a day; anything still sitting here after
+# this long has been answered-but-not-archived (the exact defect) or is dead.
+FROM_RICH_STALE_SECONDS = 24 * 3600
+# A superseded (newer-engagement-exists) from_rich is only swept once it is at
+# least this old, so two messages that are part of ONE burst/multi-part
+# instruction are never torn apart while both are still live.
+FROM_RICH_SUPERSEDE_MIN_AGE_SECONDS = 30 * 60
+
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -325,6 +354,100 @@ def _relay_wake_to_claude(new_names: list[str]) -> bool:
         return False
 
 
+def _done_dir() -> Path:
+    """docs/staging/done/, derived from STAGING_DIR at CALL time so tests that
+    monkeypatch STAGING_DIR get a matching done/ dir (see action_needed.py's
+    _resolve_path for the same call-time-vs-def-time lesson)."""
+    return STAGING_DIR / DONE_DIRNAME
+
+
+def _from_rich_timestamp(path: Path) -> datetime:
+    """The UTC datetime a from_rich_*.md represents. Parses the canonical
+    `from_rich_YYYYMMDD_HHMMSS.md` name ntfy_responder.py writes; falls back
+    to the file's mtime if the name doesn't parse (never raises -- a sweep
+    must not crash on an oddly-named file)."""
+    stem = path.name[len("from_rich_"):].removesuffix(".md")
+    try:
+        return datetime.strptime(stem, "%Y%m%d_%H%M%S").replace(tzinfo=timezone.utc)
+    except ValueError:
+        try:
+            return datetime.fromtimestamp(path.stat().st_mtime, tz=timezone.utc)
+        except OSError:
+            return datetime.now(timezone.utc)
+
+
+def archive_from_rich(path: Path) -> bool:
+    """Move an answered/superseded from_rich_*.md into docs/staging/done/.
+    NEVER deletes a message -- only moves it (a redundant identical copy
+    already in done/ is the one exception, since the content is preserved
+    there; a copy with DIFFERING content is kept under a suffixed name so
+    nothing is ever lost). Idempotent: a name whose file is already gone from
+    the root is a no-op success. Returns True once the message is in done/,
+    False only on a real move error."""
+    if not path.exists():
+        return True  # already archived / gone -- idempotent success
+    done = _done_dir()
+    try:
+        done.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        log(f"archive-on-answer: could not create done/ for {path.name}: {e}")
+        return False
+    dest = done / path.name
+    if dest.exists():
+        try:
+            if dest.read_bytes() == path.read_bytes():
+                path.unlink()  # exact duplicate already preserved in done/
+                return True
+        except OSError:
+            pass
+        i = 1
+        while (done / f"{path.stem}.dup{i}{path.suffix}").exists():
+            i += 1
+        dest = done / f"{path.stem}.dup{i}{path.suffix}"
+    try:
+        path.rename(dest)
+        return True
+    except OSError as e:
+        log(f"archive-on-answer: move failed for {path.name}: {e}")
+        return False
+
+
+def sweep_answered_from_rich(now: datetime | None = None) -> list[str]:
+    """Move every from_rich_*.md in the staging root that is no longer live
+    (superseded by a newer engagement, or past the absolute stale backstop)
+    into docs/staging/done/. Returns the list of archived filenames.
+
+    This is the archive-on-answer MECHANISM -- run once per poll cycle by
+    main(), independent of the interactive agent. A FRESH, unanswered
+    from_rich (the newest one, younger than the stale backstop) is never
+    touched, so the director's live question always keeps its turn-grant;
+    only the moot ones stop re-jamming the box."""
+    if not STAGING_DIR.is_dir():
+        return []
+    now = now or datetime.now(timezone.utc)
+    entries = [
+        (p, _from_rich_timestamp(p))
+        for p in STAGING_DIR.iterdir()
+        if p.is_file() and p.name.startswith("from_rich_") and p.name.endswith(".md")
+    ]
+    if not entries:
+        return []
+    newest_ts = max(ts for _, ts in entries)
+    archived: list[str] = []
+    for p, ts in entries:
+        age = (now - ts).total_seconds()
+        superseded = ts < newest_ts  # a strictly-newer from_rich exists
+        stale = age >= FROM_RICH_STALE_SECONDS
+        if not ((superseded and age >= FROM_RICH_SUPERSEDE_MIN_AGE_SECONDS) or stale):
+            continue
+        if archive_from_rich(p):
+            archived.append(p.name)
+            reason = "superseded" if superseded else "stale"
+            log(f"archive-on-answer: swept {p.name} to done/ "
+                f"({reason}, age {int(age)}s)")
+    return archived
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, queues any genuinely new actionable
@@ -476,6 +599,13 @@ def main() -> None:
             _attempt_pending_wake()
         except Exception as e:
             log(f"Pending-wake attempt error: {e}")
+
+        # Archive-on-answer sweep: move any answered/superseded/stale
+        # from_rich_*.md to done/ so it stops re-granting supervisor turns.
+        try:
+            sweep_answered_from_rich()
+        except Exception as e:
+            log(f"archive-on-answer sweep error: {e}")
 
         time.sleep(POLL_INTERVAL_SECONDS)
 
