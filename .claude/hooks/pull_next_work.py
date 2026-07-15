@@ -26,7 +26,12 @@ import time
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-ENABLE_FLAG = PROJECT_DIR / "docs" / "observability" / ".pull_loop_enabled"
+# THE single kill switch for ALL autonomous execution (DIRECTOR_ANSWERS_C7.md #6,
+# 2026-07-15, signed): ONE flag governs the pull loop AND any future headless
+# executor -- no second flag. CONSOLE-ONLY, director-reserved (same class as
+# security profiles); no agent/twin/staged-doc may create or modify it. FAIL-
+# CLOSED: missing OR malformed (not a readable regular file) = DISABLED.
+ENABLE_FLAG = PROJECT_DIR / "docs" / "observability" / ".build_executor_enabled"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "pull-loop-log.md"
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".pull_loop_state.json"
 # Context hygiene (req 5): after this many continuations, feed a checkpoint/compact
@@ -47,6 +52,19 @@ def _log(msg: str) -> None:
 def _allow_stop() -> None:
     # No JSON, no block -> the session stops normally. ZERO pane writes.
     sys.exit(0)
+
+
+def _autonomous_execution_enabled() -> bool:
+    """THE single kill switch, FAIL-CLOSED (DIRECTOR_ANSWERS_C7 #6). Autonomous
+    execution continues ONLY if ENABLE_FLAG is a readable regular file. Missing,
+    a directory, or unreadable (malformed) => DISABLED. Never raises."""
+    try:
+        if not ENABLE_FLAG.is_file():
+            return False
+        ENABLE_FLAG.read_text()  # readable -> a proper flag
+        return True
+    except OSError:
+        return False
 
 
 def _bump_continuation_count() -> int:
@@ -71,8 +89,10 @@ def decide(payload: dict) -> dict | None:
     if payload.get("stop_hook_active"):
         _log("stop_hook_active -> allow stop (loop guard)")
         return None
-    # Safe rollout: inert unless explicitly enabled.
-    if not ENABLE_FLAG.exists():
+    # THE kill switch, fail-closed: continue ONLY if the single flag is a readable
+    # regular file. Missing / a directory / unreadable = DISABLED (refuse to
+    # continue). This is the R15-proven kill: flag off -> next boundary refuses.
+    if not _autonomous_execution_enabled():
         return None
     # Draw work from the EXISTING supervisor draw (Rule-0: non-empty while atoms
     # exist). find_work only READS the map/staging; the placeholder topic just

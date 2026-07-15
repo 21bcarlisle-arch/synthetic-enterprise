@@ -19,11 +19,11 @@ def _load_hook(tmp_path, monkeypatch, *, enabled, draw_result):
     spec = importlib.util.spec_from_file_location("pull_next_work", HOOK_PATH)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".pull_loop_enabled")
+    monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
     monkeypatch.setattr(mod, "LOG_FILE", tmp_path / "pull-loop-log.md")
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".pull_loop_state.json")
     if enabled:
-        (tmp_path / ".pull_loop_enabled").write_text("")
+        (tmp_path / ".build_executor_enabled").write_text("")
     # Inject the draw result without importing the real supervisor.
     import sys, types
     fake = types.ModuleType("background.supervisor")
@@ -35,6 +35,22 @@ def _load_hook(tmp_path, monkeypatch, *, enabled, draw_result):
 def test_disabled_by_default_allows_stop(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=False, draw_result=("A6 has work", False))
     assert mod.decide({"stop_hook_active": False}) is None  # no flag -> inert
+
+
+def test_kill_switch_flag_off_refuses_next_boundary(tmp_path, monkeypatch):
+    """R15 KILL-SWITCH PROOF (DIRECTOR_ANSWERS_C7 #6): with the single flag OFF,
+    the very next turn boundary MUST refuse to continue. A kill switch never
+    proven to kill is a theatre control (kill-list doctrine)."""
+    mod = _load_hook(tmp_path, monkeypatch, enabled=False, draw_result=("lots of work", False))
+    # flag absent -> refuse (session stops)
+    assert mod.decide({"stop_hook_active": False}) is None
+    # fail-closed: a MALFORMED flag (a directory, not a readable file) -> DISABLED
+    (tmp_path / ".build_executor_enabled").mkdir()
+    assert mod.decide({"stop_hook_active": False}) is None
+    # mutation proof the guard is load-bearing: neuter it (force-enable) and the
+    # same flag-off state now WRONGLY continues -> the guard is what gates the kill.
+    monkeypatch.setattr(mod, "_autonomous_execution_enabled", lambda: True)
+    assert mod.decide({"stop_hook_active": False}) is not None
 
 
 def test_loop_guard_allows_stop_when_already_blocking(tmp_path, monkeypatch):
