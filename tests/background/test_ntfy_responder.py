@@ -226,3 +226,161 @@ def test_content_hash_different_messages():
     h1 = responder._content_hash("Hello")
     h2 = responder._content_hash("World")
     assert h1 != h2
+
+
+# --- Part B: inbound flood guard (2026-07-15) ---
+
+def _feed(monkeypatch, msg_id, msg_time, message):
+    class FakeResponse:
+        text = json.dumps(
+            {"event": "message", "id": msg_id, "time": msg_time, "message": message}
+        )
+
+    monkeypatch.setattr(responder.requests, "get", lambda *a, **k: FakeResponse())
+
+
+def test_flood_of_identical_messages_quarantines_and_spares_staging_root(tmp_path, monkeypatch):
+    """R15 MUTATION TEST (2026-07-15, inbound_tagging_and_rate_guard part B):
+    a 90s-cadence identical-body flood must QUARANTINE itself (preserved in
+    docs/staging/quarantine/, never dropped) and NOT reach the scanned staging
+    root; the status reply (the echo-loop driver) is suppressed for flood
+    messages. Mutant this catches: delete the flood guard -> the identical
+    bodies either silently vanish via replay-dedup (no preservation) or, if
+    bodies vary, restage forever and echo.
+
+    A companion test (test_normal_low_rate_message_still_stages) proves a normal
+    low-rate real message still stages -- the control fires on the defect only,
+    not on legitimate traffic."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+
+    sent = []
+    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    body = "Please kick off the overnight reconciliation batch now, thanks."
+    staging_root = tmp_path / "docs" / "staging"
+    quarantine_dir = staging_root / "quarantine"
+
+    seen = []
+    since = 0
+    base = 100_000
+    for i in range(8):  # 8 identical messages, 90s apart
+        _feed(monkeypatch, f"flood-{i}", base + i * 90, body)
+        since, seen = responder.check_once(since, seen)
+
+    root_files = [p for p in staging_root.glob("from_rich_*.md")]  # non-recursive
+    quarantined = list(quarantine_dir.glob("*.md")) if quarantine_dir.exists() else []
+
+    # The sustained flood is quarantined, not staged. At most the very first
+    # message can legitimately reach the root before the flood is provable.
+    assert len(root_files) <= 1
+    assert len(quarantined) >= 3
+    # Exactly one flood alert (cooldown), and NO status reply for quarantined
+    # messages -- suppressing the reply is what breaks the echo loop.
+    assert len([m for m in sent if "[FLOOD GUARD]" in m]) == 1
+    assert len([m for m in sent if "Sim:" in m]) <= 1
+
+
+def test_flood_of_distinct_bodies_quarantines_on_rate(tmp_path, monkeypatch):
+    """Raw-rate arm: an echo loop of DISTINCT bodies (dedup can't catch them)
+    still trips FLOOD_MAX_IN_WINDOW and quarantines."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: None)
+
+    staging_root = tmp_path / "docs" / "staging"
+    quarantine_dir = staging_root / "quarantine"
+
+    seen = []
+    since = 0
+    base = 200_000
+    for i in range(responder.FLOOD_MAX_IN_WINDOW + 3):
+        # distinct body each time, fast cadence within the window
+        _feed(monkeypatch, f"rate-{i}", base + i * 30, f"unique steering note number {i} here")
+        since, seen = responder.check_once(since, seen)
+
+    quarantined = list(quarantine_dir.glob("*.md")) if quarantine_dir.exists() else []
+    root_files = [p for p in staging_root.glob("from_rich_*.md")]
+    assert len(quarantined) >= 3
+    # Below-threshold messages staged; the flood tail did not.
+    assert len(root_files) < responder.FLOOD_MAX_IN_WINDOW + 3
+
+
+def test_normal_low_rate_message_still_stages(tmp_path, monkeypatch):
+    """Fail-fires-on-defect-only half of the R15 pair: a single normal message
+    stages to the scanned root and is NOT quarantined."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+
+    sent = []
+    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    _feed(monkeypatch, "real-1", 300_000, "Start the full 2016-2025 run when GPU is free.")
+    responder.check_once(0, [])
+
+    staging_root = tmp_path / "docs" / "staging"
+    root_files = [p for p in staging_root.glob("from_rich_*.md")]
+    quarantine_dir = staging_root / "quarantine"
+    quarantined = list(quarantine_dir.glob("*.md")) if quarantine_dir.exists() else []
+
+    assert len(root_files) == 1
+    assert quarantined == []
+    assert not any("[FLOOD GUARD]" in m for m in sent)
+    assert any("Sim:" in m for m in sent)  # normal status reply sent
+
+
+def test_flood_alert_respects_cooldown_across_calls(tmp_path, monkeypatch):
+    """Only ONE [FLOOD GUARD] alert per cooldown, even across many flood
+    messages -- a flood must not itself become an alert flood."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+
+    sent = []
+    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+
+    body = "identical machine cadence body repeated over and over again"
+    seen = []
+    since = 0
+    for i in range(12):
+        _feed(monkeypatch, f"c-{i}", 400_000 + i * 60, body)
+        since, seen = responder.check_once(since, seen)
+
+    assert len([m for m in sent if "[FLOOD GUARD]" in m]) == 1
+
+
+def test_register_inbound_detects_identical_body_flood():
+    state = {"events": [], "last_alert": 0}
+    now = 500_000
+    flooding = False
+    for i in range(responder.FLOOD_IDENTICAL_THRESHOLD):
+        flooding, reason = responder._register_inbound_and_detect_flood("hhh", now + i * 90, state)
+    assert flooding is True
+    assert "identical" in reason
+
+
+def test_register_inbound_no_flood_below_threshold():
+    state = {"events": [], "last_alert": 0}
+    flooding, reason = responder._register_inbound_and_detect_flood("hhh", 600_000, state)
+    assert flooding is False
+    assert reason is None
+
+
+def test_register_inbound_prunes_outside_window():
+    state = {"events": [], "last_alert": 0}
+    # Two identical hits far in the past, then one now: the old ones fall out of
+    # the window, so a single fresh hit is NOT a flood.
+    responder._register_inbound_and_detect_flood("hhh", 100, state)
+    responder._register_inbound_and_detect_flood("hhh", 200, state)
+    flooding, _ = responder._register_inbound_and_detect_flood(
+        "hhh", 100 + responder.FLOOD_WINDOW_SECONDS + 10_000, state
+    )
+    assert flooding is False
+    assert len(state["events"]) == 1

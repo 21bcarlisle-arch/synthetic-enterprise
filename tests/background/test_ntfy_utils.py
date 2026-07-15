@@ -131,6 +131,55 @@ def test_was_sent_by_us_returns_bool(tmp_path, monkeypatch):
     assert isinstance(result, bool)
 
 
+def test_daemon_sent_message_is_recognised_as_ours(tmp_path, monkeypatch):
+    """Part A tagging invariant (2026-07-15): a message a daemon sends via
+    send_ntfy must be was_sent_by_us()==True end to end, so the responder never
+    captures our own [ACTION NEEDED]/[HEALTH CHECK] outbound as inbound (echo
+    loop). Both calls read the SAME SENT_IDS_FILE."""
+    sent_ids_file = tmp_path / "sent.json"
+    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+    monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "daemon-xyz"}'))
+
+    msg_id = ntfy_utils.send_ntfy("[HEALTH CHECK] Stack OK")
+
+    assert msg_id == "daemon-xyz"
+    assert ntfy_utils.was_sent_by_us(msg_id) is True
+
+
+def test_record_sent_id_concurrent_writes_lose_no_ids(tmp_path, monkeypatch):
+    """R15 mutation test for Part A: the tagging control's named defect is a
+    LOST id from a read-modify-write race between concurrent daemon senders --
+    an unrecorded id makes was_sent_by_us() return False for our own outbound,
+    the exact echo-loop cause. The flock in record_sent_id closes it.
+
+    Mutant check: this test FAILS (loses ids) if the flock is removed and the
+    read-append-write runs unserialised."""
+    import threading
+
+    sent_ids_file = tmp_path / "sent.json"
+    monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
+    monkeypatch.setattr(ntfy_utils, "MAX_SENT_IDS", 10_000)
+
+    n = 120
+    barrier = threading.Barrier(n)
+
+    def worker(i: int) -> None:
+        barrier.wait()  # maximise overlap on the critical section
+        ntfy_utils.record_sent_id(f"id-{i}")
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    ids = json.loads(sent_ids_file.read_text())
+    assert len(ids) == n
+    assert len(set(ids)) == n
+    for i in range(n):
+        assert ntfy_utils.was_sent_by_us(f"id-{i}") is True
+
+
 def test_ntfy_topic_raises_at_import_if_unset():
     """SE_NTFY_TOPIC has no committed fallback (2026-07-08 rotation,
     docs/staging/NTFY_CHANNEL_HARDENING.md) -- importing the module with the
