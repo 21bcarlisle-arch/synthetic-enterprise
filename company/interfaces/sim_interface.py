@@ -12,6 +12,7 @@ When the functional separation is built (later phase), these stubs will be
 replaced with real implementations that call the simulation layer.
 """
 
+import os
 from typing import Any, Optional
 
 from company.crm.churn_model import estimate_churn_probability
@@ -324,7 +325,23 @@ class LiveSimInterface(SimInterface):
 
 
 def build_sim_interface(live: bool = False) -> SimInterface:
-    """Factory function. Returns LiveSimInterface when live=True (Phase 11a+)."""
+    """Factory function. Returns LiveSimInterface when live=True (Phase 11a+).
+
+    ARCH1 hook (docs/design/ARCH1_FRAME.md §4): if the `SIM_RECORDED_TRACE`
+    env var points at a recorded exogenous observable trace, return a
+    `RecordedSimInterface` bound to it — the company then replays the expensive
+    exogenous world at low memory instead of reconstructing it (~5.67 GB/life),
+    so `tournament_runner`'s memory cap stops throttling parallelism. Activation
+    is by env var ONLY (no code edit anywhere in the run path or the tournament
+    runner); the import is deferred so this factory has no import-time dependency
+    on the mock. Every WALL is preserved: the mock is a seam impl (epistemic wall
+    intact), replay is blindfold-gated (`observed_at > as_of` -> NOT_KNOWABLE_YET,
+    fail-closed) and draws zero RNG.
+    """
+    trace_path = os.environ.get("SIM_RECORDED_TRACE")
+    if trace_path:
+        from company.interfaces.recorded_sim_interface import RecordedSimInterface
+        return RecordedSimInterface.from_path(trace_path)
     if live:
         return LiveSimInterface()
     return StubSimInterface()
