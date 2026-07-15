@@ -310,35 +310,32 @@ def test_wait_for_claude_launch_returns_false_on_timeout(monkeypatch):
     assert watchdog.wait_for_claude_launch(timeout_seconds=5) is False
 
 
-def test_handle_usage_limit_resumes_in_place_once_message_clears(monkeypatch):
+def test_handle_usage_limit_clears_in_place_without_any_pane_injection(monkeypatch):
+    """PULL-LOOP MIGRATION (2026-07-15): the in-place RESUME_INSTRUCTION
+    keystroke nudge is DELETED. The watchdog no longer has a send_keys API and
+    must not type into the live pane. It only polls (read-only) until the limit
+    clears on its own or the process exits."""
+    assert not hasattr(watchdog, "send_keys")
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
     monkeypatch.setattr(watchdog, "session_exists", lambda: True)
     monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)
-
-    # The resume send now routes through the shared, logged `send_keys`
-    # primitive (DEFECT_TMUX_PANE_INJECTION REOPENED) rather than a raw
-    # subprocess call — mock that instead.
-    resume_sends = []
+    # No pane keystroke may be issued: if any tmux command is attempted, fail.
+    tmux_calls = []
     monkeypatch.setattr(
-        watchdog, "send_keys",
-        lambda session, *keys: resume_sends.append((session, keys)) or True,
+        watchdog.subprocess, "run",
+        lambda cmd, **kw: tmux_calls.append(cmd) or type("R", (), {"returncode": 0, "stdout": ""})(),
     )
-    # First poll: still limited; second poll: cleared.
+    # First poll: still limited; second poll: cleared on its own.
     pane_outputs = iter(["usage limit reached", "all clear, continuing"])
     monkeypatch.setattr(watchdog, "capture_pane", lambda: next(pane_outputs))
 
     watchdog.handle_usage_limit()
 
-    # "resumed automatically" NTFY suppressed by design (Rich flagged as spam).
-    # Verify: function polled (sent the resume instruction) and did NOT send the
-    # suppressed NTFY.
-    assert any(
-        session == watchdog.SESSION_NAME and keys and keys[-1] == "Enter"
-        for session, keys in resume_sends
-    )
+    # No `tmux send-keys` was ever issued (read-only capture only, mocked away).
+    assert not any(isinstance(c, list) and "send-keys" in c for c in tmux_calls)
     assert not any("resumed automatically" in msg for msg in ntfy_messages)
 
 
@@ -398,7 +395,16 @@ def _reset_autoloop_state():
     watchdog._autoloop_waiting_notified = False
     watchdog._autoloop_gate_clear_streak = 0
     watchdog._usage_pause_notified = False
-    watchdog._pending_gate_decision = None
+
+
+def test_watchdog_has_no_pane_injection_api():
+    """PULL-LOOP MIGRATION: every keystroke-injection entry point is gone; the
+    watchdog is process-level only (spawn/restart), never types into a live pane."""
+    for removed in ("send_keys", "send_keys_when_idle", "read_slash_dialog_when_idle",
+                    "check_inbound_commands", "_relay_inbound_command",
+                    "_flush_pending_gate_reply", "check_session_usage",
+                    "_pending_gate_decision"):
+        assert not hasattr(watchdog, removed), f"watchdog.{removed} must be deleted"
 
 
 def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
@@ -417,20 +423,16 @@ def test_check_autoloop_resets_streak_on_pane_change(monkeypatch):
 
 
 def test_check_autoloop_idle_does_nothing_when_no_gate_or_pause(monkeypatch):
-    """2026-07-09 (doorbell failure #4): check_autoloop() no longer sends a
-    turn-granting nudge on plain idle -- background/supervisor.py owns
-    that now. An idle pane with no REVIEW_GATE/permission-prompt/usage-pause
-    condition must do nothing further."""
+    """check_autoloop() never grants a turn and (PULL-LOOP MIGRATION) never
+    types into the pane. An idle pane with no REVIEW_GATE/permission-prompt must
+    do nothing further -- no NTFY, no pane write."""
     _reset_autoloop_state()
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
     relay_calls = []
-    monkeypatch.setattr(
-        watchdog, "send_keys_when_idle",
-        lambda session, text, marker: relay_calls.append((session, text)) or True,
-    )
-    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
+    monkeypatch.setattr(watchdog.subprocess, "run",
+                        lambda *a, **k: relay_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
@@ -461,62 +463,6 @@ def test_check_autoloop_pauses_on_review_gate(monkeypatch, tmp_path):
     assert len(gate_calls) == 1
     assert "REVIEW_GATE" in gate_calls[0][0]
     assert gate_calls[0][1] == watchdog.GATE_ID
-    assert ntfy_messages == []
-    _reset_autoloop_state()
-
-
-def test_check_autoloop_relays_gate_response(monkeypatch, tmp_path):
-    _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    responses_dir = tmp_path / "responses"
-    responses_dir.mkdir()
-    monkeypatch.setattr(watchdog, "RESPONSES_DIR", responses_dir)
-    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
-    (responses_dir / f"{watchdog.GATE_ID}.json").write_text(
-        json.dumps({"gate": watchdog.GATE_ID, "decision": "Rich approved — proceed."})
-    )
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    relay_calls = []
-    monkeypatch.setattr(
-        watchdog, "send_keys_when_idle",
-        lambda session, text, marker: relay_calls.append((session, text)) or True,
-    )
-
-    review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
-    # REVIEW_GATE_PATTERN is only checked once the pane has been idle
-    # (unchanged) for AUTOLOOP_IDLE_CHECKS consecutive polls.
-    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
-        watchdog.check_autoloop(review_gate_pane)
-
-    assert relay_calls == [(watchdog.SESSION_NAME, "Rich approved — proceed.")]
-    assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
-    assert any("Rich approved" in msg for msg in ntfy_messages)
-
-
-def test_check_autoloop_retries_gate_response_when_relay_fails(monkeypatch, tmp_path):
-    _reset_autoloop_state()
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    responses_dir = tmp_path / "responses"
-    responses_dir.mkdir()
-    monkeypatch.setattr(watchdog, "RESPONSES_DIR", responses_dir)
-    monkeypatch.setattr(watchdog, "GATE_TOKENS_DIR", tmp_path / "tokens")
-    (responses_dir / f"{watchdog.GATE_ID}.json").write_text(
-        json.dumps({"gate": watchdog.GATE_ID, "decision": "Rich approved — proceed."})
-    )
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    monkeypatch.setattr(watchdog, "send_keys_when_idle", lambda session, text, marker: False)
-
-    review_gate_pane = "Summary complete. REVIEW_GATE: awaiting Rich's review of Phase 4b-4."
-    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
-        watchdog.check_autoloop(review_gate_pane)
-
-    # Response file already consumed (single-use, avoids replay), but the
-    # decision must not be lost -- it stays buffered in memory for retry,
-    # never silently dropped because the pane happened to be busy.
-    assert not (responses_dir / f"{watchdog.GATE_ID}.json").exists()
-    assert watchdog._pending_gate_decision == "Rich approved — proceed."
     assert ntfy_messages == []
     _reset_autoloop_state()
 
@@ -703,9 +649,9 @@ def test_check_autoloop_suppressed_while_usage_pause_active(tmp_path, monkeypatc
 
 
 def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch):
-    """2026-07-09: usage-pause resume is now an NTFY transition (doorbell
-    failure #4 -- "the director never has to guess"), not a turn-grant --
-    that's background/supervisor.py's job once it reads the file is gone."""
+    """usage-pause resume is an NTFY transition ("the director never has to
+    guess"), never a pane write. Once the pause file's resume_at has passed,
+    usage_pause_active() deletes it and NTFYs the transition."""
     _reset_autoloop_state()
     pause_file = tmp_path / ".usage_pause.json"
     resume_at = datetime.now(timezone.utc) - timedelta(minutes=1)
@@ -714,305 +660,18 @@ def test_check_autoloop_resumes_after_usage_pause_expires(tmp_path, monkeypatch)
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
     ntfy_messages = []
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    relay_calls = []
-    monkeypatch.setattr(
-        watchdog, "send_keys_when_idle",
-        lambda session, text, marker: relay_calls.append((session, text)) or True,
-    )
-    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
+    tmux_calls = []
+    monkeypatch.setattr(watchdog.subprocess, "run",
+                        lambda *a, **k: tmux_calls.append(a[0]) or type("R", (), {"returncode": 0})())
 
     idle_pane = "Claude Code is idle at the prompt"
     for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
         watchdog.check_autoloop(idle_pane)
 
-    assert relay_calls == []  # no turn-grant from here any more
+    assert not any(isinstance(c, list) and "send-keys" in c for c in tmux_calls)  # no pane write
     assert any("resuming normally" in msg for msg in ntfy_messages)
     assert not pause_file.is_file()
     _reset_autoloop_state()
-
-
-def test_parse_usage_pane_extracts_pct_reset_time_and_tz():
-    pane_text = (
-        "Current session · Resets 4:59pm (Europe/London)\n"
-        "██████████████████\n"
-        "                                                          33% used\n"
-    )
-    assert watchdog.parse_usage_pane(pane_text) == (33, "4:59pm", "Europe/London")
-
-
-def test_parse_usage_pane_returns_none_without_usage_block():
-    assert watchdog.parse_usage_pane("Claude Code is idle at the prompt") is None
-
-
-def test_usage_resume_at_returns_future_utc_iso8601():
-    tz = ZoneInfo("Europe/London")
-    now_local = datetime.now(tz)
-    future_time = (now_local + timedelta(hours=1)).strftime("%I:%M%p").lstrip("0").lower()
-
-    resume_at = watchdog._usage_resume_at(future_time, "Europe/London")
-
-    resume_dt = datetime.fromisoformat(resume_at)
-    assert resume_dt.tzinfo is not None
-    assert resume_dt > datetime.now(timezone.utc)
-
-
-def test_check_session_usage_delegates_to_gated_slash_dialog(monkeypatch):
-    """DEFECT_TMUX_PANE_INJECTION REOPENED (2026-07-14): check_session_usage no
-    longer fires a RAW `tmux send-keys /usage` (which piled up on a busy pane);
-    it delegates to the shared, idle-gated `read_slash_dialog_when_idle`, which
-    injects only when the pane is safe and verifies the dialog rendered. This
-    test proves the delegation: it passes /usage + parse_usage_pane and returns
-    whatever the gated helper returns (None when the pane isn't safe)."""
-    seen = {}
-    def _fake_gate(session, command, parse):
-        seen["session"] = session
-        seen["command"] = command
-        seen["parse"] = parse
-        # exercise the caller's parse hook the way the real helper would
-        return parse("Current session · Resets 4:59pm (Europe/London)\n33% used\n")
-    monkeypatch.setattr(watchdog, "read_slash_dialog_when_idle", _fake_gate)
-
-    result = watchdog.check_session_usage()
-
-    assert result == (33, "4:59pm", "Europe/London")
-    assert seen["session"] == watchdog.SESSION_NAME
-    assert seen["command"] == "/usage"
-    assert seen["parse"] is watchdog.parse_usage_pane
-
-
-def test_check_session_usage_returns_none_when_pane_not_safe(monkeypatch):
-    """When the gated helper refuses (busy pane -> None), check_session_usage
-    returns None, which callers already treat as 'unknown, don't pause' -- so a
-    busy pane can never trigger a spurious /usage injection or pause."""
-    monkeypatch.setattr(watchdog, "read_slash_dialog_when_idle", lambda *a, **k: None)
-    assert watchdog.check_session_usage() is None
-
-
-def test_check_autoloop_writes_usage_pause_file_at_threshold(tmp_path, monkeypatch):
-    """2026-07-09: entering a usage pause is now an NTFY transition
-    (doorbell failure #4 -- "the director never has to guess"), reversing
-    the earlier no-NTFY-for-90%-pause choice now that it's a clean
-    enter/exit pair rather than a repeating heartbeat."""
-    _reset_autoloop_state()
-    pause_file = tmp_path / ".usage_pause.json"
-    monkeypatch.setattr(watchdog, "USAGE_PAUSE_FILE", pause_file)
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_messages.append(msg))
-    relay_calls = []
-    monkeypatch.setattr(
-        watchdog, "send_keys_when_idle",
-        lambda session, text, marker: relay_calls.append((session, text)) or True,
-    )
-    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (92, "4:59pm", "Europe/London"))
-
-    idle_pane = "Claude Code is idle at the prompt"
-    for _ in range(watchdog.AUTOLOOP_IDLE_CHECKS + 1):
-        watchdog.check_autoloop(idle_pane)
-
-    assert relay_calls == []  # no turn-grant from here any more
-    assert pause_file.is_file()
-    data = json.loads(pause_file.read_text())
-    assert "resume_at" in data
-    assert any("92%" in msg for msg in ntfy_messages)
-    _reset_autoloop_state()
-
-
-def test_check_inbound_commands_relays_new_message(monkeypatch):
-    """Inbound steering now goes through the gated `send_keys_when_idle`
-    (DEFECT_TMUX_PANE_INJECTION REOPENED) instead of a raw `tmux send-keys` on
-    the false 'Claude queues while busy' premise. On confirmed delivery the
-    watermark advances past the message."""
-    relay_calls = []
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(
-        watchdog, "send_keys_when_idle",
-        lambda session, text, marker: relay_calls.append((session, text, marker)) or True,
-    )
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
-
-    body = "\n".join([
-        json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "what's the capital cost ratio?"}),
-    ])
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 2000
-    assert len(relay_calls) == 1
-    session, text, marker = relay_calls[0]
-    assert session == watchdog.SESSION_NAME
-    assert "what's the capital cost ratio?" in text
-    assert "Received via NTFY from Rich's phone" in text
-    assert marker in text and marker.strip()  # distinctive slice of THIS message
-
-
-def test_check_inbound_commands_defers_undelivered_message_for_retry(monkeypatch):
-    """If the gated relay can't confirm delivery (pane busy -> False), the
-    watermark must NOT advance past the message -- it is retried next cycle,
-    never silently dropped (mirrors the permission-prompt deferral)."""
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(watchdog, "send_keys_when_idle", lambda *a, **k: False)
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
-
-    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "pause the sim please"})
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 1000  # watermark held -- message will be retried
-
-
-def test_check_inbound_commands_handles_usage_directly(monkeypatch):
-    send_keys_calls = []
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
-    )
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
-    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None: ntfy_messages.append(msg))
-    monkeypatch.setattr(watchdog, "check_session_usage", lambda: (33, "4:59pm", "Europe/London"))
-
-    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "/usage"})
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 2000
-    # /usage is handled directly, not relayed to the session
-    assert send_keys_calls == []
-    assert len(ntfy_messages) == 1
-    assert "33%" in ntfy_messages[0]
-    assert "4:59pm" in ntfy_messages[0]
-    assert "Europe/London" in ntfy_messages[0]
-
-
-def test_check_inbound_commands_usage_reports_fallback_when_unreadable(monkeypatch):
-    ntfy_messages = []
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda *a, **k: type("R", (), {"returncode": 0})(),
-    )
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
-    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None: ntfy_messages.append(msg))
-    monkeypatch.setattr(watchdog, "check_session_usage", lambda: None)
-
-    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "/usage"})
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 2000
-    assert len(ntfy_messages) == 1
-    assert "try again" in ntfy_messages[0].lower()
-
-
-def test_check_inbound_commands_skips_own_messages(monkeypatch):
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
-    )
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: msg_id == "own1")
-
-    body = "\n".join([
-        json.dumps({"id": "own1", "event": "message", "time": 2000, "message": "Claude Code milestone reached"}),
-    ])
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 2000
-    assert send_keys_calls == []
-
-
-def test_check_inbound_commands_ignores_messages_before_since(monkeypatch):
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
-    )
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
-
-    body = json.dumps({"id": "old1", "event": "message", "time": 500, "message": "old message"})
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 1000
-    assert send_keys_calls == []
-
-
-def test_check_inbound_commands_defers_when_permission_prompt_visible(monkeypatch):
-    send_keys_calls = []
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda *a, **k: send_keys_calls.append(a[0]) or type("R", (), {"returncode": 0})(),
-    )
-    monkeypatch.setattr(watchdog, "was_sent_by_us", lambda msg_id: False)
-
-    body = json.dumps({"id": "in1", "event": "message", "time": 2000, "message": "steer away"})
-    monkeypatch.setattr(
-        watchdog.requests, "get",
-        lambda *a, **k: type("R", (), {"text": body})(),
-    )
-
-    new_since = watchdog.check_inbound_commands("Do you want to proceed? (y/n)", since=1000)
-
-    assert new_since == 1000
-    assert send_keys_calls == []
-
-
-def test_check_inbound_commands_handles_poll_error(monkeypatch):
-    monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-
-    def _raise(*a, **k):
-        raise watchdog.requests.RequestException("boom")
-
-    monkeypatch.setattr(watchdog.requests, "get", _raise)
-
-    new_since = watchdog.check_inbound_commands("idle prompt", since=1000)
-
-    assert new_since == 1000
-
-
-def test_load_and_save_command_since_roundtrip(tmp_path, monkeypatch):
-    since_file = tmp_path / ".ntfy_command_since.json"
-    monkeypatch.setattr(watchdog, "NTFY_COMMAND_SINCE_FILE", since_file)
-
-    watchdog._save_command_since(12345.0)
-    assert watchdog._load_command_since() == 12345.0
-
-
-def test_load_command_since_defaults_to_now_when_missing(tmp_path, monkeypatch):
-    since_file = tmp_path / ".ntfy_command_since.json"
-    monkeypatch.setattr(watchdog, "NTFY_COMMAND_SINCE_FILE", since_file)
-    monkeypatch.setattr(watchdog.time, "time", lambda: 99999.0)
-    assert watchdog._load_command_since() == 99999.0
 
 
 def test_usage_limit_detected_when_claude_not_running_prevents_restart(monkeypatch):
@@ -1024,8 +683,6 @@ def test_usage_limit_detected_when_claude_not_running_prevents_restart(monkeypat
     monkeypatch.setattr(watchdog, "capture_pane", lambda: "usage limit reached")
     monkeypatch.setattr(watchdog.time, "sleep", lambda s: None)
     monkeypatch.setattr(watchdog, "log", lambda msg, needs_input=False: None)
-    monkeypatch.setattr(watchdog, "_load_command_since", lambda: 0.0)
-    monkeypatch.setattr(watchdog, "_save_command_since", lambda v: None)
 
     handle_usage_limit_calls = []
     handle_session_ended_calls = []

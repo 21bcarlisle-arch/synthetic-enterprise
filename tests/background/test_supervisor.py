@@ -18,11 +18,6 @@ import pytest
 from background import agenda as agenda_module
 from background import supervisor
 
-# Captured before the autouse fixture below patches maybe_auto_clear() out by
-# default -- TestAutoClear's own tests that exercise the real function
-# restore it explicitly via this reference.
-_REAL_MAYBE_AUTO_CLEAR = supervisor.maybe_auto_clear
-
 
 class _FakeClock:
     """A monotonically-advancing fake clock for time.time(), so stuck-
@@ -71,15 +66,6 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     (tmp_path / "staging").mkdir()
-    # Default off for every test in this file: maybe_auto_clear() reads the
-    # REAL transcript directory and REAL git status, so leaving it live would
-    # make run_cycle() tests nondeterministic (and, in the worst case, able
-    # to actually inject /clear into a live tmux session mid test-run) --
-    # discovered exactly this way, 2026-07-11, when the existing suite only
-    # passed by coincidence (the real working tree happened to be dirty at
-    # test-run time). Tests that specifically exercise auto-clear override
-    # this explicitly.
-    monkeypatch.setattr(supervisor, "maybe_auto_clear", lambda: False)
     _reset_supervisor_state()
     yield
     _reset_supervisor_state()
@@ -1287,32 +1273,6 @@ def test_run_cycle_skips_when_busy(monkeypatch):
     assert grant_calls == []
 
 
-def test_run_cycle_clears_copy_mode_before_idle_check(monkeypatch):
-    """R4 (2026-07-09): a pane frozen in tmux copy-mode/scrollback must be
-    cleared before this cycle trusts its own idle check -- not left to read
-    stale content forever."""
-    monkeypatch.setattr(supervisor, "pane_in_copy_mode", lambda session: True)
-    clear_calls = []
-    monkeypatch.setattr(supervisor, "ensure_live_tail", lambda session: clear_calls.append(session))
-    monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
-    grant_calls = []
-    monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
-    agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
-    supervisor.run_cycle()
-    assert clear_calls == [supervisor.SESSION_NAME]
-    assert len(grant_calls) == 1
-
-
-def test_run_cycle_does_not_clear_copy_mode_when_not_in_copy_mode(monkeypatch):
-    monkeypatch.setattr(supervisor, "pane_in_copy_mode", lambda session: False)
-    clear_calls = []
-    monkeypatch.setattr(supervisor, "ensure_live_tail", lambda session: clear_calls.append(session))
-    monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
-    monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
-    supervisor.run_cycle()
-    assert clear_calls == []
-
-
 def test_run_cycle_skips_when_idle_and_no_work(monkeypatch):
     monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
     grant_calls = []
@@ -1345,19 +1305,19 @@ def test_run_cycle_resume_transition_grants_even_with_no_other_work(monkeypatch)
     assert "usage-limit pause just ended" in reason_holder["reason"]
 
 
-# ── grant_turn(): reuses the shared locked relay ──
+# ── grant_turn(): PULL-LOOP MIGRATION -- NO pane write ──
 
-def test_grant_turn_calls_send_keys_when_idle(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        supervisor, "send_keys_when_idle",
-        lambda session, text, marker: calls.append((session, text)) or True,
-    )
-    result = supervisor.grant_turn("agenda open -- test")
-    assert result is True
-    assert len(calls) == 1
-    assert calls[0][0] == supervisor.SESSION_NAME
-    assert "agenda open -- test" in calls[0][1]
+def test_grant_turn_performs_no_pane_write_and_returns_true():
+    """After the migration grant_turn only logs the draw (the pull-loop Stop
+    hook delivers it) -- it must not import or call any injection primitive."""
+    assert not hasattr(supervisor, "send_keys_when_idle")
+    assert supervisor.grant_turn("agenda open -- test") is True
+
+
+def test_supervisor_has_no_pane_injection_api():
+    for removed in ("send_keys_when_idle", "ensure_live_tail", "pane_in_copy_mode",
+                    "maybe_auto_clear"):
+        assert not hasattr(supervisor, removed), f"supervisor.{removed} must be deleted"
 
 
 # ── Stuck-grant escalation (the piece beyond the literal spec) ──
@@ -1518,20 +1478,19 @@ def test_stuck_escalation_survives_daemon_restart(monkeypatch):
 # ── The four historical failure modes, simulated explicitly ──
 
 class TestFailureMode1RawSendIntoBusyPane:
-    """Original pre-Phase-SB corruption: a signed wake landed partially in
-    a busy pane's input box and never submitted. The supervisor must never
-    even attempt a send while the pane is busy."""
+    """Original pre-Phase-SB corruption came from typing into a busy pane. That
+    failure mode is now impossible BY CONSTRUCTION: the supervisor performs no
+    pane write at all (pull-loop migration). It still skips granting while busy,
+    but there is no send to corrupt."""
 
-    def test_never_calls_send_when_busy(self, monkeypatch):
+    def test_never_grants_when_busy_and_has_no_send_api(self, monkeypatch):
+        assert not hasattr(supervisor, "send_keys_when_idle")
         monkeypatch.setattr(supervisor, "is_session_idle", lambda session: False)
-        send_calls = []
-        monkeypatch.setattr(
-            supervisor, "send_keys_when_idle",
-            lambda *a, **k: send_calls.append(a) or True,
-        )
+        grant_calls = []
+        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
         agenda_module.set_agenda("PhaseX", "stepY", "urgent work")
         supervisor.run_cycle()
-        assert send_calls == []
+        assert grant_calls == []
 
 
 class TestFailureMode2UrgentFromRichQueuedNoWake:
@@ -1560,39 +1519,17 @@ class TestFailureMode2UrgentFromRichQueuedNoWake:
 
 
 class TestFailureMode3AutoloopRacingStagingWake:
-    """2026-07-08 strike 3: session_watchdog's autoloop nudge and
-    staging_watcher's wake could both attempt a send into the same pane at
-    once. The supervisor's grant goes through the same relay_lock-protected
-    send_keys_when_idle as every other daemon, so a concurrent holder of
-    the lock makes this attempt fail closed, never interleave."""
+    """2026-07-08 strike 3: two daemons could race a send into the same pane.
+    PULL-LOOP MIGRATION: no daemon sends into the pane anymore, so the race is
+    eliminated by construction (there is no relay_lock, no send path). The
+    single transport is the pull-loop Stop hook, one turn at a time."""
 
-    def test_grant_turn_fails_closed_when_relay_lock_held_by_another_daemon(self, monkeypatch, tmp_path):
-        import fcntl
+    def test_no_relay_lock_or_send_path_exists_to_race(self):
         from background import tmux_relay
-
-        monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
-        monkeypatch.setattr(tmux_relay, "_RELAY_LOCK_FILE", tmp_path / ".tmux_relay.lock")
-        monkeypatch.setattr(tmux_relay, "_RELAY_LOCK_TIMEOUT_SECONDS", 0.3)
-        send_calls = []
-        monkeypatch.setattr(
-            tmux_relay.subprocess, "run",
-            lambda cmd, **kw: send_calls.append(cmd) or type("R", (), {"returncode": 0, "stdout": "❯ \n"})(),
-        )
-
-        lock_fh = open(tmp_path / ".tmux_relay.lock", "w")
-        fcntl.flock(lock_fh, fcntl.LOCK_EX)
-        try:
-            # supervisor.grant_turn -> tmux_relay.send_keys_when_idle directly
-            # (bypassing the module-level pytest guard via the same pattern
-            # test_tmux_relay.py uses) to prove the real lock is what fails
-            # this closed, not a mock.
-            result = tmux_relay.send_keys_when_idle("claude", "hello|123|abc123", "abc123")
-        finally:
-            fcntl.flock(lock_fh, fcntl.LOCK_UN)
-            lock_fh.close()
-
-        assert result is False
-        assert send_calls == []  # never even attempted the idle check
+        for removed in ("relay_lock", "send_keys_when_idle", "_RELAY_LOCK_FILE"):
+            assert not hasattr(tmux_relay, removed), (
+                f"tmux_relay.{removed} still exists -- the race can only exist if a send path does"
+            )
 
 
 class TestFailureMode4DeliveredButNoProgress:
@@ -1726,60 +1663,12 @@ class TestAutoClear:
         os.utime(new, (now, now))
         assert supervisor._latest_transcript_size_bytes() == 500
 
-    def test_maybe_auto_clear_noop_when_condition_not_met(self, monkeypatch):
-        monkeypatch.setattr(supervisor, "maybe_auto_clear", _REAL_MAYBE_AUTO_CLEAR)
-        monkeypatch.setattr(supervisor, "should_auto_clear", lambda: False)
-        send_calls = []
-        monkeypatch.setattr(
-            supervisor, "send_keys_when_idle",
-            lambda *a, **k: send_calls.append(a) or True,
-        )
-        assert supervisor.maybe_auto_clear() is False
-        assert send_calls == []
-
-    def test_maybe_auto_clear_sends_clear_and_logs_when_condition_met(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(supervisor, "maybe_auto_clear", _REAL_MAYBE_AUTO_CLEAR)
-        monkeypatch.setattr(supervisor, "should_auto_clear", lambda: True)
-        monkeypatch.setattr(supervisor, "_latest_transcript_size_bytes", lambda: 12_345_678)
-        send_calls = []
-        monkeypatch.setattr(
-            supervisor, "send_keys_when_idle",
-            lambda session, text, marker: send_calls.append((session, text, marker)) or True,
-        )
-        monkeypatch.setattr(supervisor, "AUTO_CLEAR_LOG_FILE", tmp_path / "auto-clear-log.md")
-        assert supervisor.maybe_auto_clear() is True
-        assert send_calls == [(supervisor.SESSION_NAME, "/clear", "/clear")]
-        log_content = (tmp_path / "auto-clear-log.md").read_text()
-        assert "Auto-clear sent" in log_content
-        assert "12345678" in log_content
-
-    def test_maybe_auto_clear_logs_failure_when_send_fails(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(supervisor, "maybe_auto_clear", _REAL_MAYBE_AUTO_CLEAR)
-        monkeypatch.setattr(supervisor, "should_auto_clear", lambda: True)
-        monkeypatch.setattr(supervisor, "_latest_transcript_size_bytes", lambda: 12_345_678)
-        monkeypatch.setattr(supervisor, "send_keys_when_idle", lambda *a, **k: False)
-        monkeypatch.setattr(supervisor, "AUTO_CLEAR_LOG_FILE", tmp_path / "auto-clear-log.md")
-        assert supervisor.maybe_auto_clear() is False
-        log_content = (tmp_path / "auto-clear-log.md").read_text()
-        assert "FAILED to send" in log_content
-
-    def test_run_cycle_skips_normal_grant_when_auto_clear_fires(self, monkeypatch):
-        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
-        monkeypatch.setattr(supervisor, "maybe_auto_clear", lambda: True)
-        grant_calls = []
-        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
-        agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
-        supervisor.run_cycle()
-        assert grant_calls == [], "auto-clear firing must skip this cycle's normal turn-grant"
-
-    def test_run_cycle_proceeds_normally_when_auto_clear_does_not_fire(self, monkeypatch):
-        monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
-        monkeypatch.setattr(supervisor, "maybe_auto_clear", lambda: False)
-        grant_calls = []
-        monkeypatch.setattr(supervisor, "grant_turn", lambda reason: grant_calls.append(reason) or True)
-        agenda_module.set_agenda("PhaseX", "stepY", "do the thing")
-        supervisor.run_cycle()
-        assert len(grant_calls) == 1
+    def test_auto_clear_no_longer_injects(self):
+        """PULL-LOOP MIGRATION: maybe_auto_clear (which injected /clear) is
+        deleted. should_auto_clear survives as a read-only predicate; context
+        compaction is now the pull-loop hook's CHECKPOINT job, not a keystroke."""
+        assert not hasattr(supervisor, "maybe_auto_clear")
+        assert callable(supervisor.should_auto_clear)
 
 
 # ── R3_WORK_GRANTING_REDESIGN.md (P0, 9th idle variant, 2026-07-12) ──

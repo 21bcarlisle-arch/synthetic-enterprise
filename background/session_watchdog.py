@@ -44,40 +44,23 @@ main session to review on resume — never a direct commit. This keeps the
 GPU doing useful prep/housekeeping work instead of sitting idle during the
 wait (Rich's instruction).
 
-PROACTIVE USAGE PAUSE (soft, self-checkpointing — Rich's instruction,
-2026-06-13, fixed 2026-06-14): the usage-limit handling above is reactive —
-it waits for Claude Code's own "usage limit reached" message, which can land
-mid-tool-call and leave a messier resume than a stop at a natural checkpoint
-(between sub-phases, after a commit). To avoid that, check_autoloop() checks
-usage once per idle cycle: `check_session_usage()` sends a standalone
-`/usage` keystroke to the session (a slash command can only be recognised
-when it's the entire input — embedding "run /usage..." inside a longer
-instruction, as the original version of this did, is never executed as a
-command), captures the pane, parses the "Current session" percentage and
-reset time via `parse_usage_pane()`, then dismisses the dialog with Escape.
+PROACTIVE USAGE PAUSE — RETIRED (2026-07-15, pull-loop migration): the soft
+self-checkpointing pause drove a standalone `/usage` slash-command KEYSTROKE
+into the pane once per idle cycle (check_session_usage/parse_usage_pane), then
+wrote docs/observability/.usage_pause.json at >= 90%. /usage polling is
+eliminated (DIRECTOR_ANSWERS_C7 #3) and NOTHING may type into the pane, so all
+three functions are deleted. The HARD usage-limit path above (reactive,
+read-only detection via usage_limit_detected on the pane capture -> process-
+level handle_usage_limit) remains as the tripwire. usage_pause_active() still
+reads/expires the pause file the SESSION itself writes (read-only here).
 
-If usage is at or above USAGE_PAUSE_THRESHOLD_PCT (90%), the watchdog writes
-docs/observability/.usage_pause.json itself (`{"resume_at": "<iso8601>"}`,
-computed from the parsed reset time via `_usage_resume_at`) and sends one
-NTFY marking the transition into pause. background/supervisor.py reads this
-same file read-only every cycle and holds off granting turns while it's
-active. `usage_pause_active()` deletes the file and sends one NTFY marking
-the transition back out of pause once `resume_at` has passed (2026-07-09,
-doorbell failure #4: "usage-limit pause and resume become ntfy transitions
-so the director never has to guess") — `check_session_usage()` runs again
-on the next idle cycle and will pause again if still >= 90%. This is a soft
-self-imposed checkpoint layered in front of the hard usage-limit path
-above, not a replacement for it.
-
-RETIRED 2026-07-09 (doorbell failure #4, R3 architecture rebuild — see
-background/supervisor.py's module docstring): check_autoloop() no longer
-sends a turn-granting nudge itself. Its idle-streak detection continues to
-gate REVIEW_GATE-reply relay and permission-prompt detection (unrelated to
-turn-granting for open backlog work) and its usage-pause write/NTFY above,
-but background/supervisor.py is now the sole authority that grants a turn
-because open work exists. The removed AUTOLOOP_INSTRUCTION nudge fired
-"delivered (confirmed)" 34 times over 5.5 hours on 2026-07-08/09 with zero
-resulting work — see docs/retrospectives/2026-07-09-doorbell-failure-4-supervisor.md.
+TURN-GRANTING was never this function's job (retired 2026-07-09, doorbell
+failure #4). PULL-LOOP MIGRATION (2026-07-15): check_autoloop() no longer
+types ANYTHING into the pane at all — the REVIEW_GATE-reply relay is deleted
+(the director answers a gate at his own console; the machine never types his
+decision back in). What remains is read-only idle detection + a NOTIFY so the
+director knows the console wants him. Turn delivery is the pull-loop Stop
+hook's job (.claude/hooks/pull_next_work.py).
 
 KNOWN LIMITATION — "verified sender": even after the 2026-07-08 topic
 rotation to a secret value (docs/staging/NTFY_CHANNEL_HARDENING.md), ntfy.sh
@@ -126,11 +109,15 @@ from background.ntfy_utils import (  # noqa: E402
     was_sent_by_us,
 )
 from background.agent_status import update_agent_status  # noqa: E402
-from background.tmux_relay import (  # noqa: E402
-    send_keys,
-    send_keys_when_idle,
-    read_slash_dialog_when_idle,
-)
+# PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md + DIRECTOR_
+# ANSWERS_C7.md): the watchdog is now PROCESS-LEVEL ONLY. It may SPAWN/RESTART a
+# DEAD session (tmux new-session / launching a claude process -- a process op,
+# kept) but it may NEVER type keystrokes into a LIVE one. Every send_keys /
+# send_keys_when_idle / read_slash_dialog_when_idle import is deleted along with
+# the inbound-NTFY relay, the REVIEW_GATE reply relay, the usage-limit in-place
+# resume nudge, and the /usage slash-command polling. Inbound human steering
+# reaches the session via STAGING (ntfy_responder writes from_rich_*.md) + the
+# pull-loop draw; the pane is the director's console only.
 from background.health_check import run_health_check  # noqa: E402
 
 SESSION_NAME = "claude"
@@ -474,14 +461,6 @@ _autoloop_gate_clear_streak = 0
 # log/notify in check_autoloop so it logs once per pause, not every cycle.
 _usage_pause_notified = False
 
-# A gate decision read via read_and_clear_response() is consumed (unlinked)
-# from disk immediately, single-use -- but delivery into the tmux pane can
-# fail (busy pane). Buffer it here in memory so a failed send retries next
-# cycle instead of the decision being silently dropped (read-and-cleared but
-# never actually relayed). Cleared only once send_keys_when_idle() confirms
-# consumption.
-_pending_gate_decision: str | None = None
-
 
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -612,140 +591,6 @@ def wait_for_restart_confirmation(since: float) -> bool:
         if _poll_for_yes_reply(since):
             return True
     return False
-
-
-def _load_command_since() -> float:
-    """Last-seen timestamp for the inbound NTFY command poller, persisted
-    across watchdog restarts. Defaults to "now" on first run, so a fresh
-    watchdog doesn't replay the topic's entire history."""
-    if NTFY_COMMAND_SINCE_FILE.is_file():
-        try:
-            return json.loads(NTFY_COMMAND_SINCE_FILE.read_text(encoding="utf-8"))["since"]
-        except (json.JSONDecodeError, KeyError, TypeError):
-            pass
-    return time.time()
-
-
-def _save_command_since(since: float) -> None:
-    NTFY_COMMAND_SINCE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    NTFY_COMMAND_SINCE_FILE.write_text(json.dumps({"since": since}), encoding="utf-8")
-
-
-def _relay_inbound_command(message: str) -> bool:
-    """Type `message` (plus INBOUND_COMMAND_SUFFIX) into the 'claude' tmux
-    session as a new chat input, so Claude picks it up and replies via NTFY
-    per the suffix's instruction.
-
-    Routed through the shared, gated `send_keys_when_idle` (2026-07-14,
-    DEFECT_TMUX_PANE_INJECTION REOPENED): the old RAW `tmux send-keys` here
-    bypassed the injection gate on the false premise that "Claude Code queues
-    input typed while busy" — the same premise the `/usage` storm disproved (a
-    long keystroke burst arriving mid-turn corrupts/piles up in the input box,
-    it is NOT cleanly queued). Now it injects only when the pane is idle and
-    verifies the text both landed and was consumed. Returns True iff delivery
-    was confirmed; False means the pane was busy/unconfirmed and the caller
-    must retry next cycle (never advance the watermark past an undelivered
-    steering message)."""
-    log(f"Inbound NTFY command from Rich: {message!r} — relaying to session")
-    text = message + INBOUND_COMMAND_SUFFIX
-    # Marker = a distinctive slice of the actual message (not the constant
-    # suffix), so verification keys on THIS command's text landing.
-    marker = message.strip()[:40] or text[:40]
-    return send_keys_when_idle(SESSION_NAME, text, marker)
-
-
-def check_inbound_commands(pane_text: str, since: float) -> float:
-    """Poll the NTFY topic for messages posted after `since` that we didn't
-    send ourselves (`was_sent_by_us`), and relay each as a new chat input to
-    the 'claude' session (see `_relay_inbound_command`).
-
-    If a permission prompt is currently visible, relaying is deferred --
-    typing arbitrary text could be misread as a y/n response -- and `since`
-    is left at the point just before the first deferred message, so it (and
-    anything after it) is retried next cycle once the prompt clears.
-
-    Returns the new watermark to persist via `_save_command_since`.
-    """
-    _auth = {"Authorization": f"Bearer {NTFY_AUTH_TOKEN}"} if NTFY_AUTH_TOKEN else {}
-    try:
-        response = requests.get(
-            NTFY_POLL_URL, params={"poll": "1", "since": int(since)}, timeout=10,
-            headers=_auth,
-        )
-    except requests.RequestException as e:
-        log(f"Inbound command poll error: {e}")
-        return since
-
-    latest = since
-    for line in response.text.splitlines():
-        if not line.strip():
-            continue
-        try:
-            record = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-
-        if record.get("event") != "message":
-            continue
-        msg_time = record.get("time", 0)
-        if msg_time <= since:
-            continue
-        if was_sent_by_us(record.get("id")):
-            latest = max(latest, msg_time)
-            continue
-
-        message = record.get("message", "").strip()
-        if not message:
-            latest = max(latest, msg_time)
-            continue
-
-        if PERMISSION_PROMPT_PATTERN.search(pane_text):
-            log("Inbound NTFY command received but a permission prompt is "
-                "showing — deferring to next cycle")
-            return latest
-
-        if message.strip().lower() == "/usage":
-            _handle_usage_command()
-        else:
-            if not _relay_inbound_command(message):
-                # Pane busy / delivery unconfirmed — leave `since` just before
-                # this message so it (and anything after it) is retried next
-                # cycle, exactly like the permission-prompt deferral above.
-                # Never advance past an undelivered steering message.
-                log("Inbound command not yet delivered (session busy) — "
-                    "deferring to next cycle")
-                return latest
-        latest = max(latest, msg_time)
-
-    return latest
-
-
-def _handle_usage_command() -> None:
-    """Handle an inbound "/usage" command from Rich's phone directly,
-    without relaying it to Claude.
-
-    Relaying "/usage" (the way every other inbound command is relayed, via
-    `_relay_inbound_command`) doesn't work: a slash command is only
-    recognised when it's the *entire* input, and the relay always appends
-    INBOUND_COMMAND_SUFFIX — so Claude received literal text "/usage [...]"
-    that it could only guess about, producing exactly the "wildly
-    overestimating" answers Rich flagged. Instead, reuse
-    `check_session_usage()` (the same standalone-/usage + parse mechanism
-    the soft 90% self-pause already relies on) and reply with the real
-    figure directly.
-
-    If the dialog doesn't render in time (e.g. the session is mid-task and
-    the keystrokes were queued rather than executed), reports that plainly
-    rather than a guess.
-    """
-    usage = check_session_usage()
-    if usage is None:
-        send_ntfy(
-            "Couldn't read /usage just now (session may be mid-task) — try again in a moment."
-        )
-        return
-    pct, reset_time, tz_name = usage
-    send_ntfy(f"Usage: {pct}% of current session window used, resets {reset_time} {tz_name}.")
 
 
 def check_api_reachable() -> bool:
@@ -1035,18 +880,21 @@ def queue_downtime_tasks() -> None:
 
 
 def handle_usage_limit() -> None:
-    """Usage-limit auto-resume — no NTFY "YES" gate (see module docstring).
+    """Usage-limit auto-resume — PROCESS-LEVEL ONLY (pull-loop migration,
+    2026-07-15). No NTFY "YES" gate (see module docstring).
 
-    Queues forward-prep and housekeeping work for the background-worker
-    tmux session (`queue_downtime_tasks`), then polls every
-    USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging the session with
-    RESUME_INSTRUCTION, until either the usage-limit message clears (session
-    resumed in place) or the process has exited (restart with
-    `claude -c`). Falls back to the normal confirmation-gated
-    handle_session_ended() if USAGE_LIMIT_MAX_WAIT_SECONDS passes with the
-    limit message still showing.
-    """
-    log("Usage-limit message detected — auto-wait (no confirmation required)")
+    Queues forward-prep/housekeeping work for the background-worker session
+    (`queue_downtime_tasks`), then polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS
+    until EITHER the usage-limit message clears on its own (the session was
+    still alive and its window reset — nothing to do) OR the process has exited
+    (RESTART with `claude -c`, a process op — allowed). If the limit is still
+    showing after USAGE_LIMIT_MAX_WAIT_SECONDS, escalate to the normal
+    confirmation-gated handle_session_ended().
+
+    The old in-place RESUME_INSTRUCTION keystroke nudge into the live pane is
+    DELETED (keystroke injection is banned). The watchdog never types into a
+    live session; it only ever RESPAWNS a dead one."""
+    log("Usage-limit message detected — auto-wait (process-level only, no pane injection)")
     queue_downtime_tasks()
 
     waited = 0
@@ -1059,14 +907,10 @@ def handle_usage_limit() -> None:
             restart_claude(resume=True)
             return
 
-        # Recovery path: the pane is showing a usage-limit message, NOT an idle
-        # prompt, so the idle gate would (correctly) refuse — this is the one
-        # legitimate send into a non-idle pane. Still routed through the shared,
-        # logged `send_keys` primitive (never a raw subprocess call) so it is
-        # visible in injection-log.jsonl and session-guarded like every other
-        # pane write (2026-07-14, DEFECT_TMUX_PANE_INJECTION REOPENED).
-        send_keys(SESSION_NAME, RESUME_INSTRUCTION, "Enter")
-        time.sleep(5)
+        # No keystroke nudge into the live pane. Just re-read (read-only) whether
+        # the limit has cleared; if the window reset in place, the session
+        # resumes itself and the pull-loop draws its next work at the next
+        # boundary.
         if not usage_limit_detected(capture_pane()):
             log("Usage limit cleared — session resumed in place")
             return
@@ -1078,49 +922,14 @@ def handle_usage_limit() -> None:
     handle_session_ended()
 
 
-def parse_usage_pane(pane_text: str) -> tuple[int, str, str] | None:
-    """Parse the "Current session" block of `/usage` output from `pane_text`.
-
-    Returns (pct_used, reset_time, tz_name) — e.g. (33, "4:59pm",
-    "Europe/London") — or None if the pane doesn't contain a recognisable
-    /usage block (e.g. the dialog hasn't rendered yet)."""
-    m = USAGE_PCT_PATTERN.search(pane_text)
-    if not m:
-        return None
-    return int(m["pct"]), m["time"].strip(), m["tz"].strip()
-
-
-def _usage_resume_at(reset_time: str, tz_name: str) -> str:
-    """Convert a `/usage` reset time (e.g. "4:59pm") and IANA timezone name
-    (e.g. "Europe/London") into a UTC ISO8601 timestamp, assuming the reset
-    is the next occurrence of that time (today if still in the future,
-    otherwise tomorrow)."""
-    tz = ZoneInfo(tz_name)
-    now_local = datetime.now(tz)
-    reset_t = datetime.strptime(reset_time.lower().replace(" ", ""), "%I:%M%p").time()
-    resume_local = datetime.combine(now_local.date(), reset_t, tzinfo=tz)
-    if resume_local <= now_local:
-        resume_local += timedelta(days=1)
-    return resume_local.astimezone(timezone.utc).isoformat()
-
-
-def check_session_usage() -> tuple[int, str, str] | None:
-    """Send a standalone `/usage` command to the session, capture the
-    resulting dialog, dismiss it, and parse the "Current session" block.
-
-    Returns (pct_used, reset_time, tz_name), or None if the output couldn't
-    be parsed (e.g. the dialog didn't render within the wait — treated as
-    "unknown, don't pause" by callers).
-
-    Routed through the shared, gated `read_slash_dialog_when_idle` (2026-07-14,
-    DEFECT_TMUX_PANE_INJECTION REOPENED): the old RAW `tmux send-keys /usage`
-    here bypassed the injection gate entirely and, on a busy pane, piled the
-    unrecognised "/usage" keystrokes up in the input box once per cycle. Now it
-    injects ONLY when the pane is idle+empty+byte-stable (a slash command can
-    never submit mid-turn anyway), verifies the dialog rendered by parsing it,
-    and clears the input line if it didn't — so it can never accumulate.
-    """
-    return read_slash_dialog_when_idle(SESSION_NAME, "/usage", parse_usage_pane)
+# PULL-LOOP MIGRATION (2026-07-15): parse_usage_pane / _usage_resume_at /
+# check_session_usage are DELETED. All three existed to drive the `/usage`
+# slash-command injection (read_slash_dialog_when_idle typed "/usage" into the
+# pane) for the proactive 90%-usage self-pause. /usage polling is eliminated
+# (DIRECTOR_ANSWERS_C7 #3). The HARD usage-limit path (usage_limit_detected on
+# the read-only pane capture -> handle_usage_limit, process-level) remains as
+# the tripwire; usage_pause_active() below still reads the pause file the
+# session itself writes.
 
 
 def usage_pause_active() -> bool:
@@ -1158,34 +967,15 @@ def usage_pause_active() -> bool:
     return False
 
 
-def _flush_pending_gate_reply() -> bool:
-    """Attempt delivery of `_pending_gate_decision` (2026-07-08, third
-    wake-doorbell failure fix -- see tmux_relay.py module docstring). Uses
-    the same idle-gated, verified-consumption send as every other daemon
-    now goes through, instead of the old unguarded direct `tmux send-keys`
-    call. Returns True if there was nothing pending or it was just
-    delivered; False if a delivery attempt is still outstanding (pane busy
-    or unconfirmed) -- caller must retry next cycle, never treat the
-    decision as lost."""
-    global _pending_gate_decision
-    if _pending_gate_decision is None:
-        return True
-    decision = _pending_gate_decision
-    marker = decision[-24:] if len(decision) >= 24 else decision
-    if send_keys_when_idle(SESSION_NAME, decision, marker):
-        log(f"Gate reply delivered (confirmed): {decision!r}")
-        ntfy(f"Got it — relayed to the session: {decision}")
-        _pending_gate_decision = None
-        return True
-    log("Gate reply not yet delivered (session busy or unconfirmed) — retrying next cycle")
-    return False
-
-
 def check_autoloop(pane_text: str) -> None:
-    """Idle-state machine gating REVIEW_GATE-reply relay, permission-prompt
-    detection, and the proactive usage-pause check. Turn-granting for open
-    backlog work was retired from here 2026-07-09 (doorbell failure #4) --
-    that is now background/supervisor.py's sole job.
+    """Idle-state machine that NOTIFIES Rich when the session is genuinely
+    stopped at a REVIEW_GATE or a permission prompt. PULL-LOOP MIGRATION
+    (2026-07-15): it NO LONGER types anything into the pane. The REVIEW_GATE
+    reply relay is deleted (gate decisions are the director's at his console;
+    the machine never types his answer back in for him), and the proactive
+    /usage self-pause is deleted (/usage polling eliminated, DIRECTOR_ANSWERS_C7
+    #3). What remains is pure read-only detection + an NTFY so the director
+    knows the console wants him. Turn-granting was never this function's job.
 
     State machine over successive calls (one per CHECK_INTERVAL_SECONDS,
     pane content from `capture_pane()`):
@@ -1193,23 +983,12 @@ def check_autoloop(pane_text: str) -> None:
         mid-task. Any prior "waiting on Rich" state is cleared once the pane
         has been changing for AUTOLOOP_IDLE_CHECKS consecutive polls.
       - Pane unchanged for AUTOLOOP_IDLE_CHECKS consecutive calls: a genuine
-        stop, not mid-task quiet. Then:
-          - REVIEW_GATE or a permission prompt visible: NTFY once (not every
-            check) that the session needs Rich, and do nothing further.
-          - Otherwise: check /usage and write+NTFY a proactive pause if at
-            or above threshold (see PROACTIVE USAGE PAUSE above).
+        stop. If a REVIEW_GATE or permission prompt is visible, NTFY once.
 
     REVIEW_GATE_PATTERN/PERMISSION_PROMPT_PATTERN are deliberately only
-    checked once the pane is idle. Checking them unconditionally on every
-    poll (regardless of pane activity) caused a real incident: Claude's own
-    prose routinely *mentions* "REVIEW_GATE" while actively working (e.g.
-    discussing a staged instruction's gate requirements), and if that text
-    sat in the captured pane tail, the old code treated it as a deliberate
-    stop on every single poll — returning early before ever reaching the
-    idle logic. That suppressed the soft 90%-usage self-check for hours
-    while Claude kept working, until the hard usage-limit path caught it at
-    100% instead of the soft check catching it at 90%. Gating these patterns on
-    idle means an actively-changing pane never triggers them.
+    checked once the pane is idle — Claude's own prose routinely *mentions*
+    "REVIEW_GATE" while actively working, and gating on idle means an
+    actively-changing pane never false-triggers.
     """
     global _autoloop_last_pane, _autoloop_idle_streak, _autoloop_waiting_notified
     global _autoloop_gate_clear_streak, _usage_pause_notified
@@ -1239,25 +1018,15 @@ def check_autoloop(pane_text: str) -> None:
     _autoloop_gate_clear_streak = 0
 
     if REVIEW_GATE_PATTERN.search(pane_text):
-        global _pending_gate_decision
-        if _pending_gate_decision is None:
-            response = read_and_clear_response(GATE_ID)
-            if response is not None:
-                _pending_gate_decision = response.get("decision", "")
-                log(f"Gate reply received via NTFY action: {_pending_gate_decision!r} — relaying to session")
-
-        if _pending_gate_decision is not None:
-            if _flush_pending_gate_reply():
-                _autoloop_waiting_notified = False
-                _autoloop_idle_streak = 0
-            return
-
+        # NOTIFY ONLY -- the director answers the gate at his own console. The
+        # machine never types his decision back into the pane (keystroke
+        # injection is banned).
         if not _autoloop_waiting_notified:
-            log("REVIEW_GATE visible — waiting for Rich, autoloop paused")
+            log("REVIEW_GATE visible — waiting for Rich (director answers at the console)")
             token = generate_gate_token(GATE_ID)
             ntfy_gate(
-                "Claude Code is waiting at a REVIEW_GATE — tap to respond, "
-                "or check the session when you have a moment.",
+                "Claude Code is waiting at a REVIEW_GATE — check the session "
+                "when you have a moment.",
                 GATE_ID, token,
             )
             _autoloop_waiting_notified = True
@@ -1272,24 +1041,6 @@ def check_autoloop(pane_text: str) -> None:
         return
 
     _autoloop_idle_streak = 0
-
-    usage = check_session_usage()
-    if usage is not None:
-        pct, reset_time, tz_name = usage
-        if pct >= USAGE_PAUSE_THRESHOLD_PCT:
-            resume_at = _usage_resume_at(reset_time, tz_name)
-            USAGE_PAUSE_FILE.parent.mkdir(parents=True, exist_ok=True)
-            USAGE_PAUSE_FILE.write_text(
-                json.dumps({"resume_at": resume_at}), encoding="utf-8"
-            )
-            log(f"Session usage at {pct}% (>= {USAGE_PAUSE_THRESHOLD_PCT}%) — "
-                f"writing usage pause until {resume_at}")
-            ntfy(f"Claude Code usage at {pct}% — pausing until ~{resume_at} "
-                 "(auto-resumes, no action needed).")
-            _autoloop_waiting_notified = False
-            _autoloop_idle_streak = 0
-            return
-
     _autoloop_waiting_notified = False
 
 
@@ -1325,20 +1076,19 @@ def handle_session_ended(pane_text: str = "") -> None:
 
 
 def main() -> None:
-    log("Session watchdog started (auto-restart mode — no YES gate, max "
+    log("Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD "
+        f"session, never types into a LIVE one; auto-restart, no YES gate, max "
         f"{MAX_RESTARTS_PER_HOUR}/hr); idle-gate active "
         f"(idle {AUTOLOOP_IDLE_CHECKS * CHECK_INTERVAL_SECONDS}s -> REVIEW_GATE/"
-        "permission-prompt check, usage-pause check; turn-granting for open "
-        "work is background/supervisor.py's job now)")
+        "permission-prompt NOTIFY only)")
     # Startup NTFY suppressed — logged locally; Rich flagged this as noise (2026-06-25).
     update_agent_status(
         "session-watchdog", status="running",
         last_action="Watchdog started",
-        role="Monitors Claude Code session; handles REVIEW_GATE/permission-prompt/usage-pause",
-        produces="docs/observability/session-watchdog-log.md, tmux autoloop pings",
+        role="Monitors Claude Code session; RESTARTS a dead session (process op); NOTIFIES on REVIEW_GATE/permission-prompt (no pane injection)",
+        produces="docs/observability/session-watchdog-log.md, process restarts",
     )
     consecutive_down = 0
-    command_since = _load_command_since()
 
     while True:
         time.sleep(CHECK_INTERVAL_SECONDS)
@@ -1371,10 +1121,10 @@ def main() -> None:
             update_agent_status("session-watchdog", status="idle", last_action="Session alive check passed")
             pane_text = capture_pane()
 
-            new_command_since = check_inbound_commands(pane_text, command_since)
-            if new_command_since != command_since:
-                command_since = new_command_since
-                _save_command_since(command_since)
+            # PULL-LOOP MIGRATION (2026-07-15): the inbound-NTFY-command relay
+            # into the live pane is deleted. Inbound human steering arrives via
+            # STAGING (ntfy_responder writes from_rich_*.md) + the pull-loop
+            # draw; the watchdog never types it into the console.
 
             if usage_limit_detected(pane_text):
                 handle_usage_limit()

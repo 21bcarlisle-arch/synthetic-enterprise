@@ -57,24 +57,20 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "qwen3:14b"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy, sign_wake_message  # noqa: E402
+from background.ntfy_utils import send_ntfy  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
-from background.tmux_relay import send_keys_when_idle  # noqa: E402
+
+# PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the dispatcher
+# NO LONGER types URGENT messages into the live 'claude' pane. Keystroke
+# injection is deleted (banned; five deaths). The dispatcher still classifies
+# every from_rich_*.md and, for URGENT, sends a high-priority NTFY and prepends
+# a URGENT header -- but the message reaches the session via STAGING + the
+# pull-loop draw (supervisor.find_work serves URGENT-classified from_rich files
+# first), not by typing into the director's console.
 
 # Files the dispatcher has already classified. Persisted across restarts.
 # Value: classification ("urgent"|"normal"|"fyi")
 _SEEN_FILE = PROJECT_DIR / "background" / ".dispatcher_seen.json"
-
-# Filename -> message text for URGENT relays not yet confirmed-delivered
-# (root-cause fix, docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md,
-# 2026-07-08: a live incident showed a signed wake landing partially in a
-# busy pane and never submitting). Classification/header/NTFY happen
-# immediately in route_message() regardless -- only the tmux wake itself is
-# retried here, each poll cycle, until send_keys_when_idle() confirms
-# delivery. In-memory only, matching staging_watcher's same tradeoff: a
-# restart before delivery drops the retry, but the high-priority NTFY
-# already sent is the durable fallback.
-_pending_urgent: dict[str, str] = {}
 
 
 def log(msg: str) -> None:
@@ -170,43 +166,19 @@ def _prepend_urgency_header(path: Path, classification: str) -> None:
     path.write_text(header + existing)
 
 
-def _relay_to_claude(message: str) -> bool:
-    """Attempt to type `message` into the 'claude' tmux session (same as
-    session_watchdog), via background.tmux_relay.send_keys_when_idle --
-    refuses to run under pytest (see that module's docstring), refuses to
-    send at all unless the pane is currently idle, and verifies after
-    sending that the text was actually consumed rather than trusting a
-    fire-and-forget send.
-
-    Root-cause fix (docs/staging/TURN_CONTINUATION_AND_PHASE3_GO.md,
-    2026-07-08): a live incident showed exactly this relay's signed text
-    landing partially in the target pane's input box and never submitting
-    -- "queues input while busy" does not reliably hold. Returns False on
-    any failure; callers must retry, never assume delivery.
-
-    HMAC-signed (docs/staging/NTFY_CHANNEL_HARDENING.md, 2026-07-08) -- see
-    staging_watcher._relay_wake_to_claude for the same pattern. The
-    trailing HMAC hex digest doubles as the consumption-verification
-    marker."""
-    suffix = (
-        " [DISPATCHER: URGENT — this message has been classified as requiring "
-        "immediate attention. Pause current work, read this, and respond.]"
-    )
-    signed = sign_wake_message(message + suffix)
-    marker = signed.rsplit("|", 1)[-1]
-    return send_keys_when_idle(SESSION_NAME, signed, marker)
-
-
 def route_message(path: Path, message: str, classification: str) -> None:
-    """Apply routing action based on classification."""
+    """Apply routing action based on classification.
+
+    PULL-LOOP MIGRATION (2026-07-15): URGENT no longer types into the pane. It
+    prepends a URGENT header and sends a high-priority NTFY; the file stays in
+    staging where the pull-loop draw (supervisor.find_work) serves it first."""
     if classification == "urgent":
         _prepend_urgency_header(path, "urgent")
-        _pending_urgent[path.name] = message
         send_ntfy(
             f"[DISPATCHER: URGENT] Message from Rich flagged as urgent: {message[:100]}",
             headers={"X-Priority": "5", "X-Tags": "warning"},
         )
-        log(f"URGENT classified: {path.name} — high-priority NTFY sent, wake queued (retried until confirmed)")
+        log(f"URGENT classified: {path.name} — high-priority NTFY sent; served via staging + pull-loop draw (no pane injection)")
 
     elif classification == "fyi":
         FYI_DIR.mkdir(parents=True, exist_ok=True)
@@ -271,44 +243,6 @@ def check_once(seen: dict[str, str]) -> dict[str, str]:
     return seen
 
 
-def _attempt_pending_urgent() -> None:
-    """Attempt delivery of any queued URGENT relay(s) not yet confirmed --
-    called once per main() cycle. Clears an entry on CONFIRMED delivery
-    (idle pane + consumption verified) OR -- 2026-07-10, real observed bug
-    -- if the underlying staging file no longer exists at its original
-    path, meaning it has already been fully actioned and archived to
-    done/ by a session that never got a clean wake-delivery confirmation
-    back (e.g. it was mid-turn/busy every single cycle the retry fired).
-    Without this, _pending_urgent is purely in-memory state with no link
-    to real-world completion: a genuinely-answered, already-archived
-    message kept re-triggering "URGENT wake not yet delivered -- retrying"
-    every cycle indefinitely (observed: from_rich_20260710_144058.md and
-    _144806.md retried every ~60s for 20+ minutes after both had already
-    been answered and moved to docs/staging/done/), which reads to the
-    director as the same question being asked 3 times over NTFY when it
-    is actually one already-resolved item stuck in a dead retry loop --
-    exactly the class of repeat-status spam R5 exists to prevent, just
-    reached via a different daemon's stale state instead of a bad dedup
-    key. On failure with the file still present (busy, or
-    stuck-unconsumed), leaves it queued for the next cycle's retry, per
-    the root-cause fix's "never fire into a mid-turn session, hold and
-    retry" requirement. Classification/header/NTFY already happened in
-    route_message() regardless of wake delivery."""
-    if not _pending_urgent:
-        return
-    for name in sorted(_pending_urgent):
-        if not (STAGING_DIR / name).exists():
-            log(f"URGENT wake dropped (already actioned/archived, no longer at its staging path): {name}")
-            del _pending_urgent[name]
-            continue
-        message = _pending_urgent[name]
-        if _relay_to_claude(message):
-            log(f"URGENT wake delivered (confirmed): {name}")
-            del _pending_urgent[name]
-        else:
-            log(f"URGENT wake not yet delivered (session busy or unconfirmed) -- retrying next cycle: {name}")
-
-
 def main() -> None:
     log("Dispatcher started")
     seen = _load_seen()
@@ -318,11 +252,6 @@ def main() -> None:
             seen = check_once(seen)
         except Exception as e:
             log(f"Dispatcher error: {e}")
-
-        try:
-            _attempt_pending_urgent()
-        except Exception as e:
-            log(f"Pending-urgent-relay attempt error: {e}")
 
         time.sleep(POLL_INTERVAL_SECONDS)
 
