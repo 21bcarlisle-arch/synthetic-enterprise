@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-15T17:50:45Z
+Last updated: 2026-07-15T18:05:44Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-15T17:44:48Z
+Last updated: 2026-07-15T18:00:12Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -173,7 +173,7 @@ count; that is the honesty bar, not regression.
 - (T3_inherence) [unanswered >24h] Can you exhibit a single concrete run where two states differ only in "depth" and show the resulting numbers in the enterprise-value or survival formulas actually differ — and if you can't, on what basis is "physics" claimed to be wired in rather than merely labelled?
 - (T3_inherence) [unanswered >24h] If "physics" has never once changed an enterprise-value or survival number across any run, what observable output would you expect to differ if that code were deleted entirely — and if the answer is "none," what distinguishes it from a comment?
 - (T3_inherence) [unanswered >24h] If running the model with two different "depth" values would change the enterprise-value or survival outputs, can anyone point to the specific line where "depth" (or "physics") actually feeds into those calculations — or is the honest answer that no such connection exists, which is why the trivial test was never bothered with?
-- (T3_inherence) For a UK energy supplier whose only two objectives are surviving and maximising value, what specific decision would come out differently if the weather-physics hierarchy said "high wind tomorrow" versus "low wind" — and if you can't name that decision and show the money or survival-risk it moves, why is this model in the system at all rather than a cheaper off-the-shelf forecast or none?
+- (T3_inherence) [unanswered >24h] For a UK energy supplier whose only two objectives are surviving and maximising value, what specific decision would come out differently if the weather-physics hierarchy said "high wind tomorrow" versus "low wind" — and if you can't name that decision and show the money or survival-risk it moves, why is this model in the system at all rather than a cheaper off-the-shelf forecast or none?
 - (T3_inherence) When the "GB weather-physics hierarchy" is swapped for a naive forecast, does any downstream number the supplier actually acts on — a hedge volume, a procurement quantity, a dispatch setpoint — change by a non-zero amount, and if you cannot point to that specific number and its delta, what evidence distinguishes this hierarchy from decorative scaffolding that merely feeds itself?
 - (T3_inherence) What concrete decision this energy supplier faces in the current epoch would change based on the output of that weather-physics hierarchy and twin — and if none does, why is any effort being spent building it now rather than deferring registration until such a decision exists?
 - (T3_inherence) If the physics-based forecast diverges from the naive one, can you name a single trade, hedge, or dispatch order in the last 24 hours whose volume or price was demonstrably different because of that divergence — and if you cannot, what is the forecast being computed *for*?
