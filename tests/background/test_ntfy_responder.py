@@ -1,12 +1,26 @@
 import json
 import time
 
-from background import ntfy_responder as responder
+import pytest
 
-# check_once() mirrors inbound messages and (via send_ntfy) the ack reply
-# (ADVISOR_VISIBILITY.md's background/ntfy_mirror.py) -- no per-file isolation
-# needed: ntfy_mirror.append_mirror_entry() has its own structural
-# PYTEST_CURRENT_TEST guard (same pattern as tmux_relay.py).
+from background import ntfy_responder as responder
+from background import action_needed as _action_needed
+
+# check_once() mirrors inbound (ntfy_mirror has its own PYTEST_CURRENT_TEST
+# guard) -- BUT _write_to_staging() writes to PROJECT_DIR/docs/staging and reads
+# the real action_needed register, and had NO such guard. 2026-07-15 incident:
+# test_check_once_acks_messages_not_sent_by_us ran check_once against REAL
+# staging every suite invocation, leaking a "Hello Rich" from_rich_*.md each
+# time (a 90-file flood that re-granted supervisor turns) AND, once a wave-10
+# change made short messages stage while an action_needed item is open, failing
+# and wedging the publish gate. This autouse fixture makes that structurally
+# impossible: every test here writes staging to a tmp dir and sees an EMPTY
+# register (tests that need open items override it locally).
+@pytest.fixture(autouse=True)
+def _isolate_staging_and_register(tmp_path, monkeypatch):
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    (tmp_path / "docs" / "staging").mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(_action_needed, "open_items", lambda *a, **k: [])
 
 
 def test_run_progress_summary_no_active_run(tmp_path, monkeypatch):
