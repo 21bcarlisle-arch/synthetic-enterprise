@@ -1,8 +1,0 @@
-id: D3_catchup_rebilling
-level_current: 3
-append_evidence:
-  - "2026-07-16 H17 HARDEN (R15): red-team of check_back_billing_cap_respected found its OWN named defect -- docstring finding (a), existence-check-instead-of-magnitude fail-open (a £0.01 token write-off against a ~£3,860 four-year breach) -- had NO mutation test that fires on it. The sibling zero-write-off test cannot distinguish the two: the old `written_off_gbp > 0` existence check and the current magnitude check BOTH return False at exactly 0.0, so a regression to the exact old bug left the whole suite green. Added tests/controls/test_control_mutation.py::test_back_billing_cap_fires_on_token_write_off_against_large_breach, proven to FAIL on the mutated existence-check control and PASS on the current magnitude check. Test-file-only change; domain_invariants.py unchanged; D3 exit tests (29) + control mutation suite (85) + epistemic verifier all green. Level stays 3->3."
-append_simplification:
-  - "2026-07-16 H17: this HARDEN closed an R15 coverage gap, not a behaviour gap -- the control was already correct; what was missing was the mutation test proving it fires on its own named defect. Known-and-registered microbusiness back-billing-coverage gap (BackBillingAssessment.cap_applies returns False for non-domestic) left untouched: already in PRIORITIES.md per the 2026-07-12 Expert-Hour finding, queued not re-fixed (SELF_INTERRUPT_DISCIPLINE)."
-written_by: claude/atom-D3-H17-harden
-written_at: 2026-07-16T00:00:00Z
