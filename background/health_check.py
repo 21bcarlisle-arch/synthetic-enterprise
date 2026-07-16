@@ -351,6 +351,20 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
     else:
         ok_lines.append("  ✓ no stale-dependency candidates in the maturity map")
 
+    # A1_learn_loop_chair L3: the retrospective-cadence nudge fires automatically in the
+    # live pipeline (the watchdog runs run_health_check every cycle). Informational, not a
+    # hard failure -- a stale retro is a prompt to reflect, not a broken system. Defensive:
+    # a nudge-check error must never break the daemon's own health run.
+    try:
+        from background import retro_cadence_check
+        retro_warn = retro_cadence_check.check_retro_staleness()
+        if retro_warn:
+            ok_lines.append(f"  ℹ {retro_warn}")
+        else:
+            ok_lines.append("  ✓ retrospective cadence current")
+    except Exception as exc:  # noqa: BLE001 -- nudge check must never break the health run
+        ok_lines.append(f"  ℹ retro-cadence check unavailable: {exc}")
+
     all_ok = len(problem_lines) == 0
     return all_ok, ok_lines, problem_lines
 
