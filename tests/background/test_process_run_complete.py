@@ -654,3 +654,17 @@ def test_git_commit_push_commits_whole_generated_site_data_surface(tmp_path, mon
         assert str(data_dir / name) in added, (
             "%s must be committed by the site/data glob, not silently orphaned" % name
         )
+
+
+def test_pending_inboxes_folded_before_the_gate_runs():
+    """Class fix (2026-07-16): the publish gate must reconcile the map (fold any pending
+    atom_status inbox) BEFORE run_fast_tests, so the map-reconciliation control tests a
+    reconciled map, not a fork/fold-race transient (an unfolded W1_8 inbox wedged the
+    gate). Structural R15 guard: merge_atom_status.merge() is invoked, and it appears
+    BEFORE the run_fast_tests call in main() — revert the ordering and this fails."""
+    import inspect
+    from background import process_run_complete as prc
+    src = inspect.getsource(prc._process)  # main() delegates the real pipeline to _process()
+    assert "merge_atom_status" in src and ".merge()" in src, "pre-gate inbox fold missing"
+    assert src.index("_mas.merge()") < src.index("run_fast_tests("), \
+        "the inbox fold must run BEFORE the test gate (reconcile, then test)"

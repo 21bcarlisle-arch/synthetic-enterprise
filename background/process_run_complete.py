@@ -903,6 +903,12 @@ def git_commit_push(git_hash, net_margin):
     # unrelated auto-process commit message).
     with tree_lock():
         subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
+        # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
+        # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
+        # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
+        # was folded this cycle.
+        subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
+                        "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=30)
         result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR), timeout=30)
         if result.returncode != 0:
             log("Nothing to commit or commit failed")
@@ -1294,6 +1300,26 @@ def _process(marker_path_str):
         log("Weather data written to site/data/weather.json")
     except Exception as exc:
         log("Weather data fetch skipped: {}".format(exc))
+
+    # PRE-GATE RECONCILIATION (2026-07-16, class fix for the stale-live-state test
+    # wedge): fold any atom_status inbox a fork wrote (F1, in its own commit) into the
+    # working-tree map BEFORE the gate, so the map-reconciliation CONTROL tests a
+    # RECONCILED map, not a fork/fold-race transient. An unfolded W1_8 inbox intermittently
+    # failed test_no_unfolded_atom_status_inbox_at_rest and wedged the publish gate. This
+    # closes the whole reconciliation-race CLASS (any pending fork report), not one atom.
+    # Working-tree fold is enough for the gate; git_commit_push includes the map so the
+    # fold is published, not left dangling. tree_lock serialises against the daemon's own
+    # fold. Non-fatal: a fold error must never crash the publish.
+    try:
+        from background.tree_lock import tree_lock as _tree_lock
+        from tools import merge_atom_status as _mas
+        with _tree_lock():
+            _folded = _mas.merge()
+        if _folded:
+            log("Pre-gate fold: reconciled {} pending atom_status inbox(es) into the map: {}".format(
+                len(_folded), _folded))
+    except Exception as _exc:
+        log("Pre-gate inbox fold skipped (non-fatal): {}".format(_exc))
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)
