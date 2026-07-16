@@ -80,3 +80,66 @@ is worse than none.
 to code-verified (line-referenced non-atomic write + working-tree read = a fail-open race), with a sharpened root
 remedy (atomic map write + fail-closed read) queued for the H23 BUILD lane. Six drawn atoms HELD, no FRAME churn,
 no redundant inbox, no map edit (F1), no BUILD code.*
+
+---
+
+## Occurrence 10 addendum — the residual is ALSO a complete-but-stale dispatch window (a `read → dispatch → execute` gap the occ-8 remedy does not close)
+
+**Turn:** H17 Lane-3 DISCOVER (doc-only, no BUILD code — EPOCH_GATING Rule 1; no map edit — F1; no inbox — level HELD,
+nothing to append). **Drawn set this turn:** `W1_7_renewable_capacity_trends, W1_2_generate_futures,
+B4_competitor_field, B5_regional_basis_risk, W4_2_verifier_timing_extension, W1_3_national_weather_signal`.
+
+### Verified against real disk/git state (R7)
+
+All six read `_is_frame_saturated → True` against the committed map (each carries its own complete `*_FRAME.md`,
+all mtime 2026-07-16, all listed in `evidence`). The live guard is correct in the steady state: run directly this
+turn, `_idle_discover_frame_draw_concurrent()` **excludes all six** and instead offers a fresh un-framed set
+(`G4_unified_failure_register, W1_5_premise_demand_shape, A4_sim_approver, C4_adoption_physics,
+C5_key_moment_conversion, D4_loyalty_incentive_billing`). So — exactly as in occurrence 8 — the drawn six are a
+**genuine no-op**: HELD, no per-atom FRAME, no redundant `atom_status` inbox (re-asserting an unchanged level with
+nothing to append is itself the churn SELF_INTERRUPT_DISCIPLINE + R12 forbid), no map edit, no BUILD code.
+
+### The new sub-mechanism this occurrence isolates
+
+Occurrence 8's set was `{W4_2, W1_2, B4, B5, W1_3, W1_4_regional_weather_field}`. This set is **identical except
+`W1_4` → `W1_7`**. `W1_7_renewable_capacity_trends`'s own FRAME doc was authored **this same session**
+(map simplification: *"2026-07-16 FRAME LANDED (Lane-3 H17 DISCOVER/FRAME) … Genuine first FRAME for this atom"*).
+So at the cycle-time the daemon (`PID 721690`, started 19:43 UTC) read the map, `W1_7` was **legitimately
+un-saturated** — no FRAME doc folded yet. The daemon read a **complete, valid, non-partial** map, computed a correct
+draw including `W1_7`, and dispatched this fork. Between that draw and this fork **executing**, the `W1_7` FRAME
+fold landed — so the fork arrives at a now-saturated atom.
+
+This is **not** the mid-fold *partial* read occurrence 8 diagnosed. It is a **complete-but-stale `read → dispatch →
+execute` window**:
+
+- occ-8 remedy **(a) atomic map write** (`os.replace`) guarantees every read is *whole* — but the daemon's read
+  here already WAS whole; it was whole-and-stale. (a) does not help.
+- occ-8 remedy **(b) fail-closed read** skips the cycle on a *parse error / shape anomaly* — but this map parsed
+  cleanly with the correct atom count. (b) does not fire.
+
+Both occ-8 remedies assume the failure is a *partial/malformed* read. The stale-dispatch window survives both
+because the read was valid at draw-time and only became stale afterwards. (This is the same read→dispatch→fold gap
+whether or not any partial-read race also exists; the two are independent and BOTH must be closed.)
+
+### Remedy — sharpened, QUEUED not fixed (SELF_INTERRUPT_DISCIPLINE; this is BUILD on the loop, outside Lane-3)
+
+Add to occ-8's (a)/(b):
+
+- **(c) Computed fork-side saturation re-check (the belt to occ-8's braces).** Before a dispatched fork does any
+  FRAME work on a drawn idle atom, the executor (`run_loop` / the fork-dispatch path) re-reads the *current*
+  committed map and **drops any drawn atom that now reads `_is_frame_saturated → True`**; if every drawn atom drops,
+  the turn no-ops with the H23 log line rather than re-handing. This **mechanises the manual R7 judgment this very
+  turn exercised by hand** — the governance prose *"verify against real disk/git state and act on that"* is a
+  prose guard, and prose guards decay (MAKE_IT_STICK: this exact finding evaporated as prose across occurrences
+  1–7); a computed re-check at dispatch cannot. It reuses the already-tested `_is_frame_saturated` predicate, so the
+  DoD is one R15 mutation test: a fork handed a stale-saturated atom must no-op, and a fork handed a genuinely
+  un-saturated atom must proceed.
+
+(c) is reversible (git reverts) → **not a one-way door**; route via `director_twin.route_blocking_decision` as
+BUILD-within-the-open-epoch when the H23 BUILD lane next opens, alongside (a)/(b).
+
+*Bankable Lane-3 increment (occurrence 10): isolated a second, independent sub-mechanism of the H23 residual —
+a complete-but-stale `read → dispatch → execute` window that occ-8's partial-read remedies (atomic write,
+fail-closed read) structurally cannot close — evidenced by `W1_7` (a FRAME folded THIS session) appearing in the
+drawn set; sharpened the queued remedy with (c) a computed fork-side saturation re-check. Six drawn atoms HELD,
+no FRAME churn, no redundant inbox, no map edit (F1), no BUILD code.*
