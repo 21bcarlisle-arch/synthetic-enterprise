@@ -6,6 +6,24 @@ cd ~/synthetic-enterprise
 export OLLAMA_FLASH_ATTENTION=1
 export OLLAMA_NUM_CTX=8192
 
+# ── AUTO-RESTART STARTS THE FIXED STACK ONLY (2026-07-16, Item 5) ───────────────
+# Tonight a cron re-ran this script every 30 min and kept RESURRECTING a broken
+# stack all night. Two guards so an auto-restart (cron, or anything else) can never
+# bring up a stack that is disabled or that does not even load:
+#
+# 1. DURABLE DISABLE FLAG. If docs/observability/.stack_disabled exists, refuse to
+#    start and exit cleanly. This makes a deliberate DOWN state survive a cron tick
+#    (a console kill alone did NOT -- the whole incident). The director/agent drops
+#    the file to keep the stack down; removing it re-enables startup. Cron stays OFF
+#    regardless (this is belt-and-braces for the day it is ever re-added).
+STACK_DISABLED_FLAG="docs/observability/.stack_disabled"
+if [ -f "$STACK_DISABLED_FLAG" ]; then
+  echo "REFUSING TO START: $STACK_DISABLED_FLAG present -- the stack is deliberately"
+  echo "disabled. Reason: $(head -c 300 "$STACK_DISABLED_FLAG" 2>/dev/null)"
+  echo "Remove the flag to re-enable: rm $STACK_DISABLED_FLAG"
+  exit 0
+fi
+
 # DISABLE_AUTOUPDATER=1 permanent, every launch path (2026-07-09, director
 # flagged the auto-updater failing on npm permissions -- root cause: this
 # machine's system npm prefix (/usr) is root-owned while `claude` itself
@@ -89,6 +107,22 @@ _start_session() {
     echo "  [started] $name — $desc"
   fi
 }
+
+# 2. IMPORT SMOKE TEST (Item 5). Do NOT start a stack whose core code does not even
+#    load -- a broken import (a syntax error from half-landed work, a missing
+#    SE_NTFY_TOPIC) makes the NTFY daemons crash-loop on startup, exactly the "broken
+#    stack" cron kept resurrecting. The env is already loaded above, so ntfy_utils's
+#    import-time topic check passes on a healthy tree. If any core daemon fails to
+#    import, ABORT with the error and a non-zero exit -- refuse to bring up a stack
+#    that cannot run, rather than spawn a dozen instantly-dying sessions.
+SMOKE_ERR="$(python3 -c 'import background.ntfy_utils, background.health_check, background.session_watchdog, background.ntfy_responder, background.supervisor, background.process_run_complete' 2>&1)"
+if [ $? -ne 0 ]; then
+  echo "REFUSING TO START: core daemon import smoke test FAILED -- the stack would only" >&2
+  echo "crash-loop. Fix the import error before starting (this is the guard that stops an" >&2
+  echo "auto-restart resurrecting a broken stack):" >&2
+  echo "$SMOKE_ERR" | tail -20 >&2
+  exit 1
+fi
 
 echo "Starting synthetic-enterprise autonomous stack..."
 

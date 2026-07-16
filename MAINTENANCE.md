@@ -45,6 +45,27 @@ switching install methods could silently break that resolution.
 
 ---
 
+## Keeping the stack DOWN durably — `.stack_disabled` (2026-07-16, Item 5)
+
+`background/start_worker.sh` refuses to start if `docs/observability/.stack_disabled`
+exists (prints the file's first line as the reason, exits 0). A console kill of the
+stack is NOT durable — anything that re-runs `start_worker.sh` (a cron tick, a manual
+re-run) resurrects it; on 2026-07-16 a 30-min cron did exactly that all night. Drop the
+flag to make a deliberate DOWN state survive:
+
+```bash
+echo "why the stack is held down" > docs/observability/.stack_disabled   # hold down
+rm docs/observability/.stack_disabled                                     # re-enable
+```
+
+`start_worker.sh` also runs a core-daemon **import smoke test** before launching and
+aborts (exit 1) if any core module fails to import, and **restarts any daemon running
+code older than HEAD** (`health_check.stale_daemon_sessions`) so a (re)start deploys
+current committed code, never stale. Together these mean an auto-restart can only ever
+bring up the FIXED, current stack — never resurrect a broken one. **Cron for
+`start_worker.sh` is intentionally OFF** (2026-07-16); do not re-add it without a
+director decision.
+
 ## Retiring a background daemon — edit the launcher, not just the process
 
 **Standing rule (2026-07-08, learned the hard way):** "retiring" a background
