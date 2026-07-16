@@ -85,7 +85,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stall_consecutive_unchanged": 24
     },
     {
       "id": "B1_margin_bridge",
@@ -155,7 +155,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 17
     },
     {
       "id": "C1_segment_layers",
@@ -596,7 +596,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 19
     },
     {
       "id": "A1_learn_loop_chair",
@@ -613,7 +613,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 41
+      "stall_consecutive_unchanged": 44
     },
     {
       "id": "A2_decision_rights_register",
@@ -668,7 +668,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 23
+      "stall_consecutive_unchanged": 25
     },
     {
       "id": "H6_lane_wall_development_pilot",
@@ -794,7 +794,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 30
+      "stall_consecutive_unchanged": 35
     },
     {
       "id": "C5_key_moment_conversion",
@@ -814,7 +814,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 25
+      "stall_consecutive_unchanged": 28
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -834,7 +834,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "H3_production_readiness_nfr_evidence",
@@ -890,7 +890,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stall_consecutive_unchanged": 42
     },
     {
       "id": "F4_company_internal_authz",
@@ -943,7 +943,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 18
+      "stall_consecutive_unchanged": 27
     },
     {
       "id": "A5_tournament_fitness_mortality",
@@ -963,7 +963,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50
+      "stall_consecutive_unchanged": 54
     },
     {
       "id": "H9_map_write_serialisation",
@@ -997,7 +997,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 276
+      "stall_consecutive_unchanged": 358
     },
     {
       "id": "H10_worktree_isolation",
@@ -1031,7 +1031,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 284
+      "stall_consecutive_unchanged": 365
     },
     {
       "id": "G3_method_ip_worktree_retro",
@@ -1048,7 +1048,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 55
+      "stall_consecutive_unchanged": 62
     },
     {
       "id": "H11_naive_organ",
@@ -1378,7 +1378,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stall_consecutive_unchanged": 20
     },
     {
       "id": "W1_4_regional_weather_field",
@@ -1397,7 +1397,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 21
     },
     {
       "id": "W1_5_premise_demand_shape",
@@ -1416,7 +1416,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stall_consecutive_unchanged": 24
     },
     {
       "id": "W1_6_physics_price_signal",
@@ -1436,7 +1436,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 70
+      "stall_consecutive_unchanged": 73
     },
     {
       "id": "C13_weather_normalisation",
@@ -1456,7 +1456,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 57
+      "stall_consecutive_unchanged": 63
     },
     {
       "id": "W1_7_renewable_capacity_trends",
@@ -1475,7 +1475,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 58
+      "stall_consecutive_unchanged": 67
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1494,7 +1494,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 73
+      "stall_consecutive_unchanged": 81
     },
     {
       "id": "W1_9_dsr_flex_markets",
@@ -1513,7 +1513,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 62
+      "stall_consecutive_unchanged": 68
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -1532,7 +1532,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 63
+      "stall_consecutive_unchanged": 72
     },
     {
       "id": "H15_publish_gate_failure_alert",
@@ -1605,7 +1605,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 25
+      "stall_consecutive_unchanged": 35
     },
     {
       "id": "G4_unified_failure_register",
@@ -1622,7 +1622,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stall_consecutive_unchanged": 19
     },
     {
       "id": "H18_harness_self_mutation_audit",
@@ -1639,7 +1639,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 23
+      "stall_consecutive_unchanged": 30
     },
     {
       "id": "W4_3_external_truth_wall",
@@ -1648,15 +1648,15 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 19
+      "stall_consecutive_unchanged": 27
     },
     {
       "id": "G5_effort_sizing_discipline",
@@ -1673,7 +1673,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "G6_method_lens_audit",
@@ -1690,7 +1690,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 165
     }
   ],
   "lanes": {
