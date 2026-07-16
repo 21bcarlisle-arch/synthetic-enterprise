@@ -25,7 +25,14 @@ import sys
 import time
 from pathlib import Path
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent
+# parents[2], NOT parent.parent: this file lives at <repo>/.claude/hooks/, so
+# hooks -> .claude -> <repo> is TWO levels up. The old .parent.parent resolved
+# to <repo>/.claude, so ENABLE_FLAG pointed at <repo>/.claude/docs/observability/
+# .build_executor_enabled -- a path that never exists -- and kill_switch_enabled()
+# was permanently False: the director's real flag at <repo>/docs/observability/
+# was never read, so the Stop hook AND executor_daemon silently refused to run
+# (2026-07-16: "flag enabled but nothing executes the loop").
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 # THE single kill switch for ALL autonomous execution (DIRECTOR_ANSWERS_C7.md #6,
 # 2026-07-15, signed): ONE flag governs the pull loop AND any future headless
 # executor -- no second flag. CONSOLE-ONLY, director-reserved (same class as

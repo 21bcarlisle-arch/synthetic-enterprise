@@ -139,3 +139,28 @@ def test_hook_cannot_write_to_a_pane_structurally():
         # in EXECUTABLE code only (exclude the module docstring)
         body = src.split('"""', 2)[-1] if src.count('"""') >= 2 else src
         assert banned not in body, f"pane-write primitive {banned!r} in hook code"
+
+
+def test_project_dir_resolves_to_repo_root_not_dotclaude():
+    """Production-path regression (2026-07-16): PROJECT_DIR must be the REPO ROOT,
+    not <repo>/.claude. The hook lives at <repo>/.claude/hooks/, so it is TWO
+    levels up (parents[2]); the old `.parent.parent` gave <repo>/.claude, so the
+    REAL enable flag at <repo>/docs/observability/.build_executor_enabled was
+    never read and kill_switch_enabled() was permanently False -- the daemon and
+    Stop hook silently refused to run. Every other test monkeypatches ENABLE_FLAG
+    to a tmp path, so ONLY this test exercises the real resolution (the R15
+    lesson: a control mocked away from its integration path can't fire in prod)."""
+    repo_root = HOOK_PATH.resolve().parents[2]
+    spec = importlib.util.spec_from_file_location("pull_next_work_realpath", HOOK_PATH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    assert mod.PROJECT_DIR == repo_root, (
+        f"PROJECT_DIR resolved to {mod.PROJECT_DIR}, expected repo root {repo_root}"
+    )
+    # It must be a real repo root, not the .claude subdir.
+    assert mod.PROJECT_DIR.name != ".claude"
+    assert (mod.PROJECT_DIR / "background").is_dir()
+    assert (mod.PROJECT_DIR / ".claude" / "hooks").is_dir()
+    # The enable flag must point at the ONE real, director-set location.
+    assert mod.ENABLE_FLAG == repo_root / "docs" / "observability" / ".build_executor_enabled"
