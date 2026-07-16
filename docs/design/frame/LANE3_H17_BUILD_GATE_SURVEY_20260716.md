@@ -69,5 +69,39 @@ the draw yields to genuinely un-FRAMEd idle atoms. This keeps the treadmill hone
 generating duplicate-FRAME churn. Filed as intelligence for the next harness pass.
 
 ---
+
+## Addendum — H17 re-draw (2026-07-16, later) — B5 folded into the gate table
+
+The idle-DISCOVER/FRAME self-refill re-drew a **near-identical** set: `W1_2_generate_futures`,
+`B4_competitor_field`, `W4_2_verifier_timing_extension`, `W1_3_national_weather_signal`,
+`W1_4_regional_weather_field` — **plus `B5_regional_basis_risk`** (which this survey's original
+table did not carry) and **minus `H18_harness_self_mutation_audit`**. Verified against real disk
+state: the five shared atoms are unchanged since the survey above (same commit-day, nothing built,
+gates identical) — re-emitting their FRAMEs would be the exact duplicate-FRAME churn the meta-finding
+warns against, so no new per-atom FRAME is written. `B5` already carries a complete 19KB FRAME
+(`docs/design/frame/B5_regional_basis_risk_FRAME.md`, committed `5de4b2a91`); the only genuine,
+non-churn Lane-3 increment this re-draw yields is folding B5's single BUILD-unblock gate into the
+consolidated table so the epoch-sequencing intelligence covers every currently-drawn atom.
+
+| Atom | Epoch | Level (held) | Single BUILD-unblock gate | Gate class |
+|------|-------|--------------|---------------------------|------------|
+| `B5_regional_basis_risk` | 3 | 0 (→3) | `W1_8_zonal_locational_pricing` opens BUILD first (itself gated on `W1_6_physics_price_signal` **and** a **director-authored named zonal curriculum scenario**, R13); B5 releases **coupled with W1_8** (COUPLED_TRIAD: neither reaches L3 alone); at BUILD, register `W1_8↔B5` in `background/coupled_triad.py::_AUTHORITATIVE_COUPLING` | DIAL (depends_on) + **curriculum WALL** (zonal-regime scenario authorship, director-reserved) |
+
+- **B5 — the company leg of the W1_8 coupled pair.** It authors the company-side twin (provenance
+  `proposal`, L0→L3) that gives the W1_8 belief-vs-truth *regional-basis* gap a home: the company
+  observes settled/published zonal prices through the wall, holds only a **national** hedge (from B3),
+  and **cannot buy** a regional-basis hedge (no regional forward market — the real structural fact),
+  so a regionally-skewed book carries unhedgeable basis it may wrongly assume its national hedge covers.
+  Gap = believed (national-hedge) protection vs SIM-truth realised zonal basis cost `Σ_z vol_z·basis_z`.
+  **Dormant/zero under the national baseline** — the exposure only exists inside a director-authored
+  zonal-curriculum scenario, and per R13 that scenario's severity is **never** tuned to company basis
+  loss. Held at **L0** (proposal-atom FRAME ≠ built; BUILD-gated, EPOCH_GATING Rule 1).
+
+*This addendum is the only change: five shared atoms re-confirmed HELD with no new FRAME (anti-churn),
+B5 added to the gate table. No BUILD code, no map edit (F1). Meta-finding above now has a second data
+point — a saturated-atom re-draw recurred within the same day, reinforcing the `frame_saturated`-marker
+remedy as worth registering as a harness atom.*
+
+---
 *No BUILD code, no map edit (F1 — levels reported via `docs/design/atom_status/*.yaml` inbox).
 Every level HELD; see the gate table for what each atom's real progress depends on.*
