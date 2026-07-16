@@ -46,6 +46,22 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .retro-date { font-size: 11px; color: var(--muted); margin-left: 8px; }
 .retro-link { font-size: 11px; color: var(--blue); text-decoration: none; }
 .framing { font-size: 13px; line-height: 1.7; color: var(--text); font-style: italic; padding: 16px; background: var(--surface2); border-radius: 8px; }
+/* G11 activity-cost + utilisation section */
+.ac-guardrail { font-size: 12px; line-height: 1.6; color: var(--text); font-weight: 600;
+  padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--amber);
+  background: var(--surface2); margin-bottom: 16px; }
+.ac-guardrail-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--amber);
+  letter-spacing: .06em; display: block; margin-bottom: 4px; }
+.ac-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.ac-kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.ac-kpi-l { font-size: 10px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.ac-kpi-v { font-size: 20px; font-weight: 700; }
+.ac-kpi-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.ac-tax-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0;
+  border-bottom: 1px solid rgba(225,224,217,.6); font-size: 12px; }
+.ac-tax-row:last-child { border-bottom: none; }
+.ac-tax-waste { color: var(--amber); }
+.ac-tax-prod { color: var(--green); }
 .tr-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .tr-kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
 .tr-kpi-l { font-size: 10px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
@@ -133,6 +149,18 @@ code { overflow-wrap: break-word; }
     <div id="loop-pending"><div class="muted">Loading...</div></div>
     <div class="sec" style="margin-top:24px;font-size:10px">Recently actioned</div>
     <div id="loop-recent"><div class="muted">Loading...</div></div>
+  </div>
+
+  <div class="sec" id="activity-cost">Activity Cost &amp; Utilisation -- Product, or Itself?</div>
+  <div class="card">
+    <p class="framing" id="ac-framing" style="margin-bottom:16px">Loading...</p>
+    <div class="ac-guardrail" id="ac-guardrail"><span class="ac-guardrail-label">Diagnostic, never a target</span>Loading...</div>
+    <div class="ac-kpis" id="ac-kpis"></div>
+    <div class="sec" style="margin-top:8px;font-size:10px">Where the time goes (elapsed-time taxonomy)</div>
+    <div id="ac-taxonomy"><div class="muted">Loading...</div></div>
+    <div class="sec" style="margin-top:16px;font-size:10px">Cost-of-self-maintenance, trended (must fall, or the harness is a treadmill)</div>
+    <div id="ac-trend"><div class="muted">Loading...</div></div>
+    <p class="muted" id="ac-basis" style="margin-top:12px">Loading...</p>
   </div>
 
   <div class="sec" id="track-record">Track Record -- Predicted vs Realised</div>
@@ -292,6 +320,47 @@ function renderRetro(d){
   }).join(""):'<div class="muted">No retrospectives written yet.</div>';
 }
 
+function pct(v){return v==null?"--":v+"%";}
+function renderActivityCost(d){
+  if(!d){document.getElementById("ac-framing").textContent="Activity-cost data unavailable.";return;}
+  document.getElementById("ac-framing").textContent=d.framing||"";
+  document.getElementById("ac-guardrail").innerHTML='<span class="ac-guardrail-label">Diagnostic, never a target</span>'+esc(d.guardrail||"");
+  var m=d.metrics||{};
+  var pp=m.productive_pct||{}, sm=m.cost_of_self_maintenance||{}, rw=m.rework_rate||{}, vp=m.value_per_problem||{}, id=m.idle_on_director||{};
+  var kpis=[
+    {l:"Productive (time)",v:pct(pp.time_pct),sub:"cost "+pct(pp.cost_pct)},
+    {l:"Time-vs-cost divergence",v:(pp.time_minus_cost_divergence_pp==null?"--":pp.time_minus_cost_divergence_pp+"pp"),sub:"they diverge = signal"},
+    {l:"Self-maintenance",v:pct(sm.self_repair_pct_of_time),sub:"tokens "+pct(sm.self_repair_pct_of_tokens)},
+    {l:"Rework rate",v:pct(rw.rework_pct),sub:(rw.rework_commits!=null?rw.rework_commits+" commits":"")},
+    {l:"Value per problem",v:(vp.ratio==null?"--":vp.ratio),sub:"productive / problem commits"},
+    {l:"Idle on director",v:(id.open_count==null?"--":id.open_count+" open"),sub:(id.oldest_open_hours!=null?"oldest "+id.oldest_open_hours+"h":"")}
+  ];
+  document.getElementById("ac-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="ac-kpi"><div class="ac-kpi-l">'+esc(k.l)+'</div><div class="ac-kpi-v">'+esc(String(k.v))+'</div>'+
+      (k.sub?'<div class="ac-kpi-sub">'+esc(k.sub)+'</div>':'')+'</div>';
+  }).join("");
+  // Taxonomy: elapsed-time seconds per class -> hours + % of attributed.
+  var ta=d.time_attribution||{}, secs=ta.by_class_seconds||{}, attr=ta.attributed_seconds||0;
+  var tel=document.getElementById("ac-taxonomy");
+  var tax=(d.taxonomy||[]).map(function(cls){
+    var s=secs[cls]||0, h=(s/3600).toFixed(1), share=attr?((100*s/attr).toFixed(1)):"--";
+    var cl=cls.indexOf("PRODUCTIVE")===0?"ac-tax-prod":"ac-tax-waste";
+    return '<div class="ac-tax-row"><span class="'+cl+'">'+esc(cls)+'</span><span>'+esc(h)+'h &middot; '+esc(share)+'%</span></div>';
+  }).join("");
+  var un=ta.unattributed_seconds;
+  if(un!=null&&un>0){tax+='<div class="ac-tax-row"><span class="muted">unattributed (no signal)</span><span class="muted">'+(un/3600).toFixed(1)+'h</span></div>';}
+  tel.innerHTML=tax||'<div class="muted">No time data.</div>';
+  // Trend
+  var tr=(sm.trend&&sm.trend.windows)||[];
+  document.getElementById("ac-trend").innerHTML=tr.length?tr.map(function(w){
+    if(w.status!=="ok")return '<div class="ac-tax-row"><span>last '+esc(w.window_days)+'d</span><span class="muted">insufficient data</span></div>';
+    return '<div class="ac-tax-row"><span>last '+esc(w.window_days)+'d</span><span>'+esc(w.self_repair_pct_of_time)+'% self-repair ('+esc(w.self_repair_hours)+'h / '+esc(w.attributed_hours)+'h)</span></div>';
+  }).join(""):'<div class="muted">Insufficient history to trend.</div>';
+  document.getElementById("ac-basis").textContent=
+    "Basis: elapsed time from git commit timestamps (utilisation denominator, "+
+    (ta.n_commits!=null?ta.n_commits+" commits":"")+"); tokens from the token log (cost denominator, "+
+    ((d.token_attribution&&d.token_attribution.n_parsed)||0)+" session entries). "+(d.generated_from||"");
+}
 function renderBuild(d){
   var el=document.getElementById("build-note");
   var parts=[];
@@ -312,6 +381,15 @@ fetch("../data/method.json?t="+Date.now()).then(function(r){return r.json();}).t
 }).catch(function(e){
   console.error("method.json load error:",e);
   document.getElementById("role-grid").innerHTML='<div class="muted" style="color:var(--red)">Could not load method.json</div>';
+});
+
+// G11 activity-cost + utilisation: separate data file, separate fetch (a
+// reporting layer over git/token/escalation data), rendered into its own section.
+fetch("../data/activity_cost.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderActivityCost(d);
+}).catch(function(e){
+  console.error("activity_cost.json load error:",e);
+  document.getElementById("ac-framing").textContent="Could not load activity_cost.json";
 });
 </script>
 <script src="../shared/director-comments.js" defer></script>

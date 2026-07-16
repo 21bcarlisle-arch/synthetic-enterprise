@@ -682,6 +682,18 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("method.json generation failed: {}".format(exc))
     try:
+        # G11 activity-cost + utilisation (Method-door section): a reporting layer
+        # over git history + the token log + the escalation register. Wired here
+        # for the SAME R11 no-orphan-transition reason as the doors below -- a
+        # generated surface must ride the regen cycle or it silently freezes
+        # against its live sources. Its data file is ALSO in git_commit_push's
+        # commit-list (both halves wired). DIAGNOSTIC never a target (R12).
+        from tools.generate_activity_cost_data import generate as gen_activity_cost
+        gen_activity_cost()
+        log("Generated site/data/activity_cost.json (G11 activity-cost + utilisation)")
+    except Exception as exc:
+        log("activity_cost.json generation failed: {}".format(exc))
+    try:
         # Door 4 THE PROOF + Door 3 THE COMPANY: their generators were built with
         # the pages but NOT wired here, so the pages froze against their own live
         # sources (Door-4 cold-eyes caught it: proof.json showed 60 atoms vs a live
@@ -811,6 +823,12 @@ def git_commit_push(git_hash, net_margin):
     site_method_json = PROJECT_DIR / "site" / "data" / "method.json"
     if site_method_json.exists():
         files.append(str(site_method_json))
+    # G11 activity-cost + utilisation section rides the Method door -- its data
+    # file must be tracked here or the regenerated-but-uncommitted file stays
+    # frozen on the live site (same orphan-transition reasoning as the blocks above).
+    site_activity_cost_json = PROJECT_DIR / "site" / "data" / "activity_cost.json"
+    if site_activity_cost_json.exists():
+        files.append(str(site_activity_cost_json))
     site_case_studies_json = PROJECT_DIR / "site" / "data" / "case_studies.json"
     if site_case_studies_json.exists():
         files.append(str(site_case_studies_json))

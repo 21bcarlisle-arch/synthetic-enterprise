@@ -18,7 +18,9 @@ import pytest
 HERE = Path(__file__).resolve().parent
 INDEX = HERE / "index.html"
 HARNESS = HERE / "_render_harness.mjs"
+AC_HARNESS = HERE / "_render_activity_cost_harness.mjs"
 DATA = HERE.parent / "data" / "method.json"
+AC_DATA = HERE.parent / "data" / "activity_cost.json"
 
 NODE = shutil.which("node")
 pytestmark = pytest.mark.skipif(NODE is None, reason="node not available")
@@ -36,8 +38,24 @@ def _render(data: dict) -> dict:
     return json.loads(proc.stdout)
 
 
+def _render_ac(data: dict) -> dict:
+    proc = subprocess.run(
+        [NODE, str(AC_HARNESS), str(INDEX)],
+        input=json.dumps(data),
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert proc.returncode == 0, f"activity-cost harness failed: {proc.stderr}"
+    return json.loads(proc.stdout)
+
+
 def _live() -> dict:
     return json.loads(DATA.read_text())
+
+
+def _live_ac() -> dict:
+    return json.loads(AC_DATA.read_text())
 
 
 def test_roles_render_live_operating_model():
@@ -98,3 +116,50 @@ def test_rule_count_is_independent_of_render():
     d["rules"][0]["incident"] = "SENTINEL_999X_INCIDENT"
     out = _render(d)
     assert "SENTINEL_999X_INCIDENT" in out["rule-grid"]["innerHTML"]
+
+
+# ---------------------------------------------------------------------------
+# G11 activity-cost + utilisation section (separate data file, separate fetch)
+# ---------------------------------------------------------------------------
+def test_activity_cost_kpis_render_live_productive_pct():
+    d = _live_ac()
+    out = _render_ac(d)
+    kpis = out["ac-kpis"]["innerHTML"]
+    # the actual rendered productive-time pixel matches the live source value
+    t_pct = d["metrics"]["productive_pct"]["time_pct"]
+    assert f">{t_pct}%<" in kpis, kpis
+    # all five headline metrics are surfaced by label
+    for label in ("Productive (time)", "Self-maintenance", "Rework rate",
+                  "Value per problem", "Idle on director"):
+        assert label in kpis, f"metric {label!r} not rendered"
+
+
+def test_activity_cost_guardrail_visible():
+    d = _live_ac()
+    out = _render_ac(d)
+    g = out["ac-guardrail"]["innerHTML"]
+    assert "DIAGNOSTIC" in g.upper() and ("target" in g.lower())
+
+
+def test_activity_cost_taxonomy_renders_full_taxonomy():
+    d = _live_ac()
+    out = _render_ac(d)
+    tax = out["ac-taxonomy"]["innerHTML"]
+    for cls in d["taxonomy"]:
+        assert cls in tax, f"taxonomy class {cls} not rendered"
+
+
+def test_activity_cost_pixel_is_independent_of_render():
+    # R15 independence: mutate the source productive-time %; the rendered pixel
+    # must follow the data, not a baked-in constant.
+    d = _live_ac()
+    d["metrics"]["productive_pct"]["time_pct"] = 88.8
+    out = _render_ac(d)
+    assert ">88.8%<" in out["ac-kpis"]["innerHTML"]
+
+
+def test_activity_cost_section_present_in_page():
+    text = INDEX.read_text()
+    assert 'id="activity-cost"' in text
+    assert "renderActivityCost" in text
+    assert "activity_cost.json" in text
