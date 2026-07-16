@@ -1696,3 +1696,20 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an on-call page that carries the decision, not a link to a dashboard you must open"
   depends_on: []
+- id: H22_scheduled_housekeeping
+  name: "Scheduled housekeeping: a standing cadence+threshold sweep (maintenance-lane function) that inventories and clears cruft — stale worktrees, dead branches, staging droppings, unbounded logs, orphaned tmux, local/origin drift — reversible-by-default, never touching in-flight work"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: M
+  evidence: [docs/staging/done/SCHEDULED_HOUSEKEEPING.md]
+  file_scope: [background, tools, docs/design]
+  simplifications: ['2026-07-16 REGISTERED from SCHEDULED_HOUSEKEEPING.md (director-decided, P1, a standing function OF H20_parallel_maintenance_lane). Today cleanup is REACTIVE (only when something breaks) — the worst model: TWO incidents this weekend (the frozen test_health_check wedging the publish pipeline for 2h; the ~32-commit local/origin divergence silently blocking pushes) were both "old cruft nobody swept until it broke something". Provably accumulating: ~64 stale worktrees, recurring cross-machine divergence, .local-uncommitted-*.bak droppings, run_complete marker batches, stale test assertions. Fix: a recurring sweep (SRE toil discipline) on a cadence PLUS a threshold trigger (e.g. >N worktrees), inventorying+clearing worktrees/branches/staging/logs/orphaned-processes/local-origin-drift. GUARDRAILS (deleting the wrong thing is worse than cruft): reversible-by-default (archive/move to history, NEVER hard-delete); never touch in-flight work (sweep only PROVABLY abandoned — merged/idle-past-threshold/orphaned; file-scope/tree-lock aware); ambiguous (a map atom, a maybe-wanted branch) => FLAG for director review, never auto-vanish (and never escalate these as one-way doors — reversible, so per the predicate fix a flag is not a door); transition-only reporting (R5) so the sweep is not itself noise. First run clears the ~64 stale worktrees safely and DETECTS local/origin drift before it blocks pushes. DoD check: run with an in-flight worktree present — it prunes the abandoned ones and leaves the active one untouched.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an SRE housekeeping cron: log rotation, stale-branch reaping, disk/cruft sweeps on a schedule"
+  depends_on: [H20_parallel_maintenance_lane]
