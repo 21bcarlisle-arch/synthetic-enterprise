@@ -1,0 +1,28 @@
+id: A8_experiment_loop_speed
+level_current: 2
+append_evidence:
+  - docs/design/frame/A8_experiment_loop_speed_FRAME.md
+append_simplification:
+  - '2026-07-16 H17 Lane-3 DISCOVER/FRAME: first consolidated FRAME doc for A8
+    (docs/design/frame/A8_experiment_loop_speed_FRAME.md). Level HELD at 2
+    (DISCOVER/FRAME never moves an idle/BUILD-gated atom''s level). Fills the
+    named framing gap the atom''s own log flagged -- "No explicit L3 DoD text
+    exists for this atom to check off": the FRAME supplies an explicit,
+    checkable L2->L3 Definition-of-Done (D1 feasibility measured <=~60s/life;
+    D2 mock lever actually wired+consumed via the SimInterface seam; D3
+    byte-identical fitness fail-closed R15; D4 determinism across serial/
+    parallel/tiered C-S2; D5 coupled-triad closed on the real Epoch-4
+    tournament shape) plus an anti-DoD list, so the next A8 BUILD closes
+    against a written bar instead of re-deriving "what is done" a 5th time.
+    Also consolidates the lever inventory: levers 1 (self-calibrating worker
+    cap) + 2 (tiered SCREEN->FULL tests) LANDED and in-scope; levers 3 (mock
+    composition) + 4 (deterministic-stage caching) OUT of A8''s tools/tests
+    file_scope and BLOCKED on ARCH1_internal_seams. ARCH1 dependency
+    re-verified UNWIRED this turn (R7): grep build_sim_interface across
+    saas/company/sim/tools returns only the definition + a tournament_runner
+    docstring (zero run-path callers); saas/reporting/annual_report.py has
+    zero SimInterface refs, so SIM_RECORDED_TRACE stays a no-op on the real
+    run path. Not a one-way door (technical dependency); no escalation. No
+    BUILD code, no map edit (F1).'
+written_by: H17-lane3-frame/atom-A8
+written_at: 2026-07-16T00:00:00Z
