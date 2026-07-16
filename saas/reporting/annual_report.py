@@ -7456,8 +7456,8 @@ def _section_net_margin_bridge(data: dict) -> str:
         "see tools/generate_margin_bridge.py / the front page's reconciliation bridge for the "
         "quantified explanation.",
         "",
-        "| Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Portfolio | Driver | RAG |",
-        "|-----------|-------|---------|-----------|---------|---------|---------|---------|--------|-----|",
+        "| Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Residual Δ | Portfolio | Driver | RAG |",
+        "|-----------|-------|---------|-----------|---------|---------|---------|-----------|---------|--------|-----|",
     ]
 
     worst_val = None
@@ -7476,6 +7476,7 @@ def _section_net_margin_bridge(data: dict) -> str:
             f"| {_sign_gbp(b.capital_delta_gbp)} "
             f"| {_sign_gbp(b.policy_cost_delta_gbp)} "
             f"| {_sign_gbp(b.network_cost_delta_gbp)} "
+            f"| {_sign_gbp(b.residual_gbp)} "
             f"| {b.portfolio_change:+d} "
             f"| {driver} "
             f"| {rag} |"
@@ -7497,6 +7498,13 @@ def _section_net_margin_bridge(data: dict) -> str:
         "",
         "> Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: "
         "negative = costs rose (margin impact). Portfolio: active customer count change.",
+        "",
+        "> **Residual Δ (reconciliation):** net margin is *defined* as gross minus exactly these cost "
+        "lines, so the residual should be ~£0 and the five drivers should fully account for each net "
+        "movement. A materially non-zero residual is a tripwire, not noise -- it means a cost line has "
+        "entered net margin without a matching bridge driver (e.g. a renamed/dropped field); when the "
+        "residual strictly dominates every named driver the Driver column reads **other (unexplained)** "
+        "rather than confidently naming a minority contributor.",
         "",
     ]
     return "\n".join(lines)

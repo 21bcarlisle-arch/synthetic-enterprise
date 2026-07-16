@@ -1,12 +1,16 @@
 """Tests for saas/reporting/margin_attribution.py -- Phase NT."""
 
 import pytest
+import dataclasses
+
 from saas.reporting.margin_attribution import (
     MarginBridge,
     build_margin_bridge_series,
     dominant_driver,
+    residual_is_material,
     _direction,
     _FLAT_THRESHOLD_GBP,
+    _RESIDUAL_MATERIALITY_GBP,
 )
 
 
@@ -143,3 +147,83 @@ class TestDominantDriver:
         run = _run_data(_year(gross=100_000), _year(gross=400_000))
         bridges = build_margin_bridge_series(run)
         assert dominant_driver(bridges[0]) == "gross margin"
+
+
+def _bridge_with_residual(residual, named_max=1_000):
+    """A MarginBridge with an arbitrary residual injected -- the exact symptom of
+    a cost line entering net margin without a matching bridge driver. `named_max`
+    is the largest named-driver magnitude so we can test the strict-dominance
+    boundary."""
+    return MarginBridge(
+        year_from=2020, year_to=2021,
+        net_delta_gbp=named_max + residual,
+        gross_delta_gbp=named_max,
+        bad_debt_delta_gbp=0.0,
+        capital_delta_gbp=0.0,
+        policy_cost_delta_gbp=0.0,
+        network_cost_delta_gbp=0.0,
+        portfolio_change=0,
+        residual_gbp=residual,
+        direction="FLAT",
+    )
+
+
+class TestResidualReconciliationControl:
+    """R15 mutation tests: the reconciliation control must FIRE on its own named
+    defect (a materially non-zero residual = a driver silently dropped from the
+    bridge) and stay green on a well-reconciled bridge."""
+
+    def test_control_green_on_reconciled_bridge(self):
+        # Real, healthy state: residual ~0, drivers fully explain net movement.
+        assert residual_is_material(_bridge_with_residual(0.0)) is False
+
+    def test_control_fires_on_material_dominant_residual(self):
+        # MUTATION: inject a large unexplained residual (as a dropped/renamed cost
+        # line would). Control must fire -- this is the defect it exists to catch.
+        b = _bridge_with_residual(500_000, named_max=1_000)
+        assert residual_is_material(b) is True
+
+    def test_control_does_not_fire_below_materiality_floor(self):
+        # A residual under the floor is noise, not a break -- must stay green even
+        # if it nominally exceeds a tiny named driver.
+        b = _bridge_with_residual(_RESIDUAL_MATERIALITY_GBP - 1, named_max=0.0)
+        assert residual_is_material(b) is False
+
+    def test_control_requires_strict_dominance_over_named_drivers(self):
+        # Residual material in absolute terms but NOT larger than the dominant
+        # named driver -> the bridge still explains most of the movement, no fire.
+        b = _bridge_with_residual(10_000, named_max=50_000)
+        assert residual_is_material(b) is False
+
+    def test_dominant_driver_reads_unexplained_when_residual_dominates(self):
+        # The consumer effect (no orphan control, R11): the rendered Driver column
+        # tells the truth instead of naming a minority contributor.
+        b = _bridge_with_residual(500_000, named_max=1_000)
+        assert dominant_driver(b) == "other (unexplained)"
+
+    def test_dominant_driver_still_names_driver_when_reconciled(self):
+        b = _bridge_with_residual(0.0, named_max=1_000)
+        assert dominant_driver(b) == "gross margin"
+
+    def test_control_works_on_renderer_reconstructed_object(self):
+        # The report renderer rebuilds bridges as plain attribute-only objects
+        # (type("B", (), dict)()), which lack the dataclass property. The control
+        # must still work there -- guards against an AttributeError regression.
+        b = _bridge_with_residual(500_000, named_max=1_000)
+        plain = type("B", (), dataclasses.asdict(b))()
+        assert residual_is_material(plain) is True
+        assert dominant_driver(plain) == "other (unexplained)"
+
+    def test_real_pipeline_bridges_reconcile(self):
+        # The whole point of the tautology finding: on data built through the real
+        # net = gross - (policy+gas_policy) - (network+gas_network) - capital
+        # - bad_debt identity, every residual is ~0. If this ever fails, a driver
+        # has been dropped from the bridge. Year A: 300 - 90 - 40 - 20 - 50 = 100.
+        # Year B: 360 - 95 - 40 - 20 - 60 = 145.
+        run = _run_data(
+            _year(net=100_000),
+            _year(net=145_000, gross=360_000, bad_debt=60_000, policy_cost=85_000),
+        )
+        for b in build_margin_bridge_series(run):
+            assert abs(b.residual_gbp) < 0.01
+            assert residual_is_material(b) is False
