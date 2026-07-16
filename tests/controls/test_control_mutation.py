@@ -33,6 +33,9 @@ from company.compliance.domain_invariants import (
     check_resi_bill_consumption_plausible,
     check_back_billing_cap_respected,
     check_billed_clock_reconciles,
+    check_bill_foots,
+    check_bill_line_items_non_negative,
+    check_bill_period_sane,
 )
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
 from company.billing.pre_bill_validation import validate_bill
@@ -205,6 +208,62 @@ def test_gate_fail_open_on_nonpositive_subtotal_is_fixed():
 
     negative_sub = _bill(commodity_amount_gbp=-100.0)
     assert validate_bill(negative_sub).held is True
+
+
+# --------------------------------------------------------------------------
+# F6_bill_integrity_structural -- the three Tier-1 STRUCTURAL controls
+# (arithmetic footing, non-negativity/fail-CLOSED, temporal sanity). These are
+# load-bearing evidence for F6 at L2 but were absent from this central kill-list
+# apparatus until the 2026-07-16 F6 HARDEN pass -- registered here so R15's "no
+# control counts unless a mutation test proves it fires" holds for them too.
+# --------------------------------------------------------------------------
+
+def _foot_bill(**overrides):
+    b = dict(_bill())
+    b["total_amount_gbp"] = 74.03  # 44.55 + 16.65 + 9.30 + 3.53
+    b.update(overrides)
+    return b
+
+
+def test_bill_foots_fires_on_mistotalled_bill():
+    # CORRECT: total foots to components. MUTATE: a GBP 999,999 total on ~GBP 74
+    # of lines (the REDTEAM C2 exploit) MUST fire.
+    assert check_bill_foots(_foot_bill()) is True
+    assert check_bill_foots(_foot_bill(total_amount_gbp=999999.0)) is False
+
+
+def test_bill_foots_fails_closed_on_unreadable_total_or_component():
+    # Killer-pattern audit (FAIL-OPEN): a present-but-unreadable total/component
+    # must NOT pass as "not applicable".
+    assert check_bill_foots(_foot_bill(total_amount_gbp="lots")) is False
+    assert check_bill_foots(_foot_bill(commodity_amount_gbp="fifty")) is False
+
+
+def test_bill_non_negativity_fires_on_negative_charge():
+    # CORRECT: all lines non-negative. MUTATE: a negative standing charge on a
+    # non-credit bill MUST fire.
+    assert check_bill_line_items_non_negative(_foot_bill()) is True
+    assert check_bill_line_items_non_negative(_foot_bill(standing_charge_gbp=-9.30)) is False
+
+
+def test_bill_non_negativity_fails_closed_on_unreadable_line():
+    assert check_bill_line_items_non_negative(_foot_bill(vat_gbp="none")) is False
+
+
+def test_bill_period_sane_fires_on_reversed_and_absurd_span():
+    # CORRECT: an ordered, plausible-length period passes. MUTATE(1): reversed
+    # dates MUST fire (never the old silent clamp-to-1-day). MUTATE(2): F6 HARDEN
+    # 2026-07-16 -- an ordered-but-multi-decade span MUST also fire (was a
+    # fail-open: start<=end passed a 75-year period).
+    assert check_bill_period_sane(_foot_bill()) is True
+    assert check_bill_period_sane(_foot_bill(period_start="2024-01-31", period_end="2024-01-01")) is False
+    assert check_bill_period_sane(_foot_bill(period_start="2024-01-01", period_end="2099-12-31")) is False
+
+
+def test_bill_period_sane_fails_closed_on_missing_dates():
+    b = _foot_bill()
+    del b["period_start"]
+    assert check_bill_period_sane(b) is False
 
 
 # --------------------------------------------------------------------------

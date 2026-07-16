@@ -459,6 +459,30 @@ def test_reversed_period_bill_is_held_through_the_gate():
     assert any("temporally impossible" in r for r in result.reasons)
 
 
+def test_absurdly_long_period_bill_is_held_through_the_gate():
+    # F6 HARDEN 2026-07-16: an ordered-but-multi-decade service period is a
+    # temporal absurdity a real biller would never issue. Previously it passed
+    # the gate (start<=end held, consumption band coincidentally plausible over
+    # the huge day-count). Now HELD.
+    result = validate_bill(
+        _integrity_bill(period_start="2024-01-01", period_end="2099-12-31")
+    )
+    assert result.held is True
+    assert any("temporally impossible" in r for r in result.reasons)
+
+
+def test_annual_period_bill_still_passes_the_gate():
+    # Regression guard for the span bound: a legitimate annual bill must NOT be
+    # held. Consumption is scaled to stay in the resi plausibility band over the
+    # full year so only the temporal-span behaviour is under test.
+    bill = _integrity_bill(
+        period_start="2023-01-01", period_end="2023-12-31",
+        total_consumption_kwh=3600.0,
+    )
+    result = validate_bill(bill)
+    assert not any("temporally impossible" in r for r in result.reasons)
+
+
 def test_legitimate_catchup_bill_still_passes_the_gate():
     # REGRESSION GUARD (why the first F6 was dropped): a real back-billing
     # catch-up bill's total legitimately exceeds its four category lines by the

@@ -116,8 +116,9 @@ def validate_bill(bill: dict) -> BillValidationResult:
     if not check_bill_period_sane(bill):
         reasons.append(
             f"slc_6_7_billing_accuracy: bill period is temporally impossible or "
-            f"unreadable (period_start={bill.get('period_start')!r} > "
-            f"period_end={bill.get('period_end')!r}, or missing/malformed) -- "
+            f"unreadable (period_start={bill.get('period_start')!r}, "
+            f"period_end={bill.get('period_end')!r} -- start after end, an "
+            f"absurdly long single-period span, or missing/malformed) -- "
             f"REJECTED not clamped, HELD"
         )
 

@@ -10,21 +10,34 @@
 
 ---
 
-## HEADLINE (the honest CUMULATIVE number, 2 passes)
+## HEADLINE (the honest CUMULATIVE number, 5 passes)
 
-- **27 controls mutation-tested** cumulatively (Pass 1: 13 highest-tier / customer-impacting;
-  Pass 2 / H12 L2→L3: 14 more — the inventoried-but-untested tail).
-- **26 FIRED** on their own named defect.
+- **32 controls mutation-tested** cumulatively (Pass 1: 13 highest-tier / customer-impacting;
+  Pass 2 / H12 L2→L3: 14 more — the inventoried-but-untested tail; Pass 4, 2026-07-14:
+  2 director-named theatre controls fixed + registered; **Pass 5, 2026-07-16, F6 HARDEN:
+  the 3 load-bearing Tier-1 STRUCTURAL bill controls** — arithmetic footing, non-negativity/
+  fail-CLOSED, temporal sanity — which were F6 evidence at L2 but had never been entered
+  in this central apparatus).
+- **31 FIRED** on their own named defect.
 - **1 is THEATRE** — the flagship `vat_by_segment` arithmetic check (`check_vat`), a
   **TAUTOLOGY**. Retained as documented defence-in-depth but structurally
   cannot catch the SME-as-Household mislabel it is named for; the independent
   cross-check that replaces it (`check_vat_consistent_with_consumption`) **fires**.
-- **7 FIXED** cumulatively (Pass 1: 2; **F8, 2026-07-13: 5 — the entire KL-4..KL-8
-  gap set**). F8 gave each of KL-4..KL-8 a passing mutation test proving the control
+- **10 FIXED** cumulatively (Pass 1: 2; **F8, 2026-07-13: 5 — the entire KL-4..KL-8
+  gap set**; Pass 4: 2; **Pass 5, F6 HARDEN: 1** — the temporal-sanity FAIL-OPEN,
+  below). F8/Pass-4/Pass-5 each gave the fixed control a passing mutation test proving it
   now FIRES on its own named defect (before: theatre / passed-wrongly; after: fires),
-  each verified OUTCOME-SAFE against the live population (see per-gap notes below).
-  **The registered-gap count is now 0.** Every Pass-2 control still fires on its
-  *core* named defect, so **Pass-2 theatre count is 0**.
+  each verified OUTCOME-SAFE (Pass 5: the observed real bill-period max is 30 days, so
+  the 731-day span bound has a ~24x margin — no legitimate bill is HELD). **The
+  registered-gap count is 0.**
+- **Pass 5 red-team finding (F6 HARDEN, 2026-07-16):** `check_bill_period_sane` — the
+  "temporal sanity" control — checked `start <= end` ONLY, so an ordered-but-multi-decade
+  service period (e.g. `2024-01-01 → 2099-12-31`) sailed through the very absurdity class
+  the control is named for (**FAIL-OPEN**). Fixed: a span `> _MAX_BILL_PERIOD_DAYS` (731,
+  back-billing windows use the separate `catchup_period_*` fields) now also fails CLOSED.
+  One **named residual** left honest (R10): a wholly-future normal-span period is not
+  caught, because the predicate is intentionally clock-free (C-S2 replay-safe) — catching
+  it needs a caller-supplied as-of date, registered as follow-up not smuggled in.
 - Plus a **structural-only** check of the LLM-judge evaluators (their read-only
   guarantee is asserted; their verdict *quality* is documented as **not
   deterministically mutation-testable** and NOT counted as covered).
@@ -33,7 +46,7 @@
 | Killer pattern | Count | Controls |
 |---|---|---|
 | **TAUTOLOGY** | 2 | `check_vat` (THEATRE, mitigated, retained); `social_obligation non_compliant` status-trust (**KL-6 FIXED F8** — folds independent `is_underspend`) |
-| **FAIL-OPEN** | 3 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (**KL-7 FIXED F8** — NOT_APPLICABLE / fail-closed on broken detection); dashboard `_check_consistency` per-key skip (**KL-8 FIXED F8** — one-sided key = mismatch) |
+| **FAIL-OPEN** | 4 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (**KL-7 FIXED F8** — NOT_APPLICABLE / fail-closed on broken detection); dashboard `_check_consistency` per-key skip (**KL-8 FIXED F8** — one-sided key = mismatch); `check_bill_period_sane` multi-decade span (**FIXED Pass 5 F6 HARDEN** — >731-day single-period span fails CLOSED) |
 | **FAIL-SILENT** | 4 | Qwen backstop unavailable (**FIXED** P1); population estimated-read empty-log (**KL-4 FIXED F8** — empty log flags); `consumer_duty` empty-register=GREEN (**KL-5 FIXED F8** — distinct NOT_ASSESSED state); dashboard `_check_consistency` no-insights (**KL-8 FIXED F8** — absent insights fails closed) |
 
 Plus **documented, sourced limitations** (not killer patterns): the YearlyRange

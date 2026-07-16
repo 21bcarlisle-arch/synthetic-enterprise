@@ -5,11 +5,11 @@
   "generated_at": "2026-07-13",
   "method": "docs/design/control_registry.json + tests/controls/test_control_mutation.py",
   "headline": {
-    "inventoried": 27,
-    "mutation_tested": 27,
-    "fired": 26,
+    "inventoried": 33,
+    "mutation_tested": 32,
+    "fired": 31,
     "theatre": 1,
-    "note": "Cumulative across two passes plus the F8 gap-fix pass. Pass 1 covered the highest-tier customer-impacting set (13). Pass 2 extended to the inventoried-but-untested tail (14 more): the compliance trackers, the health / page-consistency gates, the daemon change-detection gate, plus a structural read-only check of the LLM-judge evaluators (their judgement quality is documented as not deterministically mutation-testable, not counted here). The 1 THEATRE control remains the flagship vat_by_segment arithmetic check -- a tautology, mitigated by an independent cross-check that fires. Pass 2 found 5 new killer-pattern GAPS (KL-4..KL-8); F8 (2026-07-13) CLOSED all five -- each now has a passing mutation test proving the control FIRES on its named defect, verified outcome-safe against the live population. 7 controls fixed cumulatively (2 in Pass 1, 5 in F8); 0 registered gaps remain."
+    "note": "Cumulative across five passes. Pass 1 covered the highest-tier customer-impacting set (13). Pass 2 extended to the inventoried-but-untested tail: the compliance trackers, the health / page-consistency gates, the daemon change-detection gate, plus a structural read-only check of the LLM-judge evaluators (their judgement quality is documented as not deterministically mutation-testable, not counted here). Pass 2 found 5 new killer-pattern GAPS (KL-4..KL-8); F8 (2026-07-13) CLOSED all five. Pass 4 (2026-07-14) fixed + registered two director-named theatre controls (deadman liveness FAIL-OPEN; the completion-claim TAUTOLOGY). Pass 5 (2026-07-16, F6 HARDEN) registered the three load-bearing Tier-1 STRUCTURAL bill controls that were F6 evidence but absent from this apparatus (arithmetic footing, non-negativity/fail-CLOSED, temporal sanity -- all three FIRE), and red-teaming them fixed a real FAIL-OPEN: the temporal-sanity control checked start<=end only, so an ordered multi-decade period passed -- now a >731-day single-period span also fails CLOSED. The 1 THEATRE control remains the flagship vat_by_segment arithmetic check -- a tautology, mitigated by an independent cross-check that fires. 10 controls fixed cumulatively; 0 registered gaps remain."
   },
   "killer_patterns": {
     "tautology": {"count": 2, "examples": ["check_vat (vat_by_segment arithmetic) -- THEATRE, retained defence-in-depth", "social_obligation non_compliant status-trust (KL-6 FIXED F8) -- now folds independent underspend evidence"], "status": "1 theatre (mitigated) + 1 gap FIXED (F8)"},

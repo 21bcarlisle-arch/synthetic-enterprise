@@ -794,6 +794,19 @@ def check_billed_clock_reconciles(total_billed_gbp: float, issued_bills: list) -
 # Penny-rounding headroom across several independently-rounded components.
 _FOOTING_TOLERANCE_GBP = 0.05
 
+# Maximum plausible span of a SINGLE bill's SERVICE period (period_start ->
+# period_end). A real domestic/SME bill covers a month/quarter/year; the longest
+# legitimate service period ever observed in this project's data is 30 days
+# (monthly). A back-billing CATCH-UP carries its recovery window in the SEPARATE
+# catchup_period_* fields (capped at 12 months by SLC 21BA), NOT in
+# period_start/period_end, so this bound never touches a legitimate catch-up.
+# Set at 2 years -- a ~24x margin over the observed max -- so it can only ever
+# fire on an unambiguous temporal absurdity (a reversed/garbled or multi-decade
+# span), never on a real annual bill. F6 HARDEN 2026-07-16: closes the fail-open
+# where check_bill_period_sane accepted an ORDERED-but-absurdly-long period
+# (e.g. 2024->2099 passed the "temporal sanity" control).
+_MAX_BILL_PERIOD_DAYS = 731
+
 # The four category charge lines that any bill carries and that must be
 # non-negative on a non-credit bill.
 _LINE_ITEM_KEYS = (
@@ -875,9 +888,25 @@ def check_bill_line_items_non_negative(bill: dict) -> bool:
 
 
 def check_bill_period_sane(bill: dict) -> bool:
-    """BILL_PERIOD_TEMPORAL_SANE enforcement: period_start must not fall after
-    period_end. Missing or unparseable period dates fail CLOSED -- REJECT, never
-    the previous silent clamp-to-1-day in _days_in_period()."""
+    """BILL_PERIOD_TEMPORAL_SANE enforcement: a bill's service period must be
+    temporally possible. Two conditions, both REJECT (never the previous silent
+    clamp-to-1-day in _days_in_period()):
+      1. ORDER: period_start must not fall after period_end.
+      2. SPAN:  period_end - period_start must not exceed _MAX_BILL_PERIOD_DAYS.
+         An ordered-but-absurdly-long period (e.g. a 2024->2099 span) is just as
+         temporally impossible for a single service period as a reversed one --
+         F6 HARDEN closed this fail-open (the control previously accepted it).
+
+    Missing or unparseable period dates fail CLOSED -- a bill must carry a
+    readable, possible period.
+
+    NAMED RESIDUAL (R10, not built this pass): a period wholly in the FUTURE
+    with a normal span (e.g. 2050-01-01 -> 2050-01-31) is still absurd (you
+    cannot meter consumption that has not happened) but is NOT caught here,
+    because this predicate is intentionally clock-free (pure, deterministic,
+    replay-safe -- C-S2). Catching it needs an as-of/issue-date reference passed
+    in by the caller; registered as follow-up rather than smuggling a wall-clock
+    read into an invariant."""
     start_raw = bill.get("period_start")
     end_raw = bill.get("period_end")
     if not start_raw or not end_raw:
@@ -887,7 +916,9 @@ def check_bill_period_sane(bill: dict) -> bool:
         end = date.fromisoformat(end_raw)
     except (ValueError, TypeError):
         return False  # fail closed: unparseable dates
-    return start <= end
+    if start > end:
+        return False
+    return (end - start).days <= _MAX_BILL_PERIOD_DAYS
 
 
 def invariant_count() -> int:

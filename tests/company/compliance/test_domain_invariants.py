@@ -502,3 +502,19 @@ def test_period_sane_fails_closed_on_missing_dates():
 
 def test_period_sane_fails_closed_on_unparseable_dates():
     assert check_bill_period_sane(_footing_bill(period_start="01/06/2018")) is False
+
+
+def test_period_sane_fires_on_absurdly_long_span():
+    # F6 HARDEN 2026-07-16 (R15 mutation test): an ORDERED but multi-decade
+    # service period is as temporally impossible as a reversed one. Previously
+    # this passed the "temporal sanity" control (start<=end only) -- a fail-open.
+    absurd = _footing_bill(period_start="2024-01-01", period_end="2099-12-31")
+    assert check_bill_period_sane(absurd) is False
+
+
+def test_period_sane_allows_an_annual_bill():
+    # Regression guard: the span bound must NOT fire on a legitimate annual bill
+    # (the longest real single-period bill a UK supplier issues). Observed max in
+    # this project's data is 30 days; a full year has a ~24x margin to the bound.
+    annual = _footing_bill(period_start="2023-01-01", period_end="2023-12-31")
+    assert check_bill_period_sane(annual) is True
