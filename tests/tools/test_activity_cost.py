@@ -94,6 +94,51 @@ def test_classify_discovery_keyword():
     assert classify_commit(_c("Register 3 director atoms"))[0] == DISCOVERY
 
 
+# --- H17 HARDEN class-fix: keyword false-positives from staged-directive prose ---
+def test_staging_directive_is_discovery_not_the_activity_its_prose_describes():
+    # A commit whose files are ALL under docs/staging/ is a directive being
+    # STAGED; its subject QUOTES policy words ("revert", "escalation", "two-strike",
+    # "quota") that must NOT keyword-classify it into a WASTE bucket. This was the
+    # single largest false-positive source (policy docs mis-billed as rework /
+    # idle-on-director / hit-limit). Staging/framing a directive is discovery.
+    assert classify_commit(_c(
+        "[ADVISOR-STAGED] two-strike auto-escalation policy; revert stale rules",
+        files=["docs/staging/PRIORITISATION_RULES.md"],
+    )) == (DISCOVERY, "staging_directive")
+    assert classify_commit(_c(
+        "[ADVISOR-STAGED] ESCALATION IS NTFY NEVER THE WINDOW (one-way door)",
+        files=["docs/staging/ESCALATION_IS_NTFY.md"],
+    ))[0] == DISCOVERY
+    # a real code revert is NOT all-staging -> still rework
+    assert classify_commit(_c("Revert bad curve", files=["saas/b.py"]))[0] == REWORK
+
+
+def test_director_block_requires_director_word_not_a_domain_escalation():
+    # "escalation" is an energy-domain term (Ombudsman escalation) and appears in
+    # plumbing fixes -- it must not alone mean idle-waiting-on-director.
+    assert classify_commit(_c(
+        "Phase 155: complaint management and Ombudsman escalation",
+        files=["company/crm/complaints.py"],
+    ))[0] == PRODUCT
+    assert classify_commit(_c(
+        "Fix escalation gap in the twin", files=["background/director_twin.py"],
+    ))[0] == SELF_REPAIR
+    # a genuine block (director word + block cue) still classifies as director-idle
+    assert classify_commit(_c("Blocked on director decision, awaiting NTFY"))[0] == IDLE_DIRECTOR
+
+
+def test_hit_limit_requires_an_interruption_not_building_limit_handling():
+    # BUILDING/FIXING usage-limit handling is self-repair, not a hit-limit WASTE event.
+    assert classify_commit(_c(
+        "fix: tighten usage-limit detection", files=["background/session_watchdog.py"],
+    ))[0] == SELF_REPAIR
+    assert classify_commit(_c(
+        "feat: usage-limit auto-resume in watchdog", files=["background/session_watchdog.py"],
+    ))[0] == SELF_REPAIR
+    # an ACTUAL interruption still classifies as hit-limit
+    assert classify_commit(_c("Paused: usage limit reached, auto-resume"))[0] == HIT_LIMIT
+
+
 def test_classify_product_keyword():
     assert classify_commit(_c("Auto-process run complete: report + site/"))[0] == PRODUCT
     assert classify_commit(_c("[build] hedge desk VaR"))[0] == PRODUCT

@@ -142,15 +142,28 @@ _REWORK_RE = re.compile(
     r"two-strike|back ?out|backed out|undo)\b",
     re.IGNORECASE,
 )
+# HIT-LIMIT is an ACTUAL usage-limit INTERRUPTION (the machine stopped because it
+# ran out), NOT a commit that merely BUILDS/FIXES usage-limit handling (that is
+# self-repair). Tightened to interruption-markers only, after a real-commit audit
+# found "tighten usage-limit detection", "usage-limit auto-resume", "Cloudflare
+# quota" (a deploy-contention plumbing issue) all mis-billed as hit-limit WASTE.
 _HIT_LIMIT_RE = re.compile(
-    r"\b(usage limit|usage-limit|hit[- ]limit|rate[- ]?limit|out of tokens|"
-    r"quota|5-?hour (?:window|cap))\b",
+    r"\b(usage[- ]limit reached|hit (?:the )?(?:usage|rate)[- ]?limit|"
+    r"out of tokens|rate[- ]?limited|quota exceeded|"
+    r"paused[:,]? usage[- ]limit|5-?hour (?:window|cap) (?:hit|reached))\b",
     re.IGNORECASE,
 )
+# DIRECTOR-BLOCK requires BOTH the word "director" AND a block/escalation cue --
+# a real-commit audit found the bare "escalat"/"one-way door" catch mislabelling
+# product features ("Ombudsman escalation" in complaint management) and plumbing
+# fixes ("fix escalation gap in the twin") as idle-waiting-on-director. The honest
+# source for the idle-on-director METRIC is the escalation register (director_idle),
+# not commit subjects; this subject rule is deliberately narrow. Dual-lookahead:
+# both a director mention and a block cue must appear somewhere in the subject.
 _DIRECTOR_RE = re.compile(
-    r"\b(waiting on (?:the )?director|await(?:ing)? director|blocked on director|"
-    r"one[- ]way door|escalat)\w*",
-    re.IGNORECASE,
+    r"(?=.*\bdirector\b)"
+    r"(?=.*\b(?:await\w*|blocked|waiting|escalat\w*|one[- ]way door|idle[- ]?waiting)\b)",
+    re.IGNORECASE | re.DOTALL,
 )
 _FIX_RE = re.compile(
     r"\b(fix|hotfix|housekeeping|unblock|unstick|stale|leak|repair|patch|"
@@ -227,6 +240,16 @@ def _domain(files: list) -> str:
     return leaders[0] if len(leaders) == 1 else "mixed_or_unknown"
 
 
+def _is_staging_directive(files: list) -> bool:
+    """A commit whose changed files are ALL under docs/staging/ is a directive/
+    policy/registration being STAGED (incl. [ADVISOR-STAGED]). Its subject quotes
+    the policy TEXT -- full of words like 'escalation', 'revert', 'two-strike',
+    'quota', 'one-way door' -- which is ABOUT those activities, not the machine
+    DOING them. Staging/framing a directive is discovery INVESTMENT, so it must be
+    settled by the file location, never by keyword-matching the quoted policy."""
+    return bool(files) and all(f.startswith("docs/staging/") for f in files)
+
+
 def classify_commit(commit: Commit) -> tuple[str, str]:
     """Classify one commit into (taxonomy_class, rule_name). Pure -- no git.
 
@@ -234,13 +257,19 @@ def classify_commit(commit: Commit) -> tuple[str, str]:
     classification is auditable, and anything unmatched degrades to
     `unattributed` (fail-honest) rather than being forced into productive:
 
+      0. all files under docs/staging/ -> PRODUCTIVE/discovery (staging a directive
+           is framing investment; its subject QUOTES policy prose that must not be
+           keyword-classified as the waste activity it merely describes)
       1. rework keywords            -> WASTE/rework
-      2. hit-limit keywords         -> WASTE/hit-limit
-      3. director/escalation words  -> WASTE/idle-waiting-on-director
-      4. a landed level bump (-> L) -> PRODUCTIVE/product   (output shipped)
-      5. fix-class subject:
+      2. hit-limit INTERRUPTION     -> WASTE/hit-limit  (interruption, not building
+                                                         limit-handling -> that's a fix)
+      3. a landed level bump (-> L) -> PRODUCTIVE/product   (output shipped)
+      4. fix-class subject:
            product-domain files     -> PRODUCTIVE/product   (fixed the product)
            else                     -> WASTE/self-repair    (fixed the plumbing)
+      5. director-block (director word + block cue) -> WASTE/idle-waiting-on-director
+           (checked AFTER fix so a plumbing FIX that merely mentions the director
+            is self-repair, not a block; the honest metric source is the register)
       6. discovery keywords         -> PRODUCTIVE/discovery
       7. product keywords           -> PRODUCTIVE/product
       8. else fall back to file domain:
@@ -250,12 +279,12 @@ def classify_commit(commit: Commit) -> tuple[str, str]:
            mixed/unknown            -> unattributed
     """
     s = commit.subject
+    if _is_staging_directive(commit.files):
+        return DISCOVERY, "staging_directive"
     if _REWORK_RE.search(s):
         return REWORK, "rework_keyword"
     if _HIT_LIMIT_RE.search(s):
         return HIT_LIMIT, "hit_limit_keyword"
-    if _DIRECTOR_RE.search(s):
-        return IDLE_DIRECTOR, "director_block_keyword"
     if _ARROW_RE.search(s):
         return PRODUCT, "level_transition"
     if _FIX_RE.search(s):
@@ -263,6 +292,8 @@ def classify_commit(commit: Commit) -> tuple[str, str]:
         if dom == "product":
             return PRODUCT, "fix_of_product"
         return SELF_REPAIR, "fix_of_plumbing"
+    if _DIRECTOR_RE.search(s):
+        return IDLE_DIRECTOR, "director_block_keyword"
     if _DISCOVERY_RE.search(s):
         return DISCOVERY, "discovery_keyword"
     if _PRODUCT_RE.search(s):

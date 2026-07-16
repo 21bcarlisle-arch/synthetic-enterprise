@@ -156,6 +156,23 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "real GB domestic switching market with ~8 active suppliers"
   depends_on: [W2_3_competitor_field]
+- id: B5_regional_basis_risk
+  name: "Regional basis risk (COUPLED): the company settles regional volumes at published zonal prices but can only hedge nationally -- no regional forward market exists -- so a regionally-skewed book carries unhedgeable basis; gap = assumed-national-hedge protection vs realised zonal basis cost (company twin of W1_8)"
+  lane: B_commercial
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: [docs/design/frame/B5_regional_basis_risk_FRAME.md, docs/design/frame/W1_8_zonal_locational_pricing_FRAME.md]
+  file_scope: [docs/design]
+  simplifications: ['2026-07-16 H17 Lane-3 DISCOVER (fork, doc-only): AUTHORED as the coupled company-side twin of W1_8_zonal_locational_pricing (provenance: proposal, EPOCH_GATING -- the agent may AUTHOR candidate atoms, never BUILD until opened). The company observes settled/published zonal prices through the wall, holds a national-only hedge (B3), and CANNOT buy a regional-basis hedge because no regional forward market exists (the real-world structural fact) -- so a regionally-skewed book carries unhedgeable basis and may wrongly assume its national hedge protects it. GAP = assumed-national-hedge protection / believed basis exposure vs SIM ground-truth realised zonal basis cost (Sigma_z volume_z * basis_z); reported per coupled pair each digest + Proof door. Pinned to R13: the zonal regime existence/severity is director-authored CURRICULUM (inherited from W1_8 sec6), never agent-tuned to company basis loss; under the national baseline this atom is dormant/zero. Distinct from B3 (national-only, no regional notion) and C13 (weather-normalisation demand twin of W1_5, mentions basis only in passing). Aggregation-consistency (W1_8 sec4): a book matched to national demand weights is basis-neutral; the skew is the exposure. COUPLED_TRIAD binding rule: W1_8 and B5 release L3 TOGETHER -- neither alone. BUILD opens with W1_8 (gated on W1_6_physics_price_signal + a director-opened zonal curriculum scenario); at BUILD, register W1_8<->B5 in background/coupled_triad.py::_AUTHORITATIVE_COUPLING. Level HELD at 0 (BUILD-gated). See docs/design/frame/B5_regional_basis_risk_FRAME.md.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real GB supplier with a regionally-skewed book hedged only to the single national forward curve, carrying regional basis it has no instrument to lay off"
+  depends_on: [W1_8_zonal_locational_pricing]
+
 
 - id: C1_segment_layers
   name: "Customer segment flavour fields (smart meter, dual-fuel, home/business type)"
