@@ -210,6 +210,34 @@ _ILLNESS_ANNUAL_PROB = 0.009
 _DIVORCE_ANNUAL_PROB = 0.0036
 
 
+# Demographic / economic life events model PEOPLE living in a dwelling: income
+# stress from redundancy (job_loss/income_recovery), a new child (new_baby),
+# retirement, long-term illness, divorce.  They are RESIDENTIAL-ONLY by
+# construction -- a business account (SME/I&C) has no "new baby" or "retirement"
+# (that residential-only-semantics-on-a-business absurdity is exactly the R10
+# class W2_6_sme_distress_twin exists to replace, modelling the SME/I&C
+# population's distress via sector shocks / insolvency instead).  The generator
+# gates this WHOLE set behind `household.is_residential`; the physical-adoption
+# events (solar/EV/heat-pump/boiler/insulation/battery/smart-meter) are NOT in
+# this set -- each has its own per-event physical-eligibility gate above.
+#
+# `is_residential` is a PROPERTY_TYPE test, used here as a proxy for
+# segment=='resi' because Household does not carry `segment`.  For the authored
+# customer roster the two are an exact match (no business-segment customer maps
+# to a residential property_type); that alignment is a locked invariant, not an
+# assumption -- see tests/simulation/test_phase_b_life_events.py
+# ::test_real_roster_business_segment_never_residential, which fails loudly the
+# moment a future roster puts an SME/I&C account in a residential dwelling.
+_RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS: frozenset[str] = frozenset({
+    "job_loss",
+    "income_recovery",
+    "new_baby",
+    "retirement_starts",
+    "illness",
+    "divorce",
+})
+
+
 # ---------------------------------------------------------------------------
 # Named RNG substreams — one per emitted event type (C-S2 substream discipline)
 # ---------------------------------------------------------------------------
@@ -416,10 +444,16 @@ def generate_life_events(
                 ))
                 insulation = InsulationLevel.FULL
 
-        # -- Economic life events (residential only) --
-        # Each event type draws from its OWN named substream (C-S2): adding or
-        # removing any one of them cannot shift the random draws of the others,
-        # the structural fix for the 01:09Z shared-econ-RNG incident.
+        # -- Economic / demographic life events (RESIDENTIAL ONLY) --
+        # The whole block below emits only _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS
+        # and is gated by is_residential: a business account has no new_baby /
+        # retirement / divorce (R10 -- W2_6_sme_distress_twin models SME/I&C
+        # distress instead).  Each event type draws from its OWN named substream
+        # (C-S2): adding or removing any one of them cannot shift the random
+        # draws of the others, the structural fix for the 01:09Z shared-econ-RNG
+        # incident.  Any NEW demographic event added here must be added to
+        # _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS and stay inside this gate -- the
+        # business-exclusion control test enforces that.
         if household.is_residential:
             # Job loss (only when not already in high stress)
             if income_stress != IncomeStress.HIGH:

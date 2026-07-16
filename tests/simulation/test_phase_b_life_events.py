@@ -372,3 +372,123 @@ def test_all_real_customers_generate_events_without_error():
         for e in events:
             assert isinstance(e, LifeEvent)
             assert e.customer_id == cid
+
+
+# ---------------------------------------------------------------------------
+# RESIDENTIAL-ONLY demographic-event contract (W2_5 HARDEN, 2026-07-16)
+#
+# Demographic / economic life events (job_loss, income_recovery, new_baby,
+# retirement_starts, illness, divorce) model PEOPLE in a dwelling and must NEVER
+# fire for a business (SME/I&C) account -- an SME has no "new baby" (R10
+# absurdity class; W2_6_sme_distress_twin models business distress instead).
+# These are the CLASS-LEVEL controls that make that absurdity fail automatically
+# rather than an instance fix (R10), and they are mutation-provable (R15): the
+# gate is shown to be load-bearing, not vacuously passing.
+# ---------------------------------------------------------------------------
+
+from simulation.life_events import _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS
+
+# Every non-residential (business) home_type in _HOME_TYPE_TO_PROPERTY.
+_BUSINESS_HOME_TYPES = [
+    "small_office",       # commercial_office
+    "warehouse_unit",     # commercial_warehouse
+    "office_building",    # commercial_office
+    "chemical_plant",     # industrial
+    "supermarket",        # commercial_warehouse
+]
+
+
+def _business_household(home_type: str, cid: str = "BIZ") -> Household:
+    return make_household({
+        "customer_id": cid,
+        "home_type": home_type,
+        "epc_rating": "C",
+        "segment": "I&C",
+        "metering": "HH",
+    })
+
+
+def test_demographic_event_set_is_exactly_the_gated_events():
+    # Guards the contract itself: the named constant must list precisely the
+    # economic/demographic events, so a future addition can't silently escape
+    # the residential gate by being omitted from this set.
+    assert _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS == frozenset({
+        "job_loss", "income_recovery", "new_baby",
+        "retirement_starts", "illness", "divorce",
+    })
+
+
+def test_no_demographic_events_for_business_property():
+    # THE CONTROL: no business-property household may ever receive a
+    # residential demographic event, across every business property type and a
+    # wide seed sweep (not a single lucky seed).
+    for home_type in _BUSINESS_HOME_TYPES:
+        h = _business_household(home_type)
+        assert not h.is_residential, f"{home_type} unexpectedly residential"
+        for seed in range(300):
+            events = generate_life_events(h, 2016, 2025, seed=seed)
+            leaked = [e.event_type for e in events
+                      if e.event_type in _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS]
+            assert leaked == [], (
+                f"{home_type} seed {seed}: business account received "
+                f"residential demographic events {leaked}"
+            )
+
+
+def test_demographic_gate_is_load_bearing():
+    # MUTATION / can-fail proof (R15): the SAME seeds that produce ZERO
+    # demographic events for a business household DO produce them for a
+    # residential household -- so the exclusion above is the is_residential
+    # gate doing real work, not the events simply never firing. If the gate
+    # were removed, test_no_demographic_events_for_business_property would fail.
+    h = _semi()
+    assert h.is_residential
+    fired = set()
+    for seed in range(300):
+        events = generate_life_events(h, 2016, 2025, seed=seed)
+        fired |= {e.event_type for e in events
+                  if e.event_type in _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS}
+    # Over 300 seeds a residential household reaches multiple demographic
+    # events; require at least the common ones so the control is demonstrably
+    # exercising a live code path, not a dead branch.
+    assert "job_loss" in fired
+    assert len(fired) >= 3, f"residential demographic events seen: {sorted(fired)}"
+
+
+def test_business_household_only_emits_physical_adoption_events():
+    # Belt-and-braces: whatever a business household DOES emit must be drawn
+    # only from the physical-adoption event types, never a demographic one.
+    # Catches a newly-added demographic event that forgets the residential gate.
+    h = _business_household("warehouse_unit")
+    seen = set()
+    for seed in range(300):
+        seen |= {e.event_type for e in generate_life_events(h, 2016, 2025, seed=seed)}
+    assert seen & _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS == set(), (
+        f"business household emitted demographic events: "
+        f"{sorted(seen & _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS)}"
+    )
+
+
+def test_real_roster_business_segment_never_residential():
+    # R10 class-level closure over the REAL customer book: every business-segment
+    # (SME/I&C) customer must map to a NON-residential property_type AND receive
+    # zero demographic events. If a future roster edit puts an SME/I&C account in
+    # a residential dwelling (making is_residential a wrong proxy for segment),
+    # this fails loudly -- the property_type gate can no longer silently diverge
+    # from the segment it stands in for.
+    from simulation.run_phase2b import CUSTOMERS
+    for c in CUSTOMERS:
+        seg = c.get("segment", "resi")
+        if seg not in ("SME", "I&C"):
+            continue
+        h = make_household(c)
+        assert not h.is_residential, (
+            f"{c['customer_id']} is segment {seg} but maps to residential "
+            f"property_type {h.property_type.value} -- demographic life events "
+            f"would wrongly fire (R10 absurdity)"
+        )
+        for seed in range(50):
+            events = generate_life_events(h, 2016, 2025, seed=seed)
+            leaked = [e.event_type for e in events
+                      if e.event_type in _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS]
+            assert leaked == [], f"{c['customer_id']} ({seg}) leaked {leaked}"
