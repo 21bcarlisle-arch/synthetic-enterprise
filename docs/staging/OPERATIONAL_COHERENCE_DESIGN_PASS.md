@@ -95,3 +95,73 @@ known-good baseline and an explicit keep/revert/rebuild decision per mechanism;
 then an implementation that rebuilds the operational layer to that design,
 deleting or absorbing the patches; the "understand why / design the whole / don't
 accrete" principle recorded in CLAUDE.md as a gate on future operational work.
+
+---
+
+## ADDENDUM (director-decided) — EVERYTHING THAT DETERMINES BEHAVIOUR LIVES IN THE READABLE REPO
+
+Director: *"Surely all changes to config and the machine should be recorded in
+the readable repo too. It also means the harness is transferable and relatable
+once we get it sorted."* This is not a footnote — it is arguably the CORE
+principle, because it is what makes the harness (the actual product/IP) worth
+anything.
+
+### The principle (infrastructure-as-code, arrived at from tonight's failure)
+**The machine holds NO behaviour-determining state that is not recorded in the
+readable repo.** Everything that determines how the system behaves — code, config,
+cron/scheduling, the declared set of processes/daemons, environment structure,
+the operational design itself — lives in version control, readable and reviewable.
+The machine is a SUBSTRATE the repo runs on; it is disposable, not precious.
+
+Tonight proved the cost of violating this: a cron job installed by hand in the OS
+crontab (`crontab -e`, in `/var/spool/cron`, NOT in the repo) resurrected a broken
+stack every 30 minutes and was invisible to everyone reading the code. The system's
+behaviour was scattered across code-in-git + cron-in-OS + processes-in-memory +
+gitignored-logs — so even the people who built it could not trace what was
+happening. That is the disease this principle cures.
+
+### What must move INTO the readable repo
+- **Scheduling** — cron/timers become committed config, never a hand-run
+  `crontab -e`. The scheduler is visible, reviewed, version-controlled.
+- **Declared expected state** — a manifest of what SHOULD be running (which
+  daemons, which sessions, the intended process set), so actual (`ps`) can be
+  RECONCILED against declared (repo) and drift is detectable. (Runtime state
+  like live tmux/processes genuinely cannot live in git — but the DECLARATION of
+  what should be running can, and reconciliation closes the gap.)
+- **Environment structure** — the shape of required env/config recorded (values/
+  secrets stay out, but the required KEYS and their purpose are documented), so a
+  fresh machine knows what it needs.
+- **Operational design** — the purpose/guarantees/why of each part (this doc),
+  committed, so the system is READABLE and RELATABLE by someone who didn't build it.
+- **Worktree/branch/process hygiene** — swept (housekeeping) so local un-pushed
+  clutter doesn't accumulate invisibly.
+
+### Why this is the CORE, not a detail (transferability = the product)
+The harness — CLAUDE.md, staging discipline, epistemic law, method rules, and the
+operational design — IS the transferable product; NOT this codebase. That is only
+TRUE if everything behaviour-determining is in the readable repo:
+- **Transferable:** the repo IS the system — put it on a fresh machine and it
+  reconstitutes, because nothing important lives only in one machine's OS or
+  memory. No "it also needs this cron someone set up by hand." The machine becomes
+  disposable instead of an un-reproducible thing you fear rebooting (what Skynet
+  became tonight).
+- **Relatable:** a repo where the operational design is written, every mechanism
+  states its why, and config/scheduling are visible — is a system someone else can
+  READ and UNDERSTAND. An un-relatable system (behaviour scattered across
+  git+OS+memory+logs) has no value as IP. A fully-recorded one is the asset you
+  could hand to someone, apply to a different domain, or show an investor.
+
+### Test
+Could this system be reconstructed on a fresh machine from the repo alone, with
+NO hand-configuration and NO hidden state? If not, the missing piece is
+behaviour-determining state living outside the readable repo — find it and bring
+it in. (Tonight's cron job is the canonical example of the missing piece.)
+
+### DoD addition
+The design ensures every behaviour-determining input is in the readable repo
+(scheduling committed not hand-installed; expected-process state declared and
+reconcilable against `ps`; env structure documented; operational design written);
+a reconstruct-from-repo-alone test is defined and the gaps (hand-configured cron,
+hidden local state) are closed; the transferability/relatability property is
+explicit — the harness must be liftable to a fresh machine and readable by a
+newcomer.
