@@ -1,0 +1,35 @@
+id: A8_experiment_loop_speed
+level_current: 2
+append_simplification:
+  - >-
+    2026-07-16 H17 Lane-1 BUILD re-draw (fork, file_scope tools/background/tests):
+    LEVEL HELD at 2 and DISPOSITION CHANGE recommended -> park loop_stage build ->
+    idle pending ARCH1. Fresh R7 verification this turn (grounded, not asserted):
+    `grep -rn build_sim_interface saas/ company/ sim/ tools/ simulation/` returns
+    only the DEFINITION (company/interfaces/sim_interface.py) and a DOCSTRING mention
+    in tools/tournament_runner.py:86 -- ZERO real run-path callers; and
+    saas/reporting/annual_report.py (what every tournament life subprocess actually
+    runs) still has ZERO SimInterface refs, so SIM_RECORDED_TRACE remains a no-op on
+    the real run path -- UNCHANGED since the three prior 2026-07-16 turns. A8's THREE
+    in-scope levers are now settled: (1) self-calibrating worker cap / parallelism
+    LANDED (commit earlier 2026-07-16), (2) tiered SCREEN->FULL tests LANDED
+    (87f84f4a8, folded 65136bc04), (3) deterministic-stage caching is NOT an in-scope
+    lever -- caching a shared deterministic prefix across lives requires
+    saas.reporting.annual_report to accept/read a cache input, a run-path change
+    OUTSIDE A8's tools/background/tests file_scope, exactly like the mock-composition
+    lever. The remaining ~8-10x headline feasibility win (mock composition + caching)
+    is thus WHOLLY out of A8's file_scope and blocked on ARCH1_internal_seams wiring
+    build_sim_interface into the annual_report run path. A persistent in-process
+    worker pool (avoid per-life interpreter startup) was considered and REJECTED: it
+    would trade away the subprocess isolation that guarantees C-S2 per-life RNG
+    determinism and clean RUSAGE_CHILDREN measurement -- a correctness-wall regression,
+    not a clean win (SIMPLICITY GUARD). CONCLUSION: with all in-scope levers exhausted
+    and every remaining lever out-of-scope + ARCH1-blocked, keeping loop_stage=build
+    guarantees phantom BUILD re-draws with no possible in-scope move -- a dials defect
+    (Rule 0). RECOMMEND: orchestrator flip loop_stage build -> idle; re-open to BUILD
+    only once ARCH1 wires build_sim_interface into the annual_report run path, after
+    which A8 can capture-once + replay-per-life for the real feasibility win. Not a
+    one-way door (a technical dependency); no escalation. No code change this turn --
+    documentation + disposition only.
+written_by: build-executor/H17-fork-A8
+written_at: 2026-07-16T16:24:16Z
