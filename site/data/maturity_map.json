@@ -85,7 +85,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "B1_margin_bridge",
@@ -1494,7 +1494,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 92
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W1_9_dsr_flex_markets",
@@ -1605,7 +1605,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "G4_unified_failure_register",
@@ -1639,7 +1639,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "W4_3_external_truth_wall",
@@ -1776,6 +1776,79 @@
       "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "H20_parallel_maintenance_lane",
+      "name": "Parallel MAINTENANCE lane: a standing worker drawing bug-fix/housekeeping/notification-hygiene work concurrently with BUILD/DISCOVER/SITE, integrating per-atom through the external-truth gate, bounded by file-scope disjointness",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "G11_activity_cost_utilisation",
+      "name": "Activity-based cost + utilisation: attribute elapsed-time AND tokens to a PRODUCTIVE/WASTE activity taxonomy from existing git/token/deadman data; surface productive-%, cost-of-self-maintenance, rework-rate, value-per-problem, idle-on-director on the Method door",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "G5_effort_sizing_discipline",
+        "G7_wip_cycle_time_dashboard"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "H21_self_contained_escalation",
+      "name": "Escalation payload is self-contained: the NTFY body carries WHAT/OPTIONS/CONTEXT/WHY-DOOR/DEFAULT so a one-word phone reply resolves it; an on-box log link is never the substance (tightens H19)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "H22_scheduled_housekeeping",
+      "name": "Scheduled housekeeping: a standing cadence+threshold sweep (maintenance-lane function) that inventories and clears cruft \u2014 stale worktrees, dead branches, staging droppings, unbounded logs, orphaned tmux, local/origin drift \u2014 reversible-by-default, never touching in-flight work",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "H20_parallel_maintenance_lane"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     }
   ],
   "lanes": {
@@ -1858,7 +1931,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 99,
+  "total_atoms": 103,
   "epoch2_movements": [
     {
       "id": "M1",
