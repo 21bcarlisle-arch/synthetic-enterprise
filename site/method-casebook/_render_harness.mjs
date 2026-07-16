@@ -46,6 +46,7 @@ const ids = [
   "gov-headline", "gov-framing", "doors", "door-note", "lanes",
   "loop-stages", "review-kpis", "disciplines",
   "rules-intro", "timeline", "loop-kpis", "loop-pending", "loop-recent",
+  "ml-framing", "ml-doc", "ml-mapping", "ml-guardrails", "ml-proposals", "ml-claude-md-note",
   "reg-kpis", "register", "design-named", "build-note",
 ];
 const out = {};

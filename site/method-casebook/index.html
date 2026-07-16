@@ -117,6 +117,14 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .design-doc { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); margin-bottom: 4px; }
 .design-text { font-size: 12px; color: var(--text); line-height: 1.6; }
 .build-note { margin-top: 40px; }
+/* method lens */
+.ml-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.ml-row:last-child { border-bottom: none; }
+.ml-discipline { font-size: 12px; font-weight: 700; color: var(--purple); margin-bottom: 6px; }
+.ml-field { font-size: 12px; line-height: 1.55; margin-bottom: 4px; }
+.ml-field-l { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-right: 5px; }
+.ml-field.missing { color: var(--text); }
+.ml-proposal-id { font-size: 11px; font-family: ui-monospace, monospace; color: var(--teal); font-weight: 700; }
 /* mobile pass (SITE1_expert_doors): phone-legible casebook + simplifications
    register, no horizontal body scroll. Tabs wrap instead of clipping; the
    role/tier/lane grid and timeline collapse to a single readable column.
@@ -196,6 +204,23 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div class="sec">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
     <div class="card"><p class="muted" id="rules-intro"></p></div>
     <div class="card"><div id="timeline"><div class="muted">Loading...</div></div></div>
+
+    <div class="sec">Method Lens &mdash; audited against mature delivery disciplines</div>
+    <div class="card"><p class="muted" id="ml-framing" style="margin-bottom:14px"></p>
+      <p class="muted" style="font-size:11px">Full mapping table: <code id="ml-doc"></code></p></div>
+    <div class="card">
+      <div class="sec" style="margin-top:0;font-size:10px">Lesson &harr; established pattern &harr; refinement missing</div>
+      <div id="ml-mapping"></div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-top:0;font-size:10px">Guardrails</div>
+      <ul class="doorlist" id="ml-guardrails"></ul>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-top:0;font-size:10px">Proposal-atoms generated (queued for director rank, not yet registered)</div>
+      <div class="grid" id="ml-proposals"></div>
+      <p class="muted" id="ml-claude-md-note" style="margin-top:12px"></p>
+    </div>
 
     <div class="sec">The Staging Loop, Live</div>
     <div class="card"><p class="muted" style="margin-bottom:12px">Rich stages direction in <code>docs/staging/</code>; the agent actions it, verifies it, moves it to <code>done/</code>. This is that loop's live state, not a diagram.</p>
@@ -296,6 +321,25 @@ function renderCasebook(cb){
       '<div class="tl-incident"><span class="tl-incident-label">The incident that forged it</span>'+esc(r.incident)+'</div>'+
       (links?'<div class="tl-links">'+links+'</div>':'')+'</div>';
   }).join("")||'<div class="muted">No rule history.</div>';
+
+  var ml=cb.method_lens||{};
+  document.getElementById("ml-framing").textContent=ml.framing||"";
+  document.getElementById("ml-doc").textContent=ml.doc||"";
+  document.getElementById("ml-mapping").innerHTML=(ml.mapping||[]).map(function(m){
+    return '<div class="ml-row"><div class="ml-discipline">'+esc(m.discipline)+'</div>'+
+      '<div class="ml-field"><span class="ml-field-l">Have</span>'+esc(m.have)+'</div>'+
+      '<div class="ml-field"><span class="ml-field-l">Pattern</span>'+esc(m.pattern)+'</div>'+
+      '<div class="ml-field missing"><span class="ml-field-l">Missing</span>'+esc(m.missing)+'</div></div>';
+  }).join("")||'<div class="muted">No mapping rows.</div>';
+  document.getElementById("ml-guardrails").innerHTML=(ml.guardrails||[]).map(function(g){
+    return '<li>'+esc(g)+'</li>';
+  }).join("");
+  document.getElementById("ml-proposals").innerHTML=(ml.proposals||[]).map(function(p){
+    return '<div class="g-card"><div class="ml-proposal-id">'+esc(p.id)+'</div>'+
+      '<div class="g-desc" style="margin-top:6px">'+esc(p.name)+'</div>'+
+      '<div class="g-sub" style="margin-top:6px">'+esc(p.discipline)+'</div></div>';
+  }).join("")||'<div class="muted">No proposals.</div>';
+  document.getElementById("ml-claude-md-note").textContent=ml.claude_md_amendment_deferred||"";
 
   var loop=cb.staging_loop||{};
   document.getElementById("loop-kpis").innerHTML=[

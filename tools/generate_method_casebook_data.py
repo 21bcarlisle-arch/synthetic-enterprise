@@ -152,6 +152,67 @@ LOOP_STAGES = [
     dict(stage="HARDEN", description="Adversarial sweep + Expert Hour before a level is banked. A second false-completion claim triggers R3: redesign the mechanism, don't patch it again."),
 ]
 
+# ---------------------------------------------------------------------------
+# METHOD LENS -- G6_method_lens_audit. Auditing our own mechanisms against the
+# mature PROCESS/delivery disciplines (Lean/Kanban/ToC/SRE/Agile-INVEST/queue
+# theory), not just the novel-AI ones. Full text: docs/design/METHOD_LENS_AUDIT.md
+# -- this is that doc's mapping table transcribed for the door, same pattern as
+# the RULES canon above (prose is canon, rendered not re-derived).
+# ---------------------------------------------------------------------------
+METHOD_LENS = dict(
+    framing=(
+        "Every best-practice review this project ran scoped itself to the TOOLING layer -- "
+        "worktrees, hooks, headless orchestration. Most of what actually bit us lives one layer "
+        "down, in the PROCESS layer -- sizing, decomposition, WIP limits, flow, estimate-vs-actual, "
+        "readiness gates -- decades old and independent of what does the work. This is a deliberate "
+        "pass the other direction: map our hard-won mechanisms against the disciplines that already "
+        "solved this class of problem, so the remaining gaps are found by reading, not by the next "
+        "injury."
+    ),
+    doc="docs/design/METHOD_LENS_AUDIT.md",
+    mapping=[
+        dict(discipline="Lean",
+             have="The atom loop (DISCOVER->FRAME->BUILD->HARDEN) is a pull system; COMPOUNDING_WORK_FIRST is Lean waste-elimination applied to sequencing.",
+             pattern="Pull system / single-piece flow / kaizen",
+             missing="No named waste taxonomy (the 7 wastes) to classify why an atom stalls; no first-class WIP-inventory number surfaced."),
+        dict(discipline="Kanban",
+             have="Multi-atom concurrent draw caps parallelism by file_scope disjointness; PER_ATOM_INTEGRATION_NOT_WAVES streams at the smallest verifiable unit.",
+             pattern="WIP limits / single-piece flow / cumulative flow diagram",
+             missing="No measured WIP limit tied to cycle-time data; no per-atom cycle-time/age-in-stage metric; no named classes of service for expedite-style escalations."),
+        dict(discipline="Theory of Constraints",
+             have="\"Bottlenecks are onions\" (the real CANNOT-draw incident); Rule 0's dial-yielding subordinates everything to the constraint.",
+             pattern="Five Focusing Steps + Drum-Buffer-Rope",
+             missing="Identify/subordinate happen reactively per-incident, not as a standing re-identify query; no elevate-then-repeat ritual once a constraint breaks."),
+        dict(discipline="SRE",
+             have="G4_unified_failure_register is the blameless-postmortem + repeat-cause register; R3 two-strike redesign is SRE's break-twice-means-systemic rule.",
+             pattern="Blameless postmortems / error budgets / toil reduction",
+             missing="No quantified error budget that triggers a policy change when burned (R12's bands are diagnostics only); no tracked toil percentage for the background daemons."),
+        dict(discipline="Agile / INVEST",
+             have="G5_effort_sizing_discipline calibrates real git-timestamped duration actuals per lane; the L0-L5 ladder is an implicit DoD chain per level.",
+             pattern="INVEST criteria + explicit Definition of Ready / Done",
+             missing="No explicit Definition-of-Ready check at FRAME time; Independent is only proxy-checked via file_scope; the size:S/M/L/XL field is designed (G5) but not yet wired."),
+        dict(discipline="Queue theory",
+             have="\"GPU at 2% isn't the constraint\" is queue theory's founding utilization-vs-throughput result, already learned.",
+             pattern="Little's Law (WIP = arrival rate x time-in-system)",
+             missing="No live WIP count or arrival-rate measurement to turn the qualitative lesson into a quantitative backlog-time forecast."),
+    ],
+    guardrails=[
+        "Adopt the PRINCIPLE, reject the CEREMONY -- one director + AI executors, not many human teams; stand-ups, story-point poker, and SLA review boards are explicitly rejected while the flow/sizing/constraint math is kept.",
+        "Dial, not target (R12 extended) -- every metric here (WIP count, cycle time, error budget, toil %, estimate-vs-actual) is a diagnostic; the moment one becomes a thing to hit or game it reintroduces the deadline pressure that manufactures false self-certified levels.",
+    ],
+    proposals=[
+        dict(id="G7_wip_and_cycle_time_dashboard", name="WIP count + per-atom cycle-time + Little's-Law throughput forecast on the Method door", discipline="Kanban / queue theory"),
+        dict(id="G8_constraint_identification_ritual", name="Standing \"what's the current constraint\" query per digest/retro (ToC elevate-then-repeat)", discipline="Theory of Constraints"),
+        dict(id="G9_error_budget_and_toil_tracking", name="Quantified error budget on R12's plausibility bands + toil-% metric for background daemons", discipline="SRE"),
+        dict(id="G10_definition_of_ready_gate", name="Explicit Definition-of-Ready check (exit test + independence) at FRAME, wired into the director twin's BUILD-open call", discipline="Agile / INVEST"),
+    ],
+    claude_md_amendment_deferred=(
+        "Finding 1 amendment (search published practice to include non-AI delivery disciplines) is "
+        "staged in METHOD_LENS_AUDIT.md section 4, not yet applied -- CLAUDE.md is near its 35,000-char "
+        "hard limit; orchestrator follow-on at the next trim."
+    ),
+)
+
 
 def _get(d, *path):
     cur = d
@@ -432,6 +493,7 @@ def generate():
             incident_rule_history=_incident_rule_history(),
             rule_count=len(RULES),
             staging_loop=_staging_loop(),
+            method_lens=METHOD_LENS,
         ),
         simplified=dict(
             register=_simplified_register(atoms),

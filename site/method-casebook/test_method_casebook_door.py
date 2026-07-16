@@ -74,3 +74,32 @@ def test_atom_count_is_independent_of_render():
     out = _render(d)
     # rendered with a thousands separator (num() formatting)
     assert "7,777" in out["review-kpis"]["innerHTML"]
+
+
+def test_method_lens_mapping_renders_every_live_discipline():
+    d = _live()
+    out = _render(d)
+    mapping_html = out["ml-mapping"]["innerHTML"]
+    rows = d["casebook"]["method_lens"]["mapping"]
+    assert rows, "fixture precondition: method lens mapping rows present"
+    for row in rows:
+        assert row["discipline"] in mapping_html, f"discipline {row['discipline']} not rendered"
+        assert row["missing"] in mapping_html, f"missing-refinement text for {row['discipline']} not rendered"
+
+
+def test_method_lens_proposals_render_every_live_proposal():
+    d = _live()
+    out = _render(d)
+    prop_html = out["ml-proposals"]["innerHTML"]
+    proposals = d["casebook"]["method_lens"]["proposals"]
+    assert proposals, "fixture precondition: proposal atoms present"
+    for p in proposals:
+        assert p["id"] in prop_html, f"proposal {p['id']} not rendered"
+
+
+def test_method_lens_mapping_is_independent_of_render():
+    # R15 independence: mutate a discipline label; the rendered pixel must follow.
+    d = _live()
+    d["casebook"]["method_lens"]["mapping"][0]["discipline"] = "ZZZ_MUTATED_DISCIPLINE"
+    out = _render(d)
+    assert "ZZZ_MUTATED_DISCIPLINE" in out["ml-mapping"]["innerHTML"]
