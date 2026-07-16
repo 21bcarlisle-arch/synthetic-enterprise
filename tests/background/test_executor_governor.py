@@ -135,18 +135,61 @@ def test_run_loop_stops_on_budget_exhausted(tmp_path):
 # ===========================================================================
 # WALL — a turn escalated a one-way door: stop + alert, never retry
 # ===========================================================================
-def test_run_loop_stops_and_alerts_on_wall(tmp_path):
+# ===========================================================================
+# ESCALATION IS NTFY, NEVER THE WINDOW (2026-07-16, P0 WALL): a one-way-door
+# escalation NTFYs the director and the loop KEEPS DRAWING other atoms — it does
+# NOT halt and NEVER waits in the interactive pane. Merges ROUTE_AROUND +
+# ESCALATION_IS_NTFY_NEVER_WINDOW. These are the mutation checks: reverting the
+# handler to `break` makes test #1 fail (loop would stop on the wall).
+# ===========================================================================
+def test_run_loop_escalation_ntfys_and_keeps_drawing(tmp_path):
+    """THE mechanism: an escalated turn NTFYs (alert) and the loop CONTINUES to the
+    next draw — a blocked atom blocks only itself. Mutation: if the handler `break`s
+    (the old behaviour), the success cycle never runs and stop_reason is wall_escalated."""
     _enable(tmp_path)
     alerts = []
+    seq = iter(["escalated", "success", "success"])
     summary = executor_governor.run_loop(
-        run_once_fn=lambda: _FakeResult("escalated", detail="one-way-door escalation"),
-        max_cycles=10,
+        run_once_fn=lambda: _FakeResult(next(seq)),
+        max_cycles=3,
         alert=lambda result, kind="": alerts.append(kind),
         sleep=lambda _s: None,
     )
-    assert summary.stop_reason == "wall_escalated"
-    assert summary.cycles == 1
-    assert alerts == ["wall_escalated"]
+    assert summary.stop_reason == "max_cycles"          # did NOT stop on the wall
+    assert summary.cycles == 3                            # kept drawing past the escalation
+    assert alerts == ["wall_escalated"]                  # NTFY'd the wall (once), async
+
+
+def test_run_loop_same_wall_redrawn_backs_off_and_ntfys_once(tmp_path):
+    """Nothing-else-drawable: the SAME escalated reason re-drawn every cycle NTFYs ONCE
+    (no spam) and backs off (sleep) instead of busy-looping or hard-stopping."""
+    _enable(tmp_path)
+    alerts = []
+    slept = {"n": 0}
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: _FakeResult("escalated", atom_reason="the SAME wall"),
+        max_cycles=4,
+        alert=lambda result, kind="": alerts.append(kind),
+        sleep=lambda _s: slept.__setitem__("n", slept["n"] + 1),
+    )
+    assert summary.stop_reason == "max_cycles"           # never wall_escalated (no hard stop)
+    assert alerts == ["wall_escalated"]                  # NTFY'd exactly once, not per-cycle
+    assert slept["n"] >= 1                                # backed off, didn't busy-loop
+
+
+def test_escalation_alert_channel_is_ntfy_never_window(monkeypatch):
+    """The escalation channel is NTFY, structurally — _alert_wall calls send_ntfy and there
+    is NO window/input path anywhere in the escalation handler (the pane is never a channel
+    the loop asks on). Mutation intent: a window prompt would show up as an input() call."""
+    import inspect
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg))
+    executor_governor._alert_wall(_FakeResult("escalated"), kind="wall_escalated")
+    assert sent, "escalation must send an NTFY"
+    # no blocking/window primitive anywhere in run_loop or _alert_wall
+    src = inspect.getsource(executor_governor.run_loop) + inspect.getsource(executor_governor._alert_wall)
+    assert "input(" not in src, "escalation path must never block on a window prompt"
 
 
 # ===========================================================================

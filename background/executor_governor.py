@@ -182,11 +182,12 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
     (a turn escalated a one-way door) or an R3 repeated-failure stop are the only two
     things this loop cannot decide itself."""
     if kind == "wall_escalated":
-        what = "Headless executor STOPPED: a turn escalated a one-way door (WALL)."
+        what = "Headless executor hit a one-way door (WALL) — NTFY'd, loop CONTINUING other atoms."
         how = (
-            "Review docs/observability/build-executor-log.md and the escalated item; the "
-            "director decides the one-way door, then re-enables via the console flag if "
-            "appropriate. The loop will NOT retry a wall on its own."
+            "Decide this one-way door at your cadence (reply via NTFY/PIN); the loop is NOT "
+            "blocked — it is drawing other work meanwhile and will act on your answer at the "
+            "next boundary. Details: the escalated item + docs/observability/build-executor-log.md. "
+            "ESCALATION IS NTFY, NEVER THE WINDOW: nothing is waiting in the interactive pane."
         )
     elif kind == "map_unreconciled":
         what = "Headless executor STOPPED: map UNRECONCILED (a level report never folded)."
@@ -287,7 +288,10 @@ def run_loop(
                                  level_current, so a mis-folded level would mis-rank work —
                                  MAP_TRUTH_RECONCILIATION.md F2);
       * budget exhausted       — TurnBudget window is full;
-      * WALL (escalated)       — a turn refused a one-way door; alert + stop (never retry);
+      * WALL (escalated)       — a turn hit an irreducible one-way door: NTFY the director
+                                 (async) and KEEP DRAWING other atoms; it does NOT stop the
+                                 loop and NEVER waits in the interactive window
+                                 (ESCALATION_IS_NTFY_NEVER_WINDOW.md);
       * repeated failure       — R3 two-strike: an atom failed to land twice running;
       * max_cycles             — a test / bounded-run guard.
 
@@ -309,6 +313,7 @@ def run_loop(
 
     cycles = 0
     consecutive_failures = 0
+    last_escalated_reason = None  # ESCALATION_IS_NTFY: dedup NTFY + detect nothing-else-drawable
     stop_reason = ""
     build_executor.log("run_loop: starting self-continuing headless loop (DARK-gated)")
 
@@ -349,11 +354,28 @@ def run_loop(
 
         status = getattr(result, "status", "error")
         if status == "escalated":
-            stop_reason = "wall_escalated"
-            alert(result, kind="wall_escalated")
-            break
+            # ESCALATION IS NTFY, NEVER THE WINDOW + ROUTE-AROUND (P0 WALL,
+            # ESCALATION_IS_NTFY_NEVER_WINDOW.md / ROUTE_AROUND_BEFORE_STOPPING.md):
+            # a turn hit an irreducible one-way door. NTFY the director the minimal
+            # decision (alert -> _alert_wall -> send_ntfy, async + non-blocking) and
+            # KEEP DRAWING other atoms — a blocked atom blocks ONLY ITSELF, it never
+            # halts the loop and NEVER waits in the interactive window. The loop used to
+            # `break` here (halt); that reintroduced the human-at-a-terminal dependency
+            # the whole autonomy stack exists to remove.
+            reason = getattr(result, "atom_reason", None)
+            if reason != last_escalated_reason:
+                alert(result, kind="wall_escalated")  # NTFY once per newly-seen wall
+            consecutive_failures = 0
+            if reason is not None and reason == last_escalated_reason:
+                # The draw can only offer the SAME escalated work (nothing else drawable):
+                # back off (deadman/health-check are the net) rather than busy-loop or
+                # re-NTFY the identical wall. Still no window prompt, still no hard stop.
+                sleep(idle_backoff_seconds)
+            last_escalated_reason = reason
+            continue
         if status == "success":
             consecutive_failures = 0
+            last_escalated_reason = None  # real progress -> clear the nothing-else-drawable latch
         elif status in ("failed", "error"):
             consecutive_failures += 1
         elif status == "idle":
