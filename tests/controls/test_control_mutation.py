@@ -147,6 +147,22 @@ def test_back_billing_cap_fires_when_breach_not_written_off():
     assert check_back_billing_cap_respected(_breaching_catchup_bill(0.0)) is False
 
 
+def test_back_billing_cap_fires_on_token_write_off_against_large_breach():
+    """R15 mutation test for finding (a) in check_back_billing_cap_respected's
+    docstring: the control MUST compare the write-off MAGNITUDE, not merely
+    that some write-off exists. A near-zero token write-off (£0.01) against a
+    ~£3,860 four-year breach is the exact fail-open the docstring names as
+    fixed -- but the sibling zero-write-off test above cannot fire on it,
+    because the old `written_off_gbp > 0` existence check and the current
+    magnitude check BOTH return False when the write-off is exactly 0.0. Only
+    a NONZERO-but-inadequate write-off distinguishes them: the existence
+    check would pass it (True, fail-open), the magnitude check holds it
+    (False). Without this test a regression to the existence check leaves the
+    whole suite green -- a control that cannot be proven to fire on its own
+    named defect (R15)."""
+    assert check_back_billing_cap_respected(_breaching_catchup_bill(0.01)) is False
+
+
 def test_back_billing_cap_passes_with_correct_write_off():
     a = BackBillingAssessment(
         account_id="X", billing_date=date(2024, 2, 1),
@@ -1141,3 +1157,181 @@ def test_board_quorum_fails_closed_on_zero_directors():
     m = reg.schedule(MeetingType.EMERGENCY, _date(2024, 3, 1), directors_total=0)
     rec = reg.record_held(m.meeting_id, directors_present=0, resolutions=[])
     assert rec.quorum_met is False
+
+
+# ==========================================================================
+# PASS 6 (B2_opex_cost_to_serve HARDEN, L3->L3, 2026-07-16): the three Tier-1
+# COMMERCIAL controls of the B2 cost-to-serve taxonomy. These are load-bearing
+# solvency/cross-subsidy-visibility controls (director-set real risk-appetite
+# numbers, 2026-07-10) but had firing tests ONLY in their own atom test files,
+# never in THIS central mutation-test apparatus -- the same R15 honesty gap the
+# F6 pass (2026-07-16) closed for the structural bill controls. Registered +
+# mutation-tested here so "no control counts unless a mutation test proves it
+# fires on its own named defect" holds centrally for them too. Red-teaming them
+# found + FIXED one real FAIL-OPEN (the empty/all-loss-making concentration
+# false-green, below).
+# ==========================================================================
+
+from company.risk.concentration_risk import (
+    ConcentrationSnapshot, ConcentrationDimension,
+    build_gross_margin_concentration_snapshot, gross_margin_concentration_check,
+)
+from company.finance.segment_capital import (
+    SegmentROCEHistory, segments_under_hurdle, decision_artefacts_needed,
+)
+
+
+# --------------------------------------------------------------------------
+# concentration_risk.py -- single-customer gross-margin concentration limit
+# (director risk-appetite: RED >15%, AMBER >10%)
+# --------------------------------------------------------------------------
+
+def test_single_customer_concentration_fires_on_over_limit_share():
+    # CORRECT: a diverse book (10 equal customers, top = 10%) is within the
+    # 15% limit -> green. MUTATE: one whale taking >15% of gross margin FIRES red.
+    diverse = build_gross_margin_concentration_snapshot(
+        {f"C{i}": 100.0 for i in range(10)}, _date(2024, 1, 1))
+    assert gross_margin_concentration_check(diverse, 15.0, 10.0)["status"] == "green"
+    whale = build_gross_margin_concentration_snapshot(
+        {"WHALE": 900.0, "b": 50.0, "c": 50.0}, _date(2024, 1, 1))
+    res = gross_margin_concentration_check(whale, 15.0, 10.0)
+    assert res["status"] == "red" and res["breach"] is True
+    # AMBER tier: top share between the amber (10%) and hard (15%) thresholds --
+    # 8 equal customers -> each 12.5%.
+    amber = build_gross_margin_concentration_snapshot(
+        {f"C{i}": 100.0 for i in range(8)}, _date(2024, 1, 1))
+    assert gross_margin_concentration_check(amber, 15.0, 10.0)["status"] == "amber"
+
+
+def test_single_customer_concentration_empty_book_is_not_assessable_not_green():
+    # R15 FAIL-OPEN FIXED (B2 HARDEN 2026-07-16): a book with NO positive-margin
+    # base -- an EMPTY book, or the far worse ALL-LOSS-MAKING book (every customer
+    # net-negative, so excluded from the share base) -- PREVIOUSLY returned
+    # status="green"/breach=False: a positive all-clear on the single-customer
+    # concentration control for arguably the worst solvency state possible. Now a
+    # distinct not_assessable state (never a false green).
+    # BEFORE: gross_margin_concentration_check(empty, 15.0, 10.0)["status"] == "green"
+    # AFTER : it is "not_assessable" (breach None, NOT False).
+    all_loss = build_gross_margin_concentration_snapshot(
+        {"A": -100.0, "B": -50.0, "C": -200.0}, _date(2024, 1, 1))
+    res = gross_margin_concentration_check(all_loss, 15.0, 10.0)
+    assert res["status"] == "not_assessable"
+    assert res["status"] != "green"
+    assert res["breach"] is None  # not False -- undefined, not a passing check
+    empty = build_gross_margin_concentration_snapshot({}, _date(2024, 1, 1))
+    assert gross_margin_concentration_check(empty, 15.0, 10.0)["status"] == "not_assessable"
+    # OUTCOME-SAFE: a genuinely diverse, positive-margin book still reads green
+    # (the fix does not turn a real all-clear into a false alarm).
+    diverse = build_gross_margin_concentration_snapshot(
+        {f"C{i}": 100.0 for i in range(10)}, _date(2024, 1, 1))
+    assert gross_margin_concentration_check(diverse, 15.0, 10.0)["status"] == "green"
+
+
+def test_single_customer_concentration_unset_limit_is_distinct_from_within_limit():
+    # INDEPENDENCE/honesty: with no director limit set, the control must NOT
+    # fabricate a pass -- status "unset"/breach None, distinct from a real
+    # "checked and within limit" green (never guess the director's own risk
+    # appetite number).
+    snap = build_gross_margin_concentration_snapshot(
+        {"A": 100.0, "b": 100.0}, _date(2024, 1, 1))
+    res = gross_margin_concentration_check(snap, limit_pct=None)
+    assert res["status"] == "unset" and res["breach"] is None
+
+
+def test_single_customer_concentration_rejects_wrong_metric_basis():
+    # FAIL-CLOSED / TAUTOLOGY audit: the margin-concentration check must refuse a
+    # REVENUE-basis snapshot (a high-revenue thin-margin customer is not the risk
+    # this control is named for) rather than silently score the wrong metric.
+    rev_snap = ConcentrationSnapshot(
+        dimension=ConcentrationDimension.CUSTOMER, as_of=_date(2024, 1, 1),
+        shares={"A": 0.9, "b": 0.1}, metric="revenue")
+    with pytest.raises(ValueError):
+        gross_margin_concentration_check(rev_snap, 15.0)
+
+
+# --------------------------------------------------------------------------
+# concentration_risk.py -- the Ofgem single-entity HHI cap (20%)
+# --------------------------------------------------------------------------
+
+def test_single_entity_cap_fires_above_ofgem_threshold():
+    # CORRECT: a top entity at exactly 20% does NOT breach. MUTATE: 21% breaches
+    # the Ofgem no-single-customer->20% guidance.
+    ok = ConcentrationSnapshot(
+        dimension=ConcentrationDimension.CUSTOMER, as_of=_date(2024, 1, 1),
+        shares={"A": 0.20, "b": 0.20, "c": 0.20, "d": 0.20, "e": 0.20})
+    assert ok.top_entity_pct == 20.0
+    assert ok.breaches_single_entity_cap is False  # 20% is not > 20%
+    breach = ConcentrationSnapshot(
+        dimension=ConcentrationDimension.CUSTOMER, as_of=_date(2024, 1, 1),
+        shares={"A": 0.21, "b": 0.20, "c": 0.20, "d": 0.20, "e": 0.19})
+    assert breach.top_entity == "A"
+    assert breach.breaches_single_entity_cap is True
+    assert breach.risk_level.value in ("high", "critical")  # HHI tiering also moves
+
+
+def test_single_entity_cap_empty_snapshot_is_documented_not_fail_open():
+    # DOCUMENTED not-applicable guard (asserted so the kill list cites it, not a
+    # surprise): an EMPTY snapshot has top_entity_pct 0.0 -> no breach. Unlike the
+    # margin-concentration check this is genuinely correct here -- the HHI cap is a
+    # per-entity SHARE test and a book with zero entities has no entity to breach
+    # it; a zero-customer book is a different (population) failure, surfaced by the
+    # population-consistency gate, not this one.
+    empty = ConcentrationSnapshot(
+        dimension=ConcentrationDimension.CUSTOMER, as_of=_date(2024, 1, 1), shares={})
+    assert empty.breaches_single_entity_cap is False
+    assert empty.top_entity is None
+
+
+# --------------------------------------------------------------------------
+# segment_capital.py -- the ROCE-hurdle persistent-underperformance control
+# (director hurdle: 12% pre-tax; cross-subsidy must be visible + decided)
+# --------------------------------------------------------------------------
+
+def test_segment_roce_hurdle_fires_a_decision_artefact_on_persistent_underperformance():
+    # CORRECT: a segment ABOVE the hurdle every year forces NO decision. MUTATE: a
+    # segment persistently (>= min_consecutive_years) UNDER the hurdle forces a
+    # named governed decision artefact -- cross-subsidy made visible + decided.
+    hist = SegmentROCEHistory()
+    hist.record("2022", {"sme": 4.0, "resi": 20.0})
+    hist.record("2023", {"sme": 5.0, "resi": 22.0})
+    under = segments_under_hurdle({"sme": 5.0, "resi": 22.0}, 12.0)
+    assert under["under_hurdle"] == ["sme"]
+    artefacts = decision_artefacts_needed(hist, ["sme", "resi"], ["2022", "2023"], 12.0)
+    ids = {a["segment"] for a in artefacts}
+    assert ids == {"sme"}  # only the persistently-under segment fires
+    assert artefacts[0]["status"] == "AWAITING DIRECTOR/BOARD DECISION"
+
+
+def test_segment_roce_hurdle_does_not_fire_on_a_single_bad_year():
+    # OUTCOME-SAFE: a single year under the hurdle (not persistent) is NOT grounds
+    # for a reprice/fix/exit decision -- the control must not manufacture one.
+    hist = SegmentROCEHistory()
+    hist.record("2022", {"sme": 20.0})   # above
+    hist.record("2023", {"sme": 4.0})    # one bad year only
+    assert decision_artefacts_needed(hist, ["sme"], ["2022", "2023"], 12.0) == []
+
+
+def test_segment_roce_hurdle_unset_never_fabricates_a_pass_or_fail():
+    # R15 / honesty: with no director hurdle set, the control must NOT invent a
+    # pass/fail. segments_under_hurdle -> hurdle_set False + empty; the decision
+    # artefact function -> [] (never a fabricated "AWAITING DECISION" on a guessed
+    # hurdle). Distinct from a real "checked and above hurdle".
+    hist = SegmentROCEHistory()
+    hist.record("2022", {"sme": 1.0})
+    hist.record("2023", {"sme": 1.0})
+    res = segments_under_hurdle({"sme": 1.0}, hurdle_pct=None)
+    assert res["hurdle_set"] is False and res["under_hurdle"] == []
+    assert decision_artefacts_needed(hist, ["sme"], ["2022", "2023"], None) == []
+
+
+def test_segment_roce_undefined_capital_breaks_the_under_hurdle_streak():
+    # FAIL-CLOSED audit: a year whose ROCE is None (capital employed <= 0, ROCE
+    # genuinely undefined) is NOT confirmed-under-hurdle, so it must BREAK the
+    # persistent-underperformance streak -- an unmeasured year cannot be counted
+    # as evidence of persistent failure (nor silently as a pass).
+    hist = SegmentROCEHistory()
+    hist.record("2022", {"sme": 4.0})     # under
+    hist.record("2023", {"sme": None})    # undefined -- breaks the streak
+    hist.record("2024", {"sme": 4.0})     # under again
+    # Only the trailing single year counts back from the end -> streak 1 < 2.
+    assert decision_artefacts_needed(hist, ["sme"], ["2022", "2023", "2024"], 12.0) == []
