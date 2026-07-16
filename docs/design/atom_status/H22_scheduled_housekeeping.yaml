@@ -1,0 +1,21 @@
+id: H22_scheduled_housekeeping
+level_current: 0
+append_evidence:
+  - docs/design/frame/H22_scheduled_housekeeping_FRAME.md
+append_simplification:
+  - "2026-07-16 Lane-3 (H17 re-draw, occurrence-6 of the FRAME-saturated re-hand):
+    level HELD at 0 (BUILD-gated, EPOCH_GATING R1 — no BUILD code). No new FRAME
+    written — H22 already carries a complete FRAME doc (17KB, committed 6029eefbe).
+    Root cause of its recurring re-draw: the FRAME doc lived at
+    docs/design/H22_SCHEDULED_HOUSEKEEPING_FRAME.md (one dir above convention), so
+    H23_frame_saturation_draw_marker's intrinsic check (_atom_has_frame_doc requires
+    the docs/design/frame/ prefix) never recognised H22 as saturated and re-handed it
+    every idle draw. Fix: relocated the doc to the convention path
+    docs/design/frame/H22_scheduled_housekeeping_FRAME.md (git mv) and appended that
+    path to evidence so the intrinsic guard now reads H22 as FRAME-saturated once this
+    inbox folds — closing the occurrence-6 leak with no per-atom marker to remember
+    (MAKE_IT_STICK: a computed check, not a setter). The old evidence path entry is now
+    dead (fold is append-only); harmless (_atom_has_frame_doc skips non-existent paths)
+    and is exactly the staging/doc cruft H22 itself is designed to sweep."
+written_by: H17-lane3-orchestrator/atom-H22
+written_at: 2026-07-16T19:40:00Z

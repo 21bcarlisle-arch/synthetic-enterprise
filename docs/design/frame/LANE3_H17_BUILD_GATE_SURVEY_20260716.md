@@ -105,3 +105,57 @@ remedy as worth registering as a harness atom.*
 ---
 *No BUILD code, no map edit (F1 — levels reported via `docs/design/atom_status/*.yaml` inbox).
 Every level HELD; see the gate table for what each atom's real progress depends on.*
+
+---
+
+## Resolution — occurrence 5 (2026-07-16, later) — recursion ended at the mechanism level
+
+The idle-DISCOVER/FRAME self-refill re-drew this same FRAME-saturated set a **fifth** time
+(`H18_harness_self_mutation_audit`, `W1_2_generate_futures`, `B4_competitor_field`,
+`B5_regional_basis_risk`, `W4_2_verifier_timing_extension`, `W1_3_national_weather_signal`).
+Per the meta-finding above, **no new per-atom FRAME was written** — every drawn atom already
+carries a complete FRAME and its gate is unchanged (anti-churn, SELF_INTERRUPT_DISCIPLINE + R12).
+
+The genuine, non-churn increment this turn produced instead is the **landing transition** that
+occurrence 4 named but (as a fork) could not perform: `H23_frame_saturation_draw_marker` — the
+already-registered, **twin-APPROVED** remedy for this exact draw defect (director_twin_log.jsonl
+@ `2026-07-16T17:57:36`, CONFIDENCE high, DEFERS_TO_DIRECTOR:no) — was stuck at `loop_stage: idle`,
+so the Lane-1 BUILD draw (`_maturity_map_draw_concurrent`, which excludes `loop_stage==idle`) never
+picked it up and the fix could never be built. This orchestrator turn flipped `H23.loop_stage
+idle→build`; a closed-loop check confirms `_maturity_map_draw_concurrent()` **now yields H23**. The
+next BUILD cycle builds the marker + draw-skip guard + R15 mutation test, and the recursion stops
+generating duplicate-FRAME draws for the whole idle-BUILD-gated set. Reversible (git reverts the
+flip; the draw falls back), Epoch-2 open, not a one-way door — Rule 0's yield-the-dial-until-work-
+exists path, mechanised rather than re-recorded as prose.
+
+## Resolution — occurrence 6 (2026-07-16, later still) — guard built but not deployed (R2) + the one leak it missed
+
+The self-refill re-drew the set a **sixth** time (`H22_scheduled_housekeeping`, `W1_2_generate_futures`,
+`B4_competitor_field`, `B5_regional_basis_risk`, `W4_2_verifier_timing_extension`,
+`W1_3_national_weather_signal`). The guard from occurrence 5 (`d2f1b420a`, L0→L2) is now built — so
+why did the draw recur? **Two distinct causes, both diagnosed against real disk/process state (R9):**
+
+1. **R2 — the guard is built but not deployed.** The running supervisor daemon (`tmux supervisor:0`,
+   pid 704590) started **19:27**; the guard commit `d2f1b420a` landed **19:34** — the daemon is running
+   7-minute-stale pre-guard code. A closed-loop check against the *current* code confirms the guard is
+   correct: `_idle_discover_frame_draw_concurrent()` now yields **only `H22_scheduled_housekeeping`** and
+   the 200× single-draw pool contains **none** of W1_2/B4/B5/W4_2/W1_3. So the fix works; it just isn't
+   running yet. Deployment step (R2, "committed ≠ running"): **restart the supervisor daemon** — done this
+   turn, confirmed live below. The five shared saturated atoms are re-confirmed **HELD, no FRAME churn**.
+
+2. **H22 — the one atom the guard legitimately still handed, on a path-convention leak.** H22 is **not**
+   genuinely un-FRAMEd: it carries a complete 17KB FRAME doc (committed `6029eefbe`). But that doc lived at
+   `docs/design/H22_SCHEDULED_HOUSEKEEPING_FRAME.md` — one directory **above** the `docs/design/frame/`
+   prefix `_atom_has_frame_doc` requires — so the intrinsic saturation check missed it and the draw was
+   *correct by its own rule* to offer H22. Fix (this turn, in-scope Lane-3 doc-only): `git mv` the doc to
+   the convention path `docs/design/frame/H22_scheduled_housekeeping_FRAME.md` and append that path to H22's
+   evidence via its atom_status inbox (F1). Once folded, the intrinsic guard reads H22 as saturated and the
+   recursion closes for H22 too — with no per-atom marker to remember (MAKE_IT_STICK). Level **HELD at 0**
+   (BUILD-gated, EPOCH_GATING R1).
+
+**QUEUE (not fix-on-sight — SELF_INTERRUPT_DISCIPLINE):** `_atom_has_frame_doc`'s hard `docs/design/frame/`
+prefix requirement is slightly brittle — any complete FRAME doc placed one dir up (as H22's was) leaks
+through the guard. A future harness pass could relax the check to accept `docs/design/**/*FRAME*.md`, or
+H22's own housekeeping sweep (once built) would flag the stray doc. Filed as a finding, not fixed here
+(that is BUILD on `background/supervisor.py`, outside this Lane-3 doc-only draw). No BUILD code, no map edit
+(F1 — H22's level reported via `docs/design/atom_status/H22_scheduled_housekeeping.yaml`).
