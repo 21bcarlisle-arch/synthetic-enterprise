@@ -1,0 +1,8 @@
+id: C13_weather_normalisation
+level_current: 0
+append_evidence:
+  - "docs/design/frame/C13_weather_normalisation_FRAME.md"
+append_simplification:
+  - "2026-07-16 FRAME (H17 Lane-3, doc-only, no BUILD/no map edit): authored the canonical per-atom FRAME (docs/design/frame/C13_weather_normalisation_FRAME.md), consolidating the previously-scattered FRAME-depth thinking (WEATHER_PHYSICS_HIERARCHY_DESIGN.md §6 wall/gap/hedging-frontier + C13_WEATHER_NORMALISATION_DISCOVER.md method/seam-gap) into C13's own terminus with its single BUILD-unblock gate stated. Consequence: the intrinsic frame-saturation guard now reads C13 as saturated (computed from disk, MAKE_IT_STICK), so the idle draw stops re-offering it and yields to genuinely-un-FRAMEd work. Level HELD at 0 (proposal atom; FRAME complete != built; BUILD-gated on W1_5 L-usable + A6 + Epoch-3 BUILD-open, coupled with W1_5, EPOCH_GATING Rule 1)."
+written_by: H17-lane3-frame/atom-C13_weather_normalisation
+written_at: 2026-07-16T20:40:00Z

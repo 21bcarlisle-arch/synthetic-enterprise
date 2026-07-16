@@ -193,3 +193,37 @@ not merely a static "the check would exclude them" assertion:
 
 *Bankable Lane-3 increment: positive live proof the H23 guard now excludes the whole saturated set and yields
 fresh work, plus the sole unexplained residual queued honestly. No FRAME churn, no map edit (F1), no BUILD code.*
+
+## Resolution — occurrence 9 (2026-07-16, later still) — the guard did its job: a genuinely-un-FRAMEd atom was drawn and actually FRAMEd
+
+The self-refill re-drew a set of six: five saturated (`W1_2_generate_futures`, `B4_competitor_field`,
+`B5_regional_basis_risk`, `W4_2_verifier_timing_extension`, `W1_3_national_weather_signal`) **plus
+`C13_weather_normalisation`** — and C13 is exactly the genuinely-un-FRAMEd atom occurrence 7's live
+reproduction predicted the guard would yield (it appeared in that fresh set). Verified against real disk
+state (R7): C13 carried **only** `docs/design/C13_WEATHER_NORMALISATION_DISCOVER.md` (a DISCOVER-stage doc,
+no `FRAME` in the filename) → `_atom_has_frame_doc(C13)=False`, correctly un-saturated. So this draw is **not
+a pure treadmill recurrence**: it is the guard working — C13 had real remaining FRAME-stage work.
+
+**What this turn did (the bankable, non-churn increment):**
+- **C13 — real FRAME authored.** Wrote C13's canonical per-atom FRAME
+  (`docs/design/frame/C13_weather_normalisation_FRAME.md`), consolidating (not re-deriving) its
+  previously-scattered FRAME-depth thinking — `WEATHER_PHYSICS_HIERARCHY_DESIGN.md` §6 (wall/gap/hedging
+  frontier) + the DISCOVER audit (method/seam-gap/open-questions) — into one terminus with its single
+  BUILD-unblock gate stated (W1_5 L-usable + A6 + Epoch-3 BUILD-open, coupled with W1_5). This closes C13's
+  own leak into the idle draw: once the evidence folds, `_is_frame_saturated(C13)` reads `True` from disk
+  (computed, MAKE_IT_STICK — no marker to remember), so the draw stops offering it. Level **HELD at 0**
+  (proposal atom; FRAME complete ≠ built; BUILD-gated). Reported via
+  `docs/design/atom_status/C13_weather_normalisation.yaml` (F1).
+- **The five saturated atoms — re-confirmed HELD, no FRAME churn.** All five carry complete FRAME docs and
+  their BUILD-gates are unchanged since the tables above (anti-churn, SELF_INTERRUPT_DISCIPLINE + R12). Their
+  presence in the same draw is the same residual map-write/draw-read behaviour occurrence 8 diagnosed
+  (`759648472`); nothing new about it here. No per-atom FRAME re-emitted for any of them; no map edit (F1).
+
+**Meta-note (already QUEUED, not re-filed):** the five saturated atoms still leaking into a draw alongside a
+legitimately-fresh C13 is consistent with occurrence 8's queued root-fix (atomic `os.replace` on the map
+write + fail-closed draw read). This turn adds no new finding on that axis — it is BUILD on the harness,
+outside this Lane-3 doc-only draw.
+
+*This occurrence's lesson: not every re-draw of a mixed set is churn to refuse wholesale — verify each atom
+against disk (R7), FRAME the genuinely-unframed one, HOLD the saturated rest. C13 is now off the treadmill by
+construction, same as every other FRAMEd atom.*
