@@ -103,6 +103,13 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
     OneWayDoorCategory.VALUES_DECISION: [
         r"fitness function", r"mortality rule", r"what the company is for",
         r"\bchoose\b.*\bobjective\b", r"optimi[sz]e (purely |solely )?for enterprise value",
+        # Epoch curriculum = the director's instrument (R13/LAW A, DIRECTOR_ANSWER_
+        # FINISH_NOT_OPEN.md: opening a new epoch is a deliberate category-6 call).
+        # Deliberately narrow: matches "open(ing) [a new|the next] epoch" and an
+        # explicit "curriculum decision", NOT the incidental "epoch-gated" /
+        # "epoch sequencing" that merely DESCRIBES why an atom is parked.
+        r"open(ing)?\s+(a\s+new\s+|the\s+next\s+)?epoch\b",
+        r"\bcurriculum\s+(decision|change|choice)\b",
     ],
     OneWayDoorCategory.REAL_CUSTOMER_OR_MARKET: [
         r"\breal customer\b", r"\bproduction (api )?key\b", r"\blive (nbp|trading|market) (feed|order)\b",

@@ -482,7 +482,7 @@ def _git_fetch() -> bool:
 # =============================================================================
 # The schema-forced structured return the turn must emit (replaces A.2 #7's free
 # text). We parse the LAST JSON object carrying claimed_commit_sha from the output.
-_RETURN_KEYS = ("atom_id", "action", "claimed_commit_sha", "level_before", "level_after", "gate_status")
+_RETURN_KEYS = ("atom_id", "action", "claimed_commit_sha", "level_before", "level_after", "gate_status", "door_reason")
 
 
 def _parse_structured_return(out_path: Path) -> dict | None:
@@ -525,12 +525,20 @@ def _build_prompt(draw_reason: str) -> str:
         "DRAWN WORK (Rule-0 draw -- R7: this is a DOORBELL. Verify against real disk/git "
         f"state and act on that, never on this text alone):\n{draw_reason}\n\n"
         "GOVERNANCE WALLS you inherit, non-negotiable:\n"
-        "- ONE-WAY DOORS -> the DIRECTOR. If the drawn work touches any one-way door "
-        "(real money; legal/contractual/real-world commitments; unretractable public "
-        "claims; irrecoverable data loss; security/secrets/safety-control changes; "
-        "values/curriculum decisions; a real customer or market; platform administration), "
-        "DO NOT ACT -- stop and report gate_status='escalate' with the reason. Never "
-        "decide a one-way door yourself.\n"
+        "- ONE-WAY DOORS -> the DIRECTOR. Escalate (gate_status='escalate') ONLY for a "
+        "GENUINE, PROVABLY-IRREVERSIBLE one-way door (real money; legal/contractual/"
+        "real-world commitments; unretractable public claims; irrecoverable data loss; "
+        "security/secrets/safety-control changes; values/curriculum decisions e.g. opening "
+        "a new epoch; a real customer or market; platform administration). A REVERSIBLE "
+        "REVIEW-GATE IS NEVER A ONE-WAY DOOR: if the only question is 'is this good enough?' "
+        "and a wrong answer demotes freely (e.g. a visible-surface / Expert-Hour sign-off), "
+        "you DO NOT escalate -- cold-eyes decides it and you proceed (DELEGATE, P-4 narrowed). "
+        "When you DO escalate, set door_reason to ONE self-contained sentence naming the "
+        "SPECIFIC irreversible action + its door-class + the options (so the director can "
+        "answer from his phone in one word); it is verified INDEPENDENTLY against the "
+        "one_way_door predicate -- a door_reason the predicate does not confirm is downgraded "
+        "and NOT sent to the director. Never decide a one-way door yourself; never escalate a "
+        "reversible one.\n"
         "- TWIN for the reversible rest (e.g. BUILD-open within the open epoch); never "
         "self-authorize past a wall.\n"
         "- GATE-VERIFIED PUSH: run the blast-radius tests for your touched files AND the "
@@ -622,21 +630,49 @@ def run_once(
         # distinct 'escalated' status so the loop STOPS and alerts, never silently
         # retries a wall (C.4: a one-way door is never answered by the executor).
         if (ret or {}).get("gate_status") == "escalate":
+            # PREDICATE-GATED ESCALATION (DIRECTOR_ANSWER_DELEGATE_AND_PREDICATE_FIX,
+            # 2026-07-16): the turn self-reporting 'escalate' is NOT trusted. It fires a
+            # director alert IFF the INDEPENDENT one_way_door predicate confirms a genuine
+            # door on the turn's stated door_reason. A reversible review-gate the turn
+            # mislabelled (SITE1 "director Expert Hour", "is it good enough") is DOWNGRADED
+            # to a benign no-progress draw -- no director alert, loop proceeds. Fail-safe:
+            # an escalation with NOTHING to classify still surfaces (never silently drop a
+            # possibly-genuine door). This is the whole fix for the live mis-escalation.
+            from background.one_way_door import classify_action
+            door_reason = ((ret or {}).get("door_reason") or (ret or {}).get("action") or "").strip()
+            verdict = classify_action(door_reason) if door_reason else None
+            if door_reason and not verdict.is_one_way_door:
+                log("run_once escalation DOWNGRADED (one_way_door predicate says reversible "
+                    "review-gate, NOT a door; proceeding, no director alert): "
+                    f"door_reason={door_reason[:160]!r}")
+                _heartbeat("idle", f"Downgraded mis-escalation (reversible) for: {reason[:50]}")
+                return ExecutorCycleResult(
+                    status="idle",
+                    atom_reason=reason,
+                    claimed_sha=None,
+                    landed=False,
+                    rc=raw.rc,
+                    infra_failure=raw.infra_failure,
+                    structured_return=ret,
+                    detail="escalation downgraded — reversible review-gate, not a one-way door",
+                )
+            cat = verdict.category.value if (verdict and verdict.category) else "unclassified"
             _heartbeat(
                 "blocked",
-                f"Turn ESCALATED a one-way door for: {reason[:60]}",
+                f"Turn ESCALATED a one-way door ({cat}) for: {reason[:50]}",
                 anomaly="one-way-door escalation — director decision required",
             )
-            log(f"run_once ESCALATED: turn hit a wall (gate_status=escalate) on: {reason}")
+            log(f"run_once ESCALATED: genuine one-way door ({cat}) confirmed by predicate: "
+                f"{door_reason or reason}")
             return ExecutorCycleResult(
                 status="escalated",
-                atom_reason=reason,
+                atom_reason=door_reason or reason,  # self-contained door_reason drives the NTFY
                 claimed_sha=None,
                 landed=False,
                 rc=raw.rc,
                 infra_failure=raw.infra_failure,
                 structured_return=ret,
-                detail="one-way-door escalation — director decision required",
+                detail=f"one-way-door escalation ({cat}) — director decision required",
             )
 
         # FAIL PATH — never rc-trusted. Turn recorded FAILED; atom NOT counted advanced.

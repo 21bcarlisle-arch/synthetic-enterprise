@@ -452,3 +452,40 @@ def test_module_never_references_the_console_only_flag():
     holds regardless of whether the director has currently enabled it."""
     src = (build_executor.PROJECT_DIR / "background" / "build_executor.py").read_text()
     assert ".build_executor_enabled" not in src, "executor module must not touch the console-only flag"
+
+
+class TestPredicateGatedEscalation:
+    """DIRECTOR_ANSWER_DELEGATE_AND_PREDICATE_FIX (2026-07-16): a turn's self-reported
+    gate_status='escalate' fires a director alert IFF the one_way_door predicate confirms
+    a genuine door on its door_reason. Reversible review-gate -> downgraded (idle), not sent."""
+
+    def _run_once_escalating(self, monkeypatch, *, door_reason, action="held-no-op"):
+        import types
+        monkeypatch.setattr(build_executor, "dispatch_turn", lambda *a, **k: object())
+        raw = types.SimpleNamespace(
+            structured_return={"gate_status": "escalate", "door_reason": door_reason, "action": action},
+            claimed_sha=None, landed=False, rc=0, infra_failure=False,
+        )
+        monkeypatch.setattr(build_executor, "reap_turn", lambda *a, **k: raw)
+        return build_executor.run_once(draw_fn=lambda: "drawn: SITE1/A8/B4 billing pricing epoch-gated")
+
+    def test_reversible_review_gate_is_downgraded_not_escalated(self, monkeypatch):
+        r = self._run_once_escalating(
+            monkeypatch,
+            door_reason="SITE1 doors are good enough — director Expert Hour / live-pixel sign-off to reach L3",
+        )
+        assert r.status == "idle"  # downgraded — NOT a director alert
+
+    def test_genuine_epoch_curriculum_door_escalates(self, monkeypatch):
+        r = self._run_once_escalating(monkeypatch, door_reason="open Epoch 4 for the B4 competitor field")
+        assert r.status == "escalated"
+        assert "Epoch 4" in (r.atom_reason or "")  # self-contained door_reason carried for the NTFY
+
+    def test_genuine_real_money_door_escalates(self, monkeypatch):
+        r = self._run_once_escalating(monkeypatch, door_reason="spend real money on a production API key")
+        assert r.status == "escalated"
+
+    def test_empty_door_reason_fails_safe_to_escalate(self, monkeypatch):
+        # Nothing to classify -> never silently drop a possibly-genuine door.
+        r = self._run_once_escalating(monkeypatch, door_reason="", action="")
+        assert r.status == "escalated"
