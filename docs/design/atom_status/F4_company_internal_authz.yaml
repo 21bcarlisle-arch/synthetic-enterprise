@@ -1,8 +1,0 @@
-id: F4_company_internal_authz
-level_current: 0
-append_evidence:
-  - docs/design/frame/F4_company_internal_authz_FRAME.md
-append_simplification:
-  - "2026-07-16 FRAME (H17 Lane-3): canonical per-atom FRAME terminus authored (RBAC + maker-checker + segregation-of-duties design; enforce DECISION_RIGHTS_REGISTER's approver field at resolve_decision_request() -- one architecture not two); BUILD deferred (Epoch-5-gated). No BUILD code, no map edit (F1)."
-written_by: H17-lane3/F4_company_internal_authz
-written_at: 2026-07-16T00:00:00Z
