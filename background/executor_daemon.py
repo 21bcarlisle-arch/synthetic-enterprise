@@ -23,10 +23,22 @@ and keeps drawing other atoms — so `wall_escalated` is not among run_loop's te
 """
 from __future__ import annotations
 
+import sys
 import time
+from pathlib import Path
 from typing import Callable
 
-from background import build_executor, executor_governor
+# Standalone entrypoint bootstrap: launched as `python3 background/executor_daemon.py`
+# (start_worker.sh, like every sibling daemon), Python puts THIS file's dir
+# (background/) on sys.path, not the repo root -- so `from background import ...`
+# raises ModuleNotFoundError and the process dies at import before run_forever is
+# ever reached. Every other daemon (supervisor/staging_watcher/dispatcher) carries
+# the same insert; this one lacked it, so it could only ever be imported by pytest,
+# never launched as a real process (2026-07-16: "proven in a 3-turn test but never
+# launched as a persistent process").
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from background import build_executor, executor_governor  # noqa: E402
 
 # run_loop stop_reasons that are TERMINAL for the daemon (a human must act; do not restart).
 _TERMINAL_STOPS = frozenset({"kill_switch_off", "map_unreconciled", "repeated_failure"})

@@ -112,6 +112,17 @@ _start_session "supervisor" \
   "Sole turn-granting authority (2026-07-09, doorbell failure #4) -- polls every 2min, grants a turn when idle+work exists" \
   "${NTFY_ENV_FLAGS[@]}"
 
+# The self-continuing headless build loop (H17, DIRECTOR_ANSWERS_C7). DARK-gated:
+# a bare launch is a safe no-op unless the director's console-only enable flag
+# (docs/observability/.build_executor_enabled) is present, so it is safe to
+# always start here. Added 2026-07-16: it was never in start_worker.sh, so it
+# did not come up with the other daemons and a reboot lost it entirely (the gap
+# behind "flag enabled but nothing executes the loop").
+_start_session "executor-daemon" \
+  "python3 background/executor_daemon.py" \
+  "Self-continuing headless build loop -- draw->dispatch claude -p->gate on origin, DARK unless the enable flag is set" \
+  "${NTFY_ENV_FLAGS[@]}"
+
 _start_session "ntfy-responder" \
   "python3 background/ntfy_responder.py" \
   "Instant-acks all inbound NTFY messages, writes to staging/" \

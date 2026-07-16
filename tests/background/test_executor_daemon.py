@@ -74,3 +74,33 @@ def test_restarts_run_loop_on_crash():
         kill_switch=lambda: True, run_loop_fn=_run_loop, sleep=lambda _s: None,
     )
     assert reason == "kill_switch_off"  # survived the crash and re-entered
+
+
+def test_daemon_importable_as_a_standalone_script():
+    """Regression (2026-07-16): launched as `python3 background/executor_daemon.py`
+    (start_worker.sh, like every sibling daemon), Python puts background/ on
+    sys.path, NOT the repo root -- so `from background import ...` raised
+    ModuleNotFoundError and the process died at import before run_forever ran.
+    The daemon MUST carry the same sys.path bootstrap every sibling daemon has.
+    Proven functionally: run the file in a subprocess from a NON-repo cwd with a
+    clean env, importing it as a module (so main() does not run) -- it must import
+    with returncode 0."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    daemon = Path(__file__).resolve().parents[2] / "background" / "executor_daemon.py"
+    # exec_module with __name__ != "__main__" so run_forever/main never fires;
+    # cwd=/tmp and no PYTHONPATH so ONLY the file's own bootstrap can satisfy the
+    # `from background import ...` at module load.
+    code = (
+        "import importlib.util,sys;"
+        f"spec=importlib.util.spec_from_file_location('ed',r'{daemon}');"
+        "m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);"
+        "assert hasattr(m,'run_forever');print('OK')"
+    )
+    r = subprocess.run([sys.executable, "-c", code], cwd="/tmp",
+                       capture_output=True, text=True, timeout=30,
+                       env={"PATH": "/usr/bin:/bin"})
+    assert r.returncode == 0, f"daemon not importable as a script: {r.stderr}"
+    assert "OK" in r.stdout
