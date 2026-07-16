@@ -52,5 +52,52 @@ Both directions, per R15 doctrine:
 
 Verified against real disk/git state (R7 — the draw text is a doorbell): all six are unchanged since `LANE3_H17_BUILD_GATE_SURVEY_20260716.md`, each carries a complete FRAME doc, each already lists the survey in `evidence`. Levels HELD: `W4_2`=1 (→3, **WALL** — Tier-1 safety-control re-open, director-reserved), `W1_2`=1 (→2, curriculum WALL + epoch), `B4`=0 (→1, W2_3 depends_on), `B5`=0 (→3, coupled W1_8 + curriculum WALL), `W1_3`=1 (→3, epoch), `W1_4`=1 (→3, W1_3 depends_on + epoch). No new per-atom FRAME written and no redundant `atom_status` inbox emitted (evidence already present — an inbox re-asserting an unchanged level with nothing to append is itself churn). Full gate table: `LANE3_H17_BUILD_GATE_SURVEY_20260716.md`.
 
+## 7. QUEUED sub-finding (2026-07-16, H17 Lane-3) — the detector's SCOPE is too narrow: 7 already-framed atoms read un-saturated
+
+**Not fixed on sight** (F1 bars the map/guard edit; a `supervisor.py`/map change is H23 BUILD-lane work,
+BUILD-gated). Registered here so the eventual H23 BUILD widens its own scope. This SHARPENS the remedy
+already designed in §3, it does not contradict it.
+
+**Observed (R7, against real disk/map state this turn):** `_atom_has_frame_doc()` recognises a FRAME only
+when an `evidence` entry both (a) starts `docs/design/frame/` AND (b) has `FRAME` in the filename. A large
+slice of this project's *genuine, complete* FRAME work does **not** live at that path/name, so the intrinsic
+detector false-negatives and the draw keeps re-offering atoms that are substantively framed. Concretely, of
+the 14 idle atoms the live guard offered as "non-saturated" this turn, **7 are already framed elsewhere**:
+
+| Atom | dial | Where its FRAME actually lives | Why the detector misses it |
+|---|---|---|---|
+| `W1_5_premise_demand_shape` | 3 | `WEATHER_PHYSICS_HIERARCHY_DESIGN.md` §1.3 (full FRAME depth + I2 invariant + R15 mutation test) | shared multi-atom design doc, not a per-atom `frame/*FRAME*` file |
+| `C13_weather_normalisation` | 3 | same design §6 (authoritative gap formula/wall) + `C13_WEATHER_NORMALISATION_DISCOVER.md` | shared design + a DISCOVER doc |
+| `W1_10_ev_heatpump_geography` | 3 | `docs/design/W1_10_FRAME.md` | non-canonical path (`docs/design/`, not `docs/design/frame/`) |
+| `G4_unified_failure_register` | 3 | `docs/design/UNIFIED_FAILURE_REGISTER.md` | non-canonical path + no `FRAME` in name |
+| `A5_tournament_fitness_mortality` | 2 | `docs/design/A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md` | non-canonical path (uppercase, `docs/design/`) |
+| `H20_parallel_maintenance_lane` | 3* | `docs/design/H20_PARALLEL_MAINTENANCE_LANE_FRAME.md` | non-canonical path |
+| `H21_self_contained_escalation` | 3* | `docs/design/H21_SELF_CONTAINED_ESCALATION_FRAME.md` | non-canonical path |
+
+(This subsumes and expands the earlier `ad8ec7eac` queue note, which named only G4 + W1_10.)
+
+**Consequence:** the treadmill this whole atom exists to stop is only *partly* closed — the drawn set is
+correctly excluded (canonical `frame/` docs), but the guard still keeps re-handing these 7. The genuinely
+un-framed idle remainder is now small and mostly low-dial (`A4`, `C4`, `C5`, `D4`, `H8`, `F4` — dial 1;
+this turn framed `G3`, dial 2). **All dial-3 FRAME work is in fact complete.**
+
+**Remedy (two options, BUILD's call — the §3 design already supports the cleanest one):**
+1. **Cheapest, uses the existing design:** pre-populate the explicit `frame_saturated: true` override
+   (§2/§3.1 — already specified as an author-set force-mark for exactly "a FRAME doc under a non-standard
+   name") on the 7 atoms above. Pure map edit, no guard-code change, immediately stops the re-offer.
+2. **More durable:** broaden `_atom_has_frame_doc()` to recognise a FRAME artefact listed in `evidence`
+   regardless of directory, keyed on `FRAME`-in-name OR an explicit `frame_doc:` field — plus a shared-doc
+   case (an atom whose `evidence` names a multi-atom design doc that *declares* it frames this id). Higher
+   surface; needs its own R15 mutation test (a mis-named FRAME must still read saturated; a shared doc that
+   does NOT frame this id must still read un-saturated — TAUTOLOGY guard).
+
+Both are reversible (git reverts) → **not a one-way door**; routes via `director_twin.route_blocking_decision`
+as BUILD-within-the-open-epoch when H23 BUILD opens. Whichever is chosen, add a mutation test that plants a
+FRAME doc at a non-canonical path and asserts the atom reads saturated — the current gap made executable.
+
 ---
-*No BUILD code, no level move on any drawn atom. This turn's bankable Lane-3 increment is registering the DIAL-defect remedy as a drawable proposal atom (H23) so it stops evaporating — the doctrinally-correct QUEUE disposition of this draw's own thrice-observed meta-finding.*
+*No BUILD code, no level move on any drawn atom. This turn's bankable Lane-3 increment: (1) a genuine
+consolidated FRAME for `G3_method_ip_worktree_retro` (dial 2, epoch 2 — the highest-dial, nearest-epoch,
+genuinely-un-framed idle atom), turning director-authored method IP from decaying prose into a checkable
+BUILD bar; (2) this expanded QUEUE of the detector-scope sub-finding so the treadmill's residual leak stops
+evaporating — the doctrinally-correct QUEUE disposition (SELF_INTERRUPT_DISCIPLINE), not a fix-on-sight.*
