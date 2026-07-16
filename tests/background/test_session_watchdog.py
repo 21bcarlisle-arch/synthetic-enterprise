@@ -38,27 +38,21 @@ def test_resolve_claude_binary_none_if_not_found(monkeypatch, tmp_path):
 
 
 def test_ntfy_default_uses_done_priority_and_tag(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "{}"})(),
-    )
+    # Capture the headers watchdog.ntfy passes to send_ntfy (unit-level; immune to the
+    # global no-real-send test guard, which now suppresses real POSTs under pytest).
+    captured = {}
+    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None, **k: captured.update(headers or {}))
     watchdog.ntfy("done")
-    cmd = calls[0]
-    assert "X-Priority: default" in cmd
-    assert "X-Tags: white_check_mark" in cmd
+    assert captured["X-Priority"] == "default"
+    assert captured["X-Tags"] == "white_check_mark"
 
 
 def test_ntfy_needs_input_uses_high_priority_and_warning_tag(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "{}"})(),
-    )
+    captured = {}
+    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None, **k: captured.update(headers or {}))
     watchdog.ntfy("please review", needs_input=True)
-    cmd = calls[0]
-    assert "X-Priority: high" in cmd
-    assert "X-Tags: warning" in cmd
+    assert captured["X-Priority"] == "high"
+    assert captured["X-Tags"] == "warning"
 
 
 def test_is_yes_reply_matches_message_after_since():
@@ -504,16 +498,12 @@ def test_gate_actions_header_escapes_commas_and_includes_token():
 
 
 def test_ntfy_gate_sends_actions_header(monkeypatch):
-    calls = []
-    monkeypatch.setattr(
-        watchdog.subprocess, "run",
-        lambda cmd, **kw: calls.append(cmd) or type("R", (), {"stdout": "{}"})(),
-    )
+    captured = {}
+    monkeypatch.setattr(watchdog, "send_ntfy", lambda msg, headers=None, **k: captured.update(headers or {}))
     watchdog.ntfy_gate("waiting for review", "main", "tok123")
-    cmd = calls[0]
-    assert "X-Priority: high" in cmd
-    assert "X-Tags: warning" in cmd
-    assert any(c.startswith("X-Actions: ") and "tok123" in c for c in cmd)
+    assert captured["X-Priority"] == "high"
+    assert captured["X-Tags"] == "warning"
+    assert "tok123" in captured.get("X-Actions", "")
 
 
 def test_check_autoloop_pauses_on_permission_prompt(monkeypatch):
@@ -781,6 +771,9 @@ def test_verify_daemon_set_after_restart_ntfys_on_missing_daemon(monkeypatch):
     ntfy_msgs = []
     monkeypatch.setattr(watchdog, "log", lambda msg, **k: logs.append(msg))
     monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_msgs.append(msg))
+    monkeypatch.setattr(watchdog, "time", type("T", (), {"sleep": staticmethod(lambda s: None), "time": staticmethod(lambda: 1_000_000.0)}))
+    monkeypatch.setattr(watchdog, "_last_degraded_ntfy_at", 0.0)  # cooldown clear
+    # A PERSISTENT problem (present in both debounce passes) pages exactly once.
     monkeypatch.setattr(
         watchdog, "run_health_check",
         lambda: (False, ["ok1"], ["  ✗ supervisor — NOT RUNNING (supervisor.py)"]),
@@ -791,6 +784,52 @@ def test_verify_daemon_set_after_restart_ntfys_on_missing_daemon(monkeypatch):
     assert len(ntfy_msgs) == 1
     assert "supervisor" in ntfy_msgs[0]
     assert any("DEGRADED" in m for m in logs)
+
+
+def test_verify_daemon_set_transient_degraded_does_not_page(monkeypatch):
+    """DEBOUNCE (2026-07-16): a problem present on the FIRST health pass but gone on the
+    re-check (a transient post-respawn race -- e.g. the just-reaped old session still
+    terminating -> a momentary second interactive session) must NOT page. This is the
+    exact "false DEGRADED" the director named; a real ghost turned it into a full DAY of
+    'MULTIPLE sessions' pages."""
+    logs, ntfy_msgs = [], []
+    monkeypatch.setattr(watchdog, "log", lambda msg, **k: logs.append(msg))
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_msgs.append(msg))
+    monkeypatch.setattr(watchdog, "time", type("T", (), {"sleep": staticmethod(lambda s: None), "time": staticmethod(lambda: 1_000_000.0)}))
+    monkeypatch.setattr(watchdog, "_last_degraded_ntfy_at", 0.0)
+    calls = {"n": 0}
+    def _hc():
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return (False, ["ok1"], ["  ✗ MULTIPLE interactive Claude sessions (2)"])
+        return (True, ["ok1", "ok2"], [])  # cleared on re-check
+    monkeypatch.setattr(watchdog, "run_health_check", _hc)
+
+    watchdog._verify_daemon_set_after_restart()
+
+    assert ntfy_msgs == [], "a transient DEGRADED that clears on re-check must not page"
+    assert calls["n"] == 2, "must re-check before paging"
+
+
+def test_verify_daemon_set_degraded_page_rate_limited(monkeypatch):
+    """RATE-LIMIT (2026-07-16): a restart STORM must not become a page storm -- at most
+    one DEGRADED page per cooldown window, even though every restart re-checks."""
+    ntfy_msgs = []
+    monkeypatch.setattr(watchdog, "log", lambda msg, **k: None)
+    monkeypatch.setattr(watchdog, "ntfy", lambda msg, needs_input=False: ntfy_msgs.append(msg))
+    # Frozen clock inside the cooldown window; persistent problem on every pass.
+    monkeypatch.setattr(watchdog, "time", type("T", (), {"sleep": staticmethod(lambda s: None), "time": staticmethod(lambda: 2_000_000.0)}))
+    monkeypatch.setattr(watchdog, "_last_degraded_ntfy_at", 0.0)
+    monkeypatch.setattr(
+        watchdog, "run_health_check",
+        lambda: (False, ["ok1"], ["  ✗ supervisor — NOT RUNNING (supervisor.py)"]),
+    )
+
+    watchdog._verify_daemon_set_after_restart()  # first: pages
+    watchdog._verify_daemon_set_after_restart()  # second, same window: suppressed
+    watchdog._verify_daemon_set_after_restart()  # third, same window: suppressed
+
+    assert len(ntfy_msgs) == 1, "at most one DEGRADED page per cooldown window"
 
 
 def test_verify_daemon_set_after_restart_survives_health_check_exception(monkeypatch):
@@ -855,3 +894,53 @@ def test_claude_is_running_false_only_when_pane_bare_AND_no_process(monkeypatch)
     always reports 'running'."""
     monkeypatch.setattr(watchdog.subprocess, "run", _dispatch_run(pane_stdout="bash\n", pgrep_rc=1))
     assert watchdog.claude_is_running() is False
+
+
+def test_reap_orphan_interactive_claude_never_kills_self(monkeypatch):
+    """The respawn reap must never SIGTERM the watchdog's own pid, an excluded pid, or
+    a pid backed by a live tmux pane; only genuine orphan ghosts are reaped."""
+    import os
+    monkeypatch.setattr(watchdog, "interactive_claude_pids", lambda: [os.getpid(), 99991, 99992])
+    monkeypatch.setattr(watchdog, "log", lambda *a, **k: None)
+    # Non-empty pane set (so we are NOT in the fail-safe path); none of the ghost pids
+    # is backed by a live pane, so both are eligible -- but 99992 is excluded and self spared.
+    monkeypatch.setattr(watchdog, "_live_tmux_pane_pids", lambda: {123456})
+    monkeypatch.setattr(watchdog, "_is_backed_by_live_pane", lambda pid, pane_pids, **k: False)
+    killed = []
+    monkeypatch.setattr(watchdog.os, "kill", lambda pid, sig: killed.append(pid))
+    reaped = watchdog.reap_orphan_interactive_claude(exclude={99992})
+    assert os.getpid() not in killed and 99992 not in killed  # self + excluded spared
+    assert set(reaped) == {99991}
+
+
+def test_reap_never_kills_a_live_console_session(monkeypatch):
+    """R15-style: the load-bearing safety property. A second INTERACTIVE claude that is
+    backed by a LIVE tmux pane (the director's own console session) is NEVER reaped --
+    only the pane-less orphan ghost is. Proves reap discriminates instead of killing
+    every interactive claude but self (the pre-fix behaviour, which would have killed a
+    live console)."""
+    console_pid, ghost_pid = 55501, 55502
+    monkeypatch.setattr(watchdog, "interactive_claude_pids", lambda: [console_pid, ghost_pid])
+    monkeypatch.setattr(watchdog, "log", lambda *a, **k: None)
+    monkeypatch.setattr(watchdog, "_live_tmux_pane_pids", lambda: {console_pid})
+    # Real ancestor-walk: console_pid IS a live pane -> spared; ghost_pid is not -> reaped.
+    monkeypatch.setattr(watchdog, "_is_backed_by_live_pane",
+                        lambda pid, pane_pids, **k: pid in pane_pids)
+    killed = []
+    monkeypatch.setattr(watchdog.os, "kill", lambda pid, sig: killed.append(pid))
+    reaped = watchdog.reap_orphan_interactive_claude()
+    assert console_pid not in killed  # the live console session is spared
+    assert reaped == [ghost_pid]      # only the orphan ghost is reaped
+
+
+def test_reap_fails_safe_when_tmux_unavailable(monkeypatch):
+    """If the tmux pane list is unavailable we cannot prove any process is an orphan,
+    so reap kills NOTHING -- a lingering ghost is far less harmful than killing a live
+    session we could not classify."""
+    monkeypatch.setattr(watchdog, "interactive_claude_pids", lambda: [55601, 55602])
+    monkeypatch.setattr(watchdog, "log", lambda *a, **k: None)
+    monkeypatch.setattr(watchdog, "_live_tmux_pane_pids", lambda: set())
+    killed = []
+    monkeypatch.setattr(watchdog.os, "kill", lambda pid, sig: killed.append(pid))
+    reaped = watchdog.reap_orphan_interactive_claude()
+    assert killed == [] and reaped == []

@@ -178,13 +178,15 @@ def test_all_processes_running_reports_ok(monkeypatch):
     # A1_learn_loop_chair L3 added a 5th always-present ok-line (retro cadence);
     # mock it too so this asserts the pane/check logic, not live retro state.
     monkeypatch.setattr(retro_cadence_check, "check_retro_staleness", lambda: None)
+    # 6th always-present ok-line: exactly-one-interactive-session (2026-07-16).
+    monkeypatch.setattr(health_check, "_check_single_interactive_session", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    # +1 staging, +1 pixel-verification, +1 stale-code, +1 stale-deps, +1 retro-cadence
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 5
+    # +staging +pixel +stale-code +stale-deps +retro-cadence +single-session
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 6
 
 
 def test_missing_process_reported_as_problem(monkeypatch):
@@ -200,6 +202,7 @@ def test_missing_process_reported_as_problem(monkeypatch):
 
 
 def test_process_running_without_tmux_pane_still_passes(monkeypatch):
+    from background import retro_cadence_check
     present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "dispatcher"}
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: present)
     monkeypatch.setattr(health_check, "_running_scripts", lambda: ["python3 background/dispatcher.py"])
@@ -210,10 +213,19 @@ def test_process_running_without_tmux_pane_still_passes(monkeypatch):
     monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
     monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
     monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
+    # _check_single_interactive_session and the retro-cadence check are ALSO
+    # host-state reads (real `claude` process count; real retro file mtimes) —
+    # mock them too, exactly as test_all_processes_running_reports_ok does.
+    # Omitting the interactive-session mock made this test flip red whenever a
+    # duplicate/ghost `claude` session happened to be alive on the host, which
+    # wedged the publish gate (rc=1) with no code regression at all
+    # (2026-07-16). A unit test must not depend on live host process state.
+    monkeypatch.setattr(health_check, "_check_single_interactive_session", lambda: None)
+    monkeypatch.setattr(retro_cadence_check, "check_retro_staleness", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
-    assert all_ok
+    assert all_ok, f"unexpected problems: {problem_lines}"
 
 
 def test_stale_staging_message_reported_as_problem(monkeypatch):
@@ -456,3 +468,15 @@ class TestCheckStaleRunningCode:
 
         assert not all_ok
         assert any("supervisor" in line and "Stale running code" in line for line in problem_lines)
+
+
+def test_multiple_interactive_sessions_is_a_problem(monkeypatch):
+    """2026-07-16: >1 interactive Claude session (a ghost/duplicate) must alarm within a
+    health cycle -- the Jul-15 ghost spammed for a full day undetected. One or zero is OK."""
+    from background import session_watchdog
+    monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [111, 222])
+    assert health_check._check_single_interactive_session() is not None  # alarms on 2
+    monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [111])
+    assert health_check._check_single_interactive_session() is None      # one is fine
+    monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [])
+    assert health_check._check_single_interactive_session() is None      # zero is fine

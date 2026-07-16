@@ -302,6 +302,23 @@ def _check_staging_age() -> str | None:
     return None
 
 
+def _check_single_interactive_session() -> str | None:
+    """Return a problem string if MORE THAN ONE interactive Claude session is running
+    (2026-07-16, director: a Jul-15 ghost session survived a full day, spamming NTFY every
+    gate cycle -- the next ghost must page him within a health cycle, not a day). Exactly
+    one is healthy; zero is fine (watchdog will resume); >1 is the ghost/duplicate alarm."""
+    try:
+        from background.session_watchdog import interactive_claude_pids
+        pids = interactive_claude_pids()
+        if len(pids) > 1:
+            return (f"MULTIPLE interactive Claude sessions ({len(pids)}: {pids}) -- a duplicate/"
+                    "ghost session. Each runs the test suite and burns tokens; reap all but one "
+                    "(session_watchdog.reap_orphan_interactive_claude).")
+    except Exception:
+        return None  # never break the health run on this check
+    return None
+
+
 def run_health_check() -> tuple[bool, list[str], list[str]]:
     """
     Returns (all_ok, ok_lines, problem_lines).
@@ -337,6 +354,12 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
         problem_lines.append(f"  ✗ {stale_code_warn}")
     else:
         ok_lines.append("  ✓ no daemon running code older than its own committed changes")
+
+    session_warn = _check_single_interactive_session()
+    if session_warn:
+        problem_lines.append(f"  ✗ {session_warn}")
+    else:
+        ok_lines.append("  ✓ exactly one interactive Claude session")
 
     # Informational, not a hard failure (idle-hole #8): a flagged candidate
     # can be a genuine, expected, long-lived block (E2/W5_1-style, reviewed

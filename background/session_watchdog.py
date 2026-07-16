@@ -85,8 +85,10 @@ Logs to docs/observability/session-watchdog-log.md.
 
 import glob
 import json
+import os
 import re
 import secrets
+import signal
 import subprocess
 import sys
 import time
@@ -136,6 +138,14 @@ CHECK_INTERVAL_SECONDS = 60
 CONFIRM_POLL_INTERVAL_SECONDS = 60
 CONFIRM_TIMEOUT_SECONDS = 4 * 3600  # 4 hours
 MAX_RESTARTS_PER_HOUR = 3
+# Post-restart DEGRADED page is debounced + rate-limited (2026-07-16): during a
+# restart storm the daemon-health page must not fire on every restart, and a
+# TRANSIENT post-respawn race (old process still terminating -> momentarily two
+# interactive sessions -> "MULTIPLE sessions") must not page at all. Re-check after
+# this delay and page only PERSISTENT problems, at most once per cooldown.
+DEGRADED_RECHECK_DELAY_SECONDS = 12
+DEGRADED_NTFY_COOLDOWN_SECONDS = 60 * 60
+_last_degraded_ntfy_at = 0.0
 USAGE_LIMIT_POLL_INTERVAL_SECONDS = 15 * 60  # 15 minutes
 USAGE_LIMIT_MAX_WAIT_SECONDS = 6 * 3600  # 6 hours — covers the 5h session limit with margin
 # NTFY_TOPIC now sourced from ntfy_utils (single source of truth, itself
@@ -298,11 +308,12 @@ RESUME_INSTRUCTION = (
     "5. CHECK docs/staging/ for any file not yet in docs/staging/done/ — "
     "staging is pre-approval, action immediately without waiting for "
     "confirmation.\n\n"
-    "6. ADVANCE THE PROJECT: once staging is clear and all checks pass, "
-    "check docs/instructions/MASTER_BACKLOG.md for the next incomplete phase "
-    "and proceed autonomously. Proceed immediately — do not wait for "
-    "confirmation before starting. NTFY Rich with what you are doing so he "
-    "can redirect if needed."
+    "6. ADVANCE THE PROJECT: once staging is clear and all checks pass, draw "
+    "the next work from the current priority authority — docs/PRIORITIES.md (the "
+    "sole ranked queue, P-1) and the maturity-map self-refill draw "
+    "(background/supervisor.py::find_work) — NOT the retired MASTER_BACKLOG.md. "
+    "Proceed autonomously; do not wait for confirmation. NTFY Rich only on a real "
+    "transition/blocker (R5), not as a routine start ping."
 )
 
 # --- Autonomous main loop (between-task continuation) ---
@@ -490,6 +501,133 @@ def session_exists() -> bool:
         ["tmux", "has-session", "-t", SESSION_NAME],
         capture_output=True,
     ).returncode == 0
+
+
+def interactive_claude_pids() -> list[int]:
+    """PIDs of INTERACTIVE main Claude Code sessions -- the auto-resumed pane process
+    (`claude --dangerously-skip-permissions ... -c <resume>`), EXCLUDING headless
+    `claude -p` build-executor turns and node/MCP helpers. The single-session invariant
+    keys on the PROCESS, not the tmux session: a Jul-15 crash-recovery ghost survived a
+    FULL DAY (spamming the director every gate cycle) because session_exists() checks the
+    tmux SESSION, and kill-session leaves an orphaned claude PROCESS alive (2026-07-16)."""
+    from pathlib import Path as _P
+    pids: list[int] = []
+    for entry in _P("/proc").iterdir() if _P("/proc").is_dir() else []:
+        if not entry.name.isdigit():
+            continue
+        try:
+            argv = (entry / "cmdline").read_bytes().split(b"\x00")
+        except OSError:
+            continue
+        argv = [a.decode("utf-8", "replace") for a in argv if a]
+        if not argv:
+            continue
+        # argv[0] must BE the claude binary -- excludes the `tmux new-session ... claude`
+        # LAUNCHER (argv[0]=="tmux") that merely mentions claude in its args, which was
+        # false-counted as a second session (2026-07-16 mis-page "MULTIPLE sessions").
+        exe = argv[0].rsplit("/", 1)[-1]
+        if exe not in ("claude", "node") or not exe:
+            continue
+        joined = " ".join(argv)
+        if "--dangerously-skip-permissions" not in joined:
+            continue  # not a launched Claude Code session
+        if "-p" in argv or "--print" in argv:
+            continue  # a headless build-executor turn, not an interactive session
+        pids.append(int(entry.name))
+    return pids
+
+
+def _live_tmux_pane_pids() -> set[int]:
+    """Every pid that is the foreground process of a LIVE tmux pane, across ALL
+    sessions (not just the watchdog's own SESSION_NAME). Used to tell an orphaned
+    GHOST (its tmux session was killed, no pane backs it any more -> reap) from a
+    genuinely-live session the director is using (managed OR a console `tmux
+    new-session` + claude he typed himself -> NEVER touch it). Empty set if tmux
+    is unreachable -- which makes reap fail SAFE (see reap_orphan_...)."""
+    result = subprocess.run(
+        ["tmux", "list-panes", "-a", "-F", "#{pane_pid}"],
+        capture_output=True, text=True,
+    )
+    if getattr(result, "returncode", 1) != 0:
+        return set()
+    pids: set[int] = set()
+    for line in (getattr(result, "stdout", "") or "").split():
+        try:
+            pids.add(int(line))
+        except ValueError:
+            pass
+    return pids
+
+
+def _ppid_of(pid: int) -> int | None:
+    """Parent pid of `pid` from /proc/<pid>/status, or None if unreadable."""
+    try:
+        for line in (Path("/proc") / str(pid) / "status").read_text().splitlines():
+            if line.startswith("PPid:"):
+                return int(line.split()[1])
+    except (OSError, ValueError, IndexError):
+        pass
+    return None
+
+
+def _is_backed_by_live_pane(pid: int, pane_pids: set[int], _max_hops: int = 32) -> bool:
+    """True if `pid` (or any ancestor within _max_hops) is a live tmux pane process.
+    Our daemon/console sessions launch `claude` as the pane command directly, so
+    pane_pid == the claude pid in the common case; the ancestor walk covers a
+    shell-wrapped launch too. An orphaned ghost traces up to pid 1/0, never a pane."""
+    cur: int | None = pid
+    for _ in range(_max_hops):
+        if cur is None or cur <= 1:
+            return False
+        if cur in pane_pids:
+            return True
+        cur = _ppid_of(cur)
+    return False
+
+
+def reap_orphan_interactive_claude(exclude: set[int] | None = None) -> list[int]:
+    """SIGTERM only ORPHANED interactive Claude session processes -- a ghost whose
+    tmux session was killed but whose `claude` PROCESS survived (how the Jul-15
+    ghost spammed the director for a full day). Called on the respawn path so the
+    singleton invariant covers the crash-recovery / usage-reset route.
+
+    NEVER kills a session the director is actually using: a process backed by a
+    LIVE tmux pane -- the watchdog's own managed session OR a console `tmux
+    new-session` + claude he started himself -- is spared, always. This closes the
+    "watchdog killed an interactive console session" hazard: the earlier version
+    SIGTERM'd every interactive claude except its own pid, which would have reaped
+    a legitimate second console. Returns the reaped pids.
+
+    Fails SAFE: if tmux is unreachable (empty pane set) we cannot prove a process
+    is a ghost, so we reap NOTHING rather than risk killing a live session."""
+    exclude = exclude or set()
+    pane_pids = _live_tmux_pane_pids()
+    if not pane_pids:
+        # Cannot distinguish ghost from live console without the pane list -> do not
+        # reap. A lingering ghost is far less harmful than killing a live session.
+        log("Reap skipped: tmux pane list unavailable -- cannot prove any process is an "
+            "orphan, so nothing is reaped (fail-safe: never kill a possibly-live session).")
+        return []
+    reaped = []
+    spared_live = []
+    for pid in interactive_claude_pids():
+        if pid in exclude or pid == os.getpid():
+            continue
+        if _is_backed_by_live_pane(pid, pane_pids):
+            spared_live.append(pid)
+            continue  # a live session (managed or the director's console) -- never touch it
+        try:
+            os.kill(pid, signal.SIGTERM)
+            reaped.append(pid)
+        except OSError:
+            pass
+    if reaped:
+        log(f"Reaped {len(reaped)} ORPHAN interactive-claude ghost(s) on respawn: {reaped}"
+            + (f"; spared {len(spared_live)} live pane-backed session(s): {spared_live}" if spared_live else "")
+            + " (singleton invariant; live console sessions are never killed)")
+    elif spared_live:
+        log(f"Reap found no orphans; spared {len(spared_live)} live pane-backed session(s): {spared_live}")
+    return reaped
 
 
 def claude_is_running() -> bool:
@@ -769,6 +907,11 @@ def restart_claude(resume: bool = True) -> None:
         f"2026-07-05 director confirmation, direct launch via {claude_bin}, "
         f"claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
+    # Singleton on the RESPAWN path (2026-07-16): kill-session removes the tmux session
+    # but can leave an orphaned claude PROCESS alive (how the Jul-15 ghost survived a
+    # day). Reap any interactive-claude orphan before spawning the replacement, so at
+    # most one interactive session ever exists.
+    reap_orphan_interactive_claude()
     time.sleep(5)
 
     # DISABLE_AUTOUPDATER=1 (2026-07-08, Rich's direct instruction): the npm
@@ -830,6 +973,7 @@ def _verify_daemon_set_after_restart() -> None:
     logs the result either way, NTFYs only on a genuine miss (never a
     routine "all healthy" alert, matching this project's own noise
     discipline)."""
+    global _last_degraded_ntfy_at
     try:
         all_ok, ok_lines, problem_lines = run_health_check()
     except Exception as exc:
@@ -838,12 +982,45 @@ def _verify_daemon_set_after_restart() -> None:
     if all_ok:
         log(f"Post-restart daemon health check: OK ({len(ok_lines)} checks healthy)")
         return
-    log(f"Post-restart daemon health check: DEGRADED -- {len(problem_lines)} problem(s): "
-        + "; ".join(problem_lines))
+
+    # DEBOUNCE (2026-07-16): a freshly-restarted session races with the just-reaped
+    # old process and with daemons still coming up. Re-check after a short delay and
+    # keep ONLY problems present in BOTH passes -- a transient (e.g. a momentary
+    # second interactive session while the old one terminates) drops out and never
+    # pages. This is what turned a real ghost into a full DAY of "MULTIPLE sessions"
+    # DEGRADED pages; the orphan reap kills the ghost, this stops the transient race
+    # from paging even so.
+    time.sleep(DEGRADED_RECHECK_DELAY_SECONDS)
+    try:
+        all_ok2, _ok2, problem_lines2 = run_health_check()
+    except Exception as exc:
+        log(f"Post-restart daemon health re-check failed to run: {exc}")
+        return
+    if all_ok2:
+        log("Post-restart daemon health check: transient DEGRADED cleared on re-check "
+            f"(first pass flagged {len(problem_lines)}, re-check clean) -- not paging.")
+        return
+    persistent = [p for p in problem_lines2 if p in set(problem_lines)]
+    if not persistent:
+        log("Post-restart daemon health check: DEGRADED problems all transient (differed "
+            f"between passes: {problem_lines} vs {problem_lines2}) -- not paging.")
+        return
+
+    log(f"Post-restart daemon health check: DEGRADED -- {len(persistent)} persistent "
+        "problem(s): " + "; ".join(persistent))
+    # RATE-LIMIT (2026-07-16): at most one DEGRADED page per cooldown, so a restart
+    # storm cannot become a page storm. Logged every time; paged sparingly.
+    now = time.time()
+    if now - _last_degraded_ntfy_at < DEGRADED_NTFY_COOLDOWN_SECONDS:
+        log("DEGRADED page suppressed by cooldown "
+            f"({(now - _last_degraded_ntfy_at) / 60:.0f}min since last, "
+            f"cooldown {DEGRADED_NTFY_COOLDOWN_SECONDS // 60}min) -- logged only.")
+        return
+    _last_degraded_ntfy_at = now
     ntfy(
         "Post-restart daemon health check: DEGRADED after a Claude Code "
-        f"session restart -- {len(problem_lines)} problem(s):\n"
-        + "\n".join(problem_lines),
+        f"session restart -- {len(persistent)} persistent problem(s):\n"
+        + "\n".join(persistent),
         needs_input=True,
     )
 
@@ -1066,7 +1243,14 @@ def handle_session_ended(pane_text: str = "") -> None:
     elif reason == "crash":
         crash_msg = (f"CC crashed — restarting. Last: {detail[:100]}"
                      if detail else "CC crashed — restarting.")
-        ntfy(crash_msg, needs_input=True)
+        # R5 transition-only dedup (2026-07-16): a crash LOOP must page once, not on
+        # every restart. Only page when we weren't already in the crash state; a clean
+        # recovery resets _last_exit_ntfy_state, so a genuinely new crash after recovery
+        # still pages. Mirrors the usage_limit/quick_exit dedup above.
+        if _last_exit_ntfy_state != "crash":
+            ntfy(crash_msg, needs_input=True)
+        else:
+            log(f"Deduped crash NTFY — still in crash state: {detail[:80]}")
         _last_exit_ntfy_state = "crash"
         restart_claude()
     else:
@@ -1076,6 +1260,7 @@ def handle_session_ended(pane_text: str = "") -> None:
 
 
 def main() -> None:
+    global _last_exit_ntfy_state
     log("Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD "
         f"session, never types into a LIVE one; auto-restart, no YES gate, max "
         f"{MAX_RESTARTS_PER_HOUR}/hr); idle-gate active "
@@ -1118,6 +1303,13 @@ def main() -> None:
                 continue
 
             consecutive_down = 0
+            # A confirmed-alive session RESOLVES any prior exit state, so a later crash
+            # is a real transition and pages again (paired with the crash-dedup in
+            # handle_session_ended; without this reset a one-time crash would mute every
+            # future crash page). Only clears a "crash"/"completion" latch, never an
+            # active usage-limit wait (that path sleeps inside handle_session_ended).
+            if _last_exit_ntfy_state in ("crash", "completion"):
+                _last_exit_ntfy_state = None
             update_agent_status("session-watchdog", status="idle", last_action="Session alive check passed")
             pane_text = capture_pane()
 
