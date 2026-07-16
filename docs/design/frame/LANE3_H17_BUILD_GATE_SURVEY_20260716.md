@@ -159,3 +159,37 @@ through the guard. A future harness pass could relax the check to accept `docs/d
 H22's own housekeeping sweep (once built) would flag the stray doc. Filed as a finding, not fixed here
 (that is BUILD on `background/supervisor.py`, outside this Lane-3 doc-only draw). No BUILD code, no map edit
 (F1 — H22's level reported via `docs/design/atom_status/H22_scheduled_housekeeping.yaml`).
+
+## Resolution — occurrence 7 (2026-07-16, later still) — recursion CLOSED, first positive live proof
+
+The self-refill re-drew the saturated set a **seventh** time (`W1_2_generate_futures`, `B4_competitor_field`,
+`B5_regional_basis_risk`, `W4_2_verifier_timing_extension`, `W1_3_national_weather_signal`,
+`W1_4_regional_weather_field` — this time with `W1_4` in place of `H22`). Per the standing meta-finding,
+**no new per-atom FRAME was written** — all six carry complete FRAME docs and their BUILD-gates are unchanged
+(anti-churn, SELF_INTERRUPT_DISCIPLINE + R12). Levels **HELD**; no map edit (F1); no BUILD code.
+
+What occurrence 7 adds that 5 and 6 could not — **the first positive evidence the recursion is actually dead**,
+not merely a static "the check would exclude them" assertion:
+
+- **Live reproduction of the real draw path (observed, R9).** Calling `_idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset())`
+  against the current working-tree map now returns a **completely fresh, genuinely-un-FRAMEd set** —
+  `G4_unified_failure_register, W1_5_premise_demand_shape, C13_weather_normalisation, W1_10_ev_heatpump_geography,
+  H20_parallel_maintenance_lane, H21_self_contained_escalation` — and **excludes all six** drawn atoms.
+  `_is_frame_saturated` returns `True` for every one of the six (`has_frame_doc=True`, evidence folded:
+  five since `206c534c1` 07:39Z, B5 since `abeb41555` 17:35Z). 22/22 H23 guard tests green. The guard is
+  deployed and effective; the map is re-read fresh every cycle (`supervisor.py:729`, no cache), so the next
+  cycle draws from the fresh set. **The treadmill is off.**
+
+- **The one honest residual (inferred, NOT asserted — R9).** Occurrence 7's own draw (the daemon logged
+  `DISCOVERY=6` at 18:57Z and 19:02Z) *should not* have leaked: the guard commit (`d2f1b420a`, 18:34Z) and
+  the running daemon (pid 721690, started 18:43Z) both predate those draws, and the committed map already
+  carried every atom's frame-doc evidence. Against committed state the leak is unexplained. Candidate causes
+  — a transient uncommitted working-tree map mid-fold read by `read_text` on a concurrent-writer tree, or a
+  pre-guard daemon instance overlapping the restart — are **plausible, not verified**; no mechanism is claimed.
+  **QUEUE (not fix-on-sight):** register a harness finding to instrument the idle-draw path with a one-line
+  log of *why* each saturated atom was or wasn't excluded, so an occurrence 8 (if any) carries its own proof
+  rather than requiring post-hoc reconstruction. Filed as intelligence for the next harness pass; not built
+  here (BUILD on `background/supervisor.py`, outside this Lane-3 doc-only draw).
+
+*Bankable Lane-3 increment: positive live proof the H23 guard now excludes the whole saturated set and yields
+fresh work, plus the sole unexplained residual queued honestly. No FRAME churn, no map edit (F1), no BUILD code.*
