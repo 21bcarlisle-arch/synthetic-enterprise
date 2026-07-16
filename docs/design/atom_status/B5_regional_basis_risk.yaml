@@ -1,8 +1,0 @@
-id: B5_regional_basis_risk
-level_current: 0
-append_evidence:
-  - "docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md (H17 re-draw addendum: B5 folded into the consolidated BUILD-gate table -- single unblock gate = W1_8 opens BUILD, gated on W1_6_physics_price_signal + a director-authored zonal curriculum scenario (R13 WALL); B5 releases coupled with W1_8; held L0)"
-append_simplification:
-  - "2026-07-16 H17 Lane-3 DISCOVER (fork, doc-only): re-draw of 6 FRAME-saturated idle BUILD-gated atoms. B5 was the only draw member absent from the earlier LANE3_H17_BUILD_GATE_SURVEY table; folded its single BUILD-unblock gate into that survey's addendum rather than churn a duplicate FRAME (B5 already carries a complete 19KB FRAME, commit 5de4b2a91). Level HELD at 0 -- proposal-atom FRAME is not a build (EPOCH_GATING Rule 1); BUILD opens only with W1_8, coupled (COUPLED_TRIAD: W1_8<->B5 release L3 together). No BUILD code, no map edit."
-written_by: orchestrator/H17-lane3-redraw
-written_at: 2026-07-16T18:40:00Z
