@@ -78,12 +78,38 @@ invokes `run_tournament()` repeatedly inside one long-lived process (rather
 than the CLI's fresh-process-per-invocation shape) will see calibration only
 on its first ever call; later calls fail closed to the caller's
 `per_life_rss_bytes` (never a false low number) rather than mis-measuring.
+
+STILL BUILD (2026-07-16): TIERED TESTS, the third named A8 lever (the first,
+mock-interface / RecordedSimInterface composition, remains BLOCKED --
+verified fresh this turn: `saas/reporting/annual_report.py` (what every
+tournament life subprocess actually runs) has ZERO `SimInterface` /
+`build_sim_interface` references, so `SIM_RECORDED_TRACE` is a no-op on the
+real run path; wiring it means refactoring `saas/reporting/annual_report.py`
+to source its exogenous world through the seam -- outside this atom's
+`tools`/`background`/`tests` file_scope, and already logged as its own
+contended ARCH1 slice in `maturity_map.yaml`). `run_tiered_tournament` below
+is the in-scope, unblocked lever: a cheap SCREEN tier (every candidate
+truncated to `screen_end_year`) ranks candidates by a fitness field and CULLS
+the bottom performers; only the survivors pay for the expensive FULL tier
+(the candidate's real, un-truncated window). This is the actual shape of an
+Epoch-4 generation -- most variants in a generation are inferior and only the
+fittest need the full-fidelity run to confirm survival -- so culling the
+losers cheaply is a genuine, orthogonal cycle-time lever from parallelism
+(lever 2, above): parallelism cuts the cost of running N lives; tiering cuts
+N itself for the expensive tier. The two compose (the full tier still runs
+in the calibrated bounded pool). FAIL-CLOSED (R15): `survive_fraction`
+outside (0, 1] is refused; a life that fails the screen tier (no valid
+score) can never be promoted to the full tier however generous the survival
+fraction. Determinism (C-S2): survivor selection is a pure function of the
+screen tier's own fitness output, sorted by (score desc, life_id asc) so
+ties break identically regardless of pool completion order -- no RNG drawn.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import resource
 import subprocess
@@ -476,6 +502,188 @@ def benchmark(n_lives: int, end_year: Optional[int], output_dir: Path,
     return bench
 
 
+def run_tiered_tournament(
+    lives,
+    output_dir: Path,
+    *,
+    screen_end_year: Optional[int],
+    survive_fraction: float = 0.5,
+    score_field: str = "total_net_gbp",
+    workers: Optional[int] = None,
+    per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES,
+    screen_per_life_rss_bytes: Optional[int] = None,
+    calibrate: bool = True,
+    probe_lives: int = 1,
+):
+    """Lever 3 (TIERED TESTS): a cheap SCREEN tier culls bad candidates before
+    the expensive FULL tier runs. Every candidate first runs truncated to
+    `screen_end_year` (in the same calibrated bounded pool `run_tournament`
+    already provides); the survivors -- the top `survive_fraction` of
+    candidates by `score_field` -- then run their ORIGINAL, un-truncated
+    `LifeSpec` in a second bounded-pool wave. Culled candidates never pay for
+    the full tier at all.
+
+    FAIL-CLOSED (R15): `survive_fraction` outside (0, 1] is refused (a <=0
+    fraction would silently discard every candidate; a >1 fraction is
+    meaningless and would mask that nothing was culled). A candidate whose
+    screen life FAILED (no valid `score_field` in its fitness) can NEVER
+    survive to the full tier, however high `survive_fraction` is set -- a
+    broken life is never promoted by generosity.
+
+    `screen_per_life_rss_bytes` (default: same as `per_life_rss_bytes`) is a
+    SEPARATE RSS hint for the screen tier's `run_tournament` call. This
+    matters because of a real, MEASURED composition hazard (2026-07-16, this
+    atom): the screen and full tiers are two SEPARATE `run_tournament` calls
+    in the SAME caller process, and `run_tournament`'s own self-calibration
+    is a per-process RSS-watermark measurement that reliably calibrates only
+    on a process's FIRST call (already a named limitation of the L2->L3
+    self-calibration lever above) -- a second/third in-process call sees a
+    stale watermark and fails closed to `per_life_rss_bytes`. A caller who
+    ALREADY KNOWS the screen tier is far cheaper than the full tier (the
+    whole premise of tiering) should say so explicitly here, exactly the way
+    `run_tournament`'s own docs already recommend passing a smaller
+    `per_life_rss_bytes` for cheap truncated lives -- this is that same idiom
+    applied per-tier, not a new mechanism.
+
+    Determinism (C-S2): survivor selection is a PURE function of the screen
+    tier's own fitness output, ranked by (score desc, life_id asc) so ties
+    break identically regardless of the pool's completion order. This
+    function draws no RNG of its own and consumes no substream.
+
+    Returns (screen_results, full_results, summary). `summary` nests the
+    screen and full `run_tournament` summaries plus tier bookkeeping
+    (survivor_ids, culled_ids, screen_wall_s, full_wall_s, total_wall_s)."""
+    if not (0.0 < survive_fraction <= 1.0):
+        raise ValueError(
+            "survive_fraction must be in (0, 1], got {}".format(survive_fraction)
+        )
+    output_dir = _validate_output_dir(Path(output_dir))
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    lives = list(lives)
+    original_by_id = {ls.life_id: ls for ls in lives}
+    screen_rss_bytes = (
+        screen_per_life_rss_bytes if screen_per_life_rss_bytes is not None
+        else per_life_rss_bytes
+    )
+
+    screen_specs = [
+        LifeSpec(ls.life_id, end_year=screen_end_year, env=ls.env) for ls in lives
+    ]
+    t0 = time.monotonic()
+    screen_results, screen_summary = run_tournament(
+        screen_specs, output_dir / "screen", workers=workers,
+        per_life_rss_bytes=screen_rss_bytes, calibrate=calibrate,
+        probe_lives=probe_lives,
+    )
+    screen_wall = time.monotonic() - t0
+
+    # Rank by (score desc, life_id asc) -- deterministic regardless of the
+    # pool's completion order. A screen FAILURE (not ok, or score missing)
+    # is never scoreable and so can never appear in `scored` -> never survives.
+    scored = [
+        (r.life_id, r.fitness.get(score_field))
+        for r in screen_results
+        if r.ok and r.fitness.get(score_field) is not None
+    ]
+    scored.sort(key=lambda pair: (-pair[1], pair[0]))
+    n_survivors = max(1, math.ceil(len(scored) * survive_fraction)) if scored else 0
+    survivor_ids = {life_id for life_id, _ in scored[:n_survivors]}
+    culled_ids = sorted(set(original_by_id) - survivor_ids)
+
+    full_specs = [original_by_id[life_id] for life_id in sorted(survivor_ids)]
+    t1 = time.monotonic()
+    if full_specs:
+        full_results, full_summary = run_tournament(
+            full_specs, output_dir / "full", workers=workers,
+            per_life_rss_bytes=per_life_rss_bytes, calibrate=calibrate,
+            probe_lives=probe_lives,
+        )
+    else:
+        full_results, full_summary = [], {
+            "lives_total": 0, "lives_ok": 0, "lives_failed": 0, "wall_clock_s": 0.0,
+        }
+    full_wall = time.monotonic() - t1
+
+    summary = {
+        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "lives_total": len(lives),
+        "survive_fraction": survive_fraction,
+        "score_field": score_field,
+        "screen_end_year": screen_end_year,
+        "survivor_ids": sorted(survivor_ids),
+        "culled_ids": culled_ids,
+        "screen_summary": screen_summary,
+        "full_summary": full_summary,
+        "screen_wall_s": round(screen_wall, 2),
+        "full_wall_s": round(full_wall, 2),
+        "total_wall_s": round(screen_wall + full_wall, 2),
+    }
+    (output_dir / "tiered_summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True)
+    )
+    return screen_results, full_results, summary
+
+
+def benchmark_tiered(
+    n_lives: int,
+    screen_end_year: Optional[int],
+    full_end_year: Optional[int],
+    output_dir: Path,
+    *,
+    survive_fraction: float = 0.5,
+    workers: Optional[int] = None,
+    per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES,
+    screen_per_life_rss_bytes: Optional[int] = None,
+    calibrate: bool = True,
+    probe_lives: int = 1,
+):
+    """Measure tiered-screening's honest speedup: run N identical candidates
+    the NAIVE way (every candidate pays for the expensive `full_end_year`
+    window, in the same calibrated bounded pool) versus the TIERED way (cheap
+    `screen_end_year` screen, survivors only then pay for `full_end_year`),
+    same inputs, and report wall-clock + speedup. Same candidate specs in
+    both halves -> any resulting fitness difference is attributable only to
+    which lives got culled, never to a changed input.
+
+    `screen_per_life_rss_bytes` is forwarded to `run_tiered_tournament` (see
+    its docstring): this benchmark itself makes THREE `run_tournament` calls
+    in one process (naive, screen, full), so only the first (naive) can rely
+    on self-calibration -- pass an accurate screen-tier hint here (or accept
+    the `per_life_rss_bytes` default) rather than assuming calibration
+    recovers on the second/third in-process call."""
+    naive_specs = [LifeSpec("n{}".format(i), end_year=full_end_year) for i in range(n_lives)]
+    tiered_specs = [LifeSpec("t{}".format(i), end_year=full_end_year) for i in range(n_lives)]
+
+    _, naive_sum = run_tournament(naive_specs, output_dir / "naive", workers=workers,
+                                  per_life_rss_bytes=per_life_rss_bytes,
+                                  calibrate=calibrate, probe_lives=probe_lives)
+    _, _, tiered_sum = run_tiered_tournament(
+        tiered_specs, output_dir / "tiered", screen_end_year=screen_end_year,
+        survive_fraction=survive_fraction, workers=workers,
+        per_life_rss_bytes=per_life_rss_bytes,
+        screen_per_life_rss_bytes=screen_per_life_rss_bytes,
+        calibrate=calibrate, probe_lives=probe_lives,
+    )
+
+    naive_wall = naive_sum["wall_clock_s"]
+    tiered_wall = tiered_sum["total_wall_s"]
+    speedup = naive_wall / tiered_wall if tiered_wall > 0 else 0.0
+    bench = {
+        "n_lives": n_lives,
+        "screen_end_year": screen_end_year,
+        "full_end_year": full_end_year,
+        "survive_fraction": survive_fraction,
+        "naive_wall_s": naive_wall,
+        "tiered_wall_s": tiered_wall,
+        "speedup_x": round(speedup, 2),
+        "survivors": len(tiered_sum["survivor_ids"]),
+        "culled": len(tiered_sum["culled_ids"]),
+    }
+    (output_dir / "tiered_benchmark.json").write_text(json.dumps(bench, indent=2, sort_keys=True))
+    return bench
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -505,10 +713,42 @@ def main() -> int:
     bp.add_argument("--no-calibrate", dest="calibrate", action="store_false", default=True)
     bp.add_argument("--probe-lives", type=int, default=1)
 
+    tp = sub.add_parser("tiered", help="Cheap screen tier culls candidates before the full tier")
+    tp.add_argument("--lives", type=int, required=True)
+    tp.add_argument("--output-dir", type=Path, required=True)
+    tp.add_argument("--screen-end-year", type=int, required=True)
+    tp.add_argument("--full-end-year", type=int, default=None)
+    tp.add_argument("--survive-fraction", type=float, default=0.5)
+    tp.add_argument("--workers", type=int, default=None)
+    tp.add_argument("--per-life-mb", type=int, default=None)
+    tp.add_argument("--screen-per-life-mb", type=int, default=None,
+                    help="Separate RSS hint (MB) for the cheap screen tier; "
+                         "see run_tiered_tournament docstring for why this "
+                         "matters (calibration reliably fires only once per "
+                         "process, and this is a caller's second/third call).")
+    tp.add_argument("--no-calibrate", dest="calibrate", action="store_false", default=True)
+    tp.add_argument("--probe-lives", type=int, default=1)
+
+    tbp = sub.add_parser("tiered-benchmark", help="Naive-vs-tiered wall-clock speedup")
+    tbp.add_argument("--lives", type=int, required=True)
+    tbp.add_argument("--output-dir", type=Path, required=True)
+    tbp.add_argument("--screen-end-year", type=int, required=True)
+    tbp.add_argument("--full-end-year", type=int, default=None)
+    tbp.add_argument("--survive-fraction", type=float, default=0.5)
+    tbp.add_argument("--workers", type=int, default=None)
+    tbp.add_argument("--per-life-mb", type=int, default=None)
+    tbp.add_argument("--screen-per-life-mb", type=int, default=None)
+    tbp.add_argument("--no-calibrate", dest="calibrate", action="store_false", default=True)
+    tbp.add_argument("--probe-lives", type=int, default=1)
+
     args = p.parse_args()
 
     def _per_life_bytes():
         return (args.per_life_mb * 1024 * 1024) if args.per_life_mb else _PER_LIFE_RSS_BYTES
+
+    def _screen_per_life_bytes():
+        smb = getattr(args, "screen_per_life_mb", None)
+        return (smb * 1024 * 1024) if smb else None
 
     if args.cmd == "run":
         specs = [LifeSpec("l{}".format(i), end_year=args.end_year)
@@ -524,6 +764,28 @@ def main() -> int:
         bench = benchmark(args.lives, args.end_year, args.output_dir,
                           workers=args.workers, per_life_rss_bytes=_per_life_bytes(),
                           calibrate=args.calibrate, probe_lives=args.probe_lives)
+        print(json.dumps(bench, indent=2, sort_keys=True))
+        return 0
+
+    if args.cmd == "tiered":
+        specs = [LifeSpec("l{}".format(i), end_year=args.full_end_year)
+                 for i in range(args.lives)]
+        _, _, summary = run_tiered_tournament(
+            specs, args.output_dir, screen_end_year=args.screen_end_year,
+            survive_fraction=args.survive_fraction, workers=args.workers,
+            per_life_rss_bytes=_per_life_bytes(),
+            screen_per_life_rss_bytes=_screen_per_life_bytes(),
+            calibrate=args.calibrate, probe_lives=args.probe_lives)
+        print(json.dumps(summary, indent=2, sort_keys=True))
+        return 0 if summary["full_summary"].get("lives_failed", 0) == 0 else 1
+
+    if args.cmd == "tiered-benchmark":
+        bench = benchmark_tiered(
+            args.lives, args.screen_end_year, args.full_end_year, args.output_dir,
+            survive_fraction=args.survive_fraction, workers=args.workers,
+            per_life_rss_bytes=_per_life_bytes(),
+            screen_per_life_rss_bytes=_screen_per_life_bytes(),
+            calibrate=args.calibrate, probe_lives=args.probe_lives)
         print(json.dumps(bench, indent=2, sort_keys=True))
         return 0
 

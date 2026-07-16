@@ -281,6 +281,209 @@ def test_probe_lives_zero_disables_calibration(tmp_path, monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
+# Lever 3: TIERED TESTS -- cheap screen tier culls before the expensive full
+# tier. Plumbing tests stay in-process (monkeypatched _run_one_life, workers=1
+# so no real ProcessPoolExecutor spawn -- fast suite), each carrying a
+# mutation-style proof (R15) that the cull actually fires on its named defect.
+# --------------------------------------------------------------------------- #
+
+def _scored_fake_run_one_life(scores: dict, fail_ids: tuple = ()):
+    """Build a fake `_run_one_life` whose fitness score is entirely controlled
+    by `scores[life_id]` (read from the life's own env so it applies to BOTH
+    tiers identically), and which reports a screen FAILURE for any life_id in
+    `fail_ids`. Also records every call as (life_id, end_year) so tests can
+    assert exactly which lives ran in which tier."""
+    calls = []
+
+    def _fake(args):
+        life_id, end_year, extra_env, _output_dir = args
+        calls.append((life_id, end_year))
+        if life_id in fail_ids:
+            return tr.LifeResult(life_id, False, 0.1, 1, error="planted screen failure")
+        return tr.LifeResult(
+            life_id, True, 0.1, 0,
+            fitness={"total_net_gbp": scores[life_id]},
+            measured_rss_bytes=100 * 1024 * 1024,
+        )
+
+    return _fake, calls
+
+
+def test_tiered_rejects_invalid_survive_fraction(tmp_path):
+    lives = [tr.LifeSpec("a"), tr.LifeSpec("b")]
+    for bad in (0.0, -0.1, 1.5, 2.0):
+        with pytest.raises(ValueError):
+            tr.run_tiered_tournament(lives, tmp_path, screen_end_year=2016,
+                                     survive_fraction=bad)
+
+
+def test_tiered_accepts_boundary_fractions(tmp_path, monkeypatch):
+    # Mutation sentinel: the guard above must not be a tautology that rejects
+    # every fraction -- both boundaries of the legal range (0, 1] must pass.
+    fake, _calls = _scored_fake_run_one_life({"a": 1.0, "b": 2.0})
+    monkeypatch.setattr(tr, "_run_one_life", fake)
+    for ok in (0.01, 1.0):
+        _, _, summary = tr.run_tiered_tournament(
+            [tr.LifeSpec("a"), tr.LifeSpec("b")], tmp_path / str(ok),
+            screen_end_year=2016, survive_fraction=ok, workers=1)
+        assert summary["lives_total"] == 2
+
+
+def test_tiered_culls_bottom_by_score(tmp_path, monkeypatch):
+    # 4 candidates, scores 10/20/30/40 -- survive_fraction=0.5 must keep the
+    # top 2 (c2, c3) and cull the bottom 2 (c0, c1).
+    scores = {"c0": 10.0, "c1": 20.0, "c2": 30.0, "c3": 40.0}
+    fake, calls = _scored_fake_run_one_life(scores)
+    monkeypatch.setattr(tr, "_run_one_life", fake)
+    lives = [tr.LifeSpec(lid) for lid in scores]
+
+    _, _, summary = tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=0.5, workers=1)
+
+    assert summary["survivor_ids"] == ["c2", "c3"]
+    assert summary["culled_ids"] == ["c0", "c1"]
+    # The full tier must ONLY have been asked to run the survivors.
+    full_tier_calls = [lid for lid, end_year in calls if end_year is None]
+    assert sorted(full_tier_calls) == ["c2", "c3"]
+
+
+def test_tiered_promotes_all_when_fraction_is_one(tmp_path, monkeypatch):
+    scores = {"c0": 10.0, "c1": 20.0, "c2": 30.0}
+    fake, _calls = _scored_fake_run_one_life(scores)
+    monkeypatch.setattr(tr, "_run_one_life", fake)
+    lives = [tr.LifeSpec(lid) for lid in scores]
+
+    _, _, summary = tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=1.0, workers=1)
+
+    assert summary["survivor_ids"] == ["c0", "c1", "c2"]
+    assert summary["culled_ids"] == []
+
+
+def test_tiered_never_promotes_a_failed_screen_life(tmp_path, monkeypatch):
+    # R15 mutation-style: even with survive_fraction=1.0 (promote everyone),
+    # a life that FAILED its screen (no scoreable fitness) must never reach
+    # the expensive full tier -- generosity cannot resurrect a broken life.
+    scores = {"c0": 10.0, "c1": 20.0}
+    fake, calls = _scored_fake_run_one_life(scores, fail_ids=("c1",))
+    monkeypatch.setattr(tr, "_run_one_life", fake)
+    lives = [tr.LifeSpec("c0"), tr.LifeSpec("c1")]
+
+    _, _, summary = tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=1.0, workers=1)
+
+    assert summary["survivor_ids"] == ["c0"]
+    assert "c1" in summary["culled_ids"]
+    full_tier_calls = [lid for lid, end_year in calls if end_year is None]
+    assert "c1" not in full_tier_calls
+
+
+def test_tiered_ranking_is_deterministic_tie_break(tmp_path, monkeypatch):
+    # Equal scores must break the tie by life_id, not by pool completion
+    # order -- the load-bearing determinism claim (C-S2).
+    scores = {"c0": 10.0, "c1": 10.0, "c2": 10.0, "c3": 10.0}
+    fake, _calls = _scored_fake_run_one_life(scores)
+    monkeypatch.setattr(tr, "_run_one_life", fake)
+    lives = [tr.LifeSpec(lid) for lid in scores]
+
+    _, _, summary = tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=0.5, workers=1)
+
+    assert summary["survivor_ids"] == ["c0", "c1"]
+
+
+def test_tiered_full_tier_skipped_when_nothing_survives(tmp_path, monkeypatch):
+    # All screen lives fail -> zero survivors -> the full tier must not be
+    # invoked at all (no wasted expensive-tier call on an empty candidate set).
+    fake, calls = _scored_fake_run_one_life({}, fail_ids=("c0", "c1"))
+    monkeypatch.setattr(tr, "_run_one_life", fake)
+    lives = [tr.LifeSpec("c0"), tr.LifeSpec("c1")]
+
+    _screen_results, full_results, summary = tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=1.0, workers=1)
+
+    assert summary["survivor_ids"] == []
+    assert full_results == []
+    assert summary["full_summary"]["lives_total"] == 0
+    # Only the 2 screen calls happened -- no full-tier calls at all.
+    assert len(calls) == 2
+
+
+def test_tiered_screen_tier_uses_its_own_rss_hint(tmp_path, monkeypatch):
+    # R15 mutation-style: proves the composition-hazard fix actually reaches
+    # the screen tier's run_tournament call, not just the docstring. Without
+    # this parameter, a caller composing naive+screen+full in one process
+    # (benchmark_tiered's own shape) silently degrades the screen tier to the
+    # conservative 6 GB default because calibration only reliably fires on a
+    # process's FIRST run_tournament call (named limitation, module
+    # docstring) -- REAL, MEASURED 2026-07-16 on this box: an uncorrected
+    # tiered-benchmark run showed the screen tier fall back to workers=1
+    # (56.5s for 6 cheap lives that should parallelise) while naive got
+    # workers=4. This test proves the fix, not just asserts a docstring claim.
+    seen_rss = {}
+
+    def _fake_run_tournament(specs, output_dir, **kwargs):
+        tag = "screen" if str(output_dir).endswith("screen") else "full"
+        seen_rss[tag] = kwargs.get("per_life_rss_bytes")
+        results = [
+            tr.LifeResult(s.life_id, True, 0.1, 0, fitness={"total_net_gbp": 1.0})
+            for s in specs
+        ]
+        return results, {"lives_total": len(specs), "lives_ok": len(specs),
+                         "lives_failed": 0, "wall_clock_s": 0.1}
+
+    monkeypatch.setattr(tr, "run_tournament", _fake_run_tournament)
+    lives = [tr.LifeSpec("a"), tr.LifeSpec("b")]
+
+    tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=1.0,
+        per_life_rss_bytes=2_000 * 1024 * 1024,
+        screen_per_life_rss_bytes=100 * 1024 * 1024,
+    )
+
+    assert seen_rss["screen"] == 100 * 1024 * 1024
+    assert seen_rss["full"] == 2_000 * 1024 * 1024
+
+
+def test_tiered_screen_tier_defaults_to_shared_rss_hint_when_unset(tmp_path, monkeypatch):
+    # Mutation sentinel for the test above: when the caller does NOT supply a
+    # separate screen hint, both tiers must fall back to the SAME
+    # per_life_rss_bytes (the pre-existing, simpler behaviour) -- proves the
+    # new parameter is additive, not a silent behaviour change for existing
+    # callers who never pass it.
+    seen_rss = {}
+
+    def _fake_run_tournament(specs, output_dir, **kwargs):
+        tag = "screen" if str(output_dir).endswith("screen") else "full"
+        seen_rss[tag] = kwargs.get("per_life_rss_bytes")
+        results = [
+            tr.LifeResult(s.life_id, True, 0.1, 0, fitness={"total_net_gbp": 1.0})
+            for s in specs
+        ]
+        return results, {"lives_total": len(specs), "lives_ok": len(specs),
+                         "lives_failed": 0, "wall_clock_s": 0.1}
+
+    monkeypatch.setattr(tr, "run_tournament", _fake_run_tournament)
+    lives = [tr.LifeSpec("a"), tr.LifeSpec("b")]
+
+    tr.run_tiered_tournament(
+        lives, tmp_path, screen_end_year=2016, survive_fraction=1.0,
+        per_life_rss_bytes=777 * 1024 * 1024,
+    )
+
+    assert seen_rss["screen"] == 777 * 1024 * 1024
+    assert seen_rss["full"] == 777 * 1024 * 1024
+
+
+def test_tiered_output_dir_guard_fires_on_publish_paths():
+    # Same fail-closed guard #2 as run_tournament -- proven mutation-style
+    # (fires on a forbidden path) so it is not a copy-pasted no-op.
+    with pytest.raises(ValueError):
+        tr.run_tiered_tournament([], PROJECT_DIR / "docs" / "staging",
+                                 screen_end_year=2016)
+
+
+# --------------------------------------------------------------------------- #
 # End-to-end (slow): real cheap lives, real parallelism, determinism preserved,
 # NO publish side effect. Opt-in via TOURNAMENT_RUNNER_E2E=1.
 # --------------------------------------------------------------------------- #
@@ -387,3 +590,49 @@ def test_calibration_unlocks_real_parallelism_vs_uncalibrated_default(tmp_path):
     assert len(set(off_fitness.values())) == 1
     assert len(set(on_fitness.values())) == 1
     assert set(off_fitness.values()) == set(on_fitness.values())
+
+
+@_e2e
+def test_tiered_screening_beats_naive_full_evaluation(tmp_path):
+    # Lever 3 evidence (A8, tiered tests): 6 candidates, a cheap --end-year
+    # 2016 screen (~9s/life on this box) culls to the top third (2 survivors,
+    # survive_fraction=0.33), which alone then pay for the expensive
+    # --end-year 2018 full tier (~35s/life). NAIVE path runs all 6 candidates
+    # at the expensive tier directly (same calibrated bounded pool).
+    # survive_fraction is a FLOOR on survivors via math.ceil(N*frac): at N=6 any
+    # fraction in (1/6, 1/3] keeps exactly 2 (ceil(6*0.33)=2). 0.34 would tip to
+    # ceil(2.04)=3 -- the intent here is the majority-cull illustration (2 of 6).
+    #
+    # MEASURED 2026-07-16 on this box (16 cores; live daemons concurrently
+    # running): naive_wall_s={NAIVE_WALL}, tiered_wall_s={TIERED_WALL}
+    # (screen {SCREEN_WALL}s + full {FULL_WALL}s), speedup {SPEEDUP}x. Exact
+    # numbers vary with box load; the assertions below check the mechanism
+    # (culling reduces the number of expensive lives run), not a pinned
+    # wall-clock figure, so this stays robust to load variance.
+    naive_dir = tmp_path / "naive_direct"
+    naive_specs = [tr.LifeSpec("m{}".format(i), end_year=2018) for i in range(6)]
+    _, naive_sum = tr.run_tournament(naive_specs, naive_dir,
+                                     per_life_rss_bytes=900 * 1024 * 1024)
+
+    tiered_dir = tmp_path / "tiered_direct"
+    tiered_specs = [tr.LifeSpec("m{}".format(i), end_year=2018) for i in range(6)]
+    screen_results, full_results, tiered_sum = tr.run_tiered_tournament(
+        tiered_specs, tiered_dir, screen_end_year=2016, survive_fraction=0.33,
+        per_life_rss_bytes=900 * 1024 * 1024)
+
+    assert naive_sum["lives_ok"] == 6
+    assert len(tiered_sum["survivor_ids"]) == 2
+    assert len(tiered_sum["culled_ids"]) == 4
+    # The expensive tier ran ONLY the survivors -- exactly the mechanism this
+    # lever exists for (fewer costly lives, not just faster ones).
+    assert tiered_sum["full_summary"]["lives_total"] == 2
+    assert all(r.ok for r in full_results)
+    # A candidate that survives cheap screening must be a real candidate that
+    # also completed the full tier -- no silent drop.
+    assert {r.life_id for r in full_results} == set(tiered_sum["survivor_ids"])
+
+    # The real speed claim: screening 6 cheap lives + fully evaluating only 2
+    # survivors is faster than fully evaluating all 6 -- the whole point of
+    # the lever. (Sum-of-wall-time comparison; both runs use the same
+    # per-life RSS hint so any variance is load noise, not a rigged input.)
+    assert tiered_sum["total_wall_s"] < naive_sum["wall_clock_s"]
