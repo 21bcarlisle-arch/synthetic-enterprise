@@ -26,6 +26,12 @@ RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 NAIVE_ORGAN_LOG = PROJECT_DIR / "docs" / "observability" / "naive_organ_log.jsonl"
 ORGAN_BLOCK_START = "<!-- NAIVE_ORGAN_ASKS -->"
 ORGAN_BLOCK_END = "<!-- /NAIVE_ORGAN_ASKS -->"
+# G5_effort_sizing_discipline (L2): remaining-effort / estimate-vs-actual /
+# XL-decompose-signal digest block, same block-managed-in-LATEST.md pattern
+# as the naive-organ block above. Rendering lives in
+# background/effort_digest.py; the numbers come from tools/effort_calibration.py.
+EFFORT_BLOCK_START = "<!-- EFFORT_SIZING_DIGEST -->"
+EFFORT_BLOCK_END = "<!-- /EFFORT_SIZING_DIGEST -->"
 # Change-detection gate (DIRECTOR_SEQUENCE_AND_TOKEN_ECONOMY.md, 2026-07-08):
 # the sim is deterministic over frozen historical data, so every ~10-min cycle
 # produced a byte-identical £1,535,308 result and yet still regenerated every
@@ -283,6 +289,37 @@ def _update_latest_md_organ_section():
     else:
         text = text.rstrip() + "\n\n" + block + "\n"
     LATEST_MD.write_text(text)
+
+
+def _update_latest_md_effort_section():
+    """Maintain the 'EFFORT SIZING' block in LATEST.md (G5_effort_sizing_
+    discipline L2 digest sink) -- managed between HTML-comment markers, same
+    shape as the naive-organ block above. Replaced in place, appended on
+    first run."""
+    from background import effort_digest
+    section = effort_digest.render_digest_section()
+    body = section if section else "_Effort sizing data unavailable this run._"
+    block = "{}\n{}\n{}".format(EFFORT_BLOCK_START, body, EFFORT_BLOCK_END)
+    text = LATEST_MD.read_text()
+    if EFFORT_BLOCK_START in text and EFFORT_BLOCK_END in text:
+        s = text.index(EFFORT_BLOCK_START)
+        e = text.index(EFFORT_BLOCK_END) + len(EFFORT_BLOCK_END)
+        text = text[:s] + block + text[e:]
+    else:
+        text = text.rstrip() + "\n\n" + block + "\n"
+    LATEST_MD.write_text(text)
+
+
+def run_effort_digest_step():
+    """G5_effort_sizing_discipline L2 live hook: refresh the 'EFFORT SIZING'
+    LATEST.md block every publish cycle. Fully defensive (matches
+    run_naive_organ_step()'s own discipline): sizing is a DIAL, and this
+    digest section must NEVER be able to break publishing -- any failure is
+    logged and swallowed, never raised."""
+    try:
+        _update_latest_md_effort_section()
+    except Exception as exc:
+        log("Effort-sizing digest section skipped: {}".format(exc))
 
 
 def run_naive_organ_step():
@@ -1177,6 +1214,11 @@ def _process(marker_path_str):
     # H11_naive_organ live hook: run AFTER run_history.json is appended above so
     # the flat-metric detectors (T1/T5) see this run's figure. Questions only.
     run_naive_organ_step()
+
+    # G5_effort_sizing_discipline L2 live hook: refresh the 'EFFORT SIZING'
+    # digest block (remaining-effort / estimate-vs-actual / XL-decompose
+    # signal). Reads maturity_map.yaml directly; independent of run_history.
+    run_effort_digest_step()
 
     log("Generating site/data/dashboard.json")
     consistency_ok = generate_dashboard_json(json_path, git_hash)

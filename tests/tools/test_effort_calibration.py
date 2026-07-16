@@ -1,14 +1,18 @@
 """Tests for tools/effort_calibration.py (G5_effort_sizing_discipline,
-CALIBRATION half).
+CALIBRATION half + L2 SIZING half).
 
 Covers: short-code derivation + ambiguity detection, bounded-window commit
 parsing (the "which atom does this arrow belong to" problem when several
 transitions are bundled in one commit subject, a real pattern in this repo's
 history), duration computation (first-transition-has-no-anchor, non-positive
 gaps dropped), the per-lane / per-size distribution builders (including the
-size field's honest "not populated yet" degrade), and one end-to-end test
-against a real temp git repo built to mimic this project's own
-"<id> -> L<n>" commit-subject convention.
+size field's honest "not populated yet" degrade), one end-to-end test against
+a real temp git repo built to mimic this project's own "<id> -> L<n>"
+commit-subject convention, and the L2 SIZING functions (expected-hours
+fallback chain, remaining-effort, estimate-vs-actual per lane, the XL
+decompose soft gate) using FIXTURE atoms carrying a `size` field -- real
+atoms in the live map carry no `size` yet, so these deliberately do not
+depend on that.
 """
 from __future__ import annotations
 
@@ -22,15 +26,20 @@ import pytest
 import yaml
 
 from tools.effort_calibration import (
+    SIZE_BAND_ANCHOR_HOURS,
     LevelTransition,
     build_report,
     build_short_code_index,
     calibration_by_lane,
     calibration_by_size,
     compute_durations,
+    estimate_vs_actual_by_lane,
+    expected_hours_for_atom,
     git_log_transitions,
     load_atom_registry,
     parse_transitions_from_message,
+    remaining_effort_report,
+    xl_decompose_flags,
     _distribution,
 )
 
@@ -332,3 +341,209 @@ def test_build_report_against_real_repo_produces_nonempty_lane_distribution():
     assert report["n_transitions_parsed"] > 0
     assert report["n_durations_computed"] > 0
     assert any(dist.get("n", 0) > 0 for dist in report["by_lane"].values())
+
+
+# ---------------------------------------------------------------------------
+# L2 SIZING half -- expected_hours_for_atom (the fallback chain)
+# ---------------------------------------------------------------------------
+def _registry(**atoms):
+    """Build a minimal registry dict; each kwarg value is a dict of overrides
+    merged onto sane defaults."""
+    reg = {}
+    for aid, overrides in atoms.items():
+        reg[aid] = {
+            "lane": None, "size": None, "size_basis": None,
+            "level_current": 0, "level_target": 1, "loop_stage": "build",
+            "depends_on": [],
+        }
+        reg[aid].update(overrides)
+    return reg
+
+
+def test_expected_hours_prefers_real_size_calibration_over_anchor():
+    registry = _registry(A1=dict(lane="H_harness", size="M"))
+    by_size = {"status": "ok", "bands": {"M": {"n": 3, "mean_hours": 15.0}}}
+    hours, basis = expected_hours_for_atom("A1", registry, {}, by_size)
+    assert hours == 15.0
+    assert basis == "calibrated_size_band:M"
+
+
+def test_expected_hours_falls_back_to_anchor_when_no_size_calibration():
+    registry = _registry(A1=dict(lane="H_harness", size="M"))
+    hours, basis = expected_hours_for_atom(
+        "A1", registry, {}, {"status": "no_size_data_yet", "bands": {}}
+    )
+    assert hours == SIZE_BAND_ANCHOR_HOURS["M"]
+    assert basis == "size_band_anchor:M"
+
+
+def test_expected_hours_falls_back_to_lane_actual_when_unsized():
+    registry = _registry(A1=dict(lane="H_harness", size=None))
+    by_lane = {"H_harness": {"n": 5, "mean_hours": 24.4}}
+    hours, basis = expected_hours_for_atom("A1", registry, by_lane, {})
+    assert hours == 24.4
+    assert basis == "lane_actual_fallback:H_harness"
+
+
+def test_expected_hours_unknown_when_no_data_anywhere():
+    registry = _registry(A1=dict(lane="unknown_lane", size=None))
+    hours, basis = expected_hours_for_atom("A1", registry, {}, {})
+    assert hours is None
+    assert basis == "no_data"
+
+
+def test_expected_hours_xl_never_sized_even_with_calibration_data():
+    # XL is a decompose SIGNAL, not a forecastable quantity -- even if a real
+    # XL band existed, it must not be used.
+    registry = _registry(A1=dict(lane="H_harness", size="XL"))
+    by_size = {"status": "ok", "bands": {"XL": {"n": 2, "mean_hours": 90.0}}}
+    hours, basis = expected_hours_for_atom("A1", registry, {}, by_size)
+    assert hours is None
+    assert basis == "xl_decompose_signal"
+
+
+# ---------------------------------------------------------------------------
+# L2 SIZING half -- remaining_effort_report (uses injected by_lane/by_size so
+# no synthetic git repo is needed for the pure aggregation logic)
+# ---------------------------------------------------------------------------
+def test_remaining_effort_report_sums_sized_below_target_atoms():
+    registry = _registry(
+        A1=dict(lane="H_harness", size="M", level_current=0, level_target=1),
+        A2=dict(lane="H_harness", size="S", level_current=1, level_target=2),
+        A3=dict(lane="H_harness", size=None, level_current=0, level_target=2),  # unsized
+        A4=dict(lane="H_harness", size="M", level_current=2, level_target=2),   # AT target, excluded
+    )
+    report = remaining_effort_report(
+        registry, by_lane={}, by_size={"status": "no_size_data_yet", "bands": {}}
+    )
+    assert report["n_below_target"] == 3            # A1, A2, A3
+    assert report["n_sized"] == 2                    # A1 (M anchor), A2 (S anchor)
+    assert report["n_unsized"] == 1                  # A3 has no size and no lane fallback
+    assert report["total_expected_hours"] == pytest.approx(
+        SIZE_BAND_ANCHOR_HOURS["M"] + SIZE_BAND_ANCHOR_HOURS["S"]
+    )
+    assert "DIAL not a WALL" in report["guardrail"]
+
+
+def test_remaining_effort_report_no_below_target_atoms():
+    registry = _registry(A1=dict(level_current=2, level_target=2))
+    report = remaining_effort_report(registry, by_lane={}, by_size={})
+    assert report["n_below_target"] == 0
+    assert report["total_expected_hours"] is None
+    assert report["per_atom"] == []
+
+
+def test_remaining_effort_report_ignores_atoms_missing_level_fields():
+    # An atom with no level_target recorded (e.g. a bare proposal) must not be
+    # silently counted as "below target".
+    registry = _registry(A1=dict(level_current=0, level_target=None))
+    report = remaining_effort_report(registry, by_lane={}, by_size={})
+    assert report["n_below_target"] == 0
+
+
+# ---------------------------------------------------------------------------
+# L2 SIZING half -- estimate_vs_actual_by_lane
+# ---------------------------------------------------------------------------
+def test_estimate_vs_actual_reports_delta_and_direction():
+    registry = _registry(
+        A1=dict(lane="H_harness", size="M"),
+        A2=dict(lane="H_harness", size="M"),
+    )
+    by_lane_actual = {"H_harness": {"n": 4, "mean_hours": 30.0}}
+    by_size = {"status": "no_size_data_yet", "bands": {}}
+    result = estimate_vs_actual_by_lane(
+        registry, by_lane_actual=by_lane_actual, by_size=by_size
+    )
+    row = result["H_harness"]
+    assert row["status"] == "ok"
+    assert row["estimate_mean_hours"] == SIZE_BAND_ANCHOR_HOURS["M"]
+    assert row["actual_mean_hours"] == 30.0
+    assert row["delta_hours"] == pytest.approx(30.0 - SIZE_BAND_ANCHOR_HOURS["M"])
+    assert row["direction"] == "underestimated"  # actual ran longer than estimated
+
+
+def test_estimate_vs_actual_overestimated_direction():
+    registry = _registry(A1=dict(lane="C_customer_ops", size="L"))
+    by_lane_actual = {"C_customer_ops": {"n": 2, "mean_hours": 5.0}}
+    result = estimate_vs_actual_by_lane(
+        registry, by_lane_actual=by_lane_actual,
+        by_size={"status": "no_size_data_yet", "bands": {}},
+    )
+    row = result["C_customer_ops"]
+    assert row["delta_hours"] < 0
+    assert row["direction"] == "overestimated"
+
+
+def test_estimate_vs_actual_insufficient_data_when_one_side_missing():
+    # A lane with real actuals but no sized atoms yet must not fabricate a delta.
+    registry = _registry(A1=dict(lane="W3_industry_systems", size=None))
+    by_lane_actual = {"W3_industry_systems": {"n": 1, "mean_hours": 1.73}}
+    result = estimate_vs_actual_by_lane(
+        registry, by_lane_actual=by_lane_actual,
+        by_size={"status": "no_size_data_yet", "bands": {}},
+    )
+    assert result["W3_industry_systems"]["status"] == "insufficient_data"
+
+
+def test_estimate_vs_actual_excludes_xl_from_the_estimate_side():
+    registry = _registry(A1=dict(lane="H_harness", size="XL"))
+    by_lane_actual = {"H_harness": {"n": 2, "mean_hours": 50.0}}
+    result = estimate_vs_actual_by_lane(
+        registry, by_lane_actual=by_lane_actual,
+        by_size={"status": "no_size_data_yet", "bands": {}},
+    )
+    # No non-XL sized atom in this lane -> insufficient data, not a bogus estimate.
+    assert result["H_harness"]["status"] == "insufficient_data"
+
+
+# ---------------------------------------------------------------------------
+# L2 SIZING half -- the XL -> decompose SOFT GATE (flags only, never blocks)
+# ---------------------------------------------------------------------------
+def test_xl_decompose_flags_fires_on_undecomposed_build_eligible_xl():
+    registry = _registry(
+        BIG=dict(size="XL", loop_stage="build", size_basis=None, depends_on=[]),
+    )
+    flags = xl_decompose_flags(registry)
+    assert len(flags) == 1
+    assert flags[0]["atom_id"] == "BIG"
+    assert "decompose" in flags[0]["reason"]
+
+
+def test_xl_decompose_flags_silent_when_idle_not_build_eligible():
+    registry = _registry(BIG=dict(size="XL", loop_stage="idle"))
+    assert xl_decompose_flags(registry) == []
+
+
+def test_xl_decompose_flags_silent_when_children_recorded():
+    registry = _registry(
+        BIG=dict(size="XL", loop_stage="build"),
+        CHILD1=dict(size="S", loop_stage="build", depends_on=["BIG"]),
+    )
+    assert xl_decompose_flags(registry) == []
+
+
+def test_xl_decompose_flags_silent_when_exception_basis_recorded():
+    registry = _registry(
+        BIG=dict(size="XL", loop_stage="build",
+                 size_basis="genuinely atomic, splitting breaks the exit test"),
+    )
+    assert xl_decompose_flags(registry) == []
+
+
+def test_xl_decompose_flags_never_fires_on_non_xl_sizes():
+    registry = _registry(
+        A=dict(size="S", loop_stage="build"),
+        B=dict(size="M", loop_stage="build"),
+        C=dict(size="L", loop_stage="build"),
+        D=dict(size=None, loop_stage="build"),
+    )
+    assert xl_decompose_flags(registry) == []
+
+
+def test_xl_decompose_flags_against_real_map_never_raises():
+    # Soft-gate sanity check against the REAL live map -- this must run
+    # cleanly regardless of whether any real atom carries `size: XL` yet
+    # (none do, 2026-07-16); a defect here would mean the gate can't even be
+    # asked the question, let alone answer it.
+    flags = xl_decompose_flags()
+    assert isinstance(flags, list)

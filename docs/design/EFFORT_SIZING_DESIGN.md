@@ -150,18 +150,40 @@ prioritisation. They are **never** a target or a completion gate:
   (~34,800/35,000 at time of writing) and edits there are explicitly this
   fork's orchestrator's follow-on, not this fork's `file_scope`.
 
-## 6. What remains for L2 (not built in this fork, honestly left open)
+## 6. What remains for L2
+
+**Built (2026-07-16, second fork — the mechanism half):** `tools/effort_
+calibration.py` gained four functions implementing everything in this doc
+except the schema fields themselves: `expected_hours_for_atom` (the fallback
+chain: real per-size actual → `SIZE_BAND_ANCHOR_HOURS` → real per-lane
+actual → unknown; XL never sized, matching §3/§5), `remaining_effort_report`
+(sized below-target total, §1/§6), `estimate_vs_actual_by_lane` (per-lane
+delta + direction, §4/§5), and `xl_decompose_flags` (the soft gate itself,
+§3 — flags only, never blocks, silent when a child atom or an explicit
+`size_basis` exception is recorded). `background/effort_digest.py` (new)
+renders all three as an `EFFORT SIZING` block in `LATEST.md`, wired into the
+live publish cycle in `background/process_run_complete.py` next to the
+existing `NAIVE ORGAN asks:` block, with the same defensive
+try/except-log-and-swallow discipline — this digest can never break
+publishing. CLI: `python3 -m tools.effort_calibration --remaining-effort /
+--estimate-vs-actual / --xl-flags`. Tests: `tests/tools/test_effort_
+calibration.py` (fallback chain, aggregation, XL gate) and `tests/
+background/test_effort_digest.py` (digest render + wiring), all using
+FIXTURE atoms with `size` set — the real map still carries none.
+
+**Still open (the orchestrator's, per this fork's `file_scope`):**
 
 - `size`/`size_basis` fields actually live on real atoms in the map (schema
-  proposed above, applied by the orchestrator).
-- The XL -> decompose soft gate actually enforced somewhere in the FRAME
-  workflow (checklist and/or an automated assertion).
-- Remaining-effort (sized, not just counted) surfaced in the digest.
-- Estimate-vs-actual tracked and surfaced per lane (requires atoms to carry
-  both an estimate and a measured actual — the estimate half doesn't exist
-  yet).
+  in §2 above; representative proposed sizes for ~8-10 real atoms are in
+  `docs/design/atom_status/G5_effort_sizing_discipline.yaml`'s
+  `append_simplification`, ready to apply).
+- The XL → decompose soft gate wired into the actual FRAME workflow (the
+  mechanism — `xl_decompose_flags()` — is built and tested; nothing calls it
+  as part of FRAME yet).
 - The dial-not-a-gate guardrail landed in `CLAUDE.md` itself (currently only
-  in this doc and the tool's own output).
+  in this doc, the tool's own output, and the digest block's own header
+  line).
 
-Until those land, `level_current` for this atom stays at **1** — the
-calibration half is real and evidenced; the sizing half is a design only.
+`level_current` for this atom is left unset by this fork (LEVEL HONESTY —
+the orchestrator applies the real `size:` values and confirms the full L2
+DoD before moving the level).
