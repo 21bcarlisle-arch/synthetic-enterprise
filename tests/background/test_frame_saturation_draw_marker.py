@@ -212,3 +212,103 @@ def test_regression_pre_guard_would_have_re_handed(_isolate_map_and_root):
     with mock.patch.object(supervisor, "_is_frame_saturated", return_value=False):
         picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
         assert picked is not None and picked["id"] == "SAT_ONLY"
+
+
+# ── H23 residual FALSE-NEGATIVE fix (2026-07-16, note[4]): a per-atom FRAME
+#    doc under docs/design/ DIRECTLY (non-canonical path, not docs/design/frame/)
+#    must read as saturated -- else the treadmill relocates to that atom set.
+#    Live repro: W1_10 (docs/design/W1_10_FRAME.md), H20/H21 were re-handed
+#    indefinitely while genuinely FRAME-complete. ──────────────────────────────
+
+
+def _write_noncanonical_frame_doc(root, filename):
+    """Create a per-atom FRAME doc directly under docs/design/ (the older,
+    non-canonical location the residual false-negative missed) and return its
+    repo-relative evidence path."""
+    rel = f"docs/design/{filename}"
+    (root / rel).write_text("# FRAME (non-canonical path)\n")
+    return rel
+
+
+def test_has_frame_doc_true_for_noncanonical_path_frame_doc(_isolate_map_and_root):
+    # FIXES the residual false-negative: pre-fix the `docs/design/frame/` prefix
+    # excluded these, so W1_10/H20/H21 (complete FRAME docs under docs/design/)
+    # read un-saturated and churned. The filename still carries FRAME, so the
+    # broadened prefix correctly marks them saturated.
+    root = _isolate_map_and_root
+    for fn, aid in [
+        ("W1_10_FRAME.md", "W1_10_ev_heatpump_geography"),
+        ("H20_PARALLEL_MAINTENANCE_LANE_FRAME.md", "H20_parallel_maintenance_lane"),
+        ("H21_SELF_CONTAINED_ESCALATION_FRAME.md", "H21_self_contained_escalation"),
+    ]:
+        rel = _write_noncanonical_frame_doc(root, fn)
+        atom = _idle_atom(aid, evidence=[rel])
+        assert supervisor._atom_has_frame_doc(atom) is True, fn
+        assert supervisor._is_frame_saturated(atom) is True, fn
+
+
+def test_discover_stage_doc_under_design_is_not_a_frame_doc(_isolate_map_and_root):
+    # FALSE-POSITIVE guard (note[4] DoD): broadening the prefix must NOT mark a
+    # genuinely-unframed atom saturated. A DISCOVER-stage doc under docs/design/
+    # (filename has no FRAME) leaves real FRAME work -> still un-saturated.
+    # Live case: C13 has only docs/design/C13_WEATHER_NORMALISATION_DISCOVER.md.
+    root = _isolate_map_and_root
+    rel = "docs/design/C13_WEATHER_NORMALISATION_DISCOVER.md"
+    (root / rel).write_text("# DISCOVER pass\n")
+    atom = _idle_atom("C13_weather_normalisation", evidence=[rel])
+    assert supervisor._atom_has_frame_doc(atom) is False
+    assert supervisor._is_frame_saturated(atom) is False
+
+
+@pytest.mark.parametrize("draw", ["single", "concurrent"])
+def test_fires_skips_noncanonical_frame_atom_hands_discover_only(_isolate_map_and_root, draw):
+    # Integration, both entry points: an atom saturated ONLY via a non-canonical
+    # path FRAME doc is never re-handed, while a DISCOVER-only atom (real FRAME
+    # work remaining) is the one handed. Encodes the exact live draw membership.
+    root = _isolate_map_and_root
+    sat = _write_noncanonical_frame_doc(root, "W1_10_FRAME.md")
+    disc = "docs/design/C13_WEATHER_NORMALISATION_DISCOVER.md"
+    (root / disc).write_text("# DISCOVER\n")
+    atoms = [
+        _idle_atom("W1_10_ev_heatpump_geography", evidence=[sat]),   # saturated (non-canonical)
+        _idle_atom("C13_weather_normalisation", evidence=[disc]),    # un-saturated (DISCOVER only)
+    ]
+    _write_map(root, atoms)
+    rng = random.Random(99)
+    for _ in range(50):
+        if draw == "single":
+            picked = supervisor._idle_discover_frame_draw(rng=rng)
+            ids = {picked["id"]} if picked else set()
+        else:
+            picked = supervisor._idle_discover_frame_draw_concurrent(rng=rng, width=3)
+            ids = {a["id"] for a in picked}
+        assert ids == {"C13_weather_normalisation"}, f"non-canonical FRAME atom re-handed: {ids}"
+
+
+def test_regression_noncanonical_prefix_would_have_re_handed(_isolate_map_and_root):
+    # Guard-mutation control for THIS fix specifically: restore the pre-fix
+    # `docs/design/frame/`-only prefix behaviour by patching _atom_has_frame_doc
+    # to the narrow rule, and assert the non-canonical FRAME atom IS then handed
+    # -- proving this test fails if the prefix broadening is reverted (R15).
+    import unittest.mock as mock
+    root = _isolate_map_and_root
+    sat = _write_noncanonical_frame_doc(root, "W1_10_FRAME.md")
+    _write_map(root, [_idle_atom("W1_10_ev_heatpump_geography", evidence=[sat])])
+    # Guard live (broadened prefix): saturated -> empty draw.
+    assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
+
+    def _narrow_pre_fix(atom):
+        from pathlib import Path as _P
+        for e in atom.get("evidence") or []:
+            s = str(e)
+            if not s.startswith("docs/design/frame/"):   # the reverted prefix
+                continue
+            if "FRAME" not in _P(s).name.upper():
+                continue
+            if (supervisor.PROJECT_DIR / s).exists():
+                return True
+        return False
+
+    with mock.patch.object(supervisor, "_atom_has_frame_doc", side_effect=_narrow_pre_fix):
+        picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
+        assert picked is not None and picked["id"] == "W1_10_ev_heatpump_geography"

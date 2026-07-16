@@ -564,21 +564,42 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
 
 def _atom_has_frame_doc(atom: dict) -> bool:
     """True iff the atom already carries its OWN complete FRAME doc on disk:
-    an `evidence` entry under `docs/design/frame/` whose filename contains
-    `FRAME` (matching the `<id>_FRAME.md` convention) AND that resolves to an
-    existing file under `PROJECT_DIR`. The filename `FRAME` requirement is what
-    distinguishes a per-atom FRAME (`H18_..._FRAME.md`) from a SHARED survey
-    listed as evidence (`LANE3_H17_BUILD_GATE_SURVEY_...md`) -- the survey is
-    not itself the atom's FRAME-stage output, so an atom carrying only the
-    survey still has genuine FRAME work left and must NOT read as saturated.
-    Paths are repo-relative (as stored in `evidence`), resolved against
-    `PROJECT_DIR` so the check is real filesystem state, never an assumed
-    string match (R7: verify against disk)."""
+    an `evidence` entry anywhere under `docs/design/` whose FILENAME contains
+    `FRAME` (matching the `<id>_FRAME.md` / `<SLUG>_FRAME.md` convention) AND
+    that resolves to an existing file under `PROJECT_DIR`. The filename `FRAME`
+    requirement is what distinguishes a per-atom FRAME (`W1_10_FRAME.md`,
+    `H20_PARALLEL_MAINTENANCE_LANE_FRAME.md`) from a SHARED survey listed as
+    evidence (`LANE3_H17_BUILD_GATE_SURVEY_...md`, no `FRAME` in its filename)
+    and from an earlier-stage DISCOVER doc (`..._DISCOVER.md`, likewise no
+    `FRAME`) -- neither is the atom's FRAME-stage output, so an atom carrying
+    only one of those still has genuine FRAME work left and must NOT read as
+    saturated. Paths are repo-relative (as stored in `evidence`), resolved
+    against `PROJECT_DIR` so the check is real filesystem state, never an
+    assumed string match (R7: verify against disk).
+
+    H23 residual-false-negative fix (2026-07-16, note[4]): the prefix was
+    originally `docs/design/frame/`, which mis-read the ~11 atoms that carry a
+    COMPLETE per-atom FRAME doc directly under `docs/design/` (the older,
+    non-canonical path -- `docs/design/W1_10_FRAME.md`, `H20_..._FRAME.md`,
+    `H21_..._FRAME.md`, ...) as un-saturated, re-handing them to the idle draw
+    indefinitely -- the exact treadmill this atom exists to stop, just
+    relocated. Broadening the prefix to `docs/design/` (any depth) is computed
+    (cannot decay, MAKE_IT_STICK) and stays conservative: the `FRAME`-in-
+    filename gate still excludes shared surveys and DISCOVER-stage docs, so a
+    genuinely-unframed atom is never falsely marked saturated (proven by the
+    mutation tests, both directions). Safe on the live map because every
+    non-canonical `*_FRAME.md` is owned by exactly ONE atom (no shared
+    FRAME-named doc outside `frame/`). A per-atom FRAME doc whose FILENAME
+    carries neither `FRAME` nor the id/slug (e.g. G4's
+    `UNIFIED_FAILURE_REGISTER.md`) is out of reach of any filename heuristic
+    without risking a false-positive on a partial design doc -- for those the
+    documented `frame_saturated: true` explicit override (a map-writer step)
+    remains the intended escape."""
     if not isinstance(atom, dict):
         return False
     for e in atom.get("evidence") or []:
         s = str(e)
-        if not s.startswith("docs/design/frame/"):
+        if not s.startswith("docs/design/"):
             continue
         if "FRAME" not in Path(s).name.upper():
             continue
