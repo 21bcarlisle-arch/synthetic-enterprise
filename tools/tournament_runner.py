@@ -37,6 +37,47 @@ atom, or feed the board pack. Enforced MECHANICALLY here, not by convention:
 The guard is the point: cycle time is a DIAGNOSTIC, never gamed by deleting
 tests or by quietly letting a cheap run leak into the board pack (R15 stands —
 the guard has its own failing-input test).
+
+L2->L3 (2026-07-16): SELF-CALIBRATING WORKER CAP, the lever actually owned by
+THIS atom (not ARCH1's — its mock composes via `SIM_RECORDED_TRACE` +
+`per_life_rss_bytes` per docs/design/ARCH1_FRAME.md, but `RecordedSimInterface`
+has ZERO run-path callers as of 2026-07-15 (docs/design/
+MAP_TRUTH_RECONCILIATION.md) — it is built and unit-tested but not wired into
+any sim run, so it is not yet available to compose with here). Before this
+change, unlocking real parallelism required a HUMAN to already know the true
+per-life RSS and pass it as `per_life_rss_bytes` — with no such measurement,
+the conservative 6 GB default degrades `memory_safe_worker_cap` to a single
+worker (effectively serial) even when the real footprint is far smaller (a
+truncated life is ~0.77 GB, per the profile above). Now: when the caller has
+not pinned an explicit `workers` count (and is not requesting a pure serial
+baseline), `run_tournament` runs a small PROBE wave under the conservative
+cap, MEASURES the real child RSS via `resource.getrusage(RUSAGE_CHILDREN)`
+(the actual high-water mark of a reaped child — not a guess), and recomputes
+the worker cap for the remaining lives from that measured figure. A caller who
+DOES pass an explicit `workers=` is honoured verbatim (calibration never
+overrides an explicit instruction); `serial=True` always stays pure serial (a
+speedup baseline must not calibrate). Named simplification (R10): the probe
+sample defaults to ONE life, so a markedly non-uniform tournament (wildly
+different variant costs) gets a noisy first estimate — RSS is a monotonic
+high-water mark so this is conservative-safe (never under-reports below what
+was actually observed), never a silent under-estimate that could OOM.
+
+Named limitation (R10, found by real measurement, not asserted): `ru_maxrss`
+is a per-process MONOTONIC high-water mark that never decreases. It gives an
+accurate delta for the FIRST life reaped by a given process (the real CLI
+shape -- `python3 -m tools.tournament_runner run ...` is always a fresh
+process) and for every life run by a FRESH ProcessPoolExecutor worker (each
+forked worker has its own independent, zeroed counter — measured directly:
+three parallel workers in the same run each independently reported ~773 MB,
+matching the probe). It does NOT reliably measure a life run SEQUENTIALLY
+after another life of similar-or-greater cost IN THE SAME process (the
+watermark is already at or above the new life's peak, so the delta reads
+~0) — observed directly: lives 2-4 of a 4-life SERIAL (workers=1) run showed
+near-zero deltas after life 1 correctly measured ~0.77 GB. A caller that
+invokes `run_tournament()` repeatedly inside one long-lived process (rather
+than the CLI's fresh-process-per-invocation shape) will see calibration only
+on its first ever call; later calls fail closed to the caller's
+`per_life_rss_bytes` (never a false low number) rather than mis-measuring.
 """
 
 from __future__ import annotations
@@ -44,6 +85,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import resource
 import subprocess
 import sys
 import time
@@ -89,6 +131,22 @@ def _available_memory_bytes() -> int:
     except (OSError, ValueError, IndexError):
         pass
     return _PER_LIFE_RSS_BYTES  # -> 1 worker
+
+
+def _rss_watermark_bytes() -> int:
+    """High-water mark (bytes) of RSS across all of THIS process's REAPED
+    children so far (Linux: `ru_maxrss` from RUSAGE_CHILDREN, reported in KB).
+
+    Monotonic non-decreasing per process. `_run_one_life` reads this
+    immediately before and after each `subprocess.run` call (which blocks
+    until the child is reaped); the resulting delta is a REAL measurement of
+    that one child's peak RSS, not a guess -- the self-calibration lever this
+    atom's L2->L3 increment is built on. Fails closed to 0 (never calibrates)
+    on a platform without RUSAGE_CHILDREN (e.g. non-Linux) rather than raising."""
+    try:
+        return resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss * 1024
+    except (AttributeError, OSError, ValueError):
+        return 0
 
 
 def memory_safe_worker_cap(per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES,
@@ -142,6 +200,12 @@ class LifeResult:
     # written). So `ok` keys on the fitness JSON; `render_returncode` records
     # the process exit separately for observability without failing the life.
     render_returncode: int = 0
+    # MEASURED (not guessed) RSS delta attributable to this life's subprocess,
+    # via `_rss_watermark_bytes()` before/after -- the self-calibration input
+    # (L2->L3). 0 means "not measured" (platform without RUSAGE_CHILDREN, or a
+    # life that failed before a child was ever reaped) -- never treated as a
+    # real zero-cost measurement by the calibration logic below.
+    measured_rss_bytes: int = 0
 
 
 # Fitness fields lifted from a life's result JSON. These are OBSERVABLE outputs
@@ -196,6 +260,7 @@ def _run_one_life(args) -> LifeResult:
     env.update({str(k): str(v) for k, v in (extra_env or {}).items()})
 
     t0 = time.monotonic()
+    _rss_before = _rss_watermark_bytes()
     try:
         proc = subprocess.run(
             cmd, cwd=str(PROJECT_DIR), env=env,
@@ -203,24 +268,32 @@ def _run_one_life(args) -> LifeResult:
             timeout=7200,
         )
     except subprocess.TimeoutExpired:
+        measured_rss = max(0, _rss_watermark_bytes() - _rss_before)
         return LifeResult(life_id, False, time.monotonic() - t0, -1,
-                          error="timeout after 7200s")
+                          error="timeout after 7200s", measured_rss_bytes=measured_rss)
     elapsed = time.monotonic() - t0
     rc = proc.returncode
+    # Delta of a monotonic non-decreasing high-water mark (RUSAGE_CHILDREN),
+    # taken immediately either side of the ONE subprocess.run call above -- a
+    # REAL measurement of this life's peak RSS, not a guess (self-calibration
+    # input, see memory_safe_worker_cap / run_tournament below).
+    measured_rss = max(0, _rss_watermark_bytes() - _rss_before)
 
     if not out_json.exists():
         # No fitness JSON => the SIM itself failed (JSON is written before any
         # report render). This is a genuine life failure.
         tail = (proc.stderr or b"").decode("utf-8", "replace")[-500:]
         return LifeResult(life_id, False, elapsed, rc, render_returncode=rc,
-                          error="no fitness JSON (rc={}) {}".format(rc, tail))
+                          error="no fitness JSON (rc={}) {}".format(rc, tail),
+                          measured_rss_bytes=measured_rss)
 
     try:
         data = json.loads(out_json.read_text())
         fitness = {k: data.get(k) for k in _FITNESS_FIELDS if k in data}
     except (json.JSONDecodeError, OSError) as exc:
         return LifeResult(life_id, False, elapsed, rc, render_returncode=rc,
-                          json_path=str(out_json), error="unreadable JSON: {}".format(exc))
+                          json_path=str(out_json), error="unreadable JSON: {}".format(exc),
+                          measured_rss_bytes=measured_rss)
 
     # The sim completed iff the JSON carries the headline fitness figure. A
     # non-zero rc WITH a valid fitness JSON means only the (unused) markdown
@@ -229,44 +302,23 @@ def _run_one_life(args) -> LifeResult:
         tail = (proc.stderr or b"").decode("utf-8", "replace")[-500:]
         return LifeResult(life_id, False, elapsed, rc, render_returncode=rc,
                           json_path=str(out_json),
-                          error="fitness JSON missing total_net_gbp (rc={}) {}".format(rc, tail))
+                          error="fitness JSON missing total_net_gbp (rc={}) {}".format(rc, tail),
+                          measured_rss_bytes=measured_rss)
 
     err = None
     if rc != 0:
         err = "sim ok (fitness written); post-sim report render exited rc={}".format(rc)
     return LifeResult(life_id, True, elapsed, rc, json_path=str(out_json),
-                      fitness=fitness, render_returncode=rc, error=err)
+                      fitness=fitness, render_returncode=rc, error=err,
+                      measured_rss_bytes=measured_rss)
 
 
-def run_tournament(lives, output_dir: Path, workers: Optional[int] = None,
-                   serial: bool = False,
-                   per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES):
-    """Run `lives` (an iterable of LifeSpec) and return (results, summary).
-
-    workers=None -> default_worker_count() (min of cores and the memory cap for
-                    per_life_rss_bytes; pass a smaller estimate for cheap
-                    truncated lives to unlock more parallelism safely).
-    serial=True  -> force one-at-a-time (the baseline for a speedup measurement).
-
-    FAIL-CLOSED: output_dir is validated first; every life is --fast; nothing
-    here publishes, commits, or writes a run_complete marker."""
-    output_dir = _validate_output_dir(Path(output_dir))
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    lives = list(lives)
-    if workers is None:
-        workers = default_worker_count(per_life_rss_bytes)
-    workers = max(1, min(int(workers), len(lives) or 1))
-    if serial:
-        workers = 1
-
-    task_args = [
-        (ls.life_id, ls.end_year, ls.env, str(output_dir)) for ls in lives
-    ]
-
-    t0 = time.monotonic()
+def _run_wave(task_args, workers: int) -> list:
+    """Run one wave of already-built task_args at a fixed worker count. Shared
+    by the probe wave and the main wave so calibration adds no duplicated pool
+    logic (SIMPLICITY GUARD)."""
     results = []
-    if workers == 1:
+    if workers <= 1:
         for a in task_args:
             results.append(_run_one_life(a))
     else:
@@ -274,6 +326,73 @@ def run_tournament(lives, output_dir: Path, workers: Optional[int] = None,
             futs = {pool.submit(_run_one_life, a): a[0] for a in task_args}
             for fut in as_completed(futs):
                 results.append(fut.result())
+    return results
+
+
+def run_tournament(lives, output_dir: Path, workers: Optional[int] = None,
+                   serial: bool = False,
+                   per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES,
+                   calibrate: bool = True, probe_lives: int = 1):
+    """Run `lives` (an iterable of LifeSpec) and return (results, summary).
+
+    workers=None -> default_worker_count() (min of cores and the memory cap for
+                    per_life_rss_bytes; pass a smaller estimate for cheap
+                    truncated lives to unlock more parallelism safely).
+    serial=True  -> force one-at-a-time (the baseline for a speedup measurement).
+
+    calibrate=True (default, the L2->L3 lever): when the caller has NOT pinned
+    an explicit `workers` count and is not requesting a pure serial baseline,
+    run a small PROBE wave (`probe_lives`, default 1) under the conservative
+    `per_life_rss_bytes` cap, MEASURE the real child RSS from that wave
+    (`_rss_watermark_bytes` delta -- an actual number, not a guess), and
+    recompute the worker cap for the REMAINING lives from the measured figure.
+    An explicit `workers=` is always honoured verbatim (calibration never
+    overrides a caller instruction); `serial=True` always skips calibration (a
+    speedup baseline must stay pure serial). Fails closed to the caller's
+    `per_life_rss_bytes` if nothing measurable comes back (e.g. no
+    RUSAGE_CHILDREN on this platform, or every probe life failed before a
+    child was reaped) -- calibration can only ever use a REAL measurement, and
+    silently degrades to the pre-existing L2 behaviour when it can't.
+
+    FAIL-CLOSED: output_dir is validated first; every life is --fast; nothing
+    here publishes, commits, or writes a run_complete marker."""
+    output_dir = _validate_output_dir(Path(output_dir))
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    lives = list(lives)
+    explicit_workers = workers is not None
+    calibrated_rss_bytes: Optional[int] = None
+
+    t0 = time.monotonic()
+    results = []
+
+    do_calibrate = (calibrate and not serial and not explicit_workers
+                     and probe_lives > 0 and len(lives) > probe_lives)
+    if do_calibrate:
+        probe, rest = lives[:probe_lives], lives[probe_lives:]
+        probe_task_args = [
+            (ls.life_id, ls.end_year, ls.env, str(output_dir)) for ls in probe
+        ]
+        probe_workers = max(1, min(default_worker_count(per_life_rss_bytes), len(probe)))
+        results.extend(_run_wave(probe_task_args, probe_workers))
+
+        measured = [r.measured_rss_bytes for r in results if r.ok and r.measured_rss_bytes > 0]
+        if measured:
+            calibrated_rss_bytes = max(measured)
+    else:
+        rest = lives
+
+    effective_rss_bytes = calibrated_rss_bytes or per_life_rss_bytes
+    if workers is None:
+        workers = default_worker_count(effective_rss_bytes)
+    workers = max(1, min(int(workers), len(rest) or 1))
+    if serial:
+        workers = 1
+
+    rest_task_args = [
+        (ls.life_id, ls.end_year, ls.env, str(output_dir)) for ls in rest
+    ]
+    results.extend(_run_wave(rest_task_args, workers))
     wall = time.monotonic() - t0
 
     results.sort(key=lambda r: r.life_id)
@@ -294,10 +413,19 @@ def run_tournament(lives, output_dir: Path, workers: Optional[int] = None,
         # Effective parallelism actually achieved = serial-equivalent work / wall.
         "effective_parallelism": round(life_cpu_s / wall, 2) if wall > 0 else 0.0,
         "mean_life_s": round(life_cpu_s / len(results), 2) if results else 0.0,
+        # Self-calibration (L2->L3): did we recompute the worker cap from a
+        # REAL measured probe-wave RSS instead of the caller's guess, and if
+        # so what did we measure? None/False when calibration didn't run
+        # (explicit workers=, serial=True, or nothing measurable came back).
+        "calibrated": calibrated_rss_bytes is not None,
+        "calibrated_rss_bytes": calibrated_rss_bytes,
+        "per_life_rss_bytes_assumed": per_life_rss_bytes,
+        "probe_lives": probe_lives if do_calibrate else 0,
         "results": [
             {"life_id": r.life_id, "ok": r.ok, "elapsed_s": round(r.elapsed_s, 2),
              "render_returncode": r.render_returncode,
-             "fitness": r.fitness, "error": r.error}
+             "fitness": r.fitness, "error": r.error,
+             "measured_rss_bytes": r.measured_rss_bytes}
             for r in results
         ],
     }
@@ -309,19 +437,26 @@ def run_tournament(lives, output_dir: Path, workers: Optional[int] = None,
 
 def benchmark(n_lives: int, end_year: Optional[int], output_dir: Path,
               workers: Optional[int] = None,
-              per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES):
+              per_life_rss_bytes: int = _PER_LIFE_RSS_BYTES,
+              calibrate: bool = True, probe_lives: int = 1):
     """Measure the parallel speedup honestly: run N identical lives SERIALLY,
     then the same N in a bounded pool, and report wall-clock + speedup.
 
     Same lives, same inputs -> identical fitness both times, which also proves
-    the pool did not change any sim output (determinism preserved)."""
+    the pool did not change any sim output (determinism preserved).
+
+    calibrate/probe_lives forward to the parallel half only in effect -- the
+    serial half always runs with serial=True, which skips calibration by
+    construction regardless of the flag, so the baseline stays pure serial."""
     serial_specs = [LifeSpec("s{}".format(i), end_year=end_year) for i in range(n_lives)]
     par_specs = [LifeSpec("p{}".format(i), end_year=end_year) for i in range(n_lives)]
 
     _, serial_sum = run_tournament(serial_specs, output_dir / "serial", serial=True,
-                                   per_life_rss_bytes=per_life_rss_bytes)
+                                   per_life_rss_bytes=per_life_rss_bytes,
+                                   calibrate=calibrate, probe_lives=probe_lives)
     _, par_sum = run_tournament(par_specs, output_dir / "parallel", workers=workers,
-                                per_life_rss_bytes=per_life_rss_bytes)
+                                per_life_rss_bytes=per_life_rss_bytes,
+                                calibrate=calibrate, probe_lives=probe_lives)
 
     speedup = (serial_sum["wall_clock_s"] / par_sum["wall_clock_s"]
                if par_sum["wall_clock_s"] > 0 else 0.0)
@@ -334,6 +469,8 @@ def benchmark(n_lives: int, end_year: Optional[int], output_dir: Path,
         "speedup_x": round(speedup, 2),
         "effective_parallelism": par_sum["effective_parallelism"],
         "per_life_s_serial": serial_sum["mean_life_s"],
+        "calibrated": par_sum["calibrated"],
+        "calibrated_rss_bytes": par_sum["calibrated_rss_bytes"],
     }
     (output_dir / "benchmark.json").write_text(json.dumps(bench, indent=2, sort_keys=True))
     return bench
@@ -353,6 +490,11 @@ def main() -> int:
     rp.add_argument("--per-life-mb", type=int, default=None,
                     help="Per-life RSS estimate (MB) for the memory-aware cap; "
                          "lower for cheap truncated lives to unlock parallelism.")
+    rp.add_argument("--no-calibrate", dest="calibrate", action="store_false", default=True,
+                    help="Disable self-calibration (probe-measure real RSS then "
+                         "recompute the worker cap); use --per-life-mb verbatim instead.")
+    rp.add_argument("--probe-lives", type=int, default=1,
+                    help="Lives to run in the calibration probe wave (default 1).")
 
     bp = sub.add_parser("benchmark", help="Serial-vs-parallel wall-clock speedup")
     bp.add_argument("--lives", type=int, required=True)
@@ -360,6 +502,8 @@ def main() -> int:
     bp.add_argument("--end-year", type=int, default=None)
     bp.add_argument("--workers", type=int, default=None)
     bp.add_argument("--per-life-mb", type=int, default=None)
+    bp.add_argument("--no-calibrate", dest="calibrate", action="store_false", default=True)
+    bp.add_argument("--probe-lives", type=int, default=1)
 
     args = p.parse_args()
 
@@ -371,13 +515,15 @@ def main() -> int:
                  for i in range(args.lives)]
         _, summary = run_tournament(specs, args.output_dir,
                                     workers=args.workers, serial=args.serial,
-                                    per_life_rss_bytes=_per_life_bytes())
+                                    per_life_rss_bytes=_per_life_bytes(),
+                                    calibrate=args.calibrate, probe_lives=args.probe_lives)
         print(json.dumps(summary, indent=2, sort_keys=True))
         return 0 if summary["lives_failed"] == 0 else 1
 
     if args.cmd == "benchmark":
         bench = benchmark(args.lives, args.end_year, args.output_dir,
-                          workers=args.workers, per_life_rss_bytes=_per_life_bytes())
+                          workers=args.workers, per_life_rss_bytes=_per_life_bytes(),
+                          calibrate=args.calibrate, probe_lives=args.probe_lives)
         print(json.dumps(bench, indent=2, sort_keys=True))
         return 0
 
