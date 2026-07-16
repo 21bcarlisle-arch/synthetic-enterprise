@@ -1645,3 +1645,54 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a team with an explicit Definition of Ready / Definition of Done"
   depends_on: []
+- id: H20_parallel_maintenance_lane
+  name: "Parallel MAINTENANCE lane: a standing worker drawing bug-fix/housekeeping/notification-hygiene work concurrently with BUILD/DISCOVER/SITE, integrating per-atom through the external-truth gate, bounded by file-scope disjointness"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: L
+  evidence: [docs/staging/done/PARALLEL_MAINTENANCE_LANE.md]
+  file_scope: [background, tools, docs/design]
+  simplifications: ['2026-07-16 REGISTERED from PARALLEL_MAINTENANCE_LANE.md (director-decided, P1, DIRECTOR-PRIORITISED to build SOON). Self-repair/housekeeping runs PARALLEL to product, not stolen from it: a maintenance worker draws its own work-type (bug-fixes, notification hygiene, stale-marker cleanup, cosmetic-defect burndown) concurrently with the BUILD forks, colliding only where file_scopes genuinely overlap (tree-lock as today; ARCH1 interfaces increasingly prevent overlap). First workload: (1) kill the archive-on-consumption defect properly (no .local-uncommitted-*.bak artifacts, clean done/ archival, no re-emission, the done/-guard holds); (2) make ALL notifications transition-only per R5 (retro-cadence transition-only fix already landed; sweep the rest). Guardrails: bounded by verification-throughput not worker count; same daemon governance (predicate-gated escalation, Rule 0, per-atom integration, kill flag); utilisation is a diagnostic never a target. This is the structural fix for why the machine does one thing at a time — once lanes-by-work-type exist, parallel is automatic. BUILD slice = a maintenance-lane worker under the existing walls (a new WORKER, not a new authority).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a maintenance/reliability team working a defect backlog in parallel with feature teams"
+  depends_on: []
+- id: G11_activity_cost_utilisation
+  name: "Activity-based cost + utilisation: attribute elapsed-time AND tokens to a PRODUCTIVE/WASTE activity taxonomy from existing git/token/deadman data; surface productive-%, cost-of-self-maintenance, rework-rate, value-per-problem, idle-on-director on the Method door"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: L
+  evidence: [docs/staging/done/ACTIVITY_COST_AND_UTILISATION.md]
+  file_scope: [background, tools, site, docs/design]
+  simplifications: ['2026-07-16 REGISTERED from ACTIVITY_COST_AND_UTILISATION.md (director-raised, P1). Answers "is the machine spending resources on PRODUCT or on ITSELF?" — currently a feeling, made a decomposition. Two resources tracked SEPARATELY (elapsed time = utilisation denominator; tokens = cost denominator; they diverge and the divergence is signal). Taxonomy: PRODUCTIVE/product, PRODUCTIVE/discovery (investment), WASTE/self-repair, WASTE/idle, WASTE/hit-limit, WASTE/rework, WASTE/idle-waiting-on-director. Metrics: productive-%, cost-of-self-maintenance (must trend DOWN or the harness is a treadmill), rework-rate, value-per-problem, idle-on-director. Build from data that ALREADY exists (git timestamps, commit-class tags, the 20-turn/window token meter, deadman/health logs) — a REPORTING layer, not new instrumentation. GUARDRAIL (prominent, same law as G5 sizing): utilisation is a DIAGNOSTIC never a TARGET — 40% productive-and-correct beats 90% busy-and-wrong; never tune the machine to make the number look good (corrupts the actuals). Sibling to G5 (effort remaining) + G6 (method lens) + G7 (WIP/flow, already L1); with G5 gives a live forecast (productive velocity / remaining sized effort). Surfaces on the Method door.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an activity-based-costing view of an engineering org: value output vs overhead/rework"
+  depends_on: [G5_effort_sizing_discipline, G7_wip_cycle_time_dashboard]
+- id: H21_self_contained_escalation
+  name: "Escalation payload is self-contained: the NTFY body carries WHAT/OPTIONS/CONTEXT/WHY-DOOR/DEFAULT so a one-word phone reply resolves it; an on-box log link is never the substance (tightens H19)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: M
+  evidence: [docs/staging/done/ESCALATIONS_MUST_BE_SELF_CONTAINED.md, background/executor_governor.py]
+  file_scope: [background, docs/design]
+  simplifications: ['2026-07-16 REGISTERED from ESCALATIONS_MUST_BE_SELF_CONTAINED.md (director-decided, tightens H19). H19 fixed the CHANNEL (phone not window); this fixes the CONTENT — the executor-wall NTFY said "I hit a one-way door, decide at your cadence" but not WHAT the door was, pointing at build-executor-log.md on the box (half an escalation; the director cannot answer from his phone). Rule: an escalation NTFY MUST carry WHAT (atom + exact named choice), OPTIONS (single-word-answerable), CONTEXT (minimum to choose, in the body), WHY-DOOR (which one-way-door class), DEFAULT/non-blocking note. Groundwork already landed: the predicate-gated escalation fix (c157f862d) added a self-contained door_reason field the turn must supply and pass through the one_way_door predicate; this atom builds _alert_wall to render that door_reason + options + door-class into the NTFY body, with a mutation-style check that an escalation missing the named decision or options FAILS. Folds into H19.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an on-call page that carries the decision, not a link to a dashboard you must open"
+  depends_on: []

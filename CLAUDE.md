@@ -47,7 +47,7 @@ Everything else: build it, log it (`background/decision_log.py`), carry on — t
 - P-1 One ranked queue: PRIORITIES.md is the sole priority authority; staging order carries zero priority meaning. Every staged directive must declare its intended rank (top/after-X/backlog) on arrival.
 - P-2 Director-repeat auto-escalates: the same complaint/ask voiced twice (any channel) becomes an automatic P1 proposal in the next NTFY, not silent absorption.
 - P-3 Fuzzy-but-vital beats crisp-but-secondary: vision-level asks get a reference-implementation-first artifact (one page/surface, Rich's eyes = acceptance) before propagating, rather than losing to well-specified backend items on ease-of-closure.
-- P-4 Explicit depth/visibility split: while a Rich-flagged visible surface is below bar, ~70% effort on that visible work, ~30% on backend/fires; flips only on Rich's visual confirmation. State the current split in PRIORITIES.md.
+- P-4 Visible-surface split: Rich-flagged surface below bar → ~70% effort/~30% backend. Cold-eyes gates it to target autonomously (DELEGATE 2026-07-16); director never gates, corrects reversibly. Split in PRIORITIES.md.
 - P-5 Freshness stamp: PRIORITIES.md carries "last director review: <date>", re-ranked at every weekly reset/retro; if >7 days stale, request a review in the next NTFY.
 **Always update and commit LATEST.md before sending NTFY.** If stale, fix the root cause.
 **When budget is available between tasks:** check backlog, fix known issues, improve coverage. Don't sit idle.
