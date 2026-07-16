@@ -133,11 +133,29 @@ def was_sent_by_us(msg_id: str | None) -> bool:
     return msg_id in ids
 
 
-def send_ntfy(message: str, headers: dict[str, str] | None = None) -> str | None:
+def send_ntfy(message: str, headers: dict[str, str] | None = None,
+              *, _allow_real_send: bool = False) -> str | None:
     """POST `message` to the shared ntfy topic, record its id (so the
     inbound-command poller can recognise and skip it), mirror it
     (secret-scrubbed) for the advisor (ADVISOR_VISIBILITY.md), and return
     the id (or None if the request or id-parsing failed)."""
+    # HARD PYTEST GUARD (2026-07-16, director: "my phone is spamming with test
+    # messages"). NEVER POST a real NTFY from inside a test run. A test that
+    # exercises any notification path WITHOUT mocking send_ntfy would otherwise
+    # buzz the director's PHONE with synthetic content ("fake reason", "atom X") --
+    # and EVERY process that runs the suite (the publish gate each cycle, an
+    # auto-resumed session's recovery checklist, an interactive `pytest` run) did
+    # exactly that. pytest sets PYTEST_CURRENT_TEST for the duration of every test;
+    # this makes a real send STRUCTURALLY IMPOSSIBLE there, independent of whether
+    # each individual test remembers to mock (MAKE_IT_STICK: mechanism, not
+    # discipline). This is the ONE fix for the whole test-spam class; a test that
+    # needs to assert on a send mocks send_ntfy (replacing this function) as before.
+    import os
+    if os.environ.get("PYTEST_CURRENT_TEST") and not _allow_real_send:
+        # A test that genuinely exercises the POST/parse internals (with curl mocked)
+        # passes _allow_real_send=True; everything else is suppressed so no test can
+        # buzz the director's phone by forgetting to mock.
+        return "pytest-suppressed"  # sentinel: a real POST never happens under pytest
     cmd = ["curl", "-s"]
     if NTFY_AUTH_TOKEN:
         cmd += ["-H", f"Authorization: Bearer {NTFY_AUTH_TOKEN}"]

@@ -16,6 +16,30 @@ import pandas as pd
 import pytest
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "real_ntfy: test exercises the REAL send_ntfy POST/parse internals (curl is "
+        "mocked, so still no network) -- exempt from the global no-send autouse guard.",
+    )
+
+
+@pytest.fixture(autouse=True)
+def _no_real_ntfy_from_tests(request, monkeypatch):
+    """GLOBAL, AUTOUSE (2026-07-16, director: "my phone is spamming with test messages").
+    NO test run -- the publish gate's, an auto-resumed session's recovery checklist, a
+    ghost's, or an interactive `pytest` -- may POST a real NTFY to the director's phone.
+    Every test gets send_ntfy replaced by a recording no-op. This is THE class fix (a
+    forgotten mock previously buzzed the phone with synthetic 'fake reason' / 'atom X'
+    content). Belt-and-suspenders with send_ntfy's own PYTEST_CURRENT_TEST guard. Tests
+    that intentionally exercise send_ntfy's real internals mark themselves
+    @pytest.mark.real_ntfy (curl mocked there, so still no network)."""
+    if request.node.get_closest_marker("real_ntfy"):
+        return
+    import background.ntfy_utils as _nu
+    monkeypatch.setattr(_nu, "send_ntfy", lambda *a, **k: "conftest-suppressed")
+
+
 @pytest.fixture
 def sample_customer():
     return {

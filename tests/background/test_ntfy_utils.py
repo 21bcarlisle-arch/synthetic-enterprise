@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from background import ntfy_utils
 
 # send_ntfy() mirrors every call (ADVISOR_VISIBILITY.md's background/ntfy_mirror.py)
@@ -12,23 +14,25 @@ def _fake_run(stdout):
     return lambda cmd, **kw: type("R", (), {"stdout": stdout})()
 
 
+@pytest.mark.real_ntfy
 def test_send_ntfy_records_id(tmp_path, monkeypatch):
     sent_ids_file = tmp_path / "sent.json"
     monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "abc123"}'))
 
-    msg_id = ntfy_utils.send_ntfy("hello")
+    msg_id = ntfy_utils.send_ntfy("hello", _allow_real_send=True)
 
     assert msg_id == "abc123"
     assert json.loads(sent_ids_file.read_text()) == ["abc123"]
 
 
+@pytest.mark.real_ntfy
 def test_send_ntfy_handles_unparseable_response(tmp_path, monkeypatch):
     sent_ids_file = tmp_path / "sent.json"
     monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run("not json"))
 
-    msg_id = ntfy_utils.send_ntfy("hello")
+    msg_id = ntfy_utils.send_ntfy("hello", _allow_real_send=True)
 
     assert msg_id is None
     assert not sent_ids_file.exists()
@@ -67,6 +71,7 @@ def test_record_sent_id_caps_at_max_entries(tmp_path, monkeypatch):
     assert json.loads(sent_ids_file.read_text()) == ["id2", "id3", "id4"]
 
 
+@pytest.mark.real_ntfy
 def test_send_ntfy_appends_to_existing_ids(tmp_path, monkeypatch):
     sent_ids_file = tmp_path / "sent.json"
     import json as _json
@@ -74,7 +79,7 @@ def test_send_ntfy_appends_to_existing_ids(tmp_path, monkeypatch):
     monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "new123"}'))
 
-    ntfy_utils.send_ntfy("hello")
+    ntfy_utils.send_ntfy("hello", _allow_real_send=True)
 
     ids = _json.loads(sent_ids_file.read_text())
     assert "existing" in ids
@@ -100,12 +105,13 @@ def test_was_sent_by_us_empty_file(tmp_path, monkeypatch):
     assert ntfy_utils.was_sent_by_us("id1") is False
 
 
+@pytest.mark.real_ntfy
 def test_send_ntfy_no_id_key_returns_none(tmp_path, monkeypatch):
     sent_ids_file = tmp_path / "sent.json"
     monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"error": "bad"}'))
 
-    msg_id = ntfy_utils.send_ntfy("hello")
+    msg_id = ntfy_utils.send_ntfy("hello", _allow_real_send=True)
 
     assert msg_id is None
 
@@ -131,6 +137,7 @@ def test_was_sent_by_us_returns_bool(tmp_path, monkeypatch):
     assert isinstance(result, bool)
 
 
+@pytest.mark.real_ntfy
 def test_daemon_sent_message_is_recognised_as_ours(tmp_path, monkeypatch):
     """Part A tagging invariant (2026-07-15): a message a daemon sends via
     send_ntfy must be was_sent_by_us()==True end to end, so the responder never
@@ -140,7 +147,7 @@ def test_daemon_sent_message_is_recognised_as_ours(tmp_path, monkeypatch):
     monkeypatch.setattr(ntfy_utils, "SENT_IDS_FILE", sent_ids_file)
     monkeypatch.setattr(ntfy_utils.subprocess, "run", _fake_run('{"id": "daemon-xyz"}'))
 
-    msg_id = ntfy_utils.send_ntfy("[HEALTH CHECK] Stack OK")
+    msg_id = ntfy_utils.send_ntfy("[HEALTH CHECK] Stack OK", _allow_real_send=True)
 
     assert msg_id == "daemon-xyz"
     assert ntfy_utils.was_sent_by_us(msg_id) is True
@@ -261,3 +268,17 @@ def test_sign_wake_message_raises_without_hmac_key(monkeypatch):
 def test_verify_wake_message_returns_none_without_hmac_key(monkeypatch):
     monkeypatch.setattr(ntfy_utils, "WAKE_HMAC_KEY", None)
     assert ntfy_utils.verify_wake_message("anything|123|abc") is None
+
+
+@pytest.mark.real_ntfy
+def test_send_ntfy_is_a_no_op_under_pytest(monkeypatch):
+    """THE test-spam class fix (2026-07-16): under pytest, send_ntfy must NEVER POST a
+    real NTFY to the director's phone, even if a test forgets to mock it. PYTEST_CURRENT_
+    TEST is set during every test; the guard returns a sentinel and no curl runs."""
+    import background.ntfy_utils as nu
+    called = {"curl": False}
+    monkeypatch.setattr(nu.subprocess, "run", lambda *a, **k: called.__setitem__("curl", True))
+    # PYTEST_CURRENT_TEST is set by pytest right now; assert the guard fires.
+    result = nu.send_ntfy("[RETRO CADENCE] Retro cadence STALE: fake reason")
+    assert result == "pytest-suppressed"
+    assert called["curl"] is False, "send_ntfy must not run curl (real POST) under pytest"
