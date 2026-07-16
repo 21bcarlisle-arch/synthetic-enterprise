@@ -1576,3 +1576,72 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an on-call escalation policy that pages async and keeps the rest serving, never blocking the whole service on one operator decision"
   depends_on: []
+
+- id: G7_wip_cycle_time_dashboard
+  name: "WIP limit + cycle-time flow dashboard (Kanban): make throughput/flow visible, cap concurrent BUILD WIP by verified-capacity not fork-count"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: M
+  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  file_scope: [docs/design, site, tools]
+  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6_method_lens_audit output, Kanban lens). Make flow/cycle-time visible and cap WIP by VERIFIED capacity (per PER_ATOM_INTEGRATION guardrail: throughput is bounded by verification, never raw fork count). DISCOVER/FRAME workable now; director ranks."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a Kanban board with WIP limits and a cumulative-flow/cycle-time chart"
+  depends_on: []
+- id: G8_constraint_identification_ritual
+  name: "Theory-of-Constraints ritual: name the current single binding constraint each cycle and subordinate to it (five focusing steps)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: S
+  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6 output, ToC lens). We rediscovered bottlenecks-are-onions by injury; the mature version names the ONE binding constraint per cycle + subordinates. DISCOVER/FRAME workable now; director ranks."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a ToC practitioner running the five focusing steps"
+  depends_on: []
+- id: G9_error_budget_toil_tracking
+  name: "SRE error-budget + toil tracking: quantify recurring toil (the treadmill) and gate discretionary work on a self-caught-failure budget"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: M
+  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  file_scope: [docs/design, background, tools]
+  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6 output, SRE lens). Strengthens G4_unified_failure_register: quantify TOIL (SELF_INTERRUPT_DISCIPLINE treadmill) + an error-budget view. DISCOVER/FRAME workable now; director ranks."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an SRE team tracking toil % and error budgets"
+  depends_on: []
+- id: G10_definition_of_ready_gate
+  name: "Definition-of-Ready gate: an atom is BUILD-eligible only when framed/scoped/sized/exit-test-defined (name our ad-hoc level gates as DoR/DoD)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  size: S
+  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  file_scope: [docs/design]
+  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6 output, Agile/INVEST lens). We build ad-hoc level gates that ARE Definition-of-Ready/Done unnamed; name them + make DoR a soft BUILD-eligibility check (folds with G5 XL->decompose). DISCOVER/FRAME workable now; director ranks."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a team with an explicit Definition of Ready / Definition of Done"
+  depends_on: []

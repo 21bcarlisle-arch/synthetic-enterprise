@@ -1708,6 +1708,74 @@
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "G7_wip_cycle_time_dashboard",
+      "name": "WIP limit + cycle-time flow dashboard (Kanban): make throughput/flow visible, cap concurrent BUILD WIP by verified-capacity not fork-count",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "G8_constraint_identification_ritual",
+      "name": "Theory-of-Constraints ritual: name the current single binding constraint each cycle and subordinate to it (five focusing steps)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "G9_error_budget_toil_tracking",
+      "name": "SRE error-budget + toil tracking: quantify recurring toil (the treadmill) and gate discretionary work on a self-caught-failure budget",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "G10_definition_of_ready_gate",
+      "name": "Definition-of-Ready gate: an atom is BUILD-eligible only when framed/scoped/sized/exit-test-defined (name our ad-hoc level gates as DoR/DoD)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -1790,7 +1858,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 95,
+  "total_atoms": 99,
   "epoch2_movements": [
     {
       "id": "M1",
