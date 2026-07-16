@@ -189,6 +189,20 @@ def gross_margin_concentration_check(
     if limit_pct is None:
         breach = None
         status = "unset"
+    elif snapshot.n_entities == 0:
+        # R15 FAIL-OPEN FIX (B2 HARDEN 2026-07-16): an empty share base -- no
+        # positive-margin customer exists at all (an EMPTY book, or the far
+        # worse ALL-LOSS-MAKING book where every customer is net-negative and
+        # excluded by build_gross_margin_concentration_snapshot) -- previously
+        # returned status="green"/breach=False: a POSITIVE all-clear on the
+        # single-customer concentration control for arguably the worst solvency
+        # state a supplier can be in. Concentration-OF-MARGIN is genuinely
+        # undefined when there is no positive margin, but reporting "within
+        # limit" manufactures false comfort (the KL-4/KL-5 empty-reads-as-clean
+        # killer pattern). Return a distinct NOT-ASSESSABLE state (never a false
+        # green): breach is None (not False), status "not_assessable".
+        breach = None
+        status = "not_assessable"
     else:
         breach = pct > limit_pct
         if breach:
