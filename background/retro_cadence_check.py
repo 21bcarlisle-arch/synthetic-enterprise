@@ -57,6 +57,13 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 RETRO_DIR = PROJECT_DIR / "docs" / "retrospectives"
 MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
+# Transition-only NTFY dedup (2026-07-16, from_rich "repeating retro cadence
+# stale FAKE message"): main() previously NTFY'd on EVERY --ntfy run while
+# stale, so any caller (a per-turn invocation, a loop) re-sent the identical
+# line forever -- an R5 violation and a channel that cries wolf. This stores
+# the last warning actually sent; main() fires only on a TRANSITION (the
+# warning text changed, or stale->fresh), never on an unchanged repeat.
+NTFY_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".retro_cadence_ntfy_state.json"
 
 # Named thresholds, matching the incident-retro skill's own cited cadence
 # ("~50 phases/2 weeks since the last retro, or a harness rule changed" --
@@ -154,12 +161,36 @@ def check_retro_staleness(
     return None
 
 
+def _read_last_ntfy() -> str | None:
+    """The last warning string actually NTFY'd, or None. Fail-quiet."""
+    try:
+        import json
+        return json.loads(NTFY_STATE_FILE.read_text()).get("last_warning")
+    except Exception:
+        return None
+
+
+def _write_last_ntfy(warning: str | None) -> None:
+    """Record the last-NTFY'd warning (None once fresh again, so the next
+    genuine staleness fires exactly once). Fail-quiet."""
+    try:
+        import json
+        NTFY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        NTFY_STATE_FILE.write_text(json.dumps({"last_warning": warning}))
+    except Exception:
+        pass
+
+
 def main() -> int:
     send = "--ntfy" in sys.argv
     warning = check_retro_staleness()
     if warning:
         print(f"[retro-cadence] {warning}")
-        if send:
+        # TRANSITION-ONLY (R5): NTFY only when the warning first appears or its
+        # text changes -- never re-send an unchanged line every run. This is the
+        # whole fix for the "repeating retro cadence stale" spam: an unchanged
+        # stale state is silent after its one alert.
+        if send and warning != _read_last_ntfy():
             try:
                 sys.path.insert(0, str(PROJECT_DIR))
                 from background.ntfy_utils import send_ntfy
@@ -167,9 +198,15 @@ def main() -> int:
                     f"[RETRO CADENCE] {warning}",
                     headers={"X-Priority": "3", "X-Tags": "warning"},
                 )
+                _write_last_ntfy(warning)
             except Exception as e:
                 print(f"[retro-cadence] NTFY send failed (non-fatal): {e}")
+        elif send:
+            print("[retro-cadence] unchanged since last alert -- transition-only, not re-sending")
         return 1
+    # Fresh again: clear the dedup state so a FUTURE staleness alerts once more.
+    if _read_last_ntfy() is not None:
+        _write_last_ntfy(None)
     print("[retro-cadence] OK -- within both thresholds")
     return 0
 

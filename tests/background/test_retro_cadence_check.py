@@ -274,3 +274,37 @@ class TestMain:
         assert result == 1
         out = capsys.readouterr().out
         assert "STALE" in out
+
+
+class TestTransitionOnlyNtfy:
+    """2026-07-16: main() must NTFY only on a STATE TRANSITION, never re-send an
+    unchanged 'stale' line every run (the 'repeating retro cadence' spam)."""
+
+    def _run_main(self, monkeypatch, tmp_path, warning, sent):
+        import background.retro_cadence_check as r
+        import background.ntfy_utils as nu
+        monkeypatch.setattr(r, "NTFY_STATE_FILE", tmp_path / ".retro_ntfy_state.json")
+        monkeypatch.setattr(r, "check_retro_staleness", lambda *a, **k: warning)
+        monkeypatch.setattr(nu, "send_ntfy", lambda *a, **k: sent.append(a[0] if a else k))
+        monkeypatch.setattr(r.sys, "argv", ["retro_cadence_check", "--ntfy"])
+        return r.main()
+
+    def test_repeated_identical_stale_sends_once(self, monkeypatch, tmp_path):
+        sent = []
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 55 promotions", sent)
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 55 promotions", sent)
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 55 promotions", sent)
+        assert len(sent) == 1  # only the first (transition); the repeats are silent
+
+    def test_changed_warning_sends_again(self, monkeypatch, tmp_path):
+        sent = []
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 55 promotions", sent)
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 61 promotions", sent)
+        assert len(sent) == 2  # a genuinely different state re-alerts
+
+    def test_fresh_resets_so_future_staleness_realerts(self, monkeypatch, tmp_path):
+        sent = []
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 55 promotions", sent)
+        self._run_main(monkeypatch, tmp_path, None, sent)  # became fresh -> state cleared
+        self._run_main(monkeypatch, tmp_path, "Retro cadence STALE: 55 promotions", sent)
+        assert len(sent) == 2  # fires again after a fresh interval, not suppressed forever
