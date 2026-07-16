@@ -243,6 +243,16 @@ def check_remote(seen: set[str]) -> set[str]:
         local_path = STAGING_DIR / name
         if local_path.exists():
             continue  # already present
+        # Do NOT resurrect a doc that has already been consumed+archived to
+        # done/ (2026-07-16 re-stick root cause): while local HEAD is behind
+        # origin, local_head..origin/main keeps containing the [ADVISOR-STAGED]
+        # commits that first added these docs, so this bridge re-materialised
+        # them into root every cycle even after they were moved to done/ --
+        # re-jamming the supervisor forever. An archived copy in done/ is the
+        # canonical "consumed" signal; skip it. (A genuine re-issue reuses a
+        # fresh name, as advisor/director docs already do.)
+        if (_done_dir() / name).exists():
+            continue
         rc4, content, err4 = _run(["git", "show", "origin/main:" + remote_path])
         if rc4 != 0:
             log(f"Could not extract {name} from origin/main: {err4[:60]}")

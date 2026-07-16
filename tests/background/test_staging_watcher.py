@@ -571,3 +571,58 @@ def test_instruction_sweep_ignores_from_rich_and_markers(tmp_path, monkeypatch):
     assert (tmp_path / "from_rich_20260710_000000.md").exists()
     assert (tmp_path / "run_complete_20260710T000000Z.md").exists()
     assert calls == []
+
+
+# ── remote-staging bridge must not resurrect an archived doc (2026-07-16) ─────
+# While local HEAD trails origin, local_head..origin/main keeps containing the
+# [ADVISOR-STAGED] commits that first added a doc, so check_remote() re-created
+# it in root every cycle even after it was moved to done/ -- the re-stick root
+# cause for advisor-bridged docs. An archived copy in done/ = consumed = skip.
+
+def _bridge_fake_run(show_counter):
+    def fake_run(cmd, timeout=30):
+        if cmd[:2] == ["git", "fetch"]:
+            return (0, "", "")
+        if cmd[:2] == ["git", "rev-parse"]:
+            return (0, "deadbeefcafe", "")
+        if cmd[:3] == ["git", "rev-list", "--count"]:
+            return (0, "5", "")  # 5 new remote commits
+        if cmd[:2] == ["git", "show"]:
+            show_counter["n"] += 1
+            return (0, "doc content from origin", "")
+        return (0, "", "")
+    return fake_run
+
+
+def test_bridge_does_not_resurrect_archived_doc(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "log", lambda m: None)
+    done = tmp_path / "done"
+    done.mkdir()
+    (done / "DIRECTOR_ANSWERS_C7.md").write_text("consumed decision")
+    monkeypatch.setattr(watcher, "_extract_advisor_staging_files",
+                        lambda ref: ["DIRECTOR_ANSWERS_C7.md"])
+    counter = {"n": 0}
+    monkeypatch.setattr(watcher, "_run", _bridge_fake_run(counter))
+
+    watcher.check_remote(set())
+
+    assert not (tmp_path / "DIRECTOR_ANSWERS_C7.md").exists()  # not resurrected in root
+    assert counter["n"] == 0  # git show for its content never even attempted
+
+
+def test_bridge_materialises_unarchived_advisor_doc(tmp_path, monkeypatch):
+    """The guard is scoped: a genuinely-new advisor doc with no done/ copy is
+    still materialised into root exactly as before."""
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "log", lambda m: None)
+    (tmp_path / "done").mkdir()
+    monkeypatch.setattr(watcher, "_extract_advisor_staging_files",
+                        lambda ref: ["NEW_ADVISOR_STEER.md"])
+    counter = {"n": 0}
+    monkeypatch.setattr(watcher, "_run", _bridge_fake_run(counter))
+
+    watcher.check_remote(set())
+
+    assert (tmp_path / "NEW_ADVISOR_STEER.md").exists()  # materialised
+    assert counter["n"] == 1
