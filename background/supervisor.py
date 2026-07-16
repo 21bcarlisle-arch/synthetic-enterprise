@@ -562,6 +562,62 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     return selected
 
 
+def _atom_has_frame_doc(atom: dict) -> bool:
+    """True iff the atom already carries its OWN complete FRAME doc on disk:
+    an `evidence` entry under `docs/design/frame/` whose filename contains
+    `FRAME` (matching the `<id>_FRAME.md` convention) AND that resolves to an
+    existing file under `PROJECT_DIR`. The filename `FRAME` requirement is what
+    distinguishes a per-atom FRAME (`H18_..._FRAME.md`) from a SHARED survey
+    listed as evidence (`LANE3_H17_BUILD_GATE_SURVEY_...md`) -- the survey is
+    not itself the atom's FRAME-stage output, so an atom carrying only the
+    survey still has genuine FRAME work left and must NOT read as saturated.
+    Paths are repo-relative (as stored in `evidence`), resolved against
+    `PROJECT_DIR` so the check is real filesystem state, never an assumed
+    string match (R7: verify against disk)."""
+    if not isinstance(atom, dict):
+        return False
+    for e in atom.get("evidence") or []:
+        s = str(e)
+        if not s.startswith("docs/design/frame/"):
+            continue
+        if "FRAME" not in Path(s).name.upper():
+            continue
+        if (PROJECT_DIR / s).exists():
+            return True
+    return False
+
+
+def _is_frame_saturated(atom: dict) -> bool:
+    """H23_frame_saturation_draw_marker: an idle atom is FRAME-saturated when
+    no honest FRAME-stage output remains -- it already carries its own complete
+    FRAME doc, so the ONLY remaining path to `level_target` is BUILT code the
+    epoch gate defers (an idle atom's gap is BUILD-gated by definition). Such an
+    atom must NOT be re-handed to the idle DISCOVER/FRAME draw: re-emitting a
+    duplicate FRAME is the exact churn SELF_INTERRUPT_DISCIPLINE + R12 forbid,
+    and the 3x-then-recursive re-hand (occurrences 1-5, this atom's own history)
+    is the DIAL defect it fixes.
+
+    Saturation is computed INTRINSICALLY from map+disk state (has-FRAME-doc),
+    deliberately NOT a marker a turn must remember to set -- MAKE_IT_STICK: a
+    setter that a turn can forget decays (this finding evaporated as prose four
+    times); a computed check cannot. An explicit boolean `frame_saturated` on
+    the atom OVERRIDES the intrinsic check in BOTH directions -- `true`
+    force-marks an atom whose FRAME doc is under a non-standard name, `false`
+    force-offers a saturated atom that genuinely needs a FRAME revision. The
+    override is the R11 escape so the state is a cache, never a permanent hold
+    (no orphan transition). Auto-clear on BUILD-gate-open needs no code here:
+    when the gate opens the atom's `loop_stage` flips off `idle`, it leaves the
+    idle candidate pool entirely (the existing `loop_stage != "idle"` filter),
+    and re-enters via the BUILD draw -- exactly 're-offer only when its
+    BUILD-gate opens'."""
+    if not isinstance(atom, dict):
+        return False
+    explicit = atom.get("frame_saturated")
+    if isinstance(explicit, bool):
+        return explicit
+    return _atom_has_frame_doc(atom)
+
+
 def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
     """EPOCH_GATING_AND_ATOM_AUTHORSHIP.md (P0, 2026-07-12, director-prompted
     "why can't it think of its own work for future epochs"): Rule 1 --
@@ -611,6 +667,21 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
         return has_gap
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
+    # H23: hard-skip FRAME-saturated atoms (no fallback -- unlike the stall
+    # soft-deprioritise, which falls back). Preferring an un-saturated idle
+    # atom is the whole point; if EVERY idle atom is saturated this is a TRUE
+    # empty FRAME feasible set (Rule 0), not a spin -- return None so the turn
+    # reports idle-with-reason rather than re-handing a saturated atom.
+    non_saturated = [a for a in candidates if not _is_frame_saturated(a)]
+    if candidates and not non_saturated:
+        log(
+            "IDLE DISCOVER/FRAME draw: all "
+            f"{len(candidates)} idle atom(s) are FRAME-saturated (own FRAME doc "
+            "present, gap BUILD-gated) -- no honest FRAME-stage work remains; "
+            "returning empty (H23_frame_saturation_draw_marker) rather than "
+            "re-handing a saturated atom."
+        )
+    candidates = non_saturated
     if not candidates:
         return None
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
@@ -680,6 +751,19 @@ def _idle_discover_frame_draw_concurrent(
         return has_gap
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
+    # H23: hard-skip FRAME-saturated atoms BEFORE the stall soft-filter (this
+    # skip has no fallback -- all-saturated is a true empty FRAME feasible set,
+    # returned as [], not a re-hand). This is the production path that was
+    # re-handing the same 6+ FRAME-saturated BUILD-gated atoms 5x in one day.
+    non_saturated = [a for a in candidates if not _is_frame_saturated(a)]
+    if candidates and not non_saturated:
+        log(
+            "IDLE DISCOVER/FRAME concurrent draw: all "
+            f"{len(candidates)} idle atom(s) are FRAME-saturated -- no honest "
+            "FRAME-stage work remains; returning [] "
+            "(H23_frame_saturation_draw_marker) rather than re-handing."
+        )
+    candidates = non_saturated
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
