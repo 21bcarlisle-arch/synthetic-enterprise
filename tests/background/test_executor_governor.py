@@ -238,6 +238,53 @@ def test_alert_wall_fires_once_then_suppresses_duplicate(monkeypatch, tmp_path):
     assert len(sent) == 1, f"expected 1 escalation NTFY, got {len(sent)}"
 
 
+def test_two_distinct_walls_each_get_their_own_escalation(monkeypatch, tmp_path):
+    """RED-TEAM of this atom's own core invariant ('the loop NTFYs the irreducible core').
+    A WALL keeps the loop DRAWING, so two DISTINCT one-way doors can be open at once. With a
+    constant `executor-wall_escalated` item they COALESCED -> the fire-once gate silently
+    swallowed the SECOND distinct door (only the first ever NTFY'd). Each distinct wall must
+    now raise its OWN escalation with its OWN reply-PIN. Mutation: revert item_id to the
+    constant `executor-{kind}` and this fails (only 1 NTFY, and the two PINs collide)."""
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg))
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
+    executor_governor._alert_wall(
+        _FakeResult("escalated", atom_reason="DOOR A: spend real money on X"), kind="wall_escalated")
+    executor_governor._alert_wall(
+        _FakeResult("escalated", atom_reason="DOOR B: open a new epoch"), kind="wall_escalated")
+    assert len(sent) == 2, f"two DISTINCT one-way doors must each NTFY, got {len(sent)}"
+    # Both doors are independently resolvable: distinct reply-PINs, distinct open items.
+    import background.action_needed as an
+    open_ids = {e["item_id"] for e in an.open_items(tmp_path / "an.json")}
+    assert len(open_ids) == 2, f"each distinct wall must open its own item, got {open_ids}"
+    pins = {an.pin_for(i) for i in open_ids}
+    assert len(pins) == 2, "each distinct wall must have its own reply-PIN (no collision)"
+
+
+def test_run_loop_alternating_distinct_walls_ntfy_each_then_back_off(tmp_path):
+    """RED-TEAM: when the ONLY drawable work is two DISTINCT one-way doors cycling
+    A,B,A,B,..., the loop must NTFY each distinct wall exactly once (not swallow the 2nd,
+    not spam) and then BACK OFF instead of hot-spinning. Mutation: the old scalar
+    last_escalated_reason never equalled the immediately-previous alternating reason -> it
+    re-alerted every cycle and NEVER slept; a set-based seen-latch fixes both."""
+    _enable(tmp_path)
+    alerts = []
+    slept = {"n": 0}
+    seq = iter(["A", "B", "A", "B", "A", "B"])
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: _FakeResult("escalated", atom_reason=next(seq)),
+        max_cycles=6,
+        alert=lambda result, kind="": alerts.append(getattr(result, "atom_reason", None)),
+        sleep=lambda _s: slept.__setitem__("n", slept["n"] + 1),
+    )
+    assert summary.stop_reason == "max_cycles"
+    # Exactly two escalations — one per distinct wall — the 2nd is NOT coalesced away.
+    assert sorted(alerts) == ["A", "B"], f"each distinct wall NTFYs once, got {alerts}"
+    # Once both are seen, the remaining re-draws back off instead of busy-looping.
+    assert slept["n"] >= 1, "re-seen distinct walls must back off, not hot-spin"
+
+
 # ===========================================================================
 # MAP RECONCILIATION — an unfolded level report STOPS the loop (fail-closed, F2)
 # ===========================================================================

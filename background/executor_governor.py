@@ -29,6 +29,7 @@ suppress that watchdog.
 """
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import time
 from collections import deque
@@ -208,7 +209,21 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
             "docs/observability/build-executor-log.md."
         )
     why = f"Unattended loop self-stopped and is awaiting a director decision. Draw: {getattr(result, 'atom_reason', None)}"
-    item_id = f"executor-{kind}"
+    # PER-WALL escalation identity (2026-07-16 HARDEN, red-team of this atom's own core
+    # invariant): a WALL keeps the loop DRAWING, so TWO DISTINCT one-way doors can be open
+    # at once. A constant `executor-wall_escalated` item coalesced them into ONE
+    # action_needed item -> the fire-once gate SILENTLY SWALLOWED the second distinct door
+    # (only the first was ever NTFY'd; the director never heard the second irreducible
+    # core). That is the SILENT-DROP cousin of the silent-stall this atom exists to kill.
+    # Fix: derive the item id from the escalated atom_reason so each distinct door gets its
+    # own escalation, its own fire-once/daily gate, and its own reply-PIN. Singleton STOP
+    # kinds (map_unreconciled / repeated_failure HALT the loop, so only one can be live)
+    # keep the constant id.
+    if kind == "wall_escalated":
+        reason_key = hashlib.sha1((getattr(result, "atom_reason", None) or "").encode("utf-8")).hexdigest()[:8]
+        item_id = f"executor-{kind}-{reason_key}"
+    else:
+        item_id = f"executor-{kind}"
     try:
         from background.ntfy_utils import send_ntfy  # lazy: needs SE_NTFY_TOPIC only here
 
@@ -345,7 +360,12 @@ def run_loop(
 
     cycles = 0
     consecutive_failures = 0
-    last_escalated_reason = None  # ESCALATION_IS_NTFY: dedup NTFY + detect nothing-else-drawable
+    # ESCALATION_IS_NTFY: the SET of distinct walls NTFY'd this stint. A SET, not a scalar
+    # last-reason: with a scalar, two DISTINCT walls re-drawn alternately (A,B,A,B — the
+    # only drawable work being two one-way doors) never equalled the immediately-previous
+    # reason, so the loop re-alerted needlessly AND never backed off (a hot busy-loop). The
+    # set NTFYs once per newly-seen distinct wall and backs off on ANY already-seen wall.
+    escalated_reasons: set = set()
     stop_reason = ""
     build_executor.log("run_loop: starting self-continuing headless loop (DARK-gated)")
 
@@ -409,19 +429,23 @@ def run_loop(
             # `break` here (halt); that reintroduced the human-at-a-terminal dependency
             # the whole autonomy stack exists to remove.
             reason = getattr(result, "atom_reason", None)
-            if reason != last_escalated_reason:
-                alert(result, kind="wall_escalated")  # NTFY once per newly-seen wall
             consecutive_failures = 0
-            if reason is not None and reason == last_escalated_reason:
-                # The draw can only offer the SAME escalated work (nothing else drawable):
-                # back off (deadman/health-check are the net) rather than busy-loop or
-                # re-NTFY the identical wall. Still no window prompt, still no hard stop.
+            if reason not in escalated_reasons:
+                # A newly-seen distinct wall: NTFY its irreducible core ONCE (async), record
+                # it, and immediately keep drawing — a second distinct one-way door is NOT
+                # coalesced away, it gets its own escalation (per-wall item id in _alert_wall).
+                alert(result, kind="wall_escalated")
+                escalated_reasons.add(reason)
+            else:
+                # Only already-seen walls are drawable (nothing new to do): back off
+                # (deadman/health-check are the net) rather than busy-loop or re-NTFY.
+                # Still no window prompt, still no hard stop. Holds for a single re-drawn
+                # wall AND for several distinct walls cycling with nothing else drawable.
                 sleep(idle_backoff_seconds)
-            last_escalated_reason = reason
             continue
         if status == "success":
             consecutive_failures = 0
-            last_escalated_reason = None  # real progress -> clear the nothing-else-drawable latch
+            escalated_reasons.clear()  # real progress -> clear the nothing-else-drawable latch
         elif status in ("failed", "error"):
             consecutive_failures += 1
         elif status == "idle":
