@@ -1,7 +1,14 @@
 """The one-way-door predicate — CODE, not judgement (MAKE_IT_STICK.md item 2,
 2026-07-12, director-decided: "the one-way-door list is CODE, not judgement.
-A checkable predicate... Fails closed to escalation on genuine uncertainty.
-Not re-derived each time.").
+A checkable predicate... Not re-derived each time.").
+
+CALIBRATION (ONE_WAY_DOOR_DEFAULTS_TO_ACT.md, 2026-07-16, director-decided):
+the burden of proof is on "it's a door". Reversibility is the DEFAULT VERDICT —
+an action proceeds autonomously unless it PROVABLY matches a criterion below;
+"I'm not sure" resolves to PROCEED-and-log, not to a fail-closed escalation. The
+door LIST is unchanged and the hard walls still stop every time; only the
+ambiguity default flipped (a needless escalation halts the loop + spends
+director attention, so it is a defect, exactly as a needless stop is).
 
 This governs the BUILDER's (agent's) own actions — a harness-level concern,
 distinct from `company/governance/decision_rights.py` (the SIMULATED
@@ -59,13 +66,18 @@ class OneWayDoorVerdict:
     is_one_way_door: bool
     category: OneWayDoorCategory | None
     reason: str
+    # ONE_WAY_DOOR_DEFAULTS_TO_ACT.md rule 2: when the verdict is "proceed" reached
+    # THROUGH ambiguity (the caller was unsure but nothing provably matched a wall), the
+    # call must be RECORDED so it is auditable. This flag lets decision_log/action_needed
+    # mark it as an ambiguous-reversible proceed rather than a plainly-clear one.
+    ambiguous_reversible_proceed: bool = False
 
 
 # Keyword signals per category — deliberately broad/over-inclusive (a false
 # positive costs one unnecessary escalation; a false negative defeats the
-# whole predicate). Not exhaustive by design — genuine uncertainty is
-# handled by the `uncertain` parameter below, not by trying to enumerate
-# every possible phrasing.
+# whole predicate). Not exhaustive by design — an action the keywords miss is
+# handled by `provably_irreversible` (caller-asserted, inverted burden), not by
+# trying to enumerate every possible phrasing.
 _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
     OneWayDoorCategory.REAL_MONEY: [
         r"\breal money\b", r"\bpurchase\b", r"\bpayment to\b", r"\bcharge (the |a )?card\b",
@@ -114,33 +126,44 @@ def classify_action(
     *,
     explicit_category: OneWayDoorCategory | None = None,
     uncertain: bool = False,
+    provably_irreversible: bool = False,
 ) -> OneWayDoorVerdict:
     """Classify a proposed builder action. `description` is a short,
     plain-English statement of what's about to happen (the same text that
     would go in a decision-log entry).
 
-    `explicit_category`: pass when the caller already knows the category
-    (e.g. code that knows it's about to touch `background/egress_allowlist.py`)
-    — trusted directly, skipping keyword matching.
+    THE BURDEN OF PROOF IS ON "IT'S A DOOR" (ONE_WAY_DOOR_DEFAULTS_TO_ACT.md,
+    2026-07-16, director-decided). Reversibility is the DEFAULT VERDICT: an
+    action PROCEEDS autonomously UNLESS it PROVABLY matches a one-way-door
+    criterion. "I'm not sure" resolves to PROCEED-and-log, never to ASK — a
+    needless escalation is a defect exactly as a needless stop is (it halts the
+    loop and consumes director attention, the only scarce resource). This
+    recalibrates — does NOT weaken — the door LIST: the walls below still stop,
+    every time; only the DEFAULT on ambiguity flips from ask to proceed.
 
-    `uncertain=True`: the caller genuinely doesn't know whether this is a
-    one-way door. Fails CLOSED — always escalates, regardless of keyword
-    match, per DIRECTOR_TWIN.md's "uncertain whether something is a one-way
-    door? Escalate. Asymmetric cost." This is the escape hatch for the cases
-    the keyword patterns were never going to anticipate.
+    Escalation fires on exactly three PROVABLE signals:
+    - `explicit_category`: the caller already knows the category (e.g. code
+      about to touch `background/egress_allowlist.py`) — trusted directly.
+    - a keyword pattern match against the (unchanged) door LIST below.
+    - `provably_irreversible=True`: the caller has established the action has NO
+      reversible form (no archive-not-delete / branch-not-main / draft-not-
+      publish / flag-off-default) AND it is not merely unclear — a genuine
+      irreversible action the keyword patterns did not anticipate. This is the
+      inverted-burden escape hatch: the caller must PROVE irreversibility, not
+      merely feel unsure.
+
+    `uncertain=True` (unsure whether this is a door, but a reversible form is
+    available / reversibility is not disproven) NO LONGER escalates by itself —
+    it resolves to PROCEED, flagged `ambiguous_reversible_proceed` so the call
+    is recorded (rule 2: proceed AND log). It escalates only if one of the three
+    provable signals above ALSO fires. This overturns the prior fail-closed-on-
+    uncertainty behaviour, per the director's calibration.
     """
     if explicit_category is not None:
         return OneWayDoorVerdict(
             is_one_way_door=True,
             category=explicit_category,
             reason=f"explicitly categorised as {explicit_category.value}",
-        )
-
-    if uncertain:
-        return OneWayDoorVerdict(
-            is_one_way_door=True,
-            category=None,
-            reason="caller flagged genuine uncertainty -- fails closed to escalation",
         )
 
     lowered = description.lower()
@@ -154,6 +177,29 @@ def classify_action(
                     category=category,
                     reason=f"matched pattern {pattern!r} for {category.value}",
                 )
+
+    # PROVABLE irreversibility (caller-asserted, keyword-missed): the only non-keyword
+    # path to escalation now that the burden of proof has inverted.
+    if provably_irreversible:
+        return OneWayDoorVerdict(
+            is_one_way_door=True,
+            category=None,
+            reason="caller established the action is PROVABLY irreversible (no reversible form) -- escalate",
+        )
+
+    # Ambiguity with a reversible form: proceed AND log (rule 2), do NOT ask. The
+    # burden of proof sat on "it's a door" and nothing provably matched -> reversible.
+    if uncertain:
+        return OneWayDoorVerdict(
+            is_one_way_door=False,
+            category=None,
+            reason=(
+                "caller unsure but nothing provably matched a wall and a reversible form is "
+                "available -- PROCEED-and-log per ONE_WAY_DOOR_DEFAULTS_TO_ACT.md rule 2 "
+                "(reversibility is the default verdict; a needless escalation is a defect)"
+            ),
+            ambiguous_reversible_proceed=True,
+        )
 
     return OneWayDoorVerdict(
         is_one_way_door=False,

@@ -167,12 +167,27 @@ def test_escalate_if_one_way_door_noop_on_routine_action(path):
     assert action_needed.load_register(path) == {}
 
 
-def test_escalate_if_one_way_door_uncertain_always_escalates(path):
-    """DIRECTOR_TWIN.md's own escape hatch: genuine uncertainty fails
-    closed, same as classify_action() itself."""
+def test_escalate_if_one_way_door_uncertain_reversible_does_not_escalate(path):
+    """CALIBRATION (ONE_WAY_DOOR_DEFAULTS_TO_ACT.md): an uncertain-but-reversible action
+    no longer fails closed -- it proceeds, so NO action-needed is raised and NO NTFY is
+    sent. Overturns the prior always-escalate-on-uncertain behaviour."""
     sent = []
     verdict = action_needed.escalate_if_one_way_door(
         "uncertain-1", "something ambiguous I can't classify confidently",
+        "director reviews", uncertain=True, path=path,
+        send_ntfy_fn=lambda msg: sent.append(msg),
+    )
+    assert verdict.is_one_way_door is False
+    assert verdict.ambiguous_reversible_proceed is True
+    assert sent == []
+
+
+def test_escalate_if_one_way_door_uncertain_provable_wall_still_escalates(path):
+    """The walls stay hard: an uncertain call that provably matches a door still escalates
+    and still sends the NTFY."""
+    sent = []
+    verdict = action_needed.escalate_if_one_way_door(
+        "uncertain-2", "spend real money on a production key",
         "director reviews", uncertain=True, path=path,
         send_ntfy_fn=lambda msg: sent.append(msg),
     )

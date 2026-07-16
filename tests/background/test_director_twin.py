@@ -62,8 +62,21 @@ def test_values_question_routes_to_director_never_calls_invoke():
     assert entries[0]["category"] == "values_decision"
 
 
-def test_uncertain_flag_routes_to_director():
+def test_uncertain_reversible_is_answered_by_twin_not_routed_to_director():
+    """CALIBRATION (ONE_WAY_DOOR_DEFAULTS_TO_ACT.md rule 2): the twin remains available for
+    reversible-but-unclear judgment calls -- the DIRECTOR is only for TRUE doors. An
+    uncertain-but-reversible question is answered from canon, not routed to the director.
+    Overturns the prior uncertain->route-to-director behaviour."""
     answer = director_twin.ask_twin("ambiguous edge case", uncertain=True, invoke_fn=_fake_invoke)
+    assert answer.routed_to_director is False
+
+
+def test_uncertain_but_provable_door_still_routes_to_director():
+    """The walls stay hard: an uncertain question that provably matches a one-way door
+    still routes to the director, never answered by the twin."""
+    answer = director_twin.ask_twin(
+        "should we spend real money on a production API key?", uncertain=True, invoke_fn=_fake_invoke
+    )
     assert answer.routed_to_director is True
 
 

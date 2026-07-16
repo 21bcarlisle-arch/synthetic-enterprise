@@ -68,7 +68,11 @@ def decide(
     (to the director, or the twin once built), never act on it."""
     verdict = classify_action(what, explicit_category=explicit_category, uncertain=uncertain)
     if not verdict.is_one_way_door:
-        log_decision(what, why, how_to_reverse, reversible=True, confidence="confident")
+        # ONE_WAY_DOOR_DEFAULTS_TO_ACT.md rule 2: an ambiguous-reversible proceed (the caller
+        # was unsure but nothing provably matched a wall) is still recorded -- flagged as such
+        # so the audit trail distinguishes it from a plainly-clear reversible action.
+        confidence = "ambiguous_reversible" if verdict.ambiguous_reversible_proceed else "confident"
+        log_decision(what, why, how_to_reverse, reversible=True, confidence=confidence)
     return verdict
 
 

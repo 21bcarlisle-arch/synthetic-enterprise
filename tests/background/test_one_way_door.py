@@ -1,6 +1,9 @@
 """Tests for background/one_way_door.py -- the one-way-door predicate
-(MAKE_IT_STICK.md item 2: "a checkable predicate... fails closed to
-escalation on genuine uncertainty").
+(MAKE_IT_STICK.md item 2: "a checkable predicate"). Calibrated by
+ONE_WAY_DOOR_DEFAULTS_TO_ACT.md (2026-07-16, director): the burden of proof is
+on "it's a door" -- reversibility is the default verdict, ambiguity proceeds-
+and-logs, only PROVABLE doors escalate; the door LIST and hard walls are
+unchanged.
 """
 from background.one_way_door import OneWayDoorCategory, classify_action
 
@@ -55,13 +58,47 @@ def test_non_provisional_publish_escalates():
     assert verdict.category == OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM
 
 
-def test_uncertain_flag_always_escalates_regardless_of_text():
-    """The escape hatch: even completely benign-sounding text escalates if
-    the caller genuinely doesn't know -- asymmetric cost, per DIRECTOR_TWIN.md."""
+def test_uncertain_reversible_proceeds_and_logs_not_escalates():
+    """CALIBRATION (ONE_WAY_DOOR_DEFAULTS_TO_ACT.md rule 2): the burden of proof is on
+    'it's a door'. A caller who is unsure but whose action does not provably match a wall
+    PROCEEDS (reversibility is the default verdict) and the call is flagged for logging --
+    it does NOT fail closed to an escalation any more. This overturns the prior
+    always-escalate-on-uncertain behaviour, per the director's calibration."""
     verdict = classify_action("do a routine thing", uncertain=True)
+    assert verdict.is_one_way_door is False
+    assert verdict.ambiguous_reversible_proceed is True
+    assert "proceed" in verdict.reason.lower()
+
+
+def test_uncertain_still_escalates_if_a_wall_provably_matches():
+    """Uncertainty does not LAUNDER a provable wall: if the text keyword-matches a door,
+    it still escalates even with uncertain=True (the walls stay hard)."""
+    verdict = classify_action("make a payment to the vendor", uncertain=True)
     assert verdict.is_one_way_door is True
-    assert verdict.category is None
-    assert "uncertain" in verdict.reason
+    assert verdict.category == OneWayDoorCategory.REAL_MONEY
+
+
+def test_provably_irreversible_is_the_inverted_burden_escape_hatch():
+    """The keyword-missed escape hatch is now PROVABLE irreversibility, not mere unease:
+    a caller that has established the action has no reversible form escalates."""
+    verdict = classify_action("perform an unnamed action with no reversible form", provably_irreversible=True)
+    assert verdict.is_one_way_door is True
+    assert "irreversible" in verdict.reason.lower()
+
+
+def test_reversible_form_action_does_not_escalate_mutation_check():
+    """DoD mutation-style check (a): a reversible action (archive markers, not delete)
+    must NOT produce an escalation."""
+    verdict = classify_action("archive the processed staging markers to docs/staging/done/")
+    assert verdict.is_one_way_door is False
+
+
+def test_true_door_still_escalates_mutation_check():
+    """DoD mutation-style check (b): a true door (spend real money) MUST escalate --
+    proving the calibration did not disarm the walls."""
+    verdict = classify_action("spend real money on a production API subscription")
+    assert verdict.is_one_way_door is True
+    assert verdict.category == OneWayDoorCategory.REAL_MONEY
 
 
 def test_explicit_category_is_trusted_directly():

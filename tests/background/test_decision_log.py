@@ -37,8 +37,23 @@ def test_decide_on_one_way_door_does_not_log():
     assert decision_log.read_decision_log() == []
 
 
-def test_decide_uncertain_escalates_and_does_not_log():
+def test_decide_uncertain_reversible_proceeds_and_logs():
+    """CALIBRATION (ONE_WAY_DOOR_DEFAULTS_TO_ACT.md rule 2): an uncertain-but-reversible
+    decision no longer fails closed -- it PROCEEDS and is LOGGED (recorded so it's
+    auditable), flagged as an ambiguous-reversible proceed. Overturns the prior
+    escalate-and-do-not-log behaviour."""
     verdict = decision_log.decide("do the ambiguous thing", why="unsure", uncertain=True)
+    assert verdict.is_one_way_door is False
+    assert verdict.ambiguous_reversible_proceed is True
+    entries = decision_log.read_decision_log()
+    assert len(entries) == 1
+    assert entries[0]["confidence"] == "ambiguous_reversible"
+
+
+def test_decide_uncertain_still_escalates_and_does_not_log_a_provable_wall():
+    """The walls stay hard: an uncertain call whose text provably matches a door still
+    escalates and is NOT logged as a proceed."""
+    verdict = decision_log.decide("make a payment to the vendor", why="unsure", uncertain=True)
     assert verdict.is_one_way_door is True
     assert decision_log.read_decision_log() == []
 
