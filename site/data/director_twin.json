@@ -1,12 +1,39 @@
 {
   "fidelity": {
-    "answered": 4,
-    "routed_to_director": 1,
+    "answered": 5,
+    "routed_to_director": 3,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 2
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-16T17:57:36.291267+00:00",
+      "question": "Approve BUILD-open for atom H23_frame_saturation_draw_marker. This is a build within the current, already-open epoch (not the launch of any later epoch). It is a size-S harness and supervisor change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic and touches the world model and company decision path not at all.",
+      "routed_to_director": false,
+      "answer": "**APPROVE \u2014 BUILD-open for H23_frame_saturation_draw_marker.**\n\nThis sits squarely in the twin's delegated zone: \u00a73a expressly gives the twin \"BUILD authorization within an open epoch,\" and Epoch 2 is open. Applying the \u00a73a default-APPROVE test, none of the four blockers fire: (a) the atom is FRAME-complete and genuinely BUILD-ready per the context; (b) no \u00a71 architectural law \u2014 it touches the world model and company decision path \"not at all,\" so the SIM/company seam and epistemic-honesty wall are untouched; (c) no \u00a74 exit-test sequence breach \u2014 it's harness infrastructure, not an M1\u2013M4 movement; (d) no \u00a75 maturity-map violation \u2014 this is the approver seat gating a routed atom, which is precisely the mechanism \u00a75 requires, not the agent self-promoting a proposal.\n\nThe fix is also correctly a class-level remedy (a `frame_saturated` marker plus draw-skip guard) for a recurring absurdity-class draw defect, consistent with R10, and it is a harness draw-dedup mechanism fix, not curriculum authorship \u2014 so R13 (director owns the curriculum) is not implicated. Fully reversible by `git revert`, and it is not a \u00a73 one-way door nor the Epoch-4 fitness function. Nothing here is director-reserved.\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 28.097,
+      "overturned": false
+    },
+    {
+      "entry_id": "2026-07-16T17:56:27.879109+00:00",
+      "question": "Approve BUILD-open for atom H23_frame_saturation_draw_marker in the currently-open epoch 2. It is a size-S harness/supervisor infrastructure change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic, touches no world/SIM model and no company decision path. BUILD-within-the-open-epoch.",
+      "routed_to_director": true,
+      "answer": null,
+      "category": "values_decision",
+      "latency_seconds": null,
+      "overturned": false
+    },
+    {
+      "entry_id": "2026-07-16T17:55:17.201194+00:00",
+      "question": "May I BUILD-open H23_frame_saturation_draw_marker, a size-S harness/supervisor infrastructure atom in the currently-open epoch (epoch 2)? It adds a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle-DISCOVER/FRAME self-refill stops re-handing FRAME-saturated BUILD-gated atoms. The BUILD-unblock gate is explicitly reversible: git reverts the supervisor change and the draw falls back to current behaviour. No world/SIM change, no curriculum or difficulty change, no values decision, no secrets/safety-control change, no public claim, no real money or real customer/market. Reversible BUILD-within-the-open-epoch only.",
+      "routed_to_director": true,
+      "answer": null,
+      "category": "real_money",
+      "latency_seconds": null,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-13T07:33:20.274399+00:00",
       "question": "Do you approve opening BUILD on these six Epoch-2 atoms -- flipping their loop_stage from idle to build so the builder may begin writing their code? Canon section 3a delegates BUILD-within-the-open-epoch to you. All six are already through DISCOVER and FRAME, and building them advances Epoch 2's own movements.",
