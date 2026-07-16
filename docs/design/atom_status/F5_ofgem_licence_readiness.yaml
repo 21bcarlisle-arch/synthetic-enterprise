@@ -1,8 +1,0 @@
-id: F5_ofgem_licence_readiness
-level_current: 1
-append_evidence:
-  - "docs/design/F5_LICENCE_READINESS_REGISTER.md"
-append_simplification:
-  - "2026-07-16 L1 CONSOLIDATION (doc-only, no BUILD code, epoch-5 BUILD gating unaffected -- loop_stage stays idle). Produced docs/design/F5_LICENCE_READINESS_REGISTER.md: a single structured, cited readiness register turning this atom's already-complete DISCOVER trail (docs/market_research/ofgem_licence_readiness.md + five map simplifications addenda) into 11 auditable rows (SLC 4A/4B/4C, Minimum Capital Requirement floor/target, milestone assessments, CCB ring-fencing, licence application process, CM/RO overlap check, B2 ROCE relationship, F4 authz boundary), each tagged MET/GAP/NOT-APPLICABLE-YET/OPEN-DISCREPANCY with its real citation. No new research performed -- pure consolidation of existing findings, matching the L1 target ('consolidating its ALREADY-COMPLETE DISCOVER into a concrete L1 deliverable'). All four originally-named open items (CM/RO overlap, milestone mechanics, SLC 4C criteria, B2 relationship) confirmed closed in the register; the GBP115-vs-GBP130 Capital Target discrepancy is explicitly preserved OPEN, not resolved (R9/R10) -- it was a found discrepancy, not one of the four named open items, and arbitrating it needs the primary FRC decision PDF, not further consolidation. Five real unbuilt GAP rows (SLC 4A/4B/4C evidence packs, CCB ring-fencing state, licence-application timeline) remain correctly deferred to epoch-5 BUILD -- this register makes them individually trackable, it does not build them. depends_on [H3_production_readiness_nfr_evidence] unchanged."
-written_by: claude/F5-consolidation
-written_at: 2026-07-16T00:00:00Z
