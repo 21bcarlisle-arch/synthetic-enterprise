@@ -87,12 +87,25 @@ silent drift the director discovers hours later.
   test proving it stops before dispatch and one proving the default resolves to a divergence
   sentinel if the check itself errors. So the divergence class is now a loop HALT, never a
   silent drift. Full suite around the change: 1231 passed.
-- **F1 atomic-inbox contract — DESIGNED, not yet wired (awaiting the director's check).**
-  It changes the executor's turn *governance contract* (`build_executor.py:539`: replace the
-  free-text "report the level" with a structured in-commit inbox write + a loop-side
-  `merge_atom_status` fold). That is close to the governance surface under review, and its two
-  halves (fork-writes-inbox / loop-folds-inbox) must land together or F2 would (correctly)
-  halt the loop — so it is staged for the director to confirm the approach before it touches
-  the executor contract. **Loop-trust bar: F1 must land before the loop runs UNWATCHED.**
-  While WATCHED (a human present, F2 live), the orchestrator writing the level directly is
-  fine — F2 catches any miss.
+- **F1 atomic-inbox contract — BUILT + wired (2026-07-16, director greenlit in console: "F1
+  FIRST — the gate to unattended running").** Both halves landed together:
+  - *fork-writes-inbox* — `build_executor._build_prompt` now instructs the fork to record its
+    level by writing a structured `docs/design/atom_status/<id>.yaml` inbox (id + level_current
+    + optional append_evidence/append_simplification) **in the same commit as its code**,
+    replacing the free-text "report the level and let the orchestrator write it".
+  - *loop-folds-inbox* — `executor_governor.run_loop` folds every landed inbox via
+    `merge_atom_status.merge()` (which folds + clears + writes the map, committed under
+    `tree_lock`) at the TOP of each cycle BEFORE the F2 reconcile check, plus a final fold on
+    clean stop so a restart never F2-stalls on the last cycle's inbox. A foldable inbox is
+    cleared and F2 passes; an UNfoldable one (malformed / unknown atom) is left at rest and F2
+    (fail-closed) STOPS — the fold never masks the guard. Fold errors are swallowed (logged),
+    so a fold failure cannot crash the loop; it degrades to an F2 stop.
+  - *tests* (`tests/background/test_executor_governor.py`, +4): fold precedes reconcile
+    (ordering load-bearing); a failed fold leaves the inbox and F2 stops before dispatch;
+    `_default_fold` swallows a raising `merge()` and returns []; the prompt contract asserts
+    the in-commit inbox write, not free-text. Full governor+reconciliation suite: 25 passed;
+    merge suite: 6 passed; epistemic verifier PASS.
+  - **Loop-trust bar now met:** a mis-reported level is either impossible (atomic in-commit
+    inbox) or an immediate F2 stop — never a silent drift. F1 landing is the gate the
+    unwatched loop was held on; the loop itself stays DARK by default (kill switch) until the
+    director enables it.

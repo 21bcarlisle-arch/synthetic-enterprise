@@ -29,6 +29,9 @@ def _isolate(tmp_path, monkeypatch):
     # Default the map-reconciliation check to "reconciled" so loop tests are deterministic
     # and never coupled to the real docs/design/atom_status/ state (its own tests cover it).
     monkeypatch.setattr(executor_governor, "_default_reconcile_check", lambda: [])
+    # Default the F1 fold to a no-op so loop tests never run a real merge()/git-commit
+    # against the repo (its own dedicated tests below exercise the real fold semantics).
+    monkeypatch.setattr(executor_governor, "_default_fold", lambda: [])
 
 
 def _enable(tmp_path):
@@ -186,6 +189,78 @@ def test_run_loop_default_reconcile_is_fail_closed_on_error(monkeypatch):
 
     monkeypatch.setattr(mas, "unfolded_inbox_ids", _boom)
     assert _ORIG_DEFAULT_RECONCILE() == ["<reconcile-check-error>"]
+
+
+# ===========================================================================
+# F1 ATOMIC LEVEL-WRITE — the loop FOLDS a landed inbox before the F2 check
+# ===========================================================================
+def test_run_loop_folds_inbox_before_reconcile_check(tmp_path):
+    """F1 second half: the loop folds a landed atom_status inbox at the TOP of the cycle,
+    BEFORE the F2 reconcile check, so a fork's in-commit level report lands without a
+    separate judgment step. Ordering is load-bearing: a foldable inbox must be gone by the
+    time reconcile runs, or F2 would wrongly stop the loop."""
+    _enable(tmp_path)
+    order = []
+
+    def _fold():
+        order.append("fold")
+        return ["SOME_atom"]  # folded + cleared this cycle
+
+    def _reconcile():
+        order.append("reconcile")
+        return []  # clean, because the fold above cleared the inbox
+
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: _FakeResult("success"),
+        max_cycles=1,
+        fold_fn=_fold,
+        reconcile_check=_reconcile,
+        sleep=lambda _s: None,
+    )
+    assert summary.stop_reason == "max_cycles"
+    # fold ran before reconcile on the first cycle (and again in the final-fold-on-stop).
+    assert order[:2] == ["fold", "reconcile"], f"fold must precede reconcile: {order}"
+
+
+def test_run_loop_stops_when_fold_fails_leaving_unfolded_inbox(tmp_path):
+    """F1 + F2 together: if the fold FAILS (returns nothing, inbox left at rest), the very
+    next reconcile check sees the unfolded inbox and STOPS the loop. Proves the fold does
+    NOT mask the fail-closed guard -- a mis-fold is a halt, never a silent mis-rank."""
+    _enable(tmp_path)
+    dispatched = {"n": 0}
+
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: (dispatched.__setitem__("n", dispatched["n"] + 1), _FakeResult("success"))[1],
+        max_cycles=5,
+        fold_fn=lambda: [],  # fold failed / folded nothing
+        reconcile_check=lambda: ["SOME_atom"],  # inbox still at rest
+        alert=lambda result, kind="": None,
+        sleep=lambda _s: None,
+    )
+    assert summary.stop_reason == "map_unreconciled"
+    assert dispatched["n"] == 0  # stopped before dispatch
+
+
+def test_default_fold_swallows_errors_and_returns_empty(monkeypatch):
+    """The default fold must never crash the loop: if merge() raises, it logs and returns
+    [] so the inbox is left for F2 to catch (fail-closed), not propagated as an exception."""
+    import tools.merge_atom_status as mas
+
+    def _boom(*a, **k):
+        raise RuntimeError("map unwritable")
+
+    monkeypatch.setattr(mas, "merge", _boom)
+    assert executor_governor._default_fold() == []
+
+
+def test_executor_prompt_contract_is_atomic_inbox_write_not_free_text():
+    """F1 first half: the fork's governance contract instructs a structured in-commit
+    atom_status inbox write, NOT a free-text level report folded by a separate judgment
+    step (the pre-F1 lost-write window)."""
+    prompt = build_executor._build_prompt("BUILD lane draw: SOME_atom")
+    assert "docs/design/atom_status/" in prompt
+    assert "SAME COMMIT" in prompt
+    assert "free-text" in prompt.lower()
 
 
 # ===========================================================================

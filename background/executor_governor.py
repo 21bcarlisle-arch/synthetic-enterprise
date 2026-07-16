@@ -214,6 +214,42 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         build_executor.log(f"_alert_wall failed ({kind}): {exc}")
 
 
+def _default_fold() -> list[str]:
+    """Loop-side fold (MAP_TRUTH_RECONCILIATION.md F1, the atomic level-write's second
+    half). A fork writes its level into a narrow `docs/design/atom_status/<id>.yaml` inbox
+    IN THE SAME COMMIT as its code (the executor contract, build_executor.py); the loop
+    folds every landed inbox into the canonical map via `merge_atom_status.merge()` — which
+    also CLEARS the folded inbox — then commits the map so the fold is durable. Run at the
+    TOP of each cycle, BEFORE the F2 reconcile check: a foldable inbox is folded and the
+    check then passes; an UNfoldable one (malformed / unknown atom) is left at rest and F2
+    (fail-closed) stops the loop. Returns the folded atom ids (for the log).
+
+    Fold errors are swallowed here on purpose: a failed fold leaves the inbox at rest, so
+    the immediately-following reconcile check STOPS the loop — never a silent mis-fold."""
+    try:
+        from tools.merge_atom_status import merge
+        from background.tree_lock import tree_lock
+
+        with tree_lock():
+            folded = merge()  # folds + clears inboxes, writes maturity_map.yaml in place
+            if folded:
+                import subprocess
+
+                subprocess.run(
+                    ["git", "add", "--", "docs/design/maturity_map.yaml", "docs/design/atom_status"],
+                    check=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", f"Fold atom_status inbox -> map (F1): {', '.join(folded)}"],
+                    check=True,
+                    capture_output=True,
+                )
+        return folded
+    except Exception as exc:  # noqa: BLE001 — fold failure must not crash the loop; F2 catches it
+        build_executor.log(f"fold step errored -> leaving inbox at rest for F2 to catch: {exc}")
+        return []
+
+
 def _default_reconcile_check() -> list[str]:
     """Fail-closed map reconciliation (MAP_TRUTH_RECONCILIATION.md F2): atom ids whose
     level report never reached the canonical map (an unfolded inbox at rest). Reuses the
@@ -236,6 +272,7 @@ def run_loop(
     kill_switch: Callable[[], bool] | None = None,
     alert: Callable[..., None] | None = None,
     reconcile_check: Callable[[], list[str]] | None = None,
+    fold_fn: Callable[[], list[str]] | None = None,
     sleep: Callable[[float], None] = time.sleep,
     idle_backoff_seconds: float = IDLE_BACKOFF_SECONDS,
     max_consecutive_failures: int = MAX_CONSECUTIVE_FAILURES,
@@ -268,6 +305,7 @@ def run_loop(
     kill_switch = kill_switch or kill_switch_enabled
     alert = alert or _alert_wall
     reconcile_check = reconcile_check or _default_reconcile_check
+    fold_fn = fold_fn or _default_fold
 
     cycles = 0
     consecutive_failures = 0
@@ -281,6 +319,13 @@ def run_loop(
         if not kill_switch():
             stop_reason = "kill_switch_off"
             break
+        # F1 fold (atomic level-write, second half): fold any landed atom_status inbox into
+        # the map BEFORE the reconcile check, so a fork's in-commit level report lands
+        # deterministically (no free-text judgment step, no lost-write window). A foldable
+        # inbox is cleared here; an unfoldable one is left for F2 to STOP on, just below.
+        folded = fold_fn()
+        if folded:
+            build_executor.log(f"run_loop cycle: folded atom_status inbox(es) -> map: {folded}")
         # Fail-closed map reconciliation: an unfolded level report (self-report vs external
         # truth) STOPS the loop before it draws off a possibly-mis-ranked map (F2).
         unreconciled = reconcile_check()
@@ -320,6 +365,13 @@ def run_loop(
             stop_reason = "repeated_failure"
             alert(result, kind="repeated_failure")
             break
+
+    # Final fold (F1): fold the last cycle's landed inbox so a clean stop leaves nothing
+    # unfolded at rest — otherwise the next restart would immediately F2-STOP on it.
+    if stop_reason != "map_unreconciled":
+        final_folded = fold_fn()
+        if final_folded:
+            build_executor.log(f"run_loop: final fold on stop -> map: {final_folded}")
 
     build_executor.log(f"run_loop: stopped ({stop_reason}) after {cycles} cycle(s)")
     clean = stop_reason in _CLEAN_STOPS
