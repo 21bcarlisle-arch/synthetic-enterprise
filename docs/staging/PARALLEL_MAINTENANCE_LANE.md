@@ -1,79 +1,77 @@
-# A STANDING MAINTENANCE LANE — run self-repair in PARALLEL with product, not stolen from it (P1, director-decided)
+# A STANDING MAINTENANCE LANE — self-repair runs PARALLEL to product, not stolen from it (P1, director-decided)
 
 **Staged:** 2026-07-16 by advisor, **director-decided**. Disposition: QUEUE-high
-(structural velocity change). Director's question: "why can't it do bug-fixes /
-housekeeping in parallel too?" Answer: no good reason — it's a gap in how the draw
+(structural velocity multiplier). Director: "Why can't it do stuff like that
+[bug-fixes/hygiene] in parallel too?" No good reason — it's a gap in how the draw
 is structured, not a machine limit.
 
 ## The gap
-The daemon runs one main loop; within a turn it forks up to 2 concurrent BUILD
-atoms. But bug-fixes, housekeeping, and notification-hygiene are NOT in the draw
-as a parallel work-type — they get done INLINE between build turns, single-
-threaded, only when the machine happens to notice or the director flags them. So
-cruft survives for DAYS (the archive-on-consumption defect is the standing
-example) because it never out-competes a build atom for the single loop's
-attention. Self-repair is currently SUBTRACTED from product velocity — serial.
+The daemon runs one main loop; within a turn it forks ~2 concurrent BUILD atoms.
+But bug-fixes, housekeeping, and notification-hygiene are NOT in the draw as
+parallel work — they get done INLINE when the machine happens to notice them, or
+when the director flags them, single-threaded, squeezed between build turns. So
+defects limp along for days (the archive-on-consumption bug is the standing
+example) because they never out-compete a build atom for the single loop's
+attention.
 
-## The fix: lanes by WORK-TYPE, running in parallel
-Add a standing **MAINTENANCE / HYGIENE lane** alongside the existing lanes, each
-with its own worker drawing its own work-type:
-- **BUILD** — finishing atoms to target (product/output)
-- **DISCOVERY** — FRAME/DISCOVER (investment)
-- **MAINTENANCE** — bug-fixes, notification hygiene, stale-marker cleanup, the
-  archive-on-consumption defect, retro-cadence noise, `.bak`-artifact cleanup,
-  and the standing pile of small class-defects (self-repair)
-- **SITE** — visible surfaces (now cold-eyes-gated per DELEGATE)
+## The insight (same as per-atom streaming, one level up)
+Maintenance/hygiene/bug-fix work is MOSTLY DISJOINT from build work (fixing the
+archive routine doesn't touch the weather-physics atoms), so it does not collide,
+so it can run CONCURRENTLY. The only reason it doesn't is that "fix the harness"
+is treated as something the MAIN loop does between builds, rather than a SEPARATE
+STREAM with its own worker.
 
-The maintenance lane chews through accumulated cruft CONTINUOUSLY in the
-background WHILE the build lane does product — instead of self-repair competing
-with product for one loop.
+## The model: LANES BY WORK-TYPE, running in parallel
+- **BUILD lane** — finishing atoms to target (product / value output)
+- **DISCOVERY lane** — FRAME/DISCOVER (investment)
+- **MAINTENANCE lane** — bug-fixes, notification hygiene, stale-marker cleanup,
+  cosmetic-defect burndown, retro-cadence noise (self-repair) — its OWN worker,
+  drawing its OWN work-type, running alongside the others
+- **SITE lane** — visible surfaces
 
-## Why this is more than convenience (it's the utilisation answer)
-When the machine spends a turn on self-repair today, that turn is STOLEN from
-product — serial. With a parallel maintenance lane, self-repair and product run
-SIMULTANEOUSLY: the self-repair cost stops being subtracted from product velocity.
-The ACTIVITY_COST_AND_UTILISATION dashboard will show this directly — the
-waste/self-repair bucket no longer eats the productive/product bucket, because
-they are not competing for the same worker. This is the structural complement to
-that dashboard: don't just MEASURE the self-repair cost, stop it stealing product
-time.
+Each with its own worker, drawing its own work-type, integrating PER-ATOM through
+the same external-truth gate, colliding only where file_scopes genuinely overlap
+(which ARCH1's interfaces increasingly prevent).
 
-## First workload for the maintenance lane (the standing pile)
-1. **Archive-on-consumption defect (top priority)** — CLOSE it for good: consumed
-   staged docs move cleanly to done/ with NO `.bak`/`.local-uncommitted-*`
-   artifacts and NO re-emitting "new staged instruction — pending review" for
-   already-processed docs. (This has been half-fixed repeatedly for a week; the
-   maintenance lane owns it end-to-end.)
-2. **Notification noise** — make repeating/periodic notifications TRANSITION-ONLY
-   (fire on change, not every cycle); the retro-cadence message is the example.
-   A channel that cries wolf erodes trust in the escalation design.
-3. Then the standing backlog of small class-defects as they arise.
+## Why this is more than convenience (the utilisation connection)
+Right now, when the machine spends a turn on self-repair, that turn is STOLEN from
+product — serial. With a maintenance lane, self-repair and product happen
+SIMULTANEOUSLY — the self-repair cost stops being subtracted from product
+velocity. The ACTIVITY_COST_AND_UTILISATION dashboard will show it directly: the
+"waste/self-repair" bucket no longer eats "productive/product," because they no
+longer compete for the same worker. This is the structural answer to "is
+self-repair too expensive" — parallelise it so it isn't paid for in product time.
 
-## GUARDRAILS (same laws — do not over-rotate)
-- **Bounded by verification and independence** (per PER_ATOM_INTEGRATION): the
-  maintenance lane's changes go through the SAME external-truth gate; genuinely-
-  coupled changes still coordinate with build work; parallelism is bounded by
-  verification throughput and file-scope-disjointness, never by lane count.
-  Most hygiene (archive routine, notification formatting, marker cleanup) is
-  cleanly DISJOINT from product atoms, so it parallelises safely — but respect
-  the real couplings.
-- **Maintenance is a lane, not a priority inversion**: it runs IN PARALLEL, it
-  does not preempt product. The point is concurrency, not making self-repair
-  more important than building.
-- File-scope disjointness + tree-lock discipline as with the existing forks.
+## First workload for the maintenance lane (the standing cruft)
+- **Archive-on-consumption defect** — kill it properly: no `.local-uncommitted-*.bak`
+  artifacts; consumed docs move cleanly to done/ and are NEVER re-emitted as
+  "pending review"; the done/-guard actually holds.
+- **Notification noise** — the repeating "pending explicit staging review" and
+  retro-cadence messages: make ALL such notifications TRANSITION-ONLY (fire on
+  change, never every cycle) per the existing transition-only alerting rule (R5).
+  A channel that cries wolf is one the director stops trusting — this defeats the
+  escalation design.
+- Then the accumulated small-defect backlog, worked down continuously in the
+  background.
 
-## Relationship to the map
-Completes the "always lots of work concurrently" picture: BUILD + DISCOVERY +
-MAINTENANCE + SITE as parallel work-type lanes, per-atom streamed, each gated.
-Folds with per-atom integration (no batch boundary), F1 (safe concurrent map-
-writes), and the utilisation dashboard (measures the parallelism dividend).
+## Guardrails (unchanged laws)
+- **Bounded by verification, not worker count** — maintenance changes go through
+  the same external-truth gate; genuinely-coupled changes still coordinate; a
+  maintenance fix touching shared code lands coherently with build work.
+- **File-scope disjointness** — the maintenance worker draws work whose
+  file_scopes don't collide with in-flight build forks (tree-lock as today).
+- **Same daemon governance** — one-way doors escalate (via self-contained NTFY),
+  Rule 0, per-atom integration, kill flag. The maintenance lane is a new WORKER
+  under the existing walls, not a new authority.
+- Utilisation is a diagnostic not a target (don't spawn maintenance work to look
+  busy; draw it from the real defect/hygiene backlog).
 
 ## DoD
-A maintenance/hygiene lane runs concurrently with build and discovery, its own
-worker drawing bug-fix/housekeeping work-type; the archive-on-consumption defect
-CLOSED end-to-end (no artifacts, no duplicate "pending review" notifications) as
-its first delivered fix; periodic notifications made transition-only; changes
-integrate per-atom through the external-truth gate with file-scope-disjointness
-respected; the utilisation dashboard shows self-repair running parallel to (not
-subtracted from) product. A check: a hygiene fix and a product build land in the
-same window without either waiting on the other.
+A maintenance/hygiene lane with its own worker runs in parallel with build and
+discovery, drawing bug-fix/housekeeping work, integrating per-atom through the
+external-truth gate, bounded by file-scope disjointness and verification
+throughput; first workload closes the archive-on-consumption defect (no .bak
+artifacts, clean done/ archival, no re-emission) and makes staging/retro-cadence
+notifications transition-only (R5); the utilisation dashboard shows self-repair
+running concurrent with (not subtracted from) product. A check: a build fork and
+a maintenance fork run concurrently on disjoint scopes and both land.
