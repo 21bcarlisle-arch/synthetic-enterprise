@@ -814,7 +814,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 35
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -907,7 +907,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 39
+      "stall_consecutive_unchanged": 40
     },
     {
       "id": "H5_security_profiles",
@@ -963,7 +963,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 67
+      "stall_consecutive_unchanged": 69
     },
     {
       "id": "H9_map_write_serialisation",
@@ -989,15 +989,15 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "H10_worktree_isolation",
@@ -1378,7 +1378,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "W1_4_regional_weather_field",
@@ -1456,7 +1456,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 20
+      "stall_consecutive_unchanged": 21
     },
     {
       "id": "W1_7_renewable_capacity_trends",
@@ -1585,7 +1585,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 118
+      "stall_consecutive_unchanged": 126
     },
     {
       "id": "H17_autonomous_build_executor",
@@ -1622,7 +1622,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "H18_harness_self_mutation_audit",
