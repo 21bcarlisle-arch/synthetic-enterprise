@@ -54,7 +54,10 @@ IDLE_BACKOFF_SECONDS = 60
 MAX_CONSECUTIVE_FAILURES = 2
 
 # Stop reasons that are CLEAN (a dial, not a wall) — heartbeat idle, no anomaly.
-_CLEAN_STOPS = frozenset({"kill_switch_off", "budget_exhausted", "max_cycles"})
+# code_stale is a BENIGN self-healing stop (the daemon's own source changed on disk
+# since launch; run_forever re-execs into fresh code) -- heartbeat it "idle", never
+# "blocked". See executor_daemon's staleness guard (R2 mechanised / MAKE_IT_STICK).
+_CLEAN_STOPS = frozenset({"kill_switch_off", "budget_exhausted", "max_cycles", "code_stale"})
 
 
 # =============================================================================
@@ -290,6 +293,7 @@ def run_loop(
     alert: Callable[..., None] | None = None,
     reconcile_check: Callable[[], list[str]] | None = None,
     fold_fn: Callable[[], list[str]] | None = None,
+    staleness_check: Callable[[], bool] | None = None,
     sleep: Callable[[float], None] = time.sleep,
     idle_backoff_seconds: float = IDLE_BACKOFF_SECONDS,
     max_consecutive_failures: int = MAX_CONSECUTIVE_FAILURES,
@@ -309,6 +313,14 @@ def run_loop(
                                  loop and NEVER waits in the interactive window
                                  (ESCALATION_IS_NTFY_NEVER_WINDOW.md);
       * repeated failure       — R3 two-strike: an atom failed to land twice running;
+      * code_stale             — the daemon's OWN SOURCE changed on disk since launch, so the
+                                 in-memory imported draw/gate code is stale (R2: committed !=
+                                 running). Stops so executor_daemon can re-exec into fresh code
+                                 rather than keep dispatching off a stale in-process import — the
+                                 mechanised terminal fix for the frame-saturation stale-draw
+                                 treadmill (a running daemon that pre-dated a draw-logic fix kept
+                                 re-offering already-FRAME-saturated atoms). Default no-op checker,
+                                 so a bare/test call never trips it;
       * max_cycles             — a test / bounded-run guard.
 
     DARK by default: with the enable flag absent, `kill_switch()` is False on the first
@@ -326,6 +338,10 @@ def run_loop(
     alert = alert or _alert_wall
     reconcile_check = reconcile_check or _default_reconcile_check
     fold_fn = fold_fn or _default_fold
+    # Default is a no-op (never stale): only the real daemon (executor_daemon.run_forever)
+    # injects a live source-fingerprint comparator, so a bare call / every existing test is
+    # unaffected and can never spuriously request a re-exec.
+    staleness_check = staleness_check or (lambda: False)
 
     cycles = 0
     consecutive_failures = 0
@@ -339,6 +355,20 @@ def run_loop(
             break
         if not kill_switch():
             stop_reason = "kill_switch_off"
+            break
+        # SELF-STALENESS GUARD (R2 mechanised, MAKE_IT_STICK): if this process's OWN
+        # source changed on disk since it was launched, the imported draw/gate code it
+        # is about to run is STALE (committed != running). Checked BEFORE the draw so a
+        # stale daemon never dispatches even one more turn off pre-fix logic. run_forever
+        # turns this into a re-exec into fresh code. This is the terminal fix for the
+        # frame-saturation stale-draw treadmill: a daemon that pre-dated a draw-logic fix
+        # kept re-offering already-FRAME-saturated atoms turn after turn.
+        if staleness_check():
+            stop_reason = "code_stale"
+            build_executor.log(
+                "run_loop: OWN SOURCE changed on disk since launch -> stopping so the "
+                "daemon re-execs into fresh code (R2: committed != running)"
+            )
             break
         # F1 fold (atomic level-write, second half): fold any landed atom_status inbox into
         # the map BEFORE the reconcile check, so a fork's in-commit level report lands

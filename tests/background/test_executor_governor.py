@@ -133,6 +133,37 @@ def test_run_loop_stops_on_budget_exhausted(tmp_path):
 
 
 # ===========================================================================
+# SELF-STALENESS GUARD — R2 mechanised: stop BEFORE dispatching off stale code
+# ===========================================================================
+def test_run_loop_stops_code_stale_before_dispatch_when_source_changed(tmp_path):
+    """R15 mutation: a staleness_check that reports drift STOPS the loop with code_stale
+    BEFORE any turn is dispatched -- a stale daemon never runs even one more turn off its
+    pre-fix imported code (the frame-saturation stale-draw treadmill)."""
+    _enable(tmp_path)
+    dispatched = {"n": 0}
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: (dispatched.__setitem__("n", dispatched["n"] + 1),
+                             _FakeResult("success"))[1],
+        staleness_check=lambda: True,   # source drifted since launch
+        max_cycles=5, budget=None, sleep=lambda _s: None,
+    )
+    assert summary.stop_reason == "code_stale"
+    assert dispatched["n"] == 0, "must NOT dispatch a turn once its own source is stale"
+
+
+def test_run_loop_default_staleness_never_trips(tmp_path):
+    """The control cannot fire on its own absence: with NO staleness_check injected (the
+    default no-op), a normal run reaches its ordinary stop, never a spurious code_stale."""
+    _enable(tmp_path)
+    budget = executor_governor.TurnBudget(max_turns_per_window=2, window_seconds=3600,
+                                          monotonic=lambda: 0.0)
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: _FakeResult("success"), budget=budget, sleep=lambda _s: None,
+    )
+    assert summary.stop_reason == "budget_exhausted"
+
+
+# ===========================================================================
 # WALL — a turn escalated a one-way door: stop + alert, never retry
 # ===========================================================================
 # ===========================================================================

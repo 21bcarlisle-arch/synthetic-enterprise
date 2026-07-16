@@ -76,6 +76,67 @@ def test_restarts_run_loop_on_crash():
     assert reason == "kill_switch_off"  # survived the crash and re-entered
 
 
+def test_code_stale_reexecs_into_fresh_code_not_reenter():
+    """R2 mechanised / MAKE_IT_STICK: a code_stale return (the daemon's own source drifted on
+    disk) must RE-EXEC into fresh code, NOT sleep-and-re-enter (a same-process re-entry would
+    still hold the stale imported code -- the exact frame-saturation stale-draw treadmill)."""
+    reexeced = {"n": 0}
+    slept = []
+
+    def _run_loop(**k):
+        return _summary("code_stale")
+
+    reason = executor_daemon.run_forever(
+        kill_switch=lambda: True,
+        run_loop_fn=_run_loop,
+        sleep=lambda s: slept.append(s),
+        reexec_fn=lambda: reexeced.__setitem__("n", reexeced["n"] + 1),
+    )
+    assert reexeced["n"] == 1, "code_stale must trigger exactly one re-exec"
+    assert slept == [], "code_stale must NOT take the sleep-and-re-enter path"
+    assert reason == "code_stale"
+
+
+def test_run_forever_injects_a_live_staleness_check_reflecting_source_drift():
+    """The comparator passed into run_loop compares the CURRENT fingerprint against the
+    baseline captured at launch: identical fingerprint -> not stale; a changed one -> stale."""
+    captured = {}
+    fp = {"v": "baseline"}
+
+    def _run_loop(**k):
+        captured["staleness_check"] = k["staleness_check"]
+        return _summary("kill_switch_off")
+
+    executor_daemon.run_forever(
+        kill_switch=lambda: True,
+        run_loop_fn=_run_loop,
+        source_fingerprint_fn=lambda: fp["v"],
+        sleep=lambda _s: None,
+    )
+    check = captured["staleness_check"]
+    assert check() is False, "same fingerprint as launch -> not stale"
+    fp["v"] = "edited-on-disk"
+    assert check() is True, "fingerprint drift from launch -> stale"
+
+
+def test_source_fingerprint_changes_when_a_watched_file_changes(tmp_path, monkeypatch):
+    """source_fingerprint() reads on-disk bytes of the watched modules, so an edit to any of
+    them changes the hash -- the signal the guard rests on actually moves (R15)."""
+    import sys
+    import types
+
+    fake = types.ModuleType("background.executor_governor")
+    target = tmp_path / "executor_governor.py"
+    target.write_text("VERSION = 1\n")
+    fake.__file__ = str(target)
+    monkeypatch.setitem(sys.modules, "background.executor_governor", fake)
+
+    before = executor_daemon.source_fingerprint()
+    target.write_text("VERSION = 2\n")   # simulate the draw-logic fix landing on disk
+    after = executor_daemon.source_fingerprint()
+    assert before != after
+
+
 def test_daemon_importable_as_a_standalone_script():
     """Regression (2026-07-16): launched as `python3 background/executor_daemon.py`
     (start_worker.sh, like every sibling daemon), Python puts background/ on
