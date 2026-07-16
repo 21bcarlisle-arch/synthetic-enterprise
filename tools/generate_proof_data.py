@@ -8,7 +8,7 @@ honesty/learning discipline made visible.
 
 Everything here is a RENDERING of data this project already keeps honestly
 (SITE_CONSTITUTION rule 5: "the site is a rendering, never an author"):
-  1. incident->rule timeline  -- docs/retrospectives/*.md + the R1-R14 rules
+  1. incident->rule timeline  -- docs/retrospectives/*.md + the R1-R15 rules
      that CLAUDE.md already traces to their forging incident.
   2. verification stack        -- docs/design/maturity_map.yaml expert_hour
      passes (the NEEDS_WORK findings caught + fixed) and honest-hold notes.
@@ -54,7 +54,7 @@ LANE_NAMES = {
 }
 
 # ---------------------------------------------------------------------------
-# Section 1: the R1-R14 permanent rules, each traced to the real incident that
+# Section 1: the R1-R15 permanent rules, each traced to the real incident that
 # forged it. This is CLAUDE.md's own provenance (the rules section), rendered.
 # `retros` links a rule to the retrospective file(s) that document its incident
 # where one exists on disk (verified present at generation time, never invented).
@@ -129,6 +129,11 @@ RULES = [
          rule="No financial figure is published without its clock (settled/billed/banked). A number whose basis is unstated is a defect, not a formatting choice -- enforced by the page-consistency gate.",
          incident="Headline figures on different clocks diverge by design; publishing one without stating which clock it is on invites a false apples-to-apples reading.",
          source="docs/staging/CLOCK_TRUTH_AND_THE_BRIDGE.md",
+         retros=[]),
+    dict(id="R15", date="2026-07-13", name="A control must be able to fail",
+         rule="No control counts as evidence for a promotion/Expert-Hour/green-suite unless a mutation test proves it fires on its own named defect. Three killer patterns: tautology (checked value derived from the same source it checks), fail-open (passes on missing/zero/empty/malformed input), fail-silent (passes when the checker itself is unavailable). A control that cannot fail is worse than none.",
+         incident="Several controls that had been counted as evidence turned out to be theatre -- they passed regardless of input -- so the burden of proof became a mutation that must flip the verdict before the control is trusted.",
+         source="docs/staging/done/CONTROLS_THAT_CANNOT_FAIL.md",
          retros=[]),
 ]
 

@@ -280,7 +280,7 @@ def _review_disciplines(atoms):
 
 
 # ---------------------------------------------------------------------------
-# THE INCIDENT -> RULE HISTORY (R1-R14). Rule text + forging incident are
+# THE INCIDENT -> RULE HISTORY (R1-R15). Rule text + forging incident are
 # CLAUDE.md's own provenance; retro links resolve only to files that exist.
 # ---------------------------------------------------------------------------
 RULES = [
@@ -339,6 +339,10 @@ RULES = [
     dict(id="R14", date="2026-07-12", name="No financial figure without its clock",
          rule="No financial figure is published without its clock (settled/billed/banked). A number whose basis is unstated is a defect -- enforced by the page-consistency gate.",
          incident="Headline figures on different clocks diverge by design; publishing one without its clock invites a false apples-to-apples reading.",
+         retros=[]),
+    dict(id="R15", date="2026-07-13", name="A control must be able to fail",
+         rule="No control counts as evidence unless a mutation test proves it fires on its own named defect. Three killer patterns: tautology (the checked value derived from the same source it checks), fail-open (passes on missing/zero/empty input), fail-silent (passes when the checker itself is unavailable). A control that cannot fail is worse than none.",
+         incident="Several controls that had been counted as evidence turned out to be theatre -- they passed regardless of input -- so the burden of proof became a mutation that must flip the verdict.",
          retros=[]),
 ]
 
