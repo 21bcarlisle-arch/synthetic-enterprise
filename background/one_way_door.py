@@ -104,11 +104,14 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
         r"fitness function", r"mortality rule", r"what the company is for",
         r"\bchoose\b.*\bobjective\b", r"optimi[sz]e (purely |solely )?for enterprise value",
         # Epoch curriculum = the director's instrument (R13/LAW A, DIRECTOR_ANSWER_
-        # FINISH_NOT_OPEN.md: opening a new epoch is a deliberate category-6 call).
-        # Deliberately narrow: matches "open(ing) [a new|the next] epoch" and an
-        # explicit "curriculum decision", NOT the incidental "epoch-gated" /
-        # "epoch sequencing" that merely DESCRIBES why an atom is parked.
-        r"open(ing)?\s+(a\s+new\s+|the\s+next\s+)?epoch\b",
+        # FINISH_NOT_OPEN.md: opening a NEW epoch is a deliberate category-6 call).
+        # Deliberately narrow to ACTUALLY-OPENING-AN-EPOCH: "open epoch 4" (a number)
+        # or "open a new / the next epoch". It must NOT match the ADJECTIVE "the open
+        # epoch" (= the current epoch) — "BUILD-open within THE OPEN EPOCH" is
+        # REVERSIBLE, the twin's call, NOT a door (2026-07-16: that false match was
+        # re-escalating open-build every draw) — nor "epoch-gated"/"epoch sequencing".
+        r"open(ing)?\s+epoch\s*\d",
+        r"open(ing)?\s+(a\s+new|the\s+next)\s+epoch\b",
         r"\bcurriculum\s+(decision|change|choice)\b",
     ],
     OneWayDoorCategory.REAL_CUSTOMER_OR_MARKET: [

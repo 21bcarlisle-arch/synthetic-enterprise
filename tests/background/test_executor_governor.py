@@ -177,7 +177,7 @@ def test_run_loop_same_wall_redrawn_backs_off_and_ntfys_once(tmp_path):
     assert slept["n"] >= 1                                # backed off, didn't busy-loop
 
 
-def test_escalation_alert_channel_is_ntfy_never_window(monkeypatch):
+def test_escalation_alert_channel_is_ntfy_never_window(monkeypatch, tmp_path):
     """The escalation channel is NTFY, structurally — _alert_wall calls send_ntfy and there
     is NO window/input path anywhere in the escalation handler (the pane is never a channel
     the loop asks on). Mutation intent: a window prompt would show up as an input() call."""
@@ -185,11 +185,26 @@ def test_escalation_alert_channel_is_ntfy_never_window(monkeypatch):
     sent = []
     import background.ntfy_utils as nu
     monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg))
+    # Fresh fire-once register so this first raise actually fires (not suppressed).
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
     executor_governor._alert_wall(_FakeResult("escalated"), kind="wall_escalated")
     assert sent, "escalation must send an NTFY"
     # no blocking/window primitive anywhere in run_loop or _alert_wall
     src = inspect.getsource(executor_governor.run_loop) + inspect.getsource(executor_governor._alert_wall)
     assert "input(" not in src, "escalation path must never block on a window prompt"
+
+
+def test_alert_wall_fires_once_then_suppresses_duplicate(monkeypatch, tmp_path):
+    """The whole spam fix: run_forever re-enters run_loop each budget window and
+    re-calls _alert_wall for the SAME wall; the persistent gate must send ONCE and
+    suppress the duplicates (in-memory last_escalated_reason could not, it reset)."""
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg))
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
+    for _ in range(5):
+        executor_governor._alert_wall(_FakeResult("escalated"), kind="wall_escalated")
+    assert len(sent) == 1, f"expected 1 escalation NTFY, got {len(sent)}"
 
 
 # ===========================================================================

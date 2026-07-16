@@ -209,8 +209,24 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
     try:
         from background.ntfy_utils import send_ntfy  # lazy: needs SE_NTFY_TOPIC only here
 
-        action_needed.register_item(item_id, what, how, why)
-        send_ntfy(action_needed.format_action_needed(item_id, what, how, why))
+        # THE fire-once-then-daily gate (2026-07-16): a self-stop escalation is raised
+        # ONCE and re-pinged at most daily -- NOT every run_loop re-entry. run_loop's
+        # last_escalated_reason latch is in-memory, so run_forever re-entering each
+        # budget window reset it and re-asked the SAME wall every few minutes; this
+        # persistent gate is what actually stops that. A director reply resolves the
+        # item (see ntfy_responder answer-correlation) -> should_notify goes False.
+        if not action_needed.should_notify(item_id):
+            build_executor.log(
+                f"_alert_wall: {item_id} already open (awaiting answer, not due for daily "
+                "re-ping) -- suppressing duplicate escalation NTFY (fire-once)"
+            )
+            return
+        # PIN so a phone reply can CLOSE this exact escalation instead of being
+        # re-ingested as a fresh urgent command (answer-correlation, path 2).
+        pin = action_needed.pin_for(item_id)
+        how_pinned = f"{how}\nReply to CLOSE: start your NTFY with PIN {pin} (e.g. 'PIN {pin} PROCEED')."
+        action_needed.register_item(item_id, what, how_pinned, why)
+        send_ntfy(action_needed.format_action_needed(item_id, what, how_pinned, why))
     except Exception as exc:  # pragma: no cover - defensive: an alert failure never crashes the loop
         build_executor.log(f"_alert_wall failed ({kind}): {exc}")
 

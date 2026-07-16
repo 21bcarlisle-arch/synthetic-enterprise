@@ -154,10 +154,22 @@ def ntfy(msg: str) -> None:
     send_ntfy(msg)
 
 
+_ARTIFACT_SUFFIXES = (".bak", ".orig", ".tmp", ".swp", "~")
+
+
+def _is_artifact(name: str) -> bool:
+    """True for non-instruction droppings that must NEVER trigger a staging
+    notification: editor/git/backup artifacts, esp. the `*.local-*.bak` files
+    (a changing-hash name each cycle => an endless stream of 'new' files =>
+    notification spam). 2026-07-16 director: stop announcing these."""
+    return name.endswith(_ARTIFACT_SUFFIXES)
+
+
 def current_files() -> set[str]:
     if not STAGING_DIR.is_dir():
         return set()
-    return {p.name for p in STAGING_DIR.iterdir() if p.is_file() and p.name not in IGNORED_NAMES}
+    return {p.name for p in STAGING_DIR.iterdir()
+            if p.is_file() and p.name not in IGNORED_NAMES and not _is_artifact(p.name)}
 
 
 def load_seen() -> set[str]:
@@ -332,20 +344,32 @@ def archive_from_rich(path: Path) -> bool:
     nothing is ever lost). Idempotent: a name whose file is already gone from
     the root is a no-op success. Returns True once the message is in done/,
     False only on a real move error."""
+    name = path.name
+
+    def _cleared() -> bool:
+        # The signalled state ended cleanly -> drop the fire-once register item so
+        # the daily re-ping can never resurrect a notification for an archived doc.
+        try:
+            from background import action_needed
+            action_needed.clear_item(f"staged:{name}")
+        except Exception:
+            pass
+        return True
+
     if not path.exists():
-        return True  # already archived / gone -- idempotent success
+        return _cleared()  # already archived / gone -- idempotent success
     done = _done_dir()
     try:
         done.mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        log(f"archive-on-answer: could not create done/ for {path.name}: {e}")
+        log(f"archive-on-answer: could not create done/ for {name}: {e}")
         return False
-    dest = done / path.name
+    dest = done / name
     if dest.exists():
         try:
             if dest.read_bytes() == path.read_bytes():
                 path.unlink()  # exact duplicate already preserved in done/
-                return True
+                return _cleared()
         except OSError:
             pass
         i = 1
@@ -354,9 +378,9 @@ def archive_from_rich(path: Path) -> bool:
         dest = done / f"{path.stem}.dup{i}{path.suffix}"
     try:
         path.rename(dest)
-        return True
+        return _cleared()
     except OSError as e:
-        log(f"archive-on-answer: move failed for {path.name}: {e}")
+        log(f"archive-on-answer: move failed for {name}: {e}")
         return False
 
 
@@ -471,9 +495,23 @@ def check_once(seen: set[str]) -> set[str]:
         elif name.startswith("run_complete_") and name.endswith(".md"):
             log(f"Silently registered sim run marker: {name} (Claude polls staging, no notification needed)")
         else:
-            msg = f"New staged instruction: {name} — pending explicit staging review"
-            ntfy(msg)
-            log(f"Notified: {name}")
+            # THE fire-once-then-daily gate (2026-07-16, same rule as escalations):
+            # announce a staged doc ONCE; never re-announce while it sits open. The
+            # persistent register (not just the in-memory `seen`) makes this survive
+            # restarts and the tracked-state-file resets that caused the re-announce.
+            from background import action_needed
+            item_id = f"staged:{name}"
+            if action_needed.should_notify(item_id):
+                action_needed.register_item(
+                    item_id,
+                    what=f"New staged instruction: {name}",
+                    how="Action it (staging = approval), then archive to done/.",
+                    why="A staged director/advisor instruction is awaiting processing.",
+                )
+                ntfy(f"New staged instruction: {name} — pending review")
+                log(f"Notified (once): {name}")
+            else:
+                log(f"Suppressed re-announce (fire-once, already open): {name}")
             actionable.append(name)
     if actionable:
         # PULL-LOOP MIGRATION (2026-07-15): no tmux wake -- the NTFY above tells

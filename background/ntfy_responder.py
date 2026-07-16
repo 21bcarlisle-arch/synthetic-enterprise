@@ -194,6 +194,24 @@ def _write_to_staging(message: str) -> Path | None:
     """Write an inbound NTFY message to docs/staging/ so the Claude Code session
     picks it up on its next staging-directory poll. Returns the path written, or
     None if the message is too short to warrant staging (plain status pings)."""
+    # ANSWER-CORRELATION (2026-07-16, answer-re-dispatch fix): if this inbound is a
+    # reply that CLOSES an open escalation (starts with its reply-PIN), resolve that
+    # escalation and do NOT re-ingest it as a fresh urgent from_rich command. Without
+    # this, every answer Rich NTFY'd back was re-flagged URGENT and re-queued.
+    try:
+        from background.action_needed import resolve_by_pin
+        tokens = message.strip().split()
+        if tokens:
+            first = tokens[0].strip(":#").upper()
+            candidate = (tokens[1].strip(":#").upper()
+                         if first == "PIN" and len(tokens) > 1 else first)
+            closed = resolve_by_pin(candidate, message.strip())
+            if closed:
+                log(f"Inbound CLOSED escalation {closed} via reply-PIN {candidate} "
+                    "-- resolved + [RECORDED]; NOT re-staged as a fresh command")
+                return None
+    except Exception as exc:  # never let correlation crash the responder
+        log(f"answer-correlation skipped (non-fatal): {exc}")
     if len(message) < 25:
         # A short message is normally a status ping to ignore -- UNLESS a
         # director question is open, in which case a terse "B" / "yes" is the

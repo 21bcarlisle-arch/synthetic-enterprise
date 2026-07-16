@@ -130,6 +130,73 @@ def confirm_and_resolve(
         return False
 
 
+def pin_for(item_id: str) -> str:
+    """A short, DETERMINISTIC reply-PIN for an escalation, computed the same way
+    on both sides (executor emits it in the NTFY; ntfy_responder recovers the
+    item_id by matching an inbound PIN against each open item's pin_for). Lets a
+    phone reply CLOSE the exact escalation it answers instead of being re-ingested
+    as a fresh urgent command (the answer-re-dispatch bug, 2026-07-16)."""
+    import hashlib
+    return hashlib.sha1(item_id.encode("utf-8")).hexdigest()[:4].upper()
+
+
+def resolve_by_pin(pin: str, answer: str, path: Path | None = None,
+                   send_ntfy_fn=None, now: str | None = None) -> str | None:
+    """Resolve whichever OPEN item matches this reply PIN. Returns the resolved
+    item_id, or None if no open item matches (so the caller can fall back to
+    treating the message as a fresh instruction). Sends the [RECORDED] receipt."""
+    pin = (pin or "").strip().upper()
+    if not pin:
+        return None
+    for entry in open_items(path):
+        if pin_for(entry["item_id"]) == pin:
+            confirm_and_resolve(entry["item_id"], answer or "(no text)",
+                                path=path, send_ntfy_fn=send_ntfy_fn, now=now)
+            return entry["item_id"]
+    return None
+
+
+def should_notify(item_id: str, path: Path | None = None, now: str | None = None) -> bool:
+    """THE single fire-once-then-daily gate (2026-07-16, director: "notifications/
+    escalations fire every cycle instead of once-on-transition -- fix it as ONE
+    rule across ALL paths"). Every notification/escalation caller runs its send
+    through this. Returns True ONLY on a genuine TRANSITION:
+      * the item is NEW (never signalled)              -> fire once, and
+      * the item is OPEN and past its daily re-ping     -> the daily restate,
+    and False otherwise:
+      * OPEN but not yet due (the per-cycle case)       -> SILENT (the whole bug),
+      * RESOLVED (already answered)                     -> SILENT.
+    A True caller then calls register_item() (which resets the re-ping clock) and
+    sends exactly once; a False caller sends nothing. Because per-cycle callers
+    invoke this every cycle, this ALSO provides the daily re-ping for free without
+    a separate scheduler -- fire on raise, restate daily, never per-loop."""
+    reg = load_register(path)
+    item = reg.get(item_id)
+    if item is None:
+        return True  # first transition into the signalled state
+    if item.get("resolved"):
+        return False  # answered -- never re-notify a closed item
+    last = item.get("last_pinged_at")
+    if not last:
+        return True
+    try:
+        now_dt = datetime.fromisoformat(now) if now else datetime.now(timezone.utc)
+        return (now_dt - datetime.fromisoformat(last)).total_seconds() >= RE_PING_SECONDS
+    except (ValueError, TypeError):
+        return True
+
+
+def clear_item(item_id: str, path: Path | None = None) -> None:
+    """Remove an item entirely (the signalled state ended cleanly, e.g. a staged
+    doc was archived) so a genuinely-new future occurrence of the same id fires
+    again. Distinct from resolve_item (which keeps a director-answered record):
+    clear is for transitions that end WITHOUT a director decision. Idempotent."""
+    reg = load_register(path)
+    if item_id in reg:
+        del reg[item_id]
+        save_register(reg, path)
+
+
 def open_items(path: Path | None = None) -> list[dict]:
     return [e for e in load_register(path).values() if not e["resolved"]]
 

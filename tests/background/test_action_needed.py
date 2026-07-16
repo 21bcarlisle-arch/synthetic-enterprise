@@ -215,3 +215,52 @@ def test_escalate_if_one_way_door_default_ntfy_is_real_send_ntfy(path, monkeypat
         "spend-2", "spend real money", "n/a", path=path,
     )
     assert len(calls) == 1
+
+
+# ── THE fire-once-then-daily gate (2026-07-16, one rule across all notify paths) ──
+
+def test_should_notify_fires_once_then_suppresses_until_due(path):
+    from datetime import datetime, timedelta, timezone
+    t0 = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+    # New item -> fire.
+    assert action_needed.should_notify("x", path=path, now=t0.isoformat()) is True
+    action_needed.register_item("x", "w", "h", "y", path=path, now=t0.isoformat())
+    # Open but not due (1 min later) -> SILENT (the per-cycle spam this kills).
+    t1 = t0 + timedelta(minutes=1)
+    assert action_needed.should_notify("x", path=path, now=t1.isoformat()) is False
+    # Still open a full day later -> due for the daily restate -> fire.
+    t2 = t0 + timedelta(hours=25)
+    assert action_needed.should_notify("x", path=path, now=t2.isoformat()) is True
+
+
+def test_should_notify_silent_when_resolved(path):
+    action_needed.register_item("x", "w", "h", "y", path=path)
+    action_needed.resolve_item("x", "PROCEED", path=path)
+    # A resolved (answered) item is NEVER re-notified — no matter how much later.
+    assert action_needed.should_notify("x", path=path) is False
+
+
+def test_clear_item_lets_a_fresh_occurrence_fire_again(path):
+    action_needed.register_item("staged:DOC.md", "w", "h", "y", path=path)
+    assert action_needed.should_notify("staged:DOC.md", path=path) is False  # open
+    action_needed.clear_item("staged:DOC.md", path=path)                     # archived
+    assert action_needed.should_notify("staged:DOC.md", path=path) is True   # re-staged -> fires
+
+
+def test_pin_is_deterministic_and_short():
+    p1 = action_needed.pin_for("executor-wall_escalated")
+    p2 = action_needed.pin_for("executor-wall_escalated")
+    assert p1 == p2 and len(p1) == 4 and p1.isalnum()
+    assert action_needed.pin_for("executor-map_unreconciled") != p1  # distinct ids -> distinct pins
+
+
+def test_resolve_by_pin_closes_the_matching_open_escalation(path):
+    sent = []
+    action_needed.register_item("executor-wall_escalated", "w", "h", "y", path=path)
+    pin = action_needed.pin_for("executor-wall_escalated")
+    closed = action_needed.resolve_by_pin(pin, "PROCEED", path=path, send_ntfy_fn=lambda *a, **k: sent.append(a))
+    assert closed == "executor-wall_escalated"
+    assert action_needed.load_register(path)["executor-wall_escalated"]["resolved"] is True
+    assert sent  # a [RECORDED] receipt was sent
+    # A non-matching PIN closes nothing (caller falls back to a fresh instruction).
+    assert action_needed.resolve_by_pin("ZZZZ", "x", path=path) is None

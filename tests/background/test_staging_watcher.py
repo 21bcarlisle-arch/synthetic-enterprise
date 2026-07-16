@@ -1,7 +1,16 @@
 import time
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from background import staging_watcher as watcher
+
+
+@pytest.fixture(autouse=True)
+def _isolate_action_needed_register(tmp_path, monkeypatch):
+    # check_once/archive now gate through the shared fire-once register; isolate it
+    # per test so notification counts are deterministic and never leak live state.
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an_register.json")
 
 
 def _reset_pending_wake():
@@ -207,6 +216,8 @@ def test_check_once_notifies_for_multiple_new_files(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(watcher, "LOG_FILE", tmp_path / "log.md")
+    # Isolate the shared fire-once register (check_once now gates through it).
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
     (tmp_path / "A.md").write_text("a")
     (tmp_path / "B.md").write_text("b")
 
