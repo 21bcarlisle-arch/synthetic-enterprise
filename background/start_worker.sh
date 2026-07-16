@@ -92,6 +92,24 @@ _start_session() {
 
 echo "Starting synthetic-enterprise autonomous stack..."
 
+# DEPLOY CURRENT HEAD (2026-07-16, Item 3 "a restart must deploy current HEAD").
+# _start_session below SKIPS an already-running session ("safe to re-run") -- which
+# silently LEAVES a daemon running code older than its committed script, the exact
+# stale-running-code class the 2026-07-13 retro named but left DETECT-only
+# (health_check flagged it; nothing acted). Kill any daemon whose live process predates
+# its own script's mtime so the _start_session call respawns it FRESH on current code.
+# Only STALE sessions are touched; a healthy daemon keeps its state. The env is already
+# loaded above, so health_check imports cleanly; best-effort (2>/dev/null || true) so a
+# missing env or import hiccup never blocks startup (worst case: no refresh, == today).
+STALE_SESSIONS="$(python3 -c 'from background.health_check import stale_daemon_sessions; print("\n".join(stale_daemon_sessions()))' 2>/dev/null || true)"
+if [ -n "$STALE_SESSIONS" ]; then
+  while IFS= read -r _stale_s; do
+    [ -z "$_stale_s" ] && continue
+    echo "  [stale->restart] $_stale_s runs code older than HEAD -- killing so it respawns on current code"
+    tmux kill-session -t "$_stale_s" 2>/dev/null || true
+  done <<< "$STALE_SESSIONS"
+fi
+
 _start_session "background-worker" \
   "python3 background/background_worker.py" \
   "Qwen task queue, runs off-peak (not 16:00-19:00 GMT)" \

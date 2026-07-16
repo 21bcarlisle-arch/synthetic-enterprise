@@ -178,6 +178,36 @@ def _check_stale_running_code() -> str | None:
     return None
 
 
+def stale_daemon_sessions() -> list[str]:
+    """The ACTION half of _check_stale_running_code's DETECTION (2026-07-16, Item 3
+    "a restart must deploy current HEAD"). Returns the tmux SESSION NAMES whose live
+    process started BEFORE its own script's last modification -- i.e. is running code
+    older than what's committed on disk. start_worker.sh kills exactly these before its
+    start block, so its own `has-session` skip ("safe to re-run") stops meaning "leave
+    stale code running" and starts meaning "already on current HEAD, nothing to do."
+
+    This closes the gap the 2026-07-13 retro named but left as detect-only: every fix
+    shipped to a running daemon was silently defeated until a human noticed the symptom
+    and manually restarted. A (re)start now deploys HEAD by construction.
+
+    Same OWN-top-level-script scope + limitation as _check_stale_running_code (a changed
+    transitively-imported module is not caught here) -- a high-precision check for the
+    exact recurred incident class, not a cries-wolf "anything changed" scanner."""
+    started_by_script = _process_start_times_by_script()
+    background_dir = PROJECT_DIR / "background"
+    stale_sessions: list[str] = []
+    for session, script in EXPECTED_PANES.items():
+        started = started_by_script.get(script)
+        if started is None:
+            continue  # not running -> _start_session will start it fresh anyway
+        script_path = background_dir / script
+        if not script_path.is_file():
+            continue
+        if datetime.fromtimestamp(script_path.stat().st_mtime) > started:
+            stale_sessions.append(session)
+    return stale_sessions
+
+
 def _check_pixel_verification_capability() -> str | None:
     """Return warning string if real browser pixel-verification (Playwright)
     is not actually launchable right now.

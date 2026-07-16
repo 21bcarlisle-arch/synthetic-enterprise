@@ -453,6 +453,50 @@ class TestCheckStaleRunningCode:
         monkeypatch.setattr(health_check.subprocess, "check_output", _boom)
         assert health_check._check_stale_running_code() is None
 
+    # ── stale_daemon_sessions() -- the ACTION half (2026-07-16, Item 3 "a restart
+    #    must deploy current HEAD"). start_worker.sh kills exactly these before its
+    #    start block, so a re-run stops leaving stale code running. ────────────────
+    def test_stale_session_is_named_for_restart(self, monkeypatch, tmp_path):
+        """A daemon running code OLDER than its committed script is returned by NAME,
+        so start_worker.sh can kill+respawn it onto current HEAD. This is the whole
+        point of Item 3: detection existed, action did not."""
+        script_dir = tmp_path / "background"
+        script_dir.mkdir()
+        (script_dir / "supervisor.py").write_text("# v2")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        from datetime import datetime, timedelta
+        mtime_dt = datetime.fromtimestamp((script_dir / "supervisor.py").stat().st_mtime)
+        started = (mtime_dt - timedelta(minutes=17)).strftime("%a %b %d %H:%M:%S %Y")
+        monkeypatch.setattr(
+            health_check.subprocess, "check_output",
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+        )
+        assert health_check.stale_daemon_sessions() == ["supervisor"]
+
+    def test_fresh_session_is_not_named(self, monkeypatch, tmp_path):
+        """R15 mutation counterpart: a daemon started AFTER its script's mtime is NOT
+        returned -- start_worker must not needlessly kill a daemon already on HEAD
+        (that would churn state every re-run and defeat 'safe to re-run')."""
+        script_dir = tmp_path / "background"
+        script_dir.mkdir()
+        (script_dir / "supervisor.py").write_text("# v2")
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        from datetime import datetime, timedelta
+        mtime_dt = datetime.fromtimestamp((script_dir / "supervisor.py").stat().st_mtime)
+        started = (mtime_dt + timedelta(minutes=5)).strftime("%a %b %d %H:%M:%S %Y")
+        monkeypatch.setattr(
+            health_check.subprocess, "check_output",
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+        )
+        assert health_check.stale_daemon_sessions() == []
+
+    def test_not_running_session_is_not_named(self, monkeypatch, tmp_path):
+        """A daemon that isn't running at all is _start_session's job to start fresh --
+        stale_daemon_sessions only names LIVE-but-stale processes to kill."""
+        monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
+        monkeypatch.setattr(health_check.subprocess, "check_output", lambda *a, **k: _fake_ps_lstart_output([]))
+        assert health_check.stale_daemon_sessions() == []
+
     def test_run_health_check_surfaces_stale_code_as_a_problem(self, monkeypatch, tmp_path):
         monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
         monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
