@@ -1582,15 +1582,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 1
   loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   size: M
-  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  evidence: [docs/design/METHOD_LENS_AUDIT.md, tools/generate_wip_flow_data.py, site/wip-flow/index.html, site/wip-flow/_render_harness.mjs, site/wip-flow/test_wip_flow_door.py, site/data/wip_flow.json]
   file_scope: [docs/design, site, tools]
-  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6_method_lens_audit output, Kanban lens). Make flow/cycle-time visible and cap WIP by VERIFIED capacity (per PER_ATOM_INTEGRATION guardrail: throughput is bounded by verification, never raw fork count). DISCOVER/FRAME workable now; director ranks."]
+  simplifications: ['2026-07-16 AUTHORED AS PROPOSAL (G6_method_lens_audit output, Kanban lens). Make flow/cycle-time visible and cap WIP by VERIFIED capacity (per PER_ATOM_INTEGRATION guardrail: throughput is bounded by verification, never raw fork count). DISCOVER/FRAME workable now; director ranks.', '2026-07-16 H17 Lane-2 SITE BUILD L0->L1: Built the WIP + cycle-time flow (Kanban) door. tools/generate_wip_flow_data.py computes WIP live from docs/design/maturity_map.yaml (99 atoms: 29 concurrent-BUILD / 26 harden / 44 idle, plus per-lane build/harden/idle split across 13 lanes) and REUSES tools/effort_calibration.py for cycle-time -- it imports git_log_transitions/compute_durations/calibration_by_lane rather than reinventing the git mining, giving per-lane mean/median cycle-time (55 parsed transitions, 17 durations) and throughput (transitions/day whole-history + trailing 7/14/30-day windows). Output written to site/data/wip_flow.json. site/wip-flow/index.html follows the method-casebook door pattern: theme-aware (prefers-color-scheme dark + data-theme light/dark), a @media(max-width:640px) mobile pass, KPI tiles, a Kanban-columns board, per-lane WIP bars, cycle-time rows with an R14 basis label (clock = git commit-time between level-transition commits), throughput, and the stated Kanban PRINCIPLE that WIP is capped by VERIFIED CAPACITY not fork count (verification runs once per integration, never fans out), with all flow metrics R12-labelled DIAL-not-target. Self-verified GREEN: site/wip-flow/test_wip_flow_door.py (10 tests -- generator real-keys/consistency, effort_calibration reuse, R14 clock, R12 dial-label, R11 rendered-pixel checks via the Node/vm harness, R15 independence-mutation + mobile-pass structural guard) + tests/tools/test_site_structure.py (14 tests) = 24 passed. HONEST GAP: live-pixel R11 verification (fetch the deployed GitHub-Pages surface and assert the rendered value) is PENDING -- no network in this fork -- which is the L1->L3 residual, NOT an L1 blocker; L1 bar (surface built + wired from real sources + structurally/render tested green + epistemic-clean) is met. This door is not yet linked from other doors'' navs (orchestrator/site-nav follow-on).']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a Kanban board with WIP limits and a cumulative-flow/cycle-time chart"
   depends_on: []
@@ -1599,15 +1599,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 1
   loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   size: S
-  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  evidence: [docs/design/METHOD_LENS_AUDIT.md, docs/design/CONSTRAINT_IDENTIFICATION_RITUAL.md]
   file_scope: [docs/design]
-  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6 output, ToC lens). We rediscovered bottlenecks-are-onions by injury; the mature version names the ONE binding constraint per cycle + subordinates. DISCOVER/FRAME workable now; director ranks."]
+  simplifications: ['2026-07-16 AUTHORED AS PROPOSAL (G6 output, ToC lens). We rediscovered bottlenecks-are-onions by injury; the mature version names the ONE binding constraint per cycle + subordinates. DISCOVER/FRAME workable now; director ranks.', '2026-07-16 H17 Lane-3 FRAME L0->L1 (doc-only, BUILD-gated so no code): specified the ToC five-focusing-steps ritual (identify/exploit/subordinate/elevate/repeat) adapted to a one-director+AI-executor shop as a per-cycle QUERY not a meeting (ceremony rejected). Worked example against real current state: A8_experiment_loop_speed is today''s binding constraint on Epoch-4 tournament feasibility (~8-10x too slow), exploit landed the self-calibrating worker cap (3.5x, level held at 2), and subordination points BUILD width at ARCH1_internal_seams'' unwired SIM_RECORDED_TRACE mock -- the biggest lever, blocked on annual_report not routing its exogenous world through the SimInterface seam. GUARDRAIL prominent: the constraint name is a DIAL/DIAGNOSTIC (R12 anti-goal-seek), never a target, and subordination NEVER zeros an idle-capable lane (Rule 0 wall -- it orders effort, dials yield in reverse priority so the feasible set stays non-empty); it composes with the digest as an observability line, never a gate. NOT BUILT HERE: mechanising it as a change-only recurring digest line (candidate home background/effort_digest.py, R5 transition-only, R15 mutation-test that it cannot hold a lane) is a named later BUILD slice, file_scope [background, tools, tests]; this FRAME reaches L1 only.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a ToC practitioner running the five focusing steps"
   depends_on: []
@@ -1616,15 +1616,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 1
   loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   size: M
-  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  evidence: [docs/design/METHOD_LENS_AUDIT.md, docs/design/ERROR_BUDGET_AND_TOIL_TRACKING.md]
   file_scope: [docs/design, background, tools]
-  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6 output, SRE lens). Strengthens G4_unified_failure_register: quantify TOIL (SELF_INTERRUPT_DISCIPLINE treadmill) + an error-budget view. DISCOVER/FRAME workable now; director ranks."]
+  simplifications: ['2026-07-16 AUTHORED AS PROPOSAL (G6 output, SRE lens). Strengthens G4_unified_failure_register: quantify TOIL (SELF_INTERRUPT_DISCIPLINE treadmill) + an error-budget view. DISCOVER/FRAME workable now; director ranks.', '2026-07-16 H17 Lane-3 FRAME L0->L1 (doc-only, BUILD-gated so no code). ERROR_BUDGET_AND_TOIL_TRACKING.md specifies a 7-class TOIL taxonomy grounded in real recurring treadmill toil (publish-gate wedges T1, stale-daemon-not-restarted/R2 T2, map-truth reconciliation T3, worktree-scan false-positives T4, staging re-archival T5, archived-doc resurrection T6, harness false-positive triage T7), sourced from the G4 unified failure register (reader-only, no duplication) plus retros and the existing anti-decay digest counters. Designs an SRE error-budget view where discretionary net-new feature work SOFT-yields (re-order the draw, never hold) to toil-paydown when the self-caught-failure budget is burned, using the already-live anti-decay proto-signals (turns-waiting-on-human, escalations-later-reversible, idle-turns-with-atoms). Guardrails stated prominently: budget/toil % are DIALS/diagnostics never targets (R12); the soft gate never zeroes the feasible set (Rule 0, toil-paydown is always drawable); and NO 0-toil target -- a zero-toil goal would incentivise HIDING self-caught failures (they are a health signal, not a defect count). R15 note: the failure-catching controls feeding the budget must themselves be mutation-testable (inheriting H18) or the budget is fail-silent theatre. Strengthens G4 (builds on the register). The background/tools budget-reader + digest-render block (folding with G4 + the effort_digest.py block-managed render pattern) + the draw-path soft-gate dial-yield are a NAMED later BUILD slice, not built here.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an SRE team tracking toil % and error budgets"
   depends_on: []
@@ -1633,15 +1633,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 1
   loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   size: S
-  evidence: ["docs/design/METHOD_LENS_AUDIT.md"]
+  evidence: [docs/design/METHOD_LENS_AUDIT.md, docs/design/DEFINITION_OF_READY_GATE.md]
   file_scope: [docs/design]
-  simplifications: ["2026-07-16 AUTHORED AS PROPOSAL (G6 output, Agile/INVEST lens). We build ad-hoc level gates that ARE Definition-of-Ready/Done unnamed; name them + make DoR a soft BUILD-eligibility check (folds with G5 XL->decompose). DISCOVER/FRAME workable now; director ranks."]
+  simplifications: ['2026-07-16 AUTHORED AS PROPOSAL (G6 output, Agile/INVEST lens). We build ad-hoc level gates that ARE Definition-of-Ready/Done unnamed; name them + make DoR a soft BUILD-eligibility check (folds with G5 XL->decompose). DISCOVER/FRAME workable now; director ranks.', '2026-07-16 H17 Lane-3 FRAME L0->L1 (doc-only, BUILD-gated so no code): named our existing unnamed Agile gates — the L0-L5 level ''to enter, must have...'' statements ARE a per-transition Definition of Done, and the loop_stage idle->workable transition IS an (unchecked) Definition of Ready; specified a concrete DoR BUILD-eligibility checklist (framed/scoped/sized/exit-test-defined) where ''sized'' CALLS G5''s xl_decompose_flags rather than duplicating it and ''exit-test-defined'' requires R15 mutation-testability. GUARDRAIL (prominent): the DoR is a SOFT DIAL that orders/flags readiness and can NEVER zero the feasible set (Rule 0 — empty feasible set is a defect in the dials; not-ready => draw-and-flag, never block) and ''ready'' is a diagnostic never a target (R12). Folds into ONE FRAME-time verdict with G5''s XL->decompose gate (as a sub-check) and the director-twin BUILD-open call (route_blocking_decision, as the escalation edge) — three names, one mechanism, not three gates. NOT BUILT HERE: the mechanised dor_check() soft-check + its FRAME-workflow call site + digest/Method-door surface are an explicitly-named later BUILD slice (the missing FRAME-time caller G5''s XL gate already needs), mutation-tested per R15, no draw-path change and no new map schema fields.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a team with an explicit Definition of Ready / Definition of Done"
   depends_on: []

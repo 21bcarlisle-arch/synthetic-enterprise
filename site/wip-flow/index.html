@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- WIP + Flow</title>
+<meta name="description" content="The WIP + cycle-time flow dashboard: work-in-progress by lane and stage, per-lane cycle time and throughput mined from real git history -- with the Kanban principle that WIP is capped by verified capacity, not fork count.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+:root {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
+  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
+  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
+  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
+}
+:root[data-theme="light"] {
+  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
+  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
+  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
+  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px 64px; }
+.hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
+.hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 760px; }
+.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 42px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.lede { font-size: 14px; line-height: 1.7; color: var(--text); }
+.lede strong { color: var(--teal); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface2); border-radius: 8px; padding: 10px 14px; }
+.kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+.kpi-s { font-size: 10px; color: var(--muted); margin-top: 3px; }
+/* kanban board columns */
+.board { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.col { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+.col.idle { border-top: 3px solid var(--muted); }
+.col.build { border-top: 3px solid var(--blue); }
+.col.harden { border-top: 3px solid var(--amber); }
+.col-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 8px; }
+.col-count { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; }
+.col-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* lane bars */
+.lane-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.lane-row:last-child { border-bottom: none; }
+.lane-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 10px; flex-wrap: wrap; }
+.lane-label { font-size: 12.5px; font-weight: 600; }
+.lane-total { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--surface2); }
+.bar .seg { height: 100%; }
+.bar .seg.build { background: var(--blue); }
+.bar .seg.harden { background: var(--amber); }
+.bar .seg.idle { background: var(--border); }
+.legend { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+.legend span { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.dot.build { background: var(--blue); } .dot.harden { background: var(--amber); } .dot.idle { background: var(--border); }
+/* cycle-time table */
+.ct-row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--border); gap: 10px; flex-wrap: wrap; }
+.ct-row:last-child { border-bottom: none; }
+.ct-lane { font-size: 12.5px; font-weight: 600; min-width: 160px; }
+.ct-nums { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ct-nums b { color: var(--text); font-weight: 700; }
+.basis { font-size: 10px; color: var(--muted); font-family: ui-monospace, monospace; border-left: 2px solid var(--teal); padding-left: 8px; margin-bottom: 12px; }
+/* principle */
+.principle { border-left: 3px solid var(--purple); }
+.principle .p-head { font-size: 15px; font-weight: 800; color: var(--purple); margin-bottom: 8px; }
+.principle .p-body { font-size: 13px; line-height: 1.7; color: var(--text); }
+.dial-note { border-left: 3px solid var(--amber); }
+.dial-note p { font-size: 12.5px; line-height: 1.65; color: var(--text); }
+.build-note { margin-top: 40px; }
+/* mobile pass (SITE_CONSTITUTION door mobile requirement): phone-legible flow
+   board -- no horizontal body scroll. KPI/board/lane grids collapse to a
+   single readable column; the cycle-time rows wrap. Desktop (>640px) layout is
+   unchanged. R15: test_wip_flow_door.py fails if this block is dropped. */
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px; }
+  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
+  .hero-h { font-size: 22px; }
+  .sec { margin-top: 32px; }
+  .card { padding: 16px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .board { grid-template-columns: 1fr; }
+  .ct-row { gap: 4px; }
+  .ct-lane { min-width: 0; }
+  .lane-head { gap: 4px; }
+}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../world/" class="nav-link">World</a>
+  <a href="../company/" class="nav-link">Company</a>
+  <a href="../supplier/" class="nav-link">Supplier</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../platform/" class="nav-link">Platform</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../method-casebook/" class="nav-link">Casebook</a>
+  <a href="./" class="nav-link active">WIP + Flow</a>
+</nav>
+<div class="wrap">
+
+  <div class="hero-h">WIP <span style="color:var(--muted);font-weight:400">+</span> Flow</div>
+  <p class="hero-p" id="hero-framing">Loading...</p>
+
+  <div class="sec">The Board at a Glance</div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="sec">WIP by Stage &mdash; the Kanban columns</div>
+  <div class="card"><p class="muted" style="margin-bottom:14px">Every atom on the maturity map sits in one stage. Read live from <code>docs/design/maturity_map.yaml</code> &mdash; inventory, not asserted.</p>
+    <div class="board" id="wip-stages"></div></div>
+
+  <div class="sec">WIP by Lane</div>
+  <div class="card"><p class="muted" style="margin-bottom:14px">Work-in-progress split across the value-stream lanes, ordered by total atoms.</p>
+    <div id="wip-lanes"></div>
+    <div class="legend">
+      <span><span class="dot build"></span>Build</span>
+      <span><span class="dot harden"></span>Harden</span>
+      <span><span class="dot idle"></span>Idle (parked for BUILD)</span>
+    </div></div>
+
+  <div class="sec">Cycle Time by Lane</div>
+  <div class="card">
+    <p class="basis" id="cycle-basis">Loading...</p>
+    <p class="muted" style="margin-bottom:14px">Observed hours between an atom's consecutive level-transition commits, per lane. Mined from git by <code>tools/effort_calibration.py</code> &mdash; the same calibration engine the effort-sizing discipline uses. Lanes with no completed transition yet are omitted.</p>
+    <div id="cycle-lanes"></div></div>
+
+  <div class="sec">Throughput</div>
+  <div class="card"><p class="muted" style="margin-bottom:14px" id="throughput-intro"></p>
+    <div class="kpis" id="throughput-summary"></div>
+    <div id="throughput-windows"></div></div>
+
+  <div class="sec">The Principle This Encodes</div>
+  <div class="card principle">
+    <div class="p-head" id="principle-headline"></div>
+    <div class="p-body" id="principle-body"></div>
+  </div>
+
+  <div class="card dial-note"><p id="dial-note"></p></div>
+
+  <div class="card build-note"><p class="muted" id="build-note">Loading...</p></div>
+</div>
+
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
+function hrs(n){return n==null?"--":Number(n).toLocaleString("en-GB",{maximumFractionDigits:1})+"h";}
+
+var DATA=null;
+
+function renderWip(d){
+  document.getElementById("hero-framing").textContent=d.framing||"";
+
+  var w=d.wip||{};
+  document.getElementById("kpis").innerHTML=[
+    {l:"Atoms tracked",v:num(w.total_atoms),s:"total on the map"},
+    {l:"Concurrent BUILD WIP",v:num(w.concurrent_build_wip),s:"loop_stage = build"},
+    {l:"In HARDEN",v:num(w.harden_wip),s:"adversarial sweep"},
+    {l:"Idle (parked)",v:num(w.idle_count),s:"DISCOVER/FRAME still open"}
+  ].map(function(k){return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div><div class="kpi-s">'+esc(k.s)+'</div></div>';}).join("");
+
+  document.getElementById("wip-stages").innerHTML=(w.by_stage||[]).map(function(s){
+    var cls=(s.stage==="build"||s.stage==="harden"||s.stage==="idle")?s.stage:"";
+    return '<div class="col '+cls+'"><div class="col-name">'+esc(s.label)+'</div>'+
+      '<div class="col-count">'+num(s.count)+'</div>'+
+      '<div class="col-sub">atoms</div></div>';
+  }).join("");
+
+  var lanes=w.by_lane||[];
+  document.getElementById("wip-lanes").innerHTML=lanes.map(function(l){
+    var t=l.total||1;
+    function pct(n){return (100*(n||0)/t).toFixed(2)+"%";}
+    return '<div class="lane-row"><div class="lane-head">'+
+      '<span class="lane-label">'+esc(l.lane_name)+'</span>'+
+      '<span class="lane-total">'+num(l.total)+' atoms &middot; '+num(l.build)+' build / '+num(l.harden)+' harden / '+num(l.idle)+' idle</span></div>'+
+      '<div class="bar">'+
+        '<div class="seg build" style="width:'+pct(l.build)+'"></div>'+
+        '<div class="seg harden" style="width:'+pct(l.harden)+'"></div>'+
+        '<div class="seg idle" style="width:'+pct(l.idle)+'"></div>'+
+      '</div></div>';
+  }).join("")||'<div class="muted">No lanes.</div>';
+
+  var ct=d.cycle_time||{};
+  document.getElementById("cycle-basis").textContent=
+    "Basis (R14): "+(ct.basis_label||ct.basis||"")+" · source: "+(ct.source_tool||"")+
+    " · "+num(ct.n_durations_computed)+" durations from "+num(ct.n_transitions_parsed)+" parsed transitions";
+  var cl=ct.by_lane||[];
+  document.getElementById("cycle-lanes").innerHTML=cl.length?cl.map(function(l){
+    return '<div class="ct-row"><span class="ct-lane">'+esc(l.lane_name)+'</span>'+
+      '<span class="ct-nums">median <b>'+hrs(l.median_hours)+'</b> · mean '+hrs(l.mean_hours)+
+      ' · range '+hrs(l.min_hours)+'–'+hrs(l.max_hours)+' · n='+num(l.n)+'</span></div>';
+  }).join(""):'<div class="muted">No completed level transitions recorded yet.</div>';
+
+  var tp=d.throughput||{};
+  document.getElementById("throughput-intro").textContent=
+    "Level transitions banked per period (same git commit-time clock as cycle time). "+
+    (tp.first_transition?("Observed span: "+tp.first_transition+" → "+tp.last_transition+"."):"");
+  document.getElementById("throughput-summary").innerHTML=[
+    {l:"Transitions total",v:num(tp.total_transitions)},
+    {l:"Span (days)",v:num(tp.span_days)},
+    {l:"Per day (all-time)",v:num(tp.per_day_all_time)}
+  ].map(function(k){return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';}).join("");
+  var win=tp.windows||[];
+  document.getElementById("throughput-windows").innerHTML=win.length?win.map(function(x){
+    return '<div class="ct-row"><span class="ct-lane">Trailing '+num(x.days)+' days</span>'+
+      '<span class="ct-nums"><b>'+num(x.transitions)+'</b> transitions · '+num(x.per_day)+'/day</span></div>';
+  }).join(""):'';
+
+  var p=d.wip_cap_principle||{};
+  document.getElementById("principle-headline").textContent=p.headline||"";
+  document.getElementById("principle-body").textContent=p.body||"";
+  document.getElementById("dial-note").textContent=d.dial_not_target||"";
+}
+
+function renderBuild(d){
+  var parts=[];
+  if(d.phase)parts.push("Phase "+d.phase);
+  if(d.test_count)parts.push(Number(d.test_count).toLocaleString()+" tests");
+  if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
+  if(d.generated_at)parts.push("generated "+d.generated_at);
+  document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
+}
+
+fetch("../data/wip_flow.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  DATA=d;
+  renderWip(d);
+  renderBuild(d);
+}).catch(function(e){
+  console.error("wip_flow.json load error:",e);
+  document.getElementById("hero-framing").innerHTML='<span style="color:var(--red)">Could not load wip_flow.json</span>';
+});
+</script>
+<script src="../shared/director-comments.js" defer></script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</body>
+</html>
