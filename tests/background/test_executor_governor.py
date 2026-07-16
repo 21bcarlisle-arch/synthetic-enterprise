@@ -382,3 +382,31 @@ def test_governor_never_writes_the_enable_flag():
     # The governor reaches the flag ONLY via the reused predicate, never by building the
     # raw path (which would be the first step toward writing it).
     assert 'PROJECT_DIR / "docs" / "observability" / ".build_executor_enabled"' not in src
+
+
+# ===========================================================================
+# MILESTONE LOCK (2026-07-16, director): the headless loop draws-and-executes N
+# turns BACK-TO-BACK with ZERO human input — the whole point of the autonomy
+# effort. Revert-to-break (stop after one turn) MUST fail this.
+# ===========================================================================
+def test_loop_runs_N_turns_unattended_zero_input(tmp_path):
+    """The loop re-invokes the turn-dispatcher N times with NO external nudge between turns
+    (each real turn is a self-dispatched `claude -p` subprocess; stubbed here). MUTATION: change
+    run_loop's success branch to `break` and cycles==1 != 5 -> this test fails. Nothing in this
+    body supplies input between turns; continuation is purely the loop's own mechanism."""
+    _enable(tmp_path)
+    turns = {"n": 0}
+
+    def _dispatch_one_turn():
+        turns["n"] += 1
+        return _FakeResult("success")
+
+    summary = executor_governor.run_loop(
+        run_once_fn=_dispatch_one_turn,
+        max_cycles=5,
+        kill_switch=lambda: True,   # enabled throughout; no human flips anything mid-run
+        sleep=lambda _s: None,
+    )
+    assert summary.cycles == 5, "loop must run all 5 turns back-to-back, unattended"
+    assert turns["n"] == 5, "each turn self-dispatched with ZERO input between turns"
+    assert summary.stop_reason == "max_cycles"  # stopped only at the bound, never at a boundary
