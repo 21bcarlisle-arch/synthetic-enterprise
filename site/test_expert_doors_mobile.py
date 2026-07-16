@@ -22,7 +22,10 @@ from pathlib import Path
 import pytest
 
 SITE = Path(__file__).resolve().parent
-DOORS = ["proof", "company", "world", "method", "director"]
+DOORS = [
+    "proof", "company", "world", "method", "director",
+    "method-casebook", "glossary", "tours", "simplified",
+]
 
 
 def _html(door: str) -> str:

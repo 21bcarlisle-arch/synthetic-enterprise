@@ -14,7 +14,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
 .nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
@@ -36,6 +36,16 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .note-date { color: var(--blue); font-weight: 600; margin-right: 4px; }
 .muted { color: var(--muted); font-size: 12px; }
 .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+/* mobile pass (SITE1_expert_doors, door 6): phone-legible register, no
+   horizontal body scroll. Nav already wraps (flex-wrap above); this tightens
+   chrome and lets the atom-head row stack cleanly. Desktop (>640px) layout
+   is unchanged. */
+@media (max-width: 640px) {
+  .wrap { padding: 28px 16px 48px; }
+  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
+  .atom-card { padding: 14px 16px; }
+  .atom-head { gap: 4px 10px; }
+}
 </style>
 </head>
 <body>
@@ -43,12 +53,19 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <a href="../" class="nav-link">Home</a>
   <a href="../sim/" class="nav-link">SIM</a>
+  <a href="../world/" class="nav-link">World</a>
+  <a href="../company/" class="nav-link">Company</a>
   <a href="../supplier/" class="nav-link">Supplier</a>
   <a href="../customers/" class="nav-link">Customers</a>
   <a href="../platform/" class="nav-link">Platform</a>
   <a href="../method/" class="nav-link">Method</a>
-  <a href="../project/" class="nav-link">Project</a>
+  <a href="../method-casebook/" class="nav-link">Casebook</a>
   <a href="./" class="nav-link active">Simplified</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../tours/" class="nav-link">Tours</a>
+  <a href="../glossary/" class="nav-link">Glossary</a>
+  <a href="../director/" class="nav-link">Director</a>
+  <a href="../project/" class="nav-link">Project</a>
 </nav>
 
 <div class="wrap">
