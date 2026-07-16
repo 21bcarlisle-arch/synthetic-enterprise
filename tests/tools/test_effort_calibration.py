@@ -242,8 +242,9 @@ def test_load_atom_registry_reads_real_map_without_mutating():
     assert before == after  # never mutated
     assert "G5_effort_sizing_discipline" in registry
     assert registry["G5_effort_sizing_discipline"]["lane"] == "H_harness"
-    # No atom carries a size field yet (2026-07-16) -- honest baseline.
-    assert registry["G5_effort_sizing_discipline"]["size"] is None
+    # G5 reached L2 (2026-07-16): the size field is now LIVE on real atoms.
+    assert registry["G5_effort_sizing_discipline"]["size"] == "L"
+    assert all(a["size"] in (None, "S", "M", "L", "XL") for a in registry.values())
 
 
 # ---------------------------------------------------------------------------
