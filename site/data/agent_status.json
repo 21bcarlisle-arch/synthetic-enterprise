@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-16T17:50:18.375008+00:00",
+  "last_updated": "2026-07-16T17:56:18.440859+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:50:18.375008+00:00",
+      "last_heartbeat": "2026-07-16T17:56:18.440859+00:00",
       "last_action": "Session alive check passed",
-      "last_action_ts": "2026-07-16T17:50:18.375008+00:00",
+      "last_action_ts": "2026-07-16T17:56:18.440859+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:50:08.307192+00:00",
+      "last_heartbeat": "2026-07-16T17:56:09.139551+00:00",
       "last_action": "Heartbeat \u2014 11 files tracked",
-      "last_action_ts": "2026-07-16T17:50:08.307192+00:00",
+      "last_action_ts": "2026-07-16T17:56:09.139551+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:45:48.107582+00:00",
-      "last_action": "Waiting for next cycle (1h 20m remaining)",
-      "last_action_ts": "2026-07-16T17:45:48.107582+00:00",
+      "last_heartbeat": "2026-07-16T17:55:48.110036+00:00",
+      "last_action": "Waiting for next cycle (1h 10m remaining)",
+      "last_action_ts": "2026-07-16T17:55:48.110036+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:47:17.105072+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260716T174717Z.json)",
-      "last_action_ts": "2026-07-16T17:47:17.105072+00:00",
+      "last_heartbeat": "2026-07-16T17:55:55.874739+00:00",
+      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260716T175555Z.json)",
+      "last_action_ts": "2026-07-16T17:55:55.874739+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:45:53.684719+00:00",
+      "last_heartbeat": "2026-07-16T17:54:37.738639+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-16T17:45:53.684719+00:00",
+      "last_action_ts": "2026-07-16T17:54:37.738639+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:46:09.717886+00:00",
+      "last_heartbeat": "2026-07-16T17:54:50.145012+00:00",
       "last_action": "Acked message: 'identical machine cadence body repeated over and over again'",
-      "last_action_ts": "2026-07-16T17:46:09.717886+00:00",
+      "last_action_ts": "2026-07-16T17:54:50.145012+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:34:22.915767+00:00",
+      "last_heartbeat": "2026-07-16T17:56:08.152334+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-16T17:34:22.915767+00:00",
+      "last_action_ts": "2026-07-16T17:56:08.152334+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:48:44.782055+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~4min",
-      "last_action_ts": "2026-07-16T17:48:44.782055+00:00",
+      "last_heartbeat": "2026-07-16T17:54:44.797346+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~10min",
+      "last_action_ts": "2026-07-16T17:54:44.797346+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -125,9 +125,9 @@
     {
       "name": "director-comments",
       "status": "idle",
-      "last_heartbeat": "2026-07-16T17:45:53.630548+00:00",
+      "last_heartbeat": "2026-07-16T17:54:37.697160+00:00",
       "last_action": "Staged comment from /supplier/",
-      "last_action_ts": "2026-07-16T17:45:53.630548+00:00",
+      "last_action_ts": "2026-07-16T17:54:37.697160+00:00",
       "anomaly": null,
       "role": "Validates PIN-authenticated director page comments, stages accepted ones",
       "produces": "docs/staging/from_rich_comment_*.md"
@@ -135,9 +135,9 @@
     {
       "name": "build-executor",
       "status": "working",
-      "last_heartbeat": "2026-07-16T17:44:52.247382+00:00",
-      "last_action": "Dispatching claude-opus-4-8 turn for draw: self-refill from maturity map -- THREE-LANE draw: LANE 3 DISCOVER/FRAME only (6 ",
-      "last_action_ts": "2026-07-16T17:44:52.247382+00:00",
+      "last_heartbeat": "2026-07-16T17:52:53.351724+00:00",
+      "last_action": "Dispatching claude-opus-4-8 turn for draw: self-refill from maturity map -- THREE-LANE draw: LANE 3 DISCOVER/FRAME only (1 ",
+      "last_action_ts": "2026-07-16T17:52:53.351724+00:00",
       "anomaly": null,
       "role": "Governed headless-turn executor: consumes the Rule-0 self-refill draw and lands one gated unit of build work per cycle (SAFE-DARK foundation).",
       "produces": "write-landed build turns (origin-verified commit SHAs)"
