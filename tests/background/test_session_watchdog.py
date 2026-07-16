@@ -807,3 +807,51 @@ def test_verify_daemon_set_after_restart_survives_health_check_exception(monkeyp
     watchdog._verify_daemon_set_after_restart()  # must not raise
 
     assert any("failed to run" in m for m in logs)
+
+
+# ── ONE TREE, ONE SESSION (2026-07-16, director: "a duplicate is a defect, not a
+#    recovery") ────────────────────────────────────────────────────────────────
+# These mechanise the no-duplicate-spawn guarantee: the monitor loop only ever
+# restarts when `claude_is_running()` is False (session_watchdog.py main loop:
+# `if not session_exists() or not claude_is_running(): ...restart`). So proving
+# claude_is_running() detects a LIVE session -- including one whose foreground
+# pane command is not 'claude' but which still has a live process -- proves the
+# watchdog will NOT spawn a second session on this tree. R15: the mutation
+# counterpart proves the check is load-bearing (it CAN return False), so the
+# guard genuinely gates on real liveness rather than being a tautology.
+
+def _dispatch_run(*, pane_stdout: str, pgrep_rc: int):
+    """Fake subprocess.run dispatching on the command: tmux list-panes returns
+    `pane_stdout`; `pgrep -x claude` returns `pgrep_rc`."""
+    def _run(cmd, **kw):
+        if cmd[:2] == ["tmux", "list-panes"]:
+            return type("R", (), {"stdout": pane_stdout, "returncode": 0})()
+        if cmd[:1] == ["pgrep"]:
+            return type("R", (), {"stdout": b"", "returncode": pgrep_rc})()
+        return type("R", (), {"stdout": "", "returncode": 0})()
+    return _run
+
+
+def test_claude_is_running_true_when_pane_shows_claude(monkeypatch):
+    """Primary path: a claude/node foreground pane => running => no restart."""
+    monkeypatch.setattr(watchdog.subprocess, "run", _dispatch_run(pane_stdout="claude\n", pgrep_rc=1))
+    assert watchdog.claude_is_running() is True
+
+
+def test_claude_is_running_true_via_pgrep_fallback_prevents_duplicate(monkeypatch):
+    """One tree, one session: even when the pane's foreground command is NOT
+    claude (e.g. a shell running a build), a live `claude` process detected by
+    `pgrep -x claude` makes claude_is_running() True -- so the monitor's
+    `not claude_is_running()` restart guard is False and NO second session is
+    spawned. This is the exact guarantee the director asked to make permanent."""
+    monkeypatch.setattr(watchdog.subprocess, "run", _dispatch_run(pane_stdout="bash\n", pgrep_rc=0))
+    assert watchdog.claude_is_running() is True
+
+
+def test_claude_is_running_false_only_when_pane_bare_AND_no_process(monkeypatch):
+    """R15 mutation counterpart: the guard is load-bearing -- it returns False
+    (allowing a restart) ONLY when the pane has no claude/node AND pgrep finds no
+    live claude process. Proves the two-signal check isn't a tautology that
+    always reports 'running'."""
+    monkeypatch.setattr(watchdog.subprocess, "run", _dispatch_run(pane_stdout="bash\n", pgrep_rc=1))
+    assert watchdog.claude_is_running() is False
