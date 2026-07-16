@@ -85,7 +85,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "B1_margin_bridge",
@@ -1416,7 +1416,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 42
+      "stall_consecutive_unchanged": 43
     },
     {
       "id": "W1_6_physics_price_signal",
@@ -1494,7 +1494,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 91
+      "stall_consecutive_unchanged": 92
     },
     {
       "id": "W1_9_dsr_flex_markets",
@@ -1577,7 +1577,7 @@
       "epoch": 2,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1585,7 +1585,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 126
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "H17_autonomous_build_executor",
@@ -1605,7 +1605,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "G4_unified_failure_register",
@@ -1622,7 +1622,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "H18_harness_self_mutation_audit",
