@@ -1,5 +1,5 @@
 """Tests for tools/generate_method_data.py (NAV_STORY_PLATFORM_METHOD.md item 6:
-Method section data source -- operating model, R1-R6 rules, live staging-loop
+Method section data source -- operating model, R1-R15 rules, live staging-loop
 view, retrospective library)."""
 import json
 
@@ -20,10 +20,15 @@ def test_operating_model_has_roles_and_tiers():
         assert t["tier"] and t["name"] and t["description"]
 
 
-def test_six_rules_each_with_a_real_incident():
-    assert len(RULES) == 6
+def test_all_permanent_rules_each_with_a_real_incident():
+    # The full standing rule set is R1-R15 (CLAUDE.md). Pinning this to the
+    # actual rule count keeps the Method door honest: the SITE1 Expert-Hour
+    # (2026-07-16) caught this generator frozen at R1-R6 while the same site's
+    # Casebook rendered 14 and CLAUDE.md defined 15 -- an internal contradiction
+    # an expert cross-reading the pages would hit immediately.
+    assert len(RULES) == 15
     ids = [r["id"] for r in RULES]
-    assert ids == ["R1", "R2", "R3", "R4", "R5", "R6"]
+    assert ids == ["R{}".format(n) for n in range(1, 16)]
     for r in RULES:
         assert r["name"] and r["description"] and r["incident"]
         assert len(r["incident"]) > 40, "incident should be a real summary, not a stub"
@@ -109,7 +114,7 @@ def test_generate_writes_json_with_all_sections(monkeypatch, tmp_path):
     assert generate() is True
     data = json.loads(fake_out.read_text())
     assert data["phase"] == "RQ"
-    assert len(data["rules"]) == 6
+    assert len(data["rules"]) == 15
     assert "operating_model" in data
     assert "staging_loop" in data
     assert "retro_library" in data

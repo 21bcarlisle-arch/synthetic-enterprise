@@ -616,3 +616,41 @@ def test_gate_skips_when_git_hash_matches_too(tmp_path, monkeypatch):
     rc = prc._process(str(marker))
     assert rc == 0
     assert (done / marker.name).exists()
+
+
+def test_git_commit_push_commits_whole_generated_site_data_surface(tmp_path, monkeypatch):
+    """R10 class-closure regression (SITE1 Expert-Hour, 2026-07-16): every
+    generated site/data/*.json must be staged, not an explicit per-file list
+    that silently omits new ones. simplified.json / provisional_plan.json /
+    system_status.json were each regenerated every run yet never committed --
+    the live doors froze (the simplifications register hid ~42% of itself, the
+    director queue went 6 days stale). This test FAILS if the glob is removed,
+    so the class cannot recur unnoticed (R15: a control must be able to fail)."""
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", tmp_path / ".last_push_time.json")
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
+
+    data_dir = tmp_path / "site" / "data"
+    data_dir.mkdir(parents=True)
+    previously_orphaned = ["simplified.json", "provisional_plan.json", "system_status.json"]
+    a_future_generated = "some_new_door.json"
+    for name in previously_orphaned + [a_future_generated]:
+        (data_dir / name).write_text("{}")
+
+    added = []
+
+    def fake_run(cmd, **kwargs):
+        if cmd[:2] == ["git", "add"]:
+            added.extend(cmd[2:])
+        m = MagicMock()
+        m.returncode = 0
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    prc.git_commit_push("abc1234", 1000.0)
+
+    for name in previously_orphaned + [a_future_generated]:
+        assert str(data_dir / name) in added, (
+            "%s must be committed by the site/data glob, not silently orphaned" % name
+        )

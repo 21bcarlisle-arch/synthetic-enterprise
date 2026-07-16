@@ -848,6 +848,20 @@ def git_commit_push(git_hash, net_margin):
     ):
         if _door_file.exists():
             files.append(str(_door_file))
+    # R10 CLASS-CLOSURE for the orphaned-at-commit gap (SITE1 Expert-Hour,
+    # 2026-07-16): the block above and the explicit method.json/world.json/etc.
+    # appends fixed this gap ONE FILE AT A TIME, so three MORE generated data
+    # files silently recurred it -- simplified.json (live showed 168/48 vs a real
+    # 291/93, hiding ~42% of the "nothing filtered" register), provisional_plan.json
+    # (2 days stale on the director page), system_status.json (6 days stale, the
+    # action-needed queue). generate_*_data() writes every one of these under
+    # site/data/ each cycle, so the durable fix is to commit the WHOLE generated
+    # data surface, not to add another explicit path line each time a door is
+    # built. Any future site/data/*.json is now tracked automatically.
+    site_data_dir = PROJECT_DIR / "site" / "data"
+    if site_data_dir.is_dir():
+        for _gen_json in sorted(site_data_dir.glob("*.json")):
+            files.append(str(_gen_json))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),
