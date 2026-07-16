@@ -76,11 +76,23 @@ RETRO_STALE_PROMOTIONS = 50
 _FILENAME_DATE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})-")
 
 
-def last_retro(retro_dir: Path = RETRO_DIR) -> tuple[Path, date] | None:
+def last_retro(
+    retro_dir: Path = RETRO_DIR, as_of: date | None = None
+) -> tuple[Path, date] | None:
     """Return (path, date) of the most recent retrospective doc, keyed off
     its own filename date prefix (this project's own naming convention,
     e.g. 2026-07-14-evaporated-director-decision.md). None if the directory
-    is missing/empty or no file matches the naming convention."""
+    is missing/empty or no file matches the naming convention.
+
+    FAIL-OPEN GUARD (R15, 2026-07-16 HARDEN): `as_of` bounds the selection to
+    files dated on/before that date. Without it, a single stray FUTURE-dated
+    file (a typo like 2027-12-31-..., or a forward-dated draft) wins the
+    max-date selection and drives check_retro_staleness()'s `days` NEGATIVE,
+    silently reporting "fresh" even when the real most-recent genuine retro is
+    a year stale -- a malformed-input fail-open (proven by
+    test_future_dated_file_does_not_mask_a_stale_real_retro). Passing
+    as_of=today makes future-dated noise inert: the effective last retro is
+    the newest one that has actually happened, never one that hasn't."""
     if not retro_dir.is_dir():
         return None
     best: tuple[Path, date] | None = None
@@ -91,6 +103,8 @@ def last_retro(retro_dir: Path = RETRO_DIR) -> tuple[Path, date] | None:
         try:
             d = datetime.strptime(m.group(1), "%Y-%m-%d").date()
         except ValueError:
+            continue
+        if as_of is not None and d > as_of:
             continue
         if best is None or d > best[1]:
             best = (f, d)
@@ -137,7 +151,9 @@ def check_retro_staleness(
     so tests never depend on real wall-clock time or this repo's own live
     retrospectives directory."""
     today = today or datetime.now(timezone.utc).date()
-    retro = last_retro(retro_dir)
+    # as_of=today: a future-dated retro doc must not mask a stale real one
+    # (R15 fail-open guard -- see last_retro's docstring).
+    retro = last_retro(retro_dir, as_of=today)
     if retro is None:
         return (
             f"No retrospective doc found in {retro_dir} at all -- "

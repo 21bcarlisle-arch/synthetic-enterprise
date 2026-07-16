@@ -85,6 +85,20 @@ class TestLastRetro:
         path, found_date = rcc.last_retro(d)
         assert path.name == "2026-07-10-good.md"
 
+    def test_as_of_excludes_future_dated_files(self, tmp_path):
+        """R15 fail-open guard: as_of must exclude files dated after it, so a
+        stray future-dated doc can never win the max-date selection."""
+        d = tmp_path / "retrospectives"
+        d.mkdir()
+        (d / "2026-07-10-real.md").write_text("x")
+        (d / "2027-12-31-typo-future.md").write_text("x")
+        # Unbounded: the future file wins (documents the pre-guard behaviour).
+        assert rcc.last_retro(d)[0].name == "2027-12-31-typo-future.md"
+        # Bounded by as_of=today: the future file is inert, real retro wins.
+        path, found_date = rcc.last_retro(d, as_of=date(2026, 7, 16))
+        assert path.name == "2026-07-10-real.md"
+        assert found_date == date(2026, 7, 10)
+
 
 class TestPromotionsSince:
     def test_no_maturity_map_returns_zero(self, tmp_path):
@@ -226,6 +240,40 @@ class TestCheckRetroStaleness:
         assert result is not None
         assert "STALE" in result
         assert "maturity-map promotions since last retro" in result
+
+    def test_future_dated_file_does_not_mask_a_stale_real_retro(self, tmp_path):
+        """R15 MUTATION TEST for the fail-open this HARDEN pass closed. Before
+        the as_of guard, a single stray FUTURE-dated file (a typo or a
+        forward-dated draft) won last_retro's max-date selection, drove `days`
+        negative, and made check_retro_staleness() report FRESH even though the
+        genuine most-recent retro was a year stale -- the control silently
+        suppressed. This test fires on that exact defect: it must return STALE.
+        Reverting the guard (last_retro's as_of -> None) makes it return None,
+        so the mutant is killed."""
+        repo = tmp_path / "repo"
+        _init_repo(repo)
+        retro_dir = repo / "docs" / "retrospectives"
+        retro_dir.mkdir(parents=True)
+        # The genuine most-recent real retro is over a year old -> truly stale.
+        (retro_dir / "2025-01-01-ancient-real-retro.md").write_text("x")
+        # A single stray future-dated file (typo / forward-dated draft).
+        (retro_dir / "2027-12-31-typo-future.md").write_text("x")
+        design = repo / "docs" / "design"
+        design.mkdir(parents=True)
+        (design / "maturity_map.yaml").write_text("- id: a\n  level_current: 1\n")
+        _git(repo, "add", "-A")
+        _git(repo, "commit", "-q", "-m", "seed")
+
+        result = rcc.check_retro_staleness(
+            today=date(2026, 7, 16), retro_dir=retro_dir, project_dir=repo,
+        )
+        assert result is not None, (
+            "fail-open: a future-dated file masked a year-stale real retro"
+        )
+        assert "STALE" in result
+        # It fired on the DAYS threshold against the real ancient retro, not
+        # the future one -- the guard picked the genuine last retro.
+        assert "2025-01-01-ancient-real-retro.md" in result
 
     def test_within_both_thresholds_returns_none_even_with_some_promotions(self, tmp_path):
         repo = tmp_path / "repo"
