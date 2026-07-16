@@ -71,3 +71,21 @@ def test_generate_customer_data_module():
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from tools.generate_customer_data import generate
     assert callable(generate)
+
+
+# --- SITE1_expert_doors mobile pass (SITE_CONSTITUTION.md door 8, cross-cutting) ---
+# Structural guard so a future edit to one of these doors can't silently drop
+# its phone-legible layout (R15: must be able to FAIL -- a page missing the
+# block fails this test, proven by removing the block from any one file below).
+SITE1_DOORS_WITH_MOBILE_PASS = [
+    "company", "proof", "world", "method-casebook", "method", "glossary", "tours",
+]
+
+
+def test_site1_expert_doors_have_mobile_pass():
+    missing = []
+    for door in SITE1_DOORS_WITH_MOBILE_PASS:
+        text = (SITE / door / "index.html").read_text()
+        if "@media (max-width: 640px)" not in text:
+            missing.append(door)
+    assert missing == [], f"SITE1 doors missing the mobile @media(max-width:640px) pass: {missing}"

@@ -1,0 +1,11 @@
+id: SITE1_expert_doors
+# level_current intentionally OMITTED: R11 live-pixel verification is not possible
+# in this fork (no network to fetch poesys.net). Doors built but the deployed render
+# is unconfirmed, so SITE1 stays level 2 -- no level move claimed here.
+append_evidence:
+  - "site/method-casebook/index.html (mobile pass added, door 6 surface)"
+  - "tests/tools/test_site_structure.py::test_site1_expert_doors_have_mobile_pass"
+append_simplification:
+  - "2026-07-16 DOOR 8 MOBILE-PASS HARDEN (Lane-2 SITE worktree fork). Completed the cross-cutting mobile/responsive pass: added the phone-legible @media(max-width:640px) block to site/method-casebook/ (The Method+Simplified, door 6) -- it was the ONLY built expert-door still missing one (proof/company/world/glossary/tours already had theirs; verified by scanning every site/*/index.html). Block collapses the role/tier/lane grid to a single column, wraps the tabs and filter row, tightens KPI grids to 2-up, and pulls the timeline gutter in; desktop (>640px) layout byte-unchanged. Added a STRUCTURAL guard test tests/tools/test_site_structure.py::test_site1_expert_doors_have_mobile_pass that scans the 7 built doors (company, proof, world, method-casebook, method, glossary, tours) for the media query -- R15 mutation-tested (removing the block from method-casebook makes it FAIL with the door named, restored -> passes), so a future edit can't silently drop a door's mobile pass. GATE GREEN: 31 site tests pass (test_site_structure 14 + method-casebook/glossary/tours doors 17), epistemic_verifier PASS (509 files, no barrier violations). HONEST STATUS -- NO LEVEL MOVE: R11 live-pixel verification needs network this fork has no access to (can't fetch the deployed poesys.net render), so SITE1 stays level 2 until ALL non-auth doors land AND are pixel-verified on the live site + an Expert-Hour cold review passes. Door 7 (Director, auth-gated) is DIRECTOR-reserved and untouched. Pure site/** + one tests/ guard; no generator added (all doors already wired into process_run_complete.py regen + commit-list in prior sessions), so no orphan-transition risk introduced."
+written_by: fork/SITE1_expert_doors-door8-mobile
+written_at: 2026-07-16T00:00:00Z
