@@ -1,0 +1,26 @@
+id: E2_revenue_reconciliation
+level_current: 3
+append_evidence:
+  - "tests/tools/test_e2_revenue_reconciliation_surfaces.py"
+append_simplification:
+  - "2026-07-16 H17 HARDEN (Rule-0 self-refill, dial yielded -- no below-target work). Mechanised
+     this atom's core invariant, previously held only by a one-off manual grep (2026-07-12
+     simplifications entry against four hand-picked surfaces). Per MAKE_IT_STICK/R10 a prose-only
+     invariant evaporates. New standing control tests/tools/test_e2_revenue_reconciliation_surfaces.py
+     AUTO-DISCOVERS site/**/*.html (glob) and fails if any live surface rendering a net-margin figure
+     (net_margin_gbp/lifetime_net_gbp/settled_/billed_net_margin_gbp) lacks its R14 clock/basis
+     disclosure. RED-TEAM FINDING captured: a broad scan found net-margin figures on THREE surfaces
+     beyond the registered four -- site/company/index.html (nav-linked, live; COMPLIES via kpi-basis
+     lines + the settled->billed reconciliation bridge, but the four-surface hand-registry never
+     listed it, so its compliance was luck not a guaranteed invariant -- now covered by auto-discovery
+     and pinned by test_control_discovers_more_than_the_original_hand_registry); site/shadow/supplier/index.html
+     (GENERATED debug mirror, generate_shadow_html.py, not nav-linked, no disclosure -- EXPLICITLY
+     excluded with a stated reason, not silently); site/snapshots/DASHBOARD_*.html (frozen archive,
+     correctly never retro-labelled). Exclusions declared in EXCLUDED_SUBPATHS with reason strings and
+     asserted non-silent (test_exclusions_are_declared_not_silent) -- no silent cap. R15: the control
+     can FAIL -- test_control_fires_on_stripped_disclosure mutates a real compliant surface (strips
+     disclosure tokens, keeps the figure) and proves the check flags it; test_control_does_not_fail_open_on_new_undisclosed_surface
+     proves a new undisclosed surface is caught. 6 tests, all green. Test-only addition (disjoint
+     file_scope, no production code touched); level stays 3->3 (at target), loop_stage harden."
+written_by: claude-opus-4-8/atom-E2-H17-harden
+written_at: 2026-07-16T00:00:00Z
