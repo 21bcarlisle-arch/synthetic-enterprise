@@ -3,7 +3,32 @@
 Run at phase close: python3 -m tools.epistemic_verifier [--diff | --files file1 file2...]
 
 Checks company/ code for direct reads of SIM internals that bypass the
-company/interfaces/sim_interface.py seam.
+company/interfaces/sim_interface.py seam. Both literal (`import simulation.x`)
+and dynamic (`importlib.import_module("simulation.x")`, `__import__("sim.x")`)
+import forms are in scope with a literal string-constant target -- a bypass
+via a string-literal dynamic import is the same violation (a forbidden module
+name reaching company/saas/), just spelled differently
+(W4_2_verifier_timing_extension KL-2b: the AST-based static-import scan added
+under H12/KL-2 caught non-canonical *literal* import syntax but not these
+dynamic-invocation forms). A non-literal target (a variable, an f-string, a
+runtime-built string) cannot be resolved statically and is a documented
+heuristic limit, not a false-clear -- see `_dynamic_import_target`.
+
+Scope note (deliberately NOT covered here, per the Tier-1 gate closed
+2026-07-10 — docs/review_gates/done/EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md,
+a director-ratified decision, not an open question): this tool stays
+*import-direction* detection -- does a forbidden module name reach
+company/saas/ code, literally or dynamically. It is NOT data-flow/timing-
+violation detection (e.g. a function receiving an unbounded historical
+dataset with no as-of cut -- the hedge-volatility bug class). That dimension
+was explicitly decided NOT to be built into this tool; the practical
+detection burden for it is carried by two separate mechanisms instead
+(.claude/hooks/block_point_in_time_read.py near-term, the point-in-time
+snapshot/as-of interface object permanently, per that gate's own
+resolution). Re-opening automated timing/data-flow detection in *this* file
+requires the same Tier-1 authentication convention as any other
+safety-control change (Rich live in-console, or Rich clearing the gate
+file) -- not a build delegation alone.
 
 Exit code 0 = PASS, exit code 1 = FAIL (violations found).
 """
@@ -105,19 +130,63 @@ def _module_is_forbidden(module: str | None) -> bool:
     return True
 
 
-def _violation(path: str, lineno: int, code: str, stripped: str) -> dict:
+def _violation(path: str, lineno: int, code: str, stripped: str, dynamic: bool = False) -> dict:
+    kind = "Dynamic import of SIM internals" if dynamic else "Direct import from SIM internals"
     return {
         "file": path,
         "line": lineno,
         "code": code,
-        "description": f"Direct import from SIM internals: {stripped}",
+        "description": f"{kind}: {stripped}",
         "why": (
             "Company code must only access sim/ through "
             "company/interfaces/sim_interface.py. "
             "Could a real UK energy supplier know this without reading "
             "simulation internals? No — this bypasses the epistemic boundary."
+            + (" (via importlib.import_module()/__import__() rather than a"
+               " literal import statement — same bypass, different syntax.)"
+               if dynamic else "")
         ),
     }
+
+
+# Dynamic-import call shapes that can smuggle a forbidden module name past a
+# scan that only looks at `ast.Import`/`ast.ImportFrom` nodes: the standard
+# `importlib.import_module(...)` (both the fully-qualified attribute form and
+# the bare `from importlib import import_module` name form) and the builtin
+# `__import__(...)`. Only a LITERAL string-constant first argument is
+# resolvable statically -- a variable/f-string/concatenation is a documented
+# heuristic limit (KL-2b scope), not a silent false-clear: it simply cannot be
+# resolved without real data-flow analysis, which this tool deliberately does
+# not attempt (see module docstring's Tier-1 scope note).
+def _dynamic_import_target(node: "ast.Call") -> str | None:
+    """Return the literal module name targeted by a dynamic-import call, or
+    None if this call is not a dynamic import or its target is not a literal
+    string constant."""
+    func = node.func
+    is_import_module = (
+        isinstance(func, ast.Attribute)
+        and func.attr == "import_module"
+        and isinstance(func.value, ast.Name)
+        and func.value.id == "importlib"
+    ) or (isinstance(func, ast.Name) and func.id == "import_module")
+    is_dunder_import = isinstance(func, ast.Name) and func.id == "__import__"
+    if not (is_import_module or is_dunder_import):
+        return None
+    if not node.args:
+        return None
+    first = node.args[0]
+    if isinstance(first, ast.Constant) and isinstance(first.value, str):
+        return first.value
+    return None
+
+
+# Regex fallback for the SyntaxError path (an unparseable file must still be
+# inspected, not skipped -- matching the existing literal-import fallback).
+# Deliberately narrow (literal quoted string immediately following the call),
+# same heuristic-scope tradeoff as the AST version above.
+_DYNAMIC_IMPORT_CALL_RE = re.compile(
+    r"(?:importlib\.import_module|(?<!\w)import_module|__import__)\s*\(\s*['\"]([^'\"]+)['\"]"
+)
 
 
 def _check_unavailable(path: str, reason: str) -> dict:
@@ -156,19 +225,24 @@ def _scan_source(source: str, path: str) -> list[dict] | None:
     lines = source.splitlines()
     for node in ast.walk(tree):
         modules: list[str] = []
+        dynamic = False
         if isinstance(node, ast.Import):
             modules = [alias.name for alias in node.names]
         elif isinstance(node, ast.ImportFrom):
             # level>0 is a relative import (e.g. `from . import x`) -- never SIM.
             modules = [node.module] if node.level == 0 else []
+        elif isinstance(node, ast.Call):
+            target = _dynamic_import_target(node)
+            modules = [target] if target else []
+            dynamic = True
         else:
             continue
         for module in modules:
             if _module_is_forbidden(module):
                 lineno = getattr(node, "lineno", 1)
                 code = lines[lineno - 1].rstrip() if 0 < lineno <= len(lines) else module
-                violations.append(_violation(path, lineno, code, code.strip() or module))
-                break  # one finding per import statement is enough
+                violations.append(_violation(path, lineno, code, code.strip() or module, dynamic=dynamic))
+                break  # one finding per import statement/call is enough
     return violations
 
 
@@ -187,6 +261,10 @@ def _scan_lines(content: str, path: str) -> list[dict]:
                     break
                 violations.append(_violation(path, lineno, line.rstrip(), stripped))
                 break
+        for match in _DYNAMIC_IMPORT_CALL_RE.finditer(line):
+            target = match.group(1)
+            if _module_is_forbidden(target):
+                violations.append(_violation(path, lineno, line.rstrip(), stripped, dynamic=True))
     return violations
 
 

@@ -862,6 +862,78 @@ def test_verifier_syntaxerror_fallback_still_catches_the_import():
 
 
 # --------------------------------------------------------------------------
+# W4_2_verifier_timing_extension KL-2b: dynamic-import bypass (the AST scan
+# only walked ast.Import/ast.ImportFrom nodes -- a literal-string dynamic
+# import via importlib.import_module()/__import__() smuggled a forbidden
+# module name straight past it, a FAIL-OPEN gap of the same class KL-2
+# already fixed for literal import syntax). Same doctrine: inject the exact
+# defect (a dynamic SIM import), assert it now FIRES; confirm it did NOT fire
+# before this fix by asserting on the OLD ast.Import/ImportFrom-only path.
+# --------------------------------------------------------------------------
+
+def test_verifier_fires_on_dynamic_import_of_sim_internals():
+    # MUTATE: a company/ file smuggling a forbidden SIM import through
+    # importlib.import_module()/__import__() instead of a literal statement.
+    assert len(_scan_src('importlib.import_module("simulation.weather_engine")\n')) == 1
+    assert len(_scan_src('importlib.import_module("sim.x")\n')) == 1
+    assert len(_scan_src('__import__("simulation.weather_engine")\n')) == 1
+    assert len(_scan_src('__import__("sim")\n')) == 1
+    # The bare `from importlib import import_module` call form must fire too.
+    assert len(_scan_src(
+        'from importlib import import_module\n'
+        'import_module("simulation.weather_engine")\n'
+    )) == 1
+    # Nested inside a function body (deferred/local dynamic import).
+    assert len(_scan_src(
+        'def f():\n    return importlib.import_module("simulation.var")\n'
+    )) == 1
+
+
+def test_verifier_dynamic_import_pre_fix_baseline_did_not_fire():
+    # PROVES the control could fail before this pass: the OLD detection path
+    # (only ast.Import/ast.ImportFrom nodes -- exactly what _scan_source did
+    # prior to this fix) does not see a Call node at all, so it silently
+    # cleared a real bypass. This pins the regression so the fix cannot
+    # silently erode back to fail-open.
+    src = 'importlib.import_module("simulation.weather_engine")\n'
+    tree = ev.ast.parse(src)
+    old_path_modules = []
+    for node in ev.ast.walk(tree):
+        if isinstance(node, ev.ast.Import):
+            old_path_modules.extend(alias.name for alias in node.names)
+        elif isinstance(node, ev.ast.ImportFrom) and node.level == 0:
+            old_path_modules.append(node.module)
+    assert old_path_modules == []  # the pre-fix scan found no import to check
+    # ... while the current, fixed scan correctly fires on the same source.
+    assert len(_scan_src(src)) == 1
+
+
+def test_verifier_dynamic_import_does_not_false_fire_on_lookalikes_or_variables():
+    # OUTCOME-SAFE: lookalike package names, the approved seam/orchestration,
+    # ordinary non-SIM dynamic imports, and a non-literal (unresolvable)
+    # target must NOT fire -- a control that flags everything is as useless
+    # as one that flags nothing.
+    assert _scan_src('importlib.import_module("simplejson")\n') == []
+    assert _scan_src('importlib.import_module("similarity")\n') == []
+    assert _scan_src('importlib.import_module("simulation.run_segments")\n') == []
+    assert _scan_src('importlib.import_module("company.interfaces.sim_interface")\n') == []
+    assert _scan_src('__import__("os")\n') == []
+    # A non-literal target cannot be resolved statically -- documented
+    # heuristic limit, not a claimed detection.
+    assert _scan_src('importlib.import_module(some_variable)\n') == []
+
+
+def test_verifier_dynamic_import_syntaxerror_fallback_still_catches_it():
+    # The regex fallback (unparseable file) must ALSO catch a dynamic import,
+    # not just the AST-primary path -- matching the existing literal-import
+    # fallback discipline (an unparseable file must not silently read clean).
+    src = 'importlib.import_module("simulation.weather_engine")\ndef (:\n'
+    findings = _scan_src(src)
+    assert len(findings) >= 1
+    assert any("Dynamic import" in f["description"] for f in findings)
+
+
+# --------------------------------------------------------------------------
 # segment_debt_policy.py -- the LPCDCA Tier-1 lawfulness control
 # --------------------------------------------------------------------------
 
