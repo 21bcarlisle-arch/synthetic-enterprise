@@ -160,3 +160,31 @@ def test_reversible_code_change_never_matches_any_category():
     ]:
         verdict = classify_action(text)
         assert verdict.is_one_way_door is False, f"false positive on: {text}"
+
+
+def test_open_build_in_the_open_epoch_is_not_a_door():
+    """2026-07-16 (from_rich): opening BUILD on an atom INSIDE the already-open epoch
+    is reversible, twin-answerable, exactly what the open epoch is cleared for -- NOT
+    a values door. The regex must catch the MEANING (opening a NEW epoch) not the mere
+    words 'open'+'epoch'. Mutation intent: the old `open\\s+epoch` adjective match trips
+    these and this assertion goes red."""
+    for text in [
+        "open the build on atom-X, an atom inside the open epoch",
+        "BUILD-open within the open epoch (twin handles it)",
+        "continue the open epoch's remaining atoms to target",
+        "atom-X open-build in the OPEN epoch is reversible",
+    ]:
+        assert classify_action(text).is_one_way_door is False, f"false-positive door on: {text}"
+
+
+def test_opening_a_new_epoch_is_a_values_door():
+    """The genuine curriculum door still fires: actually OPENING a new/next epoch is
+    the director's category-6 call (R13/LAW A)."""
+    for text in [
+        "open Epoch 4 for the B4 competitor field",
+        "opening a new epoch (weather physics)",
+        "open the next epoch now",
+    ]:
+        v = classify_action(text)
+        assert v.is_one_way_door is True, f"missed genuine epoch-open door: {text}"
+        assert v.category == OneWayDoorCategory.VALUES_DECISION
