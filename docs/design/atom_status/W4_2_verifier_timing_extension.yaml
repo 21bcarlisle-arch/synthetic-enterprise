@@ -1,0 +1,8 @@
+---
+id: W4_2_verifier_timing_extension
+append_evidence:
+  - "docs/design/frame/W4_2_verifier_timing_extension_FRAME.md"
+append_simplification:
+  - "2026-07-16 DISCOVER/FRAME (Lane-3, H17 draw): framing artifact written (design exploration of data-flow/timing detection). Level UNCHANGED at 1 — real detection build is Tier-1 director-gated (EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md); no verifier code touched. Any future build must be R15 mutation-tested."
+written_by: general-purpose/frame-W4_2
+written_at: 2026-07-16T00:00:00Z
