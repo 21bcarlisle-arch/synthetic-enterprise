@@ -1,9 +1,0 @@
-id: H19_escalation_ntfy_route_around
-level_current: 2
-append_evidence:
-  - "tests/background/test_executor_governor.py::test_two_distinct_walls_each_get_their_own_escalation"
-  - "tests/background/test_executor_governor.py::test_run_loop_alternating_distinct_walls_ntfy_each_then_back_off"
-append_simplification:
-  - "2026-07-16 H17 HARDEN (L2->L2, red-team of this atom's OWN core invariant 'the loop NTFYs the irreducible core'): found + fixed a SILENT-DROP defect (the cousin of the silent-stall this atom exists to kill). A WALL keeps the loop DRAWING, so TWO DISTINCT one-way doors can be open at once; _alert_wall keyed every wall to the CONSTANT action_needed item executor-wall_escalated, so the fire-once gate SILENTLY SWALLOWED the second distinct door (director heard only the first; both shared one reply-PIN). Reproduced empirically first (R9). FIX: _alert_wall derives the item id from the escalated atom_reason (sha1[:8]) so each distinct door gets its own escalation, fire-once/daily gate, and reply-PIN; singleton STOP kinds keep the constant id. Second related defect: run_loop backoff used a SCALAR last_escalated_reason (immediate-previous only), so distinct walls cycling A,B,A,B re-alerted every cycle and never backed off (hot busy-loop); replaced with a SET seen-latch (NTFY once per newly-seen wall, back off on re-seen, clear on progress). 2 R15 mutation tests, each proven to FAIL on the reverted mechanism and pass on the fix. Blast radius green (126 tests across executor_governor/action_needed/executor_daemon/build_executor/daemon_loop_mutation/map_reconciliation/publish_gate_alert). file_scope: background/executor_governor.py + its test."
-written_by: H17-headless-executor/atom-H19
-written_at: 2026-07-16T21:36:00Z
