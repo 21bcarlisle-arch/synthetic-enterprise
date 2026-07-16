@@ -168,18 +168,23 @@ class TestCheckPixelVerificationCapability:
 
 
 def test_all_processes_running_reports_ok(monkeypatch):
+    from background import retro_cadence_check
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
     monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
     monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
     monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
     monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
+    # A1_learn_loop_chair L3 added a 5th always-present ok-line (retro cadence);
+    # mock it too so this asserts the pane/check logic, not live retro state.
+    monkeypatch.setattr(retro_cadence_check, "check_retro_staleness", lambda: None)
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 4  # +1 staging, +1 pixel-verification, +1 stale-deps, +1 stale-code
+    # +1 staging, +1 pixel-verification, +1 stale-code, +1 stale-deps, +1 retro-cadence
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 5
 
 
 def test_missing_process_reported_as_problem(monkeypatch):

@@ -502,3 +502,72 @@ def test_sweep_ignores_non_from_rich_files(tmp_path, monkeypatch):
 
     assert watcher.sweep_answered_from_rich(now=now) == []
     assert directive.exists()
+
+
+# ── archive-on-consumption backstop for instruction docs (2026-07-16) ────────
+# The re-stick class one channel over from from_rich: a director/advisor
+# instruction .md that was actioned+consumed but never manually moved to done/
+# re-grants supervisor turns forever. No "superseded" signal exists for these,
+# so the mechanism is an absolute-age sweep that ALWAYS NTFYs (never silent).
+
+def test_instruction_sweep_archives_stale_doc_and_ntfys(tmp_path, monkeypatch):
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+    calls = _capture_ntfy(monkeypatch)
+
+    now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+    doc = tmp_path / "DIRECTOR_ANSWERS_C7.md"
+    doc.write_text("consumed decision, never archived")
+    import os
+    old_epoch = now.timestamp() - (watcher.INSTRUCTION_STALE_SECONDS + 3600)
+    os.utime(doc, (old_epoch, old_epoch))
+
+    archived = watcher.sweep_stale_instruction_docs(now=now)
+    assert doc.name in archived
+    assert (tmp_path / "done" / doc.name).exists()
+    assert not doc.exists()  # moved, not copied
+    assert any("STAGING BACKSTOP" in c and doc.name in c for c in calls)
+
+
+def test_instruction_sweep_leaves_fresh_doc(tmp_path, monkeypatch):
+    """A directive the loop simply hasn't reached yet (younger than the long
+    backstop) must NEVER be swept out from under it."""
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+    calls = _capture_ntfy(monkeypatch)
+
+    now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+    doc = tmp_path / "FRESH_DIRECTIVE.md"
+    doc.write_text("staged an hour ago, not yet actioned")
+    import os
+    recent = now.timestamp() - 3600  # 1h old, well under the backstop
+    os.utime(doc, (recent, recent))
+
+    assert watcher.sweep_stale_instruction_docs(now=now) == []
+    assert doc.exists()
+    assert calls == []
+
+
+def test_instruction_sweep_ignores_from_rich_and_markers(tmp_path, monkeypatch):
+    """Scoped to instruction docs only -- from_rich_*.md (its own sweep) and
+    run_complete_/run_pending_ markers (process_run_complete.py's job) must
+    never be touched by this backstop, even when ancient."""
+    monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(watcher, "log", lambda msg: None)
+    calls = _capture_ntfy(monkeypatch)
+
+    now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+    import os
+    ancient = now.timestamp() - (watcher.INSTRUCTION_STALE_SECONDS + 999999)
+    for name in ("from_rich_20260710_000000.md",
+                 "run_complete_20260710T000000Z.md",
+                 "run_pending_20260710T000000Z.md",
+                 ".gitkeep"):
+        p = tmp_path / name
+        p.write_text("x")
+        os.utime(p, (ancient, ancient))
+
+    assert watcher.sweep_stale_instruction_docs(now=now) == []
+    assert (tmp_path / "from_rich_20260710_000000.md").exists()
+    assert (tmp_path / "run_complete_20260710T000000Z.md").exists()
+    assert calls == []

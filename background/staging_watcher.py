@@ -111,6 +111,21 @@ FROM_RICH_STALE_SECONDS = 24 * 3600
 # instruction are never torn apart while both are still live.
 FROM_RICH_SUPERSEDE_MIN_AGE_SECONDS = 30 * 60
 
+# Instruction-doc (advisor/director staged .md, NOT a from_rich or a daemon
+# marker) stale backstop. Same defect class as the from_rich one, one channel
+# over: a director/advisor instruction doc that has been actioned+consumed but
+# never manually moved to done/ keeps re-granting supervisor turns forever
+# (observed 2026-07-16: 6 such docs, some already archived-in-done/-on-origin,
+# left stale root copies re-jamming the box every ~2min for hours). There is no
+# "superseded" signal for these (unlike from_rich), so the only mechanism is an
+# absolute-age sweep. Deliberately LONG (a real, still-unactioned directive must
+# NEVER be swept before the loop has actioned it -- the supervisor grants a turn
+# within ~2min, so anything sitting this long is consumed-but-unarchived or
+# dead) and ALWAYS NTFYs on sweep, so nothing is ever lost silently: the doc is
+# moved (never deleted, content preserved in done/ + git) and the director is
+# told to verify it was actioned.
+INSTRUCTION_STALE_SECONDS = 48 * 3600
+
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -371,6 +386,57 @@ def sweep_answered_from_rich(now: datetime | None = None) -> list[str]:
     return archived
 
 
+def _is_instruction_doc(p: Path) -> bool:
+    """True for a staged instruction .md in the root that relies on a manual
+    agent `mv` to done/ (there is no code that auto-archives it) -- i.e. an
+    advisor/director doc, NOT a from_rich_*.md (swept by sweep_answered_from_rich)
+    and NOT a daemon marker (run_complete_/run_pending_, archived by
+    process_run_complete.py). Only these fall through every automated archive
+    path, so only these can re-stick indefinitely."""
+    n = p.name
+    if not (p.is_file() and n.endswith(".md") and n not in IGNORED_NAMES):
+        return False
+    if n.startswith("from_rich_") or n.startswith("run_complete_") or n.startswith("run_pending_"):
+        return False
+    return True
+
+
+def sweep_stale_instruction_docs(now: datetime | None = None) -> list[str]:
+    """Archive-on-consumption backstop for instruction docs. Move any
+    instruction .md in the staging root older than INSTRUCTION_STALE_SECONDS
+    into docs/staging/done/ and NTFY the director to verify it was actioned.
+    Returns the list of archived filenames.
+
+    This closes the re-stick class the from_rich sweep already closes for its
+    channel: a consumed-but-unarchived director/advisor doc no longer re-grants
+    supervisor turns forever. It NEVER deletes (archive_from_rich only moves;
+    content is preserved in done/ and git history) and ALWAYS alerts, so a
+    genuinely-unactioned doc that ages out (e.g. during a long loop outage) is
+    surfaced, not lost. The threshold is deliberately long so a live directive
+    the loop simply hasn't reached yet is never swept out from under it."""
+    if not STAGING_DIR.is_dir():
+        return []
+    now = now or datetime.now(timezone.utc)
+    archived: list[str] = []
+    for p in STAGING_DIR.iterdir():
+        if not _is_instruction_doc(p):
+            continue
+        try:
+            age = now.timestamp() - p.stat().st_mtime
+        except OSError:
+            continue
+        if age < INSTRUCTION_STALE_SECONDS:
+            continue
+        if archive_from_rich(p):  # name-agnostic mover: content-safe + idempotent
+            archived.append(p.name)
+            log(f"archive-on-consumption: swept stale instruction doc {p.name} "
+                f"to done/ (age {int(age)}s)")
+            ntfy(f"[STAGING BACKSTOP] Auto-archived stale instruction doc "
+                 f"{p.name} (unactioned {int(age / 3600)}h in staging root). "
+                 f"Moved to done/ (not deleted). Verify it was actioned.")
+    return archived
+
+
 def check_once(seen: set[str]) -> set[str]:
     """Check docs/staging/ once. Notifies (filename only) for any file not in
     `seen`, logs each notification, queues any genuinely new actionable
@@ -464,6 +530,14 @@ def main() -> None:
             sweep_answered_from_rich()
         except Exception as e:
             log(f"archive-on-answer sweep error: {e}")
+
+        # Archive-on-consumption backstop: move any long-stale instruction doc
+        # (consumed but never manually archived) to done/ + NTFY, so it stops
+        # re-granting supervisor turns forever (the 2026-07-16 re-stick class).
+        try:
+            sweep_stale_instruction_docs()
+        except Exception as e:
+            log(f"archive-on-consumption sweep error: {e}")
 
         time.sleep(POLL_INTERVAL_SECONDS)
 
