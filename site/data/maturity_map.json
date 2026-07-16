@@ -85,7 +85,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "B1_margin_bridge",
@@ -156,6 +156,25 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "B5_regional_basis_risk",
+      "name": "Regional basis risk (COUPLED): the company settles regional volumes at published zonal prices but can only hedge nationally -- no regional forward market exists -- so a regionally-skewed book carries unhedgeable basis; gap = assumed-national-hedge protection vs realised zonal basis cost (company twin of W1_8)",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_8_zonal_locational_pricing"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "C1_segment_layers",
@@ -596,7 +615,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "A1_learn_loop_chair",
@@ -1048,7 +1067,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 71
+      "stall_consecutive_unchanged": 72
     },
     {
       "id": "H11_naive_organ",
@@ -1801,7 +1820,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 3,
@@ -1810,9 +1829,9 @@
         "G5_effort_sizing_discipline",
         "G7_wip_cycle_time_dashboard"
       ],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "H21_self_contained_escalation",
@@ -1849,6 +1868,23 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "H23_frame_saturation_draw_marker",
+      "name": "FRAME-saturation draw marker: the idle-DISCOVER/FRAME self-refill must not re-hand a FRAME-saturated BUILD-gated atom (no honest FRAME-stage output left) \u2014 skip it in favour of a genuinely un-FRAMEd idle atom, re-offer only when its BUILD-gate opens; mutation-tested both directions",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -1931,7 +1967,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 103,
+  "total_atoms": 105,
   "epoch2_movements": [
     {
       "id": "M1",

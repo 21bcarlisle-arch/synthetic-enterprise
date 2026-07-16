@@ -1730,3 +1730,21 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an SRE housekeeping cron: log rotation, stale-branch reaping, disk/cruft sweeps on a schedule"
   depends_on: [H20_parallel_maintenance_lane]
+
+- id: H23_frame_saturation_draw_marker
+  name: "FRAME-saturation draw marker: the idle-DISCOVER/FRAME self-refill must not re-hand a FRAME-saturated BUILD-gated atom (no honest FRAME-stage output left) — skip it in favour of a genuinely un-FRAMEd idle atom, re-offer only when its BUILD-gate opens; mutation-tested both directions"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  provenance: proposal
+  size: S
+  evidence: [docs/design/frame/H23_frame_saturation_draw_marker_FRAME.md, docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
+  file_scope: [background, tools, tests, docs/design]
+  simplifications: ['2026-07-16 H17 Lane-3 DISCOVER/FRAME (fork, doc-only, no BUILD code — EPOCH_GATING Rule 1). AUTHORED as a proposal atom (the agent may author candidates, never BUILD until opened) to convert a twice-evaporated prose meta-finding into a drawable mechanism atom (MAKE_IT_STICK: prose-only decays). DEFECT (observed, R9): background/supervisor.py::_idle_discover_frame_draw re-drew the SAME set of FRAME-saturated BUILD-gated atoms THREE times in one day (caab8d8c1, 3d20b846d, this turn) — each a no-op on the drawn atoms (all carry complete FRAME docs, all already list the LANE3_H17_BUILD_GATE_SURVEY in evidence, all HELD below target for a BUILD-gated reason). Re-emitting FRAMEs is the churn SELF_INTERRUPT_DISCIPLINE + R12 forbid. CLASS not instance: a DIAL defect (Rule 0 — empty feasible set within the FRAME stage for these atoms), not a WALL. The remedy was filed as survey-doc prose at occurrences 1 and 2 and evaporated both times because prose is not a drawable unit of work; n=3 is the trigger to register it. MECHANISM (BUILD-gated, not built here): (1) a frame_saturated marker (new optional field / frame_stage sub-map carrying since-commit + the one-line BUILD-unblock gate) set when a FRAME turn produces no new evidence and no level move; (2) _idle_discover_frame_draw filters out marked atoms whose BUILD-gate is still closed, preferring un-saturated idle atoms, and returns None-with-reason if EVERY idle atom is saturated (a true empty FRAME-lane feasible set, not a spin); (3) the marker auto-clears when the BUILD-gate opens or new evidence/level lands (a cache, never a permanent hold — no orphan transition, R11). R15 DoD: mutation test both directions — FIRES (skips the saturated pair, hands the un-saturated third), QUIET (auto-clears + re-enters the draw when a gate opens, must not starve a ready atom), plus the all-saturated returns-None case. SIMPLICITY GUARD honoured (reuse map fields, no new registry). BUILD-unblock gate: Epoch-2 BUILD-open (harness/supervisor infra in the open epoch) via director_twin.py::route_blocking_decision — reversible (git reverts, draw falls back to current behaviour), NOT a one-way door. Level HELD at 0 (proposal-atom FRAME is not a build). See docs/design/frame/H23_frame_saturation_draw_marker_FRAME.md.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a work-queue scheduler that stops re-dispatching a task that is blocked on an external dependency, instead of busy-spinning it back onto the ready queue every tick"
+  depends_on: []

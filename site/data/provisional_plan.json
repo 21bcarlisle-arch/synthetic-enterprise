@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-16T17:16:29.981970+00:00",
+  "generated_at": "2026-07-16T17:49:08.607806+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -9,7 +9,7 @@
     "5": "COARSE"
   },
   "empirical_cycle_times": {
-    "transition_count": 107,
+    "transition_count": 108,
     "median_cycle_days": 0.065,
     "min_cycle_days": 0.003,
     "max_cycle_days": 5.999,
@@ -69,7 +69,7 @@
   },
   "critical_path_by_epoch": {
     "2": {
-      "open_atoms": 9,
+      "open_atoms": 8,
       "critical_chain": [
         "A8_experiment_loop_speed",
         "H17_autonomous_build_executor"
@@ -84,16 +84,17 @@
       "critical_chain_length": 1
     },
     "3": {
-      "open_atoms": 10,
+      "open_atoms": 11,
       "critical_chain": [
         "W1_2_generate_futures",
         "W1_3_national_weather_signal",
         "W1_4_regional_weather_field",
         "W1_5_premise_demand_shape",
         "W1_6_physics_price_signal",
-        "W1_7_renewable_capacity_trends"
+        "W1_8_zonal_locational_pricing",
+        "B5_regional_basis_risk"
       ],
-      "critical_chain_length": 6
+      "critical_chain_length": 7
     },
     "4": {
       "open_atoms": 6,
@@ -118,7 +119,7 @@
     "max_concurrent_width_overall": 13,
     "per_epoch": {
       "3": {
-        "open_atoms": 10,
+        "open_atoms": 11,
         "max_concurrent_width": 2
       },
       "4": {
@@ -134,7 +135,7 @@
         "max_concurrent_width": 2
       },
       "2": {
-        "open_atoms": 9,
+        "open_atoms": 8,
         "max_concurrent_width": 3
       }
     },
@@ -144,7 +145,7 @@
     "window_days": 3.0,
     "from_rich_touches": 36,
     "substantive_staged_doc_touches": 66,
-    "routine_daemon_markers_excluded": 696,
+    "routine_daemon_markers_excluded": 697,
     "tier1_gates_closed_all_time": 8,
     "estimated_director_hours_per_day": 10.77,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
