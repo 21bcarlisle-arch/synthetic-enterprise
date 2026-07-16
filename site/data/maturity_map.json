@@ -1691,6 +1691,23 @@
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H19_escalation_ntfy_route_around",
+      "name": "Escalation is NTFY not the window + route-around-before-stopping: the loop NTFYs the irreducible core and keeps drawing (a blocked atom blocks only itself)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -1773,7 +1790,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 94,
+  "total_atoms": 95,
   "epoch2_movements": [
     {
       "id": "M1",

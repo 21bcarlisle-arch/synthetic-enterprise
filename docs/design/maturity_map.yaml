@@ -1558,3 +1558,21 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a delivery org running a Lean/ToC assessment of its own process to adopt known practice instead of rediscovering it by incident"
   depends_on: []
+
+- id: H19_escalation_ntfy_route_around
+  name: "Escalation is NTFY not the window + route-around-before-stopping: the loop NTFYs the irreducible core and keeps drawing (a blocked atom blocks only itself)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: directed
+  size: M
+  evidence: ["docs/staging/done/ESCALATION_IS_NTFY_NEVER_WINDOW.md", "docs/staging/done/ROUTE_AROUND_BEFORE_STOPPING.md"]
+  file_scope: [background/executor_governor.py, CLAUDE.md]
+  simplifications: ["2026-07-16 BUILT L0->L2 (director P0 WALL, mechanised not just understood -- caught decaying as behaviour: understood then violated by two in-window escalations, so understanding != done). Merges ESCALATION_IS_NTFY_NEVER_WINDOW.md (the pane is NOT a channel the director monitors -> a window-ask is a SILENT STALL) + ROUTE_AROUND_BEFORE_STOPPING.md (decompose the wall, do reversible parts via throwaway worktree/branch/idempotent, escalate ONLY the irreducible core async). MECHANISM: executor_governor.run_loop used to break on status==escalated (halt whole loop); now NTFYs the core (async, _alert_wall->send_ntfy, non-blocking) and KEEPS DRAWING other atoms; same wall re-drawn -> NTFY once + idle-backoff. 3 mutation tests (keeps-drawing reverting-break-fails-it; ntfy-once+backoff; channel-is-ntfy no-input-path). CLAUDE.md P0 WALL encoded (removed expired SPIKE_WEEKEND to fit 35k). Mechanism landed dd81f2cca; this registers the atom."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an on-call escalation policy that pages async and keeps the rest serving, never blocking the whole service on one operator decision"
+  depends_on: []
