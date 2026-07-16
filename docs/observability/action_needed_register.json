@@ -29,6 +29,17 @@
     "what": "Two things only you can set for the AI-compute cost-to-serve line: (1) costing basis -- charge at Anthropic's metered list-price-per-token, or allocate from the actual flat Max-subscription fee spread across usage? (2) your own oversight-hours rate -- what hourly rate represents your time reviewing/overseeing this agent's work?",
     "why": "That function returns 0.0 today specifically because these are your calls, not mine to invent (R12 discipline) -- it's the only unpriced real cost line in the whole opex model. Separately, FYI not an action item: docs/observability/token-usage-log.jsonl only covers 5 days and never captured interactive sessions, so even once you answer this, the underlying usage data is currently too thin for a fully representative true figure -- flagging so you know that data gap exists alongside the policy question."
   },
+  "executor-wall_escalated": {
+    "answer": "PROCEED \u2014 open-build within the OPEN epoch is reversible (twin's call, not a one-way door); do not re-escalate this class. (director, 2026-07-16)",
+    "first_asked_at": "2026-07-16T14:14:35.476829+00:00",
+    "how": "Decide this one-way door at your cadence (reply via NTFY/PIN); the loop is NOT blocked \u2014 it is drawing other work meanwhile and will act on your answer at the next boundary. Details: the escalated item + docs/observability/build-executor-log.md. ESCALATION IS NTFY, NEVER THE WINDOW: nothing is waiting in the interactive pane.",
+    "item_id": "executor-wall_escalated",
+    "last_pinged_at": "2026-07-16T16:42:40.870403+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-16T17:13:36.356295+00:00",
+    "what": "Headless executor hit a one-way door (WALL) \u2014 NTFY'd, loop CONTINUING other atoms.",
+    "why": "Unattended loop self-stopped and is awaiting a director decision. Draw: BUILD lane draw"
+  },
   "live-e2e-test-2026-07-13": {
     "first_asked_at": "2026-07-13T05:02:12.809084+00:00",
     "how": "nothing to do -- this is the automated proof test itself",
@@ -47,6 +58,17 @@
     "what": "Atoms-below-target is FROZEN at 25 and cannot fall via the self-refill draw. Verified: 25/25 below-target atoms are loop_stage=idle (BUILD-gated by epoch sequencing); 0 are buildable (build/harden). DISCOVER/FRAME -- the only work available on idle atoms, and what the 6-concurrent draw grants -- does NOT move level_current by design (levels move only on a completed BUILD+VERIFY+HARDEN loop). I have already done DISCOVER/FRAME passes on nearly all of these. So the count structurally cannot move until BUILD is opened. This is the structural thing preventing level transitions that SELF_INTERRUPT_DISCIPLINE.md said to hunt.",
     "why": "The directive's ONLY success criterion is atoms-below-target FALLING. I cannot produce that without a BUILD-open decision, which is yours (epoch curriculum = your instrument, R13/LAW A). Escalating with options ready is not a stall -- it is the one decision that unblocks the metric."
   },
+  "publish_gate_wedged": {
+    "answer": "Root cause fixed and cleared manually (stack is down; no publish to auto-clear). The rc=1 was a REAL regression: tests/background/test_session_watchdog.py::test_reap_orphan_interactive_claude_never_kills_self raised AttributeError because session_watchdog.reap_orphan_interactive_claude used a function-local `import os as _os` while the test monkeypatched module-level watchdog.os -> the gate's `pytest -x` aborted there (commit e601f06f0 adds module-level os/signal + orphan-only reap). Verified: the EXACT gate fast-suite (SIM_FAST_MODE=1, same ignores) now passes 18310 / 5 skipped / 2 xfailed, exit 0, 288s -- well under the 600s gate timeout. Cleared 2026-07-16T22:35:44.298484+00:00.",
+    "first_asked_at": "2026-07-16T16:47:13.643056+00:00",
+    "how": "Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run the fast suite locally to find the regression. The alarm clears automatically on the next clean publish.",
+    "item_id": "publish_gate_wedged",
+    "last_pinged_at": "2026-07-16T21:15:30.006878+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-16T22:35:44.298801+00:00",
+    "what": "The run-complete PUBLISH GATE has failed 11 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=7df80b550).",
+    "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15)."
+  },
   "routines-cloud-environment-id": {
     "first_asked_at": "2026-07-11T05:21:26.112710+00:00",
     "how": "claude.ai/code -> cloud icon -> 'Add environment' -> give it a name, set network access level, optionally add env vars/setup script -> Create. WHERE TO FIND THE ID: the web UI currently only shows the environment by NAME, no raw ID is visible anywhere (confirmed this session) -- send me the exact NAME you gave it and I'll try to resolve the real ID via the API when you're ready to run a Routine; if you happen to find a raw ID some other way (e.g. browser network tab), even better, but the name should be enough.",
@@ -55,6 +77,33 @@
     "resolved": true,
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
+  },
+  "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md": {
+    "first_asked_at": "2026-07-16T21:53:34.928472+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
+    "last_pinged_at": "2026-07-16T21:53:34.928472+00:00",
+    "resolved": false,
+    "what": "New staged instruction: DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
+  },
+  "staged:ESCALATION_IS_NTFY_NEVER_WINDOW.md": {
+    "first_asked_at": "2026-07-16T21:53:37.738768+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:ESCALATION_IS_NTFY_NEVER_WINDOW.md",
+    "last_pinged_at": "2026-07-16T21:53:37.738768+00:00",
+    "resolved": false,
+    "what": "New staged instruction: ESCALATION_IS_NTFY_NEVER_WINDOW.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
+  },
+  "staged:ROUTE_AROUND_BEFORE_STOPPING.md": {
+    "first_asked_at": "2026-07-16T21:53:40.318566+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:ROUTE_AROUND_BEFORE_STOPPING.md",
+    "last_pinged_at": "2026-07-16T21:53:40.318566+00:00",
+    "resolved": false,
+    "what": "New staged instruction: ROUTE_AROUND_BEFORE_STOPPING.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
   },
   "walled-interfaces-priority-rank": {
     "first_asked_at": "2026-07-11T05:21:26.663659+00:00",

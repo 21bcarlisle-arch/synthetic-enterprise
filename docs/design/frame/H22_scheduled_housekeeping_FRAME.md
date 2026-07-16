@@ -179,6 +179,31 @@ the sweep NEVER auto-resolves it. Its job is to fire the alarm *early*:
 - The flag names the exact remediation options; it does not act. This directly
   pre-empts the second weekend incident.
 
+### 3.7 Tests that can WEDGE the publish pipeline — **DETECT before the gate goes red**
+
+Added 2026-07-16 after the SECOND occurrence of this class wedged the publish gate
+(the first was the frozen `test_health_check` stale assertion, named in §1). The
+run-complete PUBLISH GATE runs the full fast suite with `pytest -x`, so **any single
+red test anywhere silently wedges the entire site/report pipeline** — markers pile up
+unpublished, and the only signal is the `publish_gate_wedged` action-needed item.
+Tonight's cause was NOT a stale-fact assertion but a code/test mismatch left by
+uncommitted in-flight work: `reap_orphan_interactive_claude` used a function-local
+`import os as _os` while its test monkeypatched module-level `watchdog.os`, so the
+gate aborted at that test (rc=1) for ~8 hours across ~19 sim cycles. Generalise the
+class accordingly — it is **"a red gate test", not only "a stale-fact assertion".**
+
+This category is **detect-and-flag, not auto-clear** (a red test is a real signal;
+the sweep must never make it green). Its job is to shorten time-to-notice from hours
+to one sweep interval:
+- Run the exact gate fast-suite (same `SIM_FAST_MODE=1` + ignore set as
+  `process_run_complete.run_fast_tests`) on the cadence, INDEPENDENT of whether a sim
+  run happened — a wedge must surface even when the sim loop is quiet.
+- **FLAG** (transition-only, §5) the moment it is red, naming the first failing test +
+  whether HEAD is committed-clean vs. carrying uncommitted work (the tonight signature).
+- Pairs with the standing invariant that **uncommitted work must not be left in the
+  tree the gate runs against** — surface a dirty working tree older than N minutes as
+  its own flag (uncommitted in-flight code IS what the gate tests, and what wedged it).
+
 ---
 
 ## 4. The sweep pass — properties (design, not implementation)
