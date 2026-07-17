@@ -332,17 +332,80 @@ def _check_staging_age() -> str | None:
     return None
 
 
-def _check_single_interactive_session() -> str | None:
-    """Return a problem string if MORE THAN ONE interactive Claude session is running
-    (2026-07-16, director: a Jul-15 ghost session survived a full day, spamming NTFY every
-    gate cycle -- the next ghost must page him within a health cycle, not a day). Exactly
-    one is healthy; zero is fine (watchdog will resume); >1 is the ghost/duplicate alarm."""
+def _director_console_pids(pids, pane_session, ppid_of, session_name, _max_hops=32):
+    """Subset of `pids` that are the director's OWN console: an interactive claude
+    whose process -- or an ancestor within _max_hops -- is a live tmux pane in a
+    session OTHER than the managed one (`session_name`). These are legitimate and
+    unlimited (the reap logic spares pane-backed sessions identically); only the
+    managed session + non-pane-backed ghosts are the duplicate/ghost this alarm
+    exists for. The walk is up the ANCESTOR chain, not pane_pid==pid, because a
+    console pane can shell-wrap claude -- the pane_pid may be claude's PARENT
+    (observed 2026-07-17: the `work` pane_pid was claude's ppid, not claude itself)."""
+    console = set()
+    for pid in pids:
+        cur = pid
+        for _ in range(_max_hops):
+            if cur is None or cur <= 1:
+                break
+            sess = pane_session.get(cur)
+            if sess is not None and sess != session_name:
+                console.add(pid)
+                break
+            cur = ppid_of(cur)
+    return console
+
+
+def _check_single_interactive_session(_pids=None, _pane_session=None) -> str | None:
+    """Return a problem string if MORE THAN ONE non-console interactive Claude
+    session is running (2026-07-16, director: a Jul-15 ghost session survived a
+    full day, spamming NTFY every gate cycle -- the next ghost must page within a
+    health cycle, not a day). Exactly one MANAGED session is healthy; zero is fine
+    (watchdog resumes); >1 is the ghost/duplicate alarm.
+
+    Console-exclusion (2026-07-17): a session the director opened himself in his
+    OWN tmux session is NOT a duplicate -- excluded exactly as the reap logic
+    spares pane-backed sessions. Without this, a director console open ALONGSIDE
+    the managed session false-paged 'MULTIPLE sessions' every restart (a console
+    is a `claude --dangerously-skip-permissions` process too). The `_pids` /
+    `_pane_session` params are injection points for mutation-testing (R15);
+    production passes neither and reads live state.
+
+    Fail-safe: if tmux is unreachable (no pane map), fall back to the raw >1
+    alarm -- never go silent on a possible real duplicate."""
     try:
-        from background.session_watchdog import interactive_claude_pids
-        pids = interactive_claude_pids()
-        if len(pids) > 1:
-            return (f"MULTIPLE interactive Claude sessions ({len(pids)}: {pids}) -- a duplicate/"
-                    "ghost session. Each runs the test suite and burns tokens; reap all but one "
+        from background.session_watchdog import (
+            interactive_claude_pids, _ppid_of, SESSION_NAME,
+        )
+        pids = interactive_claude_pids() if _pids is None else list(_pids)
+        if len(pids) <= 1:
+            return None
+        if _pane_session is None:
+            res = subprocess.run(
+                ["tmux", "list-panes", "-a", "-F", "#{pane_pid} #{session_name}"],
+                capture_output=True, text=True,
+            )
+            if getattr(res, "returncode", 1) != 0:
+                # tmux unreachable -> cannot classify the console; fall back to the
+                # original raw alarm rather than risk silencing a real duplicate.
+                return (f"MULTIPLE interactive Claude sessions ({len(pids)}: {pids}) -- a "
+                        "duplicate/ghost session. Each runs the test suite and burns tokens; "
+                        "reap all but one (session_watchdog.reap_orphan_interactive_claude).")
+            pane_session = {}
+            for line in res.stdout.split("\n"):
+                parts = line.split()
+                if len(parts) == 2:
+                    try:
+                        pane_session[int(parts[0])] = parts[1]
+                    except ValueError:
+                        pass
+        else:
+            pane_session = _pane_session
+        console = _director_console_pids(pids, pane_session, _ppid_of, SESSION_NAME)
+        countable = [p for p in pids if p not in console]
+        if len(countable) > 1:
+            return (f"MULTIPLE interactive Claude sessions ({len(countable)}: {countable}) -- a "
+                    "duplicate/ghost session (director's own console panes excluded). Each runs "
+                    "the test suite and burns tokens; reap all but one "
                     "(session_watchdog.reap_orphan_interactive_claude).")
     except Exception:
         return None  # never break the health run on this check

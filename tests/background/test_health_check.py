@@ -524,3 +524,52 @@ def test_multiple_interactive_sessions_is_a_problem(monkeypatch):
     assert health_check._check_single_interactive_session() is None      # one is fine
     monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [])
     assert health_check._check_single_interactive_session() is None      # zero is fine
+
+
+class TestDirectorConsoleExclusion:
+    """2026-07-17: a director console open ALONGSIDE the managed session must NOT
+    false-page 'MULTIPLE sessions' -- the console is a `claude
+    --dangerously-skip-permissions` process too, but it lives in the director's OWN
+    tmux session, not the managed one. R15 mutation coverage: prove the alarm still
+    FIRES on a genuine ghost/duplicate (not merely disabled to kill the false
+    positive). Synthetic pids/panes via the injection params; a fake ppid chain
+    stands in for the ancestor walk so a shell-wrapped console pane is resolved."""
+
+    # 7001 = console claude, shell-wrapped: its pane_pid is 7000 (session "work").
+    # 8001/8002 = managed sessions, pane-backed directly in "claude".
+    # 9001 = orphan ghost: no live pane, ppid walk terminates at 1.
+    _PPID = {7001: 7000, 7000: 1, 7002: 7000, 8001: 1, 8002: 1, 9001: 1}
+
+    def _patch_ppid(self, monkeypatch):
+        from background import session_watchdog
+        monkeypatch.setattr(session_watchdog, "_ppid_of", lambda p: self._PPID.get(p))
+
+    def test_console_plus_managed_does_not_page(self, monkeypatch):
+        self._patch_ppid(monkeypatch)
+        r = health_check._check_single_interactive_session(
+            _pids=[7001, 8001], _pane_session={7000: "work", 8001: "claude"})
+        assert r is None  # console excluded -> only the managed session counts
+
+    def test_two_director_consoles_do_not_page(self, monkeypatch):
+        self._patch_ppid(monkeypatch)
+        r = health_check._check_single_interactive_session(
+            _pids=[7001, 7002], _pane_session={7000: "work"})
+        assert r is None  # the director may open as many of his own consoles as he likes
+
+    def test_managed_plus_ghost_still_pages(self, monkeypatch):
+        self._patch_ppid(monkeypatch)
+        r = health_check._check_single_interactive_session(
+            _pids=[8001, 9001], _pane_session={8001: "claude"})
+        assert r is not None  # MUTATION: a real orphan ghost must still alarm
+
+    def test_two_managed_sessions_still_page(self, monkeypatch):
+        self._patch_ppid(monkeypatch)
+        r = health_check._check_single_interactive_session(
+            _pids=[8001, 8002], _pane_session={8001: "claude", 8002: "claude"})
+        assert r is not None  # a genuine double-spawn must still alarm
+
+    def test_empty_pane_map_never_silences(self, monkeypatch):
+        self._patch_ppid(monkeypatch)
+        r = health_check._check_single_interactive_session(
+            _pids=[8001, 9001], _pane_session={})
+        assert r is not None  # no classification possible -> fail toward the raw >1 alarm
