@@ -278,7 +278,8 @@ PULL_LOOP_HEALTH_PATH = _HERE.parent / "docs" / "observability" / ".pull_loop_he
 PULL_LOOP_ENABLE_PATH = _HERE.parent / "docs" / "observability" / ".build_executor_enabled"
 
 
-def pull_loop_status(health: dict | None, enable_on: bool) -> dict:
+def pull_loop_status(health: dict | None, enable_on: bool, *,
+                     now: float | None = None, stale_after: float = 3600.0) -> dict:
     """PURE predicate (mutation-testable): classify the transport from its last-fire health
     record + whether the loop is enabled. REPORT ONLY. Returns {status, alarm, detail}.
 
@@ -286,10 +287,22 @@ def pull_loop_status(health: dict | None, enable_on: bool) -> dict:
       HEALTHY_DREW  last fire drew work                                            (no alarm)
       HEALTHY_IDLE  last fire allow-stopped: no drawable work / paused             (no alarm)
       LOOP_BROKEN   last fire hit a draw/import error -> cannot draw               (ALARM)
+      LOOP_STALE    a healthy record frozen while ENABLED -> hook stopped firing   (ALARM)
       UNKNOWN       no / unrecognised health record                               (no alarm)
 
     THE distinction the director required: HEALTHY_IDLE ('idle because no grant / no work')
-    reads DIFFERENTLY from LOOP_BROKEN ('idle because the loop is broken')."""
+    reads DIFFERENTLY from LOOP_BROKEN ('idle because the loop is broken').
+
+    FRESHNESS (`now`, 2026-07-17 HARDEN): the outcome-only classification was time-BLIND -- a
+    dead/hung worker whose Stop hook stops firing entirely (crash, hook exception before the
+    health write, session-id mismatch) leaves the record FROZEN at its last healthy value, which
+    read HEALTHY_DREW forever: the exact day-long fail-silent this atom exists to kill, arriving
+    via staleness instead of an error outcome (the named backstops -- deadman commit-clock,
+    reconciler MISSING -- can't distinguish it: the commit-clock reads a director-gated idle the
+    same as a dead worker, and the process may be UP with only its transport dead). When a clock is
+    supplied and a healthy record is older than `stale_after` WHILE ENABLED, it is LOUD. Strictly
+    more-conservative (adds an alarm, removes none). `now=None` -> freshness skipped (pure,
+    back-compat)."""
     if not enable_on:
         return {"status": "DISABLED", "alarm": False,
                 "detail": "pull loop disabled (kill switch off) -- autonomy paused"}
@@ -309,6 +322,15 @@ def pull_loop_status(health: dict | None, enable_on: bool) -> dict:
         # Under Rule-0 the queue is never genuinely empty, so an empty draw = a broken draw.
         return {"status": "LOOP_BROKEN", "alarm": True,
                 "detail": f"pull-loop drew nothing (never legitimate under Rule-0): {health.get('detail', '')}"}
+    # FRESHNESS gate (the alarm outcomes above already returned; only resting/healthy states remain).
+    # A frozen healthy record while ENABLED means the transport stopped firing -> LOUD, not healthy.
+    if now is not None:
+        ts = health.get("ts")
+        if isinstance(ts, (int, float)) and (now - ts) > stale_after:
+            return {"status": "LOOP_STALE", "alarm": True,
+                    "detail": (f"pull-loop transport frozen: last fire {int((now - ts) // 60)}m ago "
+                               f"(>{int(stale_after // 60)}m) while ENABLED -- hook stopped firing "
+                               f"(dead/hung worker); reads {outcome!r} but is stale")}
     if outcome == "DREW":
         return {"status": "HEALTHY_DREW", "alarm": False, "detail": "last fire drew work"}
     if outcome in ("ALLOW_STOP_NO_WORK", "ALLOW_STOP_DISABLED"):
@@ -338,7 +360,7 @@ def pull_loop_enabled(path: Path | None = None) -> bool:
 def evaluate_pull_loop() -> dict:
     """Live wrapper: read the health record + the enable flag, return pull_loop_status(...).
     REPORT ONLY -- no side effects."""
-    return pull_loop_status(read_pull_loop_health(), pull_loop_enabled())
+    return pull_loop_status(read_pull_loop_health(), pull_loop_enabled(), now=time.time())
 
 
 # ── Deployment-by-construction: booted-SHA drift (OPS1 sub-step 5, G-D1/G-D3) ─────────────

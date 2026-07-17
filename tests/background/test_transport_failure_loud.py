@@ -56,6 +56,45 @@ def test_self_sustain_loud_states_alarm_and_read_distinctly():
     assert stuck["status"] != drew["status"] and empty["status"] != drew["status"]
 
 
+def test_stale_healthy_record_while_enabled_alarms_LOUD():
+    """FRESHNESS fail-silent (2026-07-17 HARDEN): an ENABLED loop whose last fire was healthy (DREW)
+    but is now FROZEN (Stop hook stopped firing -- dead/hung worker) must read LOUD, not a healthy
+    worker forever. The time-blind classifier missed this exact day-long shape."""
+    fresh = R.pull_loop_status({"outcome": "DREW", "ts": 1000}, True, now=1000, stale_after=3600)
+    stale = R.pull_loop_status({"outcome": "DREW", "ts": 1000}, True, now=1000 + 4000, stale_after=3600)
+    assert fresh["alarm"] is False and fresh["status"] == "HEALTHY_DREW"
+    assert stale["alarm"] is True and stale["status"] == "LOOP_STALE"   # frozen-healthy -> LOUD
+    assert stale["status"] != fresh["status"]                          # reads distinctly (director req)
+
+
+def test_stale_record_never_alarms_when_disabled():
+    # kill switch off -> deliberately paused; a stale record must stay silent (no spurious page).
+    r = R.pull_loop_status({"outcome": "DREW", "ts": 0}, False, now=10 ** 9, stale_after=3600)
+    assert r["status"] == "DISABLED" and r["alarm"] is False
+
+
+def test_freshness_check_skipped_without_a_clock():
+    # back-compat + purity: no clock supplied -> time-blind classification unchanged.
+    r = R.pull_loop_status({"outcome": "DREW", "ts": 0}, True)   # ancient ts, but now=None
+    assert r["status"] == "HEALTHY_DREW" and r["alarm"] is False
+
+
+def test_stale_record_missing_ts_does_not_false_alarm():
+    # a record with no/garbage ts can't be judged stale -> classify by outcome, never a spurious page.
+    r = R.pull_loop_status({"outcome": "DREW"}, True, now=10 ** 9, stale_after=3600)
+    assert r["status"] == "HEALTHY_DREW" and r["alarm"] is False
+
+
+def test_evaluate_pull_loop_flags_a_stale_ondisk_record(tmp_path, monkeypatch):
+    # the LIVE wrapper wires a real clock: an ancient on-disk record (ts=1) reads LOOP_STALE.
+    p = tmp_path / ".pull_loop_health.json"
+    p.write_text(json.dumps({"outcome": "DREW", "ts": 1}))
+    monkeypatch.setattr(R, "PULL_LOOP_HEALTH_PATH", p)
+    monkeypatch.setattr(R, "pull_loop_enabled", lambda *a, **k: True)
+    out = R.evaluate_pull_loop()
+    assert out["status"] == "LOOP_STALE" and out["alarm"] is True
+
+
 def test_disabled_never_alarms_even_on_a_stale_error():
     # kill switch off -> autonomy deliberately paused; a stale DRAW_ERROR must not alarm.
     r = R.pull_loop_status({"outcome": "DRAW_ERROR"}, enable_on=False)
