@@ -983,3 +983,55 @@ def test_reap_fails_safe_when_tmux_unavailable(monkeypatch):
     monkeypatch.setattr(watchdog.os, "kill", lambda pid, sig: killed.append(pid))
     reaped = watchdog.reap_orphan_interactive_claude()
     assert killed == [] and reaped == []
+
+
+class TestConsoleSanctityReapExemption:
+    """OPS1 sub-step 1 / G-L1 (docs/design/OPERATIONAL_LAYER_DESIGN.md §2.1): a
+    SANCTIFIED console can NEVER be reaped, and -- unlike the old inference belt --
+    that holds even when tmux is UNREACHABLE. R15: the reap must still FIRE on a
+    genuine non-sanctified ghost, so this is a real exemption, not 'spare everything'.
+    This is the mutation test the director asked to see: inject a marked console,
+    prove the watchdog can never reap it."""
+
+    SANCT, GHOST, CONSOLE = 5001, 5002, 5003
+
+    def _wire(self, monkeypatch, pids, sanctified, pane_pids, pane_backed=()):
+        killed = []
+        monkeypatch.setattr(watchdog, "interactive_claude_pids", lambda: list(pids))
+        monkeypatch.setattr(watchdog.console_sanctity, "is_sanctified", lambda p: p in sanctified)
+        monkeypatch.setattr(watchdog, "_live_tmux_pane_pids", lambda: set(pane_pids))
+        monkeypatch.setattr(watchdog, "_is_backed_by_live_pane", lambda p, pp, **k: p in pane_backed)
+        monkeypatch.setattr(watchdog.os, "kill", lambda p, sig: killed.append(p))
+        monkeypatch.setattr(watchdog, "log", lambda *a, **k: None)
+        return killed
+
+    def test_sanctified_console_never_reaped_tmux_reachable(self, monkeypatch):
+        killed = self._wire(monkeypatch, pids=[self.SANCT, self.GHOST],
+                            sanctified={self.SANCT}, pane_pids={9999})
+        reaped = watchdog.reap_orphan_interactive_claude()
+        assert self.SANCT not in killed and self.SANCT not in reaped  # marked console spared
+        assert self.GHOST in reaped                                    # ghost reaped
+
+    def test_sanctified_console_never_reaped_when_tmux_UNREACHABLE(self, monkeypatch):
+        """The decisive case: empty pane set = tmux down, exactly where the old
+        inference-only exemption fell back to raw guessing. The marker holds."""
+        killed = self._wire(monkeypatch, pids=[self.SANCT, self.GHOST],
+                            sanctified={self.SANCT}, pane_pids=set())
+        reaped = watchdog.reap_orphan_interactive_claude()
+        assert self.SANCT not in killed and self.SANCT not in reaped  # spared, tmux-independent
+        assert self.GHOST not in reaped   # non-sanctified still fail-safe-spared when tmux down
+
+    def test_control_still_fires_on_a_real_ghost_R15(self, monkeypatch):
+        """Mutation: with nothing sanctified and tmux reachable, a pane-less ghost
+        MUST be reaped -- proving the exemption is real, not 'spare everything'."""
+        killed = self._wire(monkeypatch, pids=[self.GHOST], sanctified=set(), pane_pids={9999})
+        reaped = watchdog.reap_orphan_interactive_claude()
+        assert self.GHOST in reaped and self.GHOST in killed
+
+    def test_sanctity_beats_the_self_check_ordering(self, monkeypatch):
+        """A sanctified pid that also happens to be pane-backed is still spared (both
+        reasons agree); and a sanctified ghost with NO pane is spared by sanctity alone."""
+        killed = self._wire(monkeypatch, pids=[self.SANCT], sanctified={self.SANCT},
+                           pane_pids={9999}, pane_backed=())  # sanctified, not pane-backed
+        reaped = watchdog.reap_orphan_interactive_claude()
+        assert self.SANCT not in reaped and self.SANCT not in killed

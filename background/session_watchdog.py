@@ -122,6 +122,7 @@ from background.agent_status import update_agent_status  # noqa: E402
 # reaches the session via STAGING (ntfy_responder writes from_rich_*.md) + the
 # pull-loop draw; the pane is the director's console only.
 from background.health_check import run_health_check  # noqa: E402
+from background import console_sanctity  # noqa: E402  (G-L1 console-sanctity marker)
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -603,42 +604,53 @@ def reap_orphan_interactive_claude(exclude: set[int] | None = None) -> list[int]
     ghost spammed the director for a full day). Called on the respawn path so the
     singleton invariant covers the crash-recovery / usage-reset route.
 
-    NEVER kills a session the director is actually using: a process backed by a
-    LIVE tmux pane -- the watchdog's own managed session OR a console `tmux
-    new-session` + claude he started himself -- is spared, always. This closes the
-    "watchdog killed an interactive console session" hazard: the earlier version
-    SIGTERM'd every interactive claude except its own pid, which would have reaped
-    a legitimate second console. Returns the reaped pids.
+    NEVER kills a session the director is actually using. Two INDEPENDENT reasons
+    to spare, checked in order; a pid is reaped only if BOTH fail to protect it:
+      1. G-L1 CONSOLE SANCTITY (positive, tmux-independent): a pid registered in
+         the console-sanctity marker (`console_sanctity.is_sanctified`) is spared
+         unconditionally -- the check reads only /proc + the registry file, so it
+         holds even when tmux is unreachable, the exact gap the old inference-only
+         exemption could not cover (the blackout's exit-143 console kill).
+      2. LIVE TMUX PANE (inference, retained as a redundant belt): a process
+         backed by a live tmux pane is spared. Kept until every console-launch
+         path registers via the sanctioned launcher (background/console.sh);
+         retiring it before then would risk the very console-kill G-L1 prevents.
 
-    Fails SAFE: if tmux is unreachable (empty pane set) we cannot prove a process
-    is a ghost, so we reap NOTHING rather than risk killing a live session."""
+    Returns the reaped pids. Fails SAFE: for a NON-sanctified pid, if tmux is
+    unreachable (empty pane set) we cannot prove it is a ghost, so we do not reap
+    it -- a lingering ghost is far less harmful than killing a live session."""
     exclude = exclude or set()
     pane_pids = _live_tmux_pane_pids()
-    if not pane_pids:
-        # Cannot distinguish ghost from live console without the pane list -> do not
-        # reap. A lingering ghost is far less harmful than killing a live session.
-        log("Reap skipped: tmux pane list unavailable -- cannot prove any process is an "
-            "orphan, so nothing is reaped (fail-safe: never kill a possibly-live session).")
-        return []
-    reaped = []
-    spared_live = []
+    reaped: list[int] = []
+    spared_sanctified: list[int] = []
+    spared_live: list[int] = []
     for pid in interactive_claude_pids():
         if pid in exclude or pid == os.getpid():
             continue
+        # (1) G-L1: sanctified console -- never reaped, independent of tmux.
+        if console_sanctity.is_sanctified(pid):
+            spared_sanctified.append(pid)
+            continue
+        # (2) fail-safe: without the pane list we cannot prove a ghost -> do not reap.
+        if not pane_pids:
+            spared_live.append(pid)
+            continue
+        # (2) inference belt: a live pane-backed session is spared.
         if _is_backed_by_live_pane(pid, pane_pids):
             spared_live.append(pid)
-            continue  # a live session (managed or the director's console) -- never touch it
+            continue
         try:
             os.kill(pid, signal.SIGTERM)
             reaped.append(pid)
         except OSError:
             pass
+    _sanct = f"; spared {len(spared_sanctified)} SANCTIFIED console(s): {spared_sanctified}" if spared_sanctified else ""
+    _live = f"; spared {len(spared_live)} pane-backed/fail-safe session(s): {spared_live}" if spared_live else ""
     if reaped:
         log(f"Reaped {len(reaped)} ORPHAN interactive-claude ghost(s) on respawn: {reaped}"
-            + (f"; spared {len(spared_live)} live pane-backed session(s): {spared_live}" if spared_live else "")
-            + " (singleton invariant; live console sessions are never killed)")
-    elif spared_live:
-        log(f"Reap found no orphans; spared {len(spared_live)} live pane-backed session(s): {spared_live}")
+            + _sanct + _live + " (singleton invariant; sanctified consoles never killed)")
+    elif spared_sanctified or spared_live:
+        log(f"Reap found no orphans{_sanct}{_live}")
     return reaped
 
 
