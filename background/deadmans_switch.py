@@ -91,6 +91,7 @@ _last_escalation_ts: float | None = None
 # Transition state for the pull-loop transport alarm (OPS1_transport_failure_must_be_loud, §9),
 # kept separate from the commit-clock escalation so the two alarm classes never mask each other.
 _last_loop_broken_ts: float | None = None
+_last_gate_violation_ts: float | None = None
 
 
 def log(msg: str) -> None:
@@ -250,11 +251,43 @@ def _check_pull_loop_transport() -> None:
     _last_loop_broken_ts = now
 
 
+def _check_gate_wall() -> None:
+    """Fire a transition-only, LOUD GATE_VIOLATION alarm when an atom was promoted across a gate
+    (loop_stage idle->build) with NO director-console authorization (OPS1 gate-wall, director P0).
+    Report-only detection: the loop may self-SUSTAIN through open queued work, but must never
+    self-PROMOTE across a gate without the director's authenticated act. This is the RUNNING home
+    for the alarm (the deadman is the only periodic safety-net daemon). Distinct transition state
+    so it is transition-only (R5) and independent of the LOOP_BROKEN / commit-clock alarms."""
+    global _last_gate_violation_ts
+    try:
+        from background.gate_authorization import evaluate_gate_wall
+        st = evaluate_gate_wall()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"gate-wall check error: {e}")
+        return
+    now = time.time()
+    if not st["alarm"]:
+        _last_gate_violation_ts = None
+        return
+    if _last_gate_violation_ts is not None and (now - _last_gate_violation_ts) < RE_ESCALATE_SECONDS:
+        log(f"GATE VIOLATION (still) -- suppressed (re-alerts hourly): {st['detail']}")
+        return
+    send_ntfy(
+        f"[GATE VIOLATION] {st['detail']}. An atom was promoted idle->build with NO director-console "
+        f"authorization -- self-PROMOTION across a gate (allowed: self-sustain through OPEN work; "
+        f"forbidden: crossing a gate without your act). Check the commit that flipped loop_stage and "
+        f"docs/observability/gate_authorizations.jsonl."
+    )
+    log(f"GATE VIOLATION NTFY sent: {st['detail']}")
+    _last_gate_violation_ts = now
+
+
 def run_cycle() -> None:
     global _last_escalation_ts
 
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
+    _check_gate_wall()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).

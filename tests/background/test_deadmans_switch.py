@@ -12,6 +12,8 @@ from background import action_needed
 
 def _reset_state():
     dms._last_escalation_ts = None
+    dms._last_loop_broken_ts = None
+    dms._last_gate_violation_ts = None
 
 
 @pytest.fixture(autouse=True)
@@ -22,6 +24,15 @@ def _isolate(tmp_path, monkeypatch):
     # Isolated from the real, committed action_needed_register.json --
     # every test starts with a genuinely empty register (2026-07-11).
     monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "action_needed_register.json")
+    # These tests exercise the commit-clock / staging escalation via run_cycle. Isolate the two
+    # OTHER run_cycle checks (which read real repo state): the pull-loop transport health and the
+    # gate-wall detection -- otherwise a real, unrelated LOOP_BROKEN / GATE_VIOLATION pollutes
+    # every send_ntfy assertion here. Each has its own dedicated test file.
+    monkeypatch.setattr("background.process_reconciler.evaluate_pull_loop",
+                        lambda: {"status": "UNKNOWN", "alarm": False, "detail": "(isolated)"})
+    monkeypatch.setattr("background.gate_authorization.evaluate_gate_wall",
+                        lambda: {"status": "GATE_CLEAN", "alarm": False, "detail": "(isolated)",
+                                 "unauthorized": []})
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     _reset_state()
