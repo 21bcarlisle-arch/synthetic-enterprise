@@ -1755,7 +1755,7 @@
   epoch: 2
   level_current: 1
   level_target: 3
-  loop_stage: idle   # PARKED for the maiden autonomous turn (2026-07-17, director-approved): OPS1 build lane deliberately yielded so the loop-proving cleanup is the SOLE build draw. Un-park to build for sub-step 5 (see the SUB-STEP 4 DONE-LIVE note below).
+  loop_stage: build   # UN-PARKED 2026-07-17 (director-authorized console gate-opening, recorded in docs/observability/gate_authorizations.jsonl): OPS1 sub-steps 5 (deployment-by-construction) -> 6 (notification contract) -> 7 (test-isolation).
   dial_inherited: 5
   provenance: director_mandate
   evidence: [docs/staging/OPERATIONAL_COHERENCE_DESIGN_PASS.md, docs/design/OPERATIONAL_LAYER_DESIGN.md]
@@ -1771,7 +1771,7 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build   # UN-PARKED 2026-07-17 (director-authorized console gate-opening, recorded in gate_authorizations.jsonl): cleanup, after 5/6/7.
   dial_inherited: 2
   provenance: proposal
   evidence:

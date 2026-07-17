@@ -124,6 +124,26 @@ def authorized_atoms(ledger: list) -> set:
     return {e["atom"] for e in ledger if _is_valid_authorization(e) and e.get("atom")}
 
 
+def _is_valid_hold(entry) -> bool:
+    """A HELD_PENDING_VERIFICATION record: the director has SEEN this specific promotion and
+    deliberately parked it RED pending live verification (NOT authorized -- it stays uncleared).
+    Same director-console provenance requirement as an authorization. A hold does NOT wave the
+    atom through; it distinguishes a director-acknowledged known-red from an unacknowledged
+    violation, so the deadman does not hourly-re-page a state the director already parked (R5)."""
+    return (
+        isinstance(entry, dict)
+        and entry.get("action") == "HELD_PENDING_VERIFICATION"
+        and entry.get("authorized_by") == "director"
+        and entry.get("channel") == "console"
+        and bool(str(entry.get("provenance") or "").strip())
+    )
+
+
+def held_atoms(ledger: list) -> set:
+    """Atoms the director has explicitly HELD red pending verification (acknowledged, NOT cleared)."""
+    return {e["atom"] for e in ledger if _is_valid_hold(e) and e.get("atom")}
+
+
 def unauthorized_promotions(promotions: list, ledger: list) -> list:
     """THE predicate: promotions (idle->advanced) with NO valid director-console authorization.
     Pure -> mutation-testable. A promotion with a matching valid ledger entry is authorized
@@ -158,6 +178,20 @@ def record_gate_opening(atoms, provenance: str, *, ts: float | None = None,
     a provenance string that traces to that console act (the director_input_log 'window' entry
     / the console directive). The autonomous worker (doorbell channel) must never call this --
     that is the prevention layer; detection makes an unauthorized flip LOUD regardless."""
+    _append_ledger(atoms, "BUILD_OPEN", provenance, ts=ts, path=path)
+
+
+def record_hold(atoms, provenance: str, *, ts: float | None = None,
+                path: Path | None = None) -> None:
+    """Append a director-console HELD_PENDING_VERIFICATION record: the director has SEEN this
+    promotion and deliberately parks it RED pending live verification (NOT an authorization).
+    Console-path only, same as record_gate_opening. The atom stays uncleared in the wall; the
+    hold only suppresses hourly re-paging of a state the director already acknowledged."""
+    _append_ledger(atoms, "HELD_PENDING_VERIFICATION", provenance, ts=ts, path=path)
+
+
+def _append_ledger(atoms, action: str, provenance: str, *, ts: float | None = None,
+                   path: Path | None = None) -> None:
     if isinstance(atoms, str):
         atoms = [atoms]
     p = path or LEDGER_PATH
@@ -167,7 +201,7 @@ def record_gate_opening(atoms, provenance: str, *, ts: float | None = None,
         with p.open("a", encoding="utf-8") as f:
             for atom in atoms:
                 f.write(json.dumps({
-                    "atom": atom, "action": "BUILD_OPEN", "ts": stamp,
+                    "atom": atom, "action": action, "ts": stamp,
                     "authorized_by": "director", "channel": "console",
                     "provenance": provenance,
                 }) + "\n")
@@ -179,22 +213,34 @@ def record_gate_opening(atoms, provenance: str, *, ts: float | None = None,
 def evaluate_gate_wall(*, map_path: Path | None = None, baseline_path: Path | None = None,
                        ledger_path: Path | None = None) -> dict:
     """REPORT ONLY. Classify the gate wall from the live map vs baseline vs ledger.
-      GATE_CLEAN     every promotion since genesis is director-console-authorized  (no alarm)
-      GATE_VIOLATION >=1 idle->build promotion with no director-console authorization (ALARM)
+      GATE_CLEAN     every promotion since genesis is director-console-authorized   (no alarm)
+      GATE_HELD      the only un-authorized promotions are director-ACKNOWLEDGED holds (no alarm,
+                     but NOT cleared -- still red, pending live verification)
+      GATE_VIOLATION >=1 promotion with NEITHER authorization NOR an acknowledged hold  (ALARM)
     Never raises."""
     current = current_loop_stages(map_path)
     baseline = load_baseline(baseline_path)
     ledger = read_ledger(ledger_path)
     proms = promotions_since_baseline(current, baseline)
-    unauth = unauthorized_promotions(proms, ledger)
+    authz = authorized_atoms(ledger)
+    held = held_atoms(ledger)
+    unauth = [p for p in proms if p["atom"] not in authz and p["atom"] not in held]
+    held_proms = [p for p in proms if p["atom"] not in authz and p["atom"] in held]
     if unauth:
         names = ", ".join(u["atom"] for u in unauth[:6])
         return {"status": "GATE_VIOLATION", "alarm": True,
-                "detail": f"{len(unauth)} BUILD promotion(s) with no director-console authorization: {names}",
-                "unauthorized": unauth}
+                "detail": f"{len(unauth)} BUILD promotion(s) with NO director-console authorization "
+                          f"and NO acknowledged hold: {names}",
+                "unauthorized": unauth, "held": held_proms}
+    if held_proms:
+        names = ", ".join(h["atom"] for h in held_proms[:6])
+        return {"status": "GATE_HELD", "alarm": False,
+                "detail": f"{len(held_proms)} promotion(s) HELD red pending director verification "
+                          f"(acknowledged, not cleared): {names}",
+                "unauthorized": [], "held": held_proms}
     return {"status": "GATE_CLEAN", "alarm": False,
             "detail": f"all {len(proms)} promotion(s) since genesis are director-authorized",
-            "unauthorized": []}
+            "unauthorized": [], "held": []}
 
 
 if __name__ == "__main__":

@@ -34,6 +34,11 @@ def _valid_entry(atom):
             "channel": "console", "provenance": "director console message 2026-07-17: open BUILD"}
 
 
+def _hold_entry(atom):
+    return {"atom": atom, "action": "HELD_PENDING_VERIFICATION", "authorized_by": "director",
+            "channel": "console", "provenance": "director console msg 2026-07-17: HOLD pending L3 run"}
+
+
 def _eval(tmp_path, baseline, current, ledger):
     bp = _write_baseline(tmp_path, baseline)
     lp = _write_ledger(tmp_path, ledger)
@@ -81,6 +86,36 @@ def test_mixed_one_authorized_one_not(tmp_path):
               current={"A": "build", "D": "build"}, ledger=[_valid_entry("A")])
     assert r["alarm"] is True
     assert [u["atom"] for u in r["unauthorized"]] == ["D"]           # only the unauthorized one
+
+
+# ── HELD: red but acknowledged (no alarm), never treated as authorized ─────────────────────
+def test_held_promotion_is_RED_but_no_alarm(tmp_path):
+    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[_hold_entry("A")])
+    assert r["status"] == "GATE_HELD" and r["alarm"] is False   # acknowledged -> no page
+    assert [h["atom"] for h in r["held"]] == ["A"]              # ...but still tracked red, NOT cleared
+
+
+def test_held_does_not_count_as_authorization(tmp_path):
+    # A hold must NOT clear the atom to green. Only a BUILD_OPEN does. (Don't wave it through.)
+    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=[_hold_entry("A")])
+    assert r["status"] != "GATE_CLEAN"
+
+
+def test_held_plus_a_real_violation_STILL_alarms(tmp_path):
+    # A held atom does not mask a DIFFERENT unauthorized promotion -> the wall still alarms on B.
+    r = _eval(tmp_path, baseline={"A": "idle", "B": "idle"},
+              current={"A": "build", "B": "build"}, ledger=[_hold_entry("A")])
+    assert r["status"] == "GATE_VIOLATION" and r["alarm"] is True
+    assert [u["atom"] for u in r["unauthorized"]] == ["B"]
+
+
+def test_record_hold_then_wall_is_held_not_clean(tmp_path):
+    lp = tmp_path / "ledger.jsonl"
+    G.record_hold("A", "director console msg 2026-07-17: HOLD A pending live L3 verification", path=lp)
+    entries = G.read_ledger(lp)
+    assert entries and all(G._is_valid_hold(e) for e in entries)
+    r = _eval(tmp_path, baseline={"A": "idle"}, current={"A": "build"}, ledger=entries)
+    assert r["status"] == "GATE_HELD"
 
 
 # ── pure predicates ────────────────────────────────────────────────────────────────────────
