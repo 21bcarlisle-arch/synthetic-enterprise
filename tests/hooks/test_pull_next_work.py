@@ -71,9 +71,16 @@ def test_kill_switch_flag_off_refuses_next_boundary(tmp_path, monkeypatch):
     assert mod.decide(_wp()) is not None
 
 
-def test_loop_guard_allows_stop_when_already_blocking(tmp_path, monkeypatch):
-    mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=("A6 has work", False))
-    assert mod.decide(_wp(stop_hook_active=True)) is None  # never an infinite loop
+def test_self_sustains_across_continuations_not_one_shot(tmp_path, monkeypatch):
+    """SELF-SUSTAIN (director P0, 2026-07-17): the old `stop_hook_active -> stop` one-shot made the
+    loop do ONE continuation then idle until an unreliable external Stop re-armed it (the
+    ~100-min-idle-with-work-queued disease). Now a CONTINUED turn (stop_hook_active=True) with work
+    STILL continues -- the chain sustains turn to turn on its own draw."""
+    mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=("more queued work", False))
+    for shook_active in (False, True, True, True, True):
+        out = mod.decide(_wp(stop_hook_active=shook_active))
+        assert out is not None and out["decision"] == "block", "chain must NOT die on stop_hook_active"
+        assert "more queued work" in out["reason"]
 
 
 def test_worker_seat_pulled_but_console_and_others_are_exempt(tmp_path, monkeypatch):

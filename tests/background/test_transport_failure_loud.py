@@ -34,12 +34,26 @@ def test_draw_error_alarms_LOUD():
 
 
 def test_healthy_idle_is_silent_and_reads_differently_from_broken():
-    idle = R.pull_loop_status({"outcome": "ALLOW_STOP_NO_WORK"}, enable_on=True)
+    # Real healthy-idle now = kill switch off (ALLOW_STOP_DISABLED). Under Rule-0 an EMPTY draw is
+    # no longer 'healthy idle' -- it is loud (DRAW_EMPTY_UNEXPECTED), see the dedicated test below.
+    idle = R.pull_loop_status({"outcome": "ALLOW_STOP_DISABLED"}, enable_on=True)
     broken = R.pull_loop_status({"outcome": "DRAW_ERROR"}, enable_on=True)
-    assert idle["alarm"] is False                  # idle-because-no-work does NOT alarm
+    assert idle["alarm"] is False                  # deliberately-paused does NOT alarm
     assert idle["status"] == "HEALTHY_IDLE"
     # the director's exact requirement: the two idle states read differently
     assert idle["status"] != broken["status"]
+
+
+def test_self_sustain_loud_states_alarm_and_read_distinctly():
+    """SELF-SUSTAIN (director P0): a continuous loop that stalls must be LOUD, not silent idle.
+    Both new outcomes alarm and read distinctly from a healthy DREW."""
+    stuck = R.pull_loop_status({"outcome": "STUCK_NO_PROGRESS", "detail": "30 turns no commit"}, True)
+    empty = R.pull_loop_status({"outcome": "DRAW_EMPTY_UNEXPECTED"}, True)
+    drew = R.pull_loop_status({"outcome": "DREW"}, True)
+    assert stuck["alarm"] is True and stuck["status"] == "LOOP_STUCK"
+    assert empty["alarm"] is True and empty["status"] == "LOOP_BROKEN"   # empty=broken under Rule-0
+    assert drew["alarm"] is False
+    assert stuck["status"] != drew["status"] and empty["status"] != drew["status"]
 
 
 def test_disabled_never_alarms_even_on_a_stale_error():
@@ -71,6 +85,10 @@ def hook(tmp_path, monkeypatch):
     mod = _load_hook()
     monkeypatch.setattr(mod, "HEALTH_FILE", tmp_path / "health.json")
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / "state.json")
+    # ISOLATION (2026-07-17): without patching LOG_FILE, decide()'s _log() wrote test-fixture
+    # strings ("draw blew up", "do atom X", ...) into the REAL committed docs/observability/
+    # pull-loop-log.md on every run -- a test polluting a live observability artefact. Patch it.
+    monkeypatch.setattr(mod, "LOG_FILE", tmp_path / "pull-loop-log.md")
     monkeypatch.setattr(mod, "WORKER_SESSION_ID", "WORKER")
     monkeypatch.setattr(mod, "_autonomous_execution_enabled", lambda: True)
     return mod
@@ -100,12 +118,42 @@ def test_hook_records_DREW_on_work(hook, monkeypatch):
     assert _outcome(hook) == "DREW"
 
 
-def test_hook_records_NO_WORK_when_draw_empty(hook, monkeypatch):
+def test_hook_records_DRAW_EMPTY_UNEXPECTED_when_draw_empty(hook, monkeypatch):
+    # Under Rule-0 the queue is never genuinely empty, so an empty draw = a broken draw -> LOUD.
     import background.supervisor as sup
     monkeypatch.setattr(sup, "find_work", lambda **k: ("", True))
     out = hook.decide({"session_id": "WORKER", "stop_hook_active": False})
-    assert out is None
-    assert _outcome(hook) == "ALLOW_STOP_NO_WORK"
+    assert out is None                               # still fail-safe allow-stop
+    assert _outcome(hook) == "DRAW_EMPTY_UNEXPECTED"  # ...but LOUD, not a silent healthy idle
+    assert R.pull_loop_status({"outcome": "DRAW_EMPTY_UNEXPECTED"}, True)["alarm"] is True
+
+
+def test_hook_self_sustains_then_STUCK_alarms_when_no_commits(hook, monkeypatch):
+    """SELF-SUSTAIN + loud stall: a continued loop that keeps drawing but never advances the repo
+    (no commit) sustains for a while then trips the stuck-cap LOUD -- it does not spin forever, and
+    it does not read as a healthy idle worker."""
+    import background.supervisor as sup
+    monkeypatch.setattr(sup, "find_work", lambda **k: ("draw the same thing", False))
+    monkeypatch.setattr(hook, "_repo_progress_token", lambda: "FIXED")   # repo NEVER advances
+    monkeypatch.setattr(hook, "MAX_NO_PROGRESS", 3)                      # small cap for the test
+    outs = [hook.decide({"session_id": "WORKER", "stop_hook_active": True}) for _ in range(6)]
+    assert all(o is not None and o["decision"] == "block" for o in outs[:4])  # sustained (not one-shot)
+    assert outs[-1] is None                                              # eventually stops (bounded)
+    assert _outcome(hook) == "STUCK_NO_PROGRESS"                         # ...LOUD
+    assert R.pull_loop_status({"outcome": "STUCK_NO_PROGRESS"}, True)["alarm"] is True
+
+
+def test_hook_stuck_cap_resets_on_repo_progress(hook, monkeypatch):
+    """A PRODUCTIVE loop never trips the stuck-cap however long it runs: every commit (progress
+    token advance) resets no_progress. Proves the cap targets thrashing, not healthy long runs."""
+    import background.supervisor as sup
+    monkeypatch.setattr(sup, "find_work", lambda **k: ("keep building", False))
+    monkeypatch.setattr(hook, "MAX_NO_PROGRESS", 3)
+    tokens = iter(["c1", "c1", "c2", "c3", "c4", "c5", "c6", "c7"])  # advances at least every few turns
+    monkeypatch.setattr(hook, "_repo_progress_token", lambda: next(tokens))
+    outs = [hook.decide({"session_id": "WORKER", "stop_hook_active": True}) for _ in range(8)]
+    assert all(o is not None and o["decision"] == "block" for o in outs)  # never trips -- always progressing
+    assert _outcome(hook) == "DREW"
 
 
 def test_hook_records_DISABLED_when_kill_switch_off(hook, monkeypatch):

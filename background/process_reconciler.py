@@ -300,11 +300,22 @@ def pull_loop_status(health: dict | None, enable_on: bool) -> dict:
     if outcome == "DRAW_ERROR":
         return {"status": "LOOP_BROKEN", "alarm": True,
                 "detail": f"pull-loop transport cannot draw: {health.get('detail', '')}"}
+    # SELF-SUSTAIN loud states (2026-07-17, director P0). Both are the fail-silent law applied to a
+    # CONTINUOUS loop: it kept running but stopped making progress / drew nothing under Rule-0.
+    if outcome == "STUCK_NO_PROGRESS":
+        return {"status": "LOOP_STUCK", "alarm": True,
+                "detail": f"pull-loop thrashing (no commit): {health.get('detail', '')}"}
+    if outcome == "DRAW_EMPTY_UNEXPECTED":
+        # Under Rule-0 the queue is never genuinely empty, so an empty draw = a broken draw.
+        return {"status": "LOOP_BROKEN", "alarm": True,
+                "detail": f"pull-loop drew nothing (never legitimate under Rule-0): {health.get('detail', '')}"}
     if outcome == "DREW":
         return {"status": "HEALTHY_DREW", "alarm": False, "detail": "last fire drew work"}
     if outcome in ("ALLOW_STOP_NO_WORK", "ALLOW_STOP_DISABLED"):
+        # ALLOW_STOP_DISABLED = kill switch off (deliberate). ALLOW_STOP_NO_WORK is retained for
+        # back-compat but the hook no longer emits it (empty is now DRAW_EMPTY_UNEXPECTED, loud).
         return {"status": "HEALTHY_IDLE", "alarm": False,
-                "detail": "idle: no drawable work / paused (NOT a broken loop)"}
+                "detail": "idle: paused (kill switch) -- NOT a broken loop"}
     return {"status": "UNKNOWN", "alarm": False, "detail": f"unrecognised outcome {outcome!r}"}
 
 

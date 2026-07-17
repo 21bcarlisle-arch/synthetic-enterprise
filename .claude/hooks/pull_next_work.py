@@ -80,6 +80,32 @@ HEALTH_FILE = PROJECT_DIR / "docs" / "observability" / ".pull_loop_health.json"
 # instruction instead of more work, so the loop never depends on a human noticing
 # a 700k-token context.
 CHECKPOINT_EVERY = 25
+# SELF-SUSTAIN backstop (2026-07-17, director P0: "serial autonomy must SELF-SUSTAIN").
+# The loop now CONTINUES across turns (the old `stop_hook_active -> stop` made it one-shot:
+# one continuation then idle until an unreliable external Stop -- the disease, ~100-min idles
+# with work queued). A continuous loop needs a runaway/stuck backstop that is LOUD, not a
+# silent stop: if the loop continues this many turns WITHOUT the repo advancing by a single
+# commit (no progress token change), it is thrashing/stuck -> STUCK_NO_PROGRESS (alarm), never
+# a quiet idle. A PRODUCTIVE chain resets this counter on every commit, so it never trips; only
+# a genuinely stuck spin does. Generous (> CHECKPOINT_EVERY) so a slow-committing but real chain
+# gets a compact first and is not false-alarmed.
+MAX_NO_PROGRESS = 30
+
+
+def _repo_progress_token() -> str | None:
+    """Best-effort 'has the repo advanced?' token WITHOUT spawning a process (the hook's
+    structural no-subprocess invariant is load-bearing). The last line of .git/logs/HEAD changes
+    on every commit/ref-move, so its content is a cheap progress proxy. None if unavailable ->
+    progress detection degrades safely (the loop still runs; the stuck-cap just can't reset early,
+    so a truly stuck loop still alarms, and a productive one is covered by the commit each turn)."""
+    try:
+        p = PROJECT_DIR / ".git" / "logs" / "HEAD"
+        data = p.read_bytes()
+        if not data:
+            return None
+        return data.rsplit(b"\n", 2)[-2 if data.endswith(b"\n") else -1].decode("utf-8", "replace")[:200]
+    except Exception:
+        return None
 
 
 def _log(msg: str) -> None:
@@ -122,28 +148,50 @@ def _autonomous_execution_enabled() -> bool:
         return False
 
 
-def _bump_continuation_count() -> int:
-    n = 0
+def _advance_state(progress_token: str | None) -> tuple[int, int]:
+    """Advance the loop's persistent counters and return (continuations, no_progress).
+
+    continuations -- global monotonic count (drives the checkpoint/compact cadence).
+    no_progress   -- consecutive continuations with NO repo advance (token unchanged). Resets to
+                     0 the moment the repo advances (a commit) or on the first-ever fire, so a
+                     productive chain never trips the stuck-cap; a genuinely stuck spin does.
+    Never raises -- a state I/O failure must not break the transport (degrades to n=1,np=0)."""
+    prior = {}
     try:
         if STATE_FILE.is_file():
-            n = int(json.loads(STATE_FILE.read_text()).get("continuations", 0))
+            prior = json.loads(STATE_FILE.read_text())
     except Exception:
-        n = 0
-    n += 1
+        prior = {}
+    n = int(prior.get("continuations", 0)) + 1
+    last_token = prior.get("last_token")
+    # Progress = the token moved (a commit landed) since the last fire. Unknown token (None) on
+    # either side counts as NO progress so a truly stuck loop still trips the cap; but the very
+    # first fire (no last_token recorded) is treated as progress so a fresh chain starts clean.
+    if "last_token" not in prior:
+        no_progress = 0
+    elif progress_token is not None and progress_token != last_token:
+        no_progress = 0
+    else:
+        no_progress = int(prior.get("no_progress", 0)) + 1
     try:
-        STATE_FILE.write_text(json.dumps({"continuations": n}))
+        STATE_FILE.write_text(json.dumps(
+            {"continuations": n, "no_progress": no_progress, "last_token": progress_token}
+        ))
     except Exception:
         pass
-    return n
+    return n, no_progress
 
 
 def decide(payload: dict) -> dict | None:
     """Pure decision function (unit-testable): returns the block-JSON dict to
     emit, or None to allow the stop. No I/O to the pane, ever."""
-    # Loop guard (verified): already continuing in a block loop -> allow stop.
-    if payload.get("stop_hook_active"):
-        _log("stop_hook_active -> allow stop (loop guard)")
-        return None
+    # NOTE (2026-07-17): the old `if stop_hook_active: return None` guard was DELETED. It made the
+    # loop ONE-SHOT -- Claude Code sets stop_hook_active=True on the re-Stop after a continuation,
+    # so that guard stopped the chain after a single turn, leaving the worker idle until an
+    # unreliable external Stop re-armed it (the ~100-min-idle-with-work-queued disease). Serial
+    # autonomy MUST self-sustain (director P0): the loop CONTINUES turn-to-turn on its own draw.
+    # Runaway is bounded not by stop_hook_active but by the LOUD stuck-cap (MAX_NO_PROGRESS) below
+    # -- a continuous loop that stops producing commits is thrashing and must ALARM, not idle.
     # WORKER-SEAT-ONLY GUARD (G-L1): pull work ONLY for the dedicated worker seat.
     # Any other session -- the director's sanctified console, an ad-hoc session, or
     # (fail-safe) an unresolved worker id -- gets allow-stop, never a doorbell. The
@@ -188,12 +236,28 @@ def decide(payload: dict) -> dict | None:
         _write_health("DRAW_ERROR", repr(e))
         return None
     if not reason:
-        _log("draw empty -> allow stop")
-        # Healthy quiescence: enabled + drew nothing because nothing is drawable. Reads
-        # DIFFERENTLY from DRAW_ERROR -- idle because no work, not because the loop broke.
-        _write_health("ALLOW_STOP_NO_WORK", "draw returned no work")
+        # Under Rule-0 the queue is NEVER genuinely empty: HARDEN draws on any at-target atom and
+        # DISCOVER/FRAME on any idle atom -- 88 atoms and a website, "the to-do list is never
+        # empty". So an EMPTY draw is NOT healthy idle -- it means the draw is BROKEN (e.g. an
+        # unreadable/malformed maturity_map whose read error every draw lane swallows as []). The
+        # director named "empty draw" as a case that must be LOUD, never silent idle. Distinct
+        # outcome so it is diagnosable and the deadman alarms (classified LOOP_BROKEN in reconciler).
+        _log("draw empty -> allow stop (UNEXPECTED under Rule-0 -> loud alarm)")
+        _write_health("DRAW_EMPTY_UNEXPECTED",
+                      "find_work returned no work -- never legitimate under Rule-0 (broken draw?)")
         return None
-    n = _bump_continuation_count()
+    # SELF-SUSTAIN: advance counters and check the stuck-cap. The loop CONTINUES turn-to-turn (no
+    # one-shot stop_hook_active guard); the only continuous-loop backstop is progress-based.
+    n, no_progress = _advance_state(_repo_progress_token())
+    if no_progress > MAX_NO_PROGRESS:
+        # Drew work and continued for MAX_NO_PROGRESS turns but the repo never advanced (no commit)
+        # -> the loop is thrashing/stuck, not advancing. LOUD (director's fail-silent law), then
+        # allow-stop so it does not spin forever. A productive chain resets no_progress on every
+        # commit and never reaches here.
+        _log(f"STUCK: {no_progress} continuations with no commit -> allow stop + ALARM")
+        _write_health("STUCK_NO_PROGRESS",
+                      f"{no_progress} continuations, no repo advance -- loop thrashing/stuck")
+        return None
     if n % CHECKPOINT_EVERY == 0:
         reason = (
             f"PULL-LOOP CHECKPOINT (continuation {n}): commit any in-flight work, then "
