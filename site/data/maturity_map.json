@@ -1895,13 +1895,13 @@
       "epoch": 2,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 5,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stalled": false,
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1912,7 +1912,7 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1956,7 +1956,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 32
+      "stall_consecutive_unchanged": 33
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
