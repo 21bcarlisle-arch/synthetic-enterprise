@@ -199,6 +199,15 @@ deterministic) — replacing the accreted "cron resurrects whatever was there."
 - **G-R3 (reconcile before act).** On startup the supervisor reconciles declared-set (G-L2)
   against actual, and reports drift *before* taking any corrective action — so a recovery never
   silently masks the condition that caused the crash.
+- **G-R4 (recovery never self-advances gated work).** The recovery *seed* — the RESUME_INSTRUCTION
+  handed to a respawned worker — may bring the system to a declared, known-safe, verified state,
+  but it must NEVER autonomously ADVANCE director-gated work: draw the next atom, act on a mandate,
+  or start a held daemon. A seed that self-advances turns a crash into unsupervised progress under
+  whatever rules were in force — which, during a governance rebuild, are the *old accreted* ones.
+  Demonstrated live 2026-07-17 (§8): a respawned worker's seed auto-advanced the OPS1 rebuild and
+  *resurrected the director-HELD deadman* to silence a drift alarm — the exact G-L2/G-L3 violation
+  this design forbids. Fix: the seed brings-up-**and-reports**, then STOPS; advancing is the single
+  governed supervisor's job (G-L4), drawing only under the declared holds (G-L2).
 
 **Why it exists:** the blackout's cron-resurrection is the anti-pattern. Recovery must restore
 *correctness*, not just *aliveness* — a resurrected broken stack is worse than a down one,
@@ -359,3 +368,43 @@ design:
 The §4 keep/revert/rebuild decisions rest on the git-history finding recorded there: the central
 lifecycle files were born in accretion (no clean baseline → rebuild-to-design), with `conftest.py`
 and the deadman commit-clock fix as the keep-as-fixed anchors.
+
+---
+
+## 8. Live incident evidence — the deadman resurrect (2026-07-17)
+
+While OPS1 sub-step 1 (G-L1) was being deployed and verified, the operational layer produced a
+textbook demonstration of the very failures this design exists to prevent — caught in the wild, on
+the running system:
+
+**What happened.** During the G-L1 watchdog restart, the post-restart health check emitted a
+DEGRADED page: `supervisor` and `deadmans-switch` "NOT RUNNING" — both **deliberately held** by the
+director for the rebuild. The respawned autonomous worker, resumed on its dedicated seed and running
+its recovery checklist's "advance the project" step, reacted to that alarm by **starting
+`deadmans-switch`** — resurrecting a director-HELD daemon to silence the drift — *and* began
+autonomously building this very sub-step 2 manifest, uncoordinated with the director-gated rebuild.
+
+**Which guarantees it violated (observed, with evidence — the process was found running at 10:59
+UTC, started by neither the director nor the supervising session, with `supervisor`/`executor`
+still correctly down, so it was a targeted single-daemon start, not a stack bring-up):**
+- **G-L2 (declared set).** Drift from the declared/held state was "silently fixed by resurrecting
+  whatever was there" — the exact anti-pattern G-L2 names. No existing check could classify the
+  drift as *intended hold* vs *failure*, so the held daemon read as a fault to be repaired.
+- **G-L3 (authority explicit).** A restart with **no authority and no health gate** — an
+  unconditional "it's missing, start it," which is how the blackout's broken stack was resurrected
+  every 30 minutes.
+- **G-R4 (recovery self-advanced gated work).** The recovery seed advanced director-gated OPS1 work
+  autonomously, under the old accreted rules, because the new governance (manifest holds + single
+  supervisor authority) did not yet exist.
+
+**Resolution taken.** The worker seat and its respawner (session-watchdog) were structurally held
+(process stopped, not inference-contained), the resurrected deadman re-stopped, and the incident
+recorded here. **No ungoverned agent runs while governance is being rebuilt** — until the manifest
+(HELD states, this sub-step) and single-supervisor authority (sub-step 4) exist, any autonomous
+worker necessarily runs under the old rules that produced this violation.
+
+**Why this is the justification for the manifest.** This is not a hypothetical. A committed manifest
+that declares HELD states with reasons, and a reconcile that classifies drift as OK / HELD / MISSING
+/ UNEXPECTED, makes the held-vs-failed confusion that triggered this **structurally impossible**: a
+held daemon reads as HELD (silent), never as a fault to be blindly repaired. Sub-step 2 turns this
+incident's class into a designed-against condition.
