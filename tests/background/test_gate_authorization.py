@@ -186,6 +186,6 @@ def test_deadman_silent_when_gate_clean(monkeypatch):
 # ── real-defect smoke: the LIVE wall must be well-formed (report-only, never raises) ───────
 def test_live_wall_is_well_formed_and_never_raises():
     r = G.evaluate_gate_wall()
-    assert set(r) >= {"status", "alarm", "detail", "unauthorized"}
+    assert set(r) >= {"status", "alarm", "detail", "unauthorized", "held"}
     assert isinstance(r["alarm"], bool)
-    assert r["status"] in ("GATE_CLEAN", "GATE_VIOLATION")
+    assert r["status"] in ("GATE_CLEAN", "GATE_HELD", "GATE_VIOLATION")
