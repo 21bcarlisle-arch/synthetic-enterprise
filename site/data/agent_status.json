@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-17T13:18:00.568209+00:00",
+  "last_updated": "2026-07-17T13:33:20.763469+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "running",
-      "last_heartbeat": "2026-07-17T13:14:53.409679+00:00",
+      "last_heartbeat": "2026-07-17T13:30:35.175215+00:00",
       "last_action": "Watchdog started",
-      "last_action_ts": "2026-07-17T13:14:53.409679+00:00",
+      "last_action_ts": "2026-07-17T13:30:35.175215+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T13:17:48.356566+00:00",
+      "last_heartbeat": "2026-07-17T13:33:20.763469+00:00",
       "last_action": "Heartbeat \u2014 3 files tracked",
-      "last_action_ts": "2026-07-17T13:17:48.356566+00:00",
+      "last_action_ts": "2026-07-17T13:33:20.763469+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T13:18:00.568209+00:00",
-      "last_action": "Waiting for next cycle (5h 10m remaining)",
-      "last_action_ts": "2026-07-17T13:18:00.568209+00:00",
+      "last_heartbeat": "2026-07-17T13:33:00.570284+00:00",
+      "last_action": "Waiting for next cycle (4h 55m remaining)",
+      "last_action_ts": "2026-07-17T13:33:00.570284+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T13:14:53.431708+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260717T131453Z.json)",
-      "last_action_ts": "2026-07-17T13:14:53.431708+00:00",
+      "last_heartbeat": "2026-07-17T13:30:35.193171+00:00",
+      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260717T133035Z.json)",
+      "last_action_ts": "2026-07-17T13:30:35.193171+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T13:13:27.937866+00:00",
+      "last_heartbeat": "2026-07-17T13:29:13.636478+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-17T13:13:27.937866+00:00",
+      "last_action_ts": "2026-07-17T13:29:13.636478+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T13:13:43.379190+00:00",
+      "last_heartbeat": "2026-07-17T13:29:27.746615+00:00",
       "last_action": "Acked message: 'identical machine cadence body repeated over and over again'",
-      "last_action_ts": "2026-07-17T13:13:43.379190+00:00",
+      "last_action_ts": "2026-07-17T13:29:27.746615+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T12:58:14.946170+00:00",
+      "last_heartbeat": "2026-07-17T13:28:17.833359+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-17T12:58:14.946170+00:00",
+      "last_action_ts": "2026-07-17T13:28:17.833359+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -125,9 +125,9 @@
     {
       "name": "director-comments",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T13:13:27.896451+00:00",
+      "last_heartbeat": "2026-07-17T13:29:13.593647+00:00",
       "last_action": "Staged comment from /supplier/",
-      "last_action_ts": "2026-07-17T13:13:27.896451+00:00",
+      "last_action_ts": "2026-07-17T13:29:13.593647+00:00",
       "anomaly": null,
       "role": "Validates PIN-authenticated director page comments, stages accepted ones",
       "produces": "docs/staging/from_rich_comment_*.md"
