@@ -93,6 +93,7 @@ _AUTO_PROCESS_SUBJECT_PREFIX = "Auto-process run complete"
 _COMMIT_KEY = "deadman_commit"        # BLOCKED / STALL (shared timer, tier-agnostic state)
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _GATE_VIOLATION_KEY = "deadman_gate_violation"
+_FORK_ORPHAN_KEY = "deadman_fork_orphan"
 
 
 def log(msg: str) -> None:
@@ -277,10 +278,38 @@ def _check_gate_wall() -> None:
     log(f"GATE VIOLATION checked (notify-gated): {st['detail']}")
 
 
+def _check_fork_lifecycle() -> None:
+    """Fire a transition-only, LOUD FORK_ORPHANS alarm when a fork branch never came home --
+    unmerged past FORK_DEADLINE (director P0 fork-lifecycle, step 3). Report-first by default
+    (detect + alarm, NO reap); enforce-mode (salvage-then-reap) is armed only by the director flag
+    after the known orphans are triaged. This is the enforcing home for the doorbell's stated
+    merge-or-reap discipline. State keys on the orphan COUNT so a change re-alerts immediately; an
+    unchanged count re-escalates hourly (R5)."""
+    try:
+        from background.fork_reconciler import evaluate_fork_lifecycle
+        st = evaluate_fork_lifecycle()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"fork-lifecycle check error: {e}")
+        return
+    if not st["alarm"]:
+        clear_transition(_FORK_ORPHAN_KEY)
+        return
+    notify(
+        f"[FORK ORPHANS] {st['detail']}. Fork branches that built work and never merged home -- "
+        f"the fragmentation disease. Reap-only: each is salvage-tagged then reaped (enforce-mode) "
+        f"or flagged (report-first); a good orphan is recoverable from its salvage tag and "
+        f"re-runnable, never auto-landed unreviewed. Triage: docs/observability/ + salvage/* tags.",
+        kind="real_alarm", transition_key=_FORK_ORPHAN_KEY, state=f"orphans:{len(st['orphans'])}",
+        re_escalate_after=RE_ESCALATE_SECONDS,
+    )
+    log(f"FORK ORPHANS checked (notify-gated): {st['detail']}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
     _check_gate_wall()
+    _check_fork_lifecycle()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).
