@@ -42,6 +42,11 @@ FORK_DEADLINE_SECONDS = 2 * 60 * 60
 # -first (detect + alarm, no reap). Same trust model as .build_executor_enabled; armed only after
 # the 33 are triaged and detection is trusted.
 ENFORCE_FLAG = PROJECT_DIR / "docs" / "observability" / ".fork_reap_enabled"
+# Branches the director has explicitly HELD from reaping -- NEVER auto-reaped even when enforce is
+# armed (e.g. an orphan not yet proven superseded, kept for a daylight look). One branch name per
+# line; blank / '#' lines ignored. This is what lets enforce-mode be the STANDING mechanism (auto-
+# reap new orphans going forward) while a specific undecomposed branch waits, protected.
+HELD_FILE = PROJECT_DIR / "docs" / "observability" / ".fork_reap_held"
 
 
 def _git(*args: str) -> str:
@@ -96,6 +101,20 @@ def reap_enabled(flag: Path | None = None) -> bool:
         return False
 
 
+def held_branches(path: Path | None = None) -> set[str]:
+    """Branch names the director has HELD from reaping (never auto-reaped, even under enforce).
+    One name per line; blank / '#' lines ignored. Empty set if the file is absent/unreadable."""
+    out: set[str] = set()
+    try:
+        for ln in (path or HELD_FILE).read_text().splitlines():
+            ln = ln.strip()
+            if ln and not ln.startswith("#"):
+                out.add(ln)
+    except Exception:
+        return set()
+    return out
+
+
 def salvage_and_reap(branch: str) -> dict:
     """Salvage-tag THEN reap one orphan branch. Salvage ALWAYS first: create the salvage tag,
     VERIFY it resolves to the branch tip, and ONLY then delete the branch. If salvage cannot be
@@ -120,44 +139,55 @@ def salvage_and_reap(branch: str) -> dict:
 
 # ── live evaluation (report-first by default; report-only unless the flag arms reap) ────────
 def evaluate_fork_lifecycle(*, branches: list[dict] | None = None, now: float | None = None,
-                            enforce: bool | None = None, reaper=salvage_and_reap) -> dict:
+                            enforce: bool | None = None, reaper=salvage_and_reap,
+                            held: set[str] | None = None) -> dict:
     """REPORT the fork-lifecycle state. In report-first mode (default) NOTHING is reaped -- orphans
-    are detected + alarmed only. In enforce mode (flag armed) each orphan is salvage-then-reaped.
-    Never raises. Injectable (branches/now/enforce/reaper) for deterministic tests."""
+    are detected + alarmed only. In enforce mode (flag armed) each ACTIVE orphan is salvage-then-
+    reaped; a HELD orphan (director-held) is NEVER reaped and reads as acknowledged (no alarm), so
+    enforce can be the STANDING mechanism while a held branch waits. Never raises. Injectable."""
     if branches is None:
         branches = scan_fork_branches()
     if now is None:
         now = time.time()
     if enforce is None:
         enforce = reap_enabled()
+    if held is None:
+        held = held_branches()
 
-    orphans, in_flight, merged = [], [], []
+    all_orphans, in_flight, merged = [], [], []
     for b in branches:
         state = classify_branch(b, now)
         if state == "ORPHAN":
-            orphans.append(b["name"])
+            all_orphans.append(b["name"])
         elif state == "IN_FLIGHT":
             in_flight.append(b["name"])
         elif state == "MERGED":
             merged.append(b["name"])
+    active_orphans = [o for o in all_orphans if o not in held]
+    held_orphans = [o for o in all_orphans if o in held]
 
     reaped: list[dict] = []
-    if enforce and orphans:
-        for name in orphans:
+    if enforce and active_orphans:
+        for name in active_orphans:
             reaped.append(reaper(name))
 
-    alarm = bool(orphans)
-    if not orphans:
-        status = "FORK_CLEAN"
-        detail = f"no orphans; {len(in_flight)} in-flight, {len(merged)} merged (cleanup-eligible)"
-    else:
+    alarm = bool(active_orphans)          # a HELD orphan is acknowledged -> never alarms
+    if active_orphans:
         mode = "ENFORCE (salvage+reap)" if enforce else "REPORT-FIRST (detect only, no reap)"
-        shown = ", ".join(orphans[:6]) + (" …" if len(orphans) > 6 else "")
-        detail = (f"{len(orphans)} orphaned fork branch(es) never merged home [{mode}]: {shown}"
+        shown = ", ".join(active_orphans[:6]) + (" …" if len(active_orphans) > 6 else "")
+        detail = (f"{len(active_orphans)} orphaned fork branch(es) never merged home [{mode}]: {shown}"
                   + (f"; reaped {sum(1 for r in reaped if r['reaped'])}/{len(reaped)}" if enforce else ""))
         status = "FORK_ORPHANS"
+    elif held_orphans:
+        status = "FORK_HELD"
+        detail = f"{len(held_orphans)} orphan(s) HELD from reap (director-held, acknowledged): " \
+                 + ", ".join(held_orphans[:6])
+    else:
+        status = "FORK_CLEAN"
+        detail = f"no orphans; {len(in_flight)} in-flight, {len(merged)} merged (cleanup-eligible)"
     return {"status": status, "alarm": alarm, "detail": detail,
-            "orphans": orphans, "in_flight": in_flight, "merged_eligible": merged,
+            "orphans": active_orphans, "held_orphans": held_orphans,
+            "in_flight": in_flight, "merged_eligible": merged,
             "reaped": reaped, "enforce": enforce}
 
 

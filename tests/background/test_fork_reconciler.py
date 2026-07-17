@@ -64,6 +64,35 @@ def test_enforce_mode_reaps_only_orphans():
     assert r["alarm"] is True and any(x["reaped"] for x in r["reaped"])
 
 
+# ── HELD branches: enforce is the STANDING mechanism, but a held orphan is never reaped ─────
+def test_held_orphan_is_never_reaped_even_under_enforce():
+    branches = [_b("build/reapme-w1", False, DL + 60), _b("build/holdme-w2", False, DL + 60)]
+    reaped = []
+    def fake(n):
+        reaped.append(n)
+        return {"branch": n, "reaped": True, "tag": "t", "detail": "ok"}
+    r = F.evaluate_fork_lifecycle(branches=branches, now=NOW, enforce=True,
+                                  held={"build/holdme-w2"}, reaper=fake)
+    assert reaped == ["build/reapme-w1"]                  # ONLY the non-held orphan reaped
+    assert r["held_orphans"] == ["build/holdme-w2"]       # the held one is tracked, not reaped
+
+
+def test_only_held_orphans_reads_FORK_HELD_and_never_alarms():
+    # enforce armed + the sole orphan is held -> no reap, no alarm (acknowledged), reaper untouched.
+    r = F.evaluate_fork_lifecycle(branches=[_b("build/holdme", False, DL + 60)], now=NOW,
+                                  enforce=True, held={"build/holdme"},
+                                  reaper=lambda n: (_ for _ in ()).throw(AssertionError("reaped a held branch!")))
+    assert r["status"] == "FORK_HELD" and r["alarm"] is False
+    assert r["reaped"] == [] and r["held_orphans"] == ["build/holdme"]
+
+
+def test_held_branches_reader(tmp_path):
+    p = tmp_path / ".fork_reap_held"
+    p.write_text("# a held branch, pending director decision\nbuild/F6_x\n\n  build/other  \n")
+    assert F.held_branches(p) == {"build/F6_x", "build/other"}
+    assert F.held_branches(tmp_path / "absent") == set()
+
+
 # ── the hard floor: salvage ALWAYS precedes reap; refuse if salvage can't be confirmed ─────
 def test_salvage_precedes_reap_and_refuses_when_salvage_cannot_be_confirmed(monkeypatch):
     calls = []
