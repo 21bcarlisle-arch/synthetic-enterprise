@@ -88,6 +88,9 @@ _IGNORED_STAGING_NAMES = {".gitkeep"}
 _AUTO_PROCESS_SUBJECT_PREFIX = "Auto-process run complete"
 
 _last_escalation_ts: float | None = None
+# Transition state for the pull-loop transport alarm (OPS1_transport_failure_must_be_loud, §9),
+# kept separate from the commit-clock escalation so the two alarm classes never mask each other.
+_last_loop_broken_ts: float | None = None
 
 
 def log(msg: str) -> None:
@@ -215,10 +218,43 @@ def _reping_open_action_needed_items() -> None:
         log(f"Re-pinged open action-needed item: {entry['item_id']}")
 
 
+def _check_pull_loop_transport() -> None:
+    """Fire a transition-only, first-class LOOP_BROKEN alarm when the pull-loop transport
+    cannot draw (OPS1_transport_failure_must_be_loud, §9). This is the RUNNING home for the
+    alarm -- the deadman is the only periodic safety-net daemon; run_health_check() is not on
+    any timer. The commit-clock tiers below catch total silence; THIS catches the specific,
+    faster, typed case the commit clock misses for up to 90 min -- a loop that fires but errors
+    on every draw (the day-long bug), including when the queue is a MAP draw (no staged files),
+    which [BLOCKED] would never see. Distinct transition state, so it is transition-only (R5)
+    and never masks / is masked by the commit-clock alarm."""
+    global _last_loop_broken_ts
+    try:
+        from background.process_reconciler import evaluate_pull_loop
+        st = evaluate_pull_loop()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"pull-loop transport check error: {e}")
+        return
+    now = time.time()
+    if not st["alarm"]:
+        _last_loop_broken_ts = None
+        return
+    if _last_loop_broken_ts is not None and (now - _last_loop_broken_ts) < RE_ESCALATE_SECONDS:
+        log(f"LOOP BROKEN (still) -- suppressed (re-alerts hourly): {st['detail']}")
+        return
+    send_ntfy(
+        f"[LOOP BROKEN] Pull-loop transport cannot draw work: {st['detail']}. The autonomous "
+        f"worker is idle because the TRANSPORT IS BROKEN, not because there is no work -- check "
+        f".claude/hooks/pull_next_work.py (find_work / worker_seat import) and .pull_loop_health.json."
+    )
+    log(f"LOOP BROKEN NTFY sent: {st['detail']}")
+    _last_loop_broken_ts = now
+
+
 def run_cycle() -> None:
     global _last_escalation_ts
 
     _reping_open_action_needed_items()
+    _check_pull_loop_transport()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).

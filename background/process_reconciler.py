@@ -32,6 +32,7 @@ its reason is archaeology; IaC). An empty manifest is a hard error (fail-closed)
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import time
 from pathlib import Path
@@ -265,6 +266,68 @@ def _live_tmux_running(path: Path | None = None) -> set[str]:
         if e["session"] in sessions or e["match"] in ps_out:
             running.add(e["session"])
     return running
+
+
+# ── Pull-loop transport health (OPS1_transport_failure_must_be_loud, §9) ──────────────────
+# The pull loop is the company's turn-transport lifeline; its failure was fail-SILENT for a day
+# (a broken loop was byte-for-byte indistinguishable from a healthy idle worker). The Stop hook
+# now writes a typed outcome to .pull_loop_health.json on every worker fire; this classifies it
+# so a broken loop is LOUD and, crucially, 'idle because no work/grant' reads DIFFERENTLY from
+# 'idle because the loop is broken'. Firing is wired into the deadman (the running periodic alarm).
+PULL_LOOP_HEALTH_PATH = _HERE.parent / "docs" / "observability" / ".pull_loop_health.json"
+PULL_LOOP_ENABLE_PATH = _HERE.parent / "docs" / "observability" / ".build_executor_enabled"
+
+
+def pull_loop_status(health: dict | None, enable_on: bool) -> dict:
+    """PURE predicate (mutation-testable): classify the transport from its last-fire health
+    record + whether the loop is enabled. REPORT ONLY. Returns {status, alarm, detail}.
+
+      DISABLED      loop off (kill switch) -> autonomy deliberately paused         (no alarm)
+      HEALTHY_DREW  last fire drew work                                            (no alarm)
+      HEALTHY_IDLE  last fire allow-stopped: no drawable work / paused             (no alarm)
+      LOOP_BROKEN   last fire hit a draw/import error -> cannot draw               (ALARM)
+      UNKNOWN       no / unrecognised health record                               (no alarm)
+
+    THE distinction the director required: HEALTHY_IDLE ('idle because no grant / no work')
+    reads DIFFERENTLY from LOOP_BROKEN ('idle because the loop is broken')."""
+    if not enable_on:
+        return {"status": "DISABLED", "alarm": False,
+                "detail": "pull loop disabled (kill switch off) -- autonomy paused"}
+    if not isinstance(health, dict) or not health.get("outcome"):
+        return {"status": "UNKNOWN", "alarm": False,
+                "detail": "no transport-health record yet (deadman commit-clock is the backstop)"}
+    outcome = str(health.get("outcome"))
+    if outcome == "DRAW_ERROR":
+        return {"status": "LOOP_BROKEN", "alarm": True,
+                "detail": f"pull-loop transport cannot draw: {health.get('detail', '')}"}
+    if outcome == "DREW":
+        return {"status": "HEALTHY_DREW", "alarm": False, "detail": "last fire drew work"}
+    if outcome in ("ALLOW_STOP_NO_WORK", "ALLOW_STOP_DISABLED"):
+        return {"status": "HEALTHY_IDLE", "alarm": False,
+                "detail": "idle: no drawable work / paused (NOT a broken loop)"}
+    return {"status": "UNKNOWN", "alarm": False, "detail": f"unrecognised outcome {outcome!r}"}
+
+
+def read_pull_loop_health(path: Path | None = None) -> dict | None:
+    """Read the last transport-health record, or None if absent/unreadable (never raises)."""
+    try:
+        return json.loads((path or PULL_LOOP_HEALTH_PATH).read_text())
+    except Exception:
+        return None
+
+
+def pull_loop_enabled(path: Path | None = None) -> bool:
+    """True if the single kill-switch flag is a readable regular file (fail-closed)."""
+    try:
+        return (path or PULL_LOOP_ENABLE_PATH).is_file()
+    except Exception:
+        return False
+
+
+def evaluate_pull_loop() -> dict:
+    """Live wrapper: read the health record + the enable flag, return pull_loop_status(...).
+    REPORT ONLY -- no side effects."""
+    return pull_loop_status(read_pull_loop_health(), pull_loop_enabled())
 
 
 def _main(argv: list[str]) -> int:

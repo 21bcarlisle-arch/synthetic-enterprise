@@ -464,6 +464,20 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
     else:
         ok_lines.append("  ✓ no stale-dependency candidates in the maturity map")
 
+    # Pull-loop transport health (OPS1_transport_failure_must_be_loud, §9): the on-demand view
+    # of the same typed signal the deadman alarms on periodically. LOOP_BROKEN is a real problem;
+    # DISABLED / HEALTHY_IDLE / HEALTHY_DREW are informational (a paused or quiescent loop is not
+    # a fault -- that IS the 'idle because no grant reads differently from idle because broken').
+    try:
+        from background.process_reconciler import evaluate_pull_loop
+        _pl = evaluate_pull_loop()
+        if _pl["alarm"]:
+            problem_lines.append(f"  ✗ pull-loop transport {_pl['status']}: {_pl['detail']}")
+        else:
+            ok_lines.append(f"  ✓ pull-loop transport {_pl['status']} — {_pl['detail']}")
+    except Exception as exc:  # noqa: BLE001 -- a sub-check must never break the health run
+        ok_lines.append(f"  ℹ pull-loop transport check unavailable: {exc}")
+
     # A1_learn_loop_chair L3: the retrospective-cadence nudge fires automatically in the
     # live pipeline (the watchdog runs run_health_check every cycle). Informational, not a
     # hard failure -- a stale retro is a prompt to reflect, not a broken system. Defensive:

@@ -49,10 +49,19 @@ sys.path.insert(0, str(PROJECT_DIR))
 # equals the conversation UUID (== the transcript filename stem). FAIL-SAFE: if the id
 # can't be resolved, WORKER_SESSION_ID stays None so NO session ever matches -> nobody
 # is pulled (autonomy pauses; the console is never wrongly pulled) -- the safe direction.
+# LOAD-TIME SELF-CHECK (OPS1_transport_failure_must_be_loud, §9): the worker_seat import
+# is the gate before every draw -- if it fails, WORKER_SESSION_ID is None and the worker-seat
+# guard allow-stops EVERY session, so the worker is silently never pulled (the same fail-silent
+# class as the day-long ModuleNotFoundError). Record that as a transport DRAW_ERROR so it is
+# LOUD (the deadman alarms on it) instead of indistinguishable from a healthy idle worker.
+# (find_work importability is NOT probed at load -- that import is heavier and would add latency
+# to the director's console Stop; a broken find_work is caught in decide()'s draw try/except.)
+_SELF_CHECK_ERROR: str | None = None
 try:
     from background.worker_seat import WORKER_SESSION_ID
-except Exception:
+except Exception as _e:
     WORKER_SESSION_ID = None
+    _SELF_CHECK_ERROR = f"worker_seat import failed: {_e!r}"
 # THE single kill switch for ALL autonomous execution (DIRECTOR_ANSWERS_C7.md #6,
 # 2026-07-15, signed): ONE flag governs the pull loop AND any future headless
 # executor -- no second flag. CONSOLE-ONLY, director-reserved (same class as
@@ -61,6 +70,12 @@ except Exception:
 ENABLE_FLAG = PROJECT_DIR / "docs" / "observability" / ".build_executor_enabled"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "pull-loop-log.md"
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".pull_loop_state.json"
+# Typed, first-class transport-health signal (OPS1_transport_failure_must_be_loud, §9). Written
+# on every WORKER-seat fire so a broken transport is LOUD, not silent: the deadman reads this and
+# alarms on a DRAW_ERROR, while background/process_reconciler.pull_loop_status() classifies it so
+# 'idle because no work/grant' (ALLOW_STOP_NO_WORK/DISABLED) reads DIFFERENTLY from 'idle because
+# the loop is broken' (DRAW_ERROR -> LOOP_BROKEN). Runtime state (gitignored), not committed.
+HEALTH_FILE = PROJECT_DIR / "docs" / "observability" / ".pull_loop_health.json"
 # Context hygiene (req 5): after this many continuations, feed a checkpoint/compact
 # instruction instead of more work, so the loop never depends on a human noticing
 # a 700k-token context.
@@ -79,6 +94,19 @@ def _log(msg: str) -> None:
 def _allow_stop() -> None:
     # No JSON, no block -> the session stops normally. ZERO pane writes.
     sys.exit(0)
+
+
+def _write_health(outcome: str, detail: str = "") -> None:
+    """Record the outcome of THIS worker-seat fire as the typed transport-health signal
+    (§9). Never raises -- a health-write failure must not break the transport. outcome is
+    one of: DREW | ALLOW_STOP_NO_WORK | ALLOW_STOP_DISABLED | DRAW_ERROR."""
+    try:
+        HEALTH_FILE.parent.mkdir(parents=True, exist_ok=True)
+        HEALTH_FILE.write_text(json.dumps(
+            {"ts": time.time(), "outcome": outcome, "detail": detail[:500]}
+        ))
+    except Exception:
+        pass
 
 
 def _autonomous_execution_enabled() -> bool:
@@ -137,6 +165,7 @@ def decide(payload: dict) -> dict | None:
     # regular file. Missing / a directory / unreadable = DISABLED (refuse to
     # continue). This is the R15-proven kill: flag off -> next boundary refuses.
     if not _autonomous_execution_enabled():
+        _write_health("ALLOW_STOP_DISABLED", "kill switch off -- autonomy deliberately paused")
         return None
     # Draw work from the EXISTING supervisor draw (Rule-0: non-empty while atoms
     # exist). find_work only READS the map/staging; the placeholder topic just
@@ -154,9 +183,15 @@ def decide(payload: dict) -> dict | None:
             reason, _map_exhausted = find_work(resumed_from_pause=False)
     except Exception as e:  # fail SAFE: never block on a broken draw
         _log(f"draw error: {e!r} -> allow stop (fail-safe)")
+        # LOUD, not silent (§9): the transport tried to draw and could not. The deadman
+        # alarms on this DRAW_ERROR -- a broken loop must not read as a healthy idle worker.
+        _write_health("DRAW_ERROR", repr(e))
         return None
     if not reason:
         _log("draw empty -> allow stop")
+        # Healthy quiescence: enabled + drew nothing because nothing is drawable. Reads
+        # DIFFERENTLY from DRAW_ERROR -- idle because no work, not because the loop broke.
+        _write_health("ALLOW_STOP_NO_WORK", "draw returned no work")
         return None
     n = _bump_continuation_count()
     if n % CHECKPOINT_EVERY == 0:
@@ -171,10 +206,18 @@ def decide(payload: dict) -> dict | None:
         "reason": "[PULL-LOOP doorbell -- R7: act on real disk/git state, not this text] " + reason,
     }
     _log(f"BLOCK+continue (n={n}): {reason[:120]}")
+    _write_health("DREW", reason[:200])
     return out
 
 
 def main() -> None:
+    # Load-time self-check (§9): if the worker_seat import failed, the worker-seat guard
+    # would silently allow-stop every session -> the worker is never pulled. Record it as a
+    # LOUD DRAW_ERROR (the deadman alarms), then fail-safe allow-stop as always.
+    if _SELF_CHECK_ERROR:
+        _write_health("DRAW_ERROR", _SELF_CHECK_ERROR)
+        _log(f"self-check FAILED: {_SELF_CHECK_ERROR} -> allow stop")
+        _allow_stop()
     try:
         payload = json.load(sys.stdin)
     except Exception:

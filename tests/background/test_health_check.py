@@ -180,13 +180,18 @@ def test_all_processes_running_reports_ok(monkeypatch):
     monkeypatch.setattr(retro_cadence_check, "check_retro_staleness", lambda: None)
     # 6th always-present ok-line: exactly-one-interactive-session (2026-07-16).
     monkeypatch.setattr(health_check, "_check_single_interactive_session", lambda: None)
+    # 7th always-present line: pull-loop transport health (OPS1_transport_failure_must_be_loud,
+    # §9). Mock it healthy so this asserts the pane/check logic, not live transport state.
+    from background import process_reconciler
+    monkeypatch.setattr(process_reconciler, "evaluate_pull_loop",
+                        lambda: {"status": "HEALTHY_IDLE", "alarm": False, "detail": "idle"})
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    # +staging +pixel +stale-code +stale-deps +retro-cadence +single-session
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 6
+    # +staging +pixel +stale-code +stale-deps +retro-cadence +single-session +pull-loop-transport
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 7
 
 
 def test_missing_process_reported_as_problem(monkeypatch):
