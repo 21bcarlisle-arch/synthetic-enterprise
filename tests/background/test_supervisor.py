@@ -555,6 +555,60 @@ def test_idle_discover_frame_draw_concurrent_default_excludes_nothing_stalled():
     assert selected[0]["id"] == "X8_idle_atom"
 
 
+# ── BOUNDED FAN-OUT: hard ceiling on concurrent forks (director P0, 2026-07-17) ──
+
+_ALL12 = ["B0", "B1", "B2", "S0", "S1", "S2", "D0", "D1", "D2", "D3", "D4", "D5"]
+
+
+def _stub_lanes(monkeypatch, n_build, n_site, n_disc):
+    monkeypatch.setattr(supervisor, "_maturity_map_draw_concurrent",
+                        lambda **k: [{"id": f"B{i}"} for i in range(n_build)])
+    monkeypatch.setattr(supervisor, "_site_lane_draw_concurrent",
+                        lambda **k: [{"id": f"S{i}"} for i in range(n_site)])
+    monkeypatch.setattr(supervisor, "_idle_discover_frame_draw_concurrent",
+                        lambda **k: [{"id": f"D{i}"} for i in range(n_disc)])
+    monkeypatch.setattr(supervisor, "_format_atom_draw", lambda a: a["id"])
+
+
+def _forks_in(draw):
+    return [x for x in _ALL12 if x in draw]
+
+
+def test_self_refill_draw_bounds_fan_out_to_three_not_twelve(monkeypatch):
+    """A cycle that could raw-draw 12 forks (3 BUILD + 3 SITE + 6 DISCOVERY) is CAPPED to
+    MAX_CONCURRENT_FORKS (3), BUILD-priority -- no 12-fork blooms. MUTATION: lift the ceiling and
+    the same cycle blooms back to 12, proving the cap is what bounds it (not the draw itself)."""
+    _stub_lanes(monkeypatch, 3, 3, 6)
+    draw = supervisor._self_refill_draw()
+    forks = _forks_in(draw)
+    assert len(forks) == supervisor.MAX_CONCURRENT_FORKS == 3, f"expected <=3, got {len(forks)}: {forks}"
+    assert set(forks) == {"B0", "B1", "B2"}                 # BUILD fills the whole budget (priority)
+    assert "<=3 concurrent Agent forks" in draw              # doorbell STATES the ceiling
+    assert "merge its branch to main" in draw                # ...and the merge-or-reap lifecycle
+
+    monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 99)   # mutation: neuter the ceiling
+    assert len(_forks_in(supervisor._self_refill_draw())) == 12   # -> the 12-fork bloom returns
+
+
+def test_self_refill_draw_cap_fills_across_lanes_by_priority(monkeypatch):
+    """With a small BUILD lane the budget fills SITE then DISCOVERY -- still <=3 total, and the
+    lowest-priority lane (DISCOVERY) is trimmed first."""
+    _stub_lanes(monkeypatch, 1, 3, 6)
+    draw = supervisor._self_refill_draw()
+    forks = _forks_in(draw)
+    assert len(forks) == 3
+    assert "B0" in forks and "S0" in forks and "S1" in forks   # BUILD(1) + SITE(2)
+    assert "S2" not in forks and "D0" not in draw               # SITE overflow + all DISCOVERY trimmed
+
+
+def test_self_refill_draw_single_atom_fast_path_unaffected_by_cap(monkeypatch):
+    """The byte-for-byte single-atom BUILD message (1 <= ceiling) is untouched by the cap."""
+    _stub_lanes(monkeypatch, 1, 0, 0)
+    draw = supervisor._self_refill_draw()
+    assert draw.startswith("self-refill from maturity map (dial-weighted):")  # the preserved fast path
+    assert "THREE-LANE" not in draw
+
+
 # ── Anti-livelock stall tracker ──
 
 def test_atom_fingerprint_stable_for_unchanged_atom():

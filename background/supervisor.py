@@ -193,6 +193,14 @@ ATOM_STALL_THRESHOLD = 2  # consecutive same-fingerprint draws before deprioriti
 # message, not assumed understood.
 IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 6
 
+# BOUNDED FAN-OUT (director P0, 2026-07-17): a HARD CEILING on the TOTAL concurrent Agent forks a
+# single doorbell may instruct, across all three lanes combined. The per-lane widths above are now
+# sub-limits under this global ceiling: without it a cycle could draw 1-3 BUILD + 3 SITE + 6
+# DISCOVERY = up to ~12 forks ("the wreckage"); bounded to 3 disjoint forks it is recoverable
+# ("3 misbehaving forks I can reason about"). The ceiling widens later ONLY by a deliberate
+# director decision once bounded-parallel is proven boring -- a dial earned through trust, not before.
+MAX_CONCURRENT_FORKS = 3
+
 # THREE_LANES.md (2026-07-13, director-decided, "mechanise the three-lane
 # draw so the supervisor draws SITE and DISCOVERY every cycle regardless of
 # BUILD's state"): the SITE lane (`site/**`, disjoint by construction) is an
@@ -1124,12 +1132,29 @@ def _self_refill_draw() -> str | None:
 
     discovery_atoms = _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
 
+    # BOUNDED FAN-OUT (director P0, 2026-07-17): cap the COMBINED fork count at MAX_CONCURRENT_FORKS
+    # BEFORE assembly -- no 12-fork blooms. Priority BUILD > SITE > DISCOVERY (matches the cross-lane
+    # de-dup precedence at line ~1113). Scopes are already disjoint by the de-dup above; the ceiling
+    # only trims how MANY of those disjoint atoms one doorbell fans out to at once.
+    _raw = (len(build_atoms), len(site_atoms), len(discovery_atoms))
+    _budget = MAX_CONCURRENT_FORKS
+    build_atoms = build_atoms[:_budget]
+    _budget -= len(build_atoms)
+    site_atoms = site_atoms[:max(0, _budget)]
+    _budget -= len(site_atoms)
+    discovery_atoms = discovery_atoms[:max(0, _budget)]
+
     # DoD: per-lane atoms-drawn-per-cycle logged EVERY cycle (not only on a
     # concurrent grant) so a starved lane is visible as a zero, not a silence.
     log(
         "THREE-LANE self-refill (atoms-drawn-per-cycle): "
         f"BUILD={len(build_atoms)}, SITE={len(site_atoms)}, DISCOVERY={len(discovery_atoms)}"
     )
+    if sum(_raw) > MAX_CONCURRENT_FORKS:
+        log(
+            f"BOUNDED FAN-OUT: capped {sum(_raw)} available atoms -> {MAX_CONCURRENT_FORKS} concurrent "
+            f"forks (BUILD>SITE>DISCOVERY); raw lanes were BUILD={_raw[0]} SITE={_raw[1]} DISCOVERY={_raw[2]}"
+        )
 
     # Preserve the exact pre-existing single-atom BUILD message byte-for-byte
     # -- but ONLY when a lone BUILD atom is genuinely all there is this cycle
@@ -1166,7 +1191,13 @@ def _self_refill_draw() -> str | None:
         )
 
     if sections:
-        return "self-refill from maturity map -- THREE-LANE draw: " + " || ".join(sections)
+        return (
+            "self-refill from maturity map -- THREE-LANE draw "
+            f"(BOUNDED PARALLEL: <={MAX_CONCURRENT_FORKS} concurrent Agent forks, disjoint scopes; "
+            "FORK LIFECYCLE -- each fork MUST come home: on success merge its branch to main via "
+            "tree_lock, on failure reap it; NO orphaned branches): "
+            + " || ".join(sections)
+        )
 
     backlog_item = _actionable_backlog_item()
     if backlog_item:
