@@ -185,13 +185,17 @@ def test_all_processes_running_reports_ok(monkeypatch):
     from background import process_reconciler
     monkeypatch.setattr(process_reconciler, "evaluate_pull_loop",
                         lambda: {"status": "HEALTHY_IDLE", "alarm": False, "detail": "idle"})
+    # 8th always-present line: booted-SHA deployment drift (OPS1 sub-step 5). Mock clean so this
+    # asserts the pane/check logic, not live deployment state.
+    monkeypatch.setattr(process_reconciler, "evaluate_boot_sha_drift",
+                        lambda: {"head": "abc", "stale": []})
 
     all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
     assert all_ok
     assert len(problem_lines) == 0
-    # +staging +pixel +stale-code +stale-deps +retro-cadence +single-session +pull-loop-transport
-    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 7
+    # +staging +pixel +stale-code +stale-deps +retro-cadence +single-session +pull-loop +boot-sha
+    assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 8
 
 
 def test_missing_process_reported_as_problem(monkeypatch):

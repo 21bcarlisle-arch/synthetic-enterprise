@@ -341,6 +341,37 @@ def evaluate_pull_loop() -> dict:
     return pull_loop_status(read_pull_loop_health(), pull_loop_enabled())
 
 
+# ── Deployment-by-construction: booted-SHA drift (OPS1 sub-step 5, G-D1/G-D3) ─────────────
+# A managed daemon stamps the git HEAD it booted from (its unit's ExecStartPre → boot_sha.stamp).
+# Here we compare that stamp against current HEAD: a running daemon whose boot-SHA is older than
+# HEAD is running STALE code. This GENERALISES health_check.stale_daemon_sessions (own-script
+# mtime only) — any HEAD advance past the boot SHA is stale, including a changed IMPORTED module
+# the mtime check never saw. REPORT ONLY (the deploy step — systemctl restart — is separate, G-D2).
+def boot_sha_drift(head: str | None, boot_shas: dict[str, str | None], running_sessions) -> list[str]:
+    """PURE (mutation-testable): the running daemons on STALE code. A running daemon whose stamped
+    boot-SHA is present AND != head booted from older code → stale. A session with no stamp yet is
+    NOT flagged (fail-safe: unknown, never a false 'stale'). head None → [] (git unavailable, can't
+    judge — the deadman/commit-clock is the backstop). REPORT ONLY."""
+    if not head:
+        return []
+    return sorted(
+        s for s in running_sessions
+        if boot_shas.get(s) and boot_shas.get(s) != head
+    )
+
+
+def evaluate_boot_sha_drift() -> dict:
+    """Live wrapper: for each ACTIVE systemd-launched daemon (the ones whose unit ExecStartPre
+    actually stamps), compare its boot-SHA to current HEAD. Returns {head, stale:[session,...]}.
+    REPORT ONLY — no restart, no side effects."""
+    from background import boot_sha
+    head = boot_sha.current_head()
+    unit_states = _live_unit_states()
+    running = [s for s in _systemd_owned_sessions() if unit_states.get(s, {}).get("active")]
+    boot_shas = {s: boot_sha.read_boot_sha(s) for s in running}
+    return {"head": head, "stale": boot_sha_drift(head, boot_shas, running)}
+
+
 def _main(argv: list[str]) -> int:
     import sys
     if len(argv) > 1 and argv[1] == "startlist":

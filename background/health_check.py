@@ -478,6 +478,23 @@ def run_health_check() -> tuple[bool, list[str], list[str]]:
     except Exception as exc:  # noqa: BLE001 -- a sub-check must never break the health run
         ok_lines.append(f"  ℹ pull-loop transport check unavailable: {exc}")
 
+    # Booted-SHA deployment drift (OPS1 sub-step 5, G-D3): a systemd daemon running code OLDER
+    # than HEAD is stale — a restart deploys HEAD (G-D2, a separate step). This generalises the
+    # own-script-mtime stale check to catch imported-module drift. Fail-safe: no stamp yet / git
+    # unavailable -> nothing flagged (the deadman commit-clock is the backstop).
+    try:
+        from background.process_reconciler import evaluate_boot_sha_drift
+        _bd = evaluate_boot_sha_drift()
+        if _bd["stale"]:
+            problem_lines.append(
+                "  ✗ deployment drift: daemon(s) on stale code (restart to deploy HEAD): "
+                + ", ".join(_bd["stale"])
+            )
+        else:
+            ok_lines.append("  ✓ no deployment drift — systemd daemons booted from current HEAD")
+    except Exception as exc:  # noqa: BLE001 -- a sub-check must never break the health run
+        ok_lines.append(f"  ℹ boot-SHA drift check unavailable: {exc}")
+
     # A1_learn_loop_chair L3: the retrospective-cadence nudge fires automatically in the
     # live pipeline (the watchdog runs run_health_check every cycle). Informational, not a
     # hard failure -- a stale retro is a prompt to reflect, not a broken system. Defensive:
