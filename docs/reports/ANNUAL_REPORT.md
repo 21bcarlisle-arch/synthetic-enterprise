@@ -1580,7 +1580,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-16T16:52:49Z
+Generated: 2026-07-17T05:29:19Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -1700,21 +1700,23 @@ Decomposes each year's net margin change into: gross margin movement, bad debt, 
 
 > **Basis: settlement clock** (the simulation's own per-period records, years[]-based). The Gross Margin Bridge above reads a DIFFERENT clock (ledger/billed, from the double-entry journal built off real issued bills) -- the two can diverge for the same year transition; see tools/generate_margin_bridge.py / the front page's reconciliation bridge for the quantified explanation.
 
-| Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Portfolio | Driver | RAG |
-|-----------|-------|---------|-----------|---------|---------|---------|---------|--------|-----|
-| 2016→2017 | +£30,222 | +£116,398 | -£350 | -£1,187 | -£61,247 | -£23,393 | +1 | gross margin | GREEN |
-| 2017→2018 | +£70,175 | +£139,353 | +£62 | -£349 | -£56,505 | -£12,385 | +1 | gross margin | GREEN |
-| 2018→2019 | +£132,125 | +£439,489 | +£307 | -£945 | -£207,410 | -£99,316 | +2 | gross margin | GREEN |
-| 2019→2020 | -£105,305 | +£89,697 | +£65 | +£605 | -£162,654 | -£33,019 | +2 | policy levies | RED |
-| 2020→2021 | -£53,101 | -£28,647 | -£392 | -£3,641 | -£19,033 | -£1,388 | -5 | gross margin | RED |
-| 2021→2022 | +£260,224 | +£283,394 | +£365 | -£7,668 | -£1,057 | -£14,810 | +0 | gross margin | GREEN |
-| 2022→2023 | -£186,835 | -£85,838 | -£2,270 | +£3,200 | -£70,612 | -£31,315 | +0 | gross margin | RED |
-| 2023→2024 | +£194,920 | +£293,361 | +£2,316 | +£572 | -£100,683 | -£646 | +0 | gross margin | GREEN |
-| 2024→2025 | -£222,973 | -£735,613 | -£37 | +£3,855 | +£381,972 | +£126,849 | -3 | gross margin | RED |
+| Transition | Net Δ | Gross Δ | Bad Debt Δ | Capital Δ | Policy Δ | Network Δ | Residual Δ | Portfolio | Driver | RAG |
+|-----------|-------|---------|-----------|---------|---------|---------|-----------|---------|--------|-----|
+| 2016→2017 | +£30,222 | +£116,398 | -£350 | -£1,187 | -£61,247 | -£23,393 | -£0 | +1 | gross margin | GREEN |
+| 2017→2018 | +£70,175 | +£139,353 | +£62 | -£349 | -£56,505 | -£12,385 | -£0 | +1 | gross margin | GREEN |
+| 2018→2019 | +£132,125 | +£439,489 | +£307 | -£945 | -£207,410 | -£99,316 | +£0 | +2 | gross margin | GREEN |
+| 2019→2020 | -£105,305 | +£89,697 | +£65 | +£605 | -£162,654 | -£33,019 | -£0 | +2 | policy levies | RED |
+| 2020→2021 | -£53,101 | -£28,647 | -£392 | -£3,641 | -£19,033 | -£1,388 | +£0 | -5 | gross margin | RED |
+| 2021→2022 | +£260,224 | +£283,394 | +£365 | -£7,668 | -£1,057 | -£14,810 | -£0 | +0 | gross margin | GREEN |
+| 2022→2023 | -£186,835 | -£85,838 | -£2,270 | +£3,200 | -£70,612 | -£31,315 | -£0 | +0 | gross margin | RED |
+| 2023→2024 | +£194,920 | +£293,361 | +£2,316 | +£572 | -£100,683 | -£646 | +£0 | +0 | gross margin | GREEN |
+| 2024→2025 | -£222,973 | -£735,613 | -£37 | +£3,855 | +£381,972 | +£126,849 | -£0 | -3 | gross margin | RED |
 
 **Most damaging transition: 2024→2025 (-£222,973)** | **Best transition: 2021→2022 (+£260,224)**
 
 > Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: negative = costs rose (margin impact). Portfolio: active customer count change.
+
+> **Residual Δ (reconciliation):** net margin is *defined* as gross minus exactly these cost lines, so the residual should be ~£0 and the five drivers should fully account for each net movement. A materially non-zero residual is a tripwire, not noise -- it means a cost line has entered net margin without a matching bridge driver (e.g. a renamed/dropped field); when the residual strictly dominates every named driver the Driver column reads **other (unexplained)** rather than confidently naming a minority contributor.
 
 ## Unbilled Revenue Accrual (Accrual Accounting View)
 

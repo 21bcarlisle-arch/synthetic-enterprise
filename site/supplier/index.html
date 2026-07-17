@@ -700,10 +700,12 @@ function b2TaxonomyHtml() {
         visible as a risk, not discoverable only after the fact.
       </div>
       <div style="font-size:.95em">
-        Top customer: <strong>${conc.top_customer}</strong>
+        ${conc.status === 'not_assessable'
+          ? '<span style="color:var(--amber)">Not assessable</span> <span style="color:var(--muted)">— no positive-margin customer in the book (empty or wholly loss-making): concentration-of-margin is undefined, deliberately NOT reported as &ldquo;within limit&rdquo;.</span>'
+          : `Top customer: <strong>${conc.top_customer}</strong>
         (<strong>${conc.top_customer_pct_of_gross_margin}%</strong> of gross margin)
         <span style="color:var(--muted)">— limit: ${conc.limit_pct != null ? conc.limit_pct + '%' : 'not yet set by the director'}${conc.amber_pct != null ? ', amber at ' + conc.amber_pct + '%' : ''}</span>
-        ${conc.status === 'red' ? '<span class="neg"> BREACH</span>' : conc.status === 'amber' ? '<span style="color:var(--amber)"> APPROACHING LIMIT</span>' : conc.status === 'green' ? '<span class="pos"> within limit</span>' : ''}
+        ${conc.status === 'red' ? '<span class="neg"> BREACH</span>' : conc.status === 'amber' ? '<span style="color:var(--amber)"> APPROACHING LIMIT</span>' : conc.status === 'green' ? '<span class="pos"> within limit</span>' : ''}`}
       </div>
       ${conc.status === 'red' ? '<div style="color:var(--muted);font-size:.8em;padding:.3rem 0 0">A standing risk exception, curable only by book growth/diversification -- by design, not a defect to silence (director risk appetite, 2026-07-10).</div>' : ''}
     </div>` : ''}`;

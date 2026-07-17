@@ -85,7 +85,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "B1_margin_bridge",
@@ -155,7 +155,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "B5_regional_basis_risk",
@@ -813,7 +813,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stall_consecutive_unchanged": 38
     },
     {
       "id": "C5_key_moment_conversion",
@@ -909,7 +909,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 48
+      "stall_consecutive_unchanged": 51
     },
     {
       "id": "F4_company_internal_authz",
@@ -926,7 +926,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 40
+      "stall_consecutive_unchanged": 41
     },
     {
       "id": "H5_security_profiles",
@@ -1475,7 +1475,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21
+      "stall_consecutive_unchanged": 23
     },
     {
       "id": "W1_7_renewable_capacity_trends",
@@ -1494,7 +1494,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 80
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1532,7 +1532,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -1551,7 +1551,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "H15_publish_gate_failure_alert",
@@ -1604,7 +1604,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "H17_autonomous_build_executor",
@@ -1624,7 +1624,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "G4_unified_failure_register",
@@ -1641,7 +1641,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "H18_harness_self_mutation_audit",
@@ -1658,7 +1658,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W4_3_external_truth_wall",
@@ -1810,8 +1810,8 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "G11_activity_cost_utilisation",
@@ -1876,15 +1876,15 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": 1
     }
   ],
   "lanes": {

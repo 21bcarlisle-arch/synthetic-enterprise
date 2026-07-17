@@ -1,5 +1,5 @@
 ## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-16T18:10:32Z
+Last updated: 2026-07-17T06:40:55Z
 
 **One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
 Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
@@ -36,7 +36,7 @@ as an atom, not conflated with the acute incident.
 ---
 
 ## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-16T18:04:20Z
+Last updated: 2026-07-17T06:34:28Z
 
 **Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
 Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
@@ -76,7 +76,7 @@ caller).
 L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
 count; that is the honesty bar, not regression.
 
-**Latest simulation results (2016–2025)** — auto-processed (511s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (518s / 9 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -188,6 +188,6 @@ count; that is the honesty bar, not regression.
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~136.1h across 13 sized atom(s) (16 of 29 below-target atoms still unsized).
+- Remaining effort: ~135.1h across 12 sized atom(s) (16 of 28 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 18.4h (+9.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.2h (+1.2h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
