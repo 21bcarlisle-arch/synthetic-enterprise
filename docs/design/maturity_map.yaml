@@ -1753,9 +1753,9 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 1
+  level_current: 2
   level_target: 3
-  loop_stage: build   # UN-PARKED 2026-07-17 (director-authorized console gate-opening, recorded in docs/observability/gate_authorizations.jsonl): OPS1 sub-steps 5 (deployment-by-construction) -> 6 (notification contract) -> 7 (test-isolation).
+  loop_stage: idle   # PARKED 2026-07-17: all 7 designed sub-steps BUILT (console-marker, manifest, scheduling, systemd-migration, deploy-by-construction, notification-contract [17/17 collapsed], test-isolation) + the fork-lifecycle reconciler landed. L2->L3 is the DIRECTOR-TRIGGERED systemd DEPLOY (units reinstall + daemon restart, so booted-SHA/stamps/console-marker go LIVE) + the governance LIVE run -- NOT worker-BUILD. No worker BUILD is drawable here now; flips to build/L3 on the director's deploy. Parked so the loop draws other work instead of treadmilling a done rebuild (Rule 0: empty feasible set is a dial defect, yield).
   dial_inherited: 5
   provenance: director_mandate
   evidence: [docs/staging/OPERATIONAL_COHERENCE_DESIGN_PASS.md, docs/design/OPERATIONAL_LAYER_DESIGN.md]
