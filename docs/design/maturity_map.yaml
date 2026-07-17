@@ -1764,3 +1764,27 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an SRE team replacing a pile of individually-added restart scripts, health hacks, and alert rules with one designed control plane whose every component states its purpose, so on-call conflicts are resolved by design instead of by adding another script"
   depends_on: []
+- id: OPS1_session_watchdog_collapse
+  name: Collapse the inert session_watchdog.py dead code into worker_seat (post-migration cleanup)
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 2
+  provenance: proposal
+  evidence:
+  - docs/design/SUBSTEP4_SUPERVISOR_HYBRID.md
+  file_scope:
+  - background/session_watchdog.py
+  - background/worker_seat.py
+  simplifications:
+  - 'REGISTERED DEBT (2026-07-17, director-required at the sub-step-4 gate: "record the dead session_watchdog code as a registered cleanup item with its flip-condition -- scheduled debt is fine; unrecorded debt is how accretion restarts"). After OPS1 sub-step 4 deleted the reaper, session_watchdog.py''s restart_claude / RESUME_INSTRUCTION / usage-limit paths remain as INERT dead code: NOT in process_manifest.yaml, NOT in start_worker.sh''s derived launch set, never spawned. worker_seat.py (thin: seed-by-id + keep-alive + report) is the live replacement. FLIP CONDITION: once the gated worker-seat -> supervisor -> deadmans migration is proven live and boring, delete session_watchdog.py''s restart/resume/usage-limit paths and move the two still-consumed detection helpers (interactive_claude_pids, _ppid_of -- used by health_check''s report-only duplicate-session check) into a neutral module or worker_seat. Scoped OUT of the sub-step-4 build to protect the release rung''s blast radius (checkpoint discipline).'
+  expert_hour:
+    status: not_attempted
+    last: null
+    findings: []
+  real_world_twin: an SRE deleting the old deploy script only after the new pipeline has run clean for a few releases -- retiring the fallback on evidence, not on merge day
+  depends_on:
+  - OPS1_operational_layer_rebuild

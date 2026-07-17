@@ -52,9 +52,21 @@ SEED_PROMPT = (
 )
 
 
+# nvm installs `claude` under ~/.nvm/versions/node/*/bin and only puts it on PATH in an
+# INTERACTIVE shell -- so a systemd --user service (bare, non-login PATH) can't find it via
+# `which`. Resolve the absolute nvm path as a fallback, same lesson as session_watchdog's
+# resolver (WATCHDOG_NO_SENDKEYS.md). Highest node version wins (nvm dirs are vX.Y.Z).
+_CLAUDE_NVM_GLOB = str(Path.home() / ".nvm" / "versions" / "node" / "*" / "bin" / "claude")
+
+
 def _resolve_claude() -> str | None:
     import shutil
-    return shutil.which("claude")
+    found = shutil.which("claude")
+    if found:
+        return found
+    import glob
+    matches = sorted(glob.glob(_CLAUDE_NVM_GLOB))
+    return matches[-1] if matches else None
 
 
 def _session_alive() -> bool:

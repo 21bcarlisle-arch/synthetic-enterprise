@@ -74,3 +74,23 @@ def test_report_writes_a_status_line_only(tmp_path, monkeypatch):
     monkeypatch.setattr(W, "STATUS_FILE", tmp_path / ".worker_seat_status")
     W._report("hello")
     assert (tmp_path / ".worker_seat_status").read_text().strip() == "hello"
+
+
+def test_resolve_claude_falls_back_to_nvm_when_not_on_PATH(monkeypatch):
+    """A systemd --user service has a bare (non-login) PATH with no nvm bin dir, so `which`
+    returns None -- the seat must still find the absolute nvm binary or it can never seed under
+    systemd. Mirrors session_watchdog's resolver."""
+    import shutil
+    import glob
+    monkeypatch.setattr(shutil, "which", lambda _c: None)   # not on PATH (the systemd case)
+    monkeypatch.setattr(glob, "glob", lambda pat: [
+        "/home/rich/.nvm/versions/node/v20.0.0/bin/claude",
+        "/home/rich/.nvm/versions/node/v22.1.0/bin/claude",
+    ])
+    assert W._resolve_claude() == "/home/rich/.nvm/versions/node/v22.1.0/bin/claude"  # highest version
+
+
+def test_resolve_claude_prefers_PATH_when_present(monkeypatch):
+    import shutil
+    monkeypatch.setattr(shutil, "which", lambda _c: "/usr/local/bin/claude")
+    assert W._resolve_claude() == "/usr/local/bin/claude"
