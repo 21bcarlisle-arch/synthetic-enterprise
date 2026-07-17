@@ -1901,7 +1901,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1920,7 +1920,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -1933,6 +1933,25 @@
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS1_operational_layer_rebuild"
+      ],
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
+    },
+    {
+      "id": "OPS1_governance_refusal_mutation_test",
+      "name": "Governance mutation test: prove the autonomous worker REFUSES director-gated/HELD work at top of queue",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "OPS1_operational_layer_rebuild"
@@ -2022,7 +2041,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 108,
+  "total_atoms": 109,
   "epoch2_movements": [
     {
       "id": "M1",
