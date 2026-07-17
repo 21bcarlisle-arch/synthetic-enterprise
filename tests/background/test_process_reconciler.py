@@ -38,13 +38,15 @@ def test_start_worker_has_no_hardcoded_daemon_list_left():
     assert literal_launchers == [], f"hardcoded launchers still present: {literal_launchers}"
 
 
-def test_startlist_is_enabled_and_dark_owned_by_start_worker():
+def test_startlist_is_enabled_and_dark_owned_by_systemd():
+    # OPS1 sub-step 4: startlist = the systemd daemons to start now (owner==systemd, enabled|dark).
     names = [s for s, _ in R.startlist()]
     assert "sim-runner" in names            # enabled
-    assert "executor-daemon" in names       # dark: launched (as a no-op) by start_worker
-    assert "supervisor" not in names        # HELD: not launched — that IS the hold
+    assert "executor-daemon" in names       # dark: installed (no-op) unit
+    assert "supervisor" not in names        # HELD: not started — that IS the hold
     assert "deadmans-switch" not in names   # HELD
-    assert "claude" not in names            # worker seat: owned by session-watchdog, not start_worker
+    assert "claude" not in names            # worker seat: owned by worker-seat-manager, not systemd
+    assert "worker-seat-manager" not in names  # HELD during the rebuild
     assert "autonomous-runner" not in names # retired
 
 
@@ -53,7 +55,7 @@ def test_health_checked_excludes_held_dark_retired_includes_enabled():
     deliberately-held daemon never reads as a fault (the false-DEGRADED class)."""
     hc = R.health_checked_map()
     assert "naive-organ" in hc                 # the gap the old EXPECTED_PANES had
-    for held in ("supervisor", "deadmans-switch", "session-watchdog", "claude"):
+    for held in ("supervisor", "deadmans-switch", "worker-seat-manager", "claude"):
         assert held not in hc                  # held -> not a fault when down
     assert "executor-daemon" not in hc         # dark
     assert "autonomous-runner" not in hc       # retired

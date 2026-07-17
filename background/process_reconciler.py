@@ -77,11 +77,13 @@ def declared_sessions(path: Path | None = None) -> set[str]:
 
 
 def startlist(path: Path | None = None) -> list[tuple[str, str]]:
-    """(session, command) for entries start_worker.sh should launch: owner==start_worker.sh
-    and state in {enabled, dark}. Held/retired are NOT launched -- that IS the hold, expressed
-    once in the manifest. This is the SOLE launch declaration; start_worker.sh derives from it."""
+    """(session, command) for the systemd daemons that should be STARTED now: owner==systemd
+    and state in {enabled, dark}. Held/retired are NOT started -- that IS the hold, expressed
+    once in the manifest. OPS1 sub-step 4 transition: ownership moved start_worker.sh -> systemd
+    (units in background/systemd/); this is the set install_schedule.sh installs+starts. The old
+    tmux launch in start_worker.sh is superseded and removed in the sub-step-4 absorption pass."""
     return [(p["session"], p["command"]) for p in load_manifest(path)
-            if p["owner"] == "start_worker.sh" and p["state"] in ("enabled", "dark")]
+            if p["owner"] == "systemd" and p["state"] in ("enabled", "dark")]
 
 
 def _is_running(entry: dict, panes: dict[str, str], ps_lines: list[str]) -> bool:

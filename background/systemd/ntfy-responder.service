@@ -1,0 +1,19 @@
+# GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
+# Edit the manifest and regenerate. state=enabled owner=systemd
+[Unit]
+Description=Synthetic Enterprise: Acks inbound NTFY, writes to staging/
+After=network.target
+# G-L3: a crash-loop enters `failed` instead of restarting silently forever.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=/home/rich/synthetic-enterprise
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+ExecStart=/usr/bin/python3 background/ntfy_responder.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

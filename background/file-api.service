@@ -1,6 +1,9 @@
 [Unit]
 Description=Synthetic Enterprise file API (Claude staging read/write)
 After=network.target
+# G-L3: bound the crash-loop -> `failed`, not the silent 32,707-restart loop this unit actually had.
+StartLimitIntervalSec=120
+StartLimitBurst=5
 
 [Service]
 Type=simple
