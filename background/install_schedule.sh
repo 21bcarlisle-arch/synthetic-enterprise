@@ -20,6 +20,12 @@ while IFS=$'\t' read -r name unit_file enabled; do
   echo "installed $name  <-  $unit_file"
   if [ "$enabled" = "1" ]; then
     systemctl --user enable "$name" >/dev/null 2>&1 && echo "  enabled (boot-start)"
+    # A .timer must be ARMED to actually run its schedule (a drift-control timer that is enabled
+    # but never started is fail-silent, R15). Arming a timer is scheduling, not launching a daemon,
+    # so it is exempt from the "no start" rule that applies to .service daemons (gated migration).
+    case "$name" in
+      *.timer) systemctl --user start "$name" >/dev/null 2>&1 && echo "  armed (timer started)";;
+    esac
   fi
 done <<< "$UNITS"
 

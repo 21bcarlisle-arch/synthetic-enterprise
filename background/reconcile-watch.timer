@@ -1,0 +1,13 @@
+[Unit]
+Description=Synthetic Enterprise reconcile watch timer — fire the drift control every 5 min
+
+[Timer]
+# First pass 2 min after boot (let daemons settle), then every 5 min. The drift control is only
+# a real control if it actually RUNS on a schedule (R15: a control with no live consumer is
+# fail-silent) — this is that schedule, committed as IaC.
+OnBootSec=2min
+OnUnitActiveSec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

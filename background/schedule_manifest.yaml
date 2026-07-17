@@ -44,3 +44,23 @@ systemd_units:
       the silent "cron resurrects whatever was there" mask the blackout came from. Report-only:
       it starts/stops/reaps nothing (G-R4). enabled (boot-start) but active:false because a
       oneshot exits after running — flagging it UNIT_DOWN would be wrong.
+
+  - name: reconcile-watch.service
+    unit_file: background/reconcile-watch.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — runs one reconcile pass and EXITS
+    reason: >-
+      OPS1 sub-step 4: the drift CONTROL made LIVE. The oneshot the timer fires — reconciles
+      declared-vs-actual and pages ONLY on a drift transition (R5), report-only (G-R3). Not
+      enabled/active itself (the .timer drives it); flagging it down would be wrong.
+
+  - name: reconcile-watch.timer
+    unit_file: background/reconcile-watch.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — a drift control that isn't scheduled is fail-silent (R15)
+    reason: >-
+      OPS1 sub-step 4: the SCHEDULE that makes the reconcile a real control instead of theatre.
+      boot_announce runs the reconcile once at boot; between boots drift was UNWATCHED — the exact
+      gap that let a live worker-seat declared `held` produce no HELD_VIOLATED (2026-07-17). This
+      timer fires the reconcile every 5 min so drift is loud within minutes, not at the next boot.
+      active:true because an un-armed timer is a control that never runs.

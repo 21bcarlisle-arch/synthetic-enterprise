@@ -1,0 +1,12 @@
+[Unit]
+Description=Synthetic Enterprise reconcile watch (G-L2/G-R3 drift control, made LIVE) — one pass
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# NTFY secret via the Option-2 out-of-tree location; `-` = still run (and log) if absent.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# Report-only: reconcile declared-vs-actual and page ONLY on a drift transition (R5). Starts,
+# stops, enables, reaps NOTHING (G-R3). Triggered by reconcile-watch.timer.
+ExecStart=/usr/bin/python3 -m background.reconcile_watch
