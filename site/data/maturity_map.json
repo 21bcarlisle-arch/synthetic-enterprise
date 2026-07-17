@@ -1901,7 +1901,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1920,7 +1920,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -1956,7 +1956,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
