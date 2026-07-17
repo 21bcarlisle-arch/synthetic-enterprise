@@ -367,7 +367,7 @@ def _check_single_interactive_session(_pids=None, _pane_session=None) -> str | N
     Fail-safe: if tmux is unreachable (no pane map), fall back to the raw >1
     alarm -- never go silent on a possible real duplicate."""
     try:
-        from background.session_watchdog import (
+        from background.interactive_session_probe import (
             interactive_claude_pids, _ppid_of, SESSION_NAME,
         )
         pids = interactive_claude_pids() if _pids is None else list(_pids)

@@ -12,7 +12,8 @@ Always-on background processes that run independently of the Claude Code session
 | `dispatcher.py` | Classifies and routes inbound NTFY messages | Per message |
 | `ntfy_responder.py` | Writes inbound NTFY (>25 chars) to `docs/staging/from_rich_*.md` | Per message |
 | `health_check.py` | Pings all daemons; updates `docs/observability/health-check-log.md` | Every 5 min |
-| `session_watchdog.py` | Monitors Claude Code session activity | Continuous |
+| `worker_seat.py` | Seeds + keep-alives the interactive worker seat (replaced session_watchdog; systemd unit) | Continuous |
+| `interactive_session_probe.py` | Read-only /proc probe of interactive Claude sessions (used by health_check's duplicate-session check) | Library |
 | `discovery_agent.py` | Background discovery — reads market research, writes findings | On demand |
 
 ## Shared infrastructure

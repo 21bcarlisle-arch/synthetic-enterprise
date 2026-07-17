@@ -84,7 +84,7 @@ _ALLOWED_DIRECT_SENDERS = {
     "boot_announce.py", "deadmans_switch.py", "director_comments.py", "director_twin.py",
     "discovery_agent.py", "dispatcher.py", "executor_governor.py", "health_check.py",
     "ntfy_mirror.py", "ntfy_responder.py", "process_run_complete.py", "retro_cadence_check.py",
-    "sanity_daemon.py", "session_watchdog.py", "sim_runner.py", "staging_watcher.py",
+    "sanity_daemon.py", "sim_runner.py", "staging_watcher.py",
     "supervisor.py",
 }
 

@@ -532,7 +532,7 @@ def test_multiple_interactive_sessions_is_a_problem(monkeypatch):
     tmux pane map for console classification -- so it opts out of the G-T1 no-spawn guard
     (OPS1 sub-step 7). The sibling TestDirectorConsoleExclusion class injects a fake pane map
     instead; this one asserts the raw-count path end to end."""
-    from background import session_watchdog
+    from background import interactive_session_probe as session_watchdog
     monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [111, 222])
     assert health_check._check_single_interactive_session() is not None  # alarms on 2
     monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [111])
@@ -556,7 +556,7 @@ class TestDirectorConsoleExclusion:
     _PPID = {7001: 7000, 7000: 1, 7002: 7000, 8001: 1, 8002: 1, 9001: 1}
 
     def _patch_ppid(self, monkeypatch):
-        from background import session_watchdog
+        from background import interactive_session_probe as session_watchdog
         monkeypatch.setattr(session_watchdog, "_ppid_of", lambda p: self._PPID.get(p))
 
     def test_console_plus_managed_does_not_page(self, monkeypatch):

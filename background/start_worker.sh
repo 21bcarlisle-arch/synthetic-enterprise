@@ -115,7 +115,7 @@ _start_session() {
 #    import-time topic check passes on a healthy tree. If any core daemon fails to
 #    import, ABORT with the error and a non-zero exit -- refuse to bring up a stack
 #    that cannot run, rather than spawn a dozen instantly-dying sessions.
-SMOKE_ERR="$(python3 -c 'import background.ntfy_utils, background.health_check, background.session_watchdog, background.worker_seat, background.boot_announce, background.process_reconciler, background.schedule_reconciler, background.ntfy_responder, background.supervisor, background.process_run_complete' 2>&1)"
+SMOKE_ERR="$(python3 -c 'import background.ntfy_utils, background.health_check, background.worker_seat, background.boot_announce, background.process_reconciler, background.schedule_reconciler, background.ntfy_responder, background.supervisor, background.process_run_complete' 2>&1)"
 if [ $? -ne 0 ]; then
   echo "REFUSING TO START: core daemon import smoke test FAILED -- the stack would only" >&2
   echo "crash-loop. Fix the import error before starting (this is the guard that stops an" >&2
