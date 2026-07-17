@@ -20,7 +20,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "health-check-log.md"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 
 # The set of daemons whose ABSENCE is a fault, DERIVED from the single declared
 # manifest (background/process_manifest.yaml) rather than hand-maintained here.
@@ -542,13 +542,14 @@ def main() -> int:
     _log(f"health={status} problems={len(problem_lines)} ok={len(ok_lines)}")
 
     if not all_ok:
-        send_ntfy(
+        notify(
             f"[HEALTH CHECK] Stack DEGRADED — {len(problem_lines)} problem(s):\n"
             + "\n".join(problem_lines),
+            kind="real_alarm",
             headers={"X-Priority": "4", "X-Tags": "warning"},
         )
     elif always_ntfy:
-        send_ntfy(f"[HEALTH CHECK] Stack OK — {len(ok_lines)} processes healthy.")
+        notify(f"[HEALTH CHECK] Stack OK — {len(ok_lines)} processes healthy.", kind="director_echo")
 
     return 0 if all_ok else 1
 

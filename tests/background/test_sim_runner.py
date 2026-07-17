@@ -11,7 +11,7 @@ def test_run_simulation_creates_staging_marker(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(sim_runner, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(sim_runner, "REPORTS_DIR", tmp_path / "reports")
-    monkeypatch.setattr(sim_runner, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
 
     # Simulate a successful subprocess run + output file creation.
@@ -46,7 +46,7 @@ def test_run_simulation_returns_false_on_failure(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(sim_runner, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(sim_runner, "REPORTS_DIR", tmp_path / "reports")
-    monkeypatch.setattr(sim_runner, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
 
     def fake_run(cmd, **kwargs):
@@ -67,7 +67,7 @@ def test_run_simulation_updates_latest_json(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(sim_runner, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(sim_runner, "REPORTS_DIR", tmp_path / "reports")
-    monkeypatch.setattr(sim_runner, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
 
     def fake_run(cmd, **kwargs):
@@ -132,7 +132,7 @@ def test_run_simulation_staging_marker_name_format(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(sim_runner, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(sim_runner, "REPORTS_DIR", tmp_path / "reports")
-    monkeypatch.setattr(sim_runner, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
     from unittest.mock import MagicMock
     from pathlib import Path as _Path

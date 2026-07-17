@@ -30,7 +30,7 @@ FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish
 BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
 
@@ -84,14 +84,14 @@ def run_simulation() -> bool:
     except subprocess.TimeoutExpired:
         elapsed = time.monotonic() - t0
         log(f"Run TIMED OUT after {elapsed:.0f}s — killing subprocess and retrying")
-        send_ntfy(f"[SIM] Run timed out after {elapsed:.0f}s — check sim-runner-log.md")
+        notify(f"[SIM] Run timed out after {elapsed:.0f}s — check sim-runner-log.md", kind="real_alarm")
         update_agent_status("sim-runner", status="error", last_action=f"Run timed out after {elapsed:.0f}s", anomaly=f"TimeoutExpired after {elapsed:.0f}s")
         return False
     elapsed = time.monotonic() - t0
 
     if result.returncode != 0 or not out_json.exists():
         log(f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s")
-        send_ntfy(f"[SIM] Run FAILED after {elapsed:.0f}s — check sim-runner-log.md")
+        notify(f"[SIM] Run FAILED after {elapsed:.0f}s — check sim-runner-log.md", kind="real_alarm")
         update_agent_status("sim-runner", status="error", last_action=f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s", anomaly=f"Exit code {result.returncode}")
         return False
 
@@ -197,7 +197,7 @@ def main() -> None:
             success = run_simulation()
         except Exception as exc:
             log(f"Unexpected error in run_simulation: {type(exc).__name__}: {exc}")
-            send_ntfy(f"[SIM] Unexpected crash: {type(exc).__name__}: {exc}")
+            notify(f"[SIM] Unexpected crash: {type(exc).__name__}: {exc}", kind="real_alarm")
             success = False
         wait = BETWEEN_RUN_PAUSE_SECONDS if success else 300
         log(f"Waiting {wait}s before next run...")

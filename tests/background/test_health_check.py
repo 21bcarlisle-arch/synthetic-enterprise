@@ -259,7 +259,7 @@ def test_main_returns_0_when_all_ok(monkeypatch, tmp_path):
     monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
     monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
     monkeypatch.setattr(health_check, "LOG_FILE", tmp_path / "health.md")
-    monkeypatch.setattr(health_check, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(health_check, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sys, "argv", ["health_check.py"])
 
     rc = health_check.main()
@@ -275,7 +275,7 @@ def test_main_returns_1_and_sends_ntfy_on_failure(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "argv", ["health_check.py"])
 
     sent = []
-    monkeypatch.setattr(health_check, "send_ntfy", lambda msg, **k: sent.append(msg))
+    monkeypatch.setattr(health_check, "notify", lambda msg, **k: sent.append(msg))
 
     rc = health_check.main()
     assert rc == 1
@@ -314,7 +314,7 @@ def test_main_writes_to_log_file(monkeypatch, tmp_path):
     monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
     log = tmp_path / "health.md"
     monkeypatch.setattr(health_check, "LOG_FILE", log)
-    monkeypatch.setattr(health_check, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(health_check, "notify", lambda *a, **k: None)
     monkeypatch.setattr(__import__("sys"), "argv", ["health_check.py"])
 
     health_check.main()
