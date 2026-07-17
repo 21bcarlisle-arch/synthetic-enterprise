@@ -11,9 +11,9 @@ from background import action_needed
 
 
 def _reset_state():
-    dms._last_escalation_ts = None
-    dms._last_loop_broken_ts = None
-    dms._last_gate_violation_ts = None
+    # Transition state now lives in the notify() contract, not module globals -- the fixture
+    # isolates notify.TRANSITIONS_FILE to a fresh per-test tmp file, so nothing to reset here.
+    pass
 
 
 @pytest.fixture(autouse=True)
@@ -21,6 +21,11 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(dms, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(dms, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(dms, "OBSERVABILITY_DIR", tmp_path / "observability")
+    # The deadman delegates transition-only + re-escalate to notify(); isolate its store to a fresh
+    # per-test tmp file so each test starts un-escalated and never touches the real (G-T2-protected)
+    # .notify_transitions.json. Sends are captured via ntfy_utils.send_ntfy (what notify calls).
+    import background.notify as _notify
+    monkeypatch.setattr(_notify, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     # Isolated from the real, committed action_needed_register.json --
     # every test starts with a genuinely empty register (2026-07-11).
     monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "action_needed_register.json")
@@ -43,7 +48,7 @@ def _isolate(tmp_path, monkeypatch):
 def test_no_staged_files_is_clean_no_ntfy(monkeypatch):
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)  # recent commit
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
     assert "Clean" in dms.LOG_FILE.read_text()
@@ -53,7 +58,7 @@ def test_gitkeep_alone_does_not_count_as_staged_work(monkeypatch):
     (dms.STAGING_DIR / ".gitkeep").write_text("")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)  # recent commit
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
 
@@ -62,7 +67,7 @@ def test_staged_work_with_recent_activity_not_blocked(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").write_text("staged")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)  # 1 min ago
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
     assert "not blocked" in dms.LOG_FILE.read_text()
@@ -72,7 +77,7 @@ def test_staged_work_with_stale_activity_sends_blocked_ntfy(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").write_text("staged")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - (2 * 3600))  # 2h ago
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[BLOCKED]" in calls[0]
@@ -83,7 +88,7 @@ def test_blocked_ntfy_does_not_repeat_within_re_escalate_window(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").write_text("staged")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - (2 * 3600))
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     dms.run_cycle()
     dms.run_cycle()
@@ -94,12 +99,15 @@ def test_blocked_ntfy_re_escalates_after_re_escalate_window(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").write_text("staged")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - (2 * 3600))
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
 
-    # Simulate the re-escalation window having elapsed.
-    dms._last_escalation_ts = time.time() - dms.RE_ESCALATE_SECONDS - 1
+    # Simulate the re-escalation window having elapsed: age the notify transition store's ts.
+    import background.notify as _n
+    store = json.loads(_n.TRANSITIONS_FILE.read_text())
+    store[dms._COMMIT_KEY]["ts"] = time.time() - dms.RE_ESCALATE_SECONDS - 1
+    _n.TRANSITIONS_FILE.write_text(json.dumps(store))
     dms.run_cycle()
     assert len(calls) == 2
 
@@ -109,7 +117,7 @@ def test_recovering_to_clean_resets_escalation_state(monkeypatch):
     activity = {"epoch": time.time() - (2 * 3600)}
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: activity["epoch"])
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
 
@@ -117,7 +125,10 @@ def test_recovering_to_clean_resets_escalation_state(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").unlink()
     activity["epoch"] = time.time()
     dms.run_cycle()
-    assert dms._last_escalation_ts is None
+    # Recovery re-arms: clear_transition popped the commit key from the notify store.
+    import background.notify as _n
+    store = json.loads(_n.TRANSITIONS_FILE.read_text()) if _n.TRANSITIONS_FILE.exists() else {}
+    assert dms._COMMIT_KEY not in store
 
 
 def test_recent_commits_returns_empty_on_git_failure(monkeypatch):
@@ -138,7 +149,7 @@ def test_meaningful_clock_fails_closed_and_trips_blocked_when_git_unreadable(mon
     monkeypatch.setattr(dms, "_recent_commits", lambda n=200: [])  # git unreadable
     (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[BLOCKED]" in calls[0]
@@ -191,7 +202,7 @@ def test_flat_auto_process_commits_do_not_refresh_liveness(monkeypatch):
     monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
     (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[BLOCKED]" in calls[0]
@@ -214,7 +225,7 @@ def test_recent_meaningful_commit_is_not_blocked_despite_auto_process_noise(monk
     monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
     (dms.STAGING_DIR / "STEER_INSTRUCTION.md").write_text("queued")
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
     assert "not blocked" in dms.LOG_FILE.read_text()
@@ -249,7 +260,7 @@ def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
     (dms.OBSERVABILITY_DIR / "supervisor-log.md").write_text("supervisor just logged")
     (dms.OBSERVABILITY_DIR / "deadmans-switch-log.md").write_text("the switch's own write")
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[BLOCKED]" in calls[0]
@@ -262,7 +273,7 @@ def test_silent_stall_fires_with_empty_queue(monkeypatch):
     assert dms._unprocessed_staging_files() == []  # genuinely empty queue
     monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[STALL]" in calls[0]
@@ -280,7 +291,7 @@ def test_usage_pause_suppresses_the_alarm(monkeypatch):
         json.dumps({"resume_at": resume_at})
     )
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
     assert "Usage pause active" in dms.LOG_FILE.read_text()
@@ -297,7 +308,7 @@ def test_expired_usage_pause_does_not_suppress(monkeypatch):
         json.dumps({"resume_at": past})
     )
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[BLOCKED]" in calls[0]
@@ -307,7 +318,7 @@ def test_blocked_message_names_the_supervisor_stack_explicitly(monkeypatch):
     (dms.STAGING_DIR / "SOME_DOC.md").write_text("staged")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - (2 * 3600))
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert "supervisor" in calls[0].lower()
 
@@ -323,7 +334,7 @@ def test_run_cycle_repings_a_due_action_needed_item(monkeypatch):
     )
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert calls[0].startswith("[ACTION NEEDED] routines-env-id")
@@ -334,7 +345,7 @@ def test_run_cycle_does_not_reping_within_24h(monkeypatch):
     action_needed.register_item("a", "w", "h", "y")  # just registered, now
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
 
@@ -346,7 +357,7 @@ def test_run_cycle_does_not_reping_resolved_items(monkeypatch):
     action_needed.resolve_item("a", "answered")
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
 
@@ -361,7 +372,7 @@ def test_run_cycle_reping_is_independent_of_staging_activity_check(monkeypatch):
     assert dms._unprocessed_staging_files() == []  # staging genuinely clean
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert calls[0].startswith("[ACTION NEEDED] a")
@@ -373,7 +384,7 @@ def test_run_cycle_repings_resets_the_daily_clock(monkeypatch):
     action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
 
@@ -394,7 +405,7 @@ def test_run_complete_markers_do_not_count_as_blocked_work(monkeypatch):
     assert dms._unprocessed_staging_files() == []  # markers excluded from queued work
     monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 60)  # recent commit
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []  # 30 markers + recent commit -> no alarm
 
@@ -407,7 +418,7 @@ def test_run_complete_pile_with_stale_commit_still_stalls(monkeypatch):
         (dms.STAGING_DIR / f"run_complete_2026071{i:02d}.md").write_text("marker")
     monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[STALL]" in calls[0]

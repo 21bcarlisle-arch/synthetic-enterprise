@@ -7,6 +7,7 @@ enforces that NEW code pages via notify() — with a SHRINKING allowlist as the 
 from __future__ import annotations
 
 import re
+import time
 from pathlib import Path
 
 import pytest
@@ -75,6 +76,30 @@ def test_no_transition_key_always_sends(sent):
     assert len(sent) == 2
 
 
+# ── re_escalate_after: transition-only PLUS re-alert while still stuck (the deadman pattern) ──
+def test_re_escalate_suppresses_an_unchanged_state_within_the_window(sent):
+    N.notify("stuck", kind="real_alarm", transition_key="k", state="STUCK", re_escalate_after=3600)
+    N.notify("stuck", kind="real_alarm", transition_key="k", state="STUCK", re_escalate_after=3600)
+    assert len(sent) == 1                                # unchanged + within window -> suppressed
+
+
+def test_re_escalate_resends_an_unchanged_state_after_the_window(sent):
+    import json
+    N.notify("stuck", kind="real_alarm", transition_key="k", state="STUCK", re_escalate_after=3600)
+    # age the stored timestamp past the window
+    store = json.loads(N.TRANSITIONS_FILE.read_text())
+    store["k"]["ts"] = time.time() - 3601
+    N.TRANSITIONS_FILE.write_text(json.dumps(store))
+    N.notify("stuck", kind="real_alarm", transition_key="k", state="STUCK", re_escalate_after=3600)
+    assert len(sent) == 2                                # window elapsed -> re-escalated
+
+
+def test_a_changed_state_sends_immediately_even_within_the_window(sent):
+    N.notify("s", kind="real_alarm", transition_key="k", state="BLOCKED", re_escalate_after=3600)
+    N.notify("s", kind="real_alarm", transition_key="k", state="CLEARED", re_escalate_after=3600)
+    assert len(sent) == 2                                # a real state change is never suppressed
+
+
 # ── MAKE_IT_STICK: the single-path grep-guard (shrinking allowlist = migration checklist) ────
 # New code must page via notify(). These are the GRANDFATHERED direct send_ntfy callers, tracked
 # as a checklist that can only SHRINK as they collapse onto the contract (§2.3). notify.py (the
@@ -85,15 +110,11 @@ _ALLOWED_DIRECT_SENDERS = {
     # target that send_ntfy() calls, so it stays here (the regex matches the comment) but is never
     # migrated.
     "ntfy_mirror.py",
-    # migration debt — remaining direct callers to route through notify() (3; was 17 — cohorts 1-4
-    # migrated 12: boot_announce, retro_cadence_check, discovery_agent, director_twin,
-    # director_comments, dispatcher, staging_watcher, executor_governor, sim_runner, health_check,
-    # sanity_daemon, ntfy_responder). The last 3 need dedicated careful turns:
-    #  - deadmans_switch, supervisor: SAFETY-CRITICAL, cohesive+mutation-tested transition state
-    #    (_last_*_ts). Migrating needs a notify() re-escalation extension + rewriting the safety
-    #    net's own tests -> a real behaviour-change risk on the blackout-catcher; director-flagged.
+    # migration debt — remaining direct callers to route through notify() (2; was 17 — cohorts 1-5
+    # migrated 13, incl. the deadman via the notify() re_escalate_after extension). The last 2:
+    #  - supervisor: SAFETY-CRITICAL turn-granting daemon; careful transition-preserving migration.
     #  - process_run_complete: pipeline-critical publish path (3 sites); careful.
-    "deadmans_switch.py", "process_run_complete.py", "supervisor.py",
+    "process_run_complete.py", "supervisor.py",
 }
 
 

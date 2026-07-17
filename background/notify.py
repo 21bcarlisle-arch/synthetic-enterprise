@@ -57,13 +57,17 @@ def _write_transitions(d: dict) -> None:
 
 
 def notify(message: str, *, kind: str, transition_key: str | None = None,
-           state: object | None = None, headers: dict[str, str] | None = None,
-           _allow_real_send: bool = False) -> str | None:
+           state: object | None = None, re_escalate_after: float | None = None,
+           headers: dict[str, str] | None = None, _allow_real_send: bool = False) -> str | None:
     """Send a notification through the one contract.
 
     kind: one of KINDS (G-N2, required — an untyped page is forbidden).
     transition_key + state: if given, transition-only (G-N1/R5) — SUPPRESS unless `state` changed
       since the last send for this key. Returns a "suppressed:unchanged:<key>" sentinel then.
+    re_escalate_after: with a transition_key, RE-SEND an unchanged state once this many seconds have
+      elapsed since the last send (the deadman's "re-alert hourly while still stuck" pattern). None
+      (default) = pure transition-only, never re-send an unchanged state. A CHANGED state always
+      sends immediately regardless.
     Returns the send id (or a sentinel string for suppressed / test_fixture / pytest)."""
     if kind not in KINDS:
         raise ValueError(f"notify kind must be one of {list(KINDS)}, got {kind!r}")
@@ -71,9 +75,11 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
     if transition_key is not None:
         trans = _read_transitions()
         cur = str(state)
-        if trans.get(transition_key) == cur:
-            return f"suppressed:unchanged:{transition_key}"   # R5: never repeat an unchanged status
-        trans[transition_key] = cur
+        prev = trans.get(transition_key)  # {"state": str, "ts": float} (or None; legacy str -> changed)
+        if isinstance(prev, dict) and prev.get("state") == cur:
+            if re_escalate_after is None or (time.time() - float(prev.get("ts", 0))) < re_escalate_after:
+                return f"suppressed:unchanged:{transition_key}"   # R5: unchanged (and not yet due)
+        trans[transition_key] = {"state": cur, "ts": time.time()}
         _write_transitions(trans)
 
     h = dict(headers or {})

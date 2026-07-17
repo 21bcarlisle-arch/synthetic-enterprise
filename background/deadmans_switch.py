@@ -66,7 +66,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify, clear_transition  # noqa: E402
 from background import action_needed  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "deadmans-switch-log.md"
@@ -87,11 +87,12 @@ _IGNORED_STAGING_NAMES = {".gitkeep"}
 # so they must NOT count as liveness (the 2026-07-14 fail-open defect).
 _AUTO_PROCESS_SUBJECT_PREFIX = "Auto-process run complete"
 
-_last_escalation_ts: float | None = None
-# Transition state for the pull-loop transport alarm (OPS1_transport_failure_must_be_loud, §9),
-# kept separate from the commit-clock escalation so the two alarm classes never mask each other.
-_last_loop_broken_ts: float | None = None
-_last_gate_violation_ts: float | None = None
+# Transition-only + hourly re-escalate is now delegated to the ONE notification contract
+# (background.notify), keyed per alarm class so they never mask each other (OPS1 sub-step 6). The
+# former module-global _last_*_ts timers are gone -- notify() owns the transition state.
+_COMMIT_KEY = "deadman_commit"        # BLOCKED / STALL (shared timer, tier-agnostic state)
+_LOOP_BROKEN_KEY = "deadman_loop_broken"
+_GATE_VIOLATION_KEY = "deadman_gate_violation"
 
 
 def log(msg: str) -> None:
@@ -210,9 +211,9 @@ def _reping_open_action_needed_items() -> None:
     below). An item here can sit open for days while everything else runs
     fine; the staging-activity check would never catch that on its own."""
     for entry in action_needed.due_for_reping():
-        send_ntfy(action_needed.format_action_needed(
+        notify(action_needed.format_action_needed(
             entry["item_id"], entry["what"], entry["how"], entry["why"],
-        ))
+        ), kind="real_alarm")
         action_needed.register_item(
             entry["item_id"], entry["what"], entry["how"], entry["why"],
         )
@@ -228,27 +229,25 @@ def _check_pull_loop_transport() -> None:
     on every draw (the day-long bug), including when the queue is a MAP draw (no staged files),
     which [BLOCKED] would never see. Distinct transition state, so it is transition-only (R5)
     and never masks / is masked by the commit-clock alarm."""
-    global _last_loop_broken_ts
     try:
         from background.process_reconciler import evaluate_pull_loop
         st = evaluate_pull_loop()
     except Exception as e:  # a check that cannot run must not crash the deadman cycle
         log(f"pull-loop transport check error: {e}")
         return
-    now = time.time()
     if not st["alarm"]:
-        _last_loop_broken_ts = None
+        clear_transition(_LOOP_BROKEN_KEY)   # re-arm: a fresh break alarms immediately
         return
-    if _last_loop_broken_ts is not None and (now - _last_loop_broken_ts) < RE_ESCALATE_SECONDS:
-        log(f"LOOP BROKEN (still) -- suppressed (re-alerts hourly): {st['detail']}")
-        return
-    send_ntfy(
+    # notify() owns transition-only + hourly re-escalate (state constant; the varying detail is
+    # the message, not the transition state, so a changing detail never re-pages on its own).
+    notify(
         f"[LOOP BROKEN] Pull-loop transport cannot draw work: {st['detail']}. The autonomous "
         f"worker is idle because the TRANSPORT IS BROKEN, not because there is no work -- check "
-        f".claude/hooks/pull_next_work.py (find_work / worker_seat import) and .pull_loop_health.json."
+        f".claude/hooks/pull_next_work.py (find_work / worker_seat import) and .pull_loop_health.json.",
+        kind="real_alarm", transition_key=_LOOP_BROKEN_KEY, state="BROKEN",
+        re_escalate_after=RE_ESCALATE_SECONDS,
     )
-    log(f"LOOP BROKEN NTFY sent: {st['detail']}")
-    _last_loop_broken_ts = now
+    log(f"LOOP BROKEN checked (notify-gated): {st['detail']}")
 
 
 def _check_gate_wall() -> None:
@@ -258,33 +257,27 @@ def _check_gate_wall() -> None:
     self-PROMOTE across a gate without the director's authenticated act. This is the RUNNING home
     for the alarm (the deadman is the only periodic safety-net daemon). Distinct transition state
     so it is transition-only (R5) and independent of the LOOP_BROKEN / commit-clock alarms."""
-    global _last_gate_violation_ts
     try:
         from background.gate_authorization import evaluate_gate_wall
         st = evaluate_gate_wall()
     except Exception as e:  # a check that cannot run must not crash the deadman cycle
         log(f"gate-wall check error: {e}")
         return
-    now = time.time()
     if not st["alarm"]:
-        _last_gate_violation_ts = None
+        clear_transition(_GATE_VIOLATION_KEY)
         return
-    if _last_gate_violation_ts is not None and (now - _last_gate_violation_ts) < RE_ESCALATE_SECONDS:
-        log(f"GATE VIOLATION (still) -- suppressed (re-alerts hourly): {st['detail']}")
-        return
-    send_ntfy(
+    notify(
         f"[GATE VIOLATION] {st['detail']}. An atom was promoted idle->build with NO director-console "
         f"authorization -- self-PROMOTION across a gate (allowed: self-sustain through OPEN work; "
         f"forbidden: crossing a gate without your act). Check the commit that flipped loop_stage and "
-        f"docs/observability/gate_authorizations.jsonl."
+        f"docs/observability/gate_authorizations.jsonl.",
+        kind="real_alarm", transition_key=_GATE_VIOLATION_KEY, state="VIOLATION",
+        re_escalate_after=RE_ESCALATE_SECONDS,
     )
-    log(f"GATE VIOLATION NTFY sent: {st['detail']}")
-    _last_gate_violation_ts = now
+    log(f"GATE VIOLATION checked (notify-gated): {st['detail']}")
 
 
 def run_cycle() -> None:
-    global _last_escalation_ts
-
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
     _check_gate_wall()
@@ -293,7 +286,7 @@ def run_cycle() -> None:
     # both tiers (but keep re-ping above, which is a different alert class).
     if _usage_pause_active():
         log("Usage pause active -- known-quiet window, alarm suppressed")
-        _last_escalation_ts = None
+        clear_transition(_COMMIT_KEY)
         return
 
     now = time.time()
@@ -310,34 +303,32 @@ def run_cycle() -> None:
                 f"({since_commit / 60:.0f}min ago) -- not blocked"
             )
         else:
+            # Fully clean re-arms the alarm (matches the prior _last_escalation_ts = None here,
+            # and NOT in the staged-but-recent branch above).
             log(f"Clean -- no queued work, last commit {since_commit / 60:.0f}min ago")
-            _last_escalation_ts = None
-        return
-
-    if _last_escalation_ts is not None and (now - _last_escalation_ts) < RE_ESCALATE_SECONDS:
-        log(
-            f"STALL (still) -- {since_commit / 60:.0f}min since commit, "
-            f"{len(staged)} file(s) queued -- suppressed (re-alerts hourly)"
-        )
+            clear_transition(_COMMIT_KEY)
         return
 
     if blocked:
         shown = ", ".join(staged[:3]) + ("..." if len(staged) > 3 else "")
-        send_ntfy(
+        msg = (
             f"[BLOCKED] Dead-man's switch: {since_commit / 60:.0f} min since the last git "
             f"COMMIT, and {len(staged)} unprocessed staging file(s) ({shown}). The "
             f"supervisor/tmux stack or the main session may be stuck (e.g. a jammed input "
             f"box refusing turn grants) -- check the session directly."
         )
-        log(f"BLOCKED NTFY sent -- {since_commit / 60:.0f}min since commit, {len(staged)} file(s) queued")
     else:  # silent_stall with an empty queue -- the backstop tier
-        send_ntfy(
+        msg = (
             f"[STALL] Dead-man's switch: {since_commit / 60:.0f} min with no git commit and "
             f"no queued work moving. The main session may be wedged even though nothing is "
             f"queued -- check it directly."
         )
-        log(f"STALL NTFY sent -- {since_commit / 60:.0f}min since commit, empty queue")
-    _last_escalation_ts = now
+    # BLOCKED and STALL share ONE transition (state "STUCK") so a tier flip within the re-escalate
+    # window does not re-page -- exactly the prior shared-_last_escalation_ts behaviour, now in the
+    # contract. notify() owns transition-only + hourly re-escalate.
+    notify(msg, kind="real_alarm", transition_key=_COMMIT_KEY, state="STUCK",
+           re_escalate_after=RE_ESCALATE_SECONDS)
+    log(f"commit-clock alarm checked (notify-gated) -- {since_commit / 60:.0f}min since commit")
 
 
 def main() -> None:

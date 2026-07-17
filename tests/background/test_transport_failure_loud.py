@@ -171,29 +171,33 @@ def test_hook_does_not_write_health_for_a_non_worker_session(hook):
 
 
 # ── the deadman fires the alarm (the RUNNING home) — transition-only ───────────────────────
-def test_deadman_fires_loop_broken_and_is_transition_only(monkeypatch):
+def test_deadman_fires_loop_broken_and_is_transition_only(tmp_path, monkeypatch):
+    # The deadman now delegates transition-only + re-escalate to notify(); isolate its store and
+    # capture the actual send via ntfy_utils.send_ntfy (what notify calls).
     from background import deadmans_switch as D
+    import background.notify as N
+    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     calls = []
-    monkeypatch.setattr(D, "send_ntfy", lambda msg, *a, **k: calls.append(msg))
+    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
     monkeypatch.setattr(
         R, "evaluate_pull_loop",
         lambda: {"status": "LOOP_BROKEN", "alarm": True, "detail": "cannot draw: import failed"},
     )
-    D._last_loop_broken_ts = None
     D._check_pull_loop_transport()
     assert len(calls) == 1 and "LOOP BROKEN" in calls[0]     # the alarm fires
     D._check_pull_loop_transport()
     assert len(calls) == 1                                    # ...once — transition-only (R5)
 
 
-def test_deadman_silent_when_transport_healthy(monkeypatch):
+def test_deadman_silent_when_transport_healthy(tmp_path, monkeypatch):
     from background import deadmans_switch as D
+    import background.notify as N
+    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     calls = []
-    monkeypatch.setattr(D, "send_ntfy", lambda msg, *a, **k: calls.append(msg))
+    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
     monkeypatch.setattr(
         R, "evaluate_pull_loop",
         lambda: {"status": "HEALTHY_IDLE", "alarm": False, "detail": "idle"},
     )
-    D._last_loop_broken_ts = None
     D._check_pull_loop_transport()
     assert calls == []                                        # healthy idle never pages

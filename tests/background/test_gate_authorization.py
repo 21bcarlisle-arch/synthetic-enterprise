@@ -153,32 +153,35 @@ def test_readers_fail_safe(tmp_path):
 
 
 # ── the deadman fires it (the running home) -- transition-only ─────────────────────────────
-def test_deadman_fires_gate_violation_and_is_transition_only(monkeypatch):
+def test_deadman_fires_gate_violation_and_is_transition_only(tmp_path, monkeypatch):
+    # The deadman delegates transition-only to notify(); isolate its store + capture via ntfy_utils.
     from background import deadmans_switch as D
+    import background.notify as N
+    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     calls = []
-    monkeypatch.setattr(D, "send_ntfy", lambda msg, *a, **k: calls.append(msg))
+    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
     monkeypatch.setattr(
         "background.gate_authorization.evaluate_gate_wall",
         lambda: {"status": "GATE_VIOLATION", "alarm": True,
                  "detail": "1 BUILD promotion with no director-console authorization: X",
                  "unauthorized": [{"atom": "X", "from": "idle", "to": "build"}]},
     )
-    D._last_gate_violation_ts = None
     D._check_gate_wall()
     assert len(calls) == 1 and "GATE VIOLATION" in calls[0]      # the alarm fires
     D._check_gate_wall()
     assert len(calls) == 1                                        # ...once -- transition-only (R5)
 
 
-def test_deadman_silent_when_gate_clean(monkeypatch):
+def test_deadman_silent_when_gate_clean(tmp_path, monkeypatch):
     from background import deadmans_switch as D
+    import background.notify as N
+    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     calls = []
-    monkeypatch.setattr(D, "send_ntfy", lambda msg, *a, **k: calls.append(msg))
+    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
     monkeypatch.setattr(
         "background.gate_authorization.evaluate_gate_wall",
         lambda: {"status": "GATE_CLEAN", "alarm": False, "detail": "clean", "unauthorized": []},
     )
-    D._last_gate_violation_ts = None
     D._check_gate_wall()
     assert calls == []                                           # a clean wall never pages
 
