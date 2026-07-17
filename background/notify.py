@@ -26,7 +26,7 @@ import json
 import time
 from pathlib import Path
 
-from background.ntfy_utils import send_ntfy
+from background import ntfy_utils
 
 _HERE = Path(__file__).resolve().parent
 TRANSITIONS_FILE = _HERE.parent / "docs" / "observability" / ".notify_transitions.json"
@@ -84,7 +84,9 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
     if kind == "test_fixture" and not _allow_real_send:
         return "test_fixture:not-sent"
 
-    return send_ntfy(message, headers=h, _allow_real_send=_allow_real_send)
+    # Call via the module (not a bound import) so the conftest pytest guard and caller-test mocks
+    # that patch ntfy_utils.send_ntfy are honoured, and the real send's own PYTEST guard applies.
+    return ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send)
 
 
 def clear_transition(transition_key: str) -> None:

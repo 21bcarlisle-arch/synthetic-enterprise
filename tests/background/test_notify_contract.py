@@ -20,8 +20,9 @@ BG = Path(__file__).resolve().parents[2] / "background"
 def sent(tmp_path, monkeypatch):
     monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     captured = []
+    # notify() calls ntfy_utils.send_ntfy via the module -> patch it there.
     monkeypatch.setattr(
-        N, "send_ntfy",
+        N.ntfy_utils, "send_ntfy",
         lambda msg, headers=None, _allow_real_send=False: (captured.append((msg, headers)) or "id123"),
     )
     return captured
@@ -80,12 +81,15 @@ def test_no_transition_key_always_sends(sent):
 # contract) and ntfy_utils.py (the primitive) are the two that legitimately touch send_ntfy.
 _ALLOWED_DIRECT_SENDERS = {
     "notify.py", "ntfy_utils.py",
-    # migration debt — existing direct callers, to be routed through notify() (17):
-    "boot_announce.py", "deadmans_switch.py", "director_comments.py", "director_twin.py",
-    "discovery_agent.py", "dispatcher.py", "executor_governor.py", "health_check.py",
-    "ntfy_mirror.py", "ntfy_responder.py", "process_run_complete.py", "retro_cadence_check.py",
-    "sanity_daemon.py", "sim_runner.py", "staging_watcher.py",
-    "supervisor.py",
+    # ntfy_mirror.py: NOT a real caller — its `send_ntfy(` is in a comment; it is the mirror
+    # target that send_ntfy() calls, so it stays here (the regex matches the comment) but is never
+    # migrated.
+    "ntfy_mirror.py",
+    # migration debt — remaining direct callers to route through notify() (12; was 17 — cohort 1
+    # migrated 2026-07-17: boot_announce, retro_cadence_check, discovery_agent, director_twin):
+    "deadmans_switch.py", "director_comments.py", "dispatcher.py", "executor_governor.py",
+    "health_check.py", "ntfy_responder.py", "process_run_complete.py", "sanity_daemon.py",
+    "sim_runner.py", "staging_watcher.py", "supervisor.py",
 }
 
 

@@ -257,8 +257,8 @@ def route_blocking_decision(
             )
         action_needed.register_item(item_id, question, how, why)
         try:
-            from background.ntfy_utils import send_ntfy
-            send_ntfy(action_needed.format_action_needed(item_id, question, how, why))
+            from background.notify import notify
+            notify(action_needed.format_action_needed(item_id, question, how, why), kind="real_alarm")
         except Exception:
             pass
     return ans

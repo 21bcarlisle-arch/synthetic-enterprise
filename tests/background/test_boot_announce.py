@@ -42,7 +42,7 @@ def test_summary_drift_is_alarm_and_lists_each():
 def _wired(monkeypatch, tmp_path):
     sent = []
     import background.ntfy_utils as ntfy
-    monkeypatch.setattr(ntfy, "send_ntfy", lambda msg, headers=None: sent.append((msg, headers)))
+    monkeypatch.setattr(ntfy, "send_ntfy", lambda msg, headers=None, **k: sent.append((msg, headers)))
     monkeypatch.setattr(B, "MARKER", tmp_path / ".boot_announced")
     monkeypatch.setattr(B, "_boot_id", lambda: "BOOT-A")
     monkeypatch.setattr(B, "build_summary", lambda: ("[BOOT] clean", False))
@@ -71,7 +71,7 @@ def test_new_boot_re_announces(monkeypatch, _wired):
 def test_alarm_boot_is_typed_high_priority(monkeypatch, tmp_path):
     sent = []
     import background.ntfy_utils as ntfy
-    monkeypatch.setattr(ntfy, "send_ntfy", lambda msg, headers=None: sent.append((msg, headers)))
+    monkeypatch.setattr(ntfy, "send_ntfy", lambda msg, headers=None, **k: sent.append((msg, headers)))
     monkeypatch.setattr(B, "MARKER", tmp_path / ".boot_announced")
     monkeypatch.setattr(B, "_boot_id", lambda: "BOOT-A")
     monkeypatch.setattr(B, "build_summary", lambda: ("[BOOT] drift!", True))

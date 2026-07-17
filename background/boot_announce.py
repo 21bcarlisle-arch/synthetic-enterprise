@@ -115,8 +115,8 @@ def announce(force: bool = False) -> bool:
         _log("boot already announced this boot — no-op")
         return False
     text, has_alarm = build_summary()
-    from background.ntfy_utils import send_ntfy
-    send_ntfy(text, headers={
+    from background.notify import notify
+    notify(text, kind="real_alarm" if has_alarm else "director_echo", headers={
         "X-Tags": "rotating_light" if has_alarm else "white_check_mark",
         "X-Priority": "high" if has_alarm else "default",
     })

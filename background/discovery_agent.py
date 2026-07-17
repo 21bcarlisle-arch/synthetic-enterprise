@@ -24,7 +24,7 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "discovery-log.md"
 ASSUMPTIONS_FILE = PROJECT_DIR / "docs" / "market_research" / "ASSUMPTIONS.md"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
@@ -185,9 +185,10 @@ def run_discovery_cycle(
     if critical_count > 0:
         critical_items = [f for f in findings if f["severity"] == "critical"]
         names = ", ".join(f["assumption"] for f in critical_items[:3])
-        send_ntfy(
+        notify(
             f"[Discovery] {critical_count} critical assumption(s) flagged: {names}. "
-            f"See docs/market_research/ASSUMPTIONS.md"
+            f"See docs/market_research/ASSUMPTIONS.md",
+            kind="digest",
         )
 
     return findings

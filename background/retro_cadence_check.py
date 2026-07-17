@@ -209,9 +209,10 @@ def main() -> int:
         if send and warning != _read_last_ntfy():
             try:
                 sys.path.insert(0, str(PROJECT_DIR))
-                from background.ntfy_utils import send_ntfy
-                send_ntfy(
+                from background.notify import notify
+                notify(
                     f"[RETRO CADENCE] {warning}",
+                    kind="digest",
                     headers={"X-Priority": "3", "X-Tags": "warning"},
                 )
                 _write_last_ntfy(warning)
