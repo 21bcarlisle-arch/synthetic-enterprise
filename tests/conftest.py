@@ -22,6 +22,114 @@ def pytest_configure(config):
         "real_ntfy: test exercises the REAL send_ntfy POST/parse internals (curl is "
         "mocked, so still no network) -- exempt from the global no-send autouse guard.",
     )
+    config.addinivalue_line(
+        "markers",
+        "real_subprocess: test genuinely needs to spawn a tmux/claude/systemctl process "
+        "-- exempt from the G-T1 no-real-session-spawn guard (OPS1 sub-step 7).",
+    )
+    config.addinivalue_line(
+        "markers",
+        "real_state_write: test genuinely needs to write a production state path "
+        "-- exempt from the G-T2 no-real-state-write guard (OPS1 sub-step 7).",
+    )
+
+
+# ── OPS1 sub-step 7 — test/isolation boundary (§2.4): test code CANNOT touch production ──────
+# The NTFY guard above closes one channel; these close the other two the design names (G-T1
+# session spawn, G-T2 state writes), each by CONSTRUCTION (an autouse guard) rather than by every
+# test remembering to stub -- MAKE_IT_STICK: mechanism, not discipline. The leak that already bit
+# (a test wrote the REAL .pull_loop_health.json) is exactly the G-T2 class.
+_BLOCKED_SPAWN = {"tmux", "claude", "systemctl"}
+# G-T2 protects the high-danger RUNTIME CONTROL STATE — files a live daemon READS to make a
+# control decision, where a test writing a fake value corrupts live behaviour (the kill switch;
+# the transport-health signal the deadman alarms on — the .pull_loop_health.json leak that already
+# bit us; the notify dedup store; the boot-SHA records). It deliberately does NOT (yet) protect
+# derived-artifact generators (site/data/**, agent_status.json, docs/reports/**): ~40 tests
+# legitimately regenerate those in-process, and a daemon/generator overwrites them anyway, so that
+# is cosmetic isolation-debt to remediate incrementally — tracked, not rushed on this rung.
+_PROTECTED_WRITE_PATHS = (
+    "docs/observability/.build_executor_enabled",   # THE kill switch — a test must never set it
+    "docs/observability/.pull_loop_health.json",    # deadman alarms on this (the proven leak)
+    "docs/observability/.notify_transitions.json",  # notify() transition-dedup store
+    "docs/observability/.daemon_boot",              # boot-SHA drift records (dir)
+)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_session_spawn(request, monkeypatch):
+    """G-T1: a test may NOT spawn a real session/lifecycle process (tmux / claude / systemctl).
+    subprocess.run/call/check_output all go through subprocess.Popen; patching Popen catches every
+    spawn. Ordinary tools (git, python3, curl-already-mocked) pass. Opt in with @real_subprocess."""
+    if request.node.get_closest_marker("real_subprocess"):
+        return
+    import subprocess as _sp
+    real_popen = _sp.Popen
+
+    def guarded_popen(args, *a, **k):
+        if isinstance(args, str):
+            first = args.split()[0] if args.split() else ""
+        elif isinstance(args, (list, tuple)) and args:
+            first = str(args[0])
+        else:
+            first = ""
+        base = os.path.basename(first)
+        if base in _BLOCKED_SPAWN:
+            raise RuntimeError(
+                f"TEST ISOLATION (G-T1): a test tried to spawn a real '{base}' process. "
+                "Stub it, or mark @pytest.mark.real_subprocess if you genuinely need it."
+            )
+        return real_popen(args, *a, **k)
+
+    monkeypatch.setattr(_sp, "Popen", guarded_popen)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_state_write(request, monkeypatch):
+    """G-T2: a test may NOT write to a production state path. Patches Path.write_text/write_bytes/
+    open(write-mode) to raise if the target resolves under a protected production root -- the exact
+    class that leaked when a test wrote the real .pull_loop_health.json. Reads pass; tmp_path passes
+    (it resolves under /tmp). Opt in with @real_state_write."""
+    if request.node.get_closest_marker("real_state_write"):
+        return
+    import pathlib
+    repo = pathlib.Path(__file__).resolve().parent.parent
+    protected = [str((repo / r).resolve()) for r in _PROTECTED_WRITE_PATHS]
+
+    def _is_protected(p) -> bool:
+        try:
+            rp = str(pathlib.Path(p).resolve())
+        except Exception:
+            return False
+        return any(rp == pr or rp.startswith(pr + os.sep) for pr in protected)
+
+    real_wt = pathlib.Path.write_text
+    real_wb = pathlib.Path.write_bytes
+    real_open = pathlib.Path.open
+
+    def _blocked(target):
+        raise RuntimeError(
+            f"TEST ISOLATION (G-T2): a test tried to write production state {target}. "
+            "Isolate to tmp_path (monkeypatch the path constant), or mark @pytest.mark.real_state_write."
+        )
+
+    def guarded_wt(self, *a, **k):
+        if _is_protected(self):
+            _blocked(self)
+        return real_wt(self, *a, **k)
+
+    def guarded_wb(self, *a, **k):
+        if _is_protected(self):
+            _blocked(self)
+        return real_wb(self, *a, **k)
+
+    def guarded_open(self, mode="r", *a, **k):
+        if any(m in mode for m in ("w", "a", "x", "+")) and _is_protected(self):
+            _blocked(self)
+        return real_open(self, mode, *a, **k)
+
+    monkeypatch.setattr(pathlib.Path, "write_text", guarded_wt)
+    monkeypatch.setattr(pathlib.Path, "write_bytes", guarded_wb)
+    monkeypatch.setattr(pathlib.Path, "open", guarded_open)
 
 
 @pytest.fixture(autouse=True)

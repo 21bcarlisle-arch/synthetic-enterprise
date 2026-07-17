@@ -523,9 +523,15 @@ class TestCheckStaleRunningCode:
         assert any("sim-runner" in line and "Stale running code" in line for line in problem_lines)
 
 
+@pytest.mark.real_subprocess  # exercises the REAL tmux-backed console classification (G-T1 opt-in)
 def test_multiple_interactive_sessions_is_a_problem(monkeypatch):
     """2026-07-16: >1 interactive Claude session (a ghost/duplicate) must alarm within a
-    health cycle -- the Jul-15 ghost spammed for a full day undetected. One or zero is OK."""
+    health cycle -- the Jul-15 ghost spammed for a full day undetected. One or zero is OK.
+
+    Mocks interactive_claude_pids but lets _check_single_interactive_session reach the real
+    tmux pane map for console classification -- so it opts out of the G-T1 no-spawn guard
+    (OPS1 sub-step 7). The sibling TestDirectorConsoleExclusion class injects a fake pane map
+    instead; this one asserts the raw-count path end to end."""
     from background import session_watchdog
     monkeypatch.setattr(session_watchdog, "interactive_claude_pids", lambda: [111, 222])
     assert health_check._check_single_interactive_session() is not None  # alarms on 2
