@@ -38,6 +38,21 @@ PROJECT_DIR = Path(__file__).resolve().parents[2]
 # ModuleNotFoundError('background') on EVERY fire and fail-safe'd to allow-stop -- the transport
 # silently NEVER delivered work (found on the serial-autonomy maiden-turn watch, 2026-07-17).
 sys.path.insert(0, str(PROJECT_DIR))
+# WORKER-SEAT-ONLY: the pull loop must feed work to the ONE dedicated worker seat and
+# NEVER to the director's sanctified console (or any other session) -- an automated
+# mechanism acting on the console is a G-L1 violation (the same law that exempts the
+# console from the reaper). The Stop hook fires on EVERY session in the project, so it
+# must positively identify the worker by conversation id. Single source of truth: the
+# id is imported from worker_seat (which seeds the seat via `--session-id`/`--resume`
+# against exactly this id) so the filter and the seed can never drift. VERIFIED against
+# a REAL dumped Stop payload (2026-07-17): the identity field is `session_id` and it
+# equals the conversation UUID (== the transcript filename stem). FAIL-SAFE: if the id
+# can't be resolved, WORKER_SESSION_ID stays None so NO session ever matches -> nobody
+# is pulled (autonomy pauses; the console is never wrongly pulled) -- the safe direction.
+try:
+    from background.worker_seat import WORKER_SESSION_ID
+except Exception:
+    WORKER_SESSION_ID = None
 # THE single kill switch for ALL autonomous execution (DIRECTOR_ANSWERS_C7.md #6,
 # 2026-07-15, signed): ONE flag governs the pull loop AND any future headless
 # executor -- no second flag. CONSOLE-ONLY, director-reserved (same class as
@@ -100,6 +115,23 @@ def decide(payload: dict) -> dict | None:
     # Loop guard (verified): already continuing in a block loop -> allow stop.
     if payload.get("stop_hook_active"):
         _log("stop_hook_active -> allow stop (loop guard)")
+        return None
+    # WORKER-SEAT-ONLY GUARD (G-L1): pull work ONLY for the dedicated worker seat.
+    # Any other session -- the director's sanctified console, an ad-hoc session, or
+    # (fail-safe) an unresolved worker id -- gets allow-stop, never a doorbell. The
+    # field is `session_id`, verified against a real dumped payload; it carries the
+    # conversation UUID. This is positive identification: absent/mismatched id ->
+    # allow stop, so an unknown session can never be pulled into the loop.
+    sid = payload.get("session_id")
+    # `not WORKER_SESSION_ID` covers the fail-safe case (id unresolved -> None/empty):
+    # nothing is ever pulled. `sid != WORKER_SESSION_ID` requires a POSITIVE match to a
+    # real worker id (None==None must NOT slip through as a match), so an absent/mismatched
+    # session id -> allow stop. Both together = strict positive identification.
+    if not WORKER_SESSION_ID or sid != WORKER_SESSION_ID:
+        _log(
+            f"non-worker session (session_id={str(sid)[:8]}...) -> allow stop "
+            "(G-L1 console/other exempt)"
+        )
         return None
     # THE kill switch, fail-closed: continue ONLY if the single flag is a readable
     # regular file. Missing / a directory / unreadable = DISABLED (refuse to

@@ -2,9 +2,10 @@
 STAGING_PULL_LOOP_RESCOPE.md, 2026-07-15).
 
 Proves the transport's safety invariants WITHOUT enabling it on any live session:
-gated-off-by-default, loop-guard, fail-safe on a broken draw, checkpoint cadence,
-and -- the load-bearing one -- ZERO pane writes (the hook only returns JSON; it
-never types into a pane, the whole point of replacing keystroke injection).
+gated-off-by-default, loop-guard, WORKER-SEAT-ONLY (never the sanctified console),
+fail-safe on a broken draw, checkpoint cadence, and -- the load-bearing one --
+ZERO pane writes (the hook only returns JSON; it never types into a pane, the
+whole point of replacing keystroke injection).
 """
 import importlib.util
 import json
@@ -14,6 +15,21 @@ import pytest
 
 HOOK_PATH = Path(__file__).resolve().parents[2] / ".claude" / "hooks" / "pull_next_work.py"
 
+# The dedicated worker-seat conversation id (must equal worker_seat.WORKER_SESSION_ID
+# -- proven by test_worker_session_id_matches_seat_single_source_of_truth below).
+WORKER_ID = "22080be5-e19e-4099-a007-d71c3a6e7845"
+# A distinct id standing in for the director's sanctified console (or any other session).
+CONSOLE_ID = "004ea979-3496-42f2-8a23-c406b531ea9d"
+
+
+def _wp(session_id=WORKER_ID, **extra):
+    """Build a Stop-hook payload for the WORKER seat (real field name `session_id`,
+    verified against a dumped live payload 2026-07-17). Pass session_id=... to
+    simulate the console/another session."""
+    p = {"stop_hook_active": False, "session_id": session_id}
+    p.update(extra)
+    return p
+
 
 def _load_hook(tmp_path, monkeypatch, *, enabled, draw_result):
     spec = importlib.util.spec_from_file_location("pull_next_work", HOOK_PATH)
@@ -22,6 +38,8 @@ def _load_hook(tmp_path, monkeypatch, *, enabled, draw_result):
     monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
     monkeypatch.setattr(mod, "LOG_FILE", tmp_path / "pull-loop-log.md")
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".pull_loop_state.json")
+    # Pin the worker id so tests don't depend on the live seat's real id.
+    monkeypatch.setattr(mod, "WORKER_SESSION_ID", WORKER_ID)
     if enabled:
         (tmp_path / ".build_executor_enabled").write_text("")
     # Inject the draw result without importing the real supervisor.
@@ -34,7 +52,7 @@ def _load_hook(tmp_path, monkeypatch, *, enabled, draw_result):
 
 def test_disabled_by_default_allows_stop(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=False, draw_result=("A6 has work", False))
-    assert mod.decide({"stop_hook_active": False}) is None  # no flag -> inert
+    assert mod.decide(_wp()) is None  # no flag -> inert, even for the worker seat
 
 
 def test_kill_switch_flag_off_refuses_next_boundary(tmp_path, monkeypatch):
@@ -43,25 +61,57 @@ def test_kill_switch_flag_off_refuses_next_boundary(tmp_path, monkeypatch):
     proven to kill is a theatre control (kill-list doctrine)."""
     mod = _load_hook(tmp_path, monkeypatch, enabled=False, draw_result=("lots of work", False))
     # flag absent -> refuse (session stops)
-    assert mod.decide({"stop_hook_active": False}) is None
+    assert mod.decide(_wp()) is None
     # fail-closed: a MALFORMED flag (a directory, not a readable file) -> DISABLED
     (tmp_path / ".build_executor_enabled").mkdir()
-    assert mod.decide({"stop_hook_active": False}) is None
+    assert mod.decide(_wp()) is None
     # mutation proof the guard is load-bearing: neuter it (force-enable) and the
     # same flag-off state now WRONGLY continues -> the guard is what gates the kill.
     monkeypatch.setattr(mod, "_autonomous_execution_enabled", lambda: True)
-    assert mod.decide({"stop_hook_active": False}) is not None
+    assert mod.decide(_wp()) is not None
 
 
 def test_loop_guard_allows_stop_when_already_blocking(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=("A6 has work", False))
-    assert mod.decide({"stop_hook_active": True}) is None  # never an infinite loop
+    assert mod.decide(_wp(stop_hook_active=True)) is None  # never an infinite loop
+
+
+def test_worker_seat_pulled_but_console_and_others_are_exempt(tmp_path, monkeypatch):
+    """G-L1 CONSOLE-PULL FIX (2026-07-17): the Stop hook fires on EVERY session in
+    the project. It must pull ONLY the dedicated worker seat; the director's
+    sanctified console -- and any other/ad-hoc session -- must be left to stop.
+    Both directions, the R15 blind spot the old tests never exercised (they passed
+    no session id at all)."""
+    mod = _load_hook(tmp_path, monkeypatch, enabled=True,
+                     draw_result=("self-refill: BUILD SITE1_expert_doors", False))
+    # WORKER seat -> BLOCK + draw (pulled)
+    out = mod.decide(_wp(session_id=WORKER_ID))
+    assert out is not None and out["decision"] == "block"
+    assert "SITE1_expert_doors" in out["reason"]
+    # CONSOLE (sanctified) -> allow stop, NEVER pulled, even with work waiting
+    assert mod.decide(_wp(session_id=CONSOLE_ID)) is None
+    # some other ad-hoc session -> allow stop
+    assert mod.decide(_wp(session_id="deadbeef-0000-0000-0000-000000000000")) is None
+    # absent session_id (defensive) -> allow stop (positive identification required)
+    assert mod.decide({"stop_hook_active": False}) is None
+
+
+def test_fail_safe_unresolved_worker_id_pulls_nobody(tmp_path, monkeypatch):
+    """FAIL-SAFE DIRECTION (the exact concern that gated this fix): if the worker id
+    can't be resolved (import failed -> WORKER_SESSION_ID is None), NO session may be
+    pulled -- not even one carrying the real worker id. Autonomy pauses (safe); the
+    console is never wrongly pulled. A wrong/absent id must fail toward NOT acting on
+    the console, never toward pulling everyone."""
+    mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=("work", False))
+    monkeypatch.setattr(mod, "WORKER_SESSION_ID", None)
+    assert mod.decide(_wp(session_id=WORKER_ID)) is None  # nobody matches None
+    assert mod.decide({"stop_hook_active": False}) is None
 
 
 def test_enabled_with_work_blocks_and_feeds_the_draw(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=True,
                      draw_result=("self-refill: BUILD SITE1_expert_doors", False))
-    out = mod.decide({"stop_hook_active": False})
+    out = mod.decide(_wp())
     assert out is not None and out["decision"] == "block"
     assert "SITE1_expert_doors" in out["reason"]
     assert "PULL-LOOP doorbell" in out["reason"]  # R7 doorbell framing carried
@@ -69,7 +119,7 @@ def test_enabled_with_work_blocks_and_feeds_the_draw(tmp_path, monkeypatch):
 
 def test_enabled_but_no_work_allows_stop(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=(None, True))
-    assert mod.decide({"stop_hook_active": False}) is None
+    assert mod.decide(_wp()) is None
 
 
 def test_fail_safe_allows_stop_when_draw_raises(tmp_path, monkeypatch):
@@ -80,7 +130,7 @@ def test_fail_safe_allows_stop_when_draw_raises(tmp_path, monkeypatch):
     boom.find_work = _raise
     monkeypatch.setitem(sys.modules, "background.supervisor", boom)
     # A broken draw must NEVER block the session (fail-safe: allow the stop).
-    assert mod.decide({"stop_hook_active": False}) is None
+    assert mod.decide(_wp()) is None
 
 
 def test_instrumented_three_consecutive_boundaries_draw_and_continue(tmp_path, monkeypatch):
@@ -96,6 +146,7 @@ def test_instrumented_three_consecutive_boundaries_draw_and_continue(tmp_path, m
     monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
     monkeypatch.setattr(mod, "LOG_FILE", log)
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".state.json")
+    monkeypatch.setattr(mod, "WORKER_SESSION_ID", WORKER_ID)
     (tmp_path / ".build_executor_enabled").write_text("")  # enabled (test flag, not the console one)
     draws = iter([("BUILD SITE1_expert_doors", False), ("BUILD F6_bill_integrity", False), ("HARDEN A6_gap", False)])
     fake = types.ModuleType("background.supervisor")
@@ -104,7 +155,7 @@ def test_instrumented_three_consecutive_boundaries_draw_and_continue(tmp_path, m
 
     reasons = []
     for _ in range(3):  # three consecutive turn boundaries
-        out = mod.decide({"stop_hook_active": False})
+        out = mod.decide(_wp())
         assert out is not None and out["decision"] == "block", "boundary must draw + continue"
         reasons.append(out["reason"])
 
@@ -116,7 +167,7 @@ def test_checkpoint_cadence_injects_compact(tmp_path, monkeypatch):
     mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=("keep building", False))
     last = None
     for _ in range(mod.CHECKPOINT_EVERY):
-        last = mod.decide({"stop_hook_active": False})
+        last = mod.decide(_wp())
     assert "CHECKPOINT" in last["reason"] and "/compact" in last["reason"]
 
 
@@ -139,6 +190,23 @@ def test_hook_cannot_write_to_a_pane_structurally():
         # in EXECUTABLE code only (exclude the module docstring)
         body = src.split('"""', 2)[-1] if src.count('"""') >= 2 else src
         assert banned not in body, f"pane-write primitive {banned!r} in hook code"
+
+
+def test_worker_session_id_matches_seat_single_source_of_truth():
+    """DRIFT GUARD (R15 independence): the id the hook filters on MUST be the id the
+    worker seat actually seeds with -- otherwise the filter could silently diverge
+    from the seat (a wrong id fails closed => the console-pull fix stops pulling the
+    worker => serial autonomy dies silently, the fail-silent family). The hook
+    imports it from worker_seat, so this asserts that single source of truth held and
+    that the test's own WORKER_ID constant tracks it too."""
+    spec = importlib.util.spec_from_file_location("pull_next_work_realid", HOOK_PATH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    import sys
+    sys.path.insert(0, str(HOOK_PATH.resolve().parents[2]))
+    from background.worker_seat import WORKER_SESSION_ID as seat_id
+    assert mod.WORKER_SESSION_ID == seat_id, "hook filter id drifted from the seat's seed id"
+    assert WORKER_ID == seat_id, "this test's WORKER_ID constant drifted from the seat's seed id"
 
 
 def test_project_dir_resolves_to_repo_root_not_dotclaude():
@@ -204,7 +272,7 @@ def test_decide_stdout_is_pure_json_when_find_work_prints(tmp_path, monkeypatch,
 
     noisy.find_work = _find_work
     monkeypatch.setitem(sys.modules, "background.supervisor", noisy)
-    out = mod.decide({"stop_hook_active": False})
+    out = mod.decide(_wp())
     captured = capsys.readouterr()
     assert captured.out == "", f"find_work stdout leaked into the hook's stdout: {captured.out!r}"
     assert out is not None and out["decision"] == "block"
