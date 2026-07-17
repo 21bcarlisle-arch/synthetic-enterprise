@@ -1,7 +1,7 @@
 # GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
 # Edit the manifest and regenerate. state=held owner=systemd
 [Unit]
-Description=Synthetic Enterprise: Independent stall alarm
+Description=Synthetic Enterprise: Independent stall alarm (commit-clock-alone liveness signal — the fail-silent fix)
 After=network.target
 # G-L3: a crash-loop enters `failed` instead of restarting silently forever.
 StartLimitIntervalSec=120
