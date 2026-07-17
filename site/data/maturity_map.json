@@ -1901,7 +1901,7 @@
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1956,7 +1956,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
