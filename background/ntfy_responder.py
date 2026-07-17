@@ -79,7 +79,8 @@ PROGRESS_RE = re.compile(
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it's invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import NTFY_TOPIC, NTFY_AUTH_TOKEN, send_ntfy, was_sent_by_us  # noqa: E402
+from background.ntfy_utils import NTFY_TOPIC, NTFY_AUTH_TOKEN, was_sent_by_us  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
@@ -385,11 +386,12 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
             now_ts = time.time()
             if now_ts - rate_state.get("last_alert", 0) >= FLOOD_ALERT_COOLDOWN_SECONDS:
                 rate_state["last_alert"] = now_ts
-                send_ntfy(
+                notify(
                     f"[FLOOD GUARD] Inbound NTFY flood quarantined ({flood_reason}). "
                     "Messages preserved in docs/staging/quarantine/, withheld from the "
                     f"scanned staging root. No further alerts for "
                     f"{FLOOD_ALERT_COOLDOWN_SECONDS // 60}min.",
+                    kind="real_alarm",
                     headers={"X-Priority": "4", "X-Tags": "rotating_light"},
                 )
             _save_rate_state(rate_state)
@@ -424,7 +426,7 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
 
         staged_path = _write_to_staging(message)
         reply = build_status_reply(staged_path)
-        send_ntfy(reply, headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
+        notify(reply, kind="director_echo", headers={"X-Priority": "3", "X-Tags": "satellite_antenna"})
         log(f"Acked inbound message {record.get('id')!r} ({message[:60]!r})"
             + (f" — staged as {staged_path.name}" if staged_path else ""))
         update_agent_status(

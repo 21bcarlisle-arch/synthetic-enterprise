@@ -55,7 +55,7 @@ def _write_run_output(path, bills=None, meter_read_log=None):
 
 def test_run_cycle_skips_when_no_run_output(monkeypatch):
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert calls == []
     assert "No run_output_latest.json" in sanity_daemon.LOG_FILE.read_text()
@@ -64,7 +64,7 @@ def test_run_cycle_skips_when_no_run_output(monkeypatch):
 def test_run_cycle_handles_malformed_json(monkeypatch):
     sanity_daemon.RUN_OUTPUT_PATH.write_text("not valid json")
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert calls == []
     assert "Could not read/parse" in sanity_daemon.LOG_FILE.read_text()
@@ -79,7 +79,7 @@ def test_run_cycle_clean_population_no_ntfy(monkeypatch):
     ]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills, meter_read_log=[{"status": "actual"}] * 90 + [{"status": "estimated"}] * 10)
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert calls == []
     assert "Clean" in sanity_daemon.LOG_FILE.read_text()
@@ -93,7 +93,7 @@ def test_run_cycle_empty_meter_reads_fires_r15_guard(monkeypatch):
     This is the new correct contract; the old behaviour read clean (fail-silent)."""
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[], meter_read_log=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert len(calls) == 1
     assert "No meter reads present at all" in calls[0]
@@ -107,7 +107,7 @@ def test_run_cycle_empty_meter_reads_guard_dedups_not_per_cycle_spam(monkeypatch
     the new correct control does not become a source of real-data spam."""
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[], meter_read_log=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     sanity_daemon.run_cycle()
     sanity_daemon.run_cycle()
@@ -120,7 +120,7 @@ def test_run_cycle_sends_one_ntfy_for_new_findings(monkeypatch):
               "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert len(calls) == 1
     assert "population-level finding" in calls[0]
@@ -132,7 +132,7 @@ def test_run_cycle_does_not_repeat_ntfy_for_unchanged_findings(monkeypatch):
               "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     sanity_daemon.run_cycle()
     sanity_daemon.run_cycle()
@@ -145,7 +145,7 @@ def test_run_cycle_sends_new_ntfy_when_findings_change(monkeypatch):
               "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
 
     bills_changed = bills + [{"customer_id": "C9", "period_end": "2024-02-28", "segment": "resi",
@@ -162,7 +162,7 @@ def test_run_cycle_transition_from_findings_back_to_clean_is_silent(monkeypatch)
                   "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bad_bills)
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert len(calls) == 1
 
@@ -182,7 +182,7 @@ def test_run_cycle_transition_from_findings_back_to_clean_is_silent(monkeypatch)
 def test_run_cycle_clean_audit_no_extra_ntfy(monkeypatch):
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(sanity_daemon, "run_internal_audit", lambda bills, n_samples=2: [])
     sanity_daemon.run_cycle()
     assert calls == []
@@ -192,7 +192,7 @@ def test_run_cycle_clean_audit_no_extra_ntfy(monkeypatch):
 def test_run_cycle_audit_finding_sends_ntfy_labelled_advisory(monkeypatch):
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C1", "period_end": "2024-01-31", "note": "looks off"}],
@@ -206,7 +206,7 @@ def test_run_cycle_audit_finding_sends_ntfy_labelled_advisory(monkeypatch):
 def test_run_cycle_audit_does_not_repeat_ntfy_for_unchanged_finding(monkeypatch):
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C1", "period_end": "2024-01-31", "note": "looks off"}],
@@ -225,7 +225,7 @@ def test_run_cycle_audit_does_not_repeat_ntfy_for_same_category_different_sample
     findings" -- 49/49 cycles fired an NTFY overnight."""
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     samples = iter([
         [{"customer_id": "C1g", "period_end": "2020-07-31",
           "note": "Gas consumption is reported in kWh, which is typically used for electricity, not gas."}],
@@ -247,7 +247,7 @@ def test_run_cycle_audit_does_not_repeat_ntfy_for_same_category_different_sample
 def test_run_cycle_audit_fires_again_for_genuinely_new_category(monkeypatch):
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     samples = iter([
         [{"customer_id": "C1g", "period_end": "2020-07-31",
           "note": "Gas consumption is reported in kWh, which is typically used for electricity, not gas."}],
@@ -279,7 +279,7 @@ def test_run_cycle_audit_does_not_repeat_for_varying_mixed_subsets_of_known_cate
     a later cycle happens to draw."""
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     samples = iter([
         [{"customer_id": "C1g", "period_end": "2020-07-31",
           "note": "Gas consumption is reported in kWh, which is typically used for electricity, not gas."}],
@@ -317,7 +317,7 @@ def test_audit_ledger_persists_across_a_simulated_daemon_restart(monkeypatch):
     was already seen and re-alert on it."""
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
@@ -338,7 +338,7 @@ def test_daily_digest_fires_once_for_standing_open_findings_on_a_new_day(monkeyp
     that has no fresh alert of its own -- not silence forever."""
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
@@ -359,7 +359,7 @@ def test_daily_digest_fires_once_for_standing_open_findings_on_a_new_day(monkeyp
 def test_daily_digest_does_not_repeat_same_day(monkeypatch):
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
@@ -463,7 +463,7 @@ def test_daily_digest_carries_live_coupled_gap_line(monkeypatch):
         "W2_4_household_budget": ("C6_affordability_inference", 0.6065128900949797),
     })
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C1g", "period_end": "2020-07-31",
@@ -488,7 +488,7 @@ def test_run_cycle_population_and_audit_ntfys_are_independent(monkeypatch):
               "commodity_amount_gbp": 50000.0 * 150.0 / 1000, "days_in_period": 365}]
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=bills)
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     monkeypatch.setattr(
         sanity_daemon, "run_internal_audit",
         lambda bills, n_samples=2: [{"customer_id": "C6", "period_end": "2024-01-28", "note": "SME-scale"}],
@@ -512,7 +512,7 @@ def test_run_cycle_reads_billing_ledger_payments_for_channel_mix(monkeypatch):
         }
     }))
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert len(calls) == 1
     assert "Direct Debit share" in sanity_daemon.LOG_FILE.read_text()
@@ -525,7 +525,7 @@ def test_run_cycle_missing_billing_ledger_skips_channel_mix_check_gracefully(mon
     _write_run_output(sanity_daemon.RUN_OUTPUT_PATH, bills=[])
     assert not sanity_daemon.BILLING_LEDGER_PATH.exists()
     calls = []
-    monkeypatch.setattr(sanity_daemon, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
     sanity_daemon.run_cycle()
     assert calls == []
     assert "Clean" in sanity_daemon.LOG_FILE.read_text()

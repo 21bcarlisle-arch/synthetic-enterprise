@@ -72,7 +72,7 @@ def test_check_once_skips_own_messages_and_advances_watermark(tmp_path, monkeypa
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: True)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     class FakeResponse:
         text = json.dumps({"event": "message", "id": "abc", "time": 1000, "message": "hello"})
@@ -91,7 +91,7 @@ def test_check_once_acks_messages_not_sent_by_us(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     class FakeResponse:
         text = json.dumps({"event": "message", "id": "abc", "time": 1000, "message": "Hello Rich"})
@@ -115,7 +115,7 @@ def test_check_once_stages_substantive_messages(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     long_message = "Start the full 2016-2025 run when GPU is free."
 
@@ -141,7 +141,7 @@ def test_check_once_ignores_messages_at_or_before_watermark(tmp_path, monkeypatc
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     class FakeResponse:
         text = json.dumps({"event": "message", "id": "abc", "time": 1000, "message": "old message"})
@@ -162,7 +162,7 @@ def test_check_once_drops_duplicate_content(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     message = "Phase 7b complete — ledger events wired."
 
@@ -257,7 +257,7 @@ def test_flood_of_identical_messages_quarantines_and_spares_staging_root(tmp_pat
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     body = "Please kick off the overnight reconciliation batch now, thanks."
     staging_root = tmp_path / "docs" / "staging"
@@ -290,7 +290,7 @@ def test_flood_of_distinct_bodies_quarantines_on_rate(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
     monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: None)
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: None)
 
     staging_root = tmp_path / "docs" / "staging"
     quarantine_dir = staging_root / "quarantine"
@@ -319,7 +319,7 @@ def test_normal_low_rate_message_still_stages(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     _feed(monkeypatch, "real-1", 300_000, "Start the full 2016-2025 run when GPU is free.")
     responder.check_once(0, [])
@@ -344,7 +344,7 @@ def test_flood_alert_respects_cooldown_across_calls(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
 
     sent = []
-    monkeypatch.setattr(responder, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
 
     body = "identical machine cadence body repeated over and over again"
     seen = []

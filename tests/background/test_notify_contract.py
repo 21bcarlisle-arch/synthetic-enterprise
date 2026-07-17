@@ -85,13 +85,15 @@ _ALLOWED_DIRECT_SENDERS = {
     # target that send_ntfy() calls, so it stays here (the regex matches the comment) but is never
     # migrated.
     "ntfy_mirror.py",
-    # migration debt — remaining direct callers to route through notify() (5; was 17 — cohorts
-    # 1-3 migrated 2026-07-17: boot_announce, retro_cadence_check, discovery_agent, director_twin,
-    # director_comments, dispatcher, staging_watcher, executor_governor, sim_runner, health_check):
-    # the last 5 are the safety-critical deadman + supervisor (need transition-preserving migration)
-    # and the dedup-carrying ntfy_responder / process_run_complete / sanity_daemon.
-    "deadmans_switch.py", "ntfy_responder.py", "process_run_complete.py",
-    "sanity_daemon.py", "supervisor.py",
+    # migration debt — remaining direct callers to route through notify() (3; was 17 — cohorts 1-4
+    # migrated 12: boot_announce, retro_cadence_check, discovery_agent, director_twin,
+    # director_comments, dispatcher, staging_watcher, executor_governor, sim_runner, health_check,
+    # sanity_daemon, ntfy_responder). The last 3 need dedicated careful turns:
+    #  - deadmans_switch, supervisor: SAFETY-CRITICAL, cohesive+mutation-tested transition state
+    #    (_last_*_ts). Migrating needs a notify() re-escalation extension + rewriting the safety
+    #    net's own tests -> a real behaviour-change risk on the blackout-catcher; director-flagged.
+    #  - process_run_complete: pipeline-critical publish path (3 sites); careful.
+    "deadmans_switch.py", "process_run_complete.py", "supervisor.py",
 }
 
 

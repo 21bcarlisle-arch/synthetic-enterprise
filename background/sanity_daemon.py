@@ -44,7 +44,13 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.agent_status import update_agent_status  # noqa: E402
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
+
+
+def _digest(msg: str) -> None:
+    """Sanity-daemon pages are all digest-class (informational, self-deduped upstream via
+    _register_if_new / the daily-digest date guard)."""
+    notify(msg, kind="digest")
 from background import coupled_triad  # noqa: E402
 from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
 from company.compliance.internal_audit import run_internal_audit  # noqa: E402
@@ -207,7 +213,7 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
             # rule: "the gap is reported per coupled pair each digest + Proof
             # door") -- read live off the ledger, never recomputed here (R11).
             gap_line = _coupled_gap_digest_line()
-            send_ntfy(
+            _digest(
                 f"Sanity daemon daily digest: {len(open_entries)} standing open finding(s) -- {lines}"
                 + (" (+ more, see sanity_adjudication_ledger.json)" if len(open_entries) > 8 else "")
                 + " || " + gap_line
@@ -258,7 +264,7 @@ def run_cycle() -> None:
 
         new_findings = [f for f in findings if _register_if_new(_population_finding_key(f), f["detail"])]
         if new_findings:
-            send_ntfy(
+            _digest(
                 f"Sanity daemon: {len(new_findings)} NEW population-level finding(s) -- "
                 + "; ".join(f["detail"] for f in new_findings[:3])
                 + (" (+ more, see sanity-daemon-log.md)" if len(new_findings) > 3 else "")
@@ -281,7 +287,7 @@ def run_cycle() -> None:
         log(f"Internal audit (Qwen skeptic, ADVISORY -- verify before acting): {detail}")
         new_categories = [c for c in categories if _register_if_new(_audit_finding_key(c), detail)]
         if new_categories:
-            send_ntfy(
+            _digest(
                 "Sanity daemon: internal audit (Qwen skeptic, advisory -- verify before "
                 f"acting, false positives observed) flagged a NEW category "
                 f"({', '.join(new_categories)}): {detail}"
