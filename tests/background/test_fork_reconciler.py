@@ -151,3 +151,77 @@ def test_live_report_first_is_well_formed_and_reaps_nothing():
     assert set(r) >= {"status", "alarm", "detail", "orphans", "in_flight", "merged_eligible", "reaped", "enforce"}
     assert r["enforce"] is False and r["reaped"] == []           # report-first: nothing reaped
     assert r["status"] in ("FORK_CLEAN", "FORK_ORPHANS")
+
+
+# ── WORKTREE RECONCILE (step 4 / C1): "does this worktree belong?" -- ONE mechanism ──────────
+MAIN = "/repo"
+
+
+def _wt(path, branch=None, detached=False):
+    return {"path": path, "branch": branch, "detached": detached}
+
+
+def test_classify_worktree_belonging_is_derived_from_branch_state():
+    # main always belongs; a fork worktree belongs ONLY while its branch is IN_FLIGHT (a live fork).
+    states = {"live-w1": "IN_FLIGHT", "old-w2": "ORPHAN", "done-w3": "MERGED"}
+    assert F.classify_worktree(_wt(MAIN), MAIN, states) == "BELONGS"
+    assert F.classify_worktree(_wt("/wt/a", "live-w1"), MAIN, states) == "BELONGS"     # live fork
+    assert F.classify_worktree(_wt("/wt/b", "old-w2"), MAIN, states) == "UNDECLARED"   # orphan branch
+    assert F.classify_worktree(_wt("/wt/c", "done-w3"), MAIN, states) == "UNDECLARED"  # merged: should be pruned
+    assert F.classify_worktree(_wt("/wt/d", detached=True), MAIN, states) == "UNDECLARED"  # detached
+
+
+def test_worktree_reconcile_clean_when_only_main_and_live_forks():
+    wts = [_wt(MAIN, "main"), _wt("/wt/live", "live-w1")]
+    r = F.evaluate_worktree_reconcile(worktrees=wts, branch_states={"live-w1": "IN_FLIGHT"}, main_path=MAIN)
+    assert r["status"] == "WORKTREE_CLEAN" and r["alarm"] is False
+
+
+def test_worktree_reconcile_ALARMS_on_undeclared_and_never_prunes():
+    wts = [_wt(MAIN, "main"), _wt("/wt/orphan", "old-w2"), _wt("/wt/detached", detached=True)]
+    r = F.evaluate_worktree_reconcile(worktrees=wts, branch_states={"old-w2": "ORPHAN"}, main_path=MAIN)
+    assert r["status"] == "WORKTREE_UNDECLARED" and r["alarm"] is True
+    paths = {u["path"] for u in r["undeclared"]}
+    assert paths == {"/wt/orphan", "/wt/detached"}               # main + live-fork excluded
+    # report-only: the result carries NO reap/prune action (the function has no delete path)
+    assert all("reaped" not in u and "pruned" not in u for u in r["undeclared"])
+
+
+def test_scan_worktrees_parses_porcelain():
+    # (unit) the parser handles the porcelain shape: main-with-branch + a detached worktree.
+    import types
+    porcelain = ("worktree /repo\nHEAD abc\nbranch refs/heads/main\n\n"
+                 "worktree /tmp/x\nHEAD def\ndetached\n")
+    import background.fork_reconciler as FR
+    orig = FR._git
+    FR._git = lambda *a: porcelain if a[:2] == ("worktree", "list") else orig(*a)
+    try:
+        wts = FR.scan_worktrees()
+    finally:
+        FR._git = orig
+    assert wts == [{"path": "/repo", "branch": "main", "detached": False},
+                   {"path": "/tmp/x", "branch": None, "detached": True}]
+
+
+def test_deadman_fires_worktree_undeclared_transition_only(tmp_path, monkeypatch):
+    from background import deadmans_switch as D
+    import background.notify as N
+    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
+    monkeypatch.setattr(D, "LOG_FILE", tmp_path / "log.md")
+    calls = []
+    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
+    monkeypatch.setattr(
+        "background.fork_reconciler.evaluate_worktree_reconcile",
+        lambda: {"status": "WORKTREE_UNDECLARED", "alarm": True, "detail": "1 undeclared",
+                 "undeclared": [{"path": "/wt/x", "branch": "b", "branch_state": "ORPHAN"}]},
+    )
+    D._check_worktree_reconcile()
+    assert len(calls) == 1 and "WORKTREE UNDECLARED" in calls[0]
+    D._check_worktree_reconcile()
+    assert len(calls) == 1                                        # transition-only (R5)
+
+
+def test_live_worktree_reconcile_is_well_formed_and_never_prunes():
+    r = F.evaluate_worktree_reconcile()
+    assert set(r) >= {"status", "alarm", "detail", "undeclared"}
+    assert r["status"] in ("WORKTREE_CLEAN", "WORKTREE_UNDECLARED")

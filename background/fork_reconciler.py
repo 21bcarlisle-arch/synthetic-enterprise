@@ -161,6 +161,79 @@ def evaluate_fork_lifecycle(*, branches: list[dict] | None = None, now: float | 
             "reaped": reaped, "enforce": enforce}
 
 
+# ── WORKTREE RECONCILE (step 4 / C1): "does this worktree belong?" ──────────────────────────
+# This is the SAME mechanism as the fork lifecycle above, not a second scanner: a worktree's
+# belonging is DERIVED from its branch's lifecycle state. It reuses scan_fork_branches/
+# classify_branch and adds only the one thing branch data cannot give -- a `git worktree list`
+# scan. Declared = the main worktree; a fork worktree BELONGS only while its branch is IN_FLIGHT
+# (a live fork building). A worktree tied to an ORPHAN/MERGED/absent branch, or detached, is
+# UNDECLARED accumulation -> LOUD. REPORT-ONLY (G-R3: NO prune-by-inference -- reaping an
+# undeclared thing by inference is exactly what killed the director's console in the blackout).
+
+
+def scan_worktrees() -> list[dict]:
+    """Every registered worktree as {path, branch, detached}. Parses `git worktree list --porcelain`."""
+    out = _git("worktree", "list", "--porcelain")
+    wts: list[dict] = []
+    cur: dict | None = None
+    for line in out.splitlines():
+        if line.startswith("worktree "):
+            if cur:
+                wts.append(cur)
+            cur = {"path": line[len("worktree "):].strip(), "branch": None, "detached": False}
+        elif cur is not None and line.startswith("branch "):
+            ref = line[len("branch "):].strip()
+            cur["branch"] = ref[len("refs/heads/"):] if ref.startswith("refs/heads/") else ref
+        elif cur is not None and line.strip() == "detached":
+            cur["detached"] = True
+    if cur:
+        wts.append(cur)
+    return wts
+
+
+def classify_worktree(wt: dict, main_path: str, branch_states: dict) -> str:
+    """Pure: BELONGS if it is the main worktree, or a fork worktree whose branch is IN_FLIGHT (a
+    live fork). Otherwise UNDECLARED (accretion): detached, no/unknown branch, or a branch that is
+    an orphan or already merged (the worktree should have been pruned when the fork came home)."""
+    if wt["path"] == main_path:
+        return "BELONGS"
+    if wt.get("branch") and branch_states.get(wt["branch"]) == "IN_FLIGHT":
+        return "BELONGS"
+    return "UNDECLARED"
+
+
+def evaluate_worktree_reconcile(*, worktrees: list[dict] | None = None,
+                                branch_states: dict | None = None,
+                                main_path: str | None = None, now: float | None = None) -> dict:
+    """REPORT-ONLY reconcile of the worktree set vs declared. Never prunes. Never raises. Injectable
+    for tests. LOUD when an undeclared (accreting) worktree is present."""
+    if worktrees is None:
+        worktrees = scan_worktrees()
+    if branch_states is None:
+        _now = now if now is not None else time.time()
+        branch_states = {b["name"]: classify_branch(b, _now) for b in scan_fork_branches()}
+    if main_path is None:
+        main_path = str(PROJECT_DIR)
+
+    undeclared, belongs = [], []
+    for wt in worktrees:
+        if classify_worktree(wt, main_path, branch_states) == "BELONGS":
+            belongs.append(wt["path"])
+        else:
+            bstate = ("detached" if wt.get("detached") else
+                      (branch_states.get(wt["branch"], "no-branch") if wt.get("branch") else "no-branch"))
+            undeclared.append({"path": wt["path"], "branch": wt.get("branch"), "branch_state": bstate})
+
+    alarm = bool(undeclared)
+    if not undeclared:
+        return {"status": "WORKTREE_CLEAN", "alarm": False,
+                "detail": f"{len(belongs)} declared worktree(s), none undeclared", "undeclared": []}
+    shown = ", ".join(f"{u['path'].split('/')[-1]}({u['branch_state']})" for u in undeclared[:6])
+    return {"status": "WORKTREE_UNDECLARED", "alarm": True,
+            "detail": f"{len(undeclared)} UNDECLARED worktree(s) (accretion, report-only): {shown}",
+            "undeclared": undeclared}
+
+
 if __name__ == "__main__":
     import json
     import sys

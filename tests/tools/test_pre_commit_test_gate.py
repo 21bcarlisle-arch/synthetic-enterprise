@@ -56,3 +56,13 @@ def test_control_test_files_all_exist():
     # The always-on set must reference real files, or the gate silently protects nothing.
     for t in gate.CONTROL_TESTS:
         assert (ROOT / t).exists(), f"control test missing: {t}"
+
+
+def test_committed_hook_invokes_the_gate_and_aborts_on_failure():
+    # Reconstruct-from-repo: the committed hook itself must call the gate and abort on non-zero.
+    hook = (ROOT / "tools" / "git-hooks" / "pre-commit").read_text()
+    assert "tools/pre_commit_test_gate.py" in hook
+    assert "exit 1" in hook                                   # a gate failure ABORTS the commit
+    # and the installer that makes it reconstruct-from-repo exists + sets core.hooksPath
+    installer = (ROOT / "tools" / "install_git_hooks.sh").read_text()
+    assert "core.hooksPath" in installer and "tools/git-hooks" in installer

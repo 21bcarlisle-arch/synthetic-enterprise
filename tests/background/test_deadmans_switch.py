@@ -42,6 +42,9 @@ def _isolate(tmp_path, monkeypatch):
                         lambda: {"status": "FORK_CLEAN", "alarm": False, "detail": "(isolated)",
                                  "orphans": [], "in_flight": [], "merged_eligible": [], "reaped": [],
                                  "enforce": False})
+    monkeypatch.setattr("background.fork_reconciler.evaluate_worktree_reconcile",
+                        lambda: {"status": "WORKTREE_CLEAN", "alarm": False, "detail": "(isolated)",
+                                 "undeclared": []})
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     _reset_state()

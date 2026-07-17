@@ -94,6 +94,7 @@ _COMMIT_KEY = "deadman_commit"        # BLOCKED / STALL (shared timer, tier-agno
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _GATE_VIOLATION_KEY = "deadman_gate_violation"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
+_WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
 
 
 def log(msg: str) -> None:
@@ -305,11 +306,39 @@ def _check_fork_lifecycle() -> None:
     log(f"FORK ORPHANS checked (notify-gated): {st['detail']}")
 
 
+def _check_worktree_reconcile() -> None:
+    """Fire a transition-only, LOUD WORKTREE_UNDECLARED alarm when a worktree does not belong --
+    not the main worktree and not tied to a live in-flight fork (director P0 step 4 / C1). Makes
+    parallel OBSERVABLE: worktree accretion becomes visible instead of silent (the disease the
+    reconcile discipline covered for processes but not worktrees). REPORT-ONLY -- never prunes
+    (G-R3). Same mechanism as the fork lifecycle (belonging is derived from branch state), distinct
+    alarm surface. State keys on the undeclared count so a change re-alerts; unchanged re-escalates
+    hourly (R5)."""
+    try:
+        from background.fork_reconciler import evaluate_worktree_reconcile
+        st = evaluate_worktree_reconcile()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"worktree-reconcile check error: {e}")
+        return
+    if not st["alarm"]:
+        clear_transition(_WORKTREE_UNDECLARED_KEY)
+        return
+    notify(
+        f"[WORKTREE UNDECLARED] {st['detail']}. Worktrees that are neither main nor a live fork -- "
+        f"accretion the reconcile discipline covered for processes but not worktrees. REPORT-ONLY "
+        f"(never pruned by inference). Declare it or clean it up through the reconciler.",
+        kind="real_alarm", transition_key=_WORKTREE_UNDECLARED_KEY,
+        state=f"undeclared:{len(st['undeclared'])}", re_escalate_after=RE_ESCALATE_SECONDS,
+    )
+    log(f"WORKTREE UNDECLARED checked (notify-gated): {st['detail']}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
     _check_gate_wall()
     _check_fork_lifecycle()
+    _check_worktree_reconcile()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).
