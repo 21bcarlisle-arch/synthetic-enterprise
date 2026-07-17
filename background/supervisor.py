@@ -126,7 +126,7 @@ from background.coupled_triad import (  # noqa: E402
     load_gap_ledger as _coupled_load_gap_ledger,
     world_l3_blocked as _coupled_world_l3_blocked,
 )
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 
 SESSION_NAME = "claude"
@@ -236,7 +236,8 @@ def log(msg: str) -> None:
 
 
 def ntfy(msg: str) -> None:
-    send_ntfy(msg)
+    # Supervisor pages are escalations (deduped by their callers); route through the one contract.
+    notify(msg, kind="real_alarm")
 
 
 def _unprocessed_staging_files() -> list[str]:

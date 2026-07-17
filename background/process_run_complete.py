@@ -1031,7 +1031,8 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
            "NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).")
     msg = "[ACTION NEEDED] {}\nWhat: {}\nHow: {}\nWhy: {}".format(PUBLISH_GATE_ITEM_ID, what, how, why)
     if send_ntfy_fn is None:
-        from background.ntfy_utils import send_ntfy as send_ntfy_fn
+        from background.notify import notify
+        send_ntfy_fn = lambda m: notify(m, kind="real_alarm")
     send_ntfy_fn(msg)
     # Durable register + daily re-ping while it stays wedged (best-effort -- a
     # register failure must never suppress the NTFY that already went out).
@@ -1107,13 +1108,14 @@ def record_publish_gate_success(*, now=None):
 def maybe_ntfy(data, net_margin, insights=None):
     """Send NTFY for notable exceptions. Returns log message if sent, else None."""
     admin = data.get("administration_event")
-    from background.ntfy_utils import send_ntfy
+    from background.notify import notify
     if admin:
         date_str = admin.get("date", "unknown date") if isinstance(admin, dict) else str(admin)
-        send_ntfy(
+        notify(
             "[SIM] ADMINISTRATION EVENT on {} - net margin £{:,.0f}. Check annual report.".format(
                 date_str, net_margin
-            )
+            ),
+            kind="real_alarm",
         )
         return "NTFY sent: administration event on {}".format(date_str)
     prev_best = _run_history_max_net()
@@ -1129,7 +1131,7 @@ def maybe_ntfy(data, net_margin, insights=None):
         msg += " -- " + str(summary)[:120]
     if acts:
         msg += " | Action: " + str(acts[0])[:80]
-    send_ntfy(msg)
+    notify(msg, kind="real_alarm")
     return "NTFY sent: {} net margin £{:,.0f}".format(tag, net_margin)
 
 
@@ -1261,11 +1263,12 @@ def _process(marker_path_str):
     log("Generating site/data/dashboard.json")
     consistency_ok = generate_dashboard_json(json_path, git_hash)
     if not consistency_ok:
-        from background.ntfy_utils import send_ntfy
-        send_ntfy(
+        from background.notify import notify
+        notify(
             "[SIM] CONSISTENCY GATE FAILED (git={}) — dashboard totals and exec-summary "
             "insights disagree on a headline number. Site figures may be untrustworthy "
-            "until this is fixed. See docs/observability/sim-runner-log.md for detail.".format(git_hash)
+            "until this is fixed. See docs/observability/sim-runner-log.md for detail.".format(git_hash),
+            kind="real_alarm",
         )
         log("NTFY sent: consistency gate failure")
     generate_site(data, elapsed_s, git_hash, fields.get("finished"))

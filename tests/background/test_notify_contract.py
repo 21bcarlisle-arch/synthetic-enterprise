@@ -110,11 +110,9 @@ _ALLOWED_DIRECT_SENDERS = {
     # target that send_ntfy() calls, so it stays here (the regex matches the comment) but is never
     # migrated.
     "ntfy_mirror.py",
-    # migration debt — remaining direct callers to route through notify() (2; was 17 — cohorts 1-5
-    # migrated 13, incl. the deadman via the notify() re_escalate_after extension). The last 2:
-    #  - supervisor: SAFETY-CRITICAL turn-granting daemon; careful transition-preserving migration.
-    #  - process_run_complete: pipeline-critical publish path (3 sites); careful.
-    "process_run_complete.py", "supervisor.py",
+    # migration debt: NONE. All 17 original direct callers now page via notify() (2026-07-17,
+    # cohorts 1-6). The collapse is COMPLETE -- only the contract (notify.py), the primitive
+    # (ntfy_utils.py), and the mirror target (ntfy_mirror.py, a comment match) touch send_ntfy.
 }
 
 
