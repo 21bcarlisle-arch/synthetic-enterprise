@@ -1919,8 +1919,8 @@
         "OPS1_operational_layer_rebuild"
       ],
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": 1
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -1965,13 +1965,13 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 2
     }
