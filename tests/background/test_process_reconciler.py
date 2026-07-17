@@ -17,6 +17,25 @@ def _status(results, session):
     return next(r for r in results if r["session"] == session)
 
 
+# The autonomy migration is COMPLETE — the LIVE manifest has no `held` daemon any more (all three
+# migrated to systemd). So the held/dark/retired MAPPING is exercised against a SYNTHETIC manifest
+# (stable regardless of the live posture); the live posture is asserted separately.
+_MAP_MANIFEST = """version: 2
+processes:
+  - {session: en, command: python3 background/en.py, match: en.py, owner: systemd, launched_by: systemd, state: enabled}
+  - {session: hl, command: python3 background/hl.py, match: hl.py, owner: systemd, launched_by: systemd, state: held, reason: r, flip: f}
+  - {session: dk, command: python3 background/dk.py, match: dk.py, owner: systemd, launched_by: systemd, state: dark, reason: r, flip: f}
+  - {session: rt, command: python3 background/rt.py, match: rt.py, owner: none, state: retired, reason: r, flip: f}
+"""
+
+
+@pytest.fixture
+def map_manifest(tmp_path):
+    p = tmp_path / "map_manifest.yaml"
+    p.write_text(_MAP_MANIFEST)
+    return p
+
+
 def test_manifest_loads_and_is_shaped():
     procs = R.load_manifest()
     assert procs
@@ -45,7 +64,7 @@ def test_startlist_is_enabled_dark_and_not_yet_migrated():
     assert "sim-runner" in names            # enabled, still tmux
     assert "executor-daemon" in names       # dark: installed (no-op) unit, still tmux
     assert "supervisor" not in names        # MIGRATED to systemd (launched_by) — left the tmux set
-    assert "deadmans-switch" not in names   # HELD (next gate)
+    assert "deadmans-switch" not in names   # MIGRATED to systemd (launched_by) — left the tmux set
     assert "claude" not in names            # worker seat: owned by worker-seat-manager, not systemd
     assert "worker-seat-manager" not in names  # MIGRATED to systemd (launched_by) — left the tmux set
     assert "autonomous-runner" not in names # retired
@@ -62,20 +81,18 @@ def test_migrated_daemon_leaves_startlist_but_generate_units_still_has_it():
 
 def test_systemd_owned_sessions_are_only_the_migrated_ones():
     """Only launched_by==systemd daemons are `systemctl show`-queried; un-migrated ones are seen
-    via tmux/ps instead (so an un-migrated tmux daemon never reads MISSING). Migrated so far:
-    worker-seat-manager + supervisor (the serial-autonomy go-live)."""
-    assert set(R._systemd_owned_sessions()) == {"worker-seat-manager", "supervisor"}
+    via tmux/ps instead (so an un-migrated tmux daemon never reads MISSING). The autonomy layer is
+    fully migrated: worker-seat-manager + supervisor + deadmans-switch."""
+    assert set(R._systemd_owned_sessions()) == {"worker-seat-manager", "supervisor", "deadmans-switch"}
 
 
-def test_health_checked_includes_enabled_migrated_and_seat_excludes_held():
-    """held/dark/retired excluded from the health-checked set; the now-live worker-seat manager +
-    seat (enabled) are included."""
+def test_health_checked_includes_all_migrated_autonomy_daemons():
+    """dark/retired excluded from the health-checked set; the now-live autonomy layer — all three
+    migrated (worker-seat-manager + seat + supervisor + deadmans, enabled) — is included."""
     hc = R.health_checked_map()
     assert "naive-organ" in hc                 # the gap the old EXPECTED_PANES had
-    assert "deadmans-switch" not in hc         # still HELD (next gate) -> not a fault when down
-    assert "worker-seat-manager" in hc         # MIGRATED live (enabled)
-    assert "supervisor" in hc                  # MIGRATED live (enabled) — serial-autonomy go-live
-    assert "claude" in hc                      # the seat is live (enabled)
+    for migrated in ("worker-seat-manager", "claude", "supervisor", "deadmans-switch"):
+        assert migrated in hc                  # MIGRATED live (enabled) — the autonomy layer
     assert "executor-daemon" not in hc         # dark
     assert "autonomous-runner" not in hc       # retired
     assert "file-api" not in hc                # systemd-owned service, not a tmux daemon (sub-step 3)
@@ -92,16 +109,28 @@ def _up(session, **extra):
     return dict(unit_states={session: {"active": True, **extra}}, seat_active=False)
 
 
-def test_incident_held_down_silent_held_running_is_HELD_VIOLATED():
+def test_incident_held_down_silent_held_running_is_HELD_VIOLATED(map_manifest):
     """THE 2026-07-17 incident as a permanent invariant: a HELD daemon that is DOWN is
     silent (no false DEGRADED); a HELD daemon found RUNNING is HELD_VIOLATED and alarms —
-    exactly the deadman the worker resurrected. Incidents become invariants."""
-    down = R.reconcile(**_DOWN)
-    assert _status(down, "deadmans-switch")["status"] == "HELD"
-    assert _status(down, "deadmans-switch")["alarm"] is False
-    resurrected = R.reconcile(**_up("deadmans-switch"))
-    assert _status(resurrected, "deadmans-switch")["status"] == "HELD_VIOLATED"
-    assert _status(resurrected, "deadmans-switch")["alarm"] is True
+    exactly the deadman the worker resurrected. Incidents become invariants. (Exercised on the
+    synthetic manifest now that the live one has no held daemon — the invariant survives the
+    migration.)"""
+    down = R.reconcile(unit_states={}, seat_active=False, path=map_manifest)
+    assert _status(down, "hl")["status"] == "HELD"
+    assert _status(down, "hl")["alarm"] is False
+    resurrected = R.reconcile(unit_states={"hl": {"active": True}}, seat_active=False, path=map_manifest)
+    assert _status(resurrected, "hl")["status"] == "HELD_VIOLATED"
+    assert _status(resurrected, "hl")["alarm"] is True
+
+
+def test_dark_and_retired_mapping_on_synthetic_manifest(map_manifest):
+    down = R.reconcile(unit_states={}, seat_active=False, path=map_manifest)
+    assert _status(down, "dk")["status"] == "DARK" and _status(down, "dk")["alarm"] is False
+    assert _status(down, "rt")["status"] == "OK"
+    active = R.reconcile(unit_states={"dk": {"active": True}, "rt": {"active": True}},
+                         seat_active=False, path=map_manifest)
+    assert _status(active, "dk")["status"] == "DARK_ACTIVE" and _status(active, "dk")["alarm"] is False
+    assert _status(active, "rt")["status"] == "RETIRED_RUNNING" and _status(active, "rt")["alarm"] is True
 
 
 def test_enabled_missing_alarms_enabled_running_ok():
@@ -205,7 +234,7 @@ def test_health_check_expected_panes_is_derived_and_excludes_held():
     from background import health_check
     assert health_check.EXPECTED_PANES == R.health_checked_map()
     assert "naive-organ" in health_check.EXPECTED_PANES
-    assert "deadmans-switch" not in health_check.EXPECTED_PANES   # still HELD (last gate)
+    assert "executor-daemon" not in health_check.EXPECTED_PANES   # dark -> excluded (not a fault when down)
 
 
 def test_no_reaper_or_interactive_claude_kill_path_exists_anywhere():

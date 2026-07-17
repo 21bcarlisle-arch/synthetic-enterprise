@@ -61,10 +61,9 @@ processes:
     command: python3 background/deadmans_switch.py
     match: deadmans_switch.py
     owner: systemd
-    state: held
-    reason: "OPS1 serial-autonomy go-live — the LAST migration gate (director-ruled): held until the worker-seat + supervisor migrations are proven live and the first autonomous turn creates a FRESH commit clock, so the deadman starts against a moving clock, not a stale one"
-    flip: "director gate, after the first autonomous turn commits → enabled + launched_by:systemd, against the fresh commit clock"
-    purpose: "Independent stall alarm (commit-clock-alone liveness signal — the fail-silent fix)"
+    launched_by: systemd   # MIGRATED 2026-07-17 (serial-autonomy go-live, LAST gate) → out of start_worker's tmux set
+    state: enabled
+    purpose: "Independent stall alarm — liveness = the MEANINGFUL git commit clock ALONE (never max'd with observability mtimes; the fail-silent fix). BLOCKED at 45min of no meaningful commit + queued work, STALL at 90min, transition-only + hourly re-escalate. Migrated live 2026-07-17 against a fresh commit clock, completing the autonomy layer's tmux→systemd migration (all three: worker-seat + supervisor + deadmans)."
 
   # ── DARK: present as a daemon but a no-op unless its flag; director-gated ──
   - session: executor-daemon

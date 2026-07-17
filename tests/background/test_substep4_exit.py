@@ -30,22 +30,28 @@ def test_committed_units_equal_generated():
 
 # ── §9.2 HELD<->unit mapping mutation-tested: MISSING / HELD_VIOLATED / DARK / retired ──
 
-def test_held_unit_mapping_full_matrix():
-    down = R.reconcile(unit_states={}, seat_active=False)
-    # enabled, down -> MISSING (fault)
-    assert _status(down, "sim-runner")["status"] == "MISSING"
-    # held, down -> HELD (silent) — deadmans is the still-held daemon (last gate)
-    assert _status(down, "deadmans-switch")["status"] == "HELD"
-    assert _status(down, "deadmans-switch")["alarm"] is False
-    # dark, down -> DARK (ok)
-    assert _status(down, "executor-daemon")["status"] == "DARK"
-    # retired, down -> OK
-    assert _status(down, "autonomous-runner")["status"] == "OK"
+# The autonomy migration is COMPLETE — the live manifest has no `held` daemon — so the HELD leg of
+# the mapping is exercised on a synthetic manifest (the invariant survives the migration).
+_HELD_MANIFEST = """version: 2
+processes:
+  - {session: en, command: python3 background/en.py, match: en.py, owner: systemd, launched_by: systemd, state: enabled}
+  - {session: hl, command: python3 background/hl.py, match: hl.py, owner: systemd, launched_by: systemd, state: held, reason: r, flip: f}
+"""
 
-    # held, UP -> HELD_VIOLATED (the resurrected-deadman incident, now an alarm)
-    up = R.reconcile(unit_states={"deadmans-switch": {"active": True}}, seat_active=False)
-    assert _status(up, "deadmans-switch")["status"] == "HELD_VIOLATED"
-    assert _status(up, "deadmans-switch")["alarm"] is True
+
+def test_held_unit_mapping_full_matrix(tmp_path):
+    # enabled/dark/retired legs on the LIVE manifest (those states still exist there)
+    down = R.reconcile(unit_states={}, seat_active=False)
+    assert _status(down, "sim-runner")["status"] == "MISSING"       # enabled, down -> fault
+    assert _status(down, "executor-daemon")["status"] == "DARK"     # dark, down -> ok
+    assert _status(down, "autonomous-runner")["status"] == "OK"     # retired, down -> ok
+    # HELD leg on a synthetic manifest (no live daemon is held post-migration)
+    hm = tmp_path / "held.yaml"
+    hm.write_text(_HELD_MANIFEST)
+    hdown = R.reconcile(unit_states={}, seat_active=False, path=hm)
+    assert _status(hdown, "hl")["status"] == "HELD" and _status(hdown, "hl")["alarm"] is False
+    hup = R.reconcile(unit_states={"hl": {"active": True}}, seat_active=False, path=hm)
+    assert _status(hup, "hl")["status"] == "HELD_VIOLATED" and _status(hup, "hl")["alarm"] is True
 
 
 # ── §9.3 G-L3: a failed / crash-looping unit ALARMS (the 32,707 case, now caught) ──
@@ -85,20 +91,20 @@ def test_exit_143_invariant_still_holds_against_console_sanctity():
 
 # ── the current safe posture: held layer HELD, executor DARK, seat HELD ──
 
-def test_declared_posture_during_staged_migration():
-    """Staged migration posture (director-gated one at a time): worker-seat + supervisor MIGRATED
-    (enabled + launched_by systemd — they left start_worker's tmux set); deadmans STILL HELD (its
-    gate is last, against the fresh commit clock the first autonomous turn creates); executor DARK;
-    autonomous-runner retired. The manifest declares the live truth at every step — never a
-    held-but-running lie."""
+def test_declared_posture_autonomy_layer_fully_migrated():
+    """The autonomy layer is now FULLY migrated (all three gates taken, one at a time): worker-seat
+    + supervisor + deadmans all enabled + launched_by systemd (they left start_worker's tmux set);
+    the seat live; executor DARK (director-gated separately); autonomous-runner retired. The
+    manifest declares the live truth — never a held-but-running lie — and no autonomy daemon is
+    held any more."""
     m = {e["session"]: e for e in R.load_manifest()}
-    for migrated in ("worker-seat-manager", "supervisor"):
+    for migrated in ("worker-seat-manager", "supervisor", "deadmans-switch"):
         assert m[migrated]["state"] == "enabled", migrated
         assert m[migrated]["launched_by"] == "systemd", migrated   # left the tmux launch set
     assert m["claude"]["state"] == "enabled"                       # the seat is live
-    assert m["deadmans-switch"]["state"] == "held"                 # last gate
     assert m["executor-daemon"]["state"] == "dark"
     assert m["autonomous-runner"]["state"] == "retired"
+    assert not any(e["state"] == "held" for e in m.values())       # no daemon left held
 
 
 # ── the build never starts anything: install is install+enable only, migration starts ──

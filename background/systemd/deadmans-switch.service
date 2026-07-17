@@ -1,7 +1,7 @@
 # GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
-# Edit the manifest and regenerate. state=held owner=systemd
+# Edit the manifest and regenerate. state=enabled owner=systemd
 [Unit]
-Description=Synthetic Enterprise: Independent stall alarm (commit-clock-alone liveness signal — the fail-silent fix)
+Description=Synthetic Enterprise: Independent stall alarm — liveness = the MEANINGFUL git commit clock ALONE (never max'd with observability mtimes; the fail-silent fix). BLOCKED at 45min of no meaningful commit + queued work, STALL at 90min, transition-only + hourly re-escalate. Migrated live 2026-07-17 against a fresh commit clock, completing the autonomy layer's tmux→systemd migration (all three: worker-seat + supervisor + deadmans).
 After=network.target
 # G-L3: a crash-loop enters `failed` instead of restarting silently forever.
 StartLimitIntervalSec=120
