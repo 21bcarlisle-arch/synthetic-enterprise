@@ -38,25 +38,43 @@ def test_start_worker_has_no_hardcoded_daemon_list_left():
     assert literal_launchers == [], f"hardcoded launchers still present: {literal_launchers}"
 
 
-def test_startlist_is_enabled_and_dark_owned_by_systemd():
-    # OPS1 sub-step 4: startlist = the systemd daemons to start now (owner==systemd, enabled|dark).
+def test_startlist_is_enabled_dark_and_not_yet_migrated():
+    # OPS1 sub-step 4: startlist = daemons start_worker.sh still TMUX-launches (owner==systemd,
+    # enabled|dark, NOT migrated to systemd). A migrated daemon LEAVES this set.
     names = [s for s, _ in R.startlist()]
-    assert "sim-runner" in names            # enabled
-    assert "executor-daemon" in names       # dark: installed (no-op) unit
+    assert "sim-runner" in names            # enabled, still tmux
+    assert "executor-daemon" in names       # dark: installed (no-op) unit, still tmux
     assert "supervisor" not in names        # HELD: not started — that IS the hold
     assert "deadmans-switch" not in names   # HELD
     assert "claude" not in names            # worker seat: owned by worker-seat-manager, not systemd
-    assert "worker-seat-manager" not in names  # HELD during the rebuild
+    assert "worker-seat-manager" not in names  # MIGRATED to systemd (launched_by) — left the tmux set
     assert "autonomous-runner" not in names # retired
 
 
-def test_health_checked_excludes_held_dark_retired_includes_enabled():
-    """THE cure: held/dark/retired are excluded from the health-checked set, so a
-    deliberately-held daemon never reads as a fault (the false-DEGRADED class)."""
+def test_migrated_daemon_leaves_startlist_but_generate_units_still_has_it():
+    """The atomic-migration invariant: a daemon flipped to launched_by=systemd LEAVES start_worker's
+    tmux launch set (never two launchers) but stays a declared systemd unit (its .service exists)."""
+    names = [s for s, _ in R.startlist()]
+    assert "worker-seat-manager" not in names
+    from background import generate_units as G
+    assert "worker-seat-manager.service" in G.regenerate()   # still a real systemd unit
+
+
+def test_systemd_owned_sessions_are_only_the_migrated_ones():
+    """Only launched_by==systemd daemons are `systemctl show`-queried; un-migrated ones are seen
+    via tmux/ps instead (so an un-migrated tmux daemon never reads MISSING)."""
+    assert R._systemd_owned_sessions() == ["worker-seat-manager"]
+
+
+def test_health_checked_includes_enabled_migrated_and_seat_excludes_held():
+    """held/dark/retired excluded from the health-checked set; the now-live worker-seat manager +
+    seat (enabled) are included."""
     hc = R.health_checked_map()
     assert "naive-organ" in hc                 # the gap the old EXPECTED_PANES had
-    for held in ("supervisor", "deadmans-switch", "worker-seat-manager", "claude"):
+    for held in ("supervisor", "deadmans-switch"):
         assert held not in hc                  # held -> not a fault when down
+    assert "worker-seat-manager" in hc         # MIGRATED live (enabled)
+    assert "claude" in hc                      # the seat is live (enabled)
     assert "executor-daemon" not in hc         # dark
     assert "autonomous-runner" not in hc       # retired
     assert "file-api" not in hc                # systemd-owned service, not a tmux daemon (sub-step 3)
@@ -126,12 +144,28 @@ def test_unit_failed_and_crashlooping_alarm_regardless_of_declared_state():
 
 def test_worker_seat_detected_via_seat_flag_not_a_unit():
     """The seat is the ONE entry systemd can't own: detected by `seat_active` (the `claude`
-    tmux session), never a unit. HELD now -> down is silent, up is HELD_VIOLATED."""
+    tmux session), never a unit. Now ENABLED (live): down -> MISSING, up -> OK."""
     down = R.reconcile(unit_states={}, seat_active=False)
-    assert _status(down, "claude")["status"] == "HELD"
+    assert _status(down, "claude")["status"] == "MISSING"   # enabled + seat down = a fault
     up = R.reconcile(unit_states={}, seat_active=True)
-    assert _status(up, "claude")["status"] == "HELD_VIOLATED"
-    assert _status(up, "claude")["alarm"] is True
+    assert _status(up, "claude")["status"] == "OK"
+
+
+def test_unmigrated_daemon_running_via_tmux_is_OK_not_MISSING():
+    """Transition-correctness: an enabled daemon still launched by tmux (not migrated) reads OK
+    when present in tmux/ps, even though its systemd unit is inactive/absent. Without the OR it
+    would false-alarm MISSING for every base-infra daemon during the migration."""
+    res = R.reconcile(unit_states={}, seat_active=False, tmux_running={"sim-runner"})
+    assert _status(res, "sim-runner")["status"] == "OK"
+    # and a genuinely-down enabled daemon still alarms
+    assert _status(res, "staging-watcher")["status"] == "MISSING"
+
+
+def test_migrated_daemon_running_via_systemd_is_OK():
+    res = R.reconcile(unit_states={"worker-seat-manager": {"active": True}},
+                      seat_active=True, tmux_running=set())
+    assert _status(res, "worker-seat-manager")["status"] == "OK"
+    assert _status(res, "claude")["status"] == "OK"
 
 
 def test_reconcile_reads_no_tmux_panes_so_a_console_can_never_be_flagged():

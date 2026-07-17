@@ -1788,3 +1788,27 @@
   real_world_twin: an SRE deleting the old deploy script only after the new pipeline has run clean for a few releases -- retiring the fallback on evidence, not on merge day
   depends_on:
   - OPS1_operational_layer_rebuild
+- id: OPS1_tmux_target_qualification
+  name: Fully-qualify pane-scoped tmux targets (bare -t claude is window/session ambiguous)
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: proposal
+  evidence:
+  - docs/design/SUBSTEP4_SUPERVISOR_HYBRID.md
+  file_scope:
+  - background/worker_seat.py
+  - background/session_watchdog.py
+  simplifications:
+  - 'REGISTERED CLEANUP (2026-07-17, director-required at the worker-seat gate: ''Record the gotcha as a registered cleanup item... Scheduled, not drifting''). During the worker-seat migration a bare `tmux ... -t claude` run from inside the `work` console resolved to the console''s WINDOW named ''claude'' (window-name match) instead of the SESSION named ''claude'' (the worker seat) — so capture-pane showed the director''s own screen, a false ''latch'' alarm (halted, pulled PID/window/JSONL evidence, distinguished tooling-ambiguity from a real latch — the correct halt-verify-distinguish pattern). worker_seat.py itself is SAFE (it uses `has-session`, which is session-scoped). FIX: any pane-scoped tmux tooling must FULLY QUALIFY its target (session form `claude:` or the window id `@N`, never bare `-t claude`) so the window/session name collision cannot mis-target. Audit background/*.py + scripts for bare `-t claude` pane/capture calls; qualify them. Low-risk, scheduled — not a live hazard (has-session is safe).'
+  expert_hour:
+    status: not_attempted
+    last: null
+    findings: []
+  real_world_twin: an ops team standardising on fully-qualified resource names after an ambiguous alias pointed a command at the wrong host
+  depends_on:
+  - OPS1_operational_layer_rebuild

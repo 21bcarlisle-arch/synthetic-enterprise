@@ -85,12 +85,17 @@ def test_exit_143_invariant_still_holds_against_console_sanctity():
 
 # ── the current safe posture: held layer HELD, executor DARK, seat HELD ──
 
-def test_declared_posture_is_the_gated_hold():
-    """The manifest declares exactly the posture the migration will release one at a time:
-    the three governance daemons + the seat HELD, the executor DARK. Nothing enabled among them."""
+def test_declared_posture_after_worker_seat_migration():
+    """Staged migration posture (director-gated one at a time): worker-seat MIGRATED (enabled +
+    launched_by systemd — it left start_worker's tmux set); supervisor + deadmans STILL HELD
+    (their gates come next); executor DARK; autonomous-runner retired. The manifest declares the
+    live truth at every step — never a held-but-running lie."""
     m = {e["session"]: e for e in R.load_manifest()}
-    for held in ("worker-seat-manager", "supervisor", "deadmans-switch", "claude"):
-        assert m[held]["state"] == "held", held
+    assert m["worker-seat-manager"]["state"] == "enabled"
+    assert m["worker-seat-manager"]["launched_by"] == "systemd"   # left the tmux launch set
+    assert m["claude"]["state"] == "enabled"                       # the seat is live
+    for still_held in ("supervisor", "deadmans-switch"):
+        assert m[still_held]["state"] == "held", still_held        # next gates
     assert m["executor-daemon"]["state"] == "dark"
     assert m["autonomous-runner"]["state"] == "retired"
 

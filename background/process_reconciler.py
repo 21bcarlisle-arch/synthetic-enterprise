@@ -96,15 +96,16 @@ def declared_sessions(path: Path | None = None) -> set[str]:
 
 
 def startlist(path: Path | None = None) -> list[tuple[str, str]]:
-    """(session, command) for the daemons that should be RUNNING now: owner==systemd and state
-    in {enabled, dark}. Held/retired are NOT included -- that IS the hold, expressed once in the
-    manifest. OPS1 sub-step 4: lifecycle ownership is moving to systemd (units generated under
-    background/systemd/, installed by install_schedule.sh). Until the gated one-at-a-time
-    migration cuts each daemon from tmux to `systemctl start`, start_worker.sh still tmux-launches
-    this set -- so the TRANSITION keeps one running mechanism at a time, never two. This function
-    is the single derived launch/expected set both mechanisms read."""
+    """(session, command) for the daemons start_worker.sh should TMUX-launch now: owner==systemd,
+    state in {enabled, dark}, AND NOT YET migrated to systemd (`launched_by` != systemd; default
+    'tmux'). Held/retired are excluded -- that IS the hold. OPS1 sub-step 4 staged migration
+    (director-ruled 2026-07-17): each daemon's cutover is ONE atomic change -- systemd takes it +
+    it LEAVES this tmux set (`launched_by: systemd`) + its declaration flips -- so there is NEVER
+    two launchers for one daemon and never a lying manifest. When the last daemon migrates, this
+    list is empty and start_worker.sh's tmux-launch is retired entirely."""
     return [(p["session"], p["command"]) for p in load_manifest(path)
-            if p["owner"] == "systemd" and p["state"] in ("enabled", "dark")]
+            if p["owner"] == "systemd" and p["state"] in ("enabled", "dark")
+            and p.get("launched_by", "tmux") != "systemd"]
 
 
 def _classify_by_state(state: str, running: bool) -> str:
@@ -121,21 +122,29 @@ def _classify_by_state(state: str, running: bool) -> str:
 
 def reconcile(unit_states: dict[str, dict] | None = None,
               seat_active: bool | None = None,
+              tmux_running: set[str] | None = None,
               path: Path | None = None) -> list[dict]:
-    """Classify declared vs actual from SYSTEMD unit state. REPORT ONLY -- no side effects,
-    no kill path (G-R3).
+    """Classify declared vs actual. REPORT ONLY -- no side effects, no kill path (G-R3).
 
-    Inputs (injectable for tests; production reads live state via `_live_unit_states` /
-    `_seat_active`):
-      - unit_states: {session: {"active": bool, "enabled": bool, "substate": str}} for the
-        systemd-owned entries. A session absent from the map is treated as not-running.
-      - seat_active: whether the interactive worker seat (the `claude` tmux session) is up --
-        the one entry systemd cannot own.
+    TRANSITION-CORRECT (director-ruled 2026-07-17, staged migration): a daemon is RUNNING if its
+    systemd unit is active OR it is present as a tmux/ps process -- because during the one-at-a-time
+    migration some daemons are already systemd (migrated) while others are still tmux (start_worker).
+    The OR reads whichever source is real for each daemon, so an un-migrated tmux daemon never reads
+    MISSING and a migrated systemd daemon never needs a tmux pane. When migration completes,
+    `tmux_running` is empty and this converges to the systemd-only end state.
 
-    Per entry -> {session, state, running, status, alarm, reason, flip}. Failure states come
-    FIRST off SubState (a `failed`/`auto-restart` unit is an alarm whatever its declared state);
-    otherwise the HELD<->unit mapping (`_classify_by_state`) decides from running."""
+    Inputs (injectable for tests; production reads live via `_live_unit_states` /
+    `_live_tmux_running` / `_seat_active`):
+      - unit_states: {session: {"active", "enabled", "substate"}} for the systemd-launched entries.
+      - seat_active: whether the interactive worker seat (the `claude` tmux session) is up.
+      - tmux_running: set of session names currently present as tmux/ps processes (the not-yet-
+        migrated daemons). Absent -> empty.
+
+    Per entry -> {session, state, running, status, alarm, reason, flip}. Failure states come FIRST
+    off SubState (a `failed`/`auto-restart` unit alarms whatever its declared state); otherwise the
+    HELD<->unit mapping (`_classify_by_state`) decides from running."""
     unit_states = unit_states or {}
+    tmux_running = tmux_running or set()
     entries = load_manifest(path)
     results: list[dict] = []
     for e in entries:
@@ -146,7 +155,7 @@ def reconcile(unit_states: dict[str, dict] | None = None,
         if e["match"] == SEAT_MATCH:
             running = bool(seat_active)
         else:
-            running = bool(us.get("active"))
+            running = bool(us.get("active")) or session in tmux_running
         # G-L3: SubState failure states are alarms regardless of the declared state.
         if substate == "failed":
             status = "UNIT_FAILED"
@@ -180,7 +189,11 @@ def format_report(results: list[dict]) -> str:
 
 
 def _systemd_owned_sessions(path: Path | None = None) -> list[str]:
-    return [e["session"] for e in load_manifest(path) if e.get("owner") == "systemd"]
+    """Sessions whose lifecycle is ACTUALLY on systemd now (migrated): owner==systemd AND
+    launched_by==systemd. Only these are worth a `systemctl show` -- an un-migrated daemon has no
+    installed unit yet and is detected via `_live_tmux_running` instead."""
+    return [e["session"] for e in load_manifest(path)
+            if e.get("owner") == "systemd" and e.get("launched_by", "tmux") == "systemd"]
 
 
 def _unit_snapshot(session: str) -> dict:
@@ -230,9 +243,28 @@ def _live_unit_states(samples: int = 2, interval: float = 2.0,
 
 def _seat_active() -> bool:
     """Whether the interactive worker seat (`claude` tmux session) is up -- the one entry
-    systemd cannot own."""
+    systemd cannot own. NOTE: `has-session` is session-scoped, so it is NOT confused by the
+    director-console window also being named 'claude' (unlike a bare pane-scoped `-t claude`)."""
     return subprocess.run(["tmux", "has-session", "-t", "claude"],
                           capture_output=True).returncode == 0
+
+
+def _live_tmux_running(path: Path | None = None) -> set[str]:
+    """Declared sessions currently present as a tmux session OR a matching `ps` process -- the
+    not-yet-migrated (`launched_by`!=systemd) daemons that start_worker.sh still tmux-launches.
+    The seat (`claude`) is handled separately via `_seat_active`, so it is excluded here."""
+    entries = [e for e in load_manifest(path)
+               if e["match"] != SEAT_MATCH and e.get("launched_by", "tmux") != "systemd"]
+    running: set[str] = set()
+    r = subprocess.run(["tmux", "list-sessions", "-F", "#{session_name}"],
+                       capture_output=True, text=True)
+    sessions = set((r.stdout or "").split()) if getattr(r, "returncode", 1) == 0 else set()
+    ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True)
+    ps_out = ps.stdout if getattr(ps, "returncode", 1) == 0 else ""
+    for e in entries:
+        if e["session"] in sessions or e["match"] in ps_out:
+            running.add(e["session"])
+    return running
 
 
 def _main(argv: list[str]) -> int:
@@ -247,7 +279,7 @@ def _main(argv: list[str]) -> int:
             return 2
         return 0
     try:
-        results = reconcile(_live_unit_states(), _seat_active())
+        results = reconcile(_live_unit_states(), _seat_active(), _live_tmux_running())
     except ManifestError as e:
         print(f"MANIFEST INVALID: {e}", file=sys.stderr)
         return 2

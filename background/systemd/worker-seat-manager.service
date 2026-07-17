@@ -1,7 +1,7 @@
 # GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
-# Edit the manifest and regenerate. state=held owner=systemd
+# Edit the manifest and regenerate. state=enabled owner=systemd
 [Unit]
-Description=Synthetic Enterprise: Thin worker-seat manager: seed-by-id + keep-alive + report status ONLY (no reap, no auto-advance) — the one bespoke process, itself a systemd unit
+Description=Synthetic Enterprise: Thin worker-seat manager: seed-by-id + keep-alive + report status ONLY (no reap, no auto-advance) — the one bespoke process, itself a systemd unit. Migrated live 2026-07-17: verified seeding by dedicated --session-id (not a console latch), worker idle/holding, reaper retired, console untouched.
 After=network.target
 # G-L3: a crash-loop enters `failed` instead of restarting silently forever.
 StartLimitIntervalSec=120

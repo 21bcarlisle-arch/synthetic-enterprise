@@ -24,25 +24,30 @@
 # Fields: session · command (full launch) · match (ps token) · owner · state [· reason · flip · purpose]
 version: 2
 
+# `launched_by` (owner==systemd entries): which mechanism ACTUALLY launches the daemon NOW,
+# during the staged one-at-a-time tmux→systemd migration (director-ruled 2026-07-17). Absent =>
+# 'tmux' (start_worker.sh still launches it; the pre-migration default). 'systemd' => MIGRATED
+# (its unit is installed+started; it has LEFT start_worker's tmux launch set — never two
+# launchers). Each daemon's cutover flips this field + its state in ONE atomic change, so the
+# manifest never lies about what is running or how. When the last flips to systemd, start_worker's
+# tmux-launch is empty and retired.
 processes:
-  # ── HELD: the autonomy/governance layer, deliberately down for the OPS1 rebuild ──
+  # ── MIGRATED (OPS1 sub-step 4 release, worker-seat first — director-gated 2026-07-17): live
+  #    under systemd, verified seeding-by-id + idle + console-untouched before this flip ──
   - session: worker-seat-manager
     command: python3 background/worker_seat.py
     match: worker_seat.py
     owner: systemd
-    state: held
-    reason: "OPS1 governance rebuild in flight — as the worker-seat's respawner, an ungoverned watchdog re-seats the auto-advancing worker (2026-07-17 incident, §8)"
-    flip: "after sub-step 4 (single supervisor + restart authority, G-L3/G-L4) lands verified → enabled, respawning only under the declared holds"
-    purpose: "Thin worker-seat manager: seed-by-id + keep-alive + report status ONLY (no reap, no auto-advance) — the one bespoke process, itself a systemd unit"
+    launched_by: systemd   # MIGRATED 2026-07-17 → out of start_worker's tmux set (never two launchers)
+    state: enabled
+    purpose: "Thin worker-seat manager: seed-by-id + keep-alive + report status ONLY (no reap, no auto-advance) — the one bespoke process, itself a systemd unit. Migrated live 2026-07-17: verified seeding by dedicated --session-id (not a console latch), worker idle/holding, reaper retired, console untouched."
 
   - session: claude   # the worker seat's tmux session name is `claude`
     command: "claude --dangerously-skip-permissions --model claude-opus-4-8 (dedicated session 22080be5)"
     match: __worker_seat__   # sentinel: detect via the `claude` tmux session only (NOT a systemd unit)
     owner: worker-seat-manager
-    state: held
-    reason: "OPS1 governance rebuild in flight — the worker's recovery seed auto-advances director-gated work (2026-07-17 incident, §8, G-R4; demonstrated twice — once before and once after the Option-3 hold was ruled)"
-    flip: "after sub-step 4 lands verified → re-seated under new governance with a seed that does NOT auto-advance director-gated work"
-    purpose: "The interactive worker seat (owned by session-watchdog, not start_worker.sh)"
+    state: enabled
+    purpose: "The interactive worker seat, seeded by worker-seat-manager against the dedicated WORKER_SESSION_ID (never `claude -c`). Live 2026-07-17; seat liveness is worker-seat-manager's keep-alive job."
 
   - session: supervisor
     command: python3 background/supervisor.py

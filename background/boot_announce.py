@@ -71,7 +71,8 @@ def build_summary(proc_results: list[dict] | None = None,
     """Format the one-shot reconcile summary. Returns (text, has_alarm). Results are
     injectable for tests; production reads live systemd/tmux state."""
     if proc_results is None:
-        proc_results = _proc.reconcile(_proc._live_unit_states(), _proc._seat_active())
+        proc_results = _proc.reconcile(_proc._live_unit_states(), _proc._seat_active(),
+                                       _proc._live_tmux_running())
     if sched_results is None:
         sched_results = _sched.reconcile()
 
