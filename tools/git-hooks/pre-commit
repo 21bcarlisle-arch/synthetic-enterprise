@@ -5,6 +5,14 @@
 # remember to edit by hand (see tools/stamp_latest_md.py for the why).
 if git diff --cached --name-only | grep -qx "docs/status/LATEST.md"; then
     python3 tools/stamp_latest_md.py && git add docs/status/LATEST.md
+    # STATUS HONESTY (director P0, step 5): a LATEST.md that describes a non-running daemon or a
+    # retired governance model as CURRENT must not be committed. The stale narrative, re-stamped
+    # fresh each publish, made the director misread the whole system as breached. Refuse the commit
+    # (structural) -- fix the header to declared truth first.
+    python3 -m background.status_honesty || {
+        echo "[status-honesty] LATEST.md describes a non-running system -- COMMIT REFUSED. Fix the header to declared truth." >&2
+        exit 1
+    }
 fi
 
 # TEST GATE (director P0, 2026-07-17): a commit with red tests is STRUCTURALLY IMPOSSIBLE, not

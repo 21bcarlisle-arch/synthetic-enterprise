@@ -95,6 +95,7 @@ _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _GATE_VIOLATION_KEY = "deadman_gate_violation"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
 _WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
+_STATUS_STALE_KEY = "deadman_status_stale"
 
 
 def log(msg: str) -> None:
@@ -333,12 +334,38 @@ def _check_worktree_reconcile() -> None:
     log(f"WORKTREE UNDECLARED checked (notify-gated): {st['detail']}")
 
 
+def _check_status_honesty() -> None:
+    """Fire a transition-only, LOUD STATUS_STALE alarm when LATEST.md describes a non-running daemon
+    or a retired governance model as current (director P0 step 5). The stale narrative, re-stamped
+    with a fresh timestamp every publish, is what made the director misread the whole system as
+    breached tonight. REPORT-ONLY here (the pre-commit gate makes a stale LATEST.md un-committable;
+    this makes a stale LIVE one loud). State keys on the stale-claim count."""
+    try:
+        from background.status_honesty import evaluate_status_honesty
+        st = evaluate_status_honesty()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"status-honesty check error: {e}")
+        return
+    if st["honest"]:
+        clear_transition(_STATUS_STALE_KEY)
+        return
+    notify(
+        f"[STATUS STALE] {st['detail']}. LATEST.md describes a system that is not running -- the "
+        f"stale narrative re-stamped fresh reads as current and misrepresents the whole system. "
+        f"Regenerate the header from declared truth (running manifest + gate-wall + execution model).",
+        kind="real_alarm", transition_key=_STATUS_STALE_KEY,
+        state=f"stale:{len(st['stale_claims'])}", re_escalate_after=RE_ESCALATE_SECONDS,
+    )
+    log(f"STATUS STALE checked (notify-gated): {st['detail']}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
     _check_gate_wall()
     _check_fork_lifecycle()
     _check_worktree_reconcile()
+    _check_status_honesty()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).

@@ -33,6 +33,7 @@ CONTROL_TESTS = [
     "tests/background/test_fork_reconciler.py",
     "tests/background/test_transport_failure_loud.py",
     "tests/background/test_deadmans_switch.py",
+    "tests/background/test_status_honesty.py",
     "tests/hooks/test_pull_next_work.py",
 ]
 

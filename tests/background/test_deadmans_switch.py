@@ -45,6 +45,9 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr("background.fork_reconciler.evaluate_worktree_reconcile",
                         lambda: {"status": "WORKTREE_CLEAN", "alarm": False, "detail": "(isolated)",
                                  "undeclared": []})
+    monkeypatch.setattr("background.status_honesty.evaluate_status_honesty",
+                        lambda: {"status": "HONEST", "honest": True, "detail": "(isolated)",
+                                 "stale_claims": []})
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     _reset_state()

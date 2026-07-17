@@ -1,82 +1,29 @@
-## INCIDENT RESOLVED — 6h blackout (22:12–04:00) root-caused + fixed + deployed; weather BUILD-open held by twin
-Last updated: 2026-07-17T21:24:39Z
+## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
+Last updated: 2026-07-17T22:18:12Z
 
-**One incident, two failures, both fixed and RUNNING (not just committed — daemons respawned, R2).**
-Root cause: `session_watchdog` fired `/usage` via a RAW ungated `tmux send-keys` once per cycle;
-on a busy pane those keystrokes aren't recognised as a slash command and piled UNSUBMITTED in the
-input box. The accumulation guard then correctly refused every legitimate turn grant ("Turn grant
-not delivered" throughout `supervisor-log`), so no turns ran and no commit landed for ~6h. Nothing
-alarmed because the dead-man's switch was **fail-silent (R15)**: its "alive" signal was
-`max(commit, ANY observability-dir mtime)` — every daemon's per-cycle log (incl. the switch's OWN
-write) refreshed it, so it logged "activity recent (0min ago)" every cycle while staged files
-climbed 31→59. A watchdog that refreshes its own liveness signal can never fire.
+**Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
+deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
+sim-runner, sanity-daemon, director-comments, naive-organ, token-proxy — all on systemd — plus the
+`claude` worker seat under worker-seat-manager. (executor-daemon is dark; autonomous-runner is
+retired; session_watchdog was superseded — none of the three run.)
 
-**Fix 1 — one gate for ALL pane writers + verify-or-rollback** (commit `3825780e7`, pushed):
-all three raw `send-keys` sites in `session_watchdog` routed through the shared gated relay;
-new `tmux_relay.read_slash_dialog_when_idle` (idle+empty+byte-stable, read-back verify, Ctrl-U
-rollback). MECHANISM: `test_no_raw_tmux_send_keys_outside_relay_module` greps the tree and fails
-if any raw send-keys reappears (was RED on the 3 sites before the fix).
-**Fix 2 — deadman de-fanged of the fail-silent hole**: progress signal is now the git COMMIT clock
-ALONE (observability-mtime term deleted); two tiers, both suppressed only in a declared usage pause —
-[BLOCKED] (queued work + no commit ≥45min, the outage class) and [STALL] (no commit ≥90min, the
-wedged-but-empty backstop). Mutation-tested: `test_daemon_log_writes_do_not_mask_a_stale_commit`
-replays the exact outage and asserts the alarm fires. 136 background tests pass; epistemic PASS.
-Both daemons respawned and confirmed on new code (deadman log now reads "commit recent").
+**Governance (running):** crossing a gate — flipping an atom `loop_stage: idle→build` — is authorized
+ONLY by a director console act, recorded and reconciled by the gate-wall
+(`background/gate_authorization.py`). The twin answers questions; it does not open BUILD.
 
-**Weather BUILD-open — routed to the twin (governance wiring), verdict: HOLD.** Per the delegation,
-`route_blocking_decision` put the Epoch-3 weather-physics BUILD-open (W1_2→W1_3) to the standing
-approver. Twin answer (high confidence, NOT director-reserved, no human wait): **no, not yet** —
-the open epoch is Epoch 2, so opening Epoch-3 BUILD would skip Epoch 2's exit tests (§4/§5); the
-§3a APPROVE-default is for BUILD *within* the open epoch only. DISCOVER/FRAME weather work stands.
+**Execution (running):** a serial, self-sustaining pull loop — the Stop-hook transport feeds
+`find_work` turn to turn with no human nudge and is loud on a stall. Parallelism is bounded to at
+most 3 disjoint Agent forks per draw, and every fork must come home: merged to main on success or
+salvage-tagged and reaped on failure (fork-lifecycle reconciler, report-first). Worktree accretion is
+reconciled and loud. Every commit passes a pre-commit test gate — a red-test commit is impossible.
 
-**Residual (chronic, pre-dates the blackout):** ~61 `run_complete_*.md` in staging (oldest 07:28
-*yesterday*) — the auto-processor is alive and draining newest-first but chronically behind. Flagged
-as an atom, not conflated with the acute incident.
+**2026-07-17 — parallel made stable.** Bounded fan-out (≤3), enforced merge-or-reap, a worktree
+reconciler, this status-honesty gate, and the pre-commit test gate — all report-first or structural,
+with the loop running throughout. 33 stranded fork branches are salvage-tagged on origin.
 
 ---
 
-## Epoch-2 BUILD live via the twin-approver seat: A3 approval interface banked (L0→L1), THREE LANES adopted
-Last updated: 2026-07-17T21:19:13Z
-
-**Status:** self-driving BUILD lane open (DIRECTOR_TWIN standing-approver, canon v2 §3a).
-Epistemic PASS throughout. All commits pushed. Two forks in flight (one BUILD, one read-only
-Expert Hour) — see below.
-
-**A3_approval_interface — BUILT to honest L1** (director's explicit "BUILD IT NOW"; commit
-`b7a26938`, pushed; epistemic PASS 498 files; 11 new tests, governance suite 35 passed / broader
-saas+governance 1557 passed). New `company/governance/approval_interface.py`: the human-operable
-requests-awaiting-decision surface (`approval_queue_as_of` → `ApprovalRequestView`) exposing
-decision class, a **link-shaped context pack + recommendation** (links not prose — a testable
-property), submit time, and accrued pending **latency** as-of a given time on the shared
-BitemporalEventLog; plus a real governance caller (`propose_hedge_mandate_change`) exercising the
-full submit→pending→resolve lifecycle. Epistemic wall respected (approver sees only the submitted
-pack). **Honestly held at L1, not L2:** no live run triggers the workflow yet (hedge-mandate-change
-execution doesn't exist; `COMPANY_MIN_HEDGE_FLOOR` is a constant) and Door 7 (the Director console
-surface) isn't built, so the surface is an API/dataclass, not an operable pixel (fails R11).
-
-**THREE LANES adopted as standing structure** (THREE_LANES_STANDING.md, director-decided; full text
-`docs/design/THREE_LANES.md`, pointer in CLAUDE.md): BUILD is inherently narrow (one tree/suite/
-gate) — spend width where free. L1 BUILD serial (1–3 concurrent only on disjoint scopes; interim
-rule: orchestrator is sole `maturity_map.yaml` writer, forks report levels back). L2 SITE
-(`site/**`, disjoint) runs parallel to builds permanently. L3 DISCOVERY doc-only, never gated.
-
-**Backlog registered as atoms** (QUEUE, from THREE_LANES / WORKTREE_ISOLATION_AND_SEAMS / RETRO):
-`H10_worktree_isolation` (HIGH — native `isolation: worktree` per-fork, the proper fix for build
-width; supersedes the interim sole-writer rule), `H9_map_write_serialisation`, `SITE1_expert_doors`
-(constitution doors 3–8), `ARCH1_internal_seams` (Epoch-3: typed seams between billing/pricing/
-settlement/collections = the architecture AND velocity work, same work), `G3_method_ip_worktree_retro`
-(the 6 method laws from the worktree-miss retro, recorded as casebook IP).
-
-**In flight now:** W2_2_population_draw BUILD (continue synthetic customer acquisitions through
-2021-2025 — the book currently stops dead in 2020 — via an own-seeded RNG substream, C-S2); A2's
-independent Expert Hour (fresh-context evaluator judging its L2→L3 bar given A3's new module-level
-caller).
-
-**Atoms below target: 29** — an honest RISE from 24: A3 banked L0→L1 (−0 to count, still below its
-L2 target) while 5 backlog atoms were newly registered (+5). Registering real backlog raises the
-count; that is the honesty bar, not regression.
-
-**Latest simulation results (2016–2025)** — auto-processed (521s / 9 min):
+**Latest simulation results (2016–2025)** — auto-processed (495s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
