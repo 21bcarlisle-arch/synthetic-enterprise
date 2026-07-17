@@ -1900,8 +1900,8 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1919,8 +1919,8 @@
         "OPS1_operational_layer_rebuild"
       ],
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -1938,8 +1938,8 @@
         "OPS1_operational_layer_rebuild"
       ],
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
     }
   ],
   "lanes": {
