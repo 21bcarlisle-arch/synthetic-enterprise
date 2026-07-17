@@ -153,12 +153,10 @@ processes:
     state: enabled
     purpose: "Local token-usage proxy"
 
-  - session: file-api
-    command: python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765
-    match: background.file_api
-    owner: start_worker.sh
-    state: enabled
-    purpose: "Authenticated file API + Ollama proxy on :8765"
+  # NOTE: file-api is NOT here — it is a systemd-owned service (director-access
+  # infrastructure, must survive reboot independent of the stack), declared in
+  # background/schedule_manifest.yaml and reconciled there. It is deliberately NOT a
+  # tmux daemon and NOT launched by start_worker.sh (2026-07-17, OPS1 sub-step 3).
 
 # The director's interactive console (tmux `work`, or any console started via
 # background/console.sh) is NOT a managed process — excluded from reconciliation by its

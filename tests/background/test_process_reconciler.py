@@ -57,7 +57,8 @@ def test_health_checked_excludes_held_dark_retired_includes_enabled():
         assert held not in hc                  # held -> not a fault when down
     assert "executor-daemon" not in hc         # dark
     assert "autonomous-runner" not in hc       # retired
-    for enabled in ("sim-runner", "token-proxy", "file-api", "background-worker"):
+    assert "file-api" not in hc                # systemd-owned service, not a tmux daemon (sub-step 3)
+    for enabled in ("sim-runner", "token-proxy", "background-worker"):
         assert enabled in hc
 
 

@@ -1,0 +1,34 @@
+# Schedule / service manifest — the committed declaration of OS-LEVEL scheduling and services.
+# OPS1 sub-step 3 (G-L2 applied to scheduling), docs/design/OPERATIONAL_LAYER_DESIGN.md §5.
+#
+# The mandate's canonical violation was "tonight's invisible cron that resurrected a broken
+# stack" — an OS crontab entry nobody reading the repo could see. This manifest makes OS-level
+# scheduling/services DECLARED in git, and background/schedule_reconciler.py reconciles the
+# machine's ACTUAL crontab + systemd units against it: ANY undeclared crontab line or SE systemd
+# unit is flagged as drift. The invisible-cron class is now structurally detectable, forever.
+#
+# EVERY non-trivial entry carries its `reason` (reason-with-state rule; IaC).
+version: 1
+
+# Declared user-crontab entries. EMPTY BY DESIGN — nothing is scheduled via hand-run `crontab -e`.
+# The stack is started explicitly (start_worker.sh); periodic behaviour lives IN the daemons
+# (committed code), not in cron. Any crontab line not listed here is UNDECLARED drift — the
+# exact invisible-cron the blackout came from.
+cron: []
+
+# Declared systemd (--user) units owned by synthetic-enterprise. install_schedule.sh installs
+# each from its committed unit_file (reconstruct-from-repo), so the machine's service config is
+# reproducible from the repo alone.
+systemd_units:
+  - name: file-api.service
+    unit_file: background/file-api.service
+    enabled: true            # boot-start
+    active: true             # must be running
+    health: "http://localhost:8765/health"
+    reason: >-
+      file-api is DIRECTOR-ACCESS INFRASTRUCTURE, not an autonomous-company daemon: it serves
+      the director independent of whether the stack is up, held, or torn down (2026-07-17: stack
+      fully down, file-api still his phone-only bridge). It must be the most resilient thing on
+      the box — boot-start + Restart=on-failure — because its death strands him exactly when
+      he is phone-only. The split model (systemd for this, tmux for the stack) is principled,
+      not messy. Owning it here is why it is NOT in process_manifest.yaml.

@@ -5,7 +5,12 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/home/rich/synthetic-enterprise
-EnvironmentFile=/home/rich/synthetic-enterprise/background/.env.file-api
+# Secret lives in the Option-2 out-of-tree location (2026-07-11 relocation). The old
+# in-tree path (background/.env.file-api) is where this unit pointed for months while it
+# silently failed 32k+ times -- exactly the invisible-machine-state-drift the schedule
+# reconcile now guards against. `-` prefix: file-api still starts if the key is absent
+# (it serves unauthenticated-refused rather than crash-looping).
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.file-api
 ExecStart=/usr/bin/python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765
 Restart=on-failure
 RestartSec=5

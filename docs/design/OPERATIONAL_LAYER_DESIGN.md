@@ -338,7 +338,12 @@ this mandate forbids. Sequenced sub-steps, each with its own exit test:
 3. **Scheduling into the repo (§5)** — delete the OS crontab; re-express as committed config;
    reconstruct-from-repo test defined.
 4. **Single-supervisor + health-gated restart (G-L3/G-L4/G-R1)** — absorb the blind cron's
-   intent; every restart health-gated and HEAD-bound.
+   intent; every restart health-gated and HEAD-bound. **Evaluation item banked from sub-step 3
+   (2026-07-17):** decide daemon-lifecycle ownership *by design* here — specifically whether to
+   systemd-ify the whole stack (committed units, boot-start, Restart=on-failure) vs the current
+   tmux + start_worker model. "Who owns daemon lifecycle" is exactly G-L4's question; sub-step 3
+   resolved it for file-api only (systemd — director-access infra, must outlive the stack) and
+   deliberately deferred the general case to here, to be decided by design not expedience.
 5. **Deployment-by-construction (G-D1/G-D2)** — daemons write booted-SHA; drift flagged.
 6. **One notification contract (§2.3)** — collapse the four paths; types enforced.
 7. **Test-isolation audit → rebuild (§2.4)** — verify/rebuild guards; mutation-test each.
