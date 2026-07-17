@@ -840,6 +840,16 @@
           ]
         },
         {
+          "atom_id": "OPS1_operational_layer_rebuild",
+          "atom_name": "Rebuild the operational layer to OPERATIONAL_LAYER_DESIGN.md (one designed system, not accreted patches)",
+          "level_current": 1,
+          "level_target": 3,
+          "notes": [
+            "2026-07-17 DESIGN DELIVERABLE LANDED (level 1): docs/design/OPERATIONAL_LAYER_DESIGN.md -- the written operational design the P0 mandate asks for FIRST (purpose/guarantees/why per the five subsystems: process/session lifecycle, deployment committed=running, notifications, test isolation, recovery; conflict resolutions; known-good baseline keep/revert/rebuild per mechanism reconciled against a read-only inventory pass; IaC addendum + reconstruct-from-repo test). Implementation (code follows design) is the level 2->3 work, deliberately NOT rushed in the recovery turn that wrote the design -- a rushed rebuild would be the very accretion the mandate forbids. Sequenced sub-steps in the design ss6: (1) console-sanctity positive marker G-L1 [highest safety value], (2) declared-set manifest + reconcile-vs-ps G-L2, (3) scheduling into repo / delete OS crontab [done: crontab empty], (4) single health-gated supervisor G-L3/G-L4, (5) deployment-by-construction booted-SHA G-D1/G-D2, (6) one notification contract, (7) test-isolation subprocess/tmux/fs guards G-T. Each sub-step deletes/absorbs the patch it replaces. KEY BASELINE FINDING: central lifecycle files (session_watchdog, executor_*, start_worker) born in accretion, no clean revert point -> rebuild-to-design; conftest + deadman commit-clock are keep-as-fixed anchors.",
+            "2026-07-17 SUB-STEPS 1-2 BUILT (level held at 1 -- honest: the layer is not fully rebuilt-to-design until all 7 sub-steps land AND deploy). SUB-STEP 1 (G-L1 console-sanctity marker, commit 6d2e7f758): positive PID+start-time marker replaces inference, console-kill impossible by construction and tmux-independent, mutation-tested; deployment deliberately HELD pending director review (running watchdog still on prior code, R2). SUB-STEP 2 (G-L2 declared-set manifest + reconcile, this commit): background/process_manifest.yaml is now the SINGLE declared process set; health_check.EXPECTED_PANES DERIVES from it (hand-maintained dict deleted); background/process_reconciler.py reports declared-vs-actual drift, REPORT-ONLY with no kill path by construction (G-R3); an anti-drift test binds manifest == start_worker.sh launch set. REAL DRIFT FOUND + FIXED: old EXPECTED_PANES was missing naive-organ so the health check was blind to it; executor-daemon (dark, correct-to-be-absent) now classified health_checked:false. OPERATIONAL FINDING while building this: deadmans-switch (the independent safety net) was DOWN -- restarted it (reversible); live reconcile now clean. 10 new reconciler tests + 956 background tests pass; epistemic PASS. NEXT: sub-step 3 (scheduling into repo, crontab already empty) or 4 (single health-gated supervisor)."
+          ]
+        },
+        {
           "atom_id": "SITE1_expert_doors",
           "atom_name": "SITE CONSTITUTION doors 3-8 built (the surfaces an expert actually inspects), pixel-verified",
           "level_current": 3,
@@ -1219,6 +1229,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 99,
-  "total_notes": 348
+  "total_atoms_with_notes": 100,
+  "total_notes": 350
 }
