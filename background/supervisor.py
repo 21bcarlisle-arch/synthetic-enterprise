@@ -377,6 +377,17 @@ def _actionable_backlog_item() -> str | None:
     return None
 
 
+def _is_externally_blocked(a: dict) -> bool:
+    """True if an atom is blocked on an EXTERNAL act (a director trigger, an approval, an upstream
+    thing outside the worker's control) and therefore has NO drawable worker work right now --
+    honest: its gap to target is that external act, not remaining worker work. Such an atom is
+    excluded from EVERY draw (BUILD and idle-DISCOVER, including the all-stalled fallback), so the
+    loop never treadmills a worker-complete-but-director-gated atom -- when the only candidates are
+    externally-blocked, the draw returns empty (genuine idle) instead of re-handing done work
+    (H_draw_excludes_external_blocked_atoms). Cleared by removing the atom's `blocked_on` field."""
+    return bool(isinstance(a, dict) and a.get("blocked_on"))
+
+
 def _maturity_map_draw(rng: Any = None) -> str | None:
     """Primary self-refill source (2026-07-10, MATURITY_MAP.md Section 6/8:
     "Supervisor self-refill draws work from lanes proportional to dials").
@@ -527,6 +538,9 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
         return _dependencies_met(a)
 
     candidates = [a for a in atoms if _is_valid_candidate(a)]
+    # Externally-blocked atoms (blocked_on a director act) are never drawable work -- drop them
+    # before any fallback, so the only-blocked case returns empty rather than re-handing done work.
+    candidates = [a for a in candidates if not _is_externally_blocked(a)]
     # COUPLED_TRIAD binding rule 1 (director P1, COUPLED_TRIAD_DESIGN.md 4.1):
     # a WORLD atom stepping toward L3 is excluded from the BUILD draw until its
     # coupled company twin exists (>=L1) AND the pair's belief-vs-truth gap is
@@ -697,6 +711,7 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
         return has_gap
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
+    candidates = [a for a in candidates if not _is_externally_blocked(a)]  # never draw director-blocked atoms
     # H23: hard-skip FRAME-saturated atoms (no fallback -- unlike the stall
     # soft-deprioritise, which falls back). Preferring an un-saturated idle
     # atom is the whole point; if EVERY idle atom is saturated this is a TRUE
@@ -781,6 +796,7 @@ def _idle_discover_frame_draw_concurrent(
         return has_gap
 
     candidates = [a for a in atoms if _is_valid_idle_candidate(a)]
+    candidates = [a for a in candidates if not _is_externally_blocked(a)]  # never draw director-blocked atoms
     # H23: hard-skip FRAME-saturated atoms BEFORE the stall soft-filter (this
     # skip has no fallback -- all-saturated is a true empty FRAME feasible set,
     # returned as [], not a re-hand). This is the production path that was

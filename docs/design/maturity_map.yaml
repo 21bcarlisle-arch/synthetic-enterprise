@@ -1756,6 +1756,7 @@
   level_current: 2
   level_target: 3
   loop_stage: idle   # PARKED 2026-07-17: all 7 designed sub-steps BUILT (console-marker, manifest, scheduling, systemd-migration, deploy-by-construction, notification-contract [17/17 collapsed], test-isolation) + the fork-lifecycle reconciler landed. L2->L3 is the DIRECTOR-TRIGGERED systemd DEPLOY (units reinstall + daemon restart, so booted-SHA/stamps/console-marker go LIVE) + the governance LIVE run -- NOT worker-BUILD. No worker BUILD is drawable here now; flips to build/L3 on the director's deploy. Parked so the loop draws other work instead of treadmilling a done rebuild (Rule 0: empty feasible set is a dial defect, yield).
+  blocked_on: director_systemd_deploy   # worker-complete (L2); L3 = the director-triggered systemd deploy. Excluded from the draw until he deploys (H_draw_excludes_external_blocked_atoms). Clear this to re-admit.
   dial_inherited: 5
   provenance: director_mandate
   evidence: [docs/staging/OPERATIONAL_COHERENCE_DESIGN_PASS.md, docs/design/OPERATIONAL_LAYER_DESIGN.md]
@@ -1822,6 +1823,7 @@
   level_current: 2
   level_target: 3
   loop_stage: idle   # PARKED 2026-07-17: harness BUILT (L2). L2->L3 is the DIRECTOR-WATCHED LIVE worker-outcome run, which the atom's own DoD + the director explicitly reserve to a controlled, halt-ready window ("never a maiden flight"). The loop drew this for BUILD; the worker correctly REFUSED to run it autonomously and parked it -- a live instance of the very behaviour this atom verifies. Flips to build/L3 only when the director triggers the live run.
+  blocked_on: director_live_run   # harness complete (L2); L3 = the director-watched live run. Excluded from the draw until he triggers it. Clear this to re-admit.
   dial_inherited: 2
   provenance: proposal
   evidence:
@@ -1873,7 +1875,7 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 3
   level_target: 3
   loop_stage: build
   dial_inherited: 2
@@ -1886,6 +1888,7 @@
   - docs/design/maturity_map.yaml
   simplifications:
   - 'REGISTERED FINDING (2026-07-17, diagnosed over ~5 idle turns by the worker seat, SELF_INTERRUPT_DISCIPLINE: register, do not fix-on-sight). DEFECT: the idle-DISCOVER draw (_idle_discover_frame_draw_concurrent) excludes STALLED atoms, but when the ONLY below-target idle candidates are stalled it FALLS BACK to drawing them anyway (better-than-nothing) -- so a WORKER-COMPLETE atom whose only remaining gap is a DIRECTOR ACT (e.g. OPS1_operational_layer_rebuild awaiting the systemd deploy, OPS1_governance_refusal_mutation_test awaiting the director-watched live run) is re-DISCOVER-drawn every cycle, indefinitely, with nothing genuine to do -> a treadmill that either wastes turns or tempts theatre notes (which reset the stall fingerprint and perpetuate it). ROOT CAUSE: the map has no way to say worker-done-but-blocked-on-an-external/director-act -- level_current<target models this as remaining WORKER work, which it is not. FIX (build): add a `blocked_on` atom field (e.g. blocked_on: director_deploy | director_live_run); the draw (both _maturity_map_draw_concurrent BUILD tier and the idle-DISCOVER tier, including the all-stalled fallback) EXCLUDES any atom with a non-empty blocked_on, so it is never surfaced as drawable work until unblocked; set OPS1_operational_layer_rebuild + OPS1_governance_refusal_mutation_test blocked_on accordingly (honest: they ARE blocked on the director, not on worker work); mutation-test that a blocked_on atom is never drawn and that clearing blocked_on re-admits it. This is a designed schema addition (represent external-block), not an accretion patch. When it lands, the loop returns empty (genuine idle) instead of treadmilling, and the two OPS1 atoms stop being handed to the worker.'
+  - '2026-07-17 BUILT (0->3). background/supervisor.py: `_is_externally_blocked(a)` = bool(a.blocked_on); every draw (single + concurrent BUILD via _maturity_map_draw_concurrent, single + concurrent idle-DISCOVER) filters `candidates` through it right after building them and BEFORE any stall/saturation fallback, so a blocked atom is never surfaced -- and when the only candidates are blocked the draw returns EMPTY (genuine idle) instead of re-handing done work. Set OPS1_operational_layer_rebuild blocked_on: director_systemd_deploy and OPS1_governance_refusal_mutation_test blocked_on: director_live_run (honest: their gap to L3 IS a director act). 6 R15 mutation tests (tests/background/test_draw_external_block.py: blocked excluded at max dial; only-blocked -> empty not fallback-redraw; open atom still drawn; clearing blocked_on re-admits) + 152 supervisor tests pass; epistemic PASS. LIVE-verified against the real map: build draw now returns only this atom, idle-DISCOVER empty, the two OPS1 atoms excluded. Clearing an atom blocked_on re-admits it -- so when the director deploys / runs the governance test, removing the field re-opens L3 work.'
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a work-queue scheduler that keeps re-surfacing tickets blocked on an external approver instead of parking them off the ready queue until the approver acts"
   depends_on: []
