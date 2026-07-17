@@ -124,7 +124,8 @@ def test_main_session_model_is_opus():
 def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     """WATCHDOG_NO_SENDKEYS.md (2026-07-04): the launch must not use
     tmux send-keys at all -- claude is the pane's command itself, with
-    -c and RESUME_INSTRUCTION passed as argv, not typed in afterwards.
+    the session-target flag and RESUME_INSTRUCTION passed as argv, not
+    typed in afterwards.
 
     Includes --dangerously-skip-permissions per Rich's direct, live
     confirmation (2026-07-05, docs/review_gates/SKIP_PERMISSIONS_TIER1.md)
@@ -147,6 +148,9 @@ def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     monkeypatch.setattr(watchdog, "check_api_reachable", lambda: True)  # avoid real HTTP
     monkeypatch.setattr(watchdog, "claude_is_running", lambda: True)  # simulate a clean launch
     monkeypatch.setattr(watchdog, "resolve_claude_binary", lambda: "/fake/nvm/bin/claude")
+    # Deterministic: pretend the dedicated worker conversation does not exist yet,
+    # so this is the CREATE path (--session-id), not a resume.
+    monkeypatch.setattr(watchdog, "_worker_session_exists", lambda: False)
 
     watchdog.restart_claude()
 
@@ -155,16 +159,51 @@ def test_restart_claude_launches_directly_with_no_send_keys(monkeypatch):
     # No send-keys anywhere in the launch sequence.
     assert send_keys_calls == []
     # claude is launched directly as the pane's command: --dangerously-skip-permissions,
-    # --model, -c, and RESUME_INSTRUCTION are argv elements, never typed in.
+    # --model, the dedicated-session flag, and RESUME_INSTRUCTION are argv elements,
+    # never typed in. First launch CREATES the worker session (--session-id).
     assert len(new_session_calls) == 1
     launch = new_session_calls[0]
-    assert launch[-6:] == [
+    assert launch[-7:] == [
         "/fake/nvm/bin/claude", "--dangerously-skip-permissions",
-        "--model", watchdog.MAIN_SESSION_MODEL, "-c", watchdog.RESUME_INSTRUCTION,
+        "--model", watchdog.MAIN_SESSION_MODEL,
+        "--session-id", watchdog.WORKER_SESSION_ID, watchdog.RESUME_INSTRUCTION,
     ]
+    # NEVER `claude -c`/`--continue` (the continue-most-recent latch, 2026-07-17):
+    # the only "-c" allowed is tmux's own start-directory flag, before the claude binary.
+    assert "--continue" not in launch
+    assert "-c" not in launch[launch.index("/fake/nvm/bin/claude"):]
     assert "-e" in launch
     assert launch[launch.index("-e") + 1] == "DISABLE_AUTOUPDATER=1"
     watchdog.restart_times.clear()
+
+
+def test_worker_launch_never_uses_continue_and_targets_dedicated_session(monkeypatch):
+    """2026-07-17 incident: the watchdog's `claude -c` (continue-most-recent) latched
+    the director's live console conversation on cold start -- the 'autonomous' worker
+    came up as a clone of the supervision session. The launch must ALWAYS target the
+    dedicated WORKER_SESSION_ID and NEVER use -c/--continue. First launch CREATES it
+    (--session-id); a restart RESUMES it (--resume). RESUME_INSTRUCTION is the prompt."""
+    claude = "/fake/bin/claude"
+
+    monkeypatch.setattr(watchdog, "_worker_session_exists", lambda: False)
+    create = watchdog._worker_claude_argv(claude)
+    assert "-c" not in create and "--continue" not in create
+    assert create[-3:] == ["--session-id", watchdog.WORKER_SESSION_ID, watchdog.RESUME_INSTRUCTION]
+
+    monkeypatch.setattr(watchdog, "_worker_session_exists", lambda: True)
+    resume = watchdog._worker_claude_argv(claude)
+    assert "-c" not in resume and "--continue" not in resume
+    assert resume[-3:] == ["--resume", watchdog.WORKER_SESSION_ID, watchdog.RESUME_INSTRUCTION]
+
+
+def test_worker_session_id_is_a_fixed_uuid_not_the_ambiguous_continue():
+    """WORKER_SESSION_ID must be a stable, well-formed uuid stored as a readable repo
+    constant (mandate 5312e043/0d53fe55). A blank/None id would collapse back to
+    continue-most-recent semantics -- the exact bug this fixes."""
+    import uuid
+    assert watchdog.WORKER_SESSION_ID
+    # round-trips as a canonical uuid
+    assert str(uuid.UUID(watchdog.WORKER_SESSION_ID)) == watchdog.WORKER_SESSION_ID
 
 
 def test_restart_claude_no_op_if_claude_never_comes_up(monkeypatch):

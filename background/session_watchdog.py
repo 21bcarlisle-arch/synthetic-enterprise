@@ -25,8 +25,9 @@ tmux pane shows a usage-limit message (`usage_limit_detected`,
 best-effort regex — see its docstring for the wording-uncertainty caveat),
 `handle_usage_limit` polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS, nudging
 the session with the resume instruction, until the message clears or the
-process needs restarting (`restart_claude(resume=True)`, using `claude -c`
-to continue the same conversation, with --dangerously-skip-permissions per
+process needs restarting (`restart_claude(resume=True)`, resuming the
+DEDICATED worker session WORKER_SESSION_ID -- never `claude -c`, which would
+latch the director's console conversation -- with --dangerously-skip-permissions per
 the 2026-07-05 confirmation above). If USAGE_LIMIT_MAX_WAIT_SECONDS passes with
 the limit message still showing, this falls back to the normal
 confirmation-gated `handle_session_ended` flow — at that point something
@@ -134,6 +135,17 @@ PROJECT_DIR = "/home/rich/synthetic-enterprise"
 # ID as background/director_twin.py::TWIN_MODEL, for the same reason (the
 # work this session actually does is judgment-tier, not volume-tier).
 MAIN_SESSION_MODEL = "claude-opus-4-8"
+
+# Dedicated autonomous-worker conversation id. The worker is ALWAYS launched/resumed
+# against THIS specific id -- never `claude -c` (continue-most-recent). `-c` resumes
+# whatever conversation was newest, which during a supervised bring-up is the DIRECTOR'S
+# live console conversation: on 2026-07-17 the cold-start worker came up as a clone of the
+# director's supervision session (same context, would double-act). Resuming a fixed,
+# dedicated id makes that structurally impossible. Stored as a readable repo constant
+# (mandate 5312e043/0d53fe55: behaviour-determining state lives in the readable repo, so
+# the system is reconstructable on a fresh machine -- where this id simply doesn't exist
+# yet, so first launch CREATES it via --session-id and every restart RESUMES it).
+WORKER_SESSION_ID = "22080be5-e19e-4099-a007-d71c3a6e7845"
 CHECK_INTERVAL_SECONDS = 60
 CONFIRM_POLL_INTERVAL_SECONDS = 60
 CONFIRM_TIMEOUT_SECONDS = 4 * 3600  # 4 hours
@@ -828,12 +840,46 @@ def wait_for_claude_launch(timeout_seconds: int = CLAUDE_LAUNCH_TIMEOUT_SECONDS)
     return claude_is_running()
 
 
+def _worker_session_exists() -> bool:
+    """True if the dedicated worker conversation (WORKER_SESSION_ID) already exists
+    on this machine, so we RESUME it rather than trying to CREATE it again. The id is
+    unique, so scanning every project dir is unambiguous (avoids reproducing Claude
+    Code's cwd path-mangling here). Missing dir / unreadable -> False (fresh create)."""
+    base = Path.home() / ".claude" / "projects"
+    try:
+        if not base.is_dir():
+            return False
+        for d in base.iterdir():
+            if (d / f"{WORKER_SESSION_ID}.jsonl").exists():
+                return True
+    except OSError:
+        pass
+    return False
+
+
+def _worker_claude_argv(claude_bin: str) -> list[str]:
+    """The claude launch argv for the autonomous worker -- targeting the dedicated
+    WORKER_SESSION_ID, NEVER `claude -c`. First ever launch on this machine CREATES the
+    conversation (`--session-id`); every subsequent launch RESUMES that exact one
+    (`--resume`). Either way the worker can never latch the director's console session
+    (the `-c` = continue-most-recent bug, 2026-07-17). RESUME_INSTRUCTION is the initial
+    prompt in both cases. Verified against this claude build: --session-id creates a
+    session with that id, --resume replays it in place with no new session file."""
+    base = [claude_bin, "--dangerously-skip-permissions", "--model", MAIN_SESSION_MODEL]
+    if _worker_session_exists():
+        return base + ["--resume", WORKER_SESSION_ID, RESUME_INSTRUCTION]
+    return base + ["--session-id", WORKER_SESSION_ID, RESUME_INSTRUCTION]
+
+
 def restart_claude(resume: bool = True) -> None:
     """Restart the 'claude' tmux session.
 
-    Always uses `claude -c` (resume last conversation) -- keeps context
-    intact across crashes and connectivity blips, so the resume instruction
-    lands in a familiar session rather than a cold start that can stall.
+    Launches/resumes the DEDICATED worker conversation (WORKER_SESSION_ID) via
+    _worker_claude_argv -- first launch creates it, restarts resume it. NEVER
+    `claude -c`: continue-most-recent latches whatever conversation is newest,
+    which during a supervised bring-up is the director's own console session
+    (2026-07-17 incident). A fixed id keeps context across crashes/connectivity
+    blips exactly like `-c` did, without the latch.
 
     Runs with --dangerously-skip-permissions, by Rich's direct, live
     confirmation (2026-07-05, closing docs/review_gates/SKIP_PERMISSIONS_TIER1.md
@@ -903,9 +949,11 @@ def restart_claude(resume: bool = True) -> None:
         return
     _binary_missing_ntfy_sent = False
 
+    _mode = "resume" if _worker_session_exists() else "create"
     log(f"Restarting Claude Code (--dangerously-skip-permissions per "
         f"2026-07-05 director confirmation, direct launch via {claude_bin}, "
-        f"claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)")
+        f"dedicated worker session {WORKER_SESSION_ID} [{_mode}], no `claude -c`, "
+        f"no send-keys, DISABLE_AUTOUPDATER=1)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
     # Singleton on the RESPAWN path (2026-07-16): kill-session removes the tmux session
     # but can leave an orphaned claude PROCESS alive (how the Jul-15 ghost survived a
@@ -922,11 +970,11 @@ def restart_claude(resume: bool = True) -> None:
     # this script's own os.environ, so it applies only to the spawned Claude
     # Code session, not to session_watchdog.py itself or anything else it
     # launches. Sanctioned update path is now manual -- see MAINTENANCE.md.
-    subprocess.run([
-        "tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
-        "-e", "DISABLE_AUTOUPDATER=1",
-        claude_bin, "--dangerously-skip-permissions", "--model", MAIN_SESSION_MODEL, "-c", RESUME_INSTRUCTION,
-    ])
+    subprocess.run(
+        ["tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", PROJECT_DIR,
+         "-e", "DISABLE_AUTOUPDATER=1"]
+        + _worker_claude_argv(claude_bin)
+    )
 
     if not wait_for_claude_launch():
         pane_text = capture_pane()
@@ -951,7 +999,7 @@ def restart_claude(resume: bool = True) -> None:
     restart_times.append(time.time())
     count = restarts_in_last_hour()
     log(f"Claude Code restarted ({count}/{MAX_RESTARTS_PER_HOUR} this hour, "
-        "direct launch, claude -c resume, no send-keys)")
+        f"direct launch, dedicated worker session {WORKER_SESSION_ID}, no send-keys)")
     _verify_daemon_set_after_restart()
 
 
@@ -1064,7 +1112,8 @@ def handle_usage_limit() -> None:
     (`queue_downtime_tasks`), then polls every USAGE_LIMIT_POLL_INTERVAL_SECONDS
     until EITHER the usage-limit message clears on its own (the session was
     still alive and its window reset — nothing to do) OR the process has exited
-    (RESTART with `claude -c`, a process op — allowed). If the limit is still
+    (RESTART via restart_claude -- resumes the dedicated worker session, a process
+    op — allowed). If the limit is still
     showing after USAGE_LIMIT_MAX_WAIT_SECONDS, escalate to the normal
     confirmation-gated handle_session_ended().
 
@@ -1080,7 +1129,7 @@ def handle_usage_limit() -> None:
         waited += USAGE_LIMIT_POLL_INTERVAL_SECONDS
 
         if not session_exists() or not claude_is_running():
-            log("Session ended while usage-limited — resuming with `claude -c`")
+            log("Session ended while usage-limited — resuming the dedicated worker session")
             restart_claude(resume=True)
             return
 
