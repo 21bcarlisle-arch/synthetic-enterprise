@@ -57,7 +57,7 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "qwen3:14b"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 # PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the dispatcher
@@ -174,8 +174,9 @@ def route_message(path: Path, message: str, classification: str) -> None:
     staging where the pull-loop draw (supervisor.find_work) serves it first."""
     if classification == "urgent":
         _prepend_urgency_header(path, "urgent")
-        send_ntfy(
+        notify(
             f"[DISPATCHER: URGENT] Message from Rich flagged as urgent: {message[:100]}",
+            kind="real_alarm",
             headers={"X-Priority": "5", "X-Tags": "warning"},
         )
         log(f"URGENT classified: {path.name} — high-priority NTFY sent; served via staging + pull-loop draw (no pane injection)")

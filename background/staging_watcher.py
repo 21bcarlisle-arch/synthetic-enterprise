@@ -129,7 +129,7 @@ INSTRUCTION_STALE_SECONDS = 48 * 3600
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 # PULL-LOOP MIGRATION (2026-07-15, STAGING_PULL_LOOP_RESCOPE.md): the staging
@@ -151,7 +151,7 @@ def log(msg: str) -> None:
 
 
 def ntfy(msg: str) -> None:
-    send_ntfy(msg)
+    notify(msg, kind="director_echo")
 
 
 _ARTIFACT_SUFFIXES = (".bak", ".orig", ".tmp", ".swp", "~")

@@ -85,11 +85,11 @@ _ALLOWED_DIRECT_SENDERS = {
     # target that send_ntfy() calls, so it stays here (the regex matches the comment) but is never
     # migrated.
     "ntfy_mirror.py",
-    # migration debt — remaining direct callers to route through notify() (12; was 17 — cohort 1
-    # migrated 2026-07-17: boot_announce, retro_cadence_check, discovery_agent, director_twin):
-    "deadmans_switch.py", "director_comments.py", "dispatcher.py", "executor_governor.py",
-    "health_check.py", "ntfy_responder.py", "process_run_complete.py", "sanity_daemon.py",
-    "sim_runner.py", "staging_watcher.py", "supervisor.py",
+    # migration debt — remaining direct callers to route through notify() (8; was 17 — cohort 1
+    # migrated boot_announce/retro_cadence_check/discovery_agent/director_twin; cohort 2 migrated
+    # director_comments/dispatcher/staging_watcher/executor_governor, all 2026-07-17):
+    "deadmans_switch.py", "health_check.py", "ntfy_responder.py", "process_run_complete.py",
+    "sanity_daemon.py", "sim_runner.py", "supervisor.py",
 }
 
 

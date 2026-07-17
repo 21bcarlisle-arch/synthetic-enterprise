@@ -225,7 +225,7 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
     else:
         item_id = f"executor-{kind}"
     try:
-        from background.ntfy_utils import send_ntfy  # lazy: needs SE_NTFY_TOPIC only here
+        from background.notify import notify  # lazy: needs SE_NTFY_TOPIC only here
 
         # THE fire-once-then-daily gate (2026-07-16): a self-stop escalation is raised
         # ONCE and re-pinged at most daily -- NOT every run_loop re-entry. run_loop's
@@ -244,7 +244,7 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         pin = action_needed.pin_for(item_id)
         how_pinned = f"{how}\nReply to CLOSE: start your NTFY with PIN {pin} (e.g. 'PIN {pin} PROCEED')."
         action_needed.register_item(item_id, what, how_pinned, why)
-        send_ntfy(action_needed.format_action_needed(item_id, what, how_pinned, why))
+        notify(action_needed.format_action_needed(item_id, what, how_pinned, why), kind="real_alarm")
     except Exception as exc:  # pragma: no cover - defensive: an alert failure never crashes the loop
         build_executor.log(f"_alert_wall failed ({kind}): {exc}")
 

@@ -50,7 +50,7 @@ import requests
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-from background.ntfy_utils import send_ntfy  # noqa: E402
+from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "director-comments-log.md"
@@ -179,7 +179,7 @@ def check_once(since: float) -> float:
 
         staged_path = _write_comment_to_staging(parsed)
         log(f"Comment staged as {staged_path.name} -- page={parsed['page']!r}")
-        send_ntfy(f"Comment received from {parsed['page']} and queued for review.")
+        notify(f"Comment received from {parsed['page']} and queued for review.", kind="director_echo")
         update_agent_status(
             "director-comments", status="idle",
             last_action=f"Staged comment from {parsed['page']}",

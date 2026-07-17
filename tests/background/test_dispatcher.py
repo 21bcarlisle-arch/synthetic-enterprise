@@ -59,7 +59,7 @@ def test_urgent_routing_sends_ntfy_headers_and_leaves_file_in_staging(tmp_path, 
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
 
     sent = []
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(dispatcher, "notify", lambda msg, **k: sent.append(msg))
 
     path = _make_staging_file(tmp_path, "from_rich_001.md", "the P&L is completely wrong")
 
@@ -79,7 +79,7 @@ def test_fyi_routing_moves_file_to_fyi_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "fyi")
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     path = _make_staging_file(tmp_path, "from_rich_002.md", "ok thanks")
 
@@ -96,7 +96,7 @@ def test_normal_routing_leaves_file_in_staging_with_header(tmp_path, monkeypatch
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     path = _make_staging_file(tmp_path, "from_rich_003.md", "start phase 10 when ready")
 
@@ -112,7 +112,7 @@ def test_already_seen_files_not_reclassified(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     _make_staging_file(tmp_path, "from_rich_004.md", "test message")
 
@@ -129,7 +129,7 @@ def test_seen_state_persisted_across_calls(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
 
     _make_staging_file(tmp_path, "from_rich_005.md", "build something new")
 
@@ -147,7 +147,7 @@ def test_already_processed_files_skipped_on_restart(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "urgent")
     sent = []
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda msg, headers=None: sent.append(msg))
+    monkeypatch.setattr(dispatcher, "notify", lambda msg, **k: sent.append(msg))
 
     path = tmp_path / "from_rich_006.md"
     path.write_text(
@@ -172,7 +172,7 @@ def test_check_once_ignores_non_md_files(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
     monkeypatch.setattr(dispatcher, "_call_qwen", lambda p, max_tokens=100: "normal")
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
     (tmp_path / "some_config.json").write_text("{}")
     seen = dispatcher.check_once({})
     assert "some_config.json" not in seen
@@ -182,6 +182,6 @@ def test_check_once_empty_staging_returns_empty(tmp_path, monkeypatch):
     monkeypatch.setattr(dispatcher, "_SEEN_FILE", tmp_path / "seen.json")
     monkeypatch.setattr(dispatcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(dispatcher, "FYI_DIR", tmp_path / "fyi")
-    monkeypatch.setattr(dispatcher, "send_ntfy", lambda *a, **k: None)
+    monkeypatch.setattr(dispatcher, "notify", lambda *a, **k: None)
     seen = dispatcher.check_once({})
     assert seen == {}

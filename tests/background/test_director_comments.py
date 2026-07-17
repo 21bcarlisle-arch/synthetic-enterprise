@@ -77,7 +77,7 @@ def _mock_response(lines):
 
 def test_check_once_stages_valid_submission(monkeypatch):
     calls = []
-    monkeypatch.setattr(dc, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
     monkeypatch.setattr(
         dc.requests, "get",
         lambda url, params, timeout: _mock_response([
@@ -94,7 +94,7 @@ def test_check_once_stages_valid_submission(monkeypatch):
 
 def test_check_once_never_stages_wrong_pin(monkeypatch):
     calls = []
-    monkeypatch.setattr(dc, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
     monkeypatch.setattr(
         dc.requests, "get",
         lambda url, params, timeout: _mock_response([
@@ -107,7 +107,7 @@ def test_check_once_never_stages_wrong_pin(monkeypatch):
 
 
 def test_check_once_ignores_messages_at_or_before_watermark(monkeypatch):
-    monkeypatch.setattr(dc, "send_ntfy", lambda msg: None)
+    monkeypatch.setattr(dc, "notify", lambda msg, **k: None)
     monkeypatch.setattr(
         dc.requests, "get",
         lambda url, params, timeout: _mock_response([
@@ -137,7 +137,7 @@ def test_check_once_skips_when_topic_not_configured(monkeypatch):
 
 def test_check_once_multiple_submissions_mixed_valid_invalid(monkeypatch):
     calls = []
-    monkeypatch.setattr(dc, "send_ntfy", lambda msg: calls.append(msg))
+    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
     monkeypatch.setattr(
         dc.requests, "get",
         lambda url, params, timeout: _mock_response([
