@@ -850,6 +850,15 @@
           ]
         },
         {
+          "atom_id": "OPS1_session_watchdog_collapse",
+          "atom_name": "Collapse the inert session_watchdog.py dead code into worker_seat (post-migration cleanup)",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "REGISTERED DEBT (2026-07-17, director-required at the sub-step-4 gate: \"record the dead session_watchdog code as a registered cleanup item with its flip-condition -- scheduled debt is fine; unrecorded debt is how accretion restarts\"). After OPS1 sub-step 4 deleted the reaper, session_watchdog.py's restart_claude / RESUME_INSTRUCTION / usage-limit paths remain as INERT dead code: NOT in process_manifest.yaml, NOT in start_worker.sh's derived launch set, never spawned. worker_seat.py (thin: seed-by-id + keep-alive + report) is the live replacement. FLIP CONDITION: once the gated worker-seat -> supervisor -> deadmans migration is proven live and boring, delete session_watchdog.py's restart/resume/usage-limit paths and move the two still-consumed detection helpers (interactive_claude_pids, _ppid_of -- used by health_check's report-only duplicate-session check) into a neutral module or worker_seat. Scoped OUT of the sub-step-4 build to protect the release rung's blast radius (checkpoint discipline)."
+          ]
+        },
+        {
           "atom_id": "SITE1_expert_doors",
           "atom_name": "SITE CONSTITUTION doors 3-8 built (the surfaces an expert actually inspects), pixel-verified",
           "level_current": 3,
@@ -1229,6 +1238,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 100,
-  "total_notes": 350
+  "total_atoms_with_notes": 101,
+  "total_notes": 351
 }
