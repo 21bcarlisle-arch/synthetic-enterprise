@@ -423,3 +423,66 @@ auto-advances. Only stopping the process binds it — no ungoverned agent while 
 rebuilt. Two agents then built sub-step 2 in parallel, producing the very duplicate-declaration
 disease this rung deletes; reconciled to one, with this incident encoded as a permanent invariant
 (`test_incident_held_down_silent_held_running_is_HELD_VIOLATED`) — incidents become invariants.
+
+---
+
+## 9. FRAME — transport-failure must be loud (`OPS1_transport_failure_must_be_loud`)
+
+**Status: DISCOVER/FRAME (BUILD-gated).** This section is the design a later BUILD turn implements;
+no code is written here. It extends the Notification model (§2.3, G-N2 typed) and the health/reconcile
+layer, and is the R10 CLASS fix for the two already-patched instance bugs below.
+
+### The disease (observed 2026-07-17, serial-autonomy maiden-turn watch)
+The pull-loop transport (`.claude/hooks/pull_next_work.py`) was **silently broken for a day**:
+1. It raised `ModuleNotFoundError('background')` on every fire — the Stop hook's cwd is not the repo
+   root, so `import background` failed (fixed: `sys.path.insert(0, PROJECT_DIR)`).
+2. `find_work` printed log lines to the hook's stdout, which must be **pure JSON** or Claude Code
+   cannot parse the block+continue — so even a successful draw was dropped (fixed: capture stdout).
+
+Both bugs made the hook **fail-safe to allow-stop**. That is correct for the pane (never block the
+director's console) but catastrophic for observability: **a broken transport was byte-for-byte
+indistinguishable from a healthy idle worker.** Same fail-silent family as the deadman that could not
+fire and the file-api that crash-looped 32,707 times invisibly (§8, G-L3). Fixing the two instances
+does not close the class — the NEXT transport bug will fail-silent the same way unless the *absence of
+draws* is itself made loud.
+
+### The distinction the design must make explicit
+Two idle states that look identical on the surface and MUST read differently:
+- **Healthy quiescence** — enable-flag ON, hook firing, hook cleanly deciding *allow-stop because
+  `find_work` returned no drawable work*. Idle because there is nothing to draw. NOT a fault.
+- **Broken transport** — enable-flag ON, drawable work EXISTS (staging non-empty or the maturity-map
+  draw is non-empty), yet no continuation is happening because the hook cannot import / `find_work`
+  raises / stdout is polluted / the hook is not firing at all. Idle because the loop is broken. A FAULT.
+
+A liveness signal that cannot tell these apart is the fail-silent hole. The commit-clock deadman (§8)
+catches the *worst* case (no commits at all for 45–90 min) but not a transport that draws nothing
+while other daemons keep committing — so this needs its own signal.
+
+### The mechanism (to BUILD later)
+1. **A first-class, typed transport-health signal (G-N2).** The hook writes a structured outcome
+   record on every fire to a dedicated file (e.g. `docs/observability/.pull_loop_health.json`):
+   `{ts, outcome, detail}` where `outcome ∈ {DREW, ALLOW_STOP_NO_WORK, ALLOW_STOP_DISABLED,
+   DRAW_ERROR}` and `detail` carries the exception/repr on `DRAW_ERROR`. This is a *state record*, not
+   a log line buried in `pull-loop-log.md` — the health/reconcile layer reads it directly. The hook
+   still fail-safe allow-stops (never blocks the pane), but it **leaves a loud, typed trace** of *why*.
+2. **A hook load-time self-check.** At hook entry, verify `background.supervisor.find_work` is
+   importable and callable; on failure, write `outcome=DRAW_ERROR, detail="find_work unimportable: …"`
+   before allow-stopping — so the very bug that broke it for a day is recorded on its first fire, not
+   inferred days later.
+3. **The correlation predicate in the health/reconcile layer** (extends `health_check` /
+   `process_reconciler`, whose file_scope this atom already claims). Raise a **first-class,
+   transition-only (R5) LOOP_BROKEN alarm** when ALL hold:
+   `enable-flag ON` AND `drawable work exists` (staging non-empty OR maturity-map draw non-empty) AND
+   (`last outcome == DRAW_ERROR` OR `no fire / no continuation in N minutes`). Healthy quiescence
+   (enable ON + no drawable work + clean allow-stops) explicitly does NOT alarm. Transition-only +
+   hourly re-escalate, typed as a real-alarm (not a digest line).
+4. **Mutation test (R15) — the control must be able to fire.** Inject a broken draw (monkeypatch
+   `find_work` to raise, or simulate the unimportable-module state) with drawable work present, and
+   assert the LOOP_BROKEN alarm fires; assert it does NOT fire under healthy quiescence (enable ON,
+   no work). A transport-health control that never fires is the very disease it exists to cure.
+
+### Fit to the whole
+This is one more application of the §8 law — *held/broken/quiescent are different states and the
+system must read them differently* — now applied to the transport rather than the daemon set. It
+reuses the existing typed-notification contract (§2.3) and the reconcile/health layer (§2.1/§2.4)
+rather than adding a parallel mechanism, per the don't-accrete spine.

@@ -568,7 +568,11 @@ def _ppid_of(pid: int) -> int | None:
 def claude_is_running() -> bool:
     # Primary check: is `claude` or `node` the foreground command in the tmux pane?
     result = subprocess.run(
-        ["tmux", "list-panes", "-t", SESSION_NAME, "-F", "#{pane_current_command}"],
+        # Fully-qualified session target `claude:` (trailing colon), NOT bare `-t claude`:
+        # OPS1_tmux_target_qualification -- a bare `-t claude` is window/session-ambiguous and
+        # can resolve to a WINDOW named 'claude' (the 2026-07-17 false-latch incident). The
+        # colon forces session resolution so a same-named window can never mis-target this pane.
+        ["tmux", "list-panes", "-t", f"{SESSION_NAME}:", "-F", "#{pane_current_command}"],
         capture_output=True, text=True,
     )
     output = result.stdout.lower()
@@ -591,7 +595,8 @@ def capture_pane() -> str:
     notice — see USAGE_LIMIT_PATTERN's comment.
     """
     result = subprocess.run(
-        ["tmux", "capture-pane", "-t", SESSION_NAME, "-p"],
+        # Session-qualified target `claude:` (see claude_is_running above) -- OPS1_tmux_target_qualification.
+        ["tmux", "capture-pane", "-t", f"{SESSION_NAME}:", "-p"],
         capture_output=True, text=True,
     )
     return result.stdout if result.returncode == 0 else ""

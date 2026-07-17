@@ -66,7 +66,9 @@ def pane_in_copy_mode(session: str) -> bool:
         return False
     try:
         result = subprocess.run(
-            ["tmux", "display-message", "-p", "-t", session, "-F", "#{pane_in_mode}"],
+            # `{session}:` (session form, NOT bare) so a window named like the session can't
+            # mis-target this pane read -- OPS1_tmux_target_qualification (2026-07-17 false-latch).
+            ["tmux", "display-message", "-p", "-t", f"{session}:", "-F", "#{pane_in_mode}"],
             capture_output=True, text=True, timeout=5,
         )
         return result.returncode == 0 and result.stdout.strip() == "1"
@@ -82,7 +84,8 @@ def capture_pane(session: str, lines: int = 30) -> str:
         return ""
     try:
         result = subprocess.run(
-            ["tmux", "capture-pane", "-t", session, "-p", "-S", f"-{lines}"],
+            # `{session}:` session-qualified target -- OPS1_tmux_target_qualification.
+            ["tmux", "capture-pane", "-t", f"{session}:", "-p", "-S", f"-{lines}"],
             capture_output=True, text=True, timeout=5,
         )
         return result.stdout if result.returncode == 0 else ""

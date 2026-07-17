@@ -109,7 +109,9 @@ def turns_in_last_hour() -> int:
 
 def _pane_content() -> str:
     result = subprocess.run(
-        ["tmux", "capture-pane", "-t", SESSION_NAME, "-p"],
+        # `{SESSION_NAME}:` session-qualified (OPS1_tmux_target_qualification) -- this module is
+        # RETIRED (never launched), qualified for hygiene so no reviver inherits the ambiguity.
+        ["tmux", "capture-pane", "-t", f"{SESSION_NAME}:", "-p"],
         capture_output=True, text=True,
     )
     return result.stdout if result.returncode == 0 else ""
