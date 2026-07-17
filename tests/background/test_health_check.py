@@ -335,7 +335,7 @@ def test_ok_lines_are_all_strings(monkeypatch):
 
 
 # ── _check_stale_running_code() (2026-07-13, R3 two-strike redesign -- the
-# same "committed != running" incident already found once for supervisor.py
+# same "committed != running" incident already found once for sim_runner.py
 # ("stale pre-fix code loaded since 14:14") recurred a second time
 # (ANTI_LIVELOCK_AND_WIDTH.md's own fix sat committed for 17 real minutes
 # while the live process kept running the pre-fix code) -- a manual
@@ -357,7 +357,7 @@ class TestCheckStaleRunningCode:
     def test_process_started_after_script_modified_is_clean(self, monkeypatch, tmp_path):
         script_dir = tmp_path / "background"
         script_dir.mkdir()
-        script = script_dir / "supervisor.py"
+        script = script_dir / "sim_runner.py"
         script.write_text("# v1")
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         # ps reports a start time comfortably AFTER the file's own mtime
@@ -366,14 +366,14 @@ class TestCheckStaleRunningCode:
         started = (mtime_dt + timedelta(minutes=5)).strftime("%a %b %d %H:%M:%S %Y")
         monkeypatch.setattr(
             health_check.subprocess, "check_output",
-            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/sim_runner.py")]),
         )
         assert health_check._check_stale_running_code() is None
 
     def test_process_started_before_script_modified_is_flagged(self, monkeypatch, tmp_path):
         script_dir = tmp_path / "background"
         script_dir.mkdir()
-        script = script_dir / "supervisor.py"
+        script = script_dir / "sim_runner.py"
         script.write_text("# v1")
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         from datetime import datetime, timedelta
@@ -381,11 +381,11 @@ class TestCheckStaleRunningCode:
         started = (mtime_dt - timedelta(minutes=17)).strftime("%a %b %d %H:%M:%S %Y")
         monkeypatch.setattr(
             health_check.subprocess, "check_output",
-            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/sim_runner.py")]),
         )
         result = health_check._check_stale_running_code()
         assert result is not None
-        assert "supervisor" in result
+        assert "sim-runner" in result
         assert "17min" in result or "18min" in result  # rounding tolerance
 
     def test_process_not_found_at_all_is_not_flagged_here(self, monkeypatch, tmp_path):
@@ -406,7 +406,7 @@ class TestCheckStaleRunningCode:
         newer `python3 background/X.py` process is the one that counts."""
         script_dir = tmp_path / "background"
         script_dir.mkdir()
-        script = script_dir / "supervisor.py"
+        script = script_dir / "sim_runner.py"
         script.write_text("# v2")
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         from datetime import datetime, timedelta
@@ -416,9 +416,9 @@ class TestCheckStaleRunningCode:
         monkeypatch.setattr(
             health_check.subprocess, "check_output",
             lambda *a, **k: _fake_ps_lstart_output([
-                (ancient, "tmux new-session -d -s supervisor -c /home/rich/synthetic-enterprise python3 background/supervisor.py"),
-                (ancient, "sh -c python3 background/supervisor.py"),   # the wrapper shell -- also not the daemon
-                (fresh, "python3 background/supervisor.py"),           # the real, fresh daemon
+                (ancient, "tmux new-session -d -s sim-runner -c /home/rich/synthetic-enterprise python3 background/sim_runner.py"),
+                (ancient, "sh -c python3 background/sim_runner.py"),   # the wrapper shell -- also not the daemon
+                (fresh, "python3 background/sim_runner.py"),           # the real, fresh daemon
             ]),
         )
         # Fresh daemon started AFTER the script's mtime -> not stale, despite
@@ -431,7 +431,7 @@ class TestCheckStaleRunningCode:
         a completed restart must read green even before the orphan exits."""
         script_dir = tmp_path / "background"
         script_dir.mkdir()
-        script = script_dir / "supervisor.py"
+        script = script_dir / "sim_runner.py"
         script.write_text("# v2")
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         from datetime import datetime, timedelta
@@ -441,8 +441,8 @@ class TestCheckStaleRunningCode:
         monkeypatch.setattr(
             health_check.subprocess, "check_output",
             lambda *a, **k: _fake_ps_lstart_output([
-                (old, "python3 background/supervisor.py"),
-                (new, "python3 background/supervisor.py"),
+                (old, "python3 background/sim_runner.py"),
+                (new, "python3 background/sim_runner.py"),
             ]),
         )
         assert health_check._check_stale_running_code() is None
@@ -462,16 +462,16 @@ class TestCheckStaleRunningCode:
         point of Item 3: detection existed, action did not."""
         script_dir = tmp_path / "background"
         script_dir.mkdir()
-        (script_dir / "supervisor.py").write_text("# v2")
+        (script_dir / "sim_runner.py").write_text("# v2")
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         from datetime import datetime, timedelta
-        mtime_dt = datetime.fromtimestamp((script_dir / "supervisor.py").stat().st_mtime)
+        mtime_dt = datetime.fromtimestamp((script_dir / "sim_runner.py").stat().st_mtime)
         started = (mtime_dt - timedelta(minutes=17)).strftime("%a %b %d %H:%M:%S %Y")
         monkeypatch.setattr(
             health_check.subprocess, "check_output",
-            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/sim_runner.py")]),
         )
-        assert health_check.stale_daemon_sessions() == ["supervisor"]
+        assert health_check.stale_daemon_sessions() == ["sim-runner"]
 
     def test_fresh_session_is_not_named(self, monkeypatch, tmp_path):
         """R15 mutation counterpart: a daemon started AFTER its script's mtime is NOT
@@ -479,14 +479,14 @@ class TestCheckStaleRunningCode:
         (that would churn state every re-run and defeat 'safe to re-run')."""
         script_dir = tmp_path / "background"
         script_dir.mkdir()
-        (script_dir / "supervisor.py").write_text("# v2")
+        (script_dir / "sim_runner.py").write_text("# v2")
         monkeypatch.setattr(health_check, "PROJECT_DIR", tmp_path)
         from datetime import datetime, timedelta
-        mtime_dt = datetime.fromtimestamp((script_dir / "supervisor.py").stat().st_mtime)
+        mtime_dt = datetime.fromtimestamp((script_dir / "sim_runner.py").stat().st_mtime)
         started = (mtime_dt + timedelta(minutes=5)).strftime("%a %b %d %H:%M:%S %Y")
         monkeypatch.setattr(
             health_check.subprocess, "check_output",
-            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/supervisor.py")]),
+            lambda *a, **k: _fake_ps_lstart_output([(started, "python3 background/sim_runner.py")]),
         )
         assert health_check.stale_daemon_sessions() == []
 
@@ -505,13 +505,13 @@ class TestCheckStaleRunningCode:
         monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
         monkeypatch.setattr(
             health_check, "_check_stale_running_code",
-            lambda: "Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-12 20:29, own script modified 2026-07-13 05:35 (546min of drift)",
+            lambda: "Stale running code (restart to pick up committed changes): sim-runner (sim_runner.py): running since 2026-07-12 20:29, own script modified 2026-07-13 05:35 (546min of drift)",
         )
 
         all_ok, ok_lines, problem_lines = health_check.run_health_check()
 
         assert not all_ok
-        assert any("supervisor" in line and "Stale running code" in line for line in problem_lines)
+        assert any("sim-runner" in line and "Stale running code" in line for line in problem_lines)
 
 
 def test_multiple_interactive_sessions_is_a_problem(monkeypatch):

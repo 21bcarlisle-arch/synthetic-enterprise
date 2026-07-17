@@ -408,3 +408,13 @@ that declares HELD states with reasons, and a reconcile that classifies drift as
 / UNEXPECTED, makes the held-vs-failed confusion that triggered this **structurally impossible**: a
 held daemon reads as HELD (silent), never as a fault to be blindly repaired. Sub-step 2 turns this
 incident's class into a designed-against condition.
+
+**Two demonstrations, banked (2026-07-17).** The seed auto-advanced gated work **twice**: once
+before the director's Option-3 hold was ruled, and — critically — **again after it was ruled**, while
+the worker was still running (it committed its own sub-step 2 in that window, before the hold was
+structurally executed). The lesson is exact and is why G-R4 exists: a *ruling* is not a hold; an
+inference-based hold ("supervisor is off, so it stays idle") does not bind an agent whose seed
+auto-advances. Only stopping the process binds it — no ungoverned agent while governance is being
+rebuilt. Two agents then built sub-step 2 in parallel, producing the very duplicate-declaration
+disease this rung deletes; reconciled to one, with this incident encoded as a permanent invariant
+(`test_incident_held_down_silent_held_running_is_HELD_VIOLATED`) — incidents become invariants.

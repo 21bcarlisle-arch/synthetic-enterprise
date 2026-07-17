@@ -1,106 +1,145 @@
 """Tests for OPS1 sub-step 2 (G-L2): the declared-process manifest + reconciler.
 
-These are the mutation/anti-drift MECHANISMS (R15, MAKE_IT_STICK) that make the
-single-declaration guarantee stick: they fail on the exact defect the manifest exists to
-prevent (a health-checked daemon silently dropping out of the declared set, or the two
-declarations drifting apart — the state that hid naive-organ from the health check).
-"""
+These are the R15/MAKE_IT_STICK mechanisms that make the single-declaration guarantee stick:
+the manifest is the ONE source (start_worker + health_check derive from it), state
+distinguishes intended-down from failed, and today's incident (a HELD daemon resurrected) is
+a permanent invariant here — incidents become invariants."""
 from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 
 from background import process_reconciler as R
 
 
+def _status(results, session):
+    return next(r for r in results if r["session"] == session)
+
+
 def test_manifest_loads_and_is_shaped():
     procs = R.load_manifest()
-    assert procs, "manifest must declare processes"
+    assert procs
     for p in procs:
-        assert {"session", "match", "kind", "health_checked", "purpose"} <= set(p), p
-        assert isinstance(p["health_checked"], bool)
+        assert {"session", "command", "match", "owner", "state"} <= set(p), p
+        assert p["state"] in R.VALID_STATES
+        if p["state"] != "enabled":
+            assert p.get("reason") and p.get("flip"), f"{p['session']} missing reason/flip"
 
 
-def test_manifest_and_start_worker_do_not_drift():
-    """ANTI-DRIFT MECHANISM: the manifest's declared session set must EQUAL the set
-    start_worker.sh actually launches. If a daemon is added to one and not the other,
-    this fails — which is exactly the drift that previously hid naive-organ from the
-    health check. (Mutation-proof: drop any entry from the manifest and this goes red.)"""
-    assert R.declared_sessions() == R.start_worker_launched_sessions()
+def test_start_worker_has_no_hardcoded_daemon_list_left():
+    """Exit-test criterion 1: start_worker.sh must NOT carry a hardcoded launch list any
+    more — it derives from the manifest. The only `_start_session` token allowed is the
+    function DEFINITION and the derived loop's single call; no `_start_session "daemon"`
+    literal launchers survive (that was the third source of truth)."""
+    text = (Path(R.__file__).resolve().parent / "start_worker.sh").read_text()
+    import re
+    literal_launchers = re.findall(r'^\s*_start_session\s+"[a-z-]+"', text, re.MULTILINE)
+    assert literal_launchers == [], f"hardcoded launchers still present: {literal_launchers}"
 
 
-def test_health_checked_set_includes_naive_organ_and_excludes_dark_and_services():
-    """Regression guard on the EXACT drift found: naive-organ was missing from the old
-    hand-maintained EXPECTED_PANES. It must be health-checked now; the dark-gated
-    executor-daemon (correct to be absent) and the support services must NOT be."""
+def test_startlist_is_enabled_and_dark_owned_by_start_worker():
+    names = [s for s, _ in R.startlist()]
+    assert "sim-runner" in names            # enabled
+    assert "executor-daemon" in names       # dark: launched (as a no-op) by start_worker
+    assert "supervisor" not in names        # HELD: not launched — that IS the hold
+    assert "deadmans-switch" not in names   # HELD
+    assert "claude" not in names            # worker seat: owned by session-watchdog, not start_worker
+    assert "autonomous-runner" not in names # retired
+
+
+def test_health_checked_excludes_held_dark_retired_includes_enabled():
+    """THE cure: held/dark/retired are excluded from the health-checked set, so a
+    deliberately-held daemon never reads as a fault (the false-DEGRADED class)."""
     hc = R.health_checked_map()
-    assert "naive-organ" in hc
-    assert "executor-daemon" not in hc      # dark-gated: absence is expected, not a fault
-    assert "token-proxy" not in hc          # support service: informational only
-    assert "file-api" not in hc
-    # the core loop daemons are all health-checked
-    for core in ("supervisor", "session-watchdog", "sim-runner", "deadmans-switch"):
-        assert core in hc
+    assert "naive-organ" in hc                 # the gap the old EXPECTED_PANES had
+    for held in ("supervisor", "deadmans-switch", "session-watchdog", "claude"):
+        assert held not in hc                  # held -> not a fault when down
+    assert "executor-daemon" not in hc         # dark
+    assert "autonomous-runner" not in hc       # retired
+    for enabled in ("sim-runner", "token-proxy", "file-api", "background-worker"):
+        assert enabled in hc
 
 
-def test_reconcile_flags_a_missing_health_checked_daemon():
-    """R15 mutation: a health-checked daemon that is not running appears in `missing`."""
-    # nothing running at all
-    report = R.reconcile(panes={}, ps_lines=[])
-    assert "supervisor" in report["missing"]
-    assert "deadmans-switch" in report["missing"]
+def test_incident_held_down_silent_held_running_is_HELD_VIOLATED():
+    """THE 2026-07-17 incident as a permanent invariant: a HELD daemon that is DOWN is
+    silent (no false DEGRADED); a HELD daemon found RUNNING is HELD_VIOLATED and alarms —
+    exactly the deadman the worker resurrected. Incidents become invariants."""
+    down = R.reconcile(panes={}, ps_lines=[])
+    assert _status(down, "deadmans-switch")["status"] == "HELD"
+    assert _status(down, "deadmans-switch")["alarm"] is False
+    resurrected = R.reconcile(panes={"deadmans-switch": "python3"}, ps_lines=[])
+    assert _status(resurrected, "deadmans-switch")["status"] == "HELD_VIOLATED"
+    assert _status(resurrected, "deadmans-switch")["alarm"] is True
 
 
-def test_reconcile_does_not_fault_on_dark_daemon_absence():
-    """The dark-gated executor-daemon absent is EXPECTED — informational, never a fault."""
-    report = R.reconcile(panes={}, ps_lines=[])
-    assert "executor-daemon" not in report["missing"]
-    assert "executor-daemon" in report["informational_absent"]
+def test_enabled_missing_alarms_enabled_running_ok():
+    down = R.reconcile(panes={}, ps_lines=[])
+    assert _status(down, "sim-runner")["status"] == "MISSING"
+    assert _status(down, "sim-runner")["alarm"] is True
+    up = R.reconcile(panes={"sim-runner": "python3"}, ps_lines=[])
+    assert _status(up, "sim-runner")["status"] == "OK"
 
 
-def test_reconcile_sees_a_running_daemon_via_pane_or_ps():
-    entries = R.load_manifest()
-    all_up_panes = {e["session"]: e["match"] for e in entries}
-    report = R.reconcile(panes=all_up_panes, ps_lines=[])
-    assert report["missing"] == []
-    # and via ps lines instead of a pane
-    ps = [f"python3 background/{e['match']}" for e in entries]
-    report2 = R.reconcile(panes={}, ps_lines=ps)
-    # health-checked ones matched by ps token are not missing
-    assert "supervisor" not in report2["missing"]
+def test_dark_absent_ok_dark_running_reports_no_alarm():
+    down = R.reconcile(panes={}, ps_lines=[])
+    assert _status(down, "executor-daemon")["status"] == "DARK"
+    assert _status(down, "executor-daemon")["alarm"] is False
+    active = R.reconcile(panes={"executor-daemon": "python3"}, ps_lines=[])
+    assert _status(active, "executor-daemon")["status"] == "DARK_ACTIVE"
+    assert _status(active, "executor-daemon")["alarm"] is False   # director-authorised
 
 
-def test_reconcile_flags_an_undeclared_background_daemon_but_not_a_console():
-    """An undeclared background python daemon is surfaced; a console seat is NOT (this
-    module must never point a kill mechanism at the director's console — see the blackout)."""
+def test_retired_running_alarms():
+    down = R.reconcile(panes={}, ps_lines=[])
+    assert _status(down, "autonomous-runner")["status"] == "OK"
+    running = R.reconcile(panes={"autonomous-runner": "python3"}, ps_lines=[])
+    assert _status(running, "autonomous-runner")["status"] == "RETIRED_RUNNING"
+    assert _status(running, "autonomous-runner")["alarm"] is True
+
+
+def test_running_detected_via_ps_token_too():
+    ps = ["python3 background/sim_runner.py"]
+    res = R.reconcile(panes={}, ps_lines=ps)
+    assert _status(res, "sim-runner")["status"] == "OK"
+
+
+def test_undeclared_background_daemon_flagged_console_never():
     panes = {
-        "rogue-daemon": "python3 background/rogue.py",  # undeclared background daemon
-        "claude": "node",                                # the managed console seat
-        "work": "bash",                                  # a director console shell
+        "rogue-daemon": "python3 background/rogue.py",  # undeclared bg daemon -> UNEXPECTED
+        "work": "bash",                                  # a director console shell -> ignored
     }
-    report = R.reconcile(panes=panes, ps_lines=[])
-    assert "rogue-daemon" in report["undeclared_daemons"]
-    assert "claude" not in report["undeclared_daemons"]
-    assert "work" not in report["undeclared_daemons"]
+    res = R.reconcile(panes=panes, ps_lines=[])
+    assert _status(res, "rogue-daemon")["status"] == "UNEXPECTED"
+    assert not any(r["session"] == "work" for r in res)  # console never flagged
 
 
-def test_reconcile_is_report_only():
-    """Structural: reconcile returns only report keys — there is no action/kill key,
-    so a caller cannot be handed a 'kill this' instruction by construction (G-R3)."""
-    report = R.reconcile(panes={}, ps_lines=[])
-    assert set(report) == {"missing", "informational_absent", "undeclared_daemons"}
+def test_reconcile_is_report_only_no_kill_key():
+    """G-R3 structural: every result carries only status/report fields — there is no
+    action/kill field, so a caller cannot be handed a 'kill this' instruction."""
+    for r in R.reconcile(panes={}, ps_lines=[]):
+        assert set(r) == {"session", "state", "running", "status", "alarm", "reason", "flip"}
+        assert "kill" not in r and "action" not in r
 
 
 def test_empty_manifest_is_fail_closed(tmp_path):
-    """An unreadable/empty declaration is a hard error, never a silently-empty set."""
     bad = tmp_path / "empty.yaml"
     bad.write_text("processes: []\n")
-    with pytest.raises(ValueError):
+    with pytest.raises(R.ManifestError):
         R.load_manifest(bad)
 
 
-def test_health_check_expected_panes_is_derived_from_manifest():
-    """The consumer binding: health_check.EXPECTED_PANES == the manifest's health-checked
-    map (single declared source), and it now includes the previously-missing naive-organ."""
+def test_loader_rejects_held_without_reason_or_flip(tmp_path):
+    bad = tmp_path / "m.yaml"
+    bad.write_text("processes:\n  - {session: s, command: x, match: s, owner: o, state: held, flip: later}\n")
+    with pytest.raises(R.ManifestError, match="reason"):
+        R.load_manifest(bad)
+
+
+def test_health_check_expected_panes_is_derived_and_excludes_held():
+    """The consumer binding: EXPECTED_PANES == the enabled map, and a HELD daemon
+    (supervisor) is NOT in it — the false-DEGRADED cure, verified end-to-end."""
     from background import health_check
     assert health_check.EXPECTED_PANES == R.health_checked_map()
     assert "naive-organ" in health_check.EXPECTED_PANES
+    assert "supervisor" not in health_check.EXPECTED_PANES

@@ -1,120 +1,168 @@
 # Declared process set — the SINGLE authoritative manifest of what SHOULD be running.
+# OPS1 sub-step 2 (G-L2), docs/design/OPERATIONAL_LAYER_DESIGN.md §2.1.
 #
-# OPS1 sub-step 2 (G-L2), docs/design/OPERATIONAL_LAYER_DESIGN.md. This file is the
-# infrastructure-as-code DECLARATION the director's addendum calls the CORE principle:
-# "expected-process set declared + reconciled vs `ps`". Before this file the declared set
-# was scattered across TWO places that had silently DRIFTED — start_worker.sh's launch
-# block and health_check.py's hand-maintained EXPECTED_PANES dict (which was missing
-# naive-organ entirely, so the health check was blind to whether that daemon was running).
-# There is now ONE declaration; the others DERIVE from or are RECONCILED against it:
-#   - health_check.EXPECTED_PANES  -> derived from this manifest (health_checked entries).
-#   - start_worker.sh launch set   -> bound to this manifest by an anti-drift test
-#     (tests/background/test_process_reconciler.py) that FAILS if the two disagree, so
-#     the scattered-and-drifted state that hid the naive-organ gap cannot recur silently.
+# This is the sole source of truth for the intended process set. Everything else DERIVES
+# from it — there is no second list to drift:
+#   - health_check.EXPECTED_PANES  = process_reconciler.health_checked_map()  (state==enabled)
+#   - start_worker.sh's launch set = process_reconciler.startlist()           (owner==start_worker.sh, state in enabled|dark)
+# The prior scattered declarations (start_worker's hardcoded _start_session block and
+# health_check's hand-maintained EXPECTED_PANES) are DELETED — they had silently drifted
+# (naive-organ was missing from the health check entirely).
 #
-# Runtime state (which processes are actually up) is NOT in git — it can't be. The
-# DECLARATION of what should be up is, and background/process_reconciler.py reconciles
-# the two and REPORTS drift (it never kills an undeclared process — reaping-by-inference
-# is what killed the director's console in the blackout).
+# state (the disease-curing field — distinguishes intended-down from failed):
+#   enabled  — MUST run. Absent => MISSING (fault). Health-checked.
+#   held     — intentionally down now. Absent => HELD (silent). Running => HELD_VIOLATED (fault).
+#   dark     — present but a no-op unless its flag; exits when dark. Absent => OK. Running => DARK_ACTIVE (report).
+#   retired  — must never run. Running => RETIRED_RUNNING (fault).
+# EVERY non-enabled entry MUST carry `reason` and `flip` (loader-enforced) — a state without
+# its reason is archaeology in three weeks; the reason is behaviour-determining (IaC).
 #
-# Fields per entry:
-#   session        tmux session name (as launched by start_worker.sh)
-#   match          substring identifying the process in `ps` (the script/module token)
-#   kind           daemon | dark-daemon | service | console-seat
-#   health_checked true  -> absence is a FAULT the health check reports
-#                  false -> absence is informational only (see notes per entry)
-#   purpose        one line, why it exists
+# Runtime state (which processes are actually up) is NOT in git. The DECLARATION is;
+# process_reconciler.py reconciles the two and REPORTS drift. It has no kill path by
+# construction (reaping-by-inference killed the director's console in the blackout).
+#
+# Fields: session · command (full launch) · match (ps token) · owner · state [· reason · flip · purpose]
+version: 2
 
 processes:
-  # --- core autonomous-loop daemons: absence is a fault ---
-  - session: background-worker
-    match: background_worker.py
-    kind: daemon
-    health_checked: true
-    purpose: "Qwen task queue + leftover run_complete-marker sweep; runs off-peak"
-
+  # ── HELD: the autonomy/governance layer, deliberately down for the OPS1 rebuild ──
   - session: session-watchdog
+    command: python3 background/session_watchdog.py
     match: session_watchdog.py
-    kind: daemon
-    health_checked: true
-    purpose: "Auto-resumes the Claude session after usage-limit resets; console-sanctity-aware reap"
+    owner: start_worker.sh
+    state: held
+    reason: "OPS1 governance rebuild in flight — as the worker-seat's respawner, an ungoverned watchdog re-seats the auto-advancing worker (2026-07-17 incident, §8)"
+    flip: "after sub-step 4 (single supervisor + restart authority, G-L3/G-L4) lands verified → enabled, respawning only under the declared holds"
+    purpose: "Auto-resumes the Claude session; console-sanctity-aware reap"
 
-  - session: staging-watcher
-    match: staging_watcher.py
-    kind: daemon
-    health_checked: true
-    purpose: "NTFYs Rich when new files land in docs/staging/"
+  - session: claude   # the worker seat's tmux session name is `claude`
+    command: "claude --dangerously-skip-permissions --model claude-opus-4-8 (dedicated session 22080be5)"
+    match: __worker_seat__   # sentinel: detect via the `claude` tmux session only, never a ps substring
+    owner: session-watchdog
+    state: held
+    reason: "OPS1 governance rebuild in flight — the worker's recovery seed auto-advances director-gated work (2026-07-17 incident, §8, G-R4; demonstrated twice — once before and once after the Option-3 hold was ruled)"
+    flip: "after sub-step 4 lands verified → re-seated under new governance with a seed that does NOT auto-advance director-gated work"
+    purpose: "The interactive worker seat (owned by session-watchdog, not start_worker.sh)"
 
   - session: supervisor
+    command: python3 background/supervisor.py
     match: supervisor.py
-    kind: daemon
-    health_checked: true
-    purpose: "Sole turn-granting authority — polls, grants a turn when idle + work exists (Rule 0)"
-
-  - session: ntfy-responder
-    match: ntfy_responder.py
-    kind: daemon
-    health_checked: true
-    purpose: "Instant-acks inbound NTFY, writes >25-char messages to staging/from_rich_*.md"
-
-  - session: dispatcher
-    match: dispatcher.py
-    kind: daemon
-    health_checked: true
-    purpose: "Classifies from_rich_*.md as URGENT/NORMAL/FYI and routes"
-
-  - session: discovery-daemon
-    match: discovery_agent.py
-    kind: daemon
-    health_checked: true
-    purpose: "Validates simulation assumptions every 6h via Qwen"
-
-  - session: sim-runner
-    match: sim_runner.py
-    kind: daemon
-    health_checked: true
-    purpose: "Continuous 9.5yr simulation loop; writes run_complete markers"
-
-  - session: sanity-daemon
-    match: sanity_daemon.py
-    kind: daemon
-    health_checked: true
-    purpose: "Population-level statistical sanity checks every 30min vs domain_invariants"
+    owner: start_worker.sh
+    state: held
+    reason: "OPS1 governance rebuild — single-supervisor authority (G-L4) not yet built; running the old supervisor now would grant turns to the held worker seat"
+    flip: "on sub-step 4 (single governed supervisor) landing verified → enabled"
+    purpose: "Turn-granting authority (rebuilt in sub-step 4)"
 
   - session: deadmans-switch
+    command: python3 background/deadmans_switch.py
     match: deadmans_switch.py
-    kind: daemon
-    health_checked: true
-    purpose: "Independent BLOCKED/STALL alert on the git-commit clock — the safety net for a wedged stack"
+    owner: start_worker.sh
+    state: held
+    reason: "OPS1 governance rebuild — held with the supervisor; a stall alarm is meaningless while the worker seat is deliberately down"
+    flip: "on OPS1 completion (autonomy re-seated) → enabled"
+    purpose: "Independent stall alarm"
+
+  # ── DARK: present as a daemon but a no-op unless its flag; director-gated ──
+  - session: executor-daemon
+    command: python3 background/executor_daemon.py
+    match: executor_daemon.py
+    owner: start_worker.sh
+    state: dark
+    reason: "director gate — headless build loop; a bare launch is a safe no-op (exits) unless docs/observability/.build_executor_enabled is present"
+    flip: "un-dark ONLY by explicit director instruction, never inferred and never automatic — the director's alone"
+    purpose: "Self-continuing headless build loop (dark)"
+
+  # ── RETIRED: must never run ──
+  - session: autonomous-runner
+    command: python3 background/autonomous_runner.py
+    match: autonomous_runner.py
+    owner: (none — launcher commented out in start_worker.sh)
+    state: retired
+    reason: "superseded by the Stop-hook pull-loop + executor stack; its _start_session line is commented out in start_worker.sh"
+    flip: "does not flip — retired; reviving would require a fresh director decision, not a restart"
+    purpose: "RETIRED legacy autonomous loop"
+
+  # ── ENABLED: base infrastructure, must always run ──
+  - session: background-worker
+    command: python3 background/background_worker.py
+    match: background_worker.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Qwen task queue + leftover run_complete-marker sweep; off-peak"
+
+  - session: staging-watcher
+    command: python3 background/staging_watcher.py
+    match: staging_watcher.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "NTFY on new docs/staging/ files"
+
+  - session: ntfy-responder
+    command: python3 background/ntfy_responder.py
+    match: ntfy_responder.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Acks inbound NTFY, writes to staging/"
+
+  - session: dispatcher
+    command: python3 background/dispatcher.py
+    match: dispatcher.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Classifies from_rich_*.md URGENT/NORMAL/FYI"
+
+  - session: discovery-daemon
+    command: python3 background/discovery_agent.py --daemon
+    match: discovery_agent.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Validates sim assumptions every 6h via Qwen"
+
+  - session: sim-runner
+    command: python3 background/sim_runner.py
+    match: sim_runner.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Continuous simulation loop; writes run_complete markers"
+
+  - session: sanity-daemon
+    command: python3 background/sanity_daemon.py
+    match: sanity_daemon.py
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Population-level statistical sanity checks every 30min"
 
   - session: director-comments
+    command: python3 background/director_comments.py
     match: director_comments.py
-    kind: daemon
-    health_checked: true
-    purpose: "Polls the comments-only NTFY topic, PIN-validates, stages accepted director comments"
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Polls the comments-only ntfy topic, PIN-validated"
 
   - session: naive-organ
+    command: python3 -m background.naive_organ daemon
     match: naive_organ
-    kind: daemon
-    health_checked: true
-    purpose: "Independent outside-view skeptic on its own wall-clock timer (was MISSING from EXPECTED_PANES)"
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Independent outside-view skeptic on its own timer (was MISSING from the old EXPECTED_PANES)"
 
-  # --- dark-gated: correct to be ABSENT unless explicitly enabled ---
-  - session: executor-daemon
-    match: executor_daemon.py
-    kind: dark-daemon
-    health_checked: false
-    purpose: "Self-continuing headless build loop; DARK by default — exits cleanly (safe no-op) unless docs/observability/.build_executor_enabled is present, so its absence is EXPECTED, not a fault"
-
-  # --- support services: informational (outside the core autonomous loop) ---
   - session: token-proxy
+    command: python3 -m background.token_proxy
     match: background.token_proxy
-    kind: service
-    health_checked: false
-    purpose: "Local HTTP proxy on :8801 tracking token usage for autonomous turns"
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Local token-usage proxy"
 
   - session: file-api
+    command: python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765
     match: background.file_api
-    kind: service
-    health_checked: false
-    purpose: "Authenticated file API + Ollama /query proxy on :8765 (separate env, advisor-facing)"
+    owner: start_worker.sh
+    state: enabled
+    purpose: "Authenticated file API + Ollama proxy on :8765"
+
+# The director's interactive console (tmux `work`, or any console started via
+# background/console.sh) is NOT a managed process — excluded from reconciliation by its
+# G-L1 sanctity marker (a session backing a sanctified pid is never flagged undeclared).
+director_console:
+  tmux: work
+  note: "director-owned; excluded from reconcile via console_sanctity (G-L1). Never reaped, never managed, never alarmed."

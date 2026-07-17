@@ -689,7 +689,10 @@ def test_dashboard_population_consistency_gate_fires_on_book_size_divergence():
 
 def test_health_check_fires_on_a_missing_daemon(monkeypatch):
     import background.health_check as hc
-    present = {s: "python" for s in hc.EXPECTED_PANES if s != "supervisor"}
+    # sim-runner is an ENABLED daemon (health-checked); supervisor is now HELD (excluded from
+    # EXPECTED_PANES by the manifest, 2026-07-17) so it is deliberately NOT a fault when absent.
+    missing = "sim-runner"
+    present = {s: "python" for s in hc.EXPECTED_PANES if s != missing}
     monkeypatch.setattr(hc, "_tmux_panes", lambda: present)
     monkeypatch.setattr(hc, "_running_scripts", lambda: [])
     monkeypatch.setattr(hc, "_check_pixel_verification_capability", lambda: None)
@@ -698,7 +701,7 @@ def test_health_check_fires_on_a_missing_daemon(monkeypatch):
     monkeypatch.setattr(hc, "_check_stale_dependencies", lambda: None)
     all_ok, ok, problems = hc.run_health_check()
     assert all_ok is False
-    assert any("supervisor" in p and "NOT RUNNING" in p for p in problems)
+    assert any(missing in p and "NOT RUNNING" in p for p in problems)
 
 
 def test_health_check_fails_closed_when_process_inspection_unavailable(monkeypatch):
@@ -720,14 +723,15 @@ def test_health_check_fails_closed_when_process_inspection_unavailable(monkeypat
 def test_health_check_stale_running_code_fires_on_process_older_than_its_script(monkeypatch):
     from datetime import datetime as _dt
     import background.health_check as hc
-    # MUTATE: the supervisor process 'started' in the year 2000 -- long before its
-    # own (freshly-checked-out) script file was last modified -> stale, fires.
+    # MUTATE: an ENABLED daemon's process (sim_runner.py; supervisor is now HELD and
+    # excluded from EXPECTED_PANES) 'started' in the year 2000 -- long before its own
+    # (freshly-checked-out) script file was last modified -> stale, fires.
     monkeypatch.setattr(hc, "_process_start_times_by_script",
-                        lambda: {"supervisor.py": _dt(2000, 1, 1)})
+                        lambda: {"sim_runner.py": _dt(2000, 1, 1)})
     assert hc._check_stale_running_code() is not None
     # CORRECT: a process started in the future is newer than its script -> clean.
     monkeypatch.setattr(hc, "_process_start_times_by_script",
-                        lambda: {"supervisor.py": _dt(2100, 1, 1)})
+                        lambda: {"sim_runner.py": _dt(2100, 1, 1)})
     assert hc._check_stale_running_code() is None
 
 

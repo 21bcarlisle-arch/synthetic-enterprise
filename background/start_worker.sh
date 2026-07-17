@@ -144,98 +144,14 @@ if [ -n "$STALE_SESSIONS" ]; then
   done <<< "$STALE_SESSIONS"
 fi
 
-_start_session "background-worker" \
-  "python3 background/background_worker.py" \
-  "Qwen task queue, runs off-peak (not 16:00-19:00 GMT)" \
-  "${NTFY_ENV_FLAGS[@]}"
+# ── Launch set DERIVED from the single manifest (process_manifest.yaml) — OPS1 sub-step 2, G-L2 ──
+# No hardcoded list here to drift. start_worker.sh launches exactly process_reconciler.startlist()
+# (owner==start_worker.sh, state in enabled|dark). HELD and RETIRED entries are NOT launched — that
+# IS the hold, declared ONCE in the manifest, so a held daemon can never be silently resurrected by
+# a stack restart (the 2026-07-17 incident). Fail-closed: an unreadable manifest refuses to start a
+# partial stack.
 
-_start_session "session-watchdog" \
-  "python3 background/session_watchdog.py" \
-  "Auto-resumes Claude session after usage-limit resets" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "staging-watcher" \
-  "python3 background/staging_watcher.py" \
-  "Sends NTFY when new files land in docs/staging/" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "supervisor" \
-  "python3 background/supervisor.py" \
-  "Sole turn-granting authority (2026-07-09, doorbell failure #4) -- polls every 2min, grants a turn when idle+work exists" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-# The self-continuing headless build loop (H17, DIRECTOR_ANSWERS_C7). DARK-gated:
-# a bare launch is a safe no-op unless the director's console-only enable flag
-# (docs/observability/.build_executor_enabled) is present, so it is safe to
-# always start here. Added 2026-07-16: it was never in start_worker.sh, so it
-# did not come up with the other daemons and a reboot lost it entirely (the gap
-# behind "flag enabled but nothing executes the loop").
-_start_session "executor-daemon" \
-  "python3 background/executor_daemon.py" \
-  "Self-continuing headless build loop -- draw->dispatch claude -p->gate on origin, DARK unless the enable flag is set" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "ntfy-responder" \
-  "python3 background/ntfy_responder.py" \
-  "Instant-acks all inbound NTFY messages, writes to staging/" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "dispatcher" \
-  "python3 background/dispatcher.py" \
-  "Classifies from_rich_*.md as URGENT/NORMAL/FYI and routes" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "discovery-daemon" \
-  "python3 background/discovery_agent.py --daemon" \
-  "Validates simulation assumptions every 6h via Qwen" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "sim-runner" \
-  "python3 background/sim_runner.py" \
-  "Continuous 9.5yr simulation loop — pegs GPU off-peak, writes run_complete markers" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "sanity-daemon" \
-  "python3 background/sanity_daemon.py" \
-  "DOMAIN_SENSE_AND_COMPLIANCE.md Phase 5 -- population-level statistical sanity checks every 30min, one NTFY per new/changed finding set" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "deadmans-switch" \
-  "python3 background/deadmans_switch.py" \
-  "Director-flagged 2026-07-09 (doorbell failure #5) -- independent of the tmux/supervisor stack: BLOCKED alert if 90min+ pass with no commit/observability activity AND real staged work is queued" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "director-comments" \
-  "python3 background/director_comments.py" \
-  "DIRECTOR_COMMENTS_BOX.md -- polls the dedicated comments-only ntfy topic, validates the PIN server-side, stages accepted director page comments" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-_start_session "naive-organ" \
-  "python3 -m background.naive_organ daemon" \
-  "H11 L3 (NAIVE_ORGAN_BLIND_SPOT_AND_USAGE_WRITE.md): the independent outside-view skeptic on its OWN wall-clock timer (NOT publish-coupled), so it can fire when the system is silent; trigger #8 EXPECTED OUTPUT ABSENT reads the independent git commit clock" \
-  "${NTFY_ENV_FLAGS[@]}"
-
-# RETIRED 2026-07-08 (docs/staging/AUTONOMOUS_RUNNER_TRUE_RETIREMENT.md, director-approved
-# Option A of docs/review_gates/AUTONOMOUS_RUNNER_STILL_RUNNING.md). Deliberately stopped:
-# waste + tree-race source + budget burn. Single-writer mode = the watchdog-managed
-# interactive session only. A console kill alone was NOT durable — a stack re-run
-# (start_worker.sh) resurrected it, so the launcher block itself is commented out here.
-# Retiring a daemon = edit its launcher, not just kill the process (see MAINTENANCE.md).
-# Do NOT re-enable without a fresh director decision at a weekly re-rank.
-# _start_session "autonomous-runner" \
-#   "python3 background/autonomous_runner.py" \
-#   "Fires claude -p turn after 30min idle — replaces broken tmux keystrokes autoloop"
-
-_start_session "token-proxy" \
-  "python3 -m background.token_proxy" \
-  "Local HTTP proxy on :8801 — tracks token usage for autonomous turns"
-
-# Load FILE_API_KEY from .env.file-api. Same warm-server `-e` requirement as
-# NTFY_ENV_FLAGS above (2026-07-08) -- a plain `export` here silently did not
-# reach a NEW session on an ALREADY-RUNNING tmux server; harmless historically
-# only because file-api has never actually needed a mid-uptime restart yet.
-# 2026-07-11, Option 2 floor -- same new-location-first, old-fallback
-# pattern as NTFY_ENV_PATH above.
+# file-api needs its own key (FILE_API_ENV_FLAGS); load before the loop (same warm-server -e need).
 FILE_API_ENV_PATH="$HOME/.config/synthetic-enterprise/.env.file-api"
 [ -f "$FILE_API_ENV_PATH" ] || FILE_API_ENV_PATH="background/.env.file-api"
 FILE_API_ENV_FLAGS=()
@@ -247,10 +163,17 @@ if [ -f "$FILE_API_ENV_PATH" ]; then
   done < "$FILE_API_ENV_PATH"
 fi
 
-_start_session "file-api" \
-  "python3 -m uvicorn background.file_api:app --host 0.0.0.0 --port 8765" \
-  "Authenticated file API + Ollama /query proxy on :8765" \
-  "${FILE_API_ENV_FLAGS[@]}"
+STARTLIST="$(python3 -m background.process_reconciler startlist)" || {
+  echo "REFUSING TO START: could not derive the launch set from background/process_manifest.yaml" >&2
+  echo "(fail-closed: a stack whose declaration can't be read is not started)" >&2
+  exit 1
+}
+while IFS=$'\t' read -r _session _command; do
+  [ -z "$_session" ] && continue
+  _extra=("${NTFY_ENV_FLAGS[@]}")
+  [ "$_session" = "file-api" ] && _extra+=("${FILE_API_ENV_FLAGS[@]}")
+  _start_session "$_session" "$_command" "manifest-declared" "${_extra[@]}"
+done <<< "$STARTLIST"
 
 echo ""
 echo "Stack startup complete. Running health check..."

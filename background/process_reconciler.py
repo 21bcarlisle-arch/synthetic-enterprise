@@ -1,117 +1,183 @@
 """Reconcile the DECLARED process set (process_manifest.yaml) against ACTUAL.
+OPS1 sub-step 2 (G-L2 / G-R3), docs/design/OPERATIONAL_LAYER_DESIGN.md §2.1.
 
-OPS1 sub-step 2 (G-L2 / G-R3), docs/design/OPERATIONAL_LAYER_DESIGN.md.
+The manifest is the SINGLE source of "what should be running". Everything derives from it:
+  - health_check.EXPECTED_PANES  = health_checked_map()  (state==enabled entries)
+  - start_worker.sh's launch set = startlist()           (owner==start_worker.sh, enabled|dark)
+There is no second list to drift.
 
-Purpose: make the manifest the single source of "what should be running", and provide
-a REPORT-ONLY reconciliation of declared-vs-actual so drift is detectable instead of
-silent. This is the infrastructure-as-code core the director's addendum names: the
-declaration lives in git; the machine's live process set is reconciled against it.
+Guarantees:
+  - G-L2  one committed declaration; the per-entry `state` distinguishes intended-down
+          (held/dark/retired) from failed (enabled & absent) -- so a deliberately-HELD
+          daemon reads HELD (silent), never MISSING (the false-DEGRADED that the worker's
+          resurrect reflex fired on, design §8). A HELD daemon found RUNNING is HELD_VIOLATED.
+  - G-R3  reconcile REPORTS drift; it has NO kill path by construction. Reaping an undeclared
+          process by inference is what killed the director's console in the blackout.
 
-Guarantees this module keeps:
-  - G-L2  the declared set is one committed manifest; health_check derives its expected
-          panes from here (no second hand-maintained list to drift — the old drift hid
-          naive-organ from the health check entirely).
-  - G-R3  reconcile REPORTS drift; it NEVER returns a kill/reap action. Reaping an
-          undeclared process by inference is exactly what killed the director's console
-          in the blackout — this module cannot do that by construction (it has no kill
-          path at all).
-
-It also parses start_worker.sh's launch set so a test can bind the two declarations and
-FAIL on drift (tests/background/test_process_reconciler.py), so the scattered-and-drifted
-state cannot recur silently.
+Schema is ENFORCED at load: every non-enabled entry MUST carry reason+flip (a state without
+its reason is archaeology; IaC). An empty manifest is a hard error (fail-closed).
 """
 from __future__ import annotations
 
-import re
+import subprocess
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
 MANIFEST_PATH = _HERE / "process_manifest.yaml"
-START_WORKER_PATH = _HERE / "start_worker.sh"
 
-# start_worker.sh launches a daemon with:  _start_session "name" \
-# A commented line begins with optional whitespace then '#'.
-_START_SESSION_RE = re.compile(r'^\s*_start_session\s+"([^"]+)"')
+VALID_STATES = {"enabled", "held", "dark", "retired"}
+ALARM_STATUSES = {"MISSING", "HELD_VIOLATED", "RETIRED_RUNNING", "UNEXPECTED"}
+
+
+class ManifestError(ValueError):
+    """The manifest violates its schema -- fail LOUD, never load an untrustworthy declaration."""
 
 
 def load_manifest(path: Path | None = None) -> list[dict]:
-    """Return the declared process entries. Raises if the manifest is unreadable —
-    an unreadable declaration is a hard error, never a silently-empty set (fail-closed)."""
-    import yaml  # local import: keep module import cheap and yaml-optional at import time
-
+    import yaml
     path = path or MANIFEST_PATH
-    data = yaml.safe_load(path.read_text())
+    data = yaml.safe_load(Path(path).read_text())
     procs = (data or {}).get("processes") or []
     if not procs:
-        raise ValueError(f"process manifest {path} declares no processes — refusing empty set")
+        raise ManifestError(f"process manifest {path} declares no processes — refusing empty set")
+    _validate(procs)
     return procs
 
 
+def _validate(procs: list) -> None:
+    seen = set()
+    for i, e in enumerate(procs):
+        where = f"processes[{i}] ({e.get('session') if isinstance(e, dict) else '?'})"
+        if not isinstance(e, dict):
+            raise ManifestError(f"{where}: entry must be a mapping")
+        for req in ("session", "command", "match", "owner", "state"):
+            if not str(e.get(req, "")).strip():
+                raise ManifestError(f"{where}: missing required field '{req}'")
+        if e["session"] in seen:
+            raise ManifestError(f"{where}: duplicate session '{e['session']}'")
+        seen.add(e["session"])
+        if e["state"] not in VALID_STATES:
+            raise ManifestError(f"{where}: state '{e['state']}' not in {sorted(VALID_STATES)}")
+        if e["state"] != "enabled":
+            for req in ("reason", "flip"):
+                if not str(e.get(req, "")).strip():
+                    raise ManifestError(
+                        f"{where}: state '{e['state']}' requires a non-empty '{req}' "
+                        "(a held/dark/retired state without its reason+flip is forbidden)")
+
+
 def health_checked_map(path: Path | None = None) -> dict[str, str]:
-    """{session: match} for entries whose absence is a fault. Consumed by
-    health_check.EXPECTED_PANES so there is a single declared source."""
-    return {p["session"]: p["match"] for p in load_manifest(path) if p.get("health_checked")}
+    """{session: match} for ENABLED entries only. THE cure for held-vs-failed: held/dark/
+    retired are excluded, so health_check never alarms on a deliberately-held daemon."""
+    return {p["session"]: p["match"] for p in load_manifest(path) if p["state"] == "enabled"}
 
 
 def declared_sessions(path: Path | None = None) -> set[str]:
-    """Every session named in the manifest (health-checked or not)."""
     return {p["session"] for p in load_manifest(path)}
 
 
-def start_worker_launched_sessions(path: Path | None = None) -> set[str]:
-    """The set of session names start_worker.sh actually launches (commented-out
-    launchers, e.g. the retired autonomous-runner, are excluded because the regex
-    only matches a line that STARTS with _start_session, not one behind a '# ')."""
-    path = path or START_WORKER_PATH
-    out: set[str] = set()
-    for line in path.read_text().splitlines():
-        m = _START_SESSION_RE.match(line)
-        if m:
-            out.add(m.group(1))
-    return out
+def startlist(path: Path | None = None) -> list[tuple[str, str]]:
+    """(session, command) for entries start_worker.sh should launch: owner==start_worker.sh
+    and state in {enabled, dark}. Held/retired are NOT launched -- that IS the hold, expressed
+    once in the manifest. This is the SOLE launch declaration; start_worker.sh derives from it."""
+    return [(p["session"], p["command"]) for p in load_manifest(path)
+            if p["owner"] == "start_worker.sh" and p["state"] in ("enabled", "dark")]
 
 
 def _is_running(entry: dict, panes: dict[str, str], ps_lines: list[str]) -> bool:
-    """Running if its tmux session is present OR its match token appears in ps."""
     if entry["session"] in panes:
         return True
     tok = entry["match"]
     return any(tok in line for line in ps_lines)
 
 
-def reconcile(panes: dict[str, str], ps_lines: list[str], path: Path | None = None) -> dict:
-    """Compare declared vs actual. REPORT ONLY — no side effects, no kill actions.
-
-    Returns:
-      missing               health_checked entries that are NOT running (real faults)
-      informational_absent  non-health_checked declared entries not running
-                            (e.g. executor-daemon when correctly dark — expected)
-      undeclared_daemons    tmux sessions running a background python daemon that is
-                            NOT in the manifest (a process the repo doesn't know about —
-                            surfaced for a human, never auto-killed)
-    """
+def reconcile(panes: dict[str, str], ps_lines: list[str], path: Path | None = None) -> list[dict]:
+    """Classify declared vs actual. REPORT ONLY -- no side effects, no kill path.
+    Returns per-entry {session, state, running, status, alarm, reason, flip}; plus an
+    UNEXPECTED entry per undeclared *background-python* daemon (never a console seat -- the
+    undeclared match requires python+background, so it can't point at the director's console)."""
     entries = load_manifest(path)
     declared = {e["session"] for e in entries}
-
-    missing, informational_absent = [], []
+    results: list[dict] = []
     for e in entries:
-        if _is_running(e, panes, ps_lines):
-            continue
-        (missing if e.get("health_checked") else informational_absent).append(e["session"])
-
-    undeclared_daemons = []
+        up = _is_running(e, panes, ps_lines)
+        st = e["state"]
+        if st == "enabled":
+            status = "OK" if up else "MISSING"
+        elif st == "held":
+            status = "HELD_VIOLATED" if up else "HELD"
+        elif st == "dark":
+            status = "DARK_ACTIVE" if up else "DARK"
+        else:  # retired
+            status = "RETIRED_RUNNING" if up else "OK"
+        results.append({
+            "session": e["session"], "state": st, "running": up, "status": status,
+            "alarm": status in ALARM_STATUSES,
+            "reason": e.get("reason", ""), "flip": e.get("flip", ""),
+        })
     for session, cmd in panes.items():
         if session in declared:
             continue
-        # Only flag sessions that look like a background python daemon — never a
-        # console seat (claude/node/shell), so this can never point at the director's
-        # console. "background" here matches both `background/x.py` and `background.x`.
-        low = cmd.lower()
+        low = (cmd or "").lower()
         if "python" in low and "background" in low:
-            undeclared_daemons.append(session)
+            results.append({"session": session, "state": "(undeclared)", "running": True,
+                            "status": "UNEXPECTED", "alarm": True, "reason": "", "flip": ""})
+    return results
 
-    return {
-        "missing": sorted(missing),
-        "informational_absent": sorted(informational_absent),
-        "undeclared_daemons": sorted(undeclared_daemons),
-    }
+
+def drift(results: list[dict]) -> list[dict]:
+    return [r for r in results if r["alarm"]]
+
+
+def format_report(results: list[dict]) -> str:
+    order = {"MISSING": 0, "HELD_VIOLATED": 1, "RETIRED_RUNNING": 2, "UNEXPECTED": 3,
+             "DARK_ACTIVE": 4, "HELD": 5, "DARK": 6, "OK": 7}
+    lines = []
+    for r in sorted(results, key=lambda r: (order.get(r["status"], 9), r["session"])):
+        mark = "✗" if r["alarm"] else ("•" if r["status"] not in ("OK",) else "✓")
+        line = f"  {mark} {r['session']:<20} {r['status']:<16} (state={r['state']}, running={r['running']})"
+        if r["status"] in ("HELD", "DARK", "HELD_VIOLATED", "DARK_ACTIVE") and r["reason"]:
+            line += f"\n        reason: {r['reason']}\n        flip:   {r['flip']}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _live_panes_and_ps() -> tuple[dict[str, str], list[str]]:
+    panes: dict[str, str] = {}
+    r = subprocess.run(["tmux", "list-panes", "-a", "-F", "#{session_name} #{pane_current_command}"],
+                       capture_output=True, text=True)
+    if getattr(r, "returncode", 1) == 0:
+        for line in (r.stdout or "").splitlines():
+            parts = line.split(None, 1)
+            if parts:
+                panes.setdefault(parts[0], parts[1] if len(parts) == 2 else "")
+    ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True)
+    ps_lines = ps.stdout.splitlines() if getattr(ps, "returncode", 1) == 0 else []
+    return panes, ps_lines
+
+
+def _main(argv: list[str]) -> int:
+    import sys
+    if len(argv) > 1 and argv[1] == "startlist":
+        # emit "session<TAB>command" per launchable entry (consumed by start_worker.sh)
+        try:
+            for session, command in startlist():
+                print(f"{session}\t{command}")
+        except ManifestError as e:
+            print(f"MANIFEST INVALID: {e}", file=sys.stderr)
+            return 2
+        return 0
+    try:
+        results = reconcile(*_live_panes_and_ps())
+    except ManifestError as e:
+        print(f"MANIFEST INVALID: {e}", file=sys.stderr)
+        return 2
+    print(format_report(results))
+    alarms = drift(results)
+    print(f"\n{len(alarms)} drift alarm(s); {len(results) - len(alarms)} OK/held/dark.")
+    return 1 if alarms else 0
+
+
+if __name__ == "__main__":
+    import sys
+    raise SystemExit(_main(sys.argv))
