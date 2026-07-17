@@ -4485,3 +4485,22 @@
 - [2026-07-16 22:05 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
 - [2026-07-16 22:05 UTC] Post-restart daemon health check: OK (17 checks healthy)
 - [2026-07-17 05:29 UTC] Reap found no orphans; spared 1 live pane-backed session(s): [887142]
+- [2026-07-17 09:02 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-17 09:03 UTC] Claude Code not detected (check 1/2)
+- [2026-07-17 09:04 UTC] Claude Code not detected (check 2/2)
+- [2026-07-17 09:04 UTC] Session ended — reason: completion | clean exit
+- [2026-07-17 09:04 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-17 09:04 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-17 09:04 UTC] Reap found no orphans; spared 1 live pane-backed session(s): [887142]
+- [2026-07-17 09:04 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-17 09:05 UTC] Post-restart daemon health check: DEGRADED -- 2 persistent problem(s):   ✗ background-worker — NOT RUNNING (background_worker.py);   ✗ deadmans-switch — NOT RUNNING (deadmans_switch.py)
+- [2026-07-17 09:20 UTC] Permission prompt visible — waiting for Rich, autoloop paused
+- [2026-07-17 10:00 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-17 10:01 UTC] Claude Code not detected (check 1/2)
+- [2026-07-17 10:02 UTC] Claude Code not detected (check 2/2)
+- [2026-07-17 10:02 UTC] Session ended — reason: completion | clean exit
+- [2026-07-17 10:02 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-17 10:02 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, dedicated worker session 22080be5-e19e-4099-a007-d71c3a6e7845 [create], no `claude -c`, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-17 10:02 UTC] Reap found no orphans; spared 1 live pane-backed session(s): [887142]
+- [2026-07-17 10:02 UTC] Claude Code restarted (1/3 this hour, direct launch, dedicated worker session 22080be5-e19e-4099-a007-d71c3a6e7845, no send-keys)
+- [2026-07-17 10:02 UTC] Post-restart daemon health check: DEGRADED -- 1 persistent problem(s):   ✗ deadmans-switch — NOT RUNNING (deadmans_switch.py)

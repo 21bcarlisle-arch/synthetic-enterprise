@@ -4470,3 +4470,126 @@ Structured performance entries are added after each task completes.
 - [2026-07-17T08:57:02Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
 - [2026-07-17T08:57:02Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
 - [2026-07-17T09:01:09Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:12:09Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-17T09:12:49Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17 09:15 UTC] Background worker started
+- [2026-07-17 09:15 UTC] Found 38 leftover run_complete marker(s) — processing
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T061608Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T062708Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T063814Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T064831Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T065938Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T070915Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T140436Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T150342Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T163419Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T164330Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T171441Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T172326Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T173709Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T174640Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T175522Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T182711Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T183642Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T184527Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T185414Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T190559Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T191503Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T192648Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T193919Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T195135Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T200034Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T200910Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T201749Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T202629Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T203522Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T204705Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T205912Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T211049Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T211951Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T213001Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T213912Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T214814Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260716T215707Z.md
+- [2026-07-17 09:15 UTC] Processed run_complete_20260717T090219Z.md
+- [2026-07-17 09:15 UTC] Found queued tasks — beginning execution
+- [2026-07-17 09:15 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-17T09:17:07Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:28:01Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-17T09:28:43Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17T09:32:55Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:43:48Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-17T09:44:24Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17 09:45 UTC] Found 38 leftover run_complete marker(s) — processing
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T061608Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T062708Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T063814Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T064831Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T065938Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T070915Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T140436Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T150342Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T163419Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T164330Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T171441Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T172326Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T173709Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T174640Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T175522Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T182711Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T183642Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T184527Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T185414Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T190559Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T191503Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T192648Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T193919Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T195135Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T200034Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T200910Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T201749Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T202629Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T203522Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T204705Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T205912Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T211049Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T211951Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T213001Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T213912Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T214814Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260716T215707Z.md
+- [2026-07-17 09:45 UTC] Processed run_complete_20260717T093404Z.md
+- [2026-07-17 09:45 UTC] Found queued tasks — beginning execution
+- [2026-07-17 09:45 UTC] run_queued_tasks: no parseable QUEUED task found
+- [2026-07-17T09:48:32Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:59:17Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: appended 2 records for 2025-06-08..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-10..2025-06-11; rolling now covers 2025-06-07+1..2025-06-10 (3 total)
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: already current (last_covered=2025-06-10, target_end=2025-06-10) -- no fetch
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-09..2025-06-19): ConnectionError('no network in this environment') -- rolling cache left unchanged
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: fetch failed (2025-06-08..2025-06-19): OSError('offline') -- rolling cache left unchanged
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: fetch returned no post-boundary records (2025-06-08..2025-06-19) -- unchanged
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-08..2025-06-09; rolling now covers 2025-06-07+1..2025-06-08 (1 total)
+- [2026-07-17T09:59:53Z] refresh_elexon_ssp_rolling: appended 1 records for 2025-06-09..2025-06-10; rolling now covers 2025-06-07+1..2025-06-09 (2 total)
+- [2026-07-17T10:04:23Z] refresh_elexon_ssp_rolling: already current (last_covered=2026-07-16, target_end=2026-07-16) -- no fetch
