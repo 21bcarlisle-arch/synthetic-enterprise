@@ -1042,6 +1042,59 @@ def diagnose_map_blocked_set(atoms: list | None = None) -> str:
     )
 
 
+def _harden_at_target(a: dict) -> bool:
+    """At its target and shipped (level_current == level_target, target > 0) -- the
+    base eligibility for a Rule-0 HARDEN draw."""
+    if not isinstance(a, dict):
+        return False
+    lc, lt = a.get("level_current"), a.get("level_target")
+    if lc is None or lt is None:
+        return False
+    try:
+        return lc == lt and lt > 0
+    except TypeError:
+        return False
+
+
+def _has_harden_surface(a: dict) -> bool:
+    """True if an at-target atom has something a HARDEN pass can actually re-verify /
+    mutation-re-test / red-team -- a built control with a runnable test (G10 harden-
+    ability gate, twin-approved 2026-07-17 via route_blocking_decision
+    'G10_harden_ability_gate_build'). STRUCTURAL ONLY per the twin's R12 note (never
+    keyed on bug-history/outcome, which would make harden-ability a target): a
+    level < 2 atom is FRAME-only (its 'done' is merely being framed -- no control or
+    exit-test exists yet), and an atom whose evidence points at no runnable test has
+    no control to re-verify this pass. SOFT: callers only PREFER these, never zero the
+    set on them (Rule 0)."""
+    if not isinstance(a, dict):
+        return False
+    lc = a.get("level_current")
+    try:
+        if lc is None or lc < 2:
+            return False
+    except TypeError:
+        return False
+    ev = a.get("evidence")
+    if not isinstance(ev, list):
+        return False
+    for e in ev:
+        s = str(e)
+        if s.startswith("tests/") or "/tests/" in s:
+            return True
+        if "test" in s.lower() and s.endswith(".py"):
+            return True
+    return False
+
+
+def _harden_criticality_weight(a: dict) -> int:
+    """STRUCTURAL red-team-value bias (twin R12 note: NEVER outcome/bug-history):
+    harness / safety-control lanes (lane starts with 'H') carry more value per HARDEN
+    pass -- a control defect is costlier and structurally more likely than a settled
+    domain data-shape drifting -- so they are PREFERENTIALLY drawn. Non-zero for every
+    lane: a soft dial that biases, never excludes (Rule 0 / R12 diagnostic-not-target)."""
+    return 3 if str(a.get("lane", "")).startswith("H") else 1
+
+
 def _rule0_harden_draw(rng: Any = None) -> dict | None:
     """RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): the default state of
     the company is WORKING; an empty feasible set is a DEFECT IN THE DIALS, not a
@@ -1065,23 +1118,21 @@ def _rule0_harden_draw(rng: Any = None) -> dict | None:
     if not isinstance(atoms, list):
         return None
 
-    def _is_hardenable(a: dict) -> bool:
-        if not isinstance(a, dict):
-            return False
-        lc, lt = a.get("level_current"), a.get("level_target")
-        if lc is None or lt is None:
-            return False
-        try:
-            return lc == lt and lt > 0
-        except TypeError:
-            return False
-
-    candidates = [a for a in atoms if _is_hardenable(a)]
-    if not candidates:
-        return None
-    weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    at_target = [a for a in atoms if _harden_at_target(a)]
+    if not at_target:
+        return None                          # genuinely empty map = WALL (unchanged)
+    # HARDEN-ABILITY GATE (G10, twin-approved 2026-07-17): PREFER at-target atoms that
+    # have a real harden-able surface (a built control + runnable test), so an idle
+    # HARDEN pass spends red-team effort where a control can actually fail rather than
+    # on a FRAME-only atom with nothing to re-verify. SOFT DIAL (Rule 0): if NO atom
+    # qualifies, fall back to the full at-target pool so the draw stays NON-EMPTY -- a
+    # genuinely-empty draw here would false-trip the LOOP_BROKEN transport alarm.
+    pool = [a for a in at_target if _has_harden_surface(a)] or at_target
+    # STRUCTURAL criticality bias (harness/control lanes preferred) folded into the
+    # existing dial-weighted-random pick; both are diagnostics, never targets (R12).
+    weights = [max(1, a.get("dial_inherited", 1)) * _harden_criticality_weight(a) for a in pool]
     picker = rng or random
-    return picker.choices(candidates, weights=weights, k=1)[0]
+    return picker.choices(pool, weights=weights, k=1)[0]
 
 
 def _self_refill_draw() -> str | None:
