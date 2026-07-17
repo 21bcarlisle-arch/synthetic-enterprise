@@ -1821,7 +1821,7 @@
   epoch: 2
   level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: idle   # PARKED 2026-07-17: harness BUILT (L2). L2->L3 is the DIRECTOR-WATCHED LIVE worker-outcome run, which the atom's own DoD + the director explicitly reserve to a controlled, halt-ready window ("never a maiden flight"). The loop drew this for BUILD; the worker correctly REFUSED to run it autonomously and parked it -- a live instance of the very behaviour this atom verifies. Flips to build/L3 only when the director triggers the live run.
   dial_inherited: 2
   provenance: proposal
   evidence:
