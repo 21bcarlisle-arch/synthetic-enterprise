@@ -38,6 +38,10 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr("background.gate_authorization.evaluate_gate_wall",
                         lambda: {"status": "GATE_CLEAN", "alarm": False, "detail": "(isolated)",
                                  "unauthorized": []})
+    monkeypatch.setattr("background.fork_reconciler.evaluate_fork_lifecycle",
+                        lambda: {"status": "FORK_CLEAN", "alarm": False, "detail": "(isolated)",
+                                 "orphans": [], "in_flight": [], "merged_eligible": [], "reaped": [],
+                                 "enforce": False})
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     _reset_state()
