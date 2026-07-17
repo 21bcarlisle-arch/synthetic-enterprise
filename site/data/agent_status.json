@@ -1,13 +1,13 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-17T08:29:37.766467+00:00",
+  "last_updated": "2026-07-17T08:45:39.824290+00:00",
   "agents": [
     {
       "name": "session-watchdog",
       "status": "running",
-      "last_heartbeat": "2026-07-17T08:26:48.147768+00:00",
+      "last_heartbeat": "2026-07-17T08:42:18.929515+00:00",
       "last_action": "Watchdog started",
-      "last_action_ts": "2026-07-17T08:26:48.147768+00:00",
+      "last_action_ts": "2026-07-17T08:42:18.929515+00:00",
       "anomaly": null,
       "role": "Monitors Claude Code session; sends autoloop pings; handles REVIEW_GATE",
       "produces": "docs/observability/session-watchdog-log.md, tmux autoloop pings"
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T08:29:37.766467+00:00",
+      "last_heartbeat": "2026-07-17T08:45:39.824290+00:00",
       "last_action": "Heartbeat \u2014 42 files tracked",
-      "last_action_ts": "2026-07-17T08:29:37.766467+00:00",
+      "last_action_ts": "2026-07-17T08:45:39.824290+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T08:27:12.483929+00:00",
-      "last_action": "Waiting for next cycle (4h 0m remaining)",
-      "last_action_ts": "2026-07-17T08:27:12.483929+00:00",
+      "last_heartbeat": "2026-07-17T08:42:12.487404+00:00",
+      "last_action": "Waiting for next cycle (3h 45m remaining)",
+      "last_action_ts": "2026-07-17T08:42:12.487404+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T08:26:48.163682+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260717T082648Z.json)",
-      "last_action_ts": "2026-07-17T08:26:48.163682+00:00",
+      "last_heartbeat": "2026-07-17T08:42:18.945466+00:00",
+      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260717T084218Z.json)",
+      "last_action_ts": "2026-07-17T08:42:18.945466+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T08:25:23.544390+00:00",
+      "last_heartbeat": "2026-07-17T08:40:58.529526+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-17T08:25:23.544390+00:00",
+      "last_action_ts": "2026-07-17T08:40:58.529526+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T08:25:38.672728+00:00",
+      "last_heartbeat": "2026-07-17T08:41:12.291153+00:00",
       "last_action": "Acked message: 'identical machine cadence body repeated over and over again'",
-      "last_action_ts": "2026-07-17T08:25:38.672728+00:00",
+      "last_action_ts": "2026-07-17T08:41:12.291153+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -125,9 +125,9 @@
     {
       "name": "director-comments",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T08:25:23.497637+00:00",
+      "last_heartbeat": "2026-07-17T08:40:58.481411+00:00",
       "last_action": "Staged comment from /supplier/",
-      "last_action_ts": "2026-07-17T08:25:23.497637+00:00",
+      "last_action_ts": "2026-07-17T08:40:58.481411+00:00",
       "anomaly": null,
       "role": "Validates PIN-authenticated director page comments, stages accepted ones",
       "produces": "docs/staging/from_rich_comment_*.md"
