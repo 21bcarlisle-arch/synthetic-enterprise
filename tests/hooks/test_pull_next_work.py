@@ -38,6 +38,11 @@ def _load_hook(tmp_path, monkeypatch, *, enabled, draw_result):
     monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
     monkeypatch.setattr(mod, "LOG_FILE", tmp_path / "pull-loop-log.md")
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".pull_loop_state.json")
+    # ISOLATION (2026-07-17): decide() now writes _write_health on every worker path. Without
+    # patching HEALTH_FILE these tests wrote outcomes (incl. a DRAW_ERROR) into the REAL
+    # .pull_loop_health.json, which the live deadman then paged as a SPURIOUS [LOOP BROKEN].
+    # Same leak class as the LOG_FILE one -- a test must never write a live observability signal.
+    monkeypatch.setattr(mod, "HEALTH_FILE", tmp_path / ".pull_loop_health.json")
     # Pin the worker id so tests don't depend on the live seat's real id.
     monkeypatch.setattr(mod, "WORKER_SESSION_ID", WORKER_ID)
     if enabled:
@@ -153,6 +158,7 @@ def test_instrumented_three_consecutive_boundaries_draw_and_continue(tmp_path, m
     monkeypatch.setattr(mod, "ENABLE_FLAG", tmp_path / ".build_executor_enabled")
     monkeypatch.setattr(mod, "LOG_FILE", log)
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".state.json")
+    monkeypatch.setattr(mod, "HEALTH_FILE", tmp_path / ".pull_loop_health.json")  # isolation (no real-file leak)
     monkeypatch.setattr(mod, "WORKER_SESSION_ID", WORKER_ID)
     (tmp_path / ".build_executor_enabled").write_text("")  # enabled (test flag, not the console one)
     draws = iter([("BUILD SITE1_expert_doors", False), ("BUILD F6_bill_integrity", False), ("HARDEN A6_gap", False)])
