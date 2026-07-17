@@ -859,6 +859,15 @@
           ]
         },
         {
+          "atom_id": "OPS1_tmux_target_qualification",
+          "atom_name": "Fully-qualify pane-scoped tmux targets (bare -t claude is window/session ambiguous)",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "REGISTERED CLEANUP (2026-07-17, director-required at the worker-seat gate: 'Record the gotcha as a registered cleanup item... Scheduled, not drifting'). During the worker-seat migration a bare `tmux ... -t claude` run from inside the `work` console resolved to the console's WINDOW named 'claude' (window-name match) instead of the SESSION named 'claude' (the worker seat) \u2014 so capture-pane showed the director's own screen, a false 'latch' alarm (halted, pulled PID/window/JSONL evidence, distinguished tooling-ambiguity from a real latch \u2014 the correct halt-verify-distinguish pattern). worker_seat.py itself is SAFE (it uses `has-session`, which is session-scoped). FIX: any pane-scoped tmux tooling must FULLY QUALIFY its target (session form `claude:` or the window id `@N`, never bare `-t claude`) so the window/session name collision cannot mis-target. Audit background/*.py + scripts for bare `-t claude` pane/capture calls; qualify them. Low-risk, scheduled \u2014 not a live hazard (has-session is safe)."
+          ]
+        },
+        {
           "atom_id": "SITE1_expert_doors",
           "atom_name": "SITE CONSTITUTION doors 3-8 built (the surfaces an expert actually inspects), pixel-verified",
           "level_current": 3,
@@ -1238,6 +1247,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 101,
-  "total_notes": 351
+  "total_atoms_with_notes": 102,
+  "total_notes": 352
 }
