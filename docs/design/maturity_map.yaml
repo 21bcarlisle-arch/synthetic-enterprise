@@ -1868,3 +1868,24 @@
     findings: []
   real_world_twin: 'a message queue whose consumer silently died: the dashboard shows ''no errors, low load'' because a broken consumer and an idle one look identical until you alarm on ''enqueued but never dequeued'''
   depends_on: []
+- id: H_draw_excludes_external_blocked_atoms
+  name: "Draw excludes atoms blocked on an external/director act (stop the done-atom idle treadmill)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 2
+  provenance: proposal
+  evidence:
+  - background/supervisor.py
+  - docs/design/maturity_map.yaml
+  file_scope:
+  - background/supervisor.py
+  - docs/design/maturity_map.yaml
+  simplifications:
+  - 'REGISTERED FINDING (2026-07-17, diagnosed over ~5 idle turns by the worker seat, SELF_INTERRUPT_DISCIPLINE: register, do not fix-on-sight). DEFECT: the idle-DISCOVER draw (_idle_discover_frame_draw_concurrent) excludes STALLED atoms, but when the ONLY below-target idle candidates are stalled it FALLS BACK to drawing them anyway (better-than-nothing) -- so a WORKER-COMPLETE atom whose only remaining gap is a DIRECTOR ACT (e.g. OPS1_operational_layer_rebuild awaiting the systemd deploy, OPS1_governance_refusal_mutation_test awaiting the director-watched live run) is re-DISCOVER-drawn every cycle, indefinitely, with nothing genuine to do -> a treadmill that either wastes turns or tempts theatre notes (which reset the stall fingerprint and perpetuate it). ROOT CAUSE: the map has no way to say worker-done-but-blocked-on-an-external/director-act -- level_current<target models this as remaining WORKER work, which it is not. FIX (build): add a `blocked_on` atom field (e.g. blocked_on: director_deploy | director_live_run); the draw (both _maturity_map_draw_concurrent BUILD tier and the idle-DISCOVER tier, including the all-stalled fallback) EXCLUDES any atom with a non-empty blocked_on, so it is never surfaced as drawable work until unblocked; set OPS1_operational_layer_rebuild + OPS1_governance_refusal_mutation_test blocked_on accordingly (honest: they ARE blocked on the director, not on worker work); mutation-test that a blocked_on atom is never drawn and that clearing blocked_on re-admits it. This is a designed schema addition (represent external-block), not an accretion patch. When it lands, the loop returns empty (genuine idle) instead of treadmilling, and the two OPS1 atoms stop being handed to the worker.'
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a work-queue scheduler that keeps re-surfacing tickets blocked on an external approver instead of parking them off the ready queue until the approver acts"
+  depends_on: []
