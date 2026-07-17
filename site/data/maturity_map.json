@@ -1900,8 +1900,8 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "OPS1_session_watchdog_collapse",
