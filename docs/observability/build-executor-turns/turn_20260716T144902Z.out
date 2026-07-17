@@ -1,0 +1,17 @@
+Independently verified against **origin/main**: commit `aad990346` is pushed, and all three atoms (W1_2/W1_3/W1_4) show `level_current: 1` in origin's `maturity_map.yaml`. Local HEAD == origin/main. Gate satisfied.
+
+## Turn summary (H17, governed Lane-3 orchestrator)
+
+**Key finding:** the last two commits of this turn-cycle (`6bfb70935`, `d188023b7`) already completed this exact draw's FRAME work for all 6 Lane-3 atoms and re-grounded the 2 BUILD atoms. Re-writing those docs would be churn; fabricating level moves would breach a WALL. The genuinely-owed, not-yet-done work was the **VERIFY pass** the DISCOVER passes explicitly deferred to *the orchestrator*.
+
+**What I did — evidence-grounded map correction (DISCOVER-lane, zero BUILD code):**
+- **W1_2 / W1_3 / W1_4 → L0→L1.** All three were mis-registered at L0 while their core mechanisms are *already built, wired into the real sim run-path, and tested*: `sim/weather_engine.py` (regime-switching AR1 joint temp/wind/cloud Pass 1 + Cholesky regional Pass 2, calibrated on 3,446 real days, wired into `demand_model.py`/`run_phase2b.py`, 27 tests) and `sim/scenario/bimodal_generator.py` + `gas_scenario_generator.py` (calibrated two-regime Markov price generator, 3 real callers, 31 tests). Per the rubric L1 = "been BUILT in any form" — and the map's own lane summary already reads W1 as L1. This is the re-level three DISCOVER passes flagged and deferred to the orchestrator under sole-map-writer discipline.
+- **Held at L1, never higher** — walls respected: L2 needs advisor ratification + real remaining gaps (W1_3's wind-only stressed trigger / no tail artefact / shared calibration+validation anchor; W1_4's *defining* aggregation-consistency invariant genuinely unbuilt; W1_2's R13 curriculum wall + 3 integrity gaps). L3 needs the coupled-triad company-vs-truth gap + director Expert Hour.
+- **W1_5 correctly left at L0** — the DISCOVER passes found it genuinely greenfield (the analysis discriminates, not blanket-upgrades).
+- **G3 / B4 / W4_2:** FRAME already landed; no under-registration (B4's modules genuinely orphaned = correct L0; W4_2's verifier genuinely lacks timing detection = correct L1). Not re-churned.
+
+**Lane-1 BUILD:** SITE1_expert_doors + A8_experiment_loop_speed **held at L2 at genuine walls** (SITE1 → director Expert Hour, one-way-door cat.6; A8 → mock-composition lever blocked on `ARCH1_internal_seams`, outside file_scope), both already re-grounded in the prior two commits. No fabricated move; no duplicate BUILD code.
+
+**Gates:** 38 blast-radius tests pass (`test_map_reconciliation` + `test_coupled_triad_gate` + `test_generate_maturity_map_data` + `test_atom_status_merge`); epistemic verifier PASS (510 files). Pushed and verified against origin. (Note: a concurrent push landed a new director P1 atom `ACTIVITY_COST_AND_UTILISATION` — out of my drawn scope, left for a future draw; its differing local untracked copy preserved as a `.bak` beside origin's committed version.)
+
+{"atom_id": "W1_3_national_weather_signal (+W1_2_generate_futures, W1_4_regional_weather_field, all L0->L1 in one commit)", "action": "VERIFY re-level: corrected 3 mis-registered SIM atoms L0->L1 against already-built/wired/tested code (weather_engine.py, bimodal_generator.py); held below L2/L3 at real walls; BUILD atoms + other Lane-3 atoms held at genuine walls, no fabricated moves", "claimed_commit_sha": "aad990346f945866ef2c134581930f5de43d5dab", "level_before": 0, "level_after": 1, "gate_status": "passed"}

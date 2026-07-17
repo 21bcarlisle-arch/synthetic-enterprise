@@ -1,0 +1,14 @@
+## H17 turn complete
+
+**Drawn work — all 4 atoms landed in one commit `6029eefbe` (verified on origin via `git ls-remote`):**
+
+**LANE 2 SITE — G11_activity_cost_utilisation: L0 → L2** (honest, not self-certified L3)
+- Reporting layer over *existing* data (git history of 4083 commits + token-log + action_needed_register) — no new instrumentation. Full 7-class PRODUCTIVE/WASTE taxonomy; TIME and TOKENS attributed **separately** (their divergence is the signal).
+- All 5 metrics surfaced on the Method door and **pixel-verified live** (R11): productive-time **40.7%** vs cost **74.6%** (divergence −33.9pp); self-repair trending **up** 6.9→11.1% — the treadmill signal this atom exists to catch. Guardrail *"DIAGNOSTIC, NEVER A TARGET"* rendered on-surface (R12). Fail-honest proven; wired into the publish pipeline (R11 no-orphan-transition).
+- **Held at L2** because the taxonomy-mapping framing is unreviewed judgment and classifier accuracy isn't validated against a hand-labelled sample — those + coarse token attribution are the L3 remainder.
+
+**LANE 3 DISCOVER/FRAME — H20, H21, H22: genuine first FRAME docs, levels HELD at 0** (BUILD-gated, EPOCH_GATING R1, no build code). These were registered *today*, so this is real design work, not the FRAME-saturated re-draw the previous turn flagged as a DIAL defect.
+
+**Gate:** scoped suite **40 passed**, epistemic verifier **PASS**. F1 respected (forks wrote atom_status inboxes; I folded via `merge_atom_status`, no fork touched the map). Committed explicit paths only (no `-A`), rebased past two concurrent-writer pushes + one untracked-file collision, pushed green. No sim/company touched. No one-way door — nothing escalated.
+
+{"atom_id": "G11_activity_cost_utilisation (+H20_parallel_maintenance_lane, H21_self_contained_escalation, H22_scheduled_housekeeping FRAME, held 0)", "action": "G11 SITE build L0->L2 (activity-cost+utilisation on Method door, pixel-verified) + 3 Lane-3 first-FRAME docs; atom_status inboxes folded via F1; all in one commit", "claimed_commit_sha": "6029eefbe4a856917946deba1794772e1faa6396", "level_before": 0, "level_after": 2, "gate_status": "passed", "door_reason": ""}

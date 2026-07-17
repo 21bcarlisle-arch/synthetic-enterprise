@@ -1,0 +1,16 @@
+Confirmed on origin/main: `d9f80c3040e6511f63aa8c619412158b92f55008`.
+
+## Summary
+
+The drawn set was a **stale in-flight artifact** (R7 — I verified against disk, not the doorbell text). Of the 6 drawn atoms:
+
+- **5 (W1_2, B4, B5, W4_2, W1_3)** already carry their own `docs/design/frame/<id>_FRAME.md` and are **FRAME-saturated** — the live H23 `_is_frame_saturated` guard already excludes them. A 7th doc pass is the exact treadmill `SELF_INTERRUPT_DISCIPLINE` + R12 forbid. Rule-0 dial-yield: the stale atom-set dial yields, the DISCOVER/FRAME lane holds, so I took the one genuinely un-saturated atom the guard offers rather than idling.
+- **A8_experiment_loop_speed** — the only atom with no `*_FRAME.md` and a real, named framing gap in its own log: *"No explicit L3 DoD text exists for this atom to check off."*
+
+I wrote A8's first consolidated FRAME doc, whose value-add is filling that gap: an explicit checkable **L2→L3 Definition-of-Done** (D1–D5) plus an anti-DoD list, so the next A8 BUILD closes against a written bar instead of re-deriving "what is done" for a 5th time — the loop-shortening contribution that is A8's whole purpose. I also consolidated the lever inventory and re-verified (R7) that the ARCH1 dependency is still unwired (`build_sim_interface` has zero run-path callers).
+
+**Level HELD at 2** — DISCOVER/FRAME never moves an idle/BUILD-gated atom's level. Recorded via the F1 atom_status inbox (I reverted a premature local fold so the loop folds it on landing, keeping fork and map from ever disagreeing).
+
+Gates: epistemic verifier PASS (510 files), `test_atom_status_merge` 6/6, dry-run fold valid. No one-way door — a technical dependency, no escalation.
+
+{"atom_id": "A8_experiment_loop_speed", "action": "Lane-3 DISCOVER/FRAME: first consolidated FRAME doc supplying the missing explicit L3 Definition-of-Done; 5 co-drawn atoms confirmed FRAME-saturated (stale draw, not re-handed)", "claimed_commit_sha": "d9f80c3040e6511f63aa8c619412158b92f55008", "level_before": 2, "level_after": 2, "gate_status": "clean", "door_reason": ""}

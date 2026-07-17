@@ -1,0 +1,21 @@
+Both changes verified on origin. Turn complete.
+
+## H17 three-lane draw — outcome
+
+**LANE 1 BUILD — A8_experiment_loop_speed → PARKED (not re-built).**
+Three grounded turns (plus a fresh independent R7 this turn) agree A8's two in-scope levers — self-calibrating worker-cap parallelism and tiered SCREEN→FULL tests — are **landed**, and the remaining ~8–10× feasibility win (mock composition + deterministic caching) is wholly outside A8's `tools/background/tests` file_scope and blocked on ARCH1 wiring `build_sim_interface` into the `annual_report` run path (verified: zero run-path callers, `annual_report.py` has zero SimInterface refs, ARCH1 sits at L2 unwired). Dispatching a 3rd fork to re-derive "empty feasible set" is exactly the treadmill **R3** forbids. **Root cause of the phantom re-draw found and fixed:** `merge_atom_status` folds level/evidence/simplification but **not** `loop_stage`, so the prior turns' park recommendations were structurally incapable of taking effect — the map kept `loop_stage=build` and the BUILD draw kept re-selecting A8. Per **Rule 0** (empty feasible set = dials defect, fix it) and **MAKE_IT_STICK** (convert policy to the actual dial the draw reads), I flipped `loop_stage: build → idle` directly — a **reversible DIAL**, not a wall or one-way door (re-open the moment ARCH1 lands the wiring). Gate: 181 map-consuming tests pass, epistemic verifier PASS. Pushed `3ec42f914`.
+
+**LANE 3 DISCOVER/FRAME — W1_8_zonal_locational_pricing → first FRAME authored (level held 0, BUILD-gated).**
+The only genuinely under-framed atom (zero frame doc, level 0→3). A fork authored a 222-line frame grounding the zonal/locational marginal pricing mechanics as a **counterfactual** regional-basis market absent from real GB history (REMA debate; GB is single-national-price today) — pinned to R13 (regime existence/severity = director curriculum, no values chosen), COUPLED_TRIAD (cannot reach L3 without a company atom to measure the belief-vs-truth gap), the W1_4-style demand-weighted-reconciles-to-national invariant, and the epistemic/typed-flow seam. Verifier PASS; folded into the map. Pushed `dc090ae08` → fold `241157ac9`.
+
+**LANE 3 — W1_2, W1_3, W1_4, W4_2, B4 → no fork (frame-saturated).**
+All have substantial frames (168–206 lines) plus built code; B4's 50-line frame is thorough for L1; W1_2 was established saturated last turn. Their remaining gap is **BUILD** (epoch-gated), not framing — a further doc pass would be filler (**SELF_INTERRUPT_DISCIPLINE**: the supply of doc passes is infinite = the treadmill). Held, no filler manufactured.
+
+**Queued systemic findings (SELF_INTERRUPT_DISCIPLINE — registered, not fixed on sight):**
+1. `merge_atom_status` can't fold a `loop_stage`/disposition change, so every fork park recommendation needs a separate orchestrator map edit — extend the inbox schema + fold to carry an R15-mutation-tested `loop_stage` transition (recorded in A8's map note).
+2. The DISCOVER/FRAME draw keeps selecting frame-saturated-but-BUILD-gated atoms (level gap ≠ frame gap) — a `_idle_discover_frame_draw` refinement worth a harness atom.
+3. W1_8's coupled company atom is **unbuilt** (nearest, `B3_hedge_tariff_alignment`, has no regional-basis notion) — W1_8 cannot reach L3 until a company-side regional-basis-risk capability exists to measure the gap.
+
+No one-way doors touched; no pane/NTFY writes.
+
+{"atom_id": "A8_experiment_loop_speed", "action": "park (loop_stage build->idle; in-scope BUILD levers exhausted + ARCH1-blocked, dials-defect fix per Rule 0/R3/MAKE_IT_STICK); companion Lane-3 W1_8 first FRAME authored+folded (dc090ae08/241157ac9)", "claimed_commit_sha": "3ec42f9143ade538eb40adc0f703b162de81d21b", "level_before": 2, "level_after": 2, "gate_status": "passed"}

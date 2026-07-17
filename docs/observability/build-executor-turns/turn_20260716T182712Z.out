@@ -1,0 +1,18 @@
+Both gates green, pushed, and origin/main confirmed at my commit SHA.
+
+## Summary
+
+**LANE 1 BUILD — `H23_frame_saturation_draw_marker` (L0→2, landed):**
+
+Built the mechanism that ends the FRAME-saturation re-hand recursion (occurrences 1–5 in one day, including H23 re-drawing *itself*). In `background/supervisor.py`:
+- `_atom_has_frame_doc` — intrinsic saturation signal: an idle atom is saturated when it already carries its own `docs/design/frame/*_FRAME.md` on disk (real filesystem check, R7; a shared `_SURVEY_` doc listed as evidence correctly does *not* count).
+- `_is_frame_saturated` — intrinsic check, with an explicit `frame_saturated` bool override (the R11 escape, both directions — a cache, never a permanent hold).
+- Hard draw-skip wired into **both** `_idle_discover_frame_draw` and the production `_idle_discover_frame_draw_concurrent`: prefer un-saturated idle atoms; if *every* idle atom is saturated, return empty with a logged reason (a true empty FRAME feasible set, Rule 0) rather than re-handing.
+
+**Design choice vs. the FRAMEd `{since, gate}` marker:** made saturation *computed* rather than a marker a turn must remember to set — MAKE_IT_STICK (a setter decays; this finding evaporated as prose four times; a computed check cannot), and it reuses `evidence` (SIMPLICITY GUARD, no new registry). Auto-clear on gate-open is automatic via the existing `loop_stage != idle` filter → re-enters the BUILD draw.
+
+**R15 mutation test** (`tests/background/test_frame_saturation_draw_marker.py`, 11 green): FIRES (saturated pair never handed while un-saturated exists, both entry points), QUIET (re-opened atom re-enters via BUILD draw + the explicit-false escape), ALL-SATURATED (returns empty, never a re-hand), plus a mock-patched guard-off control proving the test fails if the guard is reverted. **Verified on the live map:** the lane now hands genuinely un-FRAMEd atoms (A8, W1_5, C13, W1_7, W1_10) and skips all ~10 saturated atoms. Supervisor suite 143 green, epistemic PASS.
+
+**LANE 3 DISCOVER/FRAME — `H18_harness_self_mutation_audit`:** FRAME-saturated (own FRAME doc present, level HELD 0 for a BUILD-gated reason — the M1–M5 meta-control mutation tests need Epoch-2 BUILD-open). Per SELF_INTERRUPT + R12 anti-churn — and per the exact mechanism just landed — **no duplicate FRAME doc and no redundant inbox** were emitted (evidence already present). H18 is precisely the class of atom the guard now skips; this draw's honest Lane-3 output is that no FRAME work remained. No one-way door (reversible epoch-2 class), so no escalation.
+
+{"atom_id": "H23_frame_saturation_draw_marker", "action": "built frame-saturation draw guard + R15 mutation test in supervisor.py; F1 inbox reports level 0->2; Lane-3 H18 recognised FRAME-saturated, no-churn (no FRAME doc/inbox)", "claimed_commit_sha": "d2f1b420a4cb21c71610bc7753a0b7959a1bc9fe", "level_before": 0, "level_after": 2, "gate_status": "passed", "door_reason": ""}

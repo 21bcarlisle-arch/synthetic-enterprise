@@ -1,0 +1,15 @@
+Confirmed on origin: `origin/main` = `759648472`.
+
+## Summary
+
+The drawn work was **occurrence 8** of a well-documented frame-saturation treadmill. Verified against real disk/git state (R7, the draw is a doorbell):
+
+**The six drawn atoms are a genuine no-op.** `W4_2`, `W1_2`, `B4`, `B5`, `W1_3`, `W1_4` all carry complete FRAME docs, all read `_is_frame_saturated → True` against the committed map, all levels **HELD**, evidence already folded, BUILD-gated (`loop_stage: idle`). Re-emitting FRAMEs or atom_status inboxes would be exactly the churn SELF_INTERRUPT_DISCIPLINE + R12 forbid. I dispatched **no** forks, wrote **no** duplicate FRAMEs, **no** redundant inboxes, **no** map edit (F1), **no** BUILD code (EPOCH_GATING R1). The live guard at HEAD correctly excludes all six and yields a fresh un-framed set — the machine is not stuck.
+
+**The bankable increment** — the residual leak occurrence 7 could only call "unexplained/plausible" is now **code-verified**: the running daemon reads the *working-tree* map fresh each cycle (`supervisor.py:482`) while the fold writes it *non-atomically* (`merge_atom_status.py:276`, `write_text` truncate-then-write). A read interleaving a fold gets a truncated map → the guard **fail-opens** and hands the saturated atom — an R15 fail-open/fail-silent defect. 3 of the window's leak-draws align to the minute with the 3 fold-commits (3 others don't — stated honestly, candidate not sole cause). I even hit this bug class first-hand: the H23 FRAME doc changed length between two reads mid-turn, so I wrote to a **disjoint self-owned file** rather than collide on the contended doc.
+
+The **fix is BUILD** (`supervisor.py`/`merge_atom_status.py`) → outside this Lane-3 doc-only draw → **QUEUED not fixed**, with a sharpened root remedy (atomic `os.replace` map write + fail-closed reader, R15 mutation test as DoD) for the H23 BUILD lane.
+
+Gates: 27 H23 guard tests green, epistemic verifier PASS (510 files), pushed via tree_lock, confirmed on origin.
+
+{"atom_id": "H23_frame_saturation_draw_marker", "action": "occurrence-8 no-op on 6 saturated drawn atoms (HELD, no FRAME/inbox/map churn); code-verified the residual leak mechanism (map-write/draw-read race) as a standalone QUEUED finding sharpening the H23 BUILD remedy", "claimed_commit_sha": "759648472a3f69c98e0ca99e81eef57136f2105f", "level_before": 2, "level_after": 2, "gate_status": "passed", "door_reason": ""}

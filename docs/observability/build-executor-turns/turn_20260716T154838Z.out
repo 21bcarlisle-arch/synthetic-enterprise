@@ -1,0 +1,17 @@
+Independently verified against origin — everything landed correctly:
+
+- **`d23757aa7` is origin/main HEAD** ✓ — the pushed SHA is real and on origin.
+- **atom_status inbox is in that same commit** ✓ with `level_current: 3` — so the reported level and the code can't disagree; the loop's `merge_atom_status` folds it into the map at landing (I'm a fork/orchestrator turn — I do NOT edit `maturity_map.yaml` per F1).
+- Gate was green before push: `pytest site/` 121 passed, `pytest tests/tools/` 1255 passed, epistemic verifier PASS (510 files).
+
+## Turn summary (H17 three-lane draw)
+
+**LANE 1 BUILD — SITE1_expert_doors: L2 → L3, landed.**
+The one genuinely-open, level-affecting item. Per director commit `678aead8e` (signed advisor-bridge), SITE1's promotion rule was changed: the R11 live-pixel and human-Expert-Hour-acceptance gates were **dissolved**, and cold-eyes now gates the surface autonomously (L3 is a reversible review-gate, *never* a one-way door). A fresh cold-eyes fork ran the required re-review across doors 3–8 and was a genuine skeptic, not a rubber-stamp: it found and fixed a real honesty defect — the Proof (Door 4) and Method-Casebook (Door 6) rule ledgers showed *14 rules (R1–R14)* while the Proof page renders an R15 "Controls That Cannot Fail" kill-list section, a self-contradiction on an honesty-first site. Fixed **durably at the generators** (R10 class-closure, not an instance patch — a JSON-only edit would revert on the next `process_run_complete.py` run), regenerated, gate green, pushed. No surviving blocking defect → promoted to L3 (PROCEED-by-default, not an escalation).
+
+**LANE 3 DISCOVER/FRAME — 6 atoms: already satisfied, no forks dispatched (anti-churn / R7).**
+Verified against disk/git: all six FRAME docs (`W1_9`, `W1_2`, `B4`, `W4_2`, `W1_3`, `W1_4`; 50–206 lines each) already exist, are committed (`84e82bda1`, earlier today), and are folded into the map's evidence. These atoms are BUILD-gated (`loop_stage: idle`); FRAME/DISCOVER is doc-only and cannot move their levels. Re-dispatching 6 forks would produce pure duplicate churn — an R7 (act on disk state, not the doorbell) and self-interrupt-discipline violation. Correct action: no-op with this justification. No BUILD code was written for any gated atom (EPOCH_GATING Rule 1 respected).
+
+**Walls:** No one-way door touched — SITE1 L3 is explicitly reversible per `678aead8e`; no security/secrets/platform-admin/curriculum change; no NTFY/pane writes on my initiative; no escalation warranted. Gate-verified push (blast-radius + epistemic verifier green). Advisor-bridge identity `21bcarlisle-arch` is legitimate and I applied content-level scrutiny to the directive it carried.
+
+{"atom_id": "SITE1_expert_doors", "action": "cold-eyes RE-review PASS; fixed blocking R15 rule-ledger contradiction at generators (durable R10 class-fix); promoted; LANE-3 6 FRAME atoms verified already-complete on disk, no-op (anti-churn)", "claimed_commit_sha": "d23757aa7bf5e7122e7eaa582d995e52555529f0", "level_before": 2, "level_after": 3, "gate_status": "passed"}

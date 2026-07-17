@@ -12,24 +12,38 @@
 
 ## HEADLINE (the honest CUMULATIVE number, 5 passes)
 
-- **32 controls mutation-tested** cumulatively (Pass 1: 13 highest-tier / customer-impacting;
+- **35 controls mutation-tested** cumulatively (Pass 1: 13 highest-tier / customer-impacting;
   Pass 2 / H12 L2→L3: 14 more — the inventoried-but-untested tail; Pass 4, 2026-07-14:
   2 director-named theatre controls fixed + registered; **Pass 5, 2026-07-16, F6 HARDEN:
   the 3 load-bearing Tier-1 STRUCTURAL bill controls** — arithmetic footing, non-negativity/
   fail-CLOSED, temporal sanity — which were F6 evidence at L2 but had never been entered
-  in this central apparatus).
-- **31 FIRED** on their own named defect.
+  in this central apparatus; **Pass 6, 2026-07-16, B2 HARDEN: the 3 load-bearing Tier-1
+  COMMERCIAL cost-to-serve controls** — single-customer gross-margin concentration limit,
+  the Ofgem single-entity HHI cap, the segment-ROCE-hurdle decision-artefact discipline —
+  which were B2 evidence at L3 but had firing tests only in their own atom test files).
+- **34 FIRED** on their own named defect.
 - **1 is THEATRE** — the flagship `vat_by_segment` arithmetic check (`check_vat`), a
   **TAUTOLOGY**. Retained as documented defence-in-depth but structurally
   cannot catch the SME-as-Household mislabel it is named for; the independent
   cross-check that replaces it (`check_vat_consistent_with_consumption`) **fires**.
-- **10 FIXED** cumulatively (Pass 1: 2; **F8, 2026-07-13: 5 — the entire KL-4..KL-8
-  gap set**; Pass 4: 2; **Pass 5, F6 HARDEN: 1** — the temporal-sanity FAIL-OPEN,
-  below). F8/Pass-4/Pass-5 each gave the fixed control a passing mutation test proving it
+- **11 FIXED** cumulatively (Pass 1: 2; **F8, 2026-07-13: 5 — the entire KL-4..KL-8
+  gap set**; Pass 4: 2; **Pass 5, F6 HARDEN: 1** — the temporal-sanity FAIL-OPEN;
+  **Pass 6, B2 HARDEN: 1** — the concentration false-green FAIL-OPEN, below).
+  F8/Pass-4/Pass-5/Pass-6 each gave the fixed control a passing mutation test proving it
   now FIRES on its own named defect (before: theatre / passed-wrongly; after: fires),
   each verified OUTCOME-SAFE (Pass 5: the observed real bill-period max is 30 days, so
-  the 731-day span bound has a ~24x margin — no legitimate bill is HELD). **The
-  registered-gap count is 0.**
+  the 731-day span bound has a ~24x margin — no legitimate bill is HELD; Pass 6: a
+  genuinely diverse positive-margin book still reads green, only the degenerate
+  all-loss-making/empty state changes). **The registered-gap count is 0.**
+- **Pass 6 red-team finding (B2 HARDEN, 2026-07-16):** `gross_margin_concentration_check`
+  — the single-customer concentration control — returned `status:"green"`/`breach:False`
+  for a book with **no positive-margin base** (an EMPTY book, or the far worse
+  ALL-LOSS-MAKING book where every customer is net-negative and excluded from the share
+  base): a **positive all-clear on arguably the worst solvency state possible** (**FAIL-OPEN**,
+  the KL-4/KL-5 empty-reads-as-clean class). Fixed: a no-positive-margin base now returns a
+  distinct `not_assessable`/`breach:None` state — never a false green. `site/supplier/index.html`
+  given an honest "Not assessable" render branch for that state (the live book always has
+  positive-margin customers, so no current live-rendered value changes).
 - **Pass 5 red-team finding (F6 HARDEN, 2026-07-16):** `check_bill_period_sane` — the
   "temporal sanity" control — checked `start <= end` ONLY, so an ordered-but-multi-decade
   service period (e.g. `2024-01-01 → 2099-12-31`) sailed through the very absurdity class
@@ -46,7 +60,7 @@
 | Killer pattern | Count | Controls |
 |---|---|---|
 | **TAUTOLOGY** | 2 | `check_vat` (THEATRE, mitigated, retained); `social_obligation non_compliant` status-trust (**KL-6 FIXED F8** — folds independent `is_underspend`) |
-| **FAIL-OPEN** | 4 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (**KL-7 FIXED F8** — NOT_APPLICABLE / fail-closed on broken detection); dashboard `_check_consistency` per-key skip (**KL-8 FIXED F8** — one-sided key = mismatch); `check_bill_period_sane` multi-decade span (**FIXED Pass 5 F6 HARDEN** — >731-day single-period span fails CLOSED) |
+| **FAIL-OPEN** | 6 | pre-bill subtotal≤0 (**FIXED** P1); `green_claims` zero-obligation (**KL-7 FIXED F8** — NOT_APPLICABLE / fail-closed on broken detection); dashboard `_check_consistency` per-key skip (**KL-8 FIXED F8** — one-sided key = mismatch); `check_bill_period_sane` multi-decade span (**FIXED Pass 5 F6 HARDEN** — >731-day single-period span fails CLOSED); `gross_margin_concentration_check` no-positive-margin base (**FIXED Pass 6 B2 HARDEN** — empty/all-loss-making book now `not_assessable`, never a false green) |
 | **FAIL-SILENT** | 4 | Qwen backstop unavailable (**FIXED** P1); population estimated-read empty-log (**KL-4 FIXED F8** — empty log flags); `consumer_duty` empty-register=GREEN (**KL-5 FIXED F8** — distinct NOT_ASSESSED state); dashboard `_check_consistency` no-insights (**KL-8 FIXED F8** — absent insights fails closed) |
 
 Plus **documented, sourced limitations** (not killer patterns): the YearlyRange

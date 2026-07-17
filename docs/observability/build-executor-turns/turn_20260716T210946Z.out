@@ -1,0 +1,15 @@
+Confirmed on origin/main. 
+
+## Summary
+
+HARDEN pass on **F6_bill_integrity_structural** (AT target, L2→L2) — the drawn Rule-0 self-refill work. Two genuine findings, both closed:
+
+1. **R15 kill-list honesty gap (closed).** The three load-bearing Tier-1 structural controls (`check_bill_foots`, `check_bill_line_items_non_negative`, `check_bill_period_sane`) were F6's L2 evidence but had firing tests *only* in the atom's own test files — they were never entered in the central mutation-test apparatus (`tests/controls/test_control_mutation.py` + `control_registry.json`), so the published kill-list count silently excluded them. Now registered and mutation-tested there; all three FIRE. Cumulative kill list: 29→32 tested / 28→31 fired / 1 theatre unchanged. Proof-door data (`site/data/control_kill_list.json`) and `CONTROL_KILL_LIST.md` brought current.
+
+2. **Red-team finding + fix (FAIL-OPEN closed).** `check_bill_period_sane` — the "temporal sanity" control — checked `start <= end` **only**, so an ordered-but-multi-decade period (`2024-01-01 → 2099-12-31`) sailed through the very absurdity class it's named for. Fixed as a class invariant (R10): a span > `_MAX_BILL_PERIOD_DAYS` (731 days, ~24× the 30-day observed real-data max; back-billing windows use the separate `catchup_period_*` fields) now fails CLOSED. **Verified outcome-safe: 1587 real bills, 0 newly HELD.** One named residual left honest (R10): a wholly-future normal-span period stays uncaught because the predicate is deliberately clock-free (C-S2 replay-safe) — registered as follow-up, not smuggled in.
+
+Gates: 1670 tests pass across the billing/compliance/controls/tools blast radius, epistemic verifier PASS. Pushed to origin/main, SHA confirmed.
+
+Note: the dial-yield NTFY to the director is not something I send from this fork (no pane/NTFY writes on my own initiative) — the loop handles the yield notification per the draw.
+
+{"atom_id": "F6_bill_integrity_structural", "action": "HARDEN: registered 3 structural controls in central kill list + fixed temporal-sanity fail-open", "claimed_commit_sha": "3b962b9dbe736757317961b8c45c90aed836403f", "level_before": 2, "level_after": 2, "gate_status": "passed", "door_reason": ""}

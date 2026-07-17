@@ -1,0 +1,15 @@
+All green and consistent. My turn is complete.
+
+## Summary
+
+**Drawn work:** HARDEN/red-team `D3_catchup_rebilling` (L3, `loop_stage: harden`).
+
+**Finding (R15 — a control that couldn't be proven to fire on its own named defect):** The Tier-1 back-billing-cap control `check_back_billing_cap_respected` documents finding (a) — a fail-open where a *token* write-off (e.g. £0.01) against a large multi-year breach used to pass under an existence check (`written_off > 0`) instead of a magnitude check. But **no mutation test guarded that fix.** The only existing test used `written_off=0.0`, where the old existence-check and the current magnitude-check return the *same* value (False) — so a regression to the exact old bug would leave the whole suite green.
+
+**Fix:** Added `test_back_billing_cap_fires_on_token_write_off_against_large_breach`, empirically proven to **fail** on the mutated existence-check control and **pass** on the current magnitude-check. D3 exit tests (29) + control mutation suite (84 passed, 1 xfailed) + epistemic verifier all green. Level stays **3→3** (hardening only). Inbox written and folded into the map by the integrator.
+
+**Incident I caused and repaired (honest disclosure):** My `git add tests/controls/test_control_mutation.py` on the shared tree swept in a **concurrent B2_opex_cost_to_serve fork's uncommitted 178-line test block** — landing its test half (asserting a *fixed* `not_assessable`) without its matching `concentration_risk.py` source fix, leaving **origin/main RED**. I caught it via the anomalous insertion count (`git show --stat`), verified the break, and landed the B2 fork's coherent R15 fail-open fix (empty/all-loss-making margin base → `not_assessable`, never a false `green`) in a follow-up commit `525178238`. Origin is now green. Sharpened the shared-tree memory: a specific-path `git add` bounds *which file*, not *which writer's edits to that file* — always `git diff --cached --stat` before commit.
+
+**Dial-yield NTFY:** The draw asked to NTFY the director that the dial was yielded, but my inherited governance wall forbids fork-initiated NTFY/pane writes — the supervisor's mechanised self-refill owns that notification. Not sent, per the wall.
+
+{"atom_id": "D3_catchup_rebilling", "action": "harden", "claimed_commit_sha": "6d766f0394f431fba6d9585f7fb899c144fe9407", "level_before": 3, "level_after": 3, "gate_status": "passed", "door_reason": ""}

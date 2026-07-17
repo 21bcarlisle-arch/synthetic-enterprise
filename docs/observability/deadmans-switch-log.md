@@ -12,3 +12,106 @@
 - [2026-07-09 23:28 UTC] Clean -- no unprocessed staging files
 - [2026-07-09 23:43 UTC] Clean -- no unprocessed staging files
 - [2026-07-09 23:58 UTC] Clean -- no unprocessed staging files
+- [2026-07-16 14:06 UTC] Clean -- no queued work, last commit 5min ago
+- [2026-07-16 14:11 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 14:16 UTC] Clean -- no queued work, last commit 6min ago
+- [2026-07-16 14:21 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 14:26 UTC] Clean -- no queued work, last commit 8min ago
+- [2026-07-16 14:31 UTC] Clean -- no queued work, last commit 13min ago
+- [2026-07-16 14:36 UTC] Clean -- no queued work, last commit 18min ago
+- [2026-07-16 14:41 UTC] Clean -- no queued work, last commit 23min ago
+- [2026-07-16 14:46 UTC] Clean -- no queued work, last commit 5min ago
+- [2026-07-16 14:51 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 14:56 UTC] Clean -- no queued work, last commit 8min ago
+- [2026-07-16 15:01 UTC] Work queued (2 file(s)) but commit recent (3min ago) -- not blocked
+- [2026-07-16 15:06 UTC] Work queued (2 file(s)) but commit recent (8min ago) -- not blocked
+- [2026-07-16 15:11 UTC] Work queued (2 file(s)) but commit recent (13min ago) -- not blocked
+- [2026-07-16 15:16 UTC] Work queued (3 file(s)) but commit recent (18min ago) -- not blocked
+- [2026-07-16 15:21 UTC] Work queued (3 file(s)) but commit recent (2min ago) -- not blocked
+- [2026-07-16 15:26 UTC] Work queued (4 file(s)) but commit recent (7min ago) -- not blocked
+- [2026-07-16 15:31 UTC] Work queued (4 file(s)) but commit recent (2min ago) -- not blocked
+- [2026-07-16 15:36 UTC] Work queued (4 file(s)) but commit recent (7min ago) -- not blocked
+- [2026-07-16 15:41 UTC] Work queued (5 file(s)) but commit recent (4min ago) -- not blocked
+- [2026-07-16 15:46 UTC] Work queued (5 file(s)) but commit recent (9min ago) -- not blocked
+- [2026-07-16 15:51 UTC] Work queued (5 file(s)) but commit recent (4min ago) -- not blocked
+- [2026-07-16 15:56 UTC] Work queued (5 file(s)) but commit recent (9min ago) -- not blocked
+- [2026-07-16 16:01 UTC] Work queued (5 file(s)) but commit recent (14min ago) -- not blocked
+- [2026-07-16 16:06 UTC] Work queued (5 file(s)) but commit recent (4min ago) -- not blocked
+- [2026-07-16 16:11 UTC] Work queued (6 file(s)) but commit recent (9min ago) -- not blocked
+- [2026-07-16 16:16 UTC] Work queued (6 file(s)) but commit recent (14min ago) -- not blocked
+- [2026-07-16 16:21 UTC] Work queued (6 file(s)) but commit recent (2min ago) -- not blocked
+- [2026-07-16 16:26 UTC] Work queued (6 file(s)) but commit recent (7min ago) -- not blocked
+- [2026-07-16 16:31 UTC] Work queued (4 file(s)) but commit recent (1min ago) -- not blocked
+- [2026-07-16 16:36 UTC] Work queued (6 file(s)) but commit recent (2min ago) -- not blocked
+- [2026-07-16 16:41 UTC] Work queued (6 file(s)) but commit recent (2min ago) -- not blocked
+- [2026-07-16 16:46 UTC] Work queued (6 file(s)) but commit recent (3min ago) -- not blocked
+- [2026-07-16 16:51 UTC] Work queued (2 file(s)) but commit recent (0min ago) -- not blocked
+- [2026-07-16 16:56 UTC] Work queued (2 file(s)) but commit recent (5min ago) -- not blocked
+- [2026-07-16 17:01 UTC] Work queued (3 file(s)) but commit recent (10min ago) -- not blocked
+- [2026-07-16 17:06 UTC] Work queued (4 file(s)) but commit recent (15min ago) -- not blocked
+- [2026-07-16 17:11 UTC] Work queued (3 file(s)) but commit recent (3min ago) -- not blocked
+- [2026-07-16 17:16 UTC] Work queued (1 file(s)) but commit recent (3min ago) -- not blocked
+- [2026-07-16 17:21 UTC] Work queued (1 file(s)) but commit recent (5min ago) -- not blocked
+- [2026-07-16 17:26 UTC] Work queued (1 file(s)) but commit recent (10min ago) -- not blocked
+- [2026-07-16 17:31 UTC] Work queued (1 file(s)) but commit recent (15min ago) -- not blocked
+- [2026-07-16 17:36 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 17:41 UTC] Clean -- no queued work, last commit 4min ago
+- [2026-07-16 17:46 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 17:51 UTC] Clean -- no queued work, last commit 6min ago
+- [2026-07-16 17:56 UTC] Clean -- no queued work, last commit 4min ago
+- [2026-07-16 18:01 UTC] Clean -- no queued work, last commit 9min ago
+- [2026-07-16 18:06 UTC] Clean -- no queued work, last commit 2min ago
+- [2026-07-16 18:11 UTC] Clean -- no queued work, last commit 7min ago
+- [2026-07-16 18:14 UTC] Dead-man's switch started -- independent of tmux/supervisor stack
+- [2026-07-16 18:14 UTC] Clean -- no queued work, last commit 11min ago
+- [2026-07-16 18:19 UTC] Clean -- no queued work, last commit 16min ago
+- [2026-07-16 18:27 UTC] Dead-man's switch started -- independent of tmux/supervisor stack
+- [2026-07-16 18:27 UTC] Clean -- no queued work, last commit 23min ago
+- [2026-07-16 18:32 UTC] Clean -- no queued work, last commit 28min ago
+- [2026-07-16 18:37 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 18:42 UTC] Clean -- no queued work, last commit 8min ago
+- [2026-07-16 18:47 UTC] Clean -- no queued work, last commit 5min ago
+- [2026-07-16 18:52 UTC] Clean -- no queued work, last commit 10min ago
+- [2026-07-16 18:57 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 19:02 UTC] Clean -- no queued work, last commit 0min ago
+- [2026-07-16 19:07 UTC] Clean -- no queued work, last commit 5min ago
+- [2026-07-16 19:12 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 19:17 UTC] Clean -- no queued work, last commit 8min ago
+- [2026-07-16 19:22 UTC] Clean -- no queued work, last commit 4min ago
+- [2026-07-16 19:27 UTC] Clean -- no queued work, last commit 9min ago
+- [2026-07-16 19:32 UTC] Clean -- no queued work, last commit 14min ago
+- [2026-07-16 19:37 UTC] Clean -- no queued work, last commit 0min ago
+- [2026-07-16 19:42 UTC] Clean -- no queued work, last commit 5min ago
+- [2026-07-16 19:47 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 19:52 UTC] Clean -- no queued work, last commit 8min ago
+- [2026-07-16 19:57 UTC] Clean -- no queued work, last commit 4min ago
+- [2026-07-16 20:02 UTC] Clean -- no queued work, last commit 4min ago
+- [2026-07-16 20:07 UTC] Clean -- no queued work, last commit 9min ago
+- [2026-07-16 20:12 UTC] Clean -- no queued work, last commit 14min ago
+- [2026-07-16 20:17 UTC] Clean -- no queued work, last commit 19min ago
+- [2026-07-16 20:22 UTC] Clean -- no queued work, last commit 2min ago
+- [2026-07-16 20:27 UTC] Clean -- no queued work, last commit 7min ago
+- [2026-07-16 20:32 UTC] Clean -- no queued work, last commit 12min ago
+- [2026-07-16 20:37 UTC] Clean -- no queued work, last commit 17min ago
+- [2026-07-16 20:42 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 20:47 UTC] Clean -- no queued work, last commit 6min ago
+- [2026-07-16 20:52 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 20:57 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 21:02 UTC] Clean -- no queued work, last commit 6min ago
+- [2026-07-16 21:07 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 21:12 UTC] Clean -- no queued work, last commit 2min ago
+- [2026-07-16 21:17 UTC] Clean -- no queued work, last commit 7min ago
+- [2026-07-16 21:22 UTC] Clean -- no queued work, last commit 1min ago
+- [2026-07-16 21:27 UTC] Clean -- no queued work, last commit 6min ago
+- [2026-07-16 21:30 UTC] Dead-man's switch started -- independent of tmux/supervisor stack
+- [2026-07-16 21:30 UTC] Clean -- no queued work, last commit 9min ago
+- [2026-07-16 21:35 UTC] Clean -- no queued work, last commit 14min ago
+- [2026-07-16 21:40 UTC] Clean -- no queued work, last commit 3min ago
+- [2026-07-16 21:45 UTC] Clean -- no queued work, last commit 0min ago
+- [2026-07-16 21:50 UTC] Clean -- no queued work, last commit 5min ago
+- [2026-07-16 21:55 UTC] Work queued (3 file(s)) but commit recent (2min ago) -- not blocked
+- [2026-07-16 22:00 UTC] Work queued (3 file(s)) but commit recent (7min ago) -- not blocked
+- [2026-07-16 22:05 UTC] Work queued (3 file(s)) but commit recent (3min ago) -- not blocked
+- [2026-07-17 06:25 UTC] Dead-man's switch started -- independent of tmux/supervisor stack
+- [2026-07-17 06:25 UTC] BLOCKED NTFY sent -- 463min since commit, 3 file(s) queued
+- [2026-07-17 06:30 UTC] STALL (still) -- 468min since commit, 4 file(s) queued -- suppressed (re-alerts hourly)

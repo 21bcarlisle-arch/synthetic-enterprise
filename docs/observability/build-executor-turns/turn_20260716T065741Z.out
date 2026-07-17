@@ -1,0 +1,17 @@
+Verified independently against origin: `refs/heads/main` = **f1c4cfa00**, my commit confirmed on `origin/main`, both files present. Worktree removed, staging file intact. Done.
+
+## H17 disposition (verified against real git/disk state per R7)
+
+I verified the drawn work against origin rather than the doorbell text, and found most of this draw already consumed or wall-blocked from prior turns. Rather than re-escalate identically (yesterday's turn) **or** fabricate a level bump, I found and landed the one genuine additive slice.
+
+**LANE 1 BUILD**
+- **ARCH1_internal_seams** (0→2 drawn) — **honest hold at 0, no false bump.** The L2-*mechanism* (`RecordedSimInterface` outer-seam mock) was already built + committed (`fe87611a4`, 33 tests green), but the map never folded because the FRAME's **measured-L2 DoD** (a real tournament run showing workers>1 + a measured mock-vs-full gap) is unmet. I root-caused *why*: the life-run subprocess `saas.reporting.annual_report` (407KB) uses **zero** `SimInterface` — it builds the exogenous world inline — so `SIM_RECORDED_TRACE` never activates in a real run. Measured-L2 is therefore a large, A8-contended monolith refactor, not a thin hook. Recorded that finding durably in the map (was only in a prior turn-output file before).
+- **SITE1_expert_doors** (2→3 drawn) — **wall-blocked, no autonomous move.** L3 needs R11 live-pixel verification (no network autonomously) + door 7 is director-auth (one-way door). Honest hold at 2.
+
+**LANE 3 DISCOVER/FRAME**
+- **W1_10_ev_heatpump_geography** — **landed a genuine FRAME** (the only atom genuinely stale, last touched 07-13). `docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md` frames the weather hierarchy but left EV/heat-pump ownership a *static* premise flag; I designed the spatially-and-temporally-varying **adoption process** that reshapes regional load growth (3-level national→regional→premise construction above W1_4/W1_5, aggregation-consistency + peak-coincidence invariants, R15 fail-open forbidden, COUPLED_TRIAD gap, anti-mark-own-homework validator), and recorded the previously-missing W1_4 dependency. `docs/design/W1_10_FRAME.md`. Level stays 0 (Epoch-3 BUILD-gated).
+- **W1_2, B4_competitor_field, W4_2, W1_3, W1_4** — **not thrashed.** All received a DISCOVER pass on 2026-07-15/16 (≤1 day ago); re-passing would be churn per SELF_INTERRUPT_DISCIPLINE, not progress.
+
+**Gate:** epistemic verifier PASS (509 files); narrow map edit (only the 2 target atoms changed, every other atom byte-identical); pushed via clean worktree over a divergent local tree (concurrent-writer churn); verified on origin. No level moved — honest.
+
+{"atom_id": "W1_10_ev_heatpump_geography", "action": "Lane-3 FRAME landed (EV+heat-pump adoption geography design, doc-only) + ARCH1 measured-L2 root-cause recorded (honest hold at 0); SITE1 wall-blocked (network+director-auth); 5 DISCOVER atoms not re-passed (worked <1 day ago, churn)", "claimed_commit_sha": "f1c4cfa00ada6713dd2afdab2e57cac69f8c8a1c", "level_before": 0, "level_after": 0, "gate_status": "passed"}

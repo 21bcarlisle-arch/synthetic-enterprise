@@ -1,0 +1,19 @@
+I've now verified the complete machine state against disk/git. Here is the evidence-first picture (R9):
+
+**Verified facts:**
+- `H23_frame_saturation_draw_marker` is at `loop_stage: idle`, `level_current: 0`, `level_target: 2`, `provenance: proposal` (`docs/design/maturity_map.yaml:1734`).
+- It is **FRAME-saturated**: three evidence docs present (a full FRAME doc + two survey docs), and **four** prior turns already recorded this exact finding (commits `17bce455d`, `caab8d8c1`/`3d20b846d` lineage, `82b9c6039` = occurrence 4). This draw is **occurrence 5** — the recursive defect the atom itself exists to prevent, now landing on the fix atom again.
+- The twin **already APPROVED BUILD-open** at occurrence 4 (`director_twin_log.jsonl @ 2026-07-16T17:57:36`, §3a delegated zone, `DEFERS_TO_DIRECTOR: no`, `CONFIDENCE: high`, not a one-way door, reversible by `git revert`).
+- The BUILD draw (`_maturity_map_draw_concurrent`) excludes `loop_stage == "idle"` atoms (`supervisor.py:600,667`). So the ONLY thing keeping H23 stuck is that `loop_stage` needs to flip `idle → buildable`.
+- **A fork structurally cannot do that flip:** F1 forbids me editing `maturity_map.yaml`, and `merge_atom_status.py` does **not** fold `loop_stage` (confirmed — no `loop_stage` handling in the merger). The inbox schema carries only `level_current`/`append_evidence`/`append_simplification`.
+
+**Why I am landing nothing (walls, not a hold):**
+- A 5th FRAME doc / simplification would be pure churn — the finding is already in git (occ 4 even predicted occ 5 verbatim). `SELF_INTERRUPT_DISCIPLINE` + R12 forbid re-recording it.
+- I will not write the BUILD mechanism: this draw is explicitly Lane-3 FRAME-only ("do NOT write BUILD code for any of these atoms", EPOCH_GATING Rule 1), and the map's own gate (`loop_stage: idle`) is still mechanically closed. Building against a still-idle atom inverts the proper open sequence.
+- This is not a one-way door, so it is not a director escalation; the twin already answered.
+
+**The DIAL-yield that actually breaks the recursion is an integrator/orchestrator action, not a fork one** (Rule 0: yield the gating dial, don't zero the work): **flip `H23.loop_stage` `idle → buildable`** in `maturity_map.yaml` (twin-approved, reversible), which removes it from `_idle_discover_frame_draw`'s pool and hands it to a BUILD turn via `_maturity_map_draw_concurrent`. Until that flip lands, re-drawing H23 as Lane-3 FRAME will produce occurrence 6, 7, … — the fork layer is provably exhausted on this atom.
+
+The fork feasible set for H23 is genuinely empty (FRAME saturated; BUILD lane-gated and map-gated; the unblocking flip is not a fork operation). Per the turn contract, a turn that lands nothing reports an empty SHA with `gate_status='failed'`. No commit written, no churn, no wall crossed.
+
+{"atom_id": "H23_frame_saturation_draw_marker", "action": "no-op (fork layer exhausted: FRAME-saturated, BUILD twin-approved but loop_stage flip is an integrator-only op forks cannot perform; declined to churn a 5th FRAME record per SELF_INTERRUPT/R12)", "claimed_commit_sha": "", "level_before": 0, "level_after": 0, "gate_status": "failed", "door_reason": ""}

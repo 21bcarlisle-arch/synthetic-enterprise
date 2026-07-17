@@ -1,0 +1,17 @@
+The disk evidence is conclusive. Both drawn atoms are already **fully and correctly recorded as HELD, today**:
+
+- **W4_2** already carries a verbatim `2026-07-16 Lane-3 H17 RE-DRAW ... FRAME already saturated ... level HELD at 1 ... See LANE3_H17_BUILD_GATE_SURVEY` note in its `simplifications`. Its BUILD target is a **director-reserved Tier-1 safety-control WALL** (`EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md`, closed B/C). There is no honest FRAME/DISCOVER move, and no *new* information that would warrant an escalation (the gate survey already reasoned this through).
+- **B5** was authored hours ago (`5de4b2a91`) with a complete 249-line FRAME, held at L0, BUILD-gated to Epoch-3 + a director-authored curriculum scenario (R13, COUPLED_TRIAD with W1_8).
+
+Within my **exact drawn scope** (these two atoms, Lane-3 only), the feasible work set is genuinely **empty**: FRAME is saturated for both and BUILD is walled/gated for both. Emitting another "re-drew, still held" note would duplicate a note that already exists verbatim from an earlier H17 draw — the precise churn that **R12** (anti-goal-seek), **SELF_INTERRUPT_DISCIPLINE** (queue, don't fix-on-sight), and **MAKE_IT_STICK** ("illusion of control is worse than nothing") forbid. Manufacturing a commit here would lower the honesty bar, which is a wall, not a dial.
+
+I am **not** widening scope myself (this is a scoped executor turn — "do not free-choose other work"); the recurring re-draw of FRAME-saturated atoms is a **supervisor DIAL defect** already filed as harness intelligence in `LANE3_H17_BUILD_GATE_SURVEY_20260716.md` §meta-finding (a `frame_saturated` per-atom marker so the self-refill yields to genuinely un-FRAMEd idle atoms instead of re-drawing saturated ones). The correct disposition for the supervisor is to widen the draw per Rule-0 yield order to an atom with real work.
+
+No escalation: neither atom presents a *new* one-way-door decision — W4_2's WALL is an **already-closed** director gate, and the atom is correctly at rest (not blocking any lane). Per the honesty walls, I land nothing rather than fake progress.
+
+**Turn outcome:** no commit (no honest in-scope work available; both atoms FRAME-saturated + BUILD-gated, already recorded HELD). Tree left untouched.
+
+- W4_2_verifier_timing_extension — HELD L1, FRAME saturated, BUILD = director-reserved Tier-1 WALL. Nothing landed.
+- B5_regional_basis_risk — HELD L0, FRAME saturated (authored `5de4b2a91`), BUILD-gated to Epoch-3 + director curriculum. Nothing landed.
+
+{"atom_id": "W4_2_verifier_timing_extension", "action": "no-op: both drawn atoms (W4_2 + B5) verified FRAME-saturated against disk with BUILD walled/gated and already recorded HELD today; declined to commit duplicate 'still-held' churn (R12/SELF_INTERRUPT_DISCIPLINE); recurring re-draw-of-saturated-atoms is a supervisor DIAL defect already filed in LANE3_H17_BUILD_GATE_SURVEY_20260716.md", "claimed_commit_sha": "", "level_before": 1, "level_after": 1, "gate_status": "failed", "door_reason": ""}

@@ -1,0 +1,17 @@
+**Verified on origin/main** — commit `8d3680eca` is the origin HEAD.
+
+## Turn complete — three-lane draw landed
+
+**Integrated single-threaded** (forks wrote files + `atom_status` inboxes only; I folded via `merge_atom_status`, gated, and made one explicit-path commit via `tree_lock` — respecting F1 atomic level-write and eliminating shared-tree git hazards).
+
+**Landed (4 atoms → L1, one commit `8d3680eca`, pushed & origin-verified):**
+- **Lane-2 SITE — G7_wip_cycle_time_dashboard L0→1**: real Kanban flow door (`site/wip-flow/`, `tools/generate_wip_flow_data.py`) — WIP live from the map (99 atoms: 29 build/26 harden/44 idle across 13 lanes), cycle-time by **reusing** `tools/effort_calibration.py` (no reinvented git mining), throughput windows, WIP-capped-by-verified-capacity principle. R12 dial-labels, R14 clock basis, mobile pass. **24 site tests pass.**
+- **Lane-3 FRAME (doc-only, BUILD-gated) — G10/G8/G9 L0→1**: Definition-of-Ready gate, Theory-of-Constraints ritual, SRE error-budget/toil tracking. Each grounded in real repo state, each with the Rule-0 "never zero the feasible set" + R12 dial-not-target guardrails stated, and honest named later-BUILD slices.
+
+**Held at a wall (no fabricated level move — honest, and permitted because other lanes had work):**
+- **Lane-1 BUILD — SITE1_expert_doors** held at L2: the L2→3 DoD is a *director-involved Expert Hour + live-pixel verify* = one-way-door category 6 (values/review). Doors 3-8 built + green; not self-authorizable. Not a full-turn escalate.
+- **Lane-1 BUILD — A8_experiment_loop_speed** held at L2: biggest lever (RecordedSimInterface mock composition) blocked on ARCH1 wiring *outside A8's file_scope*; in-scope lever already landed earlier today. Technical dependency, not a door.
+
+**Gates:** epistemic verifier PASS (510 files), 24 site tests green — both before push. No pane/NTFY writes. No one-way door crossed.
+
+{"atom_id": "G7_wip_cycle_time_dashboard", "action": "landed 4 atoms to L1 (G7 SITE build + G8/G9/G10 FRAME) in one folded commit; SITE1+A8 held at L2 at genuine walls", "claimed_commit_sha": "8d3680eca2758196990bcbbd7ed7dc1e2e983c8a", "level_before": 0, "level_after": 1, "gate_status": "passed"}

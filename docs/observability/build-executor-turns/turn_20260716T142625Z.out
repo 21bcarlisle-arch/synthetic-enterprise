@@ -1,0 +1,17 @@
+Verified on origin: `origin/main` == `HEAD` == `6bfb7093501214d4c985db8a06bdd6502ddc479e`.
+
+## Turn summary (H17 three-lane draw)
+
+**LANE 1 BUILD — both HELD at genuine walls (R7-grounded re-verification, no fabricated moves):**
+- **SITE1_expert_doors** (L2) — all 8 door surfaces confirmed built; L2→L3 requires a director-involved Expert Hour (one-way-door cat.6) + R11 live-pixel verify (no network this turn). Not a stall; not autonomously closable.
+- **A8_experiment_loop_speed** (L2) — grounded re-check: `build_sim_interface` has **zero** run-path callers, `annual_report` constructs no SimInterface, so the mock-composition lever remains unwired (owned by ARCH1, outside A8's file_scope). Technical dependency wall, not a one-way door. In-scope lever already landed earlier today.
+
+**LANE 3 DISCOVER/FRAME — 6 real design docs landed (1,856 insertions), evidence-only, NO fabricated level moves:**
+
+I caught and corrected an honesty error mid-turn: I'd initially instructed the forks that "FRAME doc = L1" (from last turn's G8/G9/G10 precedent). But the rubric is explicit — **L1 "Skeletal" = "been BUILT in any form"** — and these are epoch-gated Lane-3 atoms where BUILD is forbidden. Folding those `level_current: 1` inboxes would have been fabricated level moves against the honesty wall. I rewrote all six inboxes to drop the bump and hold each atom at its prior deliberate level (5× L0, W4_2 at L1), recording the docs as evidence plus honest reconciliation flags (W1_2/W1_3 surfaced already-built-but-map-reads-0 code that owes a **VERIFY** pass — flagged, not adjudicated in a doc-only turn).
+
+Gate: epistemic verifier **PASS** (510 files), 13 map-consumer tests pass, doc-only change. Committed + pushed via `tree_lock` with explicit paths only.
+
+No one-way door was crossed; no NTFY/pane writes made.
+
+{"atom_id": "G4_unified_failure_register,W1_2_generate_futures,B4_competitor_field,W4_2_verifier_timing_extension,W1_3_national_weather_signal,W1_4_regional_weather_field (Lane-3 FRAME landed); SITE1_expert_doors,A8_experiment_loop_speed (Lane-1 BUILD held at walls)", "action": "6 Lane-3 FRAME design docs committed as evidence, no level moves (L1 requires built code per rubric); 2 Lane-1 BUILD atoms re-verified and held at genuine walls", "claimed_commit_sha": "6bfb7093501214d4c985db8a06bdd6502ddc479e", "level_before": "G4=0,W1_2=0,B4=0,W4_2=1,W1_3=0,W1_4=0,SITE1=2,A8=2", "level_after": "G4=0,W1_2=0,B4=0,W4_2=1,W1_3=0,W1_4=0,SITE1=2,A8=2", "gate_status": "passed"}

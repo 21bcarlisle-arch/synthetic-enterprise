@@ -1,0 +1,15 @@
+Verified on origin/main.
+
+## Summary
+
+The H17 Lane-3 draw named six idle, BUILD-gated atoms for DISCOVER/FRAME. Checking real disk state (R7 — the draw is a doorbell): **all six already carry complete, substantive FRAME docs**, each concluding "level HELD, BUILD-gated." Their proposed level targets (→L1/L2/L3) all require BUILT code, which is BUILD-gated (EPOCH_GATING R1) — so **no level could honestly move**, and regenerating six near-identical FRAME docs would be pure churn (forbidden by R12 / SELF_INTERRUPT_DISCIPLINE).
+
+The genuine, bankable Lane-3 increment instead: a consolidated **BUILD-gate survey** (`docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md`) naming, per atom, the single precise gate that unblocks BUILD and its gate-class — real epoch-sequencing intelligence for the next BUILD-open decision. Each atom's level was recorded HELD via atom_status inbox (folded into the map per F1 — evidence appended, **zero level-field lines changed**, verified). No BUILD code, no hand-edit of levels.
+
+Gate table produced: W4_2 is the only **WALL** (director-reserved Tier-1 safety-control re-open — not escalated, as nothing new prompts it); the other five are DIAL/depends_on/curriculum gates. **Meta-finding QUEUED (not fixed on sight):** the idle-DISCOVER draw re-drew FRAME-saturated atoms — a Rule-0 DIAL defect worth a `frame_saturated` marker in `_idle_discover_frame_draw`.
+
+Gates: epistemic verifier PASS (510 files), atom_status merge + maturity-map tests 49 passed. Commit `caab8d8c1` confirmed on origin/main.
+
+Since the draw covered 6 atoms in one consolidated commit, the required JSON reports that commit (level_before==level_after for every atom — all HELD). Per-atom held levels: H18=0, W1_2=1, B4=0, W4_2=1, W1_3=1, W1_4=1.
+
+{"atom_id": "H18_harness_self_mutation_audit,W1_2_generate_futures,B4_competitor_field,W4_2_verifier_timing_extension,W1_3_national_weather_signal,W1_4_regional_weather_field", "action": "lane3_discover_frame_build_gate_survey_levels_held", "claimed_commit_sha": "caab8d8c11a2e132d58a60ea7e8cd9112797f6f6", "level_before": "0,1,0,1,1,1", "level_after": "0,1,0,1,1,1", "gate_status": "passed", "door_reason": ""}

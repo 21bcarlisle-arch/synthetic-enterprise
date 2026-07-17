@@ -1,0 +1,12 @@
+Both atoms landed and independently verified against origin/main; all four files present; epistemic verifier PASS.
+
+**H17 Lane-3 FRAME turn complete** — 2 atoms drawn, 2 canonical per-atom FRAME termini authored (doc-only, no BUILD, no map edit per F1). Each fork wrote its own `docs/design/frame/<id>_FRAME.md` + `docs/design/atom_status/<id>.yaml` inbox under its own tree_lock, disjoint file scopes, no contention. Levels held at 0 (BUILD is epoch-gated — F4 epoch 5, D4 epoch 4 "do not start"); the inboxes fold to make `_is_frame_saturated` True so neither is re-offered to the idle draw (MAKE_IT_STICK, computed not remembered).
+
+Honest findings surfaced by the forks:
+- **F4**: real hook confirmed — `resolve_decision_request()` in `company/governance/decision_rights.py` has no `resolved_by`/role param, so `DECISION_RIGHTS_REGISTER`'s `approver` field is unenforced. FRAME's single BUILD-unblock gate: Epoch-5 open only (empty `depends_on`, no unmet prerequisite).
+- **D4**: block is genuinely two-part — `D1_bill_correctness` is met (3/3) but `C4_adoption_physics` is an **unmet prerequisite** (0/2 idle), on top of the epoch-4 gate + director "do not start". Coupled-triad gap to C4 (bother-threshold `τ_i` / reward-responsiveness `ω_i`) named; `coupled_triad.py` has no `D4→C4` entry yet (registered as a future BUILD task, not touched).
+
+Both reversible doc-only FRAMEs — no one-way door, no escalation. Pushed and verified on origin.
+
+{"atom_id":"F4_company_internal_authz","action":"frame_terminus","claimed_commit_sha":"2df308f2598be5e97de6f474e6a5da2c787f2126","level_before":0,"level_after":0,"gate_status":"green","door_reason":""}
+{"atom_id":"D4_loyalty_incentive_billing","action":"frame_terminus","claimed_commit_sha":"a69a15ebadc56b0b8162b3112405375ea2c5dd95","level_before":0,"level_after":0,"gate_status":"green","door_reason":""}

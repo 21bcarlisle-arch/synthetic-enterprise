@@ -269,3 +269,11 @@
 - [2026-07-09 07:12 UTC] Acked inbound message '82bNYrAlq3qe' ('Minor point, you replied identically via ntfy twice 6 minute') — staged as from_rich_20260709_071209.md
 - [2026-07-09 18:52 UTC] Poll error: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
 - [2026-07-09 22:31 UTC] Acked inbound message '6WQj9qGRF14M' ('We have plenty of tokens, please try to increase the velocit') — staged as from_rich_20260709_223142.md
+- [2026-07-16 15:39 UTC] Acked inbound message 'VZziJoW6KIJD' ('What is the repeating retro cadence stale fake message??? Ur') — staged as from_rich_20260716_153909.md
+- [2026-07-16 16:49 UTC] Acked inbound message '9fJPnlpuk8tP' ('NOT a one-way door — false positive. You pattern-matched "op') — staged as from_rich_20260716_164944.md
+- [2026-07-16 16:58 UTC] Acked inbound message 'eqF1gxSoriR7' ('publish_gate_wedged is REAL (rc=1 = test regression, not OOM') — staged as from_rich_20260716_165838.md
+- [2026-07-16 17:14 UTC] NTFY responder started
+- [2026-07-16 18:14 UTC] NTFY responder started
+- [2026-07-16 18:27 UTC] NTFY responder started
+- [2026-07-16 21:30 UTC] NTFY responder started
+- [2026-07-17 06:25 UTC] NTFY responder started

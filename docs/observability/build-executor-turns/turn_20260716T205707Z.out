@@ -1,0 +1,20 @@
+Confirmed on `origin/main` (SHA `5efcb9bc3566f05f8b436693affe83a217d0cc93`).
+
+## Summary
+
+**Drawn work:** HARDEN/red-team the at-target atom `E2_revenue_reconciliation` (L3→L3), a Rule-0 self-refill draw (dial yielded — no below-target work).
+
+**What I found (red-team):** The atom's core claim — *"a single reconciled revenue definition across EVERY reporting surface"* — was held only by a one-off manual grep (2026-07-12) against **four hand-picked** pages. That's exactly the MAKE_IT_STICK/R10 failure mode: a prose-only invariant with no mechanism. A broad `site/**/*.html` scan found net-margin figures on **three surfaces the four-item registry never listed**:
+- `site/company/index.html` — nav-linked, live, **complies** (kpi-basis lines + reconciliation bridge), but its compliance was luck, not a guaranteed invariant.
+- `site/shadow/supplier/index.html` — generated debug mirror, no disclosure.
+- `site/snapshots/DASHBOARD_*.html` — frozen archive, correctly never retro-labelled.
+
+**What I did (mechanise the invariant):** New standing control `tests/tools/test_e2_revenue_reconciliation_surfaces.py` that **auto-discovers** surfaces (so a new undisclosed net-margin page can't slip the net) and fails if any live surface renders a net-margin figure without its R14 clock/basis disclosure. The two exclusions (shadow/snapshots) are **declared with reasons and asserted non-silent** (no silent cap).
+
+**R15 (control must be able to fail):** a mutation test strips a real compliant surface's disclosure tokens (keeping the figure) and proves the control fires; a fail-open guard proves a new undisclosed surface is caught; a missing/empty surface is treated as a violation, not a pass.
+
+**Gates:** 6/6 new tests pass; blast-radius set (107 passed, 1 xfailed); epistemic verifier PASS. Test-only, disjoint file_scope, no production code touched. Level stays 3→3 (at target). Recorded via atom_status inbox in the same commit (F1).
+
+Note on the draw's "NTFY the director this dial was yielded" instruction: I did **not** send it myself — the inherited governance wall bars NTFY writes on a fork's own initiative; the orchestrator loop owns that transition. Reporting it here instead.
+
+{"atom_id": "E2_revenue_reconciliation", "action": "harden", "claimed_commit_sha": "5efcb9bc3566f05f8b436693affe83a217d0cc93", "level_before": 3, "level_after": 3, "gate_status": "passed", "door_reason": ""}

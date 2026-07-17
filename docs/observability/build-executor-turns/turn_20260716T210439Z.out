@@ -1,0 +1,20 @@
+Confirmed on origin/main. 
+
+## Summary
+
+**Drawn work:** Rule-0 self-refill (dial=1 yielded — no below-target work) to HARDEN the at-target atom `H7_skills_and_rules` (procedure moved out of CLAUDE.md into skills/rules for decay-resistance).
+
+**What I found (red-team):** The atom's whole purpose is decay-resistance, yet the two *actual* decay failure modes had **no control that could fail** (R15 gap):
+1. CLAUDE.md re-accumulating past its own declared **35k-char / 200-line hard limit** — a prose-only rule (the exact decay-prone form MAKE_IT_STICK warns against), and live-thin at draw time: **34,731 chars, only 269 chars of headroom**.
+2. A skill/rule CLAUDE.md references *by path* going missing/renamed — a dangling pointer that silently loses the moved-out procedure.
+
+**What I built (mechanise the invariant):**
+- `background/claude_md_integrity.py` — auto-discovering control (R10 class-level): regex-extracts every concrete `.claude/skills|rules` artefact CLAUDE.md references (a new reference tomorrow is covered free) and fails on any missing pointer or size breach. Anti-tautology (R15): checked value is the *measured* file (real unicode char count — bytes ≠ chars here), thresholds are fixed doctrine constants.
+- `tests/tools/test_claude_md_integrity.py` — 11 tests: live-state assertions (the actual control) + **R15 mutation tests** proving each check fires on its named defect, incl. a fail-closed at-exactly-limit edge and a vacuous-auto-discovery guard.
+- **Controlled live mutation** (not asserted): moved the real `phase-close/SKILL.md` aside → live test went **RED** → restored → **GREEN**.
+
+**Gate:** blast-radius tests green (18 passed, incl. H7's existing hook test), epistemic verifier **PASS** (harness-meta only, no SIM/company surface). Level held L3→L3 (at target); atom_status inbox committed in the same commit (F1).
+
+One note on the drawn instruction to "NTFY the director this dial was yielded": as a headless fork I don't write NTFY/pane on my own initiative (governance wall) — the loop/orchestrator owns that transition; this report surfaces the yield.
+
+{"atom_id": "H7_skills_and_rules", "action": "harden", "claimed_commit_sha": "841ded91cd98188ad44271da7301d9306f51b65b", "level_before": 3, "level_after": 3, "gate_status": "passed", "door_reason": ""}

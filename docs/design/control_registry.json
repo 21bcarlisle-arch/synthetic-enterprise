@@ -6,20 +6,34 @@
     "doctrine": "A control that CANNOT FAIL is worse than no control. For every control, inject the exact defect it exists to catch; it MUST fire. Audit for three killer patterns: TAUTOLOGY (checked value derived from the same source it is checked against), FAIL-OPEN (passes on missing/zero/empty/malformed), FAIL-SILENT (passes when the checker itself is unavailable).",
     "coverage_note": "Pass 1 (commit e16f00de) mutation-tested the highest-tier / customer-impacting control set (invariant library, Tier-1 pre-bill gate, obligations tiering, the Qwen backstop, the epistemic verifier). Pass 2 (H12 L2->L3) extends to the inventoried-but-untested tail: the compliance trackers (population sanity, consumer duty, social obligation, crisis bad debt, green claims), the health / page-consistency gates (R14 basis labels, dashboard consistency + population consistency, background/health_check), the daemon change-detection (dedup) gate, and a STRUCTURAL check of the LLM-judge evaluators (judgement layer itself remains not-deterministically-mutation-testable, documented not counted as covered).",
     "cumulative_counts": {
-      "as_of": "2026-07-16 (pass 5: F6 three structural controls registered + a temporal-sanity fail-open fixed)",
-      "total_controls_mutation_tested": 32,
-      "fired_on_named_defect": 31,
+      "as_of": "2026-07-16 (pass 6: B2 three commercial controls registered + a concentration fail-open fixed)",
+      "total_controls_mutation_tested": 35,
+      "fired_on_named_defect": 34,
       "theatre": 1,
-      "fixed_cumulative": 10,
+      "fixed_cumulative": 11,
       "gaps_registered_not_fixed": 0,
       "pass_5_note": "2026-07-16 F6_bill_integrity_structural HARDEN: the three load-bearing Tier-1 STRUCTURAL controls (bill_foots_structural, bill_line_items_non_negative_structural, bill_period_temporal_sane_structural) were F6 evidence at L2 but had never been entered in THIS central mutation-test apparatus (they had firing tests only in the atom's own test files) -- an R15 honesty gap in the published kill-list count. Now registered and mutation-tested here (all three FIRE). Red-teaming them found + FIXED one real FAIL-OPEN: check_bill_period_sane checked start<=end ONLY, so an ordered-but-multi-decade service period (e.g. 2024->2099) passed the 'temporal sanity' control -- now a span > 731 days (~24x the 30-day observed real max) also fails CLOSED. One named residual left honest (a wholly-future normal-span period, uncatchable without a clock in a replay-safe pure predicate).",
       "pass_4_note": "2026-07-14: two controls the director named as theatre were fixed and mutation-proven, then registered here so the kill list stays honest. (1) deadman_meaningful_liveness (FAIL-OPEN): the deadman keyed liveness on ANY commit, so auto-process flat no-op run-completes masked the real 83-min executor-idle window -- now keyed on the newest MEANINGFUL commit and fails closed on unreadable git; fires on test_flat_auto_process_commits_do_not_refresh_liveness. (2) claim_evidence_hook (TAUTOLOGY): a self-certifying 'fixed/deployed' send_ntfy claim now requires an INDEPENDENT witness (the cited SHA reachable on origin/main, checked by git), fails closed on no/bogus SHA or unresolvable origin ref; fires on test_blocks_claim_citing_sha_not_on_origin.",
       "by_killer_pattern": {
-        "TAUTOLOGY": {"total": 3, "detail": "check_vat (THEATRE, mitigated, retained defence-in-depth); social_obligation non_compliant status-trust (KL-6 FIXED F8: now folds independent is_underspend evidence, mislabelled-PAID underspend fires); claim_evidence_hook (FIXED 2026-07-14: a self-certifying completion claim now demands an on-origin SHA witness, fires on a committed-but-unpushed SHA)"},
-        "FAIL_OPEN": {"total": 5, "fixed": 5, "listed_gaps": 0, "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (KL-7 FIXED F8: NOT_APPLICABLE for no-claims, fails CLOSED on broken detection); dashboard _check_consistency per-key skip (KL-8 FIXED F8: one-sided missing key now a mismatch); deadman_meaningful_liveness (FIXED 2026-07-14: no-op auto-process commits no longer refresh the liveness clock, fires on a stale meaningful commit); bill_period_temporal_sane span (FIXED 2026-07-16 F6 HARDEN: an ordered-but-multi-decade period passed a start<=end-only check, now a >731-day span fails CLOSED)"},
-        "FAIL_SILENT": {"total": 4, "fixed": 4, "listed_gaps": 0, "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (KL-4 FIXED F8: empty log now FLAGS); consumer_duty empty-register=GREEN (KL-5 FIXED F8: distinct NOT_ASSESSED state); dashboard _check_consistency no-insights (KL-8 FIXED F8: absent insights now fails CLOSED)"}
+        "TAUTOLOGY": {
+          "total": 3,
+          "detail": "check_vat (THEATRE, mitigated, retained defence-in-depth); social_obligation non_compliant status-trust (KL-6 FIXED F8: now folds independent is_underspend evidence, mislabelled-PAID underspend fires); claim_evidence_hook (FIXED 2026-07-14: a self-certifying completion claim now demands an on-origin SHA witness, fires on a committed-but-unpushed SHA)"
+        },
+        "FAIL_OPEN": {
+          "total": 6,
+          "fixed": 6,
+          "listed_gaps": 0,
+          "detail": "pre_bill subtotal<=0 (FIXED pass 1); green_claims zero-obligation (KL-7 FIXED F8: NOT_APPLICABLE for no-claims, fails CLOSED on broken detection); dashboard _check_consistency per-key skip (KL-8 FIXED F8: one-sided missing key now a mismatch); deadman_meaningful_liveness (FIXED 2026-07-14: no-op auto-process commits no longer refresh the liveness clock, fires on a stale meaningful commit); bill_period_temporal_sane span (FIXED 2026-07-16 F6 HARDEN: an ordered-but-multi-decade period passed a start<=end-only check, now a >731-day span fails CLOSED); single_customer_gross_margin_concentration empty/all-loss-making false-green (FIXED 2026-07-16 B2 HARDEN: no-positive-margin base now 'not_assessable'/None, never a false green)"
+        },
+        "FAIL_SILENT": {
+          "total": 4,
+          "fixed": 4,
+          "listed_gaps": 0,
+          "detail": "Qwen backstop unavailable (FIXED pass 1); population estimated-read empty-log (KL-4 FIXED F8: empty log now FLAGS); consumer_duty empty-register=GREEN (KL-5 FIXED F8: distinct NOT_ASSESSED state); dashboard _check_consistency no-insights (KL-8 FIXED F8: absent insights now fails CLOSED)"
+        }
       },
-      "honest_note": "F8 (2026-07-13) CLOSED all five pass-2 gaps KL-4..KL-8, each with a passing mutation test proving the control now FIRES on its own named defect (before: theatre/passed-wrongly; after: fires). Each fix was verified OUTCOME-SAFE against the live population: the real run's 1,588 meter reads (30% estimated) still read clean (KL-4); a populated all-green Consumer-Duty register still reads GREEN (KL-5); a genuinely-met PAID full-spend obligation is still not flagged (KL-6); the real dashboard carries all 8 headline keys on both surfaces so no false one-sided mismatch (KL-8). ConsumerDutyRegister and SocialObligationSpendRegister are instantiated only in tests (no production surface), so KL-5/KL-6 carry zero production-outcome risk. Cumulative theatre count remains 1 (check_vat, the flagship tautology, retained as documented defence-in-depth)."
+      "honest_note": "F8 (2026-07-13) CLOSED all five pass-2 gaps KL-4..KL-8, each with a passing mutation test proving the control now FIRES on its own named defect (before: theatre/passed-wrongly; after: fires). Each fix was verified OUTCOME-SAFE against the live population: the real run's 1,588 meter reads (30% estimated) still read clean (KL-4); a populated all-green Consumer-Duty register still reads GREEN (KL-5); a genuinely-met PAID full-spend obligation is still not flagged (KL-6); the real dashboard carries all 8 headline keys on both surfaces so no false one-sided mismatch (KL-8). ConsumerDutyRegister and SocialObligationSpendRegister are instantiated only in tests (no production surface), so KL-5/KL-6 carry zero production-outcome risk. Cumulative theatre count remains 1 (check_vat, the flagship tautology, retained as documented defence-in-depth).",
+      "pass_6_note": "2026-07-16 B2_opex_cost_to_serve HARDEN (L3->L3): the three load-bearing Tier-1 COMMERCIAL controls of the cost-to-serve taxonomy (single_customer_gross_margin_concentration, single_entity_hhi_cap, segment_roce_hurdle_decision_artefact) were B2 evidence at L3 but had firing tests ONLY in their own atom test files, never in THIS central mutation-test apparatus -- the same R15 honesty gap the F6 pass closed for the structural bill controls. Now registered and mutation-tested here (all three FIRE). Red-teaming them found + FIXED one real FAIL-OPEN: gross_margin_concentration_check returned status='green'/breach=False for a book with no positive-margin base (EMPTY, or the far worse ALL-LOSS-MAKING book) -- a false all-clear on arguably the worst solvency state -- now a distinct 'not_assessable'/breach=None state that is never a false green. Verified OUTCOME-SAFE: a genuinely diverse positive-margin book still reads green, a whale still fires red, the unset-limit and revenue-basis-rejection branches unchanged. The live dashboard's real book always has positive-margin customers, so the fix changes no current live-rendered value; it removes a false green only in the degenerate all-loss-making/empty state (site/supplier/index.html also given an honest 'Not assessable' render branch for that state)."
     }
   },
   "controls": [
@@ -184,7 +198,6 @@
       "killer_pattern_detail": "A completion claim self-certifying 'done' is the tautology class -- the claim asserts its own truth. FIXED: the hook demands an INDEPENDENT witness (the SHA must be reachable on origin/main, checked by git, not by the claimant's word) before a fixed/deployed/live send_ntfy is allowed. Fails CLOSED: no SHA cited -> BLOCK ('commit SHA' in stderr, test_blocks_claim_with_no_sha); a bogus SHA -> BLOCK (test_blocks_claim_citing_bogus_sha); the origin tracking ref unresolvable -> BLOCK, an unverifiable check is a failed check (test_blocks_when_no_origin_ref_resolvable). Outcome-safe: a claim citing a SHA genuinely on origin PASSES (test_passes_claim_citing_sha_genuinely_on_origin); a non-claim ntfy passes (test_allows_non_claim_ntfy_message).",
       "result": "FIRED"
     },
-
     {
       "id": "population_consumption_distribution",
       "pass": 2,
@@ -332,18 +345,101 @@
       "killer_pattern_audit": "partial-coverage (judgement layer not deterministically testable)",
       "killer_pattern_detail": "The verdict QUALITY of an LLM judge cannot be deterministically mutation-tested (no fixed prompt->NEEDS_WORK oracle). Only the read-only structural guarantee is asserted. Documented as NOT-mutation-testable for its judgement, NOT counted as covered for that layer.",
       "result": "STRUCTURAL-ONLY"
+    },
+    {
+      "id": "single_customer_gross_margin_concentration",
+      "pass": 6,
+      "location": "company/risk/concentration_risk.py::gross_margin_concentration_check",
+      "catches": "Too much of the book's GROSS MARGIN sourced from one customer (director risk-appetite: RED >15%, AMBER >10%) -- one large loss must be visible as a standing risk, not discoverable only after the fact.",
+      "mutation": "A whale taking >15% of gross margin FIRES red (test_single_customer_concentration_fires_on_over_limit_share); an empty/all-loss-making book is not_assessable NOT a false green (test_single_customer_concentration_empty_book_is_not_assessable_not_green); no limit set -> unset/None not a fabricated pass; a revenue-basis snapshot is REJECTED (test_single_customer_concentration_rejects_wrong_metric_basis).",
+      "killer_pattern_audit": "FAIL-OPEN (FIXED B2 HARDEN 2026-07-16)",
+      "killer_pattern_detail": "Red-team FIXED a real FAIL-OPEN: a book with no positive-margin base (EMPTY, or the far worse ALL-LOSS-MAKING book where every customer is net-negative and excluded from the share base) returned status='green'/breach=False -- a positive all-clear on the single-customer concentration control for arguably the worst solvency state possible. Now a distinct 'not_assessable'/breach=None state (never a false green). Metric-basis independence also asserted: the check RAISES on a revenue-basis snapshot rather than scoring the wrong metric.",
+      "result": "FIRED"
+    },
+    {
+      "id": "single_entity_hhi_cap",
+      "pass": 6,
+      "location": "company/risk/concentration_risk.py::ConcentrationSnapshot.breaches_single_entity_cap",
+      "catches": "Any single entity above the Ofgem no-single-customer->20%-of-revenue guidance threshold.",
+      "mutation": "A top entity at 21% FIRES (breaches_single_entity_cap True) and moves HHI tiering to high/critical; exactly 20% does NOT breach (boundary); an empty snapshot is a DOCUMENTED not-applicable (top_entity None, no breach -- a zero-customer book is a population failure surfaced elsewhere, not a share-cap breach). Tests: test_single_entity_cap_fires_above_ofgem_threshold, test_single_entity_cap_empty_snapshot_is_documented_not_fail_open.",
+      "killer_pattern_audit": "clean (empty-snapshot not-applicable branch documented + asserted)",
+      "result": "FIRED"
+    },
+    {
+      "id": "segment_roce_hurdle_decision_artefact",
+      "pass": 6,
+      "location": "company/finance/segment_capital.py::segments_under_hurdle / decision_artefacts_needed",
+      "catches": "A segment PERSISTENTLY below the director's ROCE hurdle (12% pre-tax) -- cross-subsidy must be made visible and forced to a named reprice/fix/exit decision, never left silent.",
+      "mutation": "A segment under the hurdle for >= min_consecutive_years FIRES a governed decision artefact (test_segment_roce_hurdle_fires_a_decision_artefact_on_persistent_underperformance); a SINGLE bad year does NOT fire (outcome-safe); no hurdle set -> no fabricated pass/fail (test_segment_roce_hurdle_unset_never_fabricates_a_pass_or_fail); a year with undefined ROCE (capital<=0 -> None) BREAKS the streak rather than counting as evidence (test_segment_roce_undefined_capital_breaks_the_under_hurdle_streak).",
+      "killer_pattern_audit": "clean (unset -> None/empty not a fabricated pass; undefined-year fail-closed on the streak)",
+      "result": "FIRED"
     }
   ],
   "newly_found_gaps_pass_2": [
-    {"id": "KL-4", "pattern": "FAIL-SILENT", "control": "population_sanity.check_estimated_read_rate", "gap": "Empty meter_read_log returns [] (clean) though a total absence of reads is the most-broken read-generation state.", "disposition": "FIXED (F8, 2026-07-13): an empty log now returns a finding (fires). Outcome-safe -- the live run's 1,588 reads still read clean. Mutation test: test_population_estimated_read_rate_empty_log_fires.", "fix_recommendation": "DONE: alarm on a total absence of reads (an empty check cannot be a passing check)."},
-    {"id": "KL-5", "pattern": "FAIL-SILENT", "control": "consumer_duty.ConsumerDutyRegister.overall_rag", "gap": "An empty register (zero outcome assessments) reports GREEN; under FCA Consumer Duty an un-assessed outcome is a governance failure, not compliant.", "disposition": "FIXED (F8, 2026-07-13): overall_rag() now returns a distinct OutcomeRAG.NOT_ASSESSED (not GREEN); is_assessed()/needs_attention() added as flags. Outcome-safe -- populated all-green still GREEN; register is test-only in production. Mutation test: test_consumer_duty_empty_register_fires_not_green.", "fix_recommendation": "DONE: explicit NOT_ASSESSED state rather than defaulting empty to GREEN."},
-    {"id": "KL-6", "pattern": "TAUTOLOGY", "control": "social_obligation_register.non_compliant (is_compliant)", "gap": "Compliance derived from the self-declared status field, not the independent spend-vs-target evidence; a mislabelled-PAID underspend passes non_compliant().", "disposition": "FIXED (F8, 2026-07-13): non_compliant() now folds in the independent is_underspend evidence -- a mislabelled-PAID underspend fires. Outcome-safe -- genuinely-met PAID full-spend not flagged; PROJECTED excluded. Status branch retained as cross-checked defence-in-depth. Mutation test: test_social_obligation_status_trust_tautology_now_fires.", "fix_recommendation": "DONE: non_compliant() folds in is_underspend, not status alone."},
-    {"id": "KL-7", "pattern": "FAIL-OPEN", "control": "green_claims_audit.audit", "gap": "obligation_mwh==0 short-circuits to 100% COMPLIANT; if green-product detection silently breaks, a company selling green tariffs reads compliant.", "disposition": "FIXED (F8, 2026-07-13): no-claims -> NOT_APPLICABLE (distinct from COMPLIANT); a green product in use with a broken zero obligation -> NON_COMPLIANT (fails closed). Mutation test: test_green_claims_audit_zero_obligation_fixed.", "fix_recommendation": "DONE: distinguish 'no claims made' (NOT_APPLICABLE) from a broken detector (fail closed)."},
-    {"id": "KL-8", "pattern": "FAIL-SILENT + FAIL-OPEN", "control": "generate_dashboard_data._check_consistency", "gap": "Missing/empty run_insights.json returns True (pass); a headline key missing on one side is silently skipped.", "disposition": "FIXED (F8, 2026-07-13): absent/empty insights now fails CLOSED (raises the consistency NTFY alarm) -- the pipeline guarantees the file is written before this gate; a one-sided missing headline key is now a mismatch; both-absent still skipped. Outcome-safe -- real dashboard carries all 8 keys on both surfaces. Mutation test: test_dashboard_consistency_gate_no_insights_fixed.", "fix_recommendation": "DONE: absent insights is a hard failure; one-sided missing key counts as a mismatch."}
+    {
+      "id": "KL-4",
+      "pattern": "FAIL-SILENT",
+      "control": "population_sanity.check_estimated_read_rate",
+      "gap": "Empty meter_read_log returns [] (clean) though a total absence of reads is the most-broken read-generation state.",
+      "disposition": "FIXED (F8, 2026-07-13): an empty log now returns a finding (fires). Outcome-safe -- the live run's 1,588 reads still read clean. Mutation test: test_population_estimated_read_rate_empty_log_fires.",
+      "fix_recommendation": "DONE: alarm on a total absence of reads (an empty check cannot be a passing check)."
+    },
+    {
+      "id": "KL-5",
+      "pattern": "FAIL-SILENT",
+      "control": "consumer_duty.ConsumerDutyRegister.overall_rag",
+      "gap": "An empty register (zero outcome assessments) reports GREEN; under FCA Consumer Duty an un-assessed outcome is a governance failure, not compliant.",
+      "disposition": "FIXED (F8, 2026-07-13): overall_rag() now returns a distinct OutcomeRAG.NOT_ASSESSED (not GREEN); is_assessed()/needs_attention() added as flags. Outcome-safe -- populated all-green still GREEN; register is test-only in production. Mutation test: test_consumer_duty_empty_register_fires_not_green.",
+      "fix_recommendation": "DONE: explicit NOT_ASSESSED state rather than defaulting empty to GREEN."
+    },
+    {
+      "id": "KL-6",
+      "pattern": "TAUTOLOGY",
+      "control": "social_obligation_register.non_compliant (is_compliant)",
+      "gap": "Compliance derived from the self-declared status field, not the independent spend-vs-target evidence; a mislabelled-PAID underspend passes non_compliant().",
+      "disposition": "FIXED (F8, 2026-07-13): non_compliant() now folds in the independent is_underspend evidence -- a mislabelled-PAID underspend fires. Outcome-safe -- genuinely-met PAID full-spend not flagged; PROJECTED excluded. Status branch retained as cross-checked defence-in-depth. Mutation test: test_social_obligation_status_trust_tautology_now_fires.",
+      "fix_recommendation": "DONE: non_compliant() folds in is_underspend, not status alone."
+    },
+    {
+      "id": "KL-7",
+      "pattern": "FAIL-OPEN",
+      "control": "green_claims_audit.audit",
+      "gap": "obligation_mwh==0 short-circuits to 100% COMPLIANT; if green-product detection silently breaks, a company selling green tariffs reads compliant.",
+      "disposition": "FIXED (F8, 2026-07-13): no-claims -> NOT_APPLICABLE (distinct from COMPLIANT); a green product in use with a broken zero obligation -> NON_COMPLIANT (fails closed). Mutation test: test_green_claims_audit_zero_obligation_fixed.",
+      "fix_recommendation": "DONE: distinguish 'no claims made' (NOT_APPLICABLE) from a broken detector (fail closed)."
+    },
+    {
+      "id": "KL-8",
+      "pattern": "FAIL-SILENT + FAIL-OPEN",
+      "control": "generate_dashboard_data._check_consistency",
+      "gap": "Missing/empty run_insights.json returns True (pass); a headline key missing on one side is silently skipped.",
+      "disposition": "FIXED (F8, 2026-07-13): absent/empty insights now fails CLOSED (raises the consistency NTFY alarm) -- the pipeline guarantees the file is written before this gate; a one-sided missing headline key is now a mismatch; both-absent still skipped. Outcome-safe -- real dashboard carries all 8 keys on both surfaces. Mutation test: test_dashboard_consistency_gate_no_insights_fixed.",
+      "fix_recommendation": "DONE: absent insights is a hard failure; one-sided missing key counts as a mismatch."
+    }
   ],
   "inventoried_not_yet_mutation_tested": [
-    {"category": "evaluators_judgement_layer", "examples": [".claude/agents/phase-close-evaluator.md", ".claude/agents/epistemic-verifier.md"], "note": "STRUCTURAL read-only guarantee now asserted (llm_judge_evaluators_structural); the LLM verdict QUALITY itself remains not-deterministically-mutation-testable -- graded by prompt+model, no fixed prompt->NEEDS_WORK oracle. Documented, NOT counted as covered for the judgement layer."},
-    {"category": "daemon_scheduling", "examples": ["background/sanity_daemon.py loop cadence/dedup", "background/session_watchdog.py restart logic"], "note": "The change-detection (dedup) gate, health-check, and (pass 4) the deadman's meaningful-liveness control are now mutation-tested; the sanity/session daemons' own SCHEDULING loops (cadence, cooldown, restart backoff) are not individually mutation-tested this pass."},
-    {"category": "regulatory_trackers_tail", "examples": ["company/regulatory/* (50+ registers: ROC, REGO, CfD levy, price cap, GSOP, ombudsman, etc.)"], "note": "The highest-signal compliance trackers are now covered; the long tail of regulatory ledger/register modules is inventoried, not individually mutation-tested. Most are accumulator/reporting registers rather than fire/not-fire gates."}
+    {
+      "category": "evaluators_judgement_layer",
+      "examples": [
+        ".claude/agents/phase-close-evaluator.md",
+        ".claude/agents/epistemic-verifier.md"
+      ],
+      "note": "STRUCTURAL read-only guarantee now asserted (llm_judge_evaluators_structural); the LLM verdict QUALITY itself remains not-deterministically-mutation-testable -- graded by prompt+model, no fixed prompt->NEEDS_WORK oracle. Documented, NOT counted as covered for the judgement layer."
+    },
+    {
+      "category": "daemon_scheduling",
+      "examples": [
+        "background/sanity_daemon.py loop cadence/dedup",
+        "background/session_watchdog.py restart logic"
+      ],
+      "note": "The change-detection (dedup) gate, health-check, and (pass 4) the deadman's meaningful-liveness control are now mutation-tested; the sanity/session daemons' own SCHEDULING loops (cadence, cooldown, restart backoff) are not individually mutation-tested this pass."
+    },
+    {
+      "category": "regulatory_trackers_tail",
+      "examples": [
+        "company/regulatory/* (50+ registers: ROC, REGO, CfD levy, price cap, GSOP, ombudsman, etc.)"
+      ],
+      "note": "The highest-signal compliance trackers are now covered; the long tail of regulatory ledger/register modules is inventoried, not individually mutation-tested. Most are accumulator/reporting registers rather than fire/not-fire gates."
+    }
   ]
 }

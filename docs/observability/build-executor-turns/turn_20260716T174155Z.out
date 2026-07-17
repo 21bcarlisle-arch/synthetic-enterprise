@@ -1,0 +1,16 @@
+Confirmed on origin `main`.
+
+## Summary
+
+The draw was a Lane-3 DISCOVER/FRAME re-draw of 6 idle, BUILD-gated atoms. Treating the doorbell as R7 (verify against real disk state, not the text), I found **all 6 atoms are already FRAME-saturated**:
+
+- **W1_2, B4, W4_2, W1_3, W1_4** — surveyed earlier today (`caab8d8c1`), each with a complete committed FRAME, all levels HELD. Re-emitting FRAMEs would be the exact duplicate-FRAME churn that SELF_INTERRUPT_DISCIPLINE and R12 forbid — so none written.
+- **B5_regional_basis_risk** — the only draw member *absent* from that prior survey's gate table, but already carrying a full 19KB FRAME (`5de4b2a91`).
+
+The genuine, non-churn increment: I folded **B5's single BUILD-unblock gate** into the consolidated survey (W1_8 must open BUILD first — itself gated on `W1_6_physics_price_signal` + a **director-authored zonal curriculum scenario**, an R13 curriculum WALL; B5 releases coupled with W1_8). Recorded via `atom_status/B5_regional_basis_risk.yaml` (F1 inbox — evidence appended, **level HELD at 0**, no BUILD code per EPOCH_GATING Rule 1).
+
+Gates: epistemic verifier PASS (477 files, doc-only diff); inbox schema validates; committed + pushed via tree_lock.
+
+**No escalation** — every gate here is a reversible DIAL or already-known WALL (W4_2's Tier-1 timing-detection re-open, B5/W1_2's curriculum scenarios); no *new* one-way-door decision surfaced this turn. The meta-finding stands reinforced (a saturated-atom re-draw recurred same-day, a DIAL defect in `_idle_discover_frame_draw`) — already QUEUED as harness intelligence, not fixed on sight.
+
+{"atom_id": "B5_regional_basis_risk", "action": "lane3_frame_gate_survey_fold", "claimed_commit_sha": "3d20b846d56df2e311c7efcf4a8e34ac6c1ea79f", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

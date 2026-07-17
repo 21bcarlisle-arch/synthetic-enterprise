@@ -1,0 +1,14 @@
+Verified on origin: `origin/main` is exactly `d1152867d`.
+
+## Summary
+
+The draw was six idle, BUILD-gated atoms — the same frame-saturation set that has recurred as occurrences 5–8 (HEAD was occurrence-8). Verified against real disk (R7), the set was **mixed**, not pure churn:
+
+- **`C13_weather_normalisation` — genuinely un-FRAMEd** (only a `_DISCOVER.md`, no canonical FRAME doc). The saturation guard *correctly* offered it — occurrence-7 had even predicted C13 would be the fresh atom drawn. So I did the real Lane-3 work: authored its **canonical per-atom FRAME** (`docs/design/frame/C13_weather_normalisation_FRAME.md`), consolidating the previously-scattered FRAME-depth thinking (`WEATHER_PHYSICS_HIERARCHY §6` wall/gap/hedging-frontier + the DISCOVER audit's method/seam-gap) into one terminus with its single BUILD-unblock gate. Closed-loop proof confirms `_is_frame_saturated(C13)` now reads `True` from disk → the idle draw stops re-offering it (MAKE_IT_STICK, computed not remembered). Level **HELD at 0** (proposal atom; FRAME complete ≠ built; BUILD-gated on W1_5-L-usable + A6 + Epoch-3 BUILD-open, coupled with W1_5). Reported via atom_status inbox (F1).
+- **`W1_2, B4, B5, W4_2, W1_3` — all frame-saturated**, gates unchanged. Re-FRAMEing would be the exact churn SELF_INTERRUPT_DISCIPLINE + R12 forbid, so **HELD, no FRAME churn**, no forks spawned to duplicate their FRAMEs. Recorded in the consolidated survey's occurrence-9 addendum.
+
+Gates run: frame-saturation guard tests **16 passed**; epistemic verifier **PASS** (doc-only, 477 files, no barrier violations); closed-loop guard proof holds both directions. No BUILD code, no map edit (F1). Pushed to origin, independently verified.
+
+The lesson recorded: not every mixed re-draw is churn to refuse wholesale — verify each atom against disk, FRAME the genuinely-unframed one, HOLD the saturated rest.
+
+{"atom_id": "C13_weather_normalisation", "action": "authored canonical per-atom FRAME (doc-only, no BUILD, no map edit); 5 saturated co-drawn atoms HELD no-churn", "claimed_commit_sha": "d1152867df295cb30f7d7d1ce2f1da25057a9b5e", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

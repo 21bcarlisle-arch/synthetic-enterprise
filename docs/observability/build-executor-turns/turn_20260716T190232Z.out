@@ -1,0 +1,13 @@
+Done. Confirmed on origin/main.
+
+## Summary
+
+The drawn work was **occurrence 7** of a heavily-documented frame-saturation re-draw — the self-refill handed me 6 atoms (`W1_2, B4, B5, W4_2, W1_3, W1_4`) that all already carry complete FRAME docs and are BUILD-gated (`loop_stage: idle`, EPOCH_GATING Rule 1). Treating the draw as a doorbell (R7), I verified against real disk/git state rather than acting on the text:
+
+- **No FRAME churn.** All 6 are FRAME-saturated with levels correctly **HELD** — re-emitting FRAMEs is exactly the make-work SELF_INTERRUPT_DISCIPLINE + R12 forbid. No map edit (F1), no BUILD code, no `atom_status` inbox (no level moved).
+- **First positive proof the recursion is dead.** Live-reproduced the real draw path against current code+map: `_idle_discover_frame_draw_concurrent` now **excludes all 6** and yields a genuinely-un-FRAMEd fresh set (`G4, W1_5, C13, W1_10, H20, H21`). 22/22 H23 guard tests green; map is re-read fresh each cycle (no cache). Prior occurrences only had a static "the check would exclude them" — this is the first observed guard *selecting* fresh work.
+- **One honest residual queued (R9, not chased).** Occurrence 7's own draw (daemon `DISCOVERY=6` at 18:57/19:02Z) *shouldn't* have leaked — guard (18:34Z) and daemon (18:43Z) both predate it and the committed map carried the evidence. Against committed state it's unexplained; I did **not** assert a mechanism, and filed instrumentation for the next harness pass instead of building on `supervisor.py` (out of this Lane-3 doc-only scope).
+
+Epistemic verifier: **PASS**. No one-way door touched — nothing to escalate.
+
+{"atom_id": "W1_2_generate_futures,B4_competitor_field,B5_regional_basis_risk,W4_2_verifier_timing_extension,W1_3_national_weather_signal,W1_4_regional_weather_field", "action": "frame-saturation occurrence-7: no FRAME churn; recursion confirmed CLOSED via live reproduction; residual queued", "claimed_commit_sha": "e0238556f9e8d7784396bac18a9029ca073a59ad", "level_before": "all HELD", "level_after": "all HELD", "gate_status": "passed", "door_reason": ""}

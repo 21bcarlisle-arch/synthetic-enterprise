@@ -1,0 +1,26 @@
+Confirmed. W1_7's FRAME doc is genuinely **complete and canonical** — 9 sections, four R15-mutation-testable invariants (A1–A4), generator/validator anchors with the anti-marking-own-homework split, the R13 baseline/curriculum wall, coupled-triad note, BUILD-unblock gate, and an ordered BUILD task list with proposed `file_scope`. No honest FRAME work remains.
+
+## Disposition (acting on live disk/git state, R7 — not the doorbell)
+
+The drawn atom W1_7 is a **stale draw**. Verified against the live tree:
+
+- **`docs/design/frame/W1_7_renewable_capacity_trends_FRAME.md` exists** (152 lines, 11 KB), committed `ad8ec7eac`.
+- The **live guard reads it saturated**: `_atom_has_frame_doc=True`, `_is_frame_saturated=True`.
+- The **live self-refill draw no longer offers W1_7** — it hands genuinely un-FRAMEd atoms instead (`H8, W1_5, G4, A4, C4, C5`).
+- W1_7 is `loop_stage: idle`, `level_current: 0`, **Epoch-3 BUILD-gated** (EPOCH_GATING R1 — no BUILD code).
+
+This is the exact read→dispatch→execute race the **immediately-prior commit `6d170b3f4` (occurrence-10) already diagnosed** one commit ago: the daemon read/dispatched a map where W1_7 was still un-FRAMEd, and the FRAME fold (`ad8ec7eac`) landed before this fork ran. The root cause now is purely the **R2 deployment gap** — the dispatching daemon holds pre-fold/pre-guard state.
+
+**What this fork does NOT do, and why:**
+- **No second W1_7 FRAME doc** — a duplicate FRAME is precisely the treadmill `SELF_INTERRUPT_DISCIPLINE` + R12 forbid; the finding is already recorded and the remedy already queued+sharpened by occurrence-10. Manually performing the "computed fork-side saturation re-check" occ-10 sharpened, and *acting* on it by declining, is the disciplined outcome — not writing another note about it (MAKE_IT_STICK: prose "occurrence N" evaporates).
+- **No map edit** — F1 (I am a fork); and level is HELD at 0 regardless.
+- **No atom_status inbox** — level unchanged at 0, nothing to append (same disposition as occ-8).
+- **No BUILD code** — EPOCH_GATING R1.
+- **No escalate** — this is not a one-way door; it is a reversible daemon-lifecycle/harness defect.
+- **No NTFY/pane write** — not on a fork's initiative.
+
+The actual fix (restart the stale dispatching daemon so it picks up the live saturation guard, and build occ-10's queued fork-side re-check) is **daemon-lifecycle / H23 BUILD-lane work outside a W1_7 Lane-3 fork's scope** — restarting my own parent daemon mid-turn is not fork-safe (broken stdout pipe would lose the result), and building/mapping is F1-barred. So this fork **lands nothing**: there is no non-churn work available on the drawn atom, and no gate to run.
+
+I made no edits; the working tree carries no changes from me, so there is nothing to commit or push.
+
+{"atom_id": "W1_7_renewable_capacity_trends", "action": "no-op: drawn atom already FRAME-saturated on live disk (complete FRAME doc ad8ec7eac, live guard is_frame_saturated=True, live draw no longer offers it); stale-draw race already diagnosed by occ-10 (HEAD 6d170b3f4) — declined to churn a duplicate FRAME (SELF_INTERRUPT_DISCIPLINE + R12); level HELD 0 (Epoch-3 BUILD-gated), no inbox (F1, nothing to append), no BUILD code", "claimed_commit_sha": "", "level_before": 0, "level_after": 0, "gate_status": "failed", "door_reason": ""}

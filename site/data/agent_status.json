@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-17T09:01:11.913250+00:00",
+  "last_updated": "2026-07-17T09:01:41.915097+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T09:01:11.913250+00:00",
+      "last_heartbeat": "2026-07-17T09:01:41.915097+00:00",
       "last_action": "Heartbeat \u2014 42 files tracked",
-      "last_action_ts": "2026-07-17T09:01:11.913250+00:00",
+      "last_action_ts": "2026-07-17T09:01:41.915097+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -143,7 +143,7 @@
       "produces": "write-landed build turns (origin-verified commit SHAs)"
     }
   ],
-  "treasury_gbp": 11131.0,
-  "net_margin_gbp": -8317.21,
-  "enterprise_value_gbp": -20661.9
+  "treasury_gbp": 3898728.857800693,
+  "net_margin_gbp": 1521069.648177,
+  "enterprise_value_gbp": 7803339.734523183
 }

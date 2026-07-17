@@ -1,0 +1,15 @@
+Done. Landed and verified on origin.
+
+## Summary
+
+**The drawn work was stale.** All 6 atoms in my draw (`W1_9`, `W1_2`, `B4`, `B5`, `W4_2`, `W1_3`) are provably **FRAME-saturated** — each already carries its own `docs/design/frame/<id>_FRAME.md`, and each was *already re-drawn earlier today* with an explicit "no honest FRAME move possible" note. Verified against disk (R7): the live `_self_refill_draw()` guard (H23) correctly excludes all 6 and instead offers genuinely-unframed atoms (`A8`, `W1_5`, `C13`, `W1_7`, `W1_10`, `G4`). My 6-atom draw was a stale in-flight artifact baked in at spawn (18:44 UTC) before the guard loaded — **not** a live leak. R2 (stale daemon) is refuted: the running supervisor (started 19:43) is newer than the guard commit (19:34).
+
+A 7th doc pass on any of the 6 would be exactly the treadmill H23 exists to stop (SELF_INTERRUPT_DISCIPLINE). So per **Rule 0**, the stale atom-set dial yields while the DISCOVER/FRAME *lane* holds, and I took the genuine un-saturated work the live guard offers:
+
+- **W1_7_renewable_capacity_trends — first genuine FRAME** (previously only in the shared hierarchy design's "noted, not designed" list). Frames time-varying `capacity_k(τ)` layered on the existing merit order (which today hardcodes capacity as a constant), anchored to real DUKES/NESO + Elexon AGWS data with a different-source validator, 4 R15 mutation invariants, the R13 baseline/curriculum wall, a C-S5 time-scale exception, and the coupled-triad twin. **Level HELD at 0** (Epoch-3 BUILD-gated; DISCOVER/FRAME doesn't move an idle atom's level). Recorded via atom_status inbox (F1).
+
+- **Queued finding on H23** (registered, *not* fixed on sight — F1 bars map/guard edits and this isn't my lane): the guard's `_atom_has_frame_doc` false-negatives on FRAME docs under `docs/design/` (non-canonical path), so `G4` and `W1_10` still mis-read as un-saturated though FRAME-complete — the residual leak. Two remedies documented for the next H23 BUILD turn.
+
+**Gates:** epistemic verifier PASS · `test_atom_status_merge` 6/6 · dry-run fold valid (map parses, 105 atoms, W1_7 held at L0, H23 level unchanged). No one-way door — all doc-only and reversible.
+
+{"atom_id": "W1_7_renewable_capacity_trends", "action": "DISCOVER/FRAME first FRAME doc authored (Rule-0 dial-yield off stale FRAME-saturated draw) + queued H23 guard false-negative finding; level HELD", "claimed_commit_sha": "ad8ec7eacbde9bc88efc2b0bfec1d963b27e8169", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

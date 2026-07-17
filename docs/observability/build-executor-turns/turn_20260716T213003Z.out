@@ -1,0 +1,18 @@
+Done. Landed and verified on `origin/main`.
+
+## Summary
+
+**Drawn work:** Rule-0 self-refill HARDEN of the at-target atom `H19_escalation_ntfy_route_around` (escalation is NTFY not the window; a blocked atom blocks only itself).
+
+**Red-team finding (its own core invariant):** I attacked the invariant "the loop NTFYs the irreducible core" and found it **fails for concurrent distinct walls** — the silent-drop cousin of the silent-stall this atom exists to kill:
+
+1. **Silent-drop of a distinct one-way door.** A WALL keeps the loop drawing, so two *distinct* one-way doors can be open at once. `_alert_wall` keyed every wall to the constant action-needed item `executor-wall_escalated`, so the fire-once gate **silently swallowed the second distinct door** — the director only ever heard the first, and both shared one reply-PIN. Reproduced empirically before fixing (R9).
+2. **Busy-loop on alternating distinct walls.** `run_loop`'s backoff used a *scalar* last-reason (immediate-previous only), so walls cycling A,B,A,B re-alerted every cycle and never slept.
+
+**Fix (reversible, harness-only):** per-wall item id derived from `atom_reason` (each door gets its own escalation + fire-once/daily gate + reply-PIN; singleton STOP kinds keep the constant id); scalar → **set** seen-latch (NTFY once per newly-seen wall, back off on any re-seen, clear on progress).
+
+**R15 evidence:** 2 mutation tests, each proven to **fail on the reverted mechanism** and pass on the fix. Blast radius green: 126 tests across executor_governor / action_needed / executor_daemon / build_executor / daemon_loop_mutation / map_reconciliation / publish_gate_alert. Epistemic verifier: PASS.
+
+*Note:* a concurrent executor-daemon fold raced and cleared my first inbox write; I re-wrote it inside the `tree_lock` hold so the commit is atomic. Per my governance walls I did **not** NTFY the dial-yield (no pane/NTFY on this fork's own initiative; routine at-target self-refill, R5 transition-only).
+
+{"atom_id": "H19_escalation_ntfy_route_around", "action": "hardened", "claimed_commit_sha": "184e50fe72bff469aed6be5abfbc9d1f2cfaeaf1", "level_before": 2, "level_after": 2, "gate_status": "passed", "door_reason": ""}

@@ -1,0 +1,22 @@
+All verified independently on origin (tip `5494b066a`, all 6 FRAME docs present).
+
+## Turn complete — 6/6 drawn atoms FRAMEd
+
+Drew 6 idle atoms for Lane-3 DISCOVER/FRAME (BUILD epoch-gated). None was frame-saturated (the H23 treadmill was fixed in `af8863f47`, so this is legitimate backlog surfacing). Dispatched one doc-only fork per atom; each authored its canonical `docs/design/frame/<id>_FRAME.md` terminus + disjoint `atom_status/<id>.yaml` inbox in one commit (F1), no BUILD code, no map edit.
+
+| Atom | What the FRAME did | Saturated post-fold |
+|---|---|---|
+| **H8_harness_bootstrap_dr** | Recovered the missing requirement (its staged evidence doc is gone) into a bootstrap-component inventory + 4 DR scenarios, grounded in the real `background/` runtime | ✅ |
+| **W1_5_premise_demand_shape** | Consolidated WEATHER_PHYSICS_HIERARCHY §1.3 premise-demand decomposition + national-reconciliation invariant (3 R15 mutation tests) + coupled gap to C13 | ✅ |
+| **G4_unified_failure_register** | Anti-churn fix: thin **detectable** pointer to the already-complete `UNIFIED_FAILURE_REGISTER.md` — closes the `_atom_has_frame_doc` filename false-negative its own docstring named | ✅ |
+| **A4_sim_approver** | Tournament policy-approver against A3's async seam, sharply distinguished from the director-canon read-only TWIN (Law B) | ✅ |
+| **C4_adoption_physics** | Four latent adoption params + epistemic wall + C-S2 named RNG substream | ✅ |
+| **C5_key_moment_conversion** | Six key moments as conversion windows modulating C4's bother-threshold; latent-event vs observable-signal wall | ✅ |
+
+**Central gate (green before push):** independent saturation re-check on the on-disk files (6/6 True), `test_frame_saturation_draw_marker.py` 16 passed, epistemic verifier PASS (12 files). Pushed once under `tree_lock` (`af8863f47..5494b066a`); origin independently confirmed to hold the tip + all 6 docs. The autonomous loop's `merge_atom_status` fold already ran concurrently (map now carries the FRAME paths; it will commit the fold + inbox-clear separately, per the F1 convention — not my commit).
+
+**Levels HELD at 0 for all** — BUILD is epoch-gated (EPOCH_GATING Rule 1); FRAME adds the design terminus only. **Honest finding surfaced by the forks (LAW A, no action now):** several `depends_on` edges are stale — A3 is already L2, C4's three deps are all met, H8's H4 is met — so the real remaining gate for most is simply epoch BUILD-open (TWIN's call), not an unmet dependency. Logged in the FRAME docs; the map's `depends_on` is a tie-breaker dial, not a wall.
+
+No NTFY sent (routine Lane-3 work, no state-transition worth alerting; pane/NTFY not mine to initiate).
+
+{"atom_id": "H8_harness_bootstrap_dr,W1_5_premise_demand_shape,G4_unified_failure_register,A4_sim_approver,C4_adoption_physics,C5_key_moment_conversion", "action": "FRAME (6 atoms): authored canonical per-atom FRAME termini (doc-only), all proven frame-saturated post-fold; no BUILD code, no map edit (F1)", "claimed_commit_sha": "5494b066aff5f4b74813e9c9d5c87db1b4e34896", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

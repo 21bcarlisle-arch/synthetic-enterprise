@@ -1,0 +1,25 @@
+The A8 picture is now conclusive: each "life" runs a full `saas.reporting.annual_report --fast` subprocess. The two real cycle-time levers are (1) **mock/recorded-interface replay** — which *is* the "deterministic-stage caching" lever, and it's blocked on ARCH1 wiring **outside A8's `tools/tests` file_scope**; and (2) **worker-cap parallelism** — already landed today. "Tiered test selection" is a suite-level concern with no hook in the run path — a speculative cross-cutting change, not a clean same-day increment. There is **no bounded, genuine, in-scope A8 increment left this turn**.
+
+## Honest assessment of the draw
+
+I verified against real git/disk state (R7 — the draw text is a doorbell). **Every atom in this draw was already worked and landed earlier today, and each now sits at a genuine wall or epoch-gate:**
+
+| Atom | State (verified) | Why no move this turn |
+|---|---|---|
+| **A8_experiment_loop_speed** (L2→3) | Worker-cap lever landed today; mock/caching lever unwired | Biggest lever blocked on `ARCH1_internal_seams` wiring — **outside A8's file_scope** (tools/tests). Technical dependency wall, not a door. |
+| **SITE1_expert_doors** (L2→3) | All doors 3–8 built + mobile pass; doors green | Only remaining DoD step is the **director-involved Expert Hour + live-pixel sign-off** — one-way-door **category 6** (values/review). Director-reserved. |
+| **H17_autonomous_build_executor** (idle) | FRAME landed today (`206c534c1`) | Epoch-gated; BUILD forbidden per draw. FRAME complete. |
+| **W1_2_generate_futures** (idle) | FRAME + re-level L0→L1 today (`aad990346`) | Epoch-gated; FRAME complete. |
+| **B4_competitor_field** (idle) | FRAME landed today (`6bfb70935`) | Epoch-gated **and** opening Epoch 4 is director-reserved (cat 6, `d920450c5`). |
+| **W4_2_verifier_timing_extension** (idle) | FRAME + code work landed today | BUILD-gated per this draw; FRAME complete. |
+| **W1_3 / W1_4 weather** (idle) | FRAME + re-level L0→L1 today | Epoch-gated; FRAME complete. |
+
+Working tree carries only daemon churn (`site/data/*.json`, observability, background state) — nothing in the drawn atoms' code scope. No pending atom_status inboxes.
+
+**Decision:** I am **landing nothing** this turn, and that is the correct, honest action — not a stall. Re-generating today's FRAME docs or fabricating a level move would be exactly the treadmill/rework the director flagged as waste today (the ACTIVITY-BASED COST P1 commit `ad63fda66`: "cost-of-self-maintenance must trend down or the harness is a treadmill"; SELF_INTERRUPT_DISCIPLINE) and would breach the honesty wall (levels are physics, not approvals). Rule-0's "don't hold at a wall while an idle-capable lane has work" is not violated: the idle-capable lane (Lane-3 FRAME) has **no remaining non-rework work** — it was saturated today.
+
+I have not written to NTFY or the pane (director's console). The one director-actionable signal is that the headline BUILD atom **SITE1** can only reach L3 via the director's Expert Hour (already surfaced today) — a genuine one-way door I must not decide, so I report it as an escalate rather than acting.
+
+The supervisor's self-refill re-drawing atoms that are all parked at walls/gates is itself a real harness observation (a treadmill-generating draw), but per SELF_INTERRUPT_DISCIPLINE that is a QUEUE-not-fix-on-sight finding, and as a scoped fork I don't edit the map — I leave it for the orchestrator.
+
+{"atom_id": "SITE1_expert_doors", "action": "held-no-op — entire draw saturated by today's work; SITE1 L3 blocked on director Expert Hour (one-way-door cat 6), A8 L3 blocked on out-of-scope ARCH1 wiring, 6 Lane-3 atoms epoch-gated with FRAME already landed today; no non-rework in-scope increment exists", "claimed_commit_sha": "", "level_before": 2, "level_after": 2, "gate_status": "escalate"}

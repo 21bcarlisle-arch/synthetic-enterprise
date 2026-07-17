@@ -1,0 +1,11 @@
+Origin `main` confirmed at `6d170b3f4`.
+
+## Summary
+
+The drawn work was a stale doorbell (R7). Verified against disk truth: **all 6 drawn atoms are FRAME-saturated** — each carries its own complete `*_FRAME.md`, all read `_is_frame_saturated → True` against the committed map, and the live `_idle_discover_frame_draw_concurrent()` correctly excludes all six and now offers a different un-saturated set. The daemon dispatched me a scope computed from a pre-fold map read.
+
+Rather than churn 6 duplicate FRAMEs (forbidden by R12/SELF_INTERRUPT_DISCIPLINE) or re-diagnose the already-QUEUEd race, I landed a **genuinely additive DISCOVER increment** (occurrence-10): `W1_7` — a FRAME folded *this same session* — appeared in the drawn set, isolating a **second, independent residual sub-mechanism** that occ-8's remedy structurally cannot close: a complete-but-stale `read → dispatch → execute` window. Both occ-8 remedies (atomic write, fail-closed read) assume a *partial* read; this one is a whole-but-stale read, so I sharpened the queued remedy with **(c) a computed fork-side saturation re-check** that mechanises the manual R7 judgment (MAKE_IT_STICK). It's BUILD on the loop — QUEUEd, not fixed on sight (Lane-3 doc-only), reversible → not a one-way door.
+
+All 6 atoms HELD, no FRAME churn, no `atom_status` inbox (level unchanged, nothing to append), no map edit (F1), no BUILD code. Epistemic verifier PASS; 27 saturation/idle-draw tests green. Doorbell overrode: no per-atom forks dispatched (would have been pure churn).
+
+{"atom_id": "H23_frame_saturation_draw_marker", "action": "Lane-3 DISCOVER: isolated occurrence-10 complete-but-stale read→dispatch→execute residual (distinct from occ-8 partial-read race); sharpened queued remedy with (c) computed fork-side saturation re-check. Six drawn atoms FRAME-saturated → HELD, no churn.", "claimed_commit_sha": "6d170b3f4d5534b37be1f16d94063890e46317bc", "level_before": "HELD (W1_7=0,W1_2=1,B4=0,B5=0,W4_2=1,W1_3=1)", "level_after": "HELD (unchanged — all 6 FRAME-saturated, BUILD-gated)", "gate_status": "passed", "door_reason": ""}

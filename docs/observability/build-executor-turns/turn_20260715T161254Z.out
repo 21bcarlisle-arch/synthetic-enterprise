@@ -1,0 +1,29 @@
+I've verified the real state (R7 — acted on git/disk, not the doorbell text). Here is the honest disposition of this H17 draw:
+
+## Finding: the entire draw is already consumed on origin
+
+Every atom in this draw already had its work landed and pushed **today (2026-07-15)**, in the commits immediately preceding `HEAD` (which equals `origin/main` at `418dd4566`):
+
+| Atom | Drawn | Real state on origin |
+|---|---|---|
+| **ARCH1_internal_seams** (0→2) | Lane-1 BUILD | **Built + pushed** — `fe87611a4` (+merge `08e20d914`). RecordedSimInterface outer-seam typed mock, blindfold-gated (`observed_at>as_of → NOT_KNOWABLE_YET`) with R15 mutation test proving the gate fires. Honest **L2-mechanism** (the stricter measured-RSS L2 DoD is explicitly *not* met — a saas/ run-path wiring gap the prior fork deferred to the next slice). |
+| **SITE1_expert_doors** (2→3) | Lane-1 BUILD | **All doors 3–8 built + committed**: `site/company` `site/proof` `site/world` `site/method-casebook` (doors 3–6), plus `site/director` (door 7, auth-gated), `site/glossary` + `site/tours` (door 8). |
+| **6 DISCOVER atoms** (W1_2, B4, W4_2, W1_3, W1_4, W1_5) | Lane-3 doc-only | **Fresh DISCOVER pass landed today** — `053789c65` (each atom carries a 2026-07-15 entry). |
+
+## Why I am landing nothing new
+
+Redoing any of this would be **churn that risks a false-completion claim** — the exact cardinal sin the external-truth wall (R1/R9/R15/naive-organ) exists to prevent. I must not fabricate authorship of commits `fe87611a4` / `053789c65` (I did not push them this turn), so my `claimed_commit_sha` is honestly empty.
+
+The **only** genuinely-remaining in-scope work is **SITE1 → L3**, and it is blocked at walls I cannot cross autonomously:
+- **R11 live-pixel verification** requires fetching the live deployed surface — **no network in autonomous mode**. R11 is physics, not an approval; I cannot shortcut it.
+- **Door 7 (director) is auth-gated = platform administration**, a one-way door reserved to the director.
+
+Two genuine backlog items I'm **flagging for the orchestrator** (not building — SELF_INTERRUPT_DISCIPLINE: queue, don't thrash):
+1. **ARCH1 measured-L2 DoD**: wire the saas/ run path through `build_sim_interface()` so the RSS collapse is actually *measured* (currently L2-mechanism only). Crosses into saas/ + tournament_runner (A8) file_scope — a deliberate next slice, needs a real measurement run to verify.
+2. **SITE1 L3 close**: live-pixel walk + phase-close-evaluator PASS + cold-eyes — needs the interactive/networked session or the director's eyes.
+
+Working tree left clean — I committed none of the regenerated `site/data/*.json` / observability churn (commit-specific-paths rule).
+
+No new commit pushed this turn; no work failed — the draw was already satisfied on origin, and the one remaining slice (SITE1→L3) is wall-blocked.
+
+{"atom_id": "SITE1_expert_doors", "action": "no-op: draw already consumed on origin (ARCH1 fe87611a4, DISCOVER x6 053789c65, SITE1 doors 3-8 all committed); SITE1->L3 wall-blocked (R11 live-pixel needs network unavailable autonomously + door7 auth=platform-admin one-way door); flagged ARCH1 measured-L2 saas-wiring gap for orchestrator", "claimed_commit_sha": "", "level_before": 2, "level_after": 2, "gate_status": "escalate"}

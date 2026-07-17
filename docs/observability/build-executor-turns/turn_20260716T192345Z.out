@@ -1,0 +1,20 @@
+Landed and verified on origin/main (`d91b034242debc7b525e7f0eecaa414449bc719b`).
+
+## What happened
+
+My doorbell drew 6 "Lane-3 DISCOVER/FRAME" atoms (H17, W1_2, B4, B5, W4_2, W1_3). **Per R7, I verified against real disk/git state instead of the text — and it was stale.** Two compounding defects were producing the churn:
+
+1. **R2 stale daemon** — `executor_daemon` (PID 704593) started 19:27:11, but the frame-saturation guard landed 7 min later (19:34:02). The daemon holds the *pre-guard* `supervisor` module, so it re-hands the 6 path-convention-saturated atoms. **I could not safely restart the daemon that owns my own process** (killing it risks losing this turn's pushed result) — flagged loudly in the inbox as the R2 deployment step for the interactive session.
+
+2. **Guard false-negative** (H23's own registered queued finding, note[4]) — `_atom_has_frame_doc` only recognized FRAME docs under `docs/design/frame/`, so ~11 atoms FRAMEd under the older `docs/design/<name>_FRAME.md` path (W1_10, H20, H21…) read un-saturated and churned forever.
+
+**I did NOT churn the saturated atoms** (SELF_INTERRUPT + R12). Instead, under Rule 0 (a genuinely churn-saturated FRAME lane is a DIAL defect — yield it and take the work that exists), I landed the **registered mechanism fix** on the build-open, twin-approved H23:
+
+- Broadened the prefix to `docs/design/` (any depth); the FRAME-in-filename gate is unchanged, so surveys and DISCOVER-stage docs still correctly read un-saturated (false-positive guard tested against the C13 case).
+- **+5 R15 mutation tests** (16 total green): non-canonical FRAME reads saturated; DISCOVER doc stays un-saturated; FIRES on both draw entry points; a guard-revert control that fails if the fix is undone.
+- Verified on the **live map**: W1_10/H20/H21 now correctly skipped; the draw re-points at genuinely un-framed atoms (H8, A4, C4, C13, W1_5). `test_supervisor.py` 143 green, epistemic verifier PASS (510 files).
+- **G4 residual** noted honestly: its FRAME doc (`UNIFIED_FAILURE_REGISTER.md`) carries neither "FRAME" nor its id/slug, so it needs the explicit `frame_saturated: true` map-writer override — a one-line step a fork can't do (F1).
+
+Level HELD at 2 (correctness/HARDEN increment, not a level move). No BUILD code on any drawn atom; no one-way door.
+
+{"atom_id": "H23_frame_saturation_draw_marker", "action": "closed the registered residual frame-saturation false-negative in _atom_has_frame_doc (broadened FRAME-doc detection to docs/design/ any depth), added 5 R15 mutation tests; did NOT churn the 6 stale-doorbell saturated atoms (R7); flagged the R2 stale-daemon deployment gap (cannot self-restart owning daemon)", "claimed_commit_sha": "d91b034242debc7b525e7f0eecaa414449bc719b", "level_before": 2, "level_after": 2, "gate_status": "landed", "door_reason": ""}

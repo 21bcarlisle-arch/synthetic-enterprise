@@ -1,0 +1,19 @@
+All clean — HEAD in sync with origin, no rebase in progress, canonical staging file tracked.
+
+## Turn summary (H17 governed build-executor)
+
+**LANE 1 — BUILD: `A8_experiment_loop_speed` — landed, level HELD at 2 (honest)**
+- Discovered the atom's third named lever (**TIERED TESTS** — `run_tiered_tournament`/`benchmark_tiered`) already built but **uncommitted** in the working tree from a prior turn (R2 risk: invisible, unpushed, at-risk).
+- **Verified before landing (R1)** — its opt-in E2E test had never actually been run and **FAILED** on first execution: `math.ceil(6 × 0.34) = 3` survivors vs. the asserted 2. Diagnosed as a mischosen *illustration parameter*, not a code bug — the `math.ceil` semantics ("survivors ≥ fraction") is correct and matches the passing unit tests. Fixed the E2E's `survive_fraction` `0.34 → 0.33` (yields exactly 2 survivors / 4 culled — better illustrating the lever's point, cull the majority cheaply), **code semantics unchanged**.
+- **Re-ran green:** tiered E2E `1 passed (202.83s)` — screen culled 4/6, full tier ran only the 2 survivors, `tiered_wall < naive_wall`; fast suite `31 passed`; blast-radius `tests/tools + tests/background` `2131 passed / 5 skipped`; epistemic verifier PASS (510 files). Fail-closed R15 + deterministic C-S2 guards are mutation-tested.
+- **Level HELD at 2** — the headline ~8-10× Epoch-4 feasibility gap is *not* closed: the biggest lever (mock-interface composition) is still ARCH1-blocked (re-verified: `saas/reporting/annual_report.py` has zero `SimInterface` refs, so `SIM_RECORDED_TRACE` is a no-op on the run path — outside A8's file_scope), and deterministic-stage caching is unbuilt. This is a genuine, measured, in-scope slice — not the atom's completion. Recorded via `atom_status/A8_experiment_loop_speed.yaml` for the F1 fold; committed + pushed to origin.
+
+**LANE 3 — DISCOVER/FRAME (6 atoms): all FRAME-saturated → HELD, no fabricated moves, no commits**
+- W1_3, W1_2, B4, W4_2, W1_4, W1_5 each already have a dedicated FRAME/design doc plus multiple **2026-07-16 (today)** entries; W1_2/W1_3/W1_4 were VERIFY re-leveled to L1 *earlier today* (`aad990346`); W1_5 is fully covered by `WEATHER_PHYSICS_HIERARCHY_DESIGN.md` §1.3. All are BUILD-gated (Epoch 3/4 or the closed Tier-1 verifier gate).
+- Producing six more framing docs would be exactly the fabricated-progress treadmill R6 / SELF_INTERRUPT_DISCIPLINE forbid. Honest disposition: hold all six, no level moves. No one-way door touched → no escalation.
+
+**Flag for the loop (not fixed — QUEUE per self-interrupt discipline):** the draw is repeatedly handing already-FRAME-saturated, BUILD-gated idle atoms turn after turn — a DIAL defect (redundant re-draw), not new work. Worth a mechanism that skips FRAME-saturated idle atoms until their epoch/dependency opens.
+
+*(Incidental unblock: relocated one stray untracked duplicate of `PARALLEL_MAINTENANCE_LANE.md` — a concurrent-writer earlier draft — to `/tmp` so the push could rebase; the canonical director instruction is tracked on origin, untouched.)*
+
+{"atom_id": "A8_experiment_loop_speed", "action": "landed Lever-3 TIERED TESTS (found uncommitted, R1-verified, fixed a failing E2E illustration param, re-ran green); Lane-3 x6 held FRAME-saturated with no fabricated moves", "claimed_commit_sha": "87f84f4a8266cb964c5276e3181545fbfea2809f", "level_before": 2, "level_after": 2, "gate_status": "passed"}

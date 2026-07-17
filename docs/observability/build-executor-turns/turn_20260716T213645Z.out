@@ -1,0 +1,18 @@
+Done. Verified `13e88f53d1137ba33fd9f23955d46ca3d8a6f95b` is on `origin/main`.
+
+## Summary
+
+**Drawn work:** Rule-0 self-refill HARDEN/red-team of the at-target atom `B1_margin_bridge` (L3→L3).
+
+**Red-team finding (on the atom's own named feature, "residual reconciliation"):** The residual was a **construction tautology** (R15 killer pattern 1). `net_margin_gbp` is *defined* as `gross − policy − network − capital − bad_debt`, so `residual = net_delta − Σ(named drivers) ≡ 0` on all real 2016–2025 data — it proved nothing, was **never rendered**, and was **ignored by `dominant_driver`**. So a realistic future regression (a cost line entering net margin without a matching bridge driver, or a fail-open `.get(...,0.0)` zeroing a renamed field) would silently corrupt the attribution while the report kept confidently naming a minority driver.
+
+**Fix (additive, no numeric change to current output):**
+- `residual_is_material()` — a tripwire that *can fail*: fires when `|residual|` exceeds the £5k floor **and** strictly dominates every named driver (the dropped-driver symptom); computed inline so it also works on the renderer's attribute-only bridge objects.
+- `dominant_driver()` now reads **"other (unexplained)"** instead of a false named attribution when the residual dominates (R11 consumer effect — no orphan control).
+- Visible **Residual Δ** column + reconciliation note added to the Net Margin Bridge report section, making the identity auditable on the surface.
+
+**Verification:** 8 new R15 mutation tests — neutering the control to a fail-open stub fails 3 of them (proven it genuinely fires on its defect). 42 bridge tests + full `saas/reporting` suite (889) green; epistemic verifier PASS; regenerated the report section in-process and read the rendered Residual Δ column (all ±£0 on real data, drivers unchanged) + note.
+
+**Dial-yield NTFY:** the draw asked to NTFY the director that the dial was yielded, but my inherited walls forbid NTFY writes on a fork's own initiative — that notification belongs to the orchestrator loop that owns the channel, so I did not send it.
+
+{"atom_id": "B1_margin_bridge", "action": "harden", "claimed_commit_sha": "13e88f53d1137ba33fd9f23955d46ca3d8a6f95b", "level_before": 3, "level_after": 3, "gate_status": "passed", "door_reason": ""}

@@ -1,0 +1,14 @@
+Verified on origin: commit `82b9c6039` is on `origin/main`, carrying the findings note (40 insertions) + the H23 map fold; the origin map both references the note and contains the OCCURRENCE-4 line; the note is fetchable. Both gates were green (epistemic verifier PASS · `test_atom_status_merge` 6 passed).
+
+## Summary — H23 Lane-3 DISCOVER/FRAME turn
+
+**The draw handed me `H23_frame_saturation_draw_marker` — the atom that fixes the FRAME-saturation re-draw defect — and in doing so committed occurrence 4 of that exact defect, recursively on the fix atom itself.** H23 was already FRAME-saturated by its own definition (complete FRAME doc + level held 0<2 for a BUILD-gated reason), and `_idle_discover_frame_draw` has no saturation notion, so it re-picked it. A second FRAME doc would be the churn SELF_INTERRUPT + R12 forbid, so I wrote none.
+
+**Honest disposition instead:**
+- **Routed the reversible BUILD-open to the standing approver** (EPOCH_GATING canon §3a). The twin **APPROVED** — high confidence, `DEFERS_TO_DIRECTOR: no`, not a one-way door, reversible by `git revert`. That durable authorization is the treadmill's actual off-switch; the remaining `loop_stage` idle→buildable flip is the orchestrator's (a fork can't edit the map — F1), recorded loudly so it doesn't evaporate.
+- **Found and queued two `one_way_door.classify_action` false-positives** surfaced while routing (R9, not fixed on sight — SELF_INTERRUPT, out of scope): (A) negation-blindness (`"no real money"` matches the affirmative pattern), and (B) the current epoch named by number (`"currently-open epoch 2"` matches the `open…epoch…digit` pattern the 2026-07-16 fix had narrowed for *opening* a new epoch). Both have ready-made repros; proposed as atom `H24_oneway_classifier_false_positives`.
+- **Cleaned up** the spurious `[ACTION NEEDED]` escalations those false-positives raised (`clear_item` — no director decision was ever needed; the twin resolved it once phrased cleanly). Zero standing director escalations from this turn.
+
+Level **HELD at 0** — no BUILD code, nothing built (FRAME-only turn, EPOCH_GATING Rule 1). No NTFY (routine Lane-3, no blocked-state transition, no notable exception).
+
+{"atom_id": "H23_frame_saturation_draw_marker", "action": "FRAME disposition: recorded occurrence-4 recursion as evidence (no churned FRAME doc); routed reversible BUILD-open to twin -> APPROVED (durable, canon v2 §3a); queued two one_way_door classifier false-positives (proposed H24); cleared spurious escalations. No BUILD code; level HELD.", "claimed_commit_sha": "82b9c6039834da262925001ab018ec4d3102a332", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

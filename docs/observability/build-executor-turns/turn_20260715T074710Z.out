@@ -1,0 +1,20 @@
+All work verified on origin. Turn complete. Summary of the drawn work:
+
+## What landed (two pushed commits, both confirmed on `origin/main`)
+
+**Commit `053789c65` — staging + 6 DISCOVER/FRAME atoms (doc-only, no level change; sole-map-writer respected):**
+- **RETRO_ACTIONS_THE_THREE_GAPS.md** — verified the 3 class-atoms are already registered (`G4_unified_failure_register`, `H18_harness_self_mutation_audit`, `W4_3_external_truth_wall`, QUEUE); the root file was a byte-identical duplicate of the archived `done/` copy → removed. *No CLAUDE.md edit* — the External-Truth Wall is future BUILD work gated behind the transport migration + flag-flip, correctly left queued.
+- **W1_3 / W1_4** — decisive **uncredited-capability finding**: `sim/weather_engine.py` already implements the regime-switching AR1 national macro (W1_3's core) and the Cholesky-decomposed regional field (W1_4's core), both registered at L0 as greenfield. Named the *precise* remaining gaps (joint cold+still regime trigger vs wind-only; demand-weighted reconciliation invariant + R15 mutation test absent) and flagged both as **candidate re-levels** for the orchestrator — did not self-write levels.
+- **W1_5** — hard dep on W1_4's reconciliation invariant confirmed; L0 defensible. **W1_2** — synthetic futures must couple to W1_3 weather (price is an *output* of weather), not an independent SSP path; C-S2 named-substream discipline binding. **B4** — corrected the prior FRAME: the world (W2_3) publishes only an aggregate savings signal, so wiring the multi-competitor `SupplierRank` would violate the epistemic wall. **W4_2** — routed KL-2 (verifier fail-open missing-file read) as a mandatory R15 fix *separable* from the director-closed timing-detection gate.
+- Gates: YAML parses (92 atoms), map-consumer test 13 pass, epistemic PASS.
+
+**Commit `08e20d914` — ARCH1_internal_seams BUILD (worktree fork, merged):** `RecordedSimInterface` outer-seam typed mock — blindfold-gated (observed_at > as_of → NOT_KNOWABLE_YET), **R15 mutation-proven** (gate fires; fail-open forbidden), zero-RNG/C-S1–S5 conformant, env-var composition with zero edit to `tournament_runner.py`. Gates on merged main: **209 passed, 1 xfailed; epistemic PASS (509 files)**. Scope clean.
+
+## Honest levels reported (orchestrator writes the map)
+- **ARCH1**: reached **L2-mechanism** (composition hook + workers>1 cap path exercised by test + COUPLED_TRIAD gap-measurement point defined/tested). ⚠️ The FRAME's stricter *measured-RSS* L2 DoD is **not** met — the run-path wiring through `build_sim_interface()` lives in `saas/` (out of this atom's scope); filed as the next ARCH1/A8 integration slice.
+- **SITE1**: doors 3–8 all built, local-render + mobile tests green (93 pass), but **held at L2** — the only remaining gate is R11 *live-deployed* pixel, which needs network unavailable autonomously. No level bump claimed. (No fork spent: rebuilding already-green doors would be waste; the gate is external.)
+- **6 DISCOVER atoms**: doc-only, no level change (BUILD epoch-gated).
+
+No one-way door touched; no NTFY/pane writes.
+
+{"atom_id": "ARCH1_internal_seams (+ SITE1_expert_doors held L2; DISCOVER W1_2/W1_3/W1_4/W1_5/B4/W4_2 doc-only; RETRO staging archived — all on 053789c65)", "action": "built", "claimed_commit_sha": "08e20d91409e04a23d77e71fed1f893328d346bb", "level_before": 0, "level_after": 2, "gate_status": "passed"}

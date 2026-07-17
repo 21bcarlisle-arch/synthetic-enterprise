@@ -1095,7 +1095,9 @@
         {
           "settlement_date": "2016-01-31",
           "treasury_gbp": 2466649.416385218,
-          "adjustments": {},
+          "adjustments": {
+            "C1": 1.0
+          },
           "portfolio_var_current_gbp": 27.727020520979767,
           "portfolio_var_stressed_gbp": 8.518381907375637
         },
@@ -120268,8 +120270,8 @@
     }
   ],
   "scenario_analysis": {
-    "generated_at": "2026-07-14T11:06:56Z",
-    "portfolio_as_of": "2026-07-14T11:06:53Z",
+    "generated_at": "2026-07-17T08:45:38Z",
+    "portfolio_as_of": "2026-07-17T08:40:42Z",
     "active_customers": 11,
     "projection_months": 12,
     "scenarios": {

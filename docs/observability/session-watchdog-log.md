@@ -4324,3 +4324,164 @@
 - [2026-07-09 07:12 UTC] Inbound NTFY command from Rich: 'Minor point, you replied identically via ntfy twice 6 minutes apart to the same stage doc at 07.57 and 8.03. why is there a problem or error?' — relaying to session
 - [2026-07-09 21:02 UTC] Session watchdog started (auto-restart mode — no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt check, usage-pause check; turn-granting for open work is background/supervisor.py's job now)
 - [2026-07-09 22:31 UTC] Inbound NTFY command from Rich: 'We have plenty of tokens, please try to increase the velocity, but without breaking anything' — relaying to session
+- [2026-07-16 17:54 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 17:55 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 17:55 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 17:55 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 17:55 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 17:55 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 17:55 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 17:56 UTC] Post-restart daemon health check: OK (16 checks healthy)
+- [2026-07-16 18:13 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:14 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:14 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:14 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:14 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 18:14 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 18:14 UTC] Post-restart daemon health check: DEGRADED -- 11 problem(s):   ✗ ntfy-responder — NOT RUNNING (ntfy_responder.py);   ✗ staging-watcher — NOT RUNNING (staging_watcher.py);   ✗ supervisor — NOT RUNNING (supervisor.py);   ✗ dispatcher — NOT RUNNING (dispatcher.py);   ✗ discovery-daemon — NOT RUNNING (discovery_agent.py);   ✗ background-worker — NOT RUNNING (background_worker.py);   ✗ sim-runner — NOT RUNNING (sim_runner.py);   ✗ sanity-daemon — NOT RUNNING (sanity_daemon.py);   ✗ deadmans-switch — NOT RUNNING (deadmans_switch.py);   ✗ director-comments — NOT RUNNING (director_comments.py);   ✗ Stale running code (restart to pick up committed changes): session-watchdog (session_watchdog.py): running since 2026-07-16 07:27, own script modified 2026-07-16 19:10 (703min of drift)
+- [2026-07-16 18:14 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-16 18:19 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:20 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:20 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:20 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:20 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:20 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 18:20 UTC] Reaped 1 orphan interactive-claude process(es) on respawn: [696060] (singleton invariant covers the crash-recovery path now)
+- [2026-07-16 18:21 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:21 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:21 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:21 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 18:21 UTC] Claude Code restarted (3/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 18:21 UTC] Post-restart daemon health check: DEGRADED -- 11 problem(s):   ✗ ntfy-responder — NOT RUNNING (ntfy_responder.py);   ✗ staging-watcher — NOT RUNNING (staging_watcher.py);   ✗ supervisor — NOT RUNNING (supervisor.py);   ✗ dispatcher — NOT RUNNING (dispatcher.py);   ✗ discovery-daemon — NOT RUNNING (discovery_agent.py);   ✗ background-worker — NOT RUNNING (background_worker.py);   ✗ sim-runner — NOT RUNNING (sim_runner.py);   ✗ sanity-daemon — NOT RUNNING (sanity_daemon.py);   ✗ deadmans-switch — NOT RUNNING (deadmans_switch.py);   ✗ director-comments — NOT RUNNING (director_comments.py);   ✗ Stale running code (restart to pick up committed changes): session-watchdog (session_watchdog.py): running since 2026-07-16 07:27, own script modified 2026-07-16 19:18 (711min of drift)
+- [2026-07-16 18:22 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:23 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:23 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:23 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:23 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-16 18:27 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-16 18:28 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:29 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:29 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:29 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:29 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 18:29 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 18:29 UTC] Post-restart daemon health check: OK (17 checks healthy)
+- [2026-07-16 18:30 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:31 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:31 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:31 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:31 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 18:31 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 18:31 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:27, own script modified 2026-07-16 19:31 (4min of drift)
+- [2026-07-16 18:32 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:33 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:33 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:33 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:33 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 18:33 UTC] Claude Code restarted (3/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 18:33 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:27, own script modified 2026-07-16 19:31 (4min of drift)
+- [2026-07-16 18:34 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 18:35 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 18:35 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 18:35 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 18:35 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-16 19:24 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 19:25 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 19:25 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 19:25 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 19:25 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 19:25 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 19:25 UTC] Post-restart daemon health check: OK (16 checks healthy)
+- [2026-07-16 19:26 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 19:27 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 19:27 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 19:27 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 19:27 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 19:27 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 19:27 UTC] Post-restart daemon health check: OK (16 checks healthy)
+- [2026-07-16 20:00 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-16 20:01 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 20:02 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 20:02 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 20:02 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 20:02 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 20:02 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 20:02 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:43, own script modified 2026-07-16 20:34 (50min of drift)
+- [2026-07-16 20:04 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 20:05 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 20:05 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 20:05 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 20:05 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 20:05 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 20:05 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:43, own script modified 2026-07-16 20:34 (50min of drift)
+- [2026-07-16 20:30 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-16 20:31 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 20:32 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 20:32 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 20:32 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 20:32 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 20:32 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 20:32 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:43, own script modified 2026-07-16 20:34 (50min of drift)
+- [2026-07-16 20:33 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 20:34 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 20:34 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 20:34 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 20:34 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 20:34 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 20:34 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:43, own script modified 2026-07-16 20:34 (50min of drift)
+- [2026-07-16 20:36 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 20:37 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 20:37 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 20:37 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 20:37 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 20:37 UTC] Claude Code restarted (3/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 20:37 UTC] Post-restart daemon health check: DEGRADED -- 1 problem(s):   ✗ Stale running code (restart to pick up committed changes): supervisor (supervisor.py): running since 2026-07-16 19:43, own script modified 2026-07-16 20:34 (50min of drift)
+- [2026-07-16 20:38 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 20:39 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 20:39 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 20:39 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 20:39 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-16 21:30 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-16 21:31 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 21:32 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 21:32 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 21:32 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 21:32 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 21:32 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 21:32 UTC] Post-restart daemon health check: OK (17 checks healthy)
+- [2026-07-16 21:33 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 21:34 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 21:34 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 21:34 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 21:34 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 21:34 UTC] Reaped 1 orphan interactive-claude process(es) on respawn: [838903] (singleton invariant covers the crash-recovery path now)
+- [2026-07-16 21:34 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 21:34 UTC] Post-restart daemon health check: OK (17 checks healthy)
+- [2026-07-16 21:35 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 21:36 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 21:36 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 21:36 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 21:36 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 21:36 UTC] Claude Code restarted (3/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 21:36 UTC] Post-restart daemon health check: OK (17 checks healthy)
+- [2026-07-16 21:48 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 21:49 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 21:49 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 21:49 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 21:49 UTC] Session watchdog: restart cap reached (3/hour) — pausing 60 min before resuming.
+- [2026-07-16 22:00 UTC] Session watchdog started (PROCESS-LEVEL ONLY — spawns/restarts a DEAD session, never types into a LIVE one; auto-restart, no YES gate, max 3/hr); idle-gate active (idle 600s -> REVIEW_GATE/permission-prompt NOTIFY only)
+- [2026-07-16 22:01 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 22:02 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 22:02 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 22:02 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 22:02 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 22:02 UTC] Claude Code restarted (1/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 22:02 UTC] Post-restart daemon health check: OK (17 checks healthy)
+- [2026-07-16 22:04 UTC] Claude Code not detected (check 1/2)
+- [2026-07-16 22:05 UTC] Claude Code not detected (check 2/2)
+- [2026-07-16 22:05 UTC] Session ended — reason: completion | clean exit
+- [2026-07-16 22:05 UTC] Session ended (completion/unknown) — restarting without NTFY
+- [2026-07-16 22:05 UTC] Restarting Claude Code (--dangerously-skip-permissions per 2026-07-05 director confirmation, direct launch via /home/rich/.nvm/versions/node/v24.16.0/bin/claude, claude -c resume, no send-keys, DISABLE_AUTOUPDATER=1)
+- [2026-07-16 22:05 UTC] Claude Code restarted (2/3 this hour, direct launch, claude -c resume, no send-keys)
+- [2026-07-16 22:05 UTC] Post-restart daemon health check: OK (17 checks healthy)
+- [2026-07-17 05:29 UTC] Reap found no orphans; spared 1 live pane-backed session(s): [887142]

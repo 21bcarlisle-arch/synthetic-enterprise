@@ -1,0 +1,17 @@
+Pushed and independently verified: `origin/main` is at `d188023b7`, contains my commit, and the FRAME doc is present on origin.
+
+## Turn summary (H17, three-lane draw)
+
+This was an effectively-duplicate draw — the immediately-prior commit (`6bfb70935`) already actioned all 8 atoms an hour ago. I independently re-verified against real disk/git state (R7/R9, not trusting that message) and found:
+
+**LANE 1 BUILD — both HELD at L2 at genuine walls, no fabricated move:**
+- **SITE1_expert_doors** — doors 3–8 surfaces all exist (company/proof/world/method-casebook/director/tours/glossary/wip-flow), **72 door tests pass**. The build is complete; L2→L3 is gated *only* on the director's Expert Hour — a **one-way door (cat. 6)**, director-reserved. I cannot self-authorize the promotion. (Already a standing known gate from the prior turn, so no fresh escalation — flagging here per the walls, not via NTFY.)
+- **A8_experiment_loop_speed** — the in-scope parallelism lever (self-calibrating worker cap) already landed today; the bigger mock-composition lever is blocked on `ARCH1_internal_seams` wiring (outside A8's `tools/tests` file_scope) — a **technical dependency, not a door**. No honest in-scope L2→L3 move.
+
+**LANE 3 DISCOVER/FRAME (doc-only, epoch-gated):**
+- W1_2 / B4 / W4_2 / W1_3 / W1_4 already carry FRAME docs from the prior commit — nothing to add without duplication.
+- **W1_6_physics_price_signal** was the *one* sibling with a DISCOVER pass but no decision-layer FRAME. I authored one (`docs/design/frame/W1_6_physics_price_signal_FRAME.md`) that **resolves the 6 design questions the DISCOVER explicitly deferred** (ratio-form recalibration R12; carbon term real-source-or-named-simplification; negative-pricing out-of-scope; three-mechanism R13 baseline/curriculum split; W1_3 joint-regime dependency; heuristic-file read-first). **Level HELD at 0** — the rubric reserves L1 for "built in any form"; a FRAME is not a build.
+
+**Gate:** epistemic verifier PASS (510 files); map-reconciliation / merge / maturity-map tests green (24 passed). Folded via `atom_status` inbox + `merge_atom_status` (F1), committed and pushed via `tree_lock` (only my 2 files staged, no background churn swept in).
+
+{"atom_id": "W1_6_physics_price_signal", "action": "Lane-3 decision-layer FRAME authored resolving the 6 DISCOVER-deferred design questions; folded via atom_status inbox+merge_atom_status; level HELD at 0 (FRAME cannot earn L1). Lane-1 BUILD SITE1_expert_doors + A8_experiment_loop_speed re-verified and HELD at L2 at genuine walls (SITE1: director Expert Hour one-way door; A8: ARCH1 dependency).", "claimed_commit_sha": "d188023b7b3522f1e9d067e86811e805e6e07ddc", "level_before": 0, "level_after": 0, "gate_status": "passed"}

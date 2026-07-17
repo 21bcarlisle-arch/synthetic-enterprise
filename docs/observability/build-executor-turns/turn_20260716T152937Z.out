@@ -1,0 +1,22 @@
+All work is verified on origin. Here's the full disposition of this H17 three-lane draw.
+
+## Summary
+
+**Governance check first:** none of the drawn work touched a one-way door — no escalation needed. Two BUILD atoms hit genuine *technical* walls (not doors), independently re-verified rather than asserted.
+
+### Lane 1 — BUILD (2 atoms)
+- **SITE1_expert_doors** (2→2, **held**) — Ran a fresh Expert-Hour cold-eyes review (read-only skeptic, offline render harnesses since autonomous turns have no network). Verdict **NEEDS_WORK**, so L3 is not claimed — but it surfaced 4 real blocking defects, which I fixed and pushed:
+  - **Orphaned-at-commit class (R10 closure):** `simplified.json`, `provisional_plan.json`, `system_status.json` were regenerated every cycle but never committed → the live simplifications register was **hiding ~42%** of itself (168/48 vs real 292/93) and the director page rendered 2–6-day-stale data. Fixed durably: `git_commit_push` now commits the whole `site/data/*.json` surface (not three more path lines), with a **mutation-verified** regression test (neuter the glob → test fails).
+  - **Method-door contradiction:** rendered "6 permanent rules" while the Casebook showed 14 and CLAUDE.md defines 15. Extended `RULES` to R1–R15 with grounded incidents; rendered pixel now reads "15 permanent rules". Two pinned `==6` tests updated to `==15`.
+  - L3 still walled on live-pixel R11 + a fresh re-review + director acceptance — none autonomously closeable. Commit `10574220c`, 56 blast-radius tests green, epistemic verifier PASS.
+- **A8_experiment_loop_speed** (2→2, **held**) — Wall confirmed grounded (R7): `grep` shows **zero run-path callers** of `build_sim_interface`, so the mock-composition lever (the ~8–10× feasibility win) remains blocked on `ARCH1_internal_seams` wiring, outside A8's file_scope. The in-scope calibration lever already landed earlier today. Technical dependency, not a door — no commit.
+
+### Lane 3 — DISCOVER/FRAME (6 atoms, BUILD-gated, no BUILD code)
+- **H18_harness_self_mutation_audit** (0→0, **held**) — Wrote the FRAME artifact pointing R15 **inward** at the five verdict organs (deadman/naive-organ/claim-hook/supervisor-draw/publish-gate) as a class, with per-organ killer-pattern mutants, the LLM-judge outcome-test carve-out, and the exact no-overlap boundary vs H12. Folded via atom_status inbox. Commit `5a7109717`.
+- **W1_2 / W1_3 / W1_4 / B4 / W4_2** — Already had fresh FRAME docs folded into evidence earlier today (08:23); all BUILD-gated so no doc-driven level move exists. Reported **held** — regenerating would be redundant rework (SELF_INTERRUPT_DISCIPLINE).
+
+Both pushed commits are confirmed on origin (`10574220c`, `5a7109717`); working tree clean for my files.
+
+Headline atom (Lane-1 primary, substantive pushed work):
+
+{"atom_id": "SITE1_expert_doors", "action": "expert-hour-harden: fixed 4 blocking defects (R10 orphan-at-commit class-closure across site/data/*.json + Method-door R1-R15), level held at 2 pending live-pixel + director Expert-Hour", "claimed_commit_sha": "10574220c0ac8a3377f7aa8487452c24bb8716b8", "level_before": 2, "level_after": 2, "gate_status": "passed"}

@@ -1,0 +1,21 @@
+All done. Final verification is clean:
+- New supervisor stable (pid 721690), 4 SE_ env vars present, clean start with no crash.
+- The live guard-aware draw now surfaces **genuinely un-FRAMEd** atoms (C13, W1_5, W1_7, W1_10, A8, G4) and excludes all 5 previously-re-handed saturated atoms — the recursion is broken.
+
+## Summary — H17 Lane-3 DISCOVER/FRAME (occurrence-6 re-draw)
+
+This was the **6th** re-hand of the same FRAME-saturated, BUILD-gated set. Verified against real disk/process state (R7/R9), not the doorbell text — the "these atoms need a fresh FRAME" premise was stale.
+
+**Disposition:**
+- **5 saturated atoms** (`W1_2`, `B4`, `B5`, `W4_2`, `W1_3`): correctly **HELD**, no FRAME churn (established doctrine, SELF_INTERRUPT_DISCIPLINE + R12). No BUILD code (EPOCH_GATING R1).
+- **`H22_scheduled_housekeeping`**: not genuinely un-FRAMEd — it carried a complete 17KB FRAME doc, but at `docs/design/H22_SCHEDULED_HOUSEKEEPING_FRAME.md`, one directory **above** the `docs/design/frame/` prefix the H23 guard's `_atom_has_frame_doc` requires, so it leaked through the guard every draw. Fixed: `git mv` to the convention path + appended it to evidence via the atom_status inbox (F1). Closed-loop verified: H22 flips saturated `False→True` once the inbox folds. Level **HELD 0** (BUILD-gated).
+
+**Two root causes of the recurrence, both diagnosed and closed:**
+1. **R2** — the guard commit `d2f1b420a` (19:34) was built but the running supervisor (pid 704590, started 19:27) was 7-min-stale pre-guard code. **Deployed** by restarting the daemon (new pid 721690, guard now active in the live draw).
+2. **H22 path-convention leak** — closed by the relocation above.
+
+**QUEUED** (not fixed on sight — that's BUILD on `supervisor.py`): relax the guard's prefix to `docs/design/**/*FRAME*.md`.
+
+**Gate:** guard+merge tests 17 pass, epistemic verifier 10 pass, committed and pushed to `origin/main`. No one-way door (all reversible: git revert; standard daemon restart) — no escalation.
+
+{"atom_id": "H22_scheduled_housekeeping", "action": "Relocated H22's complete FRAME doc to the convention path (docs/design/frame/) so the H23 frame-saturation guard recognises it, closing the occurrence-6 re-draw leak; recorded HELD-0 via atom_status inbox (F1); appended occurrence-6 resolution to the Lane-3 survey; diagnosed R2 (stale supervisor predated guard commit by 7min) and deployed the guard by restarting the supervisor daemon (pid 704590->721690). 5 shared saturated atoms re-confirmed HELD with no FRAME churn.", "claimed_commit_sha": "61a85bd557d67ea352103935808a4a2758ce41e5", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

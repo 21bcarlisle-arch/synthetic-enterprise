@@ -1,0 +1,13 @@
+Commit `f4836e813` confirmed on origin/main.
+
+## Summary
+
+Both drawn atoms are at genuine limits — this turn's honest output is a precise **disposition**, not a manufactured level bump.
+
+**A8_experiment_loop_speed (Lane-1 BUILD)** — level **HELD at 2**. Fresh R7 verification confirms the wall the three prior 2026-07-16 turns documented is unchanged: `annual_report.py` (what every tournament life subprocess runs) still has zero `SimInterface`/`build_sim_interface` callers (the one ref in `tournament_runner.py:86` is a docstring). A8's two in-scope levers (self-calibrating parallelism, tiered tests) are already landed; the remaining levers — mock-composition and deterministic-stage caching — **both require run-path changes in `saas.reporting.annual_report`, outside A8's `tools/background/tests` file_scope** and blocked on ARCH1. A persistent in-process worker pool was considered and rejected (would regress C-S2 per-life RNG determinism). **This is a technical dependency wall, NOT a one-way door — no escalation.** New contribution: recommended the orchestrator flip `loop_stage build → idle` so the dispatcher stops phantom-drawing A8 for an impossible in-scope BUILD (a Rule-0 dials fix).
+
+**W1_2_generate_futures (Lane-3 DISCOVER/FRAME)** — level **HELD at 1**. Already received six DISCOVER/FRAME/VERIFY passes today; the frame is saturated. The three named integrity gaps are BUILD fixes touching `sim/scenario/*` — both Epoch-3 gated and outside its empty file_scope. A seventh doc pass would be treadmill filler (SELF_INTERRUPT_DISCIPLINE); recommended parking from the DISCOVER draw until Epoch 3 opens or the director authors a curriculum scenario (R13).
+
+**Gate:** atom_status merge test 6/6 passed; epistemic verifier PASS (477 files); `merge_atom_status --dry-run` clean. Committed inbox files only (no code, no map edit — F1: orchestrator folds), pushed and independently verified on origin. I caught and reverted an accidental live fold of the map during inspection (`--help` isn't a recognized flag and triggered a real fold) — the map is untouched in what I pushed.
+
+{"atom_id": "A8_experiment_loop_speed", "action": "held_at_wall_documented_park_recommended", "claimed_commit_sha": "f4836e813f7b1c835cb2cbed529d4dc5edb325ef", "level_before": 2, "level_after": 2, "gate_status": "passed"}

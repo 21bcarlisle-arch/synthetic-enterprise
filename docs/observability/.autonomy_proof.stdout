@@ -1,0 +1,21 @@
+=== AUTONOMY PROOF START: run_loop max_cycles=3, real dispatch, zero human input ===
+To https://github.com/21bcarlisle-arch/synthetic-enterprise-ops.git
+   a2bf5a3..e45253d  main -> main
+To https://github.com/21bcarlisle-arch/synthetic-enterprise-ops.git
+   e45253d..3914c70  main -> main
+
+- [2026-07-16 06:57 UTC] run_loop: starting self-continuing headless loop (DARK-gated)
+
+- [2026-07-16 06:57 UTC] THREE-LANE self-refill (atoms-drawn-per-cycle): BUILD=2, SITE=0, DISCOVERY=6
+
+- [2026-07-16 06:57 UTC] dispatched headless turn (model=claude-opus-4-8, out=turn_20260716T065741Z.out)
+
+- [2026-07-16 07:10 UTC] reaped turn (surfaced_via=landed, landed=True, rc=0, infra_failure=False, timed_out=False)
+
+- [2026-07-16 07:10 UTC] run_once SUCCESS: write-landed sha=f1c4cfa00ada6713dd2afdab2e57cac69f8c8a1c rc=0
+
+- [2026-07-16 07:10 UTC] run_loop cycle 1: status=success sha=f1c4cfa00ada6713dd2afdab2e57cac69f8c8a1c
+
+- [2026-07-16 07:10 UTC] THREE-LANE self-refill (atoms-drawn-per-cycle): BUILD=2, SITE=0, DISCOVERY=6
+
+- [2026-07-16 07:10 UTC] dispatched headless turn (model=claude-opus-4-8, out=turn_20260716T071037Z.out)

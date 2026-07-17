@@ -1,0 +1,16 @@
+Confirmed on origin: `origin/main` HEAD = `cd23b67a8`.
+
+## Turn summary
+
+**Drawn set (6 atoms) was a stale in-flight artifact.** Verified against real disk/git state (R7): all six (`B5`, `W1_2`, `B4`, `W4_2`, `W1_3`, `W1_4`) already carry a canonical `docs/design/frame/<id>_FRAME.md` listed in their evidence — the live H23 saturation guard **excludes all six**. A 7th doc pass on any is the exact treadmill `SELF_INTERRUPT_DISCIPLINE` + R12 forbid. No wall was crossed; I held nothing — Rule-0 dial-yield: the stale atom-set dial yielded, the DISCOVER/FRAME lane stayed working.
+
+**Genuine work taken (dial-yield):**
+1. **`G3_method_ip_worktree_retro` — first consolidated FRAME** (dial 2, epoch 2: the highest-dial, *nearest-epoch*, genuinely un-framed idle atom). Turned director-authored method IP from decaying prose (`RETRO_WHY_WE_MISSED_IT.md`) into a checkable BUILD bar. Core judgement: the six findings **split by mechanisability** — only F1/F2 are genuinely mechanisable; F3/F4/F5/META are judgement laws whose "enforcement" would be R15 theatre (casebook-IP only, and BUILD may not inflate a mechanised-count with them). Named 4 mutation-testable invariants incl. an anti-theatre assertion. **Level HELD at 0** (Epoch-2 BUILD-gated), recorded via atom_status inbox (F1 — I did not edit the map; the loop folds it).
+
+2. **Expanded the systemic guard finding (QUEUED, not fixed).** Diagnosed the residual treadmill leak honestly: 7 idle atoms the guard still offers as "non-saturated" are *already framed elsewhere* (framing in shared/DISCOVER/non-canonical-path docs the `docs/design/frame/*FRAME*` check can't see) — W1_5, C13, W1_10, G4, A5, H20, H21. **All dial-3 FRAME work is in fact complete.** Root cause + two reversible remedies documented on the H23 FRAME doc (§7). Not fixed on sight: F1 bars the map/guard edit and it's H23 BUILD-lane, BUILD-gated.
+
+**Gates (all green before push):** epistemic verifier PASS (477 files), `test_atom_status_merge` 6/6, dry-run fold clean (folds exactly the G3 inbox). No BUILD code, no map edit. Pushed and independently confirmed on `origin/main`.
+
+No one-way door was touched — everything here is reversible doc work, so nothing routed to the director.
+
+{"atom_id": "G3_method_ip_worktree_retro", "action": "first consolidated FRAME (level HELD at 0; DISCOVER/FRAME only) + expanded QUEUE of the H23 detector-scope false-negative sub-finding (7 atoms); drawn 6-atom set verified stale/FRAME-saturated and dial-yielded per Rule-0", "claimed_commit_sha": "cd23b67a8fd4d2b129776d0fc2c12b76934e52fc", "level_before": 0, "level_after": 0, "gate_status": "passed", "door_reason": ""}

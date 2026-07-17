@@ -1,0 +1,13 @@
+Pushed and independently verified on `origin/main`. 
+
+**HARDEN pass complete on `A1_learn_loop_chair` (AT-target L3).** Re-verifying the atom's retro-cadence control's exit tests, I red-teamed its invariants and found + closed a genuine **R15 FAIL-OPEN** the existing 22-test suite missed:
+
+- **Defect:** `last_retro()` selected the max-filename-date doc with no upper bound, so a single stray *future-dated* file in `docs/retrospectives/` (a typo like `2027-12-31-...`, or a forward-dated draft) won selection, drove `check_retro_staleness()`'s `days` negative, and made the control silently report **FRESH** even when the genuine most-recent retro was a year stale — the exact "passes on malformed input" pattern R15 names. Proven empirically before fixing.
+- **Fix:** `last_retro()` gained an `as_of` bound; `check_retro_staleness()` passes `as_of=today` so future-dated noise is inert. Only caller is `check_retro_staleness()` itself (grep-verified), so the signature change is safe.
+- **R15 mutation test:** `test_future_dated_file_does_not_mask_a_stale_real_retro` fires on the named defect and is **proven to kill the mutant** — reverting the guard (`as_of=today → None`) makes it fail (result `None`, fail-open); restoring it passes.
+
+Gate: 24 retro-cadence tests green; epistemic verifier **PASS** (510 files). The one `tests/background/test_session_watchdog.py` failure is a *concurrent writer's* mid-flight uncommitted `os`-import refactor (module + test out of sync) — untouched by this pass, not in my file scope, not in my commit. Level stays **3→3** (re-verify + fail-open closure + mutation test, not a level change).
+
+Re the dial-yield NTFY: as a headless fork I inherit the "no pane/NTFY writes on my own initiative" wall, and a routine Rule-0 self-refill dial-yield is not a notable exception under the standing transition-only/no-spam cadence — the yield is recorded in the commit, the atom_status inbox, and this summary, which the loop consumes.
+
+{"atom_id": "A1_learn_loop_chair", "action": "HARDEN: closed R15 fail-open (future-dated retro masks staleness) + added mutation test proving control fires on its named defect", "claimed_commit_sha": "d22dd7515ef58040f26d97c9fec624d24bf03069", "level_before": 3, "level_after": 3, "gate_status": "clean", "door_reason": ""}

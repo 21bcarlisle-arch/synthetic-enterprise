@@ -9098,3 +9098,10 @@
 - [2026-07-09 22:02 UTC] NORMAL: from_rich_comment_20260709_220207_831164.md — left in staging for Claude's next staging-poll
 - [2026-07-09 22:02 UTC] NORMAL: from_rich_comment_20260709_220248_706665.md — left in staging for Claude's next staging-poll
 - [2026-07-09 22:31 UTC] NORMAL: from_rich_20260709_223142.md — left in staging for Claude's next staging-poll
+- [2026-07-16 15:39 UTC] URGENT classified: from_rich_20260716_153909.md — high-priority NTFY sent; served via staging + pull-loop draw (no pane injection)
+- [2026-07-16 16:49 UTC] URGENT classified: from_rich_20260716_164944.md — high-priority NTFY sent; served via staging + pull-loop draw (no pane injection)
+- [2026-07-16 16:58 UTC] NORMAL: from_rich_20260716_165838.md — left in staging for Claude's next staging-poll
+- [2026-07-16 18:14 UTC] Dispatcher started
+- [2026-07-16 18:27 UTC] Dispatcher started
+- [2026-07-16 21:30 UTC] Dispatcher started
+- [2026-07-17 06:25 UTC] Dispatcher started

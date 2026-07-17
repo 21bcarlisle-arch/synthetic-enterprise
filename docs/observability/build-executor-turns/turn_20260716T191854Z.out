@@ -1,0 +1,26 @@
+I have everything I need. Here is my verified finding and decision.
+
+## Verified state (acted on real disk/git, not the doorbell — R7)
+
+**The drawn atom B5_regional_basis_risk is FRAME-saturated; there is no honest DISCOVER/FRAME work on it.**
+
+1. **B5 is complete at the FRAME stage:** a 249-line / 19KB FRAME doc (`docs/design/frame/B5_regional_basis_risk_FRAME.md`), held L0, `provenance: proposal`, BUILD-gated, and COUPLED_TRIAD-bound to W1_8 (the two release L3 *together*, neither alone). Its only remaining path to `level_target: 3` is BUILT code the epoch gate defers — exactly the definition of FRAME-saturated.
+
+2. **The live saturation guard confirms this and would never have handed me B5.** Run against current code:
+   - `_is_frame_saturated(B5)` → `True`
+   - `_idle_discover_frame_draw` over 200 draws → returns 13 distinct fresh atoms, **never B5**
+   - `_idle_discover_frame_draw_concurrent` → returns 6 fresh atoms, **never B5**
+
+3. **So the Lane-3 doorbell that named B5 is a spurious/stale in-flight delivery (R2 class), not real work.** The running supervisor daemon (started 19:43, *after* the guard landed at 19:34, commit `d2f1b420a`) draws correctly now. This is occurrence-8 of the known "saturated atom reaches a turn" pattern; the *draw-time* mechanism is proven closed, the residual is stale doorbell delivery outside a scoped fork's control.
+
+## Decision: land nothing on B5 (disciplined, not a stall)
+
+Re-churning B5's FRAME would be the exact DIAL defect that `SELF_INTERRUPT_DISCIPLINE`, R12, and the entire H23 guard history forbid. And per `MAKE_IT_STICK`, adding yet another prose "leak-queued" note (the occurrence-7 pattern) is decaying prose, not mechanism — worse than nothing. As a scoped fork I may not: edit the map (F1), write BUILD code (EPOCH_GATING R1), free-choose other work, or NTFY. 
+
+The Rule-0-correct action for a scoped fork handed a spurious draw is to **report the empty feasible set honestly so the orchestrator's dial-widening finds real work** — not to manufacture a commit. This turn landed nothing because nothing honest existed to land; that is the sanctioned "landed nothing → empty SHA, `gate_status='failed'`" path, not an execution failure.
+
+**Signal for the orchestrator:** B5 is saturated — do not re-draw it into Lane 3. The live guard already excludes it; if a turn still receives it, that turn is a stale doorbell and a no-op is correct. B5 re-enters only via the BUILD draw when W1_8's gate opens (W1_6_physics_price_signal + a director-authored zonal curriculum scenario, R13 WALL). This is not a one-way door — no escalation.
+
+No commit created, nothing pushed (HEAD `cd23b67a8` == origin/main, untouched).
+
+{"atom_id": "B5_regional_basis_risk", "action": "no-op: drawn atom is FRAME-saturated (complete 249-line FRAME, held L0, BUILD-gated, coupled W1_8); live saturation guard excludes it from every draw path, so the Lane-3 doorbell is a stale/spurious delivery (R2). No honest DISCOVER/FRAME work exists; refused to re-churn FRAME (R12/SELF_INTERRUPT/MAKE_IT_STICK), refused to edit map (F1), no BUILD code (EPOCH_GATING R1).", "claimed_commit_sha": "", "level_before": 0, "level_after": 0, "gate_status": "failed", "door_reason": ""}

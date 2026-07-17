@@ -1,0 +1,21 @@
+Verified against real machinery. The situation is unambiguous:
+
+**B4_competitor_field is FRAME-saturated** — confirmed by the actual guard (`supervisor._is_frame_saturated(b4) → True`), because it already carries its own FRAME doc (`docs/design/frame/B4_competitor_field_FRAME.md`) plus `COMPETITOR_FIELD_FRAME.md` and the `LANE3_H17_BUILD_GATE_SURVEY_20260716.md` gate table.
+
+The design question is **settled**, not open:
+- The 2026-07-15 DISCOVER pass already fixed the epistemically-honest L1 shape: consume **only** W2_3's published aggregate savings signal (`market_switching_multiplier()`), reuse `renewal_pricing_engine.py`'s SVT-ceiling shape, and do **not** wire `tariff_benchmarking.py`'s multi-competitor `SupplierRank` (no world-side ground truth → epistemic-wall violation).
+- W2_3_competitor_field is at L1/harden and emits only that aggregate scalar — so the L1 bar for B4 is **pure BUILD wiring** into `simulation/renewals.py`.
+- B4 is **epoch 4** and my draw explicitly forbids BUILD code (EPOCH_GATING Rule 1). BUILD-open for epoch 4 is director-reserved curriculum.
+
+There is therefore **no honest FRAME/DISCOVER move that changes the level**. Adding a third same-day "HELD, saturated, BUILD-gated" simplification note would be exactly the re-hand treadmill churn that the H23 machinery (commits d91b03424 / 759648472) and `_is_frame_saturated`'s hard-skip were built to stop — the guard itself would have returned empty rather than hand me this atom.
+
+Honest disposition, mechanized-doctrine-aligned:
+- **No map edit** (F1 — I'm a fork), **no FRAME churn**, **no BUILD code**, **no atom_status inbox** (level unchanged 0→0).
+- **Level HELD at 0.** BUILD-unblock gate (W2_3 observable + epoch-4 open) is already documented in the survey; the director already has it, so per SELF_INTERRUPT_DISCIPLINE this is QUEUE, not a fresh escalation — the machine is not blocked (other lanes have work; this one atom sits at a wall).
+- This turn **lands nothing** — the correct outcome, not a stall.
+
+Nothing pushed (nothing to push): empty `claimed_commit_sha`, `gate_status='failed'`.
+
+One systemic note for the record (not acted on — out of my B4 DISCOVER scope, and it's a supervisor.py BUILD change tracked by the H23 atom): the draw path that issued this grant handed me a FRAME-saturated atom that `_idle_discover_frame_draw`'s own hard-skip would have excluded — the re-hand leak H23 already owns.
+
+{"atom_id": "B4_competitor_field", "action": "HELD — FRAME-saturated (guard-confirmed), design settled, L1 is pure BUILD wiring gated by epoch-4/EPOCH_GATING Rule 1; refused re-hand treadmill churn, landed nothing", "claimed_commit_sha": "", "level_before": 0, "level_after": 0, "gate_status": "failed", "door_reason": ""}

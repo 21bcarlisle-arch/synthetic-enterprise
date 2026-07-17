@@ -8,5 +8,15 @@
     "subject": "commit b7b9e360 (ANTI_LIVELOCK_AND_WIDTH.md: anti-livelock backoff + idle-tier concurrent draw)",
     "task_class": "harness_supervisor",
     "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-07-16",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "",
+    "rework_required": false,
+    "subject": "SITE1_expert_doors",
+    "task_class": "site_presentation",
+    "verdict": "needs_work"
   }
 ]
