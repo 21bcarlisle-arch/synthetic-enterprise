@@ -95,10 +95,40 @@ def test_loader_rejects_unit_without_reason(tmp_path):
         S.load_manifest(bad)
 
 
-def test_committed_manifest_declares_file_api_and_no_cron():
+def test_committed_manifest_declares_file_api_boot_announce_and_no_cron():
     m = S.load_manifest()  # background/schedule_manifest.yaml
     assert m["cron"] == []
     names = [u["name"] for u in m["systemd_units"]]
     assert "file-api.service" in names
+    assert "boot-announce.service" in names          # OPS1 sub-step 4 (G-R3)
     for u in m["systemd_units"]:
         assert u.get("reason")  # reason-with-state enforced
+
+
+def test_process_manifest_units_are_not_flagged_undeclared():
+    """OPS1 sub-step 4 composition: a PROCESS-manifest daemon unit installed on the box is
+    DECLARED-ELSEWHERE, not drift. Without this the two reconcilers fight — installing the 14
+    daemon units would false-flag every one as UNDECLARED_UNIT here."""
+    res = S.reconcile(
+        MANIFEST, cron_lines=[], unit_states=_OK_UNIT,
+        installed_units=["file-api.service", "supervisor.service", "sim-runner.service"],
+        process_unit_names={"supervisor.service", "sim-runner.service"},
+    )
+    assert not any(r["item"] in ("supervisor.service", "sim-runner.service") for r in res
+                   if r["status"] == "UNDECLARED_UNIT")
+    # a genuinely-undeclared unit still alarms even with process awareness on
+    res2 = S.reconcile(
+        MANIFEST, cron_lines=[], unit_states=_OK_UNIT,
+        installed_units=["file-api.service", "rogue-se.service"],
+        process_unit_names={"supervisor.service"},
+    )
+    assert _status(res2, "rogue-se.service")["status"] == "UNDECLARED_UNIT"
+
+
+def test_live_process_unit_names_cover_the_daemon_set():
+    """The live default (used in production) really does pull the daemon unit names from the
+    process manifest — so the composition holds without injection."""
+    names = S._process_manifest_unit_names()
+    assert "supervisor.service" in names
+    assert "sim-runner.service" in names
+    assert "worker-seat-manager.service" in names

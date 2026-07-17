@@ -84,15 +84,33 @@ def _installed_se_units() -> list[str]:
     return out
 
 
+def _process_manifest_unit_names() -> set[str]:
+    """The `<session>.service` names owned by the PROCESS manifest (systemd-owned daemons).
+    Those units are DECLARED-ELSEWHERE (process_manifest.yaml, installed by install_schedule)
+    — so the two reconcilers COMPOSE: this one owns file-api + boot-announce, process_manifest
+    owns the daemon units, and between them every SE systemd unit is declared. Without this,
+    installing the daemon units would false-flag all 14 as UNDECLARED_UNIT here (an interaction
+    the design governs rather than discovering by breakage)."""
+    try:
+        from background import process_reconciler as _proc
+        return {f"{e['session']}.service" for e in _proc.load_manifest()
+                if e.get("owner") == "systemd"}
+    except Exception:
+        return set()
+
+
 def reconcile(manifest: dict | None = None,
               cron_lines: list[str] | None = None,
               unit_states: dict[str, dict] | None = None,
-              installed_units: list[str] | None = None) -> list[dict]:
+              installed_units: list[str] | None = None,
+              process_unit_names: set[str] | None = None) -> list[dict]:
     """Classify declared vs actual. REPORT ONLY. Params injectable for tests; production
     reads live state."""
     manifest = manifest or load_manifest()
     cron_lines = _actual_cron_lines() if cron_lines is None else cron_lines
     installed_units = _installed_se_units() if installed_units is None else installed_units
+    process_unit_names = (_process_manifest_unit_names()
+                          if process_unit_names is None else process_unit_names)
     declared_cron = [str(c).strip() for c in manifest.get("cron", [])]
     declared_units = {u["name"]: u for u in manifest.get("systemd_units", [])}
 
@@ -125,9 +143,10 @@ def reconcile(manifest: dict | None = None,
         results.append({"kind": "unit", "item": name, "status": status,
                         "alarm": status in ALARM_STATUSES, "reason": u.get("reason", "")})
 
-    # undeclared SE units installed on the box
+    # undeclared SE units installed on the box (declared-here OR declared in the process
+    # manifest are both fine; anything else is the invisible-unit class -> alarm)
     for name in installed_units:
-        if name not in declared_units:
+        if name not in declared_units and name not in process_unit_names:
             results.append({"kind": "unit", "item": name, "status": "UNDECLARED_UNIT", "alarm": True})
 
     return results

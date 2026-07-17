@@ -86,10 +86,8 @@ Logs to docs/observability/session-watchdog-log.md.
 
 import glob
 import json
-import os
 import re
 import secrets
-import signal
 import subprocess
 import sys
 import time
@@ -122,7 +120,13 @@ from background.agent_status import update_agent_status  # noqa: E402
 # reaches the session via STAGING (ntfy_responder writes from_rich_*.md) + the
 # pull-loop draw; the pane is the director's console only.
 from background.health_check import run_health_check  # noqa: E402
-from background import console_sanctity  # noqa: E402  (G-L1 console-sanctity marker)
+# NOTE (OPS1 sub-step 4, SUBSTEP4 §6): the reaper (reap_orphan_interactive_claude) is DELETED.
+# systemd + the thin worker-seat manager have NO kill-the-duplicate path, so the exit-143
+# console-kill vector is gone by CONSTRUCTION (absence), not by inference. console_sanctity is
+# no longer consumed here; it is retained repo-wide as the STANDING kill-path contract -- every
+# FUTURE process-kill path MUST consult console_sanctity.is_sanctified before killing, enforced
+# at that path's review, so the next kill-path is born safe. Its exit-143 mutation invariant
+# lives on in tests/background/test_console_sanctity.py.
 
 SESSION_NAME = "claude"
 PROJECT_DIR = "/home/rich/synthetic-enterprise"
@@ -550,28 +554,6 @@ def interactive_claude_pids() -> list[int]:
     return pids
 
 
-def _live_tmux_pane_pids() -> set[int]:
-    """Every pid that is the foreground process of a LIVE tmux pane, across ALL
-    sessions (not just the watchdog's own SESSION_NAME). Used to tell an orphaned
-    GHOST (its tmux session was killed, no pane backs it any more -> reap) from a
-    genuinely-live session the director is using (managed OR a console `tmux
-    new-session` + claude he typed himself -> NEVER touch it). Empty set if tmux
-    is unreachable -- which makes reap fail SAFE (see reap_orphan_...)."""
-    result = subprocess.run(
-        ["tmux", "list-panes", "-a", "-F", "#{pane_pid}"],
-        capture_output=True, text=True,
-    )
-    if getattr(result, "returncode", 1) != 0:
-        return set()
-    pids: set[int] = set()
-    for line in (getattr(result, "stdout", "") or "").split():
-        try:
-            pids.add(int(line))
-        except ValueError:
-            pass
-    return pids
-
-
 def _ppid_of(pid: int) -> int | None:
     """Parent pid of `pid` from /proc/<pid>/status, or None if unreadable."""
     try:
@@ -581,77 +563,6 @@ def _ppid_of(pid: int) -> int | None:
     except (OSError, ValueError, IndexError):
         pass
     return None
-
-
-def _is_backed_by_live_pane(pid: int, pane_pids: set[int], _max_hops: int = 32) -> bool:
-    """True if `pid` (or any ancestor within _max_hops) is a live tmux pane process.
-    Our daemon/console sessions launch `claude` as the pane command directly, so
-    pane_pid == the claude pid in the common case; the ancestor walk covers a
-    shell-wrapped launch too. An orphaned ghost traces up to pid 1/0, never a pane."""
-    cur: int | None = pid
-    for _ in range(_max_hops):
-        if cur is None or cur <= 1:
-            return False
-        if cur in pane_pids:
-            return True
-        cur = _ppid_of(cur)
-    return False
-
-
-def reap_orphan_interactive_claude(exclude: set[int] | None = None) -> list[int]:
-    """SIGTERM only ORPHANED interactive Claude session processes -- a ghost whose
-    tmux session was killed but whose `claude` PROCESS survived (how the Jul-15
-    ghost spammed the director for a full day). Called on the respawn path so the
-    singleton invariant covers the crash-recovery / usage-reset route.
-
-    NEVER kills a session the director is actually using. Two INDEPENDENT reasons
-    to spare, checked in order; a pid is reaped only if BOTH fail to protect it:
-      1. G-L1 CONSOLE SANCTITY (positive, tmux-independent): a pid registered in
-         the console-sanctity marker (`console_sanctity.is_sanctified`) is spared
-         unconditionally -- the check reads only /proc + the registry file, so it
-         holds even when tmux is unreachable, the exact gap the old inference-only
-         exemption could not cover (the blackout's exit-143 console kill).
-      2. LIVE TMUX PANE (inference, retained as a redundant belt): a process
-         backed by a live tmux pane is spared. Kept until every console-launch
-         path registers via the sanctioned launcher (background/console.sh);
-         retiring it before then would risk the very console-kill G-L1 prevents.
-
-    Returns the reaped pids. Fails SAFE: for a NON-sanctified pid, if tmux is
-    unreachable (empty pane set) we cannot prove it is a ghost, so we do not reap
-    it -- a lingering ghost is far less harmful than killing a live session."""
-    exclude = exclude or set()
-    pane_pids = _live_tmux_pane_pids()
-    reaped: list[int] = []
-    spared_sanctified: list[int] = []
-    spared_live: list[int] = []
-    for pid in interactive_claude_pids():
-        if pid in exclude or pid == os.getpid():
-            continue
-        # (1) G-L1: sanctified console -- never reaped, independent of tmux.
-        if console_sanctity.is_sanctified(pid):
-            spared_sanctified.append(pid)
-            continue
-        # (2) fail-safe: without the pane list we cannot prove a ghost -> do not reap.
-        if not pane_pids:
-            spared_live.append(pid)
-            continue
-        # (2) inference belt: a live pane-backed session is spared.
-        if _is_backed_by_live_pane(pid, pane_pids):
-            spared_live.append(pid)
-            continue
-        try:
-            os.kill(pid, signal.SIGTERM)
-            reaped.append(pid)
-        except OSError:
-            pass
-    _sanct = f"; spared {len(spared_sanctified)} SANCTIFIED console(s): {spared_sanctified}" if spared_sanctified else ""
-    _live = f"; spared {len(spared_live)} pane-backed/fail-safe session(s): {spared_live}" if spared_live else ""
-    if reaped:
-        log(f"Reaped {len(reaped)} ORPHAN interactive-claude ghost(s) on respawn: {reaped}"
-            + _sanct + _live + " (singleton invariant; sanctified consoles never killed)")
-    elif spared_sanctified or spared_live:
-        log(f"Reap found no orphans{_sanct}{_live}")
-    return reaped
 
 
 def claude_is_running() -> bool:
@@ -967,11 +878,10 @@ def restart_claude(resume: bool = True) -> None:
         f"dedicated worker session {WORKER_SESSION_ID} [{_mode}], no `claude -c`, "
         f"no send-keys, DISABLE_AUTOUPDATER=1)")
     subprocess.run(["tmux", "kill-session", "-t", SESSION_NAME], capture_output=True)
-    # Singleton on the RESPAWN path (2026-07-16): kill-session removes the tmux session
-    # but can leave an orphaned claude PROCESS alive (how the Jul-15 ghost survived a
-    # day). Reap any interactive-claude orphan before spawning the replacement, so at
-    # most one interactive session ever exists.
-    reap_orphan_interactive_claude()
+    # OPS1 sub-step 4 (SUBSTEP4 §6): the orphan-reap that used to run here is DELETED. Under
+    # the systemd + thin worker-seat model there is no kill-the-duplicate path at all -- the
+    # exit-143 console-kill vector is removed by CONSTRUCTION, not guarded against. A stray
+    # duplicate interactive session is REPORTED by reconcile/health_check (G-L2), never killed.
     time.sleep(5)
 
     # DISABLE_AUTOUPDATER=1 (2026-07-08, Rich's direct instruction): the npm

@@ -1,0 +1,17 @@
+[Unit]
+Description=Synthetic Enterprise boot-recovery announce (G-R3: reconcile + report once, before act)
+# Run AFTER the managed daemons so the boot reconcile sees their settled state, not a race.
+After=network.target default.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# NTFY secret via the Option-2 out-of-tree location; `-` = still run (and report) if absent.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# Report-only: reconcile the declared set against actual and send ONE boot NTFY. Starts/stops
+# nothing (G-R4). Idempotent per boot via its own btime marker, so a manual re-run is a no-op.
+ExecStart=/usr/bin/python3 -m background.boot_announce
+
+[Install]
+WantedBy=default.target

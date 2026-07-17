@@ -64,63 +64,88 @@ def test_health_checked_excludes_held_dark_retired_includes_enabled():
         assert enabled in hc
 
 
+# OPS1 sub-step 4: reconcile reads SYSTEMD unit state (injected unit_states) + the worker-seat
+# tmux flag (seat_active), NOT tmux panes / ps. `unit_states` = {session: {"active", "substate"}}.
+_DOWN = dict(unit_states={}, seat_active=False)
+
+
+def _up(session, **extra):
+    return dict(unit_states={session: {"active": True, **extra}}, seat_active=False)
+
+
 def test_incident_held_down_silent_held_running_is_HELD_VIOLATED():
     """THE 2026-07-17 incident as a permanent invariant: a HELD daemon that is DOWN is
     silent (no false DEGRADED); a HELD daemon found RUNNING is HELD_VIOLATED and alarms —
     exactly the deadman the worker resurrected. Incidents become invariants."""
-    down = R.reconcile(panes={}, ps_lines=[])
+    down = R.reconcile(**_DOWN)
     assert _status(down, "deadmans-switch")["status"] == "HELD"
     assert _status(down, "deadmans-switch")["alarm"] is False
-    resurrected = R.reconcile(panes={"deadmans-switch": "python3"}, ps_lines=[])
+    resurrected = R.reconcile(**_up("deadmans-switch"))
     assert _status(resurrected, "deadmans-switch")["status"] == "HELD_VIOLATED"
     assert _status(resurrected, "deadmans-switch")["alarm"] is True
 
 
 def test_enabled_missing_alarms_enabled_running_ok():
-    down = R.reconcile(panes={}, ps_lines=[])
+    down = R.reconcile(**_DOWN)
     assert _status(down, "sim-runner")["status"] == "MISSING"
     assert _status(down, "sim-runner")["alarm"] is True
-    up = R.reconcile(panes={"sim-runner": "python3"}, ps_lines=[])
+    up = R.reconcile(**_up("sim-runner"))
     assert _status(up, "sim-runner")["status"] == "OK"
 
 
 def test_dark_absent_ok_dark_running_reports_no_alarm():
-    down = R.reconcile(panes={}, ps_lines=[])
+    down = R.reconcile(**_DOWN)
     assert _status(down, "executor-daemon")["status"] == "DARK"
     assert _status(down, "executor-daemon")["alarm"] is False
-    active = R.reconcile(panes={"executor-daemon": "python3"}, ps_lines=[])
+    active = R.reconcile(**_up("executor-daemon"))
     assert _status(active, "executor-daemon")["status"] == "DARK_ACTIVE"
     assert _status(active, "executor-daemon")["alarm"] is False   # director-authorised
 
 
 def test_retired_running_alarms():
-    down = R.reconcile(panes={}, ps_lines=[])
+    down = R.reconcile(**_DOWN)
     assert _status(down, "autonomous-runner")["status"] == "OK"
-    running = R.reconcile(panes={"autonomous-runner": "python3"}, ps_lines=[])
+    running = R.reconcile(**_up("autonomous-runner"))
     assert _status(running, "autonomous-runner")["status"] == "RETIRED_RUNNING"
     assert _status(running, "autonomous-runner")["alarm"] is True
 
 
-def test_running_detected_via_ps_token_too():
-    ps = ["python3 background/sim_runner.py"]
-    res = R.reconcile(panes={}, ps_lines=ps)
-    assert _status(res, "sim-runner")["status"] == "OK"
+def test_unit_failed_and_crashlooping_alarm_regardless_of_declared_state():
+    """G-L3 / the 32,707 case: a SubState=failed unit -> UNIT_FAILED; auto-restart ->
+    UNIT_CRASHLOOPING. Both alarm whatever the declared state — a silent systemd crash-loop
+    is the same disease as the invisible cron, now caught by the same reconcile."""
+    failed = R.reconcile(unit_states={"sim-runner": {"active": False, "substate": "failed"}},
+                         seat_active=False)
+    assert _status(failed, "sim-runner")["status"] == "UNIT_FAILED"
+    assert _status(failed, "sim-runner")["alarm"] is True
+    looping = R.reconcile(unit_states={"staging-watcher": {"active": False, "substate": "auto-restart"}},
+                          seat_active=False)
+    assert _status(looping, "staging-watcher")["status"] == "UNIT_CRASHLOOPING"
+    assert _status(looping, "staging-watcher")["alarm"] is True
 
 
-def test_undeclared_background_daemon_flagged_console_never():
-    panes = {
-        "rogue-daemon": "python3 background/rogue.py",  # undeclared bg daemon -> UNEXPECTED
-        "work": "bash",                                  # a director console shell -> ignored
-    }
-    res = R.reconcile(panes=panes, ps_lines=[])
-    assert _status(res, "rogue-daemon")["status"] == "UNEXPECTED"
-    assert not any(r["session"] == "work" for r in res)  # console never flagged
+def test_worker_seat_detected_via_seat_flag_not_a_unit():
+    """The seat is the ONE entry systemd can't own: detected by `seat_active` (the `claude`
+    tmux session), never a unit. HELD now -> down is silent, up is HELD_VIOLATED."""
+    down = R.reconcile(unit_states={}, seat_active=False)
+    assert _status(down, "claude")["status"] == "HELD"
+    up = R.reconcile(unit_states={}, seat_active=True)
+    assert _status(up, "claude")["status"] == "HELD_VIOLATED"
+    assert _status(up, "claude")["alarm"] is True
+
+
+def test_reconcile_reads_no_tmux_panes_so_a_console_can_never_be_flagged():
+    """G-L1-adjacent, structural: the old UNEXPECTED tmux-pane scan is GONE (absorbed into
+    schedule_reconciler's unit view). reconcile now classifies only DECLARED entries from
+    systemd/seat state — it cannot even see, let alone flag, the director's console pane."""
+    res = R.reconcile(**_DOWN)
+    assert {r["session"] for r in res} == R.declared_sessions()  # only declared entries, nothing else
 
 
 def test_reconcile_is_report_only_no_kill_key():
     """G-R3 structural: every result carries only status/report fields — there is no
     action/kill field, so a caller cannot be handed a 'kill this' instruction."""
-    for r in R.reconcile(panes={}, ps_lines=[]):
+    for r in R.reconcile(**_DOWN):
         assert set(r) == {"session", "state", "running", "status", "alarm", "reason", "flip"}
         assert "kill" not in r and "action" not in r
 
@@ -146,3 +171,20 @@ def test_health_check_expected_panes_is_derived_and_excludes_held():
     assert health_check.EXPECTED_PANES == R.health_checked_map()
     assert "naive-organ" in health_check.EXPECTED_PANES
     assert "supervisor" not in health_check.EXPECTED_PANES
+
+
+def test_no_reaper_or_interactive_claude_kill_path_exists_anywhere():
+    """OPS1 sub-step 4 / SUBSTEP4 §9 permanent invariant: the exit-143 console-kill vector is
+    impossible by CONSTRUCTION (absence), not inference. Grep proves no background module carries
+    the reaper or any process-kill CALL (os.kill / signal.SIGTERM|SIGKILL) — so no code path can
+    ever SIGTERM an interactive claude. The word may appear in docstrings/OOM-classification
+    strings; only an actual call pattern is a regression."""
+    import re
+    import glob
+    kill_call = re.compile(r"os\.kill\s*\(|signal\.SIGTERM|signal\.SIGKILL")
+    here = Path(R.__file__).resolve().parent
+    for path in glob.glob(str(here / "*.py")):
+        src = Path(path).read_text()
+        assert "def reap_orphan" not in src, f"{path}: the reaper was reintroduced"
+        m = kill_call.search(src)
+        assert m is None, f"{path}: a process-kill call reappeared: {src[m.start():m.start()+50]!r}"

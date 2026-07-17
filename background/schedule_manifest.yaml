@@ -32,3 +32,15 @@ systemd_units:
       the box — boot-start + Restart=on-failure — because its death strands him exactly when
       he is phone-only. The split model (systemd for this, tmux for the stack) is principled,
       not messy. Owning it here is why it is NOT in process_manifest.yaml.
+
+  - name: boot-announce.service
+    unit_file: background/boot-announce.service
+    enabled: true            # boot-start: fire once on every boot
+    active: false            # Type=oneshot — runs, reports, EXITS; inactive(dead) is correct, not UNIT_DOWN
+    reason: >-
+      OPS1 sub-step 4, G-R3 (reconcile before act). A oneshot that on every boot reconciles the
+      declared set (process_manifest + this manifest) against actual and sends ONE boot NTFY
+      BEFORE any autonomous work advances — so a boot state is a stated single transition, never
+      the silent "cron resurrects whatever was there" mask the blackout came from. Report-only:
+      it starts/stops/reaps nothing (G-R4). enabled (boot-start) but active:false because a
+      oneshot exits after running — flagging it UNIT_DOWN would be wrong.

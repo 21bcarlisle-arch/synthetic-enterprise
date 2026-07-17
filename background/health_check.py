@@ -382,8 +382,10 @@ def _check_single_interactive_session(_pids=None, _pane_session=None) -> str | N
                 # tmux unreachable -> cannot classify the console; fall back to the
                 # original raw alarm rather than risk silencing a real duplicate.
                 return (f"MULTIPLE interactive Claude sessions ({len(pids)}: {pids}) -- a "
-                        "duplicate/ghost session. Each runs the test suite and burns tokens; "
-                        "reap all but one (session_watchdog.reap_orphan_interactive_claude).")
+                        "duplicate/ghost session. Each runs the test suite and burns tokens. "
+                        "REPORT-ONLY (OPS1 sub-step 4): the auto-reaper is DELETED (the exit-143 "
+                        "console-kill vector) -- clear the extra session manually / via systemd, "
+                        "never an automated kill.")
             pane_session = {}
             for line in res.stdout.split("\n"):
                 parts = line.split()
@@ -399,8 +401,9 @@ def _check_single_interactive_session(_pids=None, _pane_session=None) -> str | N
         if len(countable) > 1:
             return (f"MULTIPLE interactive Claude sessions ({len(countable)}: {countable}) -- a "
                     "duplicate/ghost session (director's own console panes excluded). Each runs "
-                    "the test suite and burns tokens; reap all but one "
-                    "(session_watchdog.reap_orphan_interactive_claude).")
+                    "the test suite and burns tokens. REPORT-ONLY (OPS1 sub-step 4): the "
+                    "auto-reaper is DELETED (exit-143 vector) -- clear the extra session "
+                    "manually / via systemd, never an automated kill.")
     except Exception:
         return None  # never break the health run on this check
     return None
