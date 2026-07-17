@@ -164,3 +164,48 @@ def test_project_dir_resolves_to_repo_root_not_dotclaude():
     assert (mod.PROJECT_DIR / ".claude" / "hooks").is_dir()
     # The enable flag must point at the ONE real, director-set location.
     assert mod.ENABLE_FLAG == repo_root / "docs" / "observability" / ".build_executor_enabled"
+
+
+def test_hook_puts_repo_root_on_syspath_so_import_works_from_alien_cwd():
+    """Regression (serial-autonomy maiden-turn watch, 2026-07-17): loading the hook from a cwd
+    that is NOT the repo root must make `import background` resolve. The Stop hook runs with an
+    arbitrary cwd; without the sys.path fix `from background.supervisor import find_work` raised
+    ModuleNotFoundError('background') on EVERY fire and fail-safe'd to allow-stop -- the transport
+    silently NEVER delivered work. Every other test mocks background.supervisor, so ONLY this
+    exercises the real import path from an alien cwd (subprocess from /tmp to replicate)."""
+    import subprocess
+    import sys
+    import textwrap
+    code = textwrap.dedent(f'''
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("pnw", r"{HOOK_PATH}")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)          # runs the module-level sys.path.insert
+        import background.supervisor          # must resolve even though cwd=/tmp
+        print("IMPORT_OK")
+    ''')
+    r = subprocess.run([sys.executable, "-c", code], cwd="/tmp", capture_output=True, text=True)
+    assert "IMPORT_OK" in r.stdout, f"import failed from alien cwd: {r.stderr[-400:]}"
+
+
+def test_decide_stdout_is_pure_json_when_find_work_prints(tmp_path, monkeypatch, capsys):
+    """Regression (serial-autonomy maiden-turn watch, 2026-07-17): the REAL find_work (via
+    supervisor.log()) PRINTS to stdout. The Stop hook's stdout must be PURE JSON or Claude Code
+    cannot parse the block+continue -- a leading log line silently drops the drawn turn. decide()
+    must capture find_work's stdout so ONLY main()'s json.dumps reaches the pane transport."""
+    import sys
+    import types
+    mod = _load_hook(tmp_path, monkeypatch, enabled=True, draw_result=None)
+    noisy = types.ModuleType("background.supervisor")
+
+    def _find_work(resumed_from_pause=False):
+        print("- [ts] THREE-LANE self-refill (atoms-drawn-per-cycle): BUILD=1")  # mimic supervisor.log()
+        return ("BUILD OPS1_tmux_target_qualification", False)
+
+    noisy.find_work = _find_work
+    monkeypatch.setitem(sys.modules, "background.supervisor", noisy)
+    out = mod.decide({"stop_hook_active": False})
+    captured = capsys.readouterr()
+    assert captured.out == "", f"find_work stdout leaked into the hook's stdout: {captured.out!r}"
+    assert out is not None and out["decision"] == "block"
+    assert "OPS1_tmux_target_qualification" in out["reason"]

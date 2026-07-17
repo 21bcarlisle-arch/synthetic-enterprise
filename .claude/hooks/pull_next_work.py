@@ -33,6 +33,11 @@ from pathlib import Path
 # was never read, so the Stop hook AND executor_daemon silently refused to run
 # (2026-07-16: "flag enabled but nothing executes the loop").
 PROJECT_DIR = Path(__file__).resolve().parents[2]
+# The Stop hook can be invoked with a cwd that is NOT the repo root, so `import background` fails
+# unless the repo root is on sys.path. Without this the pull loop raised
+# ModuleNotFoundError('background') on EVERY fire and fail-safe'd to allow-stop -- the transport
+# silently NEVER delivered work (found on the serial-autonomy maiden-turn watch, 2026-07-17).
+sys.path.insert(0, str(PROJECT_DIR))
 # THE single kill switch for ALL autonomous execution (DIRECTOR_ANSWERS_C7.md #6,
 # 2026-07-15, signed): ONE flag governs the pull loop AND any future headless
 # executor -- no second flag. CONSOLE-ONLY, director-reserved (same class as
@@ -106,8 +111,15 @@ def decide(payload: dict) -> dict | None:
     # satisfies ntfy_utils' import guard (this hook never sends an ntfy).
     os.environ.setdefault("SE_NTFY_TOPIC", "pull-loop-draw-only")
     try:
-        from background.supervisor import find_work
-        reason, _map_exhausted = find_work(resumed_from_pause=False)
+        import contextlib
+        import io
+        # find_work (via the supervisor's log()) PRINTS to stdout. The Stop hook's stdout must be
+        # PURE JSON or Claude Code cannot parse the block+continue -- leading log lines would drop
+        # the drawn turn silently. Capture find_work's stdout so ONLY main()'s json.dumps reaches
+        # the transport (2nd transport bug found on the serial-autonomy maiden-turn watch, 2026-07-17).
+        with contextlib.redirect_stdout(io.StringIO()):
+            from background.supervisor import find_work
+            reason, _map_exhausted = find_work(resumed_from_pause=False)
     except Exception as e:  # fail SAFE: never block on a broken draw
         _log(f"draw error: {e!r} -> allow stop (fail-safe)")
         return None
