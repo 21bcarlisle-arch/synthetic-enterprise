@@ -1,0 +1,120 @@
+# Declared process set — the SINGLE authoritative manifest of what SHOULD be running.
+#
+# OPS1 sub-step 2 (G-L2), docs/design/OPERATIONAL_LAYER_DESIGN.md. This file is the
+# infrastructure-as-code DECLARATION the director's addendum calls the CORE principle:
+# "expected-process set declared + reconciled vs `ps`". Before this file the declared set
+# was scattered across TWO places that had silently DRIFTED — start_worker.sh's launch
+# block and health_check.py's hand-maintained EXPECTED_PANES dict (which was missing
+# naive-organ entirely, so the health check was blind to whether that daemon was running).
+# There is now ONE declaration; the others DERIVE from or are RECONCILED against it:
+#   - health_check.EXPECTED_PANES  -> derived from this manifest (health_checked entries).
+#   - start_worker.sh launch set   -> bound to this manifest by an anti-drift test
+#     (tests/background/test_process_reconciler.py) that FAILS if the two disagree, so
+#     the scattered-and-drifted state that hid the naive-organ gap cannot recur silently.
+#
+# Runtime state (which processes are actually up) is NOT in git — it can't be. The
+# DECLARATION of what should be up is, and background/process_reconciler.py reconciles
+# the two and REPORTS drift (it never kills an undeclared process — reaping-by-inference
+# is what killed the director's console in the blackout).
+#
+# Fields per entry:
+#   session        tmux session name (as launched by start_worker.sh)
+#   match          substring identifying the process in `ps` (the script/module token)
+#   kind           daemon | dark-daemon | service | console-seat
+#   health_checked true  -> absence is a FAULT the health check reports
+#                  false -> absence is informational only (see notes per entry)
+#   purpose        one line, why it exists
+
+processes:
+  # --- core autonomous-loop daemons: absence is a fault ---
+  - session: background-worker
+    match: background_worker.py
+    kind: daemon
+    health_checked: true
+    purpose: "Qwen task queue + leftover run_complete-marker sweep; runs off-peak"
+
+  - session: session-watchdog
+    match: session_watchdog.py
+    kind: daemon
+    health_checked: true
+    purpose: "Auto-resumes the Claude session after usage-limit resets; console-sanctity-aware reap"
+
+  - session: staging-watcher
+    match: staging_watcher.py
+    kind: daemon
+    health_checked: true
+    purpose: "NTFYs Rich when new files land in docs/staging/"
+
+  - session: supervisor
+    match: supervisor.py
+    kind: daemon
+    health_checked: true
+    purpose: "Sole turn-granting authority — polls, grants a turn when idle + work exists (Rule 0)"
+
+  - session: ntfy-responder
+    match: ntfy_responder.py
+    kind: daemon
+    health_checked: true
+    purpose: "Instant-acks inbound NTFY, writes >25-char messages to staging/from_rich_*.md"
+
+  - session: dispatcher
+    match: dispatcher.py
+    kind: daemon
+    health_checked: true
+    purpose: "Classifies from_rich_*.md as URGENT/NORMAL/FYI and routes"
+
+  - session: discovery-daemon
+    match: discovery_agent.py
+    kind: daemon
+    health_checked: true
+    purpose: "Validates simulation assumptions every 6h via Qwen"
+
+  - session: sim-runner
+    match: sim_runner.py
+    kind: daemon
+    health_checked: true
+    purpose: "Continuous 9.5yr simulation loop; writes run_complete markers"
+
+  - session: sanity-daemon
+    match: sanity_daemon.py
+    kind: daemon
+    health_checked: true
+    purpose: "Population-level statistical sanity checks every 30min vs domain_invariants"
+
+  - session: deadmans-switch
+    match: deadmans_switch.py
+    kind: daemon
+    health_checked: true
+    purpose: "Independent BLOCKED/STALL alert on the git-commit clock — the safety net for a wedged stack"
+
+  - session: director-comments
+    match: director_comments.py
+    kind: daemon
+    health_checked: true
+    purpose: "Polls the comments-only NTFY topic, PIN-validates, stages accepted director comments"
+
+  - session: naive-organ
+    match: naive_organ
+    kind: daemon
+    health_checked: true
+    purpose: "Independent outside-view skeptic on its own wall-clock timer (was MISSING from EXPECTED_PANES)"
+
+  # --- dark-gated: correct to be ABSENT unless explicitly enabled ---
+  - session: executor-daemon
+    match: executor_daemon.py
+    kind: dark-daemon
+    health_checked: false
+    purpose: "Self-continuing headless build loop; DARK by default — exits cleanly (safe no-op) unless docs/observability/.build_executor_enabled is present, so its absence is EXPECTED, not a fault"
+
+  # --- support services: informational (outside the core autonomous loop) ---
+  - session: token-proxy
+    match: background.token_proxy
+    kind: service
+    health_checked: false
+    purpose: "Local HTTP proxy on :8801 tracking token usage for autonomous turns"
+
+  - session: file-api
+    match: background.file_api
+    kind: service
+    health_checked: false
+    purpose: "Authenticated file API + Ollama /query proxy on :8765 (separate env, advisor-facing)"

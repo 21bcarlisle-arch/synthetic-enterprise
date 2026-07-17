@@ -22,23 +22,17 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "health-check-log.md"
 sys.path.insert(0, str(PROJECT_DIR))
 from background.ntfy_utils import send_ntfy  # noqa: E402
 
-EXPECTED_PANES = {
-    "ntfy-responder": "ntfy_responder.py",
-    "staging-watcher": "staging_watcher.py",
-    "session-watchdog": "session_watchdog.py",
-    "supervisor": "supervisor.py",
-    "dispatcher": "dispatcher.py",
-    "discovery-daemon": "discovery_agent.py",
-    "background-worker": "background_worker.py",
-    "sim-runner": "sim_runner.py",
-    "sanity-daemon": "sanity_daemon.py",
-    "deadmans-switch": "deadmans_switch.py",
-    "director-comments": "director_comments.py",
-    # autonomous-runner deliberately excluded: retired by director decision
-    # (docs/staging/AUTONOMOUS_RUNNER_RETIRED.md, 2026-07-07) -- the watchdog-managed
-    # interactive session is now the single writer. Its absence is not a fault; do
-    # not alert on it. Restart question folds into the next weekly PRIORITIES.md re-rank.
-}
+# The set of daemons whose ABSENCE is a fault, DERIVED from the single declared
+# manifest (background/process_manifest.yaml) rather than hand-maintained here.
+# OPS1 sub-step 2 (G-L2): the old hand-maintained dict had silently DRIFTED from
+# start_worker.sh's launch set — it was missing naive-organ, so the health check was
+# blind to whether that daemon was running. There is now ONE declaration; this derives
+# from it, and a test binds the manifest to start_worker.sh so drift can't recur silently.
+# Dark-gated (executor-daemon, correctly absent when not enabled) and support services
+# (token-proxy, file-api) carry health_checked:false in the manifest, so they are excluded
+# here exactly as before — plus naive-organ is now correctly included.
+from background import process_reconciler as _reconciler
+EXPECTED_PANES = _reconciler.health_checked_map()
 
 
 def _tmux_panes() -> dict[str, str]:
