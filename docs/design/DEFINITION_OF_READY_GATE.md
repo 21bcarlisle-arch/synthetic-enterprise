@@ -287,3 +287,41 @@ built + mutation-tested + wired, ratified by the advisor.
 - **Rule 0 / PROCEED_BY_DEFAULT / R12 / R15** — the walls the guardrail (§4)
   rests on. The DoR adds no new wall; it is a DIAL that references existing
   physics.
+
+## 9. The mirror gap — a Definition of HARDEN-ability (FRAME finding, 2026-07-17)
+
+**Surfaced by live evidence, not theory.** During a director-gated idle (no
+below-target work anywhere), the Rule-0 self-refill correctly yields a dial and
+hands the worker at-target atoms to HARDEN/red-team — this is right (Rule 0: the
+to-do list is never empty). But it draws them **uniformly**, with no check that
+the drawn atom has a *harden-able surface*. Four consecutive HARDEN draws in one
+idle window: two landed on harness/safety-control atoms with built controls and
+found real fail-silent bugs (high value); one landed on a settled domain atom
+(re-verified clean); one landed on **this atom itself** — `level 1`, FRAME-only,
+`loop_stage: idle`, whose only built artefact is a design doc. There is no
+control to mutation-test, no exit test to re-run, no invariant to red-team on a
+FRAME-only atom — so "HARDEN it" degrades to make-work / theatre pressure, the
+exact failure `SELF_INTERRUPT_DISCIPLINE` names ("the supply is infinite = the
+treadmill") and `R15` forbids (a manufactured test on a non-existent control is
+worse than none).
+
+**The principle (the DoR's mirror).** Just as an atom is BUILD-eligible only
+when framed/scoped/sized/exit-test-defined (§2), an at-target atom is
+**HARDEN-DRAWABLE only when it has something to harden**: a built control /
+exit-test / red-teamable invariant — concretely, `level_current >= 2` (a level-1
+atom's only "evidence" is that it was framed) **or** an evidence entry pointing
+at runnable tests. A FRAME-only / idle atom's honest idle-lane work is
+DISCOVER/FRAME refinement (like this section), never "HARDEN".
+
+**Disposition — same SOFT DIAL, same wall (§4).** This is an ordering/eligibility
+DIAL on the HARDEN self-refill, never a hard gate: it *deprioritises* non-harden-
+able atoms, and if the ONLY at-target candidates lack a harden-able surface it
+still yields (offer FRAME refinement or the next dial), never zeroing the set
+(Rule 0). Harden-ability, like readiness, is a **diagnostic never a target**
+(R12) — the aim is not "maximise harden score" but "spend idle red-team effort
+where a control can actually fail" (which is where both real bugs this window
+were found). **NOT BUILT HERE** (BUILD-gated, same as `dor_check()` §7): the
+mechanised skip/ordering lives in `background/supervisor.py`'s HARDEN self-refill
+draw and folds into the SAME FRAME-time verdict as the DoR — one readiness organ
+(ready-to-BUILD *and* ready-to-HARDEN), not two. Registered as this atom's own
+next BUILD increment; no draw-path change this FRAME pass.
