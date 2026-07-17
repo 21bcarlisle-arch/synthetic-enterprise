@@ -34,9 +34,9 @@ def test_held_unit_mapping_full_matrix():
     down = R.reconcile(unit_states={}, seat_active=False)
     # enabled, down -> MISSING (fault)
     assert _status(down, "sim-runner")["status"] == "MISSING"
-    # held, down -> HELD (silent)
-    assert _status(down, "supervisor")["status"] == "HELD"
-    assert _status(down, "supervisor")["alarm"] is False
+    # held, down -> HELD (silent) — deadmans is the still-held daemon (last gate)
+    assert _status(down, "deadmans-switch")["status"] == "HELD"
+    assert _status(down, "deadmans-switch")["alarm"] is False
     # dark, down -> DARK (ok)
     assert _status(down, "executor-daemon")["status"] == "DARK"
     # retired, down -> OK
@@ -85,26 +85,34 @@ def test_exit_143_invariant_still_holds_against_console_sanctity():
 
 # ── the current safe posture: held layer HELD, executor DARK, seat HELD ──
 
-def test_declared_posture_after_worker_seat_migration():
-    """Staged migration posture (director-gated one at a time): worker-seat MIGRATED (enabled +
-    launched_by systemd — it left start_worker's tmux set); supervisor + deadmans STILL HELD
-    (their gates come next); executor DARK; autonomous-runner retired. The manifest declares the
-    live truth at every step — never a held-but-running lie."""
+def test_declared_posture_during_staged_migration():
+    """Staged migration posture (director-gated one at a time): worker-seat + supervisor MIGRATED
+    (enabled + launched_by systemd — they left start_worker's tmux set); deadmans STILL HELD (its
+    gate is last, against the fresh commit clock the first autonomous turn creates); executor DARK;
+    autonomous-runner retired. The manifest declares the live truth at every step — never a
+    held-but-running lie."""
     m = {e["session"]: e for e in R.load_manifest()}
-    assert m["worker-seat-manager"]["state"] == "enabled"
-    assert m["worker-seat-manager"]["launched_by"] == "systemd"   # left the tmux launch set
+    for migrated in ("worker-seat-manager", "supervisor"):
+        assert m[migrated]["state"] == "enabled", migrated
+        assert m[migrated]["launched_by"] == "systemd", migrated   # left the tmux launch set
     assert m["claude"]["state"] == "enabled"                       # the seat is live
-    for still_held in ("supervisor", "deadmans-switch"):
-        assert m[still_held]["state"] == "held", still_held        # next gates
+    assert m["deadmans-switch"]["state"] == "held"                 # last gate
     assert m["executor-daemon"]["state"] == "dark"
     assert m["autonomous-runner"]["state"] == "retired"
 
 
 # ── the build never starts anything: install is install+enable only, migration starts ──
 
-def test_install_schedule_never_starts_a_daemon():
-    """install_schedule.sh installs + enables (boot-start) only — it must NOT `systemctl start`
-    any daemon. Bringing the stack live is the gated one-at-a-time migration, never this script."""
+def test_install_schedule_never_starts_a_service_daemon():
+    """install_schedule.sh installs + enables (boot-start) only — it must NOT `systemctl start` any
+    .service DAEMON (bringing a daemon live is the gated one-at-a-time migration). The ONE allowed
+    start is ARMING a .timer (scheduling, not launching a daemon), and it must be guarded to
+    `*.timer)` so it can never start a .service."""
     text = (_BG / "install_schedule.sh").read_text()
-    assert "systemctl --user start" not in text
-    assert re.search(r"systemctl\s+--user\s+start\b", text) is None
+    for m in re.finditer(r"systemctl\s+--user\s+start\b[^\n]*", text):
+        line = m.group(0)
+        # every start must be arming "$name" inside the *.timer) case (never a literal .service)
+        assert '"$name"' in line, f"unexpected start target: {line!r}"
+        assert ".service" not in line, f"a .service is being started: {line!r}"
+    # and the only start present is the timer-guarded one
+    assert "*.timer) systemctl --user start" in text

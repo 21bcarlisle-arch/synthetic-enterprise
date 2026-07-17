@@ -53,19 +53,18 @@ processes:
     command: python3 background/supervisor.py
     match: supervisor.py
     owner: systemd
-    state: held
-    reason: "OPS1 governance rebuild — single-supervisor authority (G-L4) not yet built; running the old supervisor now would grant turns to the held worker seat"
-    flip: "on sub-step 4 (single governed supervisor) landing verified → enabled"
-    purpose: "Turn-granting authority (rebuilt in sub-step 4)"
+    launched_by: systemd   # MIGRATED 2026-07-17 (serial-autonomy go-live) → out of start_worker's tmux set
+    state: enabled
+    purpose: "Escalation watchdog over the pull-loop transport (G-L4-as-mapped: find_work is the sole DRAW authority; the Stop hook delivers; this daemon polls every 2min and escalates stuck/map-exhausted, ZERO pane writes / ZERO turn delivery). Migrated live 2026-07-17 as step 3 of the serial-autonomy go-live."
 
   - session: deadmans-switch
     command: python3 background/deadmans_switch.py
     match: deadmans_switch.py
     owner: systemd
     state: held
-    reason: "OPS1 governance rebuild — held with the supervisor; a stall alarm is meaningless while the worker seat is deliberately down"
-    flip: "on OPS1 completion (autonomy re-seated) → enabled"
-    purpose: "Independent stall alarm"
+    reason: "OPS1 serial-autonomy go-live — the LAST migration gate (director-ruled): held until the worker-seat + supervisor migrations are proven live and the first autonomous turn creates a FRESH commit clock, so the deadman starts against a moving clock, not a stale one"
+    flip: "director gate, after the first autonomous turn commits → enabled + launched_by:systemd, against the fresh commit clock"
+    purpose: "Independent stall alarm (commit-clock-alone liveness signal — the fail-silent fix)"
 
   # ── DARK: present as a daemon but a no-op unless its flag; director-gated ──
   - session: executor-daemon

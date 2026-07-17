@@ -1,7 +1,7 @@
 # GENERATED from background/process_manifest.yaml by generate_units.py — DO NOT EDIT.
-# Edit the manifest and regenerate. state=held owner=systemd
+# Edit the manifest and regenerate. state=enabled owner=systemd
 [Unit]
-Description=Synthetic Enterprise: Turn-granting authority (rebuilt in sub-step 4)
+Description=Synthetic Enterprise: Escalation watchdog over the pull-loop transport (G-L4-as-mapped: find_work is the sole DRAW authority; the Stop hook delivers; this daemon polls every 2min and escalates stuck/map-exhausted, ZERO pane writes / ZERO turn delivery). Migrated live 2026-07-17 as step 3 of the serial-autonomy go-live.
 After=network.target
 # G-L3: a crash-loop enters `failed` instead of restarting silently forever.
 StartLimitIntervalSec=120

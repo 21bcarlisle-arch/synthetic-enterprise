@@ -44,8 +44,8 @@ def test_startlist_is_enabled_dark_and_not_yet_migrated():
     names = [s for s, _ in R.startlist()]
     assert "sim-runner" in names            # enabled, still tmux
     assert "executor-daemon" in names       # dark: installed (no-op) unit, still tmux
-    assert "supervisor" not in names        # HELD: not started — that IS the hold
-    assert "deadmans-switch" not in names   # HELD
+    assert "supervisor" not in names        # MIGRATED to systemd (launched_by) — left the tmux set
+    assert "deadmans-switch" not in names   # HELD (next gate)
     assert "claude" not in names            # worker seat: owned by worker-seat-manager, not systemd
     assert "worker-seat-manager" not in names  # MIGRATED to systemd (launched_by) — left the tmux set
     assert "autonomous-runner" not in names # retired
@@ -62,8 +62,9 @@ def test_migrated_daemon_leaves_startlist_but_generate_units_still_has_it():
 
 def test_systemd_owned_sessions_are_only_the_migrated_ones():
     """Only launched_by==systemd daemons are `systemctl show`-queried; un-migrated ones are seen
-    via tmux/ps instead (so an un-migrated tmux daemon never reads MISSING)."""
-    assert R._systemd_owned_sessions() == ["worker-seat-manager"]
+    via tmux/ps instead (so an un-migrated tmux daemon never reads MISSING). Migrated so far:
+    worker-seat-manager + supervisor (the serial-autonomy go-live)."""
+    assert set(R._systemd_owned_sessions()) == {"worker-seat-manager", "supervisor"}
 
 
 def test_health_checked_includes_enabled_migrated_and_seat_excludes_held():
@@ -71,9 +72,9 @@ def test_health_checked_includes_enabled_migrated_and_seat_excludes_held():
     seat (enabled) are included."""
     hc = R.health_checked_map()
     assert "naive-organ" in hc                 # the gap the old EXPECTED_PANES had
-    for held in ("supervisor", "deadmans-switch"):
-        assert held not in hc                  # held -> not a fault when down
+    assert "deadmans-switch" not in hc         # still HELD (next gate) -> not a fault when down
     assert "worker-seat-manager" in hc         # MIGRATED live (enabled)
+    assert "supervisor" in hc                  # MIGRATED live (enabled) — serial-autonomy go-live
     assert "claude" in hc                      # the seat is live (enabled)
     assert "executor-daemon" not in hc         # dark
     assert "autonomous-runner" not in hc       # retired
@@ -204,7 +205,7 @@ def test_health_check_expected_panes_is_derived_and_excludes_held():
     from background import health_check
     assert health_check.EXPECTED_PANES == R.health_checked_map()
     assert "naive-organ" in health_check.EXPECTED_PANES
-    assert "supervisor" not in health_check.EXPECTED_PANES
+    assert "deadmans-switch" not in health_check.EXPECTED_PANES   # still HELD (last gate)
 
 
 def test_no_reaper_or_interactive_claude_kill_path_exists_anywhere():
