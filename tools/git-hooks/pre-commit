@@ -6,3 +6,11 @@
 if git diff --cached --name-only | grep -qx "docs/status/LATEST.md"; then
     python3 tools/stamp_latest_md.py && git add docs/status/LATEST.md
 fi
+
+# TEST GATE (director P0, 2026-07-17): a commit with red tests is STRUCTURALLY IMPOSSIBLE, not
+# merely discouraged -- structural impossibility over remembered discipline (two red commits
+# landed tonight because "run tests then commit" is a remembered process, and remembered processes
+# are what failed). Protects the integrity of the parallel-safety controls being built with an
+# autonomously-committing loop: a subtly-broken control can never land looking green. Runs the
+# safety-control set + the tests for each changed code file; any failure ABORTS the commit.
+python3 tools/pre_commit_test_gate.py || exit 1
