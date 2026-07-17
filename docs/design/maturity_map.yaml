@@ -1835,3 +1835,28 @@
   real_world_twin: 'a change-freeze drill: deliberately queue a frozen change and verify the automation refuses to deploy it, rather than discovering in production that the freeze wasn''t enforced'
   depends_on:
   - OPS1_operational_layer_rebuild
+- id: OPS1_transport_failure_must_be_loud
+  name: Turn-transport failure must be a first-class alarm (broken pull loop != healthy idle worker)
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence:
+  - .claude/hooks/pull_next_work.py
+  - docs/design/OPERATIONAL_LAYER_DESIGN.md
+  file_scope:
+  - .claude/hooks/pull_next_work.py
+  - background/process_reconciler.py
+  - background/health_check.py
+  simplifications:
+  - 'REGISTERED HARDENING (2026-07-17, director-required at the serial-autonomy maiden-turn watch, R15 class): a turn transport that CANNOT DRAW must be LOUD. The pull loop was silently broken for a day -- pull_next_work.py raised ModuleNotFoundError(background) on every fire (no repo root on sys.path) AND find_work polluted the hook stdout with log lines; both made it fail-safe to allow-stop, so a BROKEN loop was indistinguishable from a HEALTHY idle worker. Same fail-silent family as the deadman that could not fire and the six-days-dead file-api. Both instance bugs are fixed + regression-tested; THIS atom is the CLASS fix (R10: extend the invariant, don''t just patch the instance). REQUIREMENTS: (1) transport failure is a FIRST-CLASS alarm -- transition-only (R5), typed (G-N2) -- fired when the Stop hook logs a draw error / cannot import / cannot deliver, not buried in pull-loop-log.md. (2) the reconcile OR health layer must DISTINGUISH ''idle because no work was granted'' (healthy quiescence) from ''idle because the loop is broken'' (fault) -- they are different states and MUST read differently (e.g. correlate: flag ON + queued work exists + hook logging draw-errors + no continuation in N min => LOOP BROKEN alarm). (3) mutation-test it: inject a broken draw and assert the alarm fires (a transport-health control that never fires is the very disease). Consider a hook self-check that verifies find_work is importable+callable at load and alarms if not.'
+  expert_hour:
+    status: not_attempted
+    last: null
+    findings: []
+  real_world_twin: 'a message queue whose consumer silently died: the dashboard shows ''no errors, low load'' because a broken consumer and an idle one look identical until you alarm on ''enqueued but never dequeued'''
+  depends_on: []

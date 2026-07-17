@@ -1895,13 +1895,13 @@
       "epoch": 2,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 5,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1920,7 +1920,7 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -1931,15 +1931,13 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "OPS1_operational_layer_rebuild"
-      ],
+      "depends_on": [],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "OPS1_governance_refusal_mutation_test",
@@ -1958,7 +1956,24 @@
       ],
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "OPS1_transport_failure_must_be_loud",
+      "name": "Turn-transport failure must be a first-class alarm (broken pull loop != healthy idle worker)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -2041,7 +2056,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 109,
+  "total_atoms": 110,
   "epoch2_movements": [
     {
       "id": "M1",
