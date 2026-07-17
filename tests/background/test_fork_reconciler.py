@@ -179,7 +179,10 @@ def test_live_report_first_is_well_formed_and_reaps_nothing():
     r = F.evaluate_fork_lifecycle(enforce=False)                 # force report-first regardless of flag
     assert set(r) >= {"status", "alarm", "detail", "orphans", "in_flight", "merged_eligible", "reaped", "enforce"}
     assert r["enforce"] is False and r["reaped"] == []           # report-first: nothing reaped
-    assert r["status"] in ("FORK_CLEAN", "FORK_ORPHANS")
+    # the complete set of report-first statuses (all three legitimate): FORK_HELD is a
+    # director-HELD orphan (acknowledged, exempt from reap) -- a real live state this smoke test
+    # must accept, not just CLEAN/ORPHANS. The report-first invariant (reaped == []) holds for all.
+    assert r["status"] in ("FORK_CLEAN", "FORK_ORPHANS", "FORK_HELD")
 
 
 # ── WORKTREE RECONCILE (step 4 / C1): "does this worktree belong?" -- ONE mechanism ──────────
