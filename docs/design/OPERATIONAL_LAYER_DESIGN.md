@@ -182,6 +182,21 @@ when pytest spams the director.
   (unless a `real_subprocess` marker opts in) and pins the state root to a temp dir, each
   mutation-tested (G-T3).
 
+**BUILT + a scoped-debt decision (OPS1 sub-step 7, 2026-07-17).** The G-T1 spawn guard and G-T3
+mutation tests landed in full; G-T2 was scoped to the **runtime control-state** — the files a live
+daemon *reads to make a control decision*, where a test writing a fake value corrupts live behaviour
+(`.build_executor_enabled` the kill switch, `.pull_loop_health.json` the deadman alarms on — the
+class that actually leaked, `.notify_transitions.json`, the boot-SHA records). Running a *broad*
+G-T2 over the whole suite surfaced **~40 tests that write DERIVED-artifact production paths**
+(`site/data/**`, `agent_status.json`): a real but **lower-danger** class — a generator or daemon
+overwrites those on its next run, so a test's transient write is cosmetic, not corrupting.
+**Decision: accept the derived-artifact writes as tracked low-priority debt, do NOT sandbox them
+now.** Rationale: the sandbox is genuinely high-effort (the ~40 tests import their output-path
+constants *by name*, so isolation is per-test, not one fixture) for a low danger-reduction, while
+the high-danger control-state — the class that caused a real incident — is protected by
+construction. The essential G-T2 guarantee is met; widening to the derived-artifact roots is a
+future clean-up, not a safety gap. (Recorded so the scope is a deliberate decision, not drift.)
+
 **Why it exists:** safety. A test harness that can touch production is one bad fixture away from
 an incident (the pytest-NTFY-spam and the tmux-leak retro both match).
 
