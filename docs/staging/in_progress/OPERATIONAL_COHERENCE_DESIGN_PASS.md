@@ -1,5 +1,18 @@
 # DESIGN THE OPERATIONAL LAYER AS ONE SYSTEM — stop patching, understand why, design the whole (P0 mandate, director-decided)
 
+> **PARKED IN in_progress/ 2026-07-17 — DESIGN DELIVERED, IMPLEMENTATION OPEN.**
+> The design (this mandate's deliverable-first artefact) is landed:
+> `docs/design/OPERATIONAL_LAYER_DESIGN.md` — the five subsystems with purpose/guarantees/why,
+> conflict resolutions, known-good baseline keep/revert/rebuild reconciled against a read-only
+> inventory pass, and the infrastructure-as-code addendum + reconstruct-from-repo test. The
+> spine ("Understand WHY / Design the WHOLE / Do not accrete") is recorded in CLAUDE.md.
+> **Open sub-item (the only thing blocking full close):** the *implementation* — rebuilding the
+> operational layer to the design, absorbing/deleting the patches. This is the "code follows the
+> design" phase and is deliberately a separate, unrushed build (a rushed rebuild would be the
+> accretion the mandate forbids). Tracked as maturity-map atom **`OPS1_operational_layer_rebuild`**
+> (H_harness, level 1→3, loop_stage: build), sequenced sub-steps in design §6, console-sanctity
+> marker (G-L1) first. Unblocks to done/ when OPS1 reaches its target.
+
 **Staged:** 2026-07-16 by advisor, **director-decided** — the most important
 insight of a long failure night. Disposition: MANDATE (governs operational work
 going forward; ranks ABOVE more features and ABOVE more operational patches).

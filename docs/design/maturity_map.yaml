@@ -1748,3 +1748,19 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a work-queue scheduler that stops re-dispatching a task that is blocked on an external dependency, instead of busy-spinning it back onto the ready queue every tick"
   depends_on: []
+- id: OPS1_operational_layer_rebuild
+  name: "Rebuild the operational layer to OPERATIONAL_LAYER_DESIGN.md (one designed system, not accreted patches)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 5
+  provenance: director_mandate
+  evidence: [docs/staging/OPERATIONAL_COHERENCE_DESIGN_PASS.md, docs/design/OPERATIONAL_LAYER_DESIGN.md]
+  file_scope: []
+  simplifications: ['2026-07-17 DESIGN DELIVERABLE LANDED (level 1): docs/design/OPERATIONAL_LAYER_DESIGN.md -- the written operational design the P0 mandate asks for FIRST (purpose/guarantees/why per the five subsystems: process/session lifecycle, deployment committed=running, notifications, test isolation, recovery; conflict resolutions; known-good baseline keep/revert/rebuild per mechanism reconciled against a read-only inventory pass; IaC addendum + reconstruct-from-repo test). Implementation (code follows design) is the level 2->3 work, deliberately NOT rushed in the recovery turn that wrote the design -- a rushed rebuild would be the very accretion the mandate forbids. Sequenced sub-steps in the design ss6: (1) console-sanctity positive marker G-L1 [highest safety value], (2) declared-set manifest + reconcile-vs-ps G-L2, (3) scheduling into repo / delete OS crontab [done: crontab empty], (4) single health-gated supervisor G-L3/G-L4, (5) deployment-by-construction booted-SHA G-D1/G-D2, (6) one notification contract, (7) test-isolation subprocess/tmux/fs guards G-T. Each sub-step deletes/absorbs the patch it replaces. KEY BASELINE FINDING: central lifecycle files (session_watchdog, executor_*, start_worker) born in accretion, no clean revert point -> rebuild-to-design; conftest + deadman commit-clock are keep-as-fixed anchors.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an SRE team replacing a pile of individually-added restart scripts, health hacks, and alert rules with one designed control plane whose every component states its purpose, so on-call conflicts are resolved by design instead of by adding another script"
+  depends_on: []
