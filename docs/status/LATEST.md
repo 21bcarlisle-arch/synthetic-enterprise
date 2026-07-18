@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T14:32:46Z
+Last updated: 2026-07-18T15:01:37Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -67,15 +67,28 @@ authorization, the twin only *sequences* within it, no manual idle→build ever.
 builds were the error (mis-reading canon §3a); the correct rule is now in memory + LATEST. Director rulings:
 **H26+H24_precommit → L3, E4 → L3, H23 → L3, H24_worktree → L2 — all RATIFIED & banked** (LEVEL_UP recorded
 channel:console, §0 satisfied). G4 stays reverted. **BUILD resumed:** the director console-`BUILD_OPEN`'d the
-**payment triad** (W2_11 source + W4_4 seam + H27_payment_belief_gap) — W2_11 building now (baseline fidelity,
-externally anchored to Bacs/UK stats, difficulty dials director-authored per R13); W1 stays DISCOVER. Also
-in-flight: a fix for a director-caught escalation bug — [ACT]s were silently not paging his phone (a failed
-send still stamped `last_pinged`, suppressing the deadman's re-ping); the fix decouples "registered" from
-"confirmed-sent" so a failed send keeps the page due.
+**payment triad** (W2_11 source + W4_4 seam + H27_payment_belief_gap). **W2_11 payment-behaviour-source LANDED**
+(L1 PROPOSED, level 0 per §0; generator built + on origin — 44 tests, C-S2 substream isolation proven; wraps the
+already-calibrated arrears/Bacs physics, externally anchored to Bacs/DESNZ, difficulty dials director-authored
+per R13; `blocked_on: coupled_triad_gap` — its L3 awaits H27 measuring belief-vs-truth, which needs W4_4 seam +
+D5). Next triad rungs: W4_4 seam (must first verify its off-front + `interface/` schema-gate acceptance), then
+H27 gap. W1 stays DISCOVER.
+**[ACT]-paging fix LANDED + DEPLOYED (R2):** the director-caught escalation bug — [ACT]s silently not paging his
+phone (a failed send still stamped `last_pinged`, suppressing the deadman's re-ping) — is fixed (decouples
+"registered" from "confirmed-sent" via `mark_sent`/`last_sent_at`; a failed send keeps the page due) AND the
+running daemons were restarted onto it (deadmans-switch + supervisor via systemd, staging-watcher relaunched) —
+committed ≠ running, now both.
+**Reap-guard MECHANISM LANDED (H24_worktree HARDEN, advisor-steered, R3 strike-3):** after three live forks were
+destroyed this session by raw `git worktree remove --force` on false-death inference, a sanctioned
+`reap_one_worktree` entrypoint now REFUSES LOUDLY a locked or live/unmerged worktree (both R15-mutation-proven to
+fire; dogfooded live — it correctly refused its own fork's worktree). Raw `--force` reaps are retired.
+**IaC drift logged (queued, not fixed):** `staging-watcher.service` is declared in repo IaC but runs
+hand-launched (not systemd-installed) — it died on restart for lack of the EnvironmentFile; relaunched with env.
+OPS1 reconcile (install the declared unit) is queued in the decision log.
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (488s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
