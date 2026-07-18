@@ -289,3 +289,129 @@ def test_compliance_report_still_builds():
     report = build_compliance_report(held_bill_count=0)
     assert report["obligation_count"] == len(orr.REGISTER)
     assert sum(len(v) for v in report["by_tier"].values()) == len(orr.REGISTER)
+
+
+# ==========================================================================
+# SUPPLIER_REPORTING_STANDARD.md §4: three MANUAL-by-design additions
+# (capital adequacy, fuel mix disclosure, cyber/NIS baseline). Proves each is
+# registered, correctly tiered, and -- per R15 -- reports MANUAL/unchecked
+# rather than a fail-open GREEN, with the control MUTATION-tested.
+# ==========================================================================
+
+_SECTION_4_IDS = (
+    "capital_adequacy_floor_target",
+    "fuel_mix_disclosure",
+    "cyber_baseline_nis",
+)
+
+
+def test_all_three_section_4_obligations_are_registered():
+    ids = {o.id for o in orr.REGISTER}
+    for oid in _SECTION_4_IDS:
+        assert oid in ids, f"§4 obligation {oid} missing from register"
+
+
+def test_section_4_obligations_are_declared_manual_by_design():
+    manual_ids = {o.id for o in orr.manual_obligations()}
+    for oid in _SECTION_4_IDS:
+        assert oid in manual_ids, f"{oid} should be MANUAL-by-design"
+
+
+def test_every_manual_obligation_states_when_it_becomes_checkable():
+    # A MANUAL row that does not say when it becomes checkable is a silent gap.
+    for o in orr.manual_obligations():
+        assert o.becomes_checkable_when, f"{o.id} MANUAL without becomes_checkable_when"
+        assert len(o.becomes_checkable_when) > 20
+
+
+def test_manual_obligations_are_not_reported_as_covered():
+    # R15: a MANUAL obligation must NOT resolve an automated tracker (that would
+    # read as automated-covered / a false GREEN). It should instead surface as a
+    # declared gap (no tracker) so the register stays honest.
+    for o in orr.manual_obligations():
+        assert not orr.tracker_resolves(o), f"{o.id} MANUAL yet resolves a tracker"
+    gap_ids = {o.id for o in orr.obligations_without_a_tracker()}
+    for oid in _SECTION_4_IDS:
+        assert oid in gap_ids, f"{oid} should surface as an untracked gap, not covered"
+
+
+def test_manual_declaration_violations_is_empty_on_the_live_register():
+    # The R15 control returns [] only when every MANUAL row is honest. This is
+    # an explicit empty-set assertion (not a fail-silent default-pass).
+    assert orr.manual_declaration_violations() == []
+
+
+def test_manual_declaration_control_FIRES_on_a_missing_note(monkeypatch):
+    # MUTATION: a MANUAL row with no becomes_checkable_when must be caught.
+    bad = orr.Obligation(
+        id="manual_no_note", name="x", source="x", regime="Ofgem",
+        impact=orr.ImpactTier.LICENCE_REGULATORY, likelihood=orr.Likelihood.LOW,
+        rationale="manual-row-missing-its-becomes-checkable-note",
+        automation_status=orr.AutomationStatus.MANUAL,
+        becomes_checkable_when=None,
+    )
+    monkeypatch.setattr(orr, "REGISTER", orr.REGISTER + [bad])
+    violations = dict(orr.manual_declaration_violations())
+    assert "manual_no_note" in violations
+
+
+def test_manual_declaration_control_FIRES_on_fail_open_green(monkeypatch):
+    # MUTATION: a MANUAL row that ALSO resolves a real tracker would read as
+    # automated-covered (a false GREEN). The control must catch that.
+    bad = orr.Obligation(
+        id="manual_but_green", name="x", source="x", regime="Ofgem",
+        impact=orr.ImpactTier.LICENCE_REGULATORY, likelihood=orr.Likelihood.LOW,
+        rationale="manual-row-that-secretly-resolves-a-real-tracker",
+        automation_status=orr.AutomationStatus.MANUAL,
+        becomes_checkable_when="when the thing lands and can be checked properly",
+        tracker_paths=("company/compliance/obligations_register.py",),  # exists on disk
+    )
+    monkeypatch.setattr(orr, "REGISTER", orr.REGISTER + [bad])
+    reasons = [r for (i, r) in orr.manual_declaration_violations() if i == "manual_but_green"]
+    assert any("fail-open-green" in r for r in reasons)
+
+
+def test_capital_adequacy_registered_no_fabricated_date():
+    o = next(x for x in orr.REGISTER if x.id == "capital_adequacy_floor_target")
+    assert o.regime == "Ofgem"
+    assert o.risk_tier == orr.RiskTier.TIER_3  # LICENCE_REGULATORY + LOW
+    assert o.effective_from is None and o.effective_to is None  # not fabricated
+    assert "115" in o.name  # the recalled Capital Target figure is carried
+    assert o.existing_tracker is None  # honest gap: no cash/balance-sheet layer yet
+
+
+def test_fuel_mix_disclosure_cross_references_report_without_claiming_coverage():
+    o = next(x for x in orr.REGISTER if x.id == "fuel_mix_disclosure")
+    # It points at the surface that PRODUCES the disclosure...
+    assert o.cross_reference and "annual_report" in o.cross_reference
+    # ...but a produce-only cross_reference must NOT count as coverage (else it
+    # would fail-open-green: a file existing on disk != the disclosure validated).
+    assert o.claims_coverage is False
+    assert orr.tracker_resolves(o) is False
+
+
+def test_cyber_baseline_is_go_live_not_sim_physics():
+    o = next(x for x in orr.REGISTER if x.id == "cyber_baseline_nis")
+    assert o.regime == "Ofgem"  # Ofgem is the NIS competent authority for energy
+    assert "NIS" in o.source or "Network and Information" in o.source
+    assert o.effective_from is None  # NIS-2018 in-force date not fabricated
+    assert "go-live" in o.becomes_checkable_when.lower() or "deployment" in o.becomes_checkable_when.lower()
+
+
+def test_section_4_obligations_report_manual_never_green_in_compliance_report():
+    # End-to-end through the consumer: even on the happy path (0 held bills,
+    # which GREENs the gated Tier-1 rows), the three §4 additions report MANUAL,
+    # never GREEN -- the R15 fail-open-green guard at the report boundary.
+    from company.compliance.compliance_report import build_compliance_report
+    report = build_compliance_report(held_bill_count=0)
+    all_rows = [row for rows in report["by_tier"].values() for row in rows]
+    by_id = {row["id"]: row for row in all_rows}
+    for oid in _SECTION_4_IDS:
+        assert by_id[oid]["status"] == "MANUAL", f"{oid} must report MANUAL, got {by_id[oid]['status']}"
+
+
+def test_register_summary_exposes_manual_fields():
+    s = orr.register_summary()
+    for oid in _SECTION_4_IDS:
+        assert oid in s["manual_ids"]
+    assert s["manual_declaration_violations"] == []
