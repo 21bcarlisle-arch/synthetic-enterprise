@@ -1291,7 +1291,7 @@
   epoch: 3
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_3_national_weather_signal_FRAME.md, docs/design/NATIONAL_WEATHER_SIGNAL_FRAME.md, 'sim/weather_engine.py (Pass 1: regime-switching AR1 joint temp/wind/cloud, calibrated on 3446 real days)', simulation/demand_model.py (real sim-run caller), tests/sim/test_weather_engine.py (27 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
@@ -1306,9 +1306,9 @@
   lane: W1_market_weather
   value_stream: close_to_learn
   epoch: 3
-  level_current: 2
+  level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md, docs/design/frame/W1_4_regional_weather_field_FRAME.md, docs/design/REGIONAL_WEATHER_FIELD_FRAME.md, 'sim/weather_engine.py (Pass 2: fit_regional_cholesky/simulate_regional_deviations, spatially-correlated regional field bound to national)', tests/sim/test_weather_engine.py (27 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
@@ -1325,7 +1325,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_5_premise_demand_shape_FRAME.md]
@@ -1342,7 +1342,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md, docs/design/frame/W1_6_physics_price_signal_FRAME.md]
@@ -1359,7 +1359,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: build
+  loop_stage: idle
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/C13_WEATHER_NORMALISATION_DISCOVER.md, docs/design/frame/C13_weather_normalisation_FRAME.md]
@@ -1898,7 +1898,7 @@
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 2
+  level_current: 0
   level_target: 3
   loop_stage: build
   dial_inherited: 4
@@ -1912,7 +1912,7 @@
   lane: E_finance_treasury
   value_stream: close_to_learn
   epoch: 2
-  level_current: 2
+  level_current: 0
   level_target: 3
   loop_stage: build
   dial_inherited: 3
