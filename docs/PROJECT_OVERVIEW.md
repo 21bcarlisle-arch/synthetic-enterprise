@@ -8,6 +8,8 @@
 - Assumptions: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
 - Status: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md
 
+> **The operating spine (ratified 2026-07-18): [`docs/design/ONE_FRAMEWORK.md`](design/ONE_FRAMEWORK.md).** The atom is the quantum; every map (horizons, epochs, value-cycle, lanes) is a projection of it; the DRAW is the sole arbiter of what/when/at-what-level. Self-governance (fronts/gates) enforces it.
+
 ---
 
 ## 1. The Idea

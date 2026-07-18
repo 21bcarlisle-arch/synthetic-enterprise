@@ -43,7 +43,7 @@ version: 1
 # LOUDLY flagging any newly-landed atom so it is never silent.
 fronts:
   - id: SIM_ACTORS
-    state: held            # → open ONLY via a director FRONT_OPEN in gate_authorizations.jsonl
+    state: open             # → open ONLY via a director FRONT_OPEN in gate_authorizations.jsonl
     lanes: [W1_market_weather, W2_customer_generator]
     include_atoms: [W1_2_generate_futures]   # generative-futures, explicit (already in W1 lane)
     epoch_ceiling: 3        # advancing a member INTO epoch >=4 is an epoch gate (HOLD) — e.g. W2_3
@@ -55,10 +55,10 @@ fronts:
     purpose: "SIM-side actors the world runs on: weather physics/fields/demand/price signal,
               customer archetypes/population/life-events/distress, generative futures. The world
               deepens continuously; the company discovers it through the wall (coupled triad)."
-    opened_by: null         # MUST be the ledger act id/ts when state==open (loader-enforced)
+    opened_by: "director console 2026-07-18, ledger FRONT_OPEN ts=1784351583"
 
   - id: SUPPLIER
-    state: held
+    state: open 
     lanes: [D_billing_metering, B_commercial, E_finance_treasury, C_customer_ops, F_risk_compliance]
     include_paths: [site/]  # the website surface (L2 SITE lane) — ungated, made explicit
     epoch_ceiling: 3        # e.g. B4/D4 (epoch 4) stay epoch-gated even inside the front
@@ -68,7 +68,7 @@ fronts:
               ledger/revenue-recon, collections (C customer-ops) and risk & compliance (F), plus the
               public site. The company's own machine, built forward. (Director 2026-07-18 §10.4: F is
               the most mature lane, C covers collections — both are core supplier lanes.)"
-    opened_by: null
+    opened_by: "director console 2026-07-18, ledger FRONT_OPEN ts=1784351583"
 
 # ── GATES ───────────────────────────────────────────────────────────────────────────────────
 # A gate is subtracted from EVERY front (G-1). Order in code is fixed: in_region AND NOT gated.
