@@ -2300,7 +2300,7 @@
       "epoch": 2,
       "level_current": 1,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 17
+      "stall_consecutive_unchanged": 18
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2357,7 +2357,7 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2365,7 +2365,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
@@ -2403,7 +2403,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2424,7 +2424,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "W4_4_payment_observable_seam",
