@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T07:57:13Z
+Last updated: 2026-07-18T09:22:55Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -29,9 +29,15 @@ declared in `gate_authorizations.jsonl` (console provenance, R7) + reconciled by
 orchestrator-verified (scope + tests + epistemic + R15 mutation re-run) before merge.
 **WAVE 1 — landed + pushed:** W1_4 regional-weather aggregation-consistency invariant → L2
 (mutation control proven to fire) · D5 account-hierarchy + payment-allocation → L2 (C-S1/C-S2
-tested) · E4 CSS Consolidated Segmental Statement → L2 (renders live in ANNUAL_REPORT.md, R11).
-All three honestly L2, not L3 — L3 needs each wired into a live sim run with the coupled-triad
-belief-vs-truth gap measured. **Self-governance scope model** design proposal landed
+tested; control-activation landed — the 7 R15 ledger/arrears controls are now ACTIVE in the
+production path, reconciling against independent invoice.py totals, fail-closed) · E4 CSS
+Consolidated Segmental Statement → **L3** (director-RATIFIED this session — verify_css_reconciliation
+runtime control + fail-silent closure, 15 R15 mutation tests orchestrator-verified; banked with his
+console authorization, live on the site). E4 banked at L3; W1_4/D5 held L2. D5's remaining L3 is the
+coupled-triad the director DECOMPOSED this session — W4_4 payment-observable-seam + W2_11
+payment-behaviour-source + H27_payment_belief_gap, all FRAMED; that BUILD is director-gated (a
+sim-structure seam + R13 curriculum + external Bacs anchors), so the product lane is currently
+blocked-on-director (declared). **Self-governance scope model** design proposal landed
 (`docs/design/SELF_GOVERNANCE_SCOPE_MODEL.md`) — awaiting director decisions on front/gate scope
 before sub-steps 1–5 (which authorize nothing) are built. **Building now:** W1_3 national-weather
 joint cold-and-still regime · supplier-reporting §4 obligations-register additions. Weather BUILD
@@ -40,7 +46,7 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (500s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -152,6 +158,6 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~598.2h across 28 sized atom(s) (9 of 37 below-target atoms still unsized).
+- Remaining effort: ~637.3h across 31 sized atom(s) (9 of 40 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 18.4h (+9.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.2h (+1.2h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
