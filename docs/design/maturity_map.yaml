@@ -1963,10 +1963,9 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 1
+  level_current: 2
   level_target: 2
-  loop_stage: build
-  blocked_on: director_level_up_L2
+  loop_stage: harden
   dial_inherited: 2
   provenance: proposal
   evidence: [background/fork_reconciler.py, docs/status/LATEST.md]
@@ -2015,10 +2014,9 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 3
   level_target: 3
-  loop_stage: build
-  blocked_on: director_level_up_L3
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
   evidence: [background/process_run_complete.py, tests/conftest.py]
