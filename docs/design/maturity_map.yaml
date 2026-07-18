@@ -1935,3 +1935,31 @@
   file_scope: [background/fork_reconciler.py]
   simplifications:
   - '2026-07-18 REGISTERED (proposal, director-flagged housekeeping). Finding: fork_reconciler.py classifies orphan BRANCHES (report-first by default, salvage+reap only under .fork_reap_enabled) but does NOT remove completed-fork WORKTREE DIRS -- MERGED forks are CLEANUP_ELIGIBLE but not reaped here, so .claude/worktrees/agent-* accumulate until a manual git worktree remove (orchestrator reaped 7->1 this session). Under a fast fan the manual reap cannot keep up = the director-flagged reap-rate gap. Mechanise: auto-remove worktree dirs for forks whose branch is MERGED-to-main or SALVAGE-TAGGED (never delete unmerged+unsalvaged work; salvage-first discipline, same as the branch reaper). DISCOVER/FRAME workable now; BUILD gated (director opens). Registered per SELF_INTERRUPT_DISCIPLINE (queue, do not fix on sight -- not machine-blocking, worktrees were reaped manually).'
+- id: H25_self_gov_detection_hardening
+  name: "Self-governance detection-hardening: forge-proofing (sub-step 7, crypto-tie FRONT_OPEN/GATE_CLEAR/LEVEL_UP provenance to director_input_log HMAC/console-presence), level-baseline fail-silent edge (git-ref read fails -> LEVEL gate stops checking, surfaced but not paged), is_build_authorized loop_stage defense-in-depth (currently relies solely on the upstream _is_valid_candidate idle-drop; add a stage re-check), and wire fronts_reconciler.evaluate onto a LIVE cadence (reconcile-watch timer) so detection pages transition-only, not only on-demand"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 2
+  provenance: proposal
+  evidence: [docs/design/SELF_GOVERNANCE_SCOPE_MODEL.md, background/fronts_reconciler.py]
+  file_scope: [background/fronts_reconciler.py, background/reconcile_watch.py]
+  simplifications:
+  - '2026-07-18 REGISTERED (proposal, director-instructed: carry the self-gov residuals as registered detection-hardening, flag loud if either bites). Four items, all DETECTION-layer (enforcement/prevention is live via the draw filter): (1) forge residual -- the model trusts channel==console which a worker can self-declare; sub-step 7 crypto-ties provenance to the director_input_log HMAC/console-presence stamp. (2) level-baseline fail-silent -- baseline is a pinned git-ref; if git show fails the LEVEL gate stops checking (surfaces level_baseline_available:false but does not page). (3) is_build_authorized does not itself re-check loop_stage -- W1 idle protection is via the upstream draw _is_valid_candidate idle-drop (confirmed live, not an active hole) + reconciler detection; add a defense-in-depth stage re-check. (4) fronts_reconciler.evaluate is not yet on a live timer (reconcile_watch was out of the build fork scope) -- detection runs on-demand/clean now but should page transition-only on a cadence. DISCOVER/FRAME workable; BUILD gated (director opens).'
+- id: H26_core_bare_corruption_guard
+  name: "Guard against silent core.bare=true corruption: the main repo's core.bare flipped to true this session, silently breaking ALL work-tree git ops (commit/publish/status) until manually reset -- root-cause what sets it (worktree op? concurrent daemon git without tree_lock?) and add a detector/guard (assert core.bare==false pre-commit; the publish pipeline depends on git)"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  evidence: [background/tree_lock.py]
+  file_scope: [background/tree_lock.py]
+  simplifications:
+  - '2026-07-18 REGISTERED (proposal, real incident, observed-with-evidence R9). OBSERVED: mid-session, plain git in /home/rich/synthetic-enterprise returned is-inside-work-tree=false and worktree-list showed the main tree as (bare); `git config core.bare` = true. This silently breaks EVERY work-tree git operation (commit, publish, status) -- a publish-integrity/commit-integrity risk of the same family as the publish_gate wedge (site goes stale, no commits land). FIXED this session by `git config core.bare false` (verified restored). INFERRED (not yet root-caused): set by a worktree remove and/or a concurrent daemon running git outside tree_lock between the last clean push and the activation. HARDEN: root-cause the setter; add a cheap guard (tree_lock or the pre-commit gate asserts core.bare==false and repairs+alarms), since a bare main tree defeats the whole publish/commit chain. DISCOVER/FRAME workable; BUILD gated.'
