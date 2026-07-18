@@ -2270,7 +2270,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "E4_supplier_reporting_standard",
@@ -2279,7 +2279,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2287,7 +2287,7 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 39
     },
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2346,7 +2346,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "H23_publish_gate_scope_marker",
@@ -2365,7 +2365,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
@@ -2384,7 +2384,88 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "H27_phone_act_channel",
+      "name": "Phone-answerable [ACT] channel: director resolves authority-requiring decisions from his phone in seconds (forge-proof, no SSH/console paste) -- Tailscale-identity-gated + pre-framed tap/single-word answers, provenance-logged like a console act, console as fail-closed fallback",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
+    },
+    {
+      "id": "W2_11_payment_behaviour_source",
+      "name": "Payment-behaviour generator (sim-source, coupled-triad W of the D5 decomposition): baseline generator of customer payment behaviour -- who pays when, DD success/failure, arrears/late-payment patterns, payment-method mix -- ANCHORED TO EXTERNAL real-world payment statistics (Bacs DD failure rates, DD take-up, payment-timing distributions), decided BLIND to company P&L (R13 baseline). Difficulty dials are CURRICULUM (director-authored), not agent-tunable.",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "H27_payment_belief_gap"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "W4_4_payment_observable_seam",
+      "name": "Payment observable seam (coupled-triad SEAM of the D5 decomposition): the typed, versioned SIM/company interface through which the company OBSERVES payments -- bank statements, remittance advices, settlement/BACS reports, DD success/failure notifications -- exposing OBSERVABLES ONLY (never the sim payment-behaviour internals). The go-live payment adapter seam (swap sim for real bank/Bacs behind the unchanged contract).",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3
+    },
+    {
+      "id": "H27_payment_belief_gap",
+      "name": "Payment belief-vs-truth gap (coupled-triad HARNESS of the D5 decomposition): the harness measures the company's payment BELIEF (its allocation/ageing/cash-position inference from observed payments, D5) vs the world's payment TRUTH (the W2_11 generator's actual behaviour). No world payment-source reaches L3 until this gap is measured against the company's consumption (COUPLED_TRIAD binding rule).",
+      "lane": "H_harness",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "D5_account_hierarchy_payments",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     }
   ],
   "lanes": {
@@ -2467,7 +2548,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 118,
+  "total_atoms": 122,
   "epoch2_movements": [
     {
       "id": "M1",
