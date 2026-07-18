@@ -156,9 +156,10 @@ def test_empty_ledger_fails_closed_not_silent(monkeypatch):
     assert cg["measured"] == 0            # none measured
     assert cg["unmeasured"] == 8
     assert all(r["chip"] == "untested" for r in cg["pairs"])
-    # 7 of the 8 world atoms are >=L2 in the live map -> anti-decay findings.
-    # W2_11 is L1 (director-ratified 2026-07-18), so it is NOT in the >=L2 set.
-    assert len(cg["unmeasured_ge_l2"]) == 7
+    # ALL 8 world atoms are now >=L2 in the live map -> anti-decay findings.
+    # W2_11 moved L1->L3 with the payment-triad escalated build (director console
+    # APPROVED 2026-07-18/19), so it is now in the >=L2 set too.
+    assert len(cg["unmeasured_ge_l2"]) == 8
 
 
 # ---------------------------------------------------------------------------

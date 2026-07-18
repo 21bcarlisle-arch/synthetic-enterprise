@@ -1928,10 +1928,10 @@
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 2
+  level_current: 3
   level_target: 3
   loop_stage: build
-  blocked_on: payment_seam_triad_built
+  blocked_on: null
   dial_inherited: 4
   provenance: director
   evidence: [docs/staging/in_progress/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md, company/crm/account_hierarchy.py, company/billing/account_ledger.py, company/billing/arrears_engine.py, docs/market_research/account_hierarchy_payment_allocation.md, 'tests/company/crm/test_account_hierarchy.py + tests/company/billing (66 tests, epistemic PASS 513 files)']
@@ -2077,10 +2077,10 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 1
+  level_current: 3
   level_target: 3
   loop_stage: build
-  blocked_on: coupled_triad_gap
+  blocked_on: null
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap]
@@ -2096,10 +2096,10 @@
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 2
+  level_current: 3
   level_target: 3
   loop_stage: build
-  blocked_on: coupled_triad_gap
+  blocked_on: null
   couples_with: [D5_account_hierarchy_payments, W2_11_payment_behaviour_source]
   dial_inherited: 3
   provenance: proposal
