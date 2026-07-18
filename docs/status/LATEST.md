@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T18:56:42Z
+Last updated: 2026-07-18T18:58:55Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -91,7 +91,7 @@ belief 0.073), the Proof door shows 8 mapped pairs, and the full publish gate is
 (genuinely measured now, per his ruling; he ratifies the cell). The L3-ratification action-needed item is RESOLVED.
 **Lesson landed:** don't write to a shared derived surface (Proof-door ledger) before its coupling is wired, and
 don't claim "closed" before the full gate is green. **NEXT CAMPAIGN (his ruling): A — site rebuild per the
-reconciled site specs, W1 DISCOVER alongside.**
+reconciled site specs, W1 DISCOVER alongside.** **[Campaign A progress]** DOOR 1 (FRONT DOOR) LANDED on origin: rebuilt to the reconciled spec -- every pulse/thesis value rendered from `site/data` (rule 3, 0 hardcoded figures), passports + PROVISIONAL badges, honesty door linked, brochure prose/duplicate charts killed (§6); 48 site tests green. Assessment: the other doors (company/world/proof/method/project/simplified) already comply with rule 3 (SITE1 L3, pixel-verified), so this is targeted ALIGNMENT not a from-scratch 8-door rebuild. IN FLIGHT: sitewide nav cleanup to the canonical IA. NEXT: Journey door (gap -- no journey/index.html) + door passport/honesty audit. W1 stays DISCOVER (framed, epoch-gated).
 Non-trivial gaps proven (R12/R13, non-tuned): **detection 0.30** — the headline: 78 of 257 true failures are non-DD
 and *never observed* through the seam (the no-remittance blind spot, leak-witness 0 every seed); **belief 0.073**
 (arrears/cash inference vs truth). R15-independent (the consumer never receives truth — runtime spy-tested +
