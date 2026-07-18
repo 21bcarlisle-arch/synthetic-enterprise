@@ -2424,7 +2424,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "W4_4_payment_observable_seam",
@@ -2443,7 +2443,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 48
+      "stall_consecutive_unchanged": 49
     },
     {
       "id": "H27_payment_belief_gap",
@@ -2465,7 +2465,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 62
+      "stall_consecutive_unchanged": 63
     }
   ],
   "lanes": {
