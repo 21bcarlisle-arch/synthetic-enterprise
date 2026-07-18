@@ -140,7 +140,14 @@ def test_control_discovers_more_than_the_original_hand_registry():
     silently drops below this set the control has gone blind."""
     discovered = {p.relative_to(SITE).as_posix() for p in _discovered_live_surfaces(SITE)}
     must_include = {
-        "index.html",
+        # NOTE (2026-07-18, Campaign A front-door rebuild): the ROOT index.html
+        # was deliberately re-pitched to treasury/EV/opex-per-household pulses and
+        # no longer renders a net-margin figure (verified: 0 net-margin tokens;
+        # see site/test_home_door.py which asserts treasury_end_gbp / opex pulses).
+        # It is therefore correctly NOT a net-margin surface any more -- net-margin
+        # coverage is preserved on the four below (incl. the nav-linked company
+        # door). Dropping it here tracks a real design change, not discovery going
+        # blind; the disclosure invariant + R15 mutation guard are unchanged.
         "supplier/index.html",
         "project/index.html",
         "customers/index.html",
