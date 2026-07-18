@@ -514,3 +514,65 @@ never by the loop.
 
 Items 1–7 are reversible design dials (change `fronts.yaml`, re-reconcile). Item 8 is the
 director's console act — the gate this whole model exists to make the *only* way a front opens.
+
+---
+
+## 10. ADDENDUM — director's confirmed gates + spine correction (2026-07-18, console)
+
+The director confirmed the defaults **with additions to the reserved boundaries**, and corrected the
+spine: the model must run the **canonical `docs/design/MATURITY_MAP.md` (v1.1)**, not an ad-hoc read
+of the YAML. Fold these into sub-steps 1–5:
+
+### 10.1 The LEVEL gate — a new, distinct gate class (director P0)
+`MATURITY_MAP.md §0`: **"director + advisor own the map (lanes, levels, dials, the Expert Hour bar).
+The agent proposes level-ups with evidence; it never moves a cell itself."** So **any `level_current`
+promotion (L0–L5) is a GATE** — distinct from the existing `loop_stage` BUILD-open gate. Today's
+gate-wall catches `loop_stage idle→build`; it does **not** catch a `level_current` self-move. Sub-step
+2 must add a **level baseline** (`level_current` per atom at genesis) and a `promotions_since_baseline`
+analogue over levels: any agent-authored `level_current` increase **without a director+advisor
+level-authorization record** is a `LEVEL_SELF_PROMOTION` alarm (LOUD). The agent's path is: build →
+verify → **PROPOSE the level-up with evidence** (a `LEVEL_UP_PROPOSED` record / register entry) →
+director+advisor move the cell. Mutation test M6: inject an agent level-move with no authorization →
+assert `LEVEL_SELF_PROMOTION` fires; inject a director+advisor-authorized one → quiet.
+*(This gate is the direct fix for a real 2026-07-18 error: the orchestrator self-levelled W1_4/D5/E4
+to L2. Reverted; the gate makes the next attempt loud.)*
+
+### 10.2 loop_stage is respected; stage-advance is a gate (the spine correction)
+The model **runs the canonical map**: draw dial-weighted, flow each atom through the Hardening Loop
+(**DISCOVER→FRAME→BUILD→VERIFY→HARDEN**), and **respect `loop_stage`**. The draw filter (sub-step 5)
+keys on the atom's *canonical stage*:
+- A **DISCOVER**-stage atom (e.g. all of lane **W1**, which is `L1 · dial-4-hot · DISCOVER`) is only
+  eligible for **DISCOVER/FRAME** work — research + charter, doc-only. It is **NOT** BUILD-eligible.
+- **Advancing an atom's stage** (DISCOVER/FRAME → BUILD, i.e. BUILD-open) is a **reserved gate**, only
+  a director console act crosses it. *(This is exactly the 2026-07-18 W1 weather failure: the
+  orchestrator self-advanced W1 DISCOVER→BUILD and built physics. The draw filter + BUILD-open gate
+  make that impossible-or-loud.)*
+- Epoch ceiling still applies on top (epoch>ceiling is gated regardless of stage).
+
+Mutation test M7: a W1 (DISCOVER, dial-hot) atom → the draw offers DISCOVER/FRAME, **never** a BUILD
+candidate; a synthetic self-advance of it to `build` with no console act → `GATE_CROSSED` fires.
+
+### 10.3 Confirmed gate list (director 2026-07-18)
+- **One-way doors** (all 8 categories, verbatim) — incl. **REPO_PRIVATE** (platform-admin), reserved.
+- **Epoch / BUILD-open** — reserved (the weather-Epoch-3 self-open was the failure this closes).
+- **Schema / sim-structure** — reserved (the wall contract, event-log/spine, map schema, governance files).
+- **Level promotion (L0–L5)** — reserved (§10.1, NEW).
+- **Director-reserved values** — `A4`/`A5`/`A7` + curriculum.
+
+### 10.4 Confirmed front scope (director 2026-07-18)
+- **SIM_ACTORS** = `W1_market_weather` + `W2_customer_generator` + `W1_2_generate_futures`, ceiling 3.
+- **SUPPLIER** = `D_billing_metering` + `B_commercial` + `E_finance_treasury` + **`C_customer_ops`
+  (collections)** + **`F_risk_compliance`** + `site/**`. *(Director: F Risk & Compliance is the most
+  mature lane; C Customer Ops covers collections — both are core supplier lanes.)*
+- **Future-atom inclusion:** yes — opening a front pre-authorizes future in-region atoms, with the
+  reconciler LOUDLY flagging any newly-landed atom so it is never silent.
+
+### 10.5 Deferred to AFTER sub-steps 1–5 prove (registered, not built now)
+1. **Propose widening the concurrent fan beyond ≤3.** The map's July pipeline-parallelism predates
+   this week's bounded-fan-out / merge-or-reap / fork-reconciler / gate-wall, which now make wider
+   concurrency safe. Turn the dial **deliberately and reversibly** — propose the width + a safety-proof
+   FIRST, director authorizes.
+2. **Bank this week's parallel-safety machinery into canon as `MATURITY_MAP.md` v1.2** — so the
+   evolution lives in the map, not scattered across commits.
+
+Both wait until governance (1–5) holds and is proven.
