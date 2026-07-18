@@ -29,6 +29,98 @@ the last partial). The business survived the full window.
 - **2021** (crisis year): net margin £75,403.21, 0 risk committee wake-up(s).
 - **2022** (crisis year): net margin £335,627.52, 9 risk committee wake-up(s).
 
+## Consolidated Segmental Statement (CSS)
+
+*Ofgem-format segmental statement (SLC 19A shape) — the reporting backbone. Company's own publication; every figure derived from settlement records and the ledger, none hand-typed.*
+
+**Basis (R14):** the segmental P&L below is on a **settlement basis** (accrual on settled volume) — the only basis at which the company attributes P&L per segment. It reconciles to the statutory (billed-basis) management accounts in the reconciliation table further down.
+
+### P&L by segment
+
+| £, settlement basis | Elec — Domestic | Elec — Non-Dom | Gas — Domestic | Gas — Non-Dom | **Aggregate** |
+|---|---|---|---|---|---|
+| Revenue from sale of energy | £99,122 | £12,072,243 | £24,829 | £1,832,580 | £14,028,774 |
+| Direct fuel costs | (£43,485) | (£6,328,236) | (£17,946) | (£1,209,933) | (£7,599,600) |
+| **Gross margin** | £55,638 | £5,744,007 | £6,883 | £622,647 | £6,429,174 |
+| Transportation (TNUoS/DUoS/BSUoS/gas transport) | (£9,930) | (£871,488) | (£4,593) | (£389,024) | (£1,275,036) |
+| Environmental & social obligation costs | (£38,421) | (£3,371,934) | (£1,997) | (£169,112) | (£3,581,464) |
+| Other direct costs (capital/collateral charges) | (£619) | (£50,697) | (£288) | £0 | (£51,604) |
+| **Segment contribution** (EBITDA, before central indirect) | £6,667 | £1,449,888 | £4 | £64,511 | £1,521,070 |
+
+> Transportation and environmental are shown split by the commodity-level transport:environmental ratio applied to each segment's sim-attributed non-commodity total (elec 21%/79%, gas 70%/30%); the per-segment non-commodity TOTAL is exact (settlement-attributed). CCL is non-domestic-only in reality — the ratio split is a disclosed approximation for the sub-line only.
+
+### Operational lines by segment
+
+| Metric | Elec — Domestic | Elec — Non-Dom | Gas — Domestic | Gas — Non-Dom |
+|---|---|---|---|---|
+| Volume net of losses (MWh) | 513.6 | 66,077.7 | 611.4 | 32,255.5 |
+| WACOE/WACOG (£/MWh) | 84.66 | 95.77 | 29.35 | 37.51 |
+| WACOG (p/therm, gas) | — | — | 86.02 | 109.93 |
+| Meter points (12-mo avg of monthly closing) | 6.17 | 4.32 | 2.76 | 1.00 |
+
+> WACOE/WACOG = direct fuel cost ÷ volume. Meter points are a 12-month average of monthly closing counts; the sim runs a small book of *representative* billing accounts, so these are single-digit by design (representative-account scale, not a real 50k+ portfolio).
+
+### Group P&L — indirect costs, EBITDA, D&A, EBIT (statutory basis)
+
+*Indirect costs and D&A are group-level: the company does not yet attribute indirect cost to segments (no activity-driver model), so per-segment indirect allocation is an **honest named gap** — not a fabricated split. Figures below are on the statutory (billed/ledger) basis.*
+
+| Line | £ |
+|---|---:|
+| Gross margin (statutory) | £6,486,753 |
+| Indirect — bad debt | (£452,576) |
+| Indirect — cost-to-serve (customer service; metering/PSR/R&D not yet split) | (£23,293) |
+| Indirect — sales & marketing / acquisition | (£862) |
+| Indirect — central overhead | (£5,700) |
+| Indirect — capital/collateral charge | (£51,604) |
+| **EBITDA** | £5,952,717 |
+| Depreciation & amortisation | £0 — **honest gap**: no fixed-asset / amortisation layer exists yet (no capitalised assets to depreciate). Registered, not fabricated. |
+| **EBIT** | £5,952,717 |
+| Corporation tax | (£1,283,601) |
+| **Profit for the year** | £4,669,116 |
+
+> Indirect cost-to-serve is a single line; CSS guidance also names metering, PSR cost-to-serve and R&D as sub-components — these are **named gaps** (no sub-decomposition model yet), reported here rather than fabricated.
+
+### Reconciliation — CSS (settlement) → statutory management accounts
+
+| Reconciling item | £ |
+|---|---:|
+| CSS revenue (settlement basis) | £14,028,774 |
+| + Settled-to-billed basis difference (standing charges, estimated vs settled volume, restatements) | £4,852,423 |
+| = Statutory revenue (billed basis) | £18,881,197 |
+| Memo: total billed (accrued) | £22,617,078 |
+| Memo: cash collected (banked) | £22,164,624 |
+
+*R14 clocks: **settled** = CSS segmental P&L; **billed** = statutory revenue / total billed; **banked** = cash collected. The revenue basis difference is the single largest reconciling item and is expected — the CSS values energy on settled volume, the statutory accounts on what was billed.*
+
+### Hedging policy note
+
+The company hedges wholesale volume forward to lock supply margin at the point of tariff sign-up. **Default (SVT-style) tariffs** are hedged on a rolling forward basis tracking the cap-implied demand curve; **fixed-term tariffs** are hedged to their contracted term at sign-up so the margin is fixed for the customer's term. **Volume risk** (weather / consumption deviation vs the hedged shape) is borne by the company, not the customer, on both tariff types — the customer's unit rate is fixed within term and the company absorbs the settlement volume variance. Over the window, hedging cost £4,218,742 versus a fully unhedged book.
+
+## Board KPI Block
+
+*Board-grade KPI set paired with the CSS financials. Customer-experience metrics are company-**measured** (survey machinery), not SIM-true — the company side of the wall.*
+
+| KPI | Value | Basis / note |
+|---|---:|---|
+| Churn % (of avg customers, annualised) | 3.5% | 5 churned accounts over 10y; Centrica-style definition |
+| Complaints per 1,000 customers (annualised) | 84.2 | 12 complaints over window (Ofgem/CitA league-table metric) |
+| CSAT (avg score 0–10) | 6.3 | 6 survey responses (measured) |
+| NPS (avg annual) | -50 | 4 responses — **low volume, indicative only** |
+| Direct Debit share | 88.9% | 8/9 mandates active |
+| Estimated-read rate | 29.7% | 1588 meter reads; lower is better |
+| Contact-centre SLA breaches (SLC14-style) | 12 | of 372 contacts; GSOP statutory-payment detail in the GSOP Obligations section |
+
+### ARPU by segment (settlement revenue ÷ meter points, annualised)
+
+| Segment | ARPU £/yr |
+|---|---:|
+| Electricity — Domestic | £1,607 |
+| Electricity — Non-Domestic | £279,723 |
+| Gas — Domestic | £899 |
+| Gas — Non-Domestic | £183,258 |
+
+> **Awaiting market backdrop (named gap):** relative metrics — churn spread vs rest-of-market and price-vs-cap positioning (the best-in-class AGL/Octopus pattern) — are blocked on the simulated competitor field, an already-identified Epoch-2 missing piece. Named here rather than omitted silently.
+
 ## Board Risk Summary
 
 Synthesised risk indicators across portfolio, capital, operations and pricing.
@@ -1580,7 +1672,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-17T20:58:06Z
+Generated: 2026-07-17T11:02:22Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
