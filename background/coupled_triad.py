@@ -57,6 +57,12 @@ _AUTHORITATIVE_COUPLING = {
     "W2_10": "C12",
     "W2_6": "C8",
     "W2_9": "C11",
+    # W2_11 payment-behaviour source <-> D5 payment consumer (the D5 decomposition
+    # coupled triad, director-authorized 2026-07-18 console). The twin is a D-lane
+    # atom (not the usual C-lane); the C-prefix depends_on derivation above won't
+    # derive it, but the authoritative table is resolved to full ids directly, so a
+    # D-lane twin couples fine here. This is the wiring the gap-measurement needs.
+    "W2_11": "D5",
 }
 
 _SHORT_ID_RE = re.compile(r"^(W\d+_\d+|[A-Z]+\d+)")

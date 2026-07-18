@@ -47,8 +47,8 @@ def test_reflects_real_ledger_exactly():
     ledger = _real_ledger()
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    assert cg["pair_count"] == 7
-    assert cg["measured"] == 7
+    assert cg["pair_count"] == 8
+    assert cg["measured"] == 8
     assert cg["unmeasured"] == 0
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
@@ -84,7 +84,7 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 6
+    assert cg["measured"] == 7
     assert cg["unmeasured"] == 1
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
@@ -96,8 +96,8 @@ def test_missing_entry_still_appears_untested(monkeypatch):
     del mutated["W2_8_self_rationing"]
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
-    # Pair count is driven by the map coupling, not the ledger -> still 7.
-    assert cg["pair_count"] == 7
+    # Pair count is driven by the map coupling, not the ledger -> still 8.
+    assert cg["pair_count"] == 8
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"
@@ -152,11 +152,12 @@ def test_empty_ledger_fails_closed_not_silent(monkeypatch):
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: {})
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    assert cg["pair_count"] == 7          # every coupled pair still present
+    assert cg["pair_count"] == 8          # every coupled pair still present (W2_11<->D5 added)
     assert cg["measured"] == 0            # none measured
-    assert cg["unmeasured"] == 7
+    assert cg["unmeasured"] == 8
     assert all(r["chip"] == "untested" for r in cg["pairs"])
-    # All world atoms are >=L2 in the live map -> all are anti-decay findings.
+    # 7 of the 8 world atoms are >=L2 in the live map -> anti-decay findings.
+    # W2_11 is L1 (director-ratified 2026-07-18), so it is NOT in the >=L2 set.
     assert len(cg["unmeasured_ge_l2"]) == 7
 
 

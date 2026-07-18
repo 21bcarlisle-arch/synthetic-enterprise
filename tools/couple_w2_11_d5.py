@@ -149,7 +149,7 @@ from background.gap_metric import (
 )
 
 WORLD_ATOM_ID = "W2_11_payment_behaviour_source"
-TWIN_ATOM_ID = "D5_payment_observation_consumer"
+TWIN_ATOM_ID = "D5_account_hierarchy_payments"
 
 # ---------------------------------------------------------------------------
 # Scenario constants -- frozen, illustrative harness scaffolding (R13-style;
@@ -485,35 +485,27 @@ def main() -> None:
     if args.write_ledger:
         measured_at = datetime.now(timezone.utc).isoformat()
         commit = _git_head()
-        # HEADLINE entry under the BARE world_atom_id -- this is the contract
-        # background/coupled_triad.gap_measured() reads to unblock W2_11->L3
-        # (all pairs carry one bare-keyed entry). The detection gap is the
-        # headline: it is the core belief-vs-truth divergence (the no-remittance
-        # blind spot -- non-DD failures the company never observes). The belief
-        # and ageing gaps are kept as ::suffixed detail entries alongside.
+        # ONE bare-keyed entry per pair -- the contract coupled_triad.gap_measured()
+        # + the Proof door (_coupled_gaps) read. Do NOT write ::suffixed keys: they
+        # are not map-coupled pairs, so the Proof door counts them as unmapped extras
+        # and wedges the publish gate (the 2026-07-18 lesson). The headline is the
+        # DETECTION gap (the core belief-vs-truth divergence -- the no-remittance
+        # blind spot); the belief/ageing gaps ride inline in the note, and the full
+        # per-dimension detail lives in the result's components for a reader.
         headline: GapResult = result["detection"]
         headline.note = (
             "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment "
             "failures the company never observes through the seam -- the "
-            "no-remittance blind spot). Companion per-dimension gaps in the "
-            f"::belief ({result['belief'].gap:.4f}) and ::ageing "
-            f"({result['ageing'].gap:.4f}) entries; allocation honestly dropped "
-            "(metric-shape mismatch). R12: diagnostic, not a target."
+            "no-remittance blind spot). Companion per-dimension gaps: belief "
+            f"{result['belief'].gap:.4f}, ageing {result['ageing'].gap:.4f}; "
+            "allocation honestly dropped (metric-shape mismatch). R12: diagnostic, "
+            "not a target."
         )
         ledger = write_gap_entry(
             WORLD_ATOM_ID, TWIN_ATOM_ID, headline,
             measured_at=measured_at, run_git_commit=commit,
         )
-        print(f"  ledger written (HEADLINE): {WORLD_ATOM_ID} -> "
-              f"gap={ledger[WORLD_ATOM_ID]['gap']}")
-        for name in ("detection", "belief", "ageing"):
-            r: GapResult = result[name]
-            ledger = write_gap_entry(
-                f"{WORLD_ATOM_ID}::{name}", TWIN_ATOM_ID, r,
-                measured_at=measured_at, run_git_commit=commit,
-            )
-            print(f"  ledger written: {WORLD_ATOM_ID}::{name} -> "
-                  f"gap={ledger[f'{WORLD_ATOM_ID}::{name}']['gap']}")
+        print(f"  ledger written: {WORLD_ATOM_ID} -> gap={ledger[WORLD_ATOM_ID]['gap']}")
 
 
 if __name__ == "__main__":

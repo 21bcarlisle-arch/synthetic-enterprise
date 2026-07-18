@@ -20,6 +20,26 @@
     "run_git_commit": "b318892cea32362e6fdfd0fb41a1e0762c97d2b0",
     "twin_atom_id": "C12_channel_attribution_analytics"
   },
+  "W2_11_payment_behaviour_source": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 1123,
+      "flagged_size": 1123,
+      "miss_rate": 0.296807,
+      "missed": 474,
+      "missed_harm": 474.0,
+      "total_harm": 1597.0,
+      "truth_size": 1597
+    },
+    "g0": 1597.0,
+    "gap": 0.2968065122103945,
+    "measured_at": "2026-07-18T18:19:28.298445+00:00",
+    "metric": "detection",
+    "note": "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.0730, ageing 0.9011; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 474.0,
+    "run_git_commit": "653e10a3cb7168408c9d92e2e7c279416a616c30",
+    "twin_atom_id": "D5_account_hierarchy_payments"
+  },
   "W2_4_household_budget": {
     "baseline": "TV(truth, national/blind prior) -- the no-book-info belief",
     "components": {
