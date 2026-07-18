@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T12:19:39Z
+Last updated: 2026-07-18T12:24:01Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -8,8 +8,10 @@ sim-runner, sanity-daemon, director-comments, naive-organ, token-proxy — all o
 retired; session_watchdog was superseded — none of the three run.)
 
 **Governance (running):** crossing a gate — flipping an atom `loop_stage: idle→build` — is authorized
-ONLY by a director console act, recorded and reconciled by the gate-wall
-(`background/gate_authorization.py`). The twin answers questions; it does not open BUILD.
+ONLY by a director console act — a FRONT_OPEN or per-atom BUILD_OPEN — recorded and reconciled by the
+gate-wall (`background/gate_authorization.py`). Within a director-authorized open front, the twin is the
+standing approver that SEQUENCES which atoms flip idle→build (canon §3a); the front's authority is the
+director's console act, and the twin never opens a new front. Gate-wall: 0 unauthorized promotions.
 
 **Execution (running):** a serial, self-sustaining pull loop — the Stop-hook transport feeds
 `find_work` turn to turn with no human nudge and is loud on a stall. Parallelism is bounded to at
@@ -44,9 +46,22 @@ joint cold-and-still regime · supplier-reporting §4 obligations-register addit
 crosses the Epoch-3 gate by the director's explicit authorization (logged). Executor kill-switch
 stays DARK during console-orchestrated waves; self-sustaining loop takes over once self-gov proven.
 
+**2026-07-18 — HARNESS RELIABILITY CLUSTER (twin-sequenced within the front).** The git-corruption
+cluster is BANKED at L3 (director-ratified by console): **H24_precommit** — the pre-commit test-gate now
+scrubs `GIT_*` so a git-touching test can't corrupt the shared `.git` (the root cause of the mid-session
+`core.bare` blackout; R15-proven both directions on isolated repos) — + **H26** — a fail-safe guard in
+`tree_lock` + the deadman makes any residual bare-repo flip LOUD and auto-repairing. **R15** ("every
+control must be failable and mutation-proven; fail-open-green is the defect class") appended to
+DIRECTOR_CANON.md (v3), reconciling the canon with CLAUDE.md. Also landed, L-up PROPOSED (awaiting the
+director): **H23** — the content-refresh gate partitions by `@pytest.mark.operational` so a red daemon
+test alarms but never wedges the live site, with a throttled independent-cadence green signal on the
+deadman timer — + **H24_worktree** — a report-first (unarmed) merged/salvaged worktree-dir reaper,
+never-reap-live invariant mutation-proven. All four twin-sequenced within the director's open front,
+each fork orchestrator-verified and reaped; 0 unauthorized promotions.
+
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
