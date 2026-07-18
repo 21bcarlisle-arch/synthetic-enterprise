@@ -29,6 +29,15 @@
     "what": "Two things only you can set for the AI-compute cost-to-serve line: (1) costing basis -- charge at Anthropic's metered list-price-per-token, or allocate from the actual flat Max-subscription fee spread across usage? (2) your own oversight-hours rate -- what hourly rate represents your time reviewing/overseeing this agent's work?",
     "why": "That function returns 0.0 today specifically because these are your calls, not mine to invent (R12 discipline) -- it's the only unpriced real cost line in the whole opex model. Separately, FYI not an action item: docs/observability/token-usage-log.jsonl only covers 5 days and never captured interactive sessions, so even once you answer this, the underlying usage data is currently too thin for a fully representative true figure -- flagging so you know that data gap exists alongside the policy question."
   },
+  "director-console-confirm-L3-ratifications-2026-07-18": {
+    "first_asked_at": "2026-07-18T11:59:03.647388+00:00",
+    "how": "Director confirms by console (types in a live session or clears a gate) -> orchestrator records LEVEL_UP_PROPOSED for both + appends R15 to canon (versioned) + moves cells to L3.",
+    "item_id": "director-console-confirm-L3-ratifications-2026-07-18",
+    "last_pinged_at": "2026-07-18T11:59:03.647388+00:00",
+    "resolved": false,
+    "what": "3 ratifications via ADVISOR-STAGED doc (not console): H26->L3, H24_precommit->L3, R15->DIRECTOR_CANON.md \u00a72. The \u00a70 level-gate requires channel=console; advisor-staged does not satisfy it. Cells NOT forced (fail-closed per the doc's own note). Doc parked docs/staging/in_progress/.",
+    "why": "Console-only authentication WALL: level/authority moves are authorized only by the director's console act, never a staged relay (spoofable). record_level_up hardcodes console; writing off an advisor doc = forging."
+  },
   "executor-wall_escalated": {
     "answer": "PROCEED \u2014 open-build within the OPEN epoch is reversible (twin's call, not a one-way door); do not re-escalate this class. (director, 2026-07-16)",
     "first_asked_at": "2026-07-16T14:14:35.476829+00:00",
@@ -57,15 +66,6 @@
     "resolved": true,
     "what": "Atoms-below-target is FROZEN at 25 and cannot fall via the self-refill draw. Verified: 25/25 below-target atoms are loop_stage=idle (BUILD-gated by epoch sequencing); 0 are buildable (build/harden). DISCOVER/FRAME -- the only work available on idle atoms, and what the 6-concurrent draw grants -- does NOT move level_current by design (levels move only on a completed BUILD+VERIFY+HARDEN loop). I have already done DISCOVER/FRAME passes on nearly all of these. So the count structurally cannot move until BUILD is opened. This is the structural thing preventing level transitions that SELF_INTERRUPT_DISCIPLINE.md said to hunt.",
     "why": "The directive's ONLY success criterion is atoms-below-target FALLING. I cannot produce that without a BUILD-open decision, which is yours (epoch curriculum = your instrument, R13/LAW A). Escalating with options ready is not a stall -- it is the one decision that unblocks the metric."
-  },
-  "publish_gate_wedged": {
-    "first_asked_at": "2026-07-16T16:47:13.643056+00:00",
-    "how": "Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run the fast suite locally to find the regression. The alarm clears automatically on the next clean publish.",
-    "item_id": "publish_gate_wedged",
-    "last_pinged_at": "2026-07-18T06:25:34.460296+00:00",
-    "resolved": false,
-    "what": "The run-complete PUBLISH GATE has failed 30 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=b877b104b).",
-    "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15)."
   },
   "routines-cloud-environment-id": {
     "first_asked_at": "2026-07-11T05:21:26.112710+00:00",
