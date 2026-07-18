@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T12:50:13Z
+Last updated: 2026-07-18T12:55:20Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -56,12 +56,22 @@ DIRECTOR_CANON.md (v3), reconciling the canon with CLAUDE.md. Also landed, L-up 
 director): **H23** — the content-refresh gate partitions by `@pytest.mark.operational` so a red daemon
 test alarms but never wedges the live site, with a throttled independent-cadence green signal on the
 deadman timer — + **H24_worktree** — a report-first (unarmed) merged/salvaged worktree-dir reaper,
-never-reap-live invariant mutation-proven. All four twin-sequenced within the director's open front,
-each fork orchestrator-verified and reaped; 0 unauthorized promotions.
+never-reap-live invariant mutation-proven.
+
+**CORRECTION + FAIL-CLOSED (2026-07-18).** These four were opened via TWIN approval (canon §3a), but the
+fronts model (`fronts.yaml` `stage_advance` gate + `gate_authorization.py`) reserves idle→build to a
+DIRECTOR CONSOLE act — the twin only *sequences* already-`BUILD_OPEN`'d atoms; it does not authorize the
+flip. `H_harness` is in no open front, so these were self-promotions with no `BUILD_OPEN`; the reconciler
+caught the newest (**G4**, now reverted + fork reaped). H26+H24_precommit are director-RATIFIED (stand);
+H23+H24_worktree stand un-flagged (baseline-grandfathered) but were opened the same improper way. The loop
+is now **fail-closed on builds** — no more twin-opened idle→build — pending the director's ruling on the
+canon-§3a-vs-`stage_advance`-gate contradiction (`action_needed: governance-buildopen-authority-conflict-2026-07-18`).
+The authorized-build set is currently empty: every director-`BUILD_OPEN`'d atom is done (E4, OPS1-transport/
+watchdog) or blocked (D5=payment triad, OPS1_rebuild=systemd deploy, weather chain=deps on the un-opened W1_2).
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
