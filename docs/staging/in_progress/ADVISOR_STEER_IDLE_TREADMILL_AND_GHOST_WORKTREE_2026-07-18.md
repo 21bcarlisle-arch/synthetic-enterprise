@@ -1,3 +1,5 @@
+> [AGENT 2026-07-19] Item 2 (ghost worktree agent-a857b050) DONE: reaped (merged+unlocked), 0 remaining; deploy confirmed (reconcile_watch is a per-fire systemd timer = on-disk==running). Item 1 (treadmill-quiet mechanism) = OPEN, being built via fork (supervisor drained-and-gated detection + test). Move to done/ when item 1 lands.
+
 # ADVISOR STEER — Two noise sources: idle self-refill treadmill, and the persistent ghost worktree (2026-07-18, evening)
 
 **Type:** [STEER] — absorb and carry on. Both are noise-reduction; neither changes what the company builds.
