@@ -65,3 +65,29 @@ flip off-front, and the next baseline re-snapshot silently grandfathers it.
 purpose); when the twin's canon and the live reconciler disagree, the live fail-closed control is what
 governs, and I must consult it BEFORE acting, not discover the conflict when it wedges the gate. Resolution
 of the underlying model contradiction is the director's (pending).
+
+---
+
+## Addendum — fork-reaping by false-death-inference (same session, 2× losses)
+
+**Observed-with-evidence.** Twice I destroyed LIVE build forks by `git worktree remove --force`-ing their
+worktrees, believing them dead. The second pair (W2_11 source + the [ACT]-paging fix): I inferred "dead"
+from three signals — (a) no matching `claude` process in `ps ... | grep claude/worktrees`, (b) a task-output
+file whose mtime hadn't changed in ~5–9 min, (c) `git rev-list --count main..<branch>` = 0. I reaped both.
+Both forks then reported (via their completion notifications, which arrived AFTER the reap) that their
+worktrees "vanished mid-task" — one had a **fully-green, fully-verified** W2_11 build (32 + 186 tests, C-S2
+isolation proven), the other a fully-specified escalation-fix — **none committed, all lost** (~24 min compute).
+
+**Root cause (not the instance).** All three "death" signals are FALSE NEGATIVES for a live fork: fork
+`claude` subprocesses don't match a naive process grep; the JSONL output file buffers/pauses for minutes; and
+a fork commits only at the END, so 0-commits-ahead is the *normal* mid-build state. A `locked` worktree means
+an ACTIVE fork. The ONLY authoritative done/failed signal is the harness **completion notification** for that
+agentId. I substituted inference for the authoritative signal, under time pressure, and destroyed real work.
+This is the same class as the G4 reap earlier this session — "don't reap a fork mid-build" was already in
+memory; I violated it because I mis-classified the fork as already-dead.
+
+**Class fix.** Never reap on inference. WAIT for the completion notification; a fork routinely runs 5–10 min.
+Only investigate a genuine hang past ~20 min, and never `worktree remove` a `locked` worktree. Captured in
+memory `feedback_check_fronts_before_twin_open` with the three specific false-signals named. (A mechanical
+guard — the reaper must refuse to remove a `locked` worktree — is the durable fix; belongs with
+`H24_worktree_dir_autoreap`.)
