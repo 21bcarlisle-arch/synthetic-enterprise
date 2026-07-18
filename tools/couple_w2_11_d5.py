@@ -333,11 +333,36 @@ def build_scenario(
 
 
 def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, object]:
-    """Build the scenario and score all three gap dimensions. Returns a dict
-    of {"detection": GapResult, "belief": GapResult, "ageing": GapResult,
-    "stats": {...}, "notes": {...}}."""
-    records, consumer, ledger_book, as_of = build_scenario(n_customers, seed=seed)
+    """Build the OFFLINE scenario and score all three gap dimensions. Returns a
+    dict of {"detection": GapResult, "belief": GapResult, "ageing": GapResult,
+    "stats": {...}, "notes": {...}}.
 
+    This is the offline harness entry point (a frozen synthetic population). The
+    scoring body it delegates to (`score_triad`) is the SAME code the LIVE
+    per-run wiring (`background.live_payment_triad`) calls over a real
+    run_phase2b population -- so the live and offline gap are one measurement,
+    not two (the reason the live path reuses this module rather than a bespoke
+    metric: R15 independence / no second scorer)."""
+    records, consumer, ledger_book, as_of = build_scenario(n_customers, seed=seed)
+    return score_triad(records, consumer, as_of)
+
+
+def score_triad(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+) -> Dict[str, object]:
+    """Score the three gap dimensions (detection / belief / ageing) for a
+    coupled-triad population.
+
+    `records` are the harness-held TRUTH (`PeriodRecord`, one per customer x
+    period); `consumer` is the company's BELIEF surface, already fed EXCLUSIVELY
+    through `emit_wall_responses` (never a PeriodRecord). This function is the
+    ONLY place holding both side by side -- harness code, outside the wall by
+    design. Callable over EITHER the frozen offline scenario (`measure`) or a
+    live run_phase2b population (`background.live_payment_triad`) -- identical
+    scoring, so the live per-run gap and the offline gap are the same metric."""
     by_customer: Dict[str, List[PeriodRecord]] = {}
     for r in records:
         by_customer.setdefault(r.customer_id, []).append(r)
@@ -362,7 +387,7 @@ def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, ob
 
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
-        snapshot = consumer.snapshot(account_id, as_of=as_of, payment_terms_days=PAYMENT_TERMS_DAYS)
+        snapshot = consumer.snapshot(account_id, as_of=as_of, payment_terms_days=payment_terms_days)
 
         due_to_period = {r.due_date: r.period_index for r in periods}
         for dd_fail in snapshot.recent_dd_failures:
@@ -422,9 +447,10 @@ def measure(n_customers: int = 4000, seed: Optional[int] = None) -> Dict[str, ob
         "remittance non-DD population (see module 'ON ALLOCATION' note)."
     )
 
+    n_customers = len(by_customer)
     stats = {
         "n_customers": n_customers,
-        "n_periods_per_customer": N_PERIODS,
+        "n_periods_per_customer": (len(records) // n_customers) if n_customers else 0,
         "n_cases": len(records),
         "as_of": as_of.isoformat(),
         "n_true_failures": len(truth_set),

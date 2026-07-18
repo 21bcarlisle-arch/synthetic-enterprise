@@ -89,6 +89,7 @@ from tools.credit_adapters import get_credit_bureau_adapter
 from company.core.resentment_ledger import FrictionEventType
 from saas.cost_to_serve import get_bad_debt_rate
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
+from background.live_payment_triad import LivePaymentTriad
 from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
@@ -834,6 +835,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     _payment_analytics = PaymentBehaviourAnalytics()
     _payment_rng = random.Random(42 + 7919)
     _payment_month_seen: set[tuple[str, str]] = set()  # (cid, YYYY-MM)
+    # L3 payment coupled triad (W2_11 source / W4_4 seam / D5 consumer / gap),
+    # LIVE per-run. W2_11's generate_payment_event is now the CANONICAL payment
+    # truth: the analytics dict below is DERIVED from that single event (one
+    # coherent reality per customer/period), while emit_wall_responses ->
+    # consumer.observe forms the company's observable-only belief and the gap is
+    # measured + written at run end (background.live_payment_triad).
+    _payment_triad = LivePaymentTriad()
     _NG_BILL_SHOCK_THRESHOLD = 0.20  # matches simulation.bill_shock_tracker.BILL_SHOCK_THRESHOLD
     CRISIS_HANGOVER_LOSS_THRESHOLD = 0.20  # trigger: net loss > 20% of term revenue
 
@@ -1759,13 +1767,22 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 fixed_cost_events.append(make_fixed_cost_event(rec_month, FIXED_COST_MONTHLY))
                 _fixed_cost_emitted.add(rec_month)
 
-            # Phase NH: generate one payment record per customer-month for analytics
+            # Phase NH: generate one payment record per customer-month for analytics.
+            # L3 coupled triad: the CANONICAL payment truth is now W2_11's
+            # generate_payment_event (via LivePaymentTriad.record_period), which
+            # ALSO crosses the W4_4 seam into the D5 consumer belief LIVE. The
+            # analytics dict fed here is DERIVED from that single event -- one
+            # coherent reality per customer/period, no second independent draw.
             _pm_key = (cid, rec['settlement_date'][:7])
             if _pm_key not in _payment_month_seen:
                 _payment_month_seen.add(_pm_key)
                 _pm_due = date.fromisoformat(rec['settlement_date'][:7] + '-28')
-                _pm_rec = generate_payment_record(
-                    cid, _pm_due, rec.get('revenue_gbp', 0.0), _income_stress, _payment_rng
+                _pm_rec = _payment_triad.record_period(
+                    customer_id=cid,
+                    due_date=_pm_due,
+                    amount_gbp=rec.get('revenue_gbp', 0.0),
+                    income_stress_value=(_income_stress.value if _income_stress is not None else None),
+                    segment=cust_segment,
                 )
                 _payment_analytics.record_payment(cid, _pm_rec)
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
@@ -2203,6 +2220,37 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         print(f"OUTCOME: ADMINISTRATION on {administration_event['date']}")
     else:
         print("OUTCOME: SURVIVED — full window completed")
+
+    # L3 payment coupled triad: measure the LIVE belief-vs-truth gap over this
+    # run's population and write the DETECTION headline into the coupled gap
+    # ledger. Wrapped fail-safe: a measurement error must NEVER kill the run
+    # (the run's own outputs are the primary artefact) -- it surfaces as a loud
+    # warning + a stale ledger entry, not a crashed run.
+    try:
+        _triad_head = None
+        try:
+            import subprocess as _subprocess
+            _triad_head = _subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], text=True
+            ).strip()
+        except Exception:
+            _triad_head = None
+        _triad_result = _payment_triad.measure_and_write(run_git_commit=_triad_head)
+        if _triad_result is not None:
+            _det = _triad_result["detection"]
+            print(
+                f"[coupled-triad W2_11<->D5] LIVE payment belief-vs-truth gap: "
+                f"detection={_det.gap} (true failures {_triad_result['stats']['n_true_failures']}, "
+                f"flagged {_triad_result['stats']['n_flagged_failures']}, "
+                f"non-DD blind {_triad_result['stats']['n_true_non_dd_failures']}); "
+                f"belief={_triad_result['belief'].gap:.4f} ageing={_triad_result['ageing'].gap:.4f}"
+            )
+        else:
+            print("[coupled-triad W2_11<->D5] no true payment failures this run — gap not written")
+    except Exception as _triad_exc:  # pragma: no cover - defensive, run must not die
+        import traceback as _traceback
+        print(f"WARNING [coupled-triad W2_11<->D5] live gap measurement failed: {_triad_exc}")
+        _traceback.print_exc()
 
     return {
         "all_records": all_records,
