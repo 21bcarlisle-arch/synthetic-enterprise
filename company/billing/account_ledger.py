@@ -36,6 +36,18 @@ SCALE (C-S1/C-S2, tested not asserted):
 
 Epistemic wall: bills, payments, adjustments and disputes are all things a real
 supplier's own systems record. No simulation internals are read.
+
+NAMED SIMPLIFICATIONS (R10 — deliberate L2 gaps, NOT defects, to close at the
+seam-crossing atom, never papered over):
+  (2) invoice.py's SQLite invoice store is NOT yet migrated onto this event
+      model. Bills reach this ledger as BILL_DEBIT events posted by the caller;
+      the two stores are reconciled by the caller, not unified. Deliberate.
+  (3) Dispute state is PASSED IN to allocate()/ageing as `disputed_refs`, it is
+      NOT live-read from company/crm/ic_invoice_dispute_register.py. A stale
+      dispute set is therefore possible — the live wiring is a seam-crossing job.
+  (5) Oldest-first allocation SIMPLIFIES Clayton's Case (Devaynes v Noble, 1816):
+      real appropriation of payments has more doctrine (earmarking, running
+      accounts). We implement remittance-else-oldest-first only.
 """
 from __future__ import annotations
 
@@ -139,10 +151,71 @@ class AllocationResult:
             2,
         )
 
+    def check_conserved(self, total_payments_gbp: float) -> None:
+        """R15 CONTROL — an open-item allocation must (a) never OVER-allocate an
+        invoice (outstanding can never go negative) and (b) CONSERVE the cash it
+        was handed: every pound of payment credit is either allocated to an
+        invoice or left as unallocated credit, none created or destroyed.
+
+        `total_payments_gbp` is supplied by the EXTERNAL cash-received figure (the
+        payments subsystem), NOT re-summed from these allocations — so a
+        misallocation that drops or duplicates a pound moves the internal total
+        away from the external one and this RAISES (independence, not tautology).
+        FAIL-CLOSED: a non-zero cash total with no allocations and no unallocated
+        credit raises rather than passing.
+
+        Raises AllocationInvariantError on any violation.
+        """
+        problems: List[str] = []
+        for oi in self.open_items:
+            if oi.outstanding_gbp < -_ALLOC_TOLERANCE_GBP:
+                problems.append(
+                    f"invoice {oi.invoice_ref} over-allocated: "
+                    f"allocated {oi.allocated_gbp} > issued {oi.issued_gbp}"
+                )
+        allocated_total = round(sum(a[2] for a in self.allocations), 2)
+        accounted = round(allocated_total + self.unallocated_credit_gbp, 2)
+        external = round(total_payments_gbp, 2)
+        if abs(accounted - external) > _ALLOC_TOLERANCE_GBP:
+            problems.append(
+                f"cash not conserved: allocated {allocated_total} + unallocated "
+                f"{self.unallocated_credit_gbp} = {accounted} != payments {external}"
+            )
+        if problems:
+            raise AllocationInvariantError("; ".join(problems))
+
 
 def _sort_key(e: LedgerEvent) -> Tuple[dt.date, str]:
     # deterministic, arrival-order-independent ordering (C-S2 replay determinism)
     return (e.valid_time, e.event_id)
+
+
+# ---------------------------------------------------------------------------
+# R15 CONTROLS — invariant checks that MUST be able to FAIL on their own defect.
+#
+# Design note (R15): the balance/allocation invariants were previously only
+# IMPLICIT (correct code, but nothing that raises when they are violated) — an
+# unchecked invariant cannot fire, which R15 ranks as worse than no control.
+# These two controls make the invariants FAILABLE and are deliberately
+# INDEPENDENT of the value they check (they reconcile against a total supplied by
+# an EXTERNAL source — the GL control account / cash-received subsystem — not one
+# re-derived from the very same event set), so they are not tautologies, and they
+# FAIL-CLOSED (a missing/dropped event or empty set with a non-zero external
+# expectation RAISES, it does not pass silently).
+# ---------------------------------------------------------------------------
+
+_RECON_TOLERANCE_GBP = 0.005
+_ALLOC_TOLERANCE_GBP = 0.005
+
+
+class LedgerReconciliationError(Exception):
+    """Raised when a ledger's own debit/credit/balance totals disagree with the
+    externally-held control totals (a dropped/duplicated/tampered event)."""
+
+
+class AllocationInvariantError(Exception):
+    """Raised when an open-item allocation over-allocates an invoice or fails to
+    conserve the cash it was handed (a misallocated remittance)."""
 
 
 class AccountLedger:
@@ -204,6 +277,68 @@ class AccountLedger:
             "in_credit": bal < 0,
             "arrears_gbp": bal if bal > 0 else 0.0,
             "credit_gbp": round(-bal, 2) if bal < 0 else 0.0,
+        }
+
+    def reconcile(
+        self,
+        expected_debits_gbp: float,
+        expected_credits_gbp: float,
+        as_of: Optional[dt.date] = None,
+    ) -> dict:
+        """R15 CONTROL — reconcile this ledger against EXTERNAL control totals.
+
+        A real supplier reconciles its AR ledger against an independently-held
+        control account (total billed by the invoicing subsystem; total cash
+        received by the payments subsystem). This control does the same: it
+        recomputes the ledger's own debit and credit sums and asserts they match
+        the externally-supplied expectations, and that balance == debits - credits.
+
+        INDEPENDENT (not a tautology): the expectations come from OUTSIDE the event
+        set, so dropping/duplicating an event moves the ledger's own sum away from
+        the unchanged external total and this RAISES. FAIL-CLOSED: an empty ledger
+        with a non-zero expectation raises rather than passing on emptiness.
+
+        Returns a reconciliation dict on success; raises LedgerReconciliationError
+        on any mismatch (basis: settled — these are ledger-posted facts, R14).
+        """
+        actual_debits = round(sum(
+            e.amount_gbp for e in self._events.values()
+            if e.event_type.is_debit and (as_of is None or e.valid_time <= as_of)
+        ), 2)
+        actual_credits = round(sum(
+            e.amount_gbp for e in self._events.values()
+            if not e.event_type.is_debit and (as_of is None or e.valid_time <= as_of)
+        ), 2)
+        bal = self.balance(as_of)
+        exp_debits = round(expected_debits_gbp, 2)
+        exp_credits = round(expected_credits_gbp, 2)
+        problems: List[str] = []
+        if abs(actual_debits - exp_debits) > _RECON_TOLERANCE_GBP:
+            problems.append(
+                f"debit total {actual_debits} != control {exp_debits}"
+            )
+        if abs(actual_credits - exp_credits) > _RECON_TOLERANCE_GBP:
+            problems.append(
+                f"credit total {actual_credits} != control {exp_credits}"
+            )
+        # Internal consistency: the rolling balance must equal debits - credits
+        # computed via the SEPARATE amount_gbp/is_debit path (catches a sign bug in
+        # signed_amount independently of the drop-detection above).
+        if abs(bal - round(actual_debits - actual_credits, 2)) > _RECON_TOLERANCE_GBP:
+            problems.append(
+                f"balance {bal} != debits-credits {round(actual_debits - actual_credits, 2)}"
+            )
+        if problems:
+            raise LedgerReconciliationError(
+                f"account {self.account_id} reconciliation failed: " + "; ".join(problems)
+            )
+        return {
+            "account_id": self.account_id,
+            "as_of": as_of.isoformat() if as_of else None,
+            "debits_gbp": actual_debits,
+            "credits_gbp": actual_credits,
+            "balance_gbp": bal,
+            "basis": "settled",
         }
 
     # --- open-item view ---
