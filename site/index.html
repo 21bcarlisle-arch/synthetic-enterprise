@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poesys -- Synthetic Enterprise</title>
-<meta name="description" content="A high-fidelity simulation of a fully autonomous UK energy supplier -- and the software, data, and method that build it.">
+<meta name="description" content="An autonomous UK energy supplier -- every commercial, financial and operational process executed by AI, evolved through simulated decades toward a stated go-live analysis.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://poesys.net/">
 <meta property="og:title" content="Poesys -- Synthetic Enterprise">
@@ -19,65 +19,48 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
 .nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+
+/* FRONT DOOR -- rebuilt to POESYS_SITE_BRIEF.md §4 (2026-07-18, Campaign A):
+   the 60-second job is the claim, the live pulse, the thesis number, and the
+   four doors -- nothing else. Learning-curve/commits charts moved to Journey
+   (site/project/) which already owns build-cadence narrative; the settled/
+   billed reconciliation bridge lives on The Company (site/company/) in more
+   depth than a front-door card could show; "why we're different" narrative
+   prose is not evidence-linked data and is exactly the brochure-page risk
+   principle 6 (2 of SITE_CONSTITUTION.md) warns against -- it dies here. */
 .hero { max-width: 760px; margin: 0 auto; padding: 56px 20px 24px; text-align: center; }
-.hero h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px; }
+.hero h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px; }
 .hero h1 span { color: var(--blue); }
-.hero p.pitch { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 620px; margin: 0 auto; }
+.hero p.pitch { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 640px; margin: 0 auto; }
 .wrap { max-width: 1000px; margin: 0 auto; padding: 8px 20px 48px; }
 .sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-bottom: 12px; margin-top: 40px; text-align: center; }
-.metric-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 28px 0; }
-.metric { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
-.metric-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
-.metric-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-.metric-value.pos { color: var(--green); }
-.metric-basis { font-size: 9px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
-.metric-basis a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
-.metric-basis a:hover { border-bottom-color: var(--blue); }
-.bridge-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 12px; }
-.bridge-table td { padding: 8px 6px; border-top: 1px solid var(--border); vertical-align: top; }
-.bridge-table .bt-label { font-weight: 600; }
-.bridge-table .bt-mech { color: var(--muted); font-size: 11px; line-height: 1.5; }
-.bridge-table .bt-amount { text-align: right; white-space: nowrap; font-weight: 700; }
-.bridge-table tr.bt-total td { border-top: 2px solid var(--text); font-weight: 700; }
-.bt-open { color: var(--amber); }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 8px; }
-.chart-wrap { position: relative; height: 200px; }
-.product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
-.product-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 8px; padding: 18px; }
-.product-card h3 { font-size: 14px; margin-bottom: 8px; }
-.product-card p { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
-.product-card a { font-size: 12px; color: var(--blue); text-decoration: none; font-weight: 600; }
-.product-card .soon { font-size: 11px; color: var(--muted); font-style: italic; }
-.entry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-.entry-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-decoration: none;
-  color: var(--text); display: block; transition: border-color .15s; }
-.entry-card:hover { border-color: var(--blue); }
-.entry-card .en { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 4px; }
-.entry-card .et { font-size: 15px; font-weight: 700; }
 
-/* Front Door: pulse strip, thesis chart, persona doors (SITE_CONSTITUTION.md Doors 1-2, 2026-07-11) */
 .pulse-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 24px 0 32px; }
 .pulse-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; }
 .pulse-item .pl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
 .pulse-item .pv { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
 .pulse-item .pv a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
 .pulse-item .pv a:hover { border-bottom-color: var(--blue); }
-.pulse-item .pn { font-size: 9px; color: var(--muted); margin-top: 3px; }
+.pulse-item .pn { font-size: 9px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
 .pulse-item .pn a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
 .pulse-item .pn a:hover { border-bottom-color: var(--blue); }
 .provisional-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: var(--amber);
   border: 1px solid var(--amber); border-radius: 4px; padding: 1px 4px; margin-left: 4px; vertical-align: middle; }
+
 .thesis-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 32px; }
 .thesis-headline { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
 .thesis-sentence { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; max-width: 640px; }
 .thesis-chart-wrap { position: relative; height: 160px; max-width: 480px; margin: 0 auto; }
 .thesis-caveat { font-size: 11px; color: var(--amber); margin-top: 12px; border-left: 2px solid var(--amber); padding-left: 10px; }
+.thesis-evidence { font-size: 10px; color: var(--muted); margin-top: 10px; }
+.thesis-evidence a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
+.thesis-evidence a:hover { border-bottom-color: var(--blue); }
+
 .door-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 8px; }
 .door-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-decoration: none;
   color: var(--text); display: block; transition: border-color .15s, transform .15s; border-top: 3px solid var(--blue); }
@@ -86,6 +69,18 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .door-card .dp { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
 .door-card .dt { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
 .door-card .dd { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* mobile pass (SITE1_expert_doors pattern, site/test_expert_doors_mobile.py):
+   phone-legible front door, nav wraps instead of overflowing, no horizontal
+   body scroll. Desktop (>640px) layout is unchanged. */
+@media (max-width: 640px) {
+  .wrap { padding: 8px 16px 40px; }
+  .hero { padding: 40px 16px 16px; }
+  .hero h1 { font-size: 22px; }
+  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
+  .thesis-card { padding: 16px; }
+  .sec { margin-top: 28px; }
+}
 </style>
 </head>
 <body>
@@ -113,10 +108,10 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
   <p class="pitch">
     An autonomous UK energy supplier -- every commercial, financial and operational process
     executed by AI -- evolved through simulated decades toward a stated go-live analysis.
-    It is settled half-hourly against real Elexon and NESO market data since 2016, and it
-    can never see inside the simulation it runs in: it discovers its world only the way a
-    real supplier would -- meter reads, market feeds, customer contacts, bills, regulatory
-    publications. Not a model of a company; a running one.
+    Not a model of a company; a running one. It settles half-hourly against real Elexon and
+    NESO market data since 2016, and discovers its world only the way a real supplier would --
+    meter reads, market feeds, customer contacts, bills, regulatory publications -- never the
+    simulation's own internals.
   </p>
 </div>
 
@@ -130,13 +125,15 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     <p class="thesis-sentence" id="thesis-sentence">Loading...</p>
     <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
     <div class="thesis-caveat" id="thesis-caveat"></div>
+    <div class="thesis-evidence" id="thesis-evidence"></div>
   </div>
 
+  <div class="sec">Where to go</div>
   <div class="door-grid">
-    <a class="door-card" href="./supplier/">
+    <a class="door-card" href="./company/">
       <div class="dp">Energy CEO / COO</div>
       <div class="dt">Inspect the company &rarr;</div>
-      <div class="dd">Trading &amp; risk, finance on three clocks, customers &amp; operations, compliance &amp; controls -- a board pack, not a feature list.</div>
+      <div class="dd">Trading &amp; risk, finance on three clocks, the household drill-down, compliance &amp; controls -- a board pack, not a feature list.</div>
     </a>
     <a class="door-card" href="./method/">
       <div class="dp">CTO / AI engineer</div>
@@ -154,175 +151,54 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
       <div class="dd">Every known gap and cut corner, in one register -- the page an expert checks first to decide whether to trust the rest.</div>
     </a>
   </div>
-
-  <div class="sec">All-Time Figures</div>
-  <div class="metric-row" id="metric-row">
-    <div class="metric"><div class="metric-label">Loading</div><div class="metric-value">...</div></div>
-  </div>
-
-  <div class="thesis-card" id="bridge-card">
-    <div class="thesis-headline">Reconciliation Bridge: settled clock &rarr; billed clock <span class="provisional-badge">PROVISIONAL</span></div>
-    <p class="thesis-sentence" id="bridge-sentence">Loading...</p>
-    <div id="bridge-table-wrap" style="overflow-x:auto"></div>
-    <div class="thesis-caveat" id="bridge-caveat"></div>
-    <div id="bridge-worked-example" style="margin-top:16px"></div>
-  </div>
-
-  <div class="sec">The Learning Curve</div>
-  <div class="chart-card">
-    <div id="learning-window-toggle" style="display:flex;gap:8px;margin-bottom:8px;font-size:11px"></div>
-    <div class="chart-wrap"><canvas id="learning-chart"></canvas></div>
-  </div>
-
-  <div class="sec">Cumulative Work -- The Growth We're Creating</div>
-  <div class="chart-card">
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">
-      A genuinely cumulative metric, not a saturating suite size -- git commits, every one real
-      work, running total since the project started.
-    </div>
-    <div class="chart-wrap"><canvas id="commits-chart"></canvas></div>
-  </div>
-
-  <div class="sec">Why This Is Different</div>
-  <div class="product-grid">
-    <div class="product-card">
-      <h3>Proof, in public</h3>
-      <p>A shadow-live track record runs against real Elexon market data: hedge stance,
-      renewal-price flags, and retention decisions are logged and pre-registered before the
-      outcome is known, then graded against what actually happened -- misses included.
-      We publish the predictions before the results arrive, and we keep the failures.</p>
-      <a href="./method/#track-record">View the Track Record &rarr;</a>
-    </div>
-    <div class="product-card">
-      <h3>AI-native, not AI-retrofitted</h3>
-      <p>Most industry platforms bolt agents onto human-designed cores that still assume a
-      person owns the journey. Poesys inverts that: built from first principles with AI as
-      the company, and a human as strategic director only -- mission, risk appetite, and
-      reserved matters, never the keyboard. A company that can also fail -- insolvency and
-      licence revocation are real terminal states here, not exceptions designed away -- is
-      what makes its survival through the 2021-22 crisis, which killed around 30 real UK
-      suppliers, an earned result rather than an assumption.</p>
-      <a href="./project/">See the Crisis Survival Evidence &rarr;</a>
-    </div>
-    <div class="product-card">
-      <h3>Why Integrations Take Years, Not Weeks</h3>
-      <p>A UK supplier's software has to get thousands of interdependent rules right at
-      once -- half-hourly settlement, the price cap, VAT by customer segment, meter-read
-      estimation and back-billing limits, vulnerability and Priority Services Register
-      duties, hedging -- and a conventional system-integration project can only test a
-      handful of those end-to-end before go-live. The rest ship as untested edge cases
-      that surface as real customer harm, and regulatory exposure, months after launch,
-      not before. That gap -- between "the rules are all documented somewhere" and "every
-      rule is actually checked on every change" -- is the real cost driver behind
-      multi-year, multi-million-pound platform rebuilds, not a lack of willingness or
-      technical skill.</p>
-    </div>
-    <div class="product-card">
-      <h3>Why This Is Possible Now</h3>
-      <p>What's changed isn't the rules -- it's who can afford to check as many of them
-      as possible, continuously, and keep adding coverage as gaps are found. An AI
-      agent that rebuilds and re-tests its own system every day against real
-      settlement data can catch a regression the day it's introduced, not the year
-      it's discovered in production (this project has already caught and fixed
-      several of its own real defects exactly that way -- see the Method's forging
-      incidents). No test suite is complete, and this one isn't either -- the bet
-      this project tests isn't that AI writes code faster; it's
-      that it can hold a genuinely complete, continuously-verified system at a depth a
-      cost- and attention-bound human integration team structurally cannot sustain.</p>
-      <a href="./method/#retro-list">See the Forging Incidents &rarr;</a>
-    </div>
-  </div>
-
-  <div class="sec">Three Products, In Order</div>
-  <div class="product-grid">
-    <div class="product-card">
-      <h3>The Method</h3>
-      <p>Tiered governance, a staging bridge, verify-by-fetch, consistency gates, two-strike
-      redesign, weekly retros -- the transferable way of directing an autonomous agent to
-      build a company. The casebook comes first because it's what makes the rest repeatable.</p>
-      <a href="./method/">View the Method &rarr;</a>
-    </div>
-    <div class="product-card">
-      <h3>The Synthetic Data</h3>
-      <p>Customer behavioural trajectories, decision and event streams, population-anchored
-      calibration -- industry-valuable exhaust from every run.</p>
-      <a href="./platform/#catalogue">View the Data Catalogue &rarr;</a>
-    </div>
-    <div class="product-card">
-      <h3>The Software</h3>
-      <p>449+ modules across a four-layer architecture, an epistemic boundary enforced in code
-      (not convention), a canonical data pipeline, and 15,000+ tests.</p>
-      <a href="./platform/">View the Platform &rarr;</a>
-    </div>
-  </div>
-
-  <div class="sec">Explore</div>
-  <div class="entry-grid">
-    <a class="entry-card" href="./sim/"><div class="en">The World</div><div class="et">SIM</div></a>
-    <a class="entry-card" href="./supplier/"><div class="en">The Company</div><div class="et">Supplier</div></a>
-    <a class="entry-card" href="./customers/"><div class="en">The Relationships</div><div class="et">Customers</div></a>
-    <a class="entry-card" href="./platform/"><div class="en">The Software</div><div class="et">Platform</div></a>
-    <a class="entry-card" href="./method/"><div class="en">The Way</div><div class="et">Method</div></a>
-    <a class="entry-card" href="./project/"><div class="en">The Journey</div><div class="et">Project</div></a>
-    <a class="entry-card" href="./tours/"><div class="en">Guided by role</div><div class="et">Tours</div></a>
-    <a class="entry-card" href="./glossary/"><div class="en">The Vocabulary</div><div class="et">Glossary</div></a>
-  </div>
 </div>
 <script>
 function gbp(n){if(n==null)return "--";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return (n<0?"-":"")+"£"+s;}
 function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
-function freshnessStamp(dashboard){
-  var g=(dashboard&&dashboard.meta&&dashboard.meta.generated_at)||null;
-  if(!g)return "";
-  return "as of "+g.slice(0,10);
+
+function monthLabel(ym){
+  if(!ym)return "--";
+  var parts=String(ym).split("-");
+  var names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var mi=parseInt(parts[1],10)-1;
+  return (names[mi]||parts[1])+" "+parts[0];
 }
 
-function basisNote(dashboard, key){
-  // NUMBER-PASSPORT rule (CLOCK_TRUTH_AND_THE_BRIDGE.md, 2026-07-12): every
-  // published financial figure carries basis + freshness + provisional,
-  // sourced from the data layer (portfolio.basis), never hand-typed here.
-  var basis=((dashboard&&dashboard.portfolio&&dashboard.portfolio.basis)||{})[key];
-  if(!basis)return "";
-  var clock=esc(basis.clock||"unstated");
-  var fresh=freshnessStamp(dashboard);
-  var badge=basis.provisional?'<span class="provisional-badge">PROVISIONAL</span>':"";
-  var link=basis.bridge_available?' -- <a href="#bridge-card">see the reconciliation bridge</a>':(basis.derived_from?' -- derived from '+esc(basis.derived_from)+', see bridge':"");
-  return '<div class="metric-basis">'+clock+' clock'+badge+(fresh?", "+fresh:"")+link+'</div>';
-}
-
-function renderMetrics(dashboard, phases){
+// PULSE STRIP (POESYS_SITE_BRIEF.md §4): every value rendered from
+// site/data/*.json at fetch time -- never hand-typed here (SITE_CONSTITUTION
+// rule 3). Each item's passport (basis/freshness/scope) sits in its .pn line.
+function renderPulseStrip(dashboard, supplier, method, lastBill){
   var p=(dashboard&&dashboard.portfolio)||{};
-  var tp=(phases&&phases.test_progression)||[];
-  var lastTests=tp.length?tp[tp.length-1][1]:null;
-  var metrics=[
-    {l:"Net Margin (all-time)", v:gbp(p.net_margin_gbp), pos:(p.net_margin_gbp||0)>=0, basis:basisNote(dashboard,"net_margin_gbp")},
-    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp), pos:true, basis:basisNote(dashboard,"enterprise_value_gbp")},
-    {l:"Crisis Survived", v:"2021-22", pos:true, basis:""},
-    {l:"Tests Passing", v:lastTests?lastTests.toLocaleString():"--", pos:true, basis:""}
-  ];
-  document.getElementById("metric-row").innerHTML=metrics.map(function(m){
-    return '<div class="metric"><div class="metric-label">'+m.l+'</div><div class="metric-value'+(m.pos?" pos":"")+'">'+m.v+'</div>'+(m.basis||"")+'</div>';
-  }).join("");
-}
-
-function renderPulseStrip(dashboard, supplier, method){
-  var p=(dashboard&&dashboard.portfolio)||{};
+  var mo=((dashboard&&dashboard.monthly_ops)||{}).monthly||[];
+  var lastMonth=mo.length?mo[mo.length-1].month:null;
   var window=(supplier&&supplier.simulation_window)||"--";
   var book=(dashboard&&dashboard.customers&&dashboard.customers.book_annual)||[];
-  var lastBook=book.length?book[book.length-1]:null;
-  var bookVal=lastBook?(lastBook.active_elec+lastBook.active_gas)+" accounts":"--";
-  var bookNote=lastBook?("as of "+lastBook.year):"";
+  var lastBookRow=book.length?book[book.length-1]:null;
+  var bookVal=lastBookRow?((lastBookRow.active_elec||0)+(lastBookRow.active_gas||0))+" accounts":"--";
+  var bookNote=lastBookRow?("as of "+lastBookRow.year+" &middot; site/data/dashboard.json"):"";
   var tr=(method&&method.track_record)||{};
   var hg=tr.hedge_grading||{};
   var predVal=hg.graded_count!=null?(hg.graded_count+" graded / "+((hg.graded_count||0)+(hg.ungraded_count||0))+" logged"):"--";
+  var predEntries=hg.entries||[];
+  var latestPred=predEntries.length?predEntries[predEntries.length-1]:null;
+  var predNote=latestPred?("latest: "+esc(latestPred.decision_run_at)+" "+esc(latestPred.hedge_recommendation)+" -- "+esc(latestPred.outcome)):"pre-registered, misses kept";
+
+  var billItem;
+  if(lastBill&&lastBill.invoice){
+    var inv=lastBill.invoice;
+    billItem={l:"Last Bill (sample account)", v:'<a href="./customers/?acc='+encodeURIComponent(lastBill.id)+'&tab=billing">'+esc(inv.id)+'&nbsp;&rarr;</a>',
+      n:esc(inv.date)+" &middot; "+gbp(inv.amount_gbp)+" &middot; account "+esc(lastBill.id)+" (featured household, not portfolio-wide max -- see Simplified)"};
+  } else {
+    billItem={l:"Last Bill Issued", v:"Not yet aggregated", n:"portfolio-wide last-bill index not yet built -- see the featured household on The Company door"};
+  }
 
   var items=[
-    {l:"Simulation Window", v:esc(window), n:"real 2016-2025 history"},
-    {l:"Book Size", v:esc(bookVal), n:esc(bookNote)},
-    {l:"Bill Rendering", v:"Not yet public", n:"data correct, no live bill page (tracked)"},
-    {l:"Prediction Tracking", v:esc(predVal), n:"pre-registered, misses kept"},
-    {l:"Treasury", v:gbp(p.treasury_end_gbp), n:"end of window"},
-    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp)+'<span class="provisional-badge">PROVISIONAL</span>', n:'settled clock -- <a href="#bridge-card">see bridge</a>'}
+    {l:"Sim Date", v:esc(monthLabel(lastMonth)), n:"most recent settled month, "+esc(window)+" window &middot; dashboard.json"},
+    {l:"Book Size", v:esc(bookVal), n:bookNote},
+    billItem,
+    {l:"Prediction vs Realised", v:esc(predVal), n:predNote},
+    {l:"Treasury", v:gbp(p.treasury_end_gbp), n:"banked clock, end of window &middot; dashboard.json"},
+    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp)+'<span class="provisional-badge">PROVISIONAL</span>', n:'settled clock -- <a href="./company/">see the reconciliation bridge</a>'}
   ];
   document.getElementById("pulse-strip").innerHTML=items.map(function(it){
     return '<div class="pulse-item"><div class="pl">'+it.l+'</div><div class="pv">'+it.v+'</div><div class="pn">'+(it.n||"")+'</div></div>';
@@ -343,15 +219,18 @@ function renderThesisChart(dashboard){
   var benchCost=ol.benchmark_opex_per_household_gbp;
   var sentEl=document.getElementById("thesis-sentence");
   var caveatEl=document.getElementById("thesis-caveat");
+  var evEl=document.getElementById("thesis-evidence");
   if(trueCost==null||benchCost==null){
     if(sentEl)sentEl.textContent="Dual-ledger data not yet available for this run.";
+    if(evEl)evEl.textContent="Coming -- not yet measured (site/data/dashboard.json has no opex_ledger for this run).";
     return;
   }
   var gapPerHh=benchCost-trueCost;
   var basis=ol.population_basis||"resi households";
   var hhCount=ol.household_count;
   if(sentEl)sentEl.innerHTML="Per household ("+esc(basis)+(hhCount?(", "+hhCount+" households"):"")+"): the TRUE cost-base runs at "+gbp(trueCost)+" against a "+gbp(benchCost)+" incumbent-benchmark allowance -- a "+gbp(gapPerHh)+" gap per household.";
-  if(caveatEl)caveatEl.textContent="TRUE side is a cost FLOOR, not a complete figure: AI-compute cost is not yet populated -- the usage data needed to price it honestly is too thin/stale to use without fudging a number (open costing-basis question, see PRIORITIES.md). Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Simplified).";
+  if(caveatEl)caveatEl.textContent="TRUE side is a cost FLOOR, not a complete figure: AI-compute cost is not yet populated -- the usage data needed to price it honestly is too thin/stale to use without fudging a number (open costing-basis question, see Simplified). Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Simplified).";
+  if(evEl)evEl.innerHTML="Source: <a href=\"./data/dashboard.json\" target=\"_blank\" rel=\"noopener\">site/data/dashboard.json &rarr; opex_ledger</a>, generated "+esc((dashboard.meta&&dashboard.meta.generated_at)||"--")+".";
 
   var ctx=document.getElementById("thesis-chart");
   if(!ctx)return;
@@ -405,160 +284,37 @@ function renderThesisChart(dashboard){
     }
   }]});
 }
-function renderMarginBridge(bridge){
-  // CLOCK_TRUTH_AND_THE_BRIDGE.md (2026-07-12, P0): publish the bridge, not
-  // just a number. Every reconciling item below is computed from the same
-  // run_output_latest.json the two headline figures come from
-  // (tools/generate_margin_bridge.py) -- never hardcoded here.
-  var sentEl=document.getElementById("bridge-sentence");
-  var wrapEl=document.getElementById("bridge-table-wrap");
-  var caveatEl=document.getElementById("bridge-caveat");
-  if(!bridge||bridge.settlement_net_margin_gbp==null){
-    if(sentEl)sentEl.textContent="Bridge data not yet available for this run.";
-    return;
-  }
-  var ratio=bridge.gap_ratio_x?bridge.gap_ratio_x+"x":"--";
-  if(sentEl)sentEl.innerHTML="The board's settled-clock headline ("+gbp(bridge.settlement_net_margin_gbp)+
-    ") and the bill-derived ledger view ("+gbp(bridge.ledger_net_margin_gbp)+") diverge by "+
-    gbp(bridge.total_gap_gbp)+" ("+ratio+"). Every reconciling item below is named, quantified, "+
-    "and evidenced from this run's own data -- not asserted.";
-  var rows=(bridge.items||[]).map(function(it){
-    var openTag=it.status==="open_item"?' <span class="bt-open">(open item)</span>':"";
-    return '<tr><td class="bt-label">'+esc(it.label)+openTag+'<div class="bt-mech">'+esc(it.mechanism)+'</div></td>'+
-      '<td class="bt-amount">'+gbp(it.amount_gbp)+'</td></tr>';
-  }).join("");
-  rows+='<tr class="bt-total"><td>Total explained</td><td class="bt-amount">'+gbp(bridge.explained_gbp)+'</td></tr>';
-  rows+='<tr class="bt-total"><td>Unexplained remainder'+(bridge.fully_explained?"":' <span class="bt-open">(OPEN DEFECT)</span>')+'</td><td class="bt-amount">'+gbp(bridge.unexplained_remainder_gbp)+'</td></tr>';
-  if(wrapEl)wrapEl.innerHTML='<table class="bridge-table">'+rows+'</table>';
-  if(caveatEl)caveatEl.textContent=bridge.fully_explained?
-    "Fully reconciled: every reconciling item accounts for the gap to within a rounding penny.":
-    "NOT fully reconciled -- the unexplained remainder above is an open defect, not a formatting gap.";
-  renderBridgeWorkedExample(bridge.one_bill_worked_example);
-}
 
-function renderBridgeWorkedExample(ex){
-  // D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md): the portfolio
-  // bridge above is an aggregate; the lane charter's own L2 bar needs the three
-  // clocks (physical/financial/regulatory) named and reconciled for at least
-  // ONE real bill -- this is that worked example, computed fresh from the same
-  // run's own data (tools/generate_margin_bridge.py::compute_one_bill_worked_example),
-  // never hardcoded.
-  var el=document.getElementById("bridge-worked-example");
-  if(!el)return;
-  if(!ex){el.innerHTML="";return;}
-  el.innerHTML=
-    '<div style="font-weight:600;font-size:13px;margin-bottom:6px">Worked example, one real bill: '+
-      esc(ex.customer_id)+' ('+esc(ex.period_start)+' to '+esc(ex.period_end)+')</div>'+
-    '<div class="bridge-table" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:8px">'+
-      '<div><div class="bt-mech">PHYSICAL clock</div><div class="bt-amount" style="text-align:left">'+
-        (ex.physical_clock.consumption_kwh)+' kWh</div></div>'+
-      '<div><div class="bt-mech">FINANCIAL clock (billed)</div><div class="bt-amount" style="text-align:left">'+
-        gbp(ex.financial_clock.ledger_net_margin_gbp)+' net margin</div></div>'+
-      '<div><div class="bt-mech">REGULATORY clock (settled)</div><div class="bt-amount" style="text-align:left">'+
-        gbp(ex.regulatory_clock.net_margin_gbp)+' net margin</div></div>'+
-    '</div>'+
-    '<p class="thesis-caveat">Gap: '+gbp(ex.gap_gbp)+'. '+esc(ex.gap_explanation)+'</p>';
-}
-
-var LEARNING_WINDOW="recent"; // "recent" | "all"
-var LEARNING_PHASES_DATA=null;
-function renderLearningCurve(phases){
-  LEARNING_PHASES_DATA=phases;
-  var tp=(phases&&phases.test_progression)||[];
-  var pd=(phases&&phases.phase_dates)||[];
-  var ctx=document.getElementById("learning-chart");
-  if(!ctx||!tp.length)return;
-  // Director feedback (2026-07-09, via the page comment widget): the test-
-  // count line alone plateaus in weeks spent on verification/compliance/
-  // architecture work rather than raw test volume, which reads as "no
-  // progress" even when real capability keeps landing. Phases completed
-  // (docs/PROJECT_OVERVIEW.md Section 4 build history) keeps climbing
-  // through those same weeks, so it's plotted alongside as a second series
-  // on its own axis rather than replacing the honest (if flatter) test
-  // line -- both are real signals, shown together.
-  // phase_dates' row index is file/parse order, which is not perfectly
-  // date-ordered (some phase entries are backfilled/out-of-sequence in
-  // PROJECT_OVERVIEW.md's Section 4) -- a per-date max alone can produce a
-  // false dip (e.g. 2026-06-26 tops out at 208 but 2026-06-27 only reaches
-  // 94). A cumulative running max across sorted dates is the honest
-  // rendering: "phases completed by this date," which cannot decrease.
-  var phaseDateMax={};
-  pd.forEach(function(row){ phaseDateMax[row[0]]=Math.max(phaseDateMax[row[0]]||0, row[1]); });
-  var phaseByDate={};
-  var _running=0;
-  Object.keys(phaseDateMax).sort().forEach(function(d){
-    _running=Math.max(_running, phaseDateMax[d]);
-    phaseByDate[d]=_running;
-  });
-  var testByDate={};
-  tp.forEach(function(row){ testByDate[row[0]]=row[1]; });
-  // Union of both series' dates, sorted, so each dataset is indexed
-  // against the SAME label array by date rather than by raw array
-  // position (the two series don't cover identical date sets).
-  var allDates=Object.keys(Object.assign({},testByDate,phaseByDate)).sort();
-
-  // Real director-repeat complaint (2026-07-10, "They look like the old flat
-  // ones still" -- 3rd time): the data itself was correct and growing, but a
-  // one-time early bulk jump (1,290 -> 15,314 tests in the first ~6 days)
-  // dominates the linear y-axis range for the ENTIRE history, so a full
-  // week of genuinely real, ongoing progress since then (15,314 -> 16,387)
-  // occupies only ~7% of the visible range -- it visually reads as flat even
-  // though it is not. Default view now shows the most recent 14 days, where
-  // day-to-day movement is actually visible; "All time" remains one click
-  // away for full historical context. Neither series is altered or hidden,
-  // only the default date window shown.
-  var RECENT_WINDOW_DAYS=7;
-  var dates=allDates;
-  if(LEARNING_WINDOW==="recent"&&allDates.length>1){
-    var cutoff=new Date(allDates[allDates.length-1]);
-    cutoff.setDate(cutoff.getDate()-RECENT_WINDOW_DAYS);
-    var cutoffStr=cutoff.toISOString().slice(0,10);
-    dates=allDates.filter(function(d){return d>=cutoffStr;});
-    if(dates.length<2)dates=allDates.slice(-2); // never render a single-point chart
-  }
-
-  var toggleEl=document.getElementById("learning-window-toggle");
-  if(toggleEl){
-    toggleEl.innerHTML=
-      "<button onclick=\"setLearningWindow('recent')\" style=\"padding:3px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:"+(LEARNING_WINDOW==="recent"?"var(--surface2)":"var(--surface)")+";font-weight:"+(LEARNING_WINDOW==="recent"?"700":"400")+"\">Recent ("+RECENT_WINDOW_DAYS+"d)</button>"+
-      "<button onclick=\"setLearningWindow('all')\" style=\"padding:3px 10px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:"+(LEARNING_WINDOW==="all"?"var(--surface2)":"var(--surface)")+";font-weight:"+(LEARNING_WINDOW==="all"?"700":"400")+"\">All time</button>";
-  }
-
-  if(learningChart)learningChart.destroy();
-  learningChart=new Chart(ctx,{type:"line",data:{labels:dates,datasets:[
-    {label:"Tests passing",data:dates.map(function(d){return testByDate.hasOwnProperty(d)?testByDate[d]:null;}),spanGaps:true,borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1,yAxisID:"yTests"},
-    {label:"Phases completed",data:dates.map(function(d){return phaseByDate.hasOwnProperty(d)?phaseByDate[d]:null;}),spanGaps:true,borderColor:"#2a6fb0",backgroundColor:"rgba(42,111,176,0.08)",fill:false,borderWidth:2,pointRadius:1,yAxisID:"yPhases"}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:"#52514e",font:{size:10}}},title:{display:true,text:"Development over time -- tests passing & phases completed",color:"#52514e",font:{size:11}}},scales:{x:{ticks:{maxTicksLimit:6,color:"#52514e"},grid:{color:"#e1e0d9"}},yTests:{position:"left",ticks:{color:"#0ca30c"},grid:{color:"#e1e0d9"}},yPhases:{position:"right",ticks:{color:"#2a6fb0"},grid:{display:false}}}}});
-}
-var learningChart=null;
-function setLearningWindow(w){LEARNING_WINDOW=w;renderLearningCurve(LEARNING_PHASES_DATA);}
-window.setLearningWindow=setLearningWindow;
-
-var commitsChart=null;
-function renderCommitsChart(phases){
-  var cbd=(phases&&phases.commits_by_day)||[];
-  var ctx=document.getElementById("commits-chart");
-  if(!ctx||!cbd.length)return;
-  if(commitsChart)commitsChart.destroy();
-  commitsChart=new Chart(ctx,{type:"line",data:{
-    labels:cbd.map(function(r){return r[0];}),
-    datasets:[{label:"Cumulative commits",data:cbd.map(function(r){return r[1];}),borderColor:"#4a3aa7",backgroundColor:"rgba(74,58,167,0.12)",fill:true,borderWidth:2,pointRadius:0}]
-  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:"Cumulative commits since project start",color:"#52514e",font:{size:11}}},scales:{x:{ticks:{maxTicksLimit:8,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}}});
+// "Last bill issued" needs one concrete, real invoice to link to (rule 3: a
+// rendering, never an author). company.json's household is the site's own
+// existing named drill-down household (used identically on The Company
+// door) -- we fetch ITS raw ledger file and take its own last invoice,
+// rather than inventing a portfolio-wide "most recent" figure that would
+// require aggregating every account's ledger (not yet built -- honestly
+// flagged in the pulse item's passport note above, not hidden).
+function fetchLastBill(company){
+  var hh=(company&&company.household)||{};
+  if(!hh.available||!hh.id)return Promise.resolve(null);
+  return fetch("./data/customers/"+encodeURIComponent(hh.id)+".json?t="+Date.now())
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(acct){
+      if(!acct||!acct.invoices||!acct.invoices.length)return null;
+      return {id:hh.id, invoice:acct.invoices[acct.invoices.length-1]};
+    })
+    .catch(function(){return null;});
 }
 
 Promise.all([
   fetch("./data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/phases.json").then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/supplier.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/margin_bridge.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+  fetch("./data/company.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
 ]).then(function(rs){
-  renderMetrics(rs[0], rs[1]);
-  renderLearningCurve(rs[1]);
-  renderCommitsChart(rs[1]);
-  renderPulseStrip(rs[0], rs[2], rs[3]);
-  renderThesisChart(rs[0]);
-  renderMarginBridge(rs[4]);
+  var dashboard=rs[0], supplier=rs[1], method=rs[2], company=rs[3];
+  renderThesisChart(dashboard);
+  return fetchLastBill(company).then(function(lastBill){
+    renderPulseStrip(dashboard, supplier, method, lastBill);
+  });
 }).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="./shared/director-comments.js" defer></script>
