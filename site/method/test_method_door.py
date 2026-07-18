@@ -125,9 +125,14 @@ def test_activity_cost_kpis_render_live_productive_pct():
     d = _live_ac()
     out = _render_ac(d)
     kpis = out["ac-kpis"]["innerHTML"]
-    # the actual rendered productive-time pixel matches the live source value
+    # the actual rendered productive-time pixel matches the live source value.
+    # The page renders via pct(v)=v+"%" -- JS Number->String coercion, which
+    # drops an integer-valued float's ".0" (42.0 -> "42") but keeps a fractional
+    # one (88.8 -> "88.8"). Mirror that rule so the assertion tracks the live
+    # value AND the real formatting, instead of Python's float repr (42.0).
     t_pct = d["metrics"]["productive_pct"]["time_pct"]
-    assert f">{t_pct}%<" in kpis, kpis
+    js_pct = int(t_pct) if isinstance(t_pct, float) and t_pct.is_integer() else t_pct
+    assert f">{js_pct}%<" in kpis, kpis
     # all five headline metrics are surfaced by label
     for label in ("Productive (time)", "Self-maintenance", "Rework rate",
                   "Value per problem", "Idle on director"):
