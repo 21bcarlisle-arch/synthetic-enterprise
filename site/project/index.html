@@ -218,6 +218,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <button class="mm-view-btn" data-view="function" onclick="setMMView('function')">Function Matrix</button>
     <button class="mm-view-btn" data-view="stream" onclick="setMMView('stream')">Value-Stream Flow</button>
     <button class="mm-view-btn" data-view="campaign" onclick="setMMView('campaign')">Campaign</button>
+    <button class="mm-view-btn" data-view="coupled" onclick="setMMView('coupled')">Coupled</button>
+    <button class="mm-view-btn" data-view="cascade" onclick="setMMView('cascade')">Cascade</button>
   </div>
   <div id="mm-view-body">
     <div style="color:var(--muted);font-size:12px">Loading maturity map...</div>
@@ -502,6 +504,8 @@ function renderMMView(){
   else if(MM_VIEW==="function")body.innerHTML=renderMMFunction();
   else if(MM_VIEW==="stream")body.innerHTML=renderMMStream();
   else if(MM_VIEW==="campaign")body.innerHTML=renderMMCampaign();
+  else if(MM_VIEW==="coupled")body.innerHTML=renderMMCoupled();
+  else if(MM_VIEW==="cascade")body.innerHTML=renderMMCascade();
 }
 
 function mmAtomRow(a){
@@ -570,6 +574,73 @@ function renderMMCampaign(){
     return '<div class="mm-lane-card"><div style="font-size:13px;font-weight:700;margin-bottom:8px">'+label+' ('+atoms.length+' capabilities)</div>'+
       atoms.map(mmAtomRow).join("")+'</div>';
   }).join("");
+}
+
+function renderMMCoupled(){
+  // The coupled triad topology (ONE_FRAMEWORK C5): each world<->company pair
+  // the atoms declare via couples_with. The gap is the score -- SIM depth ->
+  // company copes through the wall -> harness measures belief-vs-truth. Measured
+  // gap VALUES render on the Proof door; this view shows the coupling STRUCTURE
+  // from the one map source.
+  var byId={};MM.atoms.forEach(function(a){byId[a.id]=a;});
+  var seen={},pairs=[];
+  MM.atoms.forEach(function(a){
+    (a.couples_with||[]).forEach(function(pid){
+      var key=[a.id,pid].sort().join("|");
+      if(seen[key]||!byId[pid])return;seen[key]=1;
+      // world side = the one whose id starts with a W lane prefix
+      var world=/^W/.test(a.id)?a:(/^W/.test(pid)?byId[pid]:a);
+      var comp=world===a?byId[pid]:a;
+      pairs.push({world:world,comp:comp});
+    });
+  });
+  if(!pairs.length)return '<div class="mm-lane-card"><div style="color:var(--muted);font-size:12px">No coupled pairs declared yet.</div></div>';
+  pairs.sort(function(x,y){return x.world.id<y.world.id?-1:1;});
+  function lvl(a){return (a.level_current!=null&&a.level_target!=null)?("L"+a.level_current+"→L"+a.level_target):"--";}
+  var rows=pairs.map(function(p){
+    return '<div class="mm-lane-card"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:200px"><div style="font-size:12px;font-weight:600">'+p.world.name+'</div>'+
+        '<div style="font-size:11px;color:var(--muted)">world · '+p.world.id+' · '+lvl(p.world)+' '+mmBadge((p.world.loop_stage||"?").toUpperCase(),MM_LOOP_COLOR[p.world.loop_stage]||"muted")+'</div></div>'+
+      '<div style="color:var(--blue);font-size:18px;font-weight:700">⇄</div>'+
+      '<div style="flex:1;min-width:200px"><div style="font-size:12px;font-weight:600">'+p.comp.name+'</div>'+
+        '<div style="font-size:11px;color:var(--muted)">company · '+p.comp.id+' · '+lvl(p.comp)+' '+mmBadge((p.comp.loop_stage||"?").toUpperCase(),MM_LOOP_COLOR[p.comp.loop_stage]||"muted")+'</div></div>'+
+      '</div></div>';
+  }).join("");
+  return '<p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">'+
+    'Every capability is a three-loop: the SIM adds depth, the company must discover and cope <em>through the wall</em> '+
+    '(allowed to be wrong), and the harness measures the belief-vs-truth <strong>gap</strong> — the gap is the score. '+
+    'No world atom reaches L3 until its company twin has been defeated by it and the gap measured. Measured gap values '+
+    'render on <a href="../proof/" style="color:var(--blue);text-decoration:none">The Proof door</a>.</p>'+rows;
+}
+
+function renderMMCascade(){
+  // The weather cascade (ONE_FRAMEWORK §3): weather -> house -> usage -> price
+  // as ONE coupled physical system, its atoms as ordered layers. The single
+  // correlation the whole chain exists to keep alive is cold-and-still.
+  var ORDER=["W1_3_national_weather_signal","W1_4_regional_weather_field",
+             "W1_5_premise_demand_shape","W1_6_physics_price_signal","C13_weather_normalisation"];
+  var LAYER={W1_3_national_weather_signal:"L1 national weather",
+    W1_4_regional_weather_field:"L2 regional field",W1_5_premise_demand_shape:"L3 premise shape",
+    W1_6_physics_price_signal:"L4 price (output)",C13_weather_normalisation:"company twin"};
+  var byId={};MM.atoms.forEach(function(a){byId[a.id]=a;});
+  var chain=MM.atoms.filter(function(a){return a.chain==="weather_cascade";});
+  if(!chain.length)return '<div class="mm-lane-card"><div style="color:var(--muted);font-size:12px">No cascade atoms tagged.</div></div>';
+  var cells=ORDER.filter(function(id){return byId[id];}).map(function(id,i){
+    var a=byId[id];
+    var lvl=(a.level_current!=null&&a.level_target!=null)?("L"+a.level_current+"→L"+a.level_target):"--";
+    var arrow=i>0?'<div style="color:var(--muted);font-size:20px;align-self:center">→</div>':'';
+    return arrow+'<div class="mm-lane-card" style="flex:1;min-width:150px;margin-bottom:0">'+
+      '<div style="font-size:10px;color:var(--blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em">'+(LAYER[id]||"")+'</div>'+
+      '<div style="font-size:12px;font-weight:600;margin:4px 0">'+a.name.replace(/^L\d+ [a-z-]+: /,"").slice(0,90)+'</div>'+
+      '<div style="font-size:11px;color:var(--muted)">'+a.id+' · '+lvl+' '+mmBadge((a.loop_stage||"?").toUpperCase(),MM_LOOP_COLOR[a.loop_stage]||"muted")+'</div>'+
+      '</div>';
+  }).join("");
+  return '<p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">'+
+    'Weather → house → usage → wholesale price is <strong>one coupled physical system</strong>, not scattered atoms. '+
+    'A latent regime (blocking-high vs westerly) drives the whole chain, so the coldest days are also the stillest, '+
+    'the tightest and the priciest — <strong>cold-and-still</strong>, the supplier-killing winter tail that vanishes if '+
+    'you draw these independently. Price is an <em>output</em> of the merit order, never a draw.</p>'+
+    '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px">'+cells+'</div>';
 }
 
 function renderProvisionalPlan(){

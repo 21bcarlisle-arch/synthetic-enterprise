@@ -160,6 +160,7 @@
   name: "Regional basis risk (COUPLED): the company settles regional volumes at published zonal prices but can only hedge nationally -- no regional forward market exists -- so a regionally-skewed book carries unhedgeable basis; gap = assumed-national-hedge protection vs realised zonal basis cost (company twin of W1_8)"
   lane: B_commercial
   value_stream: wholesale_to_price
+  couples_with: [W1_8_zonal_locational_pricing]
   epoch: 3
   level_current: 0
   level_target: 3
@@ -372,6 +373,7 @@
   name: "Per-run stochastic population draw (vs current fixed cast)"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C6_affordability_inference]
   epoch: 2
   level_current: 2
   level_target: 2
@@ -413,6 +415,7 @@
   name: "Household budget sketch as hidden SIM state (income band, essential-cost floor, discretionary margin, savings buffer, priority-of-debts stack)"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C6_affordability_inference]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -429,6 +432,7 @@
   name: "Life-event stream (job loss, illness, divorce, retirement, new child) -- ONE shared W2 event generator"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C7_life_event_detection]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -445,6 +449,7 @@
   name: "SME/I&C distress twin (sector shocks, insolvency events, late-payment culture)"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C8_sme_credit_risk]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -461,6 +466,7 @@
   name: "Can't-pay vs won't-pay -- hidden ABILITY x WILLINGNESS 2x2, classified by the company under uncertainty"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C9_cantpay_wontpay_classifier]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -477,6 +483,7 @@
   name: "Pay-but-don't-heat self-rationing (perfect payment record, consumption collapses below plausible living levels)"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C10_self_rationing_detection]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -493,6 +500,7 @@
   name: "Segment T&C / regulatory overlay on debt (statutory business late-payment interest, domestic late-charge exclusion, payment-conditioned tariff eligibility)"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C11_segment_debt_policy]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -509,6 +517,7 @@
   name: "DD attribution confound -- first entry of the 'selection-bias traps the company must discover' class"
   lane: W2_customer_generator
   value_stream: meter_to_cash
+  couples_with: [C12_channel_attribution_analytics]
   epoch: 3
   level_current: 3
   level_target: 3
@@ -796,7 +805,7 @@
 - id: H3_production_readiness_nfr_evidence
   name: "Production-readiness non-functional evidence pass (recoverability, security posture, capacity, availability)"
   lane: H_harness
-  value_stream: meter_to_cash
+  value_stream: close_to_learn
   epoch: 2
   level_current: 1
   level_target: 1
@@ -812,7 +821,7 @@
 - id: H4_go_live_nfr_register
   name: "Go-live NFR register (availability/SLOs, security, data protection, operational resilience, capacity, incident response)"
   lane: H_harness
-  value_stream: meter_to_cash
+  value_stream: close_to_learn
   epoch: 5
   level_current: 1
   level_target: 1
@@ -828,7 +837,7 @@
 - id: H8_harness_bootstrap_dr
   name: "Harness bootstrap + disaster recovery (reproduce the machine that runs the company, not just its data)"
   lane: H_harness
-  value_stream: meter_to_cash
+  value_stream: close_to_learn
   epoch: 5
   level_current: 0
   level_target: 2
@@ -844,7 +853,7 @@
 - id: F4_company_internal_authz
   name: "Company-internal authz (roles, maker-checker, segregation of duties)"
   lane: F_risk_compliance
-  value_stream: meter_to_cash
+  value_stream: close_to_learn
   epoch: 5
   level_current: 0
   level_target: 2
@@ -860,7 +869,7 @@
 - id: H5_security_profiles
   name: "Security profiles (Developer/Restricted/Hardened) -- sandbox posture as a director-governed model"
   lane: H_harness
-  value_stream: meter_to_cash
+  value_stream: close_to_learn
   epoch: 2
   level_current: 3
   level_target: 3
@@ -1125,7 +1134,8 @@
 - id: C9_cantpay_wontpay_classifier
   name: "Can't-pay vs won't-pay classifier: the company classifies each arrears account under uncertainty (world twin of W2_7)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_7_willingness_classification]
   epoch: 2
   level_current: 3
   level_target: 3
@@ -1142,7 +1152,8 @@
 - id: C10_self_rationing_detection
   name: "Self-rationing detection: the company detects pay-but-don't-heat before harm (world twin of W2_8)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_8_self_rationing]
   epoch: 2
   level_current: 3
   level_target: 3
@@ -1159,7 +1170,8 @@
 - id: C7_life_event_detection
   name: "Life-event detection + response: the company notices job loss/illness/divorce/etc through the wall (world twin of W2_5)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_5_life_event_stream]
   epoch: 2
   level_current: 3
   level_target: 3
@@ -1176,7 +1188,8 @@
 - id: C6_affordability_inference
   name: "Affordability inference + book-mix belief: the company infers each customer's ability-to-pay and its book composition through the wall (world twin of W2_4/W2_2)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_4_household_budget, W2_2_population_draw]
   epoch: 2
   level_current: 2
   level_target: 2
@@ -1193,7 +1206,8 @@
 - id: C12_channel_attribution_analytics
   name: "Channel attribution analytics: the company's naive attribution SHOULD be capable of being wrong (world twin of W2_10)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_10_dd_attribution_confound]
   epoch: 2
   level_current: 3
   level_target: 2
@@ -1210,7 +1224,8 @@
 - id: C8_sme_credit_risk
   name: "SME/I&C credit-risk model: the company assesses business distress through the wall (world twin of W2_6)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_6_sme_distress_twin]
   epoch: 2
   level_current: 2
   level_target: 2
@@ -1227,7 +1242,8 @@
 - id: C11_segment_debt_policy
   name: "Segment-correct debt policy objects: the company applies the right debt T&C per segment (world twin of W2_9)"
   lane: F_risk_compliance
-  value_stream: close_to_learn
+  value_stream: meter_to_cash
+  couples_with: [W2_9_segment_debt_tnc]
   epoch: 2
   level_current: 2
   level_target: 2
@@ -1287,7 +1303,8 @@
 - id: W1_3_national_weather_signal
   name: "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
+  chain: weather_cascade
   epoch: 3
   level_current: 1
   level_target: 3
@@ -1304,7 +1321,8 @@
 - id: W1_4_regional_weather_field
   name: "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
+  chain: weather_cascade
   epoch: 3
   level_current: 1
   level_target: 3
@@ -1321,7 +1339,9 @@
 - id: W1_5_premise_demand_shape
   name: "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
+  couples_with: [C13_weather_normalisation]
+  chain: weather_cascade
   epoch: 3
   level_current: 0
   level_target: 3
@@ -1338,7 +1358,8 @@
 - id: W1_6_physics_price_signal
   name: "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
+  chain: weather_cascade
   epoch: 3
   level_current: 0
   level_target: 3
@@ -1355,7 +1376,9 @@
 - id: C13_weather_normalisation
   name: "Weather-normalisation twin (COUPLED): the company INFERS its book's weather-sensitivity from confounded meter data -- gap = predicted vs actual demand under a given weather outturn (world twin of W1_5)"
   lane: C_customer_ops
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
+  couples_with: [W1_5_premise_demand_shape]
+  chain: weather_cascade
   epoch: 3
   level_current: 0
   level_target: 3
@@ -1372,7 +1395,7 @@
 - id: W1_7_renewable_capacity_trends
   name: "Renewable capacity + generation-mix evolution over time"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
   epoch: 3
   level_current: 0
   level_target: 3
@@ -1389,7 +1412,8 @@
 - id: W1_8_zonal_locational_pricing
   name: "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
+  couples_with: [B5_regional_basis_risk]
   epoch: 3
   level_current: 0
   level_target: 3
@@ -1406,7 +1430,7 @@
 - id: W1_9_dsr_flex_markets
   name: "Demand-side response / flexibility markets"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
   epoch: 3
   level_current: 0
   level_target: 3
@@ -1423,7 +1447,7 @@
 - id: W1_10_ev_heatpump_geography
   name: "EV + heat-pump adoption geography (spatially-varying load growth)"
   lane: W1_market_weather
-  value_stream: close_to_learn
+  value_stream: wholesale_to_price
   epoch: 3
   level_current: 0
   level_target: 3
