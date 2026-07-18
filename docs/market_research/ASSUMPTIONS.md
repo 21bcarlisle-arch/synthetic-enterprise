@@ -334,6 +334,27 @@ accordingly.
 | Direct Debit collection amount can be corrected mid-cycle once already submitted to Bacs | Not yet modelled; `simulation/bacs_rails.py`/`dd_collection_book.py` (W5_1_banking_payment_rails, level 2) already model the ~3-working-day submission/processing/collection cycle accurately | [M] No — Bacs Direct Debit Guarantee rules require advance notice of any change to amount/date/frequency before an in-flight collection can be altered; [L] commonly-cited default notice period is 10 working days "or as otherwise agreed" (many billers negotiate shorter). A correction discovered mid-pipeline must land on the NEXT collection cycle, not the one already submitted | Bacs/Pay.UK Direct Debit Guarantee terms — training-era recall, not fetched live | 2026-07-12 | M (principle) / L (exact day-count) — directly actionable for the M2 DD cash-engine step: same-cycle silent amount changes would be a rails-physics violation of the class W5_1 was built to prevent |
 | D3 back-billing cap licence-condition citation | `docs/design/maturity_map.yaml` D3 atom cites BOTH "Ofgem SLC 31A" (2026-07-11 entry) and "SLC 21BA" (2026-07-12 entry) for the same 12-month cap mechanism | [L] Best recollection: the substantive domestic back-billing condition is generally SLC 21B/21BA ("Back-Billing"), not 31A — could not confirm independently this session (Ofgem's own back-billing guidance URL 404'd) | Ofgem consolidated Standard Licence Conditions (domestic supply) — not located/verified this session | 2026-07-12 | Gap — internal inconsistency flagged, recommend verifying the correct SLC number directly before next touching this mechanism; the cap VALUE itself appears correctly encoded regardless of label |
 
+## Account Hierarchy & Payment Allocation (2026-07-18, atom D5_account_hierarchy_payments, M2)
+
+Anchors for the M2 account-hierarchy + payment-allocation build
+(`company/crm/account_hierarchy.py`, `company/billing/account_ledger.py`,
+`company/billing/arrears_engine.py`). Full table with per-rule sources and
+confidence tags: `docs/market_research/account_hierarchy_payment_allocation.md`.
+
+| Rule | Anchor | Confidence |
+|---|---|---|
+| Balance-based (resi/micro-SME): rolling account balance, partial payment reduces balance, no bill-matching | Standard UK domestic DD/budget-plan practice | [H] practice |
+| Open-item (SME/I&C): remittance-directed allocation else oldest-first over non-disputed invoices; disputed invoices excluded from ageing/dunning | Standard commercial AR; oldest-first is the near-universal system default (documented simplification of Clayton's Case creditor-discretion, per R10) | [H] default / [M] doctrine |
+| Ageing 30/60/90+ from due date | Universal AR convention; consistent with existing `collections.py` / `bad_debt_provision.py` | [H] |
+| B2B statutory late interest = BoE base + 8pp + fixed compensation (£40/£70/£100 by band); residential = NONE | Late Payment of Commercial Debts (Interest) Act 1998 s.4/s.5A/s.6 | [H] statute |
+| Write-offs are dated, reasoned, P&L-visible ledger events; `statute_barred` reason = Limitation Act 1980 6y | Bad-debt accounting control; Limitation Act 1980 s.5 | [H] statute |
+
+**Honesty (R9):** built in an autonomous context with NO network — nothing
+fetched live this session. LPCDA/Limitation-Act figures are high-confidence UK
+statute from training-era recall; the BoE base rate is a per-period INPUT to the
+model, never hard-coded; the exact Ofgem SLC number for domestic ability-to-pay
+(recalled SLC 27) is unverified and flagged for live confirmation on next touch.
+
 ## Known Gaps (not yet modelled)
 
 | Gap | Impact | Priority |
