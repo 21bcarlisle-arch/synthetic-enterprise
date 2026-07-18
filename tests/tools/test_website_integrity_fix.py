@@ -412,5 +412,7 @@ def test_main_ntfys_immediately_on_consistency_gate_failure():
     # the lock is acquired.
     source = inspect.getsource(prc._process)
     gate_pos = source.index("consistency_ok = generate_dashboard_json(json_path, git_hash)")
-    ntfy_pos = source.index("send_ntfy(", gate_pos)
+    # the consistency-gate NTFY goes through the notify() contract now (send_ntfy was the pre-refactor
+    # call). The ordering guarantee this test defends is unchanged: gate check BEFORE the page.
+    ntfy_pos = source.index("notify(", gate_pos)
     assert gate_pos < ntfy_pos

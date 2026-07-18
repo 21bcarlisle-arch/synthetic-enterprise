@@ -9,7 +9,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 class _MockNtfy:
     def __init__(self):
         self.messages = []
-    def __call__(self, msg):
+    def __call__(self, msg, *args, **kwargs):
+        # notify() now calls ntfy_utils.send_ntfy(message, headers=..., _allow_real_send=...); accept
+        # the contract's keyword args so the mock doesn't TypeError on the new call signature.
         self.messages.append(msg)
 
 
