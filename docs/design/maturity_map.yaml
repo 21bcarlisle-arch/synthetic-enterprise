@@ -1921,3 +1921,17 @@
   file_scope: [saas/reporting/css_statement.py, saas/reporting/annual_report.py]
   simplifications:
   - '2026-07-18 BUILD L0->L2 (director open-front, console-orchestrated worktree fork, orchestrator-verified+merged: CSS renders live in ANNUAL_REPORT.md with real ledger-derived figures, waterfall reconciles to revenue <£1, 13 invariant tests + 309 report tests green, epistemic PASS, R14 clocks throughout). Presented on SETTLEMENT basis (only basis with per-segment granularity, revenue £14.03m) bridged to BILLED statutory accounts (£18.88m), the £4.85m difference surfaced as the headline reconciling item not hidden. HONEST GAPS (L3 blockers): (1) D&A reported £0 -- no fixed-asset/amortisation layer exists (named gap); (2) per-segment indirect allocation stays at GROUP level -- no activity-driver model (named, not fabricated); (3) SUPPLIER_REPORTING §4 obligations-register additions (capital adequacy/FMD/cyber) live in company/compliance -- OUTSIDE this fork file_scope, deferred; (4) R15 mutation tests for the reconciliation controls NOT yet in place; (5) transportation-vs-environmental sub-split uses a disclosed commodity-ratio approximation. L3 needs a HARDEN/cold-eyes pass on the allocation choices + R15 mutation discipline.'
+- id: H24_worktree_dir_autoreap
+  name: "Auto-reap completed-fork WORKTREE dirs: fork_reconciler is report-first + BRANCH-focused, so merged/salvaged fork worktree DIRECTORIES have no automatic reaper -- they climb (observed 2->7 in one session) until a manual `git worktree remove`; mechanise a cleanup of CLEANUP_ELIGIBLE (merged) + salvaged worktree dirs so the count self-limits under a fast fan"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 2
+  provenance: proposal
+  evidence: [background/fork_reconciler.py, docs/status/LATEST.md]
+  file_scope: [background/fork_reconciler.py]
+  simplifications:
+  - '2026-07-18 REGISTERED (proposal, director-flagged housekeeping). Finding: fork_reconciler.py classifies orphan BRANCHES (report-first by default, salvage+reap only under .fork_reap_enabled) but does NOT remove completed-fork WORKTREE DIRS -- MERGED forks are CLEANUP_ELIGIBLE but not reaped here, so .claude/worktrees/agent-* accumulate until a manual git worktree remove (orchestrator reaped 7->1 this session). Under a fast fan the manual reap cannot keep up = the director-flagged reap-rate gap. Mechanise: auto-remove worktree dirs for forks whose branch is MERGED-to-main or SALVAGE-TAGGED (never delete unmerged+unsalvaged work; salvage-first discipline, same as the branch reaper). DISCOVER/FRAME workable now; BUILD gated (director opens). Registered per SELF_INTERRUPT_DISCIPLINE (queue, do not fix on sight -- not machine-blocking, worktrees were reaped manually).'
