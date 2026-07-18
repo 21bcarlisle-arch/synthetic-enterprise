@@ -194,6 +194,169 @@ def invoice_summary(db_path: Path = DEFAULT_DB_PATH) -> dict:
         return dict(row) if row else {}
 
 
+# ---------------------------------------------------------------------------
+# INDEPENDENT CONTROL TOTALS (D5 R15 wiring — additive, read-oriented).
+#
+# The account_ledger reconciliation controls (AccountLedger.reconcile /
+# verify_against_invoicing, AllocationResult.check_conserved) need control totals
+# sourced INDEPENDENTLY of the ledger's own event set — otherwise they are
+# tautologies (a dropped/duplicated ledger event would move both sides together
+# and never be caught). This module is that independent source: the invoicing
+# register holds what was BILLED (issued invoices), and a small additive cash-book
+# table holds what CASH was RECEIVED. A real supplier reconciles its AR sub-ledger
+# against exactly these two independently-held control accounts.
+#
+# ADDITIVE ONLY: a new `payments` (cash-book) table plus read accessors. No
+# existing invoice behaviour changes. Epistemic wall: issued invoices and received
+# cash are the supplier's OWN records — no simulation internals are read.
+# ---------------------------------------------------------------------------
+
+
+def _as_of_iso(as_of) -> str | None:
+    """Normalise an as-of bound (a date, datetime, or ISO string) to an ISO date
+    string for lexical comparison against the ISO date columns. None ⇒ no bound."""
+    if as_of is None:
+        return None
+    if isinstance(as_of, str):
+        return as_of
+    iso = getattr(as_of, "isoformat", None)
+    if iso is not None:
+        return as_of.isoformat()[:10]
+    raise TypeError(f"unsupported as_of type: {type(as_of)!r}")
+
+
+def create_payments_schema(db_path: Path = DEFAULT_DB_PATH) -> None:
+    """Create the cash-book (received-payments) schema. Idempotent. This is the
+    INDEPENDENT record of cash received against an account — the control total the
+    ledger's payment-credit total must reconcile to."""
+    with _conn(db_path) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS payments (
+                payment_id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                payment_ref     TEXT UNIQUE,        -- optional external idempotency key
+                account_id      TEXT NOT NULL,
+                invoice_number  INTEGER,            -- optional: invoice remitted against
+                amount_gbp      REAL NOT NULL,
+                value_date      TEXT NOT NULL,      -- date the cash was received (valid_time)
+                recorded_at     TEXT NOT NULL       -- when we recorded it (transaction_time)
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_pay_account ON payments(account_id)")
+
+
+def record_payment(
+    account_id: str,
+    amount_gbp: float,
+    value_date: str,
+    invoice_number: int | None = None,
+    payment_ref: str | None = None,
+    recorded_at: str | None = None,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> int | None:
+    """Record cash received against an account in the independent cash book.
+
+    Idempotent when a `payment_ref` is supplied: a re-record of the same ref is a
+    no-op (returns the existing payment_id) — matching the ledger's own idempotency
+    (C-S2). Returns the payment_id, or the existing one on a duplicate ref.
+    """
+    if amount_gbp <= 0:
+        raise ValueError("payment amount must be positive")
+    create_payments_schema(db_path)
+    with _conn(db_path) as conn:
+        if payment_ref is not None:
+            existing = conn.execute(
+                "SELECT payment_id FROM payments WHERE payment_ref = ?", (payment_ref,)
+            ).fetchone()
+            if existing is not None:
+                return existing["payment_id"]
+        cursor = conn.execute(
+            """INSERT INTO payments
+                   (payment_ref, account_id, invoice_number, amount_gbp,
+                    value_date, recorded_at)
+               VALUES (?,?,?,?,?,?)""",
+            (
+                payment_ref,
+                account_id,
+                invoice_number,
+                round(amount_gbp, 2),
+                value_date,
+                recorded_at or date.today().isoformat(),
+            ),
+        )
+        return cursor.lastrowid
+
+
+def issued_debits_gbp(
+    account_id: str, as_of=None, db_path: Path = DEFAULT_DB_PATH
+) -> float:
+    """INDEPENDENT debit control total: the gross (VAT-inclusive) value of every
+    invoice issued to this account, optionally bounded to issue_date <= as_of
+    (point-in-time honest). This is what the ledger's total bill-debit MUST equal.
+
+    Sourced from the invoicing register, NOT from the ledger's events — that
+    independence is what makes reconcile() a real control and not a tautology.
+    """
+    create_schema(db_path)
+    bound = _as_of_iso(as_of)
+    with _conn(db_path) as conn:
+        if bound is None:
+            row = conn.execute(
+                "SELECT COALESCE(SUM(total_gbp), 0.0) AS t FROM invoices WHERE account_id = ?",
+                (account_id,),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                "SELECT COALESCE(SUM(total_gbp), 0.0) AS t FROM invoices "
+                "WHERE account_id = ? AND issue_date <= ?",
+                (account_id, bound),
+            ).fetchone()
+        return round(row["t"], 2)
+
+
+def cash_received_gbp(
+    account_id: str, as_of=None, db_path: Path = DEFAULT_DB_PATH
+) -> float:
+    """INDEPENDENT credit control total: total cash received against this account
+    per the cash book, optionally bounded to value_date <= as_of. This is what the
+    ledger's total payment-credit MUST equal. Sourced from the cash-book table, not
+    the ledger — independent by construction."""
+    create_payments_schema(db_path)
+    bound = _as_of_iso(as_of)
+    with _conn(db_path) as conn:
+        if bound is None:
+            row = conn.execute(
+                "SELECT COALESCE(SUM(amount_gbp), 0.0) AS t FROM payments WHERE account_id = ?",
+                (account_id,),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                "SELECT COALESCE(SUM(amount_gbp), 0.0) AS t FROM payments "
+                "WHERE account_id = ? AND value_date <= ?",
+                (account_id, bound),
+            ).fetchone()
+        return round(row["t"], 2)
+
+
+class InvoiceControlSource:
+    """A thin, duck-typed adapter the ledger reconciles AGAINST. Wraps the invoice
+    DB path and exposes exactly the two accessors AccountLedger.verify_against_
+    invoicing() / verify_allocation_conserved() call — keeping the ledger free of
+    any SQLite/import coupling and preserving the independence of the two stores.
+
+    Bind it to the live invoice DB and hand it to the ledger; the ledger never
+    reads the invoice store directly, it only asks this source for its totals.
+    """
+
+    def __init__(self, db_path: Path = DEFAULT_DB_PATH) -> None:
+        self.db_path = db_path
+
+    def issued_debits_gbp(self, account_id: str, as_of=None) -> float:
+        return issued_debits_gbp(account_id, as_of=as_of, db_path=self.db_path)
+
+    def cash_received_gbp(self, account_id: str, as_of=None) -> float:
+        return cash_received_gbp(account_id, as_of=as_of, db_path=self.db_path)
+
+
 def format_invoice_text(invoice: dict) -> str:
     """Render a structured text invoice from a stored invoice record."""
     lines = [

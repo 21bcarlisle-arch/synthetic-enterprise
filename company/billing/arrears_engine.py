@@ -387,6 +387,11 @@ def build_interest_event(
     """Produce an INTEREST_DEBIT LedgerEvent for B2B late interest, or None if not
     applicable (residential, or nothing due). The event feeds the SAME ledger."""
     amount = statutory_interest_gbp(segment, principal_gbp, days_late, boe_base_rate)
+    # R15 WIRING — the scope control now RUNS on every live interest calculation:
+    # a positive figure on a non-business segment RAISES here (fail-closed), rather
+    # than the invariant only being checkable on demand. Independent of the
+    # producer's own guard (a second check on the produced figure).
+    assert_interest_is_b2b_only(segment, amount)
     if amount <= 0:
         return None
     eid = event_id or f"INT-{account_id}-{invoice_ref or 'BAL'}-{as_of.isoformat()}"
@@ -435,7 +440,7 @@ def build_write_off_event(
         raise ValueError("write-off amount must be positive")
     eid = event_id or f"WO-{account_id}-{invoice_ref or 'BAL'}-{as_of.isoformat()}"
     detail = f"write-off ({reason.value})" + (f": {note}" if note else "")
-    return LedgerEvent(
+    event = LedgerEvent(
         event_id=eid,
         account_id=account_id,
         event_type=LedgerEventType.WRITE_OFF_CREDIT,
@@ -445,6 +450,11 @@ def build_write_off_event(
         invoice_ref=invoice_ref,
         reason=detail,
     )
+    # R15 WIRING — the audit control now RUNS on every write-off the engine mints:
+    # an undated/unreasoned/not-P&L-visible write-off RAISES here (fail-closed), so
+    # a silent status flip can never leave this factory unaudited.
+    assert_write_off_audited(event)
+    return event
 
 
 # ---------------------------------------------------------------------------
@@ -467,6 +477,16 @@ def collections_snapshot(
     else:
         one = age_balance(ledger, as_of, payment_terms_days)
         items = [one] if one is not None else []
+
+    # R15 WIRING — the collections controls now RUN on every live snapshot, so an
+    # ageing/dunning defect surfaces (raises) at read time rather than the
+    # invariants only being checkable on demand:
+    #   - the 30/60/90+ scheme still PARTITIONS days-overdue (no gap/overlap);
+    #   - bucketing these very items CONSERVES their undisputed value + count;
+    #   - this segment's dunning path is well-formed before a step is selected.
+    assert_age_buckets_partition(age_bucket)
+    assert_ageing_conserves_value(items, aggregator=ageing_buckets)
+    assert_dunning_path_valid(segment)
 
     undisputed = [it for it in items if not it.disputed]
     max_overdue = max((it.days_overdue for it in undisputed), default=0)

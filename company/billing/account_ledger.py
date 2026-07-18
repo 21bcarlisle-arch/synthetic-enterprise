@@ -341,6 +341,119 @@ class AccountLedger:
             "basis": "settled",
         }
 
+    # --- R15 WIRING: run the reconcile controls on the LIVE ledger against the
+    #     INDEPENDENT invoicing subsystem (company/billing/invoice.py). These make
+    #     the dormant controls ACTIVE: a real operation now surfaces a violation
+    #     (raises) instead of the invariant only being checkable on demand. The
+    #     `invoice_source` is duck-typed (InvoiceControlSource) — the ledger never
+    #     reads the invoice store itself, preserving both independence and the
+    #     typed-seam preference. ---
+    def verify_against_invoicing(self, invoice_source, as_of: Optional[dt.date] = None) -> dict:
+        """R15 CONTROL (wired) — reconcile this ledger's billed/paid movements
+        against the INDEPENDENT invoicing register + cash book.
+
+        Pulls the issued-invoice total and the cash-received total from
+        `invoice_source` (NOT re-summed from these events) and asserts the ledger's
+        own BILL_DEBIT / PAYMENT_CREDIT totals equal them. A dropped, duplicated or
+        tampered bill/payment in the ledger moves its own total away from the
+        unchanged external control and this RAISES (independence, not tautology).
+
+        FAIL-CLOSED / FAIL-SILENT (R15): if the source cannot answer (missing
+        accessor, or returns None) that is a FAILED control, not a free pass — it
+        RAISES. When the ledger holds ONLY bills+payments the full reconcile()
+        control (incl. its balance-consistency leg) is run directly against the
+        external totals; when it also holds interest/adjustment/write-off journals
+        (separate control accounts, each guarded by its own control), only the two
+        invoicing-authoritative movements are tied out (the classic AR three-way
+        match: sub-ledger ↔ invoice register ↔ cash book).
+
+        Raises LedgerReconciliationError on any mismatch. Basis: settled (R14).
+        """
+        aid = self.account_id
+        try:
+            expected_debits = invoice_source.issued_debits_gbp(aid, as_of=as_of)
+            expected_credits = invoice_source.cash_received_gbp(aid, as_of=as_of)
+        except AttributeError as exc:
+            raise LedgerReconciliationError(
+                f"account {aid}: invoice control source cannot supply totals "
+                f"({exc}) — an unavailable control is a FAILED control (R15)"
+            ) from exc
+        if expected_debits is None or expected_credits is None:
+            raise LedgerReconciliationError(
+                f"account {aid}: invoice control source returned no total "
+                f"(debits={expected_debits!r}, credits={expected_credits!r}) — fail-closed"
+            )
+        other = [
+            e for e in self._events.values()
+            if e.event_type not in (LedgerEventType.BILL_DEBIT, LedgerEventType.PAYMENT_CREDIT)
+            and (as_of is None or e.valid_time <= as_of)
+        ]
+        if not other:
+            # Pure bills+payments — run the full existing reconcile() control.
+            return self.reconcile(expected_debits, expected_credits, as_of)
+        # Mixed ledger — tie out only the invoicing-authoritative movements.
+        actual_bill_debits = round(sum(
+            e.amount_gbp for e in self._events.values()
+            if e.event_type == LedgerEventType.BILL_DEBIT
+            and (as_of is None or e.valid_time <= as_of)
+        ), 2)
+        actual_payments = round(sum(
+            e.amount_gbp for e in self._events.values()
+            if e.event_type == LedgerEventType.PAYMENT_CREDIT
+            and (as_of is None or e.valid_time <= as_of)
+        ), 2)
+        problems: List[str] = []
+        if abs(actual_bill_debits - round(expected_debits, 2)) > _RECON_TOLERANCE_GBP:
+            problems.append(
+                f"billed total {actual_bill_debits} != invoicing register {round(expected_debits, 2)}"
+            )
+        if abs(actual_payments - round(expected_credits, 2)) > _RECON_TOLERANCE_GBP:
+            problems.append(
+                f"cash total {actual_payments} != cash book {round(expected_credits, 2)}"
+            )
+        if problems:
+            raise LedgerReconciliationError(
+                f"account {aid} invoicing reconciliation failed: " + "; ".join(problems)
+            )
+        return {
+            "account_id": aid,
+            "as_of": as_of.isoformat() if as_of else None,
+            "billed_gbp": actual_bill_debits,
+            "cash_received_gbp": actual_payments,
+            "basis": "settled",
+            "scope": "invoicing_movements",
+        }
+
+    def verify_allocation_conserved(
+        self,
+        invoice_source,
+        disputed_refs: Iterable[str] = (),
+        as_of: Optional[dt.date] = None,
+    ) -> "AllocationResult":
+        """R15 CONTROL (wired) — run the LIVE open-item allocation and assert it
+        CONSERVES the INDEPENDENT cash-received total from the cash book (invoice.py),
+        never a figure re-summed from the ledger's own events.
+
+        Raises AllocationInvariantError on any misallocation (over-allocation or
+        cash created/destroyed). FAIL-CLOSED: if the cash total is unavailable the
+        control fails rather than silently passing. Returns the AllocationResult.
+        """
+        aid = self.account_id
+        try:
+            cash = invoice_source.cash_received_gbp(aid, as_of=as_of)
+        except AttributeError as exc:
+            raise AllocationInvariantError(
+                f"account {aid}: cash control source unavailable ({exc}) — "
+                f"a FAILED control (R15)"
+            ) from exc
+        if cash is None:
+            raise AllocationInvariantError(
+                f"account {aid}: cash control source returned no total — fail-closed"
+            )
+        result = self.allocate(disputed_refs=disputed_refs, as_of=as_of)
+        result.check_conserved(total_payments_gbp=cash)
+        return result
+
     # --- open-item view ---
     def allocate(
         self,
@@ -483,3 +596,17 @@ class LedgerBook:
 
     def total_arrears_gbp(self, as_of: Optional[dt.date] = None) -> float:
         return round(sum(max(0.0, l.balance(as_of)) for l in self._ledgers.values()), 2)
+
+    def verify_against_invoicing(
+        self, invoice_source, as_of: Optional[dt.date] = None
+    ) -> Dict[str, dict]:
+        """R15 WIRING — portfolio reconciliation checkpoint. Reconciles EVERY
+        account's ledger against the independent invoicing subsystem. FAIL-CLOSED:
+        propagates (raises) on the first account whose ledger disagrees with its
+        control totals — a single tampered account fails the whole checkpoint rather
+        than being averaged away. Returns per-account reconciliation dicts on a fully
+        clean portfolio."""
+        results: Dict[str, dict] = {}
+        for aid in self.accounts():
+            results[aid] = self._ledgers[aid].verify_against_invoicing(invoice_source, as_of)
+        return results
