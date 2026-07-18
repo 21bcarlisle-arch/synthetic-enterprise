@@ -58,6 +58,32 @@ def test_control_test_files_all_exist():
         assert (ROOT / t).exists(), f"control test missing: {t}"
 
 
+def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
+    # H24 regression: during a `git commit` the hook inherits GIT_INDEX_FILE/GIT_DIR/GIT_WORK_TREE
+    # pointing at the in-progress commit. If those leak into the pytest subprocess, git-touching
+    # tests corrupt the REAL worktree index (observed: phantom deletions, once a tree-deleting
+    # commit; likely the core.bare=true setter). The gate MUST run pytest with GIT_* scrubbed.
+    monkeypatch.setattr(gate, "staged_files", lambda: ["background/supervisor.py"])
+    monkeypatch.setattr(gate, "select_targets", lambda files: ["tests/background/test_supervisor.py"])
+    for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"):
+        monkeypatch.setenv(k, "/should/not/leak")
+    captured = {}
+
+    class _R:
+        returncode = 0
+
+    def _fake_run(cmd, *a, **kw):
+        captured["env"] = kw.get("env")
+        return _R()
+
+    monkeypatch.setattr(gate.subprocess, "run", _fake_run)
+    assert gate.main() == 0
+    env = captured["env"]
+    assert env is not None, "the pytest subprocess must be given an explicit (scrubbed) env"
+    leaked = sorted(k for k in env if k.startswith("GIT_"))
+    assert leaked == [], f"GIT_* leaked into the gate's pytest subprocess: {leaked}"
+
+
 def test_committed_hook_invokes_the_gate_and_aborts_on_failure():
     # Reconstruct-from-repo: the committed hook itself must call the gate and abort on non-zero.
     hook = (ROOT / "tools" / "git-hooks" / "pre-commit").read_text()
