@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 18
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2403,7 +2403,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 55
+      "stall_consecutive_unchanged": 43
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2424,7 +2424,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "W4_4_payment_observable_seam",
@@ -2435,26 +2435,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 49
-    },
-    {
-      "id": "H27_payment_belief_gap",
-      "name": "Payment belief-vs-truth gap (coupled-triad HARNESS of the D5 decomposition): the harness measures the company's payment BELIEF (its allocation/ageing/cash-position inference from observed payments, D5) vs the world's payment TRUTH (the W2_11 generator's actual behaviour). No world payment-source reaches L3 until this gap is measured against the company's consumption (COUPLED_TRIAD binding rule).",
-      "lane": "H_harness",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2465,7 +2446,29 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 63
+      "stall_consecutive_unchanged": 7
+    },
+    {
+      "id": "H27_payment_belief_gap",
+      "name": "Payment belief-vs-truth gap (coupled-triad HARNESS of the D5 decomposition): the harness measures the company's payment BELIEF (its allocation/ageing/cash-position inference from observed payments, D5) vs the world's payment TRUTH (the W2_11 generator's actual behaviour). No world payment-source reaches L3 until this gap is measured against the company's consumption (COUPLED_TRIAD binding rule).",
+      "lane": "H_harness",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "D5_account_hierarchy_payments",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 34
     }
   ],
   "lanes": {
