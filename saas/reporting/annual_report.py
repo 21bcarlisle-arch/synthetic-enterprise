@@ -8966,12 +8966,23 @@ def _section_scenario_sensitivity(data: dict) -> str:
 
 def _section_consolidated_segmental_statement(data: dict) -> str:
     """Atom E4: Consolidated Segmental Statement (Ofgem SLC 19A shape) — the report
-    backbone. Delegates to saas.reporting.css_statement. Silent on pre-segment fixtures."""
+    backbone. Delegates to saas.reporting.css_statement.
+
+    Genuinely silent ONLY on pre-segment fixtures (render_css returns "" when the
+    per-segment settlement source is absent). An UNEXPECTED error is surfaced LOUDLY,
+    never swallowed to "" — R15: a check that silently disappears is a failed check
+    (this closes the FAIL-SILENT hole where the whole CSS backbone could vanish from
+    the report without a trace)."""
+    from saas.reporting.css_statement import render_css
     try:
-        from saas.reporting.css_statement import render_css
         return render_css(data)
-    except Exception:
-        return ""
+    except Exception as e:  # noqa: BLE001 — surfaced, not swallowed
+        return (
+            "\n## Consolidated Segmental Statement (CSS)\n\n"
+            f"> **⚠ CSS SECTION ERROR** — the segmental statement could not be rendered: "
+            f"`{type(e).__name__}: {e}`. This marker is intentionally LOUD (R15: an "
+            "unavailable check is a failed check); the section is not silently omitted.\n"
+        )
 
 
 def _section_board_kpi_block(data: dict) -> str:
