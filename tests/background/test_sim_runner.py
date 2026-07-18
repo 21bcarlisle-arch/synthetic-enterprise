@@ -236,3 +236,10 @@ def test_check_hold_no_prior_hold_does_not_touch_force_republish_flag(tmp_path, 
     _setup_hold(tmp_path, monkeypatch)
     sim_runner._check_hold(False)
     assert not sim_runner.FORCE_REPUBLISH_FLAG.exists()
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

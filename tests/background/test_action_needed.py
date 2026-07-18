@@ -264,3 +264,10 @@ def test_resolve_by_pin_closes_the_matching_open_escalation(path):
     assert sent  # a [RECORDED] receipt was sent
     # A non-matching PIN closes nothing (caller falls back to a fresh instruction).
     assert action_needed.resolve_by_pin("ZZZZ", "x", path=path) is None
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

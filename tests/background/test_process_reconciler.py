@@ -252,3 +252,10 @@ def test_no_reaper_or_interactive_claude_kill_path_exists_anywhere():
         assert "def reap_orphan" not in src, f"{path}: the reaper was reintroduced"
         m = kill_call.search(src)
         assert m is None, f"{path}: a process-kill call reappeared: {src[m.start():m.start()+50]!r}"
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

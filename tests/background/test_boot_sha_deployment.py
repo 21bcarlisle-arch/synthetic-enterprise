@@ -49,3 +49,10 @@ def test_generated_units_stamp_boot_sha_before_execstart():
         assert f"ExecStartPre=-/usr/bin/python3 -m background.boot_sha {session}" in text
         # G-D3: the stamp must run BEFORE the daemon starts, or it records the wrong SHA
         assert text.index("ExecStartPre") < text.index("ExecStart=")
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

@@ -79,3 +79,10 @@ def test_worker_seat_seed_does_not_auto_advance():
     seed = worker_seat.SEED_PROMPT.lower()
     assert "advance" in seed and "do not" in seed  # it explicitly says do NOT advance
     assert "does not self-advance" in worker_seat.SEED_PROMPT.lower() or "not self-advance" in seed
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

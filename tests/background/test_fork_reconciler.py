@@ -257,3 +257,10 @@ def test_live_worktree_reconcile_is_well_formed_and_never_prunes():
     r = F.evaluate_worktree_reconcile()
     assert set(r) >= {"status", "alarm", "detail", "undeclared"}
     assert r["status"] in ("WORKTREE_CLEAN", "WORKTREE_UNDECLARED")
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

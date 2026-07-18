@@ -32,6 +32,16 @@ def pytest_configure(config):
         "real_state_write: test genuinely needs to write a production state path "
         "-- exempt from the G-T2 no-real-state-write guard (OPS1 sub-step 7).",
     )
+    config.addinivalue_line(
+        "markers",
+        "operational: this test validates pipeline MACHINERY (daemon/session/process "
+        "lifecycle, scheduling, notification transport, reconciliation) -- NOT a published "
+        "business surface. The publish gate runs `-m 'not operational'`, so a red operational "
+        "test can ALARM (health_check / independent sweep) but can never wedge the live-site "
+        "publish (R10 close of the 2026-07-16 overnight-wedge class). A test that asserts on / "
+        "generates a published surface (LATEST.md, dashboard, report, site data, atom levels), "
+        "or enforces a safety WALL, must NOT carry this marker -- it must stay blocking.",
+    )
 
 
 # ── OPS1 sub-step 7 — test/isolation boundary (§2.4): test code CANNOT touch production ──────

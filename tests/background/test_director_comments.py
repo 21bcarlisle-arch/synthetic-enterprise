@@ -153,3 +153,10 @@ def test_check_once_multiple_submissions_mixed_valid_invalid(monkeypatch):
     assert "good one" in all_content
     assert "another good one" in all_content
     assert "forged" not in all_content
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

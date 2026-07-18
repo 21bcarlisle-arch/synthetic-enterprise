@@ -67,3 +67,10 @@ def test_guard_would_fire_on_a_bare_pane_target():
     assert not _bare_pane_targets('subprocess.run(["tmux", "capture-pane", "-t", f"{SESSION_NAME}:", "-p"])')
     assert not _bare_pane_targets('subprocess.run(["tmux", "has-session", "-t", SESSION_NAME])')
     assert not _bare_pane_targets('subprocess.run(["tmux", "list-panes", "-a", "-F", "x"])')
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

@@ -48,3 +48,10 @@ def test_nudge_once_mechanism_is_retired():
     assert not hasattr(agenda, "record_nudged")
     assert not hasattr(agenda, "is_stale_enough_to_nudge")
     assert not hasattr(agenda, "NUDGE_STATE_FILE")
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

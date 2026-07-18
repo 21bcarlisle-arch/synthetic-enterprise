@@ -282,3 +282,10 @@ def test_send_ntfy_is_a_no_op_under_pytest(monkeypatch):
     result = nu.send_ntfy("[RETRO CADENCE] Retro cadence STALE: fake reason")
     assert result == "pytest-suppressed"
     assert called["curl"] is False, "send_ntfy must not run curl (real POST) under pytest"
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

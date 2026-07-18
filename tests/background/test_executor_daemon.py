@@ -165,3 +165,10 @@ def test_daemon_importable_as_a_standalone_script():
                        env={"PATH": "/usr/bin:/bin"})
     assert r.returncode == 0, f"daemon not importable as a script: {r.stderr}"
     assert "OK" in r.stdout
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

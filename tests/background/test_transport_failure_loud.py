@@ -240,3 +240,10 @@ def test_deadman_silent_when_transport_healthy(tmp_path, monkeypatch):
     )
     D._check_pull_loop_transport()
     assert calls == []                                        # healthy idle never pages
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

@@ -103,3 +103,10 @@ def test_genuinely_empty_map_returns_none(monkeypatch, tmp_path):
     m.write_text(yaml.safe_dump([_atom("BELOW", 0, 3, evidence=["tests/t.py"])]))
     monkeypatch.setattr(S, "MATURITY_MAP_PATH", m)
     assert S._rule0_harden_draw(rng=random.Random(0)) is None
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

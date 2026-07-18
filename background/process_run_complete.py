@@ -86,6 +86,60 @@ PUBLISH_GATE_FAILURE_THRESHOLD = 3          # N consecutive failures inside the 
 PUBLISH_GATE_WINDOW_SECONDS = 60 * 60       # 1h: a wedge fails every ~10min, so 3/hour is the signal
 PUBLISH_GATE_COOLDOWN_SECONDS = 60 * 60     # re-arm: at most one alert NTFY per hour while it stays wedged
 PUBLISH_GATE_ITEM_ID = "publish_gate_wedged"
+
+# ── Publish-gate BLOCKING SCOPE (R10 class closure, 2026-07-18) ───────────────
+# The overnight wedge (2026-07-16, TONIGHT_FIXES.md Item 4 + follow-up L166-171)
+# had a STRUCTURAL root, not just the watchdog import bug that triggered it: the
+# publish gate ran the ENTIRE ~18k-test suite with `-x`, so ONE red test ANYWHERE
+# -- including the operational layer that validates the DAEMONS, never the
+# published CONTENT -- wedged the live-site publish for hours (a daemon-lifecycle
+# watchdog test raised AttributeError and blocked publishing ~21x overnight while
+# the site went stale). The gate's remit is "do not ship a broken SURFACE";
+# daemon/session lifecycle health is a SEPARATE concern already covered by
+# health_check monitoring and the H22 3.7 red-gate-test sweep.
+#
+# The partition is keyed on WHAT A TEST VALIDATES, not its directory -- because
+# tests/background MIXES daemon-lifecycle tests (which must not wedge publishing)
+# with a handful of CONTENT-validating ones (test_effort_digest renders the
+# EFFORT SIZING block into LATEST.md; test_atom_status_merge folds published atom
+# level_current; test_status_honesty is the LATEST.md honesty gate). A directory
+# ignore would fail-OPEN on those -- worse than the wedge. So the unit is an
+# EXPLICIT, greppable `@pytest.mark.operational` marker on each daemon-lifecycle
+# test module; the gate runs `-m "not operational"`. Content-, surface-generating,
+# and safety-WALL tests stay UNMARKED and therefore keep BLOCKING.
+#   * HEAVY ignores  -- excluded for SPEED (full-sim integration tests, 150-480s each).
+#   * operational marker -- excluded for SCOPE (this class closure).
+# The legitimate gate is UNCHANGED: any red publish-SURFACE test still blocks the
+# publish (do not ship broken/wrong content), alarms transition-only (R5), and
+# clears on the next clean publish (R11 release path).
+PUBLISH_GATE_HEAVY_IGNORES = [
+    "tests/simulation/test_run_phase2b.py",
+    "tests/simulation/test_run_phase2b_event_log.py",
+    "tests/simulation/test_run_phase4c_on_phase2b.py",
+    "tests/simulation/test_phase40b_gas_pass_through.py",
+    "tests/simulation/test_phase24a_ic_customer.py",
+    "tests/simulation/test_phase40a_pass_through.py",
+    "tests/simulation/test_phase40c_deemed_rate.py",
+    "tests/simulation/test_phase41a_flex.py",
+]
+# Deselect the daemon-lifecycle layer by MARKER (see @pytest.mark.operational,
+# registered in tests/conftest.py). Keyed on what a test validates, not its path.
+PUBLISH_GATE_MARKER_EXPR = "not operational"
+
+
+def publish_gate_pytest_argv(test_root="tests/"):
+    """The exact pytest argv the publish gate runs. Factored out so the
+    blocking SCOPE is a single testable surface (R15: a control's scope must be
+    inspectable). A test marked @pytest.mark.operational is DESELECTED and can
+    never reach the gate's return code; any UNMARKED test (publish-surface,
+    surface-generating, or safety-wall) still does."""
+    argv = [sys.executable, "-m", "pytest", test_root, "-x", "-q", "--tb=short",
+            "-m", PUBLISH_GATE_MARKER_EXPR]
+    for ignore in PUBLISH_GATE_HEAVY_IGNORES:
+        argv.append("--ignore=" + ignore)
+    return argv
+
+
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.tree_lock import tree_lock  # noqa: E402
@@ -359,17 +413,10 @@ def run_fast_tests(git_hash: str):
     full_env = dict(os.environ)
     full_env["SIM_FAST_MODE"] = "1"
     try:
+        # Blocking scope = publish-SURFACE tests only (see publish_gate_pytest_argv:
+        # heavy ignores for speed, operational ignores for R10 class closure).
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/", "-x", "-q", "--tb=short",
-             # Full-simulation integration tests (150-480s each) — excluded from auto-process gate
-             "--ignore=tests/simulation/test_run_phase2b.py",
-             "--ignore=tests/simulation/test_run_phase2b_event_log.py",
-             "--ignore=tests/simulation/test_run_phase4c_on_phase2b.py",
-             "--ignore=tests/simulation/test_phase40b_gas_pass_through.py",
-             "--ignore=tests/simulation/test_phase24a_ic_customer.py",
-             "--ignore=tests/simulation/test_phase40a_pass_through.py",
-             "--ignore=tests/simulation/test_phase40c_deemed_rate.py",
-             "--ignore=tests/simulation/test_phase41a_flex.py"],
+            publish_gate_pytest_argv("tests/"),
             cwd=str(PROJECT_DIR),
             env=full_env,
             timeout=600,

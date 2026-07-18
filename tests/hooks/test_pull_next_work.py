@@ -290,3 +290,10 @@ def test_decide_stdout_is_pure_json_when_find_work_prints(tmp_path, monkeypatch,
     assert captured.out == "", f"find_work stdout leaked into the hook's stdout: {captured.out!r}"
     assert out is not None and out["decision"] == "block"
     assert "OPS1_tmux_target_qualification" in out["reason"]
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

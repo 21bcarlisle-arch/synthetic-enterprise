@@ -1892,3 +1892,10 @@ def test_self_refill_yields_to_harden_when_all_atoms_at_target(tmp_path):
 def test_self_refill_none_only_on_genuinely_empty_map(tmp_path):
     _write_map(tmp_path, "[]")  # zero atoms = a true wall, the one legitimate None
     assert supervisor._self_refill_draw() is None
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

@@ -56,3 +56,10 @@ def test_held_and_dark_units_are_still_generated_just_not_started():
     for s in ("supervisor.service", "deadmans-switch.service",
               "worker-seat-manager.service", "executor-daemon.service"):
         assert s in generated
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational
