@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T15:01:37Z
+Last updated: 2026-07-18T15:21:10Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -71,8 +71,14 @@ channel:console, §0 satisfied). G4 stays reverted. **BUILD resumed:** the direc
 (L1 PROPOSED, level 0 per §0; generator built + on origin — 44 tests, C-S2 substream isolation proven; wraps the
 already-calibrated arrears/Bacs physics, externally anchored to Bacs/DESNZ, difficulty dials director-authored
 per R13; `blocked_on: coupled_triad_gap` — its L3 awaits H27 measuring belief-vs-truth, which needs W4_4 seam +
-D5). Next triad rungs: W4_4 seam (must first verify its off-front + `interface/` schema-gate acceptance), then
-H27 gap. W1 stays DISCOVER.
+D5). **W4_4 payment-observable seam LANDED + epistemic PASS** (L2 PROPOSED, level 0 per §0; on origin — typed/versioned
+WallRequest/WallResponse in interface/, 6 observables-only inbound payloads incl Bacs ARUDD/ADDACS/AUDDIS, async
+C-S3, bitemporal; 29 tests; epistemic-verifier confirmed field-by-field no generator-internal leak + the wall test
+is load-bearing/mutation-proven; `blocked_on: coupled_triad_gap`). Its BUILD_OPEN cleared both the stage_advance
+and schema_sim_structure gates (verified via the reconciler before flipping — ON_FRONT, clean). Both triad SOURCE
+(W2_11) and SEAM (W4_4) now landed. Remaining rungs to close the triad for L3: a W2_11 sim adapter FILLING the
+seam + a D5 consumer READING WallResponse (allocation/ageing inference) + H27_payment_belief_gap measuring
+belief-vs-truth across it. W1 stays DISCOVER.
 **[ACT]-paging fix LANDED + DEPLOYED (R2):** the director-caught escalation bug — [ACT]s silently not paging his
 phone (a failed send still stamped `last_pinged`, suppressing the deadman's re-ping) — is fixed (decouples
 "registered" from "confirmed-sent" via `mark_sent`/`last_sent_at`; a failed send keeps the page due) AND the
@@ -88,7 +94,7 @@ OPS1 reconcile (install the declared unit) is queued in the decision log.
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (488s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -189,6 +195,7 @@ OPS1 reconcile (install the declared unit) is queued in the decision log.
 - (T3_inherence) [unanswered >24h] Can anyone point to a specific decision rule or line where the physics forecast's output is actually read and changes an order quantity or price — and if so, why has that not been produced in over 24 hours, while if not, what is the forecast wired into at all?
 - (T3_inherence) [unanswered >24h] If the physics forecast's output is never consumed by any decision rule that sets an order quantity or price, then on what basis is it called a "forecast" at all rather than a number computed and discarded — and who, if anyone, has ever traced even one such consuming path end to end?
 - (T3_inherence) [unanswered >24h] If swapping the forecast for a constant provably moves no order quantity or price, what exactly did you hold fixed when you measured that — was the constant set to the forecast's own average output, and did you check every downstream consumer (risk limits, survival/administration checks, reporting) rather than only the two levers named?
+- (T3_inherence) If the arrears/Bacs physics is genuinely anchored to external Bacs/DESNZ references, what prevents the director-authored "difficulty dials" from quietly re-tuning that same physics away from those anchors — and who would notice if the dials and the anchor disagreed?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
