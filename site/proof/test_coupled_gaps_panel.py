@@ -53,12 +53,16 @@ def _live_coupled_gaps() -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# R11: the panel renders the LIVE generated data -- all 7 affordability pairs.
+# R11: the panel renders the LIVE generated data -- every coupled pair.
+# 7 affordability-cluster pairs + the W2_11<->D5 payment triad (wired
+# 2026-07-18, director-authorized) = 8. Driven by the live coupling, not a
+# frozen literal -- if a pair is added/removed the panel count follows.
 # --------------------------------------------------------------------------- #
-def test_live_data_renders_all_seven_pairs():
+def test_live_data_renders_all_coupled_pairs():
     cg = _live_coupled_gaps()
     assert cg.get("available") is True
-    assert cg["pair_count"] == 7, "affordability cluster should have 7 coupled pairs"
+    expected = len(cg["pairs"])
+    assert cg["pair_count"] == expected == 8, "8 coupled pairs (7 affordability + payment)"
 
     out = _render(cg)
     body = out["coupled-gaps"]["innerHTML"]
@@ -68,8 +72,9 @@ def test_live_data_renders_all_seven_pairs():
         assert pair["world_atom"] in body, f"{pair['world_atom']} not rendered"
         assert pair["company_atom"] in body, f"{pair['company_atom']} not rendered"
 
-    # Exactly 7 gap rows rendered (no pair silently dropped, measured or not).
-    assert body.count('class="gap-row"') == 7
+    # Exactly one gap row per coupled pair (no pair silently dropped, measured
+    # or not) -- tracks the live pair count, not a frozen literal.
+    assert body.count('class="gap-row"') == expected
 
     # The measured gap values are rendered to 3 dp (the pixel == the number, R11).
     for pair in cg["pairs"]:
