@@ -3,3 +3,22 @@
 
 # www -> canonical root
 https://www.poesys.net/* https://poesys.net/:splat 301
+
+# Campaign A (2026-07-18): legacy top-level IA -> canonical doors.
+# Old page directories are NOT deleted (absorbed content stays in-repo for
+# reference); these redirects keep old bookmarked/linked URLs landing on the
+# door that now carries that concept in the public nav, per
+# docs/design/SITE_CONSTITUTION.md / POESYS_SITE_BRIEF.md section 6.
+# Supplier -> The Company (board-pack sections absorb Supplier's content)
+/supplier /company/ 301
+/supplier/* /company/ 301
+# SIM -> The World (sim depth re-homed under World unchanged)
+/sim /world/ 301
+/sim/* /world/ 301
+# Platform -> The Method (harness/architecture content folds into Method)
+/platform /method/ 301
+/platform/* /method/ 301
+# Casebook (method-casebook) -> The Method (the brief's own Method door is
+# the home page's "Inspect the method" card, which points at /method/)
+/method-casebook /method/ 301
+/method-casebook/* /method/ 301
