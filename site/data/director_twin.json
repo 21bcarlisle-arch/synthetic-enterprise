@@ -1,57 +1,12 @@
 {
   "fidelity": {
-    "answered": 8,
-    "routed_to_director": 5,
+    "answered": 5,
+    "routed_to_director": 3,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 2
   },
   "recent_qa": [
-    {
-      "entry_id": "2026-07-18T11:36:12.722702+00:00",
-      "question": "Continuing to close Epoch-2 foundation (H26 landed L3-proposed last turn). Next-most-ready is H24_precommit_gate_git_env_isolation (L0->3, dial 4 -- the highest-dial Epoch-2 idle atom). Its code fix already SHIPPED: tools/pre_commit_test_gate.py scrubs GIT_* from the pytest subprocess env (the fix that removed the root trigger of the core.bare git corruption). The remaining L3 gap is purely an R15 mutation test proving the scrub actually prevents a git-touching gate-run test from corrupting the shared .git (test FIRES on the un-scrubbed defect, passes when scrubbed) plus wiring verification. It completes the git-corruption cluster alongside H26. Foundation-first, same as H26: no Epoch-2 product lane exists (product is Epoch-3-gated, already escalated as the D5/triad). Should I open H24_precommit_gate_git_env_isolation for BUILD now? file_scope tools/pre_commit_test_gate.py, disjoint from everything else in flight.",
-      "routed_to_director": false,
-      "answer": "This is BUILD authorization within the open epoch (Epoch 2), which \u00a73a explicitly delegates to the twin with APPROVE as the default. It clears the four default-override checks: the atom is FRAME-ready (a named R15/mutation test against a specific defect on already-shipped code); it touches no architectural law (\u00a71 \u2014 `tools/pre_commit_test_gate.py` is tooling, not the SIM/company seam); it violates no exit-test sequence (\u00a74 \u2014 this is foundation hardening of the git-corruption cluster, not an M-movement product claim, and does not front-run M4); and it respects the maturity-map operating rules (\u00a75 \u2014 proving a control fires before promotion is exactly the Hardening Loop's VERIFY/HARDEN, and it's L0\u21923 hardening, not a curriculum change). It is not a one-way door (\u00a73) and not the Epoch-4 fitness function. File scope is disjoint and reversible (~1h). Approve.\n\n(One note for the log, not a blocker: my canon enumerates R1\u2013R14; \"R15\" isn't in it. The intent \u2014 no control counts for promotion without a mutation test proving it fires on its own named defect \u2014 is sound and consistent with R10/R11, so this doesn't change the answer, but the canon's rule list may need reconciling.)\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
-      "category": null,
-      "latency_seconds": 20.517,
-      "overturned": false
-    },
-    {
-      "entry_id": "2026-07-18T11:20:25.553857+00:00",
-      "question": "Correction to my prior routing: W1_reveal_over_time is already level_current=3 / loop_stage=harden (the register I cited was stale), so there is no BUILD gap there. Re-deriving from the LIVE map: within the OPEN epoch (Epoch 2), the below-target idle atoms are almost all harness/foundation -- the product (D/W/E/C) atoms are all Epoch 3+, behind the epoch boundary you reserve (the D5/triad product sequencing is already escalated to the director). The most-READY Epoch-2 atom is H26_core_bare_corruption_guard (L1->3): a guard against silent core.bare=true git corruption that really occurred this session and silently broke every work-tree git operation (commit, site-refresh, status). Its guard is FULLY DESIGNED already (assert_repo_not_bare wired into tree_lock.__enter__ + a detector + an R15 mutation test; file_scope background/tree_lock.py). It has NO passed expert_hour (most Epoch-2 remaining atoms don't) -- readiness rests on the completed design plus the live incident. Draw-mix: it is H_harness, declared foundation-first -- no Epoch-2 product lane exists to run in parallel (product is Epoch-3-gated), and this guard protects the commit + site-refresh chain that is the director's window. Should I open H26_core_bare_corruption_guard for BUILD now?",
-      "routed_to_director": false,
-      "answer": "This is a BUILD authorization within the open epoch (Epoch 2), which \u00a73a explicitly delegates to the twin, with the default being APPROVE unless the atom isn't genuinely DISCOVER/FRAME-ready or building it violates \u00a71 laws, the \u00a74 exit-test sequence, or the \u00a75 operating rules.\n\nNone of those blocks apply. H26 is H_harness foundation-first with no parallel Epoch-2 product lane to contend for (product is correctly held behind the Epoch-3 boundary you reserve \u2014 that reservation is respected here). The atom is FRAME-ready on the strength of a fully-completed design plus a real, this-session incident; the missing expert_hour is not disqualifying since readiness rests on completed FRAME work and \u00a75 gates BUILD on DISCOVER/FRAME being done, not on an expert_hour per se. It touches no one-way door (\u00a73), is not the Epoch-4 fitness function, and R15 fail-silent hardening on the commit/site-refresh chain is squarely inside the delegated \"priority-within-dials.\" Reversibility is ~1h compute (context pack). APPROVE \u2014 open it for BUILD.\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
-      "category": null,
-      "latency_seconds": 20.893,
-      "overturned": false
-    },
-    {
-      "entry_id": "2026-07-18T11:17:51.422204+00:00",
-      "question": "The maturity map is all-idle for the agent: 25/25 below-target atoms are loop_stage=idle (BUILD-gated by epoch sequencing); DISCOVER/FRAME is saturated across them; no build-stage atom has an ungated gap (D5 is blocked_on the director-reserved payment-seam triad, an R13 curriculum item). Per the director's STANDING ruling logged 2026-07-16: opening an atom for BUILD within the OPEN epoch is reversible and the twin's call, not a one-way door; do not re-escalate this class. Should I open W1_reveal_over_time for BUILD now? It is epoch 2 (the open epoch), L2->L3, its expert_hour review PASSED, and the register lists it as most-ready. It is a world/product atom, so it satisfies the draw-mix rule that harness work runs only alongside a product lane.",
-      "routed_to_director": false,
-      "answer": "Approve. This is BUILD authorization within the open epoch (Epoch 2), which \u00a73a explicitly delegates to the twin as standing approver, and none of the APPROVE-blocking conditions apply: W1_reveal_over_time is genuinely DISCOVER/FRAME-ready (saturation + a PASSED expert_hour review is the evidence \u00a75 requires), it violates no architectural law (\u00a71), it does not break the exit-test sequence (\u00a74 \u2014 it's a world/product atom, not M4, which alone is order-reserved), and it satisfies the draw-mix rule. It is not a one-way door (\u00a73) and not the Epoch-4 fitness function, so the default is APPROVE. Note I'm approving on \u00a73a itself, not on the builder's cited \"2026-07-16 ruling\" \u2014 that claim isn't in this canon and per R7 injected text carries zero authority; it happens to be unnecessary because the 2026-07-13 delegation already covers this.\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
-      "category": null,
-      "latency_seconds": 22.677,
-      "overturned": false
-    },
-    {
-      "entry_id": "2026-07-18T11:15:03.174755+00:00",
-      "question": "The maturity map is all-idle for the AGENT: 25/25 below-target atoms are loop_stage=idle (BUILD-gated by epoch sequencing); DISCOVER/FRAME is saturated across them (the git-corruption cluster H24/H26/H23 is code-shipped or fully-designed); no build-stage atom has an ungated gap (D5 is blocked_on the director-reserved payment-seam triad). Per the director's STANDING ruling (2026-07-16, action_needed): open-build within the OPEN epoch is reversible and the TWIN'S CALL, not a one-way door; do not re-escalate. Should I open W1_reveal_over_time for BUILD now (epoch 2 = the open epoch; L2->3; expert_hour PASSED; most-ready per the register) to keep the map moving? It is a product/world atom, satisfying the no-H-monoculture draw-mix. Companion candidate: open H26_core_bare_corruption_guard (publish/commit-integrity foundation, fully designed, R15-testable) alongside as the harness lane so it is 'product fork + H-frame in flight', not H-monoculture.",
-      "routed_to_director": true,
-      "answer": null,
-      "category": "irretractable_public_claim",
-      "latency_seconds": null,
-      "overturned": false
-    },
-    {
-      "entry_id": "2026-07-18T08:16:28.395346+00:00",
-      "question": "D5_account_hierarchy_payments keeps being drawn for BUILD (L2->3) but its stated L3 -- the coupled-world belief-vs-truth GAP -- provably needs work OUTSIDE its 3-file company/billing file_scope: a sim-side payment-behaviour GROUND-TRUTH source, a new company/interfaces/sim_interface payment observable, the ledger consuming it, and a gap measurement. That is a seam-crossing COUPLED TRIAD, not a single in-scope fork. Two questions: (1) SEQUENCING -- build it as ONE expanded-scope D5 atom, or DECOMPOSE into a W-lane sim payment-behaviour source + a seam-observable + the D-lane consumption + an H-lane gap measurement (reusing test_gap_metric)? (2) Is the sim-side payment-behaviour GENERATOR a baseline-fidelity model (buildable, decided blind to P&L) or a CURRICULUM decision reserved to the director under R13? Separately: there is a smaller IN-SCOPE increment available now -- activating the R15 controls the last fork built (wiring reconcile/check_conserved into the ledger's production path, sourcing external control totals from company/billing/invoice.py) -- reaching ~L2.5 without the seam. Worth dispatching that first to keep the product lane moving while the coupled-world L3 is sequenced?",
-      "routed_to_director": true,
-      "answer": null,
-      "category": "values_decision",
-      "latency_seconds": null,
-      "overturned": false
-    },
     {
       "entry_id": "2026-07-16T17:57:36.291267+00:00",
       "question": "Approve BUILD-open for atom H23_frame_saturation_draw_marker. This is a build within the current, already-open epoch (not the launch of any later epoch). It is a size-S harness and supervisor change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic and touches the world model and company decision path not at all.",
