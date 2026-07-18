@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T12:30:25Z
+Last updated: 2026-07-18T12:44:34Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -61,7 +61,7 @@ each fork orchestrator-verified and reaped; 0 unauthorized promotions.
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (487s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (519s / 9 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -69,10 +69,6 @@ each fork orchestrator-verified and reaped; 0 unauthorized promotions.
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
-- (T3_inherence) [unanswered >24h] What does "BUILD is inherently narrow (one tree/suite/...)" actually have to do with keeping a UK energy supplier solvent and out of administration, and on what evidence is that fragment being treated as a claim worth examining rather than an arbitrary snippet of a code comment?
-- (T3_inherence) [unanswered >24h] When you say each of these seven triggers is "a real catch from this weekend," how many false positives did the same detector raise over that period — that is, how often did it flag one of these patterns and the flag turn out to be wrong?
-- (T3_inherence) [unanswered >24h] When you say BUILD is "inherently" narrow — is that a fixed property of what BUILD actually does, or just an artifact of how this one tree/suite happens to be configured, and what specifically would break if that scope were widened?
-- (T3_inherence) [unanswered >24h] If the extra 24 atoms are read-only, zero-collision, and would move you toward target, what is the actual constraint forcing them to be worked one at a time rather than all at once?
 - (T3_inherence) [unanswered >24h] When you call BUILD "inherently narrow," what is the concrete definition of BUILD's scope that makes narrowness intrinsic — and if you cannot state that scope independently of this particular tree/suite's configuration, on what basis is the word "inherently" doing any work at all?
 - (T3_inherence) [unanswered >24h] When you say BUILD is "inherently narrow (1-3 max)," is "1-3" a number that fell out of measuring something about the work — like task interdependence, error rates, or throughput at higher widths — or is it just a cap someone picked and then relabeled as "inherent"? What specific failure have you actually observed (or would predict) at width 4+ that doesn't occur at width 3?
 - (T3_inherence) [unanswered >24h] If those 24 atoms truly are read-only, zero-collision, and target-positive, who or what actually enforces the "one at a time" limit — is it a hard mechanical rule of this system, or just an unexamined default that no one has traced back to a real constraint?

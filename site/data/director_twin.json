@@ -1,12 +1,21 @@
 {
   "fidelity": {
-    "answered": 5,
+    "answered": 6,
     "routed_to_director": 3,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 3
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-18T12:31:03.352314+00:00",
+      "question": "Reliability cluster is banked; the payment triad is FRAME-saturated and Epoch-3 director-gated. The next clean twin-openable Epoch-2 FOUNDATION atom is G4_unified_failure_register (L0->3, dial 3): a complete design exists (docs/design/UNIFIED_FAILURE_REGISTER.md, cites real retros) for a MECHANICAL failure-CLASS register that mechanizes R3 (two-strike redesign) -- currently R3 counts per-component by human vigilance, which missed a per-class repeat hiding across different components (wake-doorbell saga -> tmux-injection -> the 6h blackout, all the same shared-safety-primitive-partial-migration class). MAKE_IT_STICK: converts a prose rule into a mechanism. file_scope docs/retrospectives/ + tools/ + tests/, disjoint. Foundation-first (no Epoch-2 product lane; product Epoch-3-gated). Design is settled (L1 framed). Should I open G4 for BUILD now?",
+      "routed_to_director": false,
+      "answer": "Approve. This is BUILD authorization within the open Epoch 2, which \u00a73a explicitly delegates to the twin as standing approver, with default APPROVE. The atom clears every gate the default is conditioned on: it's L1-framed (DISCOVER/FRAME-ready), file_scope is disjoint and reversible (~1h), and it's a FOUNDATION atom \u2014 no product-lane conflict with the Epoch-3 gating (\u00a75). It touches no \u00a71 seam (docs/retrospectives + tools + tests, no company-layer epistemic wall), and mechanizing R3 is implementation of a permanent rule, not a curriculum/difficulty change (so not R13-reserved) and not a canon amendment (R3's intent is unchanged).\n\nOne HARDEN condition, not a BUILD blocker: per R15 (\u00a72), the register is itself a control, so it must ship with a mutation/neuter test proving it actually fires on a real per-class repeat \u2014 a fail-open-green register would be the defect class it's meant to catch.\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 17.081,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-16T17:57:36.291267+00:00",
       "question": "Approve BUILD-open for atom H23_frame_saturation_draw_marker. This is a build within the current, already-open epoch (not the launch of any later epoch). It is a size-S harness and supervisor change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic and touches the world model and company decision path not at all.",
