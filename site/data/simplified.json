@@ -1208,7 +1208,7 @@
         {
           "atom_id": "W2_11_payment_behaviour_source",
           "atom_name": "Payment-behaviour generator (sim-source, coupled-triad W of the D5 decomposition): baseline generator of customer payment behaviour -- who pays when, DD success/failure, arrears/late-payment patterns, payment-method mix -- ANCHORED TO EXTERNAL real-world payment statistics (Bacs DD failure rates, DD take-up, payment-timing distributions), decided BLIND to company P&L (R13 baseline). Difficulty dials are CURRICULUM (director-authored), not agent-tunable.",
-          "level_current": 0,
+          "level_current": 1,
           "level_target": 3,
           "notes": [
             "2026-07-18 REGISTERED as DISCOVER proposal (director D5 ruling: decompose D5 into 4 correctly-homed atoms). The sim payment GENERATOR is BASELINE FIDELITY, buildable -- anchor to external real-world payment statistics (decided blind to P&L, R13 baseline/curriculum split); any DIFFICULTY DIAL on it is CURRICULUM and comes to the DIRECTOR (never agent-tuned from company outcomes). DISCOVER/FRAME workable now (research the external anchors); BUILD is director-opened. Coupled: the company (D5) consumes payment observables through the seam (W4_4) and the harness (H27) measures belief-vs-truth. See [[project_open_front_and_self_governance]].",
@@ -1407,7 +1407,7 @@
         {
           "atom_id": "W4_4_payment_observable_seam",
           "atom_name": "Payment observable seam (coupled-triad SEAM of the D5 decomposition): the typed, versioned SIM/company interface through which the company OBSERVES payments -- bank statements, remittance advices, settlement/BACS reports, DD success/failure notifications -- exposing OBSERVABLES ONLY (never the sim payment-behaviour internals). The go-live payment adapter seam (swap sim for real bank/Bacs behind the unchanged contract).",
-          "level_current": 0,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-18 REGISTERED as DISCOVER proposal (director D5 ruling). The observable payment seam: company sees payments as a real supplier does (statements/remittances/settlement/DD notifications), never the generator internals -- epistemic wall preserved. This is a SCHEMA/sim-structure seam (a gated decision) -- FRAME/DISCOVER now, structural build is director-gated. Typed-flow-seam preference: the wall IS the go-live seam.",
