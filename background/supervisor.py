@@ -461,6 +461,19 @@ def _atoms_file_disjoint(a: dict, b: dict) -> bool:
     return not (scope_a & scope_b)
 
 
+def _is_compounding(a: dict) -> bool:
+    """ONE_FRAMEWORK §7 sub-step 2 (C1/C7): the family-③ tie-break facet that
+    MECHANISES COMPOUNDING_WORK_FIRST -- "work that shortens the feedback loop
+    goes first" -- which was otherwise prose-only and unread by the draw (a
+    decayed rule, MAKE_IT_STICK). A VIEW/DIAL facet exactly like value_stream:
+    absent = not-compounding (the default), and its ONLY effect is to ORDER
+    otherwise-equal (same-dial) candidates. LAW A: strictly a diagnostic/
+    tie-break, NEVER a target or a gate -- the flag never makes an atom
+    eligible, never displaces a higher dial, and a sole non-compounding
+    candidate is still drawn. Pure/deterministic (reads one boolean field)."""
+    return isinstance(a, dict) and a.get("compounding") is True
+
+
 def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False) -> list[dict]:
     """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted, completes R3
     "be wider" as a property of the granting model, not a standing
@@ -589,6 +602,28 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
     picker = rng or random
     primary = picker.choices(candidates, weights=weights, k=1)[0]
+    # COMPOUNDING tie-break (ONE_FRAMEWORK §7 sub-step 2, C1/C7): AFTER the
+    # dial-weighting has picked the primary, break a TIE among same-dial
+    # candidates toward a compounding:true atom -- work that shortens the
+    # feedback loop goes first (COMPOUNDING_WORK_FIRST). This is a TIE-BREAK,
+    # never a gate (LAW A / R15): only candidates whose dial EQUALS the drawn
+    # primary's are considered, so a higher-dial non-compounding atom is never
+    # displaced (dial still dominates); the candidate set is untouched, so a
+    # sole non-compounding candidate is STILL drawn. Deterministic: among
+    # same-dial compounding equals it keeps the existing critical-path/order
+    # tie-break (map order -- `candidates` preserves the yaml order the draw
+    # already reads). Runs before the stall record so the tracker sees the
+    # atom actually drawn.
+    if not _is_compounding(primary):
+        _primary_dial = primary.get("dial_inherited", 1)
+        _same_dial_compounding = [
+            c for c in candidates
+            if c is not primary
+            and c.get("dial_inherited", 1) == _primary_dial
+            and _is_compounding(c)
+        ]
+        if _same_dial_compounding:
+            primary = _same_dial_compounding[0]
     if exclude_stalled:
         stalled_now, count = _record_atom_draw_and_check_stall(primary["id"], _atom_fingerprint(primary))
         if count == ATOM_STALL_THRESHOLD:
@@ -600,7 +635,12 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
 
     selected = [primary]
     remaining = [c for c in candidates if c is not primary]
-    remaining.sort(key=lambda a: -(a.get("dial_inherited") or 1))
+    # Dial dominates (primary key, unchanged); COMPOUNDING is the secondary
+    # tie-break among equal-dial additional picks (0 = compounding first, 1 =
+    # not), then map order via the stable sort -- so ordering is identical to
+    # before whenever no candidate is compounding (all rank 1). ONE_FRAMEWORK
+    # §7 sub-step 2 (C1/C7): a tie-break on ORDER only, never a filter.
+    remaining.sort(key=lambda a: (-(a.get("dial_inherited") or 1), 0 if _is_compounding(a) else 1))
     for atom in remaining:
         if all(_atoms_file_disjoint(atom, s) for s in selected):
             selected.append(atom)

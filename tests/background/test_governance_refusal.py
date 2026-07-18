@@ -41,6 +41,7 @@ from __future__ import annotations
 import pytest
 
 from background import agenda as agenda_module
+from background import fronts_reconciler
 from background import process_reconciler as R
 from background import supervisor
 
@@ -59,6 +60,13 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "PRIORITIES_PATH", tmp_path / "PRIORITIES.md")
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: None)
+    # Isolate the live SELF_GOVERNANCE fronts-enforcement flag (director console
+    # act, on main since 2026-07-18) the same way as every other path above --
+    # these tests exercise the loop_stage/idle BUILD-gate, NOT front membership,
+    # so the global fronts filter must be OFF or its synthetic OPEN_BUILD atom
+    # (in no real open front) is zeroed and the test fails on a concern it does
+    # not test. Front membership is covered in test_fronts_draw_filter.py.
+    monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     (tmp_path / "staging").mkdir()
     return tmp_path
