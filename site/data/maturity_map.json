@@ -2308,7 +2308,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stall_consecutive_unchanged": 4
     },
     {
       "id": "H25_self_gov_detection_hardening",
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2346,7 +2346,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stall_consecutive_unchanged": 19
     },
     {
       "id": "H23_publish_gate_scope_marker",
@@ -2365,7 +2365,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
@@ -2384,7 +2384,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "H27_phone_act_channel",
@@ -2403,7 +2403,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2424,7 +2424,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "W4_4_payment_observable_seam",
@@ -2443,7 +2443,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "H27_payment_belief_gap",
@@ -2465,7 +2465,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 16
     }
   ],
   "lanes": {

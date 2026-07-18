@@ -92,6 +92,17 @@ the last partial). The business survived the full window.
 
 *R14 clocks: **settled** = CSS segmental P&L; **billed** = statutory revenue / total billed; **banked** = cash collected. The revenue basis difference is the single largest reconciling item and is expected — the CSS values energy on settled volume, the statutory accounts on what was billed.*
 
+### Named simplifications (R10) — what this statement does NOT model
+
+*These are declared, not fabricated. Building a speculative fixed-asset or activity-driver layer to fill them would be a fidelity regression, not an improvement — the honest L3 move is to name them.*
+
+| Item | Treatment | Rationale |
+|---|---|---|
+| Depreciation & amortisation | **Not modelled — reported £0** | No fixed-asset / capitalisation / amortisation layer exists, so there is nothing to depreciate. EBITDA therefore equals EBIT. A fabricated D&A charge would be a made-up number. |
+| Per-segment indirect cost allocation | **Group-level only (not attributed to segments)** | No activity-driver / cost-to-serve-by-segment model exists. Indirect costs (bad debt, cost-to-serve, acquisition, overhead, capital charge) are shown at group level; splitting them across segments without a driver model would be an arbitrary allocation presented as fact. |
+| Transportation vs environmental sub-split | **Commodity-ratio approximation (disclosed)** | The per-segment non-commodity TOTAL is exact (settlement-attributed); only its transport/environmental SUB-split uses the commodity-level transport:environmental ratio. CCL is non-domestic-only in reality, so the ratio split of that sub-line is approximate. |
+| Cost-to-serve sub-components (metering, PSR, R&D) | **Single line — not decomposed** | CSS guidance names these sub-components; no sub-decomposition model exists yet, so they are reported as one cost-to-serve line rather than fabricated. |
+
 ### Hedging policy note
 
 The company hedges wholesale volume forward to lock supply margin at the point of tariff sign-up. **Default (SVT-style) tariffs** are hedged on a rolling forward basis tracking the cap-implied demand curve; **fixed-term tariffs** are hedged to their contracted term at sign-up so the margin is fixed for the customer's term. **Volume risk** (weather / consumption deviation vs the hedged shape) is borne by the company, not the customer, on both tariff types — the customer's unit rate is fixed within term and the company absorbs the settlement volume variance. Over the window, hedging cost £4,218,742 versus a fully unhedged book.
@@ -1672,7 +1683,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-18T07:42:25Z
+Generated: 2026-07-18T09:12:44Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 

@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T09:22:55Z
+Last updated: 2026-07-18T11:00:52Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -46,7 +46,7 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (481s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -54,11 +54,9 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
-- (T1_idle_turns_with_open_atoms) [unanswered >24h] If the supervisor has been idle for 102 turns while 29 atoms remain open, what is it waiting for — and how do you know those idle turns are a deliberate strategy rather than the system silently stalled or stuck?
 - (T3_inherence) [unanswered >24h] What does "BUILD is inherently narrow (one tree/suite/...)" actually have to do with keeping a UK energy supplier solvent and out of administration, and on what evidence is that fragment being treated as a claim worth examining rather than an arbitrary snippet of a code comment?
 - (T3_inherence) [unanswered >24h] When you say each of these seven triggers is "a real catch from this weekend," how many false positives did the same detector raise over that period — that is, how often did it flag one of these patterns and the flag turn out to be wrong?
 - (T3_inherence) [unanswered >24h] When you say BUILD is "inherently" narrow — is that a fixed property of what BUILD actually does, or just an artifact of how this one tree/suite happens to be configured, and what specifically would break if that scope were widened?
-- (T3_inherence) [unanswered >24h] What actually justifies the claim that BUILD is "inherently narrow (1-3 max)" — is that a measured property of the work itself, or just an assertion, and what concretely goes wrong if it were made wider?
 - (T3_inherence) [unanswered >24h] If the extra 24 atoms are read-only, zero-collision, and would move you toward target, what is the actual constraint forcing them to be worked one at a time rather than all at once?
 - (T3_inherence) [unanswered >24h] When you call BUILD "inherently narrow," what is the concrete definition of BUILD's scope that makes narrowness intrinsic — and if you cannot state that scope independently of this particular tree/suite's configuration, on what basis is the word "inherently" doing any work at all?
 - (T3_inherence) [unanswered >24h] When you say BUILD is "inherently narrow (1-3 max)," is "1-3" a number that fell out of measuring something about the work — like task interdependence, error rates, or throughput at higher widths — or is it just a cap someone picked and then relabeled as "inherent"? What specific failure have you actually observed (or would predict) at width 4+ that doesn't occur at width 3?
@@ -108,7 +106,6 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 - (T3_inherence) [unanswered >24h] What is the cost of keeping the registration parked measured against the cost of *reconstructing* it correctly at Epoch 3 (including the risk of getting it wrong or missing the moment it starts to matter) — and how confident are you that "changes zero decisions today" reliably predicts "will change zero decisions before Epoch 3," given that you'd have to delete it now but only find out you were wrong later?
 - (T3_inherence) [unanswered >24h] If nobody can produce even one order quantity or price that came out different because the physics forecast existed, on what basis is that forecast being counted as part of the decision system at all rather than inert code that touches neither enterprise value nor the survival constraint?
 - (T3_inherence) [unanswered >24h] Given the north star is enterprise value under a survival constraint, what evidence shows that a locational weather dimension actually changes any decision the business will make — rather than being an architectural preference — such that building it *first* is worth delaying the futures engine that the value case presumably rests on?
-- (T3_inherence) [unanswered >24h] What decision rule or downstream computation actually consumes the physics forecast's output, and can you point to a single input (an order quantity or price) whose value would provably change if that forecast were replaced with a constant or removed entirely?
 - (T3_inherence) [unanswered >24h] If the north star is enterprise value under an absolute survival constraint, what makes "physics first" the right ordering rather than whichever lever — renewables trends, zonal pricing, or DSR — most directly moves the survival-risk or valuation numbers you're actually being measured on?
 - (T3_inherence) [unanswered >24h] If replacing the physics forecast with a constant provably changes no order quantity or price, then what is that forecast for — and does anything in the system actually read its output, or is it computed and discarded?
 - (T3_inherence) [unanswered >24h] If the forecast provably changes no order quantity or price today, was it ever wired into those decisions and later bypassed — or is there some other consumer (a survival/administration constraint, a report, a downstream model) that reads it on paths your "no change" test didn't exercise?

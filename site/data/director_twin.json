@@ -1,12 +1,21 @@
 {
   "fidelity": {
     "answered": 5,
-    "routed_to_director": 3,
+    "routed_to_director": 4,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 2
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-18T08:16:28.395346+00:00",
+      "question": "D5_account_hierarchy_payments keeps being drawn for BUILD (L2->3) but its stated L3 -- the coupled-world belief-vs-truth GAP -- provably needs work OUTSIDE its 3-file company/billing file_scope: a sim-side payment-behaviour GROUND-TRUTH source, a new company/interfaces/sim_interface payment observable, the ledger consuming it, and a gap measurement. That is a seam-crossing COUPLED TRIAD, not a single in-scope fork. Two questions: (1) SEQUENCING -- build it as ONE expanded-scope D5 atom, or DECOMPOSE into a W-lane sim payment-behaviour source + a seam-observable + the D-lane consumption + an H-lane gap measurement (reusing test_gap_metric)? (2) Is the sim-side payment-behaviour GENERATOR a baseline-fidelity model (buildable, decided blind to P&L) or a CURRICULUM decision reserved to the director under R13? Separately: there is a smaller IN-SCOPE increment available now -- activating the R15 controls the last fork built (wiring reconcile/check_conserved into the ledger's production path, sourcing external control totals from company/billing/invoice.py) -- reaching ~L2.5 without the seam. Worth dispatching that first to keep the product lane moving while the coupled-world L3 is sequenced?",
+      "routed_to_director": true,
+      "answer": null,
+      "category": "values_decision",
+      "latency_seconds": null,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-16T17:57:36.291267+00:00",
       "question": "Approve BUILD-open for atom H23_frame_saturation_draw_marker. This is a build within the current, already-open epoch (not the launch of any later epoch). It is a size-S harness and supervisor change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic and touches the world model and company decision path not at all.",
