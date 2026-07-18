@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T15:21:10Z
+Last updated: 2026-07-18T15:32:16Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -91,10 +91,23 @@ fire; dogfooded live — it correctly refused its own fork's worktree). Raw `--f
 **IaC drift logged (queued, not fixed):** `staging-watcher.service` is declared in repo IaC but runs
 hand-launched (not systemd-installed) — it died on restart for lack of the EnvironmentFile; relaunched with env.
 OPS1 reconcile (install the declared unit) is queued in the decision log.
+**H27_phone_act_channel threat model landed (DISCOVER, design-only):** `docs/design/PHONE_ACT_CHANNEL_THREAT_MODEL.md`
+— the forge-proof phone-answerable [ACT] channel the director asked for ("annoying having to log in and paste").
+**SECURITY FINDING (surfaced for review, NOT changed — director/platform-reserved):** confirmed live that Tailscale
+**Funnel is active** on the file-api (`https://skynet-1.taila062fa.ts.net` → `127.0.0.1:8765`) and `file_api.py::_auth`
+is **X-Api-Key-only** — so the file-api is public-internet-reachable, gated solely by the key. Plausibly intended
+(it's the documented File API), but the posture (single-factor key, rotation/scope) warrants an advisor review; the
+phone-act build consequently must be tailnet-only + out-of-tree-keyed payload-HMAC+nonce (Funnel strips tailnet
+identity). Logged in the decision log; I changed nothing.
+**Payment-triad CLOSURE launch-ready (next build phase):** with source (W2_11) + seam (W4_4) landed, the three
+closing units are ownership-resolved + all director-BUILD_OPEN'd + disjoint-scope — adapter=**W2_11** (`simulation/`,
+fills the seam), consumer=**D5** (`company/billing`, reads `WallResponse` → allocation/ageing belief; its
+`blocked_on: payment_seam_triad_built` is now CLEARED), gap=**H27_payment_belief_gap** (`company/compliance`,
+belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately launched fresh, not at this turn's tail.
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (482s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
