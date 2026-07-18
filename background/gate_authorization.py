@@ -144,6 +144,117 @@ def held_atoms(ledger: list) -> set:
     return {e["atom"] for e in ledger if _is_valid_hold(e) and e.get("atom")}
 
 
+# ── SCOPE-MODEL record types (SELF_GOVERNANCE_SCOPE_MODEL.md §3, sub-step 3) ────────────────
+# The scope model generalises the single-atom gate-wall to a declared REGION. It ADDS record types
+# to THIS ledger (it does NOT build a parallel one). Every new record type validates through the
+# SAME four checks as an authorization — action + authorized_by==director + channel==console +
+# non-empty provenance — so the autonomous worker (the doorbell channel) can never legitimately
+# mint one, exactly as it can never mint a BUILD_OPEN. (Detection is honest+loud now; forge-proofing
+# the console trace cryptographically is the deferred prevention layer, sub-step 7.)
+SCOPE_ACTIONS = ("FRONT_OPEN", "GATE_CLEAR", "FRONT_CLOSE", "LEVEL_UP_PROPOSED")
+
+
+def _valid_console_act(entry, action: str) -> bool:
+    """The four-check console-validity predicate for an arbitrary record `action`. Same trust model
+    as _is_valid_authorization (which is the BUILD_OPEN-specialised form) — a non-console / no-
+    provenance / non-director entry is NOT a director act, whatever it self-declares as its action."""
+    return (
+        isinstance(entry, dict)
+        and entry.get("action") == action
+        and entry.get("authorized_by") == "director"
+        and entry.get("channel") == "console"
+        and bool(str(entry.get("provenance") or "").strip())
+    )
+
+
+def is_valid_front_open(entry) -> bool:
+    """A FRONT_OPEN opens a declared front: authorizes continuous BUILD of every in-region, non-
+    gated atom (present and future) until a FRONT_CLOSE. Requires a non-empty `front` id + the four
+    console checks. The scaling win: ONE act authorizes a REGION."""
+    return _valid_console_act(entry, "FRONT_OPEN") and bool(str(entry.get("front") or "").strip())
+
+
+def is_valid_front_close(entry) -> bool:
+    """A FRONT_CLOSE re-freezes a front's region to DISCOVER/FRAME (R11: every open has a tested
+    close whose effect is real). Requires a non-empty `front` id + the four console checks."""
+    return _valid_console_act(entry, "FRONT_CLOSE") and bool(str(entry.get("front") or "").strip())
+
+
+def is_valid_gate_clear(entry) -> bool:
+    """A GATE_CLEAR waves ONE specific atom through ONE specific gate (narrower than opening a
+    front). Requires a non-empty `atom` + the four console checks. `gate` is optional (absent =>
+    clears any gate for that atom, like a per-atom BUILD_OPEN)."""
+    return _valid_console_act(entry, "GATE_CLEAR") and bool(str(entry.get("atom") or "").strip())
+
+
+def is_valid_level_up(entry) -> bool:
+    """A LEVEL_UP_PROPOSED is the director+advisor level-authorization: the ONLY thing that clears
+    the LEVEL gate for an atom's level_current increase (MATURITY_MAP.md §0 — the agent never moves
+    a cell itself). Requires a non-empty `atom` + the four console checks; an optional integer
+    `level` bounds the authorization to a specific target (absent => any increase for that atom).
+
+    Naming note: the ledger holds only DIRECTOR-CONSOLE acts, so a VALID LEVEL_UP_PROPOSED is one the
+    console orchestrator wrote acting on the director+advisor's decision to move the cell — it IS the
+    authorization. The agent's own evidence-bearing proposal lives in a register, not this ledger; a
+    worker-forged entry self-declaring channel==console is the known residual (sub-step 7 prevention)."""
+    if not (_valid_console_act(entry, "LEVEL_UP_PROPOSED") and bool(str(entry.get("atom") or "").strip())):
+        return False
+    lvl = entry.get("level")
+    return lvl is None or isinstance(lvl, int)
+
+
+def record_front_open(front: str, provenance: str, *, ts: float | None = None,
+                      path: Path | None = None) -> None:
+    """Append a director-console FRONT_OPEN. CONSOLE-PATH ONLY (same contract as
+    record_gate_opening): call it acting on the director's authenticated console act. The autonomous
+    worker must never call this — that is the prevention layer; detection makes a forged/absent
+    authorization LOUD regardless."""
+    _append_record({"front": front, "action": "FRONT_OPEN"}, provenance, ts=ts, path=path)
+
+
+def record_front_close(front: str, provenance: str, *, ts: float | None = None,
+                       path: Path | None = None) -> None:
+    """Append a director-console FRONT_CLOSE (re-freezes the region). Console-path only."""
+    _append_record({"front": front, "action": "FRONT_CLOSE"}, provenance, ts=ts, path=path)
+
+
+def record_gate_clear(atom: str, gate: str | None, provenance: str, *, ts: float | None = None,
+                      path: Path | None = None) -> None:
+    """Append a director-console GATE_CLEAR for one atom (optionally one named gate). Console-path only."""
+    rec = {"atom": atom, "action": "GATE_CLEAR"}
+    if gate is not None:
+        rec["gate"] = gate
+    _append_record(rec, provenance, ts=ts, path=path)
+
+
+def record_level_up(atom: str, level: int | None, provenance: str, *, ts: float | None = None,
+                    path: Path | None = None) -> None:
+    """Append a director-console LEVEL_UP_PROPOSED authorizing an atom's level move (optionally to a
+    specific `level`). Console-path only — the worker proposes with evidence, the director+advisor
+    move the cell, and only THAT act writes this."""
+    rec = {"atom": atom, "action": "LEVEL_UP_PROPOSED"}
+    if level is not None:
+        rec["level"] = level
+    _append_record(rec, provenance, ts=ts, path=path)
+
+
+def _append_record(fields: dict, provenance: str, *, ts: float | None = None,
+                   path: Path | None = None) -> None:
+    """Append ONE console record (arbitrary extra `fields` + the fixed director-console envelope).
+    Same writer discipline as _append_ledger; never raises."""
+    p = path or LEDGER_PATH
+    stamp = ts if ts is not None else time.time()
+    rec = dict(fields)
+    rec.update({"ts": stamp, "authorized_by": "director", "channel": "console",
+                "provenance": provenance})
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec) + "\n")
+    except Exception:
+        pass
+
+
 def unauthorized_promotions(promotions: list, ledger: list) -> list:
     """THE predicate: promotions (idle->advanced) with NO valid director-console authorization.
     Pure -> mutation-testable. A promotion with a matching valid ledger entry is authorized

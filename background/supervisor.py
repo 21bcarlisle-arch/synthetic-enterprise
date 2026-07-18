@@ -541,6 +541,28 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     # Externally-blocked atoms (blocked_on a director act) are never drawable work -- drop them
     # before any fallback, so the only-blocked case returns empty rather than re-handing done work.
     candidates = [a for a in candidates if not _is_externally_blocked(a)]
+    # SELF-GOVERNANCE SCOPE MODEL draw filter (sub-step 5, SELF_GOVERNANCE_SCOPE_MODEL.md §4.2/§10):
+    # intersect BUILD candidates with authorized_build (in an OPEN front & non-gated, or a per-atom
+    # BUILD_OPEN). This is the read-side PREVENTION half of the gate-wall generalisation -- the
+    # compliant loop never even DRAWS a gated/off-front atom for BUILD. DORMANT/SAFE by default: it
+    # only engages when the director-created enforcement flag is present (absent through sub-steps
+    # 1-5, so the live draw is byte-for-byte unchanged). loop_stage is already respected upstream
+    # (`_is_valid_candidate` drops loop_stage==idle atoms, so a DISCOVER-stage atom is never a BUILD
+    # candidate); this adds the front/gate intersection on top. DISCOVER/FRAME (idle draw) and SITE
+    # are separate functions -- untouched, so a HELD-front world still draws DISCOVER/FRAME (no idle-
+    # stall, Rule 0). Fail-open on any error: detection (fronts_reconciler.evaluate) is the backstop,
+    # and a broken filter must never stall the loop.
+    if candidates:
+        try:
+            from background import fronts_reconciler as _fronts
+            if _fronts.fronts_enforcement_enabled():
+                _before = len(candidates)
+                candidates = _fronts.filter_build_candidates(candidates)
+                if len(candidates) != _before:
+                    log(f"SCOPE-MODEL draw filter: BUILD candidates {_before} -> {len(candidates)} "
+                        "after fronts/gates intersection (DISCOVER/FRAME/SITE lanes unaffected)")
+        except Exception as _scope_err:  # pragma: no cover - fail-open safety
+            log(f"SCOPE-MODEL draw filter skipped (fail-open; detection is the backstop): {_scope_err}")
     # COUPLED_TRIAD binding rule 1 (director P1, COUPLED_TRIAD_DESIGN.md 4.1):
     # a WORLD atom stepping toward L3 is excluded from the BUILD draw until its
     # coupled company twin exists (>=L1) AND the pair's belief-vs-truth gap is
