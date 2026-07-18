@@ -2077,7 +2077,7 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   blocked_on: coupled_triad_gap
@@ -2096,7 +2096,7 @@
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build
   blocked_on: coupled_triad_gap
