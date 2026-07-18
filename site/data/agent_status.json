@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-18T18:31:38.143991+00:00",
+  "last_updated": "2026-07-18T18:37:08.898867+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:31:38.143991+00:00",
+      "last_heartbeat": "2026-07-18T18:37:08.898867+00:00",
       "last_action": "Heartbeat \u2014 21 files tracked",
-      "last_action_ts": "2026-07-18T18:31:38.143991+00:00",
+      "last_action_ts": "2026-07-18T18:37:08.898867+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:27:54.028600+00:00",
-      "last_action": "Waiting for next cycle (0h 5m remaining)",
-      "last_action_ts": "2026-07-18T18:27:54.028600+00:00",
+      "last_heartbeat": "2026-07-18T18:35:06.479994+00:00",
+      "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
+      "last_action_ts": "2026-07-18T18:35:06.479994+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:31:34.430777+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~16min",
-      "last_action_ts": "2026-07-18T18:31:34.430777+00:00",
+      "last_heartbeat": "2026-07-18T18:35:34.439501+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~20min",
+      "last_action_ts": "2026-07-18T18:35:34.439501+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:06:59.658473+00:00",
+      "last_heartbeat": "2026-07-18T18:37:02.926678+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-18T18:06:59.658473+00:00",
+      "last_action_ts": "2026-07-18T18:37:02.926678+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
