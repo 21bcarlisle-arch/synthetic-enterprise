@@ -312,3 +312,10 @@ def test_regression_noncanonical_prefix_would_have_re_handed(_isolate_map_and_ro
     with mock.patch.object(supervisor, "_atom_has_frame_doc", side_effect=_narrow_pre_fix):
         picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
         assert picked is not None and picked["id"] == "W1_10_ev_heatpump_geography"
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

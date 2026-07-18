@@ -119,3 +119,10 @@ def test_append_mirror_entry_flattens_multiline_messages(monkeypatch):
     entry_lines = [l for l in content.splitlines() if l.startswith("- [")]
     assert len(entry_lines) == 1
     assert "line one" in entry_lines[0] and "line two" in entry_lines[0]
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

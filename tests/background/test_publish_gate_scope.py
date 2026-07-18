@@ -1,70 +1,78 @@
 """Publish-gate BLOCKING SCOPE -- R10 class closure for the overnight wedge.
 
 The incident (2026-07-16, TONIGHT_FIXES.md Item 4): the publish gate ran the
-ENTIRE ~18k-test suite with `-x`, so ONE red test in the OPERATIONAL/harness
-layer (a tests/background watchdog test raising AttributeError) wedged the
-live-site publish ~21x overnight while the site went stale. The structural root
-was SCOPE: a test that validates the DAEMONS, not the published CONTENT, could
-block publishing indefinitely.
+ENTIRE ~18k-test suite with `-x`, so ONE red test in the daemon-lifecycle layer
+(a watchdog test raising AttributeError) wedged the live-site publish ~21x
+overnight while the site went stale. The structural root was SCOPE: a test that
+validates the DAEMONS, not the published CONTENT, could block publishing.
 
-These tests mechanise the class closure (they must be able to FAIL on the
-mutation that reintroduces the wedge, R15):
-  * the blocking scope EXCLUDES the operational layer (tests/background, tests/hooks)
-    -- so a red daemon test can no longer wedge the site;
-  * the blocking scope KEEPS the publish-SURFACE layer -- so a genuinely broken
-    surface still blocks (the "control false-positive jams the pipeline" lesson
-    cuts BOTH ways: don't over-block, but don't stop blocking either);
-  * a behavioral closed-loop reproduction (R4): a red test under an ignored
-    operational dir passes the gate, the SAME red test un-ignored fails it.
+The fix is a SURGICAL partition keyed on WHAT A TEST VALIDATES, not its
+directory -- because tests/background MIXES daemon-lifecycle tests with a few
+CONTENT-validating ones (test_effort_digest -> LATEST.md effort block;
+test_atom_status_merge -> published atom level_current; test_status_honesty ->
+the LATEST.md honesty gate). A blunt directory ignore would fail-OPEN on those
+(a real broken surface would stop blocking) -- worse than the wedge. So the unit
+is an explicit `@pytest.mark.operational` marker on each daemon-lifecycle module,
+and the gate runs `-m "not operational"`.
 
-This file lives under tests/background on purpose: it is itself an operational
-test, so it is excluded from the gate it describes (no recursion).
+These tests mechanise the class closure and must be able to FAIL on BOTH
+mutation directions (R15):
+  * the wedge direction -- a daemon-lifecycle test that reddens the run must be
+    deselected by the gate (else the overnight wedge returns);
+  * the fail-open direction -- a CONTENT-validating test must NOT be deselected
+    (else a genuinely broken published surface would ship).
+
+This file lives under tests/background but is deliberately UNMARKED (it validates
+the gate's own scope contract, a publish concern), so it runs IN the gate.
 """
 import subprocess
 import sys
 import textwrap
+from pathlib import Path
 
 import background.process_run_complete as prc
 
+_BG = Path(__file__).resolve().parent
 
-# ── the scope config is correct (mutation-tested) ────────────────────────────
+# The daemon-lifecycle modules the gate must DESELECT (a representative,
+# load-bearing subset incl. the historical wedge sources).
+_MUST_BE_OPERATIONAL = [
+    "test_supervisor", "test_sim_runner", "test_health_check", "test_tree_lock",
+    "test_fork_reconciler", "test_process_reconciler", "test_background_worker",
+    "test_deadmans_switch", "test_ntfy_utils", "test_worker_seat",
+]
+# CONTENT / surface-generating / safety-WALL modules the gate must KEEP BLOCKING
+# (never marked operational). The first three are the exact fail-open the review
+# flagged; the rest are surface-gen (ssp/naive/sanity) and safety walls.
+_MUST_STAY_BLOCKING = [
+    "test_effort_digest", "test_atom_status_merge", "test_status_honesty",
+    "test_rolling_ssp_refresh", "test_naive_organ", "test_sanity_daemon",
+    "test_egress_allowlist", "test_gate_authorization", "test_one_way_door",
+    "test_secret_scrub", "test_secrets_location", "test_governance_refusal",
+    "test_director_twin", "test_trust_ledger", "test_worktree_isolation",
+    "test_console_sanctity", "test_process_run_complete",
+]
 
-def test_operational_layer_is_excluded_from_blocking_scope():
-    """The exact class-closure assertion: tests/background and tests/hooks are
-    IGNORED by the publish gate. Deleting either from
-    PUBLISH_GATE_OPERATIONAL_IGNORES (the mutation that reintroduces the
-    overnight wedge) makes this fail."""
+
+def _is_marked_operational(module_stem):
+    return "pytest.mark.operational" in (_BG / (module_stem + ".py")).read_text()
+
+
+# ── the gate config uses the MARKER, not a directory ignore ──────────────────
+
+def test_gate_argv_selects_by_operational_marker_not_directory():
     argv = prc.publish_gate_pytest_argv("tests/")
-    assert "--ignore=tests/background" in argv, "daemon-layer tests must not wedge the publish"
-    assert "--ignore=tests/hooks" in argv, "harness-hook tests must not wedge the publish"
+    # marker-based deselection is present ...
+    assert "-m" in argv and "not operational" in argv
+    assert prc.PUBLISH_GATE_MARKER_EXPR == "not operational"
+    # ... and the blunt directory ignore (the fail-open we rejected) is GONE.
+    assert "--ignore=tests/background" not in argv
+    assert "--ignore=tests/hooks" not in argv
 
 
-def test_publish_surface_layers_still_block():
-    """The legitimate gate is preserved: the dirs that validate PUBLISHED
-    surfaces are NOT ignored, so a broken surface still blocks the publish."""
-    argv = prc.publish_gate_pytest_argv("tests/")
-    ignored = {a.split("=", 1)[1] for a in argv if a.startswith("--ignore=")}
-    for surface_dir in ("tests/tools", "tests/company", "tests/saas",
-                        "tests/sim", "tests/controls", "tests/interfaces"):
-        assert surface_dir not in ignored, (
-            "{} validates a published surface -- it MUST stay in the blocking "
-            "scope".format(surface_dir))
-    # tests/simulation is in-scope as a DIRECTORY; only named heavy integration
-    # FILES inside it are ignored for speed, never the whole dir.
-    assert "tests/simulation" not in ignored
-
-
-def test_heavy_integration_files_still_ignored_for_speed():
-    """The pre-existing speed exclusions survive the refactor (no regression)."""
-    argv = prc.publish_gate_pytest_argv("tests/")
-    for heavy in prc.PUBLISH_GATE_HEAVY_IGNORES:
-        assert "--ignore=" + heavy in argv
-
-
-def test_run_fast_tests_emits_the_partitioned_scope(tmp_path, monkeypatch):
-    """The REAL run_fast_tests() actually runs the partitioned scope -- proves
-    the config above is wired into the live gate, not just a dangling constant."""
-    # Force the gate to run (don't short-circuit on an already-tested hash).
+def test_run_fast_tests_emits_the_marker_deselection(tmp_path, monkeypatch):
+    """The REAL run_fast_tests() runs `-m "not operational"` -- proves the config
+    is wired into the live gate, not a dangling constant."""
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".never_tested")
     captured = {}
 
@@ -76,26 +84,45 @@ def test_run_fast_tests_emits_the_partitioned_scope(tmp_path, monkeypatch):
         return _Result()
 
     monkeypatch.setattr(prc.subprocess, "run", _fake_run)
-    passed, timed_out = prc.run_fast_tests("deadbeef")
-    assert (passed, timed_out) == (True, False)
-    assert "--ignore=tests/background" in captured["argv"]
-    assert "--ignore=tests/hooks" in captured["argv"]
+    assert prc.run_fast_tests("deadbeef") == (True, False)
+    argv = captured["argv"]
+    # argv[1:3] is the `python -m pytest` launcher; the marker filter is a
+    # SEPARATE `-m "not operational"` pair -- assert that pair is present.
+    assert "not operational" in argv
+    assert argv[argv.index("not operational") - 1] == "-m"
 
 
-# ── behavioral closed-loop reproduction of the wedge + its fix (R4) ───────────
+def test_heavy_integration_files_still_ignored_for_speed():
+    argv = prc.publish_gate_pytest_argv("tests/")
+    for heavy in prc.PUBLISH_GATE_HEAVY_IGNORES:
+        assert "--ignore=" + heavy in argv
 
-def _make_tree(tmp_path):
-    """A tiny stand-in test tree: one PASSING publish-surface test and one
-    FAILING operational test -- the exact shape of the overnight incident."""
-    surface = tmp_path / "tests" / "tools"
-    operational = tmp_path / "tests" / "background"
-    surface.mkdir(parents=True)
-    operational.mkdir(parents=True)
-    (surface / "test_surface_ok.py").write_text(
-        textwrap.dedent("def test_surface_ok():\n    assert True\n"))
-    (operational / "test_daemon_red.py").write_text(
-        textwrap.dedent("def test_daemon_red():\n    assert False, 'a watchdog bug'\n"))
-    return tmp_path
+
+# ── mutation direction 1: the WEDGE class stays closed ───────────────────────
+
+def test_daemon_lifecycle_modules_ARE_marked_operational():
+    """Un-marking any daemon-lifecycle module (the mutation that reintroduces the
+    overnight wedge) makes this fail."""
+    missing = [m for m in _MUST_BE_OPERATIONAL if not _is_marked_operational(m)]
+    assert not missing, "these daemon-lifecycle modules can wedge the publish: {}".format(missing)
+
+
+# ── mutation direction 2: the CONTENT fail-open is caught ────────────────────
+
+def test_content_and_safety_modules_are_NOT_marked_operational():
+    """Marking a CONTENT/surface/safety module operational (the fail-open the
+    review flagged: a real regression in LATEST.md / atom levels / the honesty
+    gate would no longer block publish) makes this fail."""
+    leaked = [m for m in _MUST_STAY_BLOCKING if _is_marked_operational(m)]
+    assert not leaked, "these MUST keep blocking the publish but were deselected: {}".format(leaked)
+
+
+# ── behavioral closed-loop reproduction of the wedge + its fix (R4) ──────────
+
+def _write(path, body, marker=False):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    head = "import pytest\n\n@pytest.mark.operational\n" if marker else ""
+    path.write_text(head + textwrap.dedent(body))
 
 
 def _pytest(cwd, *extra):
@@ -105,31 +132,33 @@ def _pytest(cwd, *extra):
     ).returncode
 
 
-def test_wedge_reproduces_without_the_operational_ignore(tmp_path):
-    """PROVE the wedge: with the operational layer IN scope, the failing daemon
-    test reddens the whole run (exit != 0) -- this is what stalled publishing."""
-    tree = _make_tree(tmp_path)
-    rc = _pytest(tree)  # no --ignore: old behaviour
-    assert rc != 0, "sanity: the failing operational test must redden an un-scoped run"
+def test_wedge_reproduces_without_the_marker_filter(tmp_path):
+    """PROVE the wedge: with NO marker filter, a failing daemon-lifecycle test
+    reddens the whole run (exit != 0) -- exactly what stalled publishing."""
+    _write(tmp_path / "tests/tools/test_surface_ok.py", "def test_ok():\n    assert True\n")
+    _write(tmp_path / "tests/background/test_daemon_red.py",
+           "def test_daemon_red():\n    assert False, 'a watchdog bug'\n", marker=True)
+    assert _pytest(tmp_path) != 0
 
 
-def test_wedge_released_with_the_operational_ignore(tmp_path):
-    """PROVE the fix: with the operational layer IGNORED (as the real gate now
-    does), the SAME failing daemon test no longer blocks -- the publish
-    proceeds (exit 0). The site can never again go stale on a daemon-test bug."""
-    tree = _make_tree(tmp_path)
-    rc = _pytest(tree, "--ignore=tests/background")
-    assert rc == 0, "the fix must release the wedge: a daemon-test failure no longer blocks publish"
+def test_wedge_released_with_the_marker_filter(tmp_path):
+    """PROVE the fix: with `-m "not operational"`, the SAME failing daemon test is
+    deselected; the surface test passes -> exit 0. A daemon-test bug can never
+    again freeze the public site."""
+    _write(tmp_path / "tests/tools/test_surface_ok.py", "def test_ok():\n    assert True\n")
+    _write(tmp_path / "tests/background/test_daemon_red.py",
+           "def test_daemon_red():\n    assert False, 'a watchdog bug'\n", marker=True)
+    assert _pytest(tmp_path, "-m", "not operational") == 0
 
 
-def test_a_broken_surface_test_STILL_blocks(tmp_path):
-    """Legitimate-edge (control-false-positive lesson, other direction): a red
-    test in an IN-SCOPE publish-surface dir must still block the publish even
-    with the operational ignore applied -- we narrowed the scope, we did not
-    disable the gate."""
-    surface = tmp_path / "tests" / "tools"
-    surface.mkdir(parents=True)
-    (surface / "test_surface_broken.py").write_text(
-        textwrap.dedent("def test_surface_broken():\n    assert False, 'a real broken dashboard'\n"))
-    rc = _pytest(tmp_path, "--ignore=tests/background")
-    assert rc != 0, "a broken published surface MUST still wedge the publish -- that block is legitimate"
+def test_a_broken_CONTENT_test_STILL_blocks_under_the_marker_filter(tmp_path):
+    """The reverse fail-open the review flagged: an UNMARKED content test in the
+    same tree must STILL block even with the marker filter applied. A daemon test
+    is deselected, but a broken published surface is not."""
+    _write(tmp_path / "tests/tools/test_surface_ok.py", "def test_ok():\n    assert True\n")
+    _write(tmp_path / "tests/background/test_daemon_red.py",
+           "def test_daemon_red():\n    assert False, 'deselected daemon bug'\n", marker=True)
+    # An UNMARKED content-validating test (e.g. the effort digest / honesty gate).
+    _write(tmp_path / "tests/background/test_content_red.py",
+           "def test_content_red():\n    assert False, 'a real broken LATEST.md surface'\n", marker=False)
+    assert _pytest(tmp_path, "-m", "not operational") != 0

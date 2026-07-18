@@ -91,21 +91,24 @@ PUBLISH_GATE_ITEM_ID = "publish_gate_wedged"
 # The overnight wedge (2026-07-16, TONIGHT_FIXES.md Item 4 + follow-up L166-171)
 # had a STRUCTURAL root, not just the watchdog import bug that triggered it: the
 # publish gate ran the ENTIRE ~18k-test suite with `-x`, so ONE red test ANYWHERE
-# -- including the operational/harness layer that validates the DAEMONS, never
-# the published CONTENT -- wedged the live-site publish for hours (a
-# tests/background watchdog test raised AttributeError and blocked publishing
-# ~21x overnight while the site went stale). The gate's remit is "do not ship a
-# broken SURFACE"; daemon/harness health is a SEPARATE concern already covered by
-# health_check monitoring and the H22 3.7 red-gate-test sweep. So the
-# publish-BLOCKING scope is partitioned:
+# -- including the operational layer that validates the DAEMONS, never the
+# published CONTENT -- wedged the live-site publish for hours (a daemon-lifecycle
+# watchdog test raised AttributeError and blocked publishing ~21x overnight while
+# the site went stale). The gate's remit is "do not ship a broken SURFACE";
+# daemon/session lifecycle health is a SEPARATE concern already covered by
+# health_check monitoring and the H22 3.7 red-gate-test sweep.
+#
+# The partition is keyed on WHAT A TEST VALIDATES, not its directory -- because
+# tests/background MIXES daemon-lifecycle tests (which must not wedge publishing)
+# with a handful of CONTENT-validating ones (test_effort_digest renders the
+# EFFORT SIZING block into LATEST.md; test_atom_status_merge folds published atom
+# level_current; test_status_honesty is the LATEST.md honesty gate). A directory
+# ignore would fail-OPEN on those -- worse than the wedge. So the unit is an
+# EXPLICIT, greppable `@pytest.mark.operational` marker on each daemon-lifecycle
+# test module; the gate runs `-m "not operational"`. Content-, surface-generating,
+# and safety-WALL tests stay UNMARKED and therefore keep BLOCKING.
 #   * HEAVY ignores  -- excluded for SPEED (full-sim integration tests, 150-480s each).
-#   * OPERATIONAL ignores -- excluded for SCOPE: these validate the pipeline
-#     MACHINERY (daemons, watchdog, worker, harness hooks), not the published
-#     business surfaces (which live in tests/tools, tests/company, tests/saas,
-#     tests/simulation, tests/sim, tests/controls, tests/interfaces). A red test
-#     here can ALARM (health_check / independent sweep) but must NEVER again
-#     freeze the public site. This closes the whole "unrelated red test wedges
-#     publishing" CLASS, not the one watchdog instance.
+#   * operational marker -- excluded for SCOPE (this class closure).
 # The legitimate gate is UNCHANGED: any red publish-SURFACE test still blocks the
 # publish (do not ship broken/wrong content), alarms transition-only (R5), and
 # clears on the next clean publish (R11 release path).
@@ -119,20 +122,20 @@ PUBLISH_GATE_HEAVY_IGNORES = [
     "tests/simulation/test_phase40c_deemed_rate.py",
     "tests/simulation/test_phase41a_flex.py",
 ]
-PUBLISH_GATE_OPERATIONAL_IGNORES = [
-    "tests/background",   # daemons, watchdog, worker, supervisor, sim_runner, publish-gate itself
-    "tests/hooks",        # harness pull-next-work hook
-]
+# Deselect the daemon-lifecycle layer by MARKER (see @pytest.mark.operational,
+# registered in tests/conftest.py). Keyed on what a test validates, not its path.
+PUBLISH_GATE_MARKER_EXPR = "not operational"
 
 
 def publish_gate_pytest_argv(test_root="tests/"):
     """The exact pytest argv the publish gate runs. Factored out so the
     blocking SCOPE is a single testable surface (R15: a control's scope must be
-    inspectable). A red test under any OPERATIONAL ignore path cannot reach the
-    gate's return code; a red test under any in-scope publish-SURFACE path
-    still does."""
-    argv = [sys.executable, "-m", "pytest", test_root, "-x", "-q", "--tb=short"]
-    for ignore in PUBLISH_GATE_HEAVY_IGNORES + PUBLISH_GATE_OPERATIONAL_IGNORES:
+    inspectable). A test marked @pytest.mark.operational is DESELECTED and can
+    never reach the gate's return code; any UNMARKED test (publish-surface,
+    surface-generating, or safety-wall) still does."""
+    argv = [sys.executable, "-m", "pytest", test_root, "-x", "-q", "--tb=short",
+            "-m", PUBLISH_GATE_MARKER_EXPR]
+    for ignore in PUBLISH_GATE_HEAVY_IGNORES:
         argv.append("--ignore=" + ignore)
     return argv
 

@@ -133,3 +133,10 @@ def test_allowlist_has_no_stale_entries():
     from the allowlist (so the list can only shrink toward {notify, ntfy_utils})."""
     stale = _ALLOWED_DIRECT_SENDERS - _direct_senders()
     assert not stale, f"allowlist entries no longer call send_ntfy (remove them): {sorted(stale)}"
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

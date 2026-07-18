@@ -206,3 +206,10 @@ def test_pane_in_copy_mode_fails_safe_on_error(monkeypatch):
 def test_default_session_name_matches_configured():
     assert tmux_relay.DEFAULT_SESSION_NAME == "claude"
     assert tmux_relay._configured_session_name() == "claude"
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

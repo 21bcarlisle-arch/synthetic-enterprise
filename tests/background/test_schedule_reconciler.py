@@ -132,3 +132,10 @@ def test_live_process_unit_names_cover_the_daemon_set():
     assert "supervisor.service" in names
     assert "sim-runner.service" in names
     assert "worker-seat-manager.service" in names
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

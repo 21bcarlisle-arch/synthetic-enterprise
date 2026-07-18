@@ -90,3 +90,10 @@ def test_announce_never_starts_or_stops_anything(monkeypatch, _wired):
     # build_summary is stubbed, so the only real work is send_ntfy (stubbed too) + marker write;
     # no systemctl/tmux start/stop/enable/kill is ever invoked.
     assert calls == []
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

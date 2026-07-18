@@ -503,3 +503,10 @@ def test_loop_runs_N_turns_unattended_zero_input(tmp_path):
     assert summary.cycles == 5, "loop must run all 5 turns back-to-back, unattended"
     assert turns["n"] == 5, "each turn self-dispatched with ZERO input between turns"
     assert summary.stop_reason == "max_cycles"  # stopped only at the bound, never at a boundary
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

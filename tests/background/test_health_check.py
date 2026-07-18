@@ -588,3 +588,10 @@ class TestDirectorConsoleExclusion:
         r = health_check._check_single_interactive_session(
             _pids=[8001, 9001], _pane_session={})
         assert r is not None  # no classification possible -> fail toward the raw >1 alarm
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational

@@ -432,3 +432,10 @@ def test_run_complete_pile_with_stale_commit_still_stalls(monkeypatch):
     dms.run_cycle()
     assert len(calls) == 1
     assert "[STALL]" in calls[0]
+
+# ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
+# Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
+# reconciliation), never a published business surface -- so it must never wedge the live
+# publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
+import pytest  # noqa: E402,F811
+pytestmark = pytest.mark.operational
