@@ -40,6 +40,8 @@ import pytest
 from background import deadmans_switch as dms
 from background import action_needed
 from background import supervisor
+from background import ntfy_utils
+from background import notify as _notify_mod
 
 
 # =========================================================================
@@ -111,6 +113,10 @@ def dms_isolated(tmp_path, monkeypatch):
     monkeypatch.setattr(dms, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(dms, "OBSERVABILITY_DIR", tmp_path / "observability")
     monkeypatch.setattr(action_needed, "REGISTER_PATH", tmp_path / "an_register.json")
+    # Suppression/cooldown is owned by notify() via its TRANSITIONS_FILE now (not dms's old
+    # _last_*_ts). Isolate it per-test so the cooldown these mutations exercise starts clean and
+    # never pollutes the real transition state.
+    monkeypatch.setattr(_notify_mod, "TRANSITIONS_FILE", tmp_path / "notify_transitions.json")
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     dms._last_escalation_ts = None
@@ -120,7 +126,11 @@ def dms_isolated(tmp_path, monkeypatch):
 
 def _capture_ntfy(monkeypatch):
     calls = []
-    monkeypatch.setattr(dms, "send_ntfy", lambda msg: calls.append(msg))
+    # deadmans_switch notifies via background.notify.notify now (`send_ntfy` was removed in the
+    # notify-contract refactor). notify() OWNS transition-only/cooldown SUPPRESSION and calls
+    # ntfy_utils.send_ntfy only for an ACTUAL send — so capture THERE (patching notify itself would
+    # bypass the suppression these mutation tests verify).
+    monkeypatch.setattr(ntfy_utils, "send_ntfy", lambda message, **kwargs: calls.append(message))
     return calls
 
 
@@ -192,7 +202,13 @@ def test_re_escalate_cooldown_releases_after_window(dms_isolated, monkeypatch):
     calls = _capture_ntfy(monkeypatch)
     dms.run_cycle()
     assert len(calls) == 1
-    dms._last_escalation_ts = time.time() - dms.RE_ESCALATE_SECONDS - 1  # window elapsed
+    # notify() owns the re-escalate window now (via TRANSITIONS_FILE's per-key ts), not the defunct
+    # dms._last_escalation_ts. Rewind the recorded send time past RE_ESCALATE so an unchanged-but-
+    # still-stuck state is due to re-fire (a never-releases mutant stays silent here = killed).
+    _trans = json.loads(_notify_mod.TRANSITIONS_FILE.read_text())
+    for _k in _trans:
+        _trans[_k]["ts"] = time.time() - dms.RE_ESCALATE_SECONDS - 1
+    _notify_mod.TRANSITIONS_FILE.write_text(json.dumps(_trans))
     dms.run_cycle()
     assert len(calls) == 2
 
