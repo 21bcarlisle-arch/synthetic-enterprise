@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2403,7 +2403,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stall_consecutive_unchanged": 32
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2424,7 +2424,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21
+      "stall_consecutive_unchanged": 24
     },
     {
       "id": "W4_4_payment_observable_seam",
@@ -2443,7 +2443,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 24
+      "stall_consecutive_unchanged": 27
     },
     {
       "id": "H27_payment_belief_gap",
@@ -2465,7 +2465,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36
+      "stall_consecutive_unchanged": 39
     }
   ],
   "lanes": {
