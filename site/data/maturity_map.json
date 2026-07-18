@@ -2308,7 +2308,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "H25_self_gov_detection_hardening",
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 17
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2376,7 +2376,7 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2403,7 +2403,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "W2_11_payment_behaviour_source",
@@ -2443,7 +2443,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 19
     },
     {
       "id": "H27_payment_belief_gap",

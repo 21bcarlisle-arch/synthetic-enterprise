@@ -1,12 +1,21 @@
 {
   "fidelity": {
-    "answered": 7,
+    "answered": 8,
     "routed_to_director": 5,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 2
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-18T11:36:12.722702+00:00",
+      "question": "Continuing to close Epoch-2 foundation (H26 landed L3-proposed last turn). Next-most-ready is H24_precommit_gate_git_env_isolation (L0->3, dial 4 -- the highest-dial Epoch-2 idle atom). Its code fix already SHIPPED: tools/pre_commit_test_gate.py scrubs GIT_* from the pytest subprocess env (the fix that removed the root trigger of the core.bare git corruption). The remaining L3 gap is purely an R15 mutation test proving the scrub actually prevents a git-touching gate-run test from corrupting the shared .git (test FIRES on the un-scrubbed defect, passes when scrubbed) plus wiring verification. It completes the git-corruption cluster alongside H26. Foundation-first, same as H26: no Epoch-2 product lane exists (product is Epoch-3-gated, already escalated as the D5/triad). Should I open H24_precommit_gate_git_env_isolation for BUILD now? file_scope tools/pre_commit_test_gate.py, disjoint from everything else in flight.",
+      "routed_to_director": false,
+      "answer": "This is BUILD authorization within the open epoch (Epoch 2), which \u00a73a explicitly delegates to the twin with APPROVE as the default. It clears the four default-override checks: the atom is FRAME-ready (a named R15/mutation test against a specific defect on already-shipped code); it touches no architectural law (\u00a71 \u2014 `tools/pre_commit_test_gate.py` is tooling, not the SIM/company seam); it violates no exit-test sequence (\u00a74 \u2014 this is foundation hardening of the git-corruption cluster, not an M-movement product claim, and does not front-run M4); and it respects the maturity-map operating rules (\u00a75 \u2014 proving a control fires before promotion is exactly the Hardening Loop's VERIFY/HARDEN, and it's L0\u21923 hardening, not a curriculum change). It is not a one-way door (\u00a73) and not the Epoch-4 fitness function. File scope is disjoint and reversible (~1h). Approve.\n\n(One note for the log, not a blocker: my canon enumerates R1\u2013R14; \"R15\" isn't in it. The intent \u2014 no control counts for promotion without a mutation test proving it fires on its own named defect \u2014 is sound and consistent with R10/R11, so this doesn't change the answer, but the canon's rule list may need reconciling.)\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 20.517,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-18T11:20:25.553857+00:00",
       "question": "Correction to my prior routing: W1_reveal_over_time is already level_current=3 / loop_stage=harden (the register I cited was stale), so there is no BUILD gap there. Re-deriving from the LIVE map: within the OPEN epoch (Epoch 2), the below-target idle atoms are almost all harness/foundation -- the product (D/W/E/C) atoms are all Epoch 3+, behind the epoch boundary you reserve (the D5/triad product sequencing is already escalated to the director). The most-READY Epoch-2 atom is H26_core_bare_corruption_guard (L1->3): a guard against silent core.bare=true git corruption that really occurred this session and silently broke every work-tree git operation (commit, site-refresh, status). Its guard is FULLY DESIGNED already (assert_repo_not_bare wired into tree_lock.__enter__ + a detector + an R15 mutation test; file_scope background/tree_lock.py). It has NO passed expert_hour (most Epoch-2 remaining atoms don't) -- readiness rests on the completed design plus the live incident. Draw-mix: it is H_harness, declared foundation-first -- no Epoch-2 product lane exists to run in parallel (product is Epoch-3-gated), and this guard protects the commit + site-refresh chain that is the director's window. Should I open H26_core_bare_corruption_guard for BUILD now?",
