@@ -71,13 +71,13 @@
   },
   "payment-triad-L3-ratification-2026-07-18": {
     "first_asked_at": "2026-07-18T16:59:25.385107+00:00",
-    "how": "Ratify via your console (record LEVEL_UP for the atoms in gate_authorizations.jsonl / move the cells), or reject with a reason. NOTE before ratifying: the map W2_11<->D5 coupling doesn't derive cleanly (_twin_id_for=None; ledger twin label != atom id) -- the mechanical world_l3_blocked gate needs the couples_with/depends_on wiring fixed first (flagged in the H27 map note + a decision-log entry).",
+    "how": "PREREQUISITE first (a focused follow-up): wire the W2_11<->D5 coupling into background/coupled_triad.py's _AUTHORITATIVE_COUPLING (+ update the 3 tests/tools/test_generate_proof_coupled_gaps.py pair-count expectations from 7 to 8), THEN re-run tools/couple_w2_11_d5.py --write-ledger to register the gap cleanly. ONLY THEN is W2_11/D5 -> L3 mechanically ratifiable (world_l3_blocked will see the gap). This wiring touches coupled_triad.py which is off-front (H_harness) -- needs your front/BUILD_OPEN or console act to proceed cleanly.",
     "item_id": "payment-triad-L3-ratification-2026-07-18",
-    "last_pinged_at": "2026-07-18T16:59:25.385107+00:00",
-    "last_sent_at": null,
+    "last_pinged_at": "2026-07-18T17:16:13.164030+00:00",
+    "last_sent_at": "2026-07-18T17:00:55.548937+00:00",
     "resolved": false,
-    "what": "Ratify (or reject) the payment coupled-triad level-ups: W2_11_payment_behaviour_source -> L3 and D5_account_hierarchy_payments -> L3 (plus H27_payment_belief_gap -> L2). All proposed with evidence in docs/observability/level_up_proposals.jsonl (status PROPOSED_AGENT). The triad is BUILT + the belief-vs-truth GAP is MEASURED (gap_measured(W2_11)=True; detection gap 0.30 = the no-remittance blind spot, belief 0.073; R15-independent). The coupled-triad binding is satisfied -- these are the agent's PROPOSALS; the cell move is yours per MATURITY_MAP \u00a70.",
-    "why": "This is the SOLE gating item for new below-target work -- the loop has caught up (all below-target work done, Rule-0 dial yielded to at-target hardening). Ratifying opens the next coupled-capability work; until then the loop can only harden at-target atoms. Registered as action-needed (not just a one-time NTFY) so it is persistently re-surfaced via the deadman until resolved -- a pending director decision must not be lost."
+    "what": "CORRECTION (supersedes the earlier version): do NOT ratify W2_11/D5 -> L3 yet -- my 'triad closed / gap measured' claim was PREMATURE. The gap SCORER is built + proves non-trivial gaps (detection 0.30, belief 0.073; tools/couple_w2_11_d5.py, 13 tests, on origin), BUT registering the gap in the shared coupled_gap_ledger.json was premature: the W2_11<->D5 pair is NOT in the authoritative map coupling (background/coupled_triad.py _AUTHORITATIVE_COUPLING; _twin_id_for=None), so the gap entries showed as unmapped extras on the Proof door and WEDGED the publish gate (3 proof-gaps tests red). I removed the premature ledger entries to unwedge; gap_measured(W2_11) is now False again.",
+    "why": "Honesty (R9/no-orphan): I paged you 'triad closed, ratify L3' -- that was premature and it wedged your window. The measurement is real + preserved; only its shared-ledger registration + the map coupling are outstanding. Correcting the pending decision so you don't ratify on a premature claim."
   },
   "publish_gate_wedged": {
     "first_asked_at": "2026-07-18T15:21:58.968619+00:00",
@@ -107,6 +107,16 @@
     "resolved": true,
     "resolved_at": "2026-07-18T06:47:10.176414+00:00",
     "what": "New staged instruction: ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
+  },
+  "staged:ADVISOR_STEER_PUBLISH_GATE_R3_ESCALATION_2026-07-18.md": {
+    "first_asked_at": "2026-07-18T17:00:22.194857+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:ADVISOR_STEER_PUBLISH_GATE_R3_ESCALATION_2026-07-18.md",
+    "last_pinged_at": "2026-07-18T17:00:22.194857+00:00",
+    "last_sent_at": "2026-07-18T17:00:26.505972+00:00",
+    "resolved": false,
+    "what": "New staged instruction: ADVISOR_STEER_PUBLISH_GATE_R3_ESCALATION_2026-07-18.md",
     "why": "A staged director/advisor instruction is awaiting processing."
   },
   "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md": {

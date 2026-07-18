@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T16:22:04Z
+Last updated: 2026-07-18T17:16:49Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -80,8 +80,15 @@ and schema_sim_structure gates (verified via the reconciler before flipping — 
 `simulation/payment_seam_adapter.py` (W2_11 fills the seam — truth→observable many-to-one non-invertible collapse
 proven via the real generator, 25 tests) + `company/billing/payment_observation_consumer.py` (D5 builds belief
 from seam observables ONLY — AST-proven no-sim-import, C-S1/C-S3 order-independent/idempotent/missing-tolerant,
-20 tests; reuses AccountLedger unchanged). **PAYMENT COUPLED TRIAD CLOSED** — the gap rung `H27_payment_belief_gap` is built and the belief-vs-truth gap is
-**MEASURED** (`tools/couple_w2_11_d5.py`, 13 tests, on origin; `coupled_triad.gap_measured('W2_11')=True`).
+20 tests; reuses AccountLedger unchanged). **PAYMENT TRIAD — GAP SCORER BUILT; ledger-registration was PREMATURE, backed out (honesty correction).** The gap
+rung `H27_payment_belief_gap` is built and the belief-vs-truth gap is **measured by the tool** (`tools/couple_w2_11_d5.py`,
+13 tests, on origin) — but I over-claimed "triad closed": writing the gap into the shared `coupled_gap_ledger.json`
+before the W2_11↔D5 coupling was wired into `coupled_triad.py`'s authoritative table made the Proof door count
+unmapped extras (11 pairs vs 7) and **wedged the publish gate** (3 proof-gaps tests red). I removed those premature
+entries to unwedge; `gap_measured('W2_11')` is now False again. **The measurement is real and preserved**; what's
+outstanding is the coupling wiring (off-front) + re-registration, after which W2_11/D5→L3 becomes ratifiable.
+The L3-ratification action-needed item is corrected to this prerequisite state; the director should NOT ratify yet.
+[Historical note — the pre-correction claim below is superseded by this paragraph.]
 Non-trivial gaps proven (R12/R13, non-tuned): **detection 0.30** — the headline: 78 of 257 true failures are non-DD
 and *never observed* through the seam (the no-remittance blind spot, leak-witness 0 every seed); **belief 0.073**
 (arrears/cash inference vs truth). R15-independent (the consumer never receives truth — runtime spy-tested +
@@ -124,7 +131,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (476s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (509s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -230,6 +237,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~563.5h across 27 sized atom(s) (9 of 36 below-target atoms still unsized).
+- Remaining effort: ~586.8h across 29 sized atom(s) (7 of 36 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 18.4h (+9.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.2h (+1.2h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
