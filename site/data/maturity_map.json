@@ -2260,7 +2260,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 4,
@@ -2268,7 +2268,7 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 5
     },
@@ -2412,7 +2412,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2422,7 +2422,7 @@
         "H27_payment_belief_gap"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 15
     },
@@ -2433,7 +2433,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 2,
+      "level_current": 3,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2444,7 +2444,7 @@
         "W2_11_payment_behaviour_source"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 7
     },

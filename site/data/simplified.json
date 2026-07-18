@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T23:21:24Z",
+  "generated_at": "2026-07-18T23:37:17Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -319,7 +319,7 @@
         {
           "atom_id": "D5_account_hierarchy_payments",
           "atom_name": "Account hierarchy + payment allocation: party->account->agreement->supply-point; balance-based vs open-item accounting fork per segment; one segment-parameterised ageing/dunning/statutory-interest/write-off engine (M2 FRAME->build)",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-18 BUILD L1->L2 (director open-front, console-orchestrated worktree fork, orchestrator-verified+merged: 66/66 tests, epistemic PASS 513 files, C-S1/C-S2 idempotency+out-of-order+deterministic-replay TESTED not asserted). party->account->agreement->supply-point spine coordinating with existing supply_point_register/DualFuel/Multisite; one LedgerEvent stream, balance-based + open-item (remittance-else-oldest-first, disputed excluded) views emitting the SAME bitemporal events; segment-parameterised arrears (30/60/90+ ageing, per-segment dunning, LPCDA-1998 B2B-only statutory interest, dated/reasoned P&L-visible write-offs). HONEST GAPS (L3 blockers): (1) NOT wired into a running sim -- no coupled-triad belief-vs-truth gap measured yet; (2) invoice.py SQLite store NOT migrated onto the event model (deliberate); (3) dispute state passed in, not live-read from ic_invoice_dispute_register; (4) SLC-27 recalled not live-verified (R9); (5) oldest-first simplifies Clayton's-Case (R10). L3 = sim->ledger wiring + coupled-world gap.",
@@ -1210,7 +1210,7 @@
         {
           "atom_id": "W2_11_payment_behaviour_source",
           "atom_name": "Payment-behaviour generator (sim-source, coupled-triad W of the D5 decomposition): baseline generator of customer payment behaviour -- who pays when, DD success/failure, arrears/late-payment patterns, payment-method mix -- ANCHORED TO EXTERNAL real-world payment statistics (Bacs DD failure rates, DD take-up, payment-timing distributions), decided BLIND to company P&L (R13 baseline). Difficulty dials are CURRICULUM (director-authored), not agent-tunable.",
-          "level_current": 1,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-18 REGISTERED as DISCOVER proposal (director D5 ruling: decompose D5 into 4 correctly-homed atoms). The sim payment GENERATOR is BASELINE FIDELITY, buildable -- anchor to external real-world payment statistics (decided blind to P&L, R13 baseline/curriculum split); any DIFFICULTY DIAL on it is CURRICULUM and comes to the DIRECTOR (never agent-tuned from company outcomes). DISCOVER/FRAME workable now (research the external anchors); BUILD is director-opened. Coupled: the company (D5) consumes payment observables through the seam (W4_4) and the harness (H27) measures belief-vs-truth. See [[project_open_front_and_self_governance]].",
@@ -1409,7 +1409,7 @@
         {
           "atom_id": "W4_4_payment_observable_seam",
           "atom_name": "Payment observable seam (coupled-triad SEAM of the D5 decomposition): the typed, versioned SIM/company interface through which the company OBSERVES payments -- bank statements, remittance advices, settlement/BACS reports, DD success/failure notifications -- exposing OBSERVABLES ONLY (never the sim payment-behaviour internals). The go-live payment adapter seam (swap sim for real bank/Bacs behind the unchanged contract).",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-18 REGISTERED as DISCOVER proposal (director D5 ruling). The observable payment seam: company sees payments as a real supplier does (statements/remittances/settlement/DD notifications), never the generator internals -- epistemic wall preserved. This is a SCHEMA/sim-structure seam (a gated decision) -- FRAME/DISCOVER now, structural build is director-gated. Typed-flow-seam preference: the wall IS the go-live seam.",
