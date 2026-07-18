@@ -13,6 +13,8 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -30,6 +32,8 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -47,6 +51,8 @@
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -64,9 +70,11 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_2_generate_futures",
@@ -83,9 +91,11 @@
       "depends_on": [
         "W1_reveal_over_time"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "B1_margin_bridge",
@@ -100,6 +110,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -117,6 +129,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -134,6 +148,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -153,9 +169,11 @@
       "depends_on": [
         "W2_3_competitor_field"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "B5_regional_basis_risk",
@@ -172,9 +190,13 @@
       "depends_on": [
         "W1_8_zonal_locational_pricing"
       ],
+      "couples_with": [
+        "W1_8_zonal_locational_pricing"
+      ],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C1_segment_layers",
@@ -189,6 +211,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -206,9 +230,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C3_satisfaction_heterogeneity",
@@ -223,6 +249,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -240,6 +268,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -257,6 +287,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -274,6 +306,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -291,6 +325,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -308,6 +344,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -325,6 +363,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -342,6 +382,8 @@
       "dial_inherited": 2,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -361,6 +403,8 @@
       "depends_on": [
         "W1_reveal_over_time"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -378,6 +422,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -395,9 +441,13 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [
+        "C6_affordability_inference"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_3_competitor_field",
@@ -412,6 +462,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -431,9 +483,13 @@
       "depends_on": [
         "W2_2_population_draw"
       ],
+      "couples_with": [
+        "C6_affordability_inference"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_5_life_event_stream",
@@ -448,9 +504,13 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [
+        "C7_life_event_detection"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_6_sme_distress_twin",
@@ -467,9 +527,13 @@
       "depends_on": [
         "W2_2_population_draw"
       ],
+      "couples_with": [
+        "C8_sme_credit_risk"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_7_willingness_classification",
@@ -486,9 +550,13 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
+      "couples_with": [
+        "C9_cantpay_wontpay_classifier"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_8_self_rationing",
@@ -505,9 +573,13 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
+      "couples_with": [
+        "C10_self_rationing_detection"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_9_segment_debt_tnc",
@@ -524,9 +596,13 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
+      "couples_with": [
+        "C11_segment_debt_policy"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W2_10_dd_attribution_confound",
@@ -543,9 +619,13 @@
       "depends_on": [
         "W2_4_household_budget"
       ],
+      "couples_with": [
+        "C12_channel_attribution_analytics"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -560,6 +640,8 @@
       "dial_inherited": 2,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -579,9 +661,11 @@
       "depends_on": [
         "D2_three_clocks"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W4_1_typed_adapters",
@@ -596,6 +680,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -613,9 +699,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A1_learn_loop_chair",
@@ -630,9 +718,11 @@
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A2_decision_rights_register",
@@ -647,9 +737,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "passed_execute_after_fix",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A3_approval_interface",
@@ -666,9 +758,11 @@
       "depends_on": [
         "A2_decision_rights_register"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 30
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A4_sim_approver",
@@ -685,9 +779,11 @@
       "depends_on": [
         "A3_approval_interface"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 28
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H6_lane_wall_development_pilot",
@@ -702,6 +798,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -719,6 +817,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -736,6 +836,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -753,6 +855,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -773,6 +877,8 @@
         "D2_three_clocks",
         "D_payments_maturity_audit"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -790,6 +896,8 @@
       "dial_inherited": 4,
       "expert_hour_status": "passed",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -811,9 +919,11 @@
         "W2_2_population_draw",
         "W1_reveal_over_time"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 38
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C5_key_moment_conversion",
@@ -831,9 +941,11 @@
         "C4_adoption_physics",
         "W1_reveal_over_time"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "D4_loyalty_incentive_billing",
@@ -851,16 +963,18 @@
         "C4_adoption_physics",
         "D1_bill_correctness"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 33
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H3_production_readiness_nfr_evidence",
       "name": "Production-readiness non-functional evidence pass (recoverability, security posture, capacity, availability)",
       "lane": "H_harness",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
       "epoch": 2,
       "level_current": 1,
       "level_target": 1,
@@ -868,6 +982,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -876,8 +992,8 @@
       "id": "H4_go_live_nfr_register",
       "name": "Go-live NFR register (availability/SLOs, security, data protection, operational resilience, capacity, incident response)",
       "lane": "H_harness",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
       "epoch": 5,
       "level_current": 1,
       "level_target": 1,
@@ -888,6 +1004,8 @@
         "H3_production_readiness_nfr_evidence",
         "H5_security_profiles"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -896,8 +1014,8 @@
       "id": "H8_harness_bootstrap_dr",
       "name": "Harness bootstrap + disaster recovery (reproduce the machine that runs the company, not just its data)",
       "lane": "H_harness",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
       "epoch": 5,
       "level_current": 0,
       "level_target": 2,
@@ -907,16 +1025,18 @@
       "depends_on": [
         "H4_go_live_nfr_register"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 51
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F4_company_internal_authz",
       "name": "Company-internal authz (roles, maker-checker, segregation of duties)",
       "lane": "F_risk_compliance",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
       "epoch": 5,
       "level_current": 0,
       "level_target": 2,
@@ -924,16 +1044,18 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 41
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H5_security_profiles",
       "name": "Security profiles (Developer/Restricted/Hardened) -- sandbox posture as a director-governed model",
       "lane": "H_harness",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
       "epoch": 2,
       "level_current": 3,
       "level_target": 3,
@@ -941,6 +1063,8 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -960,9 +1084,11 @@
       "depends_on": [
         "H3_production_readiness_nfr_evidence"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 27
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A5_tournament_fitness_mortality",
@@ -980,9 +1106,11 @@
         "W1_2_generate_futures",
         "A4_sim_approver"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 69
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H9_map_write_serialisation",
@@ -997,9 +1125,11 @@
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "SITE1_expert_doors",
@@ -1014,9 +1144,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H10_worktree_isolation",
@@ -1031,9 +1163,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 38
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "ARCH1_internal_seams",
@@ -1048,9 +1182,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G3_method_ip_worktree_retro",
@@ -1065,9 +1201,11 @@
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 72
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H11_naive_organ",
@@ -1082,9 +1220,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 194
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "BRAND1_identity_system",
@@ -1099,9 +1239,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 212
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F5_vat_control_independent_signal",
@@ -1116,9 +1258,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F6_bill_integrity_structural",
@@ -1133,9 +1277,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F7_obligations_register_coverage",
@@ -1150,9 +1296,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 17
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H12_mutation_test_controls",
@@ -1167,9 +1315,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 157
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "F8_control_gap_fixes_kl4_kl8",
@@ -1184,9 +1334,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A6_coupled_triad_gap_metric",
@@ -1201,16 +1353,18 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 123
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C9_cantpay_wontpay_classifier",
       "name": "Can't-pay vs won't-pay classifier: the company classifies each arrears account under uncertainty (world twin of W2_7)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 3,
       "level_target": 3,
@@ -1221,16 +1375,20 @@
         "W2_7_willingness_classification",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W2_7_willingness_classification"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C10_self_rationing_detection",
       "name": "Self-rationing detection: the company detects pay-but-don't-heat before harm (world twin of W2_8)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 3,
       "level_target": 3,
@@ -1241,16 +1399,20 @@
         "W2_8_self_rationing",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W2_8_self_rationing"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C7_life_event_detection",
       "name": "Life-event detection + response: the company notices job loss/illness/divorce/etc through the wall (world twin of W2_5)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 3,
       "level_target": 3,
@@ -1261,16 +1423,20 @@
         "W2_5_life_event_stream",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W2_5_life_event_stream"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C6_affordability_inference",
       "name": "Affordability inference + book-mix belief: the company infers each customer's ability-to-pay and its book composition through the wall (world twin of W2_4/W2_2)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 2,
       "level_target": 2,
@@ -1281,16 +1447,21 @@
         "W2_4_household_budget",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W2_4_household_budget",
+        "W2_2_population_draw"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C12_channel_attribution_analytics",
       "name": "Channel attribution analytics: the company's naive attribution SHOULD be capable of being wrong (world twin of W2_10)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 3,
       "level_target": 2,
@@ -1301,16 +1472,20 @@
         "W2_10_dd_attribution_confound",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W2_10_dd_attribution_confound"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C8_sme_credit_risk",
       "name": "SME/I&C credit-risk model: the company assesses business distress through the wall (world twin of W2_6)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 2,
       "level_target": 2,
@@ -1321,16 +1496,20 @@
         "W2_6_sme_distress_twin",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W2_6_sme_distress_twin"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C11_segment_debt_policy",
       "name": "Segment-correct debt policy objects: the company applies the right debt T&C per segment (world twin of W2_9)",
       "lane": "F_risk_compliance",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
       "epoch": 2,
       "level_current": 2,
       "level_target": 2,
@@ -1338,9 +1517,13 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [
+        "W2_9_segment_debt_tnc"
+      ],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H14_judge_validation",
@@ -1357,9 +1540,11 @@
       "depends_on": [
         "H12_mutation_test_controls"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 340
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A7_harm_cost_weights_decision",
@@ -1376,6 +1561,8 @@
       "depends_on": [
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -1384,8 +1571,8 @@
       "id": "W1_3_national_weather_signal",
       "name": "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
@@ -1395,16 +1582,18 @@
       "depends_on": [
         "W1_2_generate_futures"
       ],
+      "couples_with": [],
+      "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_4_regional_weather_field",
       "name": "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
@@ -1414,16 +1603,18 @@
       "depends_on": [
         "W1_3_national_weather_signal"
       ],
+      "couples_with": [],
+      "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_5_premise_demand_shape",
       "name": "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1433,16 +1624,20 @@
       "depends_on": [
         "W1_4_regional_weather_field"
       ],
+      "couples_with": [
+        "C13_weather_normalisation"
+      ],
+      "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_6_physics_price_signal",
       "name": "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1453,16 +1648,18 @@
         "W1_3_national_weather_signal",
         "W1_5_premise_demand_shape"
       ],
+      "couples_with": [],
+      "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "C13_weather_normalisation",
       "name": "Weather-normalisation twin (COUPLED): the company INFERS its book's weather-sensitivity from confounded meter data -- gap = predicted vs actual demand under a given weather outturn (world twin of W1_5)",
       "lane": "C_customer_ops",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1473,16 +1670,20 @@
         "W1_5_premise_demand_shape",
         "A6_coupled_triad_gap_metric"
       ],
+      "couples_with": [
+        "W1_5_premise_demand_shape"
+      ],
+      "chain": "weather_cascade",
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 23
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_7_renewable_capacity_trends",
       "name": "Renewable capacity + generation-mix evolution over time",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1492,16 +1693,18 @@
       "depends_on": [
         "W1_6_physics_price_signal"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_8_zonal_locational_pricing",
       "name": "Zonal / locational marginal pricing mechanics (the regional-basis market that does not exist today)",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1511,16 +1714,20 @@
       "depends_on": [
         "W1_6_physics_price_signal"
       ],
+      "couples_with": [
+        "B5_regional_basis_risk"
+      ],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_9_dsr_flex_markets",
       "name": "Demand-side response / flexibility markets",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1530,16 +1737,18 @@
       "depends_on": [
         "W1_6_physics_price_signal"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W1_10_ev_heatpump_geography",
       "name": "EV + heat-pump adoption geography (spatially-varying load growth)",
       "lane": "W1_market_weather",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1549,9 +1758,11 @@
       "depends_on": [
         "W1_5_premise_demand_shape"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H15_publish_gate_failure_alert",
@@ -1566,9 +1777,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H16_idle_detection_stability_gate",
@@ -1583,9 +1796,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "A8_experiment_loop_speed",
@@ -1602,9 +1817,11 @@
       "depends_on": [
         "ARCH1_internal_seams"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H17_autonomous_build_executor",
@@ -1622,9 +1839,11 @@
         "A8_experiment_loop_speed",
         "ARCH1_internal_seams"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G4_unified_failure_register",
@@ -1639,9 +1858,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H18_harness_self_mutation_audit",
@@ -1656,9 +1877,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W4_3_external_truth_wall",
@@ -1673,9 +1896,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 27
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G5_effort_sizing_discipline",
@@ -1690,9 +1915,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G6_method_lens_audit",
@@ -1707,9 +1934,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 43
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H19_escalation_ntfy_route_around",
@@ -1724,6 +1953,8 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null
@@ -1741,9 +1972,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G8_constraint_identification_ritual",
@@ -1758,9 +1991,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G9_error_budget_toil_tracking",
@@ -1775,9 +2010,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G10_definition_of_ready_gate",
@@ -1792,9 +2029,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H20_parallel_maintenance_lane",
@@ -1809,9 +2048,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "G11_activity_cost_utilisation",
@@ -1829,9 +2070,11 @@
         "G5_effort_sizing_discipline",
         "G7_wip_cycle_time_dashboard"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H21_self_contained_escalation",
@@ -1846,9 +2089,11 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H22_scheduled_housekeeping",
@@ -1865,9 +2110,11 @@
       "depends_on": [
         "H20_parallel_maintenance_lane"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "H23_frame_saturation_draw_marker",
@@ -1882,9 +2129,11 @@
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
       "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "OPS1_operational_layer_rebuild",
@@ -1893,15 +2142,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 5,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 21
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "OPS1_session_watchdog_collapse",
@@ -1918,9 +2169,11 @@
       "depends_on": [
         "OPS1_operational_layer_rebuild"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "OPS1_tmux_target_qualification",
@@ -1935,9 +2188,11 @@
       "dial_inherited": 1,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "OPS1_governance_refusal_mutation_test",
@@ -1948,15 +2203,17 @@
       "epoch": 2,
       "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 2,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "OPS1_operational_layer_rebuild"
       ],
+      "couples_with": [],
+      "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 33
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "OPS1_transport_failure_must_be_loud",
@@ -1971,9 +2228,163 @@
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
+      "couples_with": [],
+      "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H_draw_excludes_external_blocked_atoms",
+      "name": "Draw excludes atoms blocked on an external/director act (stop the done-atom idle treadmill)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "D5_account_hierarchy_payments",
+      "name": "Account hierarchy + payment allocation: party->account->agreement->supply-point; balance-based vs open-item accounting fork per segment; one segment-parameterised ageing/dunning/statutory-interest/write-off engine (M2 FRAME->build)",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "E4_supplier_reporting_standard",
+      "name": "Supplier reporting standard: CSS-shaped Consolidated Segmental Statement (Ofgem SLC 19A form, 4 segments + aggregate) + board KPI block, wired into the live annual report; fuel-mix disclosure already exists; obligations-register additions deferred",
+      "lane": "E_finance_treasury",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H24_worktree_dir_autoreap",
+      "name": "Auto-reap completed-fork WORKTREE dirs: fork_reconciler is report-first + BRANCH-focused, so merged/salvaged fork worktree DIRECTORIES have no automatic reaper -- they climb (observed 2->7 in one session) until a manual `git worktree remove`; mechanise a cleanup of CLEANUP_ELIGIBLE (merged) + salvaged worktree dirs so the count self-limits under a fast fan",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H25_self_gov_detection_hardening",
+      "name": "Self-governance detection-hardening: forge-proofing (sub-step 7, crypto-tie FRONT_OPEN/GATE_CLEAR/LEVEL_UP provenance to director_input_log HMAC/console-presence), level-baseline fail-silent edge (git-ref read fails -> LEVEL gate stops checking, surfaced but not paged), is_build_authorized loop_stage defense-in-depth (currently relies solely on the upstream _is_valid_candidate idle-drop; add a stage re-check), and wire fronts_reconciler.evaluate onto a LIVE cadence (reconcile-watch timer) so detection pages transition-only, not only on-demand",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H26_core_bare_corruption_guard",
+      "name": "Guard against silent core.bare=true corruption: the main repo's core.bare flipped to true this session, silently breaking ALL work-tree git ops (commit/publish/status) until manually reset -- root-cause what sets it (worktree op? concurrent daemon git without tree_lock?) and add a detector/guard (assert core.bare==false pre-commit; the publish pipeline depends on git)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H23_publish_gate_scope_marker",
+      "name": "Publish gate blocks by @pytest.mark.operational partition: daemon-lifecycle tests can alarm but NEVER wedge the live-site publish; content/surface-generating/safety-wall tests still block. Replaces the fail-open directory-wide tests/background ignore. Follow-on: give the deselected operational layer an independent-cadence green signal",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H24_precommit_gate_git_env_isolation",
+      "name": "Pre-commit test-gate GIT_* env isolation: FIXED -- the gate ran changed test files during `git commit` WITHOUT scrubbing GIT_INDEX_FILE/GIT_DIR/GIT_WORK_TREE, so git-touching tests corrupted the SHARED .git (index phantom-deletions, a tree-deleting commit, and repeated core.bare=true). THE ROOT CAUSE of H26. Fix: strip GIT_* from the pytest subprocess env",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -2056,7 +2467,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 110,
+  "total_atoms": 118,
   "epoch2_movements": [
     {
       "id": "M1",

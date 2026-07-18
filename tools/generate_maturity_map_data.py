@@ -131,6 +131,11 @@ def generate():
             "dial_inherited": a.get("dial_inherited"),
             "expert_hour_status": (a.get("expert_hour") or {}).get("status", "not_attempted"),
             "depends_on": a.get("depends_on", []),
+            # ONE_FRAMEWORK §7 sub-step 1 view facets (C5 topology + §3 cascade
+            # tag). VIEW-ONLY -- the draw never reads these; the site renders
+            # the Coupled view + Cascade strip from them. Absent -> [] / None.
+            "couples_with": a.get("couples_with", []),
+            "chain": a.get("chain"),
             "at_target": a.get("level_current") is not None and a.get("level_target") is not None
                 and a["level_current"] >= a["level_target"],
             "stalled": bool(stall_entry.get("stalled")),
