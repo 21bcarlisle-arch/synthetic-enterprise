@@ -2270,7 +2270,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 37
+      "stall_consecutive_unchanged": 40
     },
     {
       "id": "E4_supplier_reporting_standard",
@@ -2289,7 +2289,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 23
+      "stall_consecutive_unchanged": 34
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2308,7 +2308,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "H25_self_gov_detection_hardening",
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2346,7 +2346,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "H23_publish_gate_scope_marker",
@@ -2365,7 +2365,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
@@ -2384,7 +2384,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 19
     }
   ],
   "lanes": {

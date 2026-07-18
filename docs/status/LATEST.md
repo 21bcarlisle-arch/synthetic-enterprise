@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T04:17:39Z
+Last updated: 2026-07-18T07:27:49Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -40,7 +40,7 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (453s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -148,11 +148,10 @@ stays DARK during console-orchestrated waves; self-sustaining loop takes over on
 - (T3_inherence) [unanswered >24h] Can anyone point to a specific decision rule or line where the physics forecast's output is actually read and changes an order quantity or price — and if so, why has that not been produced in over 24 hours, while if not, what is the forecast wired into at all?
 - (T3_inherence) [unanswered >24h] If the physics forecast's output is never consumed by any decision rule that sets an order quantity or price, then on what basis is it called a "forecast" at all rather than a number computed and discarded — and who, if anyone, has ever traced even one such consuming path end to end?
 - (T3_inherence) [unanswered >24h] If swapping the forecast for a constant provably moves no order quantity or price, what exactly did you hold fixed when you measured that — was the constant set to the forecast's own average output, and did you check every downstream consumer (risk limits, survival/administration checks, reporting) rather than only the two levers named?
-- (T3_inherence) What exactly does "'weather physics' authorization" permit or unlock in this system, and how could a weather-modeling capability ever be safe to grant when the only hard constraint is that the company must never enter administration?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~506.0h across 23 sized atom(s) (8 of 31 below-target atoms still unsized).
+- Remaining effort: ~598.2h across 28 sized atom(s) (9 of 37 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 18.4h (+9.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.2h (+1.2h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
