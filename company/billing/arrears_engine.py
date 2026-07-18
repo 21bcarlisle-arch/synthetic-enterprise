@@ -21,6 +21,13 @@ models:
 
 Epistemic wall: arrears, dunning steps, statutory interest and write-offs are all
 the supplier's own operational actions and published statute. No sim internals.
+
+NAMED SIMPLIFICATION (R10 — deliberate L2 gap, to close at the seam-crossing atom):
+  (4) The resi/micro-SME dunning path ENCODES the Ofgem SLC 27 ability-to-pay
+      shape (a repayment-plan offer before any enforcement), but the SLC 27 duty
+      is NOT live-verified against a real customer vulnerability/ability-to-pay
+      signal — there is no live recall of an SLC-27 hold here. The step sequence
+      is the correct shape; the per-customer verification is future wiring.
 """
 from __future__ import annotations
 
@@ -187,14 +194,145 @@ def dunning_path(segment: Segment) -> List[DunningStep]:
 
 def current_dunning_step(segment: Segment, days_overdue: int) -> Optional[DunningStep]:
     """The furthest dunning step whose trigger has been reached. None if not yet
-    overdue enough to dun."""
-    step: Optional[DunningStep] = None
-    for s in _DUNNING_PATHS[segment]:
-        if days_overdue >= s.trigger_days_overdue:
-            step = s
-        else:
-            break
-    return step
+    overdue enough to dun.
+
+    HARDENED: selects the reached step with the LARGEST trigger rather than
+    breaking on the first unreached one — so a mis-ordered path can never SILENTLY
+    skip a step (the old early-break assumed the path was sorted ascending, a
+    fail-silent dependence on data order). `assert_dunning_path_valid` still guards
+    the data shape, but the selection itself is now order-independent."""
+    reached = [s for s in _DUNNING_PATHS[segment] if days_overdue >= s.trigger_days_overdue]
+    if not reached:
+        return None
+    return max(reached, key=lambda s: s.trigger_days_overdue)
+
+
+# ---------------------------------------------------------------------------
+# R15 CONTROLS for the collections physics.
+#
+# Each is INDEPENDENT of the thing it checks (it re-derives or externally probes,
+# never re-reads the same computed value) and FAIL-CLOSED (an empty/missing/
+# malformed input RAISES, it does not pass on absence). See CONTROLS_THAT_CANNOT
+# _FAIL.md (R15). The ageing/dunning/interest/write-off invariants were previously
+# only implicit; these make them able to fire on their own named defect.
+# ---------------------------------------------------------------------------
+
+_AGE_SEVERITY = {b: i for i, b in enumerate(AGE_BUCKETS)}
+
+
+class AgeingPartitionError(Exception):
+    """Raised when the 30/60/90+ ageing scheme fails to PARTITION days-overdue
+    (a gap, an overlap, an out-of-set bucket) or when bucket aggregation loses
+    money relative to the underlying items."""
+
+
+class DunningPathError(Exception):
+    """Raised when a segment's dunning path is empty or its triggers are not
+    strictly ascending (which would make step selection order-dependent)."""
+
+
+class StatutoryInterestScopeError(Exception):
+    """Raised when non-zero statutory interest is attributed to a NON-business
+    (B2C) account — LPCDA 1998 is B2B only."""
+
+
+class WriteOffAuditError(Exception):
+    """Raised when a write-off is not a dated, reasoned, P&L-visible credit
+    event (a silent status flip)."""
+
+
+def assert_age_buckets_partition(bucket_fn=age_bucket, max_days: int = 400) -> None:
+    """R15 CONTROL — the ageing buckets must PARTITION days-overdue: every day maps
+    to exactly one bucket in AGE_BUCKETS (exhaustive + in-set), and severity is
+    monotonic non-decreasing as days rise (no overlap / no regression).
+
+    Independent: it PROBES the bucket function across the whole domain rather than
+    trusting its boundaries. Fail-closed: an out-of-set or non-monotonic result
+    RAISES. Mutation defect this fires on: a bucket function with a gap (a day in
+    no bucket) or an overlap (severity going backwards)."""
+    last_sev = -1
+    for d in range(0, max_days + 1):
+        b = bucket_fn(d)
+        if b not in _AGE_SEVERITY:
+            raise AgeingPartitionError(f"day {d} → out-of-set bucket {b!r} (gap)")
+        sev = _AGE_SEVERITY[b]
+        if sev < last_sev:
+            raise AgeingPartitionError(
+                f"day {d} → bucket {b!r} regresses severity (overlap/non-monotonic)"
+            )
+        last_sev = sev
+
+
+def assert_ageing_conserves_value(items, aggregator=ageing_buckets) -> None:
+    """R15 CONTROL — aggregating AgedItems into buckets must CONSERVE the undisputed
+    outstanding value and item count (no drop, no double-count).
+
+    Independent: the control sums the items directly and compares against whatever
+    `aggregator` produces — so a faulty aggregator (dropping an item, mis-handling
+    the disputed exclusion, double-counting) makes the two totals disagree and this
+    RAISES. Fail-closed on mismatch. Mutation defect: an aggregator that loses or
+    duplicates an item's amount."""
+    direct_total = round(sum(it.outstanding_gbp for it in items if not it.disputed), 2)
+    direct_count = sum(1 for it in items if not it.disputed)
+    buckets = aggregator(items)
+    agg_total = round(sum(v["amount_gbp"] for v in buckets.values()), 2)
+    agg_count = sum(v["count"] for v in buckets.values())
+    if abs(direct_total - agg_total) > 0.005:
+        raise AgeingPartitionError(
+            f"ageing value not conserved: items {direct_total} != buckets {agg_total}"
+        )
+    if direct_count != agg_count:
+        raise AgeingPartitionError(
+            f"ageing count not conserved: items {direct_count} != buckets {agg_count}"
+        )
+
+
+def assert_dunning_path_valid(segment: Segment, path=None) -> None:
+    """R15 CONTROL — a segment's dunning path must be non-empty with STRICTLY
+    ascending triggers, so step selection is well defined. Fail-closed: an empty
+    path raises. Mutation defect: a path with a descending/duplicate trigger."""
+    steps = list(_DUNNING_PATHS[segment]) if path is None else list(path)
+    if not steps:
+        raise DunningPathError(f"segment {segment.value} has no dunning path")
+    triggers = [s.trigger_days_overdue for s in steps]
+    for a, b in zip(triggers, triggers[1:]):
+        if b <= a:
+            raise DunningPathError(
+                f"segment {segment.value} triggers not strictly ascending: {triggers}"
+            )
+
+
+def assert_interest_is_b2b_only(segment: Segment, interest_gbp: float) -> None:
+    """R15 CONTROL — statutory (LPCDA 1998) interest may attach ONLY to a business
+    account. Fires if a positive amount is attributed to a B2C/residential segment.
+    Independent of statutory_interest_gbp's own guard (a second, downstream check on
+    the produced figure). Mutation defect: interest applied to a RESIDENTIAL account."""
+    if round(interest_gbp, 2) > 0.005 and not segment.is_business:
+        raise StatutoryInterestScopeError(
+            f"statutory interest £{round(interest_gbp, 2)} attributed to non-business "
+            f"segment {segment.value}: LPCDA 1998 is B2B only"
+        )
+
+
+def assert_write_off_audited(event: LedgerEvent) -> None:
+    """R15 CONTROL — a write-off must be a dated, reasoned, P&L-visible credit event,
+    never a silent status flip. Fires on the wrong type, a missing/blank reason, a
+    missing date, or a non-positive amount. Mutation defect: a WRITE_OFF_CREDIT with
+    an empty reason (unaudited write-off)."""
+    if event.event_type != LedgerEventType.WRITE_OFF_CREDIT:
+        raise WriteOffAuditError(
+            f"event {event.event_id} is {event.event_type.value}, not a write-off"
+        )
+    if not event.affects_pnl:
+        raise WriteOffAuditError(f"write-off {event.event_id} is not P&L-visible")
+    if not (event.reason and event.reason.strip()):
+        raise WriteOffAuditError(
+            f"write-off {event.event_id} has no reason (silent status flip)"
+        )
+    if event.valid_time is None:
+        raise WriteOffAuditError(f"write-off {event.event_id} is undated")
+    if event.amount_gbp <= 0:
+        raise WriteOffAuditError(f"write-off {event.event_id} has non-positive amount")
 
 
 # ---------------------------------------------------------------------------
