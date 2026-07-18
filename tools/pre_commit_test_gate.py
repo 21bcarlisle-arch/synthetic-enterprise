@@ -76,19 +76,26 @@ def select_targets(files: list[str]) -> list[str]:
     return sorted(targets)
 
 
+def _gitless_env(env: dict) -> dict:
+    """Strip every GIT_* key from an environment mapping.
+
+    CRITICAL: during a `git commit` the hook inherits GIT_INDEX_FILE / GIT_DIR / GIT_WORK_TREE /
+    GIT_PREFIX pointing at the IN-PROGRESS commit. Any git-touching test (e.g. build_executor,
+    retro_cadence_check, worker_seat) then runs `git` subprocesses that operate on the REAL
+    worktree index -- observed corrupting it (phantom deletions) and once producing a commit that
+    deleted the whole tree; a leaked GIT_DIR is also the likely setter of the core.bare=true
+    corruption. Scrubbing GIT_* makes gate-run tests use their own tmp repos, never the commit's
+    index. (H24_precommit_gate_git_env_isolation)
+    """
+    return {k: v for k, v in env.items() if not k.startswith("GIT_")}
+
+
 def main() -> int:
     targets = select_targets(staged_files())
     if not targets:
         return 0  # pure docs/data commit -- nothing that can break a control
     print(f"[test-gate] {len(targets)} test file(s): {', '.join(targets)}")
-    # CRITICAL: strip GIT_* from the pytest subprocess env. During a `git commit` the hook inherits
-    # GIT_INDEX_FILE / GIT_DIR / GIT_WORK_TREE / GIT_PREFIX pointing at the IN-PROGRESS commit. Any
-    # git-touching test (e.g. build_executor, retro_cadence_check, worker_seat) then runs `git`
-    # subprocesses that operate on the REAL worktree index -- observed corrupting it (phantom
-    # deletions) and once producing a commit that deleted the whole tree; a leaked GIT_DIR is also
-    # the likely setter of the core.bare=true corruption. Scrubbing GIT_* makes gate-run tests use
-    # their own tmp repos, never the commit's index. (H24_precommit_gate_git_env_isolation)
-    gitless_env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    gitless_env = _gitless_env(os.environ)
     r = subprocess.run(
         [sys.executable, "-m", "pytest", *targets, "-q", "--no-header", "-p", "no:cacheprovider"],
         cwd=str(ROOT),
