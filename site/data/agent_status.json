@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-18T21:30:15.199966+00:00",
+  "last_updated": "2026-07-18T21:36:41.673570+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T21:30:09.709822+00:00",
-      "last_action": "Waiting for next cycle (3h 5m remaining)",
-      "last_action_ts": "2026-07-18T21:30:09.709822+00:00",
+      "last_heartbeat": "2026-07-18T21:35:09.711773+00:00",
+      "last_action": "Waiting for next cycle (3h 0m remaining)",
+      "last_action_ts": "2026-07-18T21:35:09.711773+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-18T21:27:54.937222+00:00",
-      "last_action": "Sim started \u2014 git=b1009d09e",
-      "last_action_ts": "2026-07-18T21:27:54.937222+00:00",
+      "last_heartbeat": "2026-07-18T21:36:41.673570+00:00",
+      "last_action": "Sim started \u2014 git=40243057a",
+      "last_action_ts": "2026-07-18T21:36:41.673570+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T21:30:15.199966+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~20min",
-      "last_action_ts": "2026-07-18T21:30:15.199966+00:00",
+      "last_heartbeat": "2026-07-18T21:36:15.213514+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~26min",
+      "last_action_ts": "2026-07-18T21:36:15.213514+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
