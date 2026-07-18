@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T19:06:15Z
+Last updated: 2026-07-18T19:21:38Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -91,7 +91,7 @@ belief 0.073), the Proof door shows 8 mapped pairs, and the full publish gate is
 (genuinely measured now, per his ruling; he ratifies the cell). The L3-ratification action-needed item is RESOLVED.
 **Lesson landed:** don't write to a shared derived surface (Proof-door ledger) before its coupling is wired, and
 don't claim "closed" before the full gate is green. **NEXT CAMPAIGN (his ruling): A — site rebuild per the
-reconciled site specs, W1 DISCOVER alongside.** **[Campaign A progress]** DOOR 1 (FRONT DOOR) LANDED on origin: rebuilt to the reconciled spec -- every pulse/thesis value rendered from `site/data` (rule 3, 0 hardcoded figures), passports + PROVISIONAL badges, honesty door linked, brochure prose/duplicate charts killed (§6); 48 site tests green. Assessment: the other doors (company/world/proof/method/project/simplified) already comply with rule 3 (SITE1 L3, pixel-verified), so this is targeted ALIGNMENT not a from-scratch 8-door rebuild. SITEWIDE NAV CLEANUP LANDED on origin (bf48335a1): all 16 doors carry the identical canonical nav (Home/Company/World/Proof/Method/Journey/Simplified); Director removed from every public nav (auth-gated, linked from nowhere); legacy Supplier->Company, SIM->World, Platform/Casebook->Method links retargeted with `site/_redirects` 301s for old URLs; all 7 targets verified to resolve (no dead links); 113/114 site tests green (1 pre-existing formatting-brittleness failure in test_method_door productive_pct -- renders 42%, test expects 42.0%; site-only, not in the publish gate; QUEUED not fixed-on-sight). NEXT: Journey door (gap -- Journey nav points at /project/, no dedicated journey/ dir) + cross-door passport/honesty audit. W1 stays DISCOVER (framed, epoch-gated).
+reconciled site specs, W1 DISCOVER alongside.** **[Campaign A — director-authorized site rebuild, progressing.]** (1) **Front door + sitewide nav LANDED** (canonical IA Home/Company/World/Proof/Method/Journey/Simplified; Director off every public nav, auth-gated; legacy Supplier/SIM/Platform/Casebook retargeted + `_redirects` 301s; all 7 targets resolve, no dead links). (2) **Cross-door honesty AUDIT done + verified** (`docs/design/CAMPAIGN_A_DOOR_AUDIT_FINDING.md`): 5 of 7 doors (Home/Company/World/Proof/Method) PASS all 5 SITE-CONSTITUTION rules with EVIDENCE -- zero hardcoded metric figures, passports + freshness present -- verifying (not asserting) the rule-3 compliance claim. (3) **Journey door test gap CLOSED** (`site/project/test_project_door.py`, 11 tests incl. R15 mutation-independence). (4) Fixed my own W2_11<->D5 8th-pair regression on the Proof-door coupled-gaps panel (was red; site/ tests sit outside the publish gate, a coverage seam now queued). **Queued debt (next increments, not hand-patched per DON'T-ACCRETE):** Journey Regulatory tab is static HTML with unbacked drift-prone build-status claims (62 modules / WIRED badges / 90% RAG) -- needs a `regulatory.json` generator (published rates themselves are cited commons, kept); Journey Key Discoveries + Simplified freshness + Home/Proof full door-tests. **W1 DISCOVER (alongside, per the ruling): W1_3 national-weather joint cold-and-still regime LANDED** (doc-only) -- empirically 2.34x independent-draw tail mass, winter corr(temp,wind)=+0.507 vs all-year -0.06, PROVING the engine's current wind-only regime trigger insufficient; candidate invariants JT1/JT2/JT3 framed; no level claimed (held L1). W1 BUILD stays epoch-gated (director's call).
 Non-trivial gaps proven (R12/R13, non-tuned): **detection 0.30** — the headline: 78 of 257 true failures are non-DD
 and *never observed* through the seam (the no-remittance blind spot, leak-witness 0 every seed); **belief 0.073**
 (arrears/cash inference vs truth). R15-independent (the consumer never receives truth — runtime spy-tested +
@@ -134,7 +134,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (467s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (479s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
