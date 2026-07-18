@@ -2289,7 +2289,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34
+      "stall_consecutive_unchanged": 36
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2336,7 +2336,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 3,
@@ -2384,7 +2384,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 19
+      "stall_consecutive_unchanged": 21
     }
   ],
   "lanes": {
