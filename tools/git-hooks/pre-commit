@@ -22,3 +22,12 @@ fi
 # autonomously-committing loop: a subtly-broken control can never land looking green. Runs the
 # safety-control set + the tests for each changed code file; any failure ABORTS the commit.
 python3 tools/pre_commit_test_gate.py || exit 1
+
+# §0 LEVEL-PROMOTION PREVENTION GATE (2026-07-18): an UNAUTHORIZED level_current increase in
+# docs/design/maturity_map.yaml is STRUCTURALLY IMPOSSIBLE to commit. The director+advisor own
+# levels; the agent PROPOSES with evidence and never moves a cell (MATURITY_MAP.md §0). The
+# fronts_reconciler DETECTS a self-move after the fact; this REFUSES the commit at write time so a
+# false level can never render on the director's site. Reuses gate_authorization.is_valid_level_up
+# (the same predicate the reconciler uses); a level decrease/revert and non-map commits are never
+# blocked. Real incident: the worker self-moved E4 level_current 2->3 in its own commit.
+python3 tools/level_promotion_gate.py || exit 1
