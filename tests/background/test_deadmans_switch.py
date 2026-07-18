@@ -48,6 +48,12 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr("background.status_honesty.evaluate_status_honesty",
                         lambda: {"status": "HONEST", "honest": True, "detail": "(isolated)",
                                  "stale_claims": []})
+    # H23_publish_gate_scope_marker: the operational-layer signal is its own dedicated
+    # surface (test_operational_layer_signal.py) -- isolate it here to a no-op so these
+    # commit-clock/staging tests never trigger a real (slow) pytest -m operational run or
+    # touch the real .operational_layer_signal.json.
+    monkeypatch.setattr("background.process_run_complete.run_operational_layer_signal",
+                        lambda **k: {"ran": False, "reason": "isolated"})
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     _reset_state()
@@ -150,6 +156,33 @@ def test_recent_commits_returns_empty_on_git_failure(monkeypatch):
     assert dms._recent_commits() == []
     # ...and that propagates to 0.0 ("looks stale") at the meaningful clock:
     assert dms._last_meaningful_commit_epoch() == 0.0
+
+
+# ── H23_publish_gate_scope_marker: the operational-layer signal is wired onto
+# THIS timer. Mutation coverage for the signal itself lives in its own
+# dedicated file (test_operational_layer_signal.py); these two tests only
+# prove the WIRING -- run_cycle drives it, and a crash inside it can never
+# take down the deadman cycle (matches every other _check_* in this module).
+
+def test_run_cycle_drives_the_operational_layer_signal(monkeypatch):
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: None)
+    calls = []
+    monkeypatch.setattr("background.process_run_complete.run_operational_layer_signal",
+                        lambda **k: calls.append(1) or {"ran": True})
+    dms.run_cycle()
+    assert calls == [1]
+
+
+def test_operational_layer_signal_crash_does_not_crash_run_cycle(monkeypatch):
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: None)
+
+    def _boom(**k):
+        raise RuntimeError("operational check exploded")
+    monkeypatch.setattr("background.process_run_complete.run_operational_layer_signal", _boom)
+    dms.run_cycle()  # must not raise
+    assert "operational-layer signal check error" in dms.LOG_FILE.read_text()
 
 
 def test_meaningful_clock_fails_closed_and_trips_blocked_when_git_unreadable(monkeypatch):

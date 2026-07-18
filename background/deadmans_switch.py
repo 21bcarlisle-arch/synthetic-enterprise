@@ -383,6 +383,24 @@ def _check_repo_not_bare() -> None:
         log(f"repo-bare check error: {e}")
 
 
+def _check_operational_layer_signal() -> None:
+    """H23_publish_gate_scope_marker (L3): drive process_run_complete.py's
+    independent-cadence green signal for the operational layer
+    (`pytest -m operational`) on this, the ONE standing periodic timer every
+    other check in this module already attaches to. COST-AWARE: the signal
+    self-throttles internally (run_operational_layer_signal is a no-op unless
+    OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS have elapsed since its last real
+    run), so almost every 5-min deadman cycle does nothing here -- the slow
+    suite runs on its own hourly cadence, never on the deadman's own cadence.
+    Purely observational: it can never affect the content publish gate, only
+    page on a PERSISTENT (not single-flake) daemon-lifecycle test regression."""
+    try:
+        from background.process_run_complete import run_operational_layer_signal
+        run_operational_layer_signal()
+    except Exception as e:  # a check that cannot run must not crash the deadman cycle
+        log(f"operational-layer signal check error: {e}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
@@ -391,6 +409,7 @@ def run_cycle() -> None:
     _check_worktree_reconcile()
     _check_status_honesty()
     _check_repo_not_bare()
+    _check_operational_layer_signal()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).

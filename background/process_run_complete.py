@@ -140,6 +140,193 @@ def publish_gate_pytest_argv(test_root="tests/"):
     return argv
 
 
+# ── H23_publish_gate_scope_marker (L3): independent-cadence green signal for
+# the DESELECTED operational layer ────────────────────────────────────────────
+# The partition above is correct SCOPE (a red daemon-lifecycle test must never
+# wedge the live-site publish) but leaves an R11 orphan on its own: deselected
+# from the content gate must not mean uncovered by ANY gate. This gives the
+# operational layer (`pytest -m operational`) its own, independent-cadence
+# green signal, wired onto the existing deadman's-switch timer
+# (background/deadmans_switch.py::run_cycle -> _check_operational_layer_signal),
+# NOT onto every 5-min deadman cycle or every content-publish cycle -- the
+# suite is slow, so it self-throttles to at most once per
+# OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS via a last-run timestamp in its own
+# state file (the same throttle shape as _push_due()/LAST_PUSH_FILE above).
+#
+# R5 transition-only + persistent-red paging: a SINGLE red result is logged
+# and recorded to state but never pages -- a lone flake must not page. Only a
+# PERSISTENT red (>= OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD consecutive
+# checks) fires a real_alarm through the one notify() contract, keyed so an
+# unchanged RED never re-pages faster than OPERATIONAL_LAYER_RE_ESCALATE_
+# SECONDS. Recovery (red -> green) after a persistent-red page is itself a
+# transition and pages once.
+#
+# DECOUPLING (by construction, not just convention): this signal owns its own
+# state file (OPERATIONAL_LAYER_STATE_FILE, distinct from PUBLISH_GATE_STATE_
+# FILE), its own pytest argv (the marker-expression COMPLEMENT of the content
+# gate's), and is never called from anywhere in the commit/push/report/site
+# regeneration path above -- it cannot block, skip, or alter what the content
+# gate publishes, and a red result here can never touch content_gate_pytest_
+# argv's own -m expression or PUBLISH_GATE_STATE_FILE. Purely observational.
+OPERATIONAL_LAYER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".operational_layer_signal.json"
+OPERATIONAL_LAYER_MARKER_EXPR = "operational"
+OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS = 60 * 60   # hourly -- suite is slow; deadman cycles every 5min
+OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD = 2       # consecutive red checks before paging (no single-flake page)
+OPERATIONAL_LAYER_RE_ESCALATE_SECONDS = 60 * 60      # re-page hourly while red persists (matches deadman cadence)
+OPERATIONAL_LAYER_TRANSITION_KEY = "operational_layer_signal"
+
+
+def operational_layer_pytest_argv(test_root="tests/"):
+    """The exact pytest argv the independent operational-layer signal runs --
+    the COMPLEMENT of publish_gate_pytest_argv's deselection above. Factored
+    out for the same reason (R15: a control's scope must be inspectable)."""
+    return [sys.executable, "-m", "pytest", test_root, "-q", "--tb=short",
+            "-m", OPERATIONAL_LAYER_MARKER_EXPR]
+
+
+def _read_operational_layer_state():
+    """FAIL-CLOSED read (R15 fail-silent doctrine, same shape as
+    _read_publish_gate_state above): an unreadable/corrupt state file resets
+    the streak counters to zero rather than assuming a prior green, and
+    reports state_unavailable=True so a caller can choose to treat it as due
+    immediately rather than silently skip."""
+    if not OPERATIONAL_LAYER_STATE_FILE.exists():
+        return {"last_run_ts": None, "last_result": None, "consecutive_red": 0,
+                "consecutive_green": 0, "state_unavailable": False}
+    try:
+        st = json.loads(OPERATIONAL_LAYER_STATE_FILE.read_text())
+        if not isinstance(st, dict):
+            raise ValueError("operational-layer state is not an object")
+        st.setdefault("last_run_ts", None)
+        st.setdefault("last_result", None)
+        st.setdefault("consecutive_red", 0)
+        st.setdefault("consecutive_green", 0)
+        st["state_unavailable"] = False
+        return st
+    except (json.JSONDecodeError, OSError, ValueError):
+        return {"last_run_ts": None, "last_result": None, "consecutive_red": 0,
+                "consecutive_green": 0, "state_unavailable": True}
+
+
+def _write_operational_layer_state(state):
+    out = {
+        "last_run_ts": state.get("last_run_ts"),
+        "last_result": state.get("last_result"),
+        "consecutive_red": state.get("consecutive_red", 0),
+        "consecutive_green": state.get("consecutive_green", 0),
+    }
+    OPERATIONAL_LAYER_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    OPERATIONAL_LAYER_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+
+
+def _operational_layer_check_due(now, state):
+    """True if the throttle interval has elapsed (or no run is on record, or
+    the state file itself was unreadable -- fail toward running the check
+    rather than silently skipping it forever)."""
+    if state.get("state_unavailable"):
+        return True
+    last_run = state.get("last_run_ts")
+    if last_run is None:
+        return True
+    try:
+        return (float(now) - float(last_run)) >= OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS
+    except (TypeError, ValueError):
+        return True
+
+
+def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_fn=None, force=False):
+    """Independent-cadence green signal for the DESELECTED operational layer
+    (H23 L3). Runs `pytest -m operational`, records green/red to its OWN state
+    file, and pages the director ONLY on a PERSISTENT red (>= N consecutive
+    checks) -- a single red logs but never pages (R5: no flake pages).
+    Recovery (red -> green) following a persistent-red page is itself a
+    transition and pages once.
+
+    Deliberately DECOUPLED from the content publish gate: this never runs
+    publish_gate_pytest_argv(), never reads/writes PUBLISH_GATE_STATE_FILE,
+    and its result cannot reach commit_and_push_if_changed or the report/site
+    regeneration path -- nothing in this module calls it from there. Purely
+    observational.
+
+    `runner` -- injectable callable(argv) -> object with a `.returncode`
+    attribute, defaulting to a real `subprocess.run` of
+    operational_layer_pytest_argv(). Tests stub this so the real (slow) suite
+    never runs in the unit test. Fully defensive: any internal error is
+    logged and swallowed -- a monitoring check must never raise into its
+    caller (matches every other check in deadmans_switch.py)."""
+    log_fn = log_fn or log
+    if notify_fn is None:
+        from background.notify import notify as _notify
+        notify_fn = _notify
+    now = float(now) if now is not None else time.time()
+    try:
+        state = _read_operational_layer_state()
+        if not force and not _operational_layer_check_due(now, state):
+            return {"ran": False, "reason": "throttled"}
+
+        if runner is None:
+            def runner(argv):
+                return subprocess.run(argv, cwd=str(PROJECT_DIR), timeout=1800)
+        result = runner(operational_layer_pytest_argv())
+        rc = getattr(result, "returncode", None)
+        is_green = (rc == 0)
+
+        consecutive_red = int(state.get("consecutive_red") or 0)
+        consecutive_green = int(state.get("consecutive_green") or 0)
+        paged = False
+
+        if is_green:
+            was_persistent_red = consecutive_red >= OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD
+            consecutive_red = 0
+            consecutive_green += 1
+            if was_persistent_red:
+                notify_fn(
+                    "[OPERATIONAL LAYER RECOVERED] The independent-cadence operational-layer "
+                    "signal (`pytest -m operational`, deselected from the content publish gate) "
+                    "is GREEN again after a persistent red. Daemon-lifecycle tests recovered; "
+                    "the live site/report was never affected by the prior red.",
+                    kind="real_alarm", transition_key=OPERATIONAL_LAYER_TRANSITION_KEY, state="GREEN",
+                )
+                paged = True
+                log_fn("Operational-layer signal: RECOVERED (green after persistent red) -- paged")
+            else:
+                log_fn("Operational-layer signal: green (consecutive_green={})".format(consecutive_green))
+        else:
+            consecutive_green = 0
+            consecutive_red += 1
+            if consecutive_red >= OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD:
+                notify_fn(
+                    "[OPERATIONAL LAYER RED] The independent-cadence operational-layer signal "
+                    "(`pytest -m operational`, deselected from the content publish gate so it can "
+                    "never wedge the live site) has been RED for {} consecutive check(s) (rc={}). "
+                    "This does NOT affect the published site/report -- it is a daemon-lifecycle "
+                    "test regression. Check tests/ for @pytest.mark.operational failures directly."
+                    .format(consecutive_red, rc),
+                    kind="real_alarm", transition_key=OPERATIONAL_LAYER_TRANSITION_KEY, state="RED",
+                    re_escalate_after=OPERATIONAL_LAYER_RE_ESCALATE_SECONDS,
+                )
+                paged = True
+                log_fn("Operational-layer signal: RED, persistent ({} consecutive) -- paged".format(
+                    consecutive_red))
+            else:
+                log_fn(
+                    "Operational-layer signal: red (consecutive_red={}, below persistent threshold "
+                    "{}) -- logged, not paged (single flake)".format(
+                        consecutive_red, OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD))
+
+        _write_operational_layer_state({
+            "last_run_ts": now,
+            "last_result": "green" if is_green else "red",
+            "consecutive_red": consecutive_red,
+            "consecutive_green": consecutive_green,
+        })
+        return {"ran": True, "green": is_green, "rc": rc, "consecutive_red": consecutive_red,
+                "consecutive_green": consecutive_green, "paged": paged}
+    except Exception as exc:
+        log_fn("Operational-layer signal check error (swallowed): {}".format(exc))
+        return {"ran": False, "reason": "error", "error": str(exc)}
+
+
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.tree_lock import tree_lock  # noqa: E402
