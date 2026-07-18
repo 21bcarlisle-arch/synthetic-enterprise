@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T18:18:26Z
+Last updated: 2026-07-18T18:31:05Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -80,15 +80,18 @@ and schema_sim_structure gates (verified via the reconciler before flipping — 
 `simulation/payment_seam_adapter.py` (W2_11 fills the seam — truth→observable many-to-one non-invertible collapse
 proven via the real generator, 25 tests) + `company/billing/payment_observation_consumer.py` (D5 builds belief
 from seam observables ONLY — AST-proven no-sim-import, C-S1/C-S3 order-independent/idempotent/missing-tolerant,
-20 tests; reuses AccountLedger unchanged). **PAYMENT TRIAD — GAP SCORER BUILT; ledger-registration was PREMATURE, backed out (honesty correction).** The gap
-rung `H27_payment_belief_gap` is built and the belief-vs-truth gap is **measured by the tool** (`tools/couple_w2_11_d5.py`,
-13 tests, on origin) — but I over-claimed "triad closed": writing the gap into the shared `coupled_gap_ledger.json`
-before the W2_11↔D5 coupling was wired into `coupled_triad.py`'s authoritative table made the Proof door count
-unmapped extras (11 pairs vs 7) and **wedged the publish gate** (3 proof-gaps tests red). I removed those premature
-entries to unwedge; `gap_measured('W2_11')` is now False again. **The measurement is real and preserved**; what's
-outstanding is the coupling wiring (off-front) + re-registration, after which W2_11/D5→L3 becomes ratifiable.
-The L3-ratification action-needed item is corrected to this prerequisite state; the director should NOT ratify yet.
-[Historical note — the pre-correction claim below is superseded by this paragraph.]
+20 tests; reuses AccountLedger unchanged). **PAYMENT COUPLED TRIAD — GENUINELY CLOSED (director console ruling 2026-07-18, executed).** Sequence: I first
+over-claimed "closed" and wrote the gap to the shared ledger before wiring the coupling — that wedged the publish
+gate (Proof-door counted unmapped extras); I backed it out + corrected. **The director then RATIFIED W2_11→L1,
+W4_4→L2** (cells moved, LEVEL_UP recorded channel:console — the honest levels, not the premature L3) and
+**AUTHORIZED wiring the coupling + measuring for real**, which I executed: `coupled_triad._AUTHORITATIVE_COUPLING`
+now carries W2_11↔D5 (8th pair), the scorer writes one bare headline entry (twin=`D5_account_hierarchy_payments`,
+no `::suffixed` pollution), **`gap_measured('W2_11')=True`** (detection 0.30 — the no-remittance blind spot;
+belief 0.073), the Proof door shows 8 mapped pairs, and the full publish gate is green. **H27→L2 PROPOSED**
+(genuinely measured now, per his ruling; he ratifies the cell). The L3-ratification action-needed item is RESOLVED.
+**Lesson landed:** don't write to a shared derived surface (Proof-door ledger) before its coupling is wired, and
+don't claim "closed" before the full gate is green. **NEXT CAMPAIGN (his ruling): A — site rebuild per the
+reconciled site specs, W1 DISCOVER alongside.**
 Non-trivial gaps proven (R12/R13, non-tuned): **detection 0.30** — the headline: 78 of 257 true failures are non-DD
 and *never observed* through the seam (the no-remittance blind spot, leak-witness 0 every seed); **belief 0.073**
 (arrears/cash inference vs truth). R15-independent (the consumer never receives truth — runtime spy-tested +
@@ -131,7 +134,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (471s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (512s / 9 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
