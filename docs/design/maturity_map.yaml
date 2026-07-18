@@ -1907,3 +1907,17 @@
   file_scope: [company/crm/account_hierarchy.py, company/billing/account_ledger.py, company/billing/arrears_engine.py]
   simplifications:
   - '2026-07-18 BUILD L1->L2 (director open-front, console-orchestrated worktree fork, orchestrator-verified+merged: 66/66 tests, epistemic PASS 513 files, C-S1/C-S2 idempotency+out-of-order+deterministic-replay TESTED not asserted). party->account->agreement->supply-point spine coordinating with existing supply_point_register/DualFuel/Multisite; one LedgerEvent stream, balance-based + open-item (remittance-else-oldest-first, disputed excluded) views emitting the SAME bitemporal events; segment-parameterised arrears (30/60/90+ ageing, per-segment dunning, LPCDA-1998 B2B-only statutory interest, dated/reasoned P&L-visible write-offs). HONEST GAPS (L3 blockers): (1) NOT wired into a running sim -- no coupled-triad belief-vs-truth gap measured yet; (2) invoice.py SQLite store NOT migrated onto the event model (deliberate); (3) dispute state passed in, not live-read from ic_invoice_dispute_register; (4) SLC-27 recalled not live-verified (R9); (5) oldest-first simplifies Clayton''s-Case (R10). L3 = sim->ledger wiring + coupled-world gap.'
+- id: E4_supplier_reporting_standard
+  name: "Supplier reporting standard: CSS-shaped Consolidated Segmental Statement (Ofgem SLC 19A form, 4 segments + aggregate) + board KPI block, wired into the live annual report; fuel-mix disclosure already exists; obligations-register additions deferred"
+  lane: E_finance_treasury
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 2
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  provenance: director_console
+  evidence: [docs/staging/in_progress/SUPPLIER_REPORTING_STANDARD.md, saas/reporting/css_statement.py, saas/reporting/annual_report.py, 'docs/reports/ANNUAL_REPORT.md (CSS section RENDERS live at line 32: 4-segment P&L, WACOE/WACOG, meter points, settlement->statutory reconciliation -- R11 verified to rendered value)', 'tests/saas/test_e4_css_statement.py (13 tests) + 309 report tests green, epistemic PASS']
+  file_scope: [saas/reporting/css_statement.py, saas/reporting/annual_report.py]
+  simplifications:
+  - '2026-07-18 BUILD L0->L2 (director open-front, console-orchestrated worktree fork, orchestrator-verified+merged: CSS renders live in ANNUAL_REPORT.md with real ledger-derived figures, waterfall reconciles to revenue <£1, 13 invariant tests + 309 report tests green, epistemic PASS, R14 clocks throughout). Presented on SETTLEMENT basis (only basis with per-segment granularity, revenue £14.03m) bridged to BILLED statutory accounts (£18.88m), the £4.85m difference surfaced as the headline reconciling item not hidden. HONEST GAPS (L3 blockers): (1) D&A reported £0 -- no fixed-asset/amortisation layer exists (named gap); (2) per-segment indirect allocation stays at GROUP level -- no activity-driver model (named, not fabricated); (3) SUPPLIER_REPORTING §4 obligations-register additions (capital adequacy/FMD/cyber) live in company/compliance -- OUTSIDE this fork file_scope, deferred; (4) R15 mutation tests for the reconciliation controls NOT yet in place; (5) transportation-vs-environmental sub-split uses a disclosed commodity-ratio approximation. L3 needs a HARDEN/cold-eyes pass on the allocation choices + R15 mutation discipline.'
