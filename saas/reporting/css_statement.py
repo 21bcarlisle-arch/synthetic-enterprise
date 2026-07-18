@@ -29,6 +29,7 @@ reported as an HONEST NAMED GAP, never a fabricated allocation.
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 
 KWH_PER_THERM = 29.3071  # 1 therm = 29.3071 kWh (gas volume conversion)
@@ -233,6 +234,106 @@ def build_css(data: dict) -> dict | None:
     }
 
 
+# ------------------------------------------------------------- reconciliation control
+#
+# R15 (controls-that-cannot-fail): the CSS reconciliation invariants are extracted here
+# as a SINGLE callable control that MUST be able to FAIL. It is wired into `render_css`
+# (a violation renders a LOUD banner instead of a clean statement — closing the FAIL-
+# SILENT hole where a broken CSS would otherwise be swallowed to "" by the annual-report
+# wrapper) and is mutation-tested in tests/saas/test_e4_css_reconciliation_control.py:
+# each named defect is injected and this function is asserted to report it.
+#
+# Independence note (honest): three of these checks are INTERNAL-consistency checks that
+# guard the persisted/rendered artifact (a downstream transform, rounding, or serialisation
+# bug cannot silently break the tie a reader sees) — waterfall, aggregate==sum-of-segments,
+# and the settlement→billed bridge, whose reconciling item is a derived plug at BUILD time.
+# One check is genuinely INDEPENDENT (a different data path): the CSS aggregate revenue,
+# summed from the classified per-segment buckets, must tie to the top-line settlement
+# revenue `sum(years[*].revenue_gbp)`. That fires when a `segment_split` key fails to
+# classify and is silently dropped — the real FAIL-SILENT risk in `_classify_split_key`.
+
+RECON_TOL_GBP = 1.0
+
+_MONEY_KEYS = (
+    "revenue_gbp", "fuel_gbp", "transportation_gbp", "environmental_gbp",
+    "other_direct_gbp", "contribution_gbp", "non_commodity_gbp",
+)
+
+
+def _finite_num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+
+
+def verify_css_reconciliation(
+    css: dict | None, data: dict | None = None, *, tol: float = RECON_TOL_GBP
+) -> list[str]:
+    """Return reconciliation violations (empty list == clean). The R15 control.
+
+    FAIL-CLOSED by design: a missing/malformed structure or a non-finite figure is a
+    violation, never a silent pass (guards the FAIL-OPEN and FAIL-SILENT killer patterns).
+    """
+    if not css or not isinstance(css, dict) or "segments" not in css or "aggregate" not in css:
+        return ["css structure missing segments/aggregate (control fails closed)"]
+
+    segs = css["segments"]
+    agg = css["aggregate"]
+    v: list[str] = []
+
+    # FAIL-OPEN guard — every stored money figure must be a finite number.
+    for s in CSS_SEGMENTS:
+        if s not in segs:
+            v.append(f"missing segment '{s}'")
+            continue
+        for k in _MONEY_KEYS:
+            if not _finite_num(segs[s].get(k)):
+                v.append(f"fail-open guard: {s}.{k} is non-finite ({segs[s].get(k)!r})")
+
+    # Control A — per-segment waterfall reconciles to revenue (< tol).
+    for s in CSS_SEGMENTS:
+        x = segs.get(s) or {}
+        if all(_finite_num(x.get(k)) for k in _MONEY_KEYS):
+            wf = (x["fuel_gbp"] + x["transportation_gbp"] + x["environmental_gbp"]
+                  + x["other_direct_gbp"] + x["contribution_gbp"])
+            if abs(wf - x["revenue_gbp"]) > tol:
+                v.append(f"waterfall '{s}': components sum {wf:,.2f} != revenue {x['revenue_gbp']:,.2f}")
+            if abs((x["transportation_gbp"] + x["environmental_gbp"]) - x["non_commodity_gbp"]) > tol:
+                v.append(f"transport+env '{s}' != non_commodity")
+
+    # Control B — aggregate == sum of segments (persisted-artifact integrity).
+    for k in ("revenue_gbp", "fuel_gbp", "gross_margin_gbp", "contribution_gbp",
+              "transportation_gbp", "environmental_gbp", "volume_mwh"):
+        seg_sum = sum((segs.get(s) or {}).get(k, 0.0) for s in CSS_SEGMENTS)
+        if not _finite_num(agg.get(k)) or abs(agg[k] - seg_sum) > tol:
+            v.append(f"aggregate '{k}' {agg.get(k)!r} != sum-of-segments {seg_sum:,.2f}")
+
+    # Control B' — INDEPENDENT: aggregate revenue ties to top-line settlement revenue.
+    # Different data path (year top-line vs summed segment buckets); fires on a
+    # segment_split key that failed to classify and was silently dropped.
+    if data is not None:
+        yrs = data.get("years") or {}
+        topline = sum(y.get("revenue_gbp", 0.0) for y in yrs.values())
+        if topline and abs(agg.get("revenue_gbp", 0.0) - topline) > max(tol, abs(topline) * 1e-6):
+            v.append(
+                f"independent tie: aggregate revenue {agg.get('revenue_gbp', 0.0):,.2f} != "
+                f"top-line settlement {topline:,.2f} (an unclassified segment_split key was dropped)"
+            )
+
+    # Control C — settlement→billed bridge (presentation integrity of the reconciling triple).
+    rec = css.get("reconciliation") or {}
+    a = rec.get("css_settlement_revenue_gbp")
+    diff = rec.get("revenue_basis_difference_gbp")
+    b = rec.get("statutory_billed_revenue_gbp")
+    if all(_finite_num(x) for x in (a, diff, b)):
+        if abs((a + diff) - b) > tol:
+            v.append(f"bridge: settlement {a:,.2f} + basis diff {diff:,.2f} != statutory billed {b:,.2f}")
+        if abs(a - agg.get("revenue_gbp", 0.0)) > tol:
+            v.append("bridge: css_settlement_revenue != aggregate revenue")
+    else:
+        v.append("bridge: fail-open guard — non-finite reconciliation figure")
+
+    return v
+
+
 # --------------------------------------------------------------------------- render
 
 def _g(v: float | None) -> str:
@@ -260,6 +361,20 @@ def render_css(data: dict) -> str:
     stat = css["statutory"]
     rec = css["reconciliation"]
 
+    # R15: run the reconciliation control and render a LOUD banner on any violation.
+    # This closes the FAIL-SILENT hole — a broken CSS is visible in the report, not
+    # swallowed to "" by the annual-report wrapper's broad except.
+    _violations = verify_css_reconciliation(css, data)
+    _recon_banner = ""
+    if _violations:
+        _recon_banner = (
+            "\n> **⚠ CSS RECONCILIATION CONTROL FIRED** — the segmental statement below "
+            "did NOT reconcile and is shown for diagnosis only, NOT as an audited figure "
+            "(R15: an unavailable/failed check is a failed check, surfaced loudly):\n"
+            + "\n".join(f">  - {x}" for x in _violations)
+            + "\n"
+        )
+
     hdr = "| £, settlement basis | " + " | ".join(
         [s.replace("Electricity", "Elec").replace("Non-Domestic", "Non-Dom")
          for s in CSS_SEGMENTS] + ["**Aggregate**"]) + " |"
@@ -271,6 +386,10 @@ def render_css(data: dict) -> str:
         "*Ofgem-format segmental statement (SLC 19A shape) — the reporting backbone. "
         "Company's own publication; every figure derived from settlement records and the "
         "ledger, none hand-typed.*",
+    ]
+    if _recon_banner:
+        lines.append(_recon_banner)
+    lines += [
         "",
         "**Basis (R14):** the segmental P&L below is on a **settlement basis** (accrual on "
         "settled volume) — the only basis at which the company attributes P&L per segment. "
@@ -372,6 +491,37 @@ def render_css(data: dict) -> str:
         "billed; **banked** = cash collected. The revenue basis difference is the single largest "
         "reconciling item and is expected — the CSS values energy on settled volume, the "
         "statutory accounts on what was billed.*",
+        "",
+    ]
+
+    # Consolidated R10 named-simplifications block — every gap declared in ONE visible
+    # place with rationale, so the statement is honest about what is NOT modelled rather
+    # than fabricating a D&A layer or an activity-driver allocation to hide it.
+    lines += [
+        "### Named simplifications (R10) — what this statement does NOT model",
+        "",
+        "*These are declared, not fabricated. Building a speculative fixed-asset or "
+        "activity-driver layer to fill them would be a fidelity regression, not an "
+        "improvement — the honest L3 move is to name them.*",
+        "",
+        "| Item | Treatment | Rationale |",
+        "|---|---|---|",
+        "| Depreciation & amortisation | **Not modelled — reported £0** | No fixed-asset / "
+        "capitalisation / amortisation layer exists, so there is nothing to depreciate. EBITDA "
+        "therefore equals EBIT. A fabricated D&A charge would be a made-up number. |",
+        "| Per-segment indirect cost allocation | **Group-level only (not attributed to "
+        "segments)** | No activity-driver / cost-to-serve-by-segment model exists. Indirect "
+        "costs (bad debt, cost-to-serve, acquisition, overhead, capital charge) are shown at "
+        "group level; splitting them across segments without a driver model would be an "
+        "arbitrary allocation presented as fact. |",
+        "| Transportation vs environmental sub-split | **Commodity-ratio approximation "
+        "(disclosed)** | The per-segment non-commodity TOTAL is exact (settlement-attributed); "
+        "only its transport/environmental SUB-split uses the commodity-level "
+        "transport:environmental ratio. CCL is non-domestic-only in reality, so the ratio split "
+        "of that sub-line is approximate. |",
+        "| Cost-to-serve sub-components (metering, PSR, R&D) | **Single line — not "
+        "decomposed** | CSS guidance names these sub-components; no sub-decomposition model "
+        "exists yet, so they are reported as one cost-to-serve line rather than fabricated. |",
         "",
     ]
 
