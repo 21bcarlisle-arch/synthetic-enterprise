@@ -122,6 +122,31 @@ class ReportingVisibility(str, Enum):
     PERIODIC_REPORT = "periodic_report"     # Tier 2/3: rolls into the compliance report
 
 
+class AutomationStatus(str, Enum):
+    """Whether an automated check backs this obligation, or it is monitored by a
+    human process / produced-but-unvalidated artefact only.
+
+    AUTOMATED  -- a resolving tracker module or an enforcing domain invariant
+                  provides a machine check. LEGACY DEFAULT: existing rows leave
+                  `automation_status=None`, meaning "governed by the existing
+                  tracker/invariant machinery" (their coverage is judged by
+                  tracker_resolves()/enforcing_invariant_key, unchanged); None is
+                  simply "not explicitly declared MANUAL". This value exists for
+                  a row that wants to assert automation explicitly.
+    MANUAL     -- no automated check exists YET. The obligation is real and is
+                  REGISTERED NOW, but it is discharged by a human process or a
+                  produced-but-unvalidated artefact, or is not yet checkable
+                  because an underlying data layer is absent. A MANUAL row MUST
+                  carry a `becomes_checkable_when` note and MUST NOT resolve a
+                  tracker -- otherwise it would read as a false GREEN (R15
+                  fail-open-green). This is the honest register-now / check-later
+                  state the SUPPLIER_REPORTING_STANDARD §4 additions require,
+                  NOT a fabricated check that fail-opens.
+    """
+    AUTOMATED = "automated"
+    MANUAL = "manual"
+
+
 # Known regulatory regimes. Not exhaustive -- extend as the register grows.
 # The point (PORTABILITY item 6): an obligation is keyed by regime, NOT
 # implicitly Ofgem, so a second market's regulator fits the same shape.
@@ -193,6 +218,18 @@ class Obligation:
     `effective_from`/`effective_to` are backfilled ONLY where a real, cited
     date exists (never fabricated); None otherwise.
 
+    `automation_status` (default None) declares whether an automated check backs
+    this obligation. Set MANUAL for an obligation that is real and registered now
+    but has no automated check yet (discharged by a human process / a produced-
+    but-unvalidated artefact, or not yet checkable because an underlying data
+    layer is absent). A MANUAL row MUST also set `becomes_checkable_when` and
+    MUST NOT resolve a tracker -- `manual_declaration_violations()` is the R15
+    control that FIRES if either is broken (a MANUAL row must never read as a
+    false GREEN). `cross_reference` is a repo pointer to a surface that PRODUCES
+    the obligation's output (e.g. a report section) WITHOUT being an automated
+    validator of it -- kept separate from `tracker_paths` precisely so a
+    produce-only surface never counts as coverage.
+
     `testing_frequency` and the tier-derived defaults (control_type/
     testing_depth/reporting_visibility) can be overridden per-obligation when
     judgment differs from the mechanical default -- always paired with
@@ -210,6 +247,9 @@ class Obligation:
     enforcing_invariant_key: Optional[str] = None
     effective_from: Optional[date] = None
     effective_to: Optional[date] = None
+    automation_status: Optional[AutomationStatus] = None
+    becomes_checkable_when: Optional[str] = None
+    cross_reference: Optional[str] = None
     testing_frequency: ValidationFrequency = ValidationFrequency.PERIODIC
     control_type_override: Optional[ControlType] = None
     testing_depth_override: Optional[ValidationDepth] = None
@@ -234,8 +274,15 @@ class Obligation:
     @property
     def claims_coverage(self) -> bool:
         """This obligation asserts a monitoring tracker exists (via either the
-        machine-checkable paths or the human free-text pointer)."""
+        machine-checkable paths or the human free-text pointer). `cross_reference`
+        is deliberately NOT counted -- a surface that merely PRODUCES the
+        obligation's output is not a claim that the output is validated."""
         return bool(self.tracker_paths) or self.existing_tracker is not None
+
+    @property
+    def is_manual(self) -> bool:
+        """Explicitly declared MANUAL-by-design (no automated check yet)."""
+        return self.automation_status == AutomationStatus.MANUAL
 
 
 def tracker_resolves(obligation: Obligation) -> bool:
@@ -567,6 +614,134 @@ REGISTER: list[Obligation] = [
         existing_tracker=None,
         testing_frequency=ValidationFrequency.PER_BILL_RUN,
     ),
+    # === SUPPLIER_REPORTING_STANDARD.md §4: three additions ==================
+    # All three are MANUAL-by-design: registered NOW as design inputs / go-live
+    # checklist items, but with NO automated check yet (no fabricated fail-open
+    # green). Each carries a `becomes_checkable_when` note. R9 provenance: the
+    # framework NAMES and the £115 figure are RECALLED from prior research, NOT
+    # live-verified in this session (no network); exact statutory in-force dates
+    # are NOT fabricated (effective_from left None, matching the gas_safety row's
+    # precedent), so `source` cites the instrument/year only.
+    Obligation(
+        id="capital_adequacy_floor_target",
+        name="Capital adequacy -- Capital Floor (positive adjusted net assets) + Capital Target (GBP115 adjusted net assets / dual-fuel customer)",
+        source=(
+            "Ofgem Financial Resilience programme -- Minimum Capital Requirement "
+            "/ Capital Target (adjusted net assets = net assets less intangibles "
+            "& goodwill), under the SLC 4B Financial Responsibility Principle and "
+            "the capital/ring-fencing licence conditions"
+        ),
+        regime="Ofgem",
+        impact=ImpactTier.LICENCE_REGULATORY,
+        likelihood=Likelihood.LOW,
+        rationale=(
+            "Ofgem's post-2021-crisis capital adequacy framework: a Capital FLOOR "
+            "(adjusted net assets must be positive -- net assets less intangibles "
+            "and goodwill) and a phased Capital TARGET of GBP115 adjusted net "
+            "assets per dual-fuel-equivalent domestic customer. A licence-condition "
+            "obligation, so impact=LICENCE_REGULATORY; likelihood=LOW because there "
+            "is NO cash / balance-sheet / working-capital layer in the sim yet to "
+            "breach it. MANUAL-by-design: NOT checkable now -- there is nothing to "
+            "compute adjusted net assets from. Registered now as a DESIGN INPUT to "
+            "the future Epoch-2 cash/collateral/working-capital layer, which must "
+            "expose net assets, intangibles/goodwill and a dual-fuel customer count "
+            "so the floor and the per-customer target become computable. R9: the "
+            "GBP115 figure and the Floor/Target structure are RECALLED from prior "
+            "research, not live-verified here; exact phase-in dates deliberately "
+            "not fabricated (effective_from=None)."
+        ),
+        existing_tracker=None,
+        automation_status=AutomationStatus.MANUAL,
+        becomes_checkable_when=(
+            "the Epoch-2 cash/collateral/working-capital layer lands and exposes "
+            "adjusted net assets (net assets less intangibles & goodwill) plus a "
+            "dual-fuel-equivalent customer count -- then Floor (>0) and Target "
+            "(>= GBP115/customer) become full-population computable and this row "
+            "gains an enforcing invariant."
+        ),
+        testing_frequency=ValidationFrequency.PERIODIC,
+    ),
+    Obligation(
+        id="fuel_mix_disclosure",
+        name="Annual Fuel Mix Disclosure -- fuel mix of electricity supplied + CO2 intensity (g/kWh)",
+        source=(
+            "Electricity (Fuel Mix Disclosure) Regulations 2005 (SI 2005/391) + "
+            "the electricity supply licence fuel-mix-disclosure condition (annual "
+            "disclosure of the fuel mix of electricity supplied and its carbon "
+            "intensity)"
+        ),
+        regime="Ofgem",
+        impact=ImpactTier.REPUTATIONAL,
+        likelihood=Likelihood.LOW,
+        rationale=(
+            "Standing annual GB supplier licence obligation: publish the fuel mix "
+            "of the electricity SUPPLIED and its CO2 intensity in g/kWh (absent "
+            "REGO purchases, the disclosed mix is the RESIDUAL mix -- modelled "
+            "honestly, not claimed green). Impact=REPUTATIONAL/licence (a "
+            "mis-statement is a transparency/mis-selling exposure, not direct "
+            "customer financial harm), matching the sibling green_claims_rego row. "
+            "DISTINCT from green_claims_rego, which is about REGO-backing of GREEN "
+            "TARIFF claims; this is the mix of ALL electricity supplied. "
+            "MANUAL-by-design: the disclosure is PRODUCED by the annual report's "
+            "fuel-mix section (see cross_reference) but NOTHING validates that it "
+            "fires each period, is complete, or reconciles -- so it is reported "
+            "MANUAL, never auto-GREEN. cross_reference is kept OUT of tracker_paths "
+            "on purpose: a produce-only surface is not a validator (would be "
+            "R15 fail-open-green). R9: '2005 / SI 2005/391' recalled, not live-"
+            "verified; exact in-force date not fabricated (effective_from=None)."
+        ),
+        existing_tracker=None,
+        automation_status=AutomationStatus.MANUAL,
+        cross_reference="saas/reporting/annual_report.py::_section_fuel_mix_disclosure",
+        becomes_checkable_when=(
+            "a validator asserts the annual fuel-mix-disclosure section is present "
+            "for each reporting period, that its percentages sum to 100%, and that "
+            "the disclosed CO2 intensity reconciles to the settlement volumes x "
+            "published NESO grid intensity -- then this becomes a per-report gate "
+            "rather than a produced-but-unvalidated artefact."
+        ),
+        testing_frequency=ValidationFrequency.PERIODIC,
+    ),
+    Obligation(
+        id="cyber_baseline_nis",
+        name="Cyber security baseline (NIS / Cyber Security & Resilience Bill direction of travel)",
+        source=(
+            "Network and Information Systems Regulations 2018 (SI 2018/506), under "
+            "which Ofgem is the competent authority for the downstream gas & "
+            "electricity sub-sector; plus the Cyber Security & Resilience Bill / "
+            "DESNZ-Ofgem consultation direction of travel toward baseline cyber "
+            "requirements for ALL licensees"
+        ),
+        regime="Ofgem",
+        impact=ImpactTier.LICENCE_REGULATORY,
+        likelihood=Likelihood.LOW,
+        rationale=(
+            "Ofgem is the NIS competent authority for downstream energy; today NIS "
+            "duties bite on Operators of Essential Services above thresholds, but "
+            "the direction of travel (Cyber Security & Resilience Bill + live "
+            "DESNZ/Ofgem consultation) is a BASELINE cyber requirement for all "
+            "licensees. NOT sim physics: this is an OPERATIONAL / GO-LIVE obligation "
+            "on the real deployed platform, aligned to the Hardened security "
+            "profile (an Epoch-5 go-live NFR, per CLAUDE.md). Impact=LICENCE_"
+            "REGULATORY, likelihood=LOW at current (non-live, sub-threshold) scale "
+            "-- both would rise at go-live. MANUAL-by-design: a register entry + a "
+            "go-live checklist item, with no in-sim automated check because there "
+            "is no in-sim behaviour to check. R9: NIS Regs 2018 (SI 2018/506) and "
+            "Ofgem's competent-authority role recalled, not live-verified; exact "
+            "in-force date not fabricated (effective_from=None); the CSRB is "
+            "explicitly labelled 'direction of travel', not enacted."
+        ),
+        existing_tracker=None,
+        automation_status=AutomationStatus.MANUAL,
+        becomes_checkable_when=(
+            "the go-live Hardened security profile is built (container, unreadable "
+            "creds, audit, RBAC -- the Epoch-5 NFR) and its controls become "
+            "auditable against a baseline cyber checklist; this is a real-platform "
+            "operational obligation, not sim physics, so it is checked at the "
+            "deployment layer, never inside the simulation."
+        ),
+        testing_frequency=ValidationFrequency.PERIODIC,
+    ),
 ]
 
 
@@ -586,6 +761,38 @@ def obligations_without_a_tracker() -> list[Obligation]:
     compliance function flags as unmonitored -- not something to silently
     paper over here."""
     return [o for o in REGISTER if o.existing_tracker is None and not o.tracker_paths]
+
+
+def manual_obligations() -> list[Obligation]:
+    """Obligations explicitly declared MANUAL-by-design: real and registered
+    now, but with NO automated check yet (a human process / produced-but-
+    unvalidated artefact, or not-yet-checkable pending an absent data layer).
+    Each carries a `becomes_checkable_when` note. Distinct from a DEGRADED
+    tracker (a claimed-but-broken automated check) -- MANUAL rows never claimed
+    an automated check in the first place."""
+    return [o for o in REGISTER if o.is_manual]
+
+
+def manual_declaration_violations() -> list[tuple[str, str]]:
+    """R15 control -- the register must report a MANUAL obligation as MANUAL,
+    never as a false GREEN. A MANUAL row is HONEST only if it (a) states WHEN it
+    becomes checkable and (b) does NOT resolve an automated tracker (a MANUAL
+    row that also resolved a tracker would read as automated-covered). Returns
+    (id, reason) for every violation -- empty when the register is honest.
+
+    FIRES by construction (mutation-testable): give a MANUAL row a resolving
+    tracker_path, or drop its becomes_checkable_when note, and it appears here.
+    An unavailable/empty result here is not a pass by default -- callers assert
+    it is exactly [] on the live register."""
+    out: list[tuple[str, str]] = []
+    for o in REGISTER:
+        if not o.is_manual:
+            continue
+        if not o.becomes_checkable_when:
+            out.append((o.id, "MANUAL obligation missing becomes_checkable_when note"))
+        if tracker_resolves(o):
+            out.append((o.id, "MANUAL obligation resolves an automated tracker (fail-open-green risk)"))
+    return out
 
 
 def degraded_trackers() -> list[Obligation]:
@@ -644,5 +851,7 @@ def register_summary() -> dict:
         "physical_harm_ids": [o.id for o in physical_harm_obligations()],
         "gaps_without_tracker": [o.id for o in obligations_without_a_tracker()],
         "degraded_tracker_ids": [o.id for o in degraded_trackers()],
+        "manual_ids": [o.id for o in manual_obligations()],
+        "manual_declaration_violations": manual_declaration_violations(),
         "enforcing_invariant_keys": enforcing_invariant_keys(),
     }
