@@ -16,6 +16,7 @@ import time
 import pytest
 
 from background import agenda as agenda_module
+from background import fronts_reconciler
 from background import supervisor
 
 
@@ -64,6 +65,15 @@ def _isolate(tmp_path, monkeypatch):
     # -- defaults to a nonexistent tmp_path file so pre-existing backlog-
     # fallback tests still exercise the fallback path specifically.
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
+    # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
+    # other live-state path above -- point it at a nonexistent tmp file so the
+    # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts
+    # enforcement is a director console act, live on main since 2026-07-18;
+    # this fixture predates it, so without this the draw's synthetic fixture
+    # atoms -- lane L, id X1, not in any real open front -- would be filtered
+    # to zero and every draw test would fail on a concern it does not test).
+    # The fronts filter itself is covered independently in test_fronts_draw_filter.py.
+    monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
@@ -878,6 +888,77 @@ def test_maturity_map_draw_concurrent_returns_empty_list_when_no_candidates():
 def test_maturity_map_draw_concurrent_returns_empty_list_when_file_missing():
     assert not supervisor.MATURITY_MAP_PATH.exists()
     assert supervisor._maturity_map_draw_concurrent() == []
+
+
+# ── COMPOUNDING tie-break (ONE_FRAMEWORK §7 sub-step 2, C1/C7) ──
+# Mechanises COMPOUNDING_WORK_FIRST ("work that shortens the feedback loop
+# goes first") as a draw TIE-BREAK, never a gate (LAW A). R15: the control
+# must be able to FAIL -- test (a) is what removing the compounding term from
+# the tie-break turns RED (mutation proof); test (b) proves it is a tie-break
+# not a filter (a sole non-compounding candidate is still drawn).
+
+_EQUAL_DIAL_COMPOUNDING_PAIR_YAML = (
+    # Deliberately map order: the NON-compounding atom is listed FIRST, so the
+    # only reason the compounding atom is ever drawn first is the tie-break,
+    # not accidental yaml order.
+    "- id: PLAIN_ATOM\n  lane: L\n  dial_inherited: 3\n"
+    "  level_current: 0\n  level_target: 1\n  file_scope: [company]\n"
+    "- id: COMPOUND_ATOM\n  lane: L\n  dial_inherited: 3\n  compounding: true\n"
+    "  level_current: 0\n  level_target: 1\n  file_scope: [company]\n"
+)
+
+
+def test_compounding_tiebreak_prefers_compounding_among_equal_dial():
+    """(a) An equal-dial pair, one compounding, one not -> the compounding
+    atom is drawn FIRST (primary) on EVERY seed. With the tie-break in place
+    this is deterministic; the mutation (remove the compounding swap) makes
+    the primary a ~50/50 weighted-random pick, so at least one of these seeds
+    lands PLAIN_ATOM first and this assertion goes RED. Both atoms share
+    file_scope, so only ONE is ever granted -- the primary IS the whole draw."""
+    supervisor.MATURITY_MAP_PATH.write_text(_EQUAL_DIAL_COMPOUNDING_PAIR_YAML)
+    import random as random_module
+    for seed in range(30):
+        rng = random_module.Random(seed)
+        selected = supervisor._maturity_map_draw_concurrent(rng=rng)
+        assert selected[0]["id"] == "COMPOUND_ATOM", (
+            f"seed {seed}: expected the compounding atom drawn first, "
+            f"got {selected[0]['id']}"
+        )
+
+
+def test_compounding_tiebreak_is_not_a_gate_sole_noncompounding_still_drawn():
+    """(b) A sole non-compounding candidate is STILL drawn -- proving the flag
+    is a TIE-BREAK on ordering, never a gate/filter that could zero the draw
+    (LAW A / Rule 0). No compounding atom exists anywhere in the map here."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: LONELY_PLAIN\n  lane: L\n  dial_inherited: 3\n"
+        "  level_current: 0\n  level_target: 1\n"
+    )
+    import random as random_module
+    selected = supervisor._maturity_map_draw_concurrent(rng=random_module.Random(0))
+    assert len(selected) == 1
+    assert selected[0]["id"] == "LONELY_PLAIN"
+
+
+def test_compounding_tiebreak_never_overrides_a_higher_dial():
+    """LAW A guard: compounding is ONLY a tie-break among EQUAL dials -- it must
+    never displace a higher-dial non-compounding atom (dial still dominates,
+    the flag is a diagnostic never a target). A dial-100 plain atom beats a
+    dial-1 compounding atom on every seed."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: HIGH_DIAL_PLAIN\n  lane: L\n  dial_inherited: 100\n"
+        "  level_current: 0\n  level_target: 1\n  file_scope: [company]\n"
+        "- id: LOW_DIAL_COMPOUND\n  lane: L\n  dial_inherited: 1\n  compounding: true\n"
+        "  level_current: 0\n  level_target: 1\n  file_scope: [company]\n"
+    )
+    import random as random_module
+    for seed in range(30):
+        rng = random_module.Random(seed)
+        selected = supervisor._maturity_map_draw_concurrent(rng=rng)
+        assert selected[0]["id"] == "HIGH_DIAL_PLAIN", (
+            f"seed {seed}: a lower-dial compounding atom must never displace a "
+            f"higher-dial one, got {selected[0]['id']}"
+        )
 
 
 def test_format_atom_draw_matches_prior_single_atom_message_format():

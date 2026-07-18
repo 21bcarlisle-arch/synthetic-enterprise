@@ -566,6 +566,7 @@
   name: "Typed, versioned-message SIM/company boundary adapters (go-live seam)"
   lane: W4_the_wall
   value_stream: close_to_learn
+  compounding: true  # ONE_FRAMEWORK C1/C7: the typed wall seam is the MOCK interface that lets the company be tested without a full sim run (COMPOUNDING_WORK_FIRST). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
   epoch: 2
   level_current: 3
   level_target: 3
@@ -921,6 +922,7 @@
   name: "Concurrent BUILD forks do not lost-update maturity_map.yaml (map stays single source of truth)"
   lane: H_harness
   value_stream: close_to_learn
+  compounding: true  # ONE_FRAMEWORK C1/C7: unblocks concurrent map writes = wider parallel BUILD, tooling that makes every future build cheaper (COMPOUNDING_WORK_FIRST). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
   epoch: 2
   level_current: 2
   level_target: 2
@@ -955,6 +957,7 @@
   name: "Concurrent BUILD atoms run in isolated git worktrees (native isolation: worktree), map read-during-build"
   lane: H_harness
   value_stream: close_to_learn
+  compounding: true  # ONE_FRAMEWORK C1/C7: native concurrent-build isolation = wider throughput, tooling that makes every future build cheaper (COMPOUNDING_WORK_FIRST). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
   epoch: 2
   level_current: 3
   level_target: 3
@@ -972,6 +975,7 @@
   name: "Typed internal seams between billing/pricing/settlement/collections, enforced like the epistemic wall (Epoch 3)"
   lane: H_harness
   value_stream: close_to_learn
+  compounding: true  # ONE_FRAMEWORK C1/C7: internal seams ARE the mock/go-live interface -- the one atom that "makes every other atom cheaper" and "pays twice" (COMPOUNDING_WORK_FIRST). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
   epoch: 3
   level_current: 2
   level_target: 2
@@ -1500,6 +1504,7 @@
   name: "Experiment-loop speed: cut the inner-loop cycle time that makes the Epoch-4 evolutionary tournament arithmetically feasible (mock-interface + parallelism + tiered tests)"
   lane: H_harness
   value_stream: close_to_learn
+  compounding: true  # ONE_FRAMEWORK C1/C7: THE canonical compounding atom -- cutting inner-loop cycle time makes every future experiment cheaper (COMPOUNDING_WORK_FIRST, the one atom explicitly authorised past the moratorium). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
   epoch: 2
   level_current: 2
   level_target: 3
@@ -1516,6 +1521,7 @@
   name: "Autonomous build-executor: a governed headless-turn executor that CONSUMES the Rule-0 self-refill draw and lands work (the map moves without the interactive session as sole executor); ALSO the Epoch-4 tournament substrate"
   lane: H_harness
   value_stream: close_to_learn
+  compounding: true  # ONE_FRAMEWORK C1/C7: the harness that compounds -- lets the map move without the human as sole executor (cuts human-in-loop latency), and IS the Epoch-4 tournament substrate (COMPOUNDING_WORK_FIRST). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
   epoch: 2
   level_current: 0
   level_target: 3

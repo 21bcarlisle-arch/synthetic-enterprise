@@ -30,6 +30,7 @@ import random
 
 import pytest
 
+from background import fronts_reconciler
 from background import supervisor
 
 
@@ -43,6 +44,11 @@ def _isolate_map_and_root(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(supervisor, "ATOM_STALL_STATE_FILE", tmp_path / ".atom_stall_tracker.json")
     monkeypatch.setattr(supervisor, "log", lambda msg: None)
+    # Isolate the live fronts-enforcement flag (director console act, on main
+    # since 2026-07-18): this file tests FRAME-saturation draw re-entry, not
+    # front membership, so the global fronts filter must be OFF or the synthetic
+    # BUILD atom (in no real open front) is zeroed. See test_fronts_draw_filter.py.
+    monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     (tmp_path / "docs" / "design" / "frame").mkdir(parents=True)
     return tmp_path
 
