@@ -59,14 +59,12 @@
     "why": "The directive's ONLY success criterion is atoms-below-target FALLING. I cannot produce that without a BUILD-open decision, which is yours (epoch curriculum = your instrument, R13/LAW A). Escalating with options ready is not a stall -- it is the one decision that unblocks the metric."
   },
   "publish_gate_wedged": {
-    "answer": "Root cause fixed and cleared manually (stack is down; no publish to auto-clear). The rc=1 was a REAL regression: tests/background/test_session_watchdog.py::test_reap_orphan_interactive_claude_never_kills_self raised AttributeError because session_watchdog.reap_orphan_interactive_claude used a function-local `import os as _os` while the test monkeypatched module-level watchdog.os -> the gate's `pytest -x` aborted there (commit e601f06f0 adds module-level os/signal + orphan-only reap). Verified: the EXACT gate fast-suite (SIM_FAST_MODE=1, same ignores) now passes 18310 / 5 skipped / 2 xfailed, exit 0, 288s -- well under the 600s gate timeout. Cleared 2026-07-16T22:35:44.298484+00:00.",
     "first_asked_at": "2026-07-16T16:47:13.643056+00:00",
     "how": "Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run the fast suite locally to find the regression. The alarm clears automatically on the next clean publish.",
     "item_id": "publish_gate_wedged",
-    "last_pinged_at": "2026-07-16T21:15:30.006878+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-16T22:35:44.298801+00:00",
-    "what": "The run-complete PUBLISH GATE has failed 11 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=7df80b550).",
+    "last_pinged_at": "2026-07-18T06:25:34.460296+00:00",
+    "resolved": false,
+    "what": "The run-complete PUBLISH GATE has failed 30 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=b877b104b).",
     "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15)."
   },
   "routines-cloud-environment-id": {
@@ -78,39 +76,69 @@
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
   },
+  "staged:ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md": {
+    "answer": "FILED per its own disposition (reference canon, not a work programme): moved to docs/design/. NOT decomposed/actioned (director: inspire-not-disturb).",
+    "first_asked_at": "2026-07-18T06:38:24.862432+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md",
+    "last_pinged_at": "2026-07-18T06:38:24.862432+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-18T06:47:10.176414+00:00",
+    "what": "New staged instruction: ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
+  },
   "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md": {
+    "answer": "DONE: already in docs/staging/done/. Stale register entry closed.",
     "first_asked_at": "2026-07-16T21:53:34.928472+00:00",
     "how": "Action it (staging = approval), then archive to done/.",
     "item_id": "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
-    "last_pinged_at": "2026-07-16T21:53:34.928472+00:00",
-    "resolved": false,
+    "last_pinged_at": "2026-07-17T21:57:11.328207+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-18T06:47:10.175545+00:00",
     "what": "New staged instruction: DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
     "why": "A staged director/advisor instruction is awaiting processing."
   },
   "staged:ESCALATION_IS_NTFY_NEVER_WINDOW.md": {
+    "answer": "DONE: codified as a P0 WALL in CLAUDE.md; already in done/. Stale register entry closed.",
     "first_asked_at": "2026-07-16T21:53:37.738768+00:00",
     "how": "Action it (staging = approval), then archive to done/.",
     "item_id": "staged:ESCALATION_IS_NTFY_NEVER_WINDOW.md",
-    "last_pinged_at": "2026-07-16T21:53:37.738768+00:00",
-    "resolved": false,
+    "last_pinged_at": "2026-07-17T21:57:13.899329+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-18T06:47:10.175846+00:00",
     "what": "New staged instruction: ESCALATION_IS_NTFY_NEVER_WINDOW.md",
     "why": "A staged director/advisor instruction is awaiting processing."
   },
   "staged:OPERATIONAL_COHERENCE_DESIGN_PASS.md": {
+    "answer": "DONE: design deliverable landed (docs/design/OPERATIONAL_LAYER_DESIGN.md); rebuild = atom OPS1 (live-migrated). Doc archived to done/. Triage-classified DONE.",
     "first_asked_at": "2026-07-17T06:25:45.715473+00:00",
     "how": "Action it (staging = approval), then archive to done/.",
     "item_id": "staged:OPERATIONAL_COHERENCE_DESIGN_PASS.md",
-    "last_pinged_at": "2026-07-17T06:25:45.715473+00:00",
-    "resolved": false,
+    "last_pinged_at": "2026-07-18T06:26:31.089121+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-18T06:47:10.175274+00:00",
     "what": "New staged instruction: OPERATIONAL_COHERENCE_DESIGN_PASS.md",
     "why": "A staged director/advisor instruction is awaiting processing."
   },
+  "staged:PARALLEL_RUNG_HARNESS_PRUNING_EVALUATION.md": {
+    "answer": "PARKED/HELD (triage REAL): held until OPS1 sub-steps 5-7 land + serial autonomy boring; tracked in in_progress/. Not action-needed now; the re-ping was noise.",
+    "first_asked_at": "2026-07-17T13:41:52.134962+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:PARALLEL_RUNG_HARNESS_PRUNING_EVALUATION.md",
+    "last_pinged_at": "2026-07-17T13:41:52.134962+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-18T06:47:10.176243+00:00",
+    "what": "New staged instruction: PARALLEL_RUNG_HARNESS_PRUNING_EVALUATION.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
+  },
   "staged:ROUTE_AROUND_BEFORE_STOPPING.md": {
+    "answer": "DONE: actioned; already in done/. Stale register entry closed.",
     "first_asked_at": "2026-07-16T21:53:40.318566+00:00",
     "how": "Action it (staging = approval), then archive to done/.",
     "item_id": "staged:ROUTE_AROUND_BEFORE_STOPPING.md",
-    "last_pinged_at": "2026-07-16T21:53:40.318566+00:00",
-    "resolved": false,
+    "last_pinged_at": "2026-07-17T21:57:16.459772+00:00",
+    "resolved": true,
+    "resolved_at": "2026-07-18T06:47:10.176099+00:00",
     "what": "New staged instruction: ROUTE_AROUND_BEFORE_STOPPING.md",
     "why": "A staged director/advisor instruction is awaiting processing."
   },
