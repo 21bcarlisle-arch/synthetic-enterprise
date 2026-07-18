@@ -64,3 +64,35 @@ gap for two canonical doors; add render tests mirroring the others.
 red site-door test does not wedge the gate and can go unnoticed (how the 8th-pair regression above
 slipped). Options: add `site/` to a site-lane CI check, or a lightweight pre-push site-test run.
 Queued as a harness finding; now FRAMED (build-ready design: `docs/design/SITE_TEST_COVERAGE_SEAM_FRAME.md`, recommended mechanism B+C, R15-failable) — off-front, opens on a harness front / director BUILD_OPEN.
+
+## Re-audit + debt E BUILT (2026-07-19, director console: "continue Campaign A — remaining doors + the framed debt E test-coverage seam")
+
+**Debt E — BUILT.** Mechanism B+C from the FRAME: `tools/site_lane_gate.py` runs `pytest site/`
+(or the sibling `site/X/test_*.py` for a direct edit) whenever a change touches `site/**`,
+`site/data/**`, a `tools/generate_*_data.py` producer, or a site-consumed ledger
+(`docs/observability/coupled_gap_ledger.json`); wired into `tools/git-hooks/pre-commit` as an
+ISOLATED step (its own alarm; never folded into the `tests/` publish root, so a flaky `.mjs`
+harness can't wedge publishing). R15-proven both directions in `tests/tools/test_site_lane_gate.py`
+(a real red site test REFUSES the commit; neutering the trigger lets it through; fail-closed +
+loud when `node` is missing, because the `.mjs` render harnesses SKIP-not-fail without node).
+Live end-to-end verified: a red `site/proof/test_*.py` was refused by the real hook, HEAD unchanged.
+
+**Cross-door re-audit — no new gaps; debt A/B/C RESOLVED since the first pass (verified 2026-07-19):**
+- **5 previously-clean doors** (Home/Company/World/Proof/Method) — re-scanned for hardcoded metric
+  literals in visible text: **still 0**. No regression, no new door.
+- **Debt A (Journey Regulatory tab) — RESOLVED.** The build-status figures now render from
+  `site/data/regulatory.json` (`generate_regulatory_data.py`): `module_count` (63), `slc_domain_count`
+  (10), `overall_rag` (AMBER), per-scheme badges, and a "Derived <generated_at>" freshness stamp —
+  `renderRegulatory()` in `site/project/index.html`. The published levy RATES + legal-basis rows stay
+  static: cited commons (law), correctly kept.
+- **Debt B (Journey Key Discoveries) — RESOLVED.** Hedge band renders from `dashboard.json`
+  (`disc-hedge-band` + PROVISIONAL passport + Finding link); the `~30 suppliers`, `£3,549`, `3–4%`
+  figures now carry inline evidence links to `market_research/` and are labelled real-world
+  benchmarks (cited commons, not company outputs that can drift).
+- **Debt C (Simplified freshness) — RESOLVED.** `simplified.json` emits `generated_at` (its
+  generator line 89) and the door renders "Register generated <stamp>".
+- **Debt D (Home/Proof full `test_*_door.py`)** — Proof has `test_proof_door.py` +
+  `test_coupled_gaps_panel.py` + `test_killlist_panel.py`; Home has `site/test_home_door.py`. Parity
+  gap noted in the first pass is closed. No action.
+
+Conclusion: nothing bounded left to fix on the doors; no larger debt remains open from this finding.

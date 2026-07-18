@@ -31,3 +31,12 @@ python3 tools/pre_commit_test_gate.py || exit 1
 # (the same predicate the reconciler uses); a level decrease/revert and non-map commits are never
 # blocked. Real incident: the worker self-moved E4 level_current 2->3 in its own commit.
 python3 tools/level_promotion_gate.py || exit 1
+
+# SITE-LANE GATE (Campaign A debt E, 2026-07-19, SITE_TEST_COVERAGE_SEAM_FRAME.md): the publish gate
+# (process_run_complete, test_root="tests/") is BLIND to site/**, so a red site-door test cannot
+# wedge it and slips onto the director's window (happened 3x this session). This runs `pytest site/`
+# (or the sibling site tests for a direct edit) whenever the change touches site/**, site/data/**, a
+# generate_*_data producer, or a site-consumed ledger -- an ISOLATED step (its own alarm) that never
+# touches the tests/ publish gate. Fails closed if node is missing (the .mjs render harnesses would
+# silently skip). R15-proven in tests/tools/test_site_lane_gate.py.
+python3 tools/site_lane_gate.py || exit 1
