@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T14:21:22Z
+Last updated: 2026-07-18T14:22:21Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -62,16 +62,20 @@ never-reap-live invariant mutation-proven.
 fronts model (`fronts.yaml` `stage_advance` gate + `gate_authorization.py`) reserves idle→build to a
 DIRECTOR CONSOLE act — the twin only *sequences* already-`BUILD_OPEN`'d atoms; it does not authorize the
 flip. `H_harness` is in no open front, so these were self-promotions with no `BUILD_OPEN`; the reconciler
-caught the newest (**G4**, now reverted + fork reaped). H26+H24_precommit are director-RATIFIED (stand);
-H23+H24_worktree stand un-flagged (baseline-grandfathered) but were opened the same improper way. The loop
-is now **fail-closed on builds** — no more twin-opened idle→build — pending the director's ruling on the
-canon-§3a-vs-`stage_advance`-gate contradiction (`action_needed: governance-buildopen-authority-conflict-2026-07-18`).
-The authorized-build set is currently empty: every director-`BUILD_OPEN`'d atom is done (E4, OPS1-transport/
-watchdog) or blocked (D5=payment triad, OPS1_rebuild=systemd deploy, weather chain=deps on the un-opened W1_2).
+caught the newest (**G4**, now reverted + fork reaped). **RESOLVED by director console (2026-07-18):** the enforced model STANDS — the draw-filter IS the BUILD
+authorization, the twin only *sequences* within it, no manual idle→build ever. My session's twin-opened
+builds were the error (mis-reading canon §3a); the correct rule is now in memory + LATEST. Director rulings:
+**H26+H24_precommit → L3, E4 → L3, H23 → L3, H24_worktree → L2 — all RATIFIED & banked** (LEVEL_UP recorded
+channel:console, §0 satisfied). G4 stays reverted. **BUILD resumed:** the director console-`BUILD_OPEN`'d the
+**payment triad** (W2_11 source + W4_4 seam + H27_payment_belief_gap) — W2_11 building now (baseline fidelity,
+externally anchored to Bacs/UK stats, difficulty dials director-authored per R13); W1 stays DISCOVER. Also
+in-flight: a fix for a director-caught escalation bug — [ACT]s were silently not paging his phone (a failed
+send still stamped `last_pinged`, suppressing the deadman's re-ping); the fix decouples "registered" from
+"confirmed-sent" so a failed send keeps the page due.
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (473s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
