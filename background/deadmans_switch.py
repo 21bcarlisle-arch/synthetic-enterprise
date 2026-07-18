@@ -359,6 +359,30 @@ def _check_status_honesty() -> None:
     log(f"STATUS STALE checked (notify-gated): {st['detail']}")
 
 
+def _check_repo_not_bare() -> None:
+    """H26 (2026-07-18): fire the cause-agnostic core.bare corruption guard BETWEEN commits, not
+    only at the next `tree_lock()` acquisition. `tree_lock.assert_repo_not_bare()` already covers
+    the per-commit path (wired into `tree_lock().__enter__`); this gives it a periodic,
+    commit-independent home too, so a bare-flip that happens while nothing is actively committing
+    (the real 2026-07-18 incident: silent, mid-session, no commit in flight at the moment it
+    flipped) still surfaces within one deadman cycle (<= POLL_INTERVAL_SECONDS) instead of waiting
+    for whenever the next commit attempt happens to occur. The guard itself owns the
+    auto-repair/alarm/transition-dedup (shared transition key, so a per-commit catch and a
+    periodic catch of the SAME still-unrepaired state never double-page); this is just the
+    commit-independent trigger."""
+    try:
+        from background.tree_lock import assert_repo_not_bare, RepoBareError
+    except Exception as e:  # a check that cannot even import must not crash the deadman cycle
+        log(f"repo-bare check unavailable: {e}")
+        return
+    try:
+        assert_repo_not_bare()
+    except RepoBareError as e:
+        log(f"REPO BARE caught by periodic check (auto-repair attempted, alarm sent): {e}")
+    except Exception as e:  # any other failure must not crash the deadman cycle
+        log(f"repo-bare check error: {e}")
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
@@ -366,6 +390,7 @@ def run_cycle() -> None:
     _check_fork_lifecycle()
     _check_worktree_reconcile()
     _check_status_honesty()
+    _check_repo_not_bare()
 
     # A declared usage pause is a known-quiet window, not a stall -- suppress
     # both tiers (but keep re-ping above, which is a different alert class).

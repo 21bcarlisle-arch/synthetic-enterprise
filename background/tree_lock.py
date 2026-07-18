@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import fcntl
 import subprocess
+import sys
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -39,6 +40,13 @@ LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".tree.lock"
 
 DEFAULT_TIMEOUT_SECONDS = 60.0
 POLL_INTERVAL_SECONDS = 0.2
+
+# H26 core.bare corruption guard (2026-07-18): re-alert cadence for a persisting BARE state,
+# matching the RE_ESCALATE_SECONDS convention used by the other real_alarm classes (deadmans_switch,
+# fronts_reconciler) -- kept local rather than imported to avoid a cross-module coupling for one
+# constant.
+_BARE_REPO_RE_ESCALATE_SECONDS = 60 * 60
+_BARE_REPO_TRANSITION_KEY = "tree_lock_repo_bare"
 
 # Name of the cross-worktree shared lock file, anchored in the SHARED git
 # object store (git-common-dir), so every worktree resolves to the SAME path.
@@ -61,6 +69,21 @@ class GitStateError(Exception):
     FAIL-CLOSED signal: an isolation guard that cannot read the changed-file
     set must NOT report the tree as safe (R15 fail-silent doctrine -- an
     unavailable check is a FAILED check)."""
+
+
+class RepoBareError(Exception):
+    """Raised by `assert_repo_not_bare()` when `core.bare` was found `true` on a working tree
+    (H26, 2026-07-18). Real incident this session: the main repo's `core.bare` silently flipped to
+    `true` mid-session, silently breaking EVERY working-tree git operation (commit, site-refresh
+    publish, status) until it was manually reset. The root TRIGGER was already fixed at the source
+    (H24: `tools/pre_commit_test_gate.py` now scrubs `GIT_*` env vars from the pytest subprocess),
+    but this guard is CAUSE-AGNOSTIC defense-in-depth -- ANY future cause of the same corruption
+    (a stray `git config`, a misbehaving tool, a future regression in the fix above) must be LOUD,
+    never silent again (R15 fail-silent doctrine). By the time this is raised, `assert_repo_not_bare`
+    has already auto-repaired (`git config core.bare false` -- always safe/reversible for a genuine
+    working tree) and fired a `real_alarm`; this exception exists so the CALLER (e.g.
+    `tree_lock().__enter__`) also learns a corruption just happened this cycle, rather than silently
+    proceeding as if nothing occurred."""
 
 
 class ScopeViolation(Exception):
@@ -107,6 +130,100 @@ def _acquire_flock(lock_path: Path, timeout: float):
             time.sleep(POLL_INTERVAL_SECONDS)
 
 
+def _is_bare_repo(repo_dir: Path | None = None) -> bool | None:
+    """Query git for `core.bare` in `repo_dir` (default: this working tree's own root). Returns
+    True / False, or None if UNDETERMINABLE (git missing, non-zero exit, a timeout, or unparseable
+    output). Fail-SAFE by construction: the caller must treat None as "could not check", never
+    silently coerce it to "not bare" -- an unavailable check is a FAILED check (R15), even though
+    the fail-safe *behaviour* here is to proceed rather than block (see `assert_repo_not_bare`)."""
+    base = Path(repo_dir) if repo_dir is not None else PROJECT_DIR
+    try:
+        proc = subprocess.run(
+            ["git", "rev-parse", "--is-bare-repository"],
+            cwd=str(base), capture_output=True, text=True, timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        return None
+    if proc.returncode != 0:
+        return None
+    out = proc.stdout.strip().lower()
+    if out == "true":
+        return True
+    if out == "false":
+        return False
+    return None  # unparseable -- treat identically to undeterminable
+
+
+def assert_repo_not_bare(repo_dir: Path | None = None) -> None:
+    """H26 cause-agnostic core.bare corruption guard (2026-07-18). Make a bare-repo working tree
+    LOUD, never silent, regardless of what caused it (R15 fail-silent doctrine: a control that
+    passes when it can't actually check is a failed control).
+
+    Three outcomes:
+      * UNDETERMINABLE (git errors / non-zero exit / unparseable output): FAIL-SAFE, not fail-open
+        -- logs a warning to stderr and RETURNS (proceeds) rather than blocking every commit on a
+        transient git hiccup. Critically, this is NOT the same as silently deciding "not bare": it
+        is logged as its own condition, distinct from a confirmed-healthy pass.
+      * False (healthy): clears any open alarm transition and returns normally.
+      * True (the corruption): this is a working tree, so `core.bare` must always be false --
+        auto-repairs with `git config core.bare false` (safe + reversible), fires a transition-only
+        `real_alarm` via `background.notify.notify` (guarded in try/except so a notify failure can
+        never crash the commit path), and raises `RepoBareError` so the caller (e.g.
+        `tree_lock().__enter__`) knows a corruption just happened this cycle.
+    """
+    base = Path(repo_dir) if repo_dir is not None else PROJECT_DIR
+    state = _is_bare_repo(base)
+
+    if state is None:
+        print(
+            f"[tree_lock] WARNING: core.bare state undeterminable for {base} "
+            f"(git error/timeout/unparseable output) -- proceeding fail-safe; "
+            f"this is NOT a confirmed-healthy result.",
+            file=sys.stderr,
+        )
+        return
+
+    if state is False:
+        try:
+            from background.notify import clear_transition
+            clear_transition(_BARE_REPO_TRANSITION_KEY)
+        except Exception:
+            pass  # clearing a transition must never block a healthy pass
+        return
+
+    # state is True: the corruption. Repair first (reversible, safe for a working tree), then
+    # alarm -- so the alarm message can truthfully report whether the repair itself worked.
+    try:
+        repair = subprocess.run(
+            ["git", "config", "core.bare", "false"],
+            cwd=str(base), capture_output=True, text=True, timeout=10,
+        )
+        repaired = repair.returncode == 0
+    except Exception:
+        repaired = False
+
+    try:
+        from background.notify import notify
+        notify(
+            f"[REPO BARE] core.bare was true in {base} -- every git write in this working tree "
+            f"(commit, publish, status) would silently break until fixed. Auto-repair "
+            f"{'succeeded' if repaired else 'FAILED'} (git config core.bare false). Cause-agnostic "
+            f"defense-in-depth (H26); the root trigger for the 2026-07-18 incident was already "
+            f"fixed at the source (H24, GIT_* env scrub in tools/pre_commit_test_gate.py).",
+            kind="real_alarm",
+            transition_key=_BARE_REPO_TRANSITION_KEY,
+            state="BARE",
+            re_escalate_after=_BARE_REPO_RE_ESCALATE_SECONDS,
+        )
+    except Exception:
+        pass  # a notify failure must never crash the commit path
+
+    raise RepoBareError(
+        f"core.bare was true in {base} (working-tree corruption) -- auto-repair "
+        f"{'succeeded' if repaired else 'FAILED'}"
+    )
+
+
 @contextmanager
 def tree_lock(timeout: float = DEFAULT_TIMEOUT_SECONDS):
     """Hold an exclusive lock on THIS working tree for the duration of the
@@ -125,9 +242,19 @@ def tree_lock(timeout: float = DEFAULT_TIMEOUT_SECONDS):
     Raises TreeLockTimeout on timeout rather than blocking forever, so a
     genuinely stuck holder (rather than just a slow one) surfaces as a
     visible error instead of hanging every other writer indefinitely.
+
+    H26 (2026-07-18): every commit in this project serialises through
+    `tree_lock`, so checking `assert_repo_not_bare()` on entry means a
+    corrupted `core.bare` fails LOUD at the very next commit attempt --
+    cause-agnostic, independent of whatever triggered the corruption. Cost is
+    one extra git call per acquisition. Checked AFTER the flock is held (so
+    the check itself is serialised too) but BEFORE the caller's `yield`-guarded
+    git operations run, and a raised RepoBareError still releases the lock via
+    the existing `finally` below (no stuck holder).
     """
     fh = _acquire_flock(LOCK_FILE, timeout)
     try:
+        assert_repo_not_bare()
         yield
     finally:
         fcntl.flock(fh, fcntl.LOCK_UN)
