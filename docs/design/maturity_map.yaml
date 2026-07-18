@@ -1893,3 +1893,17 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a work-queue scheduler that keeps re-surfacing tickets blocked on an external approver instead of parking them off the ready queue until the approver acts"
   depends_on: []
+- id: D5_account_hierarchy_payments
+  name: "Account hierarchy + payment allocation: party->account->agreement->supply-point; balance-based vs open-item accounting fork per segment; one segment-parameterised ageing/dunning/statutory-interest/write-off engine (M2 FRAME->build)"
+  lane: D_billing_metering
+  value_stream: meter_to_cash
+  epoch: 2
+  level_current: 2
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 4
+  provenance: director_console
+  evidence: [docs/staging/in_progress/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md, company/crm/account_hierarchy.py, company/billing/account_ledger.py, company/billing/arrears_engine.py, docs/market_research/account_hierarchy_payment_allocation.md, 'tests/company/crm/test_account_hierarchy.py + tests/company/billing (66 tests, epistemic PASS 513 files)']
+  file_scope: [company/crm/account_hierarchy.py, company/billing/account_ledger.py, company/billing/arrears_engine.py]
+  simplifications:
+  - '2026-07-18 BUILD L1->L2 (director open-front, console-orchestrated worktree fork, orchestrator-verified+merged: 66/66 tests, epistemic PASS 513 files, C-S1/C-S2 idempotency+out-of-order+deterministic-replay TESTED not asserted). party->account->agreement->supply-point spine coordinating with existing supply_point_register/DualFuel/Multisite; one LedgerEvent stream, balance-based + open-item (remittance-else-oldest-first, disputed excluded) views emitting the SAME bitemporal events; segment-parameterised arrears (30/60/90+ ageing, per-segment dunning, LPCDA-1998 B2B-only statutory interest, dated/reasoned P&L-visible write-offs). HONEST GAPS (L3 blockers): (1) NOT wired into a running sim -- no coupled-triad belief-vs-truth gap measured yet; (2) invoice.py SQLite store NOT migrated onto the event model (deliberate); (3) dispute state passed in, not live-read from ic_invoice_dispute_register; (4) SLC-27 recalled not live-verified (R9); (5) oldest-first simplifies Clayton''s-Case (R10). L3 = sim->ledger wiring + coupled-world gap.'
