@@ -39,6 +39,7 @@ _FILES = {
     "test_mix": "test_mix.json",
     "provisional_plan": "provisional_plan.json",
     "director_twin": "director_twin.json",
+    "regulatory": "regulatory.json",
 }
 
 
@@ -141,6 +142,54 @@ def test_domain_count_is_independent_of_render():
     d["test_mix"]["areas"] = d["test_mix"]["areas"][:3]
     out = _render(d)
     assert out["be-domain-count"]["textContent"] == "3"
+
+
+# ---------------------------------------------------------------------------
+# Regulatory tab: build-status claims render off regulatory.json (R11), and are
+# independent of the render (R15). The published rates + legal-basis rows stay
+# static commons -- only the drift-prone build-status bits are data-backed.
+# ---------------------------------------------------------------------------
+def test_regulatory_counts_render_live_values():
+    d = _live()
+    out = _render(d)
+    reg = d["regulatory"]
+    assert out["reg-module-count"]["textContent"] == str(reg["module_count"])
+    assert out["reg-domain-count"]["textContent"] == str(reg["slc_domain_count"])
+    assert out["reg-slc-domains"]["textContent"] == str(reg["slc_domain_count"])
+    assert out["reg-overall-rag"]["textContent"] == reg["overall_rag"]
+
+
+def test_regulatory_freshness_stamp_renders():
+    d = _live()
+    out = _render(d)
+    # R2/freshness: the generated_at stamp from the source is rendered on the tab.
+    assert d["regulatory"]["generated_at"] in out["reg-freshness"]["textContent"]
+
+
+def test_regulatory_status_badges_render_live_status():
+    d = _live()
+    out = _render(d)
+    by_key = {s["key"]: s["status"] for s in d["regulatory"]["schemes"]}
+    for key in ("RO", "FMD", "WHD", "SR"):
+        assert by_key[key] in out[f"reg-badge-{key}"]["innerHTML"], (key, by_key[key])
+
+
+def test_regulatory_module_count_is_independent_of_render():
+    # R15: a mutated source value must move the rendered pixel (not a constant).
+    d = _live()
+    d["regulatory"]["module_count"] = 987654
+    out = _render(d)
+    assert out["reg-module-count"]["textContent"] == "987654"
+
+
+def test_regulatory_badge_status_is_independent_of_render():
+    d = _live()
+    # flip a WIRED scheme to a sentinel; the rendered badge must follow.
+    d["regulatory"]["schemes"] = [
+        {"key": "RO", "label": "RO", "status": "SENTINEL_STATUS", "basis": "x"}
+    ]
+    out = _render(d)
+    assert "SENTINEL_STATUS" in out["reg-badge-RO"]["innerHTML"]
 
 
 # ---------------------------------------------------------------------------

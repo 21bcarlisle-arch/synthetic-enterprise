@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-07-18T19:30:45Z",
+  "module_count": 63,
+  "module_source": "company/regulatory",
+  "slc_domain_count": 10,
+  "obligation_count": 23,
+  "overall_rag": "AMBER",
+  "status_counts": {
+    "GREEN": 19,
+    "AMBER": 4
+  },
+  "domestic_customer_count": 8,
+  "large_supplier_threshold": 150000,
+  "schemes": [
+    {
+      "key": "RO",
+      "label": "Renewable Obligation (RO)",
+      "calc_module": "company/regulatory/roc_ledger.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "FiT",
+      "label": "Feed-in Tariff (FiT) Levy",
+      "calc_module": "company/regulatory/fit_book.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "CCL",
+      "label": "Climate Change Levy (CCL)",
+      "calc_module": "company/regulatory/ccl_ledger.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "GSOP",
+      "label": "Guaranteed Standards (GSOP)",
+      "calc_module": "company/regulatory/gsop.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "WHD",
+      "label": "Warm Home Discount (WHD)",
+      "calc_module": "company/regulatory/warm_home_discount.py",
+      "module_present": true,
+      "status": "EXEMPT",
+      "basis": "portfolio has 8 domestic customers, below the 150,000 large-supplier threshold -- no obligation"
+    },
+    {
+      "key": "ECO",
+      "label": "Energy Company Obligation (ECO)",
+      "calc_module": "company/regulatory/eco_obligation.py",
+      "module_present": true,
+      "status": "EXEMPT",
+      "basis": "portfolio has 8 domestic customers, below the 150,000 large-supplier threshold -- no obligation"
+    },
+    {
+      "key": "Carbon",
+      "label": "Carbon Emissions",
+      "calc_module": "company/regulatory/carbon_emissions.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "FMD",
+      "label": "Fuel Mix Disclosure (FMD)",
+      "calc_module": "company/regulatory/fuel_mix_disclosure.py",
+      "module_present": true,
+      "status": "NEXT",
+      "basis": "calc module present, not yet wired into report layer"
+    },
+    {
+      "key": "OSR",
+      "label": "Ofgem Supply Return",
+      "calc_module": "company/regulatory/ofgem_supply_return.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "SLC",
+      "label": "SLC Compliance Scorecard",
+      "calc_module": "company/regulatory/compliance_scorecard.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "FRA",
+      "label": "FRA Capital Ratio",
+      "calc_module": "saas/reporting/fra_capital_ratio.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    },
+    {
+      "key": "SR",
+      "label": "Settlement Reconciliation",
+      "calc_module": "company/regulatory/settlement_reconciliation.py",
+      "module_present": true,
+      "status": "WIRED",
+      "basis": "calc module present + wired into report layer"
+    }
+  ]
+}
