@@ -70,22 +70,26 @@
     "why": "The directive's ONLY success criterion is atoms-below-target FALLING. I cannot produce that without a BUILD-open decision, which is yours (epoch curriculum = your instrument, R13/LAW A). Escalating with options ready is not a stall -- it is the one decision that unblocks the metric."
   },
   "payment-triad-L3-ratification-2026-07-18": {
+    "answer": "RESOLVED by director console 2026-07-18: he RATIFIED W2_11->L1 + W4_4->L2 (cells moved, ledger LEVEL_UP) and AUTHORIZED the coupling wiring, which I executed -- W2_11<->D5 coupling wired, gap GENUINELY measured (gap_measured=True, detection 0.30, 8 mapped pairs, full gate green). H27->L2 is now PROPOSED (a minor cell move he ratifies at will, non-blocking). His directive is fully executed.",
     "first_asked_at": "2026-07-18T16:59:25.385107+00:00",
     "how": "PREREQUISITE first (a focused follow-up): wire the W2_11<->D5 coupling into background/coupled_triad.py's _AUTHORITATIVE_COUPLING (+ update the 3 tests/tools/test_generate_proof_coupled_gaps.py pair-count expectations from 7 to 8), THEN re-run tools/couple_w2_11_d5.py --write-ledger to register the gap cleanly. ONLY THEN is W2_11/D5 -> L3 mechanically ratifiable (world_l3_blocked will see the gap). This wiring touches coupled_triad.py which is off-front (H_harness) -- needs your front/BUILD_OPEN or console act to proceed cleanly.",
     "item_id": "payment-triad-L3-ratification-2026-07-18",
     "last_pinged_at": "2026-07-18T17:16:13.164030+00:00",
     "last_sent_at": "2026-07-18T17:00:55.548937+00:00",
-    "resolved": false,
+    "resolved": true,
+    "resolved_at": "2026-07-18T18:22:34.432252+00:00",
     "what": "CORRECTION (supersedes the earlier version): do NOT ratify W2_11/D5 -> L3 yet -- my 'triad closed / gap measured' claim was PREMATURE. The gap SCORER is built + proves non-trivial gaps (detection 0.30, belief 0.073; tools/couple_w2_11_d5.py, 13 tests, on origin), BUT registering the gap in the shared coupled_gap_ledger.json was premature: the W2_11<->D5 pair is NOT in the authoritative map coupling (background/coupled_triad.py _AUTHORITATIVE_COUPLING; _twin_id_for=None), so the gap entries showed as unmapped extras on the Proof door and WEDGED the publish gate (3 proof-gaps tests red). I removed the premature ledger entries to unwedge; gap_measured(W2_11) is now False again.",
     "why": "Honesty (R9/no-orphan): I paged you 'triad closed, ratify L3' -- that was premature and it wedged your window. The measurement is real + preserved; only its shared-ledger registration + the map coupling are outstanding. Correcting the pending decision so you don't ratify on a premature claim."
   },
   "publish_gate_wedged": {
+    "answer": "Auto-resolved: the publish gate recovered and a run published cleanly at 2026-07-18T17:18:50.144434+00:00.",
     "first_asked_at": "2026-07-18T15:21:58.968619+00:00",
     "how": "Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run the fast suite locally to find the regression. The alarm clears automatically on the next clean publish.",
     "item_id": "publish_gate_wedged",
     "last_pinged_at": "2026-07-18T16:24:01.787905+00:00",
     "last_sent_at": "2026-07-18T16:25:50.726495+00:00",
-    "resolved": false,
+    "resolved": true,
+    "resolved_at": "2026-07-18T17:18:50.145934+00:00",
     "what": "The run-complete PUBLISH GATE has failed 11 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=c7663a0ce).",
     "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15)."
   },
