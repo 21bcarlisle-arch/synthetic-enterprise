@@ -20,6 +20,82 @@
     "run_git_commit": "b318892cea32362e6fdfd0fb41a1e0762c97d2b0",
     "twin_atom_id": "C12_channel_attribution_analytics"
   },
+  "W2_11_payment_behaviour_source": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 1123,
+      "flagged_size": 1123,
+      "miss_rate": 0.296807,
+      "missed": 474,
+      "missed_harm": 474.0,
+      "total_harm": 1597.0,
+      "truth_size": 1597
+    },
+    "g0": 1597.0,
+    "gap": 0.2968065122103945,
+    "measured_at": "2026-07-18T16:18:55.030840+00:00",
+    "metric": "detection",
+    "note": "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps in the ::belief (0.0730) and ::ageing (0.9011) entries; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 474.0,
+    "run_git_commit": "c2493fec11cc5786c245319440067cd2e01057ac",
+    "twin_atom_id": "D5_payment_observation_consumer"
+  },
+  "W2_11_payment_behaviour_source::ageing": {
+    "baseline": "no-skill applier: always apply the majority class 'current' (mis-serves 0.1065 of the population)",
+    "components": {
+      "class_counts": {
+        "30-60": 1096,
+        "60-90": 501,
+        "current": 13403
+      },
+      "error_rate": 0.095933,
+      "majority_class": "current",
+      "n": 15000,
+      "n_wrong": 1439
+    },
+    "g0": 0.10646666666666667,
+    "gap": 0.9010644959298685,
+    "measured_at": "2026-07-18T16:18:55.030840+00:00",
+    "metric": "misapplication",
+    "note": "per-invoice 30/60/90+ ageing bucket: truth (resolved-by-as_of fact) vs D5's own open-item ageing belief; picks up both the raw non-payment signal and any allocation cross-contamination from the ambiguous-remittance non-DD population (see module 'ON ALLOCATION' note).",
+    "raw_gap": 0.09593333333333333,
+    "run_git_commit": "c2493fec11cc5786c245319440067cd2e01057ac",
+    "twin_atom_id": "D5_payment_observation_consumer"
+  },
+  "W2_11_payment_behaviour_source::belief": {
+    "baseline": "total-variation distance (self-normalised to [0,1])",
+    "components": {
+      "tv": 0.073
+    },
+    "g0": 1.0,
+    "gap": 0.07300000000000002,
+    "measured_at": "2026-07-18T16:18:55.030840+00:00",
+    "metric": "belief",
+    "note": "population TV distance between the TRUE arrears-severity distribution (all-channel unresolved-failure count) and D5's own arrears_risk_belief distribution (DD/rail-observed count only) -- same threshold shape, different-coverage inputs.",
+    "raw_gap": 0.07300000000000002,
+    "run_git_commit": "c2493fec11cc5786c245319440067cd2e01057ac",
+    "twin_atom_id": "D5_payment_observation_consumer"
+  },
+  "W2_11_payment_behaviour_source::detection": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 1123,
+      "flagged_size": 1123,
+      "miss_rate": 0.296807,
+      "missed": 474,
+      "missed_harm": 474.0,
+      "total_harm": 1597.0,
+      "truth_size": 1597
+    },
+    "g0": 1597.0,
+    "gap": 0.2968065122103945,
+    "measured_at": "2026-07-18T16:18:55.030840+00:00",
+    "metric": "detection",
+    "note": "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps in the ::belief (0.0730) and ::ageing (0.9011) entries; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 474.0,
+    "run_git_commit": "c2493fec11cc5786c245319440067cd2e01057ac",
+    "twin_atom_id": "D5_payment_observation_consumer"
+  },
   "W2_4_household_budget": {
     "baseline": "TV(truth, national/blind prior) -- the no-book-info belief",
     "components": {
@@ -94,6 +170,49 @@
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C8_sme_credit_risk"
   },
+  "W2_7_willingness_classification": {
+    "baseline": "always-predict-majority quadrant can/wont (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
+    "components": {
+      "fn_ability": 0.074875,
+      "fn_willingness": 0.254351,
+      "forborne": 7234,
+      "forborne_strategic_loss": 2882,
+      "harm_ratio_R": 8.0,
+      "majority_quadrant": "can_wont",
+      "n_arrears": 9934,
+      "pursued": 2700,
+      "pursued_cannot_expensive_error": 42,
+      "realised_gate_harm": 3218.0
+    },
+    "g0": 3.9369840950271793,
+    "gap": 0.12781897212989005,
+    "measured_at": "2026-07-13T22:09:30.628876+00:00",
+    "metric": "classification",
+    "note": "cost-weighted can't-pay/won't-pay 2x2 misclassification (W2_7 hidden ability x willingness -> identical observable is_in_arrears -> C9 classification from engagement/part-payment/disclosure/consumption); ability axis = the can-pay/cannot-pay confound, 8:1 harm on reading a genuine can't-pay as a strategic won't-pay. fn_ability is the harm path (vulnerable read as able); pursue/forbear gate outcomes in components.",
+    "raw_gap": 0.5032212603180994,
+    "run_git_commit": "4387baa5cbb14b3bd55e952dfc4669ee1592593f",
+    "twin_atom_id": "C9_cantpay_wontpay_classifier"
+  },
+  "W2_8_self_rationing": {
+    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
+    "components": {
+      "caught": 133,
+      "flagged_size": 133,
+      "miss_rate": 0.307292,
+      "missed": 59,
+      "missed_harm": 54335.41,
+      "total_harm": 175606.37,
+      "truth_size": 192
+    },
+    "g0": 175606.37,
+    "gap": 0.30941593975207166,
+    "measured_at": "2026-07-13T22:09:20.633906+00:00",
+    "metric": "detection",
+    "note": "harm-weighted fraction of DETECTABLE silent self-rationing the company MISSED (W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection). The gap is driven by the smart-meter/baseline coverage blind spot: a rationer without a usable prior baseline is indistinguishable from a low-need home. Miss-only metric; false positives reported separately.",
+    "raw_gap": 54335.41,
+    "run_git_commit": "5ab272494d47b12325a210008180ddefdd1caf53",
+    "twin_atom_id": "C10_self_rationing_detection"
+  },
   "W2_9_segment_debt_tnc": {
     "baseline": "no-skill applier: always apply the majority class 'domestic_terms' (mis-serves 0.1004 of the population)",
     "components": {
@@ -117,48 +236,5 @@
     "raw_gap": 0.023,
     "run_git_commit": "ca5e8066fa01ecc79c22f06ee06947aabdfbb74c",
     "twin_atom_id": "C11_segment_debt_policy"
-  },
-  "W2_8_self_rationing": {
-    "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
-    "components": {
-      "caught": 133,
-      "flagged_size": 133,
-      "miss_rate": 0.307292,
-      "missed": 59,
-      "missed_harm": 54335.41,
-      "total_harm": 175606.37,
-      "truth_size": 192
-    },
-    "g0": 175606.37,
-    "gap": 0.30941593975207166,
-    "measured_at": "2026-07-13T22:09:20.633906+00:00",
-    "metric": "detection",
-    "note": "harm-weighted fraction of DETECTABLE silent self-rationing the company MISSED (W2_8 hidden pay-but-don't-heat -> observable consumption drop below the TDCV Low floor -> C10 detection). The gap is driven by the smart-meter/baseline coverage blind spot: a rationer without a usable prior baseline is indistinguishable from a low-need home. Miss-only metric; false positives reported separately.",
-    "raw_gap": 54335.41,
-    "run_git_commit": "5ab272494d47b12325a210008180ddefdd1caf53",
-    "twin_atom_id": "C10_self_rationing_detection"
-  },
-  "W2_7_willingness_classification": {
-    "baseline": "always-predict-majority quadrant can/wont (harm ratio R=8.0:1, R13 curriculum, director-signed 8:1 (COUPLED_TRIAD_DESIGN.md 1.4a / CONTROLS_THAT_CANNOT_FAIL.md))",
-    "components": {
-      "fn_ability": 0.074875,
-      "fn_willingness": 0.254351,
-      "forborne": 7234,
-      "forborne_strategic_loss": 2882,
-      "harm_ratio_R": 8.0,
-      "majority_quadrant": "can_wont",
-      "n_arrears": 9934,
-      "pursued": 2700,
-      "pursued_cannot_expensive_error": 42,
-      "realised_gate_harm": 3218.0
-    },
-    "g0": 3.9369840950271793,
-    "gap": 0.12781897212989005,
-    "measured_at": "2026-07-13T22:09:30.628876+00:00",
-    "metric": "classification",
-    "note": "cost-weighted can't-pay/won't-pay 2x2 misclassification (W2_7 hidden ability x willingness -> identical observable is_in_arrears -> C9 classification from engagement/part-payment/disclosure/consumption); ability axis = the can-pay/cannot-pay confound, 8:1 harm on reading a genuine can't-pay as a strategic won't-pay. fn_ability is the harm path (vulnerable read as able); pursue/forbear gate outcomes in components.",
-    "raw_gap": 0.5032212603180994,
-    "run_git_commit": "4387baa5cbb14b3bd55e952dfc4669ee1592593f",
-    "twin_atom_id": "C9_cantpay_wontpay_classifier"
   }
 }

@@ -485,6 +485,27 @@ def main() -> None:
     if args.write_ledger:
         measured_at = datetime.now(timezone.utc).isoformat()
         commit = _git_head()
+        # HEADLINE entry under the BARE world_atom_id -- this is the contract
+        # background/coupled_triad.gap_measured() reads to unblock W2_11->L3
+        # (all pairs carry one bare-keyed entry). The detection gap is the
+        # headline: it is the core belief-vs-truth divergence (the no-remittance
+        # blind spot -- non-DD failures the company never observes). The belief
+        # and ageing gaps are kept as ::suffixed detail entries alongside.
+        headline: GapResult = result["detection"]
+        headline.note = (
+            "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment "
+            "failures the company never observes through the seam -- the "
+            "no-remittance blind spot). Companion per-dimension gaps in the "
+            f"::belief ({result['belief'].gap:.4f}) and ::ageing "
+            f"({result['ageing'].gap:.4f}) entries; allocation honestly dropped "
+            "(metric-shape mismatch). R12: diagnostic, not a target."
+        )
+        ledger = write_gap_entry(
+            WORLD_ATOM_ID, TWIN_ATOM_ID, headline,
+            measured_at=measured_at, run_git_commit=commit,
+        )
+        print(f"  ledger written (HEADLINE): {WORLD_ATOM_ID} -> "
+              f"gap={ledger[WORLD_ATOM_ID]['gap']}")
         for name in ("detection", "belief", "ageing"):
             r: GapResult = result[name]
             ledger = write_gap_entry(
