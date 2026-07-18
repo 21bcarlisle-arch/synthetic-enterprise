@@ -63,4 +63,4 @@ gap for two canonical doors; add render tests mirroring the others.
 **E — Coverage seam (meta).** `site/**` tests are NOT in the publish gate (`pytest tests/ …`), so a
 red site-door test does not wedge the gate and can go unnoticed (how the 8th-pair regression above
 slipped). Options: add `site/` to a site-lane CI check, or a lightweight pre-push site-test run.
-Queued as a harness finding (off-front → FRAME/DISCOVER only until a front opens).
+Queued as a harness finding; now FRAMED (build-ready design: `docs/design/SITE_TEST_COVERAGE_SEAM_FRAME.md`, recommended mechanism B+C, R15-failable) — off-front, opens on a harness front / director BUILD_OPEN.
