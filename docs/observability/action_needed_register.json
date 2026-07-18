@@ -29,15 +29,6 @@
     "what": "Two things only you can set for the AI-compute cost-to-serve line: (1) costing basis -- charge at Anthropic's metered list-price-per-token, or allocate from the actual flat Max-subscription fee spread across usage? (2) your own oversight-hours rate -- what hourly rate represents your time reviewing/overseeing this agent's work?",
     "why": "That function returns 0.0 today specifically because these are your calls, not mine to invent (R12 discipline) -- it's the only unpriced real cost line in the whole opex model. Separately, FYI not an action item: docs/observability/token-usage-log.jsonl only covers 5 days and never captured interactive sessions, so even once you answer this, the underlying usage data is currently too thin for a fully representative true figure -- flagging so you know that data gap exists alongside the policy question."
   },
-  "director-console-confirm-L3-ratifications-2026-07-18": {
-    "first_asked_at": "2026-07-18T11:59:03.647388+00:00",
-    "how": "Director confirms by console (types in a live session or clears a gate) -> orchestrator records LEVEL_UP_PROPOSED for both + appends R15 to canon (versioned) + moves cells to L3.",
-    "item_id": "director-console-confirm-L3-ratifications-2026-07-18",
-    "last_pinged_at": "2026-07-18T11:59:03.647388+00:00",
-    "resolved": false,
-    "what": "3 ratifications via ADVISOR-STAGED doc (not console): H26->L3, H24_precommit->L3, R15->DIRECTOR_CANON.md \u00a72. The \u00a70 level-gate requires channel=console; advisor-staged does not satisfy it. Cells NOT forced (fail-closed per the doc's own note). Doc parked docs/staging/in_progress/.",
-    "why": "Console-only authentication WALL: level/authority moves are authorized only by the director's console act, never a staged relay (spoofable). record_level_up hardcodes console; writing off an advisor doc = forging."
-  },
   "executor-wall_escalated": {
     "answer": "PROCEED \u2014 open-build within the OPEN epoch is reversible (twin's call, not a one-way door); do not re-escalate this class. (director, 2026-07-16)",
     "first_asked_at": "2026-07-16T14:14:35.476829+00:00",
@@ -48,6 +39,15 @@
     "resolved_at": "2026-07-16T17:13:36.356295+00:00",
     "what": "Headless executor hit a one-way door (WALL) \u2014 NTFY'd, loop CONTINUING other atoms.",
     "why": "Unattended loop self-stopped and is awaiting a director decision. Draw: BUILD lane draw"
+  },
+  "governance-twin-s3a-vs-fronts-offront-builds-2026-07-18": {
+    "first_asked_at": "2026-07-18T12:41:54.851447+00:00",
+    "how": "Decide the model: (a) open a HARNESS/foundation FRONT (console FRONT_OPEN covering H_harness / G_data_learning) so the loop may build reliability atoms self-governed; OR (b) require a per-atom director BUILD_OPEN for each harness atom; OR (c) reconcile canon \u00a73a to match the fronts model (twin approves only IN-front + per-atom BUILD_OPEN). Until then I will NOT open further off-front (H/G-lane) atoms via twin-only -- only in-front (product) atoms or director-BUILD_OPEN'd ones.",
+    "item_id": "governance-twin-s3a-vs-fronts-offront-builds-2026-07-18",
+    "last_pinged_at": "2026-07-18T12:41:54.851447+00:00",
+    "resolved": false,
+    "what": "GOVERNANCE GAP: the twin's canon-\u00a73a delegation ('BUILD authorization within an OPEN EPOCH, delegated to the twin') is broader than the ENFORCED fronts+gate-wall model (a BUILD is authorized IFF the atom is in an OPEN front OR has a director console BUILD_OPEN). The open fronts (SIM_ACTORS=W1/W2, SUPPLIER=D/B/E/C/F) cover PRODUCT lanes only -- NOT H_harness or G_data_learning. So this session's harness reliability builds (H26, H24_precommit, H23, H24_worktree, G4), all opened on twin \u00a73a authority, are OFF-FRONT with no per-atom BUILD_OPEN. The reconciler flagged only G4 (newest post-baseline promotion; the others are baseline-grandfathered) and it RED-wedged the publish gate. I reverted G4 (fail-closed). You RATIFIED H26+H24_precommit (retroactive bless); the rest stand un-flagged but are technically off-front.",
+    "why": "The fronts_reconciler is a live fail-closed safety control in the publish gate; an off-front build reds it and blinds your window. The twin does not check fronts.yaml region-membership, so twin approval alone is insufficient -- this is a real mechanism-vs-canon inconsistency, your call to resolve."
   },
   "live-e2e-test-2026-07-13": {
     "first_asked_at": "2026-07-13T05:02:12.809084+00:00",
