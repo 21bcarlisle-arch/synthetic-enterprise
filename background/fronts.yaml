@@ -1,0 +1,118 @@
+# background/fronts.yaml — the SINGLE authoritative declaration of self-governance SCOPE.
+# Self-Governance Scope Model, docs/design/SELF_GOVERNANCE_SCOPE_MODEL.md (§2, §10 addendum).
+#
+# A FRONT is a declared, bounded region of the maturity-map atom-space the loop may BUILD within
+# CONTINUOUSLY without asking (self-governing its draw by the existing dial/lane/<=3 rules).
+# A GATE is a declared boundary only a director CONSOLE ACT crosses. They compose by ONE rule:
+#   a BUILD promotion is authorized IFF the atom is a member of an OPEN front AND advancing it
+#   does NOT cross a gate.   (gate beats front, always — G-1.)
+#
+# This generalises the existing single-atom gate-wall (background/gate_authorization.py +
+# docs/observability/gate_authorizations.jsonl) from "this ONE atom is authorized" to "this whole
+# declared REGION is authorized, minus the gates". It does NOT fork a parallel mechanism:
+#   - opening a front / clearing a gate = a director-console record in gate_authorizations.jsonl,
+#     validated by the SAME _is_valid_authorization (action + authorized_by==director +
+#     channel==console + non-empty provenance).
+#   - reconciled against ACTUAL map state (loop_stage + level_current deltas vs baselines) by
+#     background/fronts_reconciler.py, which has NO write path to the map by construction
+#     (detect + report only, exactly like process_reconciler.py — reaping-by-inference caused the
+#     blackout).
+#
+# IaC (OPS1 §5): "is the loop allowed to build weather physics right now?" must be answerable from
+# THIS FILE + the ledger alone — never from watching what the loop happens to do. Reconstruct-from-
+# repo is the test.
+#
+# STATE (the disease-curing field, mirrored from process_manifest.yaml):
+#   open  — the loop may BUILD in-region NON-GATED atoms without asking.  Requires a non-null
+#           `opened_by` referencing the director FRONT_OPEN console act (loader-enforced — a front
+#           `open` with `opened_by: null` FAILS validation: an open front with no console trace is
+#           drift, not authorization).
+#   held  — declared but NOT authorized; in-region atoms are BUILD-frozen (DISCOVER/FRAME still ok).
+#           A held front reads HELD/silent, never MISSING/fault (the §8 disease, cured for scope).
+#           A front is `held` until a director FRONT_OPEN console act flips it `open` (sub-step 6).
+#
+# BOTH FRONTS ARE `held`. Sub-steps 1–5 are built and proven while the model authorizes NOTHING —
+# so the mechanism can never be the thing that opens a front. Only sub-step 6, a director console
+# act (FRONT_OPEN written by the console orchestrator), opens them.
+version: 1
+
+# ── FRONTS ──────────────────────────────────────────────────────────────────────────────────
+# Membership is a total, pure function of the committed map coordinates (lane / id / file_scope)
+# + this file — no runtime discretion widens it (F-1 bounded). Future-atom-inclusive (director
+# 2026-07-18 §10.4): opening a front pre-authorizes future in-region atoms, with the reconciler
+# LOUDLY flagging any newly-landed atom so it is never silent.
+fronts:
+  - id: SIM_ACTORS
+    state: held            # → open ONLY via a director FRONT_OPEN in gate_authorizations.jsonl
+    lanes: [W1_market_weather, W2_customer_generator]
+    include_atoms: [W1_2_generate_futures]   # generative-futures, explicit (already in W1 lane)
+    epoch_ceiling: 3        # advancing a member INTO epoch >=4 is an epoch gate (HOLD) — e.g. W2_3
+    reason: "declared-not-open: proving the scope model (sub-steps 1–5) with the front HELD, so the
+             mechanism authorizes nothing until the director's FRONT_OPEN console act (sub-step 6)"
+    flip: "director FRONT_OPEN console act → console orchestrator writes {front:SIM_ACTORS,
+           action:FRONT_OPEN, authorized_by:director, channel:console, provenance:...} to the
+           ledger AND sets state:open + opened_by here"
+    purpose: "SIM-side actors the world runs on: weather physics/fields/demand/price signal,
+              customer archetypes/population/life-events/distress, generative futures. The world
+              deepens continuously; the company discovers it through the wall (coupled triad)."
+    opened_by: null         # MUST be the ledger act id/ts when state==open (loader-enforced)
+
+  - id: SUPPLIER
+    state: held
+    lanes: [D_billing_metering, B_commercial, E_finance_treasury, C_customer_ops, F_risk_compliance]
+    include_paths: [site/]  # the website surface (L2 SITE lane) — ungated, made explicit
+    epoch_ceiling: 3        # e.g. B4/D4 (epoch 4) stay epoch-gated even inside the front
+    reason: "declared-not-open: proving the scope model with the front HELD (see SIM_ACTORS)"
+    flip: "director FRONT_OPEN console act → ledger FRONT_OPEN{front:SUPPLIER} + state:open + opened_by"
+    purpose: "Supplier operations: billing/rebilling, pricing/margin/hedge-tariff, settlement/
+              ledger/revenue-recon, collections (C customer-ops) and risk & compliance (F), plus the
+              public site. The company's own machine, built forward. (Director 2026-07-18 §10.4: F is
+              the most mature lane, C covers collections — both are core supplier lanes.)"
+    opened_by: null
+
+# ── GATES ───────────────────────────────────────────────────────────────────────────────────
+# A gate is subtracted from EVERY front (G-1). Order in code is fixed: in_region AND NOT gated.
+# The ONLY thing that lets a gated promotion proceed is a director-console record clearing that
+# specific gate (a GATE_CLEAR naming the gate, or a per-atom BUILD_OPEN) — G-2.
+gates:
+  - id: one_way_doors
+    kind: predicate
+    predicate: one_way_door.classify_action   # reuse VERBATIM — the 8 categories, incl. REPO_PRIVATE
+    purpose: "The director's one-way-door list. Any promotion whose action matches → HOLD."
+
+  - id: epoch_boundary
+    kind: epoch_ceiling
+    purpose: "Advancing a front member into an epoch above the front's epoch_ceiling. Epoch 4
+              (fitness/mortality) and 5 (go-live) are values/go-live — director-opened only."
+
+  - id: level_promotion
+    kind: level_gate
+    purpose: "MATURITY_MAP.md §0: director+advisor own the map — the agent PROPOSES level-ups with
+              evidence, never moves a cell itself. ANY agent-authored level_current (L0–L5) increase
+              vs the committed level baseline with no director+advisor level-authorization record →
+              LEVEL_SELF_PROMOTION (LOUD). Distinct from the loop_stage BUILD-open gate. Direct fix
+              for the 2026-07-18 W1_4/D5/E4 self-level-to-L2 error (reverted)."
+
+  - id: stage_advance
+    kind: stage_gate
+    purpose: "Respect loop_stage (§10.2): a DISCOVER-stage atom (loop_stage: idle, e.g. all of W1)
+              is eligible for DISCOVER/FRAME only, NEVER BUILD. Advancing an atom's canonical stage
+              (idle→build, i.e. BUILD-open) is a reserved gate — only a director console act crosses
+              it. Exactly the 2026-07-18 W1 weather self-advance failure this closes."
+
+  - id: schema_sim_structure
+    kind: gated_atoms_and_paths
+    gated_atoms: [W4_1_typed_adapters, W4_2_verifier_timing_extension, W4_3_external_truth_wall,
+                  G2_event_log_shared_with_spine, H9_map_write_serialisation]
+    gated_paths: [company/interfaces/sim_interface.py, interface/sim_interface.py, interface/,
+                  docs/design/maturity_map.yaml, background/gate_authorization.py,
+                  background/fronts.yaml, background/fronts_reconciler.py]
+    purpose: "Structural seams the whole system binds to — the wall contract, the event-log/spine
+              schema, the map schema itself, and this governance mechanism. A build PROMOTING a
+              gated atom or TOUCHING a gated path is a schema decision → HOLD."
+
+  - id: values_decisions
+    kind: gated_atoms
+    gated_atoms: [A4_sim_approver, A5_tournament_fitness_mortality, A7_harm_cost_weights_decision]
+    also: "the curriculum (R13) — any named difficulty/scenario change — is director-authored."
+    purpose: "Atoms that define what the company is FOR. Reserved regardless of reversibility."
