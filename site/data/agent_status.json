@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-18T12:19:31.222520+00:00",
+  "last_updated": "2026-07-18T12:24:31.591505+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T12:19:31.222520+00:00",
+      "last_heartbeat": "2026-07-18T12:24:31.591505+00:00",
       "last_action": "Heartbeat \u2014 19 files tracked",
-      "last_action_ts": "2026-07-18T12:19:31.222520+00:00",
+      "last_action_ts": "2026-07-18T12:24:31.591505+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T12:16:19.961716+00:00",
-      "last_action": "Waiting for next cycle (0h 15m remaining)",
-      "last_action_ts": "2026-07-18T12:16:19.961716+00:00",
+      "last_heartbeat": "2026-07-18T12:21:19.962667+00:00",
+      "last_action": "Waiting for next cycle (0h 10m remaining)",
+      "last_action_ts": "2026-07-18T12:21:19.962667+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T12:17:57.667390+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~0min",
-      "last_action_ts": "2026-07-18T12:17:57.667390+00:00",
+      "last_heartbeat": "2026-07-18T12:24:00.074763+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~2min",
+      "last_action_ts": "2026-07-18T12:24:00.074763+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
