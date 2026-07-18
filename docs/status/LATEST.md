@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-17T22:18:12Z
+Last updated: 2026-07-18T03:57:08Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -21,9 +21,23 @@ reconciled and loud. Every commit passes a pre-commit test gate — a red-test c
 reconciler, this status-honesty gate, and the pre-commit test gate — all report-first or structural,
 with the loop running throughout. 33 stranded fork branches are salvage-tagged on origin.
 
+**ACTIVE FRONT (2026-07-18, director console) — real-backlog open front, bounded-parallel build.**
+The director authorized the in_progress/ real backlog as an OPEN FRONT: build continuously in
+bounded parallel (≤3) under the live controls; REPO_PRIVATE excluded (one-way door, his call).
+Front declared in `gate_authorizations.jsonl` (BUILD_OPEN, console provenance, R7) + reconciled by
+the gate-wall (0 unauthorized promotions). **Wave 1 (this session, console-orchestrated worktree
+forks, merge-or-reap):** E4 supplier-reporting (CSS segmental statement, saas/reporting) · D5
+account-hierarchy + payment-allocation (company/crm+billing) · W1_4 regional-weather
+aggregation-consistency invariant + R15 mutation test (sim/). Plus, as a non-blocking parallel
+thread, the **self-governance scope model** design proposal (two declared fronts + declared gates,
+console-traced). Weather (W1_3-6/C13) BUILD crosses the Epoch-3 gate by the director's explicit
+'weather physics' authorization (logged). Executor kill-switch stays DARK during console-orchestrated
+waves (no double-driving); the self-sustaining loop takes over once the self-governance model is
+proven. New atoms (D5/E4/G12/G13) registered on landing (orchestrator = sole map writer).
+
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (495s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (493s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
