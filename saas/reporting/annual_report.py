@@ -8964,6 +8964,25 @@ def _section_scenario_sensitivity(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_consolidated_segmental_statement(data: dict) -> str:
+    """Atom E4: Consolidated Segmental Statement (Ofgem SLC 19A shape) — the report
+    backbone. Delegates to saas.reporting.css_statement. Silent on pre-segment fixtures."""
+    try:
+        from saas.reporting.css_statement import render_css
+        return render_css(data)
+    except Exception:
+        return ""
+
+
+def _section_board_kpi_block(data: dict) -> str:
+    """Atom E4: board-grade KPI block beside the CSS financials."""
+    try:
+        from saas.reporting.css_statement import render_board_kpis
+        return render_board_kpis(data)
+    except Exception:
+        return ""
+
+
 def generate_annual_report(data: dict) -> str:
     """Build the full markdown annual report from `extract_report_data()`'s
     output."""
@@ -8971,6 +8990,8 @@ def generate_annual_report(data: dict) -> str:
         "# Annual Report — The Synthetic Enterprise\n",
         _section_scenario_metadata(data),   # Phase 37a: forward scenario banner (silent if not a scenario run)
         _executive_summary(data),
+        _section_consolidated_segmental_statement(data),  # Atom E4: CSS backbone
+        _section_board_kpi_block(data),                   # Atom E4: board KPIs
     ]
 
     sections.append(_section_board_risk_summary(data))               # Phase AQ
