@@ -294,12 +294,19 @@ def test_M7_independence_neuter_makes_stage_finding_DISAPPEAR(monkeypatch):
 
 
 # ── sub-step 1: fronts.yaml loader ─────────────────────────────────────────────────────────
-def test_real_fronts_yaml_loads_and_both_are_HELD():
-    decl = FR.load_fronts()
-    states = {f["id"]: f["state"] for f in decl["fronts"]}
-    assert states == {"SIM_ACTORS": "held", "SUPPLIER": "held"}
-    # this build authorizes NOTHING: no front is open
-    assert FR.open_front_ids(decl["fronts"], GW.read_ledger()) == set()
+def test_real_fronts_yaml_loads_validly_and_every_open_front_is_console_traced():
+    # INVARIANT (robust to the director opening or holding fronts — both were OPENED 2026-07-18):
+    # the live fronts.yaml always LOADS (no schema error), and any OPEN front must carry its console
+    # trace — a non-null opened_by AND a valid FRONT_OPEN in the ledger. A live-state posture
+    # assertion ("both HELD") is brittle by construction; this asserts the load contract instead.
+    decl = FR.load_fronts()                       # raises FrontsError on any schema/opened_by violation
+    open_ids = FR.open_front_ids(decl["fronts"], GW.read_ledger())
+    for f in decl["fronts"]:
+        if f["state"] == "open":
+            assert f.get("opened_by"), f"open front {f['id']} has no opened_by console trace"
+            assert f["id"] in open_ids, f"open front {f['id']} lacks a valid FRONT_OPEN ledger act"
+        else:
+            assert f["id"] not in open_ids
 
 
 def test_loader_rejects_open_front_with_null_opened_by(tmp_path):

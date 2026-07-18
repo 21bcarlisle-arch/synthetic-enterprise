@@ -36,9 +36,21 @@ _BUILD_ATOM_IN_HELD_FRONT = """\
 
 @pytest.fixture(autouse=True)
 def _iso(tmp_path, monkeypatch):
+    import yaml as _yaml
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "map.yaml")
     monkeypatch.setattr(supervisor, "LOG_FILE", tmp_path / "log.md")
     (tmp_path / "map.yaml").write_text(_BUILD_ATOM_IN_HELD_FRONT)
+    # SYNTHETIC fronts manifest: reuse the REAL structure (lanes/gates) but force both fronts HELD,
+    # so these HELD-posture invariants are tested DETERMINISTICALLY regardless of the LIVE fronts
+    # state (the director opened both on 2026-07-18). Posture tests use synthetic manifests — the
+    # project's standing discipline (a live-state assertion is brittle by construction).
+    _real = _yaml.safe_load(FR.FRONTS_PATH.read_text())
+    for _f in _real.get("fronts", []):
+        _f["state"] = "held"
+        _f["opened_by"] = None
+    _syn = tmp_path / "fronts.yaml"
+    _syn.write_text(_yaml.safe_dump(_real))
+    monkeypatch.setattr(FR, "FRONTS_PATH", _syn)
     # point the enforcement flag at a tmp path so the test controls it (default: absent = dormant)
     monkeypatch.setattr(FR, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     yield
