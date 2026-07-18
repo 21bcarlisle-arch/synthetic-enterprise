@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T12:06:05.950585+00:00",
+  "generated_at": "2026-07-18T12:12:32.185314+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -69,7 +69,7 @@
   },
   "critical_path_by_epoch": {
     "2": {
-      "open_atoms": 17,
+      "open_atoms": 15,
       "critical_chain": [
         "A8_experiment_loop_speed",
         "H17_autonomous_build_executor"
@@ -113,10 +113,10 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 40,
+    "total_open_atoms": 38,
     "code_free_discover_frame_atoms": 12,
-    "atoms_with_real_file_scope": 28,
-    "max_concurrent_width_overall": 25,
+    "atoms_with_real_file_scope": 26,
+    "max_concurrent_width_overall": 23,
     "per_epoch": {
       "3": {
         "open_atoms": 14,
@@ -135,8 +135,8 @@
         "max_concurrent_width": 2
       },
       "2": {
-        "open_atoms": 17,
-        "max_concurrent_width": 12
+        "open_atoms": 15,
+        "max_concurrent_width": 10
       }
     },
     "note": "Most open atoms today are DISCOVER/FRAME-stage with empty file_scope (code-free research/design work), which is why the arithmetic max width looks close to the full open-atom count -- this measures 'no file collision', not 'safe to run N engineers building code at once'. Real BUILD-stage file contention only shows up once these atoms declare non-empty file_scope on entering BUILD."

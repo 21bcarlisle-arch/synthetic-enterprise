@@ -1,3 +1,5 @@
+> **RESOLVED 2026-07-18** — director confirmed by console; H26+H24_precommit banked L3, R15 appended to DIRECTOR_CANON.md v3. See gate_authorizations.jsonl + commit.
+
 # DIRECTOR RATIFICATIONS — 2026-07-18 (via advisor channel, director's verbatim "Yes")
 
 **Type:** director decisions, transmitted by the advisor. The director was presented with exactly this decision set and replied **"Yes"**. His verbatim framing was accepted from the advisor's simplified put: *"Should H26 and H24 be stamped Faithful (L3)? … yes to both … including the R15 rule-book line."*
