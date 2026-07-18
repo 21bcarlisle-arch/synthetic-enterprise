@@ -452,6 +452,69 @@ def evaluate_worktree_reap(*, worktrees: list[dict] | None = None, branch_states
             "reaped": reaped, "enforce": enforce}
 
 
+# ── SINGLE-WORKTREE SANCTIONED REAP (H24 gap-close): the guarded replacement for raw
+# `git worktree remove --force` ────────────────────────────────────────────────────────────────
+# Real incident this session: an orchestrator ran raw `--force` removes on three LIVE build-fork
+# worktrees using false-death inference (no `ps` match / frozen output-file mtime / 0 commits ahead
+# -- every one of those is a FALSE NEGATIVE for a live fork; ps/mtime/commit-count say nothing about
+# whether a fork is still working). ~24 min of fully-green, uncommitted work lost per fork, twice.
+# `evaluate_worktree_reap` above is already safe (no --force, refuses locked/dirty/main/bare/live),
+# but it is a BATCH scanner -- there was no sanctioned way to reap ONE worktree by path, so the
+# orchestrator reached for the raw, unguarded command. This closes that gap: the ONLY blessed
+# single-path entrypoint, reusing `classify_worktree_reap` for eligibility (no duplicated logic) and
+# `reap_worktree_dir` for the actual remove (still no --force -- git's own dirty/locked refusal
+# stays a second, independent safety net). The ONLY authoritative done-signal for a fork is its own
+# completion notification -- ps/mtime/commit-count are not it, so an unmerged branch is a LIVE fork
+# by construction and is NEVER reaped here, regardless of how "dead" it looks from the outside.
+def reap_one_worktree(path: str, *, worktrees: list[dict] | None = None,
+                      branch_states: dict | None = None, main_path: str | None = None,
+                      now: float | None = None, dirty_fn=None, salvage_tag_fn=None,
+                      remover=None) -> dict:
+    """Reap ONE worktree by path -- the ONLY sanctioned way to do this (never call raw
+    `git worktree remove --force` directly). Runs the EXISTING `classify_worktree_reap` for `path`
+    and refuses LOUDLY (never calls the remover, never raises) unless it says eligible: not a
+    registered worktree, locked, live/undecided branch (IN_FLIGHT or unsalvaged ORPHAN -- the real
+    fork-killing case, since a live fork's worktree is never `locked` by the harness), dirty, main,
+    or bare. Eligible removal is serialized through `shared_tree_lock` (same cross-worktree lock as
+    `evaluate_worktree_reap`) and delegates to `reap_worktree_dir` (no --force). Fully injectable,
+    same DI style as `evaluate_worktree_reap`. Returns {"path", "removed": bool, "refused": bool,
+    "loud": bool, "reason"/"detail"}. Never raises."""
+    if worktrees is None:
+        worktrees = scan_worktrees()
+    if main_path is None:
+        main_path = str(PROJECT_DIR)
+    if branch_states is None:
+        _now = now if now is not None else time.time()
+        branch_states = {b["name"]: classify_branch(b, _now) for b in scan_fork_branches()}
+    dirty_fn = dirty_fn or _worktree_dirty
+    salvage_tag_fn = salvage_tag_fn or _salvage_tag_for
+    remover = remover or reap_worktree_dir
+
+    wt = next((w for w in worktrees if w["path"] == path), None)
+    if wt is None:
+        return {"path": path, "removed": False, "refused": True, "loud": True,
+                "reason": "not a registered worktree — refused"}
+
+    branch = wt.get("branch")
+    bstate = branch_states.get(branch) if branch else None
+    tag = salvage_tag_fn(branch) if branch else None
+    dirty = dirty_fn(path)
+    result = classify_worktree_reap(wt, main_path, bstate, dirty=dirty, salvage_tag=tag)
+    if not result["eligible"]:
+        return {"path": path, "removed": False, "refused": True, "loud": True, "reason": result["reason"]}
+
+    try:
+        from background.tree_lock import shared_tree_lock
+        with shared_tree_lock():
+            removed = remover(path)
+    except Exception as e:
+        return {"path": path, "removed": False, "refused": False, "loud": True,
+                "reason": f"lock/import error: {e}"}
+    ok = bool(removed.get("removed"))
+    return {"path": path, "removed": ok, "refused": False, "loud": not ok,
+            "reason": result["reason"], "detail": removed.get("detail")}
+
+
 if __name__ == "__main__":
     import json
     import sys

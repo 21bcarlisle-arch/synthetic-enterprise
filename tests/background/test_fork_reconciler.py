@@ -652,6 +652,82 @@ def test_fixture_salvaged_branch_worktree_is_reaped(fixture_repo, tmp_path, no_o
     assert r["eligible"] is True and "salvaged" in r["reason"]
 
 
+# ── reap_one_worktree (H24): the sanctioned single-path entrypoint ─────────────────────────
+# The guarded replacement for raw `git worktree remove --force` -- the command that destroyed 3
+# live build forks this session on false-death inference (no ps match / frozen mtime / 0 commits
+# ahead, every one a FALSE NEGATIVE for a live fork). These tests run purely on injected dicts
+# (mirrors the `classify_worktree_reap` unit style above) -- no real git touched.
+
+def test_reap_one_worktree_refuses_LOCKED_loudly():
+    # An otherwise merged+clean worktree that IS locked (an active build holds its lock) -- must be
+    # refused loudly, and the remover must NEVER be called.
+    # MUTATION: commenting out `if wt.get("locked"): ...` in classify_worktree_reap makes this
+    # otherwise-eligible worktree pass through and the remover below raises -- proven manually
+    # (guard removed -> AssertionError from bad_remover propagates -> test FAILS; guard restored
+    # -> test PASSES). See final report for the before/after run.
+    wt = _rwt("/wt/locked", "done-w1", locked=True, locked_reason="claude agent building (pid 1)")
+    calls = []
+    def bad_remover(p):
+        calls.append(p)
+        raise AssertionError("remover must NEVER be called on a locked worktree")
+    r = F.reap_one_worktree("/wt/locked", worktrees=[wt], branch_states={"done-w1": "MERGED"},
+                            main_path=MAIN2, dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+                            remover=bad_remover)
+    assert r["removed"] is False and r["refused"] is True and r["loud"] is True
+    assert "locked" in r["reason"]
+    assert calls == []
+
+
+def test_reap_one_worktree_refuses_LIVE_unmerged_loudly():
+    # THE real fork-killing case: an UNLOCKED, clean worktree whose branch is still IN_FLIGHT (a
+    # live build fork -- forks are never `locked` by the harness, so this branch-state guard is the
+    # ONLY thing standing between a live fork and destruction). Must be refused loudly, remover
+    # never called.
+    # MUTATION: replacing the `else: branch_ok, branch_reason = False, ...` (IN_FLIGHT/ORPHAN) arm
+    # in classify_worktree_reap with an unconditional `branch_ok = True` makes this pass through and
+    # the remover raise -- proven manually (see final report for the before/after run).
+    wt = _rwt("/wt/live", "live-w1")  # unlocked, clean
+    calls = []
+    def bad_remover(p):
+        calls.append(p)
+        raise AssertionError("remover must NEVER be called on a live/unmerged worktree")
+    r = F.reap_one_worktree("/wt/live", worktrees=[wt], branch_states={"live-w1": "IN_FLIGHT"},
+                            main_path=MAIN2, dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+                            remover=bad_remover)
+    assert r["removed"] is False and r["refused"] is True and r["loud"] is True
+    assert "IN_FLIGHT" in r["reason"]
+    assert calls == []
+
+
+def test_reap_one_worktree_reaps_merged_clean_unlocked(no_op_shared_lock):
+    wt = _rwt("/wt/done", "done-w1")
+    removed = []
+    def fake_remover(p):
+        removed.append(p)
+        return {"path": p, "removed": True, "detail": "removed"}
+    r = F.reap_one_worktree("/wt/done", worktrees=[wt], branch_states={"done-w1": "MERGED"},
+                            main_path=MAIN2, dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+                            remover=fake_remover)
+    assert r["removed"] is True and r["refused"] is False
+    assert removed == ["/wt/done"]
+
+
+def test_reap_one_worktree_never_uses_force():
+    # A path that isn't even a registered worktree -- refused before classification/removal is ever
+    # attempted; the remover is never invoked at all (the simplest structural proof that no code
+    # path in `reap_one_worktree` reaches for `--force`: `reap_worktree_dir`'s own subprocess call
+    # -- the only remover this module ships -- never passes it, and this entrypoint has no other
+    # removal path).
+    calls = []
+    r = F.reap_one_worktree("/wt/unknown", worktrees=[_rwt("/wt/done", "done-w1")],
+                            branch_states={"done-w1": "MERGED"}, main_path=MAIN2,
+                            dirty_fn=lambda p: False, salvage_tag_fn=lambda b: None,
+                            remover=lambda p: calls.append(p))
+    assert r["removed"] is False and r["refused"] is True and r["loud"] is True
+    assert "not a registered worktree" in r["reason"]
+    assert calls == []
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
