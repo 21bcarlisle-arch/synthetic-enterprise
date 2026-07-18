@@ -57,33 +57,40 @@ def register(tmp_path):
     return tmp_path / "register.json"
 
 
-def _pinged_hours_ago(register, item_id, hours):
+def _sent_hours_ago(register, item_id, hours):
+    # The re-ping cadence keys on last_sent_at (the CONFIRMED-send clock), NOT
+    # last_pinged_at (2026-07-18 [ACT]-paging class fix: a registered-but-never-
+    # SENT item stays due). So a cadence fixture must mark the item SENT `hours`
+    # ago, not merely registered -- register_item alone leaves last_sent_at unset,
+    # which correctly reads as never-sent => always due (a separate behaviour,
+    # tested elsewhere), not as a fresh page.
     ts = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
     action_needed.register_item(item_id, "q", "how", "why", path=register, now=ts)
+    action_needed.mark_sent(item_id, path=register, now=ts)
 
 
 def test_reping_fires_when_item_is_overdue(register):
-    # DEFECT PRESENT: an open item last pinged 25h ago (> RE_PING_SECONDS=24h).
+    # DEFECT PRESENT: an open item last SENT 25h ago (> RE_PING_SECONDS=24h).
     # The re-ping timer MUST surface it. A never-fires mutant is killed here.
-    _pinged_hours_ago(register, "one-way-door-q", hours=25)
+    _sent_hours_ago(register, "one-way-door-q", hours=25)
     due = action_needed.due_for_reping(path=register)
     assert [e["item_id"] for e in due] == ["one-way-door-q"]
 
 
 def test_reping_silent_when_item_is_fresh(register):
-    # DEFECT ABSENT: pinged 1h ago -- the timer must NOT fire. An always-fires /
+    # DEFECT ABSENT: SENT 1h ago -- the timer must NOT fire. An always-fires /
     # stuck-open mutant (re-pings every cycle regardless of elapsed time) is
     # killed here.
-    _pinged_hours_ago(register, "recent-q", hours=1)
+    _sent_hours_ago(register, "recent-q", hours=1)
     assert action_needed.due_for_reping(path=register) == []
 
 
 def test_reping_cadence_constant_is_load_bearing(register, monkeypatch):
-    # MUTATE THE CONSTANT: an item pinged 25h ago is due under the real 24h
+    # MUTATE THE CONSTANT: an item SENT 25h ago is due under the real 24h
     # cadence. Break the cadence (timer set never to elapse) and the SAME item
     # must stop surfacing -- proving the verdict is CAUSED by the constant, not
     # incidental. This is what distinguishes a real timer from a fail-open one.
-    _pinged_hours_ago(register, "q", hours=25)
+    _sent_hours_ago(register, "q", hours=25)
     assert action_needed.due_for_reping(path=register)  # real cadence: due
 
     monkeypatch.setattr(action_needed, "RE_PING_SECONDS", 10 ** 12)  # ~31,000 yrs
@@ -95,11 +102,11 @@ def test_reping_boundary_is_at_the_threshold_not_above_it(register, monkeypatch)
     # quiet. A mutant using > instead of >= (or an off-by-a-lot threshold) is
     # killed by one of these two directions.
     monkeypatch.setattr(action_needed, "RE_PING_SECONDS", 3600)  # 1h for a crisp edge
-    _pinged_hours_ago(register, "at-edge", hours=1)  # exactly 1h -> due (>=)
+    _sent_hours_ago(register, "at-edge", hours=1)  # exactly 1h -> due (>=)
     assert [e["item_id"] for e in action_needed.due_for_reping(path=register)] == ["at-edge"]
 
     reg2 = register.parent / "reg2.json"
-    _pinged_hours_ago(reg2, "under-edge", hours=0.9)  # 54min -> not yet
+    _sent_hours_ago(reg2, "under-edge", hours=0.9)  # 54min -> not yet
     assert action_needed.due_for_reping(path=reg2) == []
 
 
