@@ -1,0 +1,78 @@
+{
+  "artefact": "weather_joint_tail_report",
+  "atom": "W1_3_national_weather_signal",
+  "cold_still_spells": {
+    "definition": "consecutive days with temp AND wind residual below the 20th real-data percentile, run length >= 3 days",
+    "real": {
+      "count": 18,
+      "longest_days": 11,
+      "per_winter": 1.9078641903656413,
+      "within_sample": true,
+      "years_covered": 9.434633812457221
+    },
+    "synthetic": {
+      "count": 173,
+      "longest_days": 11,
+      "per_winter": 3.4623698630136985,
+      "years_covered": 49.96577686516085
+    }
+  },
+  "config": {
+    "blocking_regime_frequency": 0.13493905977945445,
+    "blocking_regime_mean_drift": {
+      "cloud_cover_pct": -3.8064033838460394,
+      "temperature_mean_c": -1.1365948943789759,
+      "wind_speed_mean_ms": -1.102514187351209
+    },
+    "low_tail_pct": 20.0,
+    "min_spell_days": 3,
+    "seed": 20260718,
+    "synthetic_years": 50,
+    "temp_threshold_resid_c": -2.091787432677979,
+    "wind_threshold_resid_ms": -1.3376715091707339
+  },
+  "data_regime": "synthetic",
+  "generated_utc": "2026-07-18T04:22:41.428837+00:00",
+  "independent_validation": {
+    "anchor": "gb_cold_still_spells_per_winter",
+    "honesty_note": "This is the anti-marking-own-homework anchor (a DIFFERENT source from the Open-Meteo fit). It is a labelled placeholder (R10) \u2014 the mechanism is real, the magnitude is not yet pulled, so it returns INDETERMINATE and can never certify a false PASS.",
+    "message": "INDETERMINATE: the independent anchor is a labelled placeholder (no real magnitude). Cannot certify PASS off a placeholder \u2014 an unavailable independent check is a FAILED check (R15). Inject a real IndependentAnchor to run the comparison.",
+    "status": "INDETERMINATE_PLACEHOLDER",
+    "synthetic_value_spells_per_winter": 3.4623698630136985
+  },
+  "joint_tail_dependence_ratio": {
+    "note": "P(cold AND still) / [P(cold)*P(still)]; 1.0 = independent, >1 = the cold-and-still correlation is present",
+    "real": {
+      "10": 2.2003444654484348,
+      "20": 1.422764107760137,
+      "5": 2.9936182298105516
+    },
+    "synthetic": {
+      "10": 2.465753424657534,
+      "20": 1.7643835616438353,
+      "5": 3.524903157387091
+    }
+  },
+  "worst_week": {
+    "both_axes_at_least_as_severe_as_real": true,
+    "coverage_ratio_severity": 1.1982793697964031,
+    "honest_marginal_note": "The real worst week is 2022-12 \u2014 an exceptionally cold GB blocking-high snap. The model reproduces the JOINT cold-and-still structure (tail-dependence ratio matches real), and produces weeks at least as severe on combined severity, but its pure-TEMPERATURE marginal at the very tail sits at/near the real extreme rather than reliably beyond it (temp_margin_shortfall_c > 0 means the synthetic worst week is that many degrees warmer). This is a known Gaussian-innovation under-dispersion of the extreme marginal cold tail \u2014 a candidate L3 refinement (fatter-tailed innovations), NOT tuned here: the baseline is not adjusted to hit a target (R12/R13).",
+    "joint_at_least_as_severe_as_real": true,
+    "note": "coldest+stillest 7-day window; DoD honesty test \u2014 synthetic must be AT LEAST as severe as the real GB worst week on the JOINT (cold-and-still) axis",
+    "real_within_sample": {
+      "date_range": "2022-12-09..2022-12-15",
+      "mean_temp_anomaly_c": -7.4767001866511515,
+      "mean_wind_anomaly_ms": -2.0396006064401995,
+      "severity": 4.3020690360236715,
+      "start_index": 2534
+    },
+    "synthetic": {
+      "mean_temp_anomaly_c": -8.98625295415358,
+      "mean_wind_anomaly_ms": -2.7403255167743064,
+      "severity": 5.155080573307065,
+      "start_index": 5752
+    },
+    "temp_margin_shortfall_c": -1.509552767502428,
+    "verdict": "OK \u2014 synthetic worst week is at least as cold-and-still (joint severity) as the real GB worst week"
+  }
+}

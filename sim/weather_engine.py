@@ -3,13 +3,37 @@
 Pass 1 (national macro): a 2016-2025 daily national series (temperature,
 wind speed, cloud cover — averaged across the four customer locations) is
 deseasonalised via harmonic regression, then modelled as a mean-reverting
-(AR1) process on the residuals with regime-switching innovation covariance
-("standard" vs "stressed" — stressed days are those with unusually large
-wind-residual magnitude, calibrated from real data). The regime-switching
-covariance *is* the jump mechanism: a transition into the stressed regime
-produces a much larger innovation than the standard regime, which is the
-practical effect a separate compound-Poisson jump term would add — see
-docs/calibration/weather-engine.md for the design rationale.
+(AR1) process on the residuals with a regime-switching innovation model
+("standard" vs "blocking-high"). Each regime carries BOTH its own innovation
+covariance AND its own innovation MEAN drift, calibrated from real data.
+
+W1_3 upgrade (2026-07-18) — mechanistic cold-and-still (Dunkelflaute) regime:
+the stressed regime was previously classified on WIND residual magnitude alone
+(symmetric — it caught storms and lulls alike), so cold-and-still emerged only
+as a side-effect of the innovation covariance's temp/wind correlation term. It
+is now classified JOINTLY: a day is "blocking-high" when its temperature
+residual AND its wind residual are BOTH in their low tail — the anticyclonic
+cold-and-still signature (``classify_blocking_regime``). And the blocking regime
+carries a per-regime innovation MEAN (fitted from the real blocking days), so on
+a blocking day the temperature and wind residuals are DRIVEN DOWN TOGETHER by a
+common latent state — cold-and-still is now a MECHANISM, not a fitted Gaussian
+correlation that under-weights the tail. This is THE single most important GB
+power correlation (blocking-high winters = low wind + high heating demand +
+tight margin + price spike): if temperature and wind are effectively independent
+in the tail, the supplier-killing winter tail never occurs and every hedge looks
+fine — a lie.
+
+  Named simplification (R10): "high pressure" is not a measured input series
+  (the Open-Meteo daily set carries no MSLP column). A blocking anticyclone's
+  defining OBSERVABLE at the surface is light winds, so LOW WIND is used as the
+  high-pressure proxy — see ``SIMPLIFICATIONS`` below. If a real MSLP series is
+  wired later, the classification gains a third jointly-tested condition without
+  touching the AR1/Cholesky/Markov scaffolding.
+
+The regime-switching covariance is also the jump mechanism: a transition into
+the blocking regime produces a larger, cold-still-drifted innovation than the
+standard regime — the practical effect a separate compound-Poisson jump term
+would add — see docs/calibration/weather-engine.md for the design rationale.
 
 Pass 2 (regional micro-climates): each location's daily deviation from the
 national series is modelled via a Cholesky-decomposed cross-location
@@ -58,6 +82,34 @@ WIND_INNOVATION_STD = 0.522  # m/s, gives stationary std ~1.23 m/s
 
 MACRO_VARS = ["temperature_mean_c", "wind_speed_mean_ms", "cloud_cover_pct"]
 
+# --- Joint blocking-high (cold-and-still / Dunkelflaute) regime classification ---
+# A day is "blocking-high" when BOTH its temperature residual AND its wind residual
+# sit in their low tail (colder-than-seasonal AND stiller-than-seasonal together) —
+# the surface signature of an anticyclonic block. Thresholds are the given low
+# percentile of each residual distribution. Defaults chosen so the resulting
+# blocking frequency is in the same ballpark as the prior wind-only stressed
+# frequency (~10%); the achieved frequency is a REPORTED DIAGNOSTIC, not a target
+# (R12). See classify_blocking_regime().
+BLOCKING_TEMP_PERCENTILE = 33.0  # temperature residual low-tail cutoff (colder)
+BLOCKING_WIND_PERCENTILE = 33.0  # wind residual low-tail cutoff (stiller)
+
+# Named simplifications (R10) for this engine's blocking-high mechanism.
+SIMPLIFICATIONS: list[dict[str, str]] = [
+    {
+        "id": "W1_3_HIGH_PRESSURE_PROXIED_BY_LOW_WIND",
+        "what": "The blocking-high regime is classified on (low temperature "
+                "residual AND low wind residual). 'High pressure' is NOT a "
+                "measured input — the Open-Meteo daily set has no MSLP column — "
+                "so low surface wind is used as the anticyclone proxy.",
+        "why_ok": "Light surface winds are the defining observable of a blocking "
+                  "anticyclone; low wind is the physically-correct surface proxy "
+                  "for high pressure. The classification is a pure function of "
+                  "residuals, so a real MSLP series drops in as a third jointly-"
+                  "tested condition without touching the AR1/Cholesky/Markov core.",
+        "rule": "R10",
+    },
+]
+
 _SEASONAL_PERIOD_DAYS = 365.25
 
 
@@ -95,6 +147,61 @@ def seasonal_value(coeffs: np.ndarray, day_of_year: np.ndarray) -> np.ndarray:
 # Pass 1 — national macro: regime-switching mean-reverting (AR1) model
 # ---------------------------------------------------------------------------
 
+def classify_blocking_regime(
+    temp_resid: np.ndarray,
+    wind_resid: np.ndarray,
+    temp_percentile: float | None = None,
+    wind_percentile: float | None = None,
+) -> tuple[np.ndarray, dict]:
+    """Classify each day as blocking-high (cold-and-still) or standard.
+
+    A day is BLOCKING-HIGH (returned value 1) when its temperature residual AND
+    its wind residual are BOTH in their low tail — colder-than-seasonal AND
+    stiller-than-seasonal together, the anticyclonic cold-and-still signature.
+    This is the joint, DIRECTIONAL replacement for the prior wind-only,
+    magnitude-symmetric trigger (which caught storms and lulls alike and so did
+    not target the cold-and-still corner at all).
+
+    'High pressure' is proxied by low wind (R10 — see SIMPLIFICATIONS): light
+    surface winds are the observable signature of a blocking anticyclone.
+
+    Independence / anti-tautology note (R15): this classifier keys ONLY on the
+    two residual series; it never reads the regime label back from itself, and it
+    is a pure function (same inputs -> same labels) so it is directly mutation-
+    testable — force the thresholds so nothing is cold-and-still and the blocking
+    count goes to zero (the mutation the tail-dependence checks fire on).
+
+    Returns (regime_labels, meta) where regime_labels is an int array (1 =
+    blocking-high) and meta records the two thresholds and the achieved frequency.
+    """
+    # Resolve percentiles from the (live) module constants at call time, so a
+    # caller/mutation that changes the module constant propagates into a fit.
+    if temp_percentile is None:
+        temp_percentile = BLOCKING_TEMP_PERCENTILE
+    if wind_percentile is None:
+        wind_percentile = BLOCKING_WIND_PERCENTILE
+
+    temp_resid = np.asarray(temp_resid, dtype=float)
+    wind_resid = np.asarray(wind_resid, dtype=float)
+    if temp_resid.shape != wind_resid.shape:
+        raise ValueError("temp_resid and wind_resid must have the same shape")
+    if temp_resid.size == 0:
+        raise ValueError("cannot classify an empty residual series")
+
+    temp_threshold = float(np.percentile(temp_resid, temp_percentile))
+    wind_threshold = float(np.percentile(wind_resid, wind_percentile))
+    blocking = ((temp_resid < temp_threshold) & (wind_resid < wind_threshold)).astype(int)
+    meta = {
+        "temp_threshold": temp_threshold,
+        "wind_threshold": wind_threshold,
+        "temp_percentile": float(temp_percentile),
+        "wind_percentile": float(wind_percentile),
+        "frequency": float(blocking.mean()),
+        "high_pressure_proxy": "low_wind",  # R10 named simplification
+    }
+    return blocking, meta
+
+
 def fit_national_macro_model(national_daily: dict[str, np.ndarray], day_of_year: np.ndarray) -> dict:
     """Fit the national macro model from real daily national series.
 
@@ -111,16 +218,15 @@ def fit_national_macro_model(national_daily: dict[str, np.ndarray], day_of_year:
         residuals[var] = resid
         phi[var] = float(np.corrcoef(resid[:-1], resid[1:])[0, 1])
 
-    # Regime classification: a day is "stressed" if its wind residual
-    # magnitude exceeds the 90th percentile of the historical distribution.
-    wind_resid = residuals["wind_speed_mean_ms"]
-    threshold = float(np.percentile(np.abs(wind_resid), 90))
-    regime = (np.abs(wind_resid) > threshold).astype(int)  # 1 = stressed
+    # Regime classification: JOINT cold-and-still (blocking-high). A day is
+    # "blocking" (1) when temperature AND wind residuals are BOTH in their low
+    # tail — the mechanistic cold-and-still corner, not a wind-only magnitude
+    # trigger. See classify_blocking_regime().
+    regime, regime_meta = classify_blocking_regime(
+        residuals["temperature_mean_c"], residuals["wind_speed_mean_ms"]
+    )
 
-    transition = np.zeros((2, 2))
-    for t in range(len(regime) - 1):
-        transition[regime[t], regime[t + 1]] += 1
-    transition = transition / transition.sum(axis=1, keepdims=True)
+    transition = _fit_transition_matrix(regime)
 
     # AR1 innovations: innovation_t = resid_t - phi*resid_{t-1}
     innovations = np.column_stack([
@@ -128,17 +234,71 @@ def fit_national_macro_model(national_daily: dict[str, np.ndarray], day_of_year:
     ])
     regime_for_innovation = regime[1:]
 
-    cov_standard = np.cov(innovations[regime_for_innovation == 0].T)
-    cov_stressed = np.cov(innovations[regime_for_innovation == 1].T)
+    standard_inno = innovations[regime_for_innovation == 0]
+    blocking_inno = innovations[regime_for_innovation == 1]
+
+    # Per-regime innovation MEAN — the mechanistic heart of the upgrade. On a
+    # blocking day the innovation mean is pushed toward the cold-and-still corner
+    # (negative for temperature and wind), so a common latent state drives them
+    # DOWN TOGETHER — cold-and-still is a mechanism, not a fitted correlation.
+    # Standard-day mean is the (small, opposite-signed) residual that keeps the
+    # regime-weighted innovation mean ~0, so the overall distribution mean is
+    # preserved (verified in tests).
+    mean_standard = _regime_mean(standard_inno, len(MACRO_VARS))
+    mean_blocking = _regime_mean(blocking_inno, len(MACRO_VARS))
+
+    cov_standard = _regime_cov(standard_inno, len(MACRO_VARS), fallback=None)
+    cov_stressed = _regime_cov(blocking_inno, len(MACRO_VARS), fallback=cov_standard)
 
     return {
         "seasonal": seasonal,
         "phi": phi,
-        "regime_threshold": threshold,
+        # regime_threshold retained for back-compat; now the (temp, wind) pair.
+        "regime_threshold": (regime_meta["temp_threshold"], regime_meta["wind_threshold"]),
+        "regime_meta": regime_meta,
         "regime_transition": transition,
         "regime_frequency": float(regime.mean()),
+        "regime_mean": {"standard": mean_standard, "stressed": mean_blocking},
         "cov": {"standard": cov_standard, "stressed": cov_stressed},
     }
+
+
+def _fit_transition_matrix(regime: np.ndarray) -> np.ndarray:
+    """2x2 Markov transition matrix from a regime label sequence, with a
+    fail-safe: a state that is never entered (row sums to zero — e.g. under a
+    mutation that suppresses blocking) gets an identity-ish row (stay put) rather
+    than producing NaNs. This keeps simulate_national_macro numerically valid on
+    a degenerate/mutated fit instead of failing silently with NaN transitions."""
+    transition = np.zeros((2, 2))
+    for t in range(len(regime) - 1):
+        transition[regime[t], regime[t + 1]] += 1
+    row_sums = transition.sum(axis=1, keepdims=True)
+    for s in range(2):
+        if row_sums[s, 0] == 0:
+            transition[s, s] = 1.0
+            row_sums[s, 0] = 1.0
+    return transition / row_sums
+
+
+def _regime_mean(inno: np.ndarray, n_vars: int) -> np.ndarray:
+    """Per-variable innovation mean for one regime; zeros if the regime is empty
+    (a mutation/degenerate fit) so the drift term simply vanishes rather than
+    raising or NaN-poisoning the simulation."""
+    if inno.shape[0] == 0:
+        return np.zeros(n_vars)
+    return inno.mean(axis=0)
+
+
+def _regime_cov(inno: np.ndarray, n_vars: int, fallback: np.ndarray | None) -> np.ndarray:
+    """Per-regime innovation covariance with a fallback for a regime that has
+    too few samples to estimate a covariance (needs >=2). Falls back to the
+    provided matrix (or a tiny-diagonal identity if none), so a degenerate/mutated
+    fit stays factorisable instead of crashing."""
+    if inno.shape[0] >= 2:
+        return np.cov(inno.T)
+    if fallback is not None:
+        return fallback
+    return np.eye(n_vars) * 1e-6
 
 
 def simulate_national_macro(params: dict, day_of_year: np.ndarray, rng: np.random.Generator) -> dict[str, np.ndarray]:
@@ -148,13 +308,22 @@ def simulate_national_macro(params: dict, day_of_year: np.ndarray, rng: np.rando
         "standard": np.linalg.cholesky(params["cov"]["standard"]),
         "stressed": np.linalg.cholesky(params["cov"]["stressed"]),
     }
+    # Per-regime innovation MEAN drift (defaults to zero for a params dict fitted
+    # before this field existed — back-compat, and the pre-upgrade behaviour).
+    regime_mean = params.get("regime_mean", {})
+    mean = {
+        "standard": np.asarray(regime_mean.get("standard", np.zeros(len(MACRO_VARS))), dtype=float),
+        "stressed": np.asarray(regime_mean.get("stressed", np.zeros(len(MACRO_VARS))), dtype=float),
+    }
     transition = params["regime_transition"]
 
     resid = {var: np.zeros(n) for var in MACRO_VARS}
     regime = 0
     for t in range(1, n):
         label = "stressed" if regime == 1 else "standard"
-        innovation = chol[label] @ rng.standard_normal(len(MACRO_VARS))
+        # innovation = regime mean drift + correlated Gaussian shock. The blocking
+        # regime's negative temp/wind mean is what drives cold-and-still TOGETHER.
+        innovation = mean[label] + chol[label] @ rng.standard_normal(len(MACRO_VARS))
         for i, var in enumerate(MACRO_VARS):
             resid[var][t] = params["phi"][var] * resid[var][t - 1] + innovation[i]
         regime = 1 if rng.random() < transition[regime, 1] else 0
