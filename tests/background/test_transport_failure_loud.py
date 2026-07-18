@@ -241,6 +241,55 @@ def test_deadman_silent_when_transport_healthy(tmp_path, monkeypatch):
     D._check_pull_loop_transport()
     assert calls == []                                        # healthy idle never pages
 
+
+# ── DRAINED-AND-GATED quiet wait (ADVISOR_STEER 2026-07-18, item 1) ─────────────────────────
+# The treadmill noise the mechanism kills: when the map is drained of below-target work and the
+# remainder is blocked on a director act, find_work returns (None, map_exhausted=False). The hook
+# must ALLOW-STOP quietly (no block+continue treadmill, no token burn), the reconciler must read it
+# as a LEGITIMATE resting state (no alarm), and it must read DIFFERENTLY from the loud empty/broken
+# case (None/"" , True) so a real broken draw is never masked.
+def test_quiet_wait_reads_benign_and_freshness_exempt():
+    r = R.pull_loop_status({"outcome": "ALLOW_STOP_QUIET_WAIT"}, enable_on=True)
+    assert r["status"] == "HEALTHY_IDLE"
+    assert r["alarm"] is False                       # a legitimate rest never pages
+    # FRESHNESS-EXEMPT: the loop deliberately stops firing while resting, so a STALE quiet-wait
+    # record must NOT flip to LOOP_STALE and page the director overnight (the whole point).
+    stale = R.pull_loop_status(
+        {"outcome": "ALLOW_STOP_QUIET_WAIT", "ts": 0.0}, enable_on=True,
+        now=10 ** 9, stale_after=3600.0,
+    )
+    assert stale["alarm"] is False and stale["status"] == "HEALTHY_IDLE"
+
+
+def test_quiet_wait_reads_differently_from_loud_empty_draw():
+    quiet = R.pull_loop_status({"outcome": "ALLOW_STOP_QUIET_WAIT"}, True)
+    loud = R.pull_loop_status({"outcome": "DRAW_EMPTY_UNEXPECTED"}, True)
+    assert quiet["alarm"] is False and loud["alarm"] is True   # rest is silent; a broken draw is LOUD
+    assert quiet["status"] != loud["status"]                   # and the two read distinctly
+
+
+def test_hook_allow_stops_QUIETLY_when_drained_and_gated(hook, monkeypatch):
+    # STATE TEST 1 (drained-and-gated -> quiet): find_work returns (None, False). The hook must
+    # allow-stop (no block+continue) and record the BENIGN quiet-wait outcome -- NOT the loud
+    # DRAW_EMPTY_UNEXPECTED. This is what stops the STUCK/LOOP_BROKEN thrash + token burn.
+    import background.supervisor as sup
+    monkeypatch.setattr(sup, "find_work", lambda **k: (None, False))
+    out = hook.decide({"session_id": "WORKER", "stop_hook_active": True})
+    assert out is None                                         # allow-stop, no continuation
+    assert _outcome(hook) == "ALLOW_STOP_QUIET_WAIT"           # benign, not loud
+
+
+def test_hook_R15_quiet_wait_still_loud_on_a_genuinely_broken_draw(hook, monkeypatch):
+    # R15 / independence: the quiet path must NOT swallow a real broken/empty draw. Only
+    # (None, map_exhausted=False) is quiet; (None, True) stays LOUD. The mutation this catches: a
+    # hook that treated ANY empty reason as quiet would silence the day-long fail-silent bug.
+    import background.supervisor as sup
+    monkeypatch.setattr(sup, "find_work", lambda **k: (None, True))
+    out = hook.decide({"session_id": "WORKER", "stop_hook_active": True})
+    assert out is None
+    assert _outcome(hook) == "DRAW_EMPTY_UNEXPECTED"           # broken draw is NOT silenced
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live

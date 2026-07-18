@@ -228,7 +228,7 @@ def decide(payload: dict) -> dict | None:
         # the transport (2nd transport bug found on the serial-autonomy maiden-turn watch, 2026-07-17).
         with contextlib.redirect_stdout(io.StringIO()):
             from background.supervisor import find_work
-            reason, _map_exhausted = find_work(resumed_from_pause=False)
+            reason, map_exhausted = find_work(resumed_from_pause=False)
     except Exception as e:  # fail SAFE: never block on a broken draw
         _log(f"draw error: {e!r} -> allow stop (fail-safe)")
         # LOUD, not silent (§9): the transport tried to draw and could not. The deadman
@@ -236,15 +236,25 @@ def decide(payload: dict) -> dict | None:
         _write_health("DRAW_ERROR", repr(e))
         return None
     if not reason:
-        # Under Rule-0 the queue is NEVER genuinely empty: HARDEN draws on any at-target atom and
-        # DISCOVER/FRAME on any idle atom -- 88 atoms and a website, "the to-do list is never
-        # empty". So an EMPTY draw is NOT healthy idle -- it means the draw is BROKEN (e.g. an
-        # unreadable/malformed maturity_map whose read error every draw lane swallows as []). The
-        # director named "empty draw" as a case that must be LOUD, never silent idle. Distinct
-        # outcome so it is diagnosable and the deadman alarms (classified LOOP_BROKEN in reconciler).
-        _log("draw empty -> allow stop (UNEXPECTED under Rule-0 -> loud alarm)")
-        _write_health("DRAW_EMPTY_UNEXPECTED",
-                      "find_work returned no work -- never legitimate under Rule-0 (broken draw?)")
+        # find_work now returns THREE states, distinguished by the second element (map_exhausted):
+        #   (None, False) = DRAINED-AND-GATED quiet wait (ADVISOR_STEER 2026-07-18, item 1): every
+        #     below-target BUILD/SITE/DISCOVER lane + backlog is empty and the remainder is blocked
+        #     on a director act, so the only draw would be at-target HARDEN re-verification. This is
+        #     a LEGITIMATE resting state -> allow-stop QUIETLY (no block+continue treadmill, no
+        #     token burn, no STUCK/LOOP_BROKEN alarm, freshness-exempt in the reconciler). New
+        #     signals (a staged doc, a director act, new below-target work) short-circuit find_work
+        #     before the drained branch and wake the loop on the next turn -- responsiveness intact.
+        #   (None/"" , True) = genuine empty/broken draw: under Rule-0 the queue is NEVER genuinely
+        #     empty (an unreadable/malformed map read swallowed as [] by every lane), so this must
+        #     be LOUD -- the director named it a case that must never read as silent healthy idle.
+        if map_exhausted:
+            _log("draw empty -> allow stop (UNEXPECTED under Rule-0 -> loud alarm)")
+            _write_health("DRAW_EMPTY_UNEXPECTED",
+                          "find_work returned no work -- never legitimate under Rule-0 (broken draw?)")
+        else:
+            _log("drained-and-gated -> allow stop (quiet wait; legitimate resting state, not broken)")
+            _write_health("ALLOW_STOP_QUIET_WAIT",
+                          "drained-and-gated: only at-target HARDEN remains while blocked on a director act")
         return None
     # SELF-SUSTAIN: advance counters and check the stuck-cap. The loop CONTINUES turn-to-turn (no
     # one-shot stop_hook_active guard); the only continuous-loop backstop is progress-based.

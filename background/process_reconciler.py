@@ -322,6 +322,16 @@ def pull_loop_status(health: dict | None, enable_on: bool, *,
         # Under Rule-0 the queue is never genuinely empty, so an empty draw = a broken draw.
         return {"status": "LOOP_BROKEN", "alarm": True,
                 "detail": f"pull-loop drew nothing (never legitimate under Rule-0): {health.get('detail', '')}"}
+    if outcome == "ALLOW_STOP_QUIET_WAIT":
+        # DRAINED-AND-GATED quiet wait (ADVISOR_STEER 2026-07-18, item 1): below-target work is
+        # exhausted and the remainder is blocked on a director act, so the only draw would be at-
+        # target HARDEN re-verification -- the treadmill the director correctly declines. A
+        # LEGITIMATE resting state, NOT a broken loop. FRESHNESS-EXEMPT (placed BEFORE the gate,
+        # same class as DISABLED): the loop deliberately stops firing while resting, so a stale
+        # quiet-wait record must NOT read as a frozen/dead worker and page the director. A
+        # genuinely new signal re-enters via find_work's primary/lane paths and the loop resumes.
+        return {"status": "HEALTHY_IDLE", "alarm": False,
+                "detail": "drained-and-gated quiet wait -- resting, blocked on a director act (NOT broken)"}
     # FRESHNESS gate (the alarm outcomes above already returned; only resting/healthy states remain).
     # A frozen healthy record while ENABLED means the transport stopped firing -> LOUD, not healthy.
     if now is not None:

@@ -1354,6 +1354,44 @@ def _self_refill_draw() -> str | None:
     return None
 
 
+def _is_drained_and_gated() -> bool:
+    """DRAINED-AND-GATED predicate (ADVISOR_STEER_IDLE_TREADMILL_AND_GHOST_WORKTREE_2026-07-18,
+    item 1). True iff there is NO below-target buildable work anywhere -- the BUILD, SITE and
+    DISCOVER/FRAME lanes AND the PRIORITIES backlog are all genuinely empty -- so the ONLY thing
+    the self-refill draw could offer is at-target HARDEN re-verification of already-finished atoms
+    while the remaining below-target work is blocked on a director act. That is a LEGITIMATE
+    RESTING STATE, not idleness-as-avoidance: by construction, reaching it means every below-
+    target/SITE/DISCOVER/FRAME lane is genuinely empty (if ANY had work it would be drawn and
+    delivered, never rested on) and the only remaining draw is the RULE-0 HARDEN treadmill the
+    director has correctly declined every cycle.
+
+    Mirrors H23's `_is_frame_saturated` style: a standalone, computed predicate the draw consults.
+    INDEPENDENCE (R15): keyed on the ACTUAL emptiness of the three real lanes + the backlog (the
+    same calls `_self_refill_draw` makes), NEVER on a constant -- so a mutation that hard-codes it
+    True is caught by the real-work test (a below-target atom present -> the BUILD lane is non-empty
+    -> this returns False). FAIL-SAFE TOWARD WORK: any error -> False (never rest while unsure; the
+    harmful failure mode is resting when real work exists, so ambiguity keeps the anti-idleness
+    pressure -- Rule 0's 'the to-do list is never empty' wins any tie)."""
+    try:
+        if _maturity_map_draw_concurrent(exclude_stalled=True):
+            return False
+        # BUILD empty (returned above if not) -> nothing was drawn, so exclude_ids is empty; an
+        # emptiness check is RNG-independent (a lane is empty or not regardless of which atom it
+        # would pick), so re-running the same draws the refill uses cannot flap.
+        none_drawn: frozenset = frozenset()
+        if _site_lane_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn):
+            return False
+        if _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn):
+            return False
+        if _actionable_backlog_item():
+            return False
+        # All real lanes + backlog empty. It is a RESTING state only if at-target HARDEN atoms
+        # actually exist; otherwise it is a genuinely-empty map = a WALL (map_exhausted), not a rest.
+        return _rule0_harden_draw() is not None
+    except Exception:
+        return False
+
+
 def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
     """Return (reason, map_exhausted). `reason` is a human-readable string
     if any real work exists (an instruction-channel doorbell, and/or a
@@ -1401,6 +1439,24 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
         return f"{primary}; ALSO -- {refill}", False
     if primary:
         return primary, False
+
+    # DRAINED-AND-GATED QUIET WAIT (ADVISOR_STEER 2026-07-18, item 1): if the ONLY thing the
+    # refill can offer is at-target HARDEN re-verification -- every below-target BUILD/SITE/
+    # DISCOVER/FRAME lane AND the backlog empty, remaining work blocked on a director act --
+    # settle into a quiet wait instead of re-offering the HARDEN treadmill every cycle (the
+    # director has correctly declined it repeatedly). (None, map_exhausted=False) is a THIRD,
+    # legitimate state: NOT real work, but NOT a broken/exhausted map either; consumers
+    # (run_cycle, the pull-loop Stop hook) rest quietly on it and never alarm/thrash. RULE 0's
+    # 'the to-do list is never empty' is UNTOUCHED for the real-work case: the instant any below-
+    # target/DISCOVER/FRAME/SITE work or a staged doc exists, a lane / `primary` above fires and
+    # this branch is never reached -- only re-verifying finished atoms while blocked on a human
+    # settles quiet. The check is placed AFTER `primary` so a new staged doc/agenda always wins.
+    if refill and _is_drained_and_gated():
+        log("DRAINED-AND-GATED quiet wait -- no below-target/SITE/DISCOVER/backlog work; the only "
+            "draw would be at-target HARDEN re-verification while blocked on a director act. "
+            "Settling quiet (not exhausted, not an idle defect); a genuinely new signal wakes it.")
+        return None, False
+
     if refill:
         return f"agenda+staging empty -- {refill}", False
 
@@ -1745,8 +1801,17 @@ def run_cycle() -> None:
     reason, map_exhausted = find_work(resumed_from_pause)
     check_map_exhausted_escalation(map_exhausted)
     if reason is None:
-        total = _record_idle_turn()
-        log(f"Idle, no work -- map genuinely exhausted (all-time idle-turn count: {total})")
+        if map_exhausted:
+            total = _record_idle_turn()
+            log(f"Idle, no work -- map genuinely exhausted (all-time idle-turn count: {total})")
+        else:
+            # DRAINED-AND-GATED quiet wait (ADVISOR_STEER 2026-07-18, item 1): a LEGITIMATE
+            # resting state -- below-target work exhausted, the remainder blocked on a director
+            # act, so the only draw would be at-target HARDEN re-verification. NOT an idle defect
+            # (do NOT increment the anti-idleness idle-turn counter, whose target is zero) and NOT
+            # exhausted (no map-exhausted escalation). A genuinely new signal wakes it next turn.
+            log("Drained-and-gated quiet wait -- resting (blocked on a director act); not "
+                "exhausted, not an idle defect. A genuinely new signal wakes it immediately.")
         return
 
     _check_stuck_escalation(reason)

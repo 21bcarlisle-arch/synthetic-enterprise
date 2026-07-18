@@ -1196,14 +1196,23 @@ def test_find_work_never_reports_map_exhausted_against_real_map_with_idle_atoms(
     session_watchdog.py) use, so this is the same code path that was
     reporting the false cannot-draw, not a narrower proxy for it. Isolated
     from PRIORITIES.md/staging/agenda so a pass here can ONLY come from the
-    maturity-map draw itself, never the backlog-prose fallback."""
+    maturity-map draw itself, never the backlog-prose fallback.
+
+    Updated (ADVISOR_STEER 2026-07-18, item 1): find_work now has THREE states, so the invariant
+    this test protects is precisely `exhausted is False` -- a real map with idle atoms is NEVER a
+    false cannot-draw/WALL. A None `reason` is now legitimate IFF it is the DRAINED-AND-GATED quiet
+    wait (below-target work exhausted, remainder blocked on a director act); that is a resting
+    state, still `exhausted is False`, never the map-exhausted escalation. A None reason with the
+    map NOT drained-and-gated would be the real defect this test guards against."""
     real_map = supervisor.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
     supervisor.MATURITY_MAP_PATH.write_text(real_map.read_text())
     assert not supervisor.PRIORITIES_PATH.exists()
     assert list(supervisor.STAGING_DIR.glob("*")) == []
     reason, exhausted = supervisor.find_work(resumed_from_pause=False)
-    assert exhausted is False
-    assert reason is not None
+    assert exhausted is False                             # THE invariant: never a false cannot-draw
+    if reason is None:
+        # The ONLY legitimate None: a genuine drained-and-gated quiet wait, not a false WALL.
+        assert supervisor._is_drained_and_gated() is True
 
 
 def test_diagnose_map_blocked_set_reports_no_blockers_when_none_exist():
@@ -1973,6 +1982,90 @@ def test_self_refill_yields_to_harden_when_all_atoms_at_target(tmp_path):
 def test_self_refill_none_only_on_genuinely_empty_map(tmp_path):
     _write_map(tmp_path, "[]")  # zero atoms = a true wall, the one legitimate None
     assert supervisor._self_refill_draw() is None
+
+
+# ── DRAINED-AND-GATED quiet wait (ADVISOR_STEER_IDLE_TREADMILL..._2026-07-18, item 1) ──────────
+# The mechanism: when the map is DRAINED of below-target work and the remainder is blocked on a
+# director act, find_work returns a THIRD state (None, map_exhausted=False) -- a quiet wait -- so
+# the pull-loop rests instead of re-offering the at-target HARDEN treadmill every ~2-min cycle
+# (the [LOOP BROKEN] N-continuations / stop-hook-thrash / token-burn noise). The anti-idleness
+# pressure is preserved for the REAL-work case, which never reaches the drained branch.
+_ALL_AT_TARGET_MAP = (
+    "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n"
+    "  dial_inherited: 3\n  file_scope: [company/x.py]\n"
+    "- id: B_done\n  level_current: 2\n  level_target: 2\n  loop_stage: idle\n"
+    "  dial_inherited: 2\n  file_scope: [company/y.py]\n"
+)
+
+
+def test_find_work_drained_and_gated_settles_quiet_not_harden_treadmill(tmp_path):
+    """STATE 1 (drained-and-gated -> quiet): every atom at target -> BUILD/SITE/DISCOVER + backlog
+    all empty; the ONLY draw would be at-target HARDEN. find_work must settle QUIET (None, False),
+    NOT re-offer HARDEN, and NOT report map_exhausted (a THIRD, legitimate resting state). Repeated
+    calls stay quiet -- that is the whole point: the treadmill is not re-offered every cycle."""
+    _write_map(tmp_path, _ALL_AT_TARGET_MAP)
+    assert supervisor._is_drained_and_gated() is True
+    # The low-level draw still honours Rule-0 (never-empty) -- the quiet decision is find_work's.
+    assert "HARDEN" in supervisor._self_refill_draw()
+    for _ in range(5):                                    # stays quiet cycle after cycle
+        reason, map_exhausted = supervisor.find_work(resumed_from_pause=False)
+        assert reason is None                             # no work delivered -> no HARDEN treadmill
+        assert map_exhausted is False                     # NOT the loud exhausted/broken state
+
+
+def test_run_cycle_drained_and_gated_does_not_count_as_idle_defect(tmp_path, monkeypatch):
+    """The supervisor's escalation side must treat the quiet wait as a legitimate rest: no
+    map-exhausted NTFY, no stuck escalation, and crucially NOT an increment of the anti-idleness
+    idle-turn counter (whose target is ZERO). Only a genuinely-exhausted map is an idle defect."""
+    _write_map(tmp_path, _ALL_AT_TARGET_MAP)
+    monkeypatch.setattr(supervisor, "is_session_idle", lambda name: True)
+    before = supervisor._load_idle_turn_count()
+    supervisor.run_cycle()
+    assert supervisor._load_idle_turn_count() == before   # a director-gated rest is NOT idleness
+
+
+def test_find_work_real_below_target_work_draws_normally_not_quiet(tmp_path):
+    """STATE 2 (real work exists -> draw normally): with a real below-target BUILD atom present the
+    predicate is False and find_work delivers work -- anti-idleness is UNWEAKENED. This is exactly
+    the state RULE 0's 'the to-do list is never empty' protects."""
+    _write_map(tmp_path, _THREE_LANE_ALL_POPULATED_YAML)
+    assert supervisor._is_drained_and_gated() is False
+    reason, map_exhausted = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None                             # work IS delivered
+    assert map_exhausted is False
+    assert "self-refill from maturity map" in reason      # the real THREE-LANE draw, not a rest
+
+
+def test_is_drained_and_gated_R15_fires_on_its_own_defect(tmp_path, monkeypatch):
+    """R15: the mechanism must be able to FAIL on its named defect -- wrongly classifying a REAL-
+    work state as drained-and-gated (resting while below-target work exists = an anti-idleness
+    violation). INDEPENDENCE: the honest predicate is keyed on the ACTUAL emptiness of the lanes,
+    so with real below-target work it returns False and work is delivered. The killer MUTATION
+    (hard-code the predicate True -- a fail-open/tautology) is OBSERVABLE: find_work then wrongly
+    settles quiet instead of delivering the work that provably exists. A predicate that could not
+    fail here (e.g. a constant) would be worse than none."""
+    _write_map(tmp_path, _THREE_LANE_ALL_POPULATED_YAML)
+    # Honest path: NOT drained (a lane is non-empty) -> work delivered. This assertion is itself
+    # the R15 guard -- it FAILS under the always-True mutation.
+    assert supervisor._is_drained_and_gated() is False
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None and "self-refill from maturity map" in reason
+    # The mutation made explicit: pretend drained while real work exists -> find_work mis-quiets.
+    monkeypatch.setattr(supervisor, "_is_drained_and_gated", lambda: True)
+    mutated_reason, mutated_exhausted = supervisor.find_work(resumed_from_pause=False)
+    assert mutated_reason is None and mutated_exhausted is False   # the defect is real and catchable
+
+
+def test_find_work_new_staged_doc_wakes_even_when_drained(tmp_path):
+    """Responsiveness preserved: a genuinely new signal (a staged doc) wakes the loop IMMEDIATELY
+    even in a drained map, because the `primary` (staging) path is checked BEFORE the drained
+    branch -- the quiet wait never swallows a real new instruction."""
+    _write_map(tmp_path, _ALL_AT_TARGET_MAP)
+    (supervisor.STAGING_DIR / "NEW_STEER.md").write_text("a genuinely new instruction")
+    reason, map_exhausted = supervisor.find_work(resumed_from_pause=False)
+    assert reason is not None and "NEW_STEER.md" in reason   # woken by the new signal, not resting
+    assert map_exhausted is False
+
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
