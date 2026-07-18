@@ -2270,7 +2270,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 40
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "E4_supplier_reporting_standard",
@@ -2289,7 +2289,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36
+      "stall_consecutive_unchanged": 39
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2298,7 +2298,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 2,
       "loop_stage": "idle",
       "dial_inherited": 2,
@@ -2308,7 +2308,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 14
+      "stall_consecutive_unchanged": 15
     },
     {
       "id": "H25_self_gov_detection_hardening",
@@ -2317,7 +2317,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 2,
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15
+      "stall_consecutive_unchanged": 16
     },
     {
       "id": "H26_core_bare_corruption_guard",
@@ -2346,7 +2346,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "H23_publish_gate_scope_marker",
@@ -2365,7 +2365,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 10
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "H24_precommit_gate_git_env_isolation",
