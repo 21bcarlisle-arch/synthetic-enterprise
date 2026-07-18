@@ -102,21 +102,47 @@ def test_open_items_excludes_resolved(path):
     assert open_ids == {"a"}
 
 
-def test_due_for_reping_empty_when_recently_pinged(path):
+def test_due_for_reping_immediately_due_when_registered_but_never_sent(path):
+    """CLASS FIX (2026-07-18): register_item() alone -- with no confirmed send --
+    must NEVER look 'recently pinged'. This is the direct regression test for the
+    real incident (a caller with no SE_NTFY_TOPIC registered/re-registered several
+    times, every send failing, and never actually paged)."""
     now = datetime.now(timezone.utc).isoformat()
     action_needed.register_item("a", "w", "h", "y", path=path, now=now)
+    due = action_needed.due_for_reping(path=path, now=now)
+    assert len(due) == 1 and due[0]["item_id"] == "a"
+
+
+def test_due_for_reping_empty_when_recently_sent(path):
+    now = datetime.now(timezone.utc).isoformat()
+    action_needed.register_item("a", "w", "h", "y", path=path, now=now)
+    action_needed.mark_sent("a", path=path, now=now)  # CONFIRMED send just now
     assert action_needed.due_for_reping(path=path, now=now) == []
 
 
-def test_due_for_reping_returns_item_after_24h(path):
+def test_due_for_reping_returns_item_after_24h_since_last_sent(path):
     asked_at = datetime(2026, 7, 10, 5, 0, 0, tzinfo=timezone.utc)
     action_needed.register_item("a", "w", "h", "y", path=path, now=asked_at.isoformat())
+    action_needed.mark_sent("a", path=path, now=asked_at.isoformat())
     just_under = (asked_at + timedelta(hours=23, minutes=59)).isoformat()
     just_over = (asked_at + timedelta(hours=24, minutes=1)).isoformat()
     assert action_needed.due_for_reping(path=path, now=just_under) == []
     due = action_needed.due_for_reping(path=path, now=just_over)
     assert len(due) == 1
     assert due[0]["item_id"] == "a"
+
+
+def test_due_for_reping_text_reregister_does_not_suppress_a_never_sent_item(path):
+    """A caller re-registering an item's text (e.g. a refreshed what/how) must not
+    roll a pending never-sent page's clock forward -- register_item() never touches
+    last_sent_at, even on re-register."""
+    asked_at = datetime(2026, 7, 10, 5, 0, 0, tzinfo=timezone.utc)
+    action_needed.register_item("a", "w", "h", "y", path=path, now=asked_at.isoformat())
+    later = (asked_at + timedelta(hours=1)).isoformat()
+    action_needed.register_item("a", "w2", "h2", "y2", path=path, now=later)  # text-only re-register
+    assert action_needed.load_register(path)["a"]["what"] == "w2"  # content did refresh
+    due = action_needed.due_for_reping(path=path, now=later)
+    assert len(due) == 1 and due[0]["item_id"] == "a"  # still due -- re-register never marked it sent
 
 
 def test_due_for_reping_excludes_resolved(path):
@@ -204,6 +230,29 @@ def test_escalate_if_one_way_door_why_names_the_real_category(path):
     assert "security_safety_control" in sent[0]
 
 
+def test_escalate_if_one_way_door_failed_send_leaves_item_due_then_success_settles(path):
+    """R15 mutation proof for escalate_if_one_way_door's own send-clock handling:
+    a send that returns a falsy id (fails without raising) must NOT be treated as
+    delivered -- should_notify stays True so the caller's next attempt retries.
+    Once a send actually succeeds, should_notify settles until the daily re-ping."""
+    action_needed.escalate_if_one_way_door(
+        "spend-fail-1", "spend real money on a production API subscription",
+        "director confirms live", path=path, send_ntfy_fn=lambda msg: None,  # send FAILS
+    )
+    assert action_needed.load_register(path)["spend-fail-1"].get("last_sent_at") is None
+    assert action_needed.should_notify("spend-fail-1", path=path) is True  # still due
+
+    sent = []
+    action_needed.escalate_if_one_way_door(
+        "spend-fail-1", "spend real money on a production API subscription",
+        "director confirms live", path=path,
+        send_ntfy_fn=lambda msg: sent.append(msg) or "real-id",  # send SUCCEEDS
+    )
+    assert sent  # the retry actually delivered
+    assert action_needed.load_register(path)["spend-fail-1"]["last_sent_at"] is not None
+    assert action_needed.should_notify("spend-fail-1", path=path) is False  # now settled
+
+
 def test_escalate_if_one_way_door_default_ntfy_is_real_send_ntfy(path, monkeypatch):
     """Without an injected send_ntfy_fn, the real background.ntfy_utils.send_ntfy
     is used -- confirmed by monkeypatching that module's own function and
@@ -225,6 +274,7 @@ def test_should_notify_fires_once_then_suppresses_until_due(path):
     # New item -> fire.
     assert action_needed.should_notify("x", path=path, now=t0.isoformat()) is True
     action_needed.register_item("x", "w", "h", "y", path=path, now=t0.isoformat())
+    action_needed.mark_sent("x", path=path, now=t0.isoformat())  # CONFIRMED send at t0
     # Open but not due (1 min later) -> SILENT (the per-cycle spam this kills).
     t1 = t0 + timedelta(minutes=1)
     assert action_needed.should_notify("x", path=path, now=t1.isoformat()) is False
@@ -233,16 +283,35 @@ def test_should_notify_fires_once_then_suppresses_until_due(path):
     assert action_needed.should_notify("x", path=path, now=t2.isoformat()) is True
 
 
+def test_should_notify_true_when_registered_but_never_confirmed_sent(path):
+    """CLASS FIX (2026-07-18, the real incident this closes): register_item() alone
+    must NEVER suppress should_notify -- only a CONFIRMED send (mark_sent) does.
+    A registered-but-never-sent item (a send that failed/raised/was skipped) stays
+    due on every subsequent check, not silenced for a day."""
+    action_needed.register_item("x", "w", "h", "y", path=path)
+    assert action_needed.should_notify("x", path=path) is True
+    # A text-only re-register (no send in between) still must not suppress it.
+    action_needed.register_item("x", "w2", "h2", "y2", path=path)
+    assert action_needed.should_notify("x", path=path) is True
+
+
 def test_should_notify_silent_when_resolved(path):
     action_needed.register_item("x", "w", "h", "y", path=path)
+    action_needed.mark_sent("x", path=path)
     action_needed.resolve_item("x", "PROCEED", path=path)
     # A resolved (answered) item is NEVER re-notified — no matter how much later.
     assert action_needed.should_notify("x", path=path) is False
 
 
+def test_mark_sent_is_noop_on_unregistered_item(path):
+    assert action_needed.mark_sent("never-registered", path=path) is None
+    assert action_needed.load_register(path) == {}
+
+
 def test_clear_item_lets_a_fresh_occurrence_fire_again(path):
     action_needed.register_item("staged:DOC.md", "w", "h", "y", path=path)
-    assert action_needed.should_notify("staged:DOC.md", path=path) is False  # open
+    action_needed.mark_sent("staged:DOC.md", path=path)
+    assert action_needed.should_notify("staged:DOC.md", path=path) is False  # open, confirmed sent
     action_needed.clear_item("staged:DOC.md", path=path)                     # archived
     assert action_needed.should_notify("staged:DOC.md", path=path) is True   # re-staged -> fires
 

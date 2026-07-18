@@ -244,7 +244,14 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         pin = action_needed.pin_for(item_id)
         how_pinned = f"{how}\nReply to CLOSE: start your NTFY with PIN {pin} (e.g. 'PIN {pin} PROCEED')."
         action_needed.register_item(item_id, what, how_pinned, why)
-        notify(action_needed.format_action_needed(item_id, what, how_pinned, why), kind="real_alarm")
+        # CLASS FIX (2026-07-18): register_item() above never advances the send-clock
+        # any more -- only a CONFIRMED successful send (a truthy id) does, via
+        # mark_sent(). A failed/falsy send leaves this item due, so the NEXT wall
+        # re-draw (or the deadman's daily sweep) retries instead of looking
+        # "already open" for 24h on a page that never actually reached the phone.
+        sent_id = notify(action_needed.format_action_needed(item_id, what, how_pinned, why), kind="real_alarm")
+        if sent_id:
+            action_needed.mark_sent(item_id)
     except Exception as exc:  # pragma: no cover - defensive: an alert failure never crashes the loop
         build_executor.log(f"_alert_wall failed ({kind}): {exc}")
 

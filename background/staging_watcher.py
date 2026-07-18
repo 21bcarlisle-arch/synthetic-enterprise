@@ -150,8 +150,12 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def ntfy(msg: str) -> None:
-    notify(msg, kind="director_echo")
+def ntfy(msg: str):
+    """Returns notify()'s result (a truthy send id on success) so callers can tell
+    whether the send actually landed -- 2026-07-18 class fix, action_needed's send-
+    clock must only advance on a CONFIRMED send, never merely because this was
+    called."""
+    return notify(msg, kind="director_echo")
 
 
 _ARTIFACT_SUFFIXES = (".bak", ".orig", ".tmp", ".swp", "~")
@@ -508,7 +512,17 @@ def check_once(seen: set[str]) -> set[str]:
                     how="Action it (staging = approval), then archive to done/.",
                     why="A staged director/advisor instruction is awaiting processing.",
                 )
-                ntfy(f"New staged instruction: {name} — pending review")
+                # CLASS FIX (2026-07-18): register_item() above never advances the
+                # send-clock -- only a CONFIRMED successful send (a truthy id) does,
+                # via mark_sent(). Without this, a failed send here would still let
+                # due_for_reping() consider the item "recently pinged" forever if
+                # register_item stamped the clock (it no longer does) -- and
+                # conversely, without mark_sent a SUCCESSFUL send here would leave
+                # the item looking never-sent, so the deadman's daily sweep would
+                # re-fire it every cycle instead of once a day.
+                sent_id = ntfy(f"New staged instruction: {name} — pending review")
+                if sent_id:
+                    action_needed.mark_sent(item_id)
                 log(f"Notified (once): {name}")
             else:
                 log(f"Suppressed re-announce (fire-once, already open): {name}")

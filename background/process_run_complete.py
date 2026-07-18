@@ -1267,12 +1267,19 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
     if send_ntfy_fn is None:
         from background.notify import notify
         send_ntfy_fn = lambda m: notify(m, kind="real_alarm")
-    send_ntfy_fn(msg)
+    sent_id = send_ntfy_fn(msg)
     # Durable register + daily re-ping while it stays wedged (best-effort -- a
     # register failure must never suppress the NTFY that already went out).
+    # CLASS FIX (2026-07-18): register_item() never advances the send-clock any
+    # more -- only a CONFIRMED successful send (a truthy id) does, via
+    # mark_sent(). A failed send here leaves the item due, so the deadman's
+    # daily due_for_reping() sweep retries instead of the item silently
+    # looking "recently pinged" on a page that never reached the phone.
     try:
         from background import action_needed
         action_needed.register_item(PUBLISH_GATE_ITEM_ID, what=what, how=how, why=why)
+        if sent_id:
+            action_needed.mark_sent(PUBLISH_GATE_ITEM_ID)
     except Exception as exc:
         log("Publish-gate action_needed register skipped: {}".format(exc))
     return msg

@@ -386,11 +386,28 @@ def test_run_cycle_repings_a_due_action_needed_item(monkeypatch):
 
 def test_run_cycle_does_not_reping_within_24h(monkeypatch):
     action_needed.register_item("a", "w", "h", "y")  # just registered, now
+    action_needed.mark_sent("a")  # ...and CONFIRMED sent just now (the real gate)
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
     monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert calls == []
+
+
+def test_run_cycle_repings_a_registered_but_never_sent_item_immediately(monkeypatch):
+    """CLASS FIX (2026-07-18, director-caught incident): register_item() alone --
+    with NO confirmed send -- must NOT look 'recently pinged'. An item that was
+    registered (even freshly) but never successfully sent is always due, so a
+    prior send failure/skip retries on the very next cycle instead of going
+    silent for 24h. This is the direct regression test for the real incident:
+    register_item() no longer stamps the clock should_notify()/due_for_reping()
+    read."""
+    action_needed.register_item("a", "w", "h", "y")  # registered, but never sent
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert len(calls) == 1  # due immediately -- registration alone never suppresses
 
 
 def test_run_cycle_does_not_reping_resolved_items(monkeypatch):
@@ -427,12 +444,82 @@ def test_run_cycle_repings_resets_the_daily_clock(monkeypatch):
     action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
     monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
     calls = []
-    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    # A CONFIRMED successful send returns a truthy id (real send_ntfy returns the
+    # ntfy-assigned msg id) -- this is what actually advances the send-clock now
+    # (action_needed.mark_sent()), not the mere fact that register_item ran.
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy",
+                         lambda msg, **k: calls.append(msg) or "mock-msg-id")
     dms.run_cycle()
     assert len(calls) == 1
 
-    dms.run_cycle()  # immediately again -- clock was just reset, must stay silent
+    dms.run_cycle()  # immediately again -- clock was just reset by the CONFIRMED send, must stay silent
     assert len(calls) == 1
+
+
+# ── R15 mutation test: a FAILED/skipped send must never look "sent" (2026-07-18,
+# the real incident this fork fixes -- a caller with no SE_NTFY_TOPIC, or any other
+# send failure, kept every re-register from ever actually paging the director) ──
+
+def test_run_cycle_failed_send_leaves_item_due_then_real_send_settles_it(monkeypatch):
+    """THE core proof, fails under the pre-fix behaviour: a send that FAILS (returns
+    a falsy/no id -- e.g. curl unreachable, no exception) must leave the item due for
+    the very next cycle, not silenced for 24h. Once a send actually SUCCEEDS, it settles
+    (fire-once-then-daily resumes)."""
+    from datetime import datetime, timedelta, timezone
+    asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
+    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
+
+    # Cycle 1: the send FAILS (real send_ntfy returns None on a parse/network failure).
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg) or None)
+    dms.run_cycle()
+    assert len(calls) == 1  # attempted
+    assert action_needed.load_register()["a"].get("last_sent_at") is None  # NOT marked sent
+
+    # Cycle 2, immediately after: still due (the failed send did not suppress it) --
+    # this is exactly the incident: under the OLD behaviour register_item's clock-stamp
+    # would have made this cycle silent even though nothing was ever delivered.
+    dms.run_cycle()
+    assert len(calls) == 2  # retried, not silenced
+
+    # Cycle 3: the send now SUCCEEDS (a real POST would return the ntfy msg id).
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg) or "real-id-123")
+    dms.run_cycle()
+    assert len(calls) == 3
+    assert action_needed.load_register()["a"]["last_sent_at"] is not None  # now confirmed sent
+
+    # Cycle 4, immediately after: settled -- fire-once-then-daily resumes, stays silent.
+    dms.run_cycle()
+    assert len(calls) == 3
+
+
+def test_run_cycle_text_reregister_does_not_suppress_a_pending_never_sent_page(monkeypatch):
+    """A caller re-registering an item's text (e.g. a refreshed `what`/`how`) must NOT
+    suppress a page that has never actually been confirmed sent -- register_item() is
+    bookkeeping only and must never roll the send-clock forward."""
+    action_needed.register_item("a", "w", "h", "y")
+    action_needed.register_item("a", "w2", "h2", "y2")  # a text-only re-register, no send yet
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy",
+                         lambda msg, **k: calls.append(msg) or "mock-id")
+    dms.run_cycle()
+    assert len(calls) == 1  # still due -- the re-register never marked it sent
+
+
+def test_run_cycle_resolved_item_never_pages_even_with_failed_send_history(monkeypatch):
+    """A resolved item must never page again, regardless of any prior failed-send
+    history (should_notify's resolved check is checked BEFORE the sent-clock)."""
+    from datetime import datetime, timedelta, timezone
+    asked_at = datetime.now(timezone.utc) - timedelta(hours=25)
+    action_needed.register_item("a", "w", "h", "y", now=asked_at.isoformat())
+    action_needed.resolve_item("a", "answered")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time())  # not stalled
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg) or None)
+    dms.run_cycle()
+    assert calls == []
 
 
 def test_run_complete_markers_do_not_count_as_blocked_work(monkeypatch):

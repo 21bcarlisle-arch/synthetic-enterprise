@@ -212,15 +212,32 @@ def _reping_open_action_needed_items() -> None:
     (2026-07-11, director rule) -- independent of whether the tmux/
     supervisor stack itself looks stalled (that's the [BLOCKED] class
     below). An item here can sit open for days while everything else runs
-    fine; the staging-activity check would never catch that on its own."""
+    fine; the staging-activity check would never catch that on its own.
+
+    CLASS FIX (2026-07-18, director-caught real incident): this used to call
+    action_needed.register_item() unconditionally right after the notify()
+    attempt -- regardless of whether the send actually succeeded. register_item
+    stamped a fresh timestamp that should_notify()/due_for_reping() then read as
+    "just pinged", so a governance [ACT] item that was registered/re-registered
+    several times with EVERY send failing (a caller with no SE_NTFY_TOPIC) never
+    actually paged the director's phone, yet looked quiet for the next 24h each
+    time. Fix: only a CONFIRMED successful send (notify() returning a truthy id)
+    advances the send-clock, via action_needed.mark_sent() -- never
+    register_item(), which no longer gates anything. A failed/falsy send leaves
+    the item due, so the very next deadman cycle (<= POLL_INTERVAL_SECONDS)
+    retries instead of going silent for a day."""
     for entry in action_needed.due_for_reping():
-        notify(action_needed.format_action_needed(
+        sent_id = notify(action_needed.format_action_needed(
             entry["item_id"], entry["what"], entry["how"], entry["why"],
         ), kind="real_alarm")
-        action_needed.register_item(
-            entry["item_id"], entry["what"], entry["how"], entry["why"],
-        )
-        log(f"Re-pinged open action-needed item: {entry['item_id']}")
+        if sent_id:
+            action_needed.mark_sent(entry["item_id"])
+            log(f"Re-pinged open action-needed item: {entry['item_id']}")
+        else:
+            log(
+                f"Re-ping SEND FAILED for open action-needed item: {entry['item_id']} "
+                "-- send-clock left untouched, remains due next cycle (not silenced)"
+            )
 
 
 def _check_pull_loop_transport() -> None:

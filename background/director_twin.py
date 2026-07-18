@@ -258,7 +258,14 @@ def route_blocking_decision(
         action_needed.register_item(item_id, question, how, why)
         try:
             from background.notify import notify
-            notify(action_needed.format_action_needed(item_id, question, how, why), kind="real_alarm")
+            # CLASS FIX (2026-07-18): register_item() above never advances the
+            # send-clock -- only a CONFIRMED successful send (a truthy id) does,
+            # via mark_sent(). A failed send here leaves the item due, so the next
+            # route_blocking_decision/deadman sweep retries instead of the item
+            # silently looking "already open" for a day.
+            sent_id = notify(action_needed.format_action_needed(item_id, question, how, why), kind="real_alarm")
+            if sent_id:
+                action_needed.mark_sent(item_id)
         except Exception:
             pass
     return ans

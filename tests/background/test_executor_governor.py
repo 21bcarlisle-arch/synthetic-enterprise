@@ -231,11 +231,28 @@ def test_alert_wall_fires_once_then_suppresses_duplicate(monkeypatch, tmp_path):
     suppress the duplicates (in-memory last_escalated_reason could not, it reset)."""
     sent = []
     import background.ntfy_utils as nu
-    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg))
+    # A real send_ntfy returns the ntfy-assigned msg id (truthy) on success -- that's
+    # what actually advances the send-clock now (action_needed.mark_sent()), not the
+    # mere fact that register_item() ran (2026-07-18 class fix).
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "mock-msg-id")
     monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
     for _ in range(5):
         executor_governor._alert_wall(_FakeResult("escalated"), kind="wall_escalated")
     assert len(sent) == 1, f"expected 1 escalation NTFY, got {len(sent)}"
+
+
+def test_alert_wall_failed_send_retries_next_draw_instead_of_going_quiet(monkeypatch, tmp_path):
+    """R15 mutation proof (2026-07-18, director-caught real incident): if the send
+    itself FAILS (falsy/no id, e.g. no SE_NTFY_TOPIC reachable), the wall must stay
+    OPEN and due -- the very next re-draw of the SAME wall must retry, not look
+    'already open, not due' for 24h on a page that never reached the phone."""
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or None)  # send FAILS
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
+    executor_governor._alert_wall(_FakeResult("escalated"), kind="wall_escalated")
+    executor_governor._alert_wall(_FakeResult("escalated"), kind="wall_escalated")
+    assert len(sent) == 2, f"expected the failed send to retry on the next draw, got {len(sent)}"
 
 
 def test_two_distinct_walls_each_get_their_own_escalation(monkeypatch, tmp_path):

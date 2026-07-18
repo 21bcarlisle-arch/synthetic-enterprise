@@ -66,16 +66,54 @@ def register_item(
 ) -> dict:
     """Add (or re-register, e.g. updated details) an open item. Does NOT
     send the NTFY itself -- the caller sends it once via
-    format_action_needed(), then calls this to start/reset the daily
-    re-ping clock."""
+    format_action_needed(), then calls this to record/update the item.
+
+    CLASS FIX (2026-07-18, director-caught real incident: a governance
+    [ACT] item was registered/re-registered several times, every send
+    failing, and NEVER paged the director's phone): `last_pinged_at` here
+    is bookkeeping ONLY (when the item's content was last registered/
+    updated) -- it is NOT the send-clock and does NOT gate should_notify()/
+    due_for_reping() any more. Conflating "registered" with "successfully
+    SENT" was the root cause: a caller with no SE_NTFY_TOPIC (or any other
+    send failure/skip) still reached this function, which unconditionally
+    stamped a fresh timestamp -- so the fire-once-then-daily gate read
+    "just pinged" and silently suppressed the next 24h of re-ping attempts
+    for a page THAT NEVER WENT OUT. The actual send-clock is `last_sent_at`,
+    stamped ONLY by mark_sent() after a CONFIRMED successful send -- never
+    here, never merely because an item was created or its text refreshed."""
     ts = now or datetime.now(timezone.utc).isoformat()
     register = load_register(path)
     register[item_id] = {
         "item_id": item_id, "what": what, "how": how, "why": why,
         "first_asked_at": register.get(item_id, {}).get("first_asked_at", ts),
         "last_pinged_at": ts,
+        # Preserve a real prior send timestamp across a text-update re-register
+        # (e.g. staging_watcher/executor_governor calling register_item again
+        # with refreshed details) -- a re-register must NEVER roll back a
+        # confirmed sent-clock. A first create leaves this unset (due).
+        "last_sent_at": register.get(item_id, {}).get("last_sent_at"),
         "resolved": False,
     }
+    save_register(register, path)
+    return register[item_id]
+
+
+def mark_sent(
+    item_id: str, path: Path | None = None, now: str | None = None,
+) -> dict | None:
+    """Record a CONFIRMED SUCCESSFUL send for item_id -- the ONLY thing that
+    advances the fire-once-then-daily clock should_notify()/due_for_reping()
+    key off. Callers invoke this ONLY after their send primitive (send_ntfy /
+    notify()) returns proof of a real POST (a truthy id) -- never merely
+    because register_item ran, and never on a failed/raised/skipped send. A
+    failed send leaves last_sent_at untouched, so the item stays DUE and the
+    next cycle retries -- exactly the class defect this closes. No-op
+    (returns None) if the item isn't registered."""
+    ts = now or datetime.now(timezone.utc).isoformat()
+    register = load_register(path)
+    if item_id not in register:
+        return None
+    register[item_id]["last_sent_at"] = ts
     save_register(register, path)
     return register[item_id]
 
@@ -161,27 +199,33 @@ def should_notify(item_id: str, path: Path | None = None, now: str | None = None
     escalations fire every cycle instead of once-on-transition -- fix it as ONE
     rule across ALL paths"). Every notification/escalation caller runs its send
     through this. Returns True ONLY on a genuine TRANSITION:
-      * the item is NEW (never signalled)              -> fire once, and
-      * the item is OPEN and past its daily re-ping     -> the daily restate,
+      * the item is NEW (never signalled)                    -> fire once, and
+      * the item is OPEN and past its daily re-ping           -> the daily restate,
+      * the item is OPEN and has NEVER been confirmed SENT    -> always due (2026-07-18
+        class fix: registered-but-never-successfully-sent must never look "recently
+        pinged"),
     and False otherwise:
-      * OPEN but not yet due (the per-cycle case)       -> SILENT (the whole bug),
-      * RESOLVED (already answered)                     -> SILENT.
-    A True caller then calls register_item() (which resets the re-ping clock) and
-    sends exactly once; a False caller sends nothing. Because per-cycle callers
-    invoke this every cycle, this ALSO provides the daily re-ping for free without
-    a separate scheduler -- fire on raise, restate daily, never per-loop."""
+      * OPEN, confirmed sent, and not yet due (the per-cycle case) -> SILENT,
+      * RESOLVED (already answered)                                -> SILENT.
+    A True caller sends, and on CONFIRMED success calls mark_sent() (never
+    register_item(), which is bookkeeping only and does not advance this clock --
+    2026-07-18, the register-vs-sent conflation that let a real governance [ACT]
+    item register/re-register several times, every send failing, and never page
+    the director's phone). Because per-cycle callers invoke this every cycle,
+    this ALSO provides the daily re-ping for free without a separate scheduler --
+    fire on raise, restate daily, never per-loop."""
     reg = load_register(path)
     item = reg.get(item_id)
     if item is None:
         return True  # first transition into the signalled state
     if item.get("resolved"):
         return False  # answered -- never re-notify a closed item
-    last = item.get("last_pinged_at")
-    if not last:
-        return True
+    last_sent = item.get("last_sent_at")
+    if not last_sent:
+        return True  # never CONFIRMED sent -- always due, regardless of registration/re-registration
     try:
         now_dt = datetime.fromisoformat(now) if now else datetime.now(timezone.utc)
-        return (now_dt - datetime.fromisoformat(last)).total_seconds() >= RE_PING_SECONDS
+        return (now_dt - datetime.fromisoformat(last_sent)).total_seconds() >= RE_PING_SECONDS
     except (ValueError, TypeError):
         return True
 
@@ -202,13 +246,22 @@ def open_items(path: Path | None = None) -> list[dict]:
 
 
 def due_for_reping(path: Path | None = None, now: str | None = None) -> list[dict]:
-    """Open items whose last ping is >= RE_PING_SECONDS old -- what a daily
-    daemon cycle should re-alert on."""
+    """Open items whose last CONFIRMED SEND is >= RE_PING_SECONDS old (or that
+    have never been confirmed sent at all) -- what a daily daemon cycle should
+    re-alert on. Keyed on `last_sent_at`, NOT `last_pinged_at` (2026-07-18 class
+    fix): a registered-but-never-successfully-sent item has no last_sent_at and
+    is therefore ALWAYS due, so a send failure/skip retries next cycle instead
+    of silently going quiet for 24h. Backward-compat: an entry with no
+    last_sent_at key at all (pre-fix register data) is treated identically --
+    never-sent, due now."""
     now_dt = datetime.fromisoformat(now) if now else datetime.now(timezone.utc)
     due = []
     for entry in open_items(path):
-        last_pinged = datetime.fromisoformat(entry["last_pinged_at"])
-        if (now_dt - last_pinged).total_seconds() >= RE_PING_SECONDS:
+        last_sent = entry.get("last_sent_at")
+        if not last_sent:
+            due.append(entry)
+            continue
+        if (now_dt - datetime.fromisoformat(last_sent)).total_seconds() >= RE_PING_SECONDS:
             due.append(entry)
     return due
 
@@ -266,5 +319,12 @@ def escalate_if_one_way_door(
 
     if send_ntfy_fn is None:
         from background.ntfy_utils import send_ntfy as send_ntfy_fn
-    send_ntfy_fn(format_action_needed(item_id, description, how, why))
+    sent_id = send_ntfy_fn(format_action_needed(item_id, description, how, why))
+    # 2026-07-18 class fix: only a CONFIRMED successful send (a truthy id) advances
+    # the fire-once-then-daily clock -- register_item() above never does, so a send
+    # that raises before reaching here, or returns falsy (no id parsed), leaves the
+    # item due for retry on the very next should_notify()/due_for_reping() check
+    # instead of silently going quiet for 24h.
+    if sent_id:
+        mark_sent(item_id, path=path)
     return verdict
