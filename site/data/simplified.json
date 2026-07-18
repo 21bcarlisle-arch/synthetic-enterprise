@@ -794,7 +794,7 @@
         {
           "atom_id": "H23_publish_gate_scope_marker",
           "atom_name": "Publish gate blocks by @pytest.mark.operational partition: daemon-lifecycle tests can alarm but NEVER wedge the live-site publish; content/surface-generating/safety-wall tests still block. Replaces the fail-open directory-wide tests/background ignore. Follow-on: give the deselected operational layer an independent-cadence green signal",
-          "level_current": 0,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-18 CORE SHIPPED (merged this session), level-up PROPOSED (director+advisor own levels, \u00a70). Root cause: the publish gate ran `pytest tests/ -x` over the whole ~18k suite, so a red DAEMON test (a watchdog import bug) wedged the CONTENT publish ~21x overnight. Fix: @pytest.mark.operational marker on 42 daemon-lifecycle test modules; gate runs `-m \"not operational\"`. Content (effort_digest/atom_status_merge/status_honesty), surface-generating (rolling_ssp_refresh/naive_organ/sanity_daemon), publish-machinery, and safety-WALL tests (egress/secret/gate_auth/one_way_door/console_sanctity...) STAY BLOCKING. Both R15 mutation directions proven (unmark supervisor -> wedge-guard RED; mark status_honesty -> fail-open-guard RED). Follow-on BUILD: independent-cadence green signal for the deselected operational layer so it is not only covered incidentally.",
@@ -820,7 +820,7 @@
         {
           "atom_id": "H24_worktree_dir_autoreap",
           "atom_name": "Auto-reap completed-fork WORKTREE dirs: fork_reconciler is report-first + BRANCH-focused, so merged/salvaged fork worktree DIRECTORIES have no automatic reaper -- they climb (observed 2->7 in one session) until a manual `git worktree remove`; mechanise a cleanup of CLEANUP_ELIGIBLE (merged) + salvaged worktree dirs so the count self-limits under a fast fan",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 2,
           "notes": [
             "2026-07-18 REGISTERED (proposal, director-flagged housekeeping). Finding: fork_reconciler.py classifies orphan BRANCHES (report-first by default, salvage+reap only under .fork_reap_enabled) but does NOT remove completed-fork WORKTREE DIRS -- MERGED forks are CLEANUP_ELIGIBLE but not reaped here, so .claude/worktrees/agent-* accumulate until a manual git worktree remove (orchestrator reaped 7->1 this session). Under a fast fan the manual reap cannot keep up = the director-flagged reap-rate gap. Mechanise: auto-remove worktree dirs for forks whose branch is MERGED-to-main or SALVAGE-TAGGED (never delete unmerged+unsalvaged work; salvage-first discipline, same as the branch reaper). DISCOVER/FRAME workable now; BUILD gated (director opens). Registered per SELF_INTERRUPT_DISCIPLINE (queue, do not fix on sight -- not machine-blocking, worktrees were reaped manually).",

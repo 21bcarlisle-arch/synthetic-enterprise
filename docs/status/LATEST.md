@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T14:15:40Z
+Last updated: 2026-07-18T14:21:22Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -71,7 +71,7 @@ watchdog) or blocked (D5=payment triad, OPS1_rebuild=systemd deploy, weather cha
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (473s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -176,6 +176,6 @@ watchdog) or blocked (D5=payment triad, OPS1_rebuild=systemd deploy, weather cha
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~600.4h across 29 sized atom(s) (9 of 38 below-target atoms still unsized).
+- Remaining effort: ~563.5h across 27 sized atom(s) (9 of 36 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 18.4h (+9.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.2h (+1.2h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
