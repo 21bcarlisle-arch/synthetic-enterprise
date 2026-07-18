@@ -117,6 +117,14 @@ def dms_isolated(tmp_path, monkeypatch):
     # _last_*_ts). Isolate it per-test so the cooldown these mutations exercise starts clean and
     # never pollutes the real transition state.
     monkeypatch.setattr(_notify_mod, "TRANSITIONS_FILE", tmp_path / "notify_transitions.json")
+    # run_cycle() runs 5 OTHER independent checks (pull-loop transport, gate-wall, fork-lifecycle,
+    # worktree-reconcile, status-honesty) that each scan REAL repo/process state and can PAGE. No test
+    # here targets them, so no-op them -- otherwise these stall/commit-clock mutation tests flake on
+    # live state (a real fork orphan added a 2nd page => assert len(calls)==1 failed; R2 caught it in
+    # the running gate though the test passed in isolation).
+    for _chk in ("_check_pull_loop_transport", "_check_gate_wall", "_check_fork_lifecycle",
+                 "_check_worktree_reconcile", "_check_status_honesty"):
+        monkeypatch.setattr(dms, _chk, lambda *a, **k: None)
     (tmp_path / "staging").mkdir()
     (tmp_path / "observability").mkdir()
     dms._last_escalation_ts = None
