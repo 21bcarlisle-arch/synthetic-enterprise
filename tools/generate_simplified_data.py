@@ -14,6 +14,7 @@ never authors new text (SITE_CONSTITUTION rule 5: "the site is a rendering,
 never an author").
 """
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -82,7 +83,10 @@ def generate():
     ]
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # R2 freshness: the honesty register carries its own generation stamp so the
+    # Simplified door can show when it was last rebuilt (SITE_CONSTITUTION rule 2).
     OUT_PATH.write_text(json.dumps({
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "lanes": lanes_out,
         "total_atoms_with_notes": sum(len(l["atoms"]) for l in lanes_out),
         "total_notes": total_entries,
