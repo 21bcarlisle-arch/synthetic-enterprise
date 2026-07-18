@@ -65,7 +65,9 @@ def test_live_map_coupling_has_all_seven_pairs():
     # The real map must load clean and expose all 7 authoritative pairs.
     assert ct.COUPLING["W2_7_willingness_classification"] == "C9_cantpay_wontpay_classifier"
     assert ct.COUPLING["W2_9_segment_debt_tnc"] == "C11_segment_debt_policy"
-    assert len([k for k in ct.COUPLING if k.startswith("W2_")]) == 7
+    # W2_11<->D5 payment triad added by director console 2026-07-18 (8th pair, D-lane twin)
+    assert ct.COUPLING["W2_11_payment_behaviour_source"] == "D5_account_hierarchy_payments"
+    assert len([k for k in ct.COUPLING if k.startswith("W2_")]) == 8
 
 
 # --- Gap ledger contract -----------------------------------------------------
