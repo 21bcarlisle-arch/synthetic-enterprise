@@ -1898,11 +1898,11 @@
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 4
-  provenance: director_console
+  provenance: director
   evidence: [docs/staging/in_progress/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md, company/crm/account_hierarchy.py, company/billing/account_ledger.py, company/billing/arrears_engine.py, docs/market_research/account_hierarchy_payment_allocation.md, 'tests/company/crm/test_account_hierarchy.py + tests/company/billing (66 tests, epistemic PASS 513 files)']
   file_scope: [company/crm/account_hierarchy.py, company/billing/account_ledger.py, company/billing/arrears_engine.py]
   simplifications:
@@ -1912,11 +1912,11 @@
   lane: E_finance_treasury
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 3
-  provenance: director_console
+  provenance: director
   evidence: [docs/staging/in_progress/SUPPLIER_REPORTING_STANDARD.md, saas/reporting/css_statement.py, saas/reporting/annual_report.py, 'docs/reports/ANNUAL_REPORT.md (CSS section RENDERS live at line 32: 4-segment P&L, WACOE/WACOG, meter points, settlement->statutory reconciliation -- R11 verified to rendered value)', 'tests/saas/test_e4_css_statement.py (13 tests) + 309 report tests green, epistemic PASS']
   file_scope: [saas/reporting/css_statement.py, saas/reporting/annual_report.py]
   simplifications:
