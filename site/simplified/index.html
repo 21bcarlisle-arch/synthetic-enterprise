@@ -70,6 +70,7 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
     not authored for this page.
   </p>
   <div class="stats-line" id="stats-line">Loading...</div>
+  <div class="stats-line" id="freshness" style="margin-top:-24px;margin-bottom:32px"></div>
   <div id="lanes-out"><div class="empty">Loading the register...</div></div>
 </div>
 
@@ -102,6 +103,15 @@ fetch("../data/simplified.json?t="+Date.now()).then(function(r){return r.json();
     '<strong>'+d.total_notes+'</strong> recorded simplification'+(d.total_notes===1?'':'s')
     +' across <strong>'+d.total_atoms_with_notes+'</strong> capabilit'+(d.total_atoms_with_notes===1?'y':'ies')
     +' in <strong>'+d.lanes.length+'</strong> lanes.';
+  // R2 freshness: the register must carry its own generation stamp. Sourced from
+  // simplified.json's own generation metadata -- never hardcoded. simplified.json
+  // does not yet emit a generated_at (its generator, tools/, is outside this SITE
+  // lane's write scope); until it does, state that honestly rather than stamp a
+  // fabricated date. Follow-up: add generated_at to the simplified.json generator.
+  var stamp = d.generated_at || d.generated || (d.meta && d.meta.generated_at);
+  document.getElementById("freshness").innerHTML = stamp
+    ? 'Register generated <strong>'+esc(stamp)+'</strong>, rendered directly from <code>site/data/simplified.json</code>.'
+    : 'Rendered directly from <code>site/data/simplified.json</code>. Freshness stamp pending -- the register JSON does not yet emit a <code>generated_at</code> (follow-up: add it to the generator).';
   var out = document.getElementById("lanes-out");
   out.innerHTML = d.lanes.length ? d.lanes.map(renderLane).join("") : '<div class="empty">No simplifications recorded.</div>';
 }).catch(function(e){

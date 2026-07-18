@@ -64,6 +64,7 @@ sandbox.REG = payload.regulatory;
 
 sandbox.renderKpis();
 sandbox.renderTestMix();
+sandbox.renderDiscoveries();
 if (sandbox.MM) { sandbox.renderEpoch2Strip(); sandbox.renderMMView(); }
 if (sandbox.PP) sandbox.renderProvisionalPlan();
 if (sandbox.DT) sandbox.renderDirectorTwin();
@@ -72,6 +73,7 @@ if (sandbox.REG) sandbox.renderRegulatory();
 const ids = [
   "inv-kpis", "be-domain-count", "epoch2-strip",
   "mm-view-body", "pp-body", "dt-body",
+  "disc-hedge-band", "disc-hedge-passport",
   "reg-module-count", "reg-domain-count", "reg-slc-domains",
   "reg-overall-rag", "reg-freshness",
   "reg-badge-RO", "reg-badge-FMD", "reg-badge-WHD", "reg-badge-SR",

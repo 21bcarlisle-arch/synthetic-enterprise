@@ -121,6 +121,55 @@ def test_director_twin_renders_live_fidelity_counts():
 
 
 # ---------------------------------------------------------------------------
+# Key Discoveries: the hedge-cover band is a COMPANY output rendered off
+# dashboard.json.trading.hedge_annual (R11), with an R2 passport (basis +
+# freshness + PROVISIONAL).
+# ---------------------------------------------------------------------------
+def test_hedge_band_renders_live_min_max_avg_hf():
+    d = _live()
+    out = _render(d)
+    ha = d["dashboard"]["trading"]["hedge_annual"]
+    avgs = [r["avg_hf"] for r in ha if r.get("avg_hf") is not None]
+    assert avgs, "fixture precondition: hedge_annual has avg_hf values"
+    lo, hi = min(avgs), max(avgs)
+    # The page renders lo-hi with JS Number.toFixed(2); mirror that formatting.
+    assert out["disc-hedge-band"]["textContent"] == f"{lo:.2f}-{hi:.2f}"
+
+
+def test_hedge_passport_renders_freshness_and_provisional():
+    d = _live()
+    out = _render(d)
+    pp = out["disc-hedge-passport"]["textContent"]
+    # R2 passport: PROVISIONAL badge + the dashboard generated_at freshness stamp.
+    assert "PROVISIONAL" in pp, pp
+    assert d["dashboard"]["meta"]["generated_at"] in pp, pp
+
+
+def test_hedge_band_is_independent_of_render():
+    # R15: a mutated source value must move the rendered pixel (not a constant).
+    d = _live()
+    d["dashboard"]["trading"]["hedge_annual"] = [
+        {"year": 2016, "avg_hf": 0.12},
+        {"year": 2017, "avg_hf": 0.99},
+    ]
+    out = _render(d)
+    assert out["disc-hedge-band"]["textContent"] == "0.12-0.99"
+
+
+def test_key_discoveries_figures_link_to_evidence():
+    text = INDEX.read_text()
+    # R1: each narrative discovery figure links to the source that established it.
+    # ~30 suppliers + £3,549 / 3-4% switching -> market-research findings; hedge
+    # band -> the point-in-time-leak review-gate finding.
+    assert "market_research/energy_market_complexity_june2026.md" in text, \
+        "supplier-failure benchmark link missing"
+    assert "market_research/churn_price_elasticity.md" in text, \
+        "price-elasticity benchmark link missing"
+    assert "review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md" in text, \
+        "hedge finding link missing"
+
+
+# ---------------------------------------------------------------------------
 # R15: independence -- a mutated source value must move the rendered pixel
 # ---------------------------------------------------------------------------
 def test_phase_count_is_independent_of_render():

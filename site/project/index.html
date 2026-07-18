@@ -135,11 +135,16 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div class="disc">
       <h3>Regime-Change Blindness -- Revised</h3>
       <p>An early build showed the hedging model converging toward naked positions in calm markets,
-      mirroring how around 30 real UK suppliers failed in 2021-22. A later fix corrected a point-in-time
+      mirroring how <a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/energy_market_complexity_june2026.md" style="color:var(--blue);text-decoration:none" target="_blank" rel="noopener">around 30 real UK suppliers</a>
+      failed in 2021-22. A later fix corrected a point-in-time
       data leak in the volatility calculation, and re-deriving the finding against the current build
-      shows the opposite: hedge cover stays real (0.80-0.90) through every year, calm ones included.
+      shows the opposite: hedge cover stays real (<span id="disc-hedge-band">0.80-0.90</span>) through every year, calm ones included.
       The naked-hedging story reflected an earlier, since-superseded model -- caught and corrected,
       not left stale.</p>
+      <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">
+        <span id="disc-hedge-passport">PROVISIONAL -- modelled population avg hedge fraction per year, latest sim run.</span>
+        <a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md" style="color:var(--blue);text-decoration:none" target="_blank" rel="noopener">Finding &rarr;</a>
+      </p>
     </div>
     <div class="disc">
       <h3>Activity-Based Pricing Gap</h3>
@@ -150,11 +155,19 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
       <h3>Price Elasticity Disconfirmed</h3>
       <p>Rising prices do NOT increase switching propensity. 2022 crisis bills (avg &#163;3,549)
       produced the lowest switching rate (3-4%). Savings available -- not price level -- drives switching.</p>
+      <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">
+        Real-world benchmark (2022 cap avg &#163;3,549/yr; switching floor 3-4%):
+        <a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/churn_price_elasticity.md" style="color:var(--blue);text-decoration:none" target="_blank" rel="noopener">churn_price_elasticity.md &rarr;</a>
+      </p>
     </div>
     <div class="disc">
       <h3>Crisis Survival</h3>
       <p>The supplier survived 2021-22 with treasury drawdown, churn spike, and recovery.
       Around 30 real suppliers failed. The simulation replicates the conditions faithfully.</p>
+      <p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">
+        Real-world benchmark (29 suppliers failed, ~4M customers, 2021-22):
+        <a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/energy_market_complexity_june2026.md" style="color:var(--blue);text-decoration:none" target="_blank" rel="noopener">energy_market_complexity_june2026.md &rarr;</a>
+      </p>
     </div>
   </div>
 
@@ -356,6 +369,27 @@ function renderRegulatory(){
     var el=document.getElementById("reg-badge-"+s.key);
     if(el){el.innerHTML=regBadge(s.status);if(s.basis)el.setAttribute("title",s.basis);}
   });
+}
+// Key Discoveries: the hedge-cover band is a COMPANY output (population avg hedge
+// fraction per year), so it is rendered off site/data/dashboard.json (trading.
+// hedge_annual), never hardcoded -- the pixel tracks the latest sim run. R2 passport:
+// basis (modelled position), freshness (dashboard generated_at), PROVISIONAL (M4).
+function renderDiscoveries(){
+  if(!D)return;
+  var ha=((D.trading||{}).hedge_annual)||[];
+  var avgs=ha.map(function(r){return r.avg_hf;}).filter(function(x){return x!=null;});
+  var band=document.getElementById("disc-hedge-band");
+  if(band&&avgs.length){
+    var lo=Math.min.apply(null,avgs), hi=Math.max.apply(null,avgs);
+    band.textContent=lo.toFixed(2)+"-"+hi.toFixed(2);
+  }
+  var pp=document.getElementById("disc-hedge-passport");
+  if(pp){
+    var gen=(D.meta&&D.meta.generated_at)||"";
+    var yrs=ha.length?(ha[0].year+"-"+ha[ha.length-1].year):"";
+    pp.textContent="PROVISIONAL -- modelled population avg hedge fraction per year ("
+      +yrs+"), latest sim run. Generated "+gen+".";
+  }
 }
 function switchTab(name){document.querySelectorAll(".view").forEach(function(v){v.classList.remove("active");});document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});document.getElementById("tab-"+name).classList.add("active");document.querySelector("[data-tab='"+name+"']").classList.add("active");if(!rendered[name]){renderTab(name);rendered[name]=true;}}
 function renderTab(n){if(n==="timeline")renderTimeline();else if(n==="system")renderSystem();}
@@ -720,7 +754,7 @@ function renderDirectorTwin(){
     (rows||'<p style="color:var(--muted);font-size:12px">No questions logged yet.</p>');
 }
 
-Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/director_twin.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/regulatory.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];DT=rs[5];REG=rs[6];renderKpis();renderCharts();renderBuildStats();renderTestMix();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();if(DT)renderDirectorTwin();if(REG)renderRegulatory();}).catch(function(e){console.error("Load error:",e);});
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/director_twin.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/regulatory.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];DT=rs[5];REG=rs[6];renderKpis();renderCharts();renderBuildStats();renderTestMix();renderDiscoveries();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();if(DT)renderDirectorTwin();if(REG)renderRegulatory();}).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="../shared/director-comments.js" defer></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
