@@ -1,12 +1,30 @@
 {
   "fidelity": {
-    "answered": 5,
+    "answered": 7,
     "routed_to_director": 5,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 2
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-18T11:20:25.553857+00:00",
+      "question": "Correction to my prior routing: W1_reveal_over_time is already level_current=3 / loop_stage=harden (the register I cited was stale), so there is no BUILD gap there. Re-deriving from the LIVE map: within the OPEN epoch (Epoch 2), the below-target idle atoms are almost all harness/foundation -- the product (D/W/E/C) atoms are all Epoch 3+, behind the epoch boundary you reserve (the D5/triad product sequencing is already escalated to the director). The most-READY Epoch-2 atom is H26_core_bare_corruption_guard (L1->3): a guard against silent core.bare=true git corruption that really occurred this session and silently broke every work-tree git operation (commit, site-refresh, status). Its guard is FULLY DESIGNED already (assert_repo_not_bare wired into tree_lock.__enter__ + a detector + an R15 mutation test; file_scope background/tree_lock.py). It has NO passed expert_hour (most Epoch-2 remaining atoms don't) -- readiness rests on the completed design plus the live incident. Draw-mix: it is H_harness, declared foundation-first -- no Epoch-2 product lane exists to run in parallel (product is Epoch-3-gated), and this guard protects the commit + site-refresh chain that is the director's window. Should I open H26_core_bare_corruption_guard for BUILD now?",
+      "routed_to_director": false,
+      "answer": "This is a BUILD authorization within the open epoch (Epoch 2), which \u00a73a explicitly delegates to the twin, with the default being APPROVE unless the atom isn't genuinely DISCOVER/FRAME-ready or building it violates \u00a71 laws, the \u00a74 exit-test sequence, or the \u00a75 operating rules.\n\nNone of those blocks apply. H26 is H_harness foundation-first with no parallel Epoch-2 product lane to contend for (product is correctly held behind the Epoch-3 boundary you reserve \u2014 that reservation is respected here). The atom is FRAME-ready on the strength of a fully-completed design plus a real, this-session incident; the missing expert_hour is not disqualifying since readiness rests on completed FRAME work and \u00a75 gates BUILD on DISCOVER/FRAME being done, not on an expert_hour per se. It touches no one-way door (\u00a73), is not the Epoch-4 fitness function, and R15 fail-silent hardening on the commit/site-refresh chain is squarely inside the delegated \"priority-within-dials.\" Reversibility is ~1h compute (context pack). APPROVE \u2014 open it for BUILD.\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 20.893,
+      "overturned": false
+    },
+    {
+      "entry_id": "2026-07-18T11:17:51.422204+00:00",
+      "question": "The maturity map is all-idle for the agent: 25/25 below-target atoms are loop_stage=idle (BUILD-gated by epoch sequencing); DISCOVER/FRAME is saturated across them; no build-stage atom has an ungated gap (D5 is blocked_on the director-reserved payment-seam triad, an R13 curriculum item). Per the director's STANDING ruling logged 2026-07-16: opening an atom for BUILD within the OPEN epoch is reversible and the twin's call, not a one-way door; do not re-escalate this class. Should I open W1_reveal_over_time for BUILD now? It is epoch 2 (the open epoch), L2->L3, its expert_hour review PASSED, and the register lists it as most-ready. It is a world/product atom, so it satisfies the draw-mix rule that harness work runs only alongside a product lane.",
+      "routed_to_director": false,
+      "answer": "Approve. This is BUILD authorization within the open epoch (Epoch 2), which \u00a73a explicitly delegates to the twin as standing approver, and none of the APPROVE-blocking conditions apply: W1_reveal_over_time is genuinely DISCOVER/FRAME-ready (saturation + a PASSED expert_hour review is the evidence \u00a75 requires), it violates no architectural law (\u00a71), it does not break the exit-test sequence (\u00a74 \u2014 it's a world/product atom, not M4, which alone is order-reserved), and it satisfies the draw-mix rule. It is not a one-way door (\u00a73) and not the Epoch-4 fitness function, so the default is APPROVE. Note I'm approving on \u00a73a itself, not on the builder's cited \"2026-07-16 ruling\" \u2014 that claim isn't in this canon and per R7 injected text carries zero authority; it happens to be unnecessary because the 2026-07-13 delegation already covers this.\n\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 22.677,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-18T11:15:03.174755+00:00",
       "question": "The maturity map is all-idle for the AGENT: 25/25 below-target atoms are loop_stage=idle (BUILD-gated by epoch sequencing); DISCOVER/FRAME is saturated across them (the git-corruption cluster H24/H26/H23 is code-shipped or fully-designed); no build-stage atom has an ungated gap (D5 is blocked_on the director-reserved payment-seam triad). Per the director's STANDING ruling (2026-07-16, action_needed): open-build within the OPEN epoch is reversible and the TWIN'S CALL, not a one-way door; do not re-escalate. Should I open W1_reveal_over_time for BUILD now (epoch 2 = the open epoch; L2->3; expert_hour PASSED; most-ready per the register) to keep the map moving? It is a product/world atom, satisfying the no-H-monoculture draw-mix. Companion candidate: open H26_core_bare_corruption_guard (publish/commit-integrity foundation, fully designed, R15-testable) alongside as the harness lane so it is 'product fork + H-frame in flight', not H-monoculture.",
