@@ -2089,7 +2089,8 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
+  couples_with: [D5_account_hierarchy_payments, W2_11_payment_behaviour_source]
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/done/M2_FRAME_ACCOUNT_HIERARCHY_PAYMENTS.md]
