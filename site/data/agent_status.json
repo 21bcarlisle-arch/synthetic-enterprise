@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-18T18:48:44.332951+00:00",
+  "last_updated": "2026-07-18T21:25:09.709127+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:48:44.332951+00:00",
-      "last_action": "Heartbeat \u2014 19 files tracked",
-      "last_action_ts": "2026-07-18T18:48:44.332951+00:00",
+      "last_heartbeat": "2026-07-18T21:16:24.494758+00:00",
+      "last_action": "Heartbeat \u2014 30 files tracked",
+      "last_action_ts": "2026-07-18T21:16:24.494758+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:45:06.481319+00:00",
-      "last_action": "Waiting for next cycle (5h 50m remaining)",
-      "last_action_ts": "2026-07-18T18:45:06.481319+00:00",
+      "last_heartbeat": "2026-07-18T21:25:09.709127+00:00",
+      "last_action": "Waiting for next cycle (3h 10m remaining)",
+      "last_action_ts": "2026-07-18T21:25:09.709127+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-18T18:47:36.791162+00:00",
-      "last_action": "Sim started \u2014 git=86f37028b",
-      "last_action_ts": "2026-07-18T18:47:36.791162+00:00",
+      "last_heartbeat": "2026-07-18T21:18:34.404994+00:00",
+      "last_action": "Sim started \u2014 git=e8bce1e11",
+      "last_action_ts": "2026-07-18T21:18:34.404994+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:11:43.299750+00:00",
+      "last_heartbeat": "2026-07-18T21:16:27.075438+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-18T18:11:43.299750+00:00",
+      "last_action_ts": "2026-07-18T21:16:27.075438+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:11:54.953103+00:00",
+      "last_heartbeat": "2026-07-18T21:16:23.831956+00:00",
       "last_action": "Acked message: 'identical machine cadence body repeated over and over again'",
-      "last_action_ts": "2026-07-18T18:11:54.953103+00:00",
+      "last_action_ts": "2026-07-18T21:16:23.831956+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T17:18:50.218015+00:00",
-      "last_action": "Peak hours pause \u2014 17:18 UTC",
-      "last_action_ts": "2026-07-18T17:18:50.218015+00:00",
+      "last_heartbeat": "2026-07-18T19:41:14.740253+00:00",
+      "last_action": "Task batch complete",
+      "last_action_ts": "2026-07-18T19:41:14.740253+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T15:16:37.408747+00:00",
-      "last_action": "Scanned 2 W4_4 seam contracts (wall_envelope + payment_observable_seam) -- PASS, no barrier violations across 6 inbound observable response types",
-      "last_action_ts": "2026-07-18T15:16:37.408747+00:00",
+      "last_heartbeat": "2026-07-18T21:22:38.530491+00:00",
+      "last_action": "Scan complete \u2014 PASS (0 violations)",
+      "last_action_ts": "2026-07-18T21:22:38.530491+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:47:34.466479+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~32min",
-      "last_action_ts": "2026-07-18T18:47:34.466479+00:00",
+      "last_heartbeat": "2026-07-18T21:24:15.181238+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~14min",
+      "last_action_ts": "2026-07-18T21:24:15.181238+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:37:02.926678+00:00",
+      "last_heartbeat": "2026-07-18T21:07:48.574662+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-18T18:37:02.926678+00:00",
+      "last_action_ts": "2026-07-18T21:07:48.574662+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -125,9 +125,9 @@
     {
       "name": "director-comments",
       "status": "idle",
-      "last_heartbeat": "2026-07-18T18:11:43.257078+00:00",
+      "last_heartbeat": "2026-07-18T21:16:27.025410+00:00",
       "last_action": "Staged comment from /supplier/",
-      "last_action_ts": "2026-07-18T18:11:43.257078+00:00",
+      "last_action_ts": "2026-07-18T21:16:27.025410+00:00",
       "anomaly": null,
       "role": "Validates PIN-authenticated director page comments, stages accepted ones",
       "produces": "docs/staging/from_rich_comment_*.md"
