@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-18T15:32:16Z
+Last updated: 2026-07-18T15:49:04Z
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -76,9 +76,19 @@ WallRequest/WallResponse in interface/, 6 observables-only inbound payloads incl
 C-S3, bitemporal; 29 tests; epistemic-verifier confirmed field-by-field no generator-internal leak + the wall test
 is load-bearing/mutation-proven; `blocked_on: coupled_triad_gap`). Its BUILD_OPEN cleared both the stage_advance
 and schema_sim_structure gates (verified via the reconciler before flipping — ON_FRONT, clean). Both triad SOURCE
-(W2_11) and SEAM (W4_4) now landed. Remaining rungs to close the triad for L3: a W2_11 sim adapter FILLING the
-seam + a D5 consumer READING WallResponse (allocation/ageing inference) + H27_payment_belief_gap measuring
-belief-vs-truth across it. W1 stays DISCOVER.
+(W2_11) and SEAM (W4_4) now landed. **ADAPTER + CONSUMER now LANDED too** (both epistemic-clean, on origin):
+`simulation/payment_seam_adapter.py` (W2_11 fills the seam — truth→observable many-to-one non-invertible collapse
+proven via the real generator, 25 tests) + `company/billing/payment_observation_consumer.py` (D5 builds belief
+from seam observables ONLY — AST-proven no-sim-import, C-S1/C-S3 order-independent/idempotent/missing-tolerant,
+20 tests; reuses AccountLedger unchanged). **ONLY the gap rung remains** — `H27_payment_belief_gap` (BUILD_OPEN'd,
+`company/compliance`, currently loop_stage idle → flip to build, verify reconciler clean first). PREP (ready to
+launch): follow `tools/couple_w2_9_c11.py`/`couple_w2_7_c9.py` → `tools/couple_w2_11_d5.py`; reuse
+`background/gap_metric.py` 4 metrics mapped 1:1 (allocation→attribution, ageing→classification, arrears/cash→belief
+TV-distance, DD-failure→detection); TRUTH = W2_11 generator `PaymentEvent`s, BELIEF = the consumer's
+`PaymentBeliefSnapshot`; write `GapResult` to `docs/observability/coupled_gap_ledger.json` which
+`coupled_triad.world_l3_blocked` reads to unblock W2_11→L3. Gap must be NON-trivial (R12/R13: near-zero = a leak;
+the consumer's deliberate plausible-but-wrong beliefs — no-bounce unpaid stays NORMAL risk — should surface a real
+gap). W1 stays DISCOVER.
 **[ACT]-paging fix LANDED + DEPLOYED (R2):** the director-caught escalation bug — [ACT]s silently not paging his
 phone (a failed send still stamped `last_pinged`, suppressing the deadman's re-ping) — is fixed (decouples
 "registered" from "confirmed-sent" via `mark_sent`/`last_sent_at`; a failed send keeps the page due) AND the
@@ -107,7 +117,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (462s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (512s / 9 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
