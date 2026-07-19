@@ -120,6 +120,45 @@ def test_build_extended_returns_unmodified_when_no_extension_needed():
     assert ext_gas == hist_gas
 
 
+def test_build_extended_tags_data_regime_on_every_record():
+    """W1_2 L1->L2 / epistemic-wall rule (.claude/rules/epistemic-wall-sim.md): every record in the
+    extended feed must carry a data_regime tag -- an untagged record makes real and synthetic
+    structurally indistinguishable once concatenated (the exact gap the FRAME names)."""
+    hist_elec = _hh_records("2016-01-01", "2025-12-31")
+    hist_gas = _daily_records("2016-01-01", "2025-12-31")
+    ext_elec, ext_gas = build_extended_price_feeds(
+        hist_elec, hist_gas, scenario="central_2027", year_from=2026, year_to=2027, seed="test")
+    assert all(r.get("data_regime") in ("historical", "synthetic") for r in ext_elec)
+    assert all(r.get("data_regime") in ("historical", "synthetic") for r in ext_gas)
+
+
+def test_build_extended_data_regime_matches_origin():
+    """Provenance must be CORRECT, not merely present: historical-dated records read 'historical',
+    scenario-dated records read 'synthetic'. A synthetic record reading 'historical' would be a
+    wall-provenance leak -- the exact thing this tag exists to make catchable."""
+    hist_elec = _hh_records("2016-01-01", "2025-12-31")
+    hist_gas = _daily_records("2016-01-01", "2025-12-31")
+    ext_elec, ext_gas = build_extended_price_feeds(
+        hist_elec, hist_gas, scenario="central_2027", year_from=2026, year_to=2027, seed="test")
+    for r in ext_elec:
+        expected = "historical" if r["settlementDate"] <= "2025-12-31" else "synthetic"
+        assert r["data_regime"] == expected, (r["settlementDate"], r["data_regime"])
+    for r in ext_gas:
+        expected = "historical" if r["settlementDate"] <= "2025-12-31" else "synthetic"
+        assert r["data_regime"] == expected, (r["settlementDate"], r["data_regime"])
+
+
+def test_build_extended_no_op_path_also_tags_historical():
+    """The no-extension-needed early return tags historical records too -- provenance is never
+    dropped on any return path."""
+    hist_elec = _hh_records("2016-01-01", "2025-12-31")
+    hist_gas = _daily_records("2016-01-01", "2025-12-31")
+    ext_elec, ext_gas = build_extended_price_feeds(
+        hist_elec, hist_gas, scenario="central_2027", year_from=2030, year_to=2025, seed="noop")
+    assert all(r.get("data_regime") == "historical" for r in ext_elec)
+    assert all(r.get("data_regime") == "historical" for r in ext_gas)
+
+
 def test_expand_daily_to_hh_keys_present():
     records = _daily_records("2020-01-01", "2020-01-01")
     hh = _expand_daily_to_hh(records)

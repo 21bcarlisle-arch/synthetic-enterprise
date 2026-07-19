@@ -70,18 +70,32 @@ def build_extended_price_feeds(
     else:
         scenario_actual_from = year_from
 
+    # data_regime provenance (W1_2 L1->L2, epistemic-wall rule .claude/rules/epistemic-wall-sim.md:
+    # "every record should carry historical or synthetic"). Without this the concatenation below is
+    # structurally indistinguishable real-vs-generated once built -- the exact gap the FRAME names.
+    # setdefault on the historical halves so a record already tagged upstream is never overwritten;
+    # explicit "synthetic" on the generated halves (which this function owns).
+    for _r in historical_elec:
+        _r.setdefault("data_regime", "historical")
+    for _r in historical_gas:
+        _r.setdefault("data_regime", "historical")
+
     if scenario_actual_from > year_to:
         # Historical data already covers the requested scenario range — no extension needed
         return historical_elec, historical_gas
 
     elec_daily = generate_scenario_prices(scenario_actual_from, year_to, scenario, seed=_seed)
     elec_hh = _expand_daily_to_hh(elec_daily)
+    for _r in elec_hh:
+        _r["data_regime"] = "synthetic"
     extended_elec = historical_elec + elec_hh
 
     gas_daily = generate_gas_scenario_prices(scenario_actual_from, year_to, scenario, seed=_seed)
     if historical_gas:
         latest_gas_str = max(r["settlementDate"] for r in historical_gas)
         gas_daily = [r for r in gas_daily if r["settlementDate"] > latest_gas_str]
+    for _r in gas_daily:
+        _r["data_regime"] = "synthetic"
     extended_gas = historical_gas + gas_daily
 
     return extended_elec, extended_gas
