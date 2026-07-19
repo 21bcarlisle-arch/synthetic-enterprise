@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T13:10:38Z
+Last updated: 2026-07-19T13:14:20Z
 
 **RC3 DONE → "CONTINUOUS" IS NOW GENUINELY TRUE (2026-07-19 ~13:00, `9ada5f245`, deployed):**
 The director-priority spine fix landed + supervisor restarted. `find_work` now syncs origin-`[ADVISOR-STAGED]`
@@ -11,7 +11,11 @@ on an origin-staged directive**, not only console input — closing the 2026-07-
 (director console; re-blocked on the real L3 prereq = a live company consumer per COUPLED_TRIAD). **Fidelity steer
 registered** — the top price-engine gap is the SPIKE TAIL (max £574 vs £4,038; negatives 0.013% vs 2.241%) by
 VaR, worst-cell not average (the "worse than OLS in calm years" was the average trap). **G4 site fidelity
-instrument dispatched** (SITE lane, leads with the exposure tail). Sequence after G4: D + A BUILD.
+instrument LANDED** (`6c89e536c`, L2 PROPOSED): Proof-door Fidelity section leads with the exposure-tail gap
+(spike-tail under-representation), worst-cell 2022, drillable EVIDENCE→WORLD chain; MAE reading subordinate —
+honors the fidelity steer. 12 R15 tests, `pytest site/` 182 passed. **Sequence remaining: D + A BUILD** — with
+the loop now genuinely continuous, these get authored into the map so the loop self-draws them (fresh-turn work).
+Loop at honest rest meanwhile (G1/G2/G3 blocked on L3-prereq, nothing else authored) — wakes on new work.
 
 **SELF-DRAWING LOOP RAN A FULL CYCLE + G MACHINERY DEMONSTRATED LIVE (2026-07-19 ~12:27):**
 The self-drawing loop drew G1/G2/G3→L2, I dispatched one integrated emitter build, and it completed the
