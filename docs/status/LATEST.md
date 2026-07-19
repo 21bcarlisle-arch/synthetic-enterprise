@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T21:50:41Z
+Last updated: 2026-07-19T22:04:59Z
 
 **RC3 DONE → "CONTINUOUS" IS NOW GENUINELY TRUE (2026-07-19 ~13:00, `9ada5f245`, deployed):**
 The director-priority spine fix landed + supervisor restarted. `find_work` now syncs origin-`[ADVISOR-STAGED]`
@@ -254,7 +254,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (491s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -357,11 +357,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] If swapping the forecast for a constant provably moves no order quantity or price, what exactly did you hold fixed when you measured that — was the constant set to the forecast's own average output, and did you check every downstream consumer (risk limits, survival/administration checks, reporting) rather than only the two levers named?
 - (T3_inherence) [unanswered >24h] If the arrears/Bacs physics is genuinely anchored to external Bacs/DESNZ references, what prevents the director-authored "difficulty dials" from quietly re-tuning that same physics away from those anchors — and who would notice if the dials and the anchor disagreed?
 - (T3_inherence) [unanswered >24h] If `SE_NTFY_TOPIC` was never set, then paging was never configured in the first place — so on what basis is this being reported as NTFY "going down" (an outage) rather than a feature that was simply never enabled, and what does either state have to do with the company entering administration?
-- (T3_inherence) If the run_complete wedge is marked RESOLVED only because its markers were cleared, but the RED publish gate causing it stems from the two site wedges (ntfy sends failing and staging_watcher DOWN) that you list as still unfixed, what stops the same 31-marker saturation from re-accumulating the moment the next run completes?
+- (T3_inherence) [unanswered >24h] If the run_complete wedge is marked RESOLVED only because its markers were cleared, but the RED publish gate causing it stems from the two site wedges (ntfy sends failing and staging_watcher DOWN) that you list as still unfixed, what stops the same 31-marker saturation from re-accumulating the moment the next run completes?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~576.0h across 28 sized atom(s) (10 of 38 below-target atoms still unsized).
-- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 18.4h (+9.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
+- Remaining effort: ~841.5h across 30 sized atom(s) (10 of 40 below-target atoms still unsized).
+- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 39.2h (+30.0h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-19T21:50:15.808245+00:00",
+  "last_updated": "2026-07-19T22:04:25.297405+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T21:49:21.958337+00:00",
-      "last_action": "Waiting for next cycle (2h 50m remaining)",
-      "last_action_ts": "2026-07-19T21:49:21.958337+00:00",
+      "last_heartbeat": "2026-07-19T22:04:21.960640+00:00",
+      "last_action": "Waiting for next cycle (2h 35m remaining)",
+      "last_action_ts": "2026-07-19T22:04:21.960640+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T21:45:59.363345+00:00",
-      "last_action": "Run complete in 491s \u2014 3775 KB (run_output_574f939ad_20260719T213748Z.json)",
-      "last_action_ts": "2026-07-19T21:45:59.363345+00:00",
+      "last_heartbeat": "2026-07-19T22:00:14.373569+00:00",
+      "last_action": "Run complete in 496s \u2014 3775 KB (run_output_7a4eb4f81_20260719T215158Z.json)",
+      "last_action_ts": "2026-07-19T22:00:14.373569+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T21:44:57.626441+00:00",
+      "last_heartbeat": "2026-07-19T21:53:20.138221+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-19T21:44:57.626441+00:00",
+      "last_action_ts": "2026-07-19T21:53:20.138221+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T21:50:15.808245+00:00",
+      "last_heartbeat": "2026-07-19T22:04:25.297405+00:00",
       "last_action": "Cycle complete -- current stuck-key unchanged for ~0min",
-      "last_action_ts": "2026-07-19T21:50:15.808245+00:00",
+      "last_action_ts": "2026-07-19T22:04:25.297405+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
