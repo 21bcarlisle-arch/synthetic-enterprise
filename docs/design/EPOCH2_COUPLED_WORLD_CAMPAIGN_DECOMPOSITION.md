@@ -43,3 +43,9 @@ Randomness + generating structure live in the SIM (req 5); the company infers fr
   - **H — emit-DoD doctrine**: recording (fitted relationship+strength+provenance, per-cell contribution, binding constraint, ablation) travels with every physics atom's definition-of-done. FRAME + rule.
   - **SITE-FID — the fidelity instrument** (renders the 4-layer chain; drill relationship→evidence; Expert-Hour answerable): SITE lane, after G's data model.
 - **Emit requirement is retroactive-on-BUILD**, not on the DISCOVER docs: it binds each atom's future BUILD DoD (W1 BUILD still closed).
+
+## DISCOVER/FRAME phase COMPLETE — awaiting director BUILD-open (2026-07-19)
+- **Atom G — fidelity-evidence machinery: LANDED** (56da6f8da). 3 measures un-gameable (hash-pinned frozen baseline; map-of-ignorance; CRN ablation), emit-DoD as a phase-close gate into a SIBLING evidence ledger, inspection-chain data model with in-schema wall discipline, atom split G1(grid-scorer)/G2(emit-ledger+gate)/G3(inspection-chain data)/G4(site instrument).
+- **The campaign's DISCOVER/FRAME design phase is COMPLETE: A,B/C,D,E,F,G all landed.** The full design spine exists (objective function, physics, estimation method, delay chain, value-ranking, fidelity-evidence machinery).
+- **AWAITS THE DIRECTOR (not agent-decidable):** (1) W1 BUILD-open (all the above is DISCOVER/FRAME; nothing built); (2) the VALUES-CALLS surfaced across the docs — harm-weights in atom F's kappa + tau threshold, atom G's commercial_weight per cell, atom A's equal-cell-vs-harm-weighted worst-cell + grid-completeness, atom E's metric-normalisation, L_min gate floors (cat-6 one-way doors, R13 curriculum). (3) Upstream BUILD blocker: the price engine's ~10x SSP miscalibration + missing carbon/UK-ETS term + hedging.py single-price collapse — gates cascade MAGNITUDE (not direction) for any physics BUILD.
+- Site lane (G4 + the existing doors) continues as the standing parallel window.
