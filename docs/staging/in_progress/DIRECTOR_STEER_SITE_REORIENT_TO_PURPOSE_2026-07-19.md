@@ -1,3 +1,9 @@
+> **PARKED (2026-07-19, agent).** RECONCILE-FIRST done + pushed: PURPOSE_PITCH_V4 filed as canon; POESYS_SITE_BRIEF.md + SITE_CONSTITUTION.md reconciled to v4 (v3 go-live job retired, narrative spine reordered, 2 new binding rules); CARBON_NOT_A_TARGET_CONSTRAINT registered; SITE_SURFACE_AUDIT v4 addendum proposes the reoriented door jobs + new atoms.
+>
+> **OPEN sub-item (blocking):** the site REBUILD (retire/merge + reorient pages to v4). **What unblocks it:** the director's eye on the reconciliation shape + the v4 surface audit (good here is a taste judgment only he can make; the steer says propose-before-rebuild, no new pages). Also proposed, director-reserved: the carbon three-ledger instrumentation atom, the volunteer security-posture-review gate, the business-customer population, state-layer discovery anchors, the prior-art pass.
+
+---
+
 # DIRECTOR STEER — Reorient the website around the ratified purpose (2026-07-19)
 
 **Type:** [STEER] — rider to `DIRECTOR_RATIFIED_PURPOSE_PITCH_V4_2026-07-19.md` (consumed moments ago). This is coherence flag 12, which the advisor missed on first staging.
