@@ -35,3 +35,11 @@ Randomness + generating structure live in the SIM (req 5); the company infers fr
 - **Atom D — cascade correlation estimation methodology: DISCOVER in flight.**
 - E (billing delays), F (value/exposure ranking): sequenced next.
 - Upstream blocker surfaced by B/C: the price engine's SSP ~10× miscalibration (residual-demand form uncalibrated, carbon/UK-ETS term missing) — a hard dependency for any cascade-magnitude BUILD.
+
+## Core DISCOVER phase COMPLETE (2026-07-19) + fidelity-evidence addendum
+- **A-F ALL LANDED:** A scoring-frame (2c3d7c03f), B/C price-cost (fe140d6b6), D correlations (6a47b1172), E billing-delays (e6acd25fa), F value-ranking (0d5e6f875). Every atom doc-only, wall intact, W1 BUILD closed, director values-calls flagged not invented.
+- **ADDENDUM — fidelity evidence** (`docs/staging/in_progress/DIRECTOR_ADDENDUM_FIDELITY_EVIDENCE_2026-07-19.md`): the campaign must EMIT inspectable fidelity evidence (4-layer chain evidence→world→belief/action→constraint) scored as a GRID of 3 measures (lift over a FROZEN un-gameable naive baseline; worst-cell coverage; ablation value under common-random-numbers) — none averages; emit-as-you-build (DoD, never retrofit); site as the director's fidelity instrument. New atoms:
+  - **G — fidelity-evidence machinery** (3-measure grid + emit-ledger + inspection-chain data model + frozen-baseline/Goodhart): DISCOVER/FRAME **in flight**.
+  - **H — emit-DoD doctrine**: recording (fitted relationship+strength+provenance, per-cell contribution, binding constraint, ablation) travels with every physics atom's definition-of-done. FRAME + rule.
+  - **SITE-FID — the fidelity instrument** (renders the 4-layer chain; drill relationship→evidence; Expert-Hour answerable): SITE lane, after G's data model.
+- **Emit requirement is retroactive-on-BUILD**, not on the DISCOVER docs: it binds each atom's future BUILD DoD (W1 BUILD still closed).

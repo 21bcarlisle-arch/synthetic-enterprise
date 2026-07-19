@@ -1,3 +1,5 @@
+> [AGENT 2026-07-19] Consumed. Extends the Epoch-2 campaign; atoms G (machinery, in flight)/H (emit-DoD)/SITE-FID registered in the decomposition. Emit binds future BUILD DoD; W1 BUILD closed.
+
 # DIRECTOR ADDENDUM — Fidelity evidence: what Epoch 2 must EMIT, and what the site must let the director eyeball (2026-07-19)
 
 **Type:** director's requirements, transmitted by the advisor. Extends DIRECTOR_CAMPAIGN_EPOCH2_COUPLED_WORLD (consumed 05:22). Requirements only — statistical methods and mechanisms are yours; the filed ideas ledger (docs/design/ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md) contains relevant mature toolkits (notably B5, C4, C5, C7, D1–D6, A5) — read the relevant sections when each becomes live; adopt, adapt, or reject.
