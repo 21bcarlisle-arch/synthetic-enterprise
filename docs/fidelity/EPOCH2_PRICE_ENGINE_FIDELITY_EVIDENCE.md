@@ -232,3 +232,21 @@ while the engine is unwired); (b) the negative-price frequency/magnitude gap (§
 uncalibrated carbon term (§3.3) are named, real limitations, not fully closed. Wiring this engine
 into any live phase (replacing or supplementing the OLS regression for Regime-3 projection) would
 be a separate, larger decision requiring its own gate — not proposed here.
+
+## DIRECTOR FIDELITY STEER (console 2026-07-19) — the top gap is the spike tail, not calm-year MAE
+The emitter's first result ("structural model worse than OLS in 6/10 years") is the **average trap**. Scored
+**worst-cell** (atom A / G1 CVaR), the model is **strongest in 2022** (R²=0.347, its best year, beating OLS's
+own 2022) and weakest in **calm 2018–2020** — years where nothing commercial is at stake. Ranked by
+**exposure / value-at-risk** (atom F), the top fidelity gap is the **extreme spike tail the engine
+under-represents**:
+
+| metric | model | real | under-representation |
+|---|---|---|---|
+| max SSP | £574/MWh | £4,038/MWh | ~7× |
+| negative-price frequency | 0.013% | 2.241% | ~170× |
+
+The spike tail is what triggers **collateral calls and kills suppliers** — so under VaR ranking this is the
+**TOP price-engine fidelity priority**, far above reducing calm-year MAE. **W1_6's real L2→L3 fidelity target
+is reproducing the extreme tail** (spike magnitude + negative-price frequency), NOT the mean. Registered as
+director direction; the emitter/G1 scoring already computes worst-cell CVaR — the emphasis is now exposure-tail,
+not average.
