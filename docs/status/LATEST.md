@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T15:03:16Z
+Last updated: 2026-07-19T15:17:42Z
 
 **RC3 DONE → "CONTINUOUS" IS NOW GENUINELY TRUE (2026-07-19 ~13:00, `9ada5f245`, deployed):**
 The director-priority spine fix landed + supervisor restarted. `find_work` now syncs origin-`[ADVISOR-STAGED]`
@@ -254,7 +254,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (492s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -355,7 +355,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] Can anyone point to a specific decision rule or line where the physics forecast's output is actually read and changes an order quantity or price — and if so, why has that not been produced in over 24 hours, while if not, what is the forecast wired into at all?
 - (T3_inherence) [unanswered >24h] If the physics forecast's output is never consumed by any decision rule that sets an order quantity or price, then on what basis is it called a "forecast" at all rather than a number computed and discarded — and who, if anyone, has ever traced even one such consuming path end to end?
 - (T3_inherence) [unanswered >24h] If swapping the forecast for a constant provably moves no order quantity or price, what exactly did you hold fixed when you measured that — was the constant set to the forecast's own average output, and did you check every downstream consumer (risk limits, survival/administration checks, reporting) rather than only the two levers named?
-- (T3_inherence) If the arrears/Bacs physics is genuinely anchored to external Bacs/DESNZ references, what prevents the director-authored "difficulty dials" from quietly re-tuning that same physics away from those anchors — and who would notice if the dials and the anchor disagreed?
+- (T3_inherence) [unanswered >24h] If the arrears/Bacs physics is genuinely anchored to external Bacs/DESNZ references, what prevents the director-authored "difficulty dials" from quietly re-tuning that same physics away from those anchors — and who would notice if the dials and the anchor disagreed?
 - (T3_inherence) If `SE_NTFY_TOPIC` was never set, then paging was never configured in the first place — so on what basis is this being reported as NTFY "going down" (an outage) rather than a feature that was simply never enabled, and what does either state have to do with the company entering administration?
 - (T3_inherence) If the run_complete wedge is marked RESOLVED only because its markers were cleared, but the RED publish gate causing it stems from the two site wedges (ntfy sends failing and staging_watcher DOWN) that you list as still unfixed, what stops the same 31-marker saturation from re-accumulating the moment the next run completes?
 <!-- /NAIVE_ORGAN_ASKS -->
