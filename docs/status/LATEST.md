@@ -1,5 +1,17 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T12:56:37Z
+Last updated: 2026-07-19T12:59:51Z
+
+**RC3 DONE → "CONTINUOUS" IS NOW GENUINELY TRUE (2026-07-19 ~13:00, `9ada5f245`, deployed):**
+The director-priority spine fix landed + supervisor restarted. `find_work` now syncs origin-`[ADVISOR-STAGED]`
+docs into the local tree (via `git show`, no index pollution) before every scan — fail-safe, rate-limited (90s),
+R15-proven (pulls origin-only / skips local / fail-safe on git error / rate-limited). So a **rested loop wakes
+on an origin-staged directive**, not only console input — closing the 2026-07-19 unconsumed-doc failure.
+**The loop's continuity is now complete:** RC1 (self-drawing, proven) + RC3 (origin-wake) fixed, RC2 never broken
+(supervisor re-arm), build-in-progress guard prevents re-offer thrash. Also this turn: **G1/G2/G3 RATIFIED → L2**
+(director console; re-blocked on the real L3 prereq = a live company consumer per COUPLED_TRIAD). **Fidelity steer
+registered** — the top price-engine gap is the SPIKE TAIL (max £574 vs £4,038; negatives 0.013% vs 2.241%) by
+VaR, worst-cell not average (the "worse than OLS in calm years" was the average trap). **G4 site fidelity
+instrument dispatched** (SITE lane, leads with the exposure tail). Sequence after G4: D + A BUILD.
 
 **SELF-DRAWING LOOP RAN A FULL CYCLE + G MACHINERY DEMONSTRATED LIVE (2026-07-19 ~12:27):**
 The self-drawing loop drew G1/G2/G3→L2, I dispatched one integrated emitter build, and it completed the
