@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T12:42:58Z
+Last updated: 2026-07-19T12:56:37Z
 
 **SELF-DRAWING LOOP RAN A FULL CYCLE + G MACHINERY DEMONSTRATED LIVE (2026-07-19 ~12:27):**
 The self-drawing loop drew G1/G2/G3→L2, I dispatched one integrated emitter build, and it completed the
@@ -238,7 +238,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (474s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881

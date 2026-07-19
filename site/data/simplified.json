@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T12:42:47Z",
+  "generated_at": "2026-07-19T12:56:26Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -491,7 +491,7 @@
         {
           "atom_id": "G1_fidelity_grid_scorer",
           "atom_name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-19 BUILT + director-RATIFIED L1 (console FRONT_OPEN EPOCH2_CAMPAIGN + LEVEL_UP ts=1784462364): 3 fidelity measures on the improved constructs (EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE); 24 R15 tests, epistemic PASS. L1->L2 = a live physics-atom emits into the evidence ledger + a real gap is measured."
@@ -509,7 +509,7 @@
         {
           "atom_id": "G2_fidelity_evidence_ledger",
           "atom_name": "Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): sibling ledger + emit-DoD gate (no-record / asserted-without-simplification_id / ablation-without-CRN red), fail-closed; 22 R15 tests, epistemic PASS. L1->L2 = wire a real emitter + the gate into a physics atom phase-close."
@@ -518,7 +518,7 @@
         {
           "atom_id": "G3_fidelity_inspection_chain",
           "atom_name": "Fidelity inspection-chain data model: 4 record types (EVIDENCE/WORLD/BELIEF-ACTION/CONSTRAINT) + link graph + the epistemic wall in-schema",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): 4 record types + bidirectional link graph + assert_no_belief_leak (truth_ref harness-only, R15-proven) + fail-closed dangling-link; 25 tests, epistemic PASS. L1->L2 = render the chain as the director fidelity instrument (G4, SITE) + wire live records."
