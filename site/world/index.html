@@ -249,7 +249,9 @@ function renderSimDepth(d){
   intro.innerHTML="The simulation is settled half-hourly against the REAL Elexon system sell price since "+
     esc(d.sim_window||"2016")+" ("+num(d.sim_total_records)+" settlement records). It holds the entire "+
     "realised path -- including the 2021-22 crisis that ended around 30 real UK suppliers. The company "+
-    "priced through it blindfolded. Annual mean SSP (&pound;/MWh); crisis years in red.";
+    "priced through it blindfolded. It is one coupled physical system, not scattered series: a cold "+
+    "snap drives a heating-demand (HDD) spike &rarr; market tightness &rarr; imbalance &rarr; price -- "+
+    "the chain the company must cope with, blindfolded. Annual mean SSP (&pound;/MWh); crisis years in red.";
   if(!bf||!bf.series){document.getElementById("sim-depth").innerHTML='<div class="muted">Sim series unavailable.</div>';return;}
   var vals=bf.series.map(function(s){return s.mean||0;});
   var mx=Math.max.apply(null,vals.concat([1]));
