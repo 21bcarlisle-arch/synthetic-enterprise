@@ -51,3 +51,28 @@ Today's evidence: three lanes authorized, rarely more than one used — the cons
 **Risk & proportionality:** step 2 is read-only; the sensor is additive (own commit); the priority classes touch the draw — sequence after the budget split, prove bounds by mutation, one change per turn. Tag: **contract-touching — implement with named mitigations; any Claude Code version change or weakening of a safety bound comes back as [ACT].**
 
 — Advisor, carrying the director's steer, 2026-07-19.
+
+---
+
+## STEP-ZERO VERIFICATION RESULT (agent, 2026-07-20) — sensor is available, NO update needed
+
+Per §2 ("establish whether the sensor exists before designing around it; verify against the installed
+version, do not build on the advisor's report"):
+
+- **Installed Claude Code version: `2.1.215`** (ran `~/.nvm/versions/node/v24.16.0/bin/claude --version`
+  directly — not the advisor's report). This is **well above v2.1.80**, where the amendment says
+  `rate_limits` began being reported. **Conclusion: the sensor capability is present in the installed
+  version — NO Claude Code update is required.** The amendment's whole risk branch ("if absent, an
+  update is a change with real blast radius on a machine running autonomous loops") is therefore
+  **avoided** — this de-risks the sensor build entirely.
+- **Auth is subscription (Max), not API-key** (no `ANTHROPIC_API_KEY`/`apiKey` in `.claude/settings*`),
+  so `rate_limits` is populated (the amendment notes it is empty only on API-key auth).
+- The current statusline (`~/.claude/statusline-command.sh`) does **not** consume `rate_limits` yet — it
+  only prints `user@host:cwd`. So the field is available on the payload but unwired.
+- **Remaining sub-check for the sensor-build atom:** confirm the actual stdin payload carries a non-empty
+  `rate_limits` object at render time (5h/7day windows, used-% + reset). Deferred to the build atom
+  itself, which must **fail closed** if the field is absent/stale (per §3/§5) rather than assume it.
+
+**Net:** the token-headroom sensor build (§3) is UNBLOCKED and low-risk — build a disk-snapshot writer
+that reads `rate_limits` from the statusline payload, fail-closed on staleness. No version change,
+no risky update. This is the concrete next step whenever resource-aware scheduling is opened for BUILD.
