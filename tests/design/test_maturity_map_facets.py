@@ -40,6 +40,7 @@ VALID_STREAMS = {"meter_to_cash", "price_to_bill", "wholesale_to_price", "close_
 # A `close_to_learn` atom absent from this set = the unreviewed default = a
 # violation (this is the mechanism that forces every new atom to be classified).
 REVIEWED_CLOSE_TO_LEARN = {
+    "G1_fidelity_grid_scorer", "G2_fidelity_evidence_ledger", "G3_fidelity_inspection_chain",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",

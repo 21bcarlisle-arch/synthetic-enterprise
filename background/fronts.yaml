@@ -70,6 +70,19 @@ fronts:
               the most mature lane, C covers collections — both are core supplier lanes.)"
     opened_by: "director console 2026-07-18, ledger FRONT_OPEN ts=1784351583"
 
+  - id: EPOCH2_CAMPAIGN
+    state: open
+    lanes: [G_data_learning]
+    epoch_ceiling: 3        # a member advancing into epoch >=4 stays epoch-gated
+    reason: "the Epoch-2 coupled-world campaign's fidelity/measurement/scoring lane (A scoring frame,
+             D cascade estimation, G fidelity machinery). The campaign's physics (W1) and company
+             (D/B/E/F/C) lanes are already covered by SIM_ACTORS + SUPPLIER; this opens the one
+             uncovered lane, G_data_learning."
+    flip: "director FRONT_OPEN console act -> ledger FRONT_OPEN{front:EPOCH2_CAMPAIGN} + state:open + opened_by"
+    purpose: "Make campaign BUILD self-drawing (the mechanical RC1 fix, LOOP_CONTINUITY_FAILURE_DIAGNOSIS.md):
+              in-region fidelity-measurement atoms build continuously without per-atom asking."
+    opened_by: "director console 2026-07-19, ledger FRONT_OPEN ts=1784462364"
+
 # ── GATES ───────────────────────────────────────────────────────────────────────────────────
 # A gate is subtracted from EVERY front (G-1). Order in code is fixed: in_region AND NOT gated.
 # The ONLY thing that lets a gated promotion proceed is a director-console record clearing that

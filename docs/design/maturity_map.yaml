@@ -2129,3 +2129,48 @@
   - '2026-07-18 GAP SCORER BUILT + GAP MEASURED -- the coupled triad is CLOSED (level_current STAYS 0 per §0; L2 PROPOSED). tools/couple_w2_11_d5.py on origin (13 tests): generates W2_11 truth -> adapter -> observables -> D5 consumer -> belief, then scores belief-vs-truth via gap_metric. NON-TRIVIAL gaps proven (R12/R13, non-tuned): DETECTION gap 0.30 = the headline (78 of 257 true failures are non-DD and NEVER observed through the seam -- the no-remittance blind spot, leak-witness count 0 every seed); BELIEF gap 0.073 (TV distance, arrears/cash inference vs truth). R15 INDEPENDENCE proven: the consumer NEVER receives theta (runtime spy test asserts every observe() arg is a WallResponse) + 3 mutation checks (detection_gap hits 1.0 when belief blind, 0.0 when perfect). HONEST flags (fork, not hidden): allocation dimension DROPPED (misapplication_gap needs a small shared label space but invoice_ref is per-period-unique -- its effect surfaces in ageing instead); ageing gap ~0.90-1.05 borderline (worse-than-blind-guesser, a genuine non-tuned finding worth scrutiny before relying on it); 2 real bugs found+fixed pre-commit (seed threading collapsed per-customer RNG isolation -> zero failures; correlation_id collision hit consumer idempotency dedup -> dropped payments). LEDGER: written a bare-keyed HEADLINE entry (detection) so coupled_triad.gap_measured(W2_11)=True + ::detection/::belief/::ageing detail entries. FOLLOW-UP (surfaced, not blocking the measurement): the map W2_11<->D5 coupling is not cleanly derivable (_twin_id_for returns None; ledger twin label read D5_payment_observation_consumer not the atom id D5_account_hierarchy_payments) -- the couples_with/depends_on wiring needs fixing before the MECHANICAL world_l3_blocked gate can recognise the twin at an actual L3 cell-move. blocked_on coupled_triad_measured (its own build+measurement is done). file_scope tools/couple_w2_11_d5.py.'
   - '2026-07-18 CORRECTION (supersedes the ''GAP MEASURED / coupled triad is CLOSED'' note above -- append-only, so that note stays as history but is WRONG as a current claim). The gap SCORER is built + proves non-trivial gaps (that stands), BUT I registered the gap in the shared coupled_gap_ledger.json BEFORE wiring the W2_11<->D5 coupling into coupled_triad.py''s authoritative table -- so the Proof door counted unmapped extras (11 vs 7 pairs) and WEDGED the publish gate (3 proof-gaps tests red). I REMOVED the premature ledger entries to unwedge; gap_measured(W2_11) is now False. So the triad is NOT closed: outstanding = wire the coupling (off-front, needs director authorization) + re-register the gap + bump the proof-gaps pair-count tests 7->8. The measurement is real+preserved; only its registration was premature. Level unchanged.'
   - '2026-07-18 GENUINELY MEASURED + coupling WIRED (director console AUTHORIZED). Supersedes the premature-registration correction above: the W2_11<->D5 coupling is now in coupled_triad._AUTHORITATIVE_COUPLING (8th pair), the scorer writes ONE bare headline entry (twin=D5_account_hierarchy_payments; no ::suffixed proof-door pollution), gap_measured(W2_11)=True (detection 0.30), the Proof door shows 8 mapped pairs, and the full publish gate is green. The coupled triad is NOW genuinely closed. H27->L2 PROPOSED (its build+measurement is done; the director ratifies the cell per §0). Level_current stays 0 until he moves it.'
+- id: G1_fidelity_grid_scorer
+  name: "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  file_scope: [background/fidelity_grid_scorer.py, tests/test_fidelity_grid_scorer.py]
+  depends_on: []
+  simplifications: ['2026-07-19 BUILT + director-RATIFIED L1 (console FRONT_OPEN EPOCH2_CAMPAIGN + LEVEL_UP ts=1784462364): 3 fidelity measures on the improved constructs (EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE); 24 R15 tests, epistemic PASS. L1->L2 = a live physics-atom emits into the evidence ledger + a real gap is measured.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier model-validation desk scoring where its risk models add value over a naive baseline -- worst corner, never the average"
+  evidence: [docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md, docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md]
+- id: G2_fidelity_evidence_ledger
+  name: "Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  file_scope: [background/fidelity_evidence_ledger.py, tests/test_fidelity_evidence_ledger.py]
+  depends_on: []
+  simplifications: ['2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): sibling ledger + emit-DoD gate (no-record / asserted-without-simplification_id / ablation-without-CRN red), fail-closed; 22 R15 tests, epistemic PASS. L1->L2 = wire a real emitter + the gate into a physics atom phase-close.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier model-governance registry: every fitted relationship recorded with provenance; an atom is not done until it emits its evidence"
+  evidence: [docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md, docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md]
+- id: G3_fidelity_inspection_chain
+  name: "Fidelity inspection-chain data model: 4 record types (EVIDENCE/WORLD/BELIEF-ACTION/CONSTRAINT) + link graph + the epistemic wall in-schema"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  file_scope: [background/fidelity_inspection_chain.py, tests/test_fidelity_inspection_chain.py]
+  depends_on: []
+  simplifications: ['2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): 4 record types + bidirectional link graph + assert_no_belief_leak (truth_ref harness-only, R15-proven) + fail-closed dangling-link; 25 tests, epistemic PASS. L1->L2 = render the chain as the director fidelity instrument (G4, SITE) + wire live records.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an auditor tracing an odd model output back to its evidence and forward to the decisions it bent; the belief/truth wall enforced in the data model"
+  evidence: [docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md, docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md]
