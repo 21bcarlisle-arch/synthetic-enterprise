@@ -138,6 +138,30 @@ organ is required. They also imply **new map atoms** (author-then-propose, not b
 **Sequence (unchanged principle — propose first):** reconcile the canon (this pass) → director
 reviews the reorientation shape → THEN the retire/merge/rebuild runs. Nothing above is executed.
 
+## CORRECTION (2026-07-20) — shadow/* is the advisor deployment mirror, NOT dead sprawl
+
+The original audit listed `site/shadow/` + its 4 sub-surfaces as **RETIRE** ("the pre-redesign shadow
+mirror, wholly superseded"). **On closer inspection that is WRONG and I'm reversing it.**
+`tools/mirror_github_pages.py` (per the staged `ADVISOR_GITHUBIO_MIRROR.md` instruction) copies
+`site/shadow/` → `docs/shadow/` and named state JSONs → `docs/state/` so **GitHub Pages serves them** —
+it is the **advisor's github.io visibility mirror**, a deliberately-requested surface + part of the
+deployment mechanism, not a superseded public door. `process_run_complete` regenerates and commits it
+every run.
+
+**Reclassified: KEEP (or retire only with director/advisor sign-off).** Deleting it would (a) remove
+the advisor's visibility surface and (b) touch the GitHub Pages deployment — platform-administration
+adjacent (one-way-door category 8), outside the "proceed on the door set" authorization (which covers
+the public doors, not the advisor's deployment mirror). The retirement of the genuinely-dead surfaces
+(platform/, supplier/ page — both done) does NOT extend to this. Flagged for the director: is the
+advisor github.io shadow mirror still wanted, or has the new door set superseded it? Until answered,
+it stays.
+
+**Retire-the-dead phase status:** `platform/` retired (20cf4e51b), `supplier/` page retired
+(f8021aa87). `shadow/*` reclassified KEEP (above). `sim/` retirement needs the same deployment check
+before action. The remaining site work is the content MERGES (customers→Company, timeline→Proof,
+wip-flow→Journey, method-casebook→Method) + the v4 narrative reorientation of the kept doors — larger
+content passes, not deletions.
+
 ## Note on BRAND1
 
 BRAND1 (`BRAND_CONSTITUTION`) is a *different* case from SITE1 — it shipped real, tested deliverables
