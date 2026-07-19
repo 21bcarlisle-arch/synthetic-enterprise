@@ -584,6 +584,31 @@ def _principles():
             basis="curriculum constant (director-signed, versioned) — not a run output",
             source="docs/design/HARM_COST_WEIGHTS_DECISION.md",
         ),
+        dict(
+            title="Survival is an earned result, not an assumption",
+            number="around 30 UK suppliers failed in 2021-22 — this one did not",
+            claim=(
+                "Insolvency and licence revocation are terminal states in the "
+                "simulation, not exceptions designed away. Around 30 real UK "
+                "suppliers exited the market in the 2021-22 gas crisis; run through "
+                "the same real price history under the same rules, this company "
+                "survived. That makes the crisis-survival evidence an earned "
+                "outcome under the worst market on record, not a modelling "
+                "assumption baked in from the start."
+            ),
+            why=(
+                "Anyone can model a company that cannot die. A company that CAN "
+                "die, run through the worst real market on record and left "
+                "standing, is the only kind whose resilience claim means anything "
+                "— the point the pitch's 'why believe any of it' rests on."
+            ),
+            basis=(
+                "hedged external count ('around 30') — no anchored exact figure in "
+                "ASSUMPTIONS.md; the survival itself is a run outcome under the real "
+                "2021-22 price path, not an input"
+            ),
+            source="docs/design/PURPOSE_PITCH_V4.md (§12)",
+        ),
     ]
 
 
