@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T17:38:20Z
+Last updated: 2026-07-19T17:52:34Z
 
 **RC3 DONE → "CONTINUOUS" IS NOW GENUINELY TRUE (2026-07-19 ~13:00, `9ada5f245`, deployed):**
 The director-priority spine fix landed + supervisor restarted. `find_work` now syncs origin-`[ADVISOR-STAGED]`
@@ -254,7 +254,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (504s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
