@@ -92,6 +92,52 @@ Per brief §7 (presentation-layer restructure over the same generated data, door
 set *before* rebuilding, and for no new pages. The retire/merge/demote work is the drawable SITE-lane
 build that this audit unblocks, to be done against this map after the director's read.
 
+## v4 ADDENDUM (2026-07-19, evening) — reorient to the ratified purpose
+
+`DIRECTOR_STEER_SITE_REORIENT_TO_PURPOSE` + `PURPOSE_PITCH_V4.md` landed after the audit above. The
+audit's **structural verdict is unchanged** — the sprawl still dies (shadow/*, supplier/, platform/
+retired; the six-door consolidation stands; v4 resurrects nothing). What changes is the **job each
+kept door does**, because the thesis is no longer "autonomous supplier → go-live" but **carbon
+abatement through personalisation, £/tCO₂e, autonomy as the *how***.
+
+**Per-door reorientation (content, not structure):**
+- **Front Door ⌂** — THE THESIS CHART becomes the **£/tCO₂e carbon story** (the AI-native
+  cost-to-serve gap is the *numerator mechanism*, not the headline). The claim strip states the
+  regulatory reality up front (a fully autonomous licensed supplier will not be permitted) and that
+  the mission is *chosen, not derived*.
+- **The Journey ⑤** — carries the "three possible outcomes (software method · commercial products
+  incl. bill-validation · an operating supply business — furthest & least certain), chosen
+  direction, capped-human as a research condition" framing. NOT a go-live march.
+- **The Company ①** — gains the **carbon three-ledger** view (saved / spent-serving / net) once the
+  instrumentation exists; personalisation (per-household cost-and-carbon trajectory) as the product.
+- **The World ②** — gains **reluctant homes** (real building stock / half-working kit — the
+  remaining carbon is in the *other* homes) and, when built, the business-customer population.
+- **The Proof ③** — features **what is not proven** (§13: personalisation-keeps-paying,
+  timing-beats-messaging, any real tonne abated) as a first-class surface; the self-caught errors
+  (§12) are the credibility spine.
+- **Simplified ⑥ / all doors** — claim-status on every figure (constitution rule 6) and the three
+  time-sensitive honesty facts (rule 7).
+
+**New surfaces the purpose implies — PROPOSED, NOT built (no new pages until the director's eye):**
+these are *content within existing doors*, not new door directories, except where a genuinely new
+organ is required. They also imply **new map atoms** (author-then-propose, not build):
+1. **Carbon three-ledger instrumentation** — the largest new build the purpose implies (no carbon
+   ledger / per-household cost-and-carbon trajectory / £/tCO₂e computation exists today, per the
+   Note on Claims). Its DoD must cite `CARBON_NOT_A_TARGET_CONSTRAINT.md` (diagnostic, never a
+   maximand). *Company + World surfaces render it once built.*
+2. **Volunteer programme gate** — "will not open until a security posture review has completed" is a
+   *public commitment*; register it as a real gate atom, not an aspiration. Blocks the validation
+   track. (Security-posture = safety/platform — director-reserved.)
+3. **Business-customer population** (§10) — I&C above the procurement line, micro/SME below; the
+   current world is domestic-only. New SIM scope.
+4. **State-layer discovery anchors** (§13 "timing beats messaging" — the least-anchored, most-
+   likely-wrong claim): needs discovery anchors before code.
+5. **Prior-art discovery pass** (Power TAC, agent-based electricity-market modelling, US rate-design)
+   — the differentiation table (§3) is a public claim and must be evidenced like any other.
+
+**Sequence (unchanged principle — propose first):** reconcile the canon (this pass) → director
+reviews the reorientation shape → THEN the retire/merge/rebuild runs. Nothing above is executed.
+
 ## Note on BRAND1
 
 BRAND1 (`BRAND_CONSTITUTION`) is a *different* case from SITE1 — it shipped real, tested deliverables

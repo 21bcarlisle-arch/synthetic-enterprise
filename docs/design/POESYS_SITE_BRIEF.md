@@ -1,11 +1,37 @@
 # POESYS.NET — INDEPENDENT REDESIGN BRIEF
 **RATIFIED by the director 2026-07-11 (in-conversation) after a three-way audit vs the live site. This is the site's constitution. Amendments from the audit are incorporated below (section 6b keep-list; section 4 additions marked NEW).**
 
+> ## v4 RECONCILIATION (2026-07-19 — the purpose changed; the ratified `PURPOSE_PITCH_V4.md` wins over any conflicting text below)
+> Per `DIRECTOR_STEER_SITE_REORIENT_TO_PURPOSE_2026-07-19`. The v3 job below ("a real autonomous
+> energy company being grown toward go-live") is **RETIRED** — it argues the wrong thing. Replaced
+> by the v4 job (§1, edited inline). What this reconciliation changes across the brief:
+> - **§1 job** — rewritten to the v4 purpose (carbon abatement via personalisation, £/tCO₂e;
+>   autonomy is the *how*; the regulatory reality stated up front). *(edited inline below)*
+> - **§2 audiences** — the questions stand, but the CEO/COO/VC/expert are now being convinced of a
+>   **carbon-abatement thesis delivered by an enterprise simulator**, not of an autonomous supplier
+>   marching to go-live. Add the domain expert's carbon-and-personalisation question.
+> - **§4 IA** — the six-doors + private structure survives; the **Front-Door thesis chart becomes
+>   the £/tCO₂e carbon story** (AI-native cost-to-serve is the numerator mechanism, not the
+>   headline); **The Journey** carries the "chosen, not derived; three possible outcomes; a fully
+>   autonomous licensed supplier will not be permitted" framing.
+> - **New narrative strands** the pitch mandates the site tell in the pitch's own order: reluctant
+>   homes (the remaining carbon is in the *other* homes), personalisation as timing-not-just-
+>   targeting, the carbon **three-ledger** (saved / spent-serving / net — a claim that counts one
+>   side is not a claim), and **what is not proven** (§13) as a featured surface.
+> - **§8 success criteria** — add: every figure carries its claim-status (constitution rule 6); the
+>   three time-sensitive honesty facts stay accurate (rule 7); **carbon is a diagnostic, NEVER an
+>   optimisation target** on any surface (`CARBON_NOT_A_TARGET_CONSTRAINT.md`).
+> The reconciled per-surface verdict is `SITE_SURFACE_AUDIT_2026-07-19.md` (v4 addendum). **Propose
+> before rebuilding** — the rebuild is director-eye-gated.
+
 ---
 
 ## 1. The one-sentence job of the site
 
-*Convince a sceptical expert — energy CEO/COO, CTO, or VC — in one unguided hour that this is a real autonomous energy company being grown in simulation toward go-live, by showing them the running company, the world testing it, and the proof discipline behind every claim.*
+**(v4, ratified 2026-07-19 — supersedes the struck v3 line below.)**
+*Convince a sceptical expert — energy CEO/COO, CTO, VC, or domain regulator — in one unguided hour that this is a faithful **enterprise simulator** whose mission is **carbon abatement through personalisation, measured as £ per tonne of CO₂e** — with **autonomy as the how, not the headline** — by showing them the running company, the world testing it, the personalisation-and-carbon argument, and the proof discipline (including what is not proven, and the honest fact that a fully autonomous licensed supplier will not be permitted) behind every claim.*
+
+~~*Convince a sceptical expert — energy CEO/COO, CTO, or VC — in one unguided hour that this is a real autonomous energy company being grown in simulation toward go-live, by showing them the running company, the world testing it, and the proof discipline behind every claim.*~~ **[RETIRED v3]**
 
 The current site fails this not through lack of content but through **organisation by internal architecture** (SIM / Supplier / Platform / Method mirrors our codebase) instead of **organisation by visitor question**. Experts don't arrive wondering what our modules are; they arrive with a persona-shaped question and leave when the site stops answering it.
 
