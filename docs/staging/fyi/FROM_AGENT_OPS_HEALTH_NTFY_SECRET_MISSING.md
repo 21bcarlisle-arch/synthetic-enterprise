@@ -21,3 +21,9 @@ the loop to mute-and-loud rather than cascade-crashing daemons. Improves robustn
 **Meanwhile:** I poll `docs/staging/` myself (per standing note), so staging processing is NOT blocked by
 staging_watcher being down — only YOUR notifications are. The core loop (sim-runner, supervisor, publish
 pipeline) is healthy; I fixed a 7h publish-gate wedge + drained a 31-marker backlog earlier.
+
+
+---
+
+## CORRECTION 2026-07-19 (R9): the secret is NOT missing.
+The NTFY topic IS present at `~/.config/synthetic-enterprise/.env.ntfy` (systemd EnvironmentFile) — verified by sending an NTFY successfully. The deaf/mute was staging_watcher DOWN + stale-code deadman/supervisor daemons crying frozen; BOTH fixed by restarting supervisor.service + deadmans-switch.service. `background/.env.ntfy` is missing but that path is only used by `start_worker.sh`; the systemd daemons use the ~/.config path and work. No secret needed from you.
