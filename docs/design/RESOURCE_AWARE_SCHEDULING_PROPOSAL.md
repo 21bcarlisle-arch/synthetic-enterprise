@@ -184,3 +184,42 @@ Four docs touched parallelism/scheduling. Reconciled to ONE authoritative home:
 - **`H20_PARALLEL_MAINTENANCE_LANE_FRAME.md` — SUPERSEDED** by this doc's §7 (the "maintenance lane" is the
   OPTIONAL entitlement class). Marked legacy; retained for history.
 Pointers to be added to the two superseded docs' headers so no fork re-forks the guidance.
+
+## 9. CONTEXT / FRESHNESS as the third sensor dimension (folded from `DIRECTOR_STEER_CONTEXT_AS_MANAGED_RESOURCE_2026-07-19.md`)
+
+Per the steer's own instruction ("fold into this doc, one coherent sensor/scheduling design"), the
+context-as-managed-resource steer lives here, not as a parallel artifact. **[STEER] — agency on the
+how; the intent is the wall: work well for longer, fail rarely, detect degradation objectively.**
+
+**One sensor, three uses (the coherence point).** §7 established the statusline payload as the token
+sensor. The same payload carries **context-window fill** — so freshness becomes the *third* use of the
+*one* sensor: tokens → scheduling (§7), rate-limits → throttle (`executor_governor`), context-fill →
+**degradation-triggered checkpoint/fork-fresh**. Depends on the same step-zero version/payload check
+already blocked in §7 (must run on the seat, not the sandbox).
+
+**The named failure shape:** *precision degrades before reasoning does* — judgment/diagnosis stay
+excellent for hours; a fragile string edit fails first. Design for that specific shape:
+
+1. **Delegate earlier and wider** — extend subagent forks beyond BUILD to research, verification, cold
+   walks, and **especially fragile mechanical edits** (map/YAML/schema authoring), where a fresh,
+   narrowly-briefed context is inherently safer than a long one. Scoped tools+model per fork is also a
+   cost/throughput dial. *(Practised this turn: the wake/draw map and the hooks-timeout question both
+   ran as fresh forks, keeping this session's context low for the design judgement.)*
+2. **Make freshness measurable, not felt** — a context-fill threshold triggers checkpoint/fork-fresh
+   *before* a mistake, not after. Third use of the one sensor.
+3. **Make the fragile operation unbreakable rather than carefully handled** — a safe map-append helper
+   so no degree of fatigue can hit the apostrophe/escaping trap. *Highest-value item; MAKE_IT_STICK:
+   care converted to mechanism does not decay.* Ship with an R15 test proving the escaping class is
+   genuinely handled. → its own atom (`H`-lane, DISCOVER/FRAME-workable now).
+4. **Ritualise the reset at phase boundaries** — clear at a clean checkpoint (harness re-reads all state
+   from disk+git); a standing ritual, not a judgement made once already degraded.
+5. **Protect what must survive compaction** — CLAUDE.md compaction instructions naming the load-bearing
+   state (open gates, the wall, level cells, the active campaign, standing director direction).
+
+**Relation to the continuity work (same session):** the REST HEARTBEAT
+(`LOOP_CONTINUITY_REARM_DESIGN.md`) makes *resting* safe and objective at the transport layer; this
+steer makes *working-while-degrading* safe and objective at the context layer. Item 2's context-fill
+threshold is the natural trigger for item 4's ritual reset — the same "detect the boundary objectively,
+absorb it by mechanism" pattern, one layer up. **Only a Claude Code version change (step-zero) returns
+as [ACT];** items 1/4/5 are additive/behavioural, item 3 is an atom with an R15 test, item 2 gated on
+step-zero. Nothing here weakens a safety bound.
