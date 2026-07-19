@@ -835,12 +835,6 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("company/data backup failed: {}".format(exc))
     try:
-        from tools.generate_platform_data import generate as gen_platform
-        gen_platform()
-        log("Generated site/data/platform.json")
-    except Exception as exc:
-        log("platform.json generation failed: {}".format(exc))
-    try:
         from tools.generate_saas_coverage_data import generate as gen_saas_coverage
         gen_saas_coverage()
         log("Generated site/data/saas_coverage.json")
@@ -1042,12 +1036,6 @@ def git_commit_push(git_hash, net_margin):
     site_supplier_html = PROJECT_DIR / "site" / "supplier" / "index.html"
     if site_supplier_html.exists():
         files.append(str(site_supplier_html))
-    site_platform_html = PROJECT_DIR / "site" / "platform" / "index.html"
-    if site_platform_html.exists():
-        files.append(str(site_platform_html))
-    site_platform_json = PROJECT_DIR / "site" / "data" / "platform.json"
-    if site_platform_json.exists():
-        files.append(str(site_platform_json))
     site_saas_coverage_json = PROJECT_DIR / "site" / "data" / "saas_coverage.json"
     if site_saas_coverage_json.exists():
         files.append(str(site_saas_coverage_json))

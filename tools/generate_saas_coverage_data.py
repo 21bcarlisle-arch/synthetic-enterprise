@@ -9,7 +9,7 @@ category -> Poesys module mapping is not something the filesystem can derive
 on its own); the headline percentage breakdown and each B/C entry's
 file-existence check ARE computed fresh at generation time, so a claimed
 mapping can never silently drift stale without a test catching it -- same
-discipline as tools/generate_platform_data.py's ADAPTER_REGISTRY.
+discipline as the ADAPTER_REGISTRY pattern (platform page retired 2026-07-19).
 """
 import json
 from pathlib import Path as _P

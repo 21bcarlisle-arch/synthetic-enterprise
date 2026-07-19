@@ -5,7 +5,7 @@ NAV_STORY_PLATFORM_METHOD.md item 6 (The Way): the harness itself framed as
 a transferable, licensable method -- operating model, the R1-R15 rules with
 the real incidents that forged them, a live view of the staging loop
 actually working, and the retrospective library. Per the same discipline as
-tools/generate_platform_data.py: the staging-loop and retro-library sections
+the staging-loop and retro-library sections (platform page retired 2026-07-19)
 are computed fresh from the filesystem at generation time; only the rule
 descriptions and incident summaries are static prose.
 """
