@@ -221,6 +221,13 @@ SITE_LANE_CONCURRENT_WIDTH = 3
 # status), not on every cycle it persists.
 MAP_EXHAUSTED_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_map_exhausted_state.json"
 IDLE_TURN_COUNTER_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_idle_turn_count.json"
+# BUILD-IN-PROGRESS guard (2026-07-19): the self-drawing loop (RC1 fix) draws a below-target
+# build-stage atom every cycle -- so an atom being actively advanced by a LIVE Agent fork was
+# re-offered every turn (the re-offer thrash the RC1 fix introduced). The orchestrator writes
+# {atom_id: dispatch_ts} here on fork dispatch; the BUILD draw excludes fresh-marked ids. FAIL-OPEN
+# on every error/staleness (a crashed orchestrator can never permanently starve an atom -- Rule 0).
+BUILD_IN_PROGRESS_FILE = PROJECT_DIR / "docs" / "observability" / ".build_in_progress.json"
+BUILD_IN_PROGRESS_TTL_SECONDS = 3600
 
 # Names that live directly in docs/staging/ but are not real work items.
 _IGNORED_STAGING_NAMES = {".gitkeep"}
@@ -474,6 +481,22 @@ def _is_compounding(a: dict) -> bool:
     return isinstance(a, dict) and a.get("compounding") is True
 
 
+def _build_in_progress_ids() -> set:
+    """Atom ids with a FRESH in-flight-fork marker -- excluded from the BUILD draw so the self-drawing
+    loop never re-offers work a LIVE fork already owns. FAIL-OPEN: a missing/unreadable/malformed
+    marker, or a stale entry (> BUILD_IN_PROGRESS_TTL_SECONDS), yields NO exclusion -- a broken guard
+    must never stall the loop (Rule 0). Only the freshness-valid subset is returned."""
+    try:
+        import json as _json
+        import time as _time
+        data = _json.loads(BUILD_IN_PROGRESS_FILE.read_text(encoding="utf-8"))
+        now = _time.time()
+        return {aid for aid, ts in data.items()
+                if isinstance(ts, (int, float)) and (now - ts) < BUILD_IN_PROGRESS_TTL_SECONDS}
+    except Exception:
+        return set()
+
+
 def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False) -> list[dict]:
     """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted, completes R3
     "be wider" as a property of the granting model, not a standing
@@ -554,6 +577,12 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     # Externally-blocked atoms (blocked_on a director act) are never drawable work -- drop them
     # before any fallback, so the only-blocked case returns empty rather than re-handing done work.
     candidates = [a for a in candidates if not _is_externally_blocked(a)]
+    # BUILD-IN-PROGRESS guard (2026-07-19): drop atoms a LIVE fork already owns, so the self-drawing
+    # loop doesn't re-offer in-flight work (the re-offer thrash the RC1 self-drawing fix introduced).
+    # Fail-open (_build_in_progress_ids returns {} on any error/staleness -- never stalls the loop).
+    _bip = _build_in_progress_ids()
+    if _bip:
+        candidates = [a for a in candidates if a.get("id") not in _bip]
     # SELF-GOVERNANCE SCOPE MODEL draw filter (sub-step 5, SELF_GOVERNANCE_SCOPE_MODEL.md §4.2/§10):
     # intersect BUILD candidates with authorized_build (in an OPEN front & non-gated, or a per-atom
     # BUILD_OPEN). This is the read-side PREVENTION half of the gate-wall generalisation -- the

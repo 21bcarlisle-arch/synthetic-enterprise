@@ -2073,3 +2073,35 @@ def test_find_work_new_staged_doc_wakes_even_when_drained(tmp_path):
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# ── BUILD-IN-PROGRESS guard (2026-07-19): the self-drawing loop must not re-offer fork-owned work ──
+def test_build_in_progress_ids_fresh_stale_missing_malformed(tmp_path, monkeypatch):
+    import time, json
+    f = tmp_path / ".build_in_progress.json"
+    monkeypatch.setattr(supervisor, "BUILD_IN_PROGRESS_FILE", f)
+    assert supervisor._build_in_progress_ids() == set()                       # missing -> fail-open {}
+    f.write_text(json.dumps({"ATOM_X": time.time()}))
+    assert supervisor._build_in_progress_ids() == {"ATOM_X"}                   # fresh -> excluded id
+    f.write_text(json.dumps({"ATOM_X": time.time() - supervisor.BUILD_IN_PROGRESS_TTL_SECONDS - 10}))
+    assert supervisor._build_in_progress_ids() == set()                       # stale -> fail-open (Rule 0)
+    f.write_text("{not valid json")
+    assert supervisor._build_in_progress_ids() == set()                       # malformed -> fail-open
+
+
+def test_build_draw_excludes_in_progress_atom_R15(tmp_path, monkeypatch):
+    """R15: a marked (fork-owned) atom is dropped from the BUILD draw; unmarked, it is drawn.
+    MUTATION: remove the marker and the same atom reappears -- proving the guard, not the draw, excludes it."""
+    import time, json
+    mp = tmp_path / "map.yaml"
+    mp.write_text(
+        "- id: BIP_TEST_ATOM\n  name: x\n  lane: G_data_learning\n  value_stream: close_to_learn\n"
+        "  epoch: 2\n  level_current: 1\n  level_target: 3\n  loop_stage: build\n  dial_inherited: 3\n"
+        "  depends_on: []\n")
+    monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", mp)
+    bip = tmp_path / ".bip.json"
+    monkeypatch.setattr(supervisor, "BUILD_IN_PROGRESS_FILE", bip)
+    bip.write_text("{}")
+    assert "BIP_TEST_ATOM" in [a.get("id") for a in supervisor._maturity_map_draw_concurrent()]
+    bip.write_text(json.dumps({"BIP_TEST_ATOM": time.time()}))                 # mutation: mark in-progress
+    assert "BIP_TEST_ATOM" not in [a.get("id") for a in supervisor._maturity_map_draw_concurrent()]
