@@ -41,6 +41,10 @@ VALID_STREAMS = {"meter_to_cash", "price_to_bill", "wholesale_to_price", "close_
 # violation (this is the mechanism that forces every new atom to be classified).
 REVIEWED_CLOSE_TO_LEARN = {
     "G1_fidelity_grid_scorer", "G2_fidelity_evidence_ledger", "G3_fidelity_inspection_chain",
+    # 2026-07-19 reviewed: Epoch-2 campaign fidelity/measurement atoms authored from their DISCOVER
+    # docs (A scoring frame, D cascade estimation) per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF
+    # -- same close_to_learn class as their G-fidelity siblings (measure belief-vs-truth, not revenue).
+    "A_scope_of_need_scoring_frame", "D_cascade_correlation_estimation",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",

@@ -2526,6 +2526,48 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 6
+    },
+    {
+      "id": "A_scope_of_need_scoring_frame",
+      "name": "Scope-of-need scoring frame: 5x3 archetype x regime grid, fidelity = worst-explained cell (the joint tail of the fidelity surface, never the population average), tied to the belief-vs-truth gap metric",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "G1_fidelity_grid_scorer"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "D_cascade_correlation_estimation",
+      "name": "Cascade correlation estimation method: nature + strength of each cascade link estimated from data (joint-tail before marginal), one portable tail-dependence statistic making every coupling R15-mutation-testable; asserted-not-estimated registered as simplifications",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "G1_fidelity_grid_scorer"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -2608,7 +2650,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 125,
+  "total_atoms": 127,
   "epoch2_movements": [
     {
       "id": "M1",

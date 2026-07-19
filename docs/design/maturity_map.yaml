@@ -2177,3 +2177,35 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an auditor tracing an odd model output back to its evidence and forward to the decisions it bent; the belief/truth wall enforced in the data model"
   evidence: [docs/design/EPOCH2_G_FIDELITY_EVIDENCE_MACHINERY_DISCOVER.md, docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md]
+- id: A_scope_of_need_scoring_frame
+  name: "Scope-of-need scoring frame: 5x3 archetype x regime grid, fidelity = worst-explained cell (the joint tail of the fidelity surface, never the population average), tied to the belief-vs-truth gap metric"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  file_scope: [background/scope_of_need_scoring_frame.py, tests/test_scope_of_need_scoring_frame.py]
+  depends_on: [G1_fidelity_grid_scorer]
+  blocked_on: null
+  simplifications: ['2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and explicitly defers the maturity_map edit to the orchestrator/BUILD) from EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md (2c3d7c03f), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the 5x3 {A1..A5} x {G1,G2,G3} grid + worst-cell MAX/CVaR scoring over G1_fidelity_grid_scorer, R15-failable (a book green ONLY on the comfortable middle A5 must NOT pass the worst-cell gate). Director VALUES-CALLS OPEN (equal-cell vs harm-weighted worst-cell; grid-completeness) -- build on the asserted equal-cell default, leave the call flagged (EPOCH2_VALUES_CALLS_BATCH_1). NO level claimed (levels are director-ratified, MATURITY_MAP.md section 0).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier model-validation grid asking whether the cost/risk model is good in the corners that matter -- affordability/collections, atypical consumption shape, export/self-gen, crisis, correlated tail -- not just on the comfortable DD-paying middle"
+  evidence: [docs/design/EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md, docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md]
+- id: D_cascade_correlation_estimation
+  name: "Cascade correlation estimation method: nature + strength of each cascade link estimated from data (joint-tail before marginal), one portable tail-dependence statistic making every coupling R15-mutation-testable; asserted-not-estimated registered as simplifications"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  file_scope: [background/cascade_correlation_estimation.py, tests/test_cascade_correlation_estimation.py]
+  depends_on: [G1_fidelity_grid_scorer]
+  blocked_on: null
+  simplifications: ['2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and defers the maturity_map edit) from EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md (6a47b1172), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the joint-tail estimation protocol (chi/chi-bar tail-dependence + copula fit + lag-k persistence) over the dependence inventory D1..D8, each estimate reported WITH its finite-u threshold; anti-marking-own-homework wall (fit on the record, validate the generator against it; C-S2 replayable). Upstream SSP ~10x recal already LANDED (TASK 1, a2dd6dcac) so cascade MAGNITUDE is unblocked. Every asserted-not-estimated link registered as an R10 simplification. NO level claimed.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier quant risk desk estimating the dependence structure of the weather-to-demand-to-generation-to-price-to-imbalance cascade from history -- getting the joint tail right (cold and still together), not a single Pearson number that lies in the bulk"
+  evidence: [docs/design/EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md, docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md]
