@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T21:23:08Z",
+  "generated_at": "2026-07-19T21:41:59Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -488,6 +488,24 @@
       "lane": "G_data_learning",
       "lane_name": "G Data & Learning",
       "atoms": [
+        {
+          "atom_id": "A_scope_of_need_scoring_frame",
+          "atom_name": "Scope-of-need scoring frame: 5x3 archetype x regime grid, fidelity = worst-explained cell (the joint tail of the fidelity surface, never the population average), tied to the belief-vs-truth gap metric",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and explicitly defers the maturity_map edit to the orchestrator/BUILD) from EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md (2c3d7c03f), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the 5x3 {A1..A5} x {G1,G2,G3} grid + worst-cell MAX/CVaR scoring over G1_fidelity_grid_scorer, R15-failable (a book green ONLY on the comfortable middle A5 must NOT pass the worst-cell gate). Director VALUES-CALLS OPEN (equal-cell vs harm-weighted worst-cell; grid-completeness) -- build on the asserted equal-cell default, leave the call flagged (EPOCH2_VALUES_CALLS_BATCH_1). NO level claimed (levels are director-ratified, MATURITY_MAP.md section 0)."
+          ]
+        },
+        {
+          "atom_id": "D_cascade_correlation_estimation",
+          "atom_name": "Cascade correlation estimation method: nature + strength of each cascade link estimated from data (joint-tail before marginal), one portable tail-dependence statistic making every coupling R15-mutation-testable; asserted-not-estimated registered as simplifications",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and defers the maturity_map edit) from EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md (6a47b1172), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the joint-tail estimation protocol (chi/chi-bar tail-dependence + copula fit + lag-k persistence) over the dependence inventory D1..D8, each estimate reported WITH its finite-u threshold; anti-marking-own-homework wall (fit on the record, validate the generator against it; C-S2 replayable). Upstream SSP ~10x recal already LANDED (TASK 1, a2dd6dcac) so cascade MAGNITUDE is unblocked. Every asserted-not-estimated link registered as an R10 simplification. NO level claimed."
+          ]
+        },
         {
           "atom_id": "G1_fidelity_grid_scorer",
           "atom_name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
@@ -1468,6 +1486,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 119,
-  "total_notes": 436
+  "total_atoms_with_notes": 121,
+  "total_notes": 438
 }
