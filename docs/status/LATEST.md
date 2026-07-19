@@ -1,23 +1,32 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T08:34:15Z
+Last updated: 2026-07-19T08:34:37Z
 
-**NOW (2026-07-19) — Epoch-2 "Coupled World" campaign: DISCOVER/FRAME phase COMPLETE, awaiting director.**
-The director's Epoch-2 campaign + its fidelity-evidence addendum are consumed and fully decomposed
-(`docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md`). **Seven design docs landed on origin**,
-each doc-only DISCOVER/FRAME with the epistemic wall intact and **W1 BUILD still CLOSED**:
-A scope-of-need scoring frame (worst-cell, not average) · B/C price-formation + hedge-weighted supplier
-cost (the volume-vs-price hypothesis = SUPPORTED for a hedged book) · D cascade-correlation estimation
-(joint-tail lift L) · E billing-event delays · F value/exposure ranking (the arbiter) · **G fidelity-evidence
-machinery** (`56da6f8da`): three un-gameable measures (hash-pinned frozen baseline, map-of-ignorance
-worst-cell coverage, CRN ablation) + emit-DoD as a phase-close gate into a SIBLING ledger + inspection-chain
-data model with in-schema wall discipline; split G1/G2/G3(harness)/G4(site). The full design spine now exists.
-**AWAITS THE DIRECTOR (not agent-decidable):** (1) W1 BUILD-open — nothing above is built. (2) The
-values-calls surfaced across the docs (harm-weights + τ threshold in F's κ, G's per-cell commercial_weight,
-A's equal-cell-vs-harm-weighted worst-cell + grid-completeness, L_min gate floors — cat-6 / R13). (3) Upstream
-BUILD blocker: the price engine's ~10× SSP miscalibration + missing carbon/UK-ETS term + hedging.py
-single-price collapse — gates cascade MAGNITUDE (not direction). The pull loop wakes on new local signal and
-rests quiet when drained-and-gated (both proven this session). Ops health: NTFY works, staging_watcher UP.
-Session history below (payment-triad L3, ops-health, treadmill-quiet, Campaign A) retained for the record.
+**NOW (2026-07-19) — GATE-AFTER operating model adopted (director console); Epoch-2 BUILD underway.**
+Director retired the failure-era caution posture: W1 BUILD OPEN; a ratified campaign IS standing BUILD
+authorization for its A–G scope (no per-atom console acts); levels/values-calls batch, never block; walls =
+schema/sim-structure doors, safety/auth-trust, epoch ceilings, REPO_PRIVATE, R13 dials; **OBSERVABILITY is the
+license + per-turn DoD.** Recorded to the decision ledger + memory (`feedback_operating_model_gate_after`).
+- **TASK 1 (director's named first task) — SSP PRICE-ENGINE RECAL: DONE + LANDED** (`a2dd6dcac`). The ~10×
+  overestimate is fixed: raw `(demand/renewable)^gamma` → residual-demand scarcity form + UK-ETS carbon term,
+  calibrated BLIND to P&L (R12/R13; engine is gated-off so cannot move company P&L) against 157,106 real Elexon
+  periods 2016–25. **MAE £32.79** (beats the OLS £33.96 and naive gas-floor £35.78), R² 0.419, median £48.75 /
+  p95 £217.15 vs real £55/£225, negatives produced. epistemic PASS, **2241 tests green** incl. an R15 mutation
+  test (fails on revert to the raw-ratio form). Fidelity evidence emitted in atom-G shape
+  (`docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md`). W1_6 → L1 PROPOSED (batched, cell not moved).
+  Honest open limits: negative-price frequency gap (−£10 vs real −£185), carbon term uncalibrated, no live
+  company consumer yet (so no coupled gap measured). Queued finding: AGWS revision-duplicate inflation in the
+  shared aggregator (deduped locally; shared R15-failable fix homed as its own atom).
+- **OBSERVABILITY DoD — decision-ledger site view LIVE** (`27745389f`). New Decisions tab on the Journey door
+  (`site/project/`) renders the real ledger (`decision_log.jsonl`, count 20, current) — what/why/how-to-reverse,
+  reversible + confidence chips, data-driven (R15) + fail-closed. This turn's decisions are visible for correction.
+- **EPOCH-2 DISCOVER/FRAME (A–G) complete** and on origin (prior turns); the SSP recal unblocks the cascade
+  MAGNITUDE the B/C DISCOVER named as the upstream blocker.
+**BATCHED FOR ONE DIRECTOR [ACT]** (none blocking; work proceeded): (1) level proposal W1_6→L1; (2) the 6
+Epoch-2 values-calls with conservative asserted defaults I'm running on (`EPOCH2_VALUES_CALLS_BATCH_1.md`);
+(3) fan-widening proposal ≤3→min(cores−2,8) (`FAN_WIDENING_SAFETY_CASE.md`); (4) atom-G construct
+challenge-response — best-of-naive-family / CVaR-generalizing-MAX / screen-then-ablate
+(`EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md`). Loop running continuous under gate-after. NTFY works,
+staging_watcher UP. Session history below retained for the record.
 
 ---
 
