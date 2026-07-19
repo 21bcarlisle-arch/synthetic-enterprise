@@ -28,3 +28,10 @@ Exact stage-by-stage is the draw's to sequence; this is a diagnostic, not a targ
 
 ## Wall / method (all atoms)
 Randomness + generating structure live in the SIM (req 5); the company infers from observables; the measured belief-vs-truth gap IS the deliverable. Correlations estimated with defensible stats, joint-tail emphasis (req 4). Baseline physics vs director curriculum split (R13). Register every asserted-not-estimated relationship as a simplification (R10).
+
+## Progress (2026-07-19)
+- **Atom A — scope-of-need scoring frame: LANDED** (`EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md`, 2c3d7c03f). 5×3 grid, worst-cell MAX-gap scoring, R15-failable. Director values-calls flagged (harm-weighted vs equal-cell; grid-completeness).
+- **Atoms B/C — price formation + supplier cost: LANDED** (`EPOCH2_BC_PRICE_FORMATION_AND_SUPPLIER_COST_DISCOVER.md`, fe140d6b6). Price-as-output; cost=hedge-weighted-avg; the volume-vs-price HYPOTHESIS = SUPPORTED for a hedged book (joint-tail interaction, flips naked). Flagged a real in-repo gap: hedging.py collapses a laddered book into one term-start price.
+- **Atom D — cascade correlation estimation methodology: DISCOVER in flight.**
+- E (billing delays), F (value/exposure ranking): sequenced next.
+- Upstream blocker surfaced by B/C: the price engine's SSP ~10× miscalibration (residual-demand form uncalibrated, carbon/UK-ETS term missing) — a hard dependency for any cascade-magnitude BUILD.
