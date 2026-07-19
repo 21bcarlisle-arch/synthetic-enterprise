@@ -138,3 +138,61 @@ synthetic SSP generation beyond the historical window. It has not been
 tuned further (no feature transforms, interactions, or non-linear terms) —
 that is left as a documented option for a future iteration if forward
 projections built on it prove materially miscalibrated.
+
+---
+
+## Addendum — Recalibration of the physics engine (2026-07-19, Epoch-2)
+
+Per director instruction (Epoch-2 campaign, "recalibrate the wholesale price engine
+`sim/price_engine.py` to fix its documented ~10x SSP overestimate"), the merit-order physics model
+above (deferred to Regime 3 in the 2026-06-11 addendum) was revisited and **structurally fixed** —
+this is a BASELINE FIDELITY correction, decided blind to company P&L (R12/R13). The engine remains
+gated off in every production phase, so this changes only a generative code path nothing currently
+reads — it cannot perturb current results.
+
+**Two root causes, both addressed:**
+1. **No carbon term in the gas floor.** `gas_floor_price()` now takes an optional
+   `carbon_price_gbp_per_tonne` parameter (default 0.0, back-compat-preserving):
+   `P_gas_floor = (gas_price + carbon_price * EF_GAS_TCO2_PER_MWH_TH) / thermal_efficiency`,
+   `EF_GAS_TCO2_PER_MWH_TH = 0.184` tCO2/MWh(th) (R10 simplification — DESNZ/DEFRA convention).
+2. **The raw demand/renewable ratio form is replaced with a residual-demand scarcity form.**
+   `system_margin_price()` no longer computes `(demand/renewable)^gamma` (which had median ratio
+   ~3.46, exploding the gas floor 6.4x even at gamma=1.5 — the diagnosed root cause of the original
+   ~10x overestimate). It now computes:
+   ```
+   RD = demand_mw - renewable_generation_mw
+   x  = RD / DISPATCHABLE_CAPACITY_MW   (~35,000 MW, GB dispatchable fleet, R10 simplification)
+   multiplier = A0 + A1*x + A2 * max(0, x - X_TIGHT) ** SCARCITY_EXPONENT
+   ```
+   fit against the full real 2016-03-01..2025-06-07 window (n=157,106) via
+   `simulation/run_phase3b_recalibration.py`: `A0=0.326998, A1=1.334629, A2=3.828327,
+   X_TIGHT=0.70, SCARCITY_EXPONENT=2.0`.
+
+**Data-quality finding surfaced during this recalibration:** `sim/generation_demand_history.py`'s
+`aggregate_renewable_generation()`/`aggregate_wind_generation()` sum every AGWS record matching a
+key across *all* revision publishes — a handful of heavily-republished settlement periods (3 of
+471,453 keys have 50+ duplicate publishes, one has 564) produce a summed renewable figure in the
+hundreds of thousands to millions of MW, physically impossible (GB's entire wind+solar fleet is
+under 30 GW) and a severe leverage outlier for least-squares fitting. `run_phase3b_recalibration.py`
+dedupes to the latest `publishTime` per `(settlementDate, settlementPeriod, psrType)` before
+summing (max renewable figure drops from 1,480,897 MW to a physically sane 28,456 MW). This is a
+real bug in the shared aggregator, not fixed there in this pass (out of this atom's file_scope) —
+logged as a finding for a future touch of `generation_demand_history.py`.
+
+**Result — the gate clears against the hard bar:**
+
+| Metric | Target band | Achieved |
+|---|---|---|
+| Median | £40-70 | £48.75 |
+| Mean | £65-90 | £69.24 |
+| P95 | £180-270 | £217.15 |
+| Min | negative | -£10.47 (capability confirmed; magnitude/frequency gap named) |
+| MAE | ≤ £34/MWh | **£32.79/MWh** |
+| R² | (informational) | 0.4190 (beats both the £35.78-MAE naive gas-floor baseline and the £33.96-MAE / R²=0.3858 OLS regression above) |
+
+Full fitted constants, per-year table, lift-over-naive-baseline analysis, honesty notes on the
+negative-price frequency/magnitude gap, and every R10 simplification's provenance:
+`docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md`. This 2026-06-11 addendum's OLS regression
+report above is preserved unchanged as the record of what was tried before the physics form was
+fixed — it remains the active Regime-3 deliverable; the recalibrated physics engine is a validated
+but **not yet wired-in** alternative (no live consumer, no coupled-triad company-side test yet).
