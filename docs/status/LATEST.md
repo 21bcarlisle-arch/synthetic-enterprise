@@ -1,5 +1,21 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T11:07:00Z
+Last updated: 2026-07-19T11:17:06Z
+
+**LOOP-CONTINUITY FAILURE DIAGNOSED + 4 DIRECTOR ORDERS DONE (2026-07-19 ~11:15):** The 93-min idle +
+unconsumed origin doc: **RC1** the draw starved (gate-after campaign BUILD authorized as policy but never
+mechanized into the draw — 30 idle atoms all BUILD-gated); **RC3** the advisor doc was committed to origin
+but never landed in the LOCAL tree `find_work` reads (supervisor doesn't `git fetch`; staging_watcher notifies
+Rich only). **RC2 RETRACTED (R9):** I first claimed "no re-arm exists" — the supervisor log refuted it (it
+cycled every ~2min throughout, correctly resting on an empty draw); I nearly shipped an inferred narrative and
+corrected it. Fix = RC3 (the work-check must see origin staging) — queued as its own spine turn; RC1 mechanical
+fix needs a campaign `FRONT_OPEN` (director console). Full: `LOOP_CONTINUITY_FAILURE_DIAGNOSIS.md`.
+**Orders:** (1) diagnosed ✓ (2) two decade-replay slow tests FIXED `a040f176a` (413s→49s, mutation-verified)
+(3) token amendment consumed — folded into `RESOURCE_AWARE_SCHEDULING_PROPOSAL.md` §7-8, 4 scheduling docs
+reconciled ✓ (4) campaign BUILD resumed — **G1 fidelity grid-scorer** `991b02007` (best-of-family/CVaR/
+map-of-ignorance/CRN-ablation, 24 R15 tests, epistemic PASS, L1 PROPOSED) ✓. Not claiming "continuous" until
+RC3 lands + campaign BUILD is drawable.
+
+---
 
 **NOW (2026-07-19) — GATE-AFTER operating model adopted (director console); Epoch-2 BUILD underway.**
 Director retired the failure-era caution posture: W1 BUILD OPEN; a ratified campaign IS standing BUILD
@@ -185,7 +201,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (505s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
