@@ -148,7 +148,9 @@ def test_control_discovers_more_than_the_original_hand_registry():
         # coverage is preserved on the four below (incl. the nav-linked company
         # door). Dropping it here tracks a real design change, not discovery going
         # blind; the disclosure invariant + R15 mutation guard are unchanged.
-        "supplier/index.html",
+        # (2026-07-19 v4 retirement) supplier/index.html retired -- the old Supplier
+        # split re-homes into The Company; its net-margin+disclosure coverage lives
+        # on company/index.html below, so discovery is unchanged, not going blind.
         "project/index.html",
         "customers/index.html",
         "company/index.html",  # the surface the four-item hand-registry missed
@@ -164,10 +166,10 @@ def test_control_discovers_more_than_the_original_hand_registry():
 def test_control_fires_on_stripped_disclosure(tmp_path):
     """MUTATION: take a real compliant surface, strip its disclosure tokens, and
     assert the control now flags it. A control that cannot fire is theatre."""
-    real = SITE / "supplier" / "index.html"
+    real = SITE / "company" / "index.html"   # (v4) supplier retired; company is the live twin
     text = real.read_text(encoding="utf-8", errors="replace")
     assert NET_MARGIN_KEY.search(text) and DISCLOSURE.search(text), (
-        "precondition: supplier page must currently be a compliant surface"
+        "precondition: company page must currently be a compliant net-margin surface"
     )
     # Remove every disclosure token — the net-margin figure remains.
     mutated = DISCLOSURE.sub("XXX", text)
