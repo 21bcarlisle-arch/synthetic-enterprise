@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T08:34:37Z
+Last updated: 2026-07-19T08:49:24Z
 
 **NOW (2026-07-19) — GATE-AFTER operating model adopted (director console); Epoch-2 BUILD underway.**
 Director retired the failure-era caution posture: W1 BUILD OPEN; a ratified campaign IS standing BUILD
@@ -164,7 +164,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (605s / 10 min):
+**Latest simulation results (2016–2025)** — auto-processed (490s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
