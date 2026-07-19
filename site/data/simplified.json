@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19T22:04:48Z",
+  "generated_at": "2026-07-19T22:19:10Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -491,7 +491,7 @@
         {
           "atom_id": "A_scope_of_need_scoring_frame",
           "atom_name": "Scope-of-need scoring frame: 5x3 archetype x regime grid, fidelity = worst-explained cell (the joint tail of the fidelity surface, never the population average), tied to the belief-vs-truth gap metric",
-          "level_current": 0,
+          "level_current": 1,
           "level_target": 3,
           "notes": [
             "2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and explicitly defers the maturity_map edit to the orchestrator/BUILD) from EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md (2c3d7c03f), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the 5x3 {A1..A5} x {G1,G2,G3} grid + worst-cell MAX/CVaR scoring over G1_fidelity_grid_scorer, R15-failable (a book green ONLY on the comfortable middle A5 must NOT pass the worst-cell gate). Director VALUES-CALLS OPEN (equal-cell vs harm-weighted worst-cell; grid-completeness) -- build on the asserted equal-cell default, leave the call flagged (EPOCH2_VALUES_CALLS_BATCH_1). NO level claimed (levels are director-ratified, MATURITY_MAP.md section 0).",
@@ -501,7 +501,7 @@
         {
           "atom_id": "D_cascade_correlation_estimation",
           "atom_name": "Cascade correlation estimation method: nature + strength of each cascade link estimated from data (joint-tail before marginal), one portable tail-dependence statistic making every coupling R15-mutation-testable; asserted-not-estimated registered as simplifications",
-          "level_current": 0,
+          "level_current": 1,
           "level_target": 3,
           "notes": [
             "2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and defers the maturity_map edit) from EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md (6a47b1172), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the joint-tail estimation protocol (chi/chi-bar tail-dependence + copula fit + lag-k persistence) over the dependence inventory D1..D8, each estimate reported WITH its finite-u threshold; anti-marking-own-homework wall (fit on the record, validate the generator against it; C-S2 replayable). Upstream SSP ~10x recal already LANDED (TASK 1, a2dd6dcac) so cascade MAGNITUDE is unblocked. Every asserted-not-estimated link registered as an R10 simplification. NO level claimed.",
@@ -1025,6 +1025,15 @@
           ]
         },
         {
+          "atom_id": "H_forward_discovery_draw",
+          "atom_name": "Forward-discovery draw: when the BUILD feasible set is empty the supervisor routes through the dial-widen (priority classes + headroom sensor) and hands the next DISCOVER/FRAME item BEFORE any allow-stop; drain is claimable only after that ALSO returns empty",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-19 AUTHORED (proposal) from docs/retrospectives/2026-07-19-direction-without-mechanism.md, director-caught false-drain. The MECHANISM behind the standing forward-discovery direction (currently prose only -- priority classes + headroom sensor were folded into a design doc, not built). Makes RULE 0 enforceable: an empty BUILD draw MUST widen to DISCOVER/FRAME and return work before any allow-stop; drain is claimable only after the widened draw also returns empty. R15: plant one idle DISCOVER-able atom -> the draw returns it, never allow-stops. loop_stage idle: H-lane is OFF the open product fronts, so DISCOVER/FRAME/author NOW, BUILD needs a director H-lane open (blocked_on director_h_lane_open) -- that gate is itself the friction the retro names."
+          ]
+        },
+        {
           "atom_id": "OPS1_governance_refusal_mutation_test",
           "atom_name": "Governance mutation test: prove the autonomous worker REFUSES director-gated/HELD work at top of queue",
           "level_current": 2,
@@ -1490,6 +1499,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 121,
-  "total_notes": 442
+  "total_atoms_with_notes": 122,
+  "total_notes": 443
 }
