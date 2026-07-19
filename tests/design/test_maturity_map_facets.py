@@ -45,6 +45,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     # docs (A scoring frame, D cascade estimation) per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF
     # -- same close_to_learn class as their G-fidelity siblings (measure belief-vs-truth, not revenue).
     "A_scope_of_need_scoring_frame", "D_cascade_correlation_estimation",
+    "H_forward_discovery_draw",  # 2026-07-19 forward-discovery mechanism atom (harness/close_to_learn)
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",

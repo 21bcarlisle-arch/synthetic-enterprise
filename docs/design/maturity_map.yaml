@@ -1,3 +1,20 @@
+- id: H_forward_discovery_draw
+  name: "Forward-discovery draw: when the BUILD feasible set is empty the supervisor routes through the dial-widen (priority classes + headroom sensor) and hands the next DISCOVER/FRAME item BEFORE any allow-stop; drain is claimable only after that ALSO returns empty"
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [background/supervisor.py, tests/background/test_forward_discovery_draw.py]
+  depends_on: []
+  blocked_on: director_h_lane_open
+  simplifications: ['2026-07-19 AUTHORED (proposal) from docs/retrospectives/2026-07-19-direction-without-mechanism.md, director-caught false-drain. The MECHANISM behind the standing forward-discovery direction (currently prose only -- priority classes + headroom sensor were folded into a design doc, not built). Makes RULE 0 enforceable: an empty BUILD draw MUST widen to DISCOVER/FRAME and return work before any allow-stop; drain is claimable only after the widened draw also returns empty. R15: plant one idle DISCOVER-able atom -> the draw returns it, never allow-stops. loop_stage idle: H-lane is OFF the open product fronts, so DISCOVER/FRAME/author NOW, BUILD needs a director H-lane open (blocked_on director_h_lane_open) -- that gate is itself the friction the retro names.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an ops scheduler that never idles a capable worker while any lower-priority queue still has work"
+  evidence: [docs/retrospectives/2026-07-19-direction-without-mechanism.md]
 # Maturity Map v1.1 canonical data store (docs/design/MATURITY_MAP.md Section 6).
 # v1 SEED -- 2026-07-10, director audit ("is the dial-weighted draw actually wired
 # and live -- evidence, not intent"). Real atoms only, honestly leveled from actual
