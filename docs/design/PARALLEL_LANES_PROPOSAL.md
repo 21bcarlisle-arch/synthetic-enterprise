@@ -1,3 +1,5 @@
+> **[SUPERSEDED 2026-07-19]** by `RESOURCE_AWARE_SCHEDULING_PROPOSAL.md` §1–2 (three-lane concept -> the resource-class model). Retained for history; do not build from this.
+
 # Parallel-Lanes Proposal — the overdue SELF_DIRECTION item 3
 
 **Staged as owed:** SELF_DIRECTION_AND_PARALLELISM.md item 3 (requested

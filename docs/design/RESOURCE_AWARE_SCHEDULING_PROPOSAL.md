@@ -122,3 +122,65 @@ proposal splits the pool into HEAVY/MODERATE/LIGHT, the pending widening should 
 **`MODERATE_FORK_BUDGET` only** (BUILD-class concurrency, where the safety case genuinely applies).
 `HEAVY_FORK_BUDGET` stays at 1 pending its own separate safety case — heavy jobs are precisely the ones
 that saturate a shared machine. Recommend the fan-widening [ACT] be amended to state this split before sign-off.
+
+## 7. TOKENS as the second resource dimension (absorbed from `DIRECTOR_AMENDMENT_TOKEN_RESOURCE_DIMENSION_2026-07-19.md`)
+
+§1–6 model **CPU only**. But the binding constraint on the work the director most wants expanded —
+forward-looking DISCOVER/FRAME research — is **not CPU** (near-zero local cost) but **tokens** (one
+discovery fork consumed ~164k today). If forward discovery becomes a standing lane, the token window
+binds long before the cores do. Director: *"There is core work and optional. Spend [spare] tokens on
+optional… a rhythm determined by its limit resets."*
+
+**Step zero (verify the sensor before designing around it) — PARTIAL, evidence gathered:**
+- The statusline IS configured (`~/.claude/statusline-command.sh`) but currently reads only `cwd` — it does
+  NOT consume any `rate_limits` field today.
+- `background/executor_governor.py` already has a token-budget primitive (`max_tokens_per_window`, sliding
+  window, fail-closed) that is **inert — explicitly "awaiting token metering."** It is the natural CONSUMER
+  of a headroom sensor once one exists.
+- **Blocked sub-item (must run on the seat, not the sandbox):** `claude --version` + inspecting the actual
+  statusline stdin payload for a `rate_limits` field (reported v2.1.80+, Pro/Max auth only). I could not run
+  `claude --version` from the build sandbox. If the field is present → build the sensor (no update, no risk).
+  If absent → a Claude Code update is a real-blast-radius change on an autonomous box (read release notes,
+  pin the version in `.claude/settings` per IaC, its own atom + an [ACT]).
+
+**The sensor (requirement):** local authoritative token-headroom state, readable by loop + daemons.
+Constraint: the statusline is push-on-render, not poll-on-demand → the on-disk snapshot goes stale while
+idle. **Fail closed on staleness in ONE direction only** (§ below).
+
+**Two priority classes, orthogonal to the cost classes (`light|moderate|heavy` classify COST; these classify
+ENTITLEMENT):**
+- **CORE** — campaign work, blockers, safety, the director's standing direction. Guaranteed budget; runs
+  regardless of headroom.
+- **OPTIONAL** — forward discovery, red-teaming, exploratory analysis, standing-backlog research. Draws ONLY
+  above a headroom threshold; **yields immediately** when CORE needs the budget (preemptible). This is what
+  the **treadmill-quiet loop should reach for instead of resting** (directly addresses RC1 in
+  `LOOP_CONTINUITY_FAILURE_DIAGNOSIS.md`).
+
+**Non-negotiables (coherence with existing law):**
+- **Headroom is a DIAL, never a WALL** (Rule 0). Low/unknown headroom may reorder/defer OPTIONAL; it must
+  NEVER empty the feasible set or stop CORE. A stale/missing sensor → CORE proceeds unconditionally, only
+  OPTIONAL is withheld. (This is the "one direction" the sensor fails closed toward.)
+- **Utilisation is a diagnostic, never a target** (LAW A / R12). Never optimise for consuming the window; no
+  metric derived from utilisation may feed reward/selection/priority in a way that rewards spending.
+- **Draw-mix balance still binds** — OPTIONAL is for forward discovery/research, not a harness-polish
+  loophole while product work waits; the mirror clause (humming engine ⇒ throttle to the company) applies.
+- **Forward discovery = constraints on the present, not designing the future** (the varied-population Epoch-4
+  tournament requirement is the canonical example; no deep design for distant epochs).
+- **I4 stands untouched.** R15: prove any new bound by mutation.
+
+**Adoption:** step 2 (version+payload check) is read-only; the sensor is additive (own commit); the priority
+classes touch the draw → sequence AFTER the §2 budget split, one change per turn, bounds by mutation. Any
+Claude Code version change comes back as an [ACT].
+
+## 8. Doc reconciliation (housekeeping — the amendment's §6, the director's "keeping coherence is not trivial")
+
+Four docs touched parallelism/scheduling. Reconciled to ONE authoritative home:
+- **`RESOURCE_AWARE_SCHEDULING_PROPOSAL.md` (this doc) — AUTHORITATIVE** for scheduling/resource/parallelism
+  guidance going forward. The token amendment is folded in here (§7), not spawned as a parallel doc.
+- **`FAN_WIDENING_SAFETY_CASE.md` — ACTIVE but SUBORDINATE:** its ≤3→min(cores−2,8) proposal is reframed here
+  (§6/§7) as widening `MODERATE_FORK_BUDGET` only, sequenced after the budget split. Keep, cross-referenced.
+- **`PARALLEL_LANES_PROPOSAL.md` — SUPERSEDED** by this doc's §1–2 (the three-lane concept is now the
+  resource-class model). Marked legacy; retained for history.
+- **`H20_PARALLEL_MAINTENANCE_LANE_FRAME.md` — SUPERSEDED** by this doc's §7 (the "maintenance lane" is the
+  OPTIONAL entitlement class). Marked legacy; retained for history.
+Pointers to be added to the two superseded docs' headers so no fork re-forks the guidance.

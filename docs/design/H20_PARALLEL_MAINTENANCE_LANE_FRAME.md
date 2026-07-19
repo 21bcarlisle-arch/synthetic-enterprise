@@ -1,3 +1,5 @@
+> **[SUPERSEDED 2026-07-19]** by `RESOURCE_AWARE_SCHEDULING_PROPOSAL.md` §7 (the maintenance lane == the OPTIONAL entitlement class). Retained for history; do not build from this.
+
 # H20 — Parallel MAINTENANCE Lane (FRAME)
 
 **Atom:** `H20_parallel_maintenance_lane` | **Lane:** H_harness | **Epoch:** 2 |
