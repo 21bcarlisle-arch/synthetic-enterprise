@@ -255,9 +255,15 @@ def test_decisions_tab_renders_live_entries():
     assert dec["available"] is True, "fixture precondition: live ledger has entries"
     body = out["dec-container"]["innerHTML"]
     first = dec["decisions"][0]
-    assert first["what"] in body, "newest decision's 'what' not rendered"
-    assert first["why"] in body, "newest decision's 'why' not rendered"
-    assert first["how_to_reverse"] in body, "newest decision's 'how_to_reverse' not rendered"
+    # The page escHtml-escapes decision text before rendering (index.html:793, an
+    # anti-injection control); compare against the escaped form so a decision whose
+    # text contains &, < or > (e.g. "q->0") still verifies. Mirror the page's escHtml
+    # (index.html:418): & first, then < and >.
+    def _esc(s):
+        return str("" if s is None else s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    assert _esc(first["what"]) in body, "newest decision's 'what' not rendered"
+    assert _esc(first["why"]) in body, "newest decision's 'why' not rendered"
+    assert _esc(first["how_to_reverse"]) in body, "newest decision's 'how_to_reverse' not rendered"
 
 
 def test_decisions_tab_freshness_stamp_renders():

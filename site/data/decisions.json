@@ -1,9 +1,25 @@
 {
-  "generated_at": "2026-07-19T06:22:13Z",
+  "generated_at": "2026-07-19T06:25:33Z",
   "source": "docs/observability/decision_log.jsonl",
   "available": true,
-  "count": 18,
+  "count": 20,
   "decisions": [
+    {
+      "timestamp": "2026-07-19T06:20:24.473486+00:00",
+      "what": "Challenge-response to atom G's three fidelity constructs (advisor rider, at director's prompting): propose (1) lift over the BEST-OF-a-naive-FAMILY not a single frozen baseline; (2) worst-q% CVaR tail-mean generalizing MAX (q->0 = MAX), aligning fidelity with atom F's VaR frame; (3) keep ablation-with-CRN as confirmatory, add a cheap observational-sensitivity screen to triage. Doc: docs/design/EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md",
+      "why": "Rider empowers thinking-through, not mere implementation: intent is the wall, constructs are mine to improve. All three are strict generalizations (dial back to the sketch); two harden against gaming/noise, one makes the causal test affordable.",
+      "how_to_reverse": "FRAME/DISCOVER doc only, no code. Director overrides any construct back to the sketch at the console; tested at atom G BUILD.",
+      "reversible": true,
+      "confidence": "confident"
+    },
+    {
+      "timestamp": "2026-07-19T06:18:00.533334+00:00",
+      "what": "Draft fan-widening safety case (docs/design/FAN_WIDENING_SAFETY_CASE.md): propose raising the concurrent-fork DIAL from <=3 to min(cores-2, 8), gated on the 4 structural properties (disjoint scope, tree-lock, merge-or-reap, pre-commit gate) + a distinct-value test + observability live first. Proposal only; NOT widening until director sign-off.",
+      "why": "Gate-after model item 7 asks for a fan-widening proposal with a safety case. The bound that matters is disjointness not count; '3' was a caution-era default with no observed width-4 failure (naive-organ's point).",
+      "how_to_reverse": "Proposal doc only; no code changed. Widening is one integer + a draw predicate, revert instantly.",
+      "reversible": true,
+      "confidence": "confident"
+    },
     {
       "timestamp": "2026-07-19T06:12:17.357637+00:00",
       "what": "Proceed on conservative 'asserted' defaults for the 6 Epoch-2 campaign values-calls (equal-cell weighting; 5x3 grid provisional w/ map-of-ignorance; commercial_weight=1 + kappa=E[dvol*spot] covariance / qualitative harm rank; tau=0; L_min diagnostic-not-gate; E metric = curve-area equal-cell). Batched for director review: docs/design/EPOCH2_VALUES_CALLS_BATCH_1.md",
