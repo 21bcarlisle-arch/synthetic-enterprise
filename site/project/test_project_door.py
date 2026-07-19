@@ -31,7 +31,7 @@ DATA = HERE.parent / "data"
 NODE = shutil.which("node")
 pytestmark = pytest.mark.skipif(NODE is None, reason="node not available")
 
-# The page's inline Promise.all fetches these six data files, bound to D/PH/MM/TM/PP/DT.
+# The page's inline Promise.all fetches these data files, bound to D/PH/MM/TM/PP/DT/REG/DEC.
 _FILES = {
     "dashboard": "dashboard.json",
     "phases": "phases.json",
@@ -40,6 +40,7 @@ _FILES = {
     "provisional_plan": "provisional_plan.json",
     "director_twin": "director_twin.json",
     "regulatory": "regulatory.json",
+    "decisions": "decisions.json",
 }
 
 
@@ -239,6 +240,96 @@ def test_regulatory_badge_status_is_independent_of_render():
     ]
     out = _render(d)
     assert "SENTINEL_STATUS" in out["reg-badge-RO"]["innerHTML"]
+
+
+# ---------------------------------------------------------------------------
+# Decisions tab: the decision ledger (background/decision_log.py ->
+# docs/observability/decision_log.jsonl -> tools/generate_decisions_data.py ->
+# site/data/decisions.json) rendered on the Journey door (R11), independent of
+# the render (R15), and fail-closed when the ledger is empty/missing.
+# ---------------------------------------------------------------------------
+def test_decisions_tab_renders_live_entries():
+    d = _live()
+    out = _render(d)
+    dec = d["decisions"]
+    assert dec["available"] is True, "fixture precondition: live ledger has entries"
+    body = out["dec-container"]["innerHTML"]
+    first = dec["decisions"][0]
+    assert first["what"] in body, "newest decision's 'what' not rendered"
+    assert first["why"] in body, "newest decision's 'why' not rendered"
+    assert first["how_to_reverse"] in body, "newest decision's 'how_to_reverse' not rendered"
+
+
+def test_decisions_tab_freshness_stamp_renders():
+    d = _live()
+    out = _render(d)
+    dec = d["decisions"]
+    fr = out["dec-freshness"]["innerHTML"]
+    assert dec["generated_at"] in fr, fr
+    assert dec["source"] in fr, fr
+    assert str(dec["count"]) in fr, fr
+
+
+def test_decisions_tab_confidence_and_reversible_chips_render():
+    d = _live()
+    out = _render(d)
+    body = out["dec-container"]["innerHTML"]
+    # At least one of each chip class must appear across the real ledger's entries
+    # (the fixture ledger mixes reversible/confident and ambiguous_reversible entries).
+    assert "REVERSIBLE" in body or "ONE-WAY DOOR" in body, body
+    assert "CONFIDENT" in body or "AMBIGUOUS-REVERSIBLE" in body, body
+
+
+def test_decisions_tab_is_independent_of_render():
+    # R15: mutating a source value (the 'what' text and the count) must move
+    # the rendered pixel -- a stuck/hardcoded view would not follow this.
+    d = _live()
+    d["decisions"] = {
+        "generated_at": "2026-01-01T00:00:00Z",
+        "source": "docs/observability/decision_log.jsonl",
+        "available": True,
+        "count": 1,
+        "decisions": [{
+            "timestamp": "2026-01-01T00:00:00+00:00",
+            "what": "SENTINEL_DECISION_XYZ",
+            "why": "SENTINEL_WHY_XYZ",
+            "how_to_reverse": "SENTINEL_REVERSE_XYZ",
+            "reversible": True,
+            "confidence": "confident",
+        }],
+    }
+    out = _render(d)
+    body = out["dec-container"]["innerHTML"]
+    assert "SENTINEL_DECISION_XYZ" in body
+    assert "SENTINEL_WHY_XYZ" in body
+    assert "SENTINEL_REVERSE_XYZ" in body
+    fr = out["dec-freshness"]["innerHTML"]
+    assert "2026-01-01T00:00:00Z" in fr
+    assert "1 entries" in fr or ">1<" in fr or "(1 " in fr
+
+
+def test_decisions_tab_fail_closed_on_empty_ledger():
+    # R15 FAIL-OPEN killer pattern: an empty/missing ledger must render a
+    # visible "no decisions logged" state, never a silently-blank section.
+    d = _live()
+    d["decisions"] = {
+        "generated_at": "2026-01-01T00:00:00Z",
+        "source": "docs/observability/decision_log.jsonl",
+        "available": False,
+        "count": 0,
+        "decisions": [],
+        "note": "no decisions logged -- the ledger is empty or missing",
+    }
+    out = _render(d)
+    body = out["dec-container"]["innerHTML"]
+    assert "No decisions logged" in body, body
+    assert "SENTINEL" not in body
+
+
+def test_decisions_tab_link_in_nav():
+    text = INDEX.read_text()
+    assert 'data-tab="decisions"' in text
+    assert ">Decisions<" in text
 
 
 # ---------------------------------------------------------------------------

@@ -11,7 +11,8 @@
 //
 // Usage: node _render_harness.mjs <index.html>
 //   stdin: {"dashboard":..., "phases":..., "maturity_map":..., "test_mix":...,
-//           "provisional_plan":..., "director_twin":...}
+//           "provisional_plan":..., "director_twin":..., "regulatory":...,
+//           "decisions":...}
 import fs from "node:fs";
 import vm from "node:vm";
 
@@ -61,6 +62,7 @@ sandbox.TM = payload.test_mix;
 sandbox.PP = payload.provisional_plan;
 sandbox.DT = payload.director_twin;
 sandbox.REG = payload.regulatory;
+sandbox.DEC = payload.decisions;
 
 sandbox.renderKpis();
 sandbox.renderTestMix();
@@ -69,6 +71,7 @@ if (sandbox.MM) { sandbox.renderEpoch2Strip(); sandbox.renderMMView(); }
 if (sandbox.PP) sandbox.renderProvisionalPlan();
 if (sandbox.DT) sandbox.renderDirectorTwin();
 if (sandbox.REG) sandbox.renderRegulatory();
+if (sandbox.DEC) sandbox.renderDecisions();
 
 const ids = [
   "inv-kpis", "be-domain-count", "epoch2-strip",
@@ -77,6 +80,7 @@ const ids = [
   "reg-module-count", "reg-domain-count", "reg-slc-domains",
   "reg-overall-rag", "reg-freshness",
   "reg-badge-RO", "reg-badge-FMD", "reg-badge-WHD", "reg-badge-SR",
+  "dec-container", "dec-freshness",
 ];
 const out = {};
 for (const id of ids) {

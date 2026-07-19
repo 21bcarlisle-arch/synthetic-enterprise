@@ -96,6 +96,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <button class="tab-btn" data-tab="timeline" onclick="switchTab('timeline')">Timeline</button>
   <button class="tab-btn" data-tab="system" onclick="switchTab('system')">System</button>
   <button class="tab-btn" data-tab="regulatory" onclick="switchTab('regulatory')">Regulatory</button>
+  <button class="tab-btn" data-tab="decisions" onclick="switchTab('decisions')">Decisions</button>
 </nav>
 <div id="tab-overview" class="view active">
 <div class="wrap">
@@ -337,8 +338,21 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   </div>
 </div></div>
 
+<div id="tab-decisions" class="view"><div class="wrap">
+  <div class="sec">The Decision Ledger</div>
+  <p class="about-text" style="font-size:12px;color:var(--muted);margin-bottom:12px">
+    What the agent decided, what it did, and how it could be undone -- written by the mechanism
+    itself as a side effect of acting (<code>background/decision_log.py</code>), not typed up
+    afterward as discipline. Every non-one-way-door proceed logs here automatically; a one-way
+    door escalates instead of logging a proceed-entry. Reverse-chronological, unfiltered -- the
+    real ledger, not a curated subset.
+  </p>
+  <p id="dec-freshness" class="about-text" style="font-size:11px;color:var(--muted);margin-bottom:16px"></p>
+  <div id="dec-container"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+</div></div>
+
 <script>
-var D=null,PH=null,SYS=null,SYS2=null,TM=null,PP=null,DT=null,REG=null,rendered={};
+var D=null,PH=null,SYS=null,SYS2=null,TM=null,PP=null,DT=null,REG=null,DEC=null,rendered={};
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function ageLabel(ts){if(!ts)return"unknown";var sec=(Date.now()-new Date(ts).getTime())/1000;if(sec<120)return Math.round(sec)+"s ago";if(sec<3600)return Math.round(sec/60)+"m ago";if(sec<86400)return(sec/3600).toFixed(1)+"h ago";return(sec/86400).toFixed(1)+"d ago";}
 function ageDot(ts,st){if(!ts)return"dot-grey";var h=(Date.now()-new Date(ts).getTime())/3600000;if(st==="error")return"dot-red";if(h>6)return"dot-red";if(h>1)return"dot-amber";return"dot-green";}
@@ -754,7 +768,40 @@ function renderDirectorTwin(){
     (rows||'<p style="color:var(--muted);font-size:12px">No questions logged yet.</p>');
 }
 
-Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/director_twin.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/regulatory.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];DT=rs[5];REG=rs[6];renderKpis();renderCharts();renderBuildStats();renderTestMix();renderDiscoveries();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();if(DT)renderDirectorTwin();if(REG)renderRegulatory();}).catch(function(e){console.error("Load error:",e);});
+// Decisions tab (director console 2026-07-19, gate-after model item 6): a pure
+// rendering of site/data/decisions.json (tools/generate_decisions_data.py <-
+// docs/observability/decision_log.jsonl via background.decision_log). Fail-closed:
+// available:false (missing/empty ledger) renders a visible "no decisions logged"
+// state, never a silently-blank list.
+function decChip(text,color){
+  return '<span class="tl-badge" style="color:var(--'+color+');border-color:var(--'+color+')">'+escHtml(text)+'</span>';
+}
+function renderDecisions(){
+  var el=document.getElementById("dec-container");
+  var fr=document.getElementById("dec-freshness");
+  if(!el||!DEC)return;
+  if(fr)fr.innerHTML="Generated "+escHtml(DEC.generated_at||"")+" from <code>"+escHtml(DEC.source||"")+"</code> ("+(DEC.count||0)+" entries).";
+  if(!DEC.available){
+    el.innerHTML='<div class="disc"><h3>No decisions logged</h3><p>'+escHtml(DEC.note||"The decision ledger is empty or missing.")+'</p></div>';
+    return;
+  }
+  var rows=(DEC.decisions||[]).map(function(d){
+    var revChip=d.reversible?decChip("REVERSIBLE","green"):decChip("ONE-WAY DOOR","red");
+    var confChip=d.confidence==="ambiguous_reversible"?decChip("AMBIGUOUS-REVERSIBLE","amber"):decChip("CONFIDENT","blue");
+    return '<div class="disc" style="margin-bottom:10px">'+
+      '<h3 style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">'+
+        '<span style="flex:1;min-width:200px">'+escHtml(d.what||"")+'</span>'+revChip+confChip+
+      '</h3>'+
+      '<p>'+escHtml(d.why||"")+'</p>'+
+      '<p style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">'+
+        '<strong>How to reverse:</strong> '+escHtml(d.how_to_reverse||"")+'</p>'+
+      '<p style="font-size:10px;color:var(--muted);margin-top:4px">'+escHtml(d.timestamp||"")+'</p>'+
+      '</div>';
+  }).join("");
+  el.innerHTML=rows||'<div class="disc"><h3>No decisions logged</h3><p>The decision ledger is empty.</p></div>';
+}
+
+Promise.all([fetch("../data/dashboard.json").then(function(r){return r.json();}),fetch("../data/phases.json").then(function(r){return r.json();}),fetch("../data/maturity_map.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/test_mix.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/provisional_plan.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/director_twin.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/regulatory.json").then(function(r){return r.json();}).catch(function(){return null;}),fetch("../data/decisions.json").then(function(r){return r.json();}).catch(function(){return null;})]).then(function(rs){D=rs[0];PH=rs[1];MM=rs[2];TM=rs[3];PP=rs[4];DT=rs[5];REG=rs[6];DEC=rs[7];renderKpis();renderCharts();renderBuildStats();renderTestMix();renderDiscoveries();if(MM){renderEpoch2Strip();renderMMView();}if(PP)renderProvisionalPlan();if(DT)renderDirectorTwin();if(REG)renderRegulatory();if(DEC)renderDecisions();}).catch(function(e){console.error("Load error:",e);});
 </script>
 <script src="../shared/director-comments.js" defer></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>

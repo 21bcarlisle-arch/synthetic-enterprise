@@ -38,6 +38,14 @@ def test_site_consumed_ledger_triggers_the_full_suite():
     assert "docs/observability/coupled_gap_ledger.json" in gate.SITE_CONSUMED_LEDGERS
 
 
+def test_decision_log_ledger_triggers_the_full_suite():
+    # The decision ledger (docs/observability/decision_log.jsonl) drives the Journey door's
+    # Decisions tab via tools/generate_decisions_data.py -- same class as coupled_gap_ledger.json:
+    # a derived value the site RENDERS can change with no site/ file staged.
+    assert gate.plan(["docs/observability/decision_log.jsonl"]) == ("full", None)
+    assert "docs/observability/decision_log.jsonl" in gate.SITE_CONSUMED_LEDGERS
+
+
 def test_broad_trigger_wins_over_targeted():
     # A change set with BOTH a direct site edit and a broad trigger runs the whole suite.
     assert gate.plan(["site/proof/index.html", "site/data/proof.json"]) == ("full", None)

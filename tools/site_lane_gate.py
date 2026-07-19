@@ -58,6 +58,7 @@ SITE_SOURCE_SUFFIXES = frozenset({".html", ".py", ".js", ".mjs"})
 # the WHOLE site suite because we cannot know which door consumes it.
 SITE_CONSUMED_LEDGERS = frozenset({
     "docs/observability/coupled_gap_ledger.json",
+    "docs/observability/decision_log.jsonl",
 })
 
 
