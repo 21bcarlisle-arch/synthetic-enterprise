@@ -2140,6 +2140,7 @@
   dial_inherited: 3
   file_scope: [background/fidelity_grid_scorer.py, tests/test_fidelity_grid_scorer.py]
   depends_on: []
+  blocked_on: director_level_up
   simplifications: ['2026-07-19 BUILT + director-RATIFIED L1 (console FRONT_OPEN EPOCH2_CAMPAIGN + LEVEL_UP ts=1784462364): 3 fidelity measures on the improved constructs (EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE); 24 R15 tests, epistemic PASS. L1->L2 = a live physics-atom emits into the evidence ledger + a real gap is measured.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier model-validation desk scoring where its risk models add value over a naive baseline -- worst corner, never the average"
@@ -2155,6 +2156,7 @@
   dial_inherited: 3
   file_scope: [background/fidelity_evidence_ledger.py, tests/test_fidelity_evidence_ledger.py]
   depends_on: []
+  blocked_on: director_level_up
   simplifications: ['2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): sibling ledger + emit-DoD gate (no-record / asserted-without-simplification_id / ablation-without-CRN red), fail-closed; 22 R15 tests, epistemic PASS. L1->L2 = wire a real emitter + the gate into a physics atom phase-close.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier model-governance registry: every fitted relationship recorded with provenance; an atom is not done until it emits its evidence"
@@ -2170,6 +2172,7 @@
   dial_inherited: 3
   file_scope: [background/fidelity_inspection_chain.py, tests/test_fidelity_inspection_chain.py]
   depends_on: []
+  blocked_on: director_level_up
   simplifications: ['2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): 4 record types + bidirectional link graph + assert_no_belief_leak (truth_ref harness-only, R15-proven) + fail-closed dangling-link; 25 tests, epistemic PASS. L1->L2 = render the chain as the director fidelity instrument (G4, SITE) + wire live records.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an auditor tracing an odd model output back to its evidence and forward to the decisions it bent; the belief/truth wall enforced in the data model"
