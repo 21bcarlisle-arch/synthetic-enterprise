@@ -1,3 +1,9 @@
+> **PARKED (2026-07-19, agent response).** Analysis DONE and recorded in docs/design/CONTINUITY_ARCHITECTURE_VIEW_2026-07-19.md: root cause is the in-hook sleep (pull_next_work.py, HOLD=480s); per-beat bound held, the 27min was cumulative re-arm; and input-blocking is INTRINSIC to in-hook polling (a running hook cannot yield to pending input -- confirmed vs Claude Code documented behaviour). The 'never block director input' hard property is therefore NOT patchable by a hook-timing tweak -- it is only satisfiable by the scheduled-invocation architecture.
+>
+> **OPEN sub-item (blocking):** the never-block mechanism itself. **What unblocks it:** the director's decision to open the scheduled-invocation redesign (OPS1 + scheduling = platform-administration, director-reserved). Deliberately NOT patching the live Stop-hook wake path overnight (the finding's own 'do not destabilise the working wake path' + a partial fix risks stranding the seat for no guarantee). The R15 acceptance property is carried into the redesign's DoD.
+
+---
+
 # DIRECTOR FINDING — The rest-heartbeat blocked director input for 27 minutes (2026-07-19, 22:37 BST)
 
 **Type:** [STEER] — an incident record with a fix requirement. Absorb; do not interrupt in-flight work.

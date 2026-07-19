@@ -49,11 +49,50 @@ The resident seat's only genuine advantage is sub-minute reactivity to a staged 
 But the rest-heartbeat already bounded that to ≤60s, and a 60s timer delivers the same reactivity
 with nothing to keep alive. Per-invocation cold-start latency is real but immaterial at this cadence.
 
+## Evidence update (2026-07-19 evening) — the incident that moves this from reasoning to proof
+
+`DIRECTOR_FINDING_HEARTBEAT_BLOCKED_INPUT_2026-07-19`: after the bring-up turn the seat entered the
+rest-heartbeat and the director typed a work-granting instruction into the pane. It was **queued for
+~27 minutes, not delivered** — recovery required the director pressing Escape to interrupt the hook.
+A mechanism built to make waking *possible* made the most direct wake path — the human typing —
+**impossible**.
+
+**Root cause, with evidence.** The heartbeat sleeps in-hook (`pull_next_work.py`:
+`time.sleep(60)` in a loop up to `HEARTBEAT_HOLD_SECONDS = 480`, then re-arms). The per-beat bound
+*held* (480 < the 600s hook timeout); the 27 minutes was cumulative re-arming across beats. While the
+hook subprocess runs, the session is occupied and cannot process input.
+
+**Is input-blocking intrinsic to in-hook polling? Yes** (confirmed against Claude Code's documented
+behaviour, not assumed): a running Stop hook cannot detect that input is pending, there is **no
+documented mechanism for a hook to yield to pending input** or to run short beats and let the session
+process input between invocations, and `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` is orthogonal (it caps block
+*count*, not input handling). Shortening the beat would reduce the worst-case block but **cannot
+deliver the "never block input" hard property** — as long as the wake mechanism is "keep the hook
+busy to hold the chain open," the hook being busy *is* what blocks the human. The property and the
+mechanism are in direct contradiction within the in-hook model.
+
+**This is the decisive point.** The persistent-seat model cannot simultaneously (a) stay alive by
+occupying the hook and (b) remain instantly steerable — they are the same resource. Scheduled bounded
+invocations dissolve the contradiction: between invocations the session is *not running*, so a human
+(or a timer, or a staged doc) reaches it immediately; nothing is held hostage. The "never block
+director input" requirement is therefore not a patchable bug in the current heartbeat — it is a
+**property only the scheduled-invocation architecture can satisfy**. Requirement 4 of the finding,
+answered plainly: input-blocking is intrinsic; this strengthens the case for scheduled invocations
+and against a fifth patch to the persistent seat.
+
 ## What I am NOT doing
 
 This is a view, per the director's request — not the fifth fix. I have **not** changed any
-scheduling infrastructure, systemd unit, or the seat model. Building the scheduled-invocation shape
-(and retiring the seat) is an operational-layer redesign (OPS1) and touches
-scheduling/platform-administration — the director's to open. If he agrees, the next step is a small
-OPS1 design pass: define the bounded work-unit, the timer, and the disk-state contract, then migrate
-behind a dark flag with the seat as fallback until proven.
+scheduling infrastructure, systemd unit, or the seat model, and — deliberately — **have not patched
+the live Stop-hook wake path overnight** to chase the "never block input" property. The finding
+itself warns not to destabilise the working wake path (load-bearing, only just proven), and the
+analysis above shows the property is unreachable by a hook-timing tweak anyway: a partial change
+would carry real risk (stranding the seat) for no guarantee. Shortening the beat is the only
+in-model mitigation and it is a palliative, not the fix.
+
+Building the scheduled-invocation shape (and retiring the seat) is an operational-layer redesign
+(OPS1) and touches scheduling/platform-administration — the director's to open. If he agrees, the
+next step is a small OPS1 design pass: define the bounded work-unit, the timer, and the disk-state
+contract, carry the R15 property **"director input during any active state is acted on promptly,
+never queued indefinitely"** as an acceptance test, then migrate behind a dark flag with the seat as
+fallback until proven.
