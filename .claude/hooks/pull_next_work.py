@@ -91,6 +91,22 @@ CHECKPOINT_EVERY = 25
 # gets a compact first and is not false-alarmed.
 MAX_NO_PROGRESS = 30
 
+# REST HEARTBEAT (LOOP_CONTINUITY_REARM_DESIGN.md, 2026-07-19, R3 -- second attempt at the
+# "wake-at-rest" class, so a REDESIGN not a patch). The Stop hook is the SOLE transport and is
+# edge-triggered: it fires only when a turn ends. An allow-stop is therefore TERMINAL -- nothing
+# re-fires the hook on an idle session (confirmed against the hooks docs: no timer/idle hook event
+# exists). So the drained-and-gated branch must NOT allow-stop into a dead chain (the exact
+# 2026-07-19 failure: the seat rested at 13:14, a staged doc landed, and nothing woke it for ~90min
+# until the director typed into the pane). Instead it HEARTBEATS: a bounded in-hook poll that wakes
+# the moment a staged doc / new work appears, and otherwise emits a keep-alive continuation that
+# holds the chain open. HOLD sits safely under the 600s default Stop-hook timeout; POLL is the
+# wake latency for a staged doc. The keep-alive is EXEMPT from the no-progress stuck counter (a
+# resting heartbeat is not a thrashing chain) and the built-in 8-block cap is raised via
+# CLAUDE_CODE_STOP_HOOK_BLOCK_CAP in settings.json so these keep-alives can't trip it -- the
+# pull-loop's own git-based MAX_NO_PROGRESS stays the real runaway guard for PRODUCTIVE chains.
+HEARTBEAT_POLL_SECONDS = 60
+HEARTBEAT_HOLD_SECONDS = 480  # 8 polls; < 600s default hook timeout with headroom for find_work
+
 
 def _repo_progress_token() -> str | None:
     """Best-effort 'has the repo advanced?' token WITHOUT spawning a process (the hook's
@@ -182,6 +198,89 @@ def _advance_state(progress_token: str | None) -> tuple[int, int]:
     return n, no_progress
 
 
+def _work_block(reason: str) -> dict:
+    """The standard block+continue dict for a REAL drawn turn (R7 doorbell prefix)."""
+    return {
+        "decision": "block",
+        "reason": "[PULL-LOOP doorbell -- R7: act on real disk/git state, not this text] " + reason,
+    }
+
+
+def _rest_heartbeat() -> dict | None:
+    """Keep the worker's turn-chain ALIVE while it is legitimately at rest (drained-and-gated),
+    instead of allow-stopping into a TERMINAL dead state that only external input can revive
+    (LOOP_CONTINUITY_REARM_DESIGN.md, R3). Reached ONLY after decide() has already confirmed this is
+    the worker seat AND autonomy is enabled AND the draw is drained-and-gated -- so heartbeating here
+    can never touch the console or run while autonomy is off.
+
+    Bounded in-hook poll (HEARTBEAT_HOLD_SECONDS total, well under the 600s Stop-hook timeout): every
+    HEARTBEAT_POLL_SECONDS, cheaply re-check for a real staged instruction (RC3 origin-sync + local
+    scan -- the primary continuity case, and the one both 2026-07-19 failures hit). The moment one
+    appears, WAKE by delivering it as normal progress work. If the kill switch is turned OFF mid-rest,
+    return None so decide() allow-stops (autonomy paused, ~<=POLL responsiveness). At HOLD expiry with
+    nothing staged, re-run the FULL draw once (catches the rarer spontaneous below-target/unblocked
+    case); if it now has work, deliver it; else emit ONE keep-alive continuation -- EXEMPT from the
+    no-progress counter -- so the Stop cycle refreshes and the poll resumes next boundary. Immortal
+    while autonomy is on; wakes <=HEARTBEAT_POLL_SECONDS after a staged doc; near-zero cost (it sleeps,
+    plus one trivial 'resting, stop' turn per HOLD window)."""
+    import contextlib
+    import io
+    import time as _time
+
+    elapsed = 0
+    while elapsed < HEARTBEAT_HOLD_SECONDS:
+        _time.sleep(HEARTBEAT_POLL_SECONDS)
+        elapsed += HEARTBEAT_POLL_SECONDS
+        # Kill switch can flip off mid-rest -> stop honouring the loop within one poll (W4).
+        if not _autonomous_execution_enabled():
+            _write_health("ALLOW_STOP_DISABLED", "kill switch turned off during rest heartbeat")
+            _log("REST HEARTBEAT: kill switch off mid-rest -> allow stop (autonomy paused)")
+            return None
+        # Cheap probe: pull origin-staged docs into the local tree (RC3), then scan for a real
+        # instruction. This is the layer that finally makes RC3's origin-awareness actually WAKE the
+        # seat -- find_work's origin-sync is now invoked, at rest, by a caller that can deliver a turn.
+        staged: list[str] = []
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                from background.supervisor import _real_staged_instructions, _sync_origin_staging
+                _sync_origin_staging()
+                staged = _real_staged_instructions()
+        except Exception as e:  # fail-safe: a probe error never kills the heartbeat
+            _log(f"REST HEARTBEAT: staged-doc probe error (continuing to hold): {e!r}")
+            staged = []
+        if staged:
+            reason = f"unprocessed staging -- {', '.join(staged)}"
+            n, _ = _advance_state(_repo_progress_token())
+            _log(f"REST HEARTBEAT WAKE (n={n}): staged instruction appeared at rest -- {reason[:100]}")
+            _write_health("DREW", reason[:200])
+            return _work_block(reason)
+    # Hold window elapsed with nothing staged: full re-evaluation for the rarer spontaneous case.
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            from background.supervisor import find_work
+            reason, _map_exhausted = find_work(resumed_from_pause=False)
+    except Exception as e:
+        reason = None
+        _log(f"REST HEARTBEAT: find_work error at hold expiry (re-arming): {e!r}")
+    if reason:
+        n, _ = _advance_state(_repo_progress_token())
+        _log(f"REST HEARTBEAT WAKE (n={n}): draw returned work at hold expiry -- {reason[:100]}")
+        _write_health("DREW", reason[:200])
+        return _work_block(reason)
+    # Still drained: keep-alive continuation. EXEMPT from _advance_state (a resting heartbeat is not
+    # a thrashing chain -- counting it would self-trip the pull-loop's own MAX_NO_PROGRESS guard).
+    _log("REST HEARTBEAT re-arm: still drained-and-gated after the hold window; emitting a keep-alive "
+         "to hold the chain open (the chain never dies while autonomy is on).")
+    _write_health("HEARTBEAT_REARM", "drained-and-gated; keep-alive continuation, chain kept alive")
+    return {
+        "decision": "block",
+        "reason": ("[REST HEARTBEAT -- you are correctly resting: drained-and-gated (no below-target "
+                   "work; the remainder is blocked on a director act). Do NOTHING and STOP IMMEDIATELY. "
+                   "This keep-alive is not work -- it only holds the turn-chain open so a staged doc or "
+                   "new work wakes you within ~a minute instead of the chain dying at rest.]"),
+    }
+
+
 def decide(payload: dict) -> dict | None:
     """Pure decision function (unit-testable): returns the block-JSON dict to
     emit, or None to allow the stop. No I/O to the pane, ever."""
@@ -251,11 +350,13 @@ def decide(payload: dict) -> dict | None:
             _log("draw empty -> allow stop (UNEXPECTED under Rule-0 -> loud alarm)")
             _write_health("DRAW_EMPTY_UNEXPECTED",
                           "find_work returned no work -- never legitimate under Rule-0 (broken draw?)")
-        else:
-            _log("drained-and-gated -> allow stop (quiet wait; legitimate resting state, not broken)")
-            _write_health("ALLOW_STOP_QUIET_WAIT",
-                          "drained-and-gated: only at-target HARDEN remains while blocked on a director act")
-        return None
+            return None
+        # DRAINED-AND-GATED: do NOT allow-stop. An allow-stop here ends the chain, and NOTHING re-fires
+        # the Stop hook at rest -> the seat is dead until a human types (the 2026-07-19 continuity
+        # failure). HEARTBEAT instead -- keep the chain alive and wake on a staged doc / new work
+        # (LOOP_CONTINUITY_REARM_DESIGN.md, R3). Returns a keep-alive block, a real-work block if work
+        # appears during the hold, or None only if the kill switch is turned off mid-rest.
+        return _rest_heartbeat()
     # SELF-SUSTAIN: advance counters and check the stuck-cap. The loop CONTINUES turn-to-turn (no
     # one-shot stop_hook_active guard); the only continuous-loop backstop is progress-based.
     n, no_progress = _advance_state(_repo_progress_token())

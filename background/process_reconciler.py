@@ -341,6 +341,15 @@ def pull_loop_status(health: dict | None, enable_on: bool, *,
                     "detail": (f"pull-loop transport frozen: last fire {int((now - ts) // 60)}m ago "
                                f"(>{int(stale_after // 60)}m) while ENABLED -- hook stopped firing "
                                f"(dead/hung worker); reads {outcome!r} but is stale")}
+    if outcome == "HEARTBEAT_REARM":
+        # REST HEARTBEAT (LOOP_CONTINUITY_REARM_DESIGN.md, 2026-07-19): the drained-and-gated seat now
+        # keeps its turn-chain ALIVE with a keep-alive continuation each hold window instead of allow-
+        # stopping into a dead chain. Deliberately placed AFTER the freshness gate (unlike the old
+        # freshness-EXEMPT ALLOW_STOP_QUIET_WAIT): a healthy resting seat re-stamps this every <=HOLD
+        # (< the default 1h stale window), so a STALE heartbeat means the beat STOPPED -- a dead/hung
+        # worker -- and MUST read LOUD via the gate above. Fresh => a legitimate, alive rest.
+        return {"status": "HEALTHY_IDLE", "alarm": False,
+                "detail": "rest heartbeat: chain alive, waiting for new work (freshness-checked -- a stopped beat alarms)"}
     if outcome == "DREW":
         return {"status": "HEALTHY_DREW", "alarm": False, "detail": "last fire drew work"}
     if outcome in ("ALLOW_STOP_NO_WORK", "ALLOW_STOP_DISABLED"):

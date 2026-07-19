@@ -268,15 +268,34 @@ def test_quiet_wait_reads_differently_from_loud_empty_draw():
     assert quiet["status"] != loud["status"]                   # and the two read distinctly
 
 
-def test_hook_allow_stops_QUIETLY_when_drained_and_gated(hook, monkeypatch):
-    # STATE TEST 1 (drained-and-gated -> quiet): find_work returns (None, False). The hook must
-    # allow-stop (no block+continue) and record the BENIGN quiet-wait outcome -- NOT the loud
-    # DRAW_EMPTY_UNEXPECTED. This is what stops the STUCK/LOOP_BROKEN thrash + token burn.
+def test_hook_HEARTBEATS_when_drained_and_gated_not_dead_chain(hook, monkeypatch):
+    # STATE TEST 1, REDESIGNED (LOOP_CONTINUITY_REARM_DESIGN.md, 2026-07-19, R3): drained-and-gated
+    # (find_work -> (None, False)) must NOT allow-stop. An allow-stop ends the turn-chain, and nothing
+    # re-fires the Stop hook at rest -> the seat sits dead with unconsumed staged docs (the 2026-07-19
+    # failure). The hook now HEARTBEATS: keeps the chain alive with a keep-alive continuation and
+    # records the fresh HEARTBEAT_REARM liveness stamp (freshness-checked -- a stopped beat alarms).
     import background.supervisor as sup
     monkeypatch.setattr(sup, "find_work", lambda **k: (None, False))
+    monkeypatch.setattr(sup, "_real_staged_instructions", lambda: [])   # nothing staged -> keep-alive
+    monkeypatch.setattr(sup, "_sync_origin_staging", lambda: [])
+    monkeypatch.setattr(hook, "HEARTBEAT_HOLD_SECONDS", 1)
+    monkeypatch.setattr(hook, "HEARTBEAT_POLL_SECONDS", 1)
+    monkeypatch.setattr("time.sleep", lambda *_a, **_k: None)
     out = hook.decide({"session_id": "WORKER", "stop_hook_active": True})
-    assert out is None                                         # allow-stop, no continuation
-    assert _outcome(hook) == "ALLOW_STOP_QUIET_WAIT"           # benign, not loud
+    assert out is not None and out["decision"] == "block"      # chain kept ALIVE, not dead
+    assert "REST HEARTBEAT" in out["reason"]
+    assert _outcome(hook) == "HEARTBEAT_REARM"                 # fresh liveness stamp, benign-when-fresh
+
+
+def test_heartbeat_rearm_reads_benign_when_fresh_but_LOUD_when_stale():
+    # The improvement over the freshness-EXEMPT ALLOW_STOP_QUIET_WAIT: a heartbeat that STOPS beating
+    # (stale stamp) means the seat died/hung mid-rest -- now detectable, not silently absorbed.
+    fresh = R.pull_loop_status({"outcome": "HEARTBEAT_REARM", "ts": 1000.0}, enable_on=True,
+                               now=1100.0, stale_after=3600.0)
+    assert fresh["alarm"] is False and fresh["status"] == "HEALTHY_IDLE"   # alive rest, silent
+    stale = R.pull_loop_status({"outcome": "HEARTBEAT_REARM", "ts": 0.0}, enable_on=True,
+                               now=10 ** 9, stale_after=3600.0)
+    assert stale["alarm"] is True and stale["status"] == "LOOP_STALE"      # stopped beat -> LOUD
 
 
 def test_hook_R15_quiet_wait_still_loud_on_a_genuinely_broken_draw(hook, monkeypatch):
