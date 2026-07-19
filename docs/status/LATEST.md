@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T11:34:36Z
+Last updated: 2026-07-19T11:36:09Z
 
 **LOOP-CONTINUITY FAILURE DIAGNOSED + 4 DIRECTOR ORDERS DONE (2026-07-19 ~11:15):** The 93-min idle +
 unconsumed origin doc: **RC1** the draw starved (gate-after campaign BUILD authorized as policy but never
@@ -11,9 +11,13 @@ corrected it. Fix = RC3 (the work-check must see origin staging) — queued as i
 fix needs a campaign `FRONT_OPEN` (director console). Full: `LOOP_CONTINUITY_FAILURE_DIAGNOSIS.md`.
 **Orders:** (1) diagnosed ✓ (2) two decade-replay slow tests FIXED `a040f176a` (413s→49s, mutation-verified)
 (3) token amendment consumed — folded into `RESOURCE_AWARE_SCHEDULING_PROPOSAL.md` §7-8, 4 scheduling docs
-reconciled ✓ (4) campaign BUILD resumed — **G1 fidelity grid-scorer** `991b02007` (best-of-family/CVaR/
-map-of-ignorance/CRN-ablation, 24 R15 tests, epistemic PASS, L1 PROPOSED) ✓. Not claiming "continuous" until
-RC3 lands + campaign BUILD is drawable.
+reconciled ✓ (4) campaign BUILD resumed — the **G fidelity-machinery is now COMPLETE**: G1 grid-scorer `991b02007`
+(best-of-family/CVaR/map-of-ignorance/CRN-ablation, 24 R15 tests) + G2 emit-ledger+DoD-gate `84efccdd7`
+(sibling ledger, 3-red-condition gate, fail-closed, 22 tests) + G3 inspection-chain `42d4de88c` (4 record
+types + link graph + the epistemic wall IN-SCHEMA via a truth_ref leak-guard, 25 tests) — all epistemic PASS,
+all L1 PROPOSED ✓. **NEXT (mine):** the RC3 spine fix (own turn), then wire an emitter into G2's ledger +
+G4 site instrument + D/A BUILD. **NEXT (director's):** a campaign `FRONT_OPEN` (makes BUILD self-drawing —
+fixes RC1) + the seat-side step-zero check + the batched proposals. Not claiming "continuous" until RC3 + FRONT_OPEN.
 
 ---
 
