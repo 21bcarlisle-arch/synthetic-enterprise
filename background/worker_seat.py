@@ -156,7 +156,7 @@ def _live_session_id() -> str | None:
     (The /proc read is environment-specific and unproven from the sandbox; the pure classifier
     `_classify_seat` is what the R15 tests cover, with the live id injected.)"""
     try:
-        r = subprocess.run(["tmux", "list-panes", "-t", SESSION_NAME, "-F", "#{pane_pid}"],
+        r = subprocess.run(["tmux", "list-panes", "-t", f"{SESSION_NAME}:", "-F", "#{pane_pid}"],
                            capture_output=True, text=True)
         if r.returncode != 0 or not r.stdout.strip():
             return None
@@ -197,6 +197,26 @@ def _classify_seat(alive: bool, live_id: str | None) -> str:
     if live_id is not None and live_id != WORKER_SESSION_ID:
         return "drift"
     return "healthy"
+
+
+def drift_report(alive: bool, live_id: str | None) -> str:
+    """Human-readable one-line drift verdict for bounce_worker_seat.sh, routed through the SAME
+    `_classify_seat` the keep-alive uses so the report can NEVER disagree with the decision.
+
+    Fixes the 2026-07-19 false positive: bounce_worker_seat.sh re-implemented the verdict as a bare
+    `[ "$live" = "$WORKER_ID" ]` string compare, so a fresh healthy seat -- which has written no
+    transcript yet, making `_live_session_id()` return None (UNREADABLE, not a read mismatch) --
+    reported `DRIFT: None != <id>` from an unreadable value. Drift is ONLY a CONFIRMED mismatch
+    (`_classify_seat` == 'drift'); an unreadable id is 'healthy' (backstop) and must read as OK."""
+    status = _classify_seat(alive, live_id)
+    if status == "dead":
+        return "SEAT DEAD (tmux '%s' gone) -- manager will re-seed" % SESSION_NAME
+    if status == "drift":
+        return "DRIFT: %s != %s  (transport rejects this seat)" % (live_id, WORKER_SESSION_ID)
+    if live_id is None:
+        return ("OK: live id not readable yet (fresh seat has written no transcript) -- "
+                "NOT a mismatch. expected %s" % WORKER_SESSION_ID)
+    return "MATCH: %s (no drift; nothing to bounce)" % live_id
 
 
 def _report(status: str) -> None:

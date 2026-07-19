@@ -144,6 +144,49 @@ def test_identity_drift_is_distinct_from_the_reseed_state_and_no_kill_exists():
     assert _re.search(r"os\.kill\s*\(", SRC) is None  # no reap anywhere, drift path included
 
 
+#  ── drift_report: the human verdict bounce_worker_seat.sh prints. It MUST route through ──────
+#  ── _classify_seat so the report can never disagree with the decision. R15: the fresh-seat ───
+#  ── false positive (`DRIFT: None != <id>` from an UNREADABLE value) is gone AND a genuine ─────
+#  ── (read-and-mismatched) drift still trips. ─────────────────────────────────────────────────
+def test_drift_report_fresh_seat_unreadable_id_is_not_a_false_drift():
+    """THE FALSE POSITIVE (2026-07-19): a fresh healthy seat has written no transcript, so
+    _live_session_id() returns None. The old bash `[ "$live" = "$WORKER_ID" ]` compare printed
+    `DRIFT: None != <id>` from that unreadable value. The verdict must NOT say drift; it must say
+    the id is not readable yet. MUTATION: reverting drift_report to a bare `live_id == WORKER` test
+    would put 'DRIFT' in this string and fail here."""
+    msg = W.drift_report(alive=True, live_id=None)
+    assert "DRIFT" not in msg
+    assert "not readable yet" in msg
+
+
+def test_drift_report_confirmed_mismatch_still_trips():
+    """The genuine drift (a READ id that mismatches) must still report DRIFT loudly -- the fix
+    must not blunt real detection. MUTATION: treating every non-match as OK would drop 'DRIFT'."""
+    msg = W.drift_report(alive=True, live_id="da80a780-8219-4825-b187-53bab3e13270")
+    assert msg.startswith("DRIFT:")
+    assert W.WORKER_SESSION_ID in msg
+
+
+def test_drift_report_match_and_dead_are_distinct_and_not_drift():
+    """A matching id reads MATCH; a gone seat reads SEAT DEAD; neither says DRIFT. Together with the
+    two tests above, all four _classify_seat outcomes map to distinct, non-misleading verdict lines."""
+    assert "MATCH" in W.drift_report(True, W.WORKER_SESSION_ID)
+    assert "DRIFT" not in W.drift_report(True, W.WORKER_SESSION_ID)
+    assert "DEAD" in W.drift_report(False, None)
+    assert "DRIFT" not in W.drift_report(False, None)
+
+
+def test_drift_report_agrees_with_classify_seat_on_every_state():
+    """Independence guard: the verdict word must be derivable from _classify_seat, never a parallel
+    re-implementation that can drift from it (the exact bug being fixed was a duplicated compare)."""
+    cases = [(True, None), (True, W.WORKER_SESSION_ID), (True, "different-id"), (False, None)]
+    for alive, live in cases:
+        status = W._classify_seat(alive, live)
+        report = W.drift_report(alive, live)
+        says_drift = report.startswith("DRIFT:")
+        assert says_drift == (status == "drift"), (alive, live, status, report)
+
+
 def test_seed_seat_archives_a_stale_transcript_before_creating(tmp_path, monkeypatch):
     """--session-id needs a clean id: any stale on-disk transcript for WORKER_SESSION_ID is moved
     aside first, so the created seat's live id is deterministically WORKER_SESSION_ID."""

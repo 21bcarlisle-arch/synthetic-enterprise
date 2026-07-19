@@ -32,7 +32,9 @@ diagnose() {
   echo "== live id inside tmux 'claude' (the managed seat):"
   local live; live="$(python3 -c 'from background import worker_seat as W; print(W._live_session_id())')"
   echo "   live=$live"
-  if [ "$live" = "$WORKER_ID" ]; then echo "   -> MATCH (no drift; nothing to bounce)"; else echo "   -> DRIFT: $live != $WORKER_ID  (transport rejects this seat)"; fi
+  # Verdict routed through _classify_seat (NOT a bare string compare) so an UNREADABLE id (None,
+  # e.g. a fresh seat with no transcript yet) reads as OK, not a false 'DRIFT: None != ...'.
+  echo "   -> $(python3 -c 'from background import worker_seat as W; print(W.drift_report(W._session_alive(), W._live_session_id()))')"
   echo "== current pull-loop health:"; cat docs/observability/.pull_loop_health.json 2>/dev/null; echo
 }
 
@@ -56,8 +58,10 @@ apply() {
   if [ "$live" = "$WORKER_ID" ]; then
     echo "PASS: seat identity reconciled. The pull-loop will now recognise it and (once its bring-up"
     echo "      turn ends) the REST HEARTBEAT keeps it alive. Expect a fresh worker health outcome soon:"
+  elif [ "$live" = "None" ] || [ -z "$live" ]; then
+    echo "PENDING: live id not readable yet (fresh seat has written no transcript) — re-run diagnose in ~2 min."
   else
-    echo "CHECK: id not matching yet — the seat may still be mid-bring-up. Re-run the diagnose command in ~2 min."
+    echo "CHECK: id CONFIRMED mismatched ($live != $WORKER_ID) — the seat may still be mid-bring-up. Re-run diagnose in ~2 min."
   fi
   cat docs/observability/.pull_loop_health.json 2>/dev/null; echo
 }
