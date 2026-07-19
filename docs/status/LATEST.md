@@ -1,5 +1,21 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T12:01:58Z
+Last updated: 2026-07-19T12:10:28Z
+
+**DIRECTOR CONSOLE ACT EXECUTED + RC1 FIX PROVEN (2026-07-19 ~12:10, `f9cfefff7`):**
+- **FRONT_OPEN campaign** — the `EPOCH2_CAMPAIGN` front (over `G_data_learning`, the one campaign lane not
+  already covered by the open SIM_ACTORS/SUPPLIER fronts) is DEFINED + OPEN + reconciler-clean.
+- **RC1 MECHANICALLY FIXED — self-drawing PROVEN:** the campaign fidelity atoms G1/G2/G3 (which existed only as
+  DISCOVER docs + modules, never in the map) are now authored into the map at `loop_stage: build` in the open
+  front. **`find_work` went from `(None, False)` "drained-and-gated" to `BUILD=3`** — it now self-draws campaign
+  BUILD. The loop no longer starves. (RC3 — origin-staging visibility — remains my spine turn, but an actively
+  self-drawing loop pulls origin during work, so the starvation half is closed.)
+- **RATIFIED → L1:** SSP engine (W1_6), G1, G2, G3 — cells moved, ledger `LEVEL_UP` recorded (console provenance).
+- **Step-zero (reported before building the sensor):** Claude Code **2.1.215**; the statusline stdin payload
+  **DOES carry `rate_limits`, populated** — `five_hour: 12% used`, `seven_day: 74% used` (+ reset timestamps).
+  So the token-headroom sensor can be built with **no Claude Code update needed**; `executor_governor.py`'s inert
+  `max_tokens_per_window` is its ready consumer. (Capture was a temporary, reverted statusline tee.)
+- 48 governance tests pass; map/fronts edits validated. **Next (mine):** RC3 spine fix + the campaign BUILD the
+  loop now self-draws (G1/G2/G3 → L2 = wire a live emitter) + the token sensor.
 
 **LOOP-CONTINUITY FAILURE DIAGNOSED + 4 DIRECTOR ORDERS DONE (2026-07-19 ~11:15):** The 93-min idle +
 unconsumed origin doc: **RC1** the draw starved (gate-after campaign BUILD authorized as policy but never
