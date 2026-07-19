@@ -22,11 +22,16 @@ def test_seat_argv_creates_with_session_id_when_no_prior_session(monkeypatch):
     assert "-c" not in argv and "--continue" not in argv          # never continue-most-recent
 
 
-def test_seat_argv_resumes_the_same_id_when_it_exists(monkeypatch):
-    monkeypatch.setattr(W, "_worker_session_exists", lambda: True)
+def test_seat_argv_is_deterministic_session_id_never_resume_even_when_transcript_exists(monkeypatch):
+    """IDENTITY_DRIFT_FIX (2026-07-19, R3 root cause): the old `--resume` path brought the seat up
+    under a DIFFERENT live session id than WORKER_SESSION_ID on this CC build, so the pull-loop
+    rejected it as non-worker on every Stop -- no work ever delivered. seat_argv must NOW pin the id
+    with `--session-id` DETERMINISTICALLY, never `--resume`, even when a prior transcript exists.
+    MUTATION: reintroducing `--resume` reintroduces the drift -> this assertion fails."""
+    monkeypatch.setattr(W, "_worker_session_exists", lambda: True)   # transcript exists
     argv = W.seat_argv("/usr/bin/claude")
-    assert "--resume" in argv
-    assert W.WORKER_SESSION_ID in argv
+    assert "--session-id" in argv and W.WORKER_SESSION_ID in argv
+    assert "--resume" not in argv                                    # the drift path is gone
     assert "-c" not in argv and "--continue" not in argv
 
 
@@ -94,6 +99,67 @@ def test_resolve_claude_prefers_PATH_when_present(monkeypatch):
     import shutil
     monkeypatch.setattr(shutil, "which", lambda _c: "/usr/local/bin/claude")
     assert W._resolve_claude() == "/usr/local/bin/claude"
+
+# ── IDENTITY-AWARE keep-alive (IDENTITY_DRIFT_FIX, 2026-07-19): keep the RECOGNISED seat alive,
+#    not any tmux session -- and detect drift WITHOUT ever reaping (the permanent no-reap invariant). ──
+
+def test_classify_seat_healthy_when_live_id_matches_worker_id():
+    assert W._classify_seat(alive=True, live_id=W.WORKER_SESSION_ID) == "healthy"
+
+
+def test_classify_seat_detects_drift_when_live_id_differs():
+    """The 2026-07-19 deadlock: tmux ALIVE but the live session id != WORKER_SESSION_ID, so the
+    transport rejects the seat as non-worker forever. Identity-aware keep-alive flags it 'drift'
+    (-> report + bounce), never 'healthy'. MUTATION: a liveness-only check returns 'healthy' here
+    and the deadlock is silent again."""
+    st = W._classify_seat(alive=True, live_id="da80a780-8219-4825-b187-53bab3e13270")
+    assert st == "drift"
+    assert st != "healthy" and st != "dead"          # drift never re-seeds (no reap) and never rests
+
+
+def test_classify_seat_unknown_live_id_is_not_a_false_drift():
+    """FAIL-SAFE direction: if the live id can't be determined this cycle (None), it must NOT be
+    treated as a positive mismatch (which would falsely flag drift / thrash). Unknown -> healthy;
+    the deterministic --session-id seed is the prevention, this classifier is the backstop."""
+    assert W._classify_seat(alive=True, live_id=None) == "healthy"
+
+
+def test_classify_seat_dead_when_tmux_gone_triggers_reseed_path():
+    """Only 'dead' takes the re-seed branch in main(); 'drift' never does (worker_seat cannot reap)."""
+    assert W._classify_seat(alive=False, live_id=None) == "dead"
+
+
+def test_identity_drift_is_distinct_from_the_reseed_state_and_no_kill_exists():
+    """R15 / invariant: drift must be its OWN state, distinct from 'dead' (the only state that
+    re-seeds) -- so a drifted seat is never re-seeded (which would need a kill) nor rested as healthy.
+    Combined with the file having no kill path at all (test_no_process_kill_path_in_worker_seat), this
+    proves the manager REPORTS drift and holds, honouring the permanent no-reap invariant."""
+    assert W._classify_seat(True, "other-id-0000-0000-0000-000000000000") == "drift"
+    assert {"healthy", "dead", "drift"} == {
+        W._classify_seat(True, W.WORKER_SESSION_ID),
+        W._classify_seat(False, None),
+        W._classify_seat(True, "different-id"),
+    }  # three genuinely distinct outcomes; drift is not aliased onto dead/healthy
+    import re as _re
+    assert _re.search(r"os\.kill\s*\(", SRC) is None  # no reap anywhere, drift path included
+
+
+def test_seed_seat_archives_a_stale_transcript_before_creating(tmp_path, monkeypatch):
+    """--session-id needs a clean id: any stale on-disk transcript for WORKER_SESSION_ID is moved
+    aside first, so the created seat's live id is deterministically WORKER_SESSION_ID."""
+    projects = tmp_path / "projects"
+    proj = projects / "-home-rich-synthetic-enterprise"
+    proj.mkdir(parents=True)
+    stale = proj / f"{W.WORKER_SESSION_ID}.jsonl"
+    stale.write_text("stale transcript")
+    monkeypatch.setattr(W, "CLAUDE_PROJECTS", projects)
+    calls = {}
+    monkeypatch.setattr(W.subprocess, "run", lambda *a, **k: calls.setdefault("argv", a[0]))
+    W.seed_seat("/usr/bin/claude")
+    assert not stale.exists(), "stale transcript must be archived before create"
+    assert (proj / f"{W.WORKER_SESSION_ID}.jsonl.pre_reseed").exists()
+    assert "--session-id" in calls["argv"] and "--resume" not in calls["argv"]
+
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
