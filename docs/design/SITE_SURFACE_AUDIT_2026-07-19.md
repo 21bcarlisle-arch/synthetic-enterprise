@@ -162,6 +162,31 @@ before action. The remaining site work is the content MERGES (customers→Compan
 wip-flow→Journey, method-casebook→Method) + the v4 narrative reorientation of the kept doors — larger
 content passes, not deletions.
 
+## MERGE-PASS SCOPING (2026-07-20) — the remaining site work is entangled, not isolated deletes
+
+The clean isolated orphan-retirements are **done**: `platform/` (20cf4e51b), `supplier/` page
+(f8021aa87), `method-casebook/` (75de25db8), `staging-status/` (a011fff8a). What remains is a
+**coherent content-merge pass**, not more piecemeal deletes — each remaining surface is entangled:
+
+- **`timeline/` + `sim/`** — both carry the "~30 UK suppliers failed (2021-22)" fact, and a
+  cross-surface consistency control (`test_generate_shadow_html.py::test_2021_22_crisis_supplier_
+  failure_count_is_single_sourced`) checks that fact across `{index, sim, project, timeline}` with a
+  `mentions_fact >= 3` sanity floor. The fact currently lives on **only 2 kept doors** (`world`,
+  `project`) — `index` no longer mentions it post-v4-reorientation. So retiring `sim`+`timeline`
+  requires FIRST re-homing the crisis-survival evidence onto a 3rd kept door (**The Proof §12 "why
+  believe it"** is the v4-correct home — it's data-driven via `proof.json`, so a generator change),
+  THEN reworking the control to reference kept doors only. Order matters: content first, delete second.
+- **`customers/`** — load-bearing (the Front Door pulse links to it for the last-bill drill-down);
+  becomes The Company's household view (§6b keep-list). Re-home as a Company sub-view, don't delete.
+- **`wip-flow/`** — the activity view; has its own generator (`generate_wip_flow_data`); re-homes
+  into The Journey (§4⑤). Generator + data preserved, surface re-homed.
+- **`glossary/` → a site-wide layer**, **`tours/` → the floating Expert-Hour selector** (§5/§6c) —
+  feature-demotions (integrate across doors), not deletes.
+
+**Doing these as rushed single-doorbell chunks risks content loss + breaking the cross-surface
+controls.** They should be one careful merge pass (re-home content → rework the control → retire the
+now-empty surface), ideally with fresh context. Sequenced, low-risk, but not isolated.
+
 ## Note on BRAND1
 
 BRAND1 (`BRAND_CONSTITUTION`) is a *different* case from SITE1 — it shipped real, tested deliverables
