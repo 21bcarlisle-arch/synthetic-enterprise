@@ -1,5 +1,22 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T12:15:37Z
+Last updated: 2026-07-19T12:28:16Z
+
+**SELF-DRAWING LOOP RAN A FULL CYCLE + G MACHINERY DEMONSTRATED LIVE (2026-07-19 ~12:27):**
+The self-drawing loop drew G1/G2/G3→L2, I dispatched one integrated emitter build, and it completed the
+whole cycle honestly:
+- **Emitter LANDED** (`1351502a7`, `background/fidelity_emitter.py`): recomputed the SSP calibration LIVE
+  (no fixtures) → emitted to G2's ledger → G1 scored → G3 chained → DoD gate passed. **Honest findings:**
+  best-of-family lift **£1.168/MWh over OLS** (not the flattering £2.99 over the weak gas-floor), and
+  **6 of 10 years the structural model is WORSE than plain OLS** — a real, previously-unmeasured finding.
+  G1 CVaR worst-cell = 2022 (real gas-crisis year). 13 tests, epistemic PASS.
+- **BUILD-IN-PROGRESS guard shipped + DEPLOYED** (`aee1e9853`, supervisor restarted): the self-drawing loop
+  no longer re-offers atoms a live fork owns (a real re-offer-thrash defect *my own* RC1 fix introduced,
+  caught + closed with a fail-open marker filter, R15-proven). The loop now rests quietly behind an in-flight
+  fork instead of thrashing.
+- **G1/G2/G3 → L2 PROPOSED** (batched), `blocked_on: director_level_up` — worker-complete, awaiting your L2
+  ratification; NOT L3 (WORLD-fidelity model-vs-reality, not COUPLED_TRIAD belief-vs-truth — no live company
+  consumer, correctly declined). The loop is now at honest rest (`find_work → (None, False)`): all campaign
+  BUILD is either done-pending-ratification or gated. Awaits: your L2 ratifications + the batched proposals.
 
 **DIRECTOR CONSOLE ACT EXECUTED + RC1 FIX PROVEN (2026-07-19 ~12:10, `f9cfefff7`):**
 - **FRONT_OPEN campaign** — the `EPOCH2_CAMPAIGN` front (over `G_data_learning`, the one campaign lane not
@@ -221,7 +238,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (491s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (472s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
