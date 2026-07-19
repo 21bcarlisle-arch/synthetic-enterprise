@@ -49,3 +49,17 @@ Randomness + generating structure live in the SIM (req 5); the company infers fr
 - **The campaign's DISCOVER/FRAME design phase is COMPLETE: A,B/C,D,E,F,G all landed.** The full design spine exists (objective function, physics, estimation method, delay chain, value-ranking, fidelity-evidence machinery).
 - **AWAITS THE DIRECTOR (not agent-decidable):** (1) W1 BUILD-open (all the above is DISCOVER/FRAME; nothing built); (2) the VALUES-CALLS surfaced across the docs — harm-weights in atom F's kappa + tau threshold, atom G's commercial_weight per cell, atom A's equal-cell-vs-harm-weighted worst-cell + grid-completeness, atom E's metric-normalisation, L_min gate floors (cat-6 one-way doors, R13 curriculum). (3) Upstream BUILD blocker: the price engine's ~10x SSP miscalibration + missing carbon/UK-ETS term + hedging.py single-price collapse — gates cascade MAGNITUDE (not direction) for any physics BUILD.
 - Site lane (G4 + the existing doors) continues as the standing parallel window.
+
+## BUILD phase underway (2026-07-19, gate-after + director "resume the campaign BUILD")
+- **TASK 1 — SSP price-engine recal LANDED** (a2dd6dcac): the ~10× fix that unblocks cascade MAGNITUDE.
+- **G machinery (the fidelity-evidence measurement infrastructure) being built on the IMPROVED constructs**
+  (`EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md` — best-of-naive-family / CVaR-generalizing-MAX / screen-then-ablate):
+  - **G1 grid-scorer LANDED** (991b02007): `background/fidelity_grid_scorer.py`, 24 R15 tests, epistemic PASS, L1 PROPOSED.
+  - **G2 emit-ledger + emit-DoD gate LANDED** (84efccdd7): `background/fidelity_evidence_ledger.py`, sibling ledger
+    (no consumers wired — avoids the shared-surface wedge) + 3-red-condition R15 gate, fail-closed, 22 tests, L1 PROPOSED.
+  - **G3 inspection-chain data model — IN FLIGHT** (4 record types + bidirectional link graph + in-schema wall discipline).
+  - G4 (site fidelity instrument, SITE lane) sequenced after G3.
+- All L1 PROPOSED (batched, cells not moved — director's per §0). Values-calls running on the asserted defaults
+  (`EPOCH2_VALUES_CALLS_BATCH_1.md`). NEXT after G machinery: wire an emitter (a physics atom emits into G2's ledger),
+  then D (cascade estimation) + A (scoring frame) BUILD. Campaign BUILD is by explicit dispatch until a director
+  `FRONT_OPEN` makes it self-drawing (see `LOOP_CONTINUITY_FAILURE_DIAGNOSIS.md` RC1).
