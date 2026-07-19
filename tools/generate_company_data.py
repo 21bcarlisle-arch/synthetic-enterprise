@@ -289,6 +289,38 @@ def _compliance(dashboard):
     )
 
 
+def _stress_bands(sample):
+    """The book by each customer's latest income-stress band -- re-homed from the
+    retired SIM-Explorer 'Customers' tab into The Company (v4 §4①, affordability/
+    collections). Categorical, from the tail of each customer's
+    income_stress_trajectory. The switching insight is CODE-backed (not lost with
+    the old page): simulation/switching_propensity.py."""
+    custs = ((sample or {}).get("customers")) or {}
+    high = mod = low = ic = 0
+    for cid, c in custs.items():
+        if "IC" in str(cid):
+            ic += 1
+        traj = c.get("income_stress_trajectory") or []
+        s = ((traj[-1].get("stress") if traj else "low") or "low").upper()
+        if s == "HIGH":
+            high += 1
+        elif s == "MODERATE":
+            mod += 1
+        else:
+            low += 1
+    total = len(custs)
+    return dict(
+        total=total, ic=ic, residential=total - ic,
+        high_stress=high, moderate_stress=mod, low_stress=low,
+        switching_insight=(
+            "Financially stressed customers switch LESS, not more: friction costs "
+            "(deposits, DD setup, mental load) suppress switching hardest for HIGH-stress "
+            "households (x0.65) vs LOW-stress (x1.10) — a fixed function of stress, "
+            "simulation/switching_propensity.py."
+        ),
+    )
+
+
 def generate():
     dashboard = _load(DASHBOARD_PATH) or {}
     bridge = _load(BRIDGE_PATH) or {}
@@ -303,6 +335,7 @@ def generate():
         finance=_three_clock_finance(dashboard, bridge, ledger),
         trading_risk=_trading_risk(dashboard),
         household=_household(sample, ledger),
+        stress_bands=_stress_bands(sample),
         compliance=_compliance(dashboard),
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -327,6 +327,12 @@ function renderHousehold(d){
       pnl.map(function(r){ return '<tr><td>'+esc(r.year)+'</td><td class="num">'+gbp(r.gross_gbp)+'</td><td class="num '+(r.net_gbp>=0?"pos":"neg")+'">'+gbp(r.net_gbp)+'</td></tr>'; }).join("")+
       '</tbody></table></div>';
   }
+  var sb=d.stress_bands||{};
+  if(sb.total){
+    detail+='<div class="muted" style="font-weight:600;margin:12px 0 4px">The book by financial-stress band ('+sb.total+' customers &middot; '+sb.ic+' I&amp;C, '+sb.residential+' residential)</div>';
+    detail+='<div class="muted">HIGH stress (vulnerable): <b>'+sb.high_stress+'</b> &middot; MODERATE (under pressure): <b>'+sb.moderate_stress+'</b> &middot; LOW (stable): <b>'+sb.low_stress+'</b></div>';
+    if(sb.switching_insight) detail+='<div class="muted" style="margin-top:6px"><em>'+esc(sb.switching_insight)+'</em></div>';
+  }
   el("hh-detail").innerHTML=detail||'<div class="muted">No further detail.</div>';
   var p=h.passport||{};
   el("hh-passport").innerHTML="<b>Passport.</b> "+esc(p.note||"")+" Sources: "+(p.sources||[]).map(esc).join("; ")+".";
