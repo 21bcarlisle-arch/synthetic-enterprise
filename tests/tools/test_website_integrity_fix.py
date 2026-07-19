@@ -394,6 +394,44 @@ def test_generate_dashboard_json_returns_gate_status(tmp_path, monkeypatch):
     import background.process_run_complete as prc
 
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")  # isolate from real sim-runner-log.md
+    # Test throughput fix (TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md root
+    # cause #2). generate_dashboard_json() unconditionally runs the ENTIRE
+    # site-regeneration pipeline (~40 generator calls) after the dashboard-data
+    # call this test cares about -- most take json_path and fail fast on the
+    # nonexistent tmp_path/run.json (caught + logged), but a handful take NO
+    # json_path at all and read/write real repo state regardless, with no
+    # staleness gate this test can rely on:
+    #   - tools.run_frozen_baseline.generate(): weekly-gated internally
+    #     (should_refresh_baseline()) -- replays the full decade TWICE
+    #     (current vs naive policy) whenever that gate is stale/missing.
+    #     The design doc's original profiling attributed the whole ~117s to
+    #     this call alone.
+    #   - Direct re-profiling (2026-07-19, via a timed instrumentation of
+    #     every generate_dashboard_json step with only the two mocks above
+    #     applied) found that in THIS repo/test environment the frozen
+    #     baseline was already fresh (a fast no-op) but the test still took
+    #     ~107s -- almost entirely two OTHER unconditional, non-json_path-gated
+    #     calls: tools.generate_provisional_plan_data.main() (~57s) and
+    #     tools.generate_test_mix_data.generate() (~47s, documented in that
+    #     module as "20 pytest --collect-only subprocess calls"). Neither is
+    #     part of what this test asserts (dashboard-data's gate-status return
+    #     value propagating through), so they are pure orthogonal cost here.
+    # All three are mocked below (frozen-baseline defensively, per the design
+    # doc, plus the two calls actually measured as dominant); every other
+    # downstream generator in the pipeline is left real since each already
+    # runs in well under a second (measured total for the rest: ~3s).
+    monkeypatch.setattr(
+        "tools.run_frozen_baseline.generate",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "tools.generate_provisional_plan_data.main",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        "tools.generate_test_mix_data.generate",
+        lambda *args, **kwargs: None,
+    )
     monkeypatch.setattr(
         "tools.generate_dashboard_data.generate",
         lambda json_path: False,

@@ -1,6 +1,9 @@
 from datetime import date, datetime, time, timedelta
 
+import pytest
+
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
+from company.interfaces.sim_interface import StubSimInterface
 from sim.weather_price_sensitivity import COLD_SPELL_PRICE_MULTIPLIER
 from simulation.renewals import NOTICE_DAYS
 from simulation.run_phase2b import (
@@ -9,6 +12,7 @@ from simulation.run_phase2b import (
     _build_gas_renewal_schedule,
     _clamp_term_end,
     _weather_adjusted_shape_fn,
+    main as _run_phase2b_main,
 )
 
 
@@ -202,14 +206,29 @@ def test_acq_cost_resi_lower_than_sme():
     assert COST_PER_ACQUISITION["resi"] < COST_PER_ACQUISITION["SME"]
 
 
-def test_retention_log_includes_acq_cost_saved():
+# Test throughput fix (TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md root cause #1):
+# this test previously called main() with no report_end truncation, replaying
+# the full 2016-2025 decade (~185s) just to check one dict key's presence on the
+# first retention-log entry. Truncated to the same 2016-2017 window already
+# proven by the sibling file tests/simulation/test_run_phase2b_event_log.py's
+# module-scoped sim_result_2017 fixture -- verified directly (2026-07-19) that
+# this truncated window still produces retention_log entries (2 entries, the
+# first including acq_cost_saved_gbp), so the assertion's exposure is unchanged.
+@pytest.fixture(scope="module")
+def _phase2b_result_2017():
+    return _run_phase2b_main(report_end="2017-12-31", sim_interface=StubSimInterface())
+
+
+def test_retention_log_includes_acq_cost_saved(_phase2b_result_2017):
     """Retention log entries include acq_cost_saved_gbp for traceability (Phase 15b)."""
     # conftest autouse fixture already sets SIM_FAST_MODE=1 for all tests
-    from simulation.run_phase2b import main
-    result = main()
+    result = _phase2b_result_2017
     rl = result.get("retention_log", [])
-    if rl:
-        assert "acq_cost_saved_gbp" in rl[0], "retention_log entry should include acq_cost_saved_gbp"
+    # The truncated window must still exercise retention logging -- an empty
+    # retention_log would make this test vacuously pass (fail-open), which is
+    # exactly the R15 pattern to avoid.
+    assert rl, "expected at least one retention_log entry in the truncated 2016-2017 window"
+    assert "acq_cost_saved_gbp" in rl[0], "retention_log entry should include acq_cost_saved_gbp"
 
 
 # --- price history as-of (2026-07-10 HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md fix;
