@@ -100,7 +100,7 @@ def test_2021_22_crisis_supplier_failure_count_is_single_sourced():
     repo_root = Path(__file__).resolve().parents[2]
     pages = [
         repo_root / "site" / "index.html",
-        repo_root / "site" / "sim" / "index.html",
+        repo_root / "site" / "data" / "proof.json",  # (v4) sim/ retired -> Proof (data-driven, section-12) carries the fact
         repo_root / "site" / "project" / "index.html",
         repo_root / "site" / "world" / "index.html",  # (v4) timeline retired -> world carries the fact
     ]
