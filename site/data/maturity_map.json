@@ -1138,7 +1138,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 3,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -1146,9 +1146,9 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": true,
+      "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "H10_worktree_isolation",
@@ -1233,7 +1233,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 3,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -1241,7 +1241,7 @@
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": true,
+      "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 212
     },
