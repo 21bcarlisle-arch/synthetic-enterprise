@@ -204,8 +204,27 @@ def test_classify_worktree_belonging_is_derived_from_branch_state():
     assert F.classify_worktree(_wt(MAIN), MAIN, states) == "BELONGS"
     assert F.classify_worktree(_wt("/wt/a", "live-w1"), MAIN, states) == "BELONGS"     # live fork
     assert F.classify_worktree(_wt("/wt/b", "old-w2"), MAIN, states) == "UNDECLARED"   # orphan branch
-    assert F.classify_worktree(_wt("/wt/c", "done-w3"), MAIN, states) == "UNDECLARED"  # merged: should be pruned
+    # merged = came home, awaiting the H24 dir-reaper: a benign transient, NOT accretion. Flagging it
+    # UNDECLARED paged the director on healthy churn (the 2026-07-19 transient-ping escalation).
+    assert F.classify_worktree(_wt("/wt/c", "done-w3"), MAIN, states) == "PENDING_REAP"
     assert F.classify_worktree(_wt("/wt/d", detached=True), MAIN, states) == "UNDECLARED"  # detached
+
+
+def test_merged_worktree_pending_reap_does_NOT_alarm_but_orphan_DOES():
+    # R15 (ping-hygiene): the transient-suppression must FIRE (no alarm) on a merged-pending-reap
+    # worktree, yet the genuine-accretion alarm must STILL FIRE on an unmerged orphan. A mutation that
+    # reverts classify_worktree to treat MERGED as UNDECLARED would re-page on healthy churn -> caught
+    # by the first assertion; a mutation that stopped alarming on orphans -> caught by the second.
+    wts = [_wt(MAIN, "main"), _wt("/wt/merged", "done-w3")]
+    r = F.evaluate_worktree_reconcile(worktrees=wts, branch_states={"done-w3": "MERGED"}, main_path=MAIN)
+    assert r["alarm"] is False and r["status"] == "WORKTREE_CLEAN"     # transient graced -> no page
+    assert r["pending_reap"] == ["/wt/merged"]                         # surfaced, not hidden
+    # a genuine orphan alongside the merged transient still alarms (and only the orphan is undeclared)
+    wts2 = wts + [_wt("/wt/orphan", "old-w2")]
+    r2 = F.evaluate_worktree_reconcile(
+        worktrees=wts2, branch_states={"done-w3": "MERGED", "old-w2": "ORPHAN"}, main_path=MAIN)
+    assert r2["alarm"] is True and {u["path"] for u in r2["undeclared"]} == {"/wt/orphan"}
+    assert r2["pending_reap"] == ["/wt/merged"]
 
 
 def test_worktree_reconcile_clean_when_only_main_and_live_forks():

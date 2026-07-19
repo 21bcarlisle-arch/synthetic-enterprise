@@ -240,12 +240,18 @@ def scan_worktrees() -> list[dict]:
 
 def classify_worktree(wt: dict, main_path: str, branch_states: dict) -> str:
     """Pure: BELONGS if it is the main worktree, or a fork worktree whose branch is IN_FLIGHT (a
-    live fork). Otherwise UNDECLARED (accretion): detached, no/unknown branch, or a branch that is
-    an orphan or already merged (the worktree should have been pruned when the fork came home)."""
+    live fork). PENDING_REAP if its branch has already MERGED (came home) — a benign transient in
+    the normal merge→reap lifecycle window, NOT accretion (the H24 dir-reaper removes it moments
+    later; flagging it pages the director on healthy churn — the transient-ping defect the advisor
+    escalated 2026-07-19). UNDECLARED (genuine accretion) only for detached, no/unknown branch, or
+    an ORPHAN branch (unmerged and old — never came home)."""
     if wt["path"] == main_path:
         return "BELONGS"
-    if wt.get("branch") and branch_states.get(wt["branch"]) == "IN_FLIGHT":
+    bstate = branch_states.get(wt["branch"]) if wt.get("branch") else None
+    if bstate == "IN_FLIGHT":
         return "BELONGS"
+    if bstate == "MERGED":
+        return "PENDING_REAP"
     return "UNDECLARED"
 
 
@@ -262,10 +268,13 @@ def evaluate_worktree_reconcile(*, worktrees: list[dict] | None = None,
     if main_path is None:
         main_path = str(PROJECT_DIR)
 
-    undeclared, belongs = [], []
+    undeclared, belongs, pending_reap = [], [], []
     for wt in worktrees:
-        if classify_worktree(wt, main_path, branch_states) == "BELONGS":
+        cls = classify_worktree(wt, main_path, branch_states)
+        if cls == "BELONGS":
             belongs.append(wt["path"])
+        elif cls == "PENDING_REAP":
+            pending_reap.append(wt["path"])          # merged, awaiting the dir-reaper — benign transient
         else:
             bstate = ("detached" if wt.get("detached") else
                       (branch_states.get(wt["branch"], "no-branch") if wt.get("branch") else "no-branch"))
@@ -273,12 +282,14 @@ def evaluate_worktree_reconcile(*, worktrees: list[dict] | None = None,
 
     alarm = bool(undeclared)
     if not undeclared:
+        pr = f", {len(pending_reap)} pending-reap (benign transient)" if pending_reap else ""
         return {"status": "WORKTREE_CLEAN", "alarm": False,
-                "detail": f"{len(belongs)} declared worktree(s), none undeclared", "undeclared": []}
+                "detail": f"{len(belongs)} declared worktree(s), none undeclared{pr}",
+                "undeclared": [], "pending_reap": pending_reap}
     shown = ", ".join(f"{u['path'].split('/')[-1]}({u['branch_state']})" for u in undeclared[:6])
     return {"status": "WORKTREE_UNDECLARED", "alarm": True,
             "detail": f"{len(undeclared)} UNDECLARED worktree(s) (accretion, report-only): {shown}",
-            "undeclared": undeclared}
+            "undeclared": undeclared, "pending_reap": pending_reap}
 
 
 # ── WORKTREE DIRECTORY REAP (H24): the follow-on to CLEANUP_ELIGIBLE (step 6) ───────────────
