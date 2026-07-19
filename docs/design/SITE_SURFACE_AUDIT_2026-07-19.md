@@ -187,6 +187,25 @@ The clean isolated orphan-retirements are **done**: `platform/` (20cf4e51b), `su
 controls.** They should be one careful merge pass (re-home content → rework the control → retire the
 now-empty surface), ideally with fresh context. Sequenced, low-risk, but not isolated.
 
+### PROGRESS + refined findings (2026-07-20)
+- **`timeline/` — RETIRED** (5f8f81efd re-homed the crisis-survival fact to Proof §12; 0262fec7b
+  repointed the cross-surface control to `world/` + strengthened it to the consistent "around 30 …
+  suppliers" phrasing, then deleted the surface). Proved the content-first order is clean and safe.
+- **`sim/` — the HARD one, needs content-migration first (do NOT rush-delete).** Confirmed by
+  inspection: its "Customers" stress-KPI content (High/Moderate/Low-Stress bands) and the multi-tab
+  SIM Explorer are **UNIQUE to sim/ — present on NO kept door** (company/world/customers checked).
+  AND `site/data/sim_data.json` is **load-bearing** — consumed by `generate_world_data`,
+  `generate_project_state`, `generate_shadow_html`, `acquisition_funnel_port`, `mirror_github_pages`
+  — so the data + `generate_sim_data` **stay**; only the page can go. Plus a dedicated coupled test
+  (`test_sim_tab_consistency.py`, a Node render harness over the Customers sub-tab) and the
+  cross-surface control still list it. **Plan:** (1) migrate the stress-KPI explorer content into The
+  World's `renderSimDepth` (generator + render change, content-loss-sensitive — verify each KPI
+  lands); (2) rework/retire `test_sim_tab_consistency` onto the World surface; (3) drop `sim` from the
+  cross-surface control (`mentions_fact` then needs a 3rd static kept mention or a proof.json check —
+  the crisis fact is already on Proof data-side for this); (4) retire the page, keep the data. This is
+  a genuine content-migration, best done as a focused pass, not a marathon-tail chunk.
+- **`customers/`, `wip-flow/`** — same class (load-bearing/content re-home), unstarted.
+
 ## Note on BRAND1
 
 BRAND1 (`BRAND_CONSTITUTION`) is a *different* case from SITE1 — it shipped real, tested deliverables
