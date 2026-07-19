@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T07:45:30Z
+Last updated: 2026-07-19T08:00:27Z
 
 **NOW (2026-07-19) — Epoch-2 "Coupled World" campaign: DISCOVER/FRAME phase COMPLETE, awaiting director.**
 The director's Epoch-2 campaign + its fidelity-evidence addendum are consumed and fully decomposed
@@ -155,7 +155,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (493s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
