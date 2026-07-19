@@ -1,5 +1,26 @@
 <!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Project Status - Synthetic Enterprise</title><style>:root{--bg:#f9f9f7;--surface:#fcfcfb;--surface2:#f0efec;--border:#e1e0d9;--text:#0b0b0b;--muted:#52514e;--green:#0ca30c;--red:#d03b3b;--amber:#fab219;--blue:#2a78d6;--teal:#1baf7a}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,monospace;background:var(--bg);color:var(--text);margin:0;padding:0;font-size:14px;line-height:1.5}.site-nav{display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border)}.nav-logo{font-weight:700;font-size:1.1rem;color:var(--text);text-decoration:none;margin-right:12px}.nav-link{color:var(--muted);text-decoration:none;padding:4px 10px;border-radius:6px;font-size:13px}.nav-link:hover{color:var(--text)}.nav-link.active{color:var(--blue);font-weight:600}.container{max-width:1100px;margin:0 auto;padding:32px 24px}h1,h2{color:var(--text)}h1{font-size:1.5rem;font-weight:700;margin-bottom:4px}h2{font-size:1rem;font-weight:600;margin:32px 0 14px}table{border-collapse:collapse;width:100%;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}th{background:var(--surface2);color:var(--muted);text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:none}tr:hover td{background:var(--surface2)}.pos{color:var(--green)}.neg{color:var(--red)}.meta{color:var(--muted);font-size:0.85em;margin-bottom:16px}pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-x:auto;color:var(--text);white-space:pre-wrap}dl{display:grid;grid-template-columns:200px 1fr;gap:4px 16px;margin-bottom:16px}dt{color:var(--muted)}dd{margin:0}.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}.kpi-card .kpi-value{display:block;font-size:1.5rem;font-weight:700;line-height:1.1;color:var(--text)}.kpi-card .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:6px}.rag-chip{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.82em;font-weight:700;border:1px solid currentColor}.rag-green{background:rgba(12,163,12,0.12);color:var(--green)}.rag-amber{background:rgba(250,178,25,0.18);color:#95720f}.rag-red{background:rgba(208,59,59,0.12);color:var(--red)}.btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;color:var(--text)}.btn:hover{background:var(--surface2)}</style></head><body><nav class="site-nav"><a href="/shadow/" class="nav-logo">&#9889; Poesys</a><a href="/shadow/" class="nav-link">Overview</a><a href="/shadow/customers/" class="nav-link">Customers</a><a href="/shadow/supplier/" class="nav-link">Supplier</a><a href="/shadow/sim/" class="nav-link">Sim</a><a href="/shadow/project/" class="nav-link active">Project</a><a href="/" class="nav-link" style="margin-left:auto">Live site</a></nav><div class="container"><h1>Project Status</h1><dl><dt>Current Phase</dt><dd>RX</dd><dt>Test Count</dt><dd>18504</dd><dt>Company Modules</dt><dd>448</dd><dt>Simulation Window</dt><dd>2016-2025</dd></dl><h2>LATEST.md</h2><pre>## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T05:35:29Z
+Last updated: 2026-07-19T05:55:32Z
+
+**NOW (2026-07-19) — Epoch-2 "Coupled World" campaign: DISCOVER/FRAME phase COMPLETE, awaiting director.**
+The director's Epoch-2 campaign + its fidelity-evidence addendum are consumed and fully decomposed
+(`docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md`). **Seven design docs landed on origin**,
+each doc-only DISCOVER/FRAME with the epistemic wall intact and **W1 BUILD still CLOSED**:
+A scope-of-need scoring frame (worst-cell, not average) · B/C price-formation + hedge-weighted supplier
+cost (the volume-vs-price hypothesis = SUPPORTED for a hedged book) · D cascade-correlation estimation
+(joint-tail lift L) · E billing-event delays · F value/exposure ranking (the arbiter) · **G fidelity-evidence
+machinery** (`56da6f8da`): three un-gameable measures (hash-pinned frozen baseline, map-of-ignorance
+worst-cell coverage, CRN ablation) + emit-DoD as a phase-close gate into a SIBLING ledger + inspection-chain
+data model with in-schema wall discipline; split G1/G2/G3(harness)/G4(site). The full design spine now exists.
+**AWAITS THE DIRECTOR (not agent-decidable):** (1) W1 BUILD-open — nothing above is built. (2) The
+values-calls surfaced across the docs (harm-weights + τ threshold in F's κ, G's per-cell commercial_weight,
+A's equal-cell-vs-harm-weighted worst-cell + grid-completeness, L_min gate floors — cat-6 / R13). (3) Upstream
+BUILD blocker: the price engine's ~10× SSP miscalibration + missing carbon/UK-ETS term + hedging.py
+single-price collapse — gates cascade MAGNITUDE (not direction). The pull loop wakes on new local signal and
+rests quiet when drained-and-gated (both proven this session). Ops health: NTFY works, staging_watcher UP.
+Session history below (payment-triad L3, ops-health, treadmill-quiet, Campaign A) retained for the record.
+
+---
+
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -14,24 +35,4 @@ standing approver that SEQUENCES which atoms flip idle→build (canon §3a); the
 director's console act, and the twin never opens a new front. Gate-wall: 0 unauthorized promotions.
 
 **Execution (running):** a serial, self-sustaining pull loop — the Stop-hook transport feeds
-`find_work` turn to turn with no human nudge and is loud on a stall. Parallelism is bounded to at
-most 3 disjoint Agent forks per draw, and every fork must come home: merged to main on success or
-salvage-tagged and reaped on failure (fork-lifecycle reconciler, report-first). Worktree accretion is
-reconciled and loud. Every commit passes a pre-commit test gate — a red-test commit is impossible.
-
-**2026-07-17 — parallel made stable.** Bounded fan-out (≤3), enforced merge-or-reap, a worktree
-reconciler, this status-honesty gate, and the pre-commit test gate — all report-first or structural,
-with the loop running throughout. 33 stranded fork branches are salvage-tagged on origin.
-
-**ACTIVE FRONT (2026-07-18, director console) — real-backlog open front, bounded-parallel build.**
-Director authorized the in_progress/ real backlog as an OPEN FRONT: build continuously in bounded
-parallel (≤3) under the live controls; REPO_PRIVATE excluded (one-way door, his call). Front
-declared in `gate_authorizations.jsonl` (console provenance, R7) + reconciled by the gate-wall
-(0 unauthorized promotions). Console-orchestrated worktree forks, merge-or-reap, every fork
-orchestrator-verified (scope + tests + epistemic + R15 mutation re-run) before merge.
-**WAVE 1 — landed + pushed:** W1_4 regional-weather aggregation-consistency invariant → L2
-(mutation control proven to fire) · D5 account-hierarchy + payment-allocation → L2 (C-S1/C-S2
-tested; control-activation landed — the 7 R15 ledger/arrears controls are now ACTIVE in the
-production path, reconciling against independent invoice.py totals, fail-closed) · E4 CSS
-Consolidated Segmental Statement → **L3** (director-RATIFIED this session — verify_css_reconciliation
-runtime control + fail-silent closure, 15 R15 mutation tests orchestrator-verified; banked with his</pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-19T05:40:28Z | Run latest | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
+`find_work` turn to turn with </pre><h2>Recent Simulation Runs</h2><table><tr><th>Git Commit</th><th>Date</th><th>Net Margin</th></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr><tr><td></td><td></td><td><span class="pos">&pound;0</span></td></tr></table><p class="meta">Generated: 2026-07-19T05:55:51Z | Run latest | Phase RX | <a href="/state/customer_sample.json">customer_sample.json</a></p><p class="meta">&copy; 2026 Poesys Platforms. All rights reserved.</p></div></body></html>
