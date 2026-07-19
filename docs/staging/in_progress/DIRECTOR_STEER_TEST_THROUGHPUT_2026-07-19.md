@@ -1,3 +1,7 @@
+>>> AGENT STATUS (2026-07-19, parked in_progress): MEASUREMENT PHASE ACTIVE. Fork a65392cab9cfeaceb is profiling representative test subsets (tests/simulation, tests/tools+background+saas with --durations) to produce docs/design/TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md + tools/profile_test_suite.py. OPEN SUB-ITEM: the measurement+proposal doc (fork in flight). UNBLOCKS when the fork lands and the orchestrator verifies+commits it. Parked here (not staging root) so the pull-loop stops re-offering a steer a fork already owns -- the repeated-doorbell noise fix. Restructuring the gates is explicitly sequenced measure->propose->adopt, NOT this turn.
+
+---
+
 # DIRECTOR STEER — Test throughput is becoming the rate-determining step; restructure it (2026-07-19)
 
 **Type:** [STEER] — a problem with requirements. The strategy is yours to propose and design.
