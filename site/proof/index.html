@@ -130,6 +130,37 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
 .kl-fires { font-size: 10px; color: var(--muted); margin-top: 2px; }
 .kl-fires .no { color: var(--red); font-weight: 700; }
 .kl-fires .yes { color: var(--green); font-weight: 700; }
+/* fidelity instrument (G4) */
+.fid-tail-row { padding: 16px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.fid-tail-row:last-child { border-bottom: none; }
+.fid-tail-metric { font-size: 13px; font-weight: 700; }
+.fid-tail-compare { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.fid-tail-why { font-size: 11px; color: var(--muted); margin-top: 6px; max-width: 480px; line-height: 1.5; }
+.fid-tail-ratio-wrap { text-align: right; }
+.fid-tail-ratio { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; color: var(--red); font-variant-numeric: tabular-nums; }
+.fid-tail-ratio-l { font-size: 9px; text-transform: uppercase; letter-spacing: .05em; color: var(--red); font-weight: 700; }
+.fid-basis { font-size: 10px; color: var(--muted); margin-top: 10px; }
+.fid-worst-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.fid-worst-cell { font-family: ui-monospace, monospace; font-size: 13px; color: var(--purple); font-weight: 700; }
+.fid-worst-sev { font-size: 22px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }
+.fid-commentary { font-size: 12px; color: var(--text); line-height: 1.6; margin-top: 8px; }
+.fid-chain-node { display: flex; align-items: baseline; gap: 10px; padding: 8px 0; }
+.fid-chain-layer { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+.fid-chain-layer.evidence { color: var(--blue); border: 1px solid var(--blue); }
+.fid-chain-layer.world { color: var(--teal); border: 1px solid var(--teal); }
+.fid-chain-label { font-size: 12px; font-weight: 600; }
+.fid-chain-detail { font-size: 11px; color: var(--muted); }
+.fid-chain-link { font-size: 11px; color: var(--muted); padding: 4px 0 4px 10px; }
+.fid-mae-note { border-left: 3px solid var(--border); padding-left: 10px; font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+.fid-cell-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.fid-cell-row:last-child { border-bottom: none; }
+.fid-cell-year { font-variant-numeric: tabular-nums; font-weight: 600; }
+.fid-cell-stakes { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; padding: 1px 5px; border-radius: 3px; }
+.fid-cell-stakes.high { color: var(--amber); border: 1px solid var(--amber); }
+.fid-cell-stakes.low { color: var(--muted); border: 1px solid var(--border); }
+.fid-cell-lift { font-variant-numeric: tabular-nums; }
+.fid-cell-lift.pos { color: var(--green); }
+.fid-cell-lift.neg { color: var(--muted); }
 /* mobile pass (SITE1_expert_doors): phone-legible, no horizontal body scroll.
    Wide tables already scroll inside .table-scroll; this tightens padding, shrinks
    the hero, and lets long ids wrap. Desktop (>640px) layout is unchanged. */
@@ -167,6 +198,25 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     ledger graded against reality, misses and ungraded entries kept. Every figure below links
     to the file it came from.
   </p>
+
+  <!-- FIDELITY INSTRUMENT (atom G4) -- the director's window into G1/G2/G3 -->
+  <div class="sec">Fidelity &mdash; the model vs the real world (W1_6 SSP price engine)</div>
+  <div class="card">
+    <p class="muted" id="fid-intro">Loading...</p>
+  </div>
+  <div class="card" id="fid-tail-card">
+    <div id="fid-tail"><div class="muted">Loading...</div></div>
+  </div>
+  <div class="card" id="fid-worst-card">
+    <div id="fid-worst"><div class="muted">Loading...</div></div>
+  </div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:10px">Inspection chain &mdash; drill from the fitted relationship to the real series it was measured against.</p>
+    <div id="fid-chain"><div class="muted">Loading...</div></div>
+  </div>
+  <div class="card" id="fid-mae-card">
+    <div id="fid-mae"><div class="muted">Loading...</div></div>
+  </div>
 
   <!-- 0. FINDINGS WITH A NUMBER (FEATURED) -->
   <div class="sec">Findings We Can Put A Number On</div>
@@ -612,6 +662,96 @@ function renderKilllist(d){
     '</tbody></table>';
 }
 
+// Fidelity instrument (atom G4). DIRECTOR FIDELITY STEER: the average is a
+// trap -- this render leads with exposure-tail under-representation and the
+// worst-cell CVaR; the calm-year MAE/lift reading is rendered LAST and
+// visually subordinate (small, muted heading, no big number), never the
+// headline. Fail closed and VISIBLE (R15): available:false must never
+// render as a silently empty section.
+function fmtGbpFid(n){ return n==null?"--":"£"+Number(n).toLocaleString("en-GB",{maximumFractionDigits:2}); }
+function fmtRatioFid(n){ return n==null?"n/a":Number(n).toFixed(1)+"×"; }
+
+function renderFidelity(d){
+  var intro=document.getElementById("fid-intro");
+  var tail=document.getElementById("fid-tail");
+  var worst=document.getElementById("fid-worst");
+  var chain=document.getElementById("fid-chain");
+  var mae=document.getElementById("fid-mae");
+  if(!d || d.available===false){
+    var msg='<div class="gap-fail">No fidelity evidence yet'+(d&&d.note?': '+esc(d.note):'')+
+      '. The fidelity instrument cannot be shown &mdash; this is a failure, not an empty state.</div>';
+    intro.textContent="The director's window into the fidelity-evidence machinery (G1 grid scorer, G2 emit-ledger, G3 inspection chain).";
+    tail.innerHTML=msg; worst.innerHTML=""; chain.innerHTML=""; mae.innerHTML="";
+    return;
+  }
+  intro.innerHTML="Atom <span class=\"aid\">"+esc(d.atom_id||"")+"</span> &middot; measured "+
+    esc(String(d.measured_at||"").slice(0,10))+" &middot; source: "+
+    '<a class="evlink" href="#" onclick="return false" title="'+esc(d.source_ledger||"")+'">'+esc(d.source_ledger||"")+'</a>'+
+    (d.steer_doc?' &middot; steer: <a class="evlink" href="#" onclick="return false" title="'+esc(d.steer_doc)+'">'+esc(d.steer_doc)+'</a>':'')+
+    '. <strong>The average is a trap</strong> &mdash; this instrument leads with the exposure-tail and worst-cell CVaR, never the calm-year MAE.';
+
+  var et=d.exposure_tail||{};
+  if(!et.available){
+    tail.innerHTML='<div class="gap-fail">Exposure-tail data not available'+(et.note?': '+esc(et.note):'')+
+      '. The lead fidelity gap cannot be shown &mdash; this is a failure, not an empty state.</div>';
+  } else {
+    var rows=(et.rows||[]).map(function(r){
+      var isPct=r.unit!=="£/MWh";
+      var modelStr=isPct?Number(r.model).toFixed(3)+"%":fmtGbpFid(r.model)+"/MWh";
+      var realStr=isPct?Number(r.real).toFixed(3)+"%":fmtGbpFid(r.real)+"/MWh";
+      return '<div class="fid-tail-row">'+
+        '<div><div class="fid-tail-metric">'+esc(r.metric)+'</div>'+
+        '<div class="fid-tail-compare">model '+modelStr+' vs real '+realStr+'</div>'+
+        '<div class="fid-tail-why">'+esc(r.why||"")+'</div></div>'+
+        '<div class="fid-tail-ratio-wrap"><div class="fid-tail-ratio">'+fmtRatioFid(r.under_representation_x)+'</div>'+
+          '<div class="fid-tail-ratio-l">under-represented</div></div></div>';
+    }).join("")||'<div class="gap-fail">No exposure-tail rows in the data.</div>';
+    var basisNote = et.basis==="live_recomputed"
+      ? "live-recomputed against the real Elexon/NBP cache this run. Source: "+esc(et.source||"")
+      : "cited from "+esc(et.source||"the fidelity-evidence doc");
+    tail.innerHTML='<div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--red);font-weight:700;margin-bottom:4px">'+
+      'Exposure-tail under-representation &mdash; the top fidelity gap (value-at-risk ranked)</div>'+rows+
+      '<div class="fid-basis">'+basisNote+'.</div>';
+  }
+
+  var wc=d.worst_cell||{};
+  if(wc.cell){
+    worst.innerHTML='<div class="fid-worst-head"><div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Worst-cell CVaR (G1, q='+esc(wc.q)+')</div>'+
+      '<span class="fid-worst-cell">'+esc(wc.cell)+'</span> <span class="chip '+(wc.regime==="crisis"?"red":"blue")+'">'+esc(wc.regime)+'</span></div>'+
+      '<div style="text-align:right"><div class="fid-worst-sev">£'+Number(wc.severity_mae_gbp_per_mwh).toFixed(2)+'/MWh</div>'+
+      '<div class="muted" style="font-size:10px">MAE severity &middot; CVaR aggregate £'+Number(wc.cvar_aggregate_gbp_per_mwh).toFixed(2)+'</div></div></div>'+
+      '<div class="fid-commentary">'+esc(wc.commentary||"")+'</div>';
+  } else {
+    worst.innerHTML='<div class="gap-fail">Worst-cell data not available.</div>';
+  }
+
+  var ic=d.inspection_chain||{};
+  if(ic.available===false){
+    chain.innerHTML='<div class="gap-fail">Inspection chain not available'+(ic.note?': '+esc(ic.note):'')+'.</div>';
+  } else {
+    var nodes=(ic.nodes||[]).map(function(n){
+      return '<div class="fid-chain-node"><span class="fid-chain-layer '+esc(String(n.layer||"").toLowerCase())+'">'+esc(n.layer)+'</span>'+
+        '<div><div class="fid-chain-label">'+esc(n.label)+'</div><div class="fid-chain-detail">'+esc(n.detail||"")+'</div></div></div>';
+    }).join("")||'<div class="muted">No chain nodes.</div>';
+    var links=(ic.links||[]).map(function(l){
+      return '<div class="fid-chain-link">'+esc(l.cause_id)+' &rarr; <strong>'+esc(l.kind)+'</strong> &rarr; '+esc(l.consequence_id)+'</div>';
+    }).join("");
+    chain.innerHTML=nodes+links+(ic.note?'<div class="gap-note" style="margin-top:8px">'+esc(ic.note)+'</div>':'');
+  }
+
+  var mr=d.mae_reading||{};
+  var cells=(d.per_cell_lift||[]).map(function(c){
+    var liftCls = c.lift>0?"pos":"neg";
+    return '<div class="fid-cell-row"><span class="fid-cell-year">'+esc(c.year)+'</span>'+
+      '<span class="fid-cell-stakes '+esc(c.stakes)+'">'+esc(c.stakes)+'-stakes</span>'+
+      '<span class="fid-cell-lift '+liftCls+'">lift '+(c.lift>0?"+":"")+Number(c.lift).toFixed(2)+'</span></div>';
+  }).join("")||'<div class="muted">No per-cell lift data.</div>';
+  mae.innerHTML='<div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px">Calm-year MAE / lift reading &mdash; subordinate, low-stakes</div>'+
+    '<div class="fid-mae-note">'+esc(mr.headline||"")+'. '+esc(mr.note||"")+
+      (mr.full_window_mae!=null?' Full-window MAE=£'+Number(mr.full_window_mae).toFixed(2)+'/MWh, R2='+Number(mr.full_window_r2).toFixed(3)+'.':'')+'</div>'+
+    cells;
+}
+
 function renderBuild(d){
   var parts=[];
   if(d.phase)parts.push("Phase "+d.phase);
@@ -634,6 +774,13 @@ fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).th
 }).catch(function(e){
   console.error("proof.json load error:",e);
   document.getElementById("timeline").innerHTML='<div class="muted" style="color:var(--red)">Could not load proof.json</div>';
+});
+
+fetch("../data/fidelity.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderFidelity(d);
+}).catch(function(e){
+  console.error("fidelity.json load error:",e);
+  document.getElementById("fid-tail").innerHTML='<div class="gap-fail">Could not load fidelity.json</div>';
 });
 </script>
 <script src="../shared/director-comments.js" defer></script>

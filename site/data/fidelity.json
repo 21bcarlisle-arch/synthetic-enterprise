@@ -1,0 +1,236 @@
+{
+  "atom_id": "W1_6_physics_price_signal",
+  "available": true,
+  "exposure_tail": {
+    "available": true,
+    "basis": "cited_from_fidelity_doc",
+    "frac_negative_actual": 0.02241,
+    "frac_negative_model": 0.00013,
+    "model": {
+      "max": 574.22,
+      "mean": 69.24,
+      "median": 48.75,
+      "min": -10.47,
+      "p95": 217.15
+    },
+    "n": 157106,
+    "real": {
+      "max": 4037.8,
+      "mean": 77.19,
+      "median": 55.04,
+      "min": -185.33,
+      "p95": 220.0
+    },
+    "rows": [
+      {
+        "metric": "Extreme spike (max SSP)",
+        "model": 574.22,
+        "real": 4037.8,
+        "severity": "critical",
+        "under_representation_x": 7.03179965866741,
+        "unit": "\u00a3/MWh",
+        "why": "A 3-feature/5-constant structural form cannot reproduce rare BM-driven multi-thousand-pound spikes (plant outages, interconnector trips, reserve-scarcity pricing) that are not present in gas price / demand / renewable-generation inputs at all."
+      },
+      {
+        "metric": "Negative-price frequency",
+        "model": 0.013,
+        "real": 2.241,
+        "severity": "critical",
+        "under_representation_x": 172.3846153846154,
+        "unit": "% of periods",
+        "why": "The model is structurally capable of negative prices and produces them, but an OLS-style fit minimizing squared error smooths tail behaviour toward the bulk of the distribution -- it underproduces both the frequency and the depth of real negative-price events."
+      }
+    ],
+    "source": "docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md S2.3 (sim/cache/ not present in this build environment -- live recomputation unavailable; git-ignored, confirmed absent)"
+  },
+  "generated_at": "2026-07-19T13:10:58Z",
+  "inspection_chain": {
+    "available": true,
+    "links": [
+      {
+        "cause_id": "EVIDENCE::W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19",
+        "consequence_id": "WORLD::elexon_ssp_calibration_full_2016_03_01_to_2025_06_07",
+        "kind": "produces"
+      }
+    ],
+    "nodes": [
+      {
+        "detail": "MAE=\u00a332.79/MWh, R2=0.419, provenance=estimated_from_data",
+        "label": "residual_demand_scarcity_price_calibration",
+        "layer": "EVIDENCE",
+        "node_id": "EVIDENCE::W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19",
+        "ref": "W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19"
+      },
+      {
+        "detail": "variables: systemSellPrice, gas_price_gbp_per_mwh, demand_mw, renewable_generation_mw",
+        "label": "elexon_ssp_calibration_full_2016_03_01_to_2025_06_07",
+        "layer": "WORLD",
+        "node_id": "WORLD::elexon_ssp_calibration_full_2016_03_01_to_2025_06_07",
+        "ref": "elexon_ssp_calibration_full_2016_03_01_to_2025_06_07"
+      }
+    ],
+    "note": "No BELIEF_ACTION node: the price engine is WORLD-side physics with no live company consumer this pass, so there is nothing here that could carry a truth_ref leak."
+  },
+  "mae_reading": {
+    "best_naive_baseline_id": "ols_regression_3feature",
+    "full_window_mae": 32.7901448190032,
+    "full_window_r2": 0.4189668701621748,
+    "full_window_rmse": 70.15891645651763,
+    "headline": "structural model beats best-of-naive-family in only 4/10 years",
+    "lift_over_best_of_naive_family": 1.1681926924059667,
+    "n": 157106,
+    "naive_family_mae": {
+      "gas_floor_alone": 35.77486740143255,
+      "ols_regression_3feature": 33.95833751140917
+    },
+    "note": "THE AVERAGE TRAP (director steer): this reading is low-stakes -- calm-year MAE is where nothing commercial is at stake. It is shown here for completeness, subordinate to the exposure-tail and worst-cell readings above, never the headline.",
+    "subordinate": true,
+    "years_beating_naive": 4,
+    "years_total": 10
+  },
+  "map_of_ignorance": [],
+  "measured_at": "2026-07-19T00:00:00+00:00",
+  "per_cell_lift": [
+    {
+      "beats_naive": true,
+      "best_baseline_id": "gas_floor_alone",
+      "cell": "y2016",
+      "commercial_weight": 1.0,
+      "err_model": 17.177219504627455,
+      "err_naive": 19.411688727561447,
+      "lift": 2.234469222933992,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2016"
+    },
+    {
+      "beats_naive": true,
+      "best_baseline_id": "gas_floor_alone",
+      "cell": "y2017",
+      "commercial_weight": 1.0,
+      "err_model": 17.15577364753518,
+      "err_naive": 17.406112701380394,
+      "lift": 0.25033905384521304,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2017"
+    },
+    {
+      "beats_naive": true,
+      "best_baseline_id": "gas_floor_alone",
+      "cell": "y2018",
+      "commercial_weight": 1.0,
+      "err_model": 19.42965164018376,
+      "err_naive": 19.47060462178561,
+      "lift": 0.040952981601851235,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2018"
+    },
+    {
+      "beats_naive": false,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2019",
+      "commercial_weight": 1.0,
+      "err_model": 18.815396693635062,
+      "err_naive": 18.02100650316609,
+      "lift": -0.7943901904689703,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2019"
+    },
+    {
+      "beats_naive": false,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2020",
+      "commercial_weight": 1.0,
+      "err_model": 22.188409855763293,
+      "err_naive": 18.97340894455384,
+      "lift": -3.2150009112094544,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2020"
+    },
+    {
+      "beats_naive": false,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2021",
+      "commercial_weight": 1.0,
+      "err_model": 50.21677321310203,
+      "err_naive": 48.006068199978266,
+      "lift": -2.210705013123764,
+      "regime": "crisis",
+      "stakes": "high",
+      "year": "2021"
+    },
+    {
+      "beats_naive": true,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2022",
+      "commercial_weight": 1.0,
+      "err_model": 79.16353728385378,
+      "err_naive": 84.71320060112299,
+      "lift": 5.549663317269207,
+      "regime": "crisis",
+      "stakes": "high",
+      "year": "2022"
+    },
+    {
+      "beats_naive": false,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2023",
+      "commercial_weight": 1.0,
+      "err_model": 44.121862860910745,
+      "err_naive": 43.85630901794972,
+      "lift": -0.265553842961026,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2023"
+    },
+    {
+      "beats_naive": false,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2024",
+      "commercial_weight": 1.0,
+      "err_model": 29.354498030911458,
+      "err_naive": 28.17032437118489,
+      "lift": -1.184173659726568,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2024"
+    },
+    {
+      "beats_naive": false,
+      "best_baseline_id": "ols_regression_3feature",
+      "cell": "y2025",
+      "commercial_weight": 1.0,
+      "err_model": 35.087154451078,
+      "err_naive": 32.80649453473956,
+      "lift": -2.2806599163384433,
+      "regime": "calm",
+      "stakes": "low",
+      "year": "2025"
+    }
+  ],
+  "rel_id": "W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19",
+  "run_git_commit": "4d1e899d18cb1c64dd79eb593bd5d848e7f1955a",
+  "source_ledger": "docs/observability/fidelity_evidence_ledger.json",
+  "source_modules": [
+    "background/fidelity_grid_scorer.py",
+    "background/fidelity_inspection_chain.py",
+    "background/fidelity_emitter.py",
+    "simulation/run_phase3b_recalibration.py"
+  ],
+  "steer_doc": "docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md",
+  "worst_cell": {
+    "cell": "y2022",
+    "commentary": "The worst-scored cell under G1's worst-q% CVaR (q=0.1) is y2022 -- the real 2022 UK gas-crisis year, MAE=\u00a379.16/MWh. This is the year the model is asked to explain the biggest real price moves, and where a miss is commercially expensive -- not the year with the lowest R2.",
+    "cvar_aggregate_gbp_per_mwh": 79.16353728385378,
+    "lift": 5.549663317269207,
+    "q": 0.1,
+    "regime": "crisis",
+    "severity_mae_gbp_per_mwh": 79.16353728385378,
+    "tail_k": 1,
+    "year": "2022"
+  }
+}

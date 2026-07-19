@@ -59,6 +59,7 @@ SITE_SOURCE_SUFFIXES = frozenset({".html", ".py", ".js", ".mjs"})
 SITE_CONSUMED_LEDGERS = frozenset({
     "docs/observability/coupled_gap_ledger.json",
     "docs/observability/decision_log.jsonl",
+    "docs/observability/fidelity_evidence_ledger.json",
 })
 
 
