@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-19T18:47:14.048150+00:00",
+  "last_updated": "2026-07-19T19:01:30.857914+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T18:44:21.918552+00:00",
-      "last_action": "Waiting for next cycle (5h 55m remaining)",
-      "last_action_ts": "2026-07-19T18:44:21.918552+00:00",
+      "last_heartbeat": "2026-07-19T18:59:21.920475+00:00",
+      "last_action": "Waiting for next cycle (5h 40m remaining)",
+      "last_action_ts": "2026-07-19T18:59:21.920475+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T18:44:49.075555+00:00",
-      "last_action": "Run complete in 539s \u2014 3775 KB (run_output_319795536_20260719T183549Z.json)",
-      "last_action_ts": "2026-07-19T18:44:49.075555+00:00",
+      "last_heartbeat": "2026-07-19T18:58:53.328188+00:00",
+      "last_action": "Run complete in 499s \u2014 3775 KB (run_output_9de430515_20260719T185034Z.json)",
+      "last_action_ts": "2026-07-19T18:58:53.328188+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T18:37:51.932247+00:00",
-      "last_action": "Peak hours pause \u2014 18:37 UTC",
-      "last_action_ts": "2026-07-19T18:37:51.932247+00:00",
+      "last_heartbeat": "2026-07-19T18:52:51.933867+00:00",
+      "last_action": "Peak hours pause \u2014 18:52 UTC",
+      "last_action_ts": "2026-07-19T18:52:51.933867+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-19T18:47:14.048150+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~242min",
-      "last_action_ts": "2026-07-19T18:47:14.048150+00:00",
+      "last_heartbeat": "2026-07-19T19:01:30.857914+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~256min",
+      "last_action_ts": "2026-07-19T19:01:30.857914+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
