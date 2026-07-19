@@ -2469,6 +2469,63 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 34
+    },
+    {
+      "id": "G1_fidelity_grid_scorer",
+      "name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "G2_fidelity_evidence_ledger",
+      "name": "Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
+    },
+    {
+      "id": "G3_fidelity_inspection_chain",
+      "name": "Fidelity inspection-chain data model: 4 record types (EVIDENCE/WORLD/BELIEF-ACTION/CONSTRAINT) + link graph + the epistemic wall in-schema",
+      "lane": "G_data_learning",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4
     }
   ],
   "lanes": {
@@ -2551,7 +2608,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 122,
+  "total_atoms": 125,
   "epoch2_movements": [
     {
       "id": "M1",
