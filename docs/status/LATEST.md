@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T09:04:47Z
+Last updated: 2026-07-19T09:11:19Z
 
 **NOW (2026-07-19) — GATE-AFTER operating model adopted (director console); Epoch-2 BUILD underway.**
 Director retired the failure-era caution posture: W1 BUILD OPEN; a ratified campaign IS standing BUILD
@@ -26,7 +26,28 @@ Epoch-2 values-calls with conservative asserted defaults I'm running on (`EPOCH2
 (3) fan-widening proposal ≤3→min(cores−2,8) (`FAN_WIDENING_SAFETY_CASE.md`); (4) atom-G construct
 challenge-response — best-of-naive-family / CVaR-generalizing-MAX / screen-then-ablate
 (`EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE.md`). Loop running continuous under gate-after. NTFY works,
-staging_watcher UP. Session history below retained for the record.
+staging_watcher UP.
+
+**FOUR STEERS HANDLED (2026-07-19, later) — by INTERLEAVING (the scheduling steer's own demand: light forks ran while the main seat worked):**
+- **[DIRECTOR] liveness/channel test — answered** (evidence): alive; the 90-min 06:28→08:32 gap was the seat
+  HELD for a backgrounded 62-min validation instead of interleaving light work — a scheduling flaw, not a hang;
+  the deadman correctly notify-gated a known-active validation (heavy work ≠ dead).
+- **Worktree transient-pings — FIXED + DEPLOYED + quiet** (`b8f77cfb3`): `classify_worktree` now graces
+  MERGED-pending-reap worktrees (no page on healthy churn), R15-proven both directions; deadman restarted 09:48,
+  live check `alarm=False`. R9 correction: NOT committed-not-deployed (services were current) — the hygiene was
+  never coded. Asks 2–3 (mirror routing, deploy-reality reconciler) proposed (`DEPLOY_REALITY_AND_MIRROR_ROUTING_PROPOSAL.md`).
+- **Resource-aware scheduling — proposal** (`RESOURCE_AWARE_SCHEDULING_PROPOSAL.md`): resource-class budget (≤1
+  heavy + N light) replacing the flat ≤3 count, R15-bounded, sequenced measure→propose→adopt (draw + fan-cap never
+  change in one turn). Fan-widening reframed: widen MODERATE only, HEAVY stays 1.
+- **Test throughput — MEASURED + proposal** (`bd2ac2faf`, `TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md` +
+  `tools/profile_test_suite.py`): 19,082 tests, collection ~8s (not the bottleneck); the multi-minute tail is
+  **two specific tests** doing full-decade replays to check one assertion each (`test_retention_log_includes_acq_cost_saved`
+  185s, an un-mocked dashboard test 117s = a 9th heavy test missing from `PUBLISH_GATE_HEAVY_IGNORES`) — not a broad
+  slowdown. CPU-bound single-core, no GPU; a proven module-scoped-truncated-fixture template already in-repo is ~9× faster.
+  **Queued next step (highest payoff, lowest effort):** fix those two tests at root (the top adoption lever) — its own
+  commit + R15, next fresh turn. Gates untouched this turn (sequencing honoured).
+
+Session history below retained for the record.
 
 ---
 
