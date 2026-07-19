@@ -1421,6 +1421,60 @@ def _is_drained_and_gated() -> bool:
         return False
 
 
+ORIGIN_STAGING_SYNC_STAMP = PROJECT_DIR / "docs" / "observability" / ".origin_staging_sync.json"
+ORIGIN_STAGING_SYNC_INTERVAL_SECONDS = 90
+
+
+def _default_git_runner(*args: str):
+    import subprocess as _sp
+    return _sp.run(["git", *args], cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=45)
+
+
+def _sync_origin_staging(_runner=None) -> list[str]:
+    """RC3 fix (2026-07-19, director-priority): a RESTED loop must WAKE on an origin-[ADVISOR-STAGED]
+    doc, not only on console/interactive input. The staging bridge commits advisor docs to ORIGIN;
+    the local tree that `find_work` reads never auto-pulled, so an origin-staged directive stayed
+    invisible until a human pulled -- the 2026-07-19 unconsumed-doc failure (LOOP_CONTINUITY_FAILURE_
+    DIAGNOSIS.md, RC3). This fetches origin and writes any root-level `docs/staging/*.md` present on
+    origin but not locally into the local tree (via `git show`, so NO index pollution), so the normal
+    staging scan sees them next cycle. Rate-limited (INTERVAL) and FAIL-SAFE in every mode: a git or
+    network error, or a missing stamp, is a silent no-op -- the sync is a convenience, never a gate,
+    and must never stall the loop (Rule 0). Returns the list of filenames pulled (for logging/tests)."""
+    run = _runner or _default_git_runner
+    try:
+        import json as _json, time as _time
+        try:
+            last = float(_json.loads(ORIGIN_STAGING_SYNC_STAMP.read_text()).get("ts", 0))
+        except Exception:
+            last = 0.0
+        now = _time.time()
+        if (now - last) < ORIGIN_STAGING_SYNC_INTERVAL_SECONDS:
+            return []
+        run("fetch", "origin", "main", "-q")
+        r = run("ls-tree", "--name-only", "origin/main", "docs/staging/")
+        origin_md = {ln.strip() for ln in (r.stdout or "").splitlines()
+                     if ln.strip().endswith(".md") and ln.strip().count("/") == 2}
+        local_md = set()
+        if STAGING_DIR.is_dir():
+            local_md = {f"docs/staging/{p.name}" for p in STAGING_DIR.iterdir() if p.suffix == ".md"}
+        pulled = []
+        for f in sorted(origin_md - local_md):
+            show = run("show", f"origin/main:{f}")
+            if getattr(show, "returncode", 1) == 0:
+                (PROJECT_DIR / f).write_text(show.stdout, encoding="utf-8")
+                pulled.append(f.split("/")[-1])
+        if pulled:
+            log(f"RC3 origin-staging sync: pulled {len(pulled)} origin-staged doc(s) into the local "
+                f"tree so the draw sees them: {', '.join(pulled)}")
+        try:
+            ORIGIN_STAGING_SYNC_STAMP.write_text(_json.dumps({"ts": now}))
+        except Exception:
+            pass
+        return pulled
+    except Exception:
+        return []  # fail-safe: an origin-sync error never stalls the loop
+
+
 def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
     """Return (reason, map_exhausted). `reason` is a human-readable string
     if any real work exists (an instruction-channel doorbell, and/or a
@@ -1450,6 +1504,10 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
         return "usage-limit pause just ended -- resume work", False
 
     primary: str | None = None
+
+    # RC3 (2026-07-19): pull any origin-[ADVISOR-STAGED] docs into the local tree BEFORE the staging
+    # scan, so a rested loop wakes on an origin-staged directive (not only console input). Fail-safe.
+    _sync_origin_staging()
 
     agenda = agenda_module.load_agenda()
     if agenda:

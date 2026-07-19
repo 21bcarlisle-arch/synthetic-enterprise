@@ -2105,3 +2105,65 @@ def test_build_draw_excludes_in_progress_atom_R15(tmp_path, monkeypatch):
     assert "BIP_TEST_ATOM" in [a.get("id") for a in supervisor._maturity_map_draw_concurrent()]
     bip.write_text(json.dumps({"BIP_TEST_ATOM": time.time()}))                 # mutation: mark in-progress
     assert "BIP_TEST_ATOM" not in [a.get("id") for a in supervisor._maturity_map_draw_concurrent()]
+
+
+# ── RC3 (2026-07-19): a rested loop must WAKE on an origin-[ADVISOR-STAGED] doc, not only console ──
+def _rc3_runner(mapping):
+    import types
+    def run(*args):
+        key = ("show", args[1]) if args[0] == "show" else args[0]
+        rc, out = mapping.get(key, (0, ""))
+        return types.SimpleNamespace(returncode=rc, stdout=out)
+    return run
+
+
+def test_rc3_sync_pulls_origin_only_staging_doc(tmp_path, monkeypatch):
+    """R15: an advisor doc on origin but NOT local is written into the local tree so the draw sees it.
+    MUTATION target: without the sync, find_work never sees it (the real 2026-07-19 failure)."""
+    sd = tmp_path / "docs" / "staging"; sd.mkdir(parents=True)
+    monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(supervisor, "STAGING_DIR", sd)
+    monkeypatch.setattr(supervisor, "ORIGIN_STAGING_SYNC_STAMP", tmp_path / ".stamp.json")
+    monkeypatch.setattr(supervisor, "log", lambda m: None)
+    runner = _rc3_runner({
+        "fetch": (0, ""),
+        "ls-tree": (0, "docs/staging/NEW_DIRECTIVE.md\ndocs/staging/done\n"),
+        ("show", "origin/main:docs/staging/NEW_DIRECTIVE.md"): (0, "the directive body"),
+    })
+    assert supervisor._sync_origin_staging(_runner=runner) == ["NEW_DIRECTIVE.md"]
+    assert (sd / "NEW_DIRECTIVE.md").read_text() == "the directive body"
+
+
+def test_rc3_sync_skips_locally_present_doc(tmp_path, monkeypatch):
+    sd = tmp_path / "docs" / "staging"; sd.mkdir(parents=True)
+    (sd / "ALREADY_LOCAL.md").write_text("x")
+    monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(supervisor, "STAGING_DIR", sd)
+    monkeypatch.setattr(supervisor, "ORIGIN_STAGING_SYNC_STAMP", tmp_path / ".stamp.json")
+    monkeypatch.setattr(supervisor, "log", lambda m: None)
+    import types
+    calls = []
+    def runner(*args):
+        calls.append(args)
+        out = "docs/staging/ALREADY_LOCAL.md\n" if args[0] == "ls-tree" else ""
+        return types.SimpleNamespace(returncode=0, stdout=out)
+    assert supervisor._sync_origin_staging(_runner=runner) == []
+    assert not any(a[0] == "show" for a in calls)   # never re-fetches an already-local doc
+
+
+def test_rc3_sync_fail_safe_and_rate_limited(tmp_path, monkeypatch):
+    import json, time, types
+    sd = tmp_path / "docs" / "staging"; sd.mkdir(parents=True)
+    monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(supervisor, "STAGING_DIR", sd)
+    stamp = tmp_path / ".stamp.json"
+    monkeypatch.setattr(supervisor, "ORIGIN_STAGING_SYNC_STAMP", stamp)
+    monkeypatch.setattr(supervisor, "log", lambda m: None)
+    def boom(*a): raise RuntimeError("git down")
+    assert supervisor._sync_origin_staging(_runner=boom) == []          # fail-safe: no exception
+    stamp.write_text(json.dumps({"ts": time.time()}))
+    called = []
+    def runner(*a):
+        called.append(a); return types.SimpleNamespace(returncode=0, stdout="")
+    assert supervisor._sync_origin_staging(_runner=runner) == []        # rate-limited
+    assert called == []                                                 # ...before any git call
