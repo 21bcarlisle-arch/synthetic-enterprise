@@ -1,0 +1,136 @@
+{
+  "W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19": {
+    "ablation": null,
+    "atom_id": "W1_6_physics_price_signal",
+    "layer": "EVIDENCE",
+    "measured_at": "2026-07-19T00:00:00+00:00",
+    "per_cell_lift": [
+      {
+        "best_baseline_id": "gas_floor_alone",
+        "cell": "y2016",
+        "commercial_weight": 1.0,
+        "err_model": 17.177219504627455,
+        "err_naive": 19.411688727561447,
+        "lift": 2.234469222933992,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "gas_floor_alone",
+        "cell": "y2017",
+        "commercial_weight": 1.0,
+        "err_model": 17.15577364753518,
+        "err_naive": 17.406112701380394,
+        "lift": 0.25033905384521304,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "gas_floor_alone",
+        "cell": "y2018",
+        "commercial_weight": 1.0,
+        "err_model": 19.42965164018376,
+        "err_naive": 19.47060462178561,
+        "lift": 0.040952981601851235,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2019",
+        "commercial_weight": 1.0,
+        "err_model": 18.815396693635062,
+        "err_naive": 18.02100650316609,
+        "lift": -0.7943901904689703,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2020",
+        "commercial_weight": 1.0,
+        "err_model": 22.188409855763293,
+        "err_naive": 18.97340894455384,
+        "lift": -3.2150009112094544,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2021",
+        "commercial_weight": 1.0,
+        "err_model": 50.21677321310203,
+        "err_naive": 48.006068199978266,
+        "lift": -2.210705013123764,
+        "regime": "crisis"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2022",
+        "commercial_weight": 1.0,
+        "err_model": 79.16353728385378,
+        "err_naive": 84.71320060112299,
+        "lift": 5.549663317269207,
+        "regime": "crisis"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2023",
+        "commercial_weight": 1.0,
+        "err_model": 44.121862860910745,
+        "err_naive": 43.85630901794972,
+        "lift": -0.265553842961026,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2024",
+        "commercial_weight": 1.0,
+        "err_model": 29.354498030911458,
+        "err_naive": 28.17032437118489,
+        "lift": -1.184173659726568,
+        "regime": "calm"
+      },
+      {
+        "best_baseline_id": "ols_regression_3feature",
+        "cell": "y2025",
+        "commercial_weight": 1.0,
+        "err_model": 35.087154451078,
+        "err_naive": 32.80649453473956,
+        "lift": -2.2806599163384433,
+        "regime": "calm"
+      }
+    ],
+    "rel_id": "W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19",
+    "relationship": {
+      "conditioning": "full_window_2016_03_01_to_2025_06_07",
+      "independent_anchor": "structural form independently motivated by UK merit-order marginal-cost dispatch theory (gas-plant SRMC + residual-demand scarcity), not reverse-engineered from the SSP curve shape; no third-party published benchmark was used to cross-check the fitted A0/A1/A2 constants themselves in this pass -- a named gap (docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md S3), not concealed",
+      "kind": "residual_demand_scarcity_price_calibration",
+      "observables": [
+        "gas_price_gbp_per_mwh",
+        "demand_mw",
+        "renewable_generation_mw"
+      ],
+      "provenance": "estimated_from_data",
+      "series_ref": "sim/cache/elexon_ssp_full.json;sim/cache/elexon_demand_full.json;sim/cache/elexon_agws_full.json;sim/gas_prices_history.py (NBP)",
+      "simplification_id": null,
+      "strength": {
+        "best_naive_baseline_id": "ols_regression_3feature",
+        "ci": null,
+        "ci_method": null,
+        "err_best_naive_full": 33.95833751140917,
+        "mae": 32.7901448190032,
+        "n": 157106,
+        "naive_family": [
+          "gas_floor_alone",
+          "ols_regression_3feature"
+        ],
+        "naive_family_mae": {
+          "gas_floor_alone": 35.77486740143255,
+          "ols_regression_3feature": 33.95833751140917
+        },
+        "r2": 0.4189668701621748,
+        "rmse": 70.15891645651763,
+        "stat": "MAE_lift_over_best_of_naive_family",
+        "u": null,
+        "value": 1.1681926924059667
+      }
+    },
+    "run_git_commit": "4d1e899d18cb1c64dd79eb593bd5d848e7f1955a"
+  }
+}
