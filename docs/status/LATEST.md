@@ -1,5 +1,26 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-19T05:41:25Z
+Last updated: 2026-07-19T05:55:32Z
+
+**NOW (2026-07-19) — Epoch-2 "Coupled World" campaign: DISCOVER/FRAME phase COMPLETE, awaiting director.**
+The director's Epoch-2 campaign + its fidelity-evidence addendum are consumed and fully decomposed
+(`docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md`). **Seven design docs landed on origin**,
+each doc-only DISCOVER/FRAME with the epistemic wall intact and **W1 BUILD still CLOSED**:
+A scope-of-need scoring frame (worst-cell, not average) · B/C price-formation + hedge-weighted supplier
+cost (the volume-vs-price hypothesis = SUPPORTED for a hedged book) · D cascade-correlation estimation
+(joint-tail lift L) · E billing-event delays · F value/exposure ranking (the arbiter) · **G fidelity-evidence
+machinery** (`56da6f8da`): three un-gameable measures (hash-pinned frozen baseline, map-of-ignorance
+worst-cell coverage, CRN ablation) + emit-DoD as a phase-close gate into a SIBLING ledger + inspection-chain
+data model with in-schema wall discipline; split G1/G2/G3(harness)/G4(site). The full design spine now exists.
+**AWAITS THE DIRECTOR (not agent-decidable):** (1) W1 BUILD-open — nothing above is built. (2) The
+values-calls surfaced across the docs (harm-weights + τ threshold in F's κ, G's per-cell commercial_weight,
+A's equal-cell-vs-harm-weighted worst-cell + grid-completeness, L_min gate floors — cat-6 / R13). (3) Upstream
+BUILD blocker: the price engine's ~10× SSP miscalibration + missing carbon/UK-ETS term + hedging.py
+single-price collapse — gates cascade MAGNITUDE (not direction). The pull loop wakes on new local signal and
+rests quiet when drained-and-gated (both proven this session). Ops health: NTFY works, staging_watcher UP.
+Session history below (payment-triad L3, ops-health, treadmill-quiet, Campaign A) retained for the record.
+
+---
+
 
 **Running processes** (background/process_manifest.yaml, `enabled`): worker-seat-manager, supervisor,
 deadmans-switch, background-worker, staging-watcher, ntfy-responder, dispatcher, discovery-daemon,
@@ -134,7 +155,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (507s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
