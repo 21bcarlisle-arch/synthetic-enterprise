@@ -102,13 +102,16 @@ def test_2021_22_crisis_supplier_failure_count_is_single_sourced():
         repo_root / "site" / "index.html",
         repo_root / "site" / "sim" / "index.html",
         repo_root / "site" / "project" / "index.html",
-        repo_root / "site" / "timeline" / "index.html",
+        repo_root / "site" / "world" / "index.html",  # (v4) timeline retired -> world carries the fact
     ]
     bad_pattern = re.compile(r"\b(29|28|30\+)\b.{0,20}(real )?(UK )?suppliers?")
     for page in pages:
         text = page.read_text()
         assert not bad_pattern.search(text), f"{page} uses an inconsistent supplier-failure count"
-    mentions_fact = [p for p in pages if "suppliers failed" in p.read_text() or "suppliers to exit" in p.read_text()]
+    # (v4) count the CONSISTENT hedged phrasing "around 30 ... suppliers" the control guards --
+    # robust to each door's verb ("failed"/"to exit"/"ended ~30 suppliers") since consistency of
+    # the hedge, not a specific verb, is the point.
+    mentions_fact = [p for p in pages if re.search(r"around 30[^<]{0,40}suppliers?", p.read_text())]
     assert len(mentions_fact) >= 3  # sanity: this must actually be checking real mentions
 
 
