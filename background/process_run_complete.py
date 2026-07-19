@@ -952,19 +952,10 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/data/world.json (Door 5 THE WORLD)")
     except Exception as exc:
         log("world.json generation failed: {}".format(exc))
-    try:
-        # Door 6 THE METHOD + SIMPLIFIED (casebook shop-window + consolidated
-        # simplifications register): wired here for the SAME R11 no-orphan-transition
-        # reason as Doors 3/4/5 above -- a generated surface must ride the regen cycle
-        # or it silently freezes against its live sources (maturity_map.yaml + design
-        # docs). Runs AFTER the maturity-map/dashboard regen it reads from and BEFORE
-        # the GitHub-pages mirror below. Its data+page files are ALSO in git_commit_push's
-        # commit-list (both halves wired -- the orphan gap caught twice on earlier doors).
-        from tools.generate_method_casebook_data import generate as gen_casebook
-        gen_casebook()
-        log("Generated site/data/method_casebook.json (Door 6 THE METHOD + SIMPLIFIED)")
-    except Exception as exc:
-        log("method_casebook.json generation failed: {}".format(exc))
+    # (2026-07-20 v4 site rebuild) The combined "Method + Simplified" casebook surface
+    # (site/method-casebook/) was RETIRED -- redundant with the separate canonical Method
+    # (roles/rules/loop/retro/track-record) and Simplified (register) doors, which cover its
+    # content. Its generator + commit-list entries removed with it.
     try:
         from tools.mirror_github_pages import mirror as mirror_gh_pages
         mirrored = mirror_gh_pages()
@@ -1073,18 +1064,14 @@ def git_commit_push(git_hash, net_margin):
     # list -- so they regenerated every run yet the fresh copy was never committed,
     # leaving the deployed pages frozen (the same orphaned-at-commit gap Door 5
     # closed for world.json; caught by Door 5's cold-eyes). Track them here too.
-    # Door 6 THE METHOD + SIMPLIFIED (casebook + simplifications register): page,
-    # generated data file, and the Home nav link that points at it -- all tracked
-    # here or the regenerated method_casebook.json stays frozen on the live site
-    # (the same orphaned-at-commit gap Door 5 closed for world.json). Both halves
-    # wired: the regen call above AND this commit-list entry.
+    # Doors 3/4 (The Company, The Proof): page + generated data file tracked here or the
+    # regenerated JSON stays frozen on the live site (the orphaned-at-commit gap Door 5
+    # closed for world.json). (method-casebook retired 2026-07-20 -- entries removed.)
     for _door_file in (
         PROJECT_DIR / "site" / "proof" / "index.html",
         PROJECT_DIR / "site" / "data" / "proof.json",
         PROJECT_DIR / "site" / "company" / "index.html",
         PROJECT_DIR / "site" / "data" / "company.json",
-        PROJECT_DIR / "site" / "method-casebook" / "index.html",
-        PROJECT_DIR / "site" / "data" / "method_casebook.json",
     ):
         if _door_file.exists():
             files.append(str(_door_file))

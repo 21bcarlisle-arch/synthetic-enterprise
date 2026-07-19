@@ -78,7 +78,8 @@ def test_generate_customer_data_module():
 # its phone-legible layout (R15: must be able to FAIL -- a page missing the
 # block fails this test, proven by removing the block from any one file below).
 SITE1_DOORS_WITH_MOBILE_PASS = [
-    "company", "proof", "world", "method-casebook", "method", "glossary", "tours",
+    # (method-casebook retired 2026-07-20 -- redundant combined Method+Simplified surface)
+    "company", "proof", "world", "method", "glossary", "tours",
 ]
 
 
