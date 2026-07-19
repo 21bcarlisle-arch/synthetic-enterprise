@@ -85,7 +85,7 @@
       "epoch": 3,
       "level_current": 1,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1148,7 +1148,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 6
     },
     {
       "id": "H10_worktree_isolation",
@@ -1243,7 +1243,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "F5_vat_control_independent_signal",
@@ -1576,7 +1576,7 @@
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1597,7 +1597,7 @@
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1618,7 +1618,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1641,7 +1641,7 @@
       "epoch": 3,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1687,7 +1687,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1708,7 +1708,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1731,7 +1731,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1752,7 +1752,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2534,7 +2534,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -2555,7 +2555,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,

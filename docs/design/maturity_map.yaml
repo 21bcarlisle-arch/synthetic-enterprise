@@ -84,7 +84,7 @@
   epoch: 3
   level_current: 1
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 4
   evidence: [docs/market_research/synthetic_future_generation_w1_2.md, docs/design/frame/W1_2_generate_futures_FRAME.md, docs/design/SYNTHETIC_FUTURES_GENERATION_FRAME.md, 'sim/scenario/bimodal_generator.py (calibrated two-regime Markov synthetic forward price generator, drop-in compatible)', sim/scenario/gas_scenario_generator.py, simulation/run_scenario.py (real caller), tests/sim/test_bimodal_generator.py + test_gas_scenario_generator.py (31 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
   file_scope: []
@@ -943,6 +943,7 @@
   epoch: 2
   level_current: 1
   level_target: 3
+  blocked_on: director_door_set_review
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
@@ -1031,6 +1032,7 @@
   epoch: 2
   level_current: 2
   level_target: 3
+  blocked_on: director_door_set_review
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
@@ -1312,7 +1314,7 @@
   epoch: 3
   level_current: 1
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_3_national_weather_signal_FRAME.md, docs/design/NATIONAL_WEATHER_SIGNAL_FRAME.md, 'sim/weather_engine.py (Pass 1: regime-switching AR1 joint temp/wind/cloud, calibrated on 3446 real days)', simulation/demand_model.py (real sim-run caller), tests/sim/test_weather_engine.py (27 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
@@ -1330,7 +1332,7 @@
   epoch: 3
   level_current: 1
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md, docs/design/frame/W1_4_regional_weather_field_FRAME.md, docs/design/REGIONAL_WEATHER_FIELD_FRAME.md, 'sim/weather_engine.py (Pass 2: fit_regional_cholesky/simulate_regional_deviations, spatially-correlated regional field bound to national)', tests/sim/test_weather_engine.py (27 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
@@ -1349,7 +1351,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_5_premise_demand_shape_FRAME.md]
@@ -1367,7 +1369,7 @@
   epoch: 3
   level_current: 1
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md, docs/design/frame/W1_6_physics_price_signal_FRAME.md]
@@ -1403,7 +1405,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_7_renewable_capacity_trends_FRAME.md]
@@ -1421,7 +1423,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_8_zonal_locational_pricing_FRAME.md]
@@ -1438,7 +1440,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_9_DSR_FLEX_MARKETS_DISCOVER.md, docs/design/frame/W1_9_dsr_flex_markets_FRAME.md]
@@ -1455,7 +1457,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_10_FRAME.md]
@@ -2182,13 +2184,13 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
   file_scope: [background/scope_of_need_scoring_frame.py, tests/test_scope_of_need_scoring_frame.py]
   depends_on: [G1_fidelity_grid_scorer]
-  blocked_on: director_level_up
+  blocked_on: null
   simplifications: ['2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and explicitly defers the maturity_map edit to the orchestrator/BUILD) from EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md (2c3d7c03f), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the 5x3 {A1..A5} x {G1,G2,G3} grid + worst-cell MAX/CVaR scoring over G1_fidelity_grid_scorer, R15-failable (a book green ONLY on the comfortable middle A5 must NOT pass the worst-cell gate). Director VALUES-CALLS OPEN (equal-cell vs harm-weighted worst-cell; grid-completeness) -- build on the asserted equal-cell default, leave the call flagged (EPOCH2_VALUES_CALLS_BATCH_1). NO level claimed (levels are director-ratified, MATURITY_MAP.md section 0).', '2026-07-19 BUILT (background/scope_of_need_scoring_frame.py + 13 R15 tests, epistemic PASS): the 15-cell grid (5 archetypes x 3 regimes), worst-cell headline (default q=0 pure MAX per the director written rule; CVaR top-k smoother available), middle-to-edge spread, fail-open on untested cells, wall-leak guard. R15 killer mutation proven (14 good / 1 blind scores ~blind not the ~0.16 mean; middle-only-green never reports clean; untested cell cannot exit the MAX). VALUES-CALL defaults asserted+marked: WORST_CELL_Q=0.0, EQUAL_CELL_WEIGHTING=True (harm-weights are the director cat-6 call). L1 PROPOSED (batched for director LEVEL_UP; level_current NOT moved per section 0; blocked_on director_level_up stops the re-draw). L1->L2 = feed real per-cell coupled gaps from a live run.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier model-validation grid asking whether the cost/risk model is good in the corners that matter -- affordability/collections, atypical consumption shape, export/self-gen, crisis, correlated tail -- not just on the comfortable DD-paying middle"
@@ -2198,13 +2200,13 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
   file_scope: [background/cascade_correlation_estimation.py, tests/test_cascade_correlation_estimation.py]
   depends_on: [G1_fidelity_grid_scorer]
-  blocked_on: director_level_up
+  blocked_on: null
   simplifications: ['2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and defers the maturity_map edit) from EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md (6a47b1172), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the joint-tail estimation protocol (chi/chi-bar tail-dependence + copula fit + lag-k persistence) over the dependence inventory D1..D8, each estimate reported WITH its finite-u threshold; anti-marking-own-homework wall (fit on the record, validate the generator against it; C-S2 replayable). Upstream SSP ~10x recal already LANDED (TASK 1, a2dd6dcac) so cascade MAGNITUDE is unblocked. Every asserted-not-estimated link registered as an R10 simplification. NO level claimed.', '2026-07-19 BUILT (background/cascade_correlation_estimation.py + 15 R15 tests, epistemic PASS): the portable joint-tail lift L(u)=P(A&B in tail)/[P(A)*P(B)] as the single comparable statistic (null=1.0), lambda~L*(1-u), the L(u) curve, the anti-pooling condition() step (winter-conditioned, configurable not hardcoded), MOVING-BLOCK bootstrap CI (resamples spells not days, honours D8 autocorrelation, C-S2 deterministic seed), end-to-end lift + the compounding inequality L_end>=prod(L_link), and asserted_dependence() for the R10 honesty rule. R15 killer mutation proven: cut_coupling() shuffles B independently -> L collapses to ~1 -> assert_coupling_present FIRES; FAIL-OPEN (empty/constant/zero-tail raises), FAIL-SILENT (None series -> SeriesUnavailableError). L1 PROPOSED (batched for director LEVEL_UP; level_current NOT moved; blocked_on director_level_up). L1->L2 = estimate the real D1..D8 links on the record + register the asserted ones.',]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier quant risk desk estimating the dependence structure of the weather-to-demand-to-generation-to-price-to-imbalance cascade from history -- getting the joint tail right (cold and still together), not a single Pearson number that lies in the bulk"
