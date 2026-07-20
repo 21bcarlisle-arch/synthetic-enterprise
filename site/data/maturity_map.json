@@ -1167,7 +1167,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 35
+      "stall_consecutive_unchanged": 36
     },
     {
       "id": "H10_worktree_isolation",
@@ -1716,7 +1716,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 11
+      "stall_consecutive_unchanged": 22
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1727,7 +1727,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
