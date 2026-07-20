@@ -1078,6 +1078,29 @@ def test_site_lane_excludes_externally_blocked_atom():
     assert "SITE_OPEN" in ids          # QUIET: an unblocked site atom is still drawn
 
 
+def test_site_lane_excludes_build_in_progress_atom(tmp_path, monkeypatch):
+    """R15 (both directions): a site atom a LIVE fork already owns (fresh entry in
+    .build_in_progress.json) is NOT re-offered by the ungated SITE lane -- the same
+    no-re-offer guard the BUILD lane has (_self_refill_draw), extended to the site
+    lane so a focused SITE build (e.g. the P2 operational-window rebuild of SITE1) is
+    not raced by the self-drawing scheduled loop. The paired un-owned atom IS drawn,
+    so the guard does not over-exclude."""
+    import json as _json
+    import time as _time
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: SITE_OWNED\n  lane: H\n  dial_inherited: 3\n  loop_stage: build\n"
+        "  level_current: 1\n  level_target: 3\n  file_scope: [\"site\"]\n"
+        "- id: SITE_FREE\n  lane: H\n  dial_inherited: 3\n  loop_stage: build\n"
+        "  level_current: 1\n  level_target: 3\n  file_scope: [\"site\"]\n"
+    )
+    bip = tmp_path / ".build_in_progress.json"
+    bip.write_text(_json.dumps({"SITE_OWNED": _time.time()}))
+    monkeypatch.setattr(supervisor, "BUILD_IN_PROGRESS_FILE", bip)
+    ids = {a["id"] for a in supervisor._site_lane_draw_concurrent()}
+    assert "SITE_OWNED" not in ids   # FIRES: a live fork owns it -> not re-offered
+    assert "SITE_FREE" in ids         # QUIET: an un-owned site atom is still drawn
+
+
 def test_self_refill_draws_all_three_lanes_even_when_build_is_non_empty(monkeypatch):
     """THE regression: with a non-empty BUILD lane, SITE and DISCOVERY MUST
     still draw in the same cycle -- the old cascade returned on BUILD and left

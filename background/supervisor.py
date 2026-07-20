@@ -1010,6 +1010,15 @@ def _site_lane_draw_concurrent(
         return has_gap
 
     candidates = [a for a in atoms if _is_valid_site_candidate(a)]
+    # BUILD-IN-PROGRESS guard on the SITE lane too (2026-07-20): the guard in _self_refill_draw
+    # covers only the BUILD lane, so the ungated SITE lane could still re-offer an atom a live fork
+    # already owns (the same class as the site lane's earlier blocked_on / level-gap-only misses).
+    # Drop site atoms a live fork owns so a focused SITE build (e.g. the P2 operational-window
+    # rebuild of SITE1) isn't raced by the self-drawing scheduled loop. Fail-open
+    # (_build_in_progress_ids returns {} on error/staleness -> never stalls the lane).
+    _bip_site = _build_in_progress_ids()
+    if _bip_site:
+        candidates = [a for a in candidates if a.get("id") not in _bip_site]
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
