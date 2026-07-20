@@ -52,6 +52,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     "ARCH1_internal_seams", "BRAND1_identity_system",
     "E1_ledger_double_entry", "E2_revenue_reconciliation", "E3_accrual_restatement",
     "E4_supplier_reporting_standard",
+    "E5_carbon_three_ledger",  # 2026-07-20 v4 mission carbon-ledger candidate (diagnostic, CARBON_NOT_A_TARGET)
     "F1_epistemic_verifier", "F2_sanity_daemon", "F3_obligations_register",
     "F4_company_internal_authz", "F5_ofgem_licence_readiness",
     "F5_vat_control_independent_signal", "F6_bill_integrity_structural",
