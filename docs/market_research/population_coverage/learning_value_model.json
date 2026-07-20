@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "artefact": "learning_value_model",
+    "track": "DIRECTOR_STEER_SEGMENTATION_LEARNING_VALUE_REFRAME_2026-07-20",
+    "supersedes": "value_outcome_model.json (the P&L-weighted objective)",
+    "stage": "4 -- REFRAMED VALUES-CALL (a): what makes a segment worth MODELLING (learning value), not what makes a customer profitable (P&L value)",
+    "created": "2026-07-20",
+    "status": "PROPOSED / ASSERTED -- director confirms or adjusts. This is one iteration of an explicitly iterative learning loop; the frontier rebuilds deterministically from this file.",
+    "the_conflation_this_fixes": "The old value_outcome_model.json collapsed two different things into one signed scalar: (1) VALUE OF THE CUSTOMER (their margin contribution -- a fuel-poor household in arrears is NEGATIVE here) and (2) VALUE OF MODELLING THAT SEGMENT WELL (how much the business gains from understanding it -- arrears/vulnerability/collections are HIGH here precisely because they are hard, costly and where regulatory + mortality risk concentrate). The old build maximised (1); the director wants (2). Director verbatim: 'Value makes no sense. Bad debt is negative value but working out how to deal with them is really valuable.'",
+    "what_changed": [
+      "BAD DEBT IS NO LONGER A VALUE REDUCTION. In the old signed business_value it entered with a minus sign and a 0.20 weight, so a high-arrears segment scored LOW-value and got demoted. Reframed: high bad-debt VARIANCE is a positive learning signal, and bad-debt magnitude RAISES a segment's modelling priority (consequence in EITHER direction).",
+      "THE FOUR FIXED WEIGHTS ARE WITHDRAWN. margin 0.40 / retention 0.25 / bad_debt 0.20 / carbon 0.15 were hand-assigned -- 'a guess dressed as precision' (director). Replaced by a data-derived learning-value metric where segment importance comes from MEASURED variance-explained in outcomes, not from asserted importances.",
+      "PROTECTION MOVED OUTSIDE THE RANKING. critical_group_bonus is REMOVED from the score. Protected groups are covered by CONSTRUCTION (carve-outs), a floor no metric can breach -- not a term competing inside the ranking."
+    ],
+    "the_reframed_objective": "Optimise for INFORMATION / LEARNING value: which segments teach the company the most. A segment ranks high when it is (a) behaviourally distinct (acts differently in ways that change a decision), OR (b) commercially consequential in EITHER direction (large positive OR large negative P&L -- arrears and default count as HIGH-consequence, not low-value), OR (c) regulatorily/vulnerability-critical (handled as a floor, below).",
+    "three_data_derived_criteria": {
+      "1_consequence_magnitude": "Unsigned stakes across all four outcomes: how much money (positive OR negative) and duty rides on getting this segment right. Standardized, summed in QUADRATURE so a household extreme on any single outcome (incl. bad debt) is high-consequence. This is the 'either direction' fix in one number.",
+      "2_learning_value_of_information": "Between-segment variance-explained (eta^2) of each STANDARDIZED outcome. Under a quadratic-loss decision the between-group variance IS the value of information (the gain from acting per-segment vs pooled), so eta^2 is a VoI measure, not a proxy for one. Bad-debt eta^2 now counts POSITIVELY: a split that separates high-arrears from low-arrears customers scores high because you learn a lot about who defaults -- exactly 'working out how to deal with them is valuable'.",
+      "3_distinctness": "Incremental (marginal) learning value of a dimension GIVEN those already chosen -- behaviour 'not predictable from the others'. Computed greedily from the data; a redundant dimension adds ~zero and does not earn a segment."
+    },
+    "the_one_declared_choice": {
+      "what": "outcomes_equal_standardized_weight",
+      "value": "EQUAL weight on the four standardized (z-scored) outcomes when aggregating per-outcome learning value into one number.",
+      "why_this_is_not_a_guess": "The old four weights asserted a specific importance ordering (margin most, carbon least). Equal-standardized-weight asserts the MINIMUM: no outcome is presumed more important than another before the data speaks -- the maximum-entropy / least-committed prior. Segment RANKING then comes from how much each dimension actually moves outcomes (measured), not from the weight. This is the single unavoidable choice, and per the director it is CHOSEN, DECLARED, and SENSITIVITY-TESTED (against margin-led, pure-P&L and net-zero tilts) -- same discipline as the 1.5x tail-lift threshold.",
+      "sensitivity_tested_against": ["equal (default)", "margin_led", "pure_pnl_signed_legacy", "net_zero_tilt", "bad_debt_led"]
+    },
+    "protection_is_a_floor_outside_the_ranking": "No metric -- learning value included -- can demote a regulatorily-significant group (vulnerability, fuel poverty, prepayment, priority-services, debt) below full-fidelity modelling. The protected set lives in critical_groups.json and is covered by carve-out construction. The director invited this set to WIDEN if anything; see critical_groups.json widening note.",
+    "anti_goal_seek": "R12: outcomes are DIAGNOSTICS used to RANK segments by learning value, never targets. No effect size was tuned to make a result look right; bad debt is not tuned to lift a segment -- it lifts because its VARIANCE is genuinely informative.",
+    "reversibility": "Analysis only, doc-and-data, deterministic rebuild. The population-GENERATOR wiring remains director-reserved (a wall) -- this file reframes the analysis, it does not authorise wiring."
+  },
+  "aggregation": {
+    "outcome_weighting_mode": "equal_standardized",
+    "outcome_keys": ["margin", "churn_cost", "baddebt", "carbon_value"],
+    "note": "Each outcome z-scored to unit variance; learning value of a segmentation = MEAN over outcomes of that outcome's between-segment eta^2. No signed collapse -- each outcome is a separate thing worth learning. Signs (margin+, churn-, bad_debt-, carbon+) are IRRELEVANT to variance-explained and are not applied here; they only ever mattered to the withdrawn signed scalar."
+  },
+  "sensitivity_weightings": {
+    "_comment": "Alternative outcome-importance tilts the frontier is REBUILT under, to test whether the segment ranking + knee survive the one declared choice. Values are relative multipliers on each outcome's standardized eta^2 before averaging.",
+    "equal":        {"margin": 1.0, "churn_cost": 1.0, "baddebt": 1.0, "carbon_value": 1.0, "note": "DEFAULT -- least-committed prior"},
+    "margin_led":   {"margin": 2.0, "churn_cost": 1.0, "baddebt": 1.0, "carbon_value": 0.5, "note": "commercial tilt short of the old signed collapse"},
+    "bad_debt_led": {"margin": 1.0, "churn_cost": 1.0, "baddebt": 2.0, "carbon_value": 0.5, "note": "collections/affordability tilt -- the direction the director leaned"},
+    "net_zero_tilt":{"margin": 1.0, "churn_cost": 0.75, "baddebt": 0.75, "carbon_value": 2.0, "note": "decarbonisation as a first-class objective"}
+  },
+  "legacy_signed_weighting_for_delta_only": {
+    "_comment": "The WITHDRAWN fixed weights, retained ONLY so the reframed build can recompute the OLD P&L knee and report how the knee MOVED. Not used by the reframed objective.",
+    "margin": 0.40, "retention": 0.25, "bad_debt": 0.20, "carbon": 0.15
+  },
+  "params": {
+    "social_cost_of_carbon_gbp_per_t": 80,
+    "social_cost_of_carbon_note": "UK BEIS/DESNZ central non-traded carbon values ~£80-90/tCO2 this era; asserted anchor for monetising abatable carbon. Unchanged from value_outcome_model.json.",
+    "reacquisition_cost_gbp": 120,
+    "reacquisition_cost_note": "acquisition/CAC proxy; churn_cost = churn_prob x (CAC + margin_at_risk). Unchanged.",
+    "critical_group_bonus": null,
+    "critical_group_bonus_note": "REMOVED from the ranking. Protection is a floor outside the score (carve-out construction), not a term inside it. Kept as an explicit null so the change is visible, not silent."
+  },
+  "base": {
+    "margin_gbp": 60.0,
+    "churn_prob": 0.15,
+    "carbon_abatable_t": 2.2,
+    "baddebt_gbp": 15.0,
+    "_note": "national baselines for a typical dual-fuel household; effects in value_outcome_model.json.effects are re-used UNCHANGED (the outcome MODEL is the same physics; only the OBJECTIVE over it changed). This keeps the delta clean: same outcomes, reframed metric."
+  },
+  "effects_source": "value_outcome_model.json (effects + base re-used unchanged; only the objective over them is reframed)"
+}

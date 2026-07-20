@@ -1,0 +1,632 @@
+{
+  "_meta": {
+    "artefact": "learning_value_frontier",
+    "track": "DIRECTOR_STEER_SEGMENTATION_LEARNING_VALUE_REFRAME_2026-07-20",
+    "supersedes": "value_frontier.json (the P&L-weighted objective)",
+    "stage": "4 REFRAMED -- learning/information value, data-guided, protection as a floor. DISCOVER/FRAME, analysis only, NO generator change.",
+    "created": "2026-07-20",
+    "objective": "LEARNING value: which segments teach the company most. eta^2 of each standardized outcome (VoI), equal weight (the ONE declared choice), bad debt a POSITIVE learning signal, protection a floor OUTSIDE the ranking.",
+    "population": {
+      "n_households_sampled": 60000,
+      "seed": 20260720,
+      "representativeness": "POPULATION-REPRESENTATIVE (volume-weighted), same joint structure as build_value_frontier.py -- construction re-used unchanged."
+    },
+    "determinism": "fixed seed 20260720, sorted iteration; no microdata; no network.",
+    "anti_goal_seek": "R12: outcomes are diagnostics used to RANK by learning value, never targets."
+  },
+  "reframe_note": "Bad debt was a value REDUCTION in value_frontier.json; here its VARIANCE is a positive learning signal and its MAGNITUDE raises consequence. The four fixed weights are withdrawn; ranking is data-derived (measured eta^2). critical_group_bonus removed -- protection is a carve-out floor.",
+  "dimension_ranking_by_learning_value": {
+    "price_sensitivity": {
+      "learning_value": 0.2264,
+      "per_outcome_eta2": {
+        "margin": 0.28,
+        "churn_cost": 0.5761,
+        "baddebt": 0.0496,
+        "carbon_value": 0.0
+      }
+    },
+    "tenure": {
+      "learning_value": 0.22,
+      "per_outcome_eta2": {
+        "margin": 0.2139,
+        "churn_cost": 0.0909,
+        "baddebt": 0.5124,
+        "carbon_value": 0.0628
+      }
+    },
+    "channel_pref": {
+      "learning_value": 0.1668,
+      "per_outcome_eta2": {
+        "margin": 0.338,
+        "churn_cost": 0.2617,
+        "baddebt": 0.0674,
+        "carbon_value": 0.0
+      }
+    },
+    "nssec": {
+      "learning_value": 0.1662,
+      "per_outcome_eta2": {
+        "margin": 0.0901,
+        "churn_cost": 0.0251,
+        "baddebt": 0.5455,
+        "carbon_value": 0.0042
+      }
+    },
+    "accommodation": {
+      "learning_value": 0.1141,
+      "per_outcome_eta2": {
+        "margin": 0.0455,
+        "churn_cost": 0.007,
+        "baddebt": 0.0906,
+        "carbon_value": 0.3132
+      }
+    },
+    "heating_fuel": {
+      "learning_value": 0.1059,
+      "per_outcome_eta2": {
+        "margin": 0.0119,
+        "churn_cost": 0.001,
+        "baddebt": 0.0603,
+        "carbon_value": 0.3502
+      }
+    },
+    "EV": {
+      "learning_value": 0.0599,
+      "per_outcome_eta2": {
+        "margin": 0.0995,
+        "churn_cost": 0.0071,
+        "baddebt": 0.0001,
+        "carbon_value": 0.1328
+      }
+    },
+    "green_stance": {
+      "learning_value": 0.0492,
+      "per_outcome_eta2": {
+        "margin": 0.0001,
+        "churn_cost": 0.0241,
+        "baddebt": 0.0,
+        "carbon_value": 0.1726
+      }
+    },
+    "cars": {
+      "learning_value": 0.0288,
+      "per_outcome_eta2": {
+        "margin": 0.0287,
+        "churn_cost": 0.0008,
+        "baddebt": 0.0768,
+        "carbon_value": 0.0089
+      }
+    },
+    "solar_PV": {
+      "learning_value": 0.0109,
+      "per_outcome_eta2": {
+        "margin": 0.0086,
+        "churn_cost": 0.0005,
+        "baddebt": 0.0,
+        "carbon_value": 0.0345
+      }
+    },
+    "home_battery": {
+      "learning_value": 0.0024,
+      "per_outcome_eta2": {
+        "margin": 0.007,
+        "churn_cost": 0.0007,
+        "baddebt": 0.0,
+        "carbon_value": 0.0017
+      }
+    },
+    "region": {
+      "learning_value": 0.0017,
+      "per_outcome_eta2": {
+        "margin": 0.0002,
+        "churn_cost": 0.0001,
+        "baddebt": 0.0011,
+        "carbon_value": 0.0054
+      }
+    }
+  },
+  "learning_value_frontier_curve": [
+    {
+      "step": 0,
+      "added_dim": null,
+      "dims": [],
+      "segments": 1,
+      "learning_value": 0.0,
+      "marginal_lv": 0.0,
+      "per_outcome_eta2": {
+        "margin": 0.0,
+        "churn_cost": 0.0,
+        "baddebt": 0.0,
+        "carbon_value": 0.0
+      },
+      "consequence_eta2": 0.0,
+      "critical_coverage": 0.0477
+    },
+    {
+      "step": 1,
+      "added_dim": "price_sensitivity",
+      "dims": [
+        "price_sensitivity"
+      ],
+      "segments": 3,
+      "learning_value": 0.2264,
+      "marginal_lv": 0.2264,
+      "per_outcome_eta2": {
+        "margin": 0.28,
+        "churn_cost": 0.5761,
+        "baddebt": 0.0496,
+        "carbon_value": 0.0
+      },
+      "consequence_eta2": 0.0635,
+      "critical_coverage": 0.0635
+    },
+    {
+      "step": 2,
+      "added_dim": "tenure",
+      "dims": [
+        "price_sensitivity",
+        "tenure"
+      ],
+      "segments": 12,
+      "learning_value": 0.4473,
+      "marginal_lv": 0.2209,
+      "per_outcome_eta2": {
+        "margin": 0.4927,
+        "churn_cost": 0.6723,
+        "baddebt": 0.5613,
+        "carbon_value": 0.0629
+      },
+      "consequence_eta2": 0.2483,
+      "critical_coverage": 0.2101
+    },
+    {
+      "step": 3,
+      "added_dim": "channel_pref",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref"
+      ],
+      "segments": 36,
+      "learning_value": 0.6168,
+      "marginal_lv": 0.1695,
+      "per_outcome_eta2": {
+        "margin": 0.8367,
+        "churn_cost": 0.9353,
+        "baddebt": 0.6317,
+        "carbon_value": 0.0634
+      },
+      "consequence_eta2": 0.3772,
+      "critical_coverage": 0.3794
+    },
+    {
+      "step": 4,
+      "added_dim": "heating_fuel",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel"
+      ],
+      "segments": 252,
+      "learning_value": 0.7238,
+      "marginal_lv": 0.107,
+      "per_outcome_eta2": {
+        "margin": 0.85,
+        "churn_cost": 0.9368,
+        "baddebt": 0.6941,
+        "carbon_value": 0.4144
+      },
+      "consequence_eta2": 0.4947,
+      "critical_coverage": 0.7361
+    },
+    {
+      "step": 5,
+      "added_dim": "nssec",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec"
+      ],
+      "segments": 934,
+      "learning_value": 0.8174,
+      "marginal_lv": 0.0936,
+      "per_outcome_eta2": {
+        "margin": 0.8839,
+        "churn_cost": 0.9652,
+        "baddebt": 1.0,
+        "carbon_value": 0.4206
+      },
+      "consequence_eta2": 0.7021,
+      "critical_coverage": 0.9276
+    },
+    {
+      "step": 6,
+      "added_dim": "accommodation",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation"
+      ],
+      "segments": 3069,
+      "learning_value": 0.8829,
+      "marginal_lv": 0.0655,
+      "per_outcome_eta2": {
+        "margin": 0.8883,
+        "churn_cost": 0.9664,
+        "baddebt": 1.0,
+        "carbon_value": 0.6768
+      },
+      "consequence_eta2": 0.7615,
+      "critical_coverage": 0.997
+    },
+    {
+      "step": 7,
+      "added_dim": "EV",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation",
+        "EV"
+      ],
+      "segments": 4070,
+      "learning_value": 0.9421,
+      "marginal_lv": 0.0592,
+      "per_outcome_eta2": {
+        "margin": 0.9843,
+        "churn_cost": 0.9756,
+        "baddebt": 1.0,
+        "carbon_value": 0.8086
+      },
+      "consequence_eta2": 0.9105,
+      "critical_coverage": 1.0
+    },
+    {
+      "step": 8,
+      "added_dim": "green_stance",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation",
+        "EV",
+        "green_stance"
+      ],
+      "segments": 8266,
+      "learning_value": 0.9881,
+      "marginal_lv": 0.046,
+      "per_outcome_eta2": {
+        "margin": 0.9855,
+        "churn_cost": 0.9987,
+        "baddebt": 1.0,
+        "carbon_value": 0.9684
+      },
+      "consequence_eta2": 0.9806,
+      "critical_coverage": 1.0
+    },
+    {
+      "step": 9,
+      "added_dim": "solar_PV",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation",
+        "EV",
+        "green_stance",
+        "solar_PV"
+      ],
+      "segments": 9860,
+      "learning_value": 0.9977,
+      "marginal_lv": 0.0095,
+      "per_outcome_eta2": {
+        "margin": 0.9931,
+        "churn_cost": 0.9994,
+        "baddebt": 1.0,
+        "carbon_value": 0.9983
+      },
+      "consequence_eta2": 0.9948,
+      "critical_coverage": 1.0
+    },
+    {
+      "step": 10,
+      "added_dim": "home_battery",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation",
+        "EV",
+        "green_stance",
+        "solar_PV",
+        "home_battery"
+      ],
+      "segments": 10416,
+      "learning_value": 1.0,
+      "marginal_lv": 0.0023,
+      "per_outcome_eta2": {
+        "margin": 1.0,
+        "churn_cost": 1.0,
+        "baddebt": 1.0,
+        "carbon_value": 1.0
+      },
+      "consequence_eta2": 1.0,
+      "critical_coverage": 1.0
+    },
+    {
+      "step": 11,
+      "added_dim": "cars",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation",
+        "EV",
+        "green_stance",
+        "solar_PV",
+        "home_battery",
+        "cars"
+      ],
+      "segments": 17047,
+      "learning_value": 1.0,
+      "marginal_lv": 0.0,
+      "per_outcome_eta2": {
+        "margin": 1.0,
+        "churn_cost": 1.0,
+        "baddebt": 1.0,
+        "carbon_value": 1.0
+      },
+      "consequence_eta2": 1.0,
+      "critical_coverage": 1.0
+    },
+    {
+      "step": 12,
+      "added_dim": "region",
+      "dims": [
+        "price_sensitivity",
+        "tenure",
+        "channel_pref",
+        "heating_fuel",
+        "nssec",
+        "accommodation",
+        "EV",
+        "green_stance",
+        "solar_PV",
+        "home_battery",
+        "cars",
+        "region"
+      ],
+      "segments": 38012,
+      "learning_value": 1.0,
+      "marginal_lv": 0.0,
+      "per_outcome_eta2": {
+        "margin": 1.0,
+        "churn_cost": 1.0,
+        "baddebt": 1.0,
+        "carbon_value": 1.0
+      },
+      "consequence_eta2": 1.0,
+      "critical_coverage": 1.0
+    }
+  ],
+  "value_knee_reframed": {
+    "by_segment_count": {
+      "segment_count": 4070,
+      "value_at_knee": 0.9421,
+      "gap_above_chord": 0.8351
+    },
+    "by_dimension_count": {
+      "segment_count": 5,
+      "value_at_knee": 0.8174,
+      "gap_above_chord": 0.4007
+    },
+    "reading": "segments where the next dimension buys almost no additional learning value."
+  },
+  "knee_delta_vs_pnl_signed": {
+    "old_objective": "signed business_value (margin+0.40, retention-0.25, bad_debt-0.20, carbon+0.15) -- WITHDRAWN",
+    "old_leading_dims": [
+      "price_sensitivity",
+      "tenure",
+      "accommodation"
+    ],
+    "old_knee": {
+      "segment_count": 1111,
+      "value_at_knee": 0.957,
+      "gap_above_chord": 0.9278
+    },
+    "new_leading_dims": [
+      "price_sensitivity",
+      "tenure",
+      "channel_pref"
+    ],
+    "new_knee_by_segments": {
+      "segment_count": 4070,
+      "value_at_knee": 0.9421,
+      "gap_above_chord": 0.8351
+    },
+    "how_to_read": "Compare old_leading_dims vs new_leading_dims and the two knees. A rise of bad-debt-bearing dimensions (nssec, tenure, heating_fuel, channel_pref) in the new ranking is the reframe working: segments where arrears varies are now high-learning-value rather than low-value."
+  },
+  "consequence_tail": {
+    "note": "Bad debt now RAISES priority: protected/affordability groups should sit ABOVE population-mean consequence and be over-represented in the high-stakes tail -- the inverted-bell-curve thesis made measurable.",
+    "population_mean_consequence": 1.87,
+    "per_critical_group": {
+      "fuel_poor_offgas": {
+        "mean_consequence": 2.93,
+        "share_in_top_decile": 0.522,
+        "n": 2010
+      },
+      "vulnerable_assisted": {
+        "mean_consequence": 2.72,
+        "share_in_top_decile": 0.398,
+        "n": 3598
+      },
+      "electric_flat_renter": {
+        "mean_consequence": 2.994,
+        "share_in_top_decile": 0.553,
+        "n": 886
+      },
+      "offgrid_rural_low_income": {
+        "mean_consequence": 2.862,
+        "share_in_top_decile": 0.481,
+        "n": 539
+      },
+      "high_needs_prepay_proxy": {
+        "mean_consequence": 3.083,
+        "share_in_top_decile": 0.562,
+        "n": 1549
+      }
+    }
+  },
+  "hybrid_recommended_designs": {
+    "principle": "Learning-value core (the two-to-three leading dims) PLUS protected carve-outs. The carve-out is a FLOOR outside the ranking, not a scored bonus. Two objectives still do NOT co-move -- variance/learning is bought by coarse main-effect splits; protection by targeted conjunctive carves.",
+    "designs": {
+      "lvcore2_OVERLAY": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure"
+        ],
+        "mode": "overlay",
+        "segments": 31,
+        "learning_value": 0.5217,
+        "per_outcome_eta2": {
+          "margin": 0.5916,
+          "churn_cost": 0.7115,
+          "baddebt": 0.6491,
+          "carbon_value": 0.1344
+        },
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      },
+      "lvcore3_OVERLAY": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure",
+          "channel_pref"
+        ],
+        "mode": "overlay",
+        "segments": 53,
+        "learning_value": 0.6254,
+        "per_outcome_eta2": {
+          "margin": 0.8086,
+          "churn_cost": 0.8894,
+          "baddebt": 0.6688,
+          "carbon_value": 0.1347
+        },
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      },
+      "lvcore2_INTERSECT": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure"
+        ],
+        "mode": "intersect",
+        "segments": 83,
+        "learning_value": 0.5469,
+        "per_outcome_eta2": {
+          "margin": 0.6191,
+          "churn_cost": 0.7546,
+          "baddebt": 0.6756,
+          "carbon_value": 0.1385
+        },
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      }
+    }
+  },
+  "sensitivity_to_the_declared_choice": {
+    "note": "Rebuild the frontier under each outcome-importance tilt. If the same 1-2 dims lead and the knee holds under all tilts, the reframed knee is robust to the one declared choice and only the fine ordering past the knee is tilt-dependent.",
+    "results": {
+      "equal": {
+        "leading_dims": [
+          "price_sensitivity",
+          "tenure",
+          "channel_pref",
+          "nssec"
+        ],
+        "knee": {
+          "segment_count": 4070,
+          "value_at_knee": 0.9421,
+          "gap_above_chord": 0.8351
+        }
+      },
+      "margin_led": {
+        "leading_dims": [
+          "price_sensitivity",
+          "tenure",
+          "channel_pref",
+          "nssec"
+        ],
+        "knee": {
+          "segment_count": 4070,
+          "value_at_knee": 0.9663,
+          "gap_above_chord": 0.8593
+        }
+      },
+      "bad_debt_led": {
+        "leading_dims": [
+          "tenure",
+          "nssec",
+          "price_sensitivity",
+          "channel_pref"
+        ],
+        "knee": {
+          "segment_count": 934,
+          "value_at_knee": 0.9021,
+          "gap_above_chord": 0.8776
+        }
+      },
+      "net_zero_tilt": {
+        "leading_dims": [
+          "tenure",
+          "heating_fuel",
+          "price_sensitivity",
+          "accommodation"
+        ],
+        "knee": {
+          "segment_count": 4070,
+          "value_at_knee": 0.9074,
+          "gap_above_chord": 0.8004
+        }
+      }
+    }
+  },
+  "protection_floor": {
+    "principle": "No metric -- learning value included -- can demote a regulatorily-significant group below full-fidelity modelling. Protected set = critical_groups.json, covered by carve-out construction. Director invited it to WIDEN.",
+    "critical_group_bonus_status": "REMOVED from the ranking (was 0.05 in value_outcome_model.json)."
+  }
+}
