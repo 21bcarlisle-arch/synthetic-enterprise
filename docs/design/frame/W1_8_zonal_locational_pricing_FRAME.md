@@ -153,6 +153,33 @@ to hide a real reconciliation break.
   exposes a stable national derived price at the SIM seam AND the director opens a zonal-regime
   curriculum scenario for the atom to generate against.
 
+### 5a. Build-readiness update (2026-07-20 worker tick, doc-only, level HELD at L0)
+
+- **The `depends_on: W1_6_physics_price_signal` dependency named above is now SATISFIED.** W1_6 reached
+  `level_current: 3` (`loop_stage: harden`) on 2026-07-20 — the "W1_6 itself is not yet settled ...
+  inherited calibration failure is unresolved" clause in the bullet above is **superseded**; there is
+  now a stable national derived price to decompose (`price_z = price_national + basis_z`) and to
+  reconcile against. This is the same unblock the W1_9 tick recorded the same day.
+- **Seam consequence (inherited from the W1_6 L3 design):** W1_6 exposes the price **OUTTURN only** at
+  the SIM seam — no scarcity/residual/marginal-cost read crosses the wall (by wall design). So W1_8's
+  decomposition base is the **published national price outturn**, and the company observes each zonal
+  **print** as a settled outturn from which it *infers* basis — it never reads the congestion model or
+  true basis (already §8, now grounded in the concrete W1_6 outturn-only seam).
+- **Material distinction from W1_9 (why W1_8 canNOT land a dormant-L1 gap build this tick):** W1_9's
+  system-stress signal is real under the *national baseline* world, so W1_9 could build a dormant-safe
+  L1 and measure a non-trivial belief-vs-truth gap immediately. **W1_8's zonal basis is identically
+  ZERO under the national baseline** (no zonal prints exist until a zonal regime is authored) — so an
+  L1 build has *nothing to reconcile or measure* until a director-authored **R13 zonal curriculum
+  scenario** (§6) supplies zonal prints. W1_8's BUILD is therefore gated **harder** than W1_9's: the
+  curriculum scenario is a *prerequisite for signal*, not just a difficulty dial.
+- **Precise remaining BUILD gate (all director-console acts; none present in `gate_authorizations.jsonl`
+  as of this tick — only the general 2026-07-19 W1/W2-cascade `BUILD_OPEN` ts≈1784499318):**
+  (1) `file_scope` expansion `[docs/design] → sim/` (+ the seam) — this atom cannot write code under its
+  current scope; (2) a `schema_sim_structure` **GATE_CLEAR** for the zonal observable on the gated path
+  `company/interfaces/sim_interface.py`, mirroring W1_9's ts≈1784556965 act; (3) an R13 director-authored
+  **zonal-regime curriculum scenario** (§6) — without it there is no zonal signal to build against.
+  `maturity_map.yaml` left untouched (itself a gated path); `level_current` HELD at 0.
+
 ---
 
 ## 6. Open questions / director gates — CURRICULUM (R13)
