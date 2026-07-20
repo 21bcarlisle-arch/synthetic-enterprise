@@ -244,31 +244,65 @@ def demand_from_weather(temp_c, params: ChainParams | None = None) -> np.ndarray
     return p.demand_base_mw + p.demand_b_hdd * _hdd(temp_c) + p.demand_b_cdd * _cdd(temp_c)
 
 
-def wind_output_from_speed(wind_speed_ms, params: ChainParams | None = None):
+def _wind_fleet_mw(p: ChainParams, year: int | None) -> float:
+    """The wind fleet scalar to scale the power curve by. Default (year is None) is the
+    whole-window mean-matched scalar — unchanged behaviour. When a calendar year τ is
+    given, W1_7's time-varying per-year effective fleet is used instead (lazy import
+    avoids the module cycle)."""
+    if year is None:
+        return p.wind_fleet_mw
+    from sim.renewable_capacity_trend import capacity_wind
+    return capacity_wind(int(year))
+
+
+def _solar_fleet_mw(p: ChainParams, year: int | None) -> float:
+    """As `_wind_fleet_mw`, for the solar seasonal envelope (W1_7 per-year τ fleet)."""
+    if year is None:
+        return p.solar_fleet_mw
+    from sim.renewable_capacity_trend import capacity_solar
+    return capacity_solar(int(year))
+
+
+def wind_output_from_speed(wind_speed_ms, params: ChainParams | None = None,
+                           year: int | None = None):
     """Link 2: national wind output (MW) from wind speed via the turbine power
-    curve, scaled to the mean-matched fleet. Near-zero in the still tail."""
+    curve, scaled to the mean-matched fleet. Near-zero in the still tail.
+
+    `year` (W1_7): when given, scales by the time-varying per-year effective fleet
+    (`renewable_capacity_trend.capacity_wind(year)`) instead of the whole-window scalar,
+    so the same weather draw produces a different output in 2016 than in 2025. Default
+    (None) is the whole-window scalar — unchanged for every existing caller."""
     p = params or fit_chain()
     frac = np.array([wind_power_output_fraction(float(w)) for w in np.atleast_1d(wind_speed_ms)])
-    out = p.wind_fleet_mw * frac
+    out = _wind_fleet_mw(p, year) * frac
     return out if np.ndim(wind_speed_ms) else float(out[0])
 
 
-def solar_output_from_weather(day_of_year, cloud_pct, params: ChainParams | None = None) -> np.ndarray:
-    """Link 3: national solar output (MW) from season x cloud (R10 proxy)."""
+def solar_output_from_weather(day_of_year, cloud_pct, params: ChainParams | None = None,
+                              year: int | None = None) -> np.ndarray:
+    """Link 3: national solar output (MW) from season x cloud (R10 proxy).
+
+    `year` (W1_7): per-year effective solar fleet when given (see `wind_output_from_speed`);
+    None keeps the whole-window scalar (unchanged for existing callers)."""
     p = params or fit_chain()
-    return p.solar_fleet_mw * _solar_envelope(day_of_year, cloud_pct)
+    return _solar_fleet_mw(p, year) * _solar_envelope(day_of_year, cloud_pct)
 
 
 def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
-                 params: ChainParams | None = None):
+                 params: ChainParams | None = None, year: int | None = None):
     """THE CHAIN, closed (W1_6 L4). One coherent weather draw -> demand +
     renewable output -> residual demand -> merit-order price. Price is DERIVED;
-    it is never an independent draw. Vectorised over arrays or scalar."""
+    it is never an independent draw. Vectorised over arrays or scalar.
+
+    `year` (W1_7): when given, renewable output uses the time-varying per-year fleet,
+    so a 2016 cold-still spell prices differently from a 2025 one. Default (None) keeps
+    the whole-window scalar — unchanged behaviour, so the SSP calibration gate is not
+    re-opened (R12; the year-aware default flip is the L2 step after recalibration)."""
     p = params or fit_chain()
     demand = np.atleast_1d(demand_from_weather(temp_c, p))
-    wind = np.atleast_1d(p.wind_fleet_mw * np.array(
+    wind = np.atleast_1d(_wind_fleet_mw(p, year) * np.array(
         [wind_power_output_fraction(float(w)) for w in np.atleast_1d(wind_speed_ms)]))
-    solar = np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p))
+    solar = np.atleast_1d(solar_output_from_weather(day_of_year, cloud_pct, p, year))
     gas = np.atleast_1d(np.asarray(gas_price, float))
     renewable = wind + solar
     price = np.array([synthetic_price(float(gas[i]), float(demand[i]), float(renewable[i]))
@@ -277,13 +311,16 @@ def derive_price(temp_c, wind_speed_ms, cloud_pct, day_of_year, gas_price,
 
 
 def residual_demand(temp_c, wind_speed_ms, cloud_pct, day_of_year,
-                    params: ChainParams | None = None) -> np.ndarray:
+                    params: ChainParams | None = None, year: int | None = None) -> np.ndarray:
     """RD = demand - wind - solar, the load thermal plant must serve. The exact
-    identity the R15 residual-identity control checks."""
+    identity the R15 residual-identity control checks.
+
+    `year` (W1_7): per-year time-varying renewable fleet when given; None keeps the
+    whole-window scalar (unchanged)."""
     p = params or fit_chain()
     demand = demand_from_weather(temp_c, p)
-    wind = wind_output_from_speed(np.atleast_1d(wind_speed_ms), p)
-    solar = solar_output_from_weather(day_of_year, cloud_pct, p)
+    wind = wind_output_from_speed(np.atleast_1d(wind_speed_ms), p, year)
+    solar = solar_output_from_weather(day_of_year, cloud_pct, p, year)
     return np.asarray(demand) - np.asarray(wind) - np.asarray(solar)
 
 

@@ -209,3 +209,36 @@ not `price_engine.py`). W1_7 code BUILD is now blocked ONLY on (a) a director/or
 expansion and (b) the discovery-agent network pass for the independent validators. Level **HELD at 0** —
 DISCOVER/FRAME does not move levels; `maturity_map.yaml` untouched (gated path). L1-PROPOSED pending file_scope
 + validator sourcing.
+
+## 11. L1 BUILD LANDED (2026-07-20, worker tick — level HELD at 0, L1 PROPOSED)
+
+**Built** (the §10 network-free L1 path, seam corrected to `weather_price_chain.py`):
+- **`sim/renewable_capacity_trend.py`** — `fleet_trajectory()` mean-matches the renewable
+  fleet WITHIN each calendar year on the AGWS outturn already ingested by
+  `weather_price_chain.load_daily_record()`, giving a time-varying `capacity_wind(τ)` /
+  `capacity_solar(τ)` (piecewise-constant, flat tails = R13 hold-2025-flat default). `τ` is the
+  slow calendar clock, explicitly separate from the half-hourly weather clock `t` (C-S5).
+- **`sim/weather_price_chain.py`** — `wind_output_from_speed` / `solar_output_from_weather` /
+  `derive_price` / `residual_demand` gain an **optional `year=`** param. `year=None` keeps the
+  whole-window scalar **byte-identical** (45 existing chain/price tests green → the SSP
+  calibration gate is NOT re-opened, R12). With a year, `derive_price(year=2016)` ≠
+  `derive_price(year=2025)` for the same windy draw — the atom's compounding claim delivered.
+- **`tests/sim/test_renewable_capacity_trend.py`** — 10 tests, R15 mutation-proven for the
+  invariants that are honestly checkable without network.
+
+**Honesty boundary held (R15 / §10):** the per-year mean-match is an **effective** fleet
+(capacity growth × residual load-factor), NOT pure installed capacity. **A2** (outturn-consistency)
+and **A3** (mix-share) are deliberately **not claimed** — validating a per-year match against the
+same-year outturn is tautological; the independent sources (DUKES Ch.6 capacity, DESNZ Energy Trends
+Table 6) are network-blocked. Invariants asserted: TREND, NON-DEGENERACY, DETERMINISM (C-S2),
+COVERAGE-FAIL-CLOSED.
+
+**Gates observed (none crossed):** `maturity_map.yaml` untouched (gated path) — level HELD at 0,
+L1 PROPOSED recorded via `docs/design/atom_status/W1_7_renewable_capacity_trends.yaml`. **file_scope
+expansion requested** of the sole-map-writer (committed scope `[docs/design]`; code landed in `sim/`
++ `tests/sim`). Reconciler stayed QUIET (no map delta this fork).
+
+**Remaining to L2/L3:** (a) discovery-agent network pass (DUKES + DESNZ) to separate capacity from
+load-factor and enable non-tautological A1-strict/A2/A3; (b) flip `derive_price` default to
+year-aware after re-running the SSP calibration gate (task 7); (c) coupled-triad L3 gate — register
+`W1_7 ↔ <company mix-belief>` once that company capability exists (§7, unchanged).
