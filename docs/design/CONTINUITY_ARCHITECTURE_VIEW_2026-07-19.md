@@ -49,6 +49,37 @@ The resident seat's only genuine advantage is sub-minute reactivity to a staged 
 But the rest-heartbeat already bounded that to ≤60s, and a 60s timer delivers the same reactivity
 with nothing to keep alive. Per-invocation cold-start latency is real but immaterial at this cadence.
 
+## Evidence update #2 (2026-07-20) — DEATH ON A TRANSIENT API ERROR: the second, decisive failure class
+
+At **23:51 the persistent seat died on a transient API error mid-response and stayed dead for ~6
+hours.** The alarms all fired *correctly* — transport frozen, deadman's switch, the publish gate
+wedged 16× (the site went stale all night, in the director's own window) — **and nothing restarted
+the seat.** Detection worked; recovery did not, because there was no live process left to recover.
+
+This is the cleanest possible refutation of the persistent-seat model, and it is **independent of the
+input-blocking class above**:
+
+- **A resident process cannot survive its own host dying.** A transient API error killed the one
+  process the entire loop depends on. No amount of stop-hook re-arming can help — *the hook only runs
+  when a turn ends, and a dead process ends no turns.* The re-arm mechanism and the dead process are
+  the same process; when it dies, the mechanism dies with it. Self-healing that lives inside the thing
+  that needs healing is not self-healing.
+- **The alarms are not a fix.** Freezing-transport / deadman / publish-wedge detection all fired and
+  paged — but detection without an *external* actor that can restart is just a louder way to stay
+  dead. The seat manager (systemd) keeps the tmux *session* alive, but not a Claude *turn-chain* that
+  has crashed inside it.
+- **A scheduled bounded invocation would simply have fired the next timer.** There is nothing to
+  "restart" — the previous invocation died, the next cron/timer tick starts a *fresh* process that
+  reads disk state and continues. Death of one invocation is a no-op, not an outage. The 6-hour gap
+  could not have happened: the worst case is one skipped tick.
+
+**Two independent failure classes now point at the same conclusion.** (1) *Input-blocking* — a
+resident seat holding the hook busy cannot be steered (27-min queue). (2) *Death-on-API-error* — a
+resident seat cannot survive a transient fault (6-hour outage). Neither is fixable by another patch to
+the persistent seat; both dissolve under scheduled bounded invocations, where the session is *not
+resident between units of work*, so it can neither block input nor stay dead. This is no longer a
+reasoned preference — it is two production outages in ~30 hours, same root shape, same fix.
+
 ## Evidence update (2026-07-19 evening) — the incident that moves this from reasoning to proof
 
 `DIRECTOR_FINDING_HEARTBEAT_BLOCKED_INPUT_2026-07-19`: after the bring-up turn the seat entered the
