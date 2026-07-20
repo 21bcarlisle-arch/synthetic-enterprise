@@ -207,43 +207,22 @@ def _unprocessed_staging_files() -> list[str]:
     )
 
 
-# docs/staging/in_progress/ is ONLY for items BLOCKED on a wall (a genuinely-open sub-item + what
-# unblocks it) -- it is deliberately EXCLUDED from the supervisor draw AND from the queued-work scan
-# above. A worker that PARKS ACTIONABLE work there (declaring the open sub-item "authorised NOW")
-# therefore makes that work invisible to BOTH the draw and this [BLOCKED] safety net. That is the
-# 2026-07-20 3-hour silent stall: a worker tick consumed two director steers and mis-parked them into
-# in_progress/ with "authorised NOW" DISCOVER sub-items it never executed; the tick then rested over
-# them and nothing paged (BLOCKED never saw them; only the weaker commit-clock STALL fired). The
-# anti-pattern is worker-legible: a WORKER-written disposition banner AND an actionable-now marker.
-# Director-parked multi-part items (no worker banner) and genuinely-blocked worker parks (a real wall,
-# not "authorised NOW") are NOT flagged. Report-only; keys on the workers' OWN banner language.
+# in_progress/ mis-park detection: the SAME canonical function the supervisor draw uses
+# (background/staging_disposition) so the deadman [BLOCKED] alarm and the tick's SELF-RECOVERY of
+# mis-parked work can never drift. See that module for the full rationale (the 2026-07-20 3-hour
+# silent stall). Here it feeds the queued-work set so mis-parked actionable work pages within
+# BLOCKED_THRESHOLD as well as being self-recovered by the draw.
 _IN_PROGRESS_DIR = STAGING_DIR / "in_progress"
-_MISPARK_WORKER_BANNER = "[in-progress disposition"
-_MISPARK_ACTIONABLE_MARKERS = (
-    "authorised now", "authorized now", "discover/frame, authorised",
-    "discover/frame, authorized", "discover-workable", "workable now", "actionable now",
-)
 
 
 def _misparked_actionable_in_progress() -> list[str]:
     """List in_progress/ docs a worker mis-parked as blocked when their open sub-item is actionable
-    NOW -- invisible to the draw + BLOCKED alarm otherwise. Never raises (a check must not crash the
-    deadman cycle)."""
-    if not _IN_PROGRESS_DIR.is_dir():
-        return []
-    out: list[str] = []
+    NOW. Delegates to the canonical detection; never raises (must not crash the deadman cycle)."""
     try:
-        candidates = sorted(_IN_PROGRESS_DIR.glob("*.md"))
-    except OSError:
+        from background.staging_disposition import misparked_actionable_in_progress
+        return ["in_progress/" + n for n in misparked_actionable_in_progress(_IN_PROGRESS_DIR)]
+    except Exception:
         return []
-    for p in candidates:
-        try:
-            head = p.read_text(encoding="utf-8", errors="replace")[:1500].lower()
-        except OSError:
-            continue
-        if _MISPARK_WORKER_BANNER in head and any(m in head for m in _MISPARK_ACTIONABLE_MARKERS):
-            out.append("in_progress/" + p.name)
-    return out
 
 
 def _reping_open_action_needed_items() -> None:

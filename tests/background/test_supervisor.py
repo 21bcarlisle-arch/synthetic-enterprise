@@ -2210,3 +2210,22 @@ def test_rc3_sync_fail_safe_and_rate_limited(tmp_path, monkeypatch):
         called.append(a); return types.SimpleNamespace(returncode=0, stdout="")
     assert supervisor._sync_origin_staging(_runner=runner) == []        # rate-limited
     assert called == []                                                 # ...before any git call
+
+
+def test_real_staged_instructions_self_recovers_misparked_in_progress(tmp_path, monkeypatch):
+    """DURABLE draw-visibility fix (2026-07-20 3-hour silent stall): the draw itself SURFACES
+    actionable work a worker mis-parked into in_progress/ (so the tick self-recovers), but NOT
+    genuinely-blocked in_progress items. R15 both directions."""
+    staging = tmp_path / "staging"
+    ip = staging / "in_progress"
+    ip.mkdir(parents=True)
+    (ip / "MISPARK.md").write_text(
+        "> **[IN-PROGRESS DISPOSITION -- worker tick]**\n"
+        "> Open sub-item (DISCOVER/FRAME, authorised NOW): do the work.\n")
+    (ip / "BLOCKED.md").write_text(
+        "> **[IN-PROGRESS DISPOSITION -- worker tick]**\n"
+        "> AWAITING DIRECTOR: reserved wiring, blocked on his act.\n")
+    monkeypatch.setattr(supervisor, "STAGING_DIR", staging)
+    got = supervisor._real_staged_instructions()
+    assert "in_progress/MISPARK.md" in got      # FIRES: self-recovery draws it
+    assert "in_progress/BLOCKED.md" not in got   # QUIET: genuinely blocked stays parked

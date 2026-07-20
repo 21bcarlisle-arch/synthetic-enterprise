@@ -292,7 +292,21 @@ def _real_staged_instructions() -> list[str]:
     coincidence: ~35 open map atoms sat idle while this repeated every
     ~2 minutes, because the doorbell-inspection step never got past a
     marker that was never supposed to gate it in the first place."""
-    return [name for name in _unprocessed_staging_files() if not _is_daemon_marker(name)]
+    real = [name for name in _unprocessed_staging_files() if not _is_daemon_marker(name)]
+    # DURABLE draw-visibility fix (2026-07-20, the 3-hour silent-stall root cause). in_progress/ is
+    # excluded from the scan above (it is for BLOCKED items). But a worker that MIS-PARKS actionable
+    # work there (declaring the open sub-item "authorised NOW") makes it invisible to the draw -- the
+    # tick then rests over doable director work until a human notices. Surface such mis-parked work as
+    # a real instruction so the tick DRAWS it and SELF-RECOVERS. Same canonical detection the deadman
+    # [BLOCKED] net uses (background/staging_disposition) -> self-recovery and alarm can never drift.
+    # Genuinely-blocked in_progress items (no worker banner / a real wall, not "authorised NOW") are
+    # NOT surfaced, so a done-analysis-awaiting-a-director-[ACT] correctly stays parked. Fail-open.
+    try:
+        from background.staging_disposition import misparked_actionable_in_progress
+        real.extend("in_progress/" + n for n in misparked_actionable_in_progress(STAGING_DIR / "in_progress"))
+    except Exception:  # a detection error must never break the draw
+        pass
+    return real
 
 
 def _urgent_from_rich_pending(staged: list[str]) -> str | None:
