@@ -150,3 +150,62 @@ DUKES/NESO capacity numbers (§3) is the first BUILD step — the order-of-magni
 **Proposed file_scope for BUILD:** `[sim/renewable_capacity_trend.py, sim/price_engine.py, tests/sim]`
 — disjoint from W1_2 (`sim/scenario/*`) and W1_3/4/5 (`sim/weather_engine.py`); shares only the
 technology-key constant with the weather generators.
+## 10. BUILD-readiness assessment (2026-07-20, worker tick, doc-only, no level move)
+
+**Trigger:** `depends_on: W1_6_physics_price_signal` reached **level_current: 3** (ratified 2026-07-20,
+director console) and W1_7 carries an explicit director **BUILD_OPEN** (`gate_authorizations.jsonl`
+ts=1784499318, "BUILD-OPEN: the W1/W2 cascade atoms"). So BOTH the upstream-dependency gate (§8) and
+the loop_stage `stage_advance` gate are now **SATISFIED**. This section records — grounded by inspecting
+the *landed* W1_6 code, not the pre-W1_6 assumptions in §1–§9 — exactly what is now available, one
+correction that inspection forces, and the *remaining* gates, so the eventual code BUILD starts from truth.
+
+**Correction to §4/§9 (the seam is not where the FRAME said): the renewable-capacity scalar lives in
+`sim/weather_price_chain.py`, not `sim/price_engine.py`.** Inspection of the delivered W1_6:
+- `sim/weather_price_chain.py` derives renewable output as `wind_fleet_mw * power_curve(wind_speed)` and
+  `solar_fleet_mw * solar_envelope(doy, cloud)` (lines 198–259). Both `wind_fleet_mw` and `solar_fleet_mw`
+  are **single scalars MEAN-MATCHED over the whole 2016–2025 window** — `wind_fleet = rec["wind_gen_mw"].mean()
+  / frac.mean()` (line 220), analogously for solar (line 227). The module's own header (lines 53–54) names
+  this gap and this atom by hand: *"WIND fleet is a single MEAN-MATCHED scalar over the whole window — the
+  real fleet ~ doubled 2016–2025 (that time-trend is W1_7, an explicit follow-on)."* **This scalar pair is
+  W1_7's L1 hook.**
+- `sim/price_engine.py`'s `DISPATCHABLE_CAPACITY_MW = 35000.0` (§4/§9 pointed here) is a **different** fleet
+  — the *dispatchable/thermal* capacity (CCGT/OCGT/coal/nuclear/interconnector) the merit-order scarcity
+  ratio `x = RD / DISPATCHABLE_CAPACITY_MW` normalises against. It is W1_7-**adjacent** (the coal→gas→wind
+  re-stacking of §4-L2 touches it) but it is NOT the renewable-capacity scalar. **Corrected BUILD file_scope:**
+  `[sim/weather_price_chain.py (L1 renewable fleet trajectory), sim/price_engine.py (L2 dispatchable
+  re-stacking only), tests/sim]` — the standalone `sim/renewable_capacity_trend.py` of §9 remains a
+  reasonable home for the `capacity_k(τ)` lookup that `weather_price_chain.py` would then read.
+
+**Finding — L1 mechanism is buildable WITHOUT network; only its independent validation is network-blocked.**
+`weather_price_chain.py::load_daily_record` already ingests the **real per-`psrType` AGWS outturn** for the
+whole window (`aggregate_wind_generation` / `aggregate_renewable_generation`, lines 119–163). An L1 that
+replaces the whole-window mean-match with a **per-year mean-match** (`wind_fleet_mw(year)` = that year's
+AGWS-outturn mean / that year's power-curve-fraction mean) makes the same weather draw price differently in
+2016 vs 2025 *using data already on disk* — no DUKES installed-capacity series required for the mechanism.
+**But** this makes A2 (§4, outturn-consistency) **tautological** — validating a per-year-mean-matched fleet
+against the same-year AGWS outturn it was matched to proves nothing (the exact TAUTOLOGY the FRAME forbids).
+So L1's *mechanism* is network-free; L1's *honest validation* is not — it needs the **A3 mix-share validator**
+(annual wind-share vs DESNZ Energy Trends Table 6, a source NOT used in the mean-match) and, for L2, the
+**DUKES Ch.6 installed-capacity series** to separate true installed capacity from load-factor. Those two are
+the network-blocked discovery-agent pass (no network this worker tick).
+
+**Remaining BUILD gates (recorded, not actioned — none agent-crossable):**
+1. **file_scope gate.** W1_7's committed `file_scope` is `[docs/design]`. The code BUILD lands in
+   `sim/weather_price_chain.py` (+ optional `sim/renewable_capacity_trend.py`, `tests/sim`) — a scope
+   expansion only the sole-map-writer (orchestrator/director) opens. `docs/design/maturity_map.yaml` is a
+   `schema_sim_structure` **gated path**, so `file_scope`/`level_current`/`loop_stage` are NOT self-edited here.
+2. **discovery-agent network pass.** A3 mix-share validator source (DESNZ Energy Trends Table 6) + L2 DUKES
+   Ch.6 installed-capacity series — required before any non-tautological L1 validation or any L2 claim. Not
+   attempted this tick (no network in autonomous runs). The §3 order-of-magnitude capacity figures remain
+   unverified and must not be leaned on for calibration until sourced.
+3. **coupled-triad L3 gate (§7, unchanged).** W1_7 does not reach L3 until a company **mix-belief** capability
+   exists, is tested against the shifting mix, and the belief-vs-truth gap is measured (`coupled_triad.py`).
+   No such company capability exists yet — L3 is gated on building the coupled company twin, independent of
+   the above. The BUILD wires `W1_7 ↔ <company mix-belief>` when that twin lands.
+
+**Net:** upstream (W1_6→L3) and stage (BUILD_OPEN) gates cleared; a cheaper-than-expected L1 path identified
+(per-year mean-match on already-ingested AGWS data) with the correct code seam pinned (`weather_price_chain.py`,
+not `price_engine.py`). W1_7 code BUILD is now blocked ONLY on (a) a director/orchestrator `file_scope`
+expansion and (b) the discovery-agent network pass for the independent validators. Level **HELD at 0** —
+DISCOVER/FRAME does not move levels; `maturity_map.yaml` untouched (gated path). L1-PROPOSED pending file_scope
++ validator sourcing.
