@@ -2240,7 +2240,7 @@
   epoch: 2
   level_current: 1
   level_target: 3
-  loop_stage: build
+  loop_stage: idle   # PARKED 2026-07-20: L1->L2 built + 3 of 8 links estimated on real in-repo data (D1/D4/D8). L2->L3 remaining links are DATA-GATED, not effort-gated: D2/D6 need the generation series (G_wind/G_solar) to form residual demand; D3 needs a run for book Delta_vol; D7 needs IC + EU-tightness series -- none in-repo, all need a network/data-assembly session (unavailable autonomously). D5 is a deterministic power-curve (structural, stays asserted). Parked so the BUILD draw stops re-offering data-gated work (Rule 0: empty feasible set = dial defect, yield). UNBLOCK: assemble the generation/IC series (interactive/network session), then flip to build.
   dial_inherited: 3
   file_scope: [background/cascade_correlation_estimation.py, tests/test_cascade_correlation_estimation.py, background/cascade_link_register.py, tests/test_cascade_link_register.py]
   depends_on: [G1_fidelity_grid_scorer]
