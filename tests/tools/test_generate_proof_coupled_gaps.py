@@ -47,8 +47,10 @@ def test_reflects_real_ledger_exactly():
     ledger = _real_ledger()
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    assert cg["pair_count"] == 8
-    assert cg["measured"] == 8
+    # 8 map-coupled W2 pairs + W1_6<->C13 (the weather price-signal triad, surfaced
+    # from the ledger via the defensive not-in-coupling branch) = 9, all measured.
+    assert cg["pair_count"] == 9
+    assert cg["measured"] == 9
     assert cg["unmeasured"] == 0
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
@@ -84,7 +86,7 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 7
+    assert cg["measured"] == 8   # 9 live pairs, W2_7 nulled
     assert cg["unmeasured"] == 1
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
@@ -96,8 +98,9 @@ def test_missing_entry_still_appears_untested(monkeypatch):
     del mutated["W2_8_self_rationing"]
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
-    # Pair count is driven by the map coupling, not the ledger -> still 8.
-    assert cg["pair_count"] == 8
+    # W2_8 still appears (map coupling), and W1_6 still appears (live ledger,
+    # defensive branch) -> 8 map pairs + W1_6 = 9.
+    assert cg["pair_count"] == 9
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"
@@ -152,7 +155,10 @@ def test_empty_ledger_fails_closed_not_silent(monkeypatch):
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: {})
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    assert cg["pair_count"] == 8          # every coupled pair still present (W2_11<->D5 added)
+    # 8 = the map-coupled pairs. W1_6<->C13 is surfaced only from the LIVE ledger
+    # (ledger-only, not in the authoritative coupling), so an EMPTY ledger drops
+    # it -> back to the 8 map pairs. That is the correct fail-closed behaviour.
+    assert cg["pair_count"] == 8          # every MAP-coupled pair still present (W2_11<->D5 added)
     assert cg["measured"] == 0            # none measured
     assert cg["unmeasured"] == 8
     assert all(r["chip"] == "untested" for r in cg["pairs"])

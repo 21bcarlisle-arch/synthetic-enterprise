@@ -464,6 +464,59 @@ def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
 
 
 # ---------------------------------------------------------------------------
+# (f) Prediction-error gap -- a continuous target (W1_6 weather->price)
+# ---------------------------------------------------------------------------
+
+def prediction_gap(truth_values: Sequence[float], belief_values: Sequence[float],
+                   *, prior_value: Optional[float] = None) -> GapResult:
+    """Continuous prediction gap (formula f): how far the company's real-valued
+    belief is from the SIM ground truth, normalised to a NO-SKILL baseline.
+
+        raw_gap = mean| belief - truth |                       # company MAE
+        g0      = mean| prior  - truth |                       # no-skill MAE
+        gap     = raw_gap / g0
+
+    The no-skill `prior` is the climatological mean of `truth` (predict the
+    average every time) when not given -- the blind guess a supplier with no
+    weather model would make. So:
+        gap = 0   perfect recovery (for a wall-respecting pair == a leak, design 1.2)
+        gap = 1   no better than the climatological mean
+        gap > 1   WORSE than blind (the model actively mis-extrapolates) -- the
+                  honest cold-and-still-tail finding for a linear belief facing a
+                  convex merit order.
+
+    Used by the W1_6 <-> weather-price-belief pair: `truth_values` is the SIM
+    chain's DERIVED price (`sim/weather_price_chain.derive_price`), `belief_values`
+    is the company's linear weather->price expectation -- computed from DIFFERENT
+    machinery (a convex composed physics chain vs an observables-only linear
+    regression), so the gap is a real form-inadequacy measurement, not a
+    tautology (R15 independence). FAIL-LOUD on empty/mismatched input."""
+    import numpy as np
+
+    truth = np.asarray(list(truth_values), dtype=float)
+    belief = np.asarray(list(belief_values), dtype=float)
+    if truth.size == 0:
+        raise ValueError("prediction_gap: empty population")
+    if truth.shape != belief.shape:
+        raise ValueError(f"truth/belief length mismatch: {truth.shape} vs {belief.shape}")
+
+    prior = float(np.mean(truth)) if prior_value is None else float(prior_value)
+    raw_gap = float(np.mean(np.abs(belief - truth)))
+    g0 = float(np.mean(np.abs(prior - truth)))
+    baseline = (
+        f"no-skill = predict the climatological mean truth ({prior:.3f}); "
+        f"MAE_noskill={g0:.4f}"
+    )
+    return _normalise(
+        raw_gap, g0, baseline, "prediction",
+        components={"mae_model": round(raw_gap, 6), "mae_noskill": round(g0, 6),
+                    "prior": round(prior, 6), "n": int(truth.size),
+                    "bias_model": round(float(np.mean(belief - truth)), 6)},
+        note="continuous prediction MAE normalised to the climatological-mean baseline",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Deterministic bootstrap CI (C-S2: named RNG substream, reproducible)
 # ---------------------------------------------------------------------------
 

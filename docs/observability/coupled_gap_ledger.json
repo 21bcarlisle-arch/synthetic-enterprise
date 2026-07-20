@@ -1,4 +1,83 @@
 {
+  "W1_6_physics_price_signal": {
+    "baseline": "worst cell = cold_still_tail: company linear weather->price MAE \u00a337.24/MWh vs no-skill \u00a393.72/MWh",
+    "components": {
+      "belief_coeffs": {
+        "b_gas": 2.357359913849157,
+        "b_temp": -2.6716068699849576,
+        "b_wind": -12.158000264054868,
+        "intercept": 77.5778167980409,
+        "n_train": 3337,
+        "r2": 0.9264995157226814
+      },
+      "belief_form": "linear: price ~ a + b_gas*gas + b_temp*temp + b_wind*wind",
+      "chain_fit": {
+        "demand_r2": 0.5509408653741079,
+        "n_days": 3337,
+        "solar_corr": 0.7637052897902546,
+        "wind_corr": 0.6102091624093562
+      },
+      "cold_still_spike": {
+        "n_tail": 58,
+        "rest_mean_price": 72.14838168918537,
+        "rest_mean_residual_mw": 21113.450650438845,
+        "tail_mean_price": 157.3941678740186,
+        "tail_mean_residual_mw": 35466.41861967983
+      },
+      "per_cell": {
+        "calm": {
+          "bias_model": -0.24537,
+          "gap": 0.3775074745602761,
+          "mae_model": 9.619292,
+          "mae_noskill": 25.481065,
+          "n": 2637
+        },
+        "cold_still_tail": {
+          "bias_model": -17.378847,
+          "gap": 0.3972981670188839,
+          "mae_model": 37.23579,
+          "mae_noskill": 93.722531,
+          "n": 58
+        },
+        "crisis": {
+          "bias_model": 0.924345,
+          "gap": 0.256090043305012,
+          "mae_model": 24.811595,
+          "mae_noskill": 96.886213,
+          "n": 700
+        },
+        "summer": {
+          "bias_model": -1.010338,
+          "gap": 0.23552903130303512,
+          "mae_model": 11.90352,
+          "mae_noskill": 50.539501,
+          "n": 823
+        },
+        "winter": {
+          "bias_model": -0.900808,
+          "gap": 0.28081860742946835,
+          "mae_model": 16.680659,
+          "mae_noskill": 59.400122,
+          "n": 798
+        }
+      },
+      "population_gap": 0.24635332844501845,
+      "population_mae_model": 12.80617,
+      "population_mae_noskill": 51.98294,
+      "score_definition": "worst-explained cell (campaign req 1), not the population average",
+      "tail_bias_mwh": -17.378847,
+      "worst_cell": "cold_still_tail",
+      "worst_cell_gap": 0.3972981670188839
+    },
+    "g0": 93.722531,
+    "gap": 0.3972981670188839,
+    "measured_at": "2026-07-20T11:33:27.040220+00:00",
+    "metric": "prediction",
+    "note": "W1_6 weather-physics price signal: company linear weather->price belief vs the SIM's convex merit-order DERIVED price. SCORE = worst cell (cold_still_tail, gap 0.397); the company nails the comfortable middle (population gap 0.246) but under-predicts the cold-and-still spike -- a signed under-bias on the tail (belief cannot see residual demand / the convex merit order, by the wall). R12: diagnostic, not a target.",
+    "raw_gap": 37.23579,
+    "run_git_commit": "34ee38543a1596a1b7e49ee60486bdb8a00569ee",
+    "twin_atom_id": "C13_weather_normalisation"
+  },
   "W2_10_dd_attribution_confound": {
     "baseline": "full naive effect is confound (delta_true=0); delta_naive=0.0492857, delta_true=0.0238621",
     "components": {
@@ -23,21 +102,21 @@
   "W2_11_payment_behaviour_source": {
     "baseline": "flag nobody (all detectable harm missed -> gap = 1)",
     "components": {
-      "caught": 1123,
-      "flagged_size": 1123,
-      "miss_rate": 0.296807,
-      "missed": 474,
-      "missed_harm": 474.0,
-      "total_harm": 1597.0,
-      "truth_size": 1597
+      "caught": 16,
+      "flagged_size": 16,
+      "miss_rate": 0.627907,
+      "missed": 27,
+      "missed_harm": 27.0,
+      "total_harm": 43.0,
+      "truth_size": 43
     },
-    "g0": 1597.0,
-    "gap": 0.2968065122103945,
-    "measured_at": "2026-07-18T18:19:28.298445+00:00",
+    "g0": 43.0,
+    "gap": 0.627906976744186,
+    "measured_at": "2026-07-20T11:21:50.391806+00:00",
     "metric": "detection",
-    "note": "HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.0730, ageing 0.9011; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
-    "raw_gap": 474.0,
-    "run_git_commit": "653e10a3cb7168408c9d92e2e7c279416a616c30",
+    "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2632, ageing 1.2326; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
+    "raw_gap": 27.0,
+    "run_git_commit": "51e9efcd6fa56579eb804c83f8b9d67e31c2e653",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {

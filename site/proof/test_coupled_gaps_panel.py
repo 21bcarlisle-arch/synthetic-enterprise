@@ -55,14 +55,15 @@ def _live_coupled_gaps() -> dict:
 # --------------------------------------------------------------------------- #
 # R11: the panel renders the LIVE generated data -- every coupled pair.
 # 7 affordability-cluster pairs + the W2_11<->D5 payment triad (wired
-# 2026-07-18, director-authorized) = 8. Driven by the live coupling, not a
-# frozen literal -- if a pair is added/removed the panel count follows.
+# 2026-07-18) + the W1_6<->C13 weather price-signal triad (ledger-surfaced,
+# 2026-07-20) = 9. Driven by the live coupling+ledger, not a frozen literal --
+# if a pair is added/removed the panel count follows.
 # --------------------------------------------------------------------------- #
 def test_live_data_renders_all_coupled_pairs():
     cg = _live_coupled_gaps()
     assert cg.get("available") is True
     expected = len(cg["pairs"])
-    assert cg["pair_count"] == expected == 8, "8 coupled pairs (7 affordability + payment)"
+    assert cg["pair_count"] == expected == 9, "9 coupled pairs (7 affordability + payment + weather price)"
 
     out = _render(cg)
     body = out["coupled-gaps"]["innerHTML"]
