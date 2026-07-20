@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T13:09:35Z",
+  "generated_at": "2026-07-20T14:09:39Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -1220,7 +1220,7 @@
         {
           "atom_id": "W1_6_physics_price_signal",
           "atom_name": "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)",
-          "level_current": 1,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L4, closes the physics chain. Renewable output (wind/solar) is itself a function of the L1 weather, so a cold-still day = high heating demand AND low wind output AND tight margin AND price spike, all from ONE coherent weather draw. Price is an OUTPUT; drawing it independently breaks the chain. Ties into the existing merit-order/SSP machinery. This is why a naive sim under-prices winter risk. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth.",

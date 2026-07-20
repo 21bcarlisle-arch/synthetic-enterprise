@@ -1658,9 +1658,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 1,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1669,7 +1669,7 @@
       ],
       "couples_with": [],
       "chain": "weather_cascade",
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 2
     },
@@ -1716,7 +1716,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 9
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1739,7 +1739,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "W1_9_dsr_flex_markets",
@@ -1760,7 +1760,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "W1_10_ev_heatpump_geography",
