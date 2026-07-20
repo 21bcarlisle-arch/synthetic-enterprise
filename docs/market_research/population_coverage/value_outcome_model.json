@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "artefact": "value_outcome_model",
+    "track": "DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20",
+    "stage": "4 -- VALUES-CALL (a): what makes variance 'valuable'",
+    "created": "2026-07-20",
+    "status": "PROPOSED / ASSERTED -- director confirms or adjusts. Same claim-status discipline as the tail-lift threshold (CHOSEN dial). Everything here is changeable; the frontier rebuilds deterministically from it.",
+    "claim_status": "ASSERTED (not observed). Effect sizes are directionally anchored to UK-energy domain sense (fuel-poverty, cost-to-serve, ToU/flex value, decarbonisation cost) but are illustrative magnitudes, NOT calibrated to company P&L. They exist to ORDER segments by value, not to forecast money.",
+    "what_this_is": "A per-household outcome model over the 12 cohort dimensions. Four business outcomes; a weighting fuses them into a single 'business value' whose VARIANCE across the population is the thing a segment must move to earn its place. The WEIGHTING is the core values-call: it says what the company optimises toward.",
+    "why_z_scored": "The four outcomes live on different scales (£ margin vs £ churn cost vs tCO2). business_value weights the Z-SCORES of each, so the weighting reads directly as relative importance (sums to 1 in absolute value) and no single £-scale silently dominates.",
+    "anti_goal_seek": "R12: these outcomes are DIAGNOSTICS used to rank segments, never targets. No effect size was tuned to make a result look right.",
+    "director_levers": [
+      "business_value_weighting -- THE values-call (a): the outcome mix optimised toward.",
+      "effects.* -- the directional model; adjust any level effect and the frontier rebuilds.",
+      "params.social_cost_of_carbon_gbp_per_t / reacquisition_cost_gbp -- monetisation anchors.",
+      "params.critical_group_bonus -- how hard the greedy protects a critical group (couples to values-call (b))."
+    ]
+  },
+  "business_value_weighting": {
+    "_comment": "VALUES-CALL (a). Absolute values sum to 1.0. Sign is applied in code (margin+, churn-, bad-debt-, carbon+). DEFAULT proposed ASSERTED: margin-led, retention and bad-debt material, carbon a real-but-minority overlay reflecting today's un-priced-externality reality for a UK supplier.",
+    "margin": 0.40,
+    "retention": 0.25,
+    "bad_debt": 0.20,
+    "carbon": 0.15,
+    "alternative_weightings_offered": {
+      "pure_pnl": {"margin": 0.45, "retention": 0.30, "bad_debt": 0.25, "carbon": 0.00, "note": "carbon un-priced; strictly financial"},
+      "net_zero_tilt": {"margin": 0.30, "retention": 0.20, "bad_debt": 0.15, "carbon": 0.35, "note": "decarbonisation weighted as a first-class objective"}
+    }
+  },
+  "params": {
+    "social_cost_of_carbon_gbp_per_t": 80,
+    "social_cost_of_carbon_note": "UK BEIS/DESNZ central non-traded carbon values are ~£80-90/tCO2 in this era; asserted anchor for monetising abatable carbon.",
+    "reacquisition_cost_gbp": 120,
+    "reacquisition_cost_note": "acquisition/CAC proxy; churn_cost = churn_prob x (CAC + margin_at_risk).",
+    "critical_group_bonus": 0.05,
+    "critical_group_bonus_note": "added to a split's marginal-variance score when it first raises critical-group coverage; encodes 'a segment is justified if it adds variance OR captures a critical group'."
+  },
+  "base": {
+    "margin_gbp": 60.0,
+    "churn_prob": 0.15,
+    "carbon_abatable_t": 2.2,
+    "baddebt_gbp": 15.0,
+    "_note": "national baselines for a typical dual-fuel household; effects below are additive deltas per level."
+  },
+  "effects": {
+    "margin_gbp": {
+      "tenure": {"own_outright": 15, "own_mortgage": 8, "private_rent": -5, "social_rent": -12},
+      "channel_pref": {"digital": 18, "phone": 0, "assisted": -22},
+      "price_sensitivity": {"high": -22, "medium": 0, "low": 12},
+      "heating_fuel": {"mains_gas": 0, "mixed": 6, "electric": -6, "oil": 4, "lpg_bottled": 2, "heat_network": -8, "other_offgas": 2},
+      "EV": {"yes": 35, "no": 0},
+      "home_battery": {"yes": 20, "no": 0},
+      "solar_PV": {"yes": -10, "no": 0},
+      "nssec": {"higher": 8, "intermediate": 3, "routine_semi": -2, "unemployed_student": -10},
+      "_note": "DD-online owner-occupiers cheapest to serve + fattest margin; prepay-adjacent (social+assisted) thin; EV/battery flex adds ToU value; solar reduces volume; price-sensitive erodes tariff."
+    },
+    "churn_prob": {
+      "price_sensitivity": {"high": 0.16, "medium": 0.0, "low": -0.08},
+      "channel_pref": {"digital": 0.05, "phone": 0.0, "assisted": -0.06},
+      "tenure": {"own_outright": -0.05, "own_mortgage": -0.02, "private_rent": 0.06, "social_rent": 0.0},
+      "green_stance": {"engaged": 0.03, "neutral": 0.0, "disengaged": -0.01},
+      "nssec": {"higher": 0.02, "intermediate": 0.0, "routine_semi": -0.01, "unemployed_student": -0.03},
+      "_note": "price-sensitive + digital + mobile-tenure churn most; assisted/vulnerable + owner-occupier stickiest."
+    },
+    "carbon_abatable_t": {
+      "heating_fuel": {"mains_gas": 0.5, "mixed": 0.9, "electric": -0.3, "oil": 2.0, "lpg_bottled": 1.6, "heat_network": -0.2, "other_offgas": 1.4},
+      "EV": {"yes": 1.2, "no": 0.0},
+      "solar_PV": {"yes": 0.6, "no": 0.0},
+      "home_battery": {"yes": 0.3, "no": 0.0},
+      "green_stance": {"engaged": 0.5, "neutral": 0.0, "disengaged": -0.3},
+      "accommodation": {"detached": 0.8, "semi": 0.3, "terraced": 0.1, "flat": -0.4, "caravan": 0.2},
+      "_note": "abatable-carbon = realisable emissions the supplier could help remove. Oil/LPG off-gas heating carries the largest heat-decarbonisation headroom; green-engaged households more likely to act; larger dwellings more fabric headroom."
+    },
+    "baddebt_gbp": {
+      "nssec": {"higher": -8, "intermediate": -3, "routine_semi": 12, "unemployed_student": 55},
+      "tenure": {"own_outright": -10, "own_mortgage": -5, "private_rent": 12, "social_rent": 35},
+      "channel_pref": {"digital": -5, "phone": 0, "assisted": 18},
+      "heating_fuel": {"mains_gas": 0, "mixed": 0, "electric": 20, "oil": 22, "lpg_bottled": 22, "heat_network": 8, "other_offgas": 15},
+      "price_sensitivity": {"high": 12, "medium": 0, "low": -6},
+      "_note": "affordability stress concentrates in low-class + social/private rent + off-gas high-bill fuels; assisted-channel proxies vulnerability/PSR. This is where fuel poverty shows up in £."
+    }
+  }
+}

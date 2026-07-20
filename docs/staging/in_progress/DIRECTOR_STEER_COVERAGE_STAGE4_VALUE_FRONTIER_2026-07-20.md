@@ -1,15 +1,18 @@
-> **[IN-PROGRESS DISPOSITION — 2026-07-20 worker tick]**
-> **Open sub-item (DISCOVER/FRAME, authorised NOW):** build the value-vs-segment-count frontier
-> (valuable-variance captured + critical-group coverage, kept explicitly separate) and report the
-> *value knee* — distinct from the already-banked N=200 *coverage* knee. Requires two values-call
-> defaults proposed *asserted* for director confirm: (a) what makes variance "valuable" (outcome
-> weighting across margin/churn/carbon/bad-debt) and (b) what makes a group "critical" (the
-> size-independent protected set). Doc-and-data, reversible.
-> **Wall / what unblocks the rest:** the population-generator wiring itself is DIRECTOR-RESERVED —
-> propose the wiring + show the archetype-ground-truth delta, bring it back as **[ACT]**; do not
-> touch the live generator. **Coupled to** the population-coverage/segmentation campaign already in
-> `in_progress/` (DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20.md,
-> DIRECTOR_STEER_LEGIBILITY_AND_SEGMENTATION_2026-07-20.md) — continue there, not as a fresh atom.
+> **[IN-PROGRESS DISPOSITION — 2026-07-20, value-frontier ANALYSIS COMPLETE; awaiting director on two values-calls + the reserved wiring]**
+> **DONE (DISCOVER/FRAME, analysis only, not pushed):** the value-vs-segment-count frontier is built.
+> Value knee = **~12 segments** (`price_sensitivity × tenure`, 78% of valuable variance); recommended
+> minimum-segment design = **~31 segments** (12-cell commercial core + cross-cutting protected overlay
+> → 78.7% variance + 100% critical coverage). Modal-outward and worst-cell-greedy CONVERGE on the
+> variance frontier (identical to the knee). The two objectives kept separate — they do NOT co-move
+> (finding). Report: `docs/market_research/POPULATION_VALUE_FRONTIER_STAGE4.md`; structure:
+> `population_coverage/{value_outcome_model,critical_groups,value_frontier}.json` + `build_value_frontier.py`.
+> **AWAITING DIRECTOR (values-calls, proposed ASSERTED, changeable):** (a) the business-value weighting
+> [margin 0.40 / retention 0.25 / bad-debt 0.20 / carbon 0.15] and (b) the critical/protected set
+> [5 groups]. Confirm or adjust — the frontier rebuilds deterministically from the two sidecar files.
+> **STILL-OPEN WALL (what keeps this file in in_progress):** the population-GENERATOR wiring is
+> DIRECTOR-RESERVED — proposed in §7 of the report (two derived tags on the existing archetype; no new
+> source data), NOT applied. Bring back as **[ACT]**. **Coupled to** the population-coverage/segmentation
+> campaign in `in_progress/` — continue there, not as a fresh atom.
 
 # DIRECTOR STEER — Stage 4: the value frontier, and how many segments is enough (2026-07-20)
 

@@ -1,0 +1,651 @@
+{
+  "_meta": {
+    "artefact": "value_frontier",
+    "track": "DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20",
+    "stage": "4 (value frontier) -- DISCOVER/FRAME, analysis only, NO generator change",
+    "created": "2026-07-20",
+    "population": {
+      "n_households_sampled": 60000,
+      "seed": 20260720,
+      "representativeness": "POPULATION-REPRESENTATIVE (volume-weighted) -- distinct from stage-3 worst-cell cohorts (stage-3 doc section 6). Built from committed stage-2 marginals+crosstabs, SAME joint structure as stage-3 (tenure-spine block; fuel pinned to region).",
+      "assumed_dim_rates": {
+        "green": {
+          "engaged": 0.3,
+          "neutral": 0.45,
+          "disengaged": 0.25
+        },
+        "price": {
+          "high": 0.35,
+          "medium": 0.45,
+          "low": 0.2
+        },
+        "channel": {
+          "digital": 0.55,
+          "phone": 0.3,
+          "assisted": 0.15
+        },
+        "solar_PV": {
+          "yes": 0.055,
+          "no": 0.945
+        },
+        "EV": {
+          "yes": 0.052,
+          "no": 0.948
+        },
+        "home_battery": {
+          "yes": 0.012,
+          "no": 0.988
+        }
+      }
+    },
+    "objective_1_valuable_variance": "between-segment eta^2 of the asserted business-value (volume-weighted). values-call (a) = value_outcome_model.json weighting.",
+    "objective_2_critical_coverage": "fraction of the protected set (values-call (b) = critical_groups.json) isolatable at purity>=0.60. Protected REGARDLESS of size.",
+    "kept_separate": "variance_captured and critical_coverage are separate columns; value_combined is their sum, REPORTED but never used to tune either objective (R12).",
+    "determinism": "fixed seed 20260720, sorted iteration; no microdata; no network."
+  },
+  "critical_group_prevalence_pct": {
+    "electric_flat_renter": 1.477,
+    "fuel_poor_offgas": 3.35,
+    "high_needs_prepay_proxy": 2.582,
+    "offgrid_rural_low_income": 0.898,
+    "vulnerable_assisted": 5.997
+  },
+  "population_business_value_stats": {
+    "note": "raw outcome dispersion across the sampled population (diagnostic only, R12).",
+    "margin_gbp": {
+      "mean": 68.41
+    },
+    "churn_cost_gbp": {
+      "mean": 37.44
+    },
+    "baddebt_gbp": {
+      "mean": 31.38
+    },
+    "carbon_value_gbp": {
+      "mean": 251.7
+    }
+  },
+  "hybrid_recommended_design": {
+    "principle": "The two objectives DON'T co-move: valuable variance is captured by a few coarse main-effect splits (price_sensitivity x tenure); critical-group protection is bought by TARGETED conjunctive carve-outs (as stage-3 carved its named worst cells), which add ~zero variance but full tail protection. So the minimum-segment design is a small variance core PLUS ~5 critical carve-outs -- NOT a deeper cross.",
+    "designs": {
+      "price_x_tenure_OVERLAY": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure"
+        ],
+        "mode": "overlay",
+        "segments": 31,
+        "variance_captured": 0.7871,
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      },
+      "price_x_tenure_x_nssec_OVERLAY": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure",
+          "nssec"
+        ],
+        "mode": "overlay",
+        "segments": 67,
+        "variance_captured": 0.8122,
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      },
+      "price_x_tenure_INTERSECT": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure"
+        ],
+        "mode": "intersect",
+        "segments": 83,
+        "variance_captured": 0.8278,
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      },
+      "price_x_tenure_x_fuel_INTERSECT": {
+        "core_dims": [
+          "price_sensitivity",
+          "tenure",
+          "heating_fuel"
+        ],
+        "mode": "intersect",
+        "segments": 266,
+        "variance_captured": 0.8603,
+        "critical_coverage": 1.0,
+        "per_group_coverage": {
+          "fuel_poor_offgas": 1.0,
+          "vulnerable_assisted": 1.0,
+          "electric_flat_renter": 1.0,
+          "offgrid_rural_low_income": 1.0,
+          "high_needs_prepay_proxy": 1.0
+        }
+      }
+    }
+  },
+  "constructor_A_variance_greedy": {
+    "curve": [
+      {
+        "leaves": 1,
+        "split": null,
+        "variance_captured": 0.0,
+        "critical_coverage": 0.0477,
+        "value_combined": 0.0477
+      },
+      {
+        "leaves": 3,
+        "split": "price_sensitivity",
+        "marginal_variance": 26428.928,
+        "variance_captured": 0.4405,
+        "critical_coverage": 0.0635,
+        "value_combined": 0.504
+      },
+      {
+        "leaves": 6,
+        "split": "tenure",
+        "marginal_variance": 9533.8975,
+        "variance_captured": 0.5994,
+        "critical_coverage": 0.0698,
+        "value_combined": 0.6692
+      },
+      {
+        "leaves": 9,
+        "split": "tenure",
+        "marginal_variance": 6604.8927,
+        "variance_captured": 0.7095,
+        "critical_coverage": 0.1992,
+        "value_combined": 0.9087
+      },
+      {
+        "leaves": 12,
+        "split": "tenure",
+        "marginal_variance": 4457.6199,
+        "variance_captured": 0.7838,
+        "critical_coverage": 0.2101,
+        "value_combined": 0.9939
+      },
+      {
+        "leaves": 13,
+        "split": "EV",
+        "marginal_variance": 526.3969,
+        "variance_captured": 0.7925,
+        "critical_coverage": 0.2101,
+        "value_combined": 1.0026
+      },
+      {
+        "leaves": 15,
+        "split": "channel_pref",
+        "marginal_variance": 487.5459,
+        "variance_captured": 0.8007,
+        "critical_coverage": 0.2127,
+        "value_combined": 1.0134
+      },
+      {
+        "leaves": 16,
+        "split": "EV",
+        "marginal_variance": 479.8214,
+        "variance_captured": 0.8087,
+        "critical_coverage": 0.2127,
+        "value_combined": 1.0214
+      },
+      {
+        "leaves": 18,
+        "split": "channel_pref",
+        "marginal_variance": 449.2894,
+        "variance_captured": 0.8161,
+        "critical_coverage": 0.2159,
+        "value_combined": 1.032
+      },
+      {
+        "leaves": 19,
+        "split": "EV",
+        "marginal_variance": 354.2349,
+        "variance_captured": 0.822,
+        "critical_coverage": 0.2159,
+        "value_combined": 1.0379
+      },
+      {
+        "leaves": 21,
+        "split": "channel_pref",
+        "marginal_variance": 349.2131,
+        "variance_captured": 0.8279,
+        "critical_coverage": 0.2179,
+        "value_combined": 1.0458
+      },
+      {
+        "leaves": 24,
+        "split": "nssec",
+        "marginal_variance": 337.0666,
+        "variance_captured": 0.8335,
+        "critical_coverage": 0.221,
+        "value_combined": 1.0545
+      },
+      {
+        "leaves": 27,
+        "split": "nssec",
+        "marginal_variance": 324.1705,
+        "variance_captured": 0.8389,
+        "critical_coverage": 0.2291,
+        "value_combined": 1.068
+      },
+      {
+        "leaves": 29,
+        "split": "channel_pref",
+        "marginal_variance": 321.2549,
+        "variance_captured": 0.8442,
+        "critical_coverage": 0.2343,
+        "value_combined": 1.0785
+      },
+      {
+        "leaves": 30,
+        "split": "EV",
+        "marginal_variance": 280.9961,
+        "variance_captured": 0.8489,
+        "critical_coverage": 0.2343,
+        "value_combined": 1.0832
+      },
+      {
+        "leaves": 33,
+        "split": "nssec",
+        "marginal_variance": 270.1281,
+        "variance_captured": 0.8534,
+        "critical_coverage": 0.2383,
+        "value_combined": 1.0917
+      },
+      {
+        "leaves": 35,
+        "split": "channel_pref",
+        "marginal_variance": 261.2131,
+        "variance_captured": 0.8578,
+        "critical_coverage": 0.2454,
+        "value_combined": 1.1032
+      },
+      {
+        "leaves": 36,
+        "split": "EV",
+        "marginal_variance": 244.6402,
+        "variance_captured": 0.8619,
+        "critical_coverage": 0.2454,
+        "value_combined": 1.1073
+      },
+      {
+        "leaves": 38,
+        "split": "channel_pref",
+        "marginal_variance": 236.4709,
+        "variance_captured": 0.8658,
+        "critical_coverage": 0.2509,
+        "value_combined": 1.1167
+      },
+      {
+        "leaves": 41,
+        "split": "nssec",
+        "marginal_variance": 233.5098,
+        "variance_captured": 0.8697,
+        "critical_coverage": 0.2636,
+        "value_combined": 1.1333
+      },
+      {
+        "leaves": 47,
+        "split": "heating_fuel",
+        "marginal_variance": 185.0211,
+        "variance_captured": 0.8728,
+        "critical_coverage": 0.2639,
+        "value_combined": 1.1367
+      },
+      {
+        "leaves": 53,
+        "split": "heating_fuel",
+        "marginal_variance": 180.6035,
+        "variance_captured": 0.8758,
+        "critical_coverage": 0.2642,
+        "value_combined": 1.14
+      }
+    ]
+  },
+  "constructor_B_modal_outward": {
+    "modal_customer": {
+      "tenure": "own_outright",
+      "accommodation": "semi",
+      "cars": "1",
+      "nssec": "intermediate",
+      "heating_fuel": "mains_gas",
+      "region": "South East",
+      "green_stance": "neutral",
+      "price_sensitivity": "medium",
+      "channel_pref": "digital",
+      "solar_PV": "no",
+      "EV": "no",
+      "home_battery": "no"
+    },
+    "dim_order": [
+      "price_sensitivity",
+      "tenure",
+      "accommodation",
+      "nssec",
+      "EV",
+      "channel_pref",
+      "cars",
+      "heating_fuel",
+      "home_battery",
+      "green_stance",
+      "region",
+      "solar_PV"
+    ],
+    "main_effects": {
+      "tenure": 0.3448,
+      "accommodation": 0.1369,
+      "cars": 0.0462,
+      "nssec": 0.1249,
+      "heating_fuel": 0.0386,
+      "region": 0.0006,
+      "green_stance": 0.0016,
+      "price_sensitivity": 0.4405,
+      "channel_pref": 0.0541,
+      "solar_PV": 0.0,
+      "EV": 0.0555,
+      "home_battery": 0.0023
+    },
+    "curve": [
+      {
+        "step": 0,
+        "added_dim": null,
+        "dims": [],
+        "segments": 1,
+        "variance_captured": 0.0,
+        "critical_coverage": 0.0477,
+        "value_combined": 0.0477
+      },
+      {
+        "step": 1,
+        "added_dim": "price_sensitivity",
+        "dims": [
+          "price_sensitivity"
+        ],
+        "segments": 3,
+        "main_effect_eta2": 0.4405,
+        "variance_captured": 0.4405,
+        "critical_coverage": 0.0635,
+        "value_combined": 0.504
+      },
+      {
+        "step": 2,
+        "added_dim": "tenure",
+        "dims": [
+          "price_sensitivity",
+          "tenure"
+        ],
+        "segments": 12,
+        "main_effect_eta2": 0.3448,
+        "variance_captured": 0.7838,
+        "critical_coverage": 0.2101,
+        "value_combined": 0.9939
+      },
+      {
+        "step": 3,
+        "added_dim": "accommodation",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation"
+        ],
+        "segments": 59,
+        "main_effect_eta2": 0.1369,
+        "variance_captured": 0.7966,
+        "critical_coverage": 0.2271,
+        "value_combined": 1.0237
+      },
+      {
+        "step": 4,
+        "added_dim": "nssec",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec"
+        ],
+        "segments": 224,
+        "main_effect_eta2": 0.1249,
+        "variance_captured": 0.842,
+        "critical_coverage": 0.2881,
+        "value_combined": 1.1301
+      },
+      {
+        "step": 5,
+        "added_dim": "EV",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV"
+        ],
+        "segments": 411,
+        "main_effect_eta2": 0.0555,
+        "variance_captured": 0.9,
+        "critical_coverage": 0.2889,
+        "value_combined": 1.1889
+      },
+      {
+        "step": 6,
+        "added_dim": "channel_pref",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref"
+        ],
+        "segments": 1111,
+        "main_effect_eta2": 0.0541,
+        "variance_captured": 0.957,
+        "critical_coverage": 0.4956,
+        "value_combined": 1.4526
+      },
+      {
+        "step": 7,
+        "added_dim": "cars",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref",
+          "cars"
+        ],
+        "segments": 2741,
+        "main_effect_eta2": 0.0462,
+        "variance_captured": 0.9581,
+        "critical_coverage": 0.5027,
+        "value_combined": 1.4608
+      },
+      {
+        "step": 8,
+        "added_dim": "heating_fuel",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref",
+          "cars",
+          "heating_fuel"
+        ],
+        "segments": 7992,
+        "main_effect_eta2": 0.0386,
+        "variance_captured": 0.9961,
+        "critical_coverage": 1.0,
+        "value_combined": 1.9961
+      },
+      {
+        "step": 9,
+        "added_dim": "home_battery",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref",
+          "cars",
+          "heating_fuel",
+          "home_battery"
+        ],
+        "segments": 8533,
+        "main_effect_eta2": 0.0023,
+        "variance_captured": 0.9987,
+        "critical_coverage": 1.0,
+        "value_combined": 1.9987
+      },
+      {
+        "step": 10,
+        "added_dim": "green_stance",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref",
+          "cars",
+          "heating_fuel",
+          "home_battery",
+          "green_stance"
+        ],
+        "segments": 15093,
+        "main_effect_eta2": 0.0016,
+        "variance_captured": 1.0,
+        "critical_coverage": 1.0,
+        "value_combined": 2.0
+      },
+      {
+        "step": 11,
+        "added_dim": "region",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref",
+          "cars",
+          "heating_fuel",
+          "home_battery",
+          "green_stance",
+          "region"
+        ],
+        "segments": 36307,
+        "main_effect_eta2": 0.0006,
+        "variance_captured": 1.0,
+        "critical_coverage": 1.0,
+        "value_combined": 2.0
+      },
+      {
+        "step": 12,
+        "added_dim": "solar_PV",
+        "dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation",
+          "nssec",
+          "EV",
+          "channel_pref",
+          "cars",
+          "heating_fuel",
+          "home_battery",
+          "green_stance",
+          "region",
+          "solar_PV"
+        ],
+        "segments": 38012,
+        "main_effect_eta2": 0.0,
+        "variance_captured": 1.0,
+        "critical_coverage": 1.0,
+        "value_combined": 2.0
+      }
+    ]
+  },
+  "knees": {
+    "A_variance_only": {
+      "segment_count": 12,
+      "value_at_knee": 0.7838,
+      "gap_above_chord": 0.5985
+    },
+    "A_combined": {
+      "segment_count": 12,
+      "value_at_knee": 0.9939,
+      "gap_above_chord": 0.7151
+    },
+    "B_variance_only": {
+      "segment_count": 1111,
+      "value_at_knee": 0.957,
+      "gap_above_chord": 0.9278
+    },
+    "B_combined": {
+      "segment_count": 7992,
+      "value_at_knee": 1.9961,
+      "gap_above_chord": 1.538
+    }
+  },
+  "weighting_robustness": {
+    "note": "Does the variance knee (leading dims) survive re-weighting the values-call? If the same 1-2 dims lead under all three weightings, the knee is robust to the values-call and only the FINE ordering past the knee is weighting-dependent.",
+    "results": {
+      "default": {
+        "top3_dims": [
+          "price_sensitivity",
+          "tenure",
+          "accommodation"
+        ],
+        "var_at_top1": 0.4405,
+        "var_at_top2_dims": 0.7838,
+        "leading_dim": "price_sensitivity",
+        "second_dim": "tenure"
+      },
+      "pure_pnl": {
+        "top3_dims": [
+          "price_sensitivity",
+          "tenure",
+          "nssec"
+        ],
+        "var_at_top1": 0.5073,
+        "var_at_top2_dims": 0.8372,
+        "leading_dim": "price_sensitivity",
+        "second_dim": "tenure"
+      },
+      "net_zero_tilt": {
+        "top3_dims": [
+          "tenure",
+          "price_sensitivity",
+          "accommodation"
+        ],
+        "var_at_top1": 0.309,
+        "var_at_top2_dims": 0.5947,
+        "leading_dim": "tenure",
+        "second_dim": "price_sensitivity"
+      }
+    }
+  },
+  "coverage_knee_reference": {
+    "N": 200,
+    "meaning": "stage-3 completeness knee (worst-cell coverage 0->1). DIFFERENT axis: households DRAWN, not SEGMENTS defined. The value knee answers a different question on a different axis and the two are not directly comparable in units."
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "_meta": {
+    "artefact": "critical_groups",
+    "track": "DIRECTOR_STEER_COVERAGE_STAGE4_VALUE_FRONTIER_2026-07-20",
+    "stage": "4 -- VALUES-CALL (b): what makes a group 'critical' (protected regardless of size)",
+    "created": "2026-07-20",
+    "status": "PROPOSED / ASSERTED -- director confirms or adjusts. Changeable; the frontier's critical-coverage half rebuilds from these predicates.",
+    "principle": "These groups are protected REGARDLESS of size: they barely register on volume-weighted variance but carry regulatory, affordability and mortality weight out of all proportion to count. A segment is justified if it captures one of these, even if it adds ~zero valuable variance. This is the deliberately-separate second objective (never blended into variance).",
+    "criteria_families_offered": {
+      "vulnerability": "PSR-adjacent / assisted-channel / mobility- or health-limited proxies -- Ofgem Priority Services Register duty.",
+      "affordability_mortality": "fuel-poverty + off-gas high-bill + winter-mortality exposure (the excess-winter-deaths tail).",
+      "regulatory": "groups where a supplier carries a specific licence-condition duty (prepayment protections, self-disconnection, vulnerable-customer principles)."
+    },
+    "coverage_definition": "A critical group is COVERED at a given segmentation once its members are ISOLATABLE -- i.e. they fall into segment(s) pure enough (dominant-group share >= purity threshold, default 0.60) that the business can treat them distinctly without sweeping in unrelated customers. Coverage is a fraction over the protected set.",
+    "note_on_predicates": "Predicates use ONLY the 12 open cohort dimensions (no unobserved fields). They are proxies (e.g. assisted-channel proxies PSR/vulnerability; social-rent+unemployed proxies fuel-poverty) -- asserted, refutable, and exactly the honest-proxy discipline stage-3 used for the named worst cells."
+  },
+  "purity_threshold": 0.60,
+  "groups": [
+    {
+      "id": "fuel_poor_offgas",
+      "family": "affordability_mortality",
+      "label": "Fuel-poor off-gas households",
+      "predicate": {
+        "heating_fuel": ["oil", "lpg_bottled", "electric", "other_offgas"],
+        "nssec": ["unemployed_student", "routine_semi"],
+        "tenure": ["social_rent", "private_rent"]
+      },
+      "why_critical": "Off-gas fuels carry the highest unit bills; low-class renters have least headroom. This is where fuel poverty and excess winter mortality concentrate. Maps to stage-3 named worst cell oil_fuel_poor_rural.",
+      "protected_regardless_of_size": true
+    },
+    {
+      "id": "vulnerable_assisted",
+      "family": "vulnerability",
+      "label": "Vulnerable / PSR-adjacent (assisted channel)",
+      "predicate": {
+        "channel_pref": ["assisted"],
+        "nssec": ["unemployed_student", "routine_semi"]
+      },
+      "why_critical": "Assisted-channel + low-class proxies the Priority Services Register cohort: disability, age, health, no-digital-access. Ofgem licence-condition duty of care regardless of commercial value.",
+      "protected_regardless_of_size": true
+    },
+    {
+      "id": "electric_flat_renter",
+      "family": "affordability_mortality",
+      "label": "All-electric flats, renters (self-disconnection risk)",
+      "predicate": {
+        "heating_fuel": ["electric"],
+        "accommodation": ["flat"],
+        "tenure": ["social_rent", "private_rent"]
+      },
+      "why_critical": "Electric-only flats face high standing+unit costs and prepayment/self-disconnection risk; concentrated in London. Maps to stage-3 named worst cell all_electric_flat_london.",
+      "protected_regardless_of_size": true
+    },
+    {
+      "id": "offgrid_rural_low_income",
+      "family": "affordability_mortality",
+      "label": "Off-grid rural low-income (oil/LPG, Wales/SW)",
+      "predicate": {
+        "heating_fuel": ["oil", "lpg_bottled"],
+        "region": ["Wales", "South West", "East"],
+        "nssec": ["unemployed_student", "routine_semi"]
+      },
+      "why_critical": "Rural off-grid on unregulated heating-oil markets, no price cap on the fuel, poor public-transport substitution -- a distinct affordability tail from urban prepayment.",
+      "protected_regardless_of_size": true
+    },
+    {
+      "id": "high_needs_prepay_proxy",
+      "family": "regulatory",
+      "label": "Prepayment-proxy social renters, non-digital",
+      "predicate": {
+        "tenure": ["social_rent"],
+        "channel_pref": ["assisted", "phone"],
+        "price_sensitivity": ["high"]
+      },
+      "why_critical": "Proxies the traditional-prepayment-meter cohort with the strongest self-disconnection and regulatory-protection profile; carries specific licence duties independent of margin.",
+      "protected_regardless_of_size": true
+    }
+  ]
+}
