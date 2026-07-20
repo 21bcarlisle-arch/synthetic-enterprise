@@ -612,6 +612,29 @@ def _principles():
     ]
 
 
+def _not_proven():
+    """v4 pitch §13 honesty spine: the load-bearing claims NOT yet proven, stated
+    plainly (honesty is the aesthetic). Per the Note on Claims these are arguments
+    and hypotheses-with-a-designed-test, not results -- and the site says so."""
+    return [
+        dict(claim="Personalisation keeps paying as it gets finer",
+             status="hypothesis — test designed, not a result",
+             note="That value keeps rising past broad groups into the fine-grained combinations most companies never reach is the load-bearing commercial claim; currently a hypothesis with a designed test."),
+        dict(claim="Timing beats messaging by enough to matter commercially",
+             status="hypothesis — the least-anchored, most likely wrong",
+             note="Nothing connects a household's mood or attention to its meter; the timing thesis rests on behavioural-trial evidence, not data we can generate faithfully from. The newest idea here."),
+        dict(claim="Any real tonne of CO₂ has been abated",
+             status="not proven — only real households abate",
+             note="In-simulation counterfactuals prove the mechanism is coherent; they do not abate carbon."),
+        dict(claim="The blueprint transfers to another market",
+             status="not proven",
+             note="…without more work than the argument implies."),
+        dict(claim="A customer has received a personalised anything",
+             status="not proven — architecture makes it possible, scale has not",
+             note="No customer has yet received a personalised anything from this system."),
+    ]
+
+
 def generate():
     try:
         dashboard = json.loads(DASHBOARD_PATH.read_text())
@@ -636,6 +659,7 @@ def generate():
         control_killlist=_control_killlist(),
         predictions=_predictions_ledger(),
         principles=_principles(),
+        not_proven=_not_proven(),
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))

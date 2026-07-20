@@ -222,6 +222,10 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
   <div class="sec">Findings We Can Put A Number On</div>
   <div id="principles"><div class="muted">Loading...</div></div>
 
+  <!-- 0a. WHAT IS NOT PROVEN (v4 pitch §13 -- honesty is the aesthetic) -->
+  <div class="sec">What We Have Not Proven</div>
+  <div id="not-proven"><div class="muted">Loading...</div></div>
+
   <!-- 0b. COUPLED-TRIAD GAP PANEL -->
   <div class="sec">The Gap &mdash; what the world knows vs what the company believes</div>
   <div class="card">
@@ -761,8 +765,21 @@ function renderBuild(d){
   document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
 }
 
+function renderNotProven(d){
+  var np=d.not_proven||[];
+  var e=document.getElementById("not-proven");
+  if(!e)return;
+  e.innerHTML=np.length?np.map(function(p){
+    return '<div class="card" style="border-left:3px solid var(--amber,#fab219)">'+
+      '<div style="font-size:14px;font-weight:600;margin-bottom:4px">'+esc(p.claim)+'</div>'+
+      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--amber,#fab219);margin-bottom:6px">'+esc(p.status)+'</div>'+
+      '<p class="muted" style="margin:0">'+esc(p.note)+'</p></div>';
+  }).join(""):'<div class="card muted">Nothing recorded.</div>';
+}
+
 fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
   renderPrinciples(d);
+  renderNotProven(d);
   renderCoupledGaps(d);
   renderKilllist(d);
   renderTimeline(d);
