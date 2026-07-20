@@ -1,0 +1,150 @@
+{
+  "_meta": {
+    "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20 (stage 2 -- fetch & structure)",
+    "created": "2026-07-20",
+    "hard_boundary": "No personal microdata. Every figure derives from published open aggregates/cross-tabs (Census 2021 via Nomis; DfT VEH0135). Raw responses cached OUTSIDE the repo (~/.cache/se_coverage).",
+    "geography": "England & Wales (Census 2021). Region = 9 English regions + Wales.",
+    "provenance_legend": {
+      "observed": "jointly measured in a real open source",
+      "observed-marginal": "real source but marginal/area-level only, no household joint",
+      "fused": "stated conditional-independence assumption (see register)",
+      "assumed": "crossed conservatively, no basis"
+    },
+    "artefact": "association_matrix",
+    "measure": "Cramers V (categorical x categorical), aggregate over whole E&W population.",
+    "CRITICAL_interpretation": "aggregate_band is the WHOLE-POPULATION association. tail_max_lift = max_cell P(col|row)/P(col) (col marginal>=0.5%). A pair can read 'orthogonal' in aggregate yet be strongly coupled in the TAILS (e.g. heatingfuel_x_region V=0.070 'orthogonal' but oil-only ranges 0.12% London to 7.83% Wales = ~65x). Because the coverage design's objective is the WORST CELL, the aggregate V is the WRONG lens for deciding what to cross vs collapse -- use tail lift. This is the load-bearing stage-2 finding."
+  },
+  "accom_x_tenure": {
+    "measure": "cramers_v",
+    "value": 0.273,
+    "aggregate_band": "moderate",
+    "n": 24783199,
+    "dims": [
+      5,
+      4
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 2.3,
+      "cell": "Owned: Owns outright | A caravan or other mobile or temporary structure"
+    },
+    "tail_min_lift": {
+      "lift": 0.12,
+      "cell": "Owned: Owns with a mortgage or loan or shared ownership | A caravan or other mobile or temporary structure"
+    }
+  },
+  "accom_x_heatingCHbinary": {
+    "measure": "cramers_v",
+    "value": 0.063,
+    "aggregate_band": "orthogonal",
+    "n": 24783199,
+    "dims": [
+      5,
+      2
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 2.8,
+      "cell": "Does not have central heating | A caravan or other mobile or temporary structure"
+    },
+    "tail_min_lift": {
+      "lift": 0.47,
+      "cell": "Does not have central heating | Whole house or bungalow: Detached"
+    }
+  },
+  "heatingCHbinary_x_tenure": {
+    "measure": "cramers_v",
+    "value": 0.045,
+    "aggregate_band": "orthogonal",
+    "n": 24783199,
+    "dims": [
+      2,
+      4
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 1.6,
+      "cell": "Rented: Private rented or lives rent free | Does not have central heating"
+    },
+    "tail_min_lift": {
+      "lift": 0.57,
+      "cell": "Owned: Owns with a mortgage or loan or shared ownership | Does not have central heating"
+    }
+  },
+  "tenure_x_nssec": {
+    "measure": "cramers_v",
+    "value": 0.229,
+    "aggregate_band": "moderate",
+    "n": 24778348,
+    "dims": [
+      4,
+      9
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 3.3,
+      "cell": "L15: Full-time students | Rented: Private rented or lives rent free"
+    },
+    "tail_min_lift": {
+      "lift": 0.16,
+      "cell": "L15: Full-time students | Owned: Owns outright"
+    }
+  },
+  "tenure_x_cars": {
+    "measure": "cramers_v",
+    "value": 0.303,
+    "aggregate_band": "moderate",
+    "n": 24783198,
+    "dims": [
+      4,
+      3
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 2.1,
+      "cell": "No cars or vans in household | Rented: Social rented"
+    },
+    "tail_min_lift": {
+      "lift": 0.29,
+      "cell": "No cars or vans in household | Owned: Owns with a mortgage or loan or shared ownership"
+    }
+  },
+  "heatingfuel_x_region": {
+    "measure": "cramers_v",
+    "value": 0.07,
+    "aggregate_band": "orthogonal",
+    "n": 24783187,
+    "dims": [
+      12,
+      10
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 3.8,
+      "cell": "London | District or communal heat networks only"
+    },
+    "tail_min_lift": {
+      "lift": 0.04,
+      "cell": "London | Oil only"
+    }
+  },
+  "tenure_x_region": {
+    "measure": "cramers_v",
+    "value": 0.066,
+    "aggregate_band": "orthogonal",
+    "n": 24783199,
+    "dims": [
+      8,
+      10
+    ],
+    "provenance": "observed",
+    "tail_max_lift": {
+      "lift": 1.6,
+      "cell": "West Midlands | Lives rent free"
+    },
+    "tail_min_lift": {
+      "lift": 0.33,
+      "cell": "Wales | Shared ownership: Shared ownership"
+    }
+  }
+}

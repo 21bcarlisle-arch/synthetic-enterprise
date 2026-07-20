@@ -1,0 +1,263 @@
+{
+  "_meta": {
+    "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20 (stage 2 -- fetch & structure)",
+    "created": "2026-07-20",
+    "hard_boundary": "No personal microdata. Every figure derives from published open aggregates/cross-tabs (Census 2021 via Nomis; DfT VEH0135). Raw responses cached OUTSIDE the repo (~/.cache/se_coverage).",
+    "geography": "England & Wales (Census 2021). Region = 9 English regions + Wales.",
+    "provenance_legend": {
+      "observed": "jointly measured in a real open source",
+      "observed-marginal": "real source but marginal/area-level only, no household joint",
+      "fused": "stated conditional-independence assumption (see register)",
+      "assumed": "crossed conservatively, no basis"
+    },
+    "artefact": "marginals",
+    "note": "Per-dimension marginal distribution, shares sum to 1 within each dimension."
+  },
+  "tenure": {
+    "source": "Census 2021 (Nomis RM003/TS054), England & Wales",
+    "unit": "households",
+    "provenance": "observed",
+    "levels": {
+      "Owned: Owns outright": {
+        "count": 8136782,
+        "share": 0.3283
+      },
+      "Owned: Owns with a mortgage or loan or shared ownership": {
+        "count": 7362433,
+        "share": 0.2971
+      },
+      "Rented: Private rented or lives rent free": {
+        "count": 5056228,
+        "share": 0.204
+      },
+      "Rented: Social rented": {
+        "count": 4227756,
+        "share": 0.1706
+      }
+    }
+  },
+  "accommodation_type": {
+    "source": "Census 2021 (Nomis RM003/TS044), England & Wales",
+    "unit": "households",
+    "provenance": "observed",
+    "levels": {
+      "Whole house or bungalow: Semi-detached": {
+        "count": 7810175,
+        "share": 0.3151
+      },
+      "Whole house or bungalow: Detached": {
+        "count": 5753255,
+        "share": 0.2321
+      },
+      "Whole house or bungalow: Terraced": {
+        "count": 5739467,
+        "share": 0.2316
+      },
+      "Flat, maisonette or apartment": {
+        "count": 5376040,
+        "share": 0.2169
+      },
+      "A caravan or other mobile or temporary structure": {
+        "count": 104262,
+        "share": 0.0042
+      }
+    }
+  },
+  "central_heating_binary": {
+    "source": "Census 2021 (Nomis RM003), England & Wales",
+    "unit": "households",
+    "provenance": "observed",
+    "note": "has/has-not central heating -- near-constant (see finding); FUEL TYPE detail is TS046 below",
+    "levels": {
+      "Does have central heating": {
+        "count": 24416067,
+        "share": 0.9852
+      },
+      "Does not have central heating": {
+        "count": 367132,
+        "share": 0.0148
+      }
+    }
+  },
+  "heating_fuel_type": {
+    "source": "Census 2021 (Nomis TS046), England & Wales",
+    "unit": "households",
+    "provenance": "observed",
+    "levels": {
+      "Mains gas only": {
+        "count": 18298725,
+        "share": 0.7384
+      },
+      "Two or more types of central heating (not including renewable energy)": {
+        "count": 2113324,
+        "share": 0.0853
+      },
+      "Electric only": {
+        "count": 2113111,
+        "share": 0.0853
+      },
+      "Oil only": {
+        "count": 865938,
+        "share": 0.0349
+      },
+      "No central heating": {
+        "count": 367129,
+        "share": 0.0148
+      },
+      "Tank or bottled gas only": {
+        "count": 260102,
+        "share": 0.0105
+      },
+      "Other central heating only": {
+        "count": 225381,
+        "share": 0.0091
+      },
+      "District or communal heat networks only": {
+        "count": 220912,
+        "share": 0.0089
+      },
+      "Two or more types of central heating (including renewable energy)": {
+        "count": 134650,
+        "share": 0.0054
+      },
+      "Renewable energy only": {
+        "count": 98732,
+        "share": 0.004
+      },
+      "Solid fuel only": {
+        "count": 49458,
+        "share": 0.002
+      },
+      "Wood only": {
+        "count": 35725,
+        "share": 0.0014
+      }
+    }
+  },
+  "nssec_hrp": {
+    "source": "Census 2021 (Nomis RM138/TS062), England & Wales, HRP",
+    "unit": "households",
+    "provenance": "observed",
+    "note": "NS-SeC of Household Reference Person -- socio-economic class, used as the open income/class proxy (income itself is FRS-gated)",
+    "levels": {
+      "L4, L5 and L6: Lower managerial, administrative and professional occupations": {
+        "count": 10615808,
+        "share": 0.2142
+      },
+      "L1, L2 and L3: Higher managerial, administrative and professional occupations": {
+        "count": 8000878,
+        "share": 0.1614
+      },
+      "L13: Routine occupations": {
+        "count": 6455356,
+        "share": 0.1303
+      },
+      "L8 and L9: Small employers and own account workers": {
+        "count": 6200756,
+        "share": 0.1251
+      },
+      "L12: Semi-routine occupations": {
+        "count": 5482482,
+        "share": 0.1106
+      },
+      "L7: Intermediate occupations": {
+        "count": 5166976,
+        "share": 0.1043
+      },
+      "L14.1 and L14.2: Never worked and long-term unemployed": {
+        "count": 3699498,
+        "share": 0.0747
+      },
+      "L10 and L11: Lower supervisory and technical occupations": {
+        "count": 3214014,
+        "share": 0.0649
+      },
+      "L15: Full-time students": {
+        "count": 720928,
+        "share": 0.0145
+      }
+    }
+  },
+  "cars_or_vans": {
+    "source": "Census 2021 (Nomis RM131/TS045), England & Wales",
+    "unit": "households",
+    "provenance": "observed",
+    "note": "car/van availability -- affluence & EV-adjacency proxy",
+    "levels": {
+      "1 car or van in household": {
+        "count": 20473796,
+        "share": 0.4131
+      },
+      "2 or more cars or vans in household": {
+        "count": 17536686,
+        "share": 0.3538
+      },
+      "No cars or vans in household": {
+        "count": 11555914,
+        "share": 0.2331
+      }
+    }
+  },
+  "region": {
+    "source": "Census 2021 (Nomis TYPE480), England & Wales, 9 English regions + Wales",
+    "unit": "households",
+    "provenance": "observed",
+    "levels": {
+      "South East": {
+        "count": 7615932,
+        "share": 0.1537
+      },
+      "London": {
+        "count": 6847778,
+        "share": 0.1382
+      },
+      "North West": {
+        "count": 6306806,
+        "share": 0.1272
+      },
+      "East": {
+        "count": 5257564,
+        "share": 0.1061
+      },
+      "South West": {
+        "count": 4897758,
+        "share": 0.0988
+      },
+      "West Midlands": {
+        "count": 4858988,
+        "share": 0.098
+      },
+      "Yorkshire and The Humber": {
+        "count": 4661316,
+        "share": 0.094
+      },
+      "East Midlands": {
+        "count": 4074664,
+        "share": 0.0822
+      },
+      "Wales": {
+        "count": 2694234,
+        "share": 0.0544
+      },
+      "North East": {
+        "count": 2351358,
+        "share": 0.0474
+      }
+    }
+  },
+  "ev_private_plugin": {
+    "source": "DfT VEH0135 (LSOA, 2025 Q4)",
+    "unit": "vehicles",
+    "provenance": "observed-marginal",
+    "note": "~1,285,746 private-keeper plug-in vehicles ~= 5.2 per 100 households (of which 792,714 BEV). VEHICLE count at LSOA, NOT household ownership and NO household-attribute join -- confirms the stage-1 D-group gap. Fusable onto the population only via area (LSOA/region) keys, never observed at household.",
+    "levels": {
+      "private_plugin_total": {
+        "count": 1285746,
+        "per_100_households": 5.2
+      },
+      "battery_electric_private": {
+        "count": 792714
+      }
+    }
+  }
+}

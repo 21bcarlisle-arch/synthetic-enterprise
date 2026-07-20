@@ -3,7 +3,7 @@
     "artefact": "population_fusion_assumptions_register",
     "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20",
     "created": "2026-07-20",
-    "stage": "2 (scaffold) -- ruling recorded; entries below are HYPOTHESES from stage-1 priors, not fetched data",
+    "stage": "2 (fetched) -- observed pairs now carry MEASURED association from Census 2021; fused/assumed entries carry refutation tests",
     "authority": "director ruling in DIRECTOR_STEER_COVERAGE_STAGE2_FUSION_CALL_2026-07-20.md",
     "ruling_summary": "Conservative crossing by default (taxonomy option c). Fusion (option b) ONLY where there is positive evidence for the conditional structure, never as a convenience. Every cell/dimension-pair carries provenance (observed|fused|assumed). Every fusion assumption is a TESTABLE HYPOTHESIS recorded here with an explicit refutation condition, not a settled fact.",
     "provenance_values": {
@@ -23,55 +23,102 @@
       "fidelity_ledger_ref": "id in the fidelity evidence ledger once a fused entry is committed as a declared risk; null until then"
     },
     "hard_boundary": "No personal microdata. Entries are populated from published aggregates/cross-tabs only. Refutation tests use the shadow-billing VOLUNTEER track (consented) or the counterfactual-twin machinery, never obtained unit records.",
-    "notes": "Entries below are seeded from the landscape doc section 4 'prior expectations to test, not assert'. They are HYPOTHESES (status=hypothesis) so stage 3 can attach the real measured association and flip status to evidenced without re-authoring the structure -- this is the 'design so it is cheap later' the ruling asks for. No association value here is measured."
+    "notes": "Entries below are seeded from the landscape doc section 4 'prior expectations to test, not assert'. They are HYPOTHESES (status=hypothesis) so stage 3 can attach the real measured association and flip status to evidenced without re-authoring the structure -- this is the 'design so it is cheap later' the ruling asks for. No association value here is measured.",
+    "stage2_evidence_source": "docs/market_research/population_coverage/{marginals,crosstabs,association_matrix}.json (Census 2021 via Nomis; DfT VEH0135)",
+    "measurable_fusion_bar": "A fusion (provenance=fused) is PERMITTED only if the shared keys explain the pair's association to within a stated tolerance in a source where BOTH keys and target are jointly seen (residual-association test). Where the residual cannot even be measured because the pair is never jointly observed (all D-tech-x-household and E-attitude-x-anything), there is by definition NO positive evidence -> the pair is CROSSED (assumed), never fused. This makes the ruling's 'fusion only with positive evidence' a mechanism, not a judgement call.",
+    "key_finding_aggregate_vs_tail": "Aggregate Cramer's V UNDERSTATES tail-concentrated coupling. heating_fuel x region reads V=0.070 (orthogonal) but oil-only ranges 0.12% (London) to 7.83% (Wales), ~65x. Refutation/crossing decisions gate on TAIL lift, not aggregate V, because the coverage objective is the worst cell."
   },
   "entries": [
     {
-      "pair": ["tenure", "fabric"],
+      "pair": [
+        "tenure",
+        "fabric"
+      ],
       "provenance": "observed",
       "prior_belief": "strong -- owner-occupied stock skews to houses/better fabric; social/private-rented skews to flats/poorer fabric",
       "conditional_independence_assumption": null,
       "shared_keys": null,
       "refutation_condition": "EHS/Census published cross-tab of tenure x dwelling-type x SAP band shows Cramer's V < 0.15 (effectively independent) -- would refute the 'strong' prior and mean the design must cross them rather than collapse.",
       "test_bed": "published_crosstab_when_available",
-      "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "status": "evidenced",
+      "fidelity_ledger_ref": null,
+      "measured_association": {
+        "cramers_v": 0.273,
+        "aggregate_band": "moderate",
+        "n": 24783199,
+        "tail_max_lift": 2.3,
+        "tail_cell": "Owned: Owns outright | A caravan or other mobile or temporary structure"
+      },
+      "evidence_note": "Census 2021 RM003 accommodation x tenure V=0.273 (MODERATE, not 'strong' as the prior assumed). Not refuted (V>0.15) but weaker than believed -- design must not over-collapse.",
+      "residual_measurable": true
     },
     {
-      "pair": ["heating_fuel", "region"],
+      "pair": [
+        "heating_fuel",
+        "region"
+      ],
       "provenance": "observed",
       "prior_belief": "strong -- off-gas-grid regions (rural Scotland/Wales/SW) force electric/oil/LPG; urban regions gas-dominant",
       "conditional_independence_assumption": null,
       "shared_keys": null,
-      "refutation_condition": "Census 2021 central-heating-type x region cross-tab shows near-uniform fuel mix across regions (Cramer's V < 0.15) -- would refute and require crossing.",
+      "refutation_condition": "SUPERSEDED by measurement: the aggregate 'near-uniform' refutation fired (V=0.070<0.15) yet the pair is NOT independent in the tail. New refutation of the TAIL structure = a consented/area check showing oil/electric incidence does NOT vary by region within the off-gas segment.",
       "test_bed": "published_crosstab_when_available",
-      "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "status": "evidenced",
+      "fidelity_ledger_ref": null,
+      "measured_association": {
+        "cramers_v": 0.07,
+        "aggregate_band": "orthogonal",
+        "n": 24783187,
+        "tail_max_lift": 3.8,
+        "tail_cell": "London | District or communal heat networks only"
+      },
+      "evidence_note": "Census 2021 TS046 fuel x region V=0.070 -> ORTHOGONAL IN AGGREGATE, contradicting the 'strong' prior. BUT the off-gas TAIL is strongly regional (oil-only 0.12% London vs 7.83% Wales, ~65x). The prior was wrong about the bulk, right about the tail. Crossing decision: cross the mains-gas bulk, PIN the off-gas tail to region.",
+      "residual_measurable": true
     },
     {
-      "pair": ["EV_ownership", "income"],
+      "pair": [
+        "EV_ownership",
+        "income"
+      ],
       "provenance": "fused",
       "prior_belief": "moderate -- plug-in ownership concentrated in higher income deciles",
       "conditional_independence_assumption": "given region and tenure, EV ownership rate depends on income band only (DfT VEH0 regional marginals fused onto income via the income x region key)",
-      "shared_keys": ["region", "tenure", "income_band"],
+      "shared_keys": [
+        "region",
+        "tenure",
+        "income_band"
+      ],
       "refutation_condition": "A consented household check where EV ownership within a fixed (region, tenure, income_band) cell varies materially by a dimension NOT in the keys (e.g. household composition / number of drivers) -- would show the CI assumption drops real structure and the fusion mis-locates EVs.",
       "test_bed": "counterfactual_twin",
       "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "fidelity_ledger_ref": null,
+      "partial_anchor": "Census 2021 RM131 tenure x cars V=0.303 (moderate) is the nearest OPEN anchor for car-ownership structure; true income is FRS-gated and EV-at-household is unobservable (DfT VEH0135 is vehicle-count at LSOA only, ~5.2 private plug-ins per 100 households). Fusion remains under the CI assumption; residual UNMEASURABLE -> stays a declared risk.",
+      "residual_measurable": false
     },
     {
-      "pair": ["solar_PV", "tenure"],
+      "pair": [
+        "solar_PV",
+        "tenure"
+      ],
       "provenance": "fused",
       "prior_belief": "strong -- PV requires roof control; concentrated in owner-occupiers, near-absent in rented flats",
       "conditional_independence_assumption": "given dwelling_type and tenure, PV presence follows regional MCS install density (MCS dashboard postcode-area counts fused onto owner-occupied houses)",
-      "shared_keys": ["region", "tenure", "dwelling_type"],
+      "shared_keys": [
+        "region",
+        "tenure",
+        "dwelling_type"
+      ],
       "refutation_condition": "MCS-linked or consented data showing material PV incidence in social/private rented or flats within a region -- would refute the 'roof control gates PV' structure the fusion assumes.",
       "test_bed": "shadow_billing_volunteers",
       "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "fidelity_ledger_ref": null,
+      "residual_measurable": false
     },
     {
-      "pair": ["green_stance", "solar_PV"],
+      "pair": [
+        "green_stance",
+        "solar_PV"
+      ],
       "provenance": "assumed",
       "prior_belief": "correlated beyond what income+tenure explain -- the landscape doc (section 5) names this as exactly where a naive CI fusion is likely WRONG",
       "conditional_independence_assumption": null,
@@ -79,32 +126,50 @@
       "refutation_condition": "This pair is DELIBERATELY not fused: attitudes are never openly observed jointly with tech (landscape section E gap). It is crossed (assumed independent-by-necessity). Refutation of the crossing = a consented source showing green-stance predicts PV ownership after conditioning on income+tenure, at which point it should be PROMOTED to a fused entry with that structure -- the opposite direction to the others.",
       "test_bed": "shadow_billing_volunteers",
       "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "fidelity_ledger_ref": null,
+      "residual_measurable": true
     },
     {
-      "pair": ["price_sensitivity", "income"],
+      "pair": [
+        "price_sensitivity",
+        "income"
+      ],
       "provenance": "fused",
       "prior_belief": "strong -- lower income => higher price sensitivity; proxy elasticities already in churn_price_elasticity.md",
       "conditional_independence_assumption": "given income band and tenure, price sensitivity follows the elasticity proxy (no clean open microdata source for price sensitivity -- landscape section E gap)",
-      "shared_keys": ["income_band", "tenure"],
+      "shared_keys": [
+        "income_band",
+        "tenure"
+      ],
       "refutation_condition": "Consented behavioural data (switching response to a price change) where within-cell price sensitivity varies strongly by an unfused dimension (e.g. green-stance or prior-supplier trust) -- would show income+tenure under-determine sensitivity.",
       "test_bed": "counterfactual_twin",
       "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "fidelity_ledger_ref": null,
+      "residual_measurable": false
     },
     {
-      "pair": ["channel_preference", "age"],
+      "pair": [
+        "channel_preference",
+        "age"
+      ],
       "provenance": "fused",
       "prior_belief": "moderate -- older households skew to phone/post, younger to app/web",
       "conditional_independence_assumption": "given age band, channel preference follows PAT/Ofgem coarse-demographic marginals (no joint of channel-pref with fabric/tech exists -- landscape section E gap)",
-      "shared_keys": ["age_band"],
+      "shared_keys": [
+        "age_band"
+      ],
       "refutation_condition": "Consented interaction data where channel preference within an age band varies materially by region/tenure/digital-access -- would show age alone under-determines it.",
       "test_bed": "shadow_billing_volunteers",
       "status": "hypothesis",
-      "fidelity_ledger_ref": null
+      "fidelity_ledger_ref": null,
+      "residual_measurable": false
     },
     {
-      "pair": ["EV_ownership", "solar_PV", "home_battery"],
+      "pair": [
+        "EV_ownership",
+        "solar_PV",
+        "home_battery"
+      ],
       "provenance": "assumed",
       "prior_belief": "the high-value tail -- household-level co-ownership is essentially unobservable in open data (landscape section D honest gap); this is where the money and the mortality live",
       "conditional_independence_assumption": null,
@@ -112,6 +177,91 @@
       "refutation_condition": "Per the ruling, the two errors are asymmetric: a false CI fusion here would systematically misrepresent the joint tail and everything downstream would learn it as true. So this triple is CROSSED (assumed), not fused, until positive evidence for the conditional structure exists. Refutation of the crossing = a consented or commercial-panel-derived source establishing real co-ownership conditional structure, at which point it may be promoted to fused with that explicit structure.",
       "test_bed": "shadow_billing_volunteers",
       "status": "hypothesis",
+      "fidelity_ledger_ref": null,
+      "residual_measurable": true
+    },
+    {
+      "pair": [
+        "tenure",
+        "nssec_class"
+      ],
+      "provenance": "observed",
+      "prior_belief": "strong -- class and tenure move together",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "measured_association": {
+        "cramers_v": 0.229,
+        "aggregate_band": "moderate",
+        "n": 24778348,
+        "tail_max_lift": 3.3,
+        "tail_cell": "L15: Full-time students | Rented: Private rented or lives rent free"
+      },
+      "evidence_note": "Census 2021 RM138 V=0.229 (MODERATE, weaker than 'strong' prior); tail-sharp (full-time-student x private-rented 3.3x). NS-SeC is the OPEN class/income proxy (true income FRS-gated).",
+      "refutation_condition": "A source showing tenure x class V<0.15 would refute the coupling and force crossing. Not refuted.",
+      "test_bed": "published_crosstab_when_available",
+      "status": "evidenced",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": [
+        "tenure",
+        "cars_or_vans"
+      ],
+      "provenance": "observed",
+      "prior_belief": "moderate -- car ownership tracks tenure/affluence",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "measured_association": {
+        "cramers_v": 0.303,
+        "aggregate_band": "moderate",
+        "n": 24783198,
+        "tail_max_lift": 2.1,
+        "tail_cell": "No cars or vans in household | Rented: Social rented"
+      },
+      "evidence_note": "Census 2021 RM131 V=0.303 -- the STRONGEST measured coupling; no-car x social-rented 2.1x. Cars is the open EV-adjacency/affluence proxy.",
+      "refutation_condition": "tenure x cars V<0.15 would refute. Not refuted.",
+      "test_bed": "published_crosstab_when_available",
+      "status": "evidenced",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": [
+        "tenure",
+        "region"
+      ],
+      "provenance": "observed",
+      "prior_belief": "weak -- tenure mix roughly stable across regions",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "measured_association": {
+        "cramers_v": 0.066,
+        "aggregate_band": "orthogonal",
+        "n": 24783199,
+        "tail_max_lift": 1.6,
+        "tail_cell": "West Midlands | Lives rent free"
+      },
+      "evidence_note": "Census 2021 TS054 V=0.066 -- ORTHOGONAL, safe to cross (London higher private-rent is the only notable deviation, tail 1.6x).",
+      "refutation_condition": "tenure x region V>0.20 in any sub-population would flag region-specific tenure structure to preserve.",
+      "test_bed": "published_crosstab_when_available",
+      "status": "evidenced",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": [
+        "central_heating_presence",
+        "*"
+      ],
+      "provenance": "observed",
+      "prior_belief": "assumed a real dimension",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "measured_association": {
+        "note": "NEAR-CONSTANT: 96%+ of E&W households have central heating; V<=0.06 vs all pairs."
+      },
+      "evidence_note": "FINDING: 'has central heating' is NOT a real design dimension (near-constant, carries ~no information). Replace with FUEL TYPE, which is openly jointly observed only with REGION (TS046). The fabric x fuel-type joint is a 2021 open-data REGRESSION vs 2011 (RM003 collapses heating to binary).",
+      "refutation_condition": "A future world where CH presence drops below ~90% (e.g. a heat-pump/no-wet-system transition) would restore it as an informative dimension.",
+      "test_bed": "published_crosstab_when_available",
+      "status": "evidenced",
       "fidelity_ledger_ref": null
     }
   ]

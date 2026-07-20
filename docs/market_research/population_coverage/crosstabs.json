@@ -1,0 +1,425 @@
+{
+  "_meta": {
+    "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20 (stage 2 -- fetch & structure)",
+    "created": "2026-07-20",
+    "hard_boundary": "No personal microdata. Every figure derives from published open aggregates/cross-tabs (Census 2021 via Nomis; DfT VEH0135). Raw responses cached OUTSIDE the repo (~/.cache/se_coverage).",
+    "geography": "England & Wales (Census 2021). Region = 9 English regions + Wales.",
+    "provenance_legend": {
+      "observed": "jointly measured in a real open source",
+      "observed-marginal": "real source but marginal/area-level only, no household joint",
+      "fused": "stated conditional-independence assumption (see register)",
+      "assumed": "crossed conservatively, no basis"
+    },
+    "artefact": "observed_pairwise_crosstabs",
+    "note": "Cells are P(col|row). Only pairs OBSERVED jointly in one open source appear here."
+  },
+  "accom_x_tenure": {
+    "source": "Census 2021 RM003",
+    "provenance": "observed",
+    "rows": "accommodation_type",
+    "cols": "tenure",
+    "cramers_v": 0.273,
+    "n": 24783199,
+    "dims": [
+      5,
+      4
+    ],
+    "cell": "P(col|row)",
+    "table": {
+      "A caravan or other mobile or temporary structure": {
+        "Owned: Owns outright": 0.7476,
+        "Owned: Owns with a mortgage or loan or shared ownership": 0.0352,
+        "Rented: Private rented or lives rent free": 0.1704,
+        "Rented: Social rented": 0.0468
+      },
+      "Flat, maisonette or apartment": {
+        "Owned: Owns outright": 0.112,
+        "Owned: Owns with a mortgage or loan or shared ownership": 0.1343,
+        "Rented: Private rented or lives rent free": 0.4043,
+        "Rented: Social rented": 0.3495
+      },
+      "Whole house or bungalow: Detached": {
+        "Owned: Owns outright": 0.528,
+        "Owned: Owns with a mortgage or loan or shared ownership": 0.3552,
+        "Rented: Private rented or lives rent free": 0.0904,
+        "Rented: Social rented": 0.0264
+      },
+      "Whole house or bungalow: Semi-detached": {
+        "Owned: Owns outright": 0.3564,
+        "Owned: Owns with a mortgage or loan or shared ownership": 0.3456,
+        "Rented: Private rented or lives rent free": 0.1413,
+        "Rented: Social rented": 0.1568
+      },
+      "Whole house or bungalow: Terraced": {
+        "Owned: Owns outright": 0.285,
+        "Owned: Owns with a mortgage or loan or shared ownership": 0.33,
+        "Rented: Private rented or lives rent free": 0.2163,
+        "Rented: Social rented": 0.1687
+      }
+    }
+  },
+  "heatingfuel_x_region": {
+    "source": "Census 2021 TS046",
+    "provenance": "observed",
+    "rows": "heating_fuel_type",
+    "cols": "region",
+    "cramers_v": 0.07,
+    "n": 24783187,
+    "dims": [
+      12,
+      10
+    ],
+    "cell": "P(col|row)",
+    "table": {
+      "District or communal heat networks only": {
+        "East": 0.0583,
+        "East Midlands": 0.0448,
+        "London": 0.5282,
+        "North East": 0.0363,
+        "North West": 0.0652,
+        "South East": 0.0871,
+        "South West": 0.055,
+        "Wales": 0.0198,
+        "West Midlands": 0.0398,
+        "Yorkshire and The Humber": 0.0655
+      },
+      "Electric only": {
+        "East": 0.1177,
+        "East Midlands": 0.0603,
+        "London": 0.2046,
+        "North East": 0.0283,
+        "North West": 0.1079,
+        "South East": 0.1664,
+        "South West": 0.1199,
+        "Wales": 0.0337,
+        "West Midlands": 0.09,
+        "Yorkshire and The Humber": 0.0713
+      },
+      "Mains gas only": {
+        "East": 0.1006,
+        "East Midlands": 0.085,
+        "London": 0.1319,
+        "North East": 0.0509,
+        "North West": 0.1355,
+        "South East": 0.1552,
+        "South West": 0.0895,
+        "Wales": 0.0527,
+        "West Midlands": 0.0998,
+        "Yorkshire and The Humber": 0.0987
+      },
+      "No central heating": {
+        "East": 0.086,
+        "East Midlands": 0.0614,
+        "London": 0.2075,
+        "North East": 0.0265,
+        "North West": 0.13,
+        "South East": 0.1359,
+        "South West": 0.1159,
+        "Wales": 0.0422,
+        "West Midlands": 0.1005,
+        "Yorkshire and The Humber": 0.0941
+      },
+      "Oil only": {
+        "East": 0.22,
+        "East Midlands": 0.0925,
+        "London": 0.0049,
+        "North East": 0.022,
+        "North West": 0.0506,
+        "South East": 0.1425,
+        "South West": 0.2004,
+        "Wales": 0.1218,
+        "West Midlands": 0.0849,
+        "Yorkshire and The Humber": 0.0605
+      },
+      "Other central heating only": {
+        "East": 0.0778,
+        "East Midlands": 0.0675,
+        "London": 0.2729,
+        "North East": 0.0534,
+        "North West": 0.1255,
+        "South East": 0.1086,
+        "South West": 0.0562,
+        "Wales": 0.0348,
+        "West Midlands": 0.1094,
+        "Yorkshire and The Humber": 0.0938
+      },
+      "Renewable energy only": {
+        "East": 0.1765,
+        "East Midlands": 0.0958,
+        "London": 0.0623,
+        "North East": 0.0262,
+        "North West": 0.0662,
+        "South East": 0.1595,
+        "South West": 0.1889,
+        "Wales": 0.0642,
+        "West Midlands": 0.0759,
+        "Yorkshire and The Humber": 0.0846
+      },
+      "Solid fuel only": {
+        "East": 0.0658,
+        "East Midlands": 0.1783,
+        "London": 0.0083,
+        "North East": 0.0928,
+        "North West": 0.0892,
+        "South East": 0.0565,
+        "South West": 0.1093,
+        "Wales": 0.1515,
+        "West Midlands": 0.0836,
+        "Yorkshire and The Humber": 0.1646
+      },
+      "Tank or bottled gas only": {
+        "East": 0.1121,
+        "East Midlands": 0.0802,
+        "London": 0.0799,
+        "North East": 0.0283,
+        "North West": 0.0897,
+        "South East": 0.1617,
+        "South West": 0.1534,
+        "Wales": 0.1061,
+        "West Midlands": 0.1157,
+        "Yorkshire and The Humber": 0.0729
+      },
+      "Two or more types of central heating (including renewable energy)": {
+        "East": 0.1362,
+        "East Midlands": 0.0871,
+        "London": 0.0906,
+        "North East": 0.0411,
+        "North West": 0.0864,
+        "South East": 0.1875,
+        "South West": 0.1523,
+        "Wales": 0.0591,
+        "West Midlands": 0.0792,
+        "Yorkshire and The Humber": 0.0805
+      },
+      "Two or more types of central heating (not including renewable energy)": {
+        "East": 0.1014,
+        "East Midlands": 0.0818,
+        "London": 0.132,
+        "North East": 0.0539,
+        "North West": 0.1237,
+        "South East": 0.1468,
+        "South West": 0.1061,
+        "Wales": 0.0587,
+        "West Midlands": 0.1005,
+        "Yorkshire and The Humber": 0.0951
+      },
+      "Wood only": {
+        "East": 0.1026,
+        "East Midlands": 0.0827,
+        "London": 0.0112,
+        "North East": 0.0418,
+        "North West": 0.0985,
+        "South East": 0.1128,
+        "South West": 0.2211,
+        "Wales": 0.1314,
+        "West Midlands": 0.1042,
+        "Yorkshire and The Humber": 0.0938
+      }
+    }
+  },
+  "tenure_x_nssec": {
+    "source": "Census 2021 RM138",
+    "provenance": "observed",
+    "rows": "tenure",
+    "cols": "nssec_hrp",
+    "cramers_v": 0.229,
+    "n": 24778348,
+    "dims": [
+      4,
+      9
+    ],
+    "cell": "P(col|row)",
+    "table": {
+      "Owned: Owns outright": {
+        "L1, L2 and L3: Higher managerial, administrative and professional occupations": 0.1566,
+        "L10 and L11: Lower supervisory and technical occupations": 0.0627,
+        "L12: Semi-routine occupations": 0.1101,
+        "L13: Routine occupations": 0.118,
+        "L14.1 and L14.2: Never worked and long-term unemployed": 0.0751,
+        "L15: Full-time students": 0.0023,
+        "L4, L5 and L6: Lower managerial, administrative and professional occupations": 0.2162,
+        "L7: Intermediate occupations": 0.1228,
+        "L8 and L9: Small employers and own account workers": 0.1362
+      },
+      "Owned: Owns with a mortgage or loan or shared ownership": {
+        "L1, L2 and L3: Higher managerial, administrative and professional occupations": 0.2582,
+        "L10 and L11: Lower supervisory and technical occupations": 0.0659,
+        "L12: Semi-routine occupations": 0.0652,
+        "L13: Routine occupations": 0.0792,
+        "L14.1 and L14.2: Never worked and long-term unemployed": 0.0127,
+        "L15: Full-time students": 0.0036,
+        "L4, L5 and L6: Lower managerial, administrative and professional occupations": 0.286,
+        "L7: Intermediate occupations": 0.0998,
+        "L8 and L9: Small employers and own account workers": 0.1294
+      },
+      "Rented: Private rented or lives rent free": {
+        "L1, L2 and L3: Higher managerial, administrative and professional occupations": 0.1371,
+        "L10 and L11: Lower supervisory and technical occupations": 0.0653,
+        "L12: Semi-routine occupations": 0.1164,
+        "L13: Routine occupations": 0.143,
+        "L14.1 and L14.2: Never worked and long-term unemployed": 0.0669,
+        "L15: Full-time students": 0.0481,
+        "L4, L5 and L6: Lower managerial, administrative and professional occupations": 0.1989,
+        "L7: Intermediate occupations": 0.0935,
+        "L8 and L9: Small employers and own account workers": 0.1306
+      },
+      "Rented: Social rented": {
+        "L1, L2 and L3: Higher managerial, administrative and professional occupations": 0.0314,
+        "L10 and L11: Lower supervisory and technical occupations": 0.0668,
+        "L12: Semi-routine occupations": 0.1837,
+        "L13: Routine occupations": 0.2276,
+        "L14.1 and L14.2: Never worked and long-term unemployed": 0.191,
+        "L15: Full-time students": 0.0169,
+        "L4, L5 and L6: Lower managerial, administrative and professional occupations": 0.1036,
+        "L7: Intermediate occupations": 0.0892,
+        "L8 and L9: Small employers and own account workers": 0.0897
+      }
+    }
+  },
+  "tenure_x_cars": {
+    "source": "Census 2021 RM131",
+    "provenance": "observed",
+    "rows": "tenure",
+    "cols": "cars_or_vans",
+    "cramers_v": 0.303,
+    "n": 24783198,
+    "dims": [
+      4,
+      3
+    ],
+    "cell": "P(col|row)",
+    "table": {
+      "Owned: Owns outright": {
+        "1 car or van in household": 0.4605,
+        "2 or more cars or vans in household": 0.3688,
+        "No cars or vans in household": 0.1707
+      },
+      "Owned: Owns with a mortgage or loan or shared ownership": {
+        "1 car or van in household": 0.3645,
+        "2 or more cars or vans in household": 0.5683,
+        "No cars or vans in household": 0.0672
+      },
+      "Rented: Private rented or lives rent free": {
+        "1 car or van in household": 0.4345,
+        "2 or more cars or vans in household": 0.2069,
+        "No cars or vans in household": 0.3586
+      },
+      "Rented: Social rented": {
+        "1 car or van in household": 0.3808,
+        "2 or more cars or vans in household": 0.127,
+        "No cars or vans in household": 0.4922
+      }
+    }
+  },
+  "tenure_x_region": {
+    "source": "Census 2021 TS054",
+    "provenance": "observed",
+    "rows": "tenure",
+    "cols": "region",
+    "cramers_v": 0.066,
+    "n": 24783199,
+    "dims": [
+      8,
+      10
+    ],
+    "cell": "P(col|row)",
+    "table": {
+      "Lives rent free": {
+        "East": 0.0689,
+        "East Midlands": 0.0876,
+        "London": 0.1944,
+        "North East": 0.0375,
+        "North West": 0.1131,
+        "South East": 0.0912,
+        "South West": 0.0653,
+        "Wales": 0.0668,
+        "West Midlands": 0.1525,
+        "Yorkshire and The Humber": 0.1227
+      },
+      "Owned: Owns outright": {
+        "East": 0.1119,
+        "East Midlands": 0.0888,
+        "London": 0.0873,
+        "North East": 0.047,
+        "North West": 0.1292,
+        "South East": 0.1605,
+        "South West": 0.1133,
+        "Wales": 0.0629,
+        "West Midlands": 0.1027,
+        "Yorkshire and The Humber": 0.0965
+      },
+      "Owned: Owns with a mortgage or loan": {
+        "East": 0.113,
+        "East Midlands": 0.0859,
+        "London": 0.1177,
+        "North East": 0.0458,
+        "North West": 0.1284,
+        "South East": 0.1677,
+        "South West": 0.097,
+        "Wales": 0.053,
+        "West Midlands": 0.0968,
+        "Yorkshire and The Humber": 0.0946
+      },
+      "Private rented: Other private rented": {
+        "East": 0.0999,
+        "East Midlands": 0.0771,
+        "London": 0.1426,
+        "North East": 0.0455,
+        "North West": 0.1183,
+        "South East": 0.1544,
+        "South West": 0.1162,
+        "Wales": 0.0609,
+        "West Midlands": 0.0902,
+        "Yorkshire and The Humber": 0.095
+      },
+      "Private rented: Private landlord or letting agency": {
+        "East": 0.0947,
+        "East Midlands": 0.0755,
+        "London": 0.2118,
+        "North East": 0.0397,
+        "North West": 0.1211,
+        "South East": 0.1444,
+        "South West": 0.0935,
+        "Wales": 0.0436,
+        "West Midlands": 0.0863,
+        "Yorkshire and The Humber": 0.0895
+      },
+      "Shared ownership: Shared ownership": {
+        "East": 0.109,
+        "East Midlands": 0.0733,
+        "London": 0.2185,
+        "North East": 0.0218,
+        "North West": 0.0897,
+        "South East": 0.2264,
+        "South West": 0.1101,
+        "Wales": 0.0178,
+        "West Midlands": 0.0814,
+        "Yorkshire and The Humber": 0.052
+      },
+      "Social rented: Other social rented": {
+        "East": 0.1018,
+        "East Midlands": 0.0577,
+        "London": 0.1741,
+        "North East": 0.0503,
+        "North West": 0.163,
+        "South East": 0.1472,
+        "South West": 0.0928,
+        "Wales": 0.0487,
+        "West Midlands": 0.0974,
+        "Yorkshire and The Humber": 0.067
+      },
+      "Social rented: Rents from council or Local Authority": {
+        "East": 0.0905,
+        "East Midlands": 0.0864,
+        "London": 0.2008,
+        "North East": 0.0724,
+        "North West": 0.0983,
+        "South East": 0.0972,
+        "South West": 0.0601,
+        "Wales": 0.0566,
+        "West Midlands": 0.1127,
+        "Yorkshire and The Humber": 0.1251
+      }
+    }
+  }
+}
