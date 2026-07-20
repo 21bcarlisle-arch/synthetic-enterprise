@@ -83,19 +83,20 @@ systemd_units:
 
   - name: worker-tick.timer
     unit_file: background/worker-tick.timer
-    enabled: false           # -> enabled:true at cutover (boot-start, WantedBy=timers.target)
-    active: false            # -> active:true at cutover (an un-armed continuity timer is fail-silent)
+    enabled: true            # LIVE (cutover 2026-07-20): boot-start, WantedBy=timers.target
+    active: true             # LIVE: armed — an un-armed continuity timer is fail-silent (R15)
     reason: >-
-      The 60s wake backstop + origin-staged-doc path. DARK until cutover. Post-cutover this is the
+      The 60s wake backstop + origin-staged-doc path. LIVE since the 2026-07-20 cutover. This is the
       continuity heartbeat's replacement: level-triggered (did the timer fire?) instead of the
-      edge-triggered stop-hook re-arm that could not stay alive. Independent of worker-tick.path
-      (R15: either trigger alone still wakes).
+      edge-triggered stop-hook re-arm that could not stay alive (3 failures in ~30h: input-block,
+      death-on-API-error, token-burn). Independent of worker-tick.path (R15: either trigger alone
+      still wakes).
 
   - name: worker-tick.path
     unit_file: background/worker-tick.path
-    enabled: false           # -> enabled:true at cutover (boot-start, WantedBy=paths.target)
-    active: false            # -> active:true at cutover
+    enabled: true            # LIVE (cutover 2026-07-20): boot-start, WantedBy=paths.target
+    active: true             # LIVE
     reason: >-
-      The fast local-staged-doc wake (~seconds vs the 60s timer). DARK until cutover. A staged doc is
-      the primary continuity case (both 2026-07-19 failures hit it). Independent of worker-tick.timer
-      (R15: kill the timer and this still wakes on a staged doc).
+      The fast local-staged-doc wake (~seconds vs the 60s timer). LIVE since the 2026-07-20 cutover.
+      A staged doc is the primary continuity case (both 2026-07-19 failures hit it). Independent of
+      worker-tick.timer (R15: kill the timer and this still wakes on a staged doc).

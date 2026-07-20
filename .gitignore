@@ -35,3 +35,10 @@ docs/observability/.daemon_boot/
 docs/observability/.notify_transitions.json
 docs/observability/injection-log.jsonl
 docs/staging/**/*.bak
+# Scheduled bounded invocations — runtime switches/artifacts (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md).
+# The scheduled-mode flag is a deliberate cutover switch (like .build_executor_enabled: untracked so a
+# repo reconstruction safely defaults to the proven persistent-seat model until a deliberate cutover).
+docs/observability/.scheduled_invocations_enabled
+docs/observability/.worker_tick.lock
+docs/observability/.worker_tick_health.json
+docs/observability/worker-tick-log.md

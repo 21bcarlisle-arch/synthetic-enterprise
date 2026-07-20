@@ -189,3 +189,35 @@ intact behind the flag — fallback is a flag flip, not a rebuild.
 - **No new metadata, no cathedral.** Two systemd unit types + one ~150-line Python tick + one env-var
   discriminator. The disk-state contract (`find_work`, staged docs, ledgers) already exists; this
   re-points the *trigger*, it does not rebuild the *draw*. (Simplicity guard.)
+
+## 10. LIVE CUTOVER OUTCOME (2026-07-20) — done, and how it differs from the §8 plan
+
+Cut over live from inside the seat (the old pull-loop transport had frozen at 11:45; the deadman
+fired — the failing transport *was* the argument to finish, not defer). What happened:
+
+1. **Scheduled flag set** → the Stop hook allow-stops every session (worker `decide()` → `None`).
+   The rest-heartbeat / token-burn is **dead immediately**, for all sessions.
+2. **`worker-tick.timer` + `.path` enabled + started** (manifest flipped enabled/active; committed IaC).
+   Both `active/enabled`; the timer fired within seconds.
+3. **PROVEN LIVE, in production, on the director's real work:** the first tick drew the staged
+   `DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN` doc and spawned a bounded `claude -p` worker
+   (SE_SBI_WORKER=1) to consume it — P2 (wake-on-staged-doc → bounded invocation) demonstrated end
+   to end, not just in tests.
+4. **Both reconcilers 0 drift.**
+
+**Deliberate deviation from §8 — the seat and its manager are KEPT, not retired.** Retiring the
+`claude` seat entry while this session runs *in* it would either self-kill (killing the tmux session
+is killing this process) or trip a `RETIRED_RUNNING` alarm until the seat closes — a persistent
+alarm, which the director forbade. And it turns out retirement isn't needed to kill the class:
+**scheduled mode neuters the resident seat.** It can no longer heartbeat (→ can't block input, can't
+burn tokens), and its death no longer causes a work outage because work continuity is now the
+external timer, wholly independent of the seat. So the resident `claude` session becomes a harmless,
+~0-cost **idle director console** (kept alive by worker-seat-manager, whose role is redefined from
+"keep the autonomous worker alive" to "keep the director's console available") plus the on-demand
+`director_console.sh`. All three failure MODES are eliminated even though the seat OBJECT remains.
+Full retirement of the seat + manager is now **optional future cleanup** (do it when a session is
+*not* running in the seat), not a required, self-kill-adjacent handoff. The `CLAUDE_CODE_STOP_HOOK_
+BLOCK_CAP` in settings.json is left as-is (harmless in scheduled mode; settings is director-owned).
+
+**Rollback** unchanged: delete `.scheduled_invocations_enabled` (hook → heartbeat fallback), stop the
+two units. The persistent-seat path is byte-for-byte intact behind the flag.
