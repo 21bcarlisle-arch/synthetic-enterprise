@@ -100,6 +100,17 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     file it came from.
   </p>
 
+  <!-- 0. OPERATIONAL STATE (the director's window: what the supplier is doing right now + why) -->
+  <div class="sec">Supplier state &mdash; what the book is doing right now</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px" id="state-intro">Loading...</p>
+    <div class="kpis" id="state-kpis"></div>
+  </div>
+  <div class="card">
+    <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Recent decisions &amp; why</div>
+    <div id="state-decisions"><div class="muted">Loading...</div></div>
+  </div>
+
   <!-- 1. THREE-CLOCK FINANCE -->
   <div class="sec">Finance &mdash; the three clocks a supplier actually keeps</div>
   <div class="card">
@@ -195,6 +206,35 @@ function kpiTile(label, value, basis, klass){
   return '<div class="kpi"><div class="kpi-l">'+esc(label)+'</div>'+
     '<div class="kpi-v '+(klass||"")+'">'+value+'</div>'+
     (basis?'<div class="kpi-basis">// '+esc(basis)+'</div>':'')+'</div>';
+}
+
+// The director's operational window: what the book is doing RIGHT NOW, at a glance.
+function renderState(d){
+  var f=d.finance||{}, t=d.trading_risk||{};
+  el("state-intro").innerHTML=
+    "A live read of the book as of the last run &mdash; cash on hand, the settled net margin, the hedge cover "+
+    "the risk desk is carrying, and how much of what was billed has actually been collected. Every figure carries "+
+    "its clock (R14). The decisions below are the last moves the autonomous supplier made, with its reasons.";
+  el("state-kpis").innerHTML=[
+    kpiTile("Treasury (cash)", gbp(f.treasury_end_gbp,true), "banked", ""),
+    kpiTile("Net margin", gbp(f.settled_net_margin_gbp,true), "settled", (Number(f.settled_net_margin_gbp)<0?"red":"green")),
+    kpiTile("Hedge cover", (t.latest_avg_hf==null?"--":Number(t.latest_avg_hf).toFixed(2)), "avg HF "+esc(t.latest_hedge_year||""), ""),
+    kpiTile("Collection", pct(f.collection_rate_pct), "billed &rarr; banked", ""),
+    kpiTile("Outstanding", gbp(f.outstanding_gbp,true), "billed, uncollected", "")
+  ].join("");
+}
+
+function renderDecisions(dd){
+  var decs=(dd&&dd.decisions||[]).slice(0,6);
+  if(!decs.length){ el("state-decisions").innerHTML='<div class="muted">No recent decisions recorded.</div>'; return; }
+  el("state-decisions").innerHTML=decs.map(function(x){
+    var rev=(String(x.reversible)==="True"||x.reversible===true)?"reversible":"one-way door";
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
+      '<div style="font-weight:600">'+esc(x.what||"")+'</div>'+
+      '<div class="muted" style="margin-top:3px">'+esc(x.why||"")+'</div>'+
+      '<div class="muted" style="margin-top:4px;font-size:10px;letter-spacing:.04em">'+esc(x.timestamp||"")+
+      ' &middot; '+rev+' &middot; '+esc(x.confidence||"")+'</div></div>';
+  }).join("");
 }
 
 function renderFinance(d){
@@ -374,7 +414,11 @@ function renderBuild(d){
   el("build-note").textContent=parts.length?("This board pack is a rendering of repo data only — "+parts.join(" · ")):"Build stats unavailable.";
 }
 
+fetch("../data/decisions.json?t="+Date.now()).then(function(r){return r.json();}).then(renderDecisions).catch(function(e){
+  el("state-decisions").innerHTML='<div class="muted">decisions.json unavailable at generation time</div>';
+});
 fetch("../data/company.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+  renderState(d);
   renderFinance(d);
   renderTrading(d);
   renderHousehold(d);
