@@ -3,13 +3,6 @@
     {
       "assumed_lift": 1.8,
       "assumed_sign": "upper",
-      "grounding": "residual_demand_mw vs wholesale/SSP print, upper-upper joint_tail_lift (price convex in tightness)",
-      "link_id": "D2_residual_demand_price",
-      "reason": "residual-demand series (D - G_wind - G_solar) not assembled in-repo as a clean pair with SSP"
-    },
-    {
-      "assumed_lift": 1.8,
-      "assumed_sign": "upper",
       "grounding": "Delta_vol vs SSP/SBP cash-out, upper-upper lift; the money is the covariance E[Delta_vol*spot]",
       "link_id": "D3_shortvol_cashout",
       "reason": "book imbalance Delta_vol = demand - hedged is not observable without a run"
@@ -59,6 +52,19 @@
       "link_id": "D1_temp_wind",
       "statistic": "joint_tail_lift",
       "value": 2.364669421487603
+    },
+    {
+      "detail": {
+        "ci_high": 1.3828564782461126,
+        "ci_low": 1.2447617976969538,
+        "n_periods": 157106.0,
+        "pearson_all": 0.11208999893182604,
+        "resolution": 0.0,
+        "u": 0.1
+      },
+      "link_id": "D2_residual_demand_price",
+      "statistic": "joint_tail_lift",
+      "value": 1.316937815518368
     },
     {
       "detail": {

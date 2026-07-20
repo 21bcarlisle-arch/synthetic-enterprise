@@ -163,17 +163,54 @@ def estimate_d4_demand_temp(*, u: float = _DECILE_U, seed: int = 0) -> Estimated
     )
 
 
+_CACHE = Path(__file__).resolve().parent.parent / "sim" / "cache"
+
+
+def estimate_d2_residual_price(*, u: float = _DECILE_U, seed: int = 0) -> EstimatedLink:
+    """D2: residual-demand (D - wind - solar) HIGH (tight) AND SSP price HIGH
+    (dear) co-occurring -- the merit order convex in tightness. Estimated at
+    HALF-HOURLY settlement resolution, NOT daily: the coupling is a per-period
+    phenomenon (a tight settlement period clears at a high price THAT period),
+    and daily averaging washes it out (measured: daily lift ~1.08 vs half-hourly
+    1.32 rising to ~1.49 into the 5% tail). Uses the real independent Elexon
+    series now cached: AGWS wind+solar generation, INDO demand outturn, SSP
+    system sell price."""
+    import json
+    from sim.generation_demand_history import aggregate_renewable_generation
+    ren = aggregate_renewable_generation(json.loads((_CACHE / "elexon_agws_full.json").read_text()))
+    dem = {}
+    for r in json.loads((_CACHE / "elexon_demand_full.json").read_text()):
+        v = r.get("initialDemandOutturn")
+        if v is not None:
+            dem[(r["settlementDate"], int(r["settlementPeriod"]))] = float(v)
+    price = {}
+    for r in json.loads((_CACHE / "elexon_ssp_full.json").read_text()):
+        v = r.get("systemSellPrice")
+        if v is not None:
+            price[(r["settlementDate"], int(r["settlementPeriod"]))] = float(v)
+    keys = sorted(set(ren) & set(dem) & set(price))
+    if len(keys) < 1000:
+        raise ValueError(f"too few common half-hourly periods to estimate D2: {len(keys)}")
+    resid = np.array([dem[k] - ren[k] for k in keys])
+    pr = np.array([price[k] for k in keys])
+    est: LiftEstimate = joint_tail_lift(resid, pr, u=u, upper=True)  # tight & dear corner
+    lo, hi = block_bootstrap_lift_ci(resid, pr, u=u, upper=True, seed=seed)
+    return EstimatedLink(
+        link_id="D2_residual_demand_price",
+        statistic="joint_tail_lift",
+        value=est.lift,
+        detail={"u": u, "resolution": 0.0, "ci_low": float(lo), "ci_high": float(hi),
+                "n_periods": float(len(keys)), "pearson_all": float(np.corrcoef(resid, pr)[0, 1])},
+    )
+
+
 def asserted_links() -> List[AssertedDependence]:
-    """D2..D7 — registered as asserted-not-estimated (R10). Signs come from the
-    DISCOVER inventory; magnitudes are registered ASSUMPTIONS pending estimation
-    (never presented as measured). Each names the exact real series + statistic
-    that would ground it, so the next rung can estimate without re-deriving."""
+    """D3/D5/D6/D7 — registered as asserted-not-estimated (R10). Signs come from
+    the DISCOVER inventory; magnitudes are registered ASSUMPTIONS pending
+    estimation (never presented as measured). Each names the exact real series +
+    statistic that would ground it, so the next rung can estimate without
+    re-deriving."""
     return [
-        asserted_dependence(
-            "D2_residual_demand_price", assumed_lift=1.8, assumed_sign="upper",
-            reason="residual-demand series (D - G_wind - G_solar) not assembled in-repo as a clean pair with SSP",
-            grounding="residual_demand_mw vs wholesale/SSP print, upper-upper joint_tail_lift (price convex in tightness)",
-        ),
         asserted_dependence(
             "D3_shortvol_cashout", assumed_lift=1.8, assumed_sign="upper",
             reason="book imbalance Delta_vol = demand - hedged is not observable without a run",
@@ -201,7 +238,8 @@ def build_register(*, seed: int = 0) -> Dict[str, object]:
     """The full D1..D8 register: estimated links (real series) + asserted links
     (R10, grounded). Every one of the eight is present in exactly one state —
     the inventory is never silently incomplete."""
-    estimated = [estimate_d1_temp_wind(seed=seed), estimate_d4_demand_temp(seed=seed), estimate_d8_persistence()]
+    estimated = [estimate_d1_temp_wind(seed=seed), estimate_d2_residual_price(seed=seed),
+                 estimate_d4_demand_temp(seed=seed), estimate_d8_persistence()]
     asserted = asserted_links()
     covered = {e.link_id.split("_")[0] for e in estimated} | {a.link_id.split("_")[0] for a in asserted}
     expected = {f"D{i}" for i in range(1, 9)}
