@@ -117,6 +117,52 @@ def estimate_d8_persistence() -> EstimatedLink:
     )
 
 
+_DEMAND_CACHE = Path(__file__).resolve().parent.parent / "sim" / "cache" / "elexon_demand_full.json"
+
+
+def _load_daily_demand(path: Path | None = None) -> Dict[str, float]:
+    """Real GB national daily demand (mean of the half-hourly settlement-period
+    `initialDemandOutturn`, MW) keyed by settlement date — the independent
+    published series, NOT a sim output (anti-marking-own-homework, S3)."""
+    import json
+    from collections import defaultdict
+    p = path or _DEMAND_CACHE
+    agg: Dict[str, list] = defaultdict(list)
+    for r in json.loads(p.read_text(encoding="utf-8")):
+        v = r.get("initialDemandOutturn")
+        if v is not None:
+            agg[r["settlementDate"]].append(float(v))
+    return {d: float(np.mean(vs)) for d, vs in agg.items()}
+
+
+def estimate_d4_demand_temp(*, u: float = _DECILE_U, seed: int = 0) -> EstimatedLink:
+    """D4: the cold-tail demand plateau — cold (LOW temp) AND high demand
+    co-occurring. Heating load is CONVEX below a threshold, so a cold tail lifts
+    demand far more than a linear fit predicts; the joint tail is estimated as
+    the upper-upper corner of (-temp, demand) (negating temp turns the cold lower
+    tail into an upper tail so the same-direction lift statistic applies). Uses
+    the independent published Elexon demand series + Open-Meteo temp (different
+    sources — the anti-marking-own-homework rule)."""
+    national, _doy, dates = load_national_daily()
+    demand_by_date = _load_daily_demand()
+    temp_by_date = {dates[i].strftime("%Y-%m-%d"): float(national["temperature_mean_c"][i])
+                    for i in range(len(dates))}
+    common = sorted(set(demand_by_date) & set(temp_by_date))
+    if len(common) < 100:
+        raise ValueError(f"too few common demand/temp days to estimate D4: {len(common)}")
+    demand = np.array([demand_by_date[d] for d in common])
+    temp = np.array([temp_by_date[d] for d in common])
+    est: LiftEstimate = joint_tail_lift(-temp, demand, u=u, upper=True)  # cold & high-demand corner
+    lo, hi = block_bootstrap_lift_ci(-temp, demand, u=u, upper=True, seed=seed)
+    return EstimatedLink(
+        link_id="D4_demand_temp",
+        statistic="joint_tail_lift",
+        value=est.lift,
+        detail={"u": u, "sign_cold_tail": 1.0, "ci_low": float(lo), "ci_high": float(hi),
+                "n_days": float(len(common)), "pearson_all_year": float(np.corrcoef(temp, demand)[0, 1])},
+    )
+
+
 def asserted_links() -> List[AssertedDependence]:
     """D2..D7 — registered as asserted-not-estimated (R10). Signs come from the
     DISCOVER inventory; magnitudes are registered ASSUMPTIONS pending estimation
@@ -132,11 +178,6 @@ def asserted_links() -> List[AssertedDependence]:
             "D3_shortvol_cashout", assumed_lift=1.8, assumed_sign="upper",
             reason="book imbalance Delta_vol = demand - hedged is not observable without a run",
             grounding="Delta_vol vs SSP/SBP cash-out, upper-upper lift; the money is the covariance E[Delta_vol*spot]",
-        ),
-        asserted_dependence(
-            "D4_demand_temp", assumed_lift=1.6, assumed_sign="lower",
-            reason="cold-tail demand plateau (convex heating load) not yet estimated on the premise/national demand series",
-            grounding="national/premise demand vs temperature_mean, cold-tail (lower temp) joint_tail_lift",
         ),
         asserted_dependence(
             "D5_windoutput_windspeed", assumed_lift=2.0, assumed_sign="lower",
@@ -160,7 +201,7 @@ def build_register(*, seed: int = 0) -> Dict[str, object]:
     """The full D1..D8 register: estimated links (real series) + asserted links
     (R10, grounded). Every one of the eight is present in exactly one state —
     the inventory is never silently incomplete."""
-    estimated = [estimate_d1_temp_wind(seed=seed), estimate_d8_persistence()]
+    estimated = [estimate_d1_temp_wind(seed=seed), estimate_d4_demand_temp(seed=seed), estimate_d8_persistence()]
     asserted = asserted_links()
     covered = {e.link_id.split("_")[0] for e in estimated} | {a.link_id.split("_")[0] for a in asserted}
     expected = {f"D{i}" for i in range(1, 9)}

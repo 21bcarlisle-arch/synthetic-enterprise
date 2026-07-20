@@ -66,12 +66,23 @@ def test_d1_mutation_cutting_coupling_collapses_the_lift():
     assert cut == pytest.approx(1.0, abs=0.6)  # collapses toward independence
 
 
+def test_d4_demand_temp_cold_tail_estimated_on_real_data():
+    from background.cascade_link_register import estimate_d4_demand_temp
+    e = estimate_d4_demand_temp()
+    # Cold (low temp) AND high demand strongly co-occur -- the convex heating
+    # plateau. The TAIL lift is well above 1 and above what the linear all-year
+    # Pearson (~-0.7) alone conveys.
+    assert e.value > 2.0
+    assert e.detail["ci_low"] > 1.0
+    assert e.detail["pearson_all_year"] < 0  # cold -> high demand, negative linear corr
+
+
 def test_register_is_complete_all_eight_links():
     reg = build_register()
     assert reg["covered_links"] == [f"D{i}" for i in range(1, 9)]
-    # exactly two estimated, six asserted -> all eight, no gap, no double.
-    assert len(reg["estimated"]) == 2
-    assert len(reg["asserted"]) == 6
+    # three estimated (D1, D4, D8), five asserted -> all eight, no gap, no double.
+    assert len(reg["estimated"]) == 3
+    assert len(reg["asserted"]) == 5
 
 
 def test_asserted_links_are_grounded_not_dressed_as_estimated():

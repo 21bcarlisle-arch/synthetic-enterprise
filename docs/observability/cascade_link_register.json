@@ -15,13 +15,6 @@
       "reason": "book imbalance Delta_vol = demand - hedged is not observable without a run"
     },
     {
-      "assumed_lift": 1.6,
-      "assumed_sign": "lower",
-      "grounding": "national/premise demand vs temperature_mean, cold-tail (lower temp) joint_tail_lift",
-      "link_id": "D4_demand_temp",
-      "reason": "cold-tail demand plateau (convex heating load) not yet estimated on the premise/national demand series"
-    },
-    {
       "assumed_lift": 2.0,
       "assumed_sign": "lower",
       "grounding": "G_wind vs wind_speed, lower-lower (cubic ramp near cut-in amplifies the still tail)",
@@ -66,6 +59,19 @@
       "link_id": "D1_temp_wind",
       "statistic": "joint_tail_lift",
       "value": 2.364669421487603
+    },
+    {
+      "detail": {
+        "ci_high": 5.600690012075211,
+        "ci_low": 4.679197013600647,
+        "n_days": 3382.0,
+        "pearson_all_year": -0.7132113493335991,
+        "sign_cold_tail": 1.0,
+        "u": 0.1
+      },
+      "link_id": "D4_demand_temp",
+      "statistic": "joint_tail_lift",
+      "value": 5.163225172074729
     },
     {
       "detail": {
