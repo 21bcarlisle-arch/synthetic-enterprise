@@ -158,3 +158,38 @@ def test_seasonal_value_constant_series():
     coeffs = fit_seasonal_harmonics(vals, doy)
     result = seasonal_value(coeffs, np.array([1.0, 91.0, 182.0, 275.0, 365.0]))
     assert np.allclose(result, 10.0, atol=1e-8)
+
+
+def test_season_conditioned_cov_reproduces_winter_joint_tail():
+    """W1_3 gap-1 (R15, both directions): the SEASON-CONDITIONED innovation
+    covariance makes the engine reproduce the REAL winter cold-and-still joint
+    tail (D1 decile lift, real 2.365, block-bootstrap CI [1.54, 3.38]). The
+    fitted engine's simulated lift lands in the band; MUTATING the cold-season
+    covariance back to the warm-season one (removing the seasonal coupling)
+    collapses it well below -- proving the seasonal covariance is load-bearing,
+    not decorative (this is the mechanism that closed the gap the joint-regime
+    trigger and the symmetric-t innovations both failed to close)."""
+    import copy
+    from sim.weather_engine import fit_national_macro_model, simulate_national_macro
+    from sim.weather_tail_demonstration import load_national_daily
+    from background.cascade_correlation_estimation import condition, joint_tail_lift
+
+    national, doy, dates = load_national_daily()
+    winter = np.array([d.month in (12, 1, 2) for d in dates])
+
+    def sim_lift(mp, n=12):
+        vals = []
+        for s in range(n):
+            sim = simulate_national_macro(mp, doy, np.random.default_rng(s))
+            vals.append(joint_tail_lift(
+                condition(sim["temperature_mean_c"], winter),
+                condition(sim["wind_speed_mean_ms"], winter),
+                u=0.10, upper=False).lift)
+        return float(np.mean(vals))
+
+    mp = fit_national_macro_model(national, doy)
+    assert 1.9 < sim_lift(mp) < 3.4            # FIRES: reproduces the real winter joint tail
+
+    muted = copy.deepcopy(mp)
+    muted["cov"]["stressed"] = muted["cov"]["standard"]  # remove the seasonal coupling
+    assert sim_lift(muted) < 1.9               # MUTATION: collapses back to under-production

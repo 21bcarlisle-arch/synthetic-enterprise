@@ -1,8 +1,13 @@
 # W1_3 gap-1 — the joint-regime-trigger hypothesis, MEASURED and REFUTED (2026-07-20)
 
-**Status:** FRAME (a measured negative result + a theory-grounded redirect). No engine code shipped —
-the change I built was reverted because it did not improve fidelity (R12: never ship toward the
-intent when the evidence refutes it). Level held.
+**Status:** RESOLVED + SHIPPED (2026-07-20). Three hypotheses measured: the joint-regime-trigger and
+symmetric-t-innovations both REFUTED (below); the **season-conditioned covariance VALIDATED and now
+SHIPPED** in `sim/weather_engine.py` (simulated winter D1 lift 2.875, within the real CI [1.54, 3.38],
+vs ~1.77 before; marginals preserved; zero downstream blast radius across 800+ tests; a new R15
+fidelity+mutation test locks it in). Gap-1 closed. This doc is retained as the record of the two
+refuted hypotheses (R12 discipline: never ship toward the intent when the evidence refutes it) and the
+measurement that found the real mechanism. Level held (L3 proposed; the L3 remainder — an independent
+published validator anchor + the coupled-triad gap + the Expert-Hour — is director/network-gated).
 
 ## The hypothesis (the director's W1_3 steer)
 

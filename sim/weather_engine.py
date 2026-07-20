@@ -91,6 +91,20 @@ def seasonal_value(coeffs: np.ndarray, day_of_year: np.ndarray) -> np.ndarray:
     return design @ coeffs
 
 
+# W1_3 gap-1: the innovation covariance is SEASON-conditioned. Cold season =
+# meteorological winter (Dec-Feb), where the real temp/wind innovation correlation
+# is +0.53 vs +0.18 outside it. `day_of_year` boundaries: Dec 1 ~ 335, Feb 28 ~ 59.
+_COLD_SEASON_DOY_START = 335  # ~Dec 1
+_COLD_SEASON_DOY_END = 59     # ~Feb 28
+
+
+def _is_cold_season(day_of_year: np.ndarray) -> np.ndarray:
+    """Boolean mask: True on cold-season (Dec-Feb) days, by day-of-year. The
+    season the elevated temp/wind (cold-and-still) coupling lives in (W1_3 gap-1)."""
+    doy = np.asarray(day_of_year)
+    return (doy >= _COLD_SEASON_DOY_START) | (doy <= _COLD_SEASON_DOY_END)
+
+
 # ---------------------------------------------------------------------------
 # Pass 1 — national macro: regime-switching mean-reverting (AR1) model
 # ---------------------------------------------------------------------------
@@ -111,32 +125,40 @@ def fit_national_macro_model(national_daily: dict[str, np.ndarray], day_of_year:
         residuals[var] = resid
         phi[var] = float(np.corrcoef(resid[:-1], resid[1:])[0, 1])
 
-    # Regime classification: a day is "stressed" if its wind residual
-    # magnitude exceeds the 90th percentile of the historical distribution.
-    wind_resid = residuals["wind_speed_mean_ms"]
-    threshold = float(np.percentile(np.abs(wind_resid), 90))
-    regime = (np.abs(wind_resid) > threshold).astype(int)  # 1 = stressed
-
-    transition = np.zeros((2, 2))
-    for t in range(len(regime) - 1):
-        transition[regime[t], regime[t + 1]] += 1
-    transition = transition / transition.sum(axis=1, keepdims=True)
-
     # AR1 innovations: innovation_t = resid_t - phi*resid_{t-1}
     innovations = np.column_stack([
         residuals[var][1:] - phi[var] * residuals[var][:-1] for var in MACRO_VARS
     ])
-    regime_for_innovation = regime[1:]
 
-    cov_standard = np.cov(innovations[regime_for_innovation == 0].T)
-    cov_stressed = np.cov(innovations[regime_for_innovation == 1].T)
+    # W1_3 gap-1 fix: the temp/wind innovation correlation is SEASON-DEPENDENT
+    # (measured on the real record: +0.53 in winter vs +0.18 outside it), so a
+    # SINGLE innovation covariance under-produces the winter cold-and-still joint
+    # tail. Fit the covariance CONDITIONALLY on season -- a cold-season ("stressed")
+    # covariance carrying the elevated winter coupling, a warm-season ("standard")
+    # covariance otherwise -- and (in simulate_national_macro) select it by the
+    # day's ACTUAL season. R13 BASELINE FIDELITY change, decided blind to company
+    # P&L: validated to reproduce the real winter joint-tail lift (simulated D1
+    # decile lift ~2.88 vs real 2.37, within the real block-bootstrap CI
+    # [1.54, 3.38]); the prior wind-magnitude single-corner covariance gave ~1.77.
+    # Three hypotheses were measured (trigger + symmetric-t both REFUTED, this one
+    # validated) -- docs/design/frame/W1_3_gap1_regime_trigger_REFUTED_FRAME.md.
+    cold = _is_cold_season(np.asarray(day_of_year))[1:]  # aligned to innovations (days[1:])
+    cov_standard = np.cov(innovations[~cold].T)   # warm season
+    cov_stressed = np.cov(innovations[cold].T)    # cold season -- elevated temp/wind coupling
+
+    # regime_transition retained (from the season sequence) for inspection/back-compat;
+    # simulate now switches covariance by CALENDAR season, not this Markov matrix.
+    season = _is_cold_season(np.asarray(day_of_year)).astype(int)
+    transition = np.zeros((2, 2))
+    for t in range(len(season) - 1):
+        transition[season[t], season[t + 1]] += 1
+    transition = transition / transition.sum(axis=1, keepdims=True)
 
     return {
         "seasonal": seasonal,
         "phi": phi,
-        "regime_threshold": threshold,
         "regime_transition": transition,
-        "regime_frequency": float(regime.mean()),
+        "regime_frequency": float(season.mean()),
         "cov": {"standard": cov_standard, "stressed": cov_stressed},
     }
 
@@ -148,16 +170,17 @@ def simulate_national_macro(params: dict, day_of_year: np.ndarray, rng: np.rando
         "standard": np.linalg.cholesky(params["cov"]["standard"]),
         "stressed": np.linalg.cholesky(params["cov"]["stressed"]),
     }
-    transition = params["regime_transition"]
+    # W1_3 gap-1: select the innovation covariance by the day's ACTUAL season
+    # (calendar-determined), so the elevated cold-and-still coupling lands in real
+    # winter -- not a Markov-random block that could fall in simulated summer.
+    cold = _is_cold_season(np.asarray(day_of_year))
 
     resid = {var: np.zeros(n) for var in MACRO_VARS}
-    regime = 0
     for t in range(1, n):
-        label = "stressed" if regime == 1 else "standard"
+        label = "stressed" if cold[t] else "standard"
         innovation = chol[label] @ rng.standard_normal(len(MACRO_VARS))
         for i, var in enumerate(MACRO_VARS):
             resid[var][t] = params["phi"][var] * resid[var][t - 1] + innovation[i]
-        regime = 1 if rng.random() < transition[regime, 1] else 0
 
     result = {}
     for var in MACRO_VARS:
