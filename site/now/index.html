@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- The Business Right Now</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<style>
+/* Operational window (the director's default landing). Self-contained utilitarian
+   dashboard palette (the director-approved mockup, /tmp/operational_window_approved_mockup.html)
+   -- themes both ways via CSS tokens: prefers-color-scheme is the default signal,
+   :root[data-theme] wins when the viewer toggles. No brand.css dependency so the page
+   is a single self-contained surface, matching the mockup exactly. Nav + mobile pass
+   mirror the existing doors (site/world, site/company). Every figure is read live from
+   site/data/*.json in the inline script below -- no number is authored in markup. */
+:root{
+  --bg:#f5f7f9; --panel:#ffffff; --ink:#182231; --muted:#5b6b7f; --faint:#8a99ab;
+  --line:#dbe2ea; --line-strong:#c3ccd8;
+  --accent:#1f5fd6; --accent-soft:#e8f0fd;
+  --good:#1f8f57; --good-soft:#e4f3ea; --warn:#b3801b; --warn-soft:#f6eed9; --crit:#c9443c; --crit-soft:#f7e5e3;
+  --world:#2b7a9b; --supplier:#5a53c9; --customer:#b3801b; --carbon:#1f8f57;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0e141b; --panel:#161e28; --ink:#e7edf4; --muted:#9fb0c2; --faint:#6c7d90;
+    --line:#243040; --line-strong:#31405233;
+    --accent:#6ea2ff; --accent-soft:#18263f;
+    --good:#54c98a; --good-soft:#15271d; --warn:#e0b256; --warn-soft:#2a2312; --crit:#e87a72; --crit-soft:#2c1817;
+    --world:#5fb6d6; --supplier:#9a92f0; --customer:#e0b256; --carbon:#54c98a;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f5f7f9; --panel:#ffffff; --ink:#182231; --muted:#5b6b7f; --faint:#8a99ab;
+  --line:#dbe2ea; --line-strong:#c3ccd8; --accent:#1f5fd6; --accent-soft:#e8f0fd;
+  --good:#1f8f57; --good-soft:#e4f3ea; --warn:#b3801b; --warn-soft:#f6eed9; --crit:#c9443c; --crit-soft:#f7e5e3;
+  --world:#2b7a9b; --supplier:#5a53c9; --customer:#b3801b; --carbon:#1f8f57;
+}
+:root[data-theme="dark"]{
+  --bg:#0e141b; --panel:#161e28; --ink:#e7edf4; --muted:#9fb0c2; --faint:#6c7d90;
+  --line:#243040; --line-strong:#31405233; --accent:#6ea2ff; --accent-soft:#18263f;
+  --good:#54c98a; --good-soft:#15271d; --warn:#e0b256; --warn-soft:#2a2312; --crit:#e87a72; --crit-soft:#2c1817;
+  --world:#5fb6d6; --supplier:#9a92f0; --customer:#e0b256; --carbon:#54c98a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+.tnum{font-variant-numeric:tabular-nums}
+/* nav -- mirrors the existing doors' chrome (site/world, site/company) in this palette */
+.site-nav{background:var(--panel);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 20px;height:48px;gap:8px;flex-wrap: wrap}
+.nav-logo{font-weight:700;color:var(--accent);text-decoration:none;margin-right:16px;font-size:15px}
+.nav-link{color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;font-size:13px}
+.nav-link:hover,.nav-link.active{color:var(--ink);background:var(--accent-soft)}
+.wrap{max-width:940px;margin:0 auto;padding:32px 20px 72px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600}
+h1{font-size:26px;line-height:1.2;margin:6px 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:15px;max-width:64ch}
+.stamp{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:10px}
+/* causal stack */
+.flow{display:flex;flex-direction:column;gap:0;margin-top:24px}
+.link{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:12px;padding:7px 0 7px 22px;font-style:italic}
+.link::before{content:"";width:2px;height:20px;background:var(--line-strong);margin-left:8px}
+.panel{border:1px solid var(--line);border-left:4px solid var(--edge,var(--accent));border-radius:12px;
+  background:var(--panel);padding:18px 20px;box-shadow:0 1px 2px rgba(20,30,45,.04)}
+.panel.world{--edge:var(--world)} .panel.supplier{--edge:var(--supplier)}
+.panel.customer{--edge:var(--customer)} .panel.carbon{--edge:var(--carbon)}
+.p-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.p-title{font-size:17px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--edge)}
+.clock{font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+.q{color:var(--faint);font-size:12.5px;margin:2px 0 14px}
+.metrics{display:flex;flex-wrap:wrap;gap:10px 26px;margin:2px 0 12px}
+.metric{min-width:96px}
+.metric .ml{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.metric .mv{font-size:20px;font-weight:650;letter-spacing:-.01em}
+.metric .mm{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.mv.up{color:var(--good)} .mv.down{color:var(--crit)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:650;letter-spacing:.03em;
+  padding:3px 9px;border-radius:20px;border:1px solid transparent;white-space:nowrap}
+.pill.good{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.pill.crit{background:var(--crit-soft);color:var(--crit);border-color:var(--crit)}
+.pill.info{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 12px}
+.chip{font-size:11.5px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.chip b{color:var(--ink);font-weight:600}
+.decision{font-size:12.5px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:9px 12px;margin:2px 0 12px}
+.decision b{color:var(--ink);font-weight:600}
+.decision .dm{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:4px}
+.sowhat{font-size:13.5px;border-top:1px dashed var(--line);padding-top:11px;margin-top:4px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sowhat b{font-weight:600}
+.drill{font-size:12.5px;color:var(--accent);font-weight:600;white-space:nowrap;text-decoration:none}
+.drill:hover{text-decoration:underline}
+.selector{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:12px;flex-wrap:wrap}
+.seg{border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-size:11.5px;background:var(--bg)}
+.seg.on{border-color:var(--customer);color:var(--customer);font-weight:650;background:var(--warn-soft)}
+.seg.soon{color:var(--faint);border-style:dashed}
+.lag{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--line);
+  border-radius:6px;padding:4px 9px;display:inline-block;margin-bottom:12px}
+.lag b{color:var(--warn)}
+.honest{background:var(--warn-soft);border:1px dashed var(--warn);border-radius:9px;padding:12px 14px;font-size:13px;color:var(--ink)}
+.honest b{color:var(--warn)}
+.foot{margin-top:30px;border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:12px;font-family:var(--mono)}
+@media (max-width:640px){
+  .site-nav{padding:6px 12px;height:auto;min-height:48px}
+  .wrap{padding:24px 16px 56px}
+  h1{font-size:22px}
+  .metrics{gap:10px 18px}
+  .p-head{gap:8px}
+}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">poesys.</a>
+  <a href="./" class="nav-link active">Now</a>
+  <a href="../" class="nav-link">Home</a>
+  <a href="../company/" class="nav-link">Company</a>
+  <a href="../world/" class="nav-link">World</a>
+  <a href="../customers/" class="nav-link">Customers</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../method/" class="nav-link">Method</a>
+</nav>
+<div class="wrap">
+  <div class="eyebrow">poesys &middot; operational window</div>
+  <h1>The Business Right Now</h1>
+  <p class="sub">One connected window, top to bottom, in causal order: the world sets the price, the
+  supplier acts on it, it lands on a real household, and it drives their carbon. Every number below is read
+  live from the last run's data &mdash; each panel carries its own as-of clock, because they do not share one.</p>
+  <div class="stamp" id="stamp">Loading&hellip;</div>
+
+  <div class="flow">
+    <!-- 1 WORLD -->
+    <div class="panel world">
+      <div class="p-head">
+        <div class="p-title"><span class="dot"></span>1 &middot; What the world is doing</div>
+        <span id="p1-pill" class="pill info">&hellip;</span>
+      </div>
+      <div class="q">weather &middot; market &middot; the regime it's in, and the settlement lag it runs ahead of</div>
+      <span class="lag" id="p1-lag"></span>
+      <div class="metrics" id="p1-metrics"><div class="muted">Loading&hellip;</div></div>
+      <div class="sowhat"><span id="p1-sowhat"></span><a class="drill" href="../world/">The World &rarr;</a></div>
+    </div>
+
+    <div class="link">the world sets the price the supplier must buy at</div>
+
+    <!-- 2 SUPPLIER -->
+    <div class="panel supplier">
+      <div class="p-head">
+        <div class="p-title"><span class="dot"></span>2 &middot; What the supplier is doing</div>
+        <span id="p2-pill" class="pill good">&hellip;</span>
+      </div>
+      <div class="q">hedging &middot; net position &middot; collections &mdash; and the last decision, with the why</div>
+      <div class="metrics" id="p2-metrics"><div class="muted">Loading&hellip;</div></div>
+      <div class="decision" id="p2-decision"></div>
+      <div class="sowhat"><span id="p2-sowhat"></span><a class="drill" href="../company/">The Company &rarr;</a></div>
+    </div>
+
+    <div class="link">the supplier's hedge, price &amp; bill land on each household</div>
+
+    <!-- 3 CUSTOMER -->
+    <div class="panel customer">
+      <div class="p-head">
+        <div class="p-title"><span class="dot"></span>3 &middot; What it's like for one customer</div>
+        <span id="p3-pill" class="pill good">&hellip;</span>
+      </div>
+      <div class="q">a real household &mdash; billed, banked, balance, products, payments, arrears</div>
+      <div class="selector" id="p3-selector"></div>
+      <div class="metrics" id="p3-metrics"><div class="muted">Loading&hellip;</div></div>
+      <div class="chips" id="p3-chips"></div>
+      <div class="sowhat"><span id="p3-sowhat"></span><a class="drill" href="../customers/">Customer portal &rarr;</a></div>
+    </div>
+
+    <div class="link">their energy use, on the grid, is their carbon</div>
+
+    <!-- 4 CARBON -->
+    <div class="panel carbon">
+      <div class="p-head">
+        <div class="p-title"><span class="dot"></span>4 &middot; Their CO&#8322;</div>
+        <span class="pill warn">DESIGNED &middot; INSTRUMENTING</span>
+      </div>
+      <div class="q">the per-customer carbon trajectory &mdash; the mission's unit of account</div>
+      <div id="p4-body"><div class="muted">Loading&hellip;</div></div>
+    </div>
+  </div>
+
+  <div class="foot" id="build-note">Loading&hellip;</div>
+</div>
+<script>
+function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
+// Money at magnitude scale (£1.52m / £5,067.57). `full` forces 2dp pounds.
+function gbpFull(v){return v==null?"--":(v<0?"-":"")+"£"+Number(Math.abs(v)).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function gbpScale(v){
+  if(v==null)return "--";
+  var n=Math.abs(Number(v));
+  var s=n>=1e6?(n/1e6).toFixed(2)+"m":n>=1e3?(n/1e3).toFixed(1)+"k":n.toFixed(0);
+  return (v<0?"-":"")+"£"+s;
+}
+function metric(label,value,mm,cls){
+  return '<div class="metric"><div class="ml">'+esc(label)+'</div>'+
+    '<div class="mv tnum'+(cls?" "+cls:"")+'">'+value+'</div>'+
+    (mm?'<div class="mm">'+esc(mm)+'</div>':'')+'</div>';
+}
+function setPill(id,text,klass){
+  var e=document.getElementById(id); if(!e)return;
+  e.className="pill "+klass; e.textContent=text;
+}
+// "YYYY-MM" (or longer) -> {y,m}; null if unparseable.
+function ym(s){var m=String(s||"").match(/^(\d{4})-(\d{2})/);return m?{y:Number(m[1]),m:Number(m[2])}:null;}
+function monthsBetween(a,b){return (a&&b)?((a.y-b.y)*12+(a.m-b.m)):null;}
+
+// ---- PANEL 1: WORLD (reuses site/world's wstate regime + intra-day logic) ----
+// weather.json monthly HDD -> a data-computed regime (calendar-month z-score);
+// market.json intra-day electricity -> latest price / last move / session range;
+// the settlement lag between the weather clock and the market settlement_frontier,
+// COMPUTED (not a baked "6-month" string). No fabricated "current" number.
+function renderPanelWorld(weather, market){
+  var months=(weather&&weather.monthly)||[];
+  var latest=months.length?months[months.length-1]:null;
+  var mk=(market&&market.available&&market.electricity)?market.electricity:null;
+
+  var weatherAsOf=latest?latest.month:null;                       // e.g. "2025-12"
+  var settleAsOf=(market&&market.settlement_frontier)?String(market.settlement_frontier).slice(0,7):null; // "2025-06"
+  var lagN=monthsBetween(ym(weatherAsOf),ym(settleAsOf));
+
+  // Regime, derived from the realised HDD series (honest, data-computed).
+  var pillTxt="NO REGIME DATA", pillCls="warn", sowhat="World state unavailable.";
+  if(latest){
+    var cal=latest.month.slice(5,7);
+    var sameMonth=months.filter(function(m){return m.month.slice(5,7)===cal;}).map(function(m){return m.hdd;});
+    var mean=sameMonth.reduce(function(a,b){return a+b;},0)/(sameMonth.length||1);
+    var variance=sameMonth.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/(sameMonth.length||1);
+    var sd=Math.sqrt(variance);
+    var z=sd>0?(latest.hdd-mean)/sd:0;
+    if(z>1){pillTxt="COLDER THAN USUAL";pillCls="crit";}
+    else if(z<-1){pillTxt="MILDER THAN USUAL";pillCls="info";}
+    else{pillTxt="SEASONALLY NORMAL";pillCls="good";}
+    var stress=(z>1)?"a cold-and-still stress window is the risk":"no cold-and-still demand stress";
+    sowhat='<b>So what:</b> heating demand is '+(z<-1?"soft":(z>1?"elevated":"seasonal"))+
+      ' (HDD '+Math.round(latest.hdd)+', z='+z.toFixed(1)+' vs the '+sameMonth.length+'-yr mean for this month) &mdash; '+stress+'.';
+
+    var kpis=[];
+    if(mk){
+      var mkAsOf=String(mk.as_of_period||"").replace("T"," ").replace(":00Z"," UTC").replace("Z"," UTC");
+      kpis.push(metric("Wholesale (latest)",(mk.latest_price!=null?"£"+mk.latest_price:"--"),"/MWh · observed · as of "+mkAsOf));
+      if(mk.last_change_gbp!=null){
+        var up=mk.last_change_gbp>0, dn=mk.last_change_gbp<0;
+        var sign=up?"+":(dn?"−":"");
+        var rng=(mk.session_low!=null&&mk.session_high!=null)?(" · session £"+mk.session_low+"–£"+mk.session_high):"";
+        kpis.push(metric("Last move",sign+"£"+Math.abs(mk.last_change_gbp),
+          (mk.last_change_pct!=null?(sign+Math.abs(mk.last_change_pct)+"%"):"")+rng,(dn?"down":(up?"up":""))));
+      }
+    }
+    kpis.unshift(metric("Temp / heating demand",(latest.mean_temp_c!=null?latest.mean_temp_c+"°C":"--"),
+      Math.round(latest.hdd)+" HDD · z "+z.toFixed(1)+" · "+esc(latest.month)));
+    document.getElementById("p1-metrics").innerHTML=kpis.join("")||'<div class="muted">World state unavailable.</div>';
+  }
+  setPill("p1-pill",pillTxt,pillCls);
+
+  // Settlement lag: two dated clocks + the COMPUTED whole-month distance (R14/R11).
+  var lagEl=document.getElementById("p1-lag");
+  if(weatherAsOf&&settleAsOf&&lagN!=null){
+    lagEl.innerHTML="world clock <b>"+esc(weatherAsOf)+"</b> · books clock <b>"+esc(settleAsOf)+
+      "</b> · <b>"+lagN+"-month</b> settlement lag (real, not a bug)";
+  } else { lagEl.innerHTML=""; }
+  document.getElementById("p1-sowhat").innerHTML=sowhat;
+}
+
+// ---- PANEL 2: SUPPLIER (reuses site/company's state + decisions logic) ----
+// company.json finance (net position, settled clock -- R14) + trading_risk (hedge
+// ratio) + collection rate; decisions.json for the last decision + its why. No
+// figure is invented that is not in the JSON.
+function renderPanelSupplier(company, decisions){
+  var f=(company&&company.finance)||{}, t=(company&&company.trading_risk)||{};
+  var hf=t.latest_avg_hf;
+  var kpis=[
+    metric("Forward book hedged",(hf!=null?(hf*100).toFixed(1)+"%":"--"),
+      "avg HF "+esc(t.latest_hedge_year||"")+" · band 80–90%"),
+    metric("Net position",gbpScale(f.settled_net_margin_gbp),"settled clock",
+      (Number(f.settled_net_margin_gbp)<0?"down":"up")),
+    metric("Collections",(f.collection_rate_pct!=null?Number(f.collection_rate_pct).toFixed(1)+"%":"--"),
+      "billed → banked")
+  ];
+  document.getElementById("p2-metrics").innerHTML=kpis.join("");
+
+  // Hedge-band status pill (computed, honest): inside 0.80-0.90 -> ON PLAN.
+  if(hf==null){ setPill("p2-pill","NO POSITION","warn"); }
+  else if(hf>=0.80&&hf<=0.90){ setPill("p2-pill","ON PLAN","good"); }
+  else { setPill("p2-pill","OFF BAND","warn"); }
+
+  // Last decision, with the why (decisions.json, newest first).
+  var decs=(decisions&&decisions.decisions)||[];
+  var d0=decs.length?decs[0]:null;
+  var de=document.getElementById("p2-decision");
+  if(d0){
+    var rev=(String(d0.reversible)==="True"||d0.reversible===true)?"reversible":"one-way door";
+    de.innerHTML='<b>Last decision.</b> '+esc(d0.what||"")+
+      (d0.why?'<div style="margin-top:4px">'+esc(d0.why)+'</div>':'')+
+      '<div class="dm">'+esc(String(d0.timestamp||"").slice(0,16).replace("T"," "))+' · '+rev+
+      (d0.confidence?' · '+esc(d0.confidence):'')+'</div>';
+  } else {
+    de.innerHTML='<span class="muted">No recent decision recorded in decisions.json.</span>';
+  }
+
+  var band=(hf!=null&&hf>=0.80&&hf<=0.90);
+  document.getElementById("p2-sowhat").innerHTML='<b>So what:</b> '+
+    (band?"positioned inside the hedge band":"hedge is outside the 80–90% band — check the risk desk")+
+    "; net "+gbpScale(f.settled_net_margin_gbp)+" on the settled clock, collections "+
+    (f.collection_rate_pct!=null?Number(f.collection_rate_pct).toFixed(1)+"%":"--")+".";
+}
+
+// ---- PANEL 3: CUSTOMER (reuses site/customers' household-block logic) ----
+// company.json `household` -- billed/banked/balance on their clocks (R14), products,
+// payments (failed -> recovered), arrears. The selector offers the REAL household(s)
+// only; segment presets are shown as HONESTLY not-yet (they arrive with segmentation),
+// never as fabricated fake households.
+function renderPanelCustomer(company){
+  var h=(company&&company.household)||{};
+  if(!h.available){
+    document.getElementById("p3-metrics").innerHTML='<div class="muted">No household snapshot in company.json.</div>';
+    setPill("p3-pill","NO ACCOUNT","warn");
+    document.getElementById("p3-sowhat").textContent="";
+    return;
+  }
+  // Selector: the one real account, plus honest not-yet presets.
+  document.getElementById("p3-selector").innerHTML=
+    'viewing: <span class="seg on">'+esc(h.id)+' · '+
+      esc(((h.dual_fuel===true||String(h.dual_fuel)==="true")?"dual-fuel":"single-fuel"))+' '+
+      esc((h.payment_channel||"").replace(/_/g," "))+'</span>'+
+    '<span class="seg soon" title="arrives with the segmentation work">fuel-poor off-gas (soon)</span>'+
+    '<span class="seg soon" title="arrives with the segmentation work">all-electric flat (soon)</span>'+
+    '<span class="muted" style="font-size:11px">&mdash; only the real account exists today; presets arrive with segmentation</span>';
+
+  var bal=Number(h.balance_gbp);
+  var kpis=[
+    metric("Billed",gbpFull(h.billed_gbp),"billed clock · "+num(h.invoice_count)+" invoices"),
+    metric("Banked",gbpFull(h.banked_gbp),"banked clock · cash collected"),
+    metric("Balance",gbpFull(h.balance_gbp),(bal<0?"in credit":(bal>0?"outstanding":"square"))+" · billed − banked",
+      (bal<0?"up":(bal>0?"down":"")))
+  ];
+  document.getElementById("p3-metrics").innerHTML=kpis.join("");
+
+  // Payments failed -> recovered, from the arrears cases.
+  var cases=h.arrears_cases||[];
+  var recoveredCases=cases.filter(function(c){return (c.stages||[]).some(function(s){return s.stage==="RECOVERED"||s.amount_gbp!=null;});}).length;
+  var chips=[];
+  chips.push('<span class="chip">'+((h.dual_fuel===true||String(h.dual_fuel)==="true")?"Dual fuel":"Single fuel")+'</span>');
+  chips.push('<span class="chip">'+(h.smart_meter?"Smart meter":"Traditional meter")+'</span>');
+  chips.push('<span class="chip">'+esc((h.payment_channel||"").replace(/_/g," "))+'</span>');
+  if(h.failed_payment_count!=null){
+    chips.push('<span class="chip">Payments: <b>'+num(h.failed_payment_count)+' failed'+
+      (recoveredCases>0?' → recovered':'')+'</b></span>');
+  }
+  chips.push('<span class="chip">Arrears: <b>'+(cases.length?num(cases.length)+' case'+(cases.length>1?"s":"")+" on record":"none")+'</b></span>');
+  document.getElementById("p3-chips").innerHTML=chips.join("");
+
+  if(bal<0){ setPill("p3-pill","IN CREDIT","good"); }
+  else if(bal>0){ setPill("p3-pill","OUTSTANDING","warn"); }
+  else { setPill("p3-pill","SQUARE","info"); }
+
+  document.getElementById("p3-sowhat").innerHTML='<b>So what:</b> a '+
+    (bal<0?"healthy, in-credit":(bal>0?"balance-outstanding":"squared-up"))+' '+
+    esc((h.payment_channel||"").replace(/_/g," "))+' household'+
+    (bal<0?" — no intervention needed":"")+'.';
+}
+
+// ---- PANEL 4: CARBON (reuses site/customers' honest treatment) ----
+// The E5 carbon ledger is DESIGNED, NOT INSTRUMENTED. NEVER a fabricated tCO2e
+// number -- name exactly what will fill it (NESO grid intensity x half-hourly reads).
+function renderPanelCarbon(company){
+  var h=(company&&company.household)||{};
+  document.getElementById("p4-body").innerHTML=
+    '<div class="honest"><b>Not yet a number, and we will not fake one.</b> The carbon ledger (atom E5) is '+
+    'designed but not instrumented: no emissions factor is applied to '+esc(h.id||"this account")+'’s metered '+
+    'consumption yet, so there is no honest tCO₂e to show. What will fill this panel: E5 multiplies '+
+    '<b>NESO time-indexed grid carbon intensity</b> (gCO₂e/kWh) by each <b>half-hourly meter read</b>, producing a '+
+    'settled per-customer tCO₂e/year alongside the £ figures above — then a trajectory as electrification and '+
+    'efficiency measures land. Until it is instrumented, this panel says so, plainly.</div>'+
+    '<div class="sowhat" style="margin-top:12px"><span><b>So what:</b> an honest placeholder now; the real '+
+    'trajectory is one instrumented ledger away.</span>'+
+    '<a class="drill" href="../proof/">Where E5 sits &rarr;</a></div>';
+}
+
+function renderBuild(company){
+  var parts=[];
+  if(company&&company.git_commit)parts.push("git "+String(company.git_commit).slice(0,8));
+  if(company&&company.dashboard_generated_at)parts.push("data "+company.dashboard_generated_at);
+  if(company&&company.generated_at)parts.push("generated "+company.generated_at);
+  document.getElementById("build-note").textContent=
+    (parts.length?("This operator view is a rendering of repo data only — "+parts.join(" · ")):"Build stats unavailable.");
+}
+
+function renderStamp(company, weather, market){
+  var latest=(weather&&weather.monthly&&weather.monthly.length)?weather.monthly[weather.monthly.length-1]:null;
+  var settleAsOf=(market&&market.settlement_frontier)?String(market.settlement_frontier).slice(0,7):null;
+  var parts=[];
+  if(latest)parts.push("weather "+latest.month);
+  if(settleAsOf)parts.push("settled books "+settleAsOf);
+  if(company&&company.dashboard_generated_at)parts.push("run "+String(company.dashboard_generated_at).slice(0,10));
+  document.getElementById("stamp").textContent=parts.length?("as of "+parts.join(" · ")+" — each panel also carries its own clock"):"";
+}
+
+Promise.all([
+  fetch("../data/company.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+  fetch("../data/weather.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+  fetch("../data/market.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+  fetch("../data/decisions.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+]).then(function(res){
+  var company=res[0], weather=res[1], market=res[2], decisions=res[3];
+  renderStamp(company, weather, market);
+  renderPanelWorld(weather, market);
+  renderPanelSupplier(company, decisions);
+  renderPanelCustomer(company);
+  renderPanelCarbon(company);
+  renderBuild(company);
+}).catch(function(e){
+  console.error("now-panel load error:",e);
+  document.getElementById("stamp").textContent="Could not load the operational data.";
+});
+</script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--line);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+</body>
+</html>

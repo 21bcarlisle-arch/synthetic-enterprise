@@ -41,6 +41,7 @@ DOORS = [
     ("director", "director"),
     ("glossary", "glossary"),
     ("tours", "tours"),
+    ("now", "now"),
 ]
 
 # Matches a relative reference to a JSON evidence file under data/ or state/, as

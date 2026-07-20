@@ -25,7 +25,7 @@ SITE = Path(__file__).resolve().parent
 DOORS = [
     # (method-casebook retired 2026-07-20 -- redundant combined Method+Simplified surface)
     "proof", "company", "world", "method", "director",
-    "glossary", "tours", "simplified",
+    "glossary", "tours", "simplified", "now",
 ]
 
 
