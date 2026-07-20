@@ -39,6 +39,13 @@ def _load(tmp_path, monkeypatch, *, enabled=True, find_work=None,
     monkeypatch.setattr(mod, "LOG_FILE", tmp_path / "pull-loop-log.md")
     monkeypatch.setattr(mod, "STATE_FILE", tmp_path / ".pull_loop_state.json")
     monkeypatch.setattr(mod, "HEALTH_FILE", tmp_path / ".pull_loop_health.json")
+    # Persistent-mode isolation (2026-07-20 SBI cutover created the real
+    # docs/observability/.scheduled_invocations_enabled). Unpinned, decide() reads the real flag,
+    # takes the scheduled-mode allow-stop branch (return None), and every `decision == block`
+    # heartbeat assertion below fails -- reddening the safety-control set and wedging the publish
+    # gate. Same isolation class fcca28971 fixed for the other three loaders; this file's own
+    # _load was missed. Pinned to a tmp path (absent) so the persistent-seat heartbeat runs.
+    monkeypatch.setattr(mod, "SCHEDULED_FLAG", tmp_path / ".scheduled_invocations_enabled")
     monkeypatch.setattr(mod, "WORKER_SESSION_ID", WORKER_ID)
     monkeypatch.setattr(mod, "HEARTBEAT_POLL_SECONDS", poll)
     monkeypatch.setattr(mod, "HEARTBEAT_HOLD_SECONDS", hold)
