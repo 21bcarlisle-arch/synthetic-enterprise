@@ -196,15 +196,20 @@ def test_panel2_hedge_band_pill_is_computed():
     assert out["p2-pill"]["textContent"] == "ON PLAN", out["p2-pill"]
 
 
-def test_panel2_renders_last_decision_with_why():
+def test_panel2_decision_is_honest_placeholder_not_a_governance_leak():
+    """The supplier-OPERATIONAL decision feed (why it hedged / priced / collected) is not yet a
+    separate stream; decisions.json holds mixed build/governance decisions. An operator view must NOT
+    render a governance decision AS "the supplier's last move" -- that is misleading (the reason the
+    prior window was rejected). The panel shows an honest placeholder pointing to the Company door.
+    R15 no-leak: even with a real governance decision in the live log, its text does NOT appear here."""
     c = _live_company()
     dec = _live_decisions()
     d0 = dec["decisions"][0]
     out = _render_live(c)
-    body = out["p2-decision"]["innerHTML"]
-    # The last decision's action AND its why are on the surface.
-    assert d0["what"][:40] in body, body
-    assert d0["why"][:40] in body, body
+    body = out["p2-decision"]["innerHTML"].lower()
+    assert "not yet a separate" in body, body            # the gap is stated honestly
+    assert "the company" in body, body                   # points to the full internal log
+    assert d0["what"][:40].lower() not in body, body     # the governance decision does NOT leak in
 
 
 # =========================== PANEL 3: CUSTOMER ===========================

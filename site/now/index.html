@@ -154,7 +154,7 @@ h1{font-size:26px;line-height:1.2;margin:6px 0 4px;letter-spacing:-.01em}
         <div class="p-title"><span class="dot"></span>2 &middot; What the supplier is doing</div>
         <span id="p2-pill" class="pill good">&hellip;</span>
       </div>
-      <div class="q">hedging &middot; net position &middot; collections &mdash; and the last decision, with the why</div>
+      <div class="q">hedging &middot; net margin &middot; collections &mdash; what the supplier is doing right now</div>
       <div class="metrics" id="p2-metrics"><div class="muted">Loading&hellip;</div></div>
       <div class="decision" id="p2-decision"></div>
       <div class="sowhat"><span id="p2-sowhat"></span><a class="drill" href="../company/">The Company &rarr;</a></div>
@@ -281,7 +281,7 @@ function renderPanelSupplier(company, decisions){
   var kpis=[
     metric("Forward book hedged",(hf!=null?(hf*100).toFixed(1)+"%":"--"),
       "avg HF "+esc(t.latest_hedge_year||"")+" · band 80–90%"),
-    metric("Net position",gbpScale(f.settled_net_margin_gbp),"settled clock",
+    metric("Net margin",gbpScale(f.settled_net_margin_gbp),"settled clock · cumulative",
       (Number(f.settled_net_margin_gbp)<0?"down":"up")),
     metric("Collections",(f.collection_rate_pct!=null?Number(f.collection_rate_pct).toFixed(1)+"%":"--"),
       "billed → banked")
@@ -293,24 +293,20 @@ function renderPanelSupplier(company, decisions){
   else if(hf>=0.80&&hf<=0.90){ setPill("p2-pill","ON PLAN","good"); }
   else { setPill("p2-pill","OFF BAND","warn"); }
 
-  // Last decision, with the why (decisions.json, newest first).
-  var decs=(decisions&&decisions.decisions)||[];
-  var d0=decs.length?decs[0]:null;
-  var de=document.getElementById("p2-decision");
-  if(d0){
-    var rev=(String(d0.reversible)==="True"||d0.reversible===true)?"reversible":"one-way door";
-    de.innerHTML='<b>Last decision.</b> '+esc(d0.what||"")+
-      (d0.why?'<div style="margin-top:4px">'+esc(d0.why)+'</div>':'')+
-      '<div class="dm">'+esc(String(d0.timestamp||"").slice(0,16).replace("T"," "))+' · '+rev+
-      (d0.confidence?' · '+esc(d0.confidence):'')+'</div>';
-  } else {
-    de.innerHTML='<span class="muted">No recent decision recorded in decisions.json.</span>';
-  }
+  // Supplier-operational decisions (WHY the supplier hedged / priced / collected) are NOT yet a
+  // separate stream. decisions.json holds mixed build/governance decisions -- rendering its newest
+  // entry here would show e.g. an atom-fidelity governance note AS "the supplier's last move", which
+  // is misleading in an operator view. Honest placeholder (same discipline as the CO2 panel) until a
+  // supplier-scoped decision feed exists; the full internal decision log lives on the Company door.
+  document.getElementById("p2-decision").innerHTML=
+    '<b>Decisions.</b> The state above is what the supplier is doing right now. The operational '+
+    'decision feed &mdash; <em>why</em> it hedged, priced and collected &mdash; is not yet a separate '+
+    'stream; the full internal decision log lives on <a href="../company/">The Company</a>.';
 
   var band=(hf!=null&&hf>=0.80&&hf<=0.90);
   document.getElementById("p2-sowhat").innerHTML='<b>So what:</b> '+
     (band?"positioned inside the hedge band":"hedge is outside the 80–90% band — check the risk desk")+
-    "; net "+gbpScale(f.settled_net_margin_gbp)+" on the settled clock, collections "+
+    "; net margin "+gbpScale(f.settled_net_margin_gbp)+" on the settled clock, collections "+
     (f.collection_rate_pct!=null?Number(f.collection_rate_pct).toFixed(1)+"%":"--")+".";
 }
 
