@@ -125,6 +125,15 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     came from.
   </p>
 
+  <!-- 0. OPERATIONAL STATE (the director's window: what the world is doing right now) -->
+  <div class="sec">World state &mdash; what the world is doing right now <span id="state-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
+  <div class="card">
+    <p class="muted" id="wstate-intro" style="margin-bottom:14px">Loading...</p>
+    <div class="kpis" id="wstate-kpis"></div>
+    <p class="muted" id="wstate-regime" style="margin-top:14px"></p>
+    <p class="basis" id="wstate-basis" style="margin-top:10px"></p>
+  </div>
+
   <!-- THE TWO-SIDED WALL -->
   <div class="sec">The Wall &mdash; SIM ground truth <span style="font-family:ui-monospace,monospace">//</span> COMPANY observation</div>
   <div class="card">
@@ -297,6 +306,84 @@ function renderLibrary(d){
   document.getElementById("lib-body").innerHTML=html||'<div class="muted">Assumption library not available.</div>';
 }
 
+// The director's operational window: what the WORLD is doing right now.
+// Reads the realised weather series (weather.json) for the current month + its
+// regime, and world.json's settled SSP series for the market. Every figure is
+// computed from on-disk data -- no fabricated "current" number.
+function kpiTile(l,v,sub){
+  return '<div class="kpi"><div class="kpi-l">'+esc(l)+'</div><div class="kpi-v">'+esc(v)+'</div>'+
+    (sub?'<div class="basis" style="margin-top:4px">'+esc(sub)+'</div>':'')+'</div>';
+}
+function renderWorldState(world, weather){
+  var months=(weather&&weather.monthly)||[];
+  var latest=months.length?months[months.length-1]:null;
+  var annual=(weather&&weather.annual)||[];
+  var latestYr=annual.length?annual[annual.length-1]:null;
+  // Market: latest settled annual-mean SSP from the SIM blindfold crossing.
+  var bf=((world&&world.wall&&world.wall.crossings)||[]).filter(function(c){return c.id==="blindfold";})[0];
+  var ssp=(bf&&bf.series&&bf.series.length)?bf.series[bf.series.length-1]:null;
+
+  var stamp=[];
+  if(latest)stamp.push("weather "+latest.month);
+  if(world&&world.generated_at)stamp.push("rendered "+String(world.generated_at).slice(0,10));
+  document.getElementById("state-stamp").textContent=stamp.length?("as of "+stamp.join(" · ")):"";
+
+  document.getElementById("wstate-intro").innerHTML=
+    "A live read of the world the company is trading through, as of the latest realised month. This is the "+
+    "<strong>demand-and-market</strong> side the supplier must cope with blindfolded: the current weather (which drives "+
+    "heating demand), the regime that weather sits in, and the settled market price. Every figure is computed from the "+
+    "realised on-disk series &mdash; not a forecast, not a fabricated tick.";
+
+  // --- Regime, derived from the realised HDD series (honest, data-computed) ---
+  var regimeTxt="Regime unavailable (no realised weather series).";
+  var regimeBadge="";
+  if(latest){
+    var cal=latest.month.slice(5,7); // calendar month, e.g. "12"
+    var sameMonth=months.filter(function(m){return m.month.slice(5,7)===cal;}).map(function(m){return m.hdd;});
+    var mean=sameMonth.reduce(function(a,b){return a+b;},0)/(sameMonth.length||1);
+    var variance=sameMonth.reduce(function(a,b){return a+(b-mean)*(b-mean);},0)/(sameMonth.length||1);
+    var sd=Math.sqrt(variance);
+    var z=sd>0?(latest.hdd-mean)/sd:0;
+    var pct=mean>0?Math.round(100*(latest.hdd-mean)/mean):0;
+    var label, klass;
+    if(z>1){label="COLDER THAN USUAL";klass="RED";}
+    else if(z<-1){label="MILDER THAN USUAL";klass="GREEN";}
+    else {label="SEASONALLY NORMAL";klass="OK";}
+    regimeBadge='<span class="badge '+klass+'">'+label+'</span>';
+    // How it got there: the last 3 months' HDD trajectory.
+    var traj=months.slice(-3).map(function(m){return esc(m.month)+" "+Math.round(m.hdd)+" HDD";}).join("  →  ");
+    regimeTxt='<strong>Regime:</strong> '+regimeBadge+' &mdash; this '+
+      (cal>="11"||cal<="02"?"winter":"month")+"'s heating demand (HDD "+Math.round(latest.hdd)+") is "+
+      (pct===0?"in line with":(pct>0?("about "+pct+"% above"):("about "+Math.abs(pct)+"% below")))+
+      " the "+sameMonth.length+"-year average for this calendar month (mean "+Math.round(mean)+
+      " HDD, z="+z.toFixed(1)+"). How it got here: "+traj+". "+
+      "The SIM couples this cold-demand signal with low-wind scarcity to form price &mdash; the "+
+      "<em>cold-and-still</em> physics (W1_6 weather&rarr;price chain, W1_3 tail). This panel shows the realised "+
+      "demand side from weather; the coupled wind&rarr;price tail is visible in the settled SSP p95/max below and on the wall. "+
+      "The per-tick intra-day wind/price feed is not yet surfaced here (honest gap).";
+  }
+  document.getElementById("wstate-regime").innerHTML=regimeTxt;
+
+  var kpis=[];
+  if(latest){
+    kpis.push(kpiTile("Temperature", (latest.mean_temp_c!=null?latest.mean_temp_c+"°C":"--"), "realised mean · "+esc(latest.month)));
+    kpis.push(kpiTile("Heating demand", (latest.hdd!=null?Math.round(latest.hdd)+" HDD":"--"), "realised · base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C"));
+  }
+  if(latestYr){
+    kpis.push(kpiTile("Winter severity", (latestYr.is_cold_winter?"COLD":"mild")+" "+latestYr.year, latestYr.annual_hdd+" HDD/yr vs "+((weather&&weather.kpis&&weather.kpis.decadal_avg_annual_hdd)||"--")+" decadal"));
+  }
+  if(ssp){
+    kpis.push(kpiTile("Market (SSP)", (ssp.mean!=null?"£"+ssp.mean:"--"), "settled · annual mean "+esc(ssp.year)+" · £/MWh"));
+    kpis.push(kpiTile("Price tail (p95)", (ssp.p95!=null?"£"+ssp.p95:"--"), "settled · "+esc(ssp.year)+" · peak £"+(ssp.max!=null?ssp.max:"--")));
+  }
+  document.getElementById("wstate-kpis").innerHTML=kpis.join("")||'<div class="muted">World state unavailable.</div>';
+
+  document.getElementById("wstate-basis").innerHTML=
+    "Basis: weather is realised Open-Meteo "+((weather&&weather.metadata&&weather.metadata.location)||"London")+
+    " (base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C HDD); market is settled Elexon SSP, annual mean. "+
+    "R14 clocks shown per figure. Regime is a diagnostic computed from the realised HDD series (R12), never a target.";
+}
+
 function renderBuild(d){
   var parts=[];
   if(d.phase)parts.push("Phase "+d.phase);
@@ -306,7 +393,12 @@ function renderBuild(d){
   document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
 }
 
-fetch("../data/world.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+Promise.all([
+  fetch("../data/world.json?t="+Date.now()).then(function(r){return r.json();}),
+  fetch("../data/weather.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+]).then(function(res){
+  var d=res[0], weather=res[1];
+  renderWorldState(d, weather);
   renderWall(d);
   renderSimDepth(d);
   renderAnchorsRuntime(d);
@@ -315,6 +407,7 @@ fetch("../data/world.json?t="+Date.now()).then(function(r){return r.json();}).th
 }).catch(function(e){
   console.error("world.json load error:",e);
   document.getElementById("crossings").innerHTML='<div class="card"><div class="muted" style="color:var(--red)">Could not load world.json</div></div>';
+  document.getElementById("wstate-intro").innerHTML='<span style="color:var(--red)">Could not load world/weather state.</span>';
 });
 </script>
 <script src="../shared/director-comments.js" defer></script>

@@ -1,21 +1,21 @@
-// Render harness for the World door (site/world/index.html).
-// Extracts the inline <script>, runs it against a minimal DOM + inert fetch stub,
-// invokes the page's own render functions against the supplied world.json, and
-// prints every captured element's contents as JSON so a test can assert on the
-// RENDERED pixels (R11), not the source string.
+// Render harness for the Customers door operational-state panel (site/customers/index.html).
+// Extracts the FIRST inline <script> (the self-contained state panel, deliberately placed
+// before the drill-down portal script), runs it against a minimal DOM + inert fetch stub,
+// invokes the panel's own render functions against the supplied company.json, and prints every
+// captured element's contents as JSON so a test can assert on the RENDERED pixels (R11), not the
+// source string.
 //
-// Usage: node _render_harness.mjs <index.html>   (world.json on stdin).
+// Usage: node _render_harness.mjs <index.html>   (company.json on stdin).
 import fs from "node:fs";
 import vm from "node:vm";
 
 const htmlPath = process.argv[2];
 const html = fs.readFileSync(htmlPath, "utf8");
+// First attribute-less <script> block == the state panel (CDN tags carry src=, portal is later).
 const m = html.match(/<script>([\s\S]*?)<\/script>/);
 if (!m) { console.error("no inline <script>"); process.exit(2); }
 const code = m[1];
-const d = JSON.parse(fs.readFileSync(0, "utf8"));
-// Optional second arg: path to weather.json (for the World state panel).
-const weather = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], "utf8")) : null;
+const company = JSON.parse(fs.readFileSync(0, "utf8"));
 
 const elements = {};
 function stub(id) {
@@ -25,6 +25,7 @@ function stub(id) {
   return e;
 }
 const document = {
+  readyState: "complete",
   getElementById(id) { return (elements[id] ||= stub(id)); },
   querySelector() { return stub("qs"); },
   querySelectorAll() { return []; },
@@ -37,20 +38,11 @@ const sandbox = { document, fetch, console, Date, Number, String, Object, Math, 
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
-sandbox.renderWorldState(d, weather);
-sandbox.renderWall(d);
-sandbox.renderSimDepth(d);
-sandbox.renderAnchorsRuntime(d);
-sandbox.renderLibrary(d);
-sandbox.renderBuild(d);
+sandbox.renderCustomerState(company);
+sandbox.renderCustomerCarbon(company);
 
 const ids = [
-  "state-stamp", "wstate-intro", "wstate-kpis", "wstate-regime", "wstate-basis",
-  "wall-intro", "wall-band", "crossings",
-  "sim-intro", "sim-depth",
-  "anchors-intro", "anchor-kpis", "anchor-runtime",
-  "lib-intro", "lib-kpis", "lib-body",
-  "build-note",
+  "cust-stamp", "cust-intro", "cust-who", "cust-money", "cust-arrears", "cust-money-basis", "cust-carbon",
 ];
 const out = {};
 for (const id of ids) {
