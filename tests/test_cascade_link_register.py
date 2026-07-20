@@ -86,9 +86,17 @@ def register():
 
 def test_register_is_complete_all_eight_links(register):
     assert register["covered_links"] == [f"D{i}" for i in range(1, 9)]
-    # four estimated (D1, D2, D4, D8), four asserted -> all eight, no gap, no double.
-    assert len(register["estimated"]) == 4
-    assert len(register["asserted"]) == 4
+    # five estimated (D1, D2, D4, D5, D8), three asserted -> all eight, no gap, no double.
+    assert len(register["estimated"]) == 5
+    assert len(register["asserted"]) == 3
+
+
+def test_d5_windoutput_windspeed_estimated_on_real_agws(register):
+    d5 = next(e for e in register["estimated"] if e["link_id"] == "D5_windoutput_windspeed")
+    # Still (low wind speed) AND zero-output (low wind gen) strongly co-occur -- the
+    # cubic power curve; the lower-tail lift is high and rises into the tail.
+    assert d5["value"] > 3.0
+    assert d5["detail"]["ci_low"] > 1.0
 
 
 def test_d2_residual_price_estimated_on_real_agws(register):

@@ -9,13 +9,6 @@
     },
     {
       "assumed_lift": 2.0,
-      "assumed_sign": "lower",
-      "grounding": "G_wind vs wind_speed, lower-lower (cubic ramp near cut-in amplifies the still tail)",
-      "link_id": "D5_windoutput_windspeed",
-      "reason": "deterministic power-curve relationship; G_wind OUTPUT series is not in sim/weather_data"
-    },
-    {
-      "assumed_lift": 2.0,
       "assumed_sign": "upper",
       "grounding": "end_to_end_lift vs product(per-link lifts) \u2014 compounding_holds check once the links are estimated",
       "link_id": "D6_cross_seam_compounding",
@@ -78,6 +71,19 @@
       "link_id": "D4_demand_temp",
       "statistic": "joint_tail_lift",
       "value": 5.163225172074729
+    },
+    {
+      "detail": {
+        "ci_high": 5.294641256409337,
+        "ci_low": 4.443264219780436,
+        "n_days": 3337.0,
+        "pearson_all": 0.6922709152127695,
+        "sign_lower": 1.0,
+        "u": 0.1
+      },
+      "link_id": "D5_windoutput_windspeed",
+      "statistic": "joint_tail_lift",
+      "value": 4.920949146483153
     },
     {
       "detail": {

@@ -36,6 +36,7 @@ compute a diagnostic; it is HARNESS code (background/), never company-facing.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -166,6 +167,16 @@ def estimate_d4_demand_temp(*, u: float = _DECILE_U, seed: int = 0) -> Estimated
 _CACHE = Path(__file__).resolve().parent.parent / "sim" / "cache"
 
 
+@lru_cache(maxsize=4)
+def _cached_json(name: str):
+    """Parse a large sim/cache JSON ONCE per process (AGWS ~100MB, SSP ~130MB) so
+    the several estimates that read the same file (D2 renewable + D5 wind both
+    read AGWS) do not re-parse it. Transient in-memory cache, cleared with the
+    process."""
+    import json
+    return json.loads((_CACHE / name).read_text())
+
+
 def estimate_d2_residual_price(*, u: float = _DECILE_U, seed: int = 0) -> EstimatedLink:
     """D2: residual-demand (D - wind - solar) HIGH (tight) AND SSP price HIGH
     (dear) co-occurring -- the merit order convex in tightness. Estimated at
@@ -175,16 +186,15 @@ def estimate_d2_residual_price(*, u: float = _DECILE_U, seed: int = 0) -> Estima
     1.32 rising to ~1.49 into the 5% tail). Uses the real independent Elexon
     series now cached: AGWS wind+solar generation, INDO demand outturn, SSP
     system sell price."""
-    import json
     from sim.generation_demand_history import aggregate_renewable_generation
-    ren = aggregate_renewable_generation(json.loads((_CACHE / "elexon_agws_full.json").read_text()))
+    ren = aggregate_renewable_generation(_cached_json("elexon_agws_full.json"))
     dem = {}
-    for r in json.loads((_CACHE / "elexon_demand_full.json").read_text()):
+    for r in _cached_json("elexon_demand_full.json"):
         v = r.get("initialDemandOutturn")
         if v is not None:
             dem[(r["settlementDate"], int(r["settlementPeriod"]))] = float(v)
     price = {}
-    for r in json.loads((_CACHE / "elexon_ssp_full.json").read_text()):
+    for r in _cached_json("elexon_ssp_full.json"):
         v = r.get("systemSellPrice")
         if v is not None:
             price[(r["settlementDate"], int(r["settlementPeriod"]))] = float(v)
@@ -204,8 +214,42 @@ def estimate_d2_residual_price(*, u: float = _DECILE_U, seed: int = 0) -> Estima
     )
 
 
+def estimate_d5_windoutput_windspeed(*, u: float = _DECILE_U, seed: int = 0) -> EstimatedLink:
+    """D5: low wind SPEED and low wind OUTPUT co-occur (still & zero-output) --
+    the turbine power curve. Deterministic in principle but TAIL-AMPLIFYING: the
+    cubic ramp near cut-in means a small speed drop in the still tail is a large
+    output collapse, so the lower-tail lift is strong and RISES into the tail
+    (measured: decile ~4.9, rising to ~6.6 at the 5% tail). Daily national wind
+    speed (Open-Meteo) vs daily national wind generation (AGWS Wind
+    Onshore+Offshore) -- disjoint sources (anti-marking-own-homework)."""
+    from sim.generation_demand_history import aggregate_wind_generation
+    from collections import defaultdict
+    wind = aggregate_wind_generation(_cached_json("elexon_agws_full.json"))  # {(date,period): MW}
+    by_date = defaultdict(list)
+    for (dt, _pd), mw in wind.items():
+        by_date[dt].append(mw)
+    gen_by_date = {d: float(np.mean(v)) for d, v in by_date.items()}
+    national, _doy, dates = load_national_daily()
+    speed_by_date = {dates[i].strftime("%Y-%m-%d"): float(national["wind_speed_mean_ms"][i])
+                     for i in range(len(dates))}
+    common = sorted(set(gen_by_date) & set(speed_by_date))
+    if len(common) < 100:
+        raise ValueError(f"too few common wind days to estimate D5: {len(common)}")
+    ws = np.array([speed_by_date[d] for d in common])
+    wg = np.array([gen_by_date[d] for d in common])
+    est: LiftEstimate = joint_tail_lift(ws, wg, u=u, upper=False)  # still & zero-output corner
+    lo, hi = block_bootstrap_lift_ci(ws, wg, u=u, upper=False, seed=seed)
+    return EstimatedLink(
+        link_id="D5_windoutput_windspeed",
+        statistic="joint_tail_lift",
+        value=est.lift,
+        detail={"u": u, "sign_lower": 1.0, "ci_low": float(lo), "ci_high": float(hi),
+                "n_days": float(len(common)), "pearson_all": float(np.corrcoef(ws, wg)[0, 1])},
+    )
+
+
 def asserted_links() -> List[AssertedDependence]:
-    """D3/D5/D6/D7 — registered as asserted-not-estimated (R10). Signs come from
+    """D3/D6/D7 — registered as asserted-not-estimated (R10). Signs come from
     the DISCOVER inventory; magnitudes are registered ASSUMPTIONS pending
     estimation (never presented as measured). Each names the exact real series +
     statistic that would ground it, so the next rung can estimate without
@@ -215,11 +259,6 @@ def asserted_links() -> List[AssertedDependence]:
             "D3_shortvol_cashout", assumed_lift=1.8, assumed_sign="upper",
             reason="book imbalance Delta_vol = demand - hedged is not observable without a run",
             grounding="Delta_vol vs SSP/SBP cash-out, upper-upper lift; the money is the covariance E[Delta_vol*spot]",
-        ),
-        asserted_dependence(
-            "D5_windoutput_windspeed", assumed_lift=2.0, assumed_sign="lower",
-            reason="deterministic power-curve relationship; G_wind OUTPUT series is not in sim/weather_data",
-            grounding="G_wind vs wind_speed, lower-lower (cubic ramp near cut-in amplifies the still tail)",
         ),
         asserted_dependence(
             "D6_cross_seam_compounding", assumed_lift=2.0, assumed_sign="upper",
@@ -239,7 +278,8 @@ def build_register(*, seed: int = 0) -> Dict[str, object]:
     (R10, grounded). Every one of the eight is present in exactly one state —
     the inventory is never silently incomplete."""
     estimated = [estimate_d1_temp_wind(seed=seed), estimate_d2_residual_price(seed=seed),
-                 estimate_d4_demand_temp(seed=seed), estimate_d8_persistence()]
+                 estimate_d4_demand_temp(seed=seed), estimate_d5_windoutput_windspeed(seed=seed),
+                 estimate_d8_persistence()]
     asserted = asserted_links()
     covered = {e.link_id.split("_")[0] for e in estimated} | {a.link_id.split("_")[0] for a in asserted}
     expected = {f"D{i}" for i in range(1, 9)}
