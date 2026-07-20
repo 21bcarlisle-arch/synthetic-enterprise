@@ -322,6 +322,19 @@ def pull_loop_status(health: dict | None, enable_on: bool, *,
         # Under Rule-0 the queue is never genuinely empty, so an empty draw = a broken draw.
         return {"status": "LOOP_BROKEN", "alarm": True,
                 "detail": f"pull-loop drew nothing (never legitimate under Rule-0): {health.get('detail', '')}"}
+    if outcome == "ALLOW_STOP_SCHEDULED":
+        # SCHEDULED-INVOCATION MODE (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md, 2026-07-20): after the
+        # cutover the Stop hook no longer owns continuity -- the external systemd timer/path
+        # (worker_tick.py) does. The hook only fires when a session stops, and at rest NO session is
+        # running, so this record freezes BY DESIGN. Placed BEFORE the freshness gate (same class as
+        # DISABLED / ALLOW_STOP_QUIET_WAIT): a frozen scheduled record is a healthy rest, NOT a
+        # dead/hung worker, and must NOT page. Scheduled-mode liveness is the worker-tick.timer/.path
+        # unit state (reconcile drift alarms on a missing/failed unit) + the deadman commit clock --
+        # NOT this record. A genuinely broken scheduled worker stops committing -> the commit clock
+        # STALLs, and/or its unit fails -> reconcile pages.
+        return {"status": "HEALTHY_IDLE", "alarm": False,
+                "detail": "scheduled-invocation mode -- external timer/path owns continuity (NOT this hook); "
+                          "frozen record is a healthy rest; liveness = unit state + commit clock"}
     if outcome == "ALLOW_STOP_QUIET_WAIT":
         # DRAINED-AND-GATED quiet wait (ADVISOR_STEER 2026-07-18, item 1): below-target work is
         # exhausted and the remainder is blocked on a director act, so the only draw would be at-

@@ -1,0 +1,15 @@
+[Unit]
+Description=Synthetic Enterprise worker tick — one scheduled bounded-invocation check (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md, 2026-07-20). Cheap Python: sync origin-staged docs + find_work; spawn ONE `claude -p` bounded worker invocation ONLY if there is work; at rest it exits at ~0 tokens (no model). Replaces the persistent stop-hook-rearm seat + rest-heartbeat (input-blocking / death-on-API-error / token-burn). Triggered by worker-tick.timer (60s backstop) AND worker-tick.path (immediate on a staged doc).
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# NTFY secret via the Option-2 out-of-tree location; `-` = still run (and log) if absent.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# The tick BLOCKS until the bounded invocation it spawns exits (Type=oneshot must not return early,
+# or systemd tears down the cgroup and kills the child). TimeoutStartSec bounds a hung invocation:
+# systemd SIGTERMs the whole cgroup (tick + claude -p) at 30 min, so a hang becomes a skipped tick
+# (the next trigger starts fresh), never a wedge. This is the bounded-invocation guarantee in IaC.
+TimeoutStartSec=1800
+ExecStart=/usr/bin/python3 -m background.worker_tick

@@ -68,6 +68,12 @@ except Exception as _e:
 # security profiles); no agent/twin/staged-doc may create or modify it. FAIL-
 # CLOSED: missing OR malformed (not a readable regular file) = DISABLED.
 ENABLE_FLAG = PROJECT_DIR / "docs" / "observability" / ".build_executor_enabled"
+# SCHEDULED-INVOCATION MODE flag (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md, 2026-07-20). Created by
+# the director-run cutover. While ABSENT, this hook's persistent-seat heartbeat below is unchanged
+# (fallback preserved). While PRESENT, continuity is owned by the EXTERNAL systemd timer/path
+# (background/worker_tick.py) and this hook's only job is to let every session STOP cleanly -- no
+# draw, no block+continue, no rest-heartbeat. Cutover and rollback are a single flag flip.
+SCHEDULED_FLAG = PROJECT_DIR / "docs" / "observability" / ".scheduled_invocations_enabled"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "pull-loop-log.md"
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".pull_loop_state.json"
 # Typed, first-class transport-health signal (OPS1_transport_failure_must_be_loud, §9). Written
@@ -160,6 +166,16 @@ def _autonomous_execution_enabled() -> bool:
             return False
         ENABLE_FLAG.read_text()  # readable -> a proper flag
         return True
+    except OSError:
+        return False
+
+
+def _scheduled_mode() -> bool:
+    """True once the director-run cutover has created SCHEDULED_FLAG. In that mode the external
+    systemd timer/path owns continuity and this hook allow-stops every session (no draw/block/
+    heartbeat). FAIL toward the persistent-seat fallback: any error reading the flag => False."""
+    try:
+        return SCHEDULED_FLAG.is_file()
     except OSError:
         return False
 
@@ -291,6 +307,29 @@ def decide(payload: dict) -> dict | None:
     # autonomy MUST self-sustain (director P0): the loop CONTINUES turn-to-turn on its own draw.
     # Runaway is bounded not by stop_hook_active but by the LOUD stuck-cap (MAX_NO_PROGRESS) below
     # -- a continuous loop that stops producing commits is thrashing and must ALARM, not idle.
+    # SCHEDULED-INVOCATION MODE (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md, 2026-07-20). Checked FIRST,
+    # before the worker-seat guard and the draw: once the director-run cutover creates SCHEDULED_FLAG,
+    # continuity is owned by the EXTERNAL systemd timer/path (worker_tick.py). This hook's ONLY job is
+    # then to let every session -- each bounded `claude -p` worker invocation AND the director's
+    # console -- STOP cleanly. No draw, no block+continue, no rest-heartbeat: that is what makes rest
+    # cost zero (no resident chain to keep alive), never blocks input (no session held open by a hook),
+    # and survives an invocation dying (the next timer/path tick re-arms). The worker invocation is
+    # discriminated by the SE_SBI_WORKER env var the tick set (inherited by this hook subprocess) --
+    # observability only; the allow-stop decision is the same for worker and console. The health
+    # outcome is ALLOW_STOP_SCHEDULED, registered FRESHNESS-EXEMPT in process_reconciler (like
+    # ALLOW_STOP_QUIET_WAIT): at rest no session fires the hook, so the record freezes by design and
+    # must not read as a dead worker -- scheduled-mode liveness is the timer/path unit state (reconcile
+    # drift) + the deadman commit clock, not this record. While SCHEDULED_FLAG is ABSENT everything
+    # below runs unchanged (the persistent-seat heartbeat fallback).
+    if _scheduled_mode():
+        is_worker = os.environ.get("SE_SBI_WORKER") == "1"
+        _write_health("ALLOW_STOP_SCHEDULED",
+                      "scheduled mode: external timer/path owns continuity; "
+                      + ("bounded worker invocation exiting cleanly" if is_worker
+                         else "non-worker session (console/other)"))
+        _log("scheduled mode -> allow stop ("
+             + ("worker invocation" if is_worker else "console/other") + ")")
+        return None
     # WORKER-SEAT-ONLY GUARD (G-L1): pull work ONLY for the dedicated worker seat.
     # Any other session -- the director's sanctified console, an ad-hoc session, or
     # (fail-safe) an unresolved worker id -- gets allow-stop, never a doorbell. The

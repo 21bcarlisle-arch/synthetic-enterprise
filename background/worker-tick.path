@@ -1,0 +1,13 @@
+[Unit]
+Description=Synthetic Enterprise worker tick path — fire the continuity check IMMEDIATELY when a file lands in docs/staging/ (the fast local-staged-doc wake, ~seconds vs the 60s timer). Independent of worker-tick.timer: R15 — kill the timer and this still wakes on a staged doc; kill this and the timer still wakes within 60s. A staged doc is the primary continuity case (both 2026-07-19 failures hit it).
+
+[Path]
+# PathModified fires on any change within the directory (a new file, a write). It triggers the SAME
+# worker-tick.service the timer does; systemd skips the trigger if that oneshot is already active
+# (natural no-stacking). Origin-staged docs (pushed to origin, not yet local) don't change the local
+# dir — those are caught by the timer tick's _sync_origin_staging(); this covers the local case.
+PathModified=/home/rich/synthetic-enterprise/docs/staging
+Unit=worker-tick.service
+
+[Install]
+WantedBy=paths.target

@@ -64,3 +64,38 @@ systemd_units:
       gap that let a live worker-seat declared `held` produce no HELD_VIOLATED (2026-07-17). This
       timer fires the reconcile every 5 min so drift is loud within minutes, not at the next boot.
       active:true because an un-armed timer is a control that never runs.
+
+  # ── Scheduled bounded invocations — the continuity transport (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md)
+  # DARK until the director-run cutover (background/cutover_to_scheduled.sh --apply). Declared here so
+  # reconcile SEES them; enabled/active:false = installed-not-armed, which matches reality pre-cutover.
+  # At cutover these flip to enabled/active (committed as the IaC record) and worker-seat-manager is
+  # retired. This replaces the persistent stop-hook-rearm seat, which failed three ways in ~30h
+  # (input-blocking / death-on-API-error / token-burn at rest).
+  - name: worker-tick.service
+    unit_file: background/worker-tick.service
+    enabled: false           # Type=oneshot fired by the timer/path — never boot-enabled itself
+    active: false            # oneshot: inactive(dead) between ticks is correct, not UNIT_DOWN
+    reason: >-
+      The bounded-invocation check: cheap Python (origin-sync + find_work) that spawns ONE
+      `claude -p` worker ONLY when there is work, and exits at ~0 tokens at rest. DARK until cutover
+      (enabled/active:false = installed, not armed). Not enabled/active itself — the .timer and .path
+      drive it; flagging a oneshot down would be wrong.
+
+  - name: worker-tick.timer
+    unit_file: background/worker-tick.timer
+    enabled: false           # -> enabled:true at cutover (boot-start, WantedBy=timers.target)
+    active: false            # -> active:true at cutover (an un-armed continuity timer is fail-silent)
+    reason: >-
+      The 60s wake backstop + origin-staged-doc path. DARK until cutover. Post-cutover this is the
+      continuity heartbeat's replacement: level-triggered (did the timer fire?) instead of the
+      edge-triggered stop-hook re-arm that could not stay alive. Independent of worker-tick.path
+      (R15: either trigger alone still wakes).
+
+  - name: worker-tick.path
+    unit_file: background/worker-tick.path
+    enabled: false           # -> enabled:true at cutover (boot-start, WantedBy=paths.target)
+    active: false            # -> active:true at cutover
+    reason: >-
+      The fast local-staged-doc wake (~seconds vs the 60s timer). DARK until cutover. A staged doc is
+      the primary continuity case (both 2026-07-19 failures hit it). Independent of worker-tick.timer
+      (R15: kill the timer and this still wakes on a staged doc).

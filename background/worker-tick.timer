@@ -1,0 +1,13 @@
+[Unit]
+Description=Synthetic Enterprise worker tick timer — fire the continuity check every 60s (the wake backstop + the origin-staged-doc path). The 60s cadence is the worst-case wake latency for a staged doc; worker-tick.path wakes faster on a LOCAL staged doc, this timer additionally catches ORIGIN-staged docs (its tick runs _sync_origin_staging) and spontaneous below-target work. Independent of the .path trigger: R15 — kill the .path unit and this still wakes on the next tick.
+
+[Timer]
+# First check 30s after boot (let daemons settle), then every 60s. A continuity timer that is not
+# armed is fail-silent (R15) — arming it is the whole point. Persistent replays a missed tick after
+# a sleep/downtime so a resumed machine wakes promptly.
+OnBootSec=30s
+OnUnitActiveSec=60s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
