@@ -112,6 +112,31 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def enrol_flex(self, enrolment) -> Any:
+        """Submit a flexibility offer into a venue (COMPANY -> WORLD).
+
+        W1_9 (L1). `enrolment` is an
+        `interface.contracts.flex_observable_seam.FlexEnrolment` (the company's
+        OWN participation-size decision + declared window). Returns the typed
+        `FlexEnrolmentWallRequest` envelope that crosses the seam. This carries
+        only company-owned data outbound; the epistemic wall polices what flows
+        BACK (dispatch instructions / settlement lines).
+        """
+        raise NotImplementedError
+
+    def get_flex_settlement_lines(self, unit_id: str) -> list:
+        """The unit's OBSERVABLE flex settlement lines (WORLD -> COMPANY).
+
+        W1_9 (L1). Returns a list of
+        `interface.contracts.flex_observable_seam.FlexSettlementWallResponse`
+        -- metered delivery + utilisation payment off the settlement statement.
+        OBSERVABLE ONLY: never the SIM's true baseline or true system need. The
+        company's inference of WHEN flex is worth bidding lives on the far side
+        of this seam (`company/market/flex_participation.py`), driven by the
+        observed price, never by anything read here.
+        """
+        raise NotImplementedError
+
 
 class StubSimInterface(SimInterface):
     """Stub implementation for testing and development.
@@ -125,6 +150,7 @@ class StubSimInterface(SimInterface):
         self._acquisition_notifications: list[dict] = []
         self._retention_notifications: list[dict] = []
         self._customer_statuses: dict[str, str] = {}
+        self._flex_enrolments: list = []
 
     def get_settlement_data(self, mpan: str, period: str) -> dict[str, Any]:
         return {
@@ -185,6 +211,32 @@ class StubSimInterface(SimInterface):
             'company_churn_estimate': company_churn_estimate,
             'discount_pct': discount_pct, 'outcome': outcome,
         })
+
+    def enrol_flex(self, enrolment) -> Any:
+        from interface.contracts.flex_observable_seam import (
+            FlexEnrolmentWallRequest, SCHEMA_VERSION,
+        )
+        import datetime as _dt
+        req = FlexEnrolmentWallRequest(
+            correlation_id=f"flex-{enrolment.unit_id}-{enrolment.window_start:%Y%m%d}",
+            request_type="flex_enrolment",
+            schema_version=SCHEMA_VERSION,
+            as_of=enrolment.window_start,
+            emitted_at=enrolment.window_start,
+            payload=enrolment,
+        )
+        self._flex_enrolments.append(req)
+        return req
+
+    def get_flex_settlement_lines(self, unit_id: str) -> list:
+        # Stub: no live settlement feed (mirrors get_settlement_data zeros).
+        # The real settlement lines are produced SIM-side by
+        # sim.flex_dispatch.emit_settlement_lines and measured by the harness.
+        return []
+
+    @property
+    def flex_enrolments(self) -> list:
+        return list(self._flex_enrolments)
 
     @property
     def churn_notifications(self) -> list[dict]:
