@@ -1,4 +1,7 @@
-"""Phase 268 tests: /sim/ section -- wholesale price explorer."""
+"""Phase 268 tests: sim DATA (sim_data.json) -- wholesale price explorer.
+(2026-07-20: the sim/ PAGE was retired in the v4 rebuild; its data + generator are KEPT
+(load-bearing for World/company generators), so the page-existence tests were removed and
+the sim_data.json + generator tests retained.)"""
 import json
 from pathlib import Path
 
@@ -7,19 +10,7 @@ SITE = PROJECT / "site"
 DATA = SITE / "data"
 
 
-def test_sim_index_exists():
-    assert (SITE / "sim" / "index.html").exists()
 
-
-def test_sim_index_has_nav():
-    text = (SITE / "sim" / "index.html").read_text()
-    assert "site-nav" in text or "nav-link" in text
-
-
-def test_sim_index_active_not_dim():
-    text = (SITE / "sim" / "index.html").read_text()
-    assert "active" in text
-    assert "site-nav-link dim" not in text
 
 
 def test_main_index_sim_link_not_dim():
