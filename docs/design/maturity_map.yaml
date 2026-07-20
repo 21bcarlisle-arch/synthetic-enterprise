@@ -1386,10 +1386,9 @@
   value_stream: wholesale_to_price
   chain: weather_cascade
   epoch: 3
-  level_current: 1
+  level_current: 3
   level_target: 3
-  loop_stage: build
-  blocked_on: director_level_up
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_6_PHYSICS_PRICE_SIGNAL_DISCOVER.md, docs/design/frame/W1_6_physics_price_signal_FRAME.md, 'sim/weather_price_chain.py (L4: weather->demand+renewable->residual->merit-order DERIVED price, fit on the real record, R13 baseline)', company/pricing/weather_price_belief.py, background/weather_price_triad.py, 'tests/sim/test_weather_price_chain.py + tests/company/test_weather_price_belief.py + tests/test_weather_price_triad.py (19 tests, R15 mutation)', 'docs/observability/coupled_gap_ledger.json (W1_6 gap measured)']
