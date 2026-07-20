@@ -2319,7 +2319,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2327,7 +2327,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 9
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2574,7 +2574,7 @@
       "epoch": 2,
       "level_current": 1,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2604,8 +2604,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stalled": true,
+      "stall_consecutive_unchanged": 7
     }
   ],
   "lanes": {
