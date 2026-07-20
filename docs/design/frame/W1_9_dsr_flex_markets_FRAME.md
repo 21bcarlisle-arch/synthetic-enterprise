@@ -106,3 +106,46 @@ exposing **observables only**: `FlexDispatchInstruction` (venue, window, directi
 (offer/bid submission). The company NEVER receives the SIM's true baseline or true system need — only what
 a real party would see on a settlement statement. Async request/response per C-S3; forward-only, no direct
 call into SIM internals.
+
+## 8. BUILD-readiness assessment (2026-07-20, worker tick, doc-only, no level move)
+
+**Trigger:** `depends_on: W1_6_physics_price_signal` reached **level_current: 3** (ratified 2026-07-20,
+director console; delivers `sim/weather_price_chain.py`). §4 named W1_6 as the BUILD-unblock upstream —
+so the upstream half of the gate is now **SATISFIED**. This section records exactly what is (and is not)
+now available, and the *remaining* gates, so the eventual BUILD starts from truth rather than the
+pre-W1_6 assumptions in §1–§7.
+
+**What W1_6 actually exposes (inspected, not assumed):**
+- `sim/weather_price_chain.py::derive_price(...)` produces the **wholesale price outturn** mechanistically
+  (weather → demand + renewable → residual demand → merit order → price). A cold-and-still spell yields a
+  price spike *by construction*. The company observes **only the published price outturn** (as a real
+  supplier reads Elexon SSP), measured by `background/weather_price_triad.py` vs
+  `company/pricing/weather_price_belief.py`.
+- It does **NOT** expose a separate scarcity / residual-margin / system-tightness observable at the seam
+  — residual demand and the merit-order internals are SIM-internal by epistemic-wall design (W1_6 header,
+  lines 41–42: "the company … [never] read[s] residual demand / the merit-order internals").
+
+**Refinement this forces to §3-L1 (was written pre-W1_6):** §3-L1 says the flex dispatch signal is
+"derived from the W1_6 price signal (scarcity → call)". The honest L1 trigger is therefore a
+**price-derived scarcity proxy computed from the observable outturn** (e.g. a price-threshold / rolling
+price-percentile derived from `derive_price` outturn), **not** a read of true residual margin. This is
+epistemically correct and *strengthens* the triad: the company must infer system stress from the price it
+can see, and the harness scores that inference vs the SIM's true system-need — the gap is the score. No
+new SIM-internal observable should be added to the seam to serve L1.
+
+**Remaining BUILD gates (all director-console; none agent-crossable — recorded, not actioned):**
+1. **file_scope gate.** This atom's committed `file_scope` is `[docs/design]`. The code BUILD (SIM flex-need
+   process, typed flex adapter, company flex-participation) lands in `sim/`, `company/market/`, and a new
+   typed seam — a scope expansion the director/orchestrator opens (sole-map-writer; not self-edited here).
+2. **schema_sim_structure gate (`background/fronts.yaml`).** The typed flex adapter of §7
+   (`FlexDispatchInstruction` / `FlexSettlementLine` / `FlexEnrolment`) touches the wall contract at/near
+   `company/interfaces/sim_interface.py` — a **gated path**. A build touching it is a schema decision →
+   HOLD until a director GATE_CLEAR / per-atom BUILD_OPEN. (The open SIM_ACTORS front does **not** cover
+   it: gates subtract from every front, G-1.) Note: `interface/sim_interface.py` currently exposes only
+   `get_forward_price` — no flex/dispatch/scarcity message types exist yet.
+3. **benchmark gate (unchanged, §1/§5).** Every £/MWh, £/kW/yr, MW, and baseline-window figure still needs
+   NESO/Elexon/Ofgem sourcing before any L2+ claim (no network in this worker tick — not attempted here).
+
+**Net:** upstream (W1_6) cleared; W1_9 code BUILD is now blocked **only** on a director console act
+(file_scope expansion + schema_sim_structure GATE_CLEAR/BUILD_OPEN for the typed seam). Level HELD at 0 —
+DISCOVER does not move levels; `loop_stage`/`level_current` in `maturity_map.yaml` untouched (gated path).
