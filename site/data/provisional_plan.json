@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T05:49:44.443619+00:00",
+  "generated_at": "2026-07-20T06:16:17.443895+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -145,7 +145,7 @@
     "window_days": 3.0,
     "from_rich_touches": 54,
     "substantive_staged_doc_touches": 86,
-    "routine_daemon_markers_excluded": 1029,
+    "routine_daemon_markers_excluded": 1032,
     "tier1_gates_closed_all_time": 8,
     "estimated_director_hours_per_day": 14.34,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
