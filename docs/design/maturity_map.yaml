@@ -99,10 +99,10 @@
   lane: W1_market_weather
   value_stream: wholesale_to_price
   epoch: 3
-  level_current: 1
+  level_current: 2
   level_target: 2
-  blocked_on: director_level_up
-  loop_stage: build
+  blocked_on: null
+  loop_stage: harden
   dial_inherited: 4
   evidence: [docs/market_research/synthetic_future_generation_w1_2.md, docs/design/frame/W1_2_generate_futures_FRAME.md, docs/design/SYNTHETIC_FUTURES_GENERATION_FRAME.md, 'sim/scenario/bimodal_generator.py (calibrated two-regime Markov synthetic forward price generator, drop-in compatible)', sim/scenario/gas_scenario_generator.py, simulation/run_scenario.py (real caller), tests/sim/test_bimodal_generator.py + test_gas_scenario_generator.py (31 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
   file_scope: [simulation/run_scenario.py, tests/simulation/test_run_scenario.py, sim/scenario/fidelity_check.py, tests/sim/test_scenario_fidelity_check.py]
@@ -959,7 +959,7 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 1
+  level_current: 2
   level_target: 3
   blocked_on: director_level_up
   loop_stage: build
@@ -1048,10 +1048,10 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 2
+  level_current: 3
   level_target: 3
-  blocked_on: director_level_up
-  loop_stage: build
+  blocked_on: null
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
   evidence: ["docs/design/BRAND_CONSTITUTION.md"]
@@ -1330,7 +1330,7 @@
   value_stream: wholesale_to_price
   chain: weather_cascade
   epoch: 3
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -2173,13 +2173,13 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   file_scope: [background/fidelity_grid_scorer.py, tests/test_fidelity_grid_scorer.py]
   depends_on: []
-  blocked_on: director_level_up
+  blocked_on: null
   simplifications: ['2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py bridges the L3 payment triad belief-vs-truth gap (W2_11 truth -> W4_4 seam -> D5 consumer) into this grid scorer LIVE in simulation/run_phase2b.py; R1 consumer-verified in a real run (cell A1_G2 gap 0.2, grid worst A1_G1 fail-open floor, gate PASS, 14 cells untested; 20 run_phase2b tests green, no regression). 10 R15 tests on the bridge (FIRES/QUIET/WALL/GATE both directions/import-freedom), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (MATURITY_MAP section 0, levels are director-ratified); blocked_on set to director_level_up to stop the build re-draw. Commits 3f36e3776 (offline bridge) + this run-loop wire.', '2026-07-19 BUILT + director-RATIFIED L1 (console FRONT_OPEN EPOCH2_CAMPAIGN + LEVEL_UP ts=1784462364): 3 fidelity measures on the improved constructs (EPOCH2_G_CONSTRUCT_CHALLENGE_RESPONSE); 24 R15 tests, epistemic PASS. L1->L2 = a live physics-atom emits into the evidence ledger + a real gap is measured.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier model-validation desk scoring where its risk models add value over a naive baseline -- worst corner, never the average"
@@ -2189,13 +2189,13 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   file_scope: [background/fidelity_evidence_ledger.py, tests/test_fidelity_evidence_ledger.py]
   depends_on: []
-  blocked_on: director_level_up
+  blocked_on: null
   simplifications: ['2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py appends a real emit-DoD record per run from the L3 payment triad belief-vs-truth gap; the record re-reads THIS gate (fidelity_evidence_gate) and the bridge RAISES fail-closed if it would not pass. R1 consumer-verified in a real run_phase2b (gate PASS on the live record; regime-mixed->G2 cell attribution registered as an R10 simplification). 10 R15 tests on the bridge incl. the asserted-without-simplification gate mutation (both directions), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (section 0); blocked_on -> director_level_up. Commits 3f36e3776 + this run-loop wire.', '2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): sibling ledger + emit-DoD gate (no-record / asserted-without-simplification_id / ablation-without-CRN red), fail-closed; 22 R15 tests, epistemic PASS. L1->L2 = wire a real emitter + the gate into a physics atom phase-close.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier model-governance registry: every fitted relationship recorded with provenance; an atom is not done until it emits its evidence"
@@ -2205,13 +2205,13 @@
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   file_scope: [background/fidelity_inspection_chain.py, tests/test_fidelity_inspection_chain.py]
   depends_on: []
-  blocked_on: director_level_up
+  blocked_on: null
   simplifications: ['2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py builds + validates a real 4-layer chain per run from the L3 payment triad (EVIDENCE payment-detection -> WORLD payment-truth series -> BELIEF_ACTION D5 observed-failures + measured gap), truth_ref left None and assert_no_belief_leak proven, validate_chain proven (no dangling link). R1 consumer-verified in a real run_phase2b. 10 R15 tests incl. the truth_ref-mutation wall-leak firing (the load-bearing control), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (section 0); blocked_on -> director_level_up. Commits 3f36e3776 + this run-loop wire.', '2026-07-19 BUILT + director-RATIFIED L1 (console ts=1784462364): 4 record types + bidirectional link graph + assert_no_belief_leak (truth_ref harness-only, R15-proven) + fail-closed dangling-link; 25 tests, epistemic PASS. L1->L2 = render the chain as the director fidelity instrument (G4, SITE) + wire live records.']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an auditor tracing an odd model output back to its evidence and forward to the decisions it bent; the belief/truth wall enforced in the data model"
