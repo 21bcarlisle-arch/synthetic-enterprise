@@ -7,33 +7,11 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://poesys.net/company/">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
 <style>
-:root {
-  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
-  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
-  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
-  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
-    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
-    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
-    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
-  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
-  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
-  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
-}
-:root[data-theme="light"] {
-  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
-  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
-  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
-  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
-}
+/* Brand palette consumed from ../brand/brand.css (BRAND_CONSTITUTION.md §3a light-default
+   ground). The page's own :root palette + dark blocks were deleted on brand adoption, so it
+   now consumes BRAG tokens end-to-end (no raw hex; brand-compliance ADOPTED_LIVE_SURFACES). */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
@@ -101,7 +79,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
 </head>
 <body>
 <nav class="site-nav">
-  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-logo wordmark">poesys.</a>
   <a href="../" class="nav-link">Home</a>
   <a href="../company/" class="nav-link active">Company</a>
   <a href="../world/" class="nav-link">World</a>
