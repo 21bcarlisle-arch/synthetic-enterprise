@@ -1,3 +1,14 @@
+> **[AGENT 2026-07-20 — BUILT + OFFLINE-PROVEN, DARK; awaiting the DIRECTOR-RUN CUTOVER]** Director
+> authorized the migration in-console 2026-07-20. Scheduled bounded invocations are BUILT, dark, and
+> proven offline (commit `b9cbb8660`): design `docs/design/SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md`;
+> `background/worker_tick.py` + `worker-tick.{service,timer,path}` (installed inert); flag-gated
+> Stop-hook scheduled mode (persistent-seat heartbeat unchanged behind the flag = fallback);
+> `director_console.sh` (the deliberate interactive path he asked for); `cutover_to_scheduled.sh`.
+> 41 R15 tests green — all three properties proven (P1 ~0 tok at rest, P2 wakes on staged doc via two
+> independent triggers, P3 never blocks input). **BLOCKING SUB-ITEM:** the cutover itself — it retires
+> THIS worker seat (self-kill hazard), so the director runs `background/cutover_to_scheduled.sh --apply`
+> from a SEPARATE shell. Unblocks when he runs it; rollback is a flag flip. Move to done/ after cutover verifies live.
+
 # DIRECTOR FINDING — The rest-heartbeat burns tokens while resting (2026-07-20)
 
 **Type:** [STEER] — a defect with a measurement requirement. Absorb; do not interrupt in-flight work.

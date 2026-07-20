@@ -122,9 +122,23 @@ drift machinery is retired at cutover — flagged for the rebuild pile, not kept
   keep-alive blocks to cap). Not before.
 
 **Unchanged / retired at cutover:** `worker_seat.py` + `worker-seat-manager.service` (retired — no
-resident seat to manage); `staging_watcher.py`'s tmux send-keys wake (superseded by the `.path` unit;
-the banned keystroke path finally disappears). `supervisor.py::find_work` stays the sole draw
-authority. `deadmans-switch`, `reconcile-watch`, `file-api` unchanged.
+resident seat to manage). `supervisor.py::find_work` stays the sole draw authority. `deadmans-switch`,
+`reconcile-watch`, `file-api` unchanged.
+
+**`staging_watcher.py` is NOT superseded (corrected 2026-07-20):** its tmux send-keys wake was already
+DELETED at the 2026-07-15 pull-loop migration; its remaining roles — NTFY the *director* on a new
+staged doc, surface `[ADVISOR-STAGED]` origin commits, and housekeeping sweeps — are director-facing
+and independent of the worker wake. The `.path` unit wakes the *worker*; staging_watcher notifies the
+*director*. Both stay. (A pre-existing, migration-independent drift was found while checking this: the
+staging-watcher daemon had died with nothing to restart it — the same no-external-restarter class —
+alarming since 09:14Z, ~2h before this migration's first commit. Restarted via its systemd unit
+2026-07-20; both reconcilers back to 0 drift.)
+
+**Reconcile done-gate:** `cutover_to_scheduled.sh` asserts BOTH reconcilers (schedule units + process
+daemons) show 0 drift before cutover counts as done — a migration that leaves the reconciler alarming
+is not done. Pre-cutover the worker-tick units are declared dark and installed inert (0 drift); at
+cutover the manifest enable/active flip is committed atomically with the systemctl enable+start so the
+declaration never lags reality (avoiding the transient declare-before-install drift seen at 11:00Z).
 
 ## 7. THE DELIBERATE INTERACTIVE PATH (director requirement, 2026-07-20)
 

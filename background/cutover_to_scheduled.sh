@@ -28,7 +28,22 @@ diagnose() {
   echo "build_executor flag:   $([ -f docs/observability/.build_executor_enabled ] && echo ON || echo off)"
   echo ""
   echo "Reconcile (expect 0 drift AFTER an --apply + the committed manifest flip):"
-  python3 -m background.schedule_reconciler 2>&1 | tail -5 || true
+  python3 -m background.schedule_reconciler 2>&1 | tail -3 || true
+  python3 -m background.process_reconciler 2>&1 | tail -2 || true
+}
+
+# DONE-GATE: "a migration that leaves the reconciler permanently alarming is not done" (director,
+# 2026-07-20). BOTH reconcilers (systemd units + daemons) must show ZERO drift, else this fails loud.
+assert_reconcile_clean() {
+  banner "RECONCILE DONE-GATE (both reconcilers must be 0 drift)"
+  local sched proc rc=0
+  sched="$(python3 -m background.schedule_reconciler 2>&1 | grep -oE '[0-9]+ schedule drift' | grep -oE '^[0-9]+' || echo 99)"
+  proc="$(python3 -m background.process_reconciler 2>&1 | grep -oE '[0-9]+ drift alarm' | grep -oE '^[0-9]+' || echo 99)"
+  echo "schedule drift: $sched   |   process drift: $proc"
+  [ "$sched" = "0" ] || { echo "FAIL: schedule reconciler still alarming — the manifest flip is not committed/consistent."; rc=1; }
+  [ "$proc" = "0" ]  || { echo "FAIL: process reconciler still alarming — a declared daemon is missing/mis-declared."; rc=1; }
+  [ "$rc" = "0" ] && echo "CLEAN: both reconcilers 0 drift — cutover is genuinely done." || echo "NOT DONE: resolve the drift above before claiming cutover complete."
+  return $rc
 }
 
 apply() {
@@ -62,6 +77,10 @@ apply() {
   echo "Until committed, reconcile will show drift — that is the IaC guard working, not a failure."
 
   diagnose
+  echo ""
+  echo "After committing the manifest flip above, re-run: background/cutover_to_scheduled.sh (diagnose)"
+  echo "then confirm the done-gate: bash -c 'source background/cutover_to_scheduled.sh; assert_reconcile_clean' — or just:"
+  assert_reconcile_clean || echo "(expected to fail until the manifest enable/active flip is committed)"
 }
 
 rollback() {
