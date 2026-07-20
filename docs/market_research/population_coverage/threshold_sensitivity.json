@@ -1,0 +1,444 @@
+{
+  "_meta": {
+    "artefact": "threshold_sensitivity",
+    "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20 (stage 3)",
+    "created": "2026-07-20",
+    "claim_status_of_threshold": "CHOSEN -- the ~1.5x tail-lift collapsibility threshold is a chosen constant, NOT derived. This table rebuilds the whole design at 1.3/1.5/1.75/2.0 to test whether the design changes MATERIALLY across the band. If it does, the threshold is the DIRECTOR'S dial to set.",
+    "collapsibility_rule": "a pair may be CROSSED (independent) iff aggregate V<0.10 AND tail_max_lift < threshold; else COUPLED (pin/joint)",
+    "determinism": "deterministic, hash-independent (sorted set iteration; verified under PYTHONHASHSEED 0 and 1)"
+  },
+  "by_threshold": {
+    "1.3": {
+      "collapsibility": {
+        "accommodation__tenure": [
+          "couple",
+          "aggregate not weak (V=0.273)"
+        ],
+        "tenure__cars": [
+          "couple",
+          "aggregate not weak (V=0.303)"
+        ],
+        "tenure__nssec": [
+          "couple",
+          "aggregate not weak (V=0.229)"
+        ],
+        "heating_fuel__region": [
+          "couple",
+          "tail 3.8x >= 1.3x"
+        ],
+        "tenure__region": [
+          "couple",
+          "tail 1.6x >= 1.3x"
+        ]
+      },
+      "n_targets": 1067,
+      "scores_by_N": {
+        "100": {
+          "worst_cell_coverage": 0.0,
+          "frac_covered_ge1": 0.8857,
+          "frac_meets_req": 0.8828,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 1,
+            "all_electric_flat_london": 1,
+            "solar_ev_battery_owner": 1
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 0.0,
+          "marginal_gain_frac_ge1": 0.8857
+        },
+        "200": {
+          "worst_cell_coverage": 1.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 4,
+            "all_electric_flat_london": 4,
+            "solar_ev_battery_owner": 4
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 1.0,
+          "marginal_gain_frac_ge1": 0.1143
+        },
+        "500": {
+          "worst_cell_coverage": 4.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 13,
+            "all_electric_flat_london": 13,
+            "solar_ev_battery_owner": 13
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 3.0,
+          "marginal_gain_frac_ge1": 0.0
+        },
+        "1000": {
+          "worst_cell_coverage": 10.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 31,
+            "all_electric_flat_london": 31,
+            "solar_ev_battery_owner": 31
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 6.0,
+          "marginal_gain_frac_ge1": 0.0
+        }
+      },
+      "composition_N1000": {
+        "heating_fuel": {
+          "oil": 0.144,
+          "electric": 0.146,
+          "mains_gas": 0.146,
+          "heat_network": 0.139,
+          "lpg_bottled": 0.142,
+          "mixed": 0.142,
+          "other_offgas": 0.141
+        },
+        "region": {
+          "Wales": 0.099,
+          "London": 0.103,
+          "South East": 0.102,
+          "East": 0.098,
+          "East Midlands": 0.098,
+          "North East": 0.103,
+          "North West": 0.098,
+          "South West": 0.098,
+          "West Midlands": 0.097,
+          "Yorkshire and The Humber": 0.104
+        },
+        "tenure": {
+          "social_rent": 0.193,
+          "private_rent": 0.157,
+          "own_mortgage": 0.454,
+          "own_outright": 0.196
+        }
+      }
+    },
+    "1.5": {
+      "collapsibility": {
+        "accommodation__tenure": [
+          "couple",
+          "aggregate not weak (V=0.273)"
+        ],
+        "tenure__cars": [
+          "couple",
+          "aggregate not weak (V=0.303)"
+        ],
+        "tenure__nssec": [
+          "couple",
+          "aggregate not weak (V=0.229)"
+        ],
+        "heating_fuel__region": [
+          "couple",
+          "tail 3.8x >= 1.5x"
+        ],
+        "tenure__region": [
+          "couple",
+          "tail 1.6x >= 1.5x"
+        ]
+      },
+      "n_targets": 1067,
+      "scores_by_N": {
+        "100": {
+          "worst_cell_coverage": 0.0,
+          "frac_covered_ge1": 0.8857,
+          "frac_meets_req": 0.8828,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 1,
+            "all_electric_flat_london": 1,
+            "solar_ev_battery_owner": 1
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 0.0,
+          "marginal_gain_frac_ge1": 0.8857
+        },
+        "200": {
+          "worst_cell_coverage": 1.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 4,
+            "all_electric_flat_london": 4,
+            "solar_ev_battery_owner": 4
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 1.0,
+          "marginal_gain_frac_ge1": 0.1143
+        },
+        "500": {
+          "worst_cell_coverage": 4.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 13,
+            "all_electric_flat_london": 13,
+            "solar_ev_battery_owner": 13
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 3.0,
+          "marginal_gain_frac_ge1": 0.0
+        },
+        "1000": {
+          "worst_cell_coverage": 10.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 31,
+            "all_electric_flat_london": 31,
+            "solar_ev_battery_owner": 31
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 6.0,
+          "marginal_gain_frac_ge1": 0.0
+        }
+      },
+      "composition_N1000": {
+        "heating_fuel": {
+          "oil": 0.144,
+          "electric": 0.146,
+          "mains_gas": 0.146,
+          "heat_network": 0.139,
+          "lpg_bottled": 0.142,
+          "mixed": 0.142,
+          "other_offgas": 0.141
+        },
+        "region": {
+          "Wales": 0.099,
+          "London": 0.103,
+          "South East": 0.102,
+          "East": 0.098,
+          "East Midlands": 0.098,
+          "North East": 0.103,
+          "North West": 0.098,
+          "South West": 0.098,
+          "West Midlands": 0.097,
+          "Yorkshire and The Humber": 0.104
+        },
+        "tenure": {
+          "social_rent": 0.193,
+          "private_rent": 0.157,
+          "own_mortgage": 0.454,
+          "own_outright": 0.196
+        }
+      }
+    },
+    "1.75": {
+      "collapsibility": {
+        "accommodation__tenure": [
+          "couple",
+          "aggregate not weak (V=0.273)"
+        ],
+        "tenure__cars": [
+          "couple",
+          "aggregate not weak (V=0.303)"
+        ],
+        "tenure__nssec": [
+          "couple",
+          "aggregate not weak (V=0.229)"
+        ],
+        "heating_fuel__region": [
+          "couple",
+          "tail 3.8x >= 1.75x"
+        ],
+        "tenure__region": [
+          "cross",
+          "orthogonal(V=0.066) AND tail 1.6x < 1.75x"
+        ]
+      },
+      "n_targets": 1067,
+      "scores_by_N": {
+        "100": {
+          "worst_cell_coverage": 0.0,
+          "frac_covered_ge1": 0.895,
+          "frac_meets_req": 0.8922,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 1,
+            "all_electric_flat_london": 1,
+            "solar_ev_battery_owner": 1
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 0.0,
+          "marginal_gain_frac_ge1": 0.895
+        },
+        "200": {
+          "worst_cell_coverage": 1.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 4,
+            "all_electric_flat_london": 4,
+            "solar_ev_battery_owner": 4
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 1.0,
+          "marginal_gain_frac_ge1": 0.105
+        },
+        "500": {
+          "worst_cell_coverage": 4.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 13,
+            "all_electric_flat_london": 13,
+            "solar_ev_battery_owner": 13
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 3.0,
+          "marginal_gain_frac_ge1": 0.0
+        },
+        "1000": {
+          "worst_cell_coverage": 9.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 28,
+            "all_electric_flat_london": 28,
+            "solar_ev_battery_owner": 28
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 5.0,
+          "marginal_gain_frac_ge1": 0.0
+        }
+      },
+      "composition_N1000": {
+        "heating_fuel": {
+          "oil": 0.143,
+          "electric": 0.143,
+          "mains_gas": 0.143,
+          "heat_network": 0.143,
+          "lpg_bottled": 0.143,
+          "mixed": 0.143,
+          "other_offgas": 0.142
+        },
+        "region": {
+          "Wales": 0.101,
+          "London": 0.105,
+          "South East": 0.101,
+          "East": 0.1,
+          "East Midlands": 0.098,
+          "North East": 0.101,
+          "North West": 0.098,
+          "South West": 0.098,
+          "West Midlands": 0.097,
+          "Yorkshire and The Humber": 0.101
+        },
+        "tenure": {
+          "social_rent": 0.191,
+          "private_rent": 0.154,
+          "own_mortgage": 0.46,
+          "own_outright": 0.195
+        }
+      }
+    },
+    "2.0": {
+      "collapsibility": {
+        "accommodation__tenure": [
+          "couple",
+          "aggregate not weak (V=0.273)"
+        ],
+        "tenure__cars": [
+          "couple",
+          "aggregate not weak (V=0.303)"
+        ],
+        "tenure__nssec": [
+          "couple",
+          "aggregate not weak (V=0.229)"
+        ],
+        "heating_fuel__region": [
+          "couple",
+          "tail 3.8x >= 2.0x"
+        ],
+        "tenure__region": [
+          "cross",
+          "orthogonal(V=0.066) AND tail 1.6x < 2.0x"
+        ]
+      },
+      "n_targets": 1067,
+      "scores_by_N": {
+        "100": {
+          "worst_cell_coverage": 0.0,
+          "frac_covered_ge1": 0.895,
+          "frac_meets_req": 0.8922,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 1,
+            "all_electric_flat_london": 1,
+            "solar_ev_battery_owner": 1
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 0.0,
+          "marginal_gain_frac_ge1": 0.895
+        },
+        "200": {
+          "worst_cell_coverage": 1.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 4,
+            "all_electric_flat_london": 4,
+            "solar_ev_battery_owner": 4
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 1.0,
+          "marginal_gain_frac_ge1": 0.105
+        },
+        "500": {
+          "worst_cell_coverage": 4.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 13,
+            "all_electric_flat_london": 13,
+            "solar_ev_battery_owner": 13
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 3.0,
+          "marginal_gain_frac_ge1": 0.0
+        },
+        "1000": {
+          "worst_cell_coverage": 9.0,
+          "frac_covered_ge1": 1.0,
+          "frac_meets_req": 1.0,
+          "named_worst_hits": {
+            "oil_fuel_poor_rural": 28,
+            "all_electric_flat_london": 28,
+            "solar_ev_battery_owner": 28
+          },
+          "n_targets": 1067,
+          "marginal_gain_worstcell": 5.0,
+          "marginal_gain_frac_ge1": 0.0
+        }
+      },
+      "composition_N1000": {
+        "heating_fuel": {
+          "oil": 0.143,
+          "electric": 0.143,
+          "mains_gas": 0.143,
+          "heat_network": 0.143,
+          "lpg_bottled": 0.143,
+          "mixed": 0.143,
+          "other_offgas": 0.142
+        },
+        "region": {
+          "Wales": 0.101,
+          "London": 0.105,
+          "South East": 0.101,
+          "East": 0.1,
+          "East Midlands": 0.098,
+          "North East": 0.101,
+          "North West": 0.098,
+          "South West": 0.098,
+          "West Midlands": 0.097,
+          "Yorkshire and The Humber": 0.101
+        },
+        "tenure": {
+          "social_rent": 0.191,
+          "private_rent": 0.154,
+          "own_mortgage": 0.46,
+          "own_outright": 0.195
+        }
+      }
+    }
+  }
+}

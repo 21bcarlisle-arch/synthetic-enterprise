@@ -1,0 +1,180 @@
+{
+  "_meta": {
+    "artefact": "cohort_schema",
+    "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20 (stage 3)",
+    "created": "2026-07-20",
+    "status": "design only -- no generator, no microdata",
+    "description": "Permutation space over the factor axes for the nested worst-cell coverage design. Each factor carries provenance (observed|fused|assumed). 'has central heating' DROPPED (near-constant).",
+    "provenance_discipline": "observed=jointly measured in open source; fused=stated CI with measurable-ish shared keys; assumed=crossed conservatively (no basis)",
+    "block": "tenure/accommodation/cars/nssec are the COUPLED observed block (spine=tenure); sampled from the fused block joint P(T)P(A|T)P(C|T)P(S|T), not crossed independently",
+    "fuel_pinning": "heating_fuel is PINNED to region via P(fuel|region); the off-gas tail (oil,lpg,heat_network) is region-specific and never scattered uniformly",
+    "provenance_note_stage3": "solar_PV/EV/price_sensitivity/channel_pref were prior-believed FUSED but the enforced fusion gate (register FUSION_BAR_RESIDUAL_v1) forces ASSUMED (residual unmeasurable). All D/E tech+attitude dims are CROSSED against the observed block -- that is where N is spent, honestly.",
+    "determinism": "Build is deterministic and hash-independent: all set iterations sorted; verified identical output under PYTHONHASHSEED 0 and 1. Nesting = greedy prefix (cohorts[:100] subset [:200] subset [:500] subset [:1000])."
+  },
+  "factors": {
+    "tenure": {
+      "prov": "observed",
+      "group": "block",
+      "levels": [
+        "own_outright",
+        "own_mortgage",
+        "private_rent",
+        "social_rent"
+      ]
+    },
+    "accommodation": {
+      "prov": "observed",
+      "group": "block",
+      "levels": [
+        "detached",
+        "semi",
+        "terraced",
+        "flat",
+        "caravan"
+      ]
+    },
+    "cars": {
+      "prov": "observed",
+      "group": "block",
+      "levels": [
+        "0",
+        "1",
+        "2plus"
+      ]
+    },
+    "nssec": {
+      "prov": "observed",
+      "group": "block",
+      "levels": [
+        "higher",
+        "intermediate",
+        "routine_semi",
+        "unemployed_student"
+      ],
+      "note": "NS-SeC 9-cat banded to 4 for design tractability (open income/class proxy; true income FRS-gated)"
+    },
+    "heating_fuel": {
+      "prov": "observed",
+      "group": "fuel",
+      "levels": [
+        "mains_gas",
+        "mixed",
+        "electric",
+        "oil",
+        "lpg_bottled",
+        "heat_network",
+        "other_offgas"
+      ],
+      "note": "Census TS046 12-cat banded to 7; 'has central heating' DROPPED as a dimension (near-constant 98.5%)"
+    },
+    "region": {
+      "prov": "observed",
+      "group": "geo",
+      "levels": [
+        "South East",
+        "London",
+        "North West",
+        "East",
+        "South West",
+        "West Midlands",
+        "Yorkshire and The Humber",
+        "East Midlands",
+        "Wales",
+        "North East"
+      ]
+    },
+    "green_stance": {
+      "prov": "assumed",
+      "group": "attitude",
+      "levels": [
+        "engaged",
+        "neutral",
+        "disengaged"
+      ],
+      "note": "attitudes never openly observed jointly with fabric/tech -> crossed (assumed), per ruling"
+    },
+    "price_sensitivity": {
+      "prov": "assumed",
+      "group": "attitude",
+      "levels": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "note": "fused onto income-proxy (nssec+tenure) under stated CI; residual UNMEASURABLE -> declared risk | RECLASSIFIED fused->assumed by the enforced fusion gate (residual unmeasurable = no positive evidence = cross)."
+    },
+    "channel_pref": {
+      "prov": "assumed",
+      "group": "engagement",
+      "levels": [
+        "digital",
+        "phone",
+        "assisted"
+      ],
+      "note": "fused onto age band; residual unmeasurable -> declared risk | RECLASSIFIED fused->assumed by the enforced fusion gate (residual unmeasurable = no positive evidence = cross)."
+    },
+    "solar_PV": {
+      "prov": "assumed",
+      "group": "tech",
+      "levels": [
+        "yes",
+        "no"
+      ],
+      "note": "fused onto tenure+dwelling+region (MCS area density); residual unmeasurable | RECLASSIFIED fused->assumed by the enforced fusion gate (residual unmeasurable = no positive evidence = cross)."
+    },
+    "EV": {
+      "prov": "assumed",
+      "group": "tech",
+      "levels": [
+        "yes",
+        "no"
+      ],
+      "note": "DfT VEH0135 area-level only; fused onto region+tenure+income; residual unmeasurable | RECLASSIFIED fused->assumed by the enforced fusion gate (residual unmeasurable = no positive evidence = cross)."
+    },
+    "home_battery": {
+      "prov": "assumed",
+      "group": "tech",
+      "levels": [
+        "yes",
+        "no"
+      ],
+      "note": "co-ownership tail unobservable -> crossed (assumed), the honest default per ruling"
+    }
+  },
+  "block_support_size": 201,
+  "block_support_floor": 0.0001,
+  "named_worst_cells": [
+    {
+      "name": "oil_fuel_poor_rural",
+      "cell": {
+        "heating_fuel": "oil",
+        "region": "Wales",
+        "tenure": "social_rent",
+        "accommodation": "detached",
+        "nssec": "unemployed_student"
+      }
+    },
+    {
+      "name": "all_electric_flat_london",
+      "cell": {
+        "heating_fuel": "electric",
+        "accommodation": "flat",
+        "region": "London",
+        "tenure": "private_rent"
+      }
+    },
+    {
+      "name": "solar_ev_battery_owner",
+      "cell": {
+        "solar_PV": "yes",
+        "EV": "yes",
+        "home_battery": "yes",
+        "tenure": "own_mortgage",
+        "accommodation": "detached",
+        "nssec": "higher",
+        "green_stance": "engaged"
+      }
+    }
+  ],
+  "worst_cell_redundancy": 3
+}
