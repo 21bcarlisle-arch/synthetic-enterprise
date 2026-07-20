@@ -165,6 +165,49 @@ def test_compute_durations_drops_non_positive_gaps():
     assert compute_durations(transitions) == []
 
 
+def test_compute_durations_excludes_demotion_reverts():
+    # A demotion (level revert -- e.g. fronts_reconciler reverting a
+    # self-promotion, as BRAND1 L3->L2 and SITE1 L2->L1 did at 120h+ in this
+    # repo's real history) is NOT build effort toward a level; it must not be
+    # counted, or those reverts dominate the lane max/mean. Only the strict
+    # rise (L1->L2) survives.
+    transitions = [
+        _t("X5_atom", "H_harness", 1, "sha1", 1000),
+        _t("X5_atom", "H_harness", 2, "sha2", 1000 + 3600 * 3),   # rise, kept
+        _t("X5_atom", "H_harness", 1, "sha3", 1000 + 3600 * 100),  # demotion, dropped
+    ]
+    durations = compute_durations(transitions)
+    assert len(durations) == 1
+    assert durations[0]["from_level"] == 1
+    assert durations[0]["to_level"] == 2
+    assert durations[0]["hours"] == pytest.approx(3.0, abs=0.01)
+
+
+def test_compute_durations_counts_rework_after_revert_but_not_the_revert():
+    # Demotion then re-promotion: the revert itself (L3->L2) is dropped, but
+    # the effort to RE-reach L3 from the reverted L2 (real rework) is counted.
+    transitions = [
+        _t("X6_atom", "H_harness", 3, "sha1", 1000),                # first anchor
+        _t("X6_atom", "H_harness", 2, "sha2", 1000 + 3600 * 50),    # revert, dropped
+        _t("X6_atom", "H_harness", 3, "sha3", 1000 + 3600 * 54),    # re-reach L3, kept
+    ]
+    durations = compute_durations(transitions)
+    assert len(durations) == 1
+    assert durations[0]["from_level"] == 2
+    assert durations[0]["to_level"] == 3
+    assert durations[0]["hours"] == pytest.approx(4.0, abs=0.01)
+
+
+def test_compute_durations_drops_same_level_reaffirmation():
+    # An atom's level restated with no rise (L3 -> L3 across two commits) is an
+    # idle re-statement, not effort -- dropped, same as a demotion.
+    transitions = [
+        _t("X7_atom", "H_harness", 3, "sha1", 2000),
+        _t("X7_atom", "H_harness", 3, "sha2", 2000 + 3600 * 8),
+    ]
+    assert compute_durations(transitions) == []
+
+
 def test_compute_durations_out_of_order_input_is_sorted():
     transitions = [
         _t("X4_atom", "C_customer_ops", 2, "sha_later", 5000),

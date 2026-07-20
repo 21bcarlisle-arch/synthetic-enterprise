@@ -121,12 +121,30 @@ This is a genuine computed distribution from git-timestamped actuals, not a
 mock — reproducible via `python3 -m tools.effort_calibration --json`.
 
 **Known limitation (documented, not hidden):** commit-subject parsing is
-heuristic (regex over free-text prose, not a structured log). One short code
-is ambiguous in this repo's real history (`F5`, shared by two atoms) and is
-excluded rather than guessed. A commit that bundles a transition mention
-without the `->L<n>` arrow syntax (e.g. prose-only mentions) is not counted.
-This under-counts rather than over-counts, which is the safe failure
-direction for a DIAL/diagnostic tool (per §5).
+heuristic (regex over free-text prose, not a structured log). Several short
+codes are ambiguous in this repo's real history (`F5`, `G1`, `G2`, `G3`,
+`H23`, `H24`, `H27`, `OPS1` — each shared by two atoms) and are excluded
+rather than guessed. A commit that bundles a transition mention without the
+`->L<n>` arrow syntax (e.g. prose-only mentions) is not counted. This
+under-counts rather than over-counts, which is the safe failure direction for
+a DIAL/diagnostic tool (per §5).
+
+**Demotion/revert exclusion (2026-07-20 HARDEN, red-team of the AT-target
+atom):** the safe-failure-direction claim above was being *violated* by a real
+case — `compute_durations` counted every consecutive transition pair as
+positive elapsed cost, including DEMOTIONS. Two live level reverts
+(`BRAND1_identity_system` L3->L2 and `SITE1_expert_doors` L2->L1, both from the
+fronts_reconciler reverting self-promotions) landed at ~123h and ~121h and were
+dominating the `H_harness` lane `max`/`mean`, and non-progress pairs were
+dragging the `L` size-band median to an implausible ~0.6h. A demotion is time
+the atom SAT at the higher level before reverting — not build effort toward a
+level — so `compute_durations` now keeps only a STRICT rise
+(`cur.to_level > prev.to_level`). The effort to RE-reach a level after a revert
+(the demotion→re-promotion pair, genuine rework) is still counted; the revert
+itself is not. This restores the honest under-count invariant, now enforced by
+`test_compute_durations_excludes_demotion_reverts` /
+`_counts_rework_after_revert_but_not_the_revert` /
+`_drops_same_level_reaffirmation` (mechanism, not just prose — MAKE_IT_STICK).
 
 ## 5. THE GUARDRAIL — dial, not a wall (non-negotiable)
 

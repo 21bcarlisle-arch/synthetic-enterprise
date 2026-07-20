@@ -1,0 +1,118 @@
+{
+  "_meta": {
+    "artefact": "population_fusion_assumptions_register",
+    "track": "DIRECTOR_STEER_POPULATION_COVERAGE_DESIGN_2026-07-20",
+    "created": "2026-07-20",
+    "stage": "2 (scaffold) -- ruling recorded; entries below are HYPOTHESES from stage-1 priors, not fetched data",
+    "authority": "director ruling in DIRECTOR_STEER_COVERAGE_STAGE2_FUSION_CALL_2026-07-20.md",
+    "ruling_summary": "Conservative crossing by default (taxonomy option c). Fusion (option b) ONLY where there is positive evidence for the conditional structure, never as a convenience. Every cell/dimension-pair carries provenance (observed|fused|assumed). Every fusion assumption is a TESTABLE HYPOTHESIS recorded here with an explicit refutation condition, not a settled fact.",
+    "provenance_values": {
+      "observed": "the pair is directly observed jointly in a real open source (taxonomy a) -- use it",
+      "fused": "the pair is reached by statistical fusion under a stated conditional-independence assumption (taxonomy b) -- allowed ONLY with positive evidence for the conditional structure; a declared fidelity risk, must appear in the fidelity ledger",
+      "assumed": "no basis to observe or defensibly fuse (taxonomy c) -- crossed by the coverage design and treated as independent-by-necessity; pay the N cost; the honest default"
+    },
+    "entry_schema": {
+      "pair": "[dimA, dimB] -- the two dimensions whose joint structure this entry concerns",
+      "provenance": "observed | fused | assumed (see provenance_values)",
+      "prior_belief": "the stage-1 prior about the association (from landscape doc section 4), NOT a measured value",
+      "conditional_independence_assumption": "if provenance=fused: the exact CI assumption relied on (the shared keys the fusion conditions on); null otherwise",
+      "shared_keys": "keys the fusion matches on (region, tenure, dwelling_type, income_band, age); null if not fused",
+      "refutation_condition": "the concrete observation that would REFUTE this entry -- what a real household-level check (shadow-billing volunteer track / counterfactual twin) would have to show to prove the assumption wrong. REQUIRED for every fused/assumed entry.",
+      "test_bed": "where the refutation test would run (shadow_billing_volunteers | counterfactual_twin | published_crosstab_when_available)",
+      "status": "hypothesis (scaffold) | evidenced (stage 3 populated from a real cross-tab) | tested (checked against households)",
+      "fidelity_ledger_ref": "id in the fidelity evidence ledger once a fused entry is committed as a declared risk; null until then"
+    },
+    "hard_boundary": "No personal microdata. Entries are populated from published aggregates/cross-tabs only. Refutation tests use the shadow-billing VOLUNTEER track (consented) or the counterfactual-twin machinery, never obtained unit records.",
+    "notes": "Entries below are seeded from the landscape doc section 4 'prior expectations to test, not assert'. They are HYPOTHESES (status=hypothesis) so stage 3 can attach the real measured association and flip status to evidenced without re-authoring the structure -- this is the 'design so it is cheap later' the ruling asks for. No association value here is measured."
+  },
+  "entries": [
+    {
+      "pair": ["tenure", "fabric"],
+      "provenance": "observed",
+      "prior_belief": "strong -- owner-occupied stock skews to houses/better fabric; social/private-rented skews to flats/poorer fabric",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "refutation_condition": "EHS/Census published cross-tab of tenure x dwelling-type x SAP band shows Cramer's V < 0.15 (effectively independent) -- would refute the 'strong' prior and mean the design must cross them rather than collapse.",
+      "test_bed": "published_crosstab_when_available",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["heating_fuel", "region"],
+      "provenance": "observed",
+      "prior_belief": "strong -- off-gas-grid regions (rural Scotland/Wales/SW) force electric/oil/LPG; urban regions gas-dominant",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "refutation_condition": "Census 2021 central-heating-type x region cross-tab shows near-uniform fuel mix across regions (Cramer's V < 0.15) -- would refute and require crossing.",
+      "test_bed": "published_crosstab_when_available",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["EV_ownership", "income"],
+      "provenance": "fused",
+      "prior_belief": "moderate -- plug-in ownership concentrated in higher income deciles",
+      "conditional_independence_assumption": "given region and tenure, EV ownership rate depends on income band only (DfT VEH0 regional marginals fused onto income via the income x region key)",
+      "shared_keys": ["region", "tenure", "income_band"],
+      "refutation_condition": "A consented household check where EV ownership within a fixed (region, tenure, income_band) cell varies materially by a dimension NOT in the keys (e.g. household composition / number of drivers) -- would show the CI assumption drops real structure and the fusion mis-locates EVs.",
+      "test_bed": "counterfactual_twin",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["solar_PV", "tenure"],
+      "provenance": "fused",
+      "prior_belief": "strong -- PV requires roof control; concentrated in owner-occupiers, near-absent in rented flats",
+      "conditional_independence_assumption": "given dwelling_type and tenure, PV presence follows regional MCS install density (MCS dashboard postcode-area counts fused onto owner-occupied houses)",
+      "shared_keys": ["region", "tenure", "dwelling_type"],
+      "refutation_condition": "MCS-linked or consented data showing material PV incidence in social/private rented or flats within a region -- would refute the 'roof control gates PV' structure the fusion assumes.",
+      "test_bed": "shadow_billing_volunteers",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["green_stance", "solar_PV"],
+      "provenance": "assumed",
+      "prior_belief": "correlated beyond what income+tenure explain -- the landscape doc (section 5) names this as exactly where a naive CI fusion is likely WRONG",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "refutation_condition": "This pair is DELIBERATELY not fused: attitudes are never openly observed jointly with tech (landscape section E gap). It is crossed (assumed independent-by-necessity). Refutation of the crossing = a consented source showing green-stance predicts PV ownership after conditioning on income+tenure, at which point it should be PROMOTED to a fused entry with that structure -- the opposite direction to the others.",
+      "test_bed": "shadow_billing_volunteers",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["price_sensitivity", "income"],
+      "provenance": "fused",
+      "prior_belief": "strong -- lower income => higher price sensitivity; proxy elasticities already in churn_price_elasticity.md",
+      "conditional_independence_assumption": "given income band and tenure, price sensitivity follows the elasticity proxy (no clean open microdata source for price sensitivity -- landscape section E gap)",
+      "shared_keys": ["income_band", "tenure"],
+      "refutation_condition": "Consented behavioural data (switching response to a price change) where within-cell price sensitivity varies strongly by an unfused dimension (e.g. green-stance or prior-supplier trust) -- would show income+tenure under-determine sensitivity.",
+      "test_bed": "counterfactual_twin",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["channel_preference", "age"],
+      "provenance": "fused",
+      "prior_belief": "moderate -- older households skew to phone/post, younger to app/web",
+      "conditional_independence_assumption": "given age band, channel preference follows PAT/Ofgem coarse-demographic marginals (no joint of channel-pref with fabric/tech exists -- landscape section E gap)",
+      "shared_keys": ["age_band"],
+      "refutation_condition": "Consented interaction data where channel preference within an age band varies materially by region/tenure/digital-access -- would show age alone under-determines it.",
+      "test_bed": "shadow_billing_volunteers",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    },
+    {
+      "pair": ["EV_ownership", "solar_PV", "home_battery"],
+      "provenance": "assumed",
+      "prior_belief": "the high-value tail -- household-level co-ownership is essentially unobservable in open data (landscape section D honest gap); this is where the money and the mortality live",
+      "conditional_independence_assumption": null,
+      "shared_keys": null,
+      "refutation_condition": "Per the ruling, the two errors are asymmetric: a false CI fusion here would systematically misrepresent the joint tail and everything downstream would learn it as true. So this triple is CROSSED (assumed), not fused, until positive evidence for the conditional structure exists. Refutation of the crossing = a consented or commercial-panel-derived source establishing real co-ownership conditional structure, at which point it may be promoted to fused with that explicit structure.",
+      "test_bed": "shadow_billing_volunteers",
+      "status": "hypothesis",
+      "fidelity_ledger_ref": null
+    }
+  ]
+}

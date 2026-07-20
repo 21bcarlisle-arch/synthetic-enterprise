@@ -1,10 +1,20 @@
-> **[PARKED — in_progress, learning loop, 2026-07-20]** Stage 1 (source landscape) COMPLETE and
-> committed: `docs/market_research/POPULATION_COVERAGE_SOURCE_LANDSCAPE.md`.
-> **Open sub-item blocking stage 2:** the FETCH stage needs (a) a network-capable session and (b) a
-> director/advisor steer on §5 — how hard to push statistical fusion for the high-value D×(A/B/E) tails
-> vs conservatively crossing them. Autonomous ticks have no network, so stage 2 does not auto-proceed.
-> **Unblocks when:** either the director/advisor replies to §5, or an interactive/network session runs
-> the stage-2 fetch plan (§7.1). Not a wall — a stage boundary in a deliberately staged loop.
+> **[PARKED — in_progress, learning loop, updated 2026-07-20 by autonomous tick]** Stage 1 (source
+> landscape) COMPLETE and committed: `docs/market_research/POPULATION_COVERAGE_SOURCE_LANDSCAPE.md`.
+> **§5 fusion decision: ANSWERED** by `DIRECTOR_STEER_COVERAGE_STAGE2_FUSION_CALL_2026-07-20.md`
+> (archived to done/). Ruling: conservative crossing by default (taxonomy c); fusion (b) only with
+> positive evidence for the conditional structure; every cell tagged observed|fused|assumed; every
+> fusion assumption recorded as a TESTABLE HYPOTHESIS with an explicit refutation condition.
+> **Network-free part of stage 2 DONE this tick:** the ruling's "design so this is cheap later"
+> deliverable — the machine-readable assumptions register with refutation conditions per fusion pair —
+> is built + committed: `docs/market_research/population_fusion_assumptions_register.json` (8 seeded
+> hypotheses from the stage-1 priors; no fetched data invented).
+> **Open sub-item STILL blocking stage 2:** the FETCH itself (§7.1) needs a network-capable session —
+> autonomous ticks have no network (WebFetch/curl denied with no interactive user present), so the
+> fetch-and-cache does not auto-proceed. This is the ONLY remaining blocker; the steer and the register
+> schema are ready for stage 3 to populate.
+> **Unblocks when:** an interactive/network session runs the stage-2 fetch plan (§7.1), then stage 3
+> populates the register entries (status hypothesis → evidenced) from the fetched published cross-tabs.
+> Not a wall — a stage boundary in a deliberately staged loop.
 
 ---
 

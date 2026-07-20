@@ -231,7 +231,21 @@ def compute_durations(transitions: list[LevelTransition]) -> list[dict]:
     recorded transition has no prior anchor in this history and yields no
     duration -- we never guess a start time. Same-commit / non-positive gaps
     (two transitions landed in one commit, or the rare rebased/backdated
-    commit) are dropped rather than counted as zero or negative cost."""
+    commit) are dropped rather than counted as zero or negative cost.
+
+    NON-PROGRESS transitions are dropped, not counted as effort: a DEMOTION
+    (a level revert -- fronts_reconciler reverting a self-promotion, e.g.
+    BRAND1 L3->L2 or SITE1 L2->L1, both observed in this repo's real history at
+    120h+) or a same-level re-affirmation (L3 mentioned again with no rise) is
+    NOT build effort toward a level -- it is time the atom SAT at the higher
+    level before reverting, or an idle re-statement. Counting it inflates the
+    actual distribution (the two real 120h+ reverts otherwise dominate the
+    H_harness max/mean and drag the L size-band median toward noise). Only a
+    STRICT rise (`cur.to_level > prev.to_level`) is kept -- so the effort to
+    RE-reach a level after a revert (the demotion-then-repromotion pair, real
+    rework) is still counted, while the revert itself is not. This keeps the
+    tool's stated failure direction honest: it under-counts (drops ambiguous
+    non-progress), never over-counts (design doc section 4)."""
     by_atom: dict[str, list[LevelTransition]] = defaultdict(list)
     for t in transitions:
         by_atom[t.atom_id].append(t)
@@ -243,6 +257,8 @@ def compute_durations(transitions: list[LevelTransition]) -> list[dict]:
             hours = (cur.timestamp - prev.timestamp) / 3600.0
             if hours <= 0:
                 continue
+            if cur.to_level <= prev.to_level:
+                continue  # demotion/revert or re-affirmation -- not build effort
             durations.append(
                 {
                     "atom_id": atom_id,
