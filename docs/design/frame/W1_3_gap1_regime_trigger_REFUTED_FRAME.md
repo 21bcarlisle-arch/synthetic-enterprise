@@ -63,6 +63,39 @@ DEPENDENCE of the innovations. This is a real, bounded, higher-blast-radius engi
   suite; some golden-value tests will shift and need re-baselining (why this is its own focused rung,
   not a tail-of-turn edit).
 
+## UPDATE 2026-07-20 (cont.) — the copula redirect ALSO refuted; the real mechanism PINNED + a fix VALIDATED
+
+Pursuing the redirect above (a fatter-tailed innovation copula), I measured two more things:
+
+1. **Symmetric fat-tailed innovations — REFUTED.** An honest MLE fit of a multivariate-t on the real
+   (temp, wind) AR1 innovations gives **df ≈ 30.6** (nearly Gaussian; excess kurtosis only 1.0/0.2).
+   To reproduce the output D1 lift via symmetric-t innovations would need df ≈ 3 — but the real
+   innovations are NOT that fat-tailed. Forcing df ≈ 3 to hit the output metric would be fabricating
+   tail dependence the data doesn't have (R12 goal-seek). So a symmetric-t copula does not honestly
+   close the gap either.
+
+2. **The mechanism, PINNED (with evidence).** The real innovations DO have strong *asymmetric
+   lower-tail* dependence (winter innovation lower-tail lift = **3.149**), and the driver is a
+   **SEASON-DEPENDENT correlation**: the temp/wind innovation correlation is **+0.528 in winter vs
+   +0.178 non-winter** (all-year +0.300). The current engine fits a single (wind-magnitude-regime)
+   covariance carrying roughly the all-year correlation, so it under-produces the winter coupling.
+   The symmetric-t MLE missed this precisely because the dependence is asymmetric + seasonal, not
+   symmetric-fat-tailed.
+
+3. **A fix, VALIDATED.** A **season-conditioned innovation covariance** (a cold-season covariance with
+   the +0.528 winter correlation, a warm-season covariance otherwise) reproduces the real winter joint
+   tail: simulated D1 lift = **2.883**, well within the real block-bootstrap CI [1.54, 3.38] (vs the
+   Gaussian all-year ~1.77 near the bottom of the band). Big improvement, right side of real.
+
+**So the real gap-1 fix is a season-conditioned (not wind-magnitude) innovation covariance, NOT a
+trigger and NOT symmetric fat tails.** Left as its own focused BUILD rung because it is a
+regime-STRUCTURE change (the innovation covariance switches on season, replacing or augmenting the
+wind-magnitude Markov regime — a design choice: calendar-season vs preserve-the-Markov-jump-plus-
+seasonal-correlation) with a real downstream blast radius (the innovation distribution changes → some
+seeded golden-value sim tests re-baseline). DoD unchanged: the sim D1 lift lands in the real CI AND
+the show-the-tail envelope passes; a mutation back to the single all-year covariance drops the lift to
+~1.77 and fails.
+
 ## Value of this pass
 
 A director-steered mechanism (regime trigger), IMPLEMENTED and MEASURED, does not close the gap — and
