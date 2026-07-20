@@ -399,3 +399,158 @@ proof fails is not merged, full stop.
   deliberately hard to trigger by accident). Complements the existing composition-only
   `tools/generate_test_mix_data.py` (counts per area) with duration (time per area / dominant
   tests) — neither tool changes any gate.
+
+---
+
+## 7. UPDATE 2026-07-20 — un-park, re-measure, and the sharpened priority
+
+The director un-parked this regime (`DIRECTOR_STEER_UNPARK_TEST_THROUGHPUT_2026-07-20.md`) with a
+**re-ordering of the priority**: do the population-scale-sensitive parts FIRST — (1) impact-based/
+predictive selection, (2) the stochastic/deterministic split — because the value-frontier/
+segmentation programme heads toward larger populations and test time re-becomes the ceiling exactly
+as customers scale. Cadence-tiering (§3–§4) and the structural wins drop to lower priority.
+
+### 7.1 Fresh measurement (this environment, 2026-07-20)
+
+| Metric | §1 (2026-07-19) | Now (2026-07-20) | Note |
+|---|---|---|---|
+| Tests collected (`tests/`) | 19,082 | **19,359** | +277 in one day — the growth the steer predicts |
+| Test files under `tests/` (`test_*.py`) | ~961 | **982** | the selection universe |
+| `coverage`/`pytest-cov` installed | no | **no (re-verified)** | coverage-based TIA remains unavailable → static import graph is the dependency-free path |
+| `pytest-xdist` installed | no | **no** | Step 4/5 still need the requirements add |
+| Cores / RAM | 16 / 15GiB (~4.3GiB free) | 16 / 15GiB (~7.5GiB free now) | box less loaded at this measurement; the §3.4 heavy-tier cap is still the safe default (re-measure per box) |
+
+The §1.2 finding holds: wall-clock is dominated by a handful of individual full-decade-`main()`
+tests, not spread across the ~19k. Nothing in the re-measurement contradicts §1–§6; those numbers
+stand. **This section ADDS the impact-selection layer the sharpened priority puts first.**
+
+### 7.2 Reconciling with §2's earlier ranking (why impact-selection moved up)
+
+§2 explicitly put test-impact-analysis *outside* the top 3, on two grounds: it needs
+`coverage`/`pytest-cov` (absent), and company's 12k tests already run in ~3s so a subset "saves
+little." **The director's re-order overrides the second ground on a forward-looking basis** — the
+argument is not "it saves time today" but "its benefit GROWS with suite/population size, and the
+programme is deliberately growing them." That is a values/sequencing call (the director's), logged
+here rather than silently absorbed. The first ground (no coverage) is met by using a **static import
+graph** instead of a coverage map — see §8. §2's cheaper convention-map point still stands and is
+now shown to be *insufficient on its own* (§8.2): the filename map misses transitive couplings a
+real regression travels along.
+
+### 7.3 The deterministic/stochastic split — DESIGN (priority #2, not landed this turn)
+
+Unchanged in intent from §1.4 + §3.2; restated here as the next increment after §8, with its own
+commit and R15 proof. Concretely, in sequence:
+- **S1 (label):** a one-file-at-a-time manual triage of the 48 direct-randomness-signal files
+  (§1.4) → `@pytest.mark.stochastic` on the genuinely-unseeded-sampling subset. Pure annotation,
+  no behaviour change; correctness check is `pytest --collect-only -m stochastic` returns exactly
+  the intended set. (Mislabelling a flaky test as deterministic is worse than not labelling — hence
+  manual, not a grep sweep.)
+- **S2 (decouple):** the ONE hard rule — a `stochastic`-marked failure can never gate the fast or
+  integration tier, the same decoupling shape `operational` already proves. R15 proof mirrors
+  `tests/background/test_publish_gate_scope.py`: inject a defect into a `stochastic`-marked test's
+  logic, confirm (a) the deterministic gate stays green/un-wedged, (b) the stochastic cadence signal
+  goes red. This is the "a stochastic run neither wedges a deterministic gate nor drowns
+  failure-prediction in noise" requirement, mechanised.
+- **S3 (bound):** `stochastic`-marked tests assert with a statistical band (per R12 anchoring), not
+  an exact value — a review criterion for new tests, not a mass rewrite. Genuinely flaky tests get
+  `@pytest.mark.flaky` and are quarantined out of any future flake/impact signal — never silently
+  retried. This is the direct enabler for impact-selection at the *test level* later: the import
+  graph selects at file granularity today (§8.3); a failure-history predictive model (steer's
+  "predictive selection") is only trustworthy once the stochastic population is separated out, or
+  the noise dominates the model — so **the split is a PREREQUISITE for predictive selection, and is
+  correctly sequenced second, immediately after the graph-based selector lands.**
+
+---
+
+## 8. LANDED 2026-07-20 — impact-based selection via a static import graph (increment #1)
+
+Per the steer's "design + a first safe increment" and the non-negotiable "land at most MEASUREMENT
++ ONE incremental step as an OPT-IN that doesn't yet replace any gate," this turn landed exactly one
+mechanism: **`tools/select_impacted_tests.py`** + its R15 proof
+**`tests/tools/test_select_impacted_tests.py`**. No gate, marker, requirements file, or existing
+selection tool is changed. Nothing in the repo calls the new tool — it is opt-in.
+
+### 8.1 What it does
+
+Given a set of changed files (from `git diff`, or passed explicitly), it builds a static import
+graph over the repo's Python roots (`background/ company/ saas/ sim/ simulation/ interface/ tools/
+tests/ functions/` — `site/` excluded, it owns its own lane) and returns the set of `tests/**` files
+whose **transitive import closure** reaches any changed module. `--run` runs pytest on exactly that
+set; default prints it (`--json` for machine use). Graph build ≈ 2s; the tool is read-only.
+
+### 8.2 Why the import graph, not the existing convention map (measured)
+
+The existing `pre_commit_test_gate.py::tests_for()` maps `X.py → tests/**/test_X.py` by filename. For
+a change to `company/interfaces/bitemporal_event_log.py` that map selects **1** test file. The import
+graph selects **137** — including `tests/company/billing/test_account_ledger.py`, which exercises the
+event log transitively and which the filename map does not see. **A real regression in the event log
+that breaks billing is invisible to the convention map and caught by the import graph.** That is the
+gap this increment closes.
+
+### 8.3 Measured selectivity (the payoff the steer is after)
+
+Selection size scales with how widely a module is used — leaves narrow hard, hubs broaden honestly:
+
+| Changed module | Impacted test files | of 982 |
+|---|---|---|
+| `company/pricing/tou_product_launch.py` (leaf) | 1 | 0.1% |
+| `company/billing/annual_statement.py` | 1 | 0.1% |
+| `company/interfaces/sim_interface.py` | 42 | 4.3% |
+| `background/notify.py` (alarm hub) | 43 | 4.4% |
+| `saas/reporting/annual_report.py` | 105 | 10.7% |
+| `company/interfaces/bitemporal_event_log.py` | 137 | 14.0% |
+| `sim/gas_prices_history.py` | 177 | 18.0% |
+
+A typical atom-level edit touches a mid/leaf module → runs single-digit-percent of the suite in its
+inner loop instead of the whole tree; a hub change correctly stays broad. This is the mechanism that
+turns "a fork manually runs `pytest tests/sim tests/simulation` and eats 84 minutes" into "run the
+tests this change provably reaches," with the full suite still the cadence net.
+
+### 8.4 FAIL-SAFE direction (the whole safety argument)
+
+A selection tool's only real danger is under-selection (dropping the test that would have caught a
+regression). The tool is conservative by construction: **any changed path that is not a graph-
+mappable repo `.py` module** (a JSON ledger, config, site file, a `.py` outside the analysed roots)
+makes the whole selection UNSAFE-TO-NARROW → it returns the FULL-SUITE sentinel, and `--run` then
+runs `tests/` (minus `operational`, matching the publish gate). The failure mode is "run too much,"
+never "run too little." Static analysis cannot see dynamic imports (`importlib`, string module
+names) — documented as a known limit; the full suite on a cadence (non-negotiable #6) is the net for
+exactly that class.
+
+### 8.5 R15 mutation proof (a real regression is still caught)
+
+`tests/tools/test_select_impacted_tests.py` — 7 tests, all green (2.4s). The core proof
+(`test_mutation_selected_subset_goes_red`) builds a synthetic repo where a test guards a production
+module *transitively* (through an intermediate module — the exact case the filename map misses),
+then: (1) asks the selector for the impacted set, (2) confirms the guarding test is IN it, (3) runs
+ONLY that selected set and confirms GREEN, (4) injects a real regression into the production module
+(`return 25 → return 99`), (5) runs the SAME selected set and confirms it goes RED. That is the R15
+demonstration that selection did not drop the guard — the regression is caught by exactly the set the
+selector returns, nothing else run. Companion tests prove the fail-safe: a non-`.py` change and a
+mixed change with one unmappable path both fall back to the full suite. (During authoring, a
+same-second-mtime stale `.pyc` first masked the mutation — fixed with `PYTHONDONTWRITEBYTECODE=1` in
+the subprocess; a harness artifact, not a selector property, but worth recording as the kind of thing
+that makes a mutation proof lie if unnoticed.)
+
+### 8.6 Revert path
+
+Delete the two new files. Nothing imports them, no gate references them, no requirements changed —
+the repo's behaviour is provably identical with them absent. This is the cleanest possible revert:
+the increment is purely additive.
+
+### 8.7 Remaining sequence (each its own commit + revert, R15 before merge)
+
+1. **Deterministic/stochastic split** (§7.3 S1→S3) — priority #2; PREREQUISITE for any failure-
+   history predictive selection. Land next.
+2. **Wire impact-selection into a fork's OPT-IN inner loop** — a `--impact` flag on the fork
+   self-verify path (never the publish gate), so a fork *chooses* the narrow run and the integration
+   tier remains the net. Still not a gate change.
+3. **Steps 1–7 of §4** (label heavy tests → fix the two isolation bugs → `full_fidelity` cadence
+   signal → xdist → parallel heavy tier → simulate-once-assert-many → extended changed-file mapping)
+   — the cadence-tiering track, now correctly LOWER priority than 1–2 above per the re-order.
+4. **Predictive/failure-history selection** — only after the stochastic split (else noise dominates
+   the model); layers a "which tests most likely fail given this change" ranking on top of the graph
+   selection. Largest investment, explicitly last.
+
+**Nothing above is taken without its own passing R15 mutation proof; the full suite runs on a cadence
+at every step (non-negotiable #6).**
