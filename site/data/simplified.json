@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T09:44:19Z",
+  "generated_at": "2026-07-20T09:59:03Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -513,7 +513,7 @@
         {
           "atom_id": "D_cascade_correlation_estimation",
           "atom_name": "Cascade correlation estimation method: nature + strength of each cascade link estimated from data (joint-tail before marginal), one portable tail-dependence statistic making every coupling R15-mutation-testable; asserted-not-estimated registered as simplifications",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-19 AUTHORED into the map (orchestrator landing act; the DISCOVER doc is doc-only and defers the maturity_map edit) from EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md (6a47b1172), per DIRECTOR_DIRECTIVE_SEAT_WORK_AND_CONTINUITY_PROOF_2026-07-19. In-region of the OPEN EPOCH2_CAMPAIGN front (lane G_data_learning). L0 -> BUILD: the joint-tail estimation protocol (chi/chi-bar tail-dependence + copula fit + lag-k persistence) over the dependence inventory D1..D8, each estimate reported WITH its finite-u threshold; anti-marking-own-homework wall (fit on the record, validate the generator against it; C-S2 replayable). Upstream SSP ~10x recal already LANDED (TASK 1, a2dd6dcac) so cascade MAGNITUDE is unblocked. Every asserted-not-estimated link registered as an R10 simplification. NO level claimed.",
@@ -1171,7 +1171,7 @@
         {
           "atom_id": "W1_3_national_weather_signal",
           "atom_name": "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-20 GAP 1 FIX BUILT + VALIDATED + SHIPPED (the season-conditioned covariance, now in sim/weather_engine.py). fit_national_macro_model fits the innovation covariance CONDITIONALLY on season (cold-season Dec-Feb cov carrying the +0.53 winter temp/wind coupling, warm-season cov otherwise); simulate_national_macro selects it by the day ACTUAL calendar season (not a Markov-random block). R13 BASELINE FIDELITY (blind to P&L). VALIDATED: simulated winter D1 decile lift 2.875, within the real CI [1.54,3.38] (was ~1.77); MARGINALS PRESERVED (temp mean 10.20 vs 10.15, wind std 1.54 vs 1.54 -- only the joint tail dependence changed); show-the-tail envelope reaches real (reach 12->32pct). ZERO downstream blast radius verified: engine 28 (incl. a new R15 fidelity+mutation test) + tail-demo 10 + demand_model 20 + weather-sensitive phases + tests/sim 767 + run_phase2b integration 20, all green; epistemic PASS. GAP 1 + GAP 2 (show-the-tail) now CLOSED. L3 PROPOSED: level_current NOT moved (section 0); blocked_on director_level_up -- the L3 remainder is NOT agent-buildable (gap-3 independent published validator anchor needs a network/data session; the coupled-triad company-vs-truth gap + the director Expert-Hour are director-gated). Removed the wind-magnitude regime + regime_threshold (no external consumers).",
@@ -1189,7 +1189,7 @@
         {
           "atom_id": "W1_4_regional_weather_field",
           "atom_name": "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L2, conditional on L1. Spatial correlation: neighbouring regions covary (Cornwall and Aberdeen are NOT independent draws) -- a distance-keyed covariance field. AGGREGATION CONSISTENCY is the feasible-test and MUST be an invariant true BY CONSTRUCTION (project/rescale regional deviations so the demand-weighted aggregate == national), not by luck: a world where every region freezes while national is mild is impossible by construction. R15 mutation test: perturb one region off-manifold and assert the reconciliation invariant FIRES (residual > tol). Regional weather is COMPANY-KNOWABLE (genuinely public) -- lives on the public side of the wall. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth.",
@@ -1205,7 +1205,7 @@
         {
           "atom_id": "W1_5_premise_demand_shape",
           "atom_name": "L3 premise-level shape: each property's half-hourly demand = f(its LOCAL weather, thermal performance, heating type, occupancy, archetype) + idiosyncratic noise; aggregate premise demand reconciles to national demand (invariant, mutation-tested)",
-          "level_current": 0,
+          "level_current": 1,
           "level_target": 3,
           "notes": [
             "2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L3, conditional on L2. Layered randomness (NOT flat): national signal + correlated regional deviation + premise-specific weather response + idiosyncratic noise. AGGREGATION-CONSISTENCY invariant #2: summed+scaled premise demand must reconcile to national demand -- if the premises do not add up to the country the physics is wrong. Mutation-tested (R15) same as L2. Couples to the customer archetypes (W2 cluster) for thermal/occupancy characteristics. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth.",
