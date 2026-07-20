@@ -49,6 +49,7 @@ _ADOPTED_LIVE_SURFACES = [
     REPO_ROOT / "site" / "simplified" / "index.html",
     REPO_ROOT / "site" / "world" / "index.html",   # (2026-07-20) adopted the brand
     REPO_ROOT / "site" / "company" / "index.html", # (2026-07-20) adopted the brand
+    REPO_ROOT / "site" / "proof" / "index.html",   # (2026-07-20) adopted the brand
     # (2026-07-20 v4 site rebuild) platform/ and sim/ were retired -- removed from the adoption
     # frontier. The remaining un-adopted kept doors (company/world/proof) join here as the BRAND1
     # L2->L3 rollout reaches them (each once its CSS is genuinely token-only + wordmark).
