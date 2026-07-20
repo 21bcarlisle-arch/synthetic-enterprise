@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T08:02:34Z",
+  "generated_at": "2026-07-20T08:17:11Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -521,7 +521,7 @@
         {
           "atom_id": "G1_fidelity_grid_scorer",
           "atom_name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py bridges the L3 payment triad belief-vs-truth gap (W2_11 truth -> W4_4 seam -> D5 consumer) into this grid scorer LIVE in simulation/run_phase2b.py; R1 consumer-verified in a real run (cell A1_G2 gap 0.2, grid worst A1_G1 fail-open floor, gate PASS, 14 cells untested; 20 run_phase2b tests green, no regression). 10 R15 tests on the bridge (FIRES/QUIET/WALL/GATE both directions/import-freedom), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (MATURITY_MAP section 0, levels are director-ratified); blocked_on set to director_level_up to stop the build re-draw. Commits 3f36e3776 (offline bridge) + this run-loop wire.",
@@ -540,7 +540,7 @@
         {
           "atom_id": "G2_fidelity_evidence_ledger",
           "atom_name": "Fidelity emit-ledger + emit-DoD phase-close gate: sibling ledger (no shared-surface wedge) + 3 fail-closed red conditions",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py appends a real emit-DoD record per run from the L3 payment triad belief-vs-truth gap; the record re-reads THIS gate (fidelity_evidence_gate) and the bridge RAISES fail-closed if it would not pass. R1 consumer-verified in a real run_phase2b (gate PASS on the live record; regime-mixed->G2 cell attribution registered as an R10 simplification). 10 R15 tests on the bridge incl. the asserted-without-simplification gate mutation (both directions), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (section 0); blocked_on -> director_level_up. Commits 3f36e3776 + this run-loop wire.",
@@ -550,7 +550,7 @@
         {
           "atom_id": "G3_fidelity_inspection_chain",
           "atom_name": "Fidelity inspection-chain data model: 4 record types (EVIDENCE/WORLD/BELIEF-ACTION/CONSTRAINT) + link graph + the epistemic wall in-schema",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-20 LIVE COMPANY CONSUMER WIRED (blocked_on coupled_triad_l3_needs_live_company_consumer -> MET). background/live_fidelity_evidence.py builds + validates a real 4-layer chain per run from the L3 payment triad (EVIDENCE payment-detection -> WORLD payment-truth series -> BELIEF_ACTION D5 observed-failures + measured gap), truth_ref left None and assert_no_belief_leak proven, validate_chain proven (no dangling link). R1 consumer-verified in a real run_phase2b. 10 R15 tests incl. the truth_ref-mutation wall-leak firing (the load-bearing control), epistemic PASS. L2->L3 PROPOSED: level_current NOT moved (section 0); blocked_on -> director_level_up. Commits 3f36e3776 + this run-loop wire.",
@@ -617,7 +617,7 @@
         {
           "atom_id": "BRAND1_identity_system",
           "atom_name": "Poesys brand identity as an AI-usable schema: design-tokens source + agent-loaded rules + preserved exemplar + live-site adoption + brand-compliance check",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-13 REGISTERED (BRAND_CONSTITUTION.md, director-decided/ratified live 'love it', Tier 3 flag-and-proceed, QUEUE). Lane-2 SITE per THREE_LANES -- site/** + document templates, disjoint from BUILD, runs parallel, never gates an epoch; director-authorised to run alongside builds. The visual+verbal identity authority for EVERY Poesys surface (site, charts, bill PDFs, reports, board packs, decks, digests, NTFYs); sits ABOVE SITE_CONSTITUTION.md/POESYS_SITE_BRIEF.md and WINS on visual-identity conflicts (reconcile, don't fork). KEY CONSTRAINT: every Poesys artefact is AI-generated, so the brand book's consumer is the AGENT -- it must be machine-readable tokens + short testable rules + canonical exemplars, so any agent produces on-brand output BY CONSTRUCTION and drift is test-detectable. DECIDED (do not re-litigate): identity = radically plain/honest, 'the energy supplier that hides nothing', architectural simplicity, black+white carry all structure, no ornament; the company's existing honesty conventions (clock/basis labels, provisional badges, published misses) ARE the brand voice (formalise, invent nothing). PALETTE 'BRAG' = black+white + blue/red/amber/green each bright+soft (12 values), with fixed semantics: blue=verified-done (earned, expert-hour-passed/at-target, never self-declared), green=on-track, amber=at-risk/provisional/estimated, red=blocked/failing. 6 LAWS (colour is information never decoration; bright=live soft=historical/fill; soft never as text/thin-line; ONE neo-grotesque typeface, hierarchy via weight/size/space; glyphs are information not decoration, 6 is the ceiling; type-only identity, wordmark lowercase 'poesys.' WITH the full stop). GLYPH GRAMMAR (6, held absolutely, work in plain text incl NTFY/digest/commits): . =done/verified(blue), _ =in-build/on-track(green), ~ =estimated/provisional(amber), ! =blocked/failing(red), > =action/next/CTA, // =the working/basis/provenance. DELIVERABLES (required properties, impl is the agent's): (1) ONE machine-readable design-tokens JSON (W3C format) = the sole home of every colour/type/spacing value, every surface consumes tokens never raw values; (2) an agent-loaded brand-rules file (CLAUDE.md-style short imperative testable statements, referenced before generating any visual surface); (3) canonical exemplar preserved verbatim (the ratified \u00a77 mock -- front door + customer bill + glyph grammar -- generation COPIES from it, never reinterprets); (4) enforcement testable in the harness (no raw colour value outside the token source; soft-colour-as-text detectable/blocked). DoD: token source is sole colour home + the LIVE site consumes it end-to-end (R11 rendered-pixel, director's eyes); rules file loaded by visual-surface generators; exemplar preserved + site front door and one real customer bill demonstrably follow it (BRAG chips, ~///> in live use); brand-compliance harness check passes. ROLLOUT of remaining surfaces (charts, PDFs, reports, decks, NTFY/digest glyph conventions) registers as FOLLOW-UP atoms -- batch honestly, no big-bang. OPEN (genuine, everything else decided): self-hosted typeface selection (agent proposes, DIRECTOR RATIFIES -- brand dial faces the director, same law as R13 curriculum; any palette/dial change is director-ratified only), enforcement mechanism design, token file location/format, rollout sequencing, reconciliation pass vs SITE_CONSTITUTION/POESYS_SITE_BRIEF so there is exactly one visual-identity authority. loop_stage idle: SITE-lane build (director-authorised, runs parallel), DISCOVER/FRAME (token schema, enforcement mechanism, typeface options) workable now; R11 live-pixel DoD needs the director's eyes (no autonomous network). The ratified exemplar is preserved verbatim inside docs/design/BRAND_CONSTITUTION.md \u00a77 (established as the standing visual-identity authority, moved out of staging).",
@@ -1112,7 +1112,7 @@
         {
           "atom_id": "SITE1_expert_doors",
           "atom_name": "SITE CONSTITUTION doors 3-8 built (the surfaces an expert actually inspects), pixel-verified",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-13 REGISTERED (THREE_LANES_STANDING.md Lane 2, director-decided QUEUE). site/** is DISJOINT BY CONSTRUCTION from sim/company builds -- zero tree contention -- so this runs in PARALLEL with Lane-1 builds permanently, never blocked by BUILD narrowness. Scope: doors 3-8 of the ratified SITE_CONSTITUTION.md, never built -- The Company (board pack: trading/risk, three-clock finance, household drill-down, compliance organs), The Proof (predictions-ledger centrepiece, verification stack incl. NEEDS_WORK history + open defects + incident->rule timeline), The World (two-sided wall page, sim depth re-homed, anchors register), The Method + Simplified (casebook), Director door (twin approval log, decision log, dials, action queue); cross-cutting persona Expert-Hour tours, glossary, mobile pass. Number passports + evidence links throughout (already law). DoD per door: pixel-verify the LIVE deployed surface (R11), not the source file. Decomposes into per-door sub-atoms when drawn. loop_stage idle: BUILD-gated pending draw; the front door is honest now, everything behind it is still codebase-shaped tabs -- this is the highest visible-value backlog per P-4.",
@@ -1147,7 +1147,7 @@
         {
           "atom_id": "W1_2_generate_futures",
           "atom_name": "Synthetic future market generation beyond real 2016-2025 history",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 2,
           "notes": [
             "2026-07-10: generating NEW future scenarios/difficulty is CURRICULUM per CLAUDE.md R13 (the baseline/curriculum split) -- the director's own instrument, never built or content-decided unilaterally by the agent, even once the depends_on prerequisite is met. Any work here beyond the underlying mechanism/engine must be director-named and director-authored content, not agent-invented.",
@@ -1167,7 +1167,7 @@
         {
           "atom_id": "W1_3_national_weather_signal",
           "atom_name": "L1 national weather: coherent AUTOCORRELATED joint national temp/wind/solar signal (weather persists -- cold spells and still spells last; temporal autocorrelation is physics not noise)",
-          "level_current": 1,
+          "level_current": 2,
           "level_target": 3,
           "notes": [
             "2026-07-20 GAP 2 BUILT (SHOW THE TAIL -- the director DoD deliverable). sim/weather_tail_demonstration.py + 10 R15 tests: joint cold-and-still (Dunkelflaute) severity = PRODUCT of cold-intensity x still-intensity per rolling 7-day WINTER window (co-occurrence, not two marginals; a cold-but-windy or still-but-mild week scores 0), thresholds = low-percentile of the REAL winter series applied to both real and synthetic. Real worst GB winter week identified = 2022-12-07..13 (the real Dec-2022 cold snap: mean -1.4C + 2.1 m/s over 7 days, severity 1.45). FAILABLE ENVELOPE GATE (director literal: milder-than-reality = physics wrong): over 25 seeded sims the engine must reach >= the real worst; healthy engine PASSES (envelope max 1.75 >= 1.45); a SMOOTHED engine (no stressed regime + no autocorrelation) collapses to 0 and assert_tail_not_smoothed FIRES (R15 both directions). DIAGNOSTIC reported NOT gated (R9/R12): reach_fraction = 12 percent -- a gap-1 SIGNAL the engine may under-produce the tail FREQUENCY (the FRAME wind-only-regime-trigger gap), but n=1 real cannot prove under-production so it is surfaced not asserted (gating a frequency floor would be goal-seek). Additive: NO engine-internals change; 27 engine tests + 10 new green, epistemic PASS. R10 SIMPLIFICATION (gap 3): the comparison anchor is the SAME real series the engine calibrates on (marking-own-homework); an independent published GB anchor (degree-days / NESO system-demand worst-week) needs network, deferred. L1->L2 INCREMENT (show-the-tail DoD delivered + engine passes the envelope); level_current NOT moved (section 0); L2 PROPOSED. L2->L3 REMAINING (director judgment): gap 1 = mechanistic JOINT cold+still regime trigger in sim/weather_engine.py (out of this file_scope -- a separate rung; the 12pct reach is the case FOR it) + gap 3 independent anchor + the coupled-triad company-vs-truth gap + Expert Hour.",
