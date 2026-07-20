@@ -128,6 +128,12 @@ def hook(tmp_path, monkeypatch):
     # strings ("draw blew up", "do atom X", ...) into the REAL committed docs/observability/
     # pull-loop-log.md on every run -- a test polluting a live observability artefact. Patch it.
     monkeypatch.setattr(mod, "LOG_FILE", tmp_path / "pull-loop-log.md")
+    # ISOLATION (2026-07-20): the scheduled-bounded-invocation cutover created the REAL
+    # docs/observability/.scheduled_invocations_enabled flag; without pinning it these
+    # persistent-mode tests took decide()'s scheduled-mode allow-stop branch (return None) and
+    # failed, wedging the pre-commit test gate for ALL code commits. Pin it at a non-existent tmp
+    # path so _scheduled_mode() is deterministically False here (same class as LOG_FILE isolation).
+    monkeypatch.setattr(mod, "SCHEDULED_FLAG", tmp_path / ".scheduled_invocations_enabled")
     monkeypatch.setattr(mod, "WORKER_SESSION_ID", "WORKER")
     monkeypatch.setattr(mod, "_autonomous_execution_enabled", lambda: True)
     return mod
