@@ -6,33 +6,9 @@
 <title>Poesys -- Proof</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
 <style>
-:root {
-  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
-  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
-  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
-  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
-    --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
-    --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
-    --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #14140f; --surface: #1c1c17; --surface2: #26261f;
-  --border: #33332b; --text: #f2f1ea; --muted: #a8a79e;
-  --green: #3cc93c; --red: #e56b6b; --amber: #fab219;
-  --blue: #6aa8ee; --teal: #35c795; --purple: #9a8aea;
-}
-:root[data-theme="light"] {
-  --bg: #f9f9f7; --surface: #fcfcfb; --surface2: #f0efec;
-  --border: #e1e0d9; --text: #0b0b0b; --muted: #52514e;
-  --green: #0ca30c; --red: #d03b3b; --amber: #fab219;
-  --blue: #2a78d6; --teal: #1baf7a; --purple: #4a3aa7;
-}
+/* Brand palette from ../brand/brand.css (BRAND_CONSTITUTION §3a light-default); :root deleted on adoption. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
 .site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
@@ -178,7 +154,7 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
 </head>
 <body>
 <nav class="site-nav">
-  <a href="../" class="nav-logo">&#9889; Poesys</a>
+  <a href="../" class="nav-logo wordmark">poesys.</a>
   <a href="../" class="nav-link">Home</a>
   <a href="../company/" class="nav-link">Company</a>
   <a href="../world/" class="nav-link">World</a>
@@ -455,7 +431,7 @@ function renderRetros(d){
 function renderPrinciples(d){
   var ps=d.principles||[];
   document.getElementById("principles").innerHTML=ps.length?ps.map(function(p){
-    return '<div class="card" style="border-left:3px solid var(--accent,#2a7)">'+
+    return '<div class="card" style="border-left:3px solid var(--teal)">'+
       '<div style="font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)">'+esc(p.title)+'</div>'+
       '<div style="font-size:18px;font-weight:600;margin:6px 0 10px">'+esc(p.number)+'</div>'+
       '<p style="margin:0 0 8px">'+esc(p.claim)+'</p>'+
@@ -770,9 +746,9 @@ function renderNotProven(d){
   var e=document.getElementById("not-proven");
   if(!e)return;
   e.innerHTML=np.length?np.map(function(p){
-    return '<div class="card" style="border-left:3px solid var(--amber,#fab219)">'+
+    return '<div class="card" style="border-left:3px solid var(--amber)">'+
       '<div style="font-size:14px;font-weight:600;margin-bottom:4px">'+esc(p.claim)+'</div>'+
-      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--amber,#fab219);margin-bottom:6px">'+esc(p.status)+'</div>'+
+      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--amber);margin-bottom:6px">'+esc(p.status)+'</div>'+
       '<p class="muted" style="margin:0">'+esc(p.note)+'</p></div>';
   }).join(""):'<div class="card muted">Nothing recorded.</div>';
 }
