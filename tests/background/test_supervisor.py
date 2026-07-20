@@ -1058,6 +1058,26 @@ def test_site_lane_recognises_site_prefixed_paths():
     assert {a["id"] for a in selected} == {"DEEP_SITE"}
 
 
+def test_site_lane_excludes_externally_blocked_atom():
+    """R15 (both directions): a site atom blocked_on a director act -- build
+    complete, ONLY ratification remains (e.g. SITE1/BRAND1 at
+    blocked_on: director_level_up) -- is NOT drawn, because a fork would find
+    nothing to build. Ungated means ignore loop_stage/epoch parking, NEVER
+    ignore blocked_on (matches every other lane). The paired UNBLOCKED site
+    atom with the same gap IS still drawn -- the fix does not over-exclude."""
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: SITE_BLOCKED\n  lane: H\n  dial_inherited: 3\n  loop_stage: build\n"
+        "  level_current: 1\n  level_target: 3\n  blocked_on: director_level_up\n"
+        "  file_scope: [\"site\"]\n"
+        "- id: SITE_OPEN\n  lane: H\n  dial_inherited: 3\n  loop_stage: build\n"
+        "  level_current: 1\n  level_target: 3\n  blocked_on: null\n"
+        "  file_scope: [\"site\"]\n"
+    )
+    ids = {a["id"] for a in supervisor._site_lane_draw_concurrent()}
+    assert "SITE_BLOCKED" not in ids   # FIRES: ratification-blocked -> not a buildable draw
+    assert "SITE_OPEN" in ids          # QUIET: an unblocked site atom is still drawn
+
+
 def test_self_refill_draws_all_three_lanes_even_when_build_is_non_empty(monkeypatch):
     """THE regression: with a non-empty BUILD lane, SITE and DISCOVERY MUST
     still draw in the same cycle -- the old cascade returned on BUILD and left

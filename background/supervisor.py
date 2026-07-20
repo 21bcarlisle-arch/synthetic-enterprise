@@ -990,6 +990,14 @@ def _site_lane_draw_concurrent(
             return False
         if a.get("id") in exclude_ids:
             return False
+        if _is_externally_blocked(a):
+            # Complete-awaiting-a-director-act (e.g. blocked_on: director_level_up):
+            # the build work is done, ONLY ratification remains, so a fork would find
+            # nothing to build. Ungated means ignore loop_stage/epoch parking -- NOT
+            # ignore blocked_on. Matches every other lane (_self_refill BUILD + the two
+            # idle draws already filter _is_externally_blocked). Without this the site
+            # draw re-offers ratification-blocked SITE1/BRAND1 every cycle (loop thrash).
+            return False
         level_current, level_target = a.get("level_current"), a.get("level_target")
         if level_current is None or level_target is None:
             return False
