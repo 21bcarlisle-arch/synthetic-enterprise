@@ -1,0 +1,80 @@
+{
+  "asserted": [
+    {
+      "assumed_lift": 1.8,
+      "assumed_sign": "upper",
+      "grounding": "residual_demand_mw vs wholesale/SSP print, upper-upper joint_tail_lift (price convex in tightness)",
+      "link_id": "D2_residual_demand_price",
+      "reason": "residual-demand series (D - G_wind - G_solar) not assembled in-repo as a clean pair with SSP"
+    },
+    {
+      "assumed_lift": 1.8,
+      "assumed_sign": "upper",
+      "grounding": "Delta_vol vs SSP/SBP cash-out, upper-upper lift; the money is the covariance E[Delta_vol*spot]",
+      "link_id": "D3_shortvol_cashout",
+      "reason": "book imbalance Delta_vol = demand - hedged is not observable without a run"
+    },
+    {
+      "assumed_lift": 1.6,
+      "assumed_sign": "lower",
+      "grounding": "national/premise demand vs temperature_mean, cold-tail (lower temp) joint_tail_lift",
+      "link_id": "D4_demand_temp",
+      "reason": "cold-tail demand plateau (convex heating load) not yet estimated on the premise/national demand series"
+    },
+    {
+      "assumed_lift": 2.0,
+      "assumed_sign": "lower",
+      "grounding": "G_wind vs wind_speed, lower-lower (cubic ramp near cut-in amplifies the still tail)",
+      "link_id": "D5_windoutput_windspeed",
+      "reason": "deterministic power-curve relationship; G_wind OUTPUT series is not in sim/weather_data"
+    },
+    {
+      "assumed_lift": 2.0,
+      "assumed_sign": "upper",
+      "grounding": "end_to_end_lift vs product(per-link lifts) \u2014 compounding_holds check once the links are estimated",
+      "link_id": "D6_cross_seam_compounding",
+      "reason": "the seam compounding is DERIVED (multiplicative across links), not a directly-observed pair"
+    },
+    {
+      "assumed_lift": 0.5,
+      "assumed_sign": "anti",
+      "grounding": "IC net import vs GB residual demand, conditional relief | (GB tight AND EU tight) \u2014 near zero",
+      "link_id": "D7_interconnector_relief",
+      "reason": "IC net-import + EU-tightness series not assembled; a cold-and-still event is often EU-wide"
+    }
+  ],
+  "covered_links": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8"
+  ],
+  "estimated": [
+    {
+      "detail": {
+        "ci_high": 3.378099173553719,
+        "ci_low": 1.5412195429869966,
+        "lam": 2.1282024793388428,
+        "n_conditioned": 872.0,
+        "sign_lower": 1.0,
+        "u": 0.1
+      },
+      "link_id": "D1_temp_wind",
+      "statistic": "joint_tail_lift",
+      "value": 2.364669421487603
+    },
+    {
+      "detail": {
+        "residual_phi_temp": 0.7791643932067291,
+        "residual_phi_wind": 0.5748342913235615
+      },
+      "link_id": "D8_temporal_persistence",
+      "statistic": "residual_ar1_phi",
+      "value": 0.7791643932067291
+    }
+  ]
+}
