@@ -59,6 +59,14 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .mech { font-size: 12px; color: var(--text); line-height: 1.6; margin-top: 12px; border-left: 2px solid var(--border); padding-left: 12px; }
 .mech-l { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .05em; display: block; margin-bottom: 3px; }
 .basis { font-size: 10px; color: var(--muted); margin-top: 10px; }
+.lag { font-size: 13px; line-height: 1.6; color: var(--text); background: var(--surface2);
+  border-left: 3px solid var(--amber); border-radius: 6px; padding: 12px 14px; }
+.lag .lag-n { font-weight: 800; color: var(--amber); }
+.intraday-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.intraday-name { font-size: 12px; font-weight: 700; }
+.intraday-up { color: var(--red); font-weight: 700; }
+.intraday-down { color: var(--green); font-weight: 700; }
+.intraday-flat { color: var(--muted); font-weight: 700; }
 .passport { font-size: 10px; color: var(--muted); margin-top: 8px; }
 @media (max-width: 640px) {
   /* mobile pass (SITE1_expert_doors): the wall stacks vertically (already present);
@@ -129,7 +137,9 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   <div class="sec">World state &mdash; what the world is doing right now <span id="state-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
   <div class="card">
     <p class="muted" id="wstate-intro" style="margin-bottom:14px">Loading...</p>
+    <p id="wstate-lag" class="lag" style="margin-bottom:14px"></p>
     <div class="kpis" id="wstate-kpis"></div>
+    <div id="wstate-intraday" style="margin-top:14px"></div>
     <p class="muted" id="wstate-regime" style="margin-top:14px"></p>
     <p class="basis" id="wstate-basis" style="margin-top:10px"></p>
   </div>
@@ -314,25 +324,58 @@ function kpiTile(l,v,sub){
   return '<div class="kpi"><div class="kpi-l">'+esc(l)+'</div><div class="kpi-v">'+esc(v)+'</div>'+
     (sub?'<div class="basis" style="margin-top:4px">'+esc(sub)+'</div>':'')+'</div>';
 }
-function renderWorldState(world, weather){
+// Parse a "YYYY-MM" or "YYYY-MM-DD..." string to {y,m}; null if unparseable.
+function ym(s){
+  var m=String(s||"").match(/^(\d{4})-(\d{2})/);
+  return m?{y:Number(m[1]),m:Number(m[2])}:null;
+}
+function monthsBetween(a,b){ // a - b, in whole months
+  return (a&&b)?((a.y-b.y)*12+(a.m-b.m)):null;
+}
+function renderWorldState(world, weather, market){
   var months=(weather&&weather.monthly)||[];
   var latest=months.length?months[months.length-1]:null;
   var annual=(weather&&weather.annual)||[];
   var latestYr=annual.length?annual[annual.length-1]:null;
-  // Market: latest settled annual-mean SSP from the SIM blindfold crossing.
+  // Market annual tail: latest settled annual-mean SSP from the SIM blindfold crossing (context).
   var bf=((world&&world.wall&&world.wall.crossings)||[]).filter(function(c){return c.id==="blindfold";})[0];
   var ssp=(bf&&bf.series&&bf.series.length)?bf.series[bf.series.length-1]:null;
+  // Intra-day market: the REAL half-hourly wholesale feed (market.json).
+  var mk=(market&&market.available&&market.electricity)?market.electricity:null;
+
+  // --- The two clocks + the settlement lag between them (Directive 1) ---------
+  // The world is realised to the latest weather month; the settled books are at
+  // the settlement frontier (the intra-day feed's as-of, else the sim window end).
+  var weatherAsOf=latest?latest.month:null;                 // e.g. "2025-12"
+  var settleAsOf=(market&&market.settlement_frontier)        // e.g. "2025-06-07T..Z"
+    ? String(market.settlement_frontier).slice(0,7)
+    : ((world&&world.sim_window)?String(world.sim_window).split(" to ").pop().slice(0,7):null);
+  var lagN=monthsBetween(ym(weatherAsOf),ym(settleAsOf));
 
   var stamp=[];
-  if(latest)stamp.push("weather "+latest.month);
+  if(weatherAsOf)stamp.push("weather "+weatherAsOf);
+  if(settleAsOf)stamp.push("settled books "+settleAsOf);
   if(world&&world.generated_at)stamp.push("rendered "+String(world.generated_at).slice(0,10));
   document.getElementById("state-stamp").textContent=stamp.length?("as of "+stamp.join(" · ")):"";
 
   document.getElementById("wstate-intro").innerHTML=
-    "A live read of the world the company is trading through, as of the latest realised month. This is the "+
+    "A live read of the world the company is trading through. This is the "+
     "<strong>demand-and-market</strong> side the supplier must cope with blindfolded: the current weather (which drives "+
-    "heating demand), the regime that weather sits in, and the settled market price. Every figure is computed from the "+
-    "realised on-disk series &mdash; not a forecast, not a fabricated tick.";
+    "heating demand), the regime that weather sits in, and what the wholesale market is DOING half-hour by half-hour. "+
+    "<strong>Each panel carries its own as-of date</strong> &mdash; because they do not share a clock, and that difference is real.";
+
+  // Directive 1: make the settlement lag a first-class, COMPUTED value, not hidden.
+  var lagEl=document.getElementById("wstate-lag");
+  if(weatherAsOf&&settleAsOf&&lagN!=null){
+    lagEl.innerHTML=
+      "The world is at <strong>"+esc(weatherAsOf)+"</strong> (realised weather); the settled books are at <strong>"+
+      esc(settleAsOf)+"</strong> (settlement frontier); that <span class=\"lag-n\">"+lagN+"-month</span> distance is the "+
+      "<strong>settlement lag</strong> &mdash; real, not a bug. Weather is known now; settlement lands months later, so the "+
+      "demand side of this panel runs ahead of the money side. Pinning the two together would hide the lag; labelling each "+
+      "with its own clock makes it legible.";
+  } else {
+    lagEl.innerHTML="";
+  }
 
   // --- Regime, derived from the realised HDD series (honest, data-computed) ---
   var regimeTxt="Regime unavailable (no realised weather series).";
@@ -359,29 +402,75 @@ function renderWorldState(world, weather){
       " HDD, z="+z.toFixed(1)+"). How it got here: "+traj+". "+
       "The SIM couples this cold-demand signal with low-wind scarcity to form price &mdash; the "+
       "<em>cold-and-still</em> physics (W1_6 weather&rarr;price chain, W1_3 tail). This panel shows the realised "+
-      "demand side from weather; the coupled wind&rarr;price tail is visible in the settled SSP p95/max below and on the wall. "+
-      "The per-tick intra-day wind/price feed is not yet surfaced here (honest gap).";
+      "demand side from weather AND the intra-day wholesale price above; the coupled wind&rarr;price tail is also visible "+
+      "in the settled SSP p95/max below and on the wall. Note the two clocks: the demand side is realised months ahead of "+
+      "the settled price side (the settlement lag, quantified above).";
   }
   document.getElementById("wstate-regime").innerHTML=regimeTxt;
 
   var kpis=[];
+  // LEAD with what the market is DOING (Directive 2): the intra-day movement, on
+  // its own wholesale/observed clock (as-of the settlement frontier). Not the mean.
+  if(mk){
+    var mkAsOf=String(mk.as_of_period||"").replace("T"," ").replace(":00Z"," UTC").replace("Z"," UTC");
+    kpis.push(kpiTile("Wholesale (intra-day)", (mk.latest_price!=null?"£"+mk.latest_price:"--"), "observed · £/MWh · as of "+esc(mkAsOf)));
+    if(mk.last_change_gbp!=null){
+      var chSign=mk.last_change_gbp>0?"+":(mk.last_change_gbp<0?"−":"");
+      var chVal=chSign+"£"+Math.abs(mk.last_change_gbp)+(mk.last_change_pct!=null?" ("+chSign+Math.abs(mk.last_change_pct)+"%)":"");
+      kpis.push(kpiTile("Last move (HH)", chVal, "half-hour on half-hour · wholesale clock"));
+    }
+    if(mk.session_low!=null&&mk.session_high!=null){
+      kpis.push(kpiTile("Session range", "£"+mk.session_low+"–£"+mk.session_high, "min–max · "+num(mk.point_count)+" HH · mean £"+mk.session_mean));
+    }
+  }
   if(latest){
     kpis.push(kpiTile("Temperature", (latest.mean_temp_c!=null?latest.mean_temp_c+"°C":"--"), "realised mean · "+esc(latest.month)));
-    kpis.push(kpiTile("Heating demand", (latest.hdd!=null?Math.round(latest.hdd)+" HDD":"--"), "realised · base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C"));
+    kpis.push(kpiTile("Heating demand", (latest.hdd!=null?Math.round(latest.hdd)+" HDD":"--"), "realised · "+esc(latest.month)+" · base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C"));
   }
   if(latestYr){
     kpis.push(kpiTile("Winter severity", (latestYr.is_cold_winter?"COLD":"mild")+" "+latestYr.year, latestYr.annual_hdd+" HDD/yr vs "+((weather&&weather.kpis&&weather.kpis.decadal_avg_annual_hdd)||"--")+" decadal"));
   }
   if(ssp){
-    kpis.push(kpiTile("Market (SSP)", (ssp.mean!=null?"£"+ssp.mean:"--"), "settled · annual mean "+esc(ssp.year)+" · £/MWh"));
+    kpis.push(kpiTile("Settled mean (context)", (ssp.mean!=null?"£"+ssp.mean:"--"), "settled · annual mean "+esc(ssp.year)+" · £/MWh"));
     kpis.push(kpiTile("Price tail (p95)", (ssp.p95!=null?"£"+ssp.p95:"--"), "settled · "+esc(ssp.year)+" · peak £"+(ssp.max!=null?ssp.max:"--")));
   }
   document.getElementById("wstate-kpis").innerHTML=kpis.join("")||'<div class="muted">World state unavailable.</div>';
 
+  // Intra-day trajectory sparkline (what the market did across the session).
+  var idEl=document.getElementById("wstate-intraday");
+  if(mk&&mk.trajectory&&mk.trajectory.length){
+    var traj=mk.trajectory;
+    var pv=traj.map(function(p){return p.price!=null?p.price:0;});
+    var mxv=Math.max.apply(null,pv.concat([0.0001]));
+    var mnv=Math.min.apply(null,pv);
+    var dir=(mk.last_change_gbp>0?"intraday-up":(mk.last_change_gbp<0?"intraday-down":"intraday-flat"));
+    var dirTxt=(mk.last_change_gbp>0?"rising":(mk.last_change_gbp<0?"falling":"flat"));
+    var bars='<div class="series" style="height:48px">'+traj.map(function(p){
+      var h=Math.round(100*((p.price-mnv)/((mxv-mnv)||1)));
+      return '<div class="b" style="height:'+Math.max(h,6)+'%" title="'+esc(String(p.period).replace("T"," ")+": £"+p.price)+'"></div>';
+    }).join("")+'</div>';
+    idEl.innerHTML=
+      '<div class="intraday-head"><span class="intraday-name">Intra-day wholesale electricity</span>'+
+      '<span class="'+dir+'">'+dirTxt+'</span>'+
+      '<span class="muted">last '+num(traj.length)+' half-hours &middot; £/MWh &middot; wholesale clock</span></div>'+
+      bars+
+      '<div class="basis" style="margin-top:6px">Session '+esc(String(traj[0].period).replace("T"," ").replace("Z",""))+
+      ' &rarr; '+esc(String(traj[traj.length-1].period).replace("T"," ").replace("Z",""))+
+      '. High £'+mk.session_high+' ('+esc(String(mk.session_high_period).slice(11,16))+'), low £'+mk.session_low+
+      ' ('+esc(String(mk.session_low_period).slice(11,16))+'), range £'+mk.session_range+
+      '. Source: <a class="evlink" href="'+esc(market.evidence_url||"../data/market.json")+'" target="_blank" rel="noopener">market.json</a> '+
+      '(from the real settlement price feed).</div>';
+  } else {
+    idEl.innerHTML='<div class="muted">Intra-day wholesale feed unavailable.</div>';
+  }
+
   document.getElementById("wstate-basis").innerHTML=
     "Basis: weather is realised Open-Meteo "+((weather&&weather.metadata&&weather.metadata.location)||"London")+
-    " (base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C HDD); market is settled Elexon SSP, annual mean. "+
-    "R14 clocks shown per figure. Regime is a diagnostic computed from the realised HDD series (R12), never a target.";
+    " (base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C HDD), as of "+esc(weatherAsOf||"--")+"; "+
+    "intra-day wholesale is the real half-hourly settlement price feed (£/MWh, observed clock), as of "+esc(settleAsOf||"--")+
+    "; settled mean/p95 is Elexon SSP, annual. Each figure carries its own as-of and clock (R14); the "+lagN+
+    "-month gap between them is the settlement lag, shown not hidden. Regime + movement are diagnostics computed from the "+
+    "realised series (R12), never a target.";
 }
 
 function renderBuild(d){
@@ -395,10 +484,11 @@ function renderBuild(d){
 
 Promise.all([
   fetch("../data/world.json?t="+Date.now()).then(function(r){return r.json();}),
-  fetch("../data/weather.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+  fetch("../data/weather.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+  fetch("../data/market.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
 ]).then(function(res){
-  var d=res[0], weather=res[1];
-  renderWorldState(d, weather);
+  var d=res[0], weather=res[1], market=res[2];
+  renderWorldState(d, weather, market);
   renderWall(d);
   renderSimDepth(d);
   renderAnchorsRuntime(d);

@@ -21,17 +21,21 @@ INDEX = HERE / "index.html"
 HARNESS = HERE / "_render_harness.mjs"
 DATA = HERE.parent / "data" / "world.json"
 WEATHER = HERE.parent / "data" / "weather.json"
+MARKET = HERE.parent / "data" / "market.json"
 
 NODE = shutil.which("node")
 pytestmark = pytest.mark.skipif(NODE is None, reason="node not available")
 
 
-def _render(data: dict, weather_path: Path | None = None) -> dict:
+def _render(data: dict, weather_path: Path | None = None, market_path: Path | None = None) -> dict:
     # If weather is needed, write the (possibly mutated) weather dict to a temp
-    # file so the harness can load it via argv[3]; otherwise pass the live file.
+    # file so the harness can load it via argv[3]; the intra-day market feed via
+    # argv[4]; otherwise pass the live file(s).
     args = [NODE, str(HARNESS), str(INDEX)]
     if weather_path is not None:
         args.append(str(weather_path))
+        if market_path is not None:
+            args.append(str(market_path))
     proc = subprocess.run(
         args,
         input=json.dumps(data),
@@ -49,12 +53,24 @@ def _render_with_weather(data: dict, weather: dict, tmp_path) -> dict:
     return _render(data, weather_path=wp)
 
 
+def _render_full(data: dict, weather: dict, market: dict, tmp_path) -> dict:
+    wp = tmp_path / "weather.json"
+    wp.write_text(json.dumps(weather))
+    mp = tmp_path / "market.json"
+    mp.write_text(json.dumps(market))
+    return _render(data, weather_path=wp, market_path=mp)
+
+
 def _live() -> dict:
     return json.loads(DATA.read_text())
 
 
 def _live_weather() -> dict:
     return json.loads(WEATHER.read_text())
+
+
+def _live_market() -> dict:
+    return json.loads(MARKET.read_text())
 
 
 def test_crossings_render_live_names_and_rag():
@@ -165,3 +181,160 @@ def test_world_state_basis_names_r12_diagnostic(tmp_path):
     out = _render_with_weather(d, w, tmp_path)
     basis = out["wstate-basis"]["innerHTML"].lower()
     assert "diagnostic" in basis and "never a target" in basis, basis
+
+
+# --- Directive 1: the settlement lag made legible (two dated clocks + distance) ---
+#
+# These use a CONTROLLED market fixture (not the live market.json): the real
+# price_feed.json is rewritten by a background daemon and degrades to gas-only in
+# a worktree lacking the gitignored SSP cache, so asserting against the live feed
+# would be flaky. Feed volatility is covered separately in
+# tools/test_generate_market_data.py (derivation + fail-closed).
+
+def _market_fixture() -> dict:
+    """A deterministic intra-day electricity session, shaped exactly like
+    tools/generate_market_data.py emits (verified against the real 48-HH feed)."""
+    return {
+        "available": True,
+        "published_at": "2026-07-17T11:07:42Z",
+        "settlement_frontier": "2025-06-07T22:30:00Z",
+        "evidence_url": "../data/market.json",
+        "electricity": {
+            "unit": "£/MWh",
+            "as_of_period": "2025-06-07T22:30:00Z",
+            "first_period": "2025-06-06T23:00:00Z",
+            "point_count": 48,
+            "latest_price": 100.58,
+            "session_open": 121.0,
+            "session_close": 100.58,
+            "session_high": 144.8,
+            "session_high_period": "2025-06-07T00:30:00Z",
+            "session_low": 66.76,
+            "session_low_period": "2025-06-07T01:30:00Z",
+            "session_mean": 105.94,
+            "session_range": 78.04,
+            "last_change_gbp": -9.37,
+            "last_change_pct": -8.52,
+            "trajectory": [
+                {"period": f"2025-06-07T{h:02d}:00:00Z", "price": 100.0 + h} for h in range(6)
+            ],
+        },
+    }
+
+
+def test_world_state_lag_renders_two_dates_and_computed_distance(tmp_path):
+    # R11: the lag statement renders the ACTUAL weather as-of month and the
+    # settlement frontier month, plus the whole-month distance between them --
+    # the director's "world is at X, books at Y" gap.
+    d = _live()
+    w = _live_weather()
+    mk = _market_fixture()
+    weather_asof = w["monthly"][-1]["month"]                 # e.g. "2025-12"
+    settle_asof = mk["settlement_frontier"][:7]              # "2025-06"
+    wy, wm = int(weather_asof[:4]), int(weather_asof[5:7])
+    sy, sm = int(settle_asof[:4]), int(settle_asof[5:7])
+    lag = (wy - sy) * 12 + (wm - sm)
+    out = _render_full(d, w, mk, tmp_path)
+    lag_html = out["wstate-lag"]["innerHTML"]
+    assert weather_asof in lag_html, lag_html
+    assert settle_asof in lag_html, lag_html
+    assert f"{lag}-month" in lag_html, lag_html
+    assert "settlement lag" in lag_html.lower(), lag_html
+    # Director's framing: the distance is real, not a bug -- shown, not pinned away.
+    assert "not a bug" in lag_html.lower(), lag_html
+
+
+def test_world_state_lag_distance_is_computed_not_asserted(tmp_path):
+    # R15 independence: move the settlement frontier; the rendered lag distance
+    # must FOLLOW the data (proving it is computed from the two dates, not a baked
+    # "6-month" string).
+    d = _live()
+    w = _live_weather()
+    mk = _market_fixture()
+    w["monthly"][-1]["month"] = "2025-12"
+    mk["settlement_frontier"] = "2025-01-07T22:30:00Z"
+    out = _render_full(d, w, mk, tmp_path)
+    lag_html = out["wstate-lag"]["innerHTML"]
+    assert "11-month" in lag_html, lag_html   # 2025-12 minus 2025-01
+    assert "2025-01" in lag_html, lag_html
+
+
+def test_world_state_stamp_carries_both_clocks(tmp_path):
+    # R14/Directive 1: the panel stamp names BOTH as-of clocks so the reader sees
+    # the two are not the same clock.
+    d = _live()
+    w = _live_weather()
+    mk = _market_fixture()
+    out = _render_full(d, w, mk, tmp_path)
+    stamp = out["state-stamp"]["textContent"].lower()
+    assert "weather" in stamp and "settled books" in stamp, stamp
+
+
+# --- Directive 2: the intra-day market movement (what the market is DOING) ---
+
+def test_world_state_intraday_movement_renders(tmp_path):
+    # R11: the intra-day KPIs render the latest price, last move, and session
+    # range from market.json -- the movement, not the annual mean.
+    d = _live()
+    w = _live_weather()
+    mk = _market_fixture()
+    e = mk["electricity"]
+    out = _render_full(d, w, mk, tmp_path)
+    kpis = out["wstate-kpis"]["innerHTML"]
+    idz = out["wstate-intraday"]["innerHTML"]
+    assert f"£{e['latest_price']}" in kpis, kpis
+    assert f"£{e['session_low']}" in kpis and f"£{e['session_high']}" in kpis, kpis
+    # The last half-hour move magnitude is on-surface.
+    assert f"£{abs(e['last_change_gbp'])}" in kpis, kpis
+    # The trajectory sparkline names the session as intra-day wholesale.
+    assert "intra-day wholesale" in idz.lower(), idz
+
+
+def test_world_state_intraday_price_is_independent_of_render(tmp_path):
+    # R15 independence: mutate the latest intra-day price to a sentinel; the
+    # rendered movement KPI must follow the data, not a hard-coded constant.
+    d = _live()
+    w = _live_weather()
+    mk = _market_fixture()
+    mk["electricity"]["latest_price"] = 777.77
+    out = _render_full(d, w, mk, tmp_path)
+    kpis = out["wstate-kpis"]["innerHTML"]
+    assert "£777.77" in kpis, kpis
+
+
+def test_world_state_intraday_carries_clock_and_asof(tmp_path):
+    # R14: the intra-day wholesale figure carries its clock (£/MWh, observed/
+    # wholesale) and its as-of period (the settlement frontier), demonstrating the
+    # lag against the weather clock.
+    d = _live()
+    w = _live_weather()
+    mk = _market_fixture()
+    out = _render_full(d, w, mk, tmp_path)
+    kpis = out["wstate-kpis"]["innerHTML"].lower()
+    assert "£/mwh" in kpis, kpis
+    assert "observed" in kpis and "as of" in kpis, kpis
+
+
+def test_live_market_json_is_valid_and_clocked_when_available():
+    # Guards the committed artifact: market.json must be valid JSON, and when it
+    # reports an intra-day session it must carry the £/MWh clock + as-of period
+    # (R14). Tolerant of the fail-closed (gas-only feed) state.
+    mk = _live_market()
+    assert isinstance(mk, dict) and "available" in mk
+    if mk.get("available") and mk.get("electricity"):
+        e = mk["electricity"]
+        assert e["unit"] == "£/MWh"
+        assert e["as_of_period"] and mk["settlement_frontier"] == e["as_of_period"]
+
+
+def test_world_state_intraday_absent_feed_degrades_gracefully(tmp_path):
+    # R15 fail-closed: an unavailable feed must not fabricate a session -- the
+    # panel says so, and the weather/lag panels still render.
+    d = _live()
+    w = _live_weather()
+    mk = {"available": False, "electricity": None}
+    out = _render_full(d, w, mk, tmp_path)
+    idz = out["wstate-intraday"]["innerHTML"].lower()
+    assert "unavailable" in idz, idz
+    # weather KPIs still present
+    assert f"{round(w['monthly'][-1]['hdd'])} HDD" in out["wstate-kpis"]["innerHTML"]

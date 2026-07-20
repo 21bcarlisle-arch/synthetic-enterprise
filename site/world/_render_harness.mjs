@@ -16,6 +16,8 @@ const code = m[1];
 const d = JSON.parse(fs.readFileSync(0, "utf8"));
 // Optional second arg: path to weather.json (for the World state panel).
 const weather = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], "utf8")) : null;
+// Optional third arg: path to market.json (intra-day wholesale feed).
+const market = process.argv[4] ? JSON.parse(fs.readFileSync(process.argv[4], "utf8")) : null;
 
 const elements = {};
 function stub(id) {
@@ -37,7 +39,7 @@ const sandbox = { document, fetch, console, Date, Number, String, Object, Math, 
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
-sandbox.renderWorldState(d, weather);
+sandbox.renderWorldState(d, weather, market);
 sandbox.renderWall(d);
 sandbox.renderSimDepth(d);
 sandbox.renderAnchorsRuntime(d);
@@ -45,7 +47,7 @@ sandbox.renderLibrary(d);
 sandbox.renderBuild(d);
 
 const ids = [
-  "state-stamp", "wstate-intro", "wstate-kpis", "wstate-regime", "wstate-basis",
+  "state-stamp", "wstate-intro", "wstate-lag", "wstate-kpis", "wstate-intraday", "wstate-regime", "wstate-basis",
   "wall-intro", "wall-band", "crossings",
   "sim-intro", "sim-depth",
   "anchors-intro", "anchor-kpis", "anchor-runtime",

@@ -941,6 +941,21 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("company.json generation failed: {}".format(exc))
     try:
+        # Door 5 THE WORLD operational window -- the intra-day wholesale market feed
+        # (site/data/market.json). Reads docs/market_data/price_feed.json and derives
+        # the movement (latest / trajectory / session range / last change) so the
+        # World panel can show what the market is DOING, not its annual mean
+        # (director, 2026-07-20). Wired here for the SAME R11 no-orphan-transition
+        # reason as the doors below -- a generated surface must ride the regen cycle
+        # or it silently freezes against its live source. Its output file is picked
+        # up by the site/data/*.json commit glob further down (no explicit path append
+        # needed -- that is the durable class-fix for the orphaned-at-commit gap).
+        from tools.generate_market_data import generate as gen_market
+        gen_market()
+        log("Generated site/data/market.json (Door 5 intra-day market feed)")
+    except Exception as exc:
+        log("market.json generation failed: {}".format(exc))
+    try:
         # Door 5 THE WORLD: the two-sided epistemic-wall page (SIM ground truth vs
         # COMPANY observation + divergence) + the anchors register. Wired here for
         # the SAME R11 no-orphan-transition reason as Door 3/4 above -- a generated
@@ -1059,6 +1074,13 @@ def git_commit_push(git_hash, net_margin):
     site_world_json = PROJECT_DIR / "site" / "data" / "world.json"
     if site_world_json.exists():
         files.append(str(site_world_json))
+    # Door 5 operational window: the intra-day market feed derived from
+    # price_feed.json. Tracked explicitly here (matching world/company/proof
+    # above) AND covered by the site/data/*.json glob below -- belt-and-braces so
+    # a regenerated-but-uncommitted market.json can never freeze on the live site.
+    site_market_json = PROJECT_DIR / "site" / "data" / "market.json"
+    if site_market_json.exists():
+        files.append(str(site_market_json))
     # Door 4 THE PROOF + Door 3 THE COMPANY: their generators were wired into the
     # regen block above, but their data/page files were NOT added to this commit-
     # list -- so they regenerated every run yet the fresh copy was never committed,
