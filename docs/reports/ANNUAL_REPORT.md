@@ -1313,7 +1313,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 11 | 0.8 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,532 |
 | 2023 | 4 | 28 | 7.0 | £48,869 |
@@ -1683,7 +1683,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-20T09:44:22Z
+Generated: 2026-07-20T09:59:07Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2180,7 +2180,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,151 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 20 sessions
 - C7: 16 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2725,12 +2725,12 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - Treasury at year end: £2,467,441.30
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89)
 - Risk committee (Context Handshake) interventions: 13
-  - 2016-01-01: treasury £2,466,636.22, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-01-01: treasury £2,466,636.22, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-01-31: treasury £2,466,649.42, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-01: treasury £2,466,662.69, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-03-31: treasury £2,466,676.15, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-04-30: treasury £2,466,687.59, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-05-30: treasury £2,466,698.23, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-05-30: treasury £2,466,698.23, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-06-29: treasury £2,466,709.30, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,720.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-08-28: treasury £2,466,731.08, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
