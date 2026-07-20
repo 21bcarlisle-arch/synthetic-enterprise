@@ -559,3 +559,30 @@ def test_run_complete_pile_with_stale_commit_still_stalls(monkeypatch):
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+def test_misparked_actionable_in_progress_detected_but_not_legit_blocked(tmp_path, monkeypatch):
+    """R15 both directions (2026-07-20 3-hour silent-stall class fix): a WORKER that mis-parks
+    ACTIONABLE work into in_progress/ (disposition banner + 'authorised NOW') is flagged so it counts
+    as queued work for the [BLOCKED] alarm; a genuinely director-blocked park (no worker banner, or a
+    real wall not 'authorised NOW') is NOT flagged (no over-alarm)."""
+    import background.deadmans_switch as dm
+    ip = tmp_path / "in_progress"
+    ip.mkdir()
+    # mis-parked: worker banner + actionable-now marker
+    (ip / "MISPARKED_STEER.md").write_text(
+        "> **[IN-PROGRESS DISPOSITION -- 2026-07-20 worker tick]**\n"
+        "> **Open sub-item (DISCOVER/FRAME, authorised NOW):** build the value frontier.\n")
+    # legit worker park: a real wall, no 'authorised NOW'
+    (ip / "LEGIT_BLOCKED.md").write_text(
+        "> **[IN-PROGRESS DISPOSITION -- worker tick]**\n"
+        "> **Wall / what unblocks:** the population-generator wiring is DIRECTOR-RESERVED; blocked on his act.\n")
+    # director-parked multi-part (no worker banner at all)
+    (ip / "DIRECTOR_PARKED.md").write_text(
+        "# DIRECTOR STEER\n> Open sub-item: awaiting the director's console decision.\n")
+    monkeypatch.setattr(dm, "_IN_PROGRESS_DIR", ip)
+    got = dm._misparked_actionable_in_progress()
+    assert got == ["in_progress/MISPARKED_STEER.md"]   # FIRES on the mis-park
+    # QUIET on both legitimate parks (mutation guard: remove the marker -> not flagged)
+    assert "in_progress/LEGIT_BLOCKED.md" not in got
+    assert "in_progress/DIRECTOR_PARKED.md" not in got

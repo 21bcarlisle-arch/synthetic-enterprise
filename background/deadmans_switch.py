@@ -207,6 +207,45 @@ def _unprocessed_staging_files() -> list[str]:
     )
 
 
+# docs/staging/in_progress/ is ONLY for items BLOCKED on a wall (a genuinely-open sub-item + what
+# unblocks it) -- it is deliberately EXCLUDED from the supervisor draw AND from the queued-work scan
+# above. A worker that PARKS ACTIONABLE work there (declaring the open sub-item "authorised NOW")
+# therefore makes that work invisible to BOTH the draw and this [BLOCKED] safety net. That is the
+# 2026-07-20 3-hour silent stall: a worker tick consumed two director steers and mis-parked them into
+# in_progress/ with "authorised NOW" DISCOVER sub-items it never executed; the tick then rested over
+# them and nothing paged (BLOCKED never saw them; only the weaker commit-clock STALL fired). The
+# anti-pattern is worker-legible: a WORKER-written disposition banner AND an actionable-now marker.
+# Director-parked multi-part items (no worker banner) and genuinely-blocked worker parks (a real wall,
+# not "authorised NOW") are NOT flagged. Report-only; keys on the workers' OWN banner language.
+_IN_PROGRESS_DIR = STAGING_DIR / "in_progress"
+_MISPARK_WORKER_BANNER = "[in-progress disposition"
+_MISPARK_ACTIONABLE_MARKERS = (
+    "authorised now", "authorized now", "discover/frame, authorised",
+    "discover/frame, authorized", "discover-workable", "workable now", "actionable now",
+)
+
+
+def _misparked_actionable_in_progress() -> list[str]:
+    """List in_progress/ docs a worker mis-parked as blocked when their open sub-item is actionable
+    NOW -- invisible to the draw + BLOCKED alarm otherwise. Never raises (a check must not crash the
+    deadman cycle)."""
+    if not _IN_PROGRESS_DIR.is_dir():
+        return []
+    out: list[str] = []
+    try:
+        candidates = sorted(_IN_PROGRESS_DIR.glob("*.md"))
+    except OSError:
+        return []
+    for p in candidates:
+        try:
+            head = p.read_text(encoding="utf-8", errors="replace")[:1500].lower()
+        except OSError:
+            continue
+        if _MISPARK_WORKER_BANNER in head and any(m in head for m in _MISPARK_ACTIONABLE_MARKERS):
+            out.append("in_progress/" + p.name)
+    return out
+
+
 def _reping_open_action_needed_items() -> None:
     """Daily re-ping for anything genuinely waiting on Rich's own input
     (2026-07-11, director rule) -- independent of whether the tmux/
@@ -437,7 +476,11 @@ def run_cycle() -> None:
 
     now = time.time()
     since_commit = now - last_activity_epoch()
-    staged = _unprocessed_staging_files()
+    # Queued work = top-level staging PLUS actionable work a worker mis-parked into in_progress/
+    # (2026-07-20 class fix): the latter is invisible to the draw AND was invisible to this alarm, the
+    # exact 3-hour silent stall. Including it means mis-parked actionable work pages within
+    # BLOCKED_THRESHOLD, not after hours.
+    staged = _unprocessed_staging_files() + _misparked_actionable_in_progress()
 
     blocked = bool(staged) and since_commit >= BLOCKED_THRESHOLD_SECONDS
     silent_stall = since_commit >= SILENT_STALL_THRESHOLD_SECONDS
