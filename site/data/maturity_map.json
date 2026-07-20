@@ -1261,8 +1261,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1
+      "stalled": true,
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "F5_vat_control_independent_signal",
@@ -2311,6 +2311,25 @@
       "stall_consecutive_unchanged": 39
     },
     {
+      "id": "E5_carbon_three_ledger",
+      "name": "Carbon three-ledger (the v4 mission's core measurement): customer carbon SAVED / operational carbon SPENT (people, compute, tokens) / NET position, feeding \u00a3 per tonne CO2e = (cost to serve + cost to persuade incl compute) / carbon abated. A DIAGNOSTIC, reported like a P&L, never an optimisation target",
+      "lane": "E_finance_treasury",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
       "id": "H24_worktree_dir_autoreap",
       "name": "Auto-reap completed-fork WORKTREE dirs: fork_reconciler is report-first + BRANCH-focused, so merged/salvaged fork worktree DIRECTORIES have no automatic reaper -- they climb (observed 2->7 in one session) until a manual `git worktree remove`; mechanise a cleanup of CLEANUP_ELIGIBLE (merged) + salvaged worktree dirs so the count self-limits under a fast fan",
       "lane": "H_harness",
@@ -2669,7 +2688,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 128,
+  "total_atoms": 129,
   "epoch2_movements": [
     {
       "id": "M1",
