@@ -1368,10 +1368,10 @@
   couples_with: [C13_weather_normalisation]
   chain: weather_cascade
   epoch: 3
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
-  blocked_on: director_level_up
+  blocked_on: null
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_5_premise_demand_shape_FRAME.md]
@@ -1460,10 +1460,10 @@
   lane: W1_market_weather
   value_stream: wholesale_to_price
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
-  blocked_on: director_level_up
+  blocked_on: null
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_9_DSR_FLEX_MARKETS_DISCOVER.md, docs/design/frame/W1_9_dsr_flex_markets_FRAME.md]
@@ -1478,11 +1478,11 @@
   lane: W1_market_weather
   value_stream: wholesale_to_price
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
-  blocked_on: director_level_up
+  blocked_on: null
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_10_FRAME.md]
   file_scope: [docs/design, simulation/adoption_geography.py, tests/simulation/test_adoption_geography.py]
