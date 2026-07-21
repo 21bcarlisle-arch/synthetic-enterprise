@@ -234,3 +234,98 @@ def test_route_blocking_decision_oneway_registers_action_needed_and_waits(tmp_pa
     open_ids = [e["item_id"] for e in action_needed.open_items(tmp_path / "reg.json")]
     assert "spend-Y" in open_ids
     assert any("[ACTION NEEDED] spend-Y" in m for m in sent)
+
+
+# ── ratify_routine_level: the standing L1/L2 approver + R15 L3-refusal (2026-07-21) ──────────
+
+from background import gate_authorization as _GA
+
+
+def _approve_invoke(prompt: str) -> str:
+    return ("Routine L2: mechanically real, gap measured, no reserved dimension.\n"
+            "RATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high")
+
+
+def _refuse_invoke(prompt: str) -> str:
+    return ("The evidence does not show a measured gap; bar not met.\n"
+            "RATIFY_VERDICT: REFUSE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high")
+
+
+def _defer_invoke(prompt: str) -> str:
+    return ("This carries an R13 curriculum choice.\n"
+            "RATIFY_VERDICT: REFUSE\nDEFERS_TO_DIRECTOR: yes\nCONFIDENCE: medium")
+
+
+def _approve_but_defer_invoke(prompt: str) -> str:
+    # Even a stray APPROVE must lose to a director-reservation.
+    return ("Bar looks met but it's a values call.\n"
+            "RATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: yes\nCONFIDENCE: low")
+
+
+def _ledger_to(tmp_path, monkeypatch):
+    p = tmp_path / "gate_authorizations.jsonl"
+    monkeypatch.setattr(_GA, "LEDGER_PATH", p)
+    return p
+
+
+def test_ratify_l2_approve_records_honest_twin_authority_that_clears_the_gate(tmp_path, monkeypatch):
+    led = _ledger_to(tmp_path, monkeypatch)
+    d = director_twin.ratify_routine_level(
+        "W1_10_ev_heatpump_geography", 2, "regional adoption field, A1 exact, 46 tests green",
+        invoke_fn=_approve_invoke)
+    assert d.approved is True and d.recorded is True and d.routed_to_director is False
+    entries = _GA.read_ledger(led)
+    assert len(entries) == 1
+    e = entries[0]
+    # Honestly stamped -- NOT masquerading as a director-console act
+    assert e["authorized_by"] == "director_twin" and e["channel"] == "twin"
+    assert e["action"] == "LEVEL_UP_TWIN" and e["level"] == 2
+    # And it actually clears the LEVEL gate for L2
+    assert _GA.is_valid_level_up(e) is True
+    from background.fronts_reconciler import _level_cleared
+    assert _level_cleared("W1_10_ev_heatpump_geography", 2, entries) is True
+
+
+def test_ratify_refuse_records_nothing(tmp_path, monkeypatch):
+    led = _ledger_to(tmp_path, monkeypatch)
+    d = director_twin.ratify_routine_level("X_atom", 1, "no evidence", invoke_fn=_refuse_invoke)
+    assert d.approved is False and d.recorded is False
+    assert _GA.read_ledger(led) == []
+
+
+def test_ratify_defer_routes_to_director_records_nothing(tmp_path, monkeypatch):
+    led = _ledger_to(tmp_path, monkeypatch)
+    d = director_twin.ratify_routine_level("X_atom", 2, "evidence", invoke_fn=_defer_invoke)
+    assert d.approved is False and d.routed_to_director is True and d.recorded is False
+    assert _GA.read_ledger(led) == []
+
+
+def test_ratify_defer_beats_a_stray_approve(tmp_path, monkeypatch):
+    led = _ledger_to(tmp_path, monkeypatch)
+    d = director_twin.ratify_routine_level("X_atom", 2, "evidence", invoke_fn=_approve_but_defer_invoke)
+    assert d.approved is False and d.routed_to_director is True and d.recorded is False
+    assert _GA.read_ledger(led) == []
+
+
+def test_ambiguous_verdict_fails_safe_to_refuse(tmp_path, monkeypatch):
+    led = _ledger_to(tmp_path, monkeypatch)
+    d = director_twin.ratify_routine_level(
+        "X_atom", 2, "evidence",
+        invoke_fn=lambda p: "I think this is fine.\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high")
+    assert d.approved is False and d.recorded is False  # no RATIFY_VERDICT line => refuse
+
+
+def test_R15_L3_refused_before_the_twin_is_even_consulted(tmp_path, monkeypatch):
+    # Refusal layer 1: L3+ is director-reserved; the twin must not even be asked, and nothing recorded,
+    # EVEN with an invoke_fn that would approve. Mutation: delete the `level >= 3` guard and this fails.
+    led = _ledger_to(tmp_path, monkeypatch)
+    calls = []
+
+    def _would_approve(prompt):
+        calls.append(prompt)
+        return "APPROVE\nRATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high"
+
+    d = director_twin.ratify_routine_level("W1_5_premise_demand_shape", 3, "L3 evidence", invoke_fn=_would_approve)
+    assert d.approved is False and d.routed_to_director is True and d.recorded is False
+    assert calls == []                      # the twin was NEVER consulted for an L3
+    assert _GA.read_ledger(led) == []

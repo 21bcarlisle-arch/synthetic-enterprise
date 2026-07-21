@@ -192,3 +192,67 @@ def test_live_wall_is_well_formed_and_never_raises():
     assert set(r) >= {"status", "alarm", "detail", "unauthorized", "held"}
     assert isinstance(r["alarm"], bool)
     assert r["status"] in ("GATE_CLEAN", "GATE_HELD", "GATE_VIOLATION")
+
+
+# ── DIRECTOR_TWIN routine-level authority: L1/L2 only, structural L3 refusal (2026-07-21) ─────
+
+def _twin_entry(atom="A", level=2, provenance="twin verdict: APPROVE"):
+    return {"atom": atom, "action": "LEVEL_UP_TWIN", "level": level,
+            "authorized_by": "director_twin", "channel": "twin", "provenance": provenance}
+
+
+def test_twin_level_up_valid_for_l1_and_l2():
+    assert G.is_valid_twin_level_up(_twin_entry(level=1)) is True
+    assert G.is_valid_twin_level_up(_twin_entry(level=2)) is True
+
+
+def test_R15_twin_level_up_INVALID_for_l3_and_above():
+    # The refusal point IN THE VALIDATOR: a twin entry claiming L3+ is not a valid authorization,
+    # so it can NEVER clear the LEVEL gate even if forged. Mutation: raise TWIN_LEVEL_CAP to 3 and
+    # this fails.
+    assert G.is_valid_twin_level_up(_twin_entry(level=3)) is False
+    assert G.is_valid_twin_level_up(_twin_entry(level=4)) is False
+    # ...and is_valid_level_up (the gate's actual predicate) rejects it too
+    assert G.is_valid_level_up(_twin_entry(level=3)) is False
+    # ...so it does NOT clear an L3 move
+    from background.fronts_reconciler import _level_cleared
+    assert _level_cleared("A", 3, [_twin_entry(level=3)]) is False
+
+
+def test_is_valid_level_up_accepts_a_twin_l2_entry():
+    assert G.is_valid_level_up(_twin_entry(level=2)) is True
+    from background.fronts_reconciler import _level_cleared
+    assert _level_cleared("A", 2, [_twin_entry(level=2)]) is True
+    assert _level_cleared("A", 1, [_twin_entry(level=2)]) is True
+
+
+def test_twin_entry_needs_all_fields_and_a_bounded_int_level():
+    assert G.is_valid_twin_level_up({**_twin_entry(), "provenance": ""}) is False   # no provenance
+    assert G.is_valid_twin_level_up({**_twin_entry(), "channel": "console"}) is False  # wrong channel
+    assert G.is_valid_twin_level_up({**_twin_entry(), "authorized_by": "director"}) is False
+    assert G.is_valid_twin_level_up({**_twin_entry(), "level": None}) is False       # must be an int
+    assert G.is_valid_twin_level_up({**_twin_entry(), "level": 0}) is False          # >=1
+
+
+def test_twin_entry_does_not_masquerade_as_a_director_console_act():
+    # Honesty: a twin authority is NOT a director-console act -- it does not authorize BUILD_OPEN,
+    # and is not counted among director-authorized atoms.
+    e = _twin_entry(level=2)
+    assert G._is_valid_authorization(e) is False          # not a BUILD_OPEN authorization
+    assert G.authorized_atoms([e]) == set()
+
+
+def test_record_twin_level_up_writes_honest_envelope_and_refuses_l3(tmp_path):
+    led = tmp_path / "ledger.jsonl"
+    G.record_twin_level_up("A", 2, "twin verdict: APPROVE", path=led)
+    entries = G.read_ledger(led)
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["authorized_by"] == "director_twin" and e["channel"] == "twin"
+    assert e["action"] == "LEVEL_UP_TWIN" and e["level"] == 2
+    # The write path itself refuses a director-reserved level (belt-and-braces with the validator)
+    with pytest.raises(ValueError):
+        G.record_twin_level_up("A", 3, "should never record", path=led)
+    with pytest.raises(ValueError):
+        G.record_twin_level_up("A", None, "no level", path=led)  # type: ignore[arg-type]
+    assert len(G.read_ledger(led)) == 1  # only the valid L2 entry was ever written

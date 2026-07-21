@@ -187,16 +187,43 @@ def is_valid_gate_clear(entry) -> bool:
     return _valid_console_act(entry, "GATE_CLEAR") and bool(str(entry.get("atom") or "").strip())
 
 
-def is_valid_level_up(entry) -> bool:
-    """A LEVEL_UP_PROPOSED is the director+advisor level-authorization: the ONLY thing that clears
-    the LEVEL gate for an atom's level_current increase (MATURITY_MAP.md §0 — the agent never moves
-    a cell itself). Requires a non-empty `atom` + the four console checks; an optional integer
-    `level` bounds the authorization to a specific target (absent => any increase for that atom).
+# The DIRECTOR_TWIN standing approver may ratify ROUTINE levels only (director console
+# 2026-07-21: "run its live L1/L2 proof ... so routine levels stop queuing on me -- L3 stays
+# mine"). This is the STRUCTURAL boundary: a twin authority NEVER clears L3+, even if a twin
+# entry forges level>=3 (is_valid_twin_level_up caps it). L3+ is the director's "this is real"
+# ruling and needs a genuine director-console LEVEL_UP_PROPOSED.
+TWIN_LEVEL_CAP = 2
 
-    Naming note: the ledger holds only DIRECTOR-CONSOLE acts, so a VALID LEVEL_UP_PROPOSED is one the
-    console orchestrator wrote acting on the director+advisor's decision to move the cell — it IS the
-    authorization. The agent's own evidence-bearing proposal lives in a register, not this ledger; a
-    worker-forged entry self-declaring channel==console is the known residual (sub-step 7 prevention)."""
+
+def is_valid_twin_level_up(entry) -> bool:
+    """A DIRECTOR_TWIN routine level ratification. Valid ONLY for an explicit integer level in
+    [1, TWIN_LEVEL_CAP] — a twin entry at L3+ is INVALID (the R15 refusal point in the validator:
+    the twin cannot ratify a director-reserved level even by forging the entry). Honestly stamped
+    authorized_by==director_twin, channel==twin (it does NOT masquerade as a director-console act),
+    with non-empty provenance carrying the twin's canon-based verdict."""
+    if not (isinstance(entry, dict)
+            and entry.get("action") == "LEVEL_UP_TWIN"
+            and entry.get("authorized_by") == "director_twin"
+            and entry.get("channel") == "twin"
+            and bool(str(entry.get("atom") or "").strip())
+            and bool(str(entry.get("provenance") or "").strip())):
+        return False
+    lvl = entry.get("level")
+    return isinstance(lvl, int) and 1 <= lvl <= TWIN_LEVEL_CAP
+
+
+def is_valid_level_up(entry) -> bool:
+    """Does this ledger entry authorize an atom's level_current move? Two valid authorities:
+      1. A DIRECTOR-CONSOLE LEVEL_UP_PROPOSED (any level, incl. L3+) — the director+advisor act.
+      2. A DIRECTOR_TWIN LEVEL_UP_TWIN (routine L1/L2 ONLY, per is_valid_twin_level_up) — the
+         standing approver so routine levels stop queuing on the director; L3+ stays director-reserved.
+
+    Requires a non-empty `atom`. For the console act an optional integer `level` bounds the
+    authorization to a specific target (absent => any increase). A worker-forged entry self-declaring
+    channel==console is the known residual (sub-step 7 prevention); a twin entry is honestly stamped
+    and structurally capped at L2 so it can never over-reach into the director's L3+ reservation."""
+    if is_valid_twin_level_up(entry):
+        return True
     if not (_valid_console_act(entry, "LEVEL_UP_PROPOSED") and bool(str(entry.get("atom") or "").strip())):
         return False
     lvl = entry.get("level")
@@ -238,14 +265,44 @@ def record_level_up(atom: str, level: int | None, provenance: str, *, ts: float 
     _append_record(rec, provenance, ts=ts, path=path)
 
 
+def record_twin_level_up(atom: str, level: int, provenance: str, *, ts: float | None = None,
+                         path: Path | None = None) -> None:
+    """Append a DIRECTOR_TWIN routine level ratification (L1/L2 ONLY). Honestly stamped
+    authorized_by==director_twin, channel==twin — it does NOT masquerade as a director-console act.
+    Raises on a non-integer or director-reserved (>=3) level: the twin ratifies routine levels only,
+    and the write path itself refuses to record a level the twin has no authority over (belt to the
+    is_valid_twin_level_up braces). Called by the orchestrator ONLY on a twin APPROVE verdict
+    (director_twin.ratify_routine_level); the twin process itself stays a voice, not a hand."""
+    if not isinstance(level, int):
+        raise ValueError("twin level ratification requires an explicit integer level")
+    if not (1 <= level <= TWIN_LEVEL_CAP):
+        raise ValueError(
+            f"the DIRECTOR_TWIN may ratify routine L1-L{TWIN_LEVEL_CAP} only; L{level} is "
+            "director-reserved (canon) and needs a genuine director-console LEVEL_UP_PROPOSED")
+    _append_twin_record({"atom": atom, "action": "LEVEL_UP_TWIN", "level": level},
+                        provenance, ts=ts, path=path)
+
+
 def _append_record(fields: dict, provenance: str, *, ts: float | None = None,
                    path: Path | None = None) -> None:
     """Append ONE console record (arbitrary extra `fields` + the fixed director-console envelope).
     Same writer discipline as _append_ledger; never raises."""
+    _append_envelope(fields, provenance, "director", "console", ts=ts, path=path)
+
+
+def _append_twin_record(fields: dict, provenance: str, *, ts: float | None = None,
+                        path: Path | None = None) -> None:
+    """Append ONE twin record with the HONEST director_twin/twin envelope (never the console one)."""
+    _append_envelope(fields, provenance, "director_twin", "twin", ts=ts, path=path)
+
+
+def _append_envelope(fields: dict, provenance: str, authorized_by: str, channel: str, *,
+                     ts: float | None = None, path: Path | None = None) -> None:
+    """Append ONE record with the given authority envelope. Never raises."""
     p = path or LEDGER_PATH
     stamp = ts if ts is not None else time.time()
     rec = dict(fields)
-    rec.update({"ts": stamp, "authorized_by": "director", "channel": "console",
+    rec.update({"ts": stamp, "authorized_by": authorized_by, "channel": channel,
                 "provenance": provenance})
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
