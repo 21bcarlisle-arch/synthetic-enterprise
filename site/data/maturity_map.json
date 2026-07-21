@@ -1626,7 +1626,7 @@
       "chain": "weather_cascade",
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W1_5_premise_demand_shape",
@@ -1760,7 +1760,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 25
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W1_10_ev_heatpump_geography",
