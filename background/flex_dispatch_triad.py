@@ -49,9 +49,14 @@ import numpy as np
 from sim.flex_dispatch import (
     DEFAULT_ENROLLED_MW,
     DEFAULT_PERIOD_HOURS,
+    DeliveryModel,
     dispatch_and_settle,
+    emit_settlement_lines,
 )
-from company.market.flex_participation import form_participation_belief
+from company.market.flex_participation import (
+    form_participation_belief,
+    form_participation_belief_l2,
+)
 from background.gap_metric import prediction_gap
 
 WORLD_ATOM_ID = "W1_9_dsr_flex_markets"
@@ -107,6 +112,87 @@ def measure(
     }
 
 
+def measure_l2(
+    out: Optional[Dict[str, np.ndarray]] = None,
+    *,
+    enrolled_mw: float = DEFAULT_ENROLLED_MW,
+    period_hours: float = DEFAULT_PERIOD_HOURS,
+    delivery: Optional[DeliveryModel] = None,
+    baseline_bias: float = 0.0,
+) -> Dict[str, object]:
+    """Run the L2 coupled loop and score TWO belief-vs-truth gaps a real flex
+    party carries beyond L1:
+
+      1. DELIVERY-LEARNING gap -- the SIM delivers stochastically LESS than
+         instructed (rebound / non-response). The L1 company (perfect-delivery
+         assumption) over-forecasts; the L2 company DE-RATES using the ratio it
+         learned from its OWN settlement observables. `delivery_learning_gain`
+         = gap(L1 belief) - gap(L2 belief): positive means the observable-only
+         learning genuinely narrowed the gap (and is ~0 with perfect delivery,
+         so the metric is not fail-open).
+      2. BASELINE-METHODOLOGY exposure -- the company estimates its
+         counterfactual baseline with a (possibly biased) method it cannot
+         validate against the SIM truth. `baseline_error_frac` and
+         `payment_at_risk_gbp` quantify the clawback exposure a biased baseline
+         creates -- 0 iff unbiased, so the exposure metric fires on its own
+         defect (R15).
+
+    `delivery` None reproduces L1 (perfect delivery); pass a `DeliveryModel`
+    for the L2 world. The company's settlement history is the OBSERVABLE metered
+    deliveries from this run (a steady-state participant with a statement; a
+    point-in-time train/forecast split is an L2 refinement, registered)."""
+    truth = dispatch_and_settle(
+        out, enrolled_mw=enrolled_mw, period_hours=period_hours, delivery=delivery)
+
+    # -- OBSERVABLES the company reads off its own statement (metered delivery
+    #    per settled event). It never sees the true ratio or true baseline. --
+    settlement = emit_settlement_lines(truth, unit_id="FLEX_UNIT_1")
+    observed_delivery = [r.payload.metered_delivery_mwh for r in settlement]
+
+    # -- COMPANY L2: learns a de-rating from those observables; estimates its
+    #    baseline (possibly biased). Only observed price + own settlement. --
+    belief = form_participation_belief_l2(
+        truth.outturn_price, enrolled_mw=enrolled_mw, period_hours=period_hours,
+        observed_delivery_mwh=observed_delivery, baseline_bias=baseline_bias)
+    # L1 baseline company (perfect-delivery assumption) for the learning-gain
+    # comparison.
+    belief_l1 = form_participation_belief(
+        truth.outturn_price, enrolled_mw=enrolled_mw, period_hours=period_hours)
+
+    gap = prediction_gap(truth.true_utilised_revenue, belief.expected_utilised_revenue)
+    gap_l1 = prediction_gap(truth.true_utilised_revenue, belief_l1.expected_utilised_revenue)
+
+    # -- HARNESS: baseline-methodology exposure. true baseline per dispatched
+    #    event vs the company's estimate; phantom-volume payment a biased
+    #    baseline would be paid (and exposed to clawback). --
+    true_baseline_per_event = float(enrolled_mw * period_hours)
+    est_baseline = belief.estimated_baseline_mwh
+    baseline_error_frac = (
+        abs(est_baseline - true_baseline_per_event) / true_baseline_per_event
+        if true_baseline_per_event else 0.0)
+    disp_price = truth.outturn_price[truth.dispatch_mask]
+    payment_at_risk_gbp = float(abs(est_baseline - true_baseline_per_event) * disp_price.sum())
+
+    return {
+        "gap": gap.gap,
+        "gap_l1_belief": gap_l1.gap,
+        "delivery_learning_gain": float(gap_l1.gap - gap.gap),
+        "learned_delivery_ratio": belief.learned_delivery_ratio,
+        "true_mean_delivery_ratio": truth.mean_delivery_ratio,
+        "baseline_bias": baseline_bias,
+        "baseline_error_frac": baseline_error_frac,
+        "payment_at_risk_gbp": payment_at_risk_gbp,
+        "true_total_revenue_gbp": truth.total_true_revenue_gbp,
+        "expected_total_revenue_gbp": belief.total_expected_revenue_gbp,
+        "n_true_dispatch": truth.n_dispatch,
+        "n_predicted_dispatch": belief.n_predicted_dispatch,
+        "n_periods": int(truth.true_utilised_revenue.size),
+        "gap_result": gap,
+        "truth": truth,
+        "belief": belief,
+    }
+
+
 def build_gap_summary(measurement: Dict[str, object]) -> Dict[str, object]:
     """Shape a compact, quotable summary of the L1 flex revenue gap for a
     digest / coupled-pair report. NOTE: this deliberately does NOT write to
@@ -130,5 +216,34 @@ def build_gap_summary(measurement: Dict[str, object]) -> Dict[str, object]:
             "proxy); SIM truth dispatches on hidden residual demand -- the gap "
             "is that forecast error. L1: perfect delivery, one venue, "
             "scale-free units; L2+ benchmark-gated."
+        ),
+    }
+
+
+def build_gap_summary_l2(measurement: Dict[str, object]) -> Dict[str, object]:
+    """Compact, quotable summary of the L2 flex gaps (delivery-learning +
+    baseline-methodology exposure) for a digest / coupled-pair report. Like the
+    L1 summary it deliberately does NOT write the shared coupled_gap_ledger
+    (an un-wired entry reds its consumer's tests); the gap is asserted by the
+    triad test meanwhile."""
+    return {
+        "world_atom": WORLD_ATOM_ID,
+        "twin_atom": TWIN_ATOM_ID,
+        "level": "L2",
+        "metric": "delivery-learning gain + baseline-methodology exposure",
+        "gap": measurement["gap"],
+        "gap_l1_belief": measurement["gap_l1_belief"],
+        "delivery_learning_gain": measurement["delivery_learning_gain"],
+        "learned_delivery_ratio": measurement["learned_delivery_ratio"],
+        "true_mean_delivery_ratio": measurement["true_mean_delivery_ratio"],
+        "baseline_error_frac": measurement["baseline_error_frac"],
+        "payment_at_risk_gbp": measurement["payment_at_risk_gbp"],
+        "note": (
+            "L2: the SIM portfolio delivers stochastically LESS than instructed "
+            "(rebound/non-response); the company DE-RATES using the ratio learned "
+            "from its OWN settlement observables (learning_gain>0 vs the L1 "
+            "perfect-delivery belief) and estimates its counterfactual baseline "
+            "with a methodology whose error is a clawback exposure it cannot see. "
+            "Mean delivery ratio + CM availability venue stay benchmark/level-gated."
         ),
     }

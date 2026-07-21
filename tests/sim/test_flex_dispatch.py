@@ -9,6 +9,7 @@ import pytest
 
 from sim.flex_dispatch import (
     DegenerateFlexError,
+    DeliveryModel,
     dispatch_and_settle,
     emit_dispatch_instructions,
     emit_settlement_lines,
@@ -82,3 +83,58 @@ def test_seam_emission_is_observable_only_and_async():
     for r in dispatches + settlements:
         assert not hasattr(r.payload, "residual_mw")
         assert not hasattr(r.payload, "true_need")
+
+
+# --- L2: stochastic portfolio delivery -------------------------------------
+
+def test_l1_perfect_delivery_is_byte_identical():
+    """delivery=None must reproduce the L1 perfect-delivery truth exactly (no
+    regression: ratio all-ones, revenue unchanged)."""
+    rec = _synthetic_record()
+    l1 = dispatch_and_settle(rec, enrolled_mw=2.0)
+    default = dispatch_and_settle(rec, enrolled_mw=2.0, delivery=None)
+    assert np.array_equal(l1.true_utilised_revenue, default.true_utilised_revenue)
+    assert np.all(l1.true_delivery_ratio == 1.0)
+    assert l1.mean_delivery_ratio == pytest.approx(1.0)
+
+
+def test_l2_delivery_reduces_delivered_below_instructed():
+    """L2: a DeliveryModel makes the true delivered reduction a FRACTION of the
+    instructed volume in dispatched periods (rebound/non-response)."""
+    rec = _synthetic_record()
+    dm = DeliveryModel(mean_ratio=0.7, dispersion=0.05, seed=3)
+    truth = dispatch_and_settle(rec, enrolled_mw=2.0, delivery=dm)
+    disp = truth.dispatch_mask
+    # every dispatched event delivers strictly less than instructed, ratio<1
+    assert np.all(truth.true_delivered_mwh[disp] < truth.true_baseline_mwh[disp])
+    assert 0.0 < truth.mean_delivery_ratio < 1.0
+    # true revenue is correspondingly below the perfect-delivery revenue
+    perfect = dispatch_and_settle(rec, enrolled_mw=2.0)
+    assert truth.total_true_revenue_gbp < perfect.total_true_revenue_gbp
+    # ratios stay within [0, 1] (clipped)
+    assert truth.true_delivery_ratio.min() >= 0.0
+    assert truth.true_delivery_ratio.max() <= 1.0
+
+
+def test_l2_delivery_is_deterministic_replay_cs2():
+    """C-S2: same seed -> byte-identical delivery ratios (deterministic replay);
+    a different seed changes them (genuine stochasticity)."""
+    rec = _synthetic_record()
+    a = dispatch_and_settle(rec, delivery=DeliveryModel(seed=11))
+    b = dispatch_and_settle(rec, delivery=DeliveryModel(seed=11))
+    c = dispatch_and_settle(rec, delivery=DeliveryModel(seed=12))
+    assert np.array_equal(a.true_delivery_ratio, b.true_delivery_ratio)
+    assert not np.array_equal(a.true_delivery_ratio, c.true_delivery_ratio)
+
+
+def test_l2_settlement_meters_the_stochastic_delivery():
+    """The OBSERVABLE metered delivery on the settlement line reflects the true
+    (stochastic) delivered reduction, not the instructed volume."""
+    rec = _synthetic_record()
+    truth = dispatch_and_settle(rec, enrolled_mw=2.0, delivery=DeliveryModel(mean_ratio=0.6, seed=5))
+    lines = emit_settlement_lines(truth)
+    idx = np.nonzero(truth.dispatch_mask)[0]
+    for r, i in zip(lines, idx):
+        assert r.payload.metered_delivery_mwh == pytest.approx(float(truth.true_delivered_mwh[i]))
+        # metered strictly below the instructed 2.0 MWh in a de-rated world
+        assert r.payload.metered_delivery_mwh < 2.0

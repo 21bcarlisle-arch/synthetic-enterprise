@@ -8,9 +8,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from background.flex_dispatch_triad import measure, build_gap_summary
+from background.flex_dispatch_triad import (
+    measure, build_gap_summary, measure_l2, build_gap_summary_l2,
+)
 from background.gap_metric import prediction_gap
-from sim.flex_dispatch import dispatch_and_settle
+from sim.flex_dispatch import dispatch_and_settle, DeliveryModel
 from company.market.flex_participation import form_participation_belief
 
 
@@ -72,3 +74,44 @@ def test_r15_mutation_control_fires_on_divergence_and_not_on_leak():
     # The two must be DISTINGUISHABLE by the metric -- a control that returned
     # the same value for a leak and a real belief would be theatre.
     assert real_gap.gap > leaking_gap.gap + 0.05
+
+
+# --- L2: delivery-learning gain + baseline-methodology exposure -------------
+
+def test_l2_delivery_learning_narrows_the_gap():
+    """R15 (not fail-open): with STOCHASTIC delivery the L2 company de-rates
+    using its own settlement observables and its gap is SMALLER than the L1
+    perfect-delivery belief (learning genuinely helps) -- and with PERFECT
+    delivery there is nothing to learn, so the gain is ~0 (the metric does not
+    manufacture a gain out of nothing)."""
+    rec = _synthetic_record()
+    stochastic = measure_l2(rec, delivery=DeliveryModel(mean_ratio=0.7, dispersion=0.05, seed=4))
+    assert stochastic["delivery_learning_gain"] > 0.0
+    assert stochastic["learned_delivery_ratio"] < 1.0
+    assert 0.0 < stochastic["true_mean_delivery_ratio"] < 1.0
+    # perfect delivery: nothing to learn, learned ratio ~1, no spurious gain
+    perfect = measure_l2(rec, delivery=None)
+    assert perfect["learned_delivery_ratio"] == pytest.approx(1.0)
+    assert perfect["delivery_learning_gain"] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_l2_baseline_exposure_fires_only_on_bias():
+    """R15: the baseline-methodology exposure is 0 iff the company's baseline is
+    UNBIASED and grows with |bias| -- it fires on its own named defect and does
+    not false-fire when the methodology is honest."""
+    rec = _synthetic_record()
+    unbiased = measure_l2(rec, delivery=DeliveryModel(seed=7), baseline_bias=0.0)
+    assert unbiased["baseline_error_frac"] == pytest.approx(0.0)
+    assert unbiased["payment_at_risk_gbp"] == pytest.approx(0.0)
+
+    biased = measure_l2(rec, delivery=DeliveryModel(seed=7), baseline_bias=0.2)
+    assert biased["baseline_error_frac"] == pytest.approx(0.2)
+    assert biased["payment_at_risk_gbp"] > 0.0
+
+
+def test_l2_summary_shape():
+    s = build_gap_summary_l2(measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1)))
+    assert s["world_atom"] == "W1_9_dsr_flex_markets"
+    assert s["level"] == "L2"
+    assert s["delivery_learning_gain"] >= 0.0
+    assert "payment_at_risk_gbp" in s
