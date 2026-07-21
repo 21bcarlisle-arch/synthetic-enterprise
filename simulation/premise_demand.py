@@ -39,14 +39,30 @@ lives on the public side of the wall. The module is SIM-side demand *generation*
 and imports no company/saas state — the reconciliation reference is derived from
 the same demand physics, not from any company observable.
 
-R10 simplification (deferred, not faked): idiosyncratic per-property noise (the
-"+ noise" term in the W1_5 DoD) is NOT added here — this pass builds the
-LOCAL-weather response + the national-reconciliation invariant, which are the two
-load-bearing DoD properties. Idiosyncratic noise needs its own named RNG substream
-(C-S2) and is registered as remaining L2→L3 work alongside the coupled-triad gap.
+Idiosyncratic per-property noise — the L2→L3 term (C-S2)
+--------------------------------------------------------
+The W1_5 DoD's final term is "+ idiosyncratic noise": two premises with identical
+characteristics, weather and archetype still do not meter identically. That is a
+premise-level draw, so it lives in its OWN named, seeded RNG substream
+(`_substream`, C-S2 discipline copied from `household_budget`): the factor for a
+premise is a pure function of `(STREAM_NAME, salt, premise_id, seed)`, so a draw
+here can never shift another subsystem's sequence and replay is deterministic.
+
+The noise is **multiplicative and mean-1 by construction** (a lognormal with its
+log-mean set so ``E[factor] == 1``): a premise consumes a bit more or less than its
+deterministic shape, but the noise does NOT bias the population. That is exactly
+what keeps the aggregation-consistency invariant true at L3 — as the book grows the
+demand-weighted mean factor converges to 1.0, so the noised aggregate reconciles to
+national just as the noise-free one does. `noise_is_unbiased` is the R15-failable
+control for this: it PASSES for a real mean-1 draw and FIRES the moment the factors
+carry a bias (mean != 1), which would silently inflate or deflate national demand.
 """
 
 from __future__ import annotations
+
+import hashlib
+import math
+import random
 
 from simulation.demand_model import PERIODS_PER_DAY, build_demand_shape
 
@@ -65,6 +81,7 @@ def premise_demand_shape(
     commodity: str,
     property: dict,
     irradiance_w_m2_periods: list[float] | None = None,
+    idiosyncratic_factor: float = 1.0,
 ) -> list[float]:
     """A single premise's 48-period demand shape driven by its LOCAL weather.
 
@@ -73,11 +90,19 @@ def premise_demand_shape(
     mean. ``regional_deviation_c == 0.0`` is byte-identical to calling
     `build_demand_shape` with ``national_temp_c`` — so this is a pure, additive
     forward extension of the shipped L1 path, not a change to it.
+
+    ``idiosyncratic_factor`` (default ``1.0``) scales the whole shape by a
+    premise-specific multiplier (see `idiosyncratic_factor`). The default of exactly
+    ``1.0`` leaves the L2 result byte-identical (``x * 1.0 == x``), so the noise term
+    is again a pure additive forward extension with zero blast radius on the L2 path.
     """
     local_temp = local_mean_temp_c(national_temp_c, regional_deviation_c)
-    return build_demand_shape(
+    shape = build_demand_shape(
         base_shape, local_temp, commodity, property, irradiance_w_m2_periods
     )
+    if idiosyncratic_factor == 1.0:
+        return shape
+    return [v * idiosyncratic_factor for v in shape]
 
 
 def _normalised_weights(weights: list[float]) -> list[float]:
@@ -200,3 +225,121 @@ def reconcile_to_national(
     factor = nat_total / agg_total
     scaled = [[v * factor for v in shape] for shape in premise_shapes]
     return scaled, factor
+
+
+# ---------------------------------------------------------------------------
+# Idiosyncratic per-property noise — the L2→L3 "+ noise" DoD term (C-S2).
+# ---------------------------------------------------------------------------
+# Named substream, one salt per stochastic mechanism (C-S2). A future premise-level
+# draw APPENDS a salt here; it never inserts a draw into an existing substream, so it
+# can never shift this one's sequence (the RNG-substream discipline).
+STREAM_NAME = "W1_5_premise_demand_shape"
+_IDIOSYNCRATIC_SALT = "idiosyncratic"
+
+# Coefficient of variation of the per-premise idiosyncratic multiplier. R10
+# convention / R12 diagnostic band, NOT a fitted truth: real premise-level metered
+# demand disperses far more than the deterministic archetype shape predicts, but the
+# exact spread needs real half-hourly premise metering (Elexon settlement / smart-
+# meter panel) unavailable to this session — flagged for calibration, not fabricated.
+# It is mean-preserving regardless of value, so the aggregation invariant does not
+# depend on the number chosen (that is the point).
+_DEFAULT_CV = 0.15
+
+
+def _substream(base_seed: int, salt: str = "") -> random.Random:
+    """An ISOLATED `random.Random` seeded from a STABLE sha256 of
+    (`STREAM_NAME`::`salt`::`base_seed`) — the C-S2 heart of this term.
+
+    The seed is a pure function of (name, salt, base_seed): shares no state with the
+    global `random`, with any other salt here, or with any other subsystem's
+    substream, so a draw can never shift another sequence. A stable digest (not
+    Python's per-process-salted `hash()`) gives deterministic replay across processes.
+    """
+    key = f"{STREAM_NAME}::{salt}::{base_seed}".encode("utf-8")
+    seed_int = int.from_bytes(hashlib.sha256(key).digest()[:8], "big")
+    return random.Random(seed_int)
+
+
+def _base_seed_for(premise_id: str, seed: int | None) -> int:
+    """Resolve a premise's base seed: a stable md5 of the premise_id, with any
+    explicit book-level ``seed`` mixed in. Every premise gets a DISTINCT seed (so a
+    book of premises draws distinct factors), and a given ``seed`` makes the whole
+    book reproducible — deterministic per (premise_id, seed) across processes (C-S2).
+    """
+    key = premise_id if seed is None else f"{premise_id}::{seed}"
+    return int.from_bytes(hashlib.md5(key.encode("utf-8")).digest()[:8], "big")
+
+
+def idiosyncratic_factor(
+    premise_id: str, *, seed: int | None = None, cv: float = _DEFAULT_CV
+) -> float:
+    """A premise's idiosyncratic demand multiplier: a mean-1, strictly-positive
+    lognormal draw from this atom's OWN named C-S2 substream.
+
+    Mean-1 BY CONSTRUCTION — a lognormal ``exp(mu + sigma*Z)`` with ``mu`` set to
+    ``-sigma^2/2`` so ``E[factor] == 1`` exactly — so the noise perturbs an
+    individual premise without biasing the population aggregate. Strictly positive
+    (a premise cannot meter negative energy). Deterministic in (premise_id, seed):
+    the same premise draws the same factor on replay (C-S2 idempotency). ``cv <= 0``
+    returns exactly ``1.0`` (noise off).
+    """
+    if cv <= 0.0:
+        return 1.0
+    sigma = math.sqrt(math.log(1.0 + cv * cv))
+    mu = -0.5 * sigma * sigma
+    r = _substream(_base_seed_for(premise_id, seed), _IDIOSYNCRATIC_SALT)
+    return math.exp(mu + sigma * r.gauss(0.0, 1.0))
+
+
+def demand_weighted_mean_factor(
+    premise_ids: list[str],
+    weights: list[float],
+    *,
+    seed: int | None = None,
+    cv: float = _DEFAULT_CV,
+) -> float:
+    """The demand-weighted mean of the premises' idiosyncratic factors.
+
+    This is what must stay ~1.0 for the aggregation-consistency invariant to survive
+    the noise term: a mean-1 draw over a demand-weighted book converges to 1.0 as the
+    book grows (LLN), so the noised aggregate reconciles to national just as the
+    noise-free one does. Raises on empty input or non-positive total weight (FAIL-OPEN
+    guard, R15) — the mean factor of no premises is a caller error, not a silent 1.0.
+    """
+    if not premise_ids:
+        raise ValueError("cannot take the mean factor of an empty premise set")
+    if len(premise_ids) != len(weights):
+        raise ValueError("premise_ids and weights must be the same length")
+    w = _normalised_weights(weights)
+    return sum(
+        w[i] * idiosyncratic_factor(premise_ids[i], seed=seed, cv=cv)
+        for i in range(len(premise_ids))
+    )
+
+
+# The demand-weighted mean of N mean-1 factors has sampling std ~ cv*sqrt(sum w_i^2),
+# which → 0 as the book grows. This tol PASSES a real (unbiased) draw over a
+# realistic book and FIRES on any systematic bias in the factors (R15). Diagnostic
+# band, not a target (R12).
+NOISE_BIAS_TOL = 0.02
+
+
+def noise_is_unbiased(
+    premise_ids: list[str],
+    weights: list[float],
+    *,
+    seed: int | None = None,
+    cv: float = _DEFAULT_CV,
+    tol: float = NOISE_BIAS_TOL,
+) -> bool:
+    """The R15-failable control that the idiosyncratic noise preserves the
+    aggregation-consistency invariant: True iff the demand-weighted mean factor is
+    within ``tol`` of 1.0.
+
+    It CAN fail — it FIRES (returns False) the moment the factors carry a bias (a
+    mean != 1 that would silently inflate or deflate the national aggregate), and it
+    is not fail-open: an empty book raises in `demand_weighted_mean_factor` rather
+    than passing. Over a realistic book of mean-1 draws it passes (the whole point of
+    building the noise mean-preserving).
+    """
+    return abs(demand_weighted_mean_factor(premise_ids, weights, seed=seed, cv=cv) - 1.0) <= tol

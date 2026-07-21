@@ -9,11 +9,15 @@ import pytest
 
 from simulation.demand_model import PERIODS_PER_DAY, build_demand_shape
 from simulation.premise_demand import (
+    NOISE_BIAS_TOL,
     RECONCILIATION_TOL,
     aggregate_reconciles,
     demand_weighted_aggregate,
+    demand_weighted_mean_factor,
+    idiosyncratic_factor,
     local_mean_temp_c,
     national_reference_shape,
+    noise_is_unbiased,
     premise_demand_shape,
     reconciliation_residual,
     reconcile_to_national,
@@ -167,3 +171,93 @@ def test_reconcile_to_national_scales_every_premise_by_the_same_factor():
     for original, s in zip(shapes, scaled):
         for a, b in zip(original, s):
             assert b == pytest.approx(a * factor)
+
+
+# ---------------------------------------------------------------------------
+# L2→L3: idiosyncratic per-property noise (C-S2 substream + R15 mutation controls).
+# ---------------------------------------------------------------------------
+def _book_ids(n):
+    return [f"premise-{i:05d}" for i in range(n)]
+
+
+def test_idiosyncratic_factor_is_deterministic_replay():
+    """C-S2: the same premise draws the same factor on replay (idempotent)."""
+    a = idiosyncratic_factor("premise-00042", seed=7)
+    b = idiosyncratic_factor("premise-00042", seed=7)
+    assert a == b
+
+
+def test_idiosyncratic_factor_differs_across_premises():
+    """Two different premises get different draws (not a constant)."""
+    factors = {idiosyncratic_factor(pid, seed=1) for pid in _book_ids(50)}
+    assert len(factors) > 1
+
+
+def test_idiosyncratic_factor_is_strictly_positive():
+    """A premise cannot meter negative energy — the lognormal is strictly > 0."""
+    assert all(idiosyncratic_factor(pid, seed=3) > 0.0 for pid in _book_ids(200))
+
+
+def test_cv_zero_turns_noise_off_exactly():
+    assert idiosyncratic_factor("premise-00001", seed=1, cv=0.0) == 1.0
+
+
+def test_default_factor_leaves_premise_shape_byte_identical():
+    """idiosyncratic_factor default 1.0 keeps the L2 shape byte-identical (zero
+    blast radius, same discipline as regional_deviation == 0)."""
+    prop = gas_property()
+    base = premise_demand_shape(FLAT_BASE, 5.0, -1.0, "electricity", prop)
+    with_default = premise_demand_shape(
+        FLAT_BASE, 5.0, -1.0, "electricity", prop, idiosyncratic_factor=1.0
+    )
+    assert with_default == base
+
+
+def test_noise_scales_the_whole_shape_by_the_factor():
+    prop = gas_property()
+    base = premise_demand_shape(FLAT_BASE, 5.0, -1.0, "electricity", prop)
+    noised = premise_demand_shape(
+        FLAT_BASE, 5.0, -1.0, "electricity", prop, idiosyncratic_factor=1.3
+    )
+    for a, b in zip(base, noised):
+        assert b == pytest.approx(a * 1.3)
+
+
+def test_mean_factor_converges_to_one_over_a_large_book():
+    """Mean-1 by construction: the demand-weighted mean factor of a large book is
+    ~1.0, so the noised aggregate reconciles to national just as the noise-free one."""
+    ids = _book_ids(5000)
+    weights = [1.0] * len(ids)
+    assert demand_weighted_mean_factor(ids, weights, seed=11) == pytest.approx(1.0, abs=0.01)
+
+
+def test_noise_is_unbiased_passes_for_a_real_draw():
+    ids = _book_ids(5000)
+    weights = [1.0] * len(ids)
+    assert noise_is_unbiased(ids, weights, seed=11) is True
+
+
+def test_noise_is_unbiased_FIRES_on_biased_factors():
+    """R15 mutation: monkeypatch the factor to a biased (mean != 1) draw and the
+    control must FIRE — a bias would silently inflate/deflate national demand."""
+    import simulation.premise_demand as pd
+
+    ids = _book_ids(2000)
+    weights = [1.0] * len(ids)
+    original = pd.idiosyncratic_factor
+    try:
+        pd.idiosyncratic_factor = lambda pid, *, seed=None, cv=pd._DEFAULT_CV: original(
+            pid, seed=seed, cv=cv
+        ) * 1.10  # inject a +10% systematic bias
+        assert pd.noise_is_unbiased(ids, weights, seed=11) is False
+    finally:
+        pd.idiosyncratic_factor = original
+
+
+def test_noise_is_unbiased_raises_on_empty_book_not_fail_open():
+    with pytest.raises(ValueError):
+        noise_is_unbiased([], [])
+
+
+def test_noise_bias_tol_is_a_small_positive_band():
+    assert 0.0 < NOISE_BIAS_TOL < 0.1
