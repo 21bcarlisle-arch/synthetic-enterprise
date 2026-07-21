@@ -1134,6 +1134,26 @@ def diagnose_map_blocked_set(atoms: list | None = None) -> str:
         and a.get("level_current") < a.get("level_target")
     )
     l0_count = sum(1 for a in atoms if isinstance(a, dict) and a.get("level_current") == 0)
+    # HELD-FRONTIER annotation (DIRECTOR_DIRECTIVE_KEEP_BUILDING, 2026-07-21):
+    # a build-stage atom whose deps are MET but that is still not drawable
+    # (walled by the coupled-triad L3 gate, held on a director act, off an open
+    # front, or owned by a live fork) is INVISIBLE to the dependency-root scan
+    # above -- `_blocking_roots` on its deps returns empty, so it lands in
+    # neither `blocked` nor the candidate pool. That invisibility is exactly why
+    # the overnight rest READ as "drawable work ignored" when it was a correct
+    # hold at a named wall. Surface those held-frontier atoms with the ACTUAL
+    # gate holding each, so the rest diagnoses itself. Computed once, appended in
+    # BOTH the no-dependency-blockage and the blocked branches.
+    held = {
+        aid: reason
+        for aid, reason in build_atom_hold_reasons(atoms).items()
+        if reason != "DRAWABLE" and not reason.startswith("blocked_by_dependency")
+    }
+    held_note = ""
+    if held:
+        held_note = " | held frontier (deps met, gated -- NOT a draw bug): " + "; ".join(
+            f"{aid} -> {reason}" for aid, reason in sorted(held.items())
+        )
     if not blocked:
         # ADVISOR_STEER_TWIN_READONLY.md (2026-07-12, real confusion this
         # caused): the OLD wording ("the map has genuinely no drawable gap
@@ -1155,13 +1175,115 @@ def diagnose_map_blocked_set(atoms: list | None = None) -> str:
             f"{len(atoms)} atoms, {idle_count} idle, {l0_count} at L0 -- no non-idle atom "
             "is blocked by an unmet dependency; no NON-IDLE BUILD candidate is blocked "
             "(every non-idle atom is either at target or already a valid candidate)."
-            f"{idle_note}"
+            f"{idle_note}{held_note}"
         )
     lines = [f"{atom_id} <- blocked by {', '.join(roots)}" for atom_id, roots in blocked]
     return (
         f"{len(atoms)} atoms, {idle_count} idle, {l0_count} at L0, "
-        f"{len(blocked)} non-idle atom(s) genuinely blocked: " + "; ".join(lines)
+        f"{len(blocked)} non-idle atom(s) genuinely blocked: " + "; ".join(lines) + held_note
     )
+
+
+def build_atom_hold_reasons(atoms: list | None = None) -> dict:
+    """{atom_id: reason} for every BUILD-stage atom with a real level gap --
+    the auditable answer to "why is the loop at rest / why is this atom not
+    building?" (DIRECTOR_DIRECTIVE_KEEP_BUILDING, 2026-07-21; the overnight-rest
+    incident: every build-stage atom was correctly held, but no diagnostic
+    could SHOW it, so a correct hold read as a draw bug).
+
+    Each reason is either ``"DRAWABLE"`` (the atom passes every candidate filter
+    the concurrent BUILD draw applies, so it IS in the draw pool and MUST NOT be
+    left undrawn while the loop rests) or the FIRST gate that removes it, in the
+    same order the draw applies them:
+      * ``blocked_by_dependency: <roots>`` -- an upstream dep is below target;
+      * ``director_gate: blocked_on=<x>`` -- held on an external/director act;
+      * ``fork_in_flight`` -- a live fork already owns it;
+      * ``off_open_front`` -- fronts enforcement excludes it (off an open front);
+      * ``coupled_triad_l3_wall: <why>`` -- the L3 step needs a mature company twin.
+
+    R15 (a control that can FIRE): the failure signal is a ``DRAWABLE`` atom that
+    coexists with the loop being at rest -- exactly the directive's incident,
+    "a drawable in-front atom left undrawn at rest". A caller that knows the loop
+    is drained (`_is_drained_and_gated()` / an empty concurrent draw) asserts this
+    map yields NO ``DRAWABLE`` atom; a genuinely-buildable atom silently skipped by
+    the loop makes that assertion fail. Pure read, fail-open (a broken sub-check
+    never invents a hold that would mask a real drawable atom -- on error the more
+    permissive branch is taken, so a masked hold can only ever turn a held atom
+    into a louder ``DRAWABLE``, never the reverse)."""
+    if atoms is None:
+        try:
+            import yaml
+            atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+    if not isinstance(atoms, list):
+        return {}
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
+
+    # Mirrors _maturity_map_draw_concurrent's own _dependencies_met exactly
+    # (deliberately duplicated, same rationale as that function's inline copy:
+    # keep this classifier in lockstep with the draw's real filter order).
+    def _deps_met(atom: dict) -> bool:
+        for dep_id in atom.get("depends_on") or []:
+            dep = by_id.get(dep_id)
+            if dep is None:
+                return False
+            if dep.get("loop_stage") == "idle":
+                continue
+            dl, dt_ = dep.get("level_current"), dep.get("level_target")
+            if dl is None or dt_ is None or dl < dt_:
+                return False
+        return True
+
+    try:
+        bip = _build_in_progress_ids()
+    except Exception:
+        bip = set()
+    try:
+        from background import fronts_reconciler as _fr
+        fronts_on = _fr.fronts_enforcement_enabled()
+    except Exception:
+        _fr, fronts_on = None, False
+    gap_ledger = _coupled_load_gap_ledger()
+
+    reasons: dict = {}
+    for a in atoms:
+        if not isinstance(a, dict) or "id" not in a:
+            continue
+        lc, lt = a.get("level_current"), a.get("level_target")
+        has_gap = lc is not None and lt is not None and lc < lt
+        if not has_gap or a.get("loop_stage") != "build":
+            continue
+        aid = a["id"]
+        if not _deps_met(a):
+            roots: set[str] = set()
+            for dep_id in a.get("depends_on") or []:
+                roots |= _blocking_roots(dep_id, by_id)
+            reasons[aid] = "blocked_by_dependency: " + ", ".join(sorted(roots))
+            continue
+        if _is_externally_blocked(a):
+            reasons[aid] = f"director_gate: blocked_on={a.get('blocked_on')}"
+            continue
+        if aid in bip:
+            reasons[aid] = "fork_in_flight"
+            continue
+        if fronts_on and _fr is not None:
+            try:
+                if not _fr.filter_build_candidates([a]):
+                    reasons[aid] = "off_open_front"
+                    continue
+            except Exception:
+                pass  # fail-open: don't invent an off-front hold on a filter error
+        try:
+            blocked, why = _coupled_world_l3_blocked(a, atoms, gap_ledger)
+        except Exception:
+            blocked, why = False, ""
+        if blocked:
+            reasons[aid] = f"coupled_triad_l3_wall: {why}"
+            continue
+        # Passes every candidate filter the draw applies -> genuinely drawable.
+        reasons[aid] = "DRAWABLE"
+    return reasons
 
 
 def _harden_at_target(a: dict) -> bool:
