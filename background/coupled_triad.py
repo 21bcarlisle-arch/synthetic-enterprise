@@ -75,6 +75,37 @@ _AUTHORITATIVE_COUPLING = {
     "W1_5": "C13",
 }
 
+# TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).
+# A world atom is exempt from the coupled-twin L3 gate ONLY when the mechanism it
+# models is GENUINELY PUBLIC and directly company-knowable -- the company READS the
+# data (e.g. Met Office regional weather outturns/forecasts) rather than INFERRING
+# it through the wall, so there is no belief-vs-truth gap to measure and requiring a
+# twin would fabricate epistemics for data a real supplier simply reads. This set is
+# DIRECTOR-RESERVED: an atom enters it only by an explicit director console act, never
+# by agent discretion (adding a non-public atom here would fail OPEN the L3 gate -- the
+# exact thing binding rule 1 exists to prevent). Each entry names its grounds + provenance.
+_TWIN_EXEMPT = {
+    # National weather signal -- Met Office public data (the original precedent; W1_3
+    # reached L3 by director console ratification 2026-07-20 without a twin).
+    "W1_3",
+    # Regional weather field -- Met Office public regional outturns/forecasts. Director
+    # console 2026-07-21 (verbatim grounds): "regional weather is public and company-
+    # knowable (Met Office; W1_3 precedent) -- requiring a twin there fabricates
+    # epistemics for data a real supplier simply reads." The atom's own map log has
+    # carried "Regional weather is COMPANY-KNOWABLE (genuinely public)" since 2026-07-13.
+    "W1_4",
+}
+
+
+def is_twin_exempt(world_atom: dict) -> bool:
+    """True iff this world atom is director-exempted from the coupled-twin L3 gate
+    (its mechanism is public/company-knowable, so no belief-vs-truth gap exists).
+    Matches on the short lane-and-number id, so it is stable across id renames."""
+    if not isinstance(world_atom, dict):
+        return False
+    return _short_id(world_atom.get("id") or "") in _TWIN_EXEMPT
+
+
 _SHORT_ID_RE = re.compile(r"^(W\d+_\d+|[A-Z]+\d+)")
 
 
@@ -231,6 +262,19 @@ def world_l3_blocked(world_atom: dict, atoms: list, ledger: dict):
         return False, "next BUILD step does not target L3"
 
     world_id = world_atom.get("id") or "<unknown>"
+
+    # Director-authored twin exemption: a genuinely-public, company-knowable
+    # mechanism (e.g. Met Office regional weather) has no belief-vs-truth gap, so
+    # binding rule 1 does not apply -- the company reads the data, it does not infer
+    # it through the wall. Checked AFTER confirming the step targets L3 (so a non-L3
+    # step still returns its own reason) and BEFORE the twin lookup (an exempt atom
+    # has no twin by design). Director-reserved set (see _TWIN_EXEMPT).
+    if is_twin_exempt(world_atom):
+        return False, (
+            f"{world_id} is director-exempt from the coupled-twin L3 gate "
+            "(public/company-knowable mechanism -- no belief-vs-truth gap to measure)"
+        )
+
     twin_id = _twin_id_for(world_atom, atoms)
     if twin_id is None:
         return (

@@ -162,6 +162,39 @@ def test_world_blocked_when_twin_below_l2(tmp_path):
     assert "C9" in reason
 
 
+# --- Twin exemption (director-authored, public/company-knowable mechanisms) ---
+
+def test_twin_exempt_world_atom_not_blocked_at_l3(tmp_path):
+    # W1_4 regional weather: director-exempt (Met Office public data). Targets L3
+    # with NO twin registered -> would block under binding rule 1, but the exemption
+    # allows it (no belief-vs-truth gap to measure). Empty ledger to prove the pass
+    # is the exemption, not a measured gap.
+    world = _world_atom("W1_4_regional_weather_field", lc=2, lt=3, lane="W1_market_weather")
+    ledger = ct.load_gap_ledger(_write_ledger(tmp_path, {}))
+    blocked, reason = ct.world_l3_blocked(world, [world], ledger)
+    assert blocked is False
+    assert "exempt" in reason.lower()
+
+
+def test_exemption_does_not_fail_open_for_non_exempt_world_atom(tmp_path):
+    # R15 anti-fail-open: a non-public world atom (W1_9) targeting L3 with no twin
+    # MUST still block. The exemption is a whitelist, never a blanket bypass.
+    world = _world_atom("W1_9_dsr_flex_markets", lc=2, lt=3, lane="W1_market_weather")
+    ledger = ct.load_gap_ledger(_write_ledger(tmp_path, {}))
+    blocked, reason = ct.world_l3_blocked(world, [world], ledger)
+    assert blocked is True
+    assert "twin" in reason.lower()
+
+
+def test_exemption_matches_on_short_id_only():
+    # is_twin_exempt keys on the short lane-and-number id, stable across renames.
+    assert ct.is_twin_exempt({"id": "W1_4_regional_weather_field"}) is True
+    assert ct.is_twin_exempt({"id": "W1_3_national_weather_signal"}) is True
+    assert ct.is_twin_exempt({"id": "W1_5_premise_demand_shape"}) is False
+    assert ct.is_twin_exempt({"id": "W1_4_something_renamed"}) is True  # short id W1_4
+    assert ct.is_twin_exempt({}) is False
+
+
 def test_real_ledger_has_no_fabricated_entries():
     # Was "ships empty" until the first real coupled run (W2_5<->C7). The guard's
     # intent is anti-fabrication: entries are allowed, but any non-null gap must
