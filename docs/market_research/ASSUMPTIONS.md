@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-07-18 from current codebase.
+Last seeded: 2026-07-21 from current codebase.
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -354,6 +354,21 @@ fetched live this session. LPCDA/Limitation-Act figures are high-confidence UK
 statute from training-era recall; the BoE base rate is a per-period INPUT to the
 model, never hard-coded; the exact Ofgem SLC number for domestic ability-to-pay
 (recalled SLC 27) is unverified and flagged for live confirmation on next touch.
+
+## D-SEGMENT Trait Joint-Structure (2026-07-21, discovery-agent DISCOVER pass, D-SEGMENT Step 1 of `docs/design/SEGMENTATION_WIRING_PLAN.md`)
+
+Full detail: `docs/market_research/segmentation_joint_structure.md`. This pass inventoried 21
+per-household trait axes (reconstructed from prior `docs/market_research/` DISCOVER docs — direct
+`simulation/` code read is outside this role's epistemic wall, flagged in the doc) across the
+plan's three factor families (Need / Attitudes / Engagement), and found the existing trait vector
+is overwhelmingly **independent per-axis draws**, not jointly-structured — only W1_10's spatial
+adoption correlation and W2_10's `organisation`↔W2_4-budget coupling were confirmed already built.
+
+| Assumption | Finding | Confidence | Source | Status |
+|---|---|---|---|---|
+| Attitude/tech-adoption traits (green stance, adoption likelihood) are independent of Need axes (tenure, age) | **Refined — real joint structure found.** DESNZ Public Attitudes Tracker (Spring 2026): Net Zero/heat-pump knowledge and adoption-likelihood both show 15-20pp gaps by tenure and age; decisively, 42% of renters say a heat-pump install decision "is not theirs to make" vs 7% of owner-occupiers — a structural, tenure-gated adoption blocker, not just an attitude gap | H — official DESNZ accredited statistics, live fetch | gov.uk DESNZ Public Attitudes Tracker: Heat and Energy Use in the Home, Spring 2026 UK, fetched 2026-07-21 | Action: FRAME should treat tenure as a real coupling key for at least one Attitudes/adoption trait, not accept the sibling population-coverage register's current "assumed" (independent) classification as final for this specific pair |
+| W2_10's `organisation` latent and W2_4 `household_budget` coupling | Confirmed as described in W2_10's own DISCOVER doc — genuine common-cause structure (organisation lowers arrears AND raises DD adoption) — but W2_4's own DISCOVER doc separately describes itself as not-yet-built (BUILD gated), a direct discrepancy this pass could not resolve without a code read | M — internal doc cross-reference only, not independently verified against code | dd_attribution_confound_w2_10.md; household_budget_w2_4.md | Open — needs a direct maturity-map/code check before FRAME assumes either status |
+| Willingness-to-pay (W2_7) whole-population can't-pay/won't-pay split | Reconfirmed genuinely un-anchorable after a third check this pass (no re-search attempted, per the prior pass's own conclusion) — stays an R13 director-curriculum candidate | — | willingness_classification_incidence.md | Unchanged — no new evidence found or expected via search |
 
 ## Known Gaps (not yet modelled)
 
