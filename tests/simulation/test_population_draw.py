@@ -312,3 +312,186 @@ def test_iter_is_lazy_stream_not_prebuilt_list():
     assert not isinstance(pd.iter_acquisition_events(base_seed=1), list)
     if first is not None:
         assert isinstance(first, pd.SyntheticCustomer)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SEGMENTATION_GENERATOR_BUILD_PLAN.md step 1: SIM cohort draw (`assign_cohort`)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _first_nonempty_seed(**kwargs):
+    for seed in range(50):
+        pop = pd.draw_population(base_seed=seed, **kwargs)
+        if pop:
+            return seed, pop
+    raise AssertionError("no seed in range(50) produced a non-empty population")
+
+
+def test_cohort_draw_default_off_is_byte_identical():
+    """DEFAULT OFF: SyntheticCustomer output must be byte-identical whether or
+    not cohorts are requested, for every field OTHER than `cohort` itself."""
+    seed, _ = _first_nonempty_seed()
+    without = pd.draw_population(base_seed=seed)
+    with_cohort = pd.draw_population(base_seed=seed, assign_cohorts=True)
+    assert len(without) == len(with_cohort)
+    assert all(c.cohort is None for c in without)
+    assert all(c.cohort is not None for c in with_cohort)
+    # Every OTHER field is untouched by the cohort flag.
+    for a, b in zip(without, with_cohort):
+        assert a.to_customer_dict() == b.to_customer_dict()
+
+
+def test_cohort_draw_deterministic_replay():
+    a = pd.assign_cohort("C_TEST_1", base_seed=99)
+    b = pd.assign_cohort("C_TEST_1", base_seed=99)
+    assert a == b
+
+
+def test_cohort_draw_varies_by_customer_id():
+    cohorts = {pd.assign_cohort(f"CID{i}", base_seed=1) for i in range(200)}
+    # Real variety across axes -- not every customer landing on the same cell.
+    assert len({c.tenure for c in cohorts}) > 1
+    assert len({c.accommodation for c in cohorts}) > 1
+    assert len({c.green_stance for c in cohorts}) > 1
+
+
+def test_cohort_draw_all_axis_values_are_schema_levels():
+    for i in range(300):
+        c = pd.assign_cohort(f"AX{i}", base_seed=5)
+        assert c.tenure in pd.TENURE_LEVELS
+        assert c.accommodation in pd.ACCOMMODATION_LEVELS
+        assert c.cars in pd.CARS_LEVELS
+        assert c.nssec in pd.NSSEC_LEVELS
+        assert c.heating_fuel in pd.HEATING_FUEL_LEVELS
+
+
+def test_cohort_curriculum_values_are_read_not_hardcoded(tmp_path):
+    """A curriculum edit must change the draw -- proves the values are read
+    live from the JSON, never hardcoded in this module (R13)."""
+    import json
+    curriculum_path = pd._CURRICULUM_PATH
+    real = json.loads(curriculum_path.read_text())
+    mutated = json.loads(curriculum_path.read_text())
+    # Force green_stance to be deterministically "engaged" for every draw.
+    mutated["green_stance_marginals"]["value"] = {"engaged": 1.0, "neutral": 0.0, "disengaged": 0.0}
+    tmp_curriculum = tmp_path / "mutated_curriculum.json"
+    tmp_curriculum.write_text(json.dumps(mutated))
+
+    real_result = pd.assign_cohort("CURR1", base_seed=1, curriculum=real)
+    mutated_result = pd.assign_cohort("CURR1", base_seed=1,
+                                      curriculum=json.loads(tmp_curriculum.read_text()))
+    assert mutated_result.green_stance == "engaged"
+    # And the real (unmutated) curriculum does not universally force "engaged".
+    variety = {pd.assign_cohort(f"CURR{i}", base_seed=1, curriculum=real).green_stance
+              for i in range(50)}
+    assert variety != {"engaged"}
+
+
+def test_cohort_curriculum_default_load_matches_explicit_path_read():
+    import json
+    c = pd._load_cohort_curriculum()
+    c_explicit = json.loads(pd._CURRICULUM_PATH.read_text())
+    assert c == c_explicit
+
+
+# ---------------------------------------------------------------------------
+# RNG substream isolation (C-S2): assign_cohort() must never perturb
+# iter_acquisition_events()'s own sequential substream, in either direction.
+# ---------------------------------------------------------------------------
+
+def test_cohort_substream_isolation_does_not_perturb_acquisition_draw():
+    seed, baseline = _first_nonempty_seed()
+    # Draw a bunch of cohorts (unrelated customer_ids) BEFORE and AFTER
+    # calling iter_acquisition_events -- the acquisition stream must be
+    # unaffected either way (independent random.Random instances, C-S2).
+    for i in range(50):
+        pd.assign_cohort(f"UNRELATED{i}", base_seed=seed)
+    after = pd.draw_population(base_seed=seed)
+    assert [c.to_customer_dict() for c in baseline] == [c.to_customer_dict() for c in after]
+
+
+def test_cohort_axes_draw_from_independent_substreams():
+    """Changing one axis's own substream salt must not be reachable by
+    perturbing another axis -- proven indirectly: two customers who share
+    every OTHER trait can still differ on any single axis independently
+    (no single shared RNG position ties all axes together)."""
+    seen_pairs = set()
+    for i in range(300):
+        c = pd.assign_cohort(f"INDEP{i}", base_seed=7)
+        seen_pairs.add((c.tenure, c.green_stance))
+    # If tenure and green_stance were coupled through a shared draw position,
+    # we would see far fewer than the cartesian product's worth of variety.
+    assert len(seen_pairs) > 4
+
+
+# ---------------------------------------------------------------------------
+# TENURE RECONCILIATION (BUILD_PLAN step 2's own "⚠ reconcile the two tenure
+# representations FIRST"): cohort_tenure_for_customer must be a strict
+# refinement of tenure_for_customer -- the round trip must ALWAYS hold.
+# ---------------------------------------------------------------------------
+
+def test_cohort_tenure_collapses_back_to_tenure_for_customer():
+    from simulation.household_segments import tenure_for_customer
+    for i in range(500):
+        cid = f"RECONCILE{i}"
+        cohort_tenure = pd.cohort_tenure_for_customer(cid, base_seed=42)
+        assert pd.collapse_cohort_tenure(cohort_tenure) == tenure_for_customer(cid)
+
+
+def test_cohort_tenure_reconciliation_holds_for_hand_authored_customers():
+    from simulation.household_segments import tenure_for_customer
+    from simulation.run_phase2b import CUSTOMERS
+    for c in CUSTOMERS:
+        cid = c["customer_id"]
+        cohort_tenure = pd.cohort_tenure_for_customer(cid, base_seed=1)
+        assert pd.collapse_cohort_tenure(cohort_tenure) == tenure_for_customer(cid)
+
+
+def test_owner_occupier_splits_into_both_outright_and_mortgage():
+    from simulation.household_segments import tenure_for_customer, TenureType
+    seen = set()
+    for i in range(1000):
+        cid = f"OWNER{i}"
+        if tenure_for_customer(cid) == TenureType.OWNER_OCCUPIER:
+            seen.add(pd.cohort_tenure_for_customer(cid, base_seed=1))
+    assert seen == {"own_outright", "own_mortgage"}
+
+
+# ---------------------------------------------------------------------------
+# heating_fuel pinned to region (not scattered uniformly) -- the off-gas tail
+# must be concentrated in the regions the fusion register names.
+# ---------------------------------------------------------------------------
+
+def test_heating_fuel_off_gas_tail_concentrated_in_wales_not_london():
+    wales_weights = pd.heating_fuel_weights_for_region("Wales")
+    london_weights = pd.heating_fuel_weights_for_region("London")
+    assert wales_weights["oil"] > london_weights["oil"]
+    assert london_weights["heat_network"] > wales_weights["heat_network"]
+
+
+def test_heating_fuel_weights_sum_to_one_for_every_region():
+    curriculum = pd._load_cohort_curriculum()
+    for region in curriculum["region_marginal_synthetic_acquisitions"]["value"]:
+        weights = pd.heating_fuel_weights_for_region(region)
+        assert abs(sum(weights.values()) - 1.0) < 1e-9
+
+
+# ---------------------------------------------------------------------------
+# BUILD_PLAN step 2: tenure -> low-carbon-adoption eligibility gating STRENGTH
+# ---------------------------------------------------------------------------
+
+def test_low_carbon_adoption_multiplier_gates_rented_tenures():
+    curriculum = pd._load_cohort_curriculum()
+    gating = curriculum["tenure_adoption_gating_strength"]["value"]
+    for tenure in gating["gated_tenures"]:
+        assert pd.low_carbon_adoption_eligibility_multiplier(tenure) == gating["renter_adoption_propensity_multiplier"]
+    for tenure in pd.TENURE_LEVELS:
+        if tenure not in gating["gated_tenures"]:
+            assert pd.low_carbon_adoption_eligibility_multiplier(tenure) == gating["owner_multiplier"]
+
+
+def test_low_carbon_adoption_multiplier_reads_curriculum_not_hardcoded():
+    mutated = pd._load_cohort_curriculum()
+    import copy
+    mutated = copy.deepcopy(mutated)
+    mutated["tenure_adoption_gating_strength"]["value"]["renter_adoption_propensity_multiplier"] = 0.5
+    assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", curriculum=mutated) == 0.5

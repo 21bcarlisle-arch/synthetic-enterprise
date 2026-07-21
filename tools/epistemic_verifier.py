@@ -75,6 +75,106 @@ EXEMPT_PATHS = {
 COMPANY_PATHS = ["company/", "saas/"]
 
 
+# ---------------------------------------------------------------------------
+# SEAM-FILE SEGMENT-LABEL GUARD (SEGMENTATION_GENERATOR_BUILD_PLAN.md step 5;
+# SEGMENTATION_RECONCILIATION_FRAME.md §0 canonical wall ruling, verbatim: "No
+# segment label, attitude, or sensitivity ever crosses the wall directly").
+#
+# The generic import-direction scan above only catches `simulation.*`/`sim.*`
+# IMPORTS -- but `company/interfaces/` is the one path EXEMPT from that scan
+# (it IS the approved seam, legitimately allowed to import simulation
+# internals to implement `Live*SimInterface`). That means the seam file needs
+# a DIFFERENT check: not "does it import simulation" (yes, correctly), but
+# "does it ever DEFINE/RETURN a SIM segment label, attitude, or sensitivity".
+# This is a closed, curated symbol list -- deliberately not a generic import
+# scan, because the seam file's whole job is to touch simulation internals;
+# the violation class here is a specific RETURNED symbol, not any import.
+# ---------------------------------------------------------------------------
+SEAM_FILES = ["company/interfaces/sim_interface.py"]
+
+FORBIDDEN_SEAM_SYMBOLS = {
+    "green_stance", "price_sensitivity", "channel_pref",
+    "cohort_label", "true_cohort", "segment_label",
+    "assign_cohort", "Cohort", "nudge_susceptibility", "co2_salience",
+}
+
+
+def _seam_symbol_violation(path: str, lineno: int, code: str, symbol: str) -> dict:
+    return {
+        "file": path,
+        "line": lineno,
+        "code": code,
+        "description": f"Seam file exposes a forbidden SIM cohort symbol: {symbol!r}",
+        "why": (
+            "company/interfaces/sim_interface.py is the ONE approved SIM<->company "
+            "seam -- but the CANONICAL WALL RULING (docs/design/SEGMENTATION_"
+            "RECONCILIATION_FRAME.md §0) is a bright line even here: no segment "
+            "label, attitude, or sensitivity may ever cross it, only interaction "
+            f"events. A forbidden symbol ({symbol!r}) appearing in this file is a "
+            "wall breach even though the file is otherwise allowed to import "
+            "simulation internals to implement its Live* interfaces."
+        ),
+    }
+
+
+def _scan_seam_files_for_forbidden_symbols(paths: list[str] | None = None) -> list[dict]:
+    """Scan the approved seam file(s) for any `FORBIDDEN_SEAM_SYMBOLS` token,
+    as an identifier (a function/attribute/import name) or a string literal (a
+    dict/JSON key) -- either is a real way a segment label could cross the
+    seam. A missing seam file has nothing to violate (not an unavailable
+    check -- `company/interfaces/sim_interface.py` not existing yet is not
+    this scan's failure mode). An unreadable EXISTING file IS an unavailable
+    check (R15 FAIL-SILENT)."""
+    targets = paths if paths is not None else SEAM_FILES
+    violations: list[dict] = []
+    for path in targets:
+        p = Path(path)
+        if not p.is_file():
+            continue
+        try:
+            source = p.read_text()
+        except (OSError, UnicodeDecodeError) as exc:
+            violations.append(_check_unavailable(path, type(exc).__name__))
+            continue
+        lines = source.splitlines()
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", SyntaxWarning)
+                tree = ast.parse(source)
+        except SyntaxError:
+            tree = None
+
+        found: set[tuple[str, int]] = set()
+        if tree is not None:
+            for node in ast.walk(tree):
+                name = None
+                lineno = getattr(node, "lineno", 1)
+                if isinstance(node, ast.Name):
+                    name = node.id
+                elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    name = node.name
+                elif isinstance(node, ast.Attribute):
+                    name = node.attr
+                elif isinstance(node, ast.alias):
+                    name = node.name
+                elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                    name = node.value
+                if name in FORBIDDEN_SEAM_SYMBOLS:
+                    found.add((name, lineno))
+        else:
+            # Unparseable source: fall back to a line-anchored substring scan
+            # rather than skipping the file (same discipline as _scan_lines).
+            for lineno, line in enumerate(lines, start=1):
+                for sym in FORBIDDEN_SEAM_SYMBOLS:
+                    if sym in line:
+                        found.add((sym, lineno))
+
+        for name, lineno in sorted(found, key=lambda t: t[1]):
+            code = lines[lineno - 1].strip() if 0 < lineno <= len(lines) else name
+            violations.append(_seam_symbol_violation(path, lineno, code, name))
+    return violations
+
+
 def _get_diff_files() -> list[str]:
     """Get changed company/ files from current git diff (HEAD vs working tree + index).
 
@@ -309,6 +409,11 @@ def scan(files: list[str] | None = None) -> tuple[bool, list[dict]]:
     all_violations = []
     for path in sorted(to_scan):
         all_violations.extend(_scan_file(path))
+
+    # Seam-file segment-label guard (always runs, independent of `files`/
+    # `--diff` scope -- a wall-critical check for the ONE file the generic
+    # scan above deliberately exempts, see the guard's own module-level note).
+    all_violations.extend(_scan_seam_files_for_forbidden_symbols())
 
     return (len(all_violations) == 0), all_violations
 

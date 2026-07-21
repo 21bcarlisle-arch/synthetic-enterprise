@@ -308,6 +308,7 @@ def generate_life_events(
     sim_start_year: int,
     sim_end_year: int,
     seed: int | None = None,
+    adoption_eligibility_multiplier: float = 1.0,
 ) -> list[LifeEvent]:
     """Generate all life events for a household over the simulation period.
 
@@ -320,11 +321,32 @@ def generate_life_events(
         sim_end_year: Last year to generate events for (inclusive).
         seed: Optional RNG seed for reproducibility. Derived from customer_id
               if None, ensuring deterministic per-customer event streams.
+        adoption_eligibility_multiplier: BUILD_PLAN step 2 (tenure→low-carbon-
+              adoption gating, SEGMENTATION_GENERATOR_BUILD_PLAN.md /
+              SEGMENTATION_RECONCILIATION_FRAME.md §0). Multiplies the annual
+              probability of the three LOW-CARBON adoption events (solar_
+              install, ev_acquired, heat_pump_installed) ONLY -- boiler
+              replacement, insulation, and the economic/demographic events are
+              untouched. DEFAULT 1.0 (no gating -- byte-identical to every
+              existing call site, proven by `test_default_multiplier_is_byte_
+              identical_to_no_multiplier`). The caller is expected to pass
+              `simulation.population_draw.low_carbon_adoption_eligibility_
+              multiplier(cohort_tenure)` once the live run pipeline is wired
+              to compute a household's cohort tenure -- that live-run WIRING
+              is deliberately NOT done in this pass (R13: population-draw
+              live-run activation is director-reserved curriculum, matching
+              the precedent already recorded on W2_2_population_draw's own
+              maturity-map history -- this parameter is the tested MECHANISM,
+              not yet the activation). Clamped to [0, 1] (a multiplier can
+              only ever reduce/preserve eligibility, never manufacture
+              probability mass above 1.0 -- R15 fail-closed on a malformed
+              caller value rather than a silent >1 probability).
 
     Returns:
         Sorted list of LifeEvents. Empty list if no events occur.
     """
     base_seed = _base_seed_for(household, seed)
+    _adopt_mult = min(1.0, max(0.0, adoption_eligibility_multiplier))
     # One independent, named substream per emitted event type (C-S2). A draw in
     # any one of these can never shift the sequence any other one produces, so a
     # future event type is added by APPENDING a substream, not by threading a new
@@ -350,7 +372,7 @@ def generate_life_events(
                 and household.is_residential
                 and household.property_type != PropertyType.FLAT
                 and household.roof_aspect not in ("north", "na")):
-            prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year)
+            prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year) * _adopt_mult
             _s = sub["solar_install"]
             if _s.random() < prob:
                 kwp = round(_s.uniform(2.5, 4.5), 1)
@@ -378,7 +400,7 @@ def generate_life_events(
 
         # -- EV acquisition --
         if not has_ev and household.is_residential and household.has_driveway:
-            prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year)
+            prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year) * _adopt_mult
             _s = sub["ev_acquired"]
             if _s.random() < prob:
                 charger_kw = _s.choice([3.7, 7.0, 7.0, 22.0])  # weighted toward 7kW
@@ -393,7 +415,7 @@ def generate_life_events(
         # -- Heat pump installation (gas-heated resi, physically eligible) --
         if (household.hp_eligible
                 and heating in (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)):
-            prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year)
+            prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year) * _adopt_mult
             _s = sub["heat_pump_installed"]
             if _s.random() < prob:
                 events.append(LifeEvent(

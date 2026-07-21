@@ -492,3 +492,74 @@ def test_real_roster_business_segment_never_residential():
             leaked = [e.event_type for e in events
                       if e.event_type in _RESIDENTIAL_ONLY_DEMOGRAPHIC_EVENTS]
             assert leaked == [], f"{c['customer_id']} ({seg}) leaked {leaked}"
+
+
+# ---------------------------------------------------------------------------
+# SEGMENTATION_GENERATOR_BUILD_PLAN.md step 2: tenure->low-carbon-adoption
+# gating MECHANISM (`adoption_eligibility_multiplier`). Default OFF (1.0) so
+# every existing call site is byte-identical; the multiplier measurably
+# reduces solar_install/ev_acquired/heat_pump_installed frequency and leaves
+# every other event type untouched.
+# ---------------------------------------------------------------------------
+
+_ADOPTION_EVENT_TYPES = {"solar_install", "ev_acquired", "heat_pump_installed"}
+
+
+def test_default_multiplier_is_byte_identical_to_no_multiplier():
+    h = _semi()
+    for seed in range(30):
+        a = generate_life_events(h, 2016, 2025, seed=seed)
+        b = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=1.0)
+        assert a == b
+
+
+def test_lower_multiplier_never_increases_adoption_events_and_reduces_them_on_average():
+    h = _semi()
+    default_count = 0
+    gated_count = 0
+    for seed in range(400):
+        default_events = generate_life_events(h, 2016, 2025, seed=seed)
+        gated_events = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=0.17)
+        default_count += sum(1 for e in default_events if e.event_type in _ADOPTION_EVENT_TYPES)
+        gated_count += sum(1 for e in gated_events if e.event_type in _ADOPTION_EVENT_TYPES)
+    assert gated_count < default_count, (
+        f"gated multiplier (0.17) did not reduce adoption events: "
+        f"default={default_count} gated={gated_count}"
+    )
+
+
+def test_multiplier_leaves_non_adoption_events_untouched():
+    # boiler_replaced / insulation_upgraded / economic-demographic events must
+    # be byte-identical regardless of adoption_eligibility_multiplier -- the
+    # gate is scoped to the three named low-carbon adoption event types only.
+    h = _semi()
+    for seed in range(60):
+        default_events = generate_life_events(h, 2016, 2025, seed=seed)
+        gated_events = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=0.17)
+        non_adoption_default = [e for e in default_events if e.event_type not in _ADOPTION_EVENT_TYPES]
+        non_adoption_gated = [e for e in gated_events if e.event_type not in _ADOPTION_EVENT_TYPES]
+        assert non_adoption_default == non_adoption_gated
+
+
+def test_multiplier_zero_eliminates_adoption_events():
+    h = _semi()
+    seen = set()
+    for seed in range(200):
+        events = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=0.0)
+        seen |= {e.event_type for e in events if e.event_type in _ADOPTION_EVENT_TYPES}
+    assert seen == set()
+
+
+def test_multiplier_is_clamped_to_zero_one_range():
+    # A malformed >1 or negative caller value must never manufacture
+    # probability mass above 1.0 or below 0.0 (R15 fail-closed) -- clamped
+    # silently to the valid range rather than raising, since a curriculum
+    # value is a director dial, not a hard programmer contract.
+    h = _semi()
+    for seed in range(30):
+        over_one = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=5.0)
+        at_one = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=1.0)
+        assert over_one == at_one
+        negative = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=-3.0)
+        at_zero = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=0.0)
+        assert negative == at_zero

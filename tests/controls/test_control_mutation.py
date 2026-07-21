@@ -361,6 +361,73 @@ def test_epistemic_verifier_clean_on_approved_seam_import():
         assert ev._scan_file(good) == []
 
 
+# --------------------------------------------------------------------------
+# epistemic_verifier.py -- SEAM-FILE SEGMENT-LABEL GUARD (D-SEGMENT,
+# SEGMENTATION_GENERATOR_BUILD_PLAN.md step 5). R15 mutation test: the guard
+# must FIRE on a deliberately-planted violation (a company module -- here,
+# the seam file itself -- exposing a SIM cohort label/attitude/sensitivity)
+# and PASS on the clean, real module.
+# --------------------------------------------------------------------------
+
+def test_epistemic_verifier_seam_guard_clean_on_real_sim_interface():
+    # The real, currently-shipped seam file must pass -- no forbidden cohort
+    # symbol appears anywhere in it today.
+    assert ev._scan_seam_files_for_forbidden_symbols(["company/interfaces/sim_interface.py"]) == []
+
+
+def test_epistemic_verifier_seam_guard_fires_on_planted_cohort_leak():
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "sim_interface.py")
+        with open(bad, "w") as fh:
+            fh.write(
+                "class LiveSimInterface:\n"
+                "    def get_cohort_attitude(self, account_id):\n"
+                "        return {'green_stance': 'engaged'}\n"
+            )
+        violations = ev._scan_seam_files_for_forbidden_symbols([bad])
+        assert violations, "seam guard failed to fire on a planted green_stance leak"
+        assert any(v["description"].count("green_stance") for v in violations)
+
+
+def test_epistemic_verifier_seam_guard_fires_on_planted_price_sensitivity_leak():
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "sim_interface.py")
+        with open(bad, "w") as fh:
+            fh.write(
+                "def get_true_price_sensitivity(account_id):\n"
+                "    price_sensitivity = 'high'\n"
+                "    return price_sensitivity\n"
+            )
+        violations = ev._scan_seam_files_for_forbidden_symbols([bad])
+        assert violations, "seam guard failed to fire on a planted price_sensitivity leak"
+
+
+def test_epistemic_verifier_seam_guard_missing_file_is_not_a_violation():
+    # A seam file that doesn't exist yet (e.g. scanning a not-yet-created
+    # path) has nothing to violate -- not the same as an unavailable READ of
+    # an existing file (R15's own FAIL-SILENT distinction).
+    assert ev._scan_seam_files_for_forbidden_symbols(["/tmp/does_not_exist_sim_interface.py"]) == []
+
+
+def test_epistemic_verifier_scan_includes_seam_guard_always():
+    # scan() must run the seam guard even when scanning an unrelated file
+    # list -- a company change elsewhere must not let a live seam-file
+    # regression slip through unnoticed. Monkeypatch SEAM_FILES to a planted
+    # violation and confirm `scan([])` still catches it.
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "sim_interface.py")
+        with open(bad, "w") as fh:
+            fh.write("assign_cohort = None\n")
+        original = ev.SEAM_FILES
+        try:
+            ev.SEAM_FILES = [bad]
+            passed, violations = ev.scan(files=[])
+            assert passed is False
+            assert violations
+        finally:
+            ev.SEAM_FILES = original
+
+
 # ==========================================================================
 # PASS 2 (H12 L2->L3): the INVENTORIED-BUT-UNTESTED tail
 # CONTROLS_THAT_CANNOT_FAIL.md -- compliance trackers, health/page-consistency
