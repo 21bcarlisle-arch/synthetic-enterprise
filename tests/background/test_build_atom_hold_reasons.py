@@ -97,6 +97,51 @@ def test_only_gated_atoms_means_no_drawable_and_a_correct_rest():
     assert drawable == []
 
 
+# The exact overnight-rest incident (DIRECTOR_DIRECTIVE_KEEP_BUILDING, 2026-07-21):
+# an upstream WORLD atom at L2 walled at its OWN L3 step (coupled-triad, no twin),
+# and a downstream at L1 that only needs the upstream AT L2 to take its L1->L2 step.
+# Under the old target-matched dependency rule the downstream read as
+# blocked_by_dependency (upstream not at its L3 target) and the loop rested with
+# this atom genuinely drawable -- the draw bug the directive names.
+_WALLED_UPSTREAM_DRAWABLE_DOWNSTREAM = (
+    "- id: W1_walled_field\n  lane: W1\n  dial_inherited: 3\n"
+    "  level_current: 2\n  level_target: 3\n  loop_stage: build\n"
+    "- id: DOWNSTREAM_STEP\n  lane: W1\n  dial_inherited: 3\n"
+    "  level_current: 1\n  level_target: 3\n  loop_stage: build\n"
+    "  depends_on: [W1_walled_field]\n"
+)
+# Same shape but the dependency is genuinely BELOW the level the downstream needs
+# (upstream at L0, downstream at L1 wanting L2 -> requires upstream >= 2): the
+# level-matched gate MUST still fire. This is the R15 mutation control -- it proves
+# the more-permissive rule did not fail open into "every dependency is met".
+_DOWNSTREAM_DEP_TOO_LOW = (
+    "- id: W1_low_field\n  lane: W1\n  dial_inherited: 3\n"
+    "  level_current: 0\n  level_target: 3\n  loop_stage: build\n"
+    "- id: DOWNSTREAM_TOO_FAR\n  lane: W1\n  dial_inherited: 3\n"
+    "  level_current: 1\n  level_target: 3\n  loop_stage: build\n"
+    "  depends_on: [W1_low_field]\n"
+)
+
+
+def test_downstream_of_a_walled_upstream_is_drawable_when_upstream_is_far_enough():
+    """The overnight-rest draw bug in miniature: a downstream atom whose only
+    dependency is walled at ITS OWN target-step is still DRAWABLE when that
+    dependency already sits at the level the downstream needs (level-matched, not
+    target-matched). The walled upstream stays named at its wall, not drawn."""
+    r = _reasons(_WALLED_UPSTREAM_DRAWABLE_DOWNSTREAM)
+    assert r["W1_walled_field"].startswith("coupled_triad_l3_wall")
+    assert r["DOWNSTREAM_STEP"] == "DRAWABLE"
+
+
+def test_level_matched_dependency_gate_still_fires_when_dependency_too_low():
+    """R15 mutation control: the more-permissive level-matched rule must NOT fail
+    open. A dependency below the level the downstream is trying to reach still
+    holds the downstream as blocked_by_dependency."""
+    r = _reasons(_DOWNSTREAM_DEP_TOO_LOW)
+    assert r["DOWNSTREAM_TOO_FAR"].startswith("blocked_by_dependency")
+    assert "W1_low_field" in r["DOWNSTREAM_TOO_FAR"]
+
+
 def test_the_held_frontier_surfaces_in_the_blocked_set_diagnosis():
     """diagnose_map_blocked_set now names a deps-met-but-gated frontier atom that
     would otherwise be invisible (neither in `blocked` nor the candidate pool) --

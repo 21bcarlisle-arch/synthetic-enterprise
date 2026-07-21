@@ -557,6 +557,21 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and "id" in a}
 
     def _dependencies_met(atom: dict) -> bool:
+        # Level-MATCHED dependency gate (DIRECTOR_DIRECTIVE_KEEP_BUILDING, 2026-07-21).
+        # A dependency is satisfied when it is EITHER at its own target (the original
+        # rule, preserved -- a "done" primitive) OR already at least as advanced as the
+        # level THIS atom is trying to reach (level_current + 1). The old rule required
+        # every dependency to sit at ITS OWN target, which serialised the whole chain on
+        # the last atom's target and propagated any wall on an upstream TARGET (e.g.
+        # W1_4's coupled-triad L3 wall) down every descendant: W1_5, which only wants
+        # L1->L2 and is fully served by W1_4-at-L2, read as blocked and the loop rested
+        # with genuinely-drawable work present. This OR form is strictly more permissive
+        # than the old rule (it only ADDS a met-condition -- every dep the old rule
+        # counted met, dep_level>=dep_target, is still met), so it can never newly block
+        # a currently-drawable atom. It also mirrors the coupled-triad gate, which is
+        # itself next-step-matched (level_current + 1 -- background/coupled_triad.py).
+        my_level = atom.get("level_current")
+        required = (my_level + 1) if isinstance(my_level, int) else None
         for dep_id in atom.get("depends_on") or []:
             dep = by_id.get(dep_id)
             if dep is None:
@@ -565,7 +580,15 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
                 continue
             dep_level = dep.get("level_current")
             dep_target = dep.get("level_target")
-            if dep_level is None or dep_target is None or dep_level < dep_target:
+            at_own_target = (
+                isinstance(dep_level, int)
+                and isinstance(dep_target, int)
+                and dep_level >= dep_target
+            )
+            advanced_enough = (
+                isinstance(dep_level, int) and required is not None and dep_level >= required
+            )
+            if not (at_own_target or advanced_enough):
                 return False
         return True
 
@@ -1222,8 +1245,13 @@ def build_atom_hold_reasons(atoms: list | None = None) -> dict:
 
     # Mirrors _maturity_map_draw_concurrent's own _dependencies_met exactly
     # (deliberately duplicated, same rationale as that function's inline copy:
-    # keep this classifier in lockstep with the draw's real filter order).
+    # keep this classifier in lockstep with the draw's real filter order) --
+    # including the 2026-07-21 level-MATCHED rule: a dependency is met when it is
+    # at its own target OR already at the level this atom is trying to reach
+    # (level_current + 1). See the draw copy for the full rationale.
     def _deps_met(atom: dict) -> bool:
+        my_level = atom.get("level_current")
+        required = (my_level + 1) if isinstance(my_level, int) else None
         for dep_id in atom.get("depends_on") or []:
             dep = by_id.get(dep_id)
             if dep is None:
@@ -1231,7 +1259,9 @@ def build_atom_hold_reasons(atoms: list | None = None) -> dict:
             if dep.get("loop_stage") == "idle":
                 continue
             dl, dt_ = dep.get("level_current"), dep.get("level_target")
-            if dl is None or dt_ is None or dl < dt_:
+            at_own_target = isinstance(dl, int) and isinstance(dt_, int) and dl >= dt_
+            advanced_enough = isinstance(dl, int) and required is not None and dl >= required
+            if not (at_own_target or advanced_enough):
                 return False
         return True
 
