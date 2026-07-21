@@ -1,3 +1,28 @@
+> **STATUS (2026-07-21, worker tick):** The draw-fix ask is DONE + pushed (commit 6898247b8):
+> the overnight rest was diagnosed with EVIDENCE, not narrative (R9) — it was a CORRECT hold, not a
+> draw bug. The concurrent BUILD draw returns [] and NO build-stage atom classifies DRAWABLE.
+> `supervisor.build_atom_hold_reasons()` + a held-frontier annotation in `diagnose_map_blocked_set`
+> now make every held atom name its actual wall; R15-firable test added
+> (`tests/background/test_build_atom_hold_reasons.py`: a DRAWABLE atom coexisting with rest fails).
+>
+> **Why the builds could NOT be drawn (the directive's premise corrected):** the whole weather→premise
+> →asset-geography chain is dammed at **W1_4_regional_weather_field**, held by the **coupled-triad L3
+> wall** — no W1 company twin is registered (`_AUTHORITATIVE_COUPLING` has only W2_* pairs). W1_5 and
+> W1_10 (the "Prioritise it" atom) chain behind W1_4; W1_7/W1_9/D/SITE1 are on director level-up gates.
+>
+> **OPEN — parked here (excluded from the supervisor scan) pending the director:**
+>  1. **W1 coupling decision (the root):** register a W1↔company twin (candidate
+>     `C13_weather_normalisation`, currently L0/idle — would need building to ≥L2 first) OR exempt the
+>     W1 physical-primitive cascade from the coupled-twin requirement (consistent with W1_3/W1_6, which
+>     already reached L3 twinless). This is the single gate that un-dams the entire weather cascade.
+>  2. **Batched level-ups:** D, W1_7, W1_9 (`blocked_on: director_level_up`); SITE1→L3 (his live-site
+>     Expert-Hour); W1_8 zonal (epoch console); generator wiring (reserved); OPS1 live systemd.
+>  3. **Agent-doable (not gated):** continue the learning-value segmentation reframe to the re-derived
+>     knee + ranking — drawn via the normal map draw, not a director gate.
+> Surfaced as ONE batched [ACT] via NTFY this tick.
+
+---
+
 # DIRECTOR DIRECTIVE — Keep building: drawable work exists; draw it, and advance the idle backlog (2026-07-21)
 
 **Type:** [DIRECTIVE + STEER]. Standing campaign authority already covers the builds below. This is here because the loop rested overnight (23:00→06:00, zero work commits) while drawable work existed — that is the failure to fix, and there is real work to do meanwhile.
