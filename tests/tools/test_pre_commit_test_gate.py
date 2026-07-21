@@ -61,6 +61,38 @@ def test_control_test_files_all_exist():
         assert (ROOT / t).exists(), f"control test missing: {t}"
 
 
+# ── THE LEVEL SURFACE gate (director P0, 2026-07-21): a level/ledger change is DATA but its ──────
+# effects must be caught at COMMIT time. R15: these prove the mapping FIRES (a maturity-map or
+# ledger change with NO code file runs the level-sensitive set) -- delete the level_surface branch
+# in select_targets and both fail.
+
+def test_maturity_map_change_runs_the_level_sensitive_set():
+    # A level ratification touches ONLY docs/design/maturity_map.yaml (not under CODE_PREFIXES).
+    # It must still run the level-sensitive tests -- the exact hole that wedged the publish gate
+    # twice on 2026-07-21 (a level-dependent proof count went stale, uncaught at commit).
+    targets = gate.select_targets(["docs/design/maturity_map.yaml"])
+    assert targets != []                                        # NOT skipped as "pure data"
+    assert set(gate.LEVEL_SENSITIVE_TESTS) <= set(targets)
+    assert "tests/tools/test_generate_proof_coupled_gaps.py" in targets  # the test that escaped
+    assert "tests/background/test_fronts_reconciler.py" in targets       # the self-promotion guard
+
+
+def test_ledger_change_runs_the_level_sensitive_set():
+    targets = gate.select_targets(["docs/observability/gate_authorizations.jsonl"])
+    assert set(gate.LEVEL_SENSITIVE_TESTS) <= set(targets)
+
+
+def test_level_surface_and_code_change_runs_both_sets():
+    targets = gate.select_targets(["docs/design/maturity_map.yaml", "background/supervisor.py"])
+    assert set(gate.CONTROL_TESTS) <= set(targets)
+    assert set(gate.LEVEL_SENSITIVE_TESTS) <= set(targets)
+
+
+def test_level_sensitive_test_files_all_exist():
+    for t in gate.LEVEL_SENSITIVE_TESTS:
+        assert (ROOT / t).exists(), f"level-sensitive test missing: {t}"
+
+
 def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # H24 regression: during a `git commit` the hook inherits GIT_INDEX_FILE/GIT_DIR/GIT_WORK_TREE
     # pointing at the in-progress commit. If those leak into the pytest subprocess, git-touching

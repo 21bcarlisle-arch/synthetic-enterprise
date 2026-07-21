@@ -46,6 +46,27 @@ CODE_PREFIXES = (
     "saas/", "company/", "sim/", "simulation/", "interface/",
 )
 
+# THE LEVEL SURFACE (director P0, 2026-07-21): these two files ARE data, but a change to either is
+# a level/ledger claim whose downstream effects MUST be validated at COMMIT time, not left to the
+# full publish suite. Twice on 2026-07-21 a maturity-map change reached the publish gate red: the
+# morning's unbacked self-promotion, and a LEGITIMATE ledger-backed W1_5 L1->L3 ratification that
+# flipped a level-dependent count in a proof test. Neither is under CODE_PREFIXES, so the test-gate
+# skipped both as "pure data". A change here now runs the LEVEL-SENSITIVE tests -- the reconciler
+# (the self-promotion guard), the level gate itself, the coupled-triad gate, and the proof panel
+# whose counts derive from live map levels. Director's ask made mechanism: a level-quality claim's
+# effect is caught at commit time.
+LEVEL_SURFACE_FILES = (
+    "docs/design/maturity_map.yaml",
+    "docs/observability/gate_authorizations.jsonl",
+)
+LEVEL_SENSITIVE_TESTS = [
+    "tests/background/test_fronts_reconciler.py",
+    "tests/background/test_gate_authorization.py",
+    "tests/tools/test_level_promotion_gate.py",
+    "tests/tools/test_generate_proof_coupled_gaps.py",
+    "tests/test_coupled_triad_gate.py",
+]
+
 
 def staged_files() -> list[str]:
     out = subprocess.run(
@@ -67,10 +88,17 @@ def tests_for(path: str) -> list[str]:
 
 
 def select_targets(files: list[str]) -> list[str]:
-    """The set of test files to run for this commit, or [] to skip (no code/config staged)."""
-    if not any(f.startswith(CODE_PREFIXES) for f in files):
-        return []
-    targets = {t for t in CONTROL_TESTS if (ROOT / t).exists()}
+    """The set of test files to run for this commit, or [] to skip (no code/config/level-surface
+    staged)."""
+    code_changed = any(f.startswith(CODE_PREFIXES) for f in files)
+    level_surface_changed = any(f in LEVEL_SURFACE_FILES for f in files)
+    if not code_changed and not level_surface_changed:
+        return []  # pure docs/data commit that touches no control and no level surface
+    targets: set[str] = set()
+    if code_changed:
+        targets.update(t for t in CONTROL_TESTS if (ROOT / t).exists())
+    if level_surface_changed:
+        targets.update(t for t in LEVEL_SENSITIVE_TESTS if (ROOT / t).exists())
     for f in files:
         targets.update(tests_for(f))
     return sorted(targets)
