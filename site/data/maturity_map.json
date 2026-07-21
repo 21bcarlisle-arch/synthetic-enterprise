@@ -1680,9 +1680,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [

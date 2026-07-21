@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-21T12:05:28Z
+Last updated: 2026-07-21T12:20:15Z
 
 **OVERNIGHT-REST DRAW BUG FIXED + DEPLOYED (2026-07-21 ~07:25, `0a072a842`, supervisor restarted via systemd):**
 The overnight rest (23:00→06:00, zero work commits) **was a real draw bug**, not a correct hold — the earlier
@@ -277,7 +277,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (502s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (497s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
