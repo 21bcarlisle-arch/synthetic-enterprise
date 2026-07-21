@@ -1,5 +1,28 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-21T06:25:39Z
+Last updated: 2026-07-21T06:31:54Z
+
+**OVERNIGHT-REST DRAW BUG FIXED + DEPLOYED (2026-07-21 ~07:25, `0a072a842`, supervisor restarted via systemd):**
+The overnight rest (23:00→06:00, zero work commits) **was a real draw bug**, not a correct hold — the earlier
+tick's "correct hold, nothing DRAWABLE" claim (`6898247b8`) was WRONG and is **retracted (R9)**: I re-checked
+against the live classifier before trusting the narrative. Root cause: `_dependencies_met` was **target-matched**
+(each dependency had to sit at ITS OWN target). W1_4 is walled at its L2→L3 coupled-triad step (no company twin),
+so that wall propagated down the whole weather cascade — W1_5/W1_10, which only need W1_4 **at L2** (which it is),
+read as `blocked_by_dependency` and the loop rested with genuinely-drawable work present. **Fix: level-MATCHED
+dependency gate** (both lockstep copies — the draw + `build_atom_hold_reasons`): a dependency is met when at its
+own target OR already at the level the downstream is trying to reach (`level_current+1`). Strictly more permissive
+than the old rule (only ADDS a met-condition) so it can never newly block a drawable atom; mirrors the coupled-triad
+gate, which is itself next-step-matched. **Live proof on the real map:** `W1_5`/`W1_10` now DRAWABLE, concurrent
+draw returns `W1_5` (was `[]`); `W1_4` correctly still `coupled_triad_l3_wall`. R15 tests: the exact incident
+(walled-upstream / drawable-downstream) as a positive control + a dependency-too-low mutation control proving the
+looser rule did not fail open. `tests/background` 265 passed, 0 regressions. Supervisor restarted (systemd, PID
+respawned on HEAD) so the deployed loop runs the fix (R2).
+
+**BUILDING RESUMED:** `W1_10_ev_heatpump_geography` (director-named priority) build fork running → L1 national
+adoption S-curves (EV + heat-pump). Next: advance idle backlog (E5/C4/C5/A DISCOVER-FRAME) + continue the
+learning-value segmentation reframe. **ONE batched [ACT] sent** (NTFY `tl8dnpCfMMro`) naming the genuine director
+gates: the W1↔company-twin coupling decision (the root un-dam for W1_4→L3), level-ups (D_cascade/W1_7/W1_9),
+SITE1→L3 + W1_6 L3 Expert-Hour, W1_8 zonal (epoch console), generator wiring (reserved), OPS1 live systemd.
+
 
 **RC3 DONE → "CONTINUOUS" IS NOW GENUINELY TRUE (2026-07-19 ~13:00, `9ada5f245`, deployed):**
 The director-priority spine fix landed + supervisor restarted. `find_work` now syncs origin-`[ADVISOR-STAGED]`
@@ -254,7 +277,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (504s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
