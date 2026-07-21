@@ -1637,9 +1637,17 @@ def _sync_origin_staging(_runner=None) -> list[str]:
         r = run("ls-tree", "--name-only", "origin/main", "docs/staging/")
         origin_md = {ln.strip() for ln in (r.stdout or "").splitlines()
                      if ln.strip().endswith(".md") and ln.strip().count("/") == 2}
+        # Exclude a doc already present locally in the ROOT *or* consumed into done/
+        # or in_progress/ (2026-07-21 class-fix): comparing origin-root against local-
+        # root ONLY would re-materialise a doc that was consumed into a subdir back
+        # into the root every cycle, re-jamming the scan and re-pinging the director
+        # (the same incomplete-exclusion class as staging_watcher.check_remote). Match
+        # by basename mapped to the root key form so a done/X.md subtracts origin's X.md.
         local_md = set()
-        if STAGING_DIR.is_dir():
-            local_md = {f"docs/staging/{p.name}" for p in STAGING_DIR.iterdir() if p.suffix == ".md"}
+        for _sub in ("", "done", "in_progress"):
+            _d = STAGING_DIR / _sub if _sub else STAGING_DIR
+            if _d.is_dir():
+                local_md |= {f"docs/staging/{p.name}" for p in _d.iterdir() if p.suffix == ".md"}
         pulled = []
         for f in sorted(origin_md - local_md):
             show = run("show", f"origin/main:{f}")
