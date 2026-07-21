@@ -404,11 +404,40 @@
    "evidence_note": "DESNZ Public Attitudes Tracker (Heat & Energy Use in the Home), Spring 2026 UK -- official accredited statistics, live fetch 2026-07-21 (docs/market_research/segmentation_joint_structure.md; ASSUMPTIONS.md D-SEGMENT section). This is a STRUCTURAL coupling (control of the dwelling), not merely attitudinal -- a renter's low-carbon adoption is gated by landlord agency regardless of green_stance.",
    "refutation_condition": "A published/consented source showing low-carbon adoption agency does NOT vary by tenure after conditioning on income (V<0.15) would refute the recoupling and restore the crossing.",
    "test_bed": "published_crosstab / DESNZ tracker follow-ups",
-   "status": "REFUTED_ASSUMPTION_RECOUPLED",
+   "status": "RECOUPLED_AND_WIRED",
    "refutation_log": "FIRST REFUTED ASSUMPTION on this track (the loop working as designed): the 'adoption independent of tenure beyond roof-control' crossing carried an explicit refutation condition; the DESNZ Spring-2026 tracker fired it. Assumption -> refutation-condition -> new evidence -> reclassification, exactly as the register was built to do. Folded via the D-SEGMENT<->population-coverage reconciliation FRAME (director console 2026-07-21).",
    "fidelity_ledger_ref": null,
    "residual_measurable": true,
-   "knee_note": "Recoupling must EARN its place via the re-derived learning-value knee (director 2026-07-21: segments earn their place by measured learning value, not schema completeness). tenure already ranks #2 by learning value (0.22); whether the tenure-gated adoption cell clears the knee is decided by build_learning_frontier.py on the merged schema, not by this entry's existence."
+   "knee_note": "Recoupling must EARN its place via the re-derived learning-value knee (director 2026-07-21: segments earn their place by measured learning value, not schema completeness). tenure already ranks #2 by learning value (0.22); whether the tenure-gated adoption cell clears the knee is decided by build_learning_frontier.py on the merged schema, not by this entry's existence.",
+   "generator_wiring": {
+    "wired_at": "2026-07-21",
+    "authorization": "director console 'activate the tenure->adoption gating' -- the FRAME (SEGMENTATION_RECONCILIATION_FRAME.md) deferred the actual wiring to 'the generator BUILD, when tenure actually gates adoption in the outcomes'; this console message is that authorization (R13 baseline change, fidelity-to-reality, decided blind to company P&L).",
+    "code": [
+     "simulation/household_segments.py::LOW_CARBON_ADOPTION_AGENCY + adoption_agency_factor()",
+     "simulation/life_events.py: solar / EV / heat-pump install gates multiply the baseline annual probability by the tenure agency factor"
+    ],
+    "mechanism": "relative adoption agency vs owner-occupier (=1.0), multiplied into the annual install probability; reads deterministic per-customer tenure (own RNG stream) so no life-event substream draw is consumed (C-S2). Owner ground truth byte-identical (factor 1.0).",
+    "asserted_factors": {
+     "heat_pump": {
+      "owner_occupier": 1.0,
+      "private_renter": 0.14,
+      "social_renter": 0.35
+     },
+     "solar_pv": {
+      "owner_occupier": 1.0,
+      "private_renter": 0.1,
+      "social_renter": 0.25
+     },
+     "ev": {
+      "owner_occupier": 1.0,
+      "private_renter": 0.55,
+      "social_renter": 0.55
+     }
+    },
+    "provenance_of_factors": "R10/R13 ASSERTED (director-curriculum values-call, BATCHED to the director, not blocking). Heat-pump renter suppression is DESNZ-anchored in direction and order of magnitude (42% renters vs 7% owners say the decision 'is not theirs to make'). Solar~heat-pump (roof modification + split incentive) and EV (weakest -- has_driveway already carries the off-street-charging barrier) magnitudes have grounded DIRECTION but no published joint cross-tab for the exact numbers -- changeable on the director's word, never tuned to company outcomes.",
+    "deferred_open_item": "insulation retrofit is also tenure-gated (MEES obligation sits on the landlord, a different dynamic) -- named follow-on, NOT gated in this pass (R10 honesty, not silently extended).",
+    "verification": "tests/simulation/test_tenure_adoption_gating.py -- population direction (owners>>renters), R15 load-bearing mutation (factor->0 zeroes adoption), C-S2 substream isolation (adoption-unrelated events byte-identical), owner factor==1.0."
+   }
   }
  ]
 }

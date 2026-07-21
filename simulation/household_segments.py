@@ -207,6 +207,79 @@ def tenure_for_customer(customer_id: str) -> TenureType:
     return TenureType.SOCIAL_RENTER  # float-rounding fallback
 
 
+class LowCarbonAsset(str, Enum):
+    HEAT_PUMP = "heat_pump"
+    SOLAR_PV = "solar_pv"
+    EV = "ev"
+
+
+# Layer-2 tenure x low-carbon-adoption RECOUPLING (D-SEGMENT; director console
+# 2026-07-21, verbatim "activate the tenure->adoption gating"). A renter's adoption
+# of a PROPERTY-ATTACHED low-carbon asset is gated by LANDLORD agency, not by their
+# own green_stance -- the split-incentive / consent barrier real UK renters face.
+# This is the refuted-assumption recoupling recorded in the population-fusion
+# register (['tenure','low_carbon_adoption'] -> REFUTED_ASSUMPTION_RECOUPLED,
+# provenance 'observed'): the FRAME deferred the actual wiring to "the generator
+# BUILD, when tenure actually gates adoption in the outcomes" (SEGMENTATION_
+# RECONCILIATION_FRAME.md); this console message is that authorization.
+#
+# The value is the RELATIVE adoption agency vs an owner-occupier (=1.0): the
+# probability an install can even happen, applied MULTIPLICATIVELY to the annual
+# install probability in simulation/life_events.py.
+#
+# R13 baseline change (fidelity-to-reality, decided blind to company P&L -- renters
+# genuinely cannot make these decisions; this is not a P&L tune). ANCHOR (heat pump,
+# the load-bearing DESNZ cross-tab): DESNZ Public Attitudes Tracker Spring 2026 --
+# 42% of renters vs 7% of owner-occupiers say the heat-pump decision "is not theirs
+# to make" (ASSUMPTIONS.md, D-SEGMENT Trait Joint-Structure). Heat pump is the
+# strongest gate (structural building modification, landlord-funded).
+#
+# R10 / R13 ASSERTED (director-curriculum values-call, BATCHED to the director, NOT
+# blocking): the solar and EV magnitudes and the precise heat-pump renter factors
+# have their DIRECTION grounded (renters have less agency over property-attached
+# assets) but no published joint cross-tab pins the exact numbers -- they are
+# ASSERTED director-curriculum assumptions, changeable on his word, never tuned to
+# company outcomes. Solar ~ heat pump (roof modification + split incentive). EV is
+# the WEAKEST gate because the dominant renter barrier (off-street charging) is
+# already captured by the has_driveway gate; the residual here is charger-consent /
+# finance-access friction only. Social renters sit above private renters throughout
+# because social landlords run funded decarbonisation programmes (SHDF / Warm
+# Homes), so installs happen -- landlord-programme-driven, not tenant-initiated.
+# DEFERRED (honest open item, R10): insulation retrofit is also tenure-gated (MEES
+# places the obligation on the landlord, a different dynamic) -- not gated here; a
+# named follow-on, not silently extended.
+LOW_CARBON_ADOPTION_AGENCY: dict[LowCarbonAsset, dict[TenureType, float]] = {
+    LowCarbonAsset.HEAT_PUMP: {
+        TenureType.OWNER_OCCUPIER: 1.0,
+        TenureType.PRIVATE_RENTER: 0.14,   # 42% "not theirs" + split-incentive friction
+        TenureType.SOCIAL_RENTER: 0.35,    # landlord decarbonisation programmes (SHDF/Warm Homes)
+    },
+    LowCarbonAsset.SOLAR_PV: {
+        TenureType.OWNER_OCCUPIER: 1.0,
+        TenureType.PRIVATE_RENTER: 0.10,
+        TenureType.SOCIAL_RENTER: 0.25,
+    },
+    LowCarbonAsset.EV: {
+        TenureType.OWNER_OCCUPIER: 1.0,
+        TenureType.PRIVATE_RENTER: 0.55,
+        TenureType.SOCIAL_RENTER: 0.55,
+    },
+}
+
+
+def adoption_agency_factor(customer_id: str, asset: LowCarbonAsset) -> float:
+    """Relative low-carbon-adoption agency (vs an owner-occupier = 1.0) for this
+    customer's tenure. Multiplied into the annual install probability so renters of
+    property-attached low-carbon assets adopt at a landlord-gated rate.
+
+    Reads the deterministic per-customer tenure (its OWN seeded RNG stream), so it
+    consumes NO life-event substream draw -- every other stochastic subsystem stays
+    byte-identical and the install draw sequence itself is unchanged (only the
+    boolean outcome flips for gated households). C-S2 substream discipline holds."""
+    tenure = tenure_for_customer(customer_id)
+    return LOW_CARBON_ADOPTION_AGENCY[asset][tenure]
+
+
 class OccupancyBand(str, Enum):
     ONE_PERSON = "one_person"
     TWO_PERSON = "two_person"

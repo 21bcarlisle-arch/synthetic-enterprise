@@ -62,6 +62,10 @@ from simulation.household import (
     InsulationLevel,
     PropertyType,
 )
+from simulation.household_segments import (
+    LowCarbonAsset,
+    adoption_agency_factor,
+)
 
 
 EventType = Literal[
@@ -350,7 +354,11 @@ def generate_life_events(
                 and household.is_residential
                 and household.property_type != PropertyType.FLAT
                 and household.roof_aspect not in ("north", "na")):
-            prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year)
+            # Tenure gates property-attached low-carbon adoption (landlord agency,
+            # not green_stance): renters install at a landlord-gated rate. Multiply
+            # the baseline (owner-occupier) probability -- consumes no substream draw.
+            prob = (_annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year)
+                    * adoption_agency_factor(household.customer_id, LowCarbonAsset.SOLAR_PV))
             _s = sub["solar_install"]
             if _s.random() < prob:
                 kwp = round(_s.uniform(2.5, 4.5), 1)
@@ -378,7 +386,11 @@ def generate_life_events(
 
         # -- EV acquisition --
         if not has_ev and household.is_residential and household.has_driveway:
-            prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year)
+            # Tenure residual gate (the dominant renter EV barrier -- off-street
+            # charging -- is already the has_driveway gate above; this is the
+            # charger-consent / finance-access residual only, so the weakest factor).
+            prob = (_annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year)
+                    * adoption_agency_factor(household.customer_id, LowCarbonAsset.EV))
             _s = sub["ev_acquired"]
             if _s.random() < prob:
                 charger_kw = _s.choice([3.7, 7.0, 7.0, 22.0])  # weighted toward 7kW
@@ -393,7 +405,11 @@ def generate_life_events(
         # -- Heat pump installation (gas-heated resi, physically eligible) --
         if (household.hp_eligible
                 and heating in (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)):
-            prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year)
+            # Tenure gates the heat-pump decision most strongly (structural, landlord-
+            # funded): DESNZ Spring 2026 -- 42% of renters vs 7% of owners say it "is
+            # not theirs to make". Multiply the baseline (owner-occupier) probability.
+            prob = (_annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year)
+                    * adoption_agency_factor(household.customer_id, LowCarbonAsset.HEAT_PUMP))
             _s = sub["heat_pump_installed"]
             if _s.random() < prob:
                 events.append(LifeEvent(
