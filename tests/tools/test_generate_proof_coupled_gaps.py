@@ -160,20 +160,26 @@ def test_empty_ledger_fails_closed_not_silent(monkeypatch):
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: {})
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    # 9 = the map-coupled pairs (8 W2 + W1_5<->C13, added 2026-07-21). W1_6<->C13 is
-    # surfaced only from the LIVE ledger (ledger-only, not in the authoritative
-    # coupling), so an EMPTY ledger drops it -> back to the 9 map pairs. That is the
-    # correct fail-closed behaviour.
-    assert cg["pair_count"] == 9          # every MAP-coupled pair still present
-    assert cg["measured"] == 0            # none measured
-    assert cg["unmeasured"] == 9
+    # FAIL-CLOSED behaviour, asserted as PROPERTIES DERIVED FROM THE LIVE MAP -- never a hardcoded
+    # level-dependent count. With an empty gap ledger: every MAP-coupled pair is present and untested,
+    # and every coupled WORLD atom at >=L2 in the live map is in the anti-decay set (empty ledger =>
+    # all unmeasured). Deriving these (R10, 2026-07-21) eliminates the fragility that wedged the
+    # publish gate TWICE this day: the count is a function of mutable map levels (W1_5 L1->L3
+    # ratification flipped it 8->9), so a hardcoded number goes stale on any LEGITIMATE level move and
+    # is only caught by the full publish suite, not the targeted commit-time gate. The property below
+    # tracks the map automatically.
+    coupling = ct.build_coupling(atoms)
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and a.get("id")}
+    expected_pairs = set(coupling)
+    expected_ge_l2 = {w for w in coupling
+                      if isinstance(by_id.get(w, {}).get("level_current"), int)
+                      and by_id[w]["level_current"] >= 2}
+    assert cg["pair_count"] == len(expected_pairs)   # every MAP-coupled pair still present
+    assert cg["measured"] == 0                        # empty ledger -> none measured
+    assert cg["unmeasured"] == len(expected_pairs)
     assert all(r["chip"] == "untested" for r in cg["pairs"])
-    # The 8 W2 world atoms are all >=L2 in the live map -> anti-decay findings.
-    # W1_5<->C13 is the 9th map pair but W1_5 sits at L1 (its ledger-ratified level;
-    # the L2 self-promotion was reverted 2026-07-21 when it wedged the publish gate),
-    # so W1_5 is NOT in the >=L2 anti-decay set. 8, not 9.
-    assert len(cg["unmeasured_ge_l2"]) == 8
-    assert "W1_5_premise_demand_shape" not in cg["unmeasured_ge_l2"]
+    assert expected_ge_l2, "fail-open guard: expected >=1 coupled world atom at >=L2 in the live map"
+    assert set(cg["unmeasured_ge_l2"]) == expected_ge_l2
 
 
 # ---------------------------------------------------------------------------
