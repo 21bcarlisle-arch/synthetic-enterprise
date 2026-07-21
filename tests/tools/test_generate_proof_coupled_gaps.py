@@ -47,11 +47,13 @@ def test_reflects_real_ledger_exactly():
     ledger = _real_ledger()
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    # 8 map-coupled W2 pairs + W1_5<->C13 (map-coupled 2026-07-21, measured) +
-    # W1_6<->C13 (ledger-only, surfaced via the defensive not-in-coupling branch)
-    # = 10, all measured.
-    assert cg["pair_count"] == 10
-    assert cg["measured"] == 10
+    # 8 map-coupled W2 pairs + W1_5<->C13 + W1_6<->C13 (both wired into
+    # _AUTHORITATIVE_COUPLING; W1_6 promoted 2026-07-21 by director console "wire
+    # the ledger pair") = 10 map pairs, all measured. Count is DERIVED from the
+    # authoritative coupling registry, never a frozen literal.
+    n_map = len(ct.build_coupling(atoms))
+    assert cg["pair_count"] == n_map
+    assert cg["measured"] == n_map
     assert cg["unmeasured"] == 0
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
@@ -87,7 +89,8 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 9   # 10 live pairs, W2_7 nulled
+    total = len(ct.build_coupling(atoms))
+    assert cg["measured"] == total - 1   # all live pairs but the nulled W2_7
     assert cg["unmeasured"] == 1
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
@@ -99,9 +102,11 @@ def test_missing_entry_still_appears_untested(monkeypatch):
     del mutated["W2_8_self_rationing"]
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
-    # W2_8 still appears (map coupling), W1_5 appears (map coupling, measured), and
-    # W1_6 still appears (live ledger, defensive branch) -> 9 map pairs + W1_6 = 10.
-    assert cg["pair_count"] == 10
+    # W2_8 still appears (map coupling, now untested); W1_5 and W1_6 both appear
+    # (map coupling). The pair count is the map-coupled count regardless of which
+    # ledger entries are missing -- deleting a ledger entry marks a pair untested,
+    # it never drops the pair (fail-closed).
+    assert cg["pair_count"] == len(ct.build_coupling(atoms))
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"
@@ -160,20 +165,28 @@ def test_empty_ledger_fails_closed_not_silent(monkeypatch):
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: {})
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    # 9 = the map-coupled pairs (8 W2 + W1_5<->C13, added 2026-07-21). W1_6<->C13 is
-    # surfaced only from the LIVE ledger (ledger-only, not in the authoritative
-    # coupling), so an EMPTY ledger drops it -> back to the 9 map pairs. That is the
-    # correct fail-closed behaviour.
-    assert cg["pair_count"] == 9          # every MAP-coupled pair still present
+    # Every MAP-coupled pair still present on an empty ledger (fail-closed, shown
+    # untested). Since W1_6<->C13 was promoted into _AUTHORITATIVE_COUPLING
+    # (2026-07-21, "wire the ledger pair"), it too now survives an empty ledger --
+    # it no longer silently drops via the old ledger-only defensive branch. The
+    # count is the map-coupled count, derived from the coupling registry.
+    n_map = len(ct.build_coupling(atoms))
+    assert cg["pair_count"] == n_map      # every MAP-coupled pair still present
     assert cg["measured"] == 0            # none measured
-    assert cg["unmeasured"] == 9
+    assert cg["unmeasured"] == n_map
     assert all(r["chip"] == "untested" for r in cg["pairs"])
-    # The 8 W2 world atoms are all >=L2 in the live map -> anti-decay findings.
-    # W1_5<->C13 is the 9th map pair but W1_5 sits at L1 (its ledger-ratified level;
-    # the L2 self-promotion was reverted 2026-07-21 when it wedged the publish gate),
-    # so W1_5 is NOT in the >=L2 anti-decay set. 8, not 9.
-    assert len(cg["unmeasured_ge_l2"]) == 8
-    assert "W1_5_premise_demand_shape" not in cg["unmeasured_ge_l2"]
+    # Anti-decay set (design 5.1): every coupled world atom that is mechanically
+    # real (>=L2) but unmeasured. On an empty ledger that is EXACTLY the map-coupled
+    # world atoms sitting >=L2 -- derived from the live map levels, not a frozen
+    # count (the old literal 8 went stale twice: W1_5 was ratified to L3, and W1_6
+    # was wired in).
+    by_id = {a["id"]: a for a in atoms if isinstance(a, dict) and a.get("id")}
+    ge_l2_world = {
+        w for w in ct.build_coupling(atoms)
+        if isinstance(by_id.get(w, {}).get("level_current"), int)
+        and by_id[w]["level_current"] >= 2
+    }
+    assert set(cg["unmeasured_ge_l2"]) == ge_l2_world
 
 
 # ---------------------------------------------------------------------------

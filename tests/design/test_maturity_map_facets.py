@@ -89,6 +89,9 @@ REVIEWED_CLOSE_TO_LEARN = {
 # other. Kept here as the authority the symmetry check validates against.
 EXPECTED_PAIRS = {
     frozenset(("W1_5_premise_demand_shape", "C13_weather_normalisation")),
+    # W1_6 price-belief facet couples to the same weather twin C13 (director
+    # console 2026-07-21 "wire the ledger pair"); C13 twins both W1_5 and W1_6.
+    frozenset(("W1_6_physics_price_signal", "C13_weather_normalisation")),
     frozenset(("W1_8_zonal_locational_pricing", "B5_regional_basis_risk")),
     frozenset(("W2_4_household_budget", "C6_affordability_inference")),
     frozenset(("W2_2_population_draw", "C6_affordability_inference")),

@@ -73,6 +73,22 @@ _AUTHORITATIVE_COUPLING = {
     # mutation controls fire, ledger entry written under W1_5. Derived W1_5->C13 ==
     # this authoritative entry, so build_coupling()'s cross-check passes.
     "W1_5": "C13",
+    # W1_6 physics-price-signal <-> C13 weather-normalisation (the PRICE-belief
+    # facet of the weather cascade). DIRECTOR-AUTHORIZED 2026-07-21 console ("wire
+    # the ledger pair"): this is exactly the wiring the W1_6 BUILD note (map
+    # 2026-07-20) deferred -- "_AUTHORITATIVE_COUPLING wiring is left for the
+    # director". Until now W1_6 reached the Proof panel only via the defensive
+    # not-in-coupling branch (ledger-only, silently dropped on an empty ledger);
+    # promoting it here makes it a first-class map pair that FAILS CLOSED (shown
+    # untested, never dropped) when the ledger is empty. Its belief-vs-truth gap is
+    # MEASURED (cold-still-tail worst cell 0.397: the company's linear price belief
+    # under-predicts the convex cold-still spike -- the tail that kills suppliers,
+    # structurally invisible through the wall), ledger entry written under W1_6. Two
+    # world atoms mapping to the same twin C13 is fine (the world-keyed dict handles
+    # it); C13 is the nearest registered company-weather twin, a dedicated company
+    # price-belief C-atom remains a proposed follow-on. Not map-derivable (C13's
+    # depends_on names W1_5, not W1_6), so this table is its sole source.
+    "W1_6": "C13",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).

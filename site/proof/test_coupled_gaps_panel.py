@@ -52,19 +52,34 @@ def _live_coupled_gaps() -> dict:
     return _coupled_gaps(_load_atoms())
 
 
+def _live_map_pair_count() -> int:
+    """The map-coupled pair count, read from the authoritative coupling registry --
+    the INDEPENDENT source the panel count must track (not a frozen literal)."""
+    sys.path.insert(0, str(PROJECT))
+    from tools.generate_proof_data import _load_atoms
+    from background.coupled_triad import build_coupling
+
+    return len(build_coupling(_load_atoms()))
+
+
 # --------------------------------------------------------------------------- #
 # R11: the panel renders the LIVE generated data -- every coupled pair.
 # 7 affordability-cluster pairs + the W2_11<->D5 payment triad (wired
 # 2026-07-18) + the W1_5<->C13 weather-demand triad (wired 2026-07-21) + the
-# W1_6<->C13 weather price-signal triad (ledger-surfaced, 2026-07-20) = 10.
-# Driven by the live coupling+ledger, not a frozen literal -- if a pair is
-# added/removed the panel count follows.
+# W1_6<->C13 weather price-signal triad (wired into _AUTHORITATIVE_COUPLING
+# 2026-07-21 by director console "wire the ledger pair"; previously ledger-only).
+# Driven by the live coupling+ledger, NOT a frozen literal -- the count is
+# derived from the authoritative coupling registry, so if a pair is added/removed
+# the assertion follows automatically.
 # --------------------------------------------------------------------------- #
 def test_live_data_renders_all_coupled_pairs():
     cg = _live_coupled_gaps()
     assert cg.get("available") is True
     expected = len(cg["pairs"])
-    assert cg["pair_count"] == expected == 10, "10 coupled pairs (7 affordability + payment + weather demand + weather price)"
+    n_map = _live_map_pair_count()  # independent source: the coupling registry
+    assert cg["pair_count"] == expected == n_map, (
+        f"panel pair_count {cg['pair_count']} must equal the live coupling count {n_map}"
+    )
 
     out = _render(cg)
     body = out["coupled-gaps"]["innerHTML"]
