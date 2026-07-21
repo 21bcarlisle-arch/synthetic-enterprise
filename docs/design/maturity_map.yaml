@@ -1369,10 +1369,10 @@
   couples_with: [C13_weather_normalisation]
   chain: weather_cascade
   epoch: 3
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
-  blocked_on: director_level_up
+  loop_stage: harden
+  blocked_on: null
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/frame/W1_5_premise_demand_shape_FRAME.md]
