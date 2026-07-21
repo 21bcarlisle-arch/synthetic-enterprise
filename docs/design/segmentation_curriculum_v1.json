@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "artefact": "segmentation_curriculum",
+    "version": 1,
+    "status": "PROVISIONAL — director-authorized to set, ratifiable",
+    "authority": "director console 2026-07-21: 'Set the five curriculum values and proceed with the structure.' Authentication convention (a).",
+    "r13_discipline": "These are CURRICULUM (difficulty) values the director delegated the agent to set THIS TIME. Set from PUBLISHED-ESTIMATE / neutral priors, NOT tuned to any company outcome (R13 anti-goal-seek core preserved). Versioned + named + ratifiable — a real curriculum artefact, not silent parameter drift. The director may overturn any value; the generator reads this file so a change is one versioned edit, never a code change.",
+    "consumed_by": "the segmentation generator (population_draw.assign_cohort + tenure->adoption gating), per docs/design/SEGMENTATION_GENERATOR_BUILD_PLAN.md"
+  },
+  "green_stance_marginals": {
+    "value": {"engaged": 0.30, "neutral": 0.45, "disengaged": 0.25},
+    "basis": "DESNZ Public Attitudes Tracker climate-concern distributions, discounted for the well-documented attitude-action gap (concern is high but active pro-environmental engagement is a minority). PROVISIONAL.",
+    "hidden_truth_only": true,
+    "note": "green_stance has NO company observable (verification §2) — it is generated as hidden SIM truth, never part of a company-discoverable cohort."
+  },
+  "price_sensitivity_marginals": {
+    "value": {"high": 0.30, "medium": 0.45, "low": 0.25},
+    "basis": "GB retail-energy switching/engagement segmentation (Ofgem consumer engagement work): an active-switcher minority, a disengaged 'stuck' minority, a middle majority. PROVISIONAL.",
+    "hidden_truth_only": false,
+    "note": "discoverable via rate-change churn response (get_churn_estimate)."
+  },
+  "channel_pref_marginals": {
+    "value": {"digital": 0.55, "phone": 0.30, "assisted": 0.15},
+    "basis": "UK digital-adoption + assisted-digital / vulnerable-customer shares (Ofcom digital inclusion; Ofgem vulnerability). PROVISIONAL.",
+    "hidden_truth_only": false,
+    "note": "discoverable via the contact channel actually used."
+  },
+  "tenure_adoption_gating_strength": {
+    "value": {"renter_adoption_propensity_multiplier": 0.17, "gated_tenures": ["private_rent", "social_rent"], "owner_multiplier": 1.0},
+    "basis": "DESNZ Public Attitudes Tracker Spring 2026: 42% of renters say a heat-pump decision 'is not theirs to make' vs 7% of owner-occupiers. The multiplier 0.17 ≈ 7/42 (the owner-vs-renter agency ratio) applied to low-carbon-adoption eligibility for rented tenures. The exact Cramér's V was NOT fabricated (register); this multiplier is the director's gating-STRENGTH dial. PROVISIONAL.",
+    "hidden_truth_only": false,
+    "note": "the SIM-truth gate; the company must DISCOVER that tenure gates adoption from its acquisition/interaction data (the coupled-triad gap)."
+  },
+  "region_marginal_synthetic_acquisitions": {
+    "value": {
+      "South East": 0.152, "London": 0.140, "North West": 0.118, "East": 0.107,
+      "South West": 0.101, "West Midlands": 0.099, "Yorkshire and The Humber": 0.094,
+      "East Midlands": 0.083, "Wales": 0.057, "North East": 0.049
+    },
+    "basis": "Census 2021 England & Wales household counts by region, normalised over the schema's 10-region set. This is closer to FIDELITY than difficulty (a real population distribution) but is set here so synthetic acquisitions stop defaulting to the UNKNOWN_SYNTHETIC placeholder (population_draw.py:111). PROVISIONAL — shares sum to 1.0.",
+    "hidden_truth_only": false,
+    "note": "region is a public prior the company observes at enrolment."
+  }
+}
