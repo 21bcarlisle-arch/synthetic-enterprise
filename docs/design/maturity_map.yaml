@@ -387,6 +387,24 @@
   real_world_twin: "real GB household archetype distributions (DESNZ/Ofgem survey data)"
   depends_on: []
 
+- id: W2_12_trait_adoption_recoupling
+  name: "D-SEGMENT trait recoupling: tenure gates low-carbon adoption (the first data-derived joint-structure cell -- cohorts as combinations of trait axes, not single axes)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 3
+  size: M  # G5 sizing: L1 cell landed; L2 needs a company discovery-consumer
+  provenance: proposal
+  evidence: ['simulation/household_segments.py (LOW_CARBON_ADOPTION_AGENCY + adoption_agency_factor)', 'simulation/life_events.py (solar/EV/heat-pump gates)', 'tests/simulation/test_tenure_adoption_gating.py (direction + R15 load-bearing mutation + C-S2 isolation)', 'docs/market_research/population_fusion_assumptions_register.json entry 12 RECOUPLED_AND_WIRED', 'docs/design/SEGMENTATION_RECONCILIATION_FRAME.md', 'docs/design/SEGMENTATION_WIRING_PLAN.md', 'docs/market_research/segmentation_joint_structure.md']
+  file_scope: [simulation/household_segments.py, simulation/life_events.py, tests/simulation/test_tenure_adoption_gating.py]
+  simplifications: ['2026-07-21 AUTHORED + L1 BUILT (director console "activate the tenure->adoption gating" -- the SEGMENTATION_RECONCILIATION_FRAME deferred the generator wiring to "the generator BUILD, when tenure actually gates adoption in the outcomes"; this console message is that authorization). L1 = the FIRST joint-structure cell of the D-SEGMENT trait axis: a renter''s adoption of a PROPERTY-ATTACHED low-carbon asset (solar/EV/heat pump) is gated by LANDLORD agency, not their own green_stance. Multiplicative agency factor on the baseline install probability; reads deterministic tenure (own RNG stream) -> no life-event substream draw consumed, owner ground truth byte-identical (C-S2, R13 baseline preserved for owners). Heat-pump renter factors DESNZ-anchored (42% renters vs 7% owners say the decision "is not theirs to make"); solar/EV magnitudes are R10/R13 ASSERTED director-curriculum -- direction grounded, exact numbers BATCHED to the director (values-call), never tuned to company outcomes. Population effect: heat-pump adoption owner 3.1% vs private-renter 0.3%. R15 mutation proves the gate is load-bearing (factor->0 zeroes adoption). L1 is agent-allowed first-build (in the OPEN SIM_ACTORS front, W2_customer_generator lane). L2 REMAINDER (not built): the COUPLED-TRIAD company discovery-consumer -- the company must DISCOVER cohort/joint structure from observables through the wall, and the harness must measure the belief-vs-truth gap (cohorts scored on the WORST cell, not the average). No company twin exists yet, so no couples_with and no L3 until that lands (coupled-triad binding rule 1). L3 director-reserved (his "this is real" ruling) + the R13 factor-magnitude values-call. INSULATION deferred (MEES = landlord obligation, a different dynamic) -- named follow-on, not silently extended (R10).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "real GB tenure-gated low-carbon adoption -- renters (esp. private) structurally cannot make property-attached low-carbon install decisions; adoption clusters by the COMBINATION of tenure x need x attitude, not any single axis"
+  depends_on: [W2_1_archetype_layers]
+
 - id: W2_2_population_draw
   name: "Per-run stochastic population draw (vs current fixed cast)"
   lane: W2_customer_generator
