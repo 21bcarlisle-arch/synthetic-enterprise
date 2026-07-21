@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-21T18:23:46Z
+Last updated: 2026-07-21T18:38:43Z
 
 **OVERNIGHT-REST DRAW BUG FIXED + DEPLOYED (2026-07-21 ~07:25, `0a072a842`, supervisor restarted via systemd):**
 The overnight rest (23:00→06:00, zero work commits) **was a real draw bug**, not a correct hold — the earlier
