@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-21T15:20:37Z
+Last updated: 2026-07-21T15:26:00Z
 
 **OVERNIGHT-REST DRAW BUG FIXED + DEPLOYED (2026-07-21 ~07:25, `0a072a842`, supervisor restarted via systemd):**
 The overnight rest (23:00→06:00, zero work commits) **was a real draw bug**, not a correct hold — the earlier
@@ -277,7 +277,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (473s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (494s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -385,6 +385,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~333.4h across 26 sized atom(s) (7 of 33 below-target atoms still unsized).
-- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 0.9h (-11.1h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
+- Remaining effort: ~334.8h across 25 sized atom(s) (7 of 32 below-target atoms still unsized).
+- Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
