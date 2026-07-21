@@ -1349,10 +1349,10 @@
   value_stream: wholesale_to_price
   chain: weather_cascade
   epoch: 3
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
-  blocked_on: director_level_up
+  loop_stage: harden
+  blocked_on: null
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/W1_4_REGIONAL_WEATHER_FIELD_DISCOVER.md, docs/design/frame/W1_4_regional_weather_field_FRAME.md, docs/design/REGIONAL_WEATHER_FIELD_FRAME.md, 'sim/weather_engine.py (Pass 2: fit_regional_cholesky/simulate_regional_deviations, spatially-correlated regional field bound to national)', tests/sim/test_weather_engine.py (27 tests), docs/design/frame/LANE3_H17_BUILD_GATE_SURVEY_20260716.md]
