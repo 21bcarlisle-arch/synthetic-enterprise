@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-21T11:35:13Z",
+  "generated_at": "2026-07-21T11:50:12Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -1199,7 +1199,7 @@
         {
           "atom_id": "W1_4_regional_weather_field",
           "atom_name": "L2 regional weather: FEASIBLE, spatially-correlated regional deviations that are AGGREGATION-CONSISTENT with the national signal (demand-weighted regional aggregate reconciles to national -- an invariant, mutation-tested)",
-          "level_current": 2,
+          "level_current": 3,
           "level_target": 3,
           "notes": [
             "2026-07-13 REGISTERED (WEATHER_PHYSICS_HIERARCHY.md, director P1, QUEUE -- DISCOVER/FRAME workable now, BUILD gated to Epoch 3 with W1_2_generate_futures). L2, conditional on L1. Spatial correlation: neighbouring regions covary (Cornwall and Aberdeen are NOT independent draws) -- a distance-keyed covariance field. AGGREGATION CONSISTENCY is the feasible-test and MUST be an invariant true BY CONSTRUCTION (project/rescale regional deviations so the demand-weighted aggregate == national), not by luck: a world where every region freezes while national is mild is impossible by construction. R15 mutation test: perturb one region off-manifold and assert the reconciliation invariant FIRES (residual > tol). Regional weather is COMPANY-KNOWABLE (genuinely public) -- lives on the public side of the wall. loop_stage idle: FRAME design authored this session (docs/design/WEATHER_PHYSICS_HIERARCHY_DESIGN.md); BUILD opens in Epoch 3. Anchoring rule (anti-marking-own-homework): GENERATOR anchors (real historical weather/demand) and VALIDATOR anchors (independent published sub-national consumption stats / regional degree-days / published system demand) MUST be different sources; the company never validates against SIM ground truth.",
