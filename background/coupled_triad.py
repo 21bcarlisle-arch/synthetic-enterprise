@@ -63,6 +63,16 @@ _AUTHORITATIVE_COUPLING = {
     # derive it, but the authoritative table is resolved to full ids directly, so a
     # D-lane twin couples fine here. This is the wiring the gap-measurement needs.
     "W2_11": "D5",
+    # W1_5 premise-demand-shape <-> C13 weather-normalisation belief (the weather-
+    # cascade coupling). DIRECTOR-AUTHORIZED 2026-07-21 console ("twin coupling
+    # confirmed per the standing authorization once its proofs pass") -- the proofs
+    # verified on the main tree before wiring: C13 built observables-only (temp-only
+    # HDD/CDD OLS, zero sim imports, epistemic PASS), the belief-vs-truth gap MEASURED
+    # (worst cell = summer 1.040: the company's normalisation earns its keep in winter
+    # but is HARMFUL in summer, the real weather-normalisation failure mode), R15
+    # mutation controls fire, ledger entry written under W1_5. Derived W1_5->C13 ==
+    # this authoritative entry, so build_coupling()'s cross-check passes.
+    "W1_5": "C13",
 }
 
 _SHORT_ID_RE = re.compile(r"^(W\d+_\d+|[A-Z]+\d+)")

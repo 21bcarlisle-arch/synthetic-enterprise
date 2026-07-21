@@ -47,10 +47,11 @@ def test_reflects_real_ledger_exactly():
     ledger = _real_ledger()
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    # 8 map-coupled W2 pairs + W1_6<->C13 (the weather price-signal triad, surfaced
-    # from the ledger via the defensive not-in-coupling branch) = 9, all measured.
-    assert cg["pair_count"] == 9
-    assert cg["measured"] == 9
+    # 8 map-coupled W2 pairs + W1_5<->C13 (map-coupled 2026-07-21, measured) +
+    # W1_6<->C13 (ledger-only, surfaced via the defensive not-in-coupling branch)
+    # = 10, all measured.
+    assert cg["pair_count"] == 10
+    assert cg["measured"] == 10
     assert cg["unmeasured"] == 0
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
@@ -86,7 +87,7 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 8   # 9 live pairs, W2_7 nulled
+    assert cg["measured"] == 9   # 10 live pairs, W2_7 nulled
     assert cg["unmeasured"] == 1
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
@@ -98,9 +99,9 @@ def test_missing_entry_still_appears_untested(monkeypatch):
     del mutated["W2_8_self_rationing"]
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
-    # W2_8 still appears (map coupling), and W1_6 still appears (live ledger,
-    # defensive branch) -> 8 map pairs + W1_6 = 9.
-    assert cg["pair_count"] == 9
+    # W2_8 still appears (map coupling), W1_5 appears (map coupling, measured), and
+    # W1_6 still appears (live ledger, defensive branch) -> 9 map pairs + W1_6 = 10.
+    assert cg["pair_count"] == 10
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"
@@ -144,7 +145,11 @@ def test_gap_above_one_fires_worse_than_blind(monkeypatch):
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_6_sme_distress_twin")
     assert row["chip"] == "worse_than_blind"
     assert row["severity"] == "red"
-    assert cg["worse_than_blind_count"] == 1
+    # The mutated W2_6 is counted worse-than-blind. (>=1 not ==1: the live ledger also
+    # carries W1_5<->C13 at a real worst-cell gap>1, so the aggregate is data-driven.)
+    assert cg["worse_than_blind_count"] >= 1
+    assert row["world_atom"] in {p["world_atom"] for p in cg["pairs"]
+                                 if isinstance(p["value"], (int, float)) and p["value"] > 1}
 
 
 # ---------------------------------------------------------------------------
@@ -155,17 +160,18 @@ def test_empty_ledger_fails_closed_not_silent(monkeypatch):
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: {})
     cg = gpd._coupled_gaps(atoms)
     assert cg["available"] is True
-    # 8 = the map-coupled pairs. W1_6<->C13 is surfaced only from the LIVE ledger
-    # (ledger-only, not in the authoritative coupling), so an EMPTY ledger drops
-    # it -> back to the 8 map pairs. That is the correct fail-closed behaviour.
-    assert cg["pair_count"] == 8          # every MAP-coupled pair still present (W2_11<->D5 added)
+    # 9 = the map-coupled pairs (8 W2 + W1_5<->C13, added 2026-07-21). W1_6<->C13 is
+    # surfaced only from the LIVE ledger (ledger-only, not in the authoritative
+    # coupling), so an EMPTY ledger drops it -> back to the 9 map pairs. That is the
+    # correct fail-closed behaviour.
+    assert cg["pair_count"] == 9          # every MAP-coupled pair still present
     assert cg["measured"] == 0            # none measured
-    assert cg["unmeasured"] == 8
+    assert cg["unmeasured"] == 9
     assert all(r["chip"] == "untested" for r in cg["pairs"])
-    # ALL 8 world atoms are now >=L2 in the live map -> anti-decay findings.
-    # W2_11 moved L1->L3 with the payment-triad escalated build (director console
-    # APPROVED 2026-07-18/19), so it is now in the >=L2 set too.
-    assert len(cg["unmeasured_ge_l2"]) == 8
+    # ALL 9 world atoms are now >=L2 in the live map -> anti-decay findings.
+    # W2_11 moved L1->L3 with the payment-triad escalated build; W1_5 is at L2 (its
+    # level-up ratified 2026-07-21), so both are in the >=L2 set.
+    assert len(cg["unmeasured_ge_l2"]) == 9
 
 
 # ---------------------------------------------------------------------------

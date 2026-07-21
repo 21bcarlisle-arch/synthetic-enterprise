@@ -55,15 +55,16 @@ def _live_coupled_gaps() -> dict:
 # --------------------------------------------------------------------------- #
 # R11: the panel renders the LIVE generated data -- every coupled pair.
 # 7 affordability-cluster pairs + the W2_11<->D5 payment triad (wired
-# 2026-07-18) + the W1_6<->C13 weather price-signal triad (ledger-surfaced,
-# 2026-07-20) = 9. Driven by the live coupling+ledger, not a frozen literal --
-# if a pair is added/removed the panel count follows.
+# 2026-07-18) + the W1_5<->C13 weather-demand triad (wired 2026-07-21) + the
+# W1_6<->C13 weather price-signal triad (ledger-surfaced, 2026-07-20) = 10.
+# Driven by the live coupling+ledger, not a frozen literal -- if a pair is
+# added/removed the panel count follows.
 # --------------------------------------------------------------------------- #
 def test_live_data_renders_all_coupled_pairs():
     cg = _live_coupled_gaps()
     assert cg.get("available") is True
     expected = len(cg["pairs"])
-    assert cg["pair_count"] == expected == 9, "9 coupled pairs (7 affordability + payment + weather price)"
+    assert cg["pair_count"] == expected == 10, "10 coupled pairs (7 affordability + payment + weather demand + weather price)"
 
     out = _render(cg)
     body = out["coupled-gaps"]["innerHTML"]
@@ -88,18 +89,23 @@ def test_live_data_renders_all_coupled_pairs():
     assert str(cg["measured"]) in kpis
 
 
-def test_live_data_all_measured_no_alarm():
-    """With the current ledger every pair is measured, so no >=L2-unmeasured alarm fires,
-    and no leak/worse-than-blind chips appear."""
+def test_live_data_faithfully_renders_the_alarms_the_data_reports():
+    """The panel renders EXACTLY the alarms the (independent) ledger data reports --
+    data-driven, not a frozen 'all green' snapshot, so it stays honest as pairs are
+    added and as beliefs improve. A >=L2-unmeasured pair -> the 'depth nobody copes
+    with yet' banner; a gap>1 or gap<=0 pair -> a red chip. Currently W1_5<->C13 is
+    the one worse-than-blind pair (summer worst-cell gap 1.04: the company's
+    temperature-only weather normalisation is genuinely worse than blind in summer,
+    where there is no thermal signal -- an honest L1 finding, the CWV wind-chill term
+    is the named L1->L2 refinement). When C13 improves past L1 this red disappears and
+    the test still passes, because it asserts faithfulness, not a fixed colour."""
     cg = _live_coupled_gaps()
     out = _render(cg)
     if cg.get("unmeasured_ge_l2"):
         assert "depth nobody copes with yet" in out["gap-alarms"]["innerHTML"]
-    else:
-        assert out["gap-alarms"]["innerHTML"] == ""
     body = out["coupled-gaps"]["innerHTML"]
-    # 0<gap<=1 everywhere in the live data -> only the blue "learning" chip.
-    assert 'class="chip red"' not in body
+    # The panel must render one red chip per data-reported leak / worse-than-blind pair.
+    assert body.count('class="chip red"') == cg["wall_leak_count"] + cg["worse_than_blind_count"]
 
 
 # --------------------------------------------------------------------------- #

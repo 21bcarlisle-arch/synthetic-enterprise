@@ -1,4 +1,77 @@
 {
+  "W1_5_premise_demand_shape": {
+    "baseline": "worst cell = summer: company temperature-only degree-day weather-normalisation MAE 2276 MW vs no-skill 2190 MW",
+    "components": {
+      "baseline_choice": "g0 = climatological-mean no-skill (predict the average demand); the FRAME's flat-national-degree-day alternative is registered as an L2 refinement (a per-day series prediction_gap's scalar prior cannot hold)",
+      "belief_coeffs": {
+        "b_cdd": 506.36574160928086,
+        "b_hdd": 748.9262264940885,
+        "base": 23953.937578533853,
+        "n_train": 3337,
+        "r2": 0.5509408653741079
+      },
+      "belief_form": "temperature-only degree-day: demand ~ base + b_hdd*HDD + b_cdd*CDD",
+      "per_cell": {
+        "cold": {
+          "bias_model": -313.242199,
+          "gap": 0.9371219360790769,
+          "mae_model": 2493.719004,
+          "mae_noskill": 2661.04005,
+          "n": 668
+        },
+        "cold_windy_tail": {
+          "bias_model": -211.193654,
+          "gap": 0.9245637326964906,
+          "mae_model": 2419.528801,
+          "mae_noskill": 2616.941066,
+          "n": 122
+        },
+        "shoulder": {
+          "bias_model": -21.341794,
+          "gap": 1.0112933204570755,
+          "mae_model": 2304.330772,
+          "mae_noskill": 2278.597836,
+          "n": 1160
+        },
+        "summer": {
+          "bias_model": 62.917734,
+          "gap": 1.0395350097915033,
+          "mae_model": 2276.340424,
+          "mae_noskill": 2189.767928,
+          "n": 823
+        },
+        "warm": {
+          "bias_model": -534.404663,
+          "gap": 1.0060716338409152,
+          "mae_model": 2171.000478,
+          "mae_noskill": 2157.898508,
+          "n": 668
+        },
+        "winter": {
+          "bias_model": -786.510083,
+          "gap": 0.8637351468298607,
+          "mae_model": 2518.026843,
+          "mae_noskill": 2915.276578,
+          "n": 798
+        }
+      },
+      "population_gap": 0.6618755270941703,
+      "population_mae_model": 2471.274438,
+      "population_mae_noskill": 3733.744998,
+      "score_definition": "worst-explained cell (campaign req 1), not the population average",
+      "tail_bias_mw": -211.193654,
+      "worst_cell": "summer",
+      "worst_cell_gap": 1.0395350097915033
+    },
+    "g0": 2189.767928,
+    "gap": 1.0395350097915033,
+    "measured_at": "2026-07-21T07:12:52.704906+00:00",
+    "metric": "prediction",
+    "note": "W1_5 premise-demand weather-normalisation: company temperature-only degree-day belief vs the real national demand outturn (the W1_5-consistent aggregate truth). SCORE = worst cell (summer, gap 1.040); the company fits the seasonal degree-day shape (population gap 0.662) but under-explains the cold-and-windy tail -- it cannot see wind chill (CWV) or the W1_5 regional-dispersion convexity, by the wall. R12: diagnostic, not a target.",
+    "raw_gap": 2276.340424,
+    "run_git_commit": "588fc8a91de28fed0a30b4557e34e2d98748f79b",
+    "twin_atom_id": "C13_weather_normalisation"
+  },
   "W1_6_physics_price_signal": {
     "baseline": "worst cell = cold_still_tail: company linear weather->price MAE \u00a337.24/MWh vs no-skill \u00a393.72/MWh",
     "components": {
@@ -112,11 +185,11 @@
     },
     "g0": 43.0,
     "gap": 0.627906976744186,
-    "measured_at": "2026-07-20T11:21:50.391806+00:00",
+    "measured_at": "2026-07-21T07:22:44.236159+00:00",
     "metric": "detection",
     "note": "LIVE per-run coupled-triad gap (W2_11 payment TRUTH -> W4_4 seam -> D5 consumer belief, measured in-run by run_phase2b). HEADLINE = DD/non-DD failure DETECTION gap (fraction of true payment failures the company never observes through the seam -- the no-remittance blind spot). Companion per-dimension gaps: belief 0.2632, ageing 1.2326; allocation honestly dropped (metric-shape mismatch). R12: diagnostic, not a target.",
     "raw_gap": 27.0,
-    "run_git_commit": "51e9efcd6fa56579eb804c83f8b9d67e31c2e653",
+    "run_git_commit": "588fc8a91de28fed0a30b4557e34e2d98748f79b",
     "twin_atom_id": "D5_account_hierarchy_payments"
   },
   "W2_4_household_budget": {
