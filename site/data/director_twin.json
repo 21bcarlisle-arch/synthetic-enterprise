@@ -1,12 +1,21 @@
 {
   "fidelity": {
-    "answered": 5,
+    "answered": 6,
     "routed_to_director": 3,
     "overturned": 0,
     "overturn_rate": 0.0,
     "canon_version": 3
   },
   "recent_qa": [
+    {
+      "entry_id": "2026-07-21T13:34:32.040894+00:00",
+      "question": "ROUTINE LEVEL RATIFICATION request. Atom: W1_10_ev_heatpump_geography. Requested level_current move to L2. Evidence offered:\nRegional adoption field a_{k,r}(t)=a_k(t)*m_{k,r} built in simulation/adoption_geography.py. A1 aggregation-consistency invariant (demand-weighted regional aggregate == national) enforced EXACTLY by weighted-mean projection (measured error 0.0), R15 mutation-tested: fires on an offset multiplier AND a swapped weight vector, TAUTOLOGY guard recomputes the national share from the independent fitted curve. A2 monotone by construction. C-S2 own seeded substream, deterministic replay proven. FAIL-CLOSED on unknown technology/region/empty field. 46 tests green (was 21 at L1), epistemic verifier PASS. R10 simplifications registered honestly: covariate/weight tables are published order-of-magnitude estimates; multiplier time-invariant. No values decision, no curriculum/difficulty change, no one-way door.\n\nYou are the standing approver for ROUTINE L1/L2 level moves ONLY. APPROVE iff BOTH hold: (a) the objective maturity bar for the requested level is met by the evidence (L1 = built in some real form; L2 = mechanically real AND its belief-vs-truth gap measured / its invariant mutation-tested), AND (b) the move carries NO director-reserved dimension -- no values decision, no curriculum/difficulty change (R13), no one-way door, nothing the canon marks his. If any director-reserved dimension is present, DEFER; if the evidence does not clearly meet the bar, REFUSE. End your answer with one extra line exactly in this form:\n'RATIFY_VERDICT: APPROVE' or 'RATIFY_VERDICT: REFUSE'.",
+      "routed_to_director": false,
+      "answer": "This is squarely within my \u00a73a delegation: a ROUTINE L1\u2192L2 level move inside the open Epoch 2, with no reserved dimension.\n\n**Bar check (a).** L2 requires mechanically real AND (belief-vs-truth gap measured / invariant mutation-tested). The mechanism is built (`adoption_geography.py`), the A1 aggregation invariant is R15-mutation-tested and *proven to fire* on two independent perturbations (offset multiplier, swapped weights), and the TAUTOLOGY guard recomputing the national share from an independent fitted curve is exactly what rescues that invariant from being a fail-open-green tautology \u2014 this is what R15 (\u00a72) demands: a control whose failure is demonstrated. C-S2 determinism, fail-closed on unknown tech/region/empty field, epistemic verifier PASS, and 46 green tests corroborate. The R10 simplifications (order-of-magnitude covariate/weight tables, time-invariant multiplier) are registered honestly and labeled as inferred estimates per R9 \u2014 a simplification declared is not a bar failure at L2.\n\n**Reserved check (b).** No values decision, no curriculum/difficulty change (R13 \u2014 this is maturity-map progression, not a change to what the agent is trained against), no one-way door (\u00a73). Level moves at phase close with evidence are exactly the maturity-map operating rule (\u00a75), and BUILD/level authorization within an open epoch is explicitly delegated to me (\u00a73a).\n\nBoth conditions hold. APPROVE.\n\nRATIFY_VERDICT: APPROVE\nDEFERS_TO_DIRECTOR: no\nCONFIDENCE: high",
+      "category": null,
+      "latency_seconds": 20.093,
+      "overturned": false
+    },
     {
       "entry_id": "2026-07-16T17:57:36.291267+00:00",
       "question": "Approve BUILD-open for atom H23_frame_saturation_draw_marker. This is a build within the current, already-open epoch (not the launch of any later epoch). It is a size-S harness and supervisor change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic and touches the world model and company decision path not at all.",
