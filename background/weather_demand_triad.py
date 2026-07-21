@@ -14,16 +14,24 @@ under `company/`/`saas/`, so it may import both sides.
                          working-day/daylight load, and the regional-dispersion
                          convexity of the W1_5 field -- structure NOT observable.
   2. COMPANY copes    -- company.pricing.weather_normalisation_belief (C13): fits a
-                         temperature-only HDD/CDD degree-day regression on the
-                         OBSERVED (metered demand, published temperature). It cannot
-                         see wind chill (CWV) or the regional dispersion, so it
-                         under-explains the cold-and-windy tail. ONLY observables
-                         cross into it -- this harness hands it the temperature +
-                         demand arrays, never a SIM internal.
+                         degree-day regression on the OBSERVED (metered demand,
+                         published temperature[, published wind speed]). L2 adds
+                         a wind-chill (CWV) regressor -- temperature AND wind
+                         speed are BOTH published weather observables, so this
+                         crosses no new wall. It still cannot see the W1_5
+                         regional-dispersion convexity (a named L1->L2 remainder,
+                         see below), so it under-explains wherever the missing
+                         regional structure bites. ONLY observables cross into
+                         it -- this harness hands it temperature/wind/demand
+                         arrays, never a SIM internal.
   3. HARNESS measures -- prediction_gap(truth, belief) per CELL, normalised to the
                          climatological-mean no-skill baseline. Reported per the
-                         fidelity steer: the SCORE is the WORST-explained cell (the
-                         cold-and-windy tail), not the population average.
+                         fidelity steer: the SCORE is the WORST-explained cell,
+                         not the population average. This module fits BOTH the L1
+                         (temperature-only) and L2 (temperature+wind-chill)
+                         beliefs side by side and reports both per cell -- the
+                         L2/CWV term is measured HONESTLY (R12): it may help some
+                         cells and hurt others, never tuned toward a target.
 
 BASELINE CHOICE (resolves C13 FRAME open question 1, named explicitly per that
 doc's instruction). g0 = the climatological-mean no-skill baseline (predict the
@@ -33,6 +41,15 @@ degree-day" baseline is a per-day series `prediction_gap`'s scalar prior cannot
 express; it is registered as an L2 refinement (a stronger no-skill floor that would
 raise the reported gap toward 1, the honest "no book/regional discrimination yet"
 reading). Named, not left implicit.
+
+L1->L2 REMAINDER (regional-dispersion). C13's second named L1->L2 refinement
+(`company.pricing.weather_normalisation_belief.book_weighted_temperature`) is
+BUILT and unit-proven against synthetic truth, but NOT wired into this real-record
+measurement: this harness's truth (`demand_truth_on_record`) is the national
+Elexon INDO aggregate, so there is no per-book regional demand truth inside this
+atom's file_scope to measure book-weighting against (a company book-weighted
+belief predicting the SAME national aggregate would be measuring the wrong
+target). Registered per R10/FRAME sec5 -- not silently dropped.
 
 R15 INDEPENDENCE / NOT A TAUTOLOGY. The truth is the real Elexon demand record; the
 belief is an observables-only OLS degree-day regression. They are DIFFERENT
@@ -94,22 +111,39 @@ def _cells(rec: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
 def measure() -> Dict[str, object]:
     """Run the coupled loop on the real record and compute the per-cell gap.
 
-    Returns a dict with the population gap, every cell's gap, the worst cell (the
-    SCORE), the fitted belief, and the raw truth/belief series -- so a caller or
-    test can quote the real numbers.
+    Fits BOTH the L1 (temperature-only) and L2 (temperature + wind-chill/CWV)
+    beliefs on the SAME observed history, so the L1->L2 refinement's effect on
+    the gap is measured directly, per cell, rather than asserted. The L2 belief
+    is the headline ("belief"/"belief_model", the SCORE); the L1 comparison is
+    carried alongside every cell (`gap_l1`, `bias_model_l1`) for an honest
+    before/after report (R12: whichever way it falls).
+
+    Returns a dict with the population gap, every cell's gap (L2 headline + L1
+    comparison), the worst cell (the SCORE, by the L2 gap), both fitted belief
+    models, and the raw truth/belief series -- so a caller or test can quote the
+    real numbers.
     """
     rec = demand_truth_on_record()
     truth = rec["demand_mw"]
+    temp = rec["temperature_c"]
+    wind = rec["wind_speed_ms"]
 
     # -- COMPANY side: observables ONLY cross the wall. The company sees its own
-    #    confounded meter reads (== the demand outturn) and public temperature. --
-    belief_model = fit_weather_normalisation_belief(
-        temp_c=rec["temperature_c"], observed_demand=truth,
+    #    confounded meter reads (== the demand outturn), published temperature,
+    #    and published wind speed (the SAME epistemic status as temperature). --
+    belief_model_l1 = fit_weather_normalisation_belief(
+        temp_c=temp, observed_demand=truth,
     )
-    belief = belief_model.predict(rec["temperature_c"])
+    belief_l1 = belief_model_l1.predict(temp)
+
+    belief_model = fit_weather_normalisation_belief(
+        temp_c=temp, observed_demand=truth, wind_speed_ms=wind,
+    )
+    belief = belief_model.predict(temp, wind_speed_ms=wind)
 
     # -- HARNESS: hold truth and belief side by side; gap per cell. --
     population = prediction_gap(truth, belief)
+    population_l1 = prediction_gap(truth, belief_l1)
 
     cells = _cells(rec)
     per_cell: Dict[str, Dict[str, float]] = {}
@@ -120,38 +154,49 @@ def measure() -> Dict[str, object]:
         # (predict this cell's mean demand) -- so a cell's gap says "vs a blind
         # guess calibrated to this cell", the worst-cell comparison the steer wants.
         g = prediction_gap(truth[mask], belief[mask])
+        g_l1 = prediction_gap(truth[mask], belief_l1[mask])
         per_cell[name] = {
             "gap": g.gap, "mae_model": g.components["mae_model"],
             "mae_noskill": g.components["mae_noskill"],
             "bias_model": g.components["bias_model"], "n": int(mask.sum()),
+            "gap_l1": g_l1.gap, "mae_model_l1": g_l1.components["mae_model"],
+            "bias_model_l1": g_l1.components["bias_model"],
         }
 
-    # The SCORE = the worst-explained cell (campaign requirement 1), not the mean.
+    # The SCORE = the worst-explained cell (campaign requirement 1), not the mean
+    # -- scored on the L2 (headline) belief.
     worst_cell = max(
         per_cell, key=lambda c: (per_cell[c]["gap"] if per_cell[c]["gap"] is not None else -1))
     worst_gap = per_cell[worst_cell]["gap"]
 
     return {
         "population_gap": population,
+        "population_gap_l1": population_l1,
         "per_cell": per_cell,
         "worst_cell": worst_cell,
         "worst_gap": worst_gap,
         "truth": truth,
         "belief": belief,
+        "belief_l1": belief_l1,
         "belief_model": belief_model,
+        "belief_model_l1": belief_model_l1,
         "n": int(len(truth)),
     }
 
 
 def build_gap_result(measurement: Dict[str, object]):
     """Shape the coupled-gap-ledger GapResult. HEADLINE gap = the WORST-cell gap
-    (the score per the fidelity steer); the population gap + every cell are carried
-    in `components` so a reviewer sees the full grid and that the worst cell was not
-    cherry-picked."""
+    of the L2 (temperature+wind-chill) belief (the score per the fidelity steer);
+    the population gap, every cell, and the L1 (temperature-only) comparison are
+    carried in `components` so a reviewer sees the full grid, that the worst cell
+    was not cherry-picked, and exactly what the CWV term changed (R12: honest
+    either way)."""
     worst_cell = measurement["worst_cell"]
     per_cell = measurement["per_cell"]
     population = measurement["population_gap"]
+    population_l1 = measurement["population_gap_l1"]
     belief_model = measurement["belief_model"]
+    belief_model_l1 = measurement["belief_model_l1"]
 
     # Re-use the population GapResult's container but overwrite the headline gap
     # with the worst-cell score, keeping raw_gap/g0 from the worst cell for audit.
@@ -161,23 +206,36 @@ def build_gap_result(measurement: Dict[str, object]):
     result.g0 = per_cell[worst_cell]["mae_noskill"]
     result.metric = "prediction"
     result.baseline = (
-        f"worst cell = {worst_cell}: company temperature-only degree-day "
-        f"weather-normalisation MAE {per_cell[worst_cell]['mae_model']:.0f} MW vs "
-        f"no-skill {per_cell[worst_cell]['mae_noskill']:.0f} MW"
+        f"worst cell = {worst_cell}: company temperature+wind-chill (CWV) "
+        f"degree-day weather-normalisation MAE {per_cell[worst_cell]['mae_model']:.0f} "
+        f"MW vs no-skill {per_cell[worst_cell]['mae_noskill']:.0f} MW"
     )
+    cwv_delta = per_cell[worst_cell]["gap"] - per_cell[worst_cell]["gap_l1"]
     result.components = {
         "score_definition": "worst-explained cell (campaign req 1), not the population average",
         "worst_cell": worst_cell,
         "worst_cell_gap": per_cell[worst_cell]["gap"],
+        "worst_cell_gap_l1": per_cell[worst_cell]["gap_l1"],
         "population_gap": population.gap,
+        "population_gap_l1": population_l1.gap,
         "population_mae_model": population.components["mae_model"],
         "population_mae_noskill": population.components["mae_noskill"],
         "per_cell": per_cell,
-        "belief_form": "temperature-only degree-day: demand ~ base + b_hdd*HDD + b_cdd*CDD",
+        "belief_form": (
+            "L2 (headline): demand ~ base + b_hdd*HDD + b_cdd*CDD + b_windchill*"
+            "windchill_DD (windchill_DD = HDD * max(wind - 4m/s, 0), the CWV term); "
+            "L1 (comparison, gap_l1/mae_model_l1/bias_model_l1 per cell): "
+            "demand ~ base + b_hdd*HDD + b_cdd*CDD"
+        ),
         "belief_coeffs": {
             "base": belief_model.base, "b_hdd": belief_model.b_hdd,
-            "b_cdd": belief_model.b_cdd, "r2": belief_model.r2,
-            "n_train": belief_model.n_train,
+            "b_cdd": belief_model.b_cdd, "b_windchill": belief_model.b_windchill,
+            "r2": belief_model.r2, "n_train": belief_model.n_train,
+        },
+        "belief_coeffs_l1": {
+            "base": belief_model_l1.base, "b_hdd": belief_model_l1.b_hdd,
+            "b_cdd": belief_model_l1.b_cdd, "r2": belief_model_l1.r2,
+            "n_train": belief_model_l1.n_train,
         },
         "baseline_choice": (
             "g0 = climatological-mean no-skill (predict the average demand); the "
@@ -185,15 +243,30 @@ def build_gap_result(measurement: Dict[str, object]):
             "refinement (a per-day series prediction_gap's scalar prior cannot hold)"
         ),
         "tail_bias_mw": per_cell.get("cold_windy_tail", {}).get("bias_model"),
+        "tail_bias_mw_l1": per_cell.get("cold_windy_tail", {}).get("bias_model_l1"),
+        "cwv_worst_cell_gap_delta": cwv_delta,
+        "regional_dispersion_remainder": (
+            "book_weighted_temperature (2nd named L1->L2 refinement) is BUILT and "
+            "unit-proven against synthetic truth in "
+            "company/pricing/weather_normalisation_belief.py, but NOT wired into "
+            "this real-record measurement -- no per-book regional demand truth "
+            "exists inside this atom's file_scope to measure it against (R10, "
+            "FRAME sec5/6-Q3). Registered, not silently dropped."
+        ),
     }
+    cwv_direction = "worsened" if cwv_delta > 0 else ("improved" if cwv_delta < 0 else "left unchanged")
     result.note = (
-        "W1_5 premise-demand weather-normalisation: company temperature-only "
-        "degree-day belief vs the real national demand outturn (the W1_5-consistent "
-        f"aggregate truth). SCORE = worst cell ({worst_cell}, gap "
-        f"{per_cell[worst_cell]['gap']:.3f}); the company fits the seasonal degree-day "
-        f"shape (population gap {population.gap:.3f}) but under-explains the cold-and-"
-        "windy tail -- it cannot see wind chill (CWV) or the W1_5 regional-dispersion "
-        "convexity, by the wall. R12: diagnostic, not a target."
+        "W1_5 premise-demand weather-normalisation: company temperature+wind-chill "
+        "(CWV, L2) belief vs the real national demand outturn (the W1_5-consistent "
+        f"aggregate truth). SCORE = worst cell ({worst_cell}, L2 gap "
+        f"{per_cell[worst_cell]['gap']:.3f} vs L1 (temperature-only) gap "
+        f"{per_cell[worst_cell]['gap_l1']:.3f} -- the CWV term {cwv_direction} the "
+        "worst cell here); population gap L2 "
+        f"{population.gap:.3f} vs L1 {population_l1.gap:.3f}. Honest per R12: the "
+        "CWV term is measured, not tuned -- it helps the wind-relevant cells it "
+        "targets and need not fix an unrelated worst cell. Regional-dispersion "
+        "(2nd L1->L2 refinement) is built+tested but not yet measurable here -- "
+        "see components.regional_dispersion_remainder."
     )
     return result
 
@@ -214,16 +287,21 @@ def main() -> None:
     m = measure()
     per_cell = m["per_cell"]
     bm = m["belief_model"]
-    print("W1_5 <-> C13 weather-normalisation demand coupled triad")
-    print(f"  aligned days             : {m['n']}")
-    print(f"  belief fit               : demand ~ {bm.base:.0f} + {bm.b_hdd:.1f}*HDD "
-          f"+ {bm.b_cdd:.1f}*CDD   R2={bm.r2:.3f}  n={bm.n_train}")
-    print(f"  population gap            : {m['population_gap'].gap:.3f}")
-    print("  per-cell gap:")
+    bm1 = m["belief_model_l1"]
+    print("W1_5 <-> C13 weather-normalisation demand coupled triad (L2: +CWV wind-chill)")
+    print(f"  aligned days              : {m['n']}")
+    print(f"  L1 belief fit (temp-only) : demand ~ {bm1.base:.0f} + {bm1.b_hdd:.1f}*HDD "
+          f"+ {bm1.b_cdd:.1f}*CDD   R2={bm1.r2:.3f}  n={bm1.n_train}")
+    print(f"  L2 belief fit (+wind CWV) : demand ~ {bm.base:.0f} + {bm.b_hdd:.1f}*HDD "
+          f"+ {bm.b_cdd:.1f}*CDD + {bm.b_windchill:.1f}*windchillDD   R2={bm.r2:.3f}  n={bm.n_train}")
+    print(f"  population gap L2 / L1    : {m['population_gap'].gap:.3f} / "
+          f"{m['population_gap_l1'].gap:.3f}")
+    print("  per-cell gap (L2 / L1):")
     for name, c in sorted(per_cell.items(), key=lambda kv: -(kv[1]['gap'] or -1)):
-        print(f"    {name:16s} gap={c['gap']:.3f}  MAE_model={c['mae_model']:.0f}MW"
-              f"  bias={c['bias_model']:+.0f}MW  n={c['n']}")
-    print(f"  WORST CELL (the score)   : {m['worst_cell']}  gap={m['worst_gap']:.3f}")
+        print(f"    {name:16s} gap={c['gap']:.3f} / {c['gap_l1']:.3f}"
+              f"  bias={c['bias_model']:+.0f} / {c['bias_model_l1']:+.0f} MW  n={c['n']}")
+    print(f"  WORST CELL (the score)    : {m['worst_cell']}  L2 gap={m['worst_gap']:.3f}"
+          f"  (L1 gap={per_cell[m['worst_cell']]['gap_l1']:.3f})")
 
     if args.write_ledger:
         result = build_gap_result(m)
