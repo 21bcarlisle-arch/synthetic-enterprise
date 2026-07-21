@@ -1407,10 +1407,10 @@
   couples_with: [W1_5_premise_demand_shape]
   chain: weather_cascade
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
-  loop_stage: idle
-  blocked_on: director_level_up
+  loop_stage: harden
+  blocked_on: null
   dial_inherited: 3
   provenance: proposal
   evidence: [docs/staging/in_progress/WEATHER_PHYSICS_HIERARCHY.md, docs/design/C13_WEATHER_NORMALISATION_DISCOVER.md, docs/design/frame/C13_weather_normalisation_FRAME.md, company/pricing/weather_normalisation_belief.py, background/weather_demand_triad.py, sim/weather_demand_chain.py, tests/company/test_weather_normalisation_belief.py, tests/test_weather_demand_triad.py, docs/observability/coupled_gap_ledger.json#W1_5_premise_demand_shape]
