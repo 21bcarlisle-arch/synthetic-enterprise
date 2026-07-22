@@ -12,15 +12,28 @@ do). This module gives each customer a fixed, deterministic engagement
 archetype for their whole tenure, calibrated so the population-weighted
 aggregate still reproduces the existing anchored 35% figure.
 
-Anchors (docs/market_research/svt_rates_active_passive_2016_2025.md, H
-confidence, Ofgem Consumer Engagement Survey 2018): of SVT customers, 29%
-had sat 3+ years without switching (used here as the DISENGAGED population
-share proxy), 23% under 3 years / switched once (PASSIVE proxy); the
-remaining ~48% had switched more than once (ACTIVE proxy). The per-archetype
-per-renewal ACTIVE probabilities below are a calibration CHOICE, not
-independently sourced -- tuned only so the weighted aggregate lands at the
-existing anchored ~35% (0.48*0.65 + 0.23*0.15 + 0.29*0.02 ≈ 0.352),
-honestly flagged as such per the Anchored-noise law.
+Population shares (R13 curriculum ruling, director console 2026-07-22 —
+docs/design/ENGAGEMENT_MIX_RECONCILIATION_2026-07-22.md): ACTIVE 0.45 /
+PASSIVE 0.35 / DISENGAGED 0.20, anchored to the Ofgem Retail Market
+Indicators "default tariffs" panel as of Oct 2025 (non-prepayment domestic
+electricity: 45.1% actively-chosen; 54.9% default, split 34.6% held <3yr
+[the churning middle → PASSIVE proxy] and 20.3% held 3+yr [clearly
+disengaged → DISENGAGED proxy]). Q-A of the ruling: the archetype stays a
+BEHAVIOURAL disposition ("shops ~every renewal", drives active_renewal_
+probability below) — the Ofgem STOCK split (on-a-chosen-tariff-now) anchors
+only the SHARES, it does not redefine the archetype (the two measure
+different objects; see the reconciliation doc §0). The default-tariff
+cohort (PASSIVE+DISENGAGED = 0.55) is a genuine majority — honouring the
+board's veteran "disengaged majority" instinct — while hard-DISENGAGED
+stays at the honest 0.20, not a majority (the board's strong form
+overshoots the hard Ofgem number). Neither side adopted blind.
+
+The per-archetype per-renewal ACTIVE probabilities below are UNCHANGED
+(0.65 / 0.15 / 0.02) — a calibration CHOICE, not independently sourced. The
+weighted aggregate is near-neutral vs the prior anchor: 0.45*0.65 +
+0.35*0.15 + 0.20*0.02 ≈ 0.349 (was ~0.352). The re-anchor fixes the
+within-book SHAPE without re-levelling the portfolio's aggregate active-
+renewal rate. Honestly flagged as such per the Anchored-noise law.
 
 Layer 1 scope: engagement_level only. Layer 2 dimensions 1-4 (payment-
 method mix, fuel poverty, tenure, occupancy -- see PaymentChannel/
@@ -29,15 +42,20 @@ propensity as its own archetype (distinct from occupancy feeding INTO
 complaint probability, which IS built) is the one remaining dimension
 in CORE_FIDELITY_PHASES.md's Phase 1 archetype table not yet built.
 
-⚠ Recalibration flag (docs/market_research/ASSUMPTIONS.md, same section):
-a MORE RECENT Ofgem Retail Market Indicators series (Oct 2025) puts the
-real active-tariff share at ~45%, materially higher than the ~35% this
-module deliberately preserves (itself sourced from the older 2018-2019
-Consumer Engagement Survey, already baked into
-company/crm/churn_model.py::PASSIVE_RENEWAL_RATE before this phase).
-Recalibrating the population-wide aggregate is a separate, larger decision
-(shifts churn/revenue dynamics broadly) -- not actioned unilaterally here,
-flagged for director review.
+✔ Recalibration RESOLVED (R13 ruling, director console 2026-07-22). The
+prior ⚠ flag (older 2018-19 Consumer Engagement Survey shares 0.48/0.23/0.29
+vs the newer Ofgem RMI Oct-2025 ~45% active) is now closed: the shares are
+re-anchored to the Oct-2025 stock split as above. NOTE the aggregate active-
+renewal RATE is deliberately left near its prior ~35% anchor (per-archetype
+probabilities held) — raising the aggregate itself toward the ~45% recovery
+regime is a SEPARATE, larger R13 lever, NOT taken here (R12 anti-goal-seek:
+the aggregate is a diagnostic, not a target).
+Q-B of the ruling: the mix is kept STATIC (a single behavioural mix); a
+hardcoded regime-timed schedule is explicitly forbidden (it would be the
+MC-1 script class). Instead, "engagement responds to market state (offer
+availability, fixed-vs-SVT spread)" is registered as a FUTURE MECHANISM
+PROPOSAL through the gate — see docs/design/ENGAGEMENT_MARKET_STATE_
+RESPONSIVENESS_PROPOSAL_2026-07-22.md (provenance: proposal, not built).
 
 Deterministic assignment: `random.Random(f"engagement_{customer_id}")`,
 matching this codebase's standing per-customer-deterministic convention.
@@ -54,12 +72,12 @@ class EngagementLevel(str, Enum):
     DISENGAGED = "disengaged"
 
 
-# Population shares -- Ofgem Consumer Engagement Survey 2018 proxy (see
-# module docstring). Order matters for the cumulative draw below.
+# Population shares -- Ofgem RMI Oct-2025 stock anchor, R13 ruling 2026-07-22
+# (see module docstring). Order matters for the cumulative draw below.
 ENGAGEMENT_POPULATION_SHARE: dict[EngagementLevel, float] = {
-    EngagementLevel.ACTIVE: 0.48,
-    EngagementLevel.PASSIVE: 0.23,
-    EngagementLevel.DISENGAGED: 0.29,
+    EngagementLevel.ACTIVE: 0.45,
+    EngagementLevel.PASSIVE: 0.35,
+    EngagementLevel.DISENGAGED: 0.20,
 }
 
 # Per-archetype active-renewal probability -- a calibration choice (NOT
