@@ -199,3 +199,59 @@ missing piece is a *response edge* — the minimum being a cap/wholesale-endogen
 / ~£2.7bn SoLR mutualisation / post-2023 re-fixing) are now **validated** against independent
 already-fetched repo sources (§5); only the per-supplier **% shares** remain `[recall, validate]`
 pending a live fetch of Ofgem *State of the Market*.
+
+---
+
+## 8. Increment (2026-07-22, network-restored tick) — per-supplier % shares CLOSED
+
+Network was probed live this tick (Ofgem reachable, HTTP 301) so §7's one remaining `[recall, validate]`
+item — the per-supplier % shares — was worked against primary/regulator sources. **The item is now
+closed;** none of these figures is SIM ground truth (all are public regulator/DESNZ data, the correct
+observable side of the wall).
+
+**Per-supplier domestic-electricity market share, Q2 2025 (Ofgem *State of the Market*, Jan 2026):**
+
+| supplier | domestic electricity share |
+|---|---|
+| Octopus | **25%** |
+| British Gas | **21%** |
+| E.ON | **16%** |
+| OVO | **12%** |
+| EDF | **10%** |
+| Scottish Power | **8%** |
+| — six largest combined | **92%** (domestic elec + gas, Q2 2025) |
+
+The six sum to exactly 92%, matching the reported top-six concentration — an internal consistency check
+on the figures. The **head is heavy and the ordering matters:** Octopus (25%) has overtaken British Gas
+(21%) to become the largest electricity supplier (~12.9m household accounts at 31 Oct 2024; ~23.7% of the
+available market then, still climbing) — **the first change at the top since 1990s liberalisation**, and
+Octopus is the *only* big-six supplier gaining share in both fuels. A tariff-follower band that treats all
+competitors as one homogeneous pool would miss this: the field has a **growing disruptor** (Octopus,
+share-taking) against **share-ceding incumbents** (British Gas 20.3%→21% is roughly flat; the tail —
+E.ON/OVO/EDF/Scottish Power — is where share is bleeding).
+
+**Denominator caveat, recorded so it can't mislead a build:** two "concentration" numbers coexist and are
+*not* interchangeable. Ofgem's **domestic-only** top-six = **91% (Q4 2024) → 92% (Q2 2025)**. DESNZ's
+*Competition in UK Electricity Markets 2024* reports top-six = **65%** and top-three = **45%** — but that
+is the **all-sectors traded-electricity** denominator (industrial + commercial + domestic combined, where
+smaller suppliers outside the top nine hold 21.9%). DESNZ's *domestic-slice* top-three is **44%**, far
+closer to Ofgem's domestic concentration. A graduation build calibrating the competitor field to the
+**domestic** market must use the Ofgem domestic series (92% top-six), not the DESNZ all-sectors 65% — the
+gentle-looking lower number is the wrong denominator.
+
+**How this sharpens §3/§6 (does not overturn them).** The minimum-useful model in §6 — a follower band +
+1–3 regime-gated archetypes — is *confirmed* as the right shape, but the shares tell the archetypes what
+to be: at minimum **(a) a share-taking disruptor** (Octopus's trajectory), **(b) share-ceding incumbents**
+(the ex-Big-Six majors), and **(c) a long competitive tail** (the ~8% outside the top six, the SoLR-churn
+source from §5's 29 failures). A single homogeneous "market rate" scalar cannot represent a field where
+the largest player is *actively taking* share while the rest cede it — which is exactly the reactivity F5
+exists to add. **No atom opened, no map level change** (BUILD-open is a director/twin call). This closes
+the last non-churn network-gated increment on F5 — and, per the register lane-state, the **last one across
+the whole F1–F5 register**.
+
+**Sources (this tick):** Ofgem *State of the Market — Energy Retail Highlights* (Jan 2026,
+`ofgem.gov.uk/sites/default/files/2026-01/State-of-the-Market-Energy-Retail-Highlights-January-2026.pdf`);
+DESNZ *Competition in UK Electricity Markets 2024* (Sep 2025,
+`assets.publishing.service.gov.uk/media/68da73e049e17d00a56ffb60/`); Ofgem retail-market-indicators data
+portal; corroborated by Cornwall Insight / Solar Power Portal reporting of the Ofgem-confirmed Octopus #1
+position. All observable-side public sources; none is SIM ground truth.

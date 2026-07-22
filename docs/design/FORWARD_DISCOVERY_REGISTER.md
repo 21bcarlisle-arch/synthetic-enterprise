@@ -20,7 +20,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER-complete 2026-07-22 (6 standards closed, network tick) |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER-complete 2026-07-22 (Ireland magnitudes closed, network tick) |
-| **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER pass done 2026-07-22 |
+| **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER-complete 2026-07-22 (per-supplier % shares closed, network tick) |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
 
 ---
@@ -260,6 +260,20 @@ against SIM ground truth. **No further autonomous DISCOVER increment on F5 witho
 open item (per-supplier % shares) is fetch-gated; next tick should await director graduation or a live
 Ofgem *State of the Market* fetch.
 
+**Increment (2026-07-22, network-restored tick) — per-supplier % shares CLOSED** (`f5_...md` §8).
+Network probed live (Ofgem HTTP 301), so F5's sole remaining network-gated item was worked against
+primary/regulator sources. **Q2 2025 domestic-electricity shares (Ofgem *State of the Market*, Jan 2026):
+Octopus 25% / British Gas 21% / E.ON 16% / OVO 12% / EDF 10% / Scottish Power 8%**, six-largest = **92%**
+(domestic elec+gas; the six sum to exactly 92% — internal consistency check). Octopus has **overtaken**
+British Gas as the largest electricity supplier (~12.9m accounts, first change at the top since 1990s
+liberalisation) and is the only big-six gaining share in both fuels. **Denominator caveat recorded:**
+Ofgem's *domestic* top-six is 91%→92%, but DESNZ *Competition in UK Electricity Markets 2024* reports
+top-six=65% / top-three=45% on the **all-sectors traded-electricity** denominator (DESNZ domestic-slice
+top-three=44%) — a graduation build must calibrate the *domestic* field to the Ofgem 92%, not the DESNZ
+65%. The shares **sharpen** §6's archetype set (a share-taking disruptor + share-ceding incumbents + a
+competitive tail), not overturn it. **No atom opened, no map level change.** This closes the **last
+non-churn network-gated increment across the whole F1–F5 register.**
+
 ---
 
 **Lane state (2026-07-22).** With this pass, **all five forward-discovery tracks F1–F5 are
@@ -315,6 +329,21 @@ non-churn increment now remains across the whole register: F5 per-supplier % sha
 DISCOVER-complete (F1/F2/F3/F4) or a doc-only director/twin graduation call (the F4 `PORTABILITY_DEBT.md`
 register). If network persists, **F5 is the sole drawable increment**; otherwise the drained-pending-network floor
 stands.
+
+**Lane state update (2026-07-22, F5 network tick — REGISTER NOW FULLY DISCOVER-COMPLETE).** A later
+scheduled tick drew **F5** (the sole remaining still-open track) with core/idle empty and network probed
+live (Ofgem HTTP 301) and **closed F5's one open item** — the per-supplier % shares — against
+primary/regulator sources (Ofgem *State of the Market* Jan 2026 + DESNZ *Competition in UK Electricity
+Markets 2024*). See F5 §Increment: Q2 2025 domestic-electricity shares **Octopus 25 / BG 21 / E.ON 16 /
+OVO 12 / EDF 10 / ScotPower 8** (six-largest 92%), with the domestic-vs-all-sectors denominator caveat
+recorded so a build can't mis-calibrate. **With this pass every non-churn increment across F1–F5 is
+closed** — all five tracks are DISCOVER-complete, no open network-gated item remains anywhere in the
+register. The always-drawable forward-discovery lane is now **genuinely drained** for DISCOVER: the only
+remaining moves are **director/twin graduation calls** (opening a coupled-triad BUILD atom for any track,
+or the F4 doc-only `PORTABILITY_DEBT.md` register) and minor `[recall, validate]` refinements — no
+autonomous non-churn DISCOVER increment remains. Per R17 this is the honest floor with proof: a subsequent
+tick that draws forward-discovery with core/idle empty should record this drained-complete state and rest
+at the graduation wall until the director opens a track or new network-gated questions are authored.
 
 ---
 
