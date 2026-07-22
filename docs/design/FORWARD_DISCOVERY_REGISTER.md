@@ -18,7 +18,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 |---|---|---|---|---|
 | **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER pass done 2026-07-22 |
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
-| **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | skeletal, this pass |
+| **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | skeletal, this pass |
 | **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | skeletal, this pass |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
@@ -111,7 +111,31 @@ no atom exists behind it. This is the **critical path to any real household**.
 basis, revocation, data minimisation); the smallest honest volunteer pilot. **Design the consent machinery;
 hold no data.**
 
-**Tag:** mission-required × high (gated on the security review). **Status:** skeletal.
+**Tag:** mission-required × high (gated on the security review). **Status:** DISCOVER pass done (2026-07-22) —
+`docs/market_research/f3_volunteer_programme_mechanics.md`.
+
+**Finding (2026-07-22 tick).** The critical path is **two director-reserved artefacts** — a security-posture
+review and consent machinery — behind a public gate the pitch already commits to ("will not open until a security
+posture review has completed"); PURPOSE_PITCH_V4 §4 flags that **no atom exists** for it. This pass converts that
+one-line commitment into a **reviewable seven-item scope**: DPIA-first (Art. 35 — the four-dimensional model
+profiles household circumstances = high-risk), lawful-basis register, data-minimisation spec, the **Hardened
+profile** for storage (CLAUDE.md's own Epoch-5 NFR), consent lifecycle with **revocation-as-easy-as-grant → verified
+deletion** (Art. 7(3); a no-op withdraw is an R11 orphan defect), Art. 33 breach path, and both-ways-authenticated
+approach channel (PHONE_ACT threat model). **The key finding:** a volunteer **keeps their own supplier**, so Poesys
+is a **third party with no supply contract** — *none* of the default-flow contract-necessity basis that lets a real
+supplier read HH data (`smart_meter_hh_data_consent_2026.md`) reaches Poesys; every byte rests on **explicit consent
+alone** (Art. 6(1)(a); inferred vulnerability edges into Art. 9/Art. 22). This **inverts** the domestic-supplier
+intuition — "default-on for a supplier" is exactly *why* a validation partner must be **default-off, minimised,
+consent-gated**. Direction validated across **three disjoint source families** — Ofgem/DESNZ data-access law, UK
+GDPR + FCA comprehension (via F2's say-back gate), channel-security threat model — none SIM ground truth.
+**Smallest honest pilot:** N=1–few, keeps supplier (no switch/money/market crossing), consent+say-back-first,
+minimised pseudonymised ingest (consumption+tariff+payment only), publish-the-gap-including-errors, revocable →
+deletion, gated on the review. Candidate graduation = a **review gate-atom** + a **holds-no-data consent-machinery
+atom**; **no atom opened** — BUILD-open here is **doubly director-reserved** (one-way doors #5 safety-posture and #7
+real customer). The load-bearing honesty facts stay true: no volunteer approached, no household data held. Open
+items `[recall, validate]` (network-gated): the **DCC "Other User" / Data Access Framework** third-party route, the
+**ICO DPIA-mandatory list**, and any **energy-sector parallel-billing precedent**. **No further autonomous DISCOVER
+increment on F3 without network** — next tick should draw **F4** (still skeletal) or await director graduation.
 
 ## F4 — International expansion probe
 
