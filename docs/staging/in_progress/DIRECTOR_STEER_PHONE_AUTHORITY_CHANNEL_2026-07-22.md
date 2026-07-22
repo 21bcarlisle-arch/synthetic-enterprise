@@ -1,5 +1,18 @@
 # DIRECTOR STEER — End the console dependency: phone-native authority, plus F1 FRAME-open (2026-07-22)
 
+> **PARKED IN in_progress/ — 2026-07-22 (worker tick).**
+> - **Part 1 (F1 FRAME-open): DONE + committed.** `docs/design/frame/F1_conversations_coupled_triad_FRAME.md`
+>   exists (coupled-triad SIM-response / company-generator+estimator / harness-gap, reconciled with the
+>   segmentation schema; channel/trust as conversation-revealed traits; build proposal via the gate), committed
+>   in `aeb42c742`; the forward-discovery register records F1 GRADUATED→FRAME.
+> - **Part 2 (phone-native authority): DESIGNED + R15-PROVEN, awaiting the ONE console ratification.**
+>   Proposal: `docs/design/PHONE_NATIVE_AUTHORITY_CHANNEL_PROPOSAL_2026-07-22.md`. Mechanism (standalone, not
+>   wired): `background/director_authority_channels.py`. Proof: `tests/background/test_director_authority_channels.py`
+>   (19 tests, both directions green).
+> - **BLOCKING SUB-ITEM (what unblocks archival to done/):** the director's single console ratification —
+>   "wire the phone-authority channel" — which applies the gate change (authz-trust ⇒ console-only by rule).
+>   Nothing here authorizes anything live until then. This is the *last* thing that needs the console.
+
 **Type:** [STEER + grant]. Staged by the advisor carrying the director's verbatim frustration. Mechanism yours to design; the requirement is the wall.
 
 ## The director, verbatim
