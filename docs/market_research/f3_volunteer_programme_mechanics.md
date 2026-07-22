@@ -280,3 +280,57 @@ facts are untouched**: no volunteer approached, no household data held. **No ato
 wording; primary DESNZ-2024 tier text) — both direction-settled label-precision, not open questions. Single-track
 discipline held: the other tracks' residuals were left for their own draws. **F3 is DISCOVER-complete with no
 materially-open item remaining.**
+
+### Increment (2026-07-22, forward-discovery tick, R17 — DESNZ tier text CLOSED against primary + a NEW April-2026 primary source hardens the finding)
+
+F3 was drawn again on a scheduled forward-discovery tick (core/idle lanes empty/gated). Network was probed
+**live first** (gov.uk / ofgem.gov.uk / ico.org.uk all HTTP 200 — not a drained-pending-network artifact), so the
+residuals were worked against primary sources rather than rested. The ICO Art. 35(4) high-risk-examples page
+**403'd again** (unchanged — but the DPIA-mandatory verdict never depended on the exact list, Finding B). The other
+two moves closed, one of them materially:
+
+**(1) Primary DESNZ tier text — CLOSED, confirms F3's recall verbatim.** The DESNZ *Review of the Data Access and
+Privacy Framework* PDF (which 403'd on prior passes) was fetchable this tick and text-extracted directly (`pdftotext`,
+not a fast-model paraphrase — a first WebFetch summary of it garbled the tiers, so the primary text was read).
+§2.7–2.8 `observed-with-evidence` verbatim: suppliers may access **monthly and daily** data *"to fulfil regulated
+duties, such as providing accurate bills"* (the **no-consent default floor**); **daily** ("more detailed than
+monthly, but not more detailed than daily") is available *"where they either have the consumer's consent or the
+consumer has not opted-out ... (seven days must have elapsed from the date that notice was given)"* — i.e. **opt-out**;
+and **half-hourly** ("more detailed than daily") *"only ... if they have obtained the consumer's consent"* — i.e.
+**opt-in**, with mandated withdraw-information at the point of consent. This **confirms F3's prior `[recall, validate]`
+tier claim exactly** (monthly default / daily opt-out / half-hourly opt-in); the residual is now primary-sourced, not
+recalled. §2.21 further confirms the access controls *"apply irrespective of the granularity ... when accessing data
+from any smart meter through the DCC"* — the accreditation surface (Finding A) is granularity-independent.
+
+**(2) NEW material primary source — the wider-access framework is frozen at scoping stage as of April 2026, hardening
+F3's "no live shortcut precedent" conclusion.** A source not previously in F3's citation set surfaced this tick and
+post-dates every prior F3 reference: the **DESNZ + Ofgem Joint Open Letter *"Scoping exercise on the provision of
+wider access to smart metering data"*, published 1 April 2026** (addressed to the SEC Panel, BSC Panel, DCC and
+Elexon; signed **Jennie Tse (DESNZ)** and **Charlotte Friel (Ofgem)**; text-extracted from the primary Ofgem PDF).
+It states DESNZ is *"initiating a scoping exercise which will consider options for the design, delivery and provision
+of a data repository or repositories (including roles, responsibilities and the associated legal, regulatory and
+governance framework)"* — i.e. the third-party-access route Poesys would need is **not settled; it is pre-consultation
+at scoping stage.** Crucially it **instructs a pause on the industry routes already in train**: *"It is important in
+the meantime that potentially nugatory activity or spend on progressing solutions to make available smart metering
+data is avoided ... pausing such activity or spend, pending the outcome of the scoping exercise"*, naming the **'P494'
+BSC Modification Proposal** and **'MP234' SEC Modification Proposal** — *"Ofgem will not be in a position to take a
+decision in relation to [these] prior to the outcome of the scoping exercise"* — with **no published consultation
+timeline** (*"we will engage with relevant stakeholders in due course on timelines"*).
+
+**Consequence for F3 — sharpens hard, overturns nothing.** The earlier finding was "not bare consent — a named DCC
+'Other User' / SEC accreditation gate sits on top, and midata (the one consent-based licence-instrumented precedent)
+is paused." This April-2026 letter shows the **successor** wider-access framework is not merely "still-forming" but
+**at pre-consultation scoping AND the concrete industry modification proposals that would build a third-party route
+are being actively frozen by the regulator.** So as of April 2026 there is **no operational third-party HH-access
+route, and the ones in train are paused** pending a government scoping exercise of unspecified duration. F3's
+"raises-the-bar / no-live-shortcut-precedent" conclusion stands **harder still**: the **volunteer-supplies-own-data
+N=1 boundary** (self-service midata/DCC download, the volunteer exercising their *own* access right) is not just the
+smallest honest pilot — it is presently the **only** route that does not depend on a regulated third-party-access
+framework that does not yet exist and is explicitly frozen. Independence: two primary regulator documents (the DESNZ
+DAP review + the DESNZ/Ofgem joint letter), neither SIM ground truth; corroborated by the prior midata-paused finding.
+
+**Honesty facts untouched:** no volunteer approached, no household data held; DISCOVER read live law, ran nothing.
+**No atom opened, no map level change** (BUILD-open stays *doubly* director-reserved — one-way doors #5 safety-posture
++ #7 real customer). **Residual now genuinely churn only:** the ICO Art. 35(4) *exact enumerated-list wording* (page
+still 403's; verdict independent of it). With both materially-open residuals now primary-sourced (tier text) or shown
+to be hardened-not-open (wider-access status), **F3 is DISCOVER-complete**; no non-churn increment remains.

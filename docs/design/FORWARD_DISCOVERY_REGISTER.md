@@ -187,6 +187,23 @@ volunteer approached, no household data held). **No atom opened, no map level ch
 director-reserved: doors #5 + #7). Residual now purely churn (Art. 35(4) wording; DESNZ-2024 tier text). Next
 drawable increment: none non-churn across F1–F5 — **the register is DISCOVER-complete**; await director graduation.
 
+**Increment (2026-07-22, forward-discovery tick, R17) — DESNZ tier text CLOSED against primary + a NEW April-2026
+primary source hardens the finding** (`f3_...md` §Increment). The tick drew **F3**; network probed **live first**
+(gov.uk/ofgem/ico 200), so the residuals were worked against primary PDFs (text-extracted, not fast-model paraphrase —
+a first summary garbled the tiers). (1) **DESNZ DAP tier text CLOSED:** §2.7–2.8 confirms F3's recall *verbatim* —
+monthly = regulated-duty default (no consent), **daily = opt-out** (consent or no-objection 7 days post-notice),
+**half-hourly = opt-in** (explicit consent + withdraw-info); §2.21 controls apply *irrespective of granularity* via the
+DCC. (2) **NEW material primary source:** the **DESNZ+Ofgem Joint Open Letter "Scoping exercise on the provision of
+wider access to smart metering data", 1 Apr 2026** (signed Jennie Tse/DESNZ + Charlotte Friel/Ofgem) shows the
+third-party wider-access framework is **pre-consultation at scoping stage** AND the regulator is **explicitly pausing
+the industry routes in train** — the **P494 BSC** and **MP234 SEC** modification proposals — *"Ofgem will not be in a
+position to take a decision ... prior to the outcome of the scoping exercise"*, no published timeline. This **hardens
+F3's "no live shortcut precedent" conclusion**: not just midata paused, its successor is frozen too — so the
+**volunteer-supplies-own-data N=1 boundary is presently the *only* route** not depending on a regulated third-party
+framework that doesn't yet exist. CONFIRMS/sharpens, overturns nothing; two primary regulator docs, neither SIM ground
+truth. Honesty facts untouched (no volunteer approached, no data held). **No atom opened, no map level change.**
+Residual now genuinely churn only (ICO Art. 35(4) exact list wording — page still 403's, verdict independent of it).
+
 ## F4 — International expansion probe
 
 **Purpose.** The pitch asserts "global by design"; §13 admits transfer is unproven. Produce **evidence for or
