@@ -345,6 +345,20 @@ autonomous non-churn DISCOVER increment remains. Per R17 this is the honest floo
 tick that draws forward-discovery with core/idle empty should record this drained-complete state and rest
 at the graduation wall until the director opens a track or new network-gated questions are authored.
 
+**Rest-tick confirmation (2026-07-22, later scheduled tick — network-live drained proof, R17).** A
+subsequent forward-discovery draw fired with core/idle BUILD empty and staging empty. Per the standing
+"probe before declaring drained-pending-network" discipline, network was probed live this tick
+(Ofgem HTTP 200) — so the drained state is **not** a network artifact. Re-scanned all five tracks:
+**no open network-gated item has re-opened anywhere in the register** (F1–F5 all remain DISCOVER-complete
+per the F5 pass above). This is the honest empty-at-EVERY-level floor R17 defines: BUILD-empty,
+DISCOVER-drained, network-live-yet-nothing-open. No autonomous non-churn increment exists to draw, so the
+tick **rests at the graduation wall** — the only remaining moves are director/twin graduation calls
+(coupled-triad BUILD open, or the F4 doc-only `PORTABILITY_DEBT.md` register). No map write: the
+`H_forward_discovery_draw` atom's recorded state (mechanised, R15-proven, drained, `level_current` 1 pending
+a director ledger ratification per R16) is already accurate; manufacturing a map edit or speculative new
+question purely to avoid rest would violate SELF_INTERRUPT_DISCIPLINE and R17's own definition of legitimate
+rest (rest IS legitimate *with* proof).
+
 ---
 
 ## Watching briefs — contingent policy (one line each, never a build)
