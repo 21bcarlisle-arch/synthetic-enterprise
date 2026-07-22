@@ -227,6 +227,22 @@ DISCOVER-complete**; remaining moves are the doc-only `PORTABILITY_DEBT.md` grad
 the recall refinements. **No atom opened, no map level change.** Next drawable increment: **F5** (per-supplier
 % shares) or await director graduation.
 
+**Increment (2026-07-22, network-free forward-discovery tick, R17) — the doc-only `PORTABILITY_DEBT.md`
+register is now WRITTEN** (`docs/design/PORTABILITY_DEBT.md`). Re-classification correcting the prior
+label: consolidating **already-discovered** portability debt into one rankable register is **DISCOVER
+output, not a graduation** — it opens no atom and moves no map level, so it does **not** need a
+director/twin call (only the *code-remediation* candidates — a `Money` type, a granularity config, a
+regime-optional cap invariant — do, and those stay unopened). This closes F4's own **meta-finding** (debt
+was logged *diffusely*, "mentioned somewhere reads as covered when it isn't") with the concrete artifact
+it named as candidate #1. The seven breaks are anchored to **freshly verified** repo counts, not copied:
+**6,850** `*_gbp` field-name occurrences across **330** files (currency, the deepest blocker); `VAT_RATE
+= 0.05` hardcoded in `invoice.py:19` plus segment-keyed (not jurisdiction-keyed) dicts; literal `48` in
+**41** files; the `jurisdiction` field present on the invariant classes (the brain-absorbs half, recorded
+both ways). **No atom opened, no map level change, no network used.** With this written, F4 has no open
+non-network DISCOVER increment left — remaining F4 moves are the *code* remediations (director/twin BUILD)
+or the `[recall, validate]` refinements. Next drawable increment: **F5** (per-supplier % shares) or await
+director graduation.
+
 ## F5 — Simulated competitor field
 
 **Purpose.** Already flagged as an Epoch-2 gap: pricing/retention decisions currently face **no opposition**, so
