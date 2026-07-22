@@ -256,3 +256,52 @@ only remaining moves are the doc-only `PORTABILITY_DEBT.md` graduation (§8 prop
 call) or the lower-priority recall refinements above. **No atom opened, no map level change** (BUILD-open
 is director-reserved). Next tick should draw a still-open track (F5 per-supplier % shares) or await
 director graduation.
+
+---
+
+## 10. Increment (2026-07-22, F4 network tick) — Irish carbon-tax magnitude CLOSED
+
+A later scheduled tick drew **F4** with core/idle BUILD empty and staging empty. Per the standing
+`no-network-in-autonomous-runs` discipline, network was probed **live first** (CRU HTTP 200, Revenue 302,
+SEMO 200) — so this is not a drained-pending-network artifact. Network being live means the honest R17
+floor is *not* rest: a real pre-authored `[recall, validate]` residual was open, so it was worked against
+a primary source. Closed the **highest-value residual — the Irish carbon-tax magnitude** (§9's first
+open refinement); the other three residuals (SEMO reconciliation timetable, ESB MPRN smart-meter
+penetration, CRU↔Ofgem SLC mapping) were **left for their own future draws** (single-track discipline, no
+scope creep).
+
+**Primary-source magnitudes (independent of SIM ground truth).** Ireland levies carbon tax as **per-fuel
+excise regimes**, not a bill-wide charge:
+- **Natural Gas Carbon Tax (NGCT)** — **€63.50/tonne CO₂** = 6.35 c/kg = **€11.48/MWh at GCV** (effective
+  1 May 2025), rising to **€71.00/tonne on 14 Oct 2026** (the increase was scheduled for 1 May 2026 and
+  *postponed*). Source: Revenue.ie NGCT *Rate of Tax* page.
+- **Solid Fuel Carbon Tax (SFCT)** — same **€63.50 → €71.00/tonne** trajectory and dates.
+- **Petrol/diesel** already stepped to **€71/tonne** on 8 Oct 2025.
+- **Scope, the material point:** the tax applies **only to the fuels themselves — natural gas and solid
+  fuel — NOT to electricity** (Revenue NGCT: *"applies only to natural gas"*; electricity's carbon cost
+  is borne upstream via EU ETS, not a domestic consumer excise). Sources: Revenue.ie NGCT + SFCT rate
+  pages; Citizens Information *Carbon tax*.
+
+**Code-anchored design consequence — a THIRD regime-keyed line item, structurally distinct from the
+first two.** Fresh grep of `company/billing/` (this tick): **zero** occurrences of
+`carbon_tax|excise|ngct|sfct` — no carbon/excise line item exists anywhere in the billing engine. The
+dual-fuel bill *does* already carry **per-fuel `FuelBillSection`s** (`company/billing/dual_fuel_bill.py`:
+`fuel`, `vat_rate`, `vat_gbp`), so the fuel-leg structure the PORTABILITY "product-as-first-class"
+constraint wants **partly exists** — but each section carries **only a VAT line**, keyed by market
+(`VAT_RATE_BY_MARKET`), with **no per-fuel excise slot**. So an Irish carbon tax is a genuinely new
+line-item *shape*, different from the two already closed:
+- VAT (§9.2) is a **rate** on the whole leg — off by a factor of ~2.
+- PSO levy (§9.3) is a **flat per-customer electricity** charge — account-level, sign-flipping.
+- Carbon tax is **per-fuel-leg volumetric** (€/MWh) applied to the **gas leg only, never electricity** —
+  it must attach to `FuelBillSection` and be **fuel-gated**, which no current field represents. This is
+  the cleanest exercise yet of PORTABILITY constraint "product as first-class wherever fuel is one": the
+  charge is keyed to *fuel*, and the GB code's tax model (segment-keyed VAT, `VAT_RATE = 0.05` at
+  `invoice.py:19`) cannot carry a fuel-gated volumetric excise.
+
+**Verdict unchanged, sharpened.** Confirms §4.7/§5's **STRUCTURE break** on consumption tax and
+**strengthens** the headline — *portable where it reasons, GB-bound where it transacts* — with a third,
+structurally-distinct missing line item. **No absorb/break call overturned.** Remaining F4 residuals
+(SEMO reconciliation timetable; ESB MPRN penetration; CRU↔Ofgem SLC mapping) stay `[recall, validate]`,
+lower-priority, non-blocking. **No atom opened, no map level change** (BUILD-open + the `PORTABILITY_DEBT.md`
+code-remediation candidates stay director/twin-reserved). Next drawable increment: **F5** (per-supplier %
+shares) or a remaining F4 residual, else await director graduation.

@@ -243,6 +243,22 @@ non-network DISCOVER increment left — remaining F4 moves are the *code* remedi
 or the `[recall, validate]` refinements. Next drawable increment: **F5** (per-supplier % shares) or await
 director graduation.
 
+**Increment (2026-07-22, F4 network tick) — Irish carbon-tax magnitude CLOSED** (`f4_...md` §10). The tick
+drew **F4**; network was probed **live first** (CRU 200, Revenue 302, SEMO 200 — not a drained-pending-network
+artifact), so a pre-authored `[recall, validate]` residual was worked against primary sources rather than
+rested. Irish carbon tax is a **per-fuel excise**: **NGCT €63.50/tonne CO₂ = €11.48/MWh GCV** (eff. 1 May
+2025 → **€71/tonne** on 14 Oct 2026), same trajectory for solid fuel; **applies to gas + solid fuel only,
+NEVER electricity** (Revenue.ie NGCT/SFCT rate pages; Citizens Information). Code-anchored consequence: fresh
+grep of `company/billing/` shows **zero** carbon/excise line items; the dual-fuel bill has per-fuel
+`FuelBillSection`s but each carries **only VAT** (`VAT_RATE_BY_MARKET`, `invoice.py:19 VAT_RATE=0.05`) — so an
+Irish carbon tax is a **THIRD regime-keyed line item, structurally distinct** from VAT (a rate, ~2× off) and
+the PSO levy (flat per-customer electricity, sign-flipping): it is **per-fuel-leg volumetric, fuel-gated to
+the gas leg**, the cleanest exercise yet of the "product as first-class wherever fuel is one" portability
+constraint. **CONFIRMS §4.7 STRUCTURE break, overturns nothing.** Single-track discipline held (F4's other
+three residuals left for their own draws). **No atom opened, no map level change** (BUILD-open + the
+`PORTABILITY_DEBT.md` code remediations stay director/twin-reserved). Next drawable increment: **F5** or a
+remaining F4 residual, else await director graduation.
+
 ## F5 — Simulated competitor field
 
 **Purpose.** Already flagged as an Epoch-2 gap: pricing/retention decisions currently face **no opposition**, so
