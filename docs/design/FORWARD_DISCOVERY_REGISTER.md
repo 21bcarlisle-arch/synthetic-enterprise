@@ -134,8 +134,27 @@ deletion, gated on the review. Candidate graduation = a **review gate-atom** + a
 atom**; **no atom opened** — BUILD-open here is **doubly director-reserved** (one-way doors #5 safety-posture and #7
 real customer). The load-bearing honesty facts stay true: no volunteer approached, no household data held. Open
 items `[recall, validate]` (network-gated): the **DCC "Other User" / Data Access Framework** third-party route, the
-**ICO DPIA-mandatory list**, and any **energy-sector parallel-billing precedent**. **No further autonomous DISCOVER
-increment on F3 without network** — next tick should draw **F4** (still skeletal) or await director graduation.
+**ICO DPIA-mandatory list**, and any **energy-sector parallel-billing precedent**.
+
+**Increment (2026-07-22, network-restored tick).** Network was live this tick, so the three open items were worked
+against real sources (WebSearch/WebFetch) and are now **mostly closed** (`f3_...md` §Increment). **Material
+finding, CORRECTING the prior "explicit consent alone" conclusion:** a non-supplier third party may **not** receive
+HH smart-meter data on bare consent — there is a **named regulatory accreditation gate** (a **DCC "Other User"**
+grant, permission renewed *annually*, and/or **Smart Energy Code signatory + DCC User** status carrying *"regulated
+privacy and security requirements on an ongoing basis"*; HH is the opt-in tier of the Data Access & Privacy
+Framework). Consent is still the only Art. 6 basis (Q2 unchanged) — but *on top of it* sits an external
+instantiation of the **Hardened profile**, so the security-review scope **grows an eighth item (regulatory-access
+accreditation)** — the finding *raises* the bar, not lowers it. It also **sharpens the pilot:** at N=1 the
+**volunteer supplies their own data** (self-service midata/DCC download), staying clear of the accreditation
+regime — any move past volunteer-mediated hand-over is the clean scale boundary that trips the gate. **DPIA
+confirmed mandatory** on named triggers (Art. 35(3)(a) automated-profiling-with-significant-effects + ICO criteria
+profiling/vulnerable/innovative-tech, ≥2 ⇒ required — F3 meets ≥3). **Energy-sector precedent located: midata**
+(Ofgem licence-condition-mandated, consent-based third-party consumption/account transfer; ERRA-2013 powers) —
+caveat: a 2020 Ofgem update records it *paused for 2020/21*, current framework is the DESNZ-2024 DAP review, so
+its *current* status is `[recall, validate]`. Sources all independent, none SIM ground truth; a few residual
+`[recall, validate]` refinements remain (exact Art. 35(4) list wording; primary DESNZ-2024 tier text; midata's
+current status) — direction-settled, not open. **F3 is now DISCOVER-complete to the depth this lane warrants;**
+next tick should draw **F4** or await director graduation.
 
 ## F4 — International expansion probe
 
@@ -220,6 +239,15 @@ churn. This is the honest floor of the lane: a tick that draws forward-discovery
 empty and no network should record the drained state and rest at that wall (R17: rest is legitimate
 with proof the authorized set is empty at every level — this is that proof for the forward-discovery
 lane). Director graduation of any track, or restored network, re-opens work.
+
+**Lane state update (2026-07-22, network-restored tick).** Network *was* available on a later tick (the
+`no-network-in-autonomous-runs` assumption did not hold), which — as the note above anticipated — **re-opened
+work**. The tick drew **F3** and closed its network-gated open items (DCC "Other User"/SEC accreditation route
+found; ICO DPIA-mandatory confirmed; midata located as the energy-sector precedent) — see F3 §Increment. Staying
+disciplined to the single drawn track, the other tracks' network-gated items (**F1** complaint taxonomy +
+tone→outcome; **F2** comprehension standards; **F4** Ireland magnitudes; **F5** per-supplier % shares) were **left
+for their own future draws** rather than opportunistically swept (single-track draw, no scope creep). If network
+persists, those remain the drawable increments; otherwise the drained-pending-network floor above stands.
 
 ---
 
