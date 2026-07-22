@@ -17,7 +17,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 | rank | track | class | criticality | status |
 |---|---|---|---|---|
 | **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | skeletal, this pass |
-| **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | skeletal, this pass |
+| **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | skeletal, this pass |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | skeletal, this pass |
 | **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | skeletal, this pass |
@@ -57,7 +57,26 @@ not a nicety, and a trust mechanism. Feeds F3 (volunteer) and the site.
 energy-sector precedents); a **testable bar** — can a lay reader say back what Poesys does with their data and
 money; where the current site/pitch fails that bar.
 
-**Tag:** committed (legal) × high. **Status:** skeletal.
+**Tag:** committed (legal) × high. **Status:** DISCOVER pass done 2026-07-22 —
+`docs/market_research/f2_explaining_what_we_do_simply.md`.
+
+**Finding (2026-07-22 tick).** F2 fails on the **reader, not the writing**: the live public surface
+(`site/index.html`) is a correct *expert* pitch — "Where to go" doors keyed *"Energy CEO / COO"*,
+≥6 un-glossed domain terms in the lede ("enterprise simulator", "settles half-hourly", "Elexon and
+NESO", "£/tCO₂") — and **no lay-household comprehension surface exists**, so the legal-duty question
+"can a reader say back what we do with their **data** and **money**" is currently unanswerable. No
+live-consent breach (Poesys holds no household data — F3 gates that); this is *forward* discovery of
+the **testable bar** the register asked for. Proposed bar = a **teach-back / say-back test** over four
+items (data / money / commitment-and-leaving / human-accountability), **two-tier so it can FAIL
+(R15)**: Tier-1 mechanical readability + banned-jargon floor (today's front-door prose must go red),
+Tier-2 lay-persona say-back judge (outcome-tested). The **data-consent trap**
+(`smart_meter_hh_data_consent_2026.md`), the **SLC money-disclosure floor** (`company_customer_comms.md`)
+and **credit-balance ring-fencing** (`ofgem_licence_readiness.md`) are **validated** against independent
+already-fetched repo sources; the comprehension-testing *standards* (FCA Consumer Duty PRIN 2A, GDS
+reading-age-9, UK GDPR Art. 12(1), CMA EMI) remain `[recall, validate]` pending a live fetch. Candidate
+graduation = **harness bar before site page**, gating F3's consent screens; **no atom opened** (director/
+twin call). The one lay-facing line the site already gets right — up-front human accountability — must be
+preserved.
 
 ## F3 — Volunteer programme mechanics
 
