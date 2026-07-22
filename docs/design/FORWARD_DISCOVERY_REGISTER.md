@@ -19,7 +19,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 | **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER-complete 2026-07-22 (both open items closed, network tick) |
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER-complete 2026-07-22 (6 standards closed, network tick) |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
-| **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER pass done 2026-07-22 |
+| **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER-complete 2026-07-22 (Ireland magnitudes closed, network tick) |
 | **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER pass done 2026-07-22 |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
 
@@ -209,6 +209,24 @@ regime-optional; **no atom opened** (director/twin call). **No further autonomou
 F4 without network** — remaining work is a doc-only graduation call or a live fetch; next tick should
 draw a still-open track or await director graduation.
 
+**Increment (2026-07-22, network-restored tick) — the three Ireland magnitudes CLOSED** (`f4_...md` §9).
+Network probed live (CRU 200, Revenue 302), so §8's network-gated `[recall, validate]` magnitudes were
+worked against primary sources; each **confirms and two *sharpen*** the §4 breaks, none overturns one.
+(1) **ISP length** — I-SEM = **48 × 30-min imbalance settlement periods**, each holding **six 5-min
+imbalance-*pricing* periods** (SEMO *Industry Guide to the I-SEM*): settlement granularity is *identical
+to GB's 48* (so the `48` constant absorbs — confirms "mild for IE"), but the 5-min pricing sub-layer is a
+genuine structural addition the constant flattens away — the gentle pick hides even more than first read.
+(2) **VAT** — domestic electricity **9%** (temp, extended to **31 Dec 2030** per the 7 Oct 2025 Budget;
+13.5% baseline), i.e. **~2× GB's hardcoded 5%** — the break is now a quantified factor-of-2 error, not
+just jurisdiction-blindness. (3) **PSO levy** — a **mandatory per-customer charge with no GB bill-line
+analogue** (€1.46/mo ex-VAT for 2025/26; total €125.38m) that has been **zero or negative (a rebate)** in
+recent years — so it is STRUCTURE (a missing regime-keyed line item) whose value can **flip sign**. Still
+`[recall, validate]` (non-blocking refinements): Irish carbon-tax magnitude, SEMO reconciliation
+timetable, ESB MPRN smart-meter penetration, CRU-obligation↔Ofgem-SLC mapping. **F4 is now
+DISCOVER-complete**; remaining moves are the doc-only `PORTABILITY_DEBT.md` graduation (director/twin) or
+the recall refinements. **No atom opened, no map level change.** Next drawable increment: **F5** (per-supplier
+% shares) or await director graduation.
+
 ## F5 — Simulated competitor field
 
 **Purpose.** Already flagged as an Epoch-2 gap: pricing/retention decisions currently face **no opposition**, so
@@ -284,6 +302,19 @@ magnitudes; **F5** per-supplier % shares) were left for their own future draws. 
 sit in F4/F5** (each network-gated) or await director graduation; F1/F2/F3 are DISCOVER-complete with no open
 network-gated item. If network persists, F4/F5 are the drawable increments; otherwise the drained-pending-network
 floor above stands for those two.
+
+**Lane state update (2026-07-22, F4 network tick).** A later scheduled tick drew **F4** (now the highest-ranked
+still-open track, F1/F2/F3 already DISCOVER-complete) with network again live (CRU 200, Revenue 302) and
+**closed F4's one open item** — the three Ireland magnitudes (VAT %, PSO levy, ISP length) — against
+primary/regulator sources (SEMO *Industry Guide to the I-SEM*; gov.ie/Irish Times; CRU 2025/26 final decision).
+See F4 §Increment: the ISP is **48×30-min** (settlement absorbs GB's `48`, the **5-min pricing** sub-layer is the
+hidden addition), VAT is **9% temp→13.5%** (**~2× GB's 5%**), and the **PSO levy** is a sign-flipping regime-keyed
+line item GB has no slot for — each **confirms/sharpens** a §4 break, none overturns one. Single-track discipline
+held: **F5**'s one open item (per-supplier % shares) was left for its own future draw. **Only ONE network-gated
+non-churn increment now remains across the whole register: F5 per-supplier % shares.** Everything else is either
+DISCOVER-complete (F1/F2/F3/F4) or a doc-only director/twin graduation call (the F4 `PORTABILITY_DEBT.md`
+register). If network persists, **F5 is the sole drawable increment**; otherwise the drained-pending-network floor
+stands.
 
 ---
 

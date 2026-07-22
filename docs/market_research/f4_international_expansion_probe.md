@@ -198,3 +198,61 @@ ESB Networks smart-meter penetration; CRU consumer-protection obligations vs Ofg
 **No further autonomous DISCOVER increment on F4 without network** — the remaining work is either a
 doc-only graduation (proposal 1, a director/twin call) or requires a live SEMO/CRU/Revenue fetch. Next
 tick should draw a still-open track or await director graduation.
+
+---
+
+## 9. Increment (2026-07-22, network-restored tick) — the three magnitudes CLOSED
+
+Network was probed live this tick (CRU HTTP 200, Revenue 302) — the `no-network-in-autonomous-runs`
+assumption did not hold, so §8's network-gated `[recall, validate]` magnitudes were worked against
+primary/regulator sources. Single-track discipline held (F4 only). None is SIM ground truth. **Each
+result confirms — and in two cases *sharpens* — the §4 absorb/break verdicts; none overturns one.**
+
+**(1) Settlement granularity / ISP length — CONFIRMS §4.5's "mild for IE" *and* sharpens the trap.**
+The I-SEM Balancing Market trading day is divided into **48 × 30-minute imbalance settlement periods**,
+each containing **six 5-minute imbalance *pricing* periods** (SEMO *Industry Guide to the I-SEM —
+Trading*, Ch. 5; SEMO *Balancing Market* overview). So the settlement *period* is 30 min — **identical to
+GB's 48 half-hours** — which is exactly why the `48` constant (§4.5) does not break for Ireland. But the
+**5-minute imbalance-pricing sub-layer is a genuine structural addition GB has no analogue for**: a build
+that took Ireland's *pricing* seriously would need a granularity the hardcoded `48` cannot express even
+in the gentle pick. Net: the "gentlest pick hides the settlement break" finding is now **doubly
+confirmed** — settlement granularity absorbs (48==48), and the one place Ireland *does* differ (5-min
+pricing) is precisely the sub-period the GB `48` constant flattens away. The harder counterfactuals
+(ERCOT 15-min, NEM 5-min settlement) remain the real break.
+
+**(2) VAT — CONFIRMS §4.7's BREAK and makes the magnitude precise (and *larger* than GB).** Irish
+domestic electricity VAT is **9%** — a temporary reduction from the **13.5%** reduced rate, first cut in
+May 2022 and, per the **7 Oct 2025 Budget, now extended to 31 December 2030** (gov.ie Dept. of Finance;
+Irish Times 2025-04-01). So the operative rate is **9% today, reverting to a 13.5% baseline**. Either way
+it is **~2× GB's 5% domestic rate** — the hardcoded `VAT_RATE = 0.05` (§4.7) is not merely
+jurisdiction-blind, it is off by a factor of ~2 for the *nearest* market. The recall (`~13.5%, temp 9%`)
+was correct; the material refinement is that the "temporary" 9% is now a five-year fixture, so a build
+would key on 9%, not 13.5%.
+
+**(3) PSO levy — CONFIRMS §4.7's "no representation path" and identifies a whole missing *line item*.**
+Ireland's **Public Service Obligation levy** (funds renewable/security-of-supply schemes) is a
+**mandatory per-customer charge with no GB bill-line analogue**. CRU's 2025/26 final decision (CRU/2025)
+sets the domestic charge at **€1.46/month ex-VAT (€17.52/yr; ~€19.10 incl. 9% VAT)** from 1 Dec 2025,
+down from €3.23/month; the total levy is **€125.38m** (revised 20 Oct 2025 down from €162.37m, itself a
+55% cut on 2024/25's €251.79m). Crucially it has been **zero or *negative* (a rebate to customers)** in
+recent years. Two design consequences: **(a)** the levy's *existence* is **STRUCTURE** — GB's bill model
+has no fixed regulatory standing-charge line of this kind keyed to the *regime*; **(b)** its *value* is a
+**DATA anchor that flips sign** (rebate ↔ charge) by annual CRU decision, so any representation must allow
+a **negative** per-customer regulatory charge, not just a positive one. This is a second concrete case
+(alongside VAT-vs-IPT in §4.7) that PORTABILITY constraint 4's "monetary treatment" seam cannot currently
+carry.
+
+**Still `[recall, validate]` (lower-priority refinements, not blocking the verdict):** Irish **carbon
+tax** on gas magnitude; **SEMO settlement reconciliation timetable** run/lag structure (the analogue to
+Elexon R1/R2/R3/RF in §4.6); **ESB Networks MPRN smart-meter penetration**; and the **CRU
+consumer-protection obligation ↔ Ofgem SLC** mapping (§4.1). These refine anchor values inside verdicts
+that are already settled; none changes an absorb/break call.
+
+**Verdict unchanged, now magnitude-anchored.** All three closed magnitudes *strengthen* §5's headline —
+**portable where it reasons, GB-bound where it transacts** — by pricing the transactional-core breaks:
+VAT is ~2× off, the PSO levy is a missing sign-flipping line item, and even the "mild" settlement axis
+hides a 5-min pricing granularity. **F4 is now DISCOVER-complete to the depth this lane warrants** — the
+only remaining moves are the doc-only `PORTABILITY_DEBT.md` graduation (§8 proposal 1, a director/twin
+call) or the lower-priority recall refinements above. **No atom opened, no map level change** (BUILD-open
+is director-reserved). Next tick should draw a still-open track (F5 per-supplier % shares) or await
+director graduation.
