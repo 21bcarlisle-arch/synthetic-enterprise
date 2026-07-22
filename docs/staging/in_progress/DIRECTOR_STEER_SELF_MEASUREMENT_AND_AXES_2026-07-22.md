@@ -1,3 +1,15 @@
+> **[AGENT 2026-07-22 — FIRST PASS LANDED; open BUILD sub-items parked here]** Additive/reversible
+> parts done + pushed: `docs/design/DIRECTOR_AXES.md` (v1 axes, §4) and
+> `docs/design/SELF_MEASUREMENT_UNIFIED_DESIGN.md` (propose-back §45 a/b/c + unified design + the FIRST
+> daily-note seed, §1a, hand-computed from real origin/ledger data). NTFY sent with the seed + dial-yield note.
+> **STILL-OPEN BLOCKING SUB-ITEMS** (contract-touching / sole-map-writer — decomposed as SM1–SM5 in the
+> design doc, proposed for the orchestrator/twin to open, NOT self-added from a worker tick):
+> SM1 daily-note automation, SM2 rate_limits sensor, SM3 always-drawable OPTIONAL discovery lane
+> (the draw wiring — R15-prove core preempts before it lands), SM4 twin axis pre-score, SM5 advisor column.
+> Unblocks when those atoms are map-opened + built. Keep in in_progress/ until SM1+SM3 land (the note
+> publishes automatically and the always-drawable lane is live). Rest-cost half of HEARTBEAT_TOKEN_BURN
+> already resolved by the scheduled-invocation cutover — fold only its measurement half into SM2.
+
 # DIRECTOR STEER — Self-measurement, director axes, and the always-drawable lane (2026-07-22)
 
 **Type:** [STEER] — establishes how the system measures its own performance and how the director's judgment enters it. **The intent below is fixed; the mechanism is explicitly yours to design.** The director, verbatim: *"make sure it has some say in how best to do this, as it sees more than you."* Where you see a better construction than anything specified here, propose it with reasoning and build that instead — the advisor's shapes are defaults, not walls.
