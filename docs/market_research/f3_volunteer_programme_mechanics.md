@@ -381,3 +381,60 @@ read live published law, ran nothing. **No atom opened, no map level change** (B
 one-way doors #5 + #7). **F3 now has zero labelled-open item of any grade** — every question in its register entry is
 primary-sourced or director-gated. Next drawable increment: none non-churn across F1–F5 (register DISCOVER-complete);
 await director graduation or a newly-authored network-gated question.
+
+---
+
+## §Increment (2026-07-22, forward-discovery tick, R17) — the pilot's LIVE ingest mechanism CLOSED (a genuine dangling thread, not churn)
+
+**Why this is not churn.** Every *labelled* residual was closed on prior passes, but the smallest-honest-pilot
+conclusion rested entirely on one unexamined phrase — *"volunteer supplies their own data (self-service midata/DCC
+download)"* — and a later increment then found **midata is paused** and its successor frozen. No pass had gone back to
+ask the load-bearing question that leaves open: **midata paused ⇒ what LIVE mechanism actually lets an N=1 household
+export its own half-hourly data today?** That is the critical-path assumption the entire pilot design depends on; it
+was asserted, never validated to a live route. This tick worked it against real sources (network probed live first —
+ICO/Ofgem/GOV.UK 200), validated against an **independent industry-body primary source** (Smart Energy GB), none SIM
+ground truth.
+
+**Finding C — the pilot ingest survives midata's pause via the volunteer's OWN supplier relationship, not a Poesys
+accreditation.** Three live, consumer-owned routes exist, none requiring Poesys to hold DCC "Other User"/SEC status:
+
+1. **Supplier portal / API export (primary route).** The consumer owns the data and controls granularity —
+   Smart Energy GB (independent consumer body) verbatim: *"Your energy use data belongs to you, and you can decide
+   whether you share your secure smart meter readings with your supplier daily or half-hourly."* Suppliers already
+   expose consumer self-export: **Octopus** provides a consumer/partner **REST API** browsing HH electricity/gas
+   consumption; **TotalEnergies** launched an online view/download/track portal from **1 Oct 2024**; **OVO** offers
+   an account data download. The volunteer exports HH data themselves under their existing supplier relationship
+   (the supplier→customer disclosure rests on that contract + the consumer's Art. 15/Art. 20 rights) and hands the
+   file to Poesys under **explicit consent** — Poesys never touches the DCC or the HAN, so the accreditation gate
+   (Finding, prior increment) is **not tripped**. This is exactly the "volunteer-mediated hand-over" boundary the
+   prior pass named as the clean scale line; it is now confirmed to have a **live instantiation**.
+2. **Third-party CAD service (fallback route).** Loop / Bright / **n3rgy** read the meter over the HAN via a
+   Consumer Access Device with the consumer's authorisation. This yields HH data independent of whether the
+   volunteer's own supplier exposes export — but those services are themselves SEC/DCC-accredited *conduits*, so
+   the route inserts an accredited intermediary; the volunteer remains the data controller who then hands to Poesys.
+   A fallback for volunteers whose supplier lacks HH export, not the default.
+3. **On-meter backfill.** The meter stores **~13 months of half-hourly history** locally (48 reads/day, ~13mo), so
+   at N=1 a pilot has up to 13 months of retrospective HH data available at onboarding **without any live feed** —
+   the pilot can be a one-shot retrospective ingest, not a standing data connection (further shrinking the surface).
+
+**Three concrete constraints this route imposes on the pilot (code-independent, real):**
+- **(a) Granularity is consumer-controlled but not default-HH.** The household chooses daily *or* half-hourly sharing
+  with its supplier; HH is not guaranteed on by default. A pilot volunteer must first **opt their meter into HH
+  storage** — a real onboarding step, and itself a consent moment (matches F3's say-back gate), not an automatic given.
+- **(b) ~1-day latency is inherent.** Supplier-portal data is typically a day behind (overnight collection), so the
+  ingest is **inherently lagged, never real-time** — consistent with the C-S3 asynchronous-wall discipline; the pilot
+  must never assume same-day data.
+- **(c) The hand-over is the scale boundary.** Route 1 (volunteer self-export) and route 3 (on-meter backfill) keep
+  Poesys a pure recipient of consumer-exported files; any move to Poesys *pulling* data live (even via a CAD it
+  operates) crosses into the accreditation regime. The pilot design must hold the line at recipient-of-export.
+
+**Net — CONFIRMS/HARDENS the smallest-honest-pilot conclusion, overturns nothing.** The "volunteer supplies own data"
+pilot is **live-viable today** and does **not** depend on the paused midata or on any regulated third-party framework
+that doesn't yet exist — resolving the one dangling load-bearing assumption. It also sharpens the pilot spec with three
+real constraints (HH opt-in onboarding step; ~1-day latency; retrospective-backfill-not-standing-feed). Sources
+independent (Smart Energy GB industry body + supplier public documentation), none SIM ground truth. Honesty facts
+untouched: **no volunteer approached, no household data held** — DISCOVER read live published material, ran nothing.
+**No atom opened, no map level change** (BUILD-open stays doubly director-reserved: one-way doors #5 safety-posture +
+#7 real customer). With the pilot's ingest mechanism now validated to a live route, F3 has **no dangling load-bearing
+assumption left** — the register entry is DISCOVER-complete to a depth that would survive a build handoff; await
+director graduation.

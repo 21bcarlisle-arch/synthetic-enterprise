@@ -219,6 +219,30 @@ CONFIRMS/strengthens, overturns nothing; primary regulator source, not SIM groun
 atom opened, no map level change.** **F3 now has ZERO labelled-open item of any grade** — register DISCOVER-complete; no
 non-churn increment remains across F1–F5; await director graduation.
 
+**Increment (2026-07-22, forward-discovery tick, R17) — the pilot's LIVE ingest mechanism CLOSED (a genuine dangling
+thread, not churn)** (`f3_...md` §Increment C). The tick drew **F3** (agenda+staging empty, core/idle empty); network
+probed **live first** (ico/ofgem/gov.uk 200). Though every *labelled* residual was already closed, the smallest-honest-
+pilot conclusion still rested on one unexamined phrase — *"volunteer supplies own data (self-service midata/DCC
+download)"* — which a later pass had undercut by finding **midata paused** without then asking *"then what LIVE route
+exports an N=1 household's own HH data today?"* That load-bearing assumption was worked against real sources and
+validated against an **independent industry-body primary source** (Smart Energy GB), none SIM ground truth. **Finding C
+— the pilot ingest survives midata's pause via the volunteer's OWN supplier relationship, not a Poesys accreditation:**
+the consumer owns the data (Smart Energy GB verbatim *"Your energy use data belongs to you, and you can decide whether
+you share your … readings with your supplier daily or half-hourly"*) and self-exports HH via existing supplier
+portals/APIs (Octopus REST API; TotalEnergies portal since 1 Oct 2024; OVO), handing the file to Poesys under explicit
+consent — Poesys never touches the DCC/HAN, so the accreditation gate is **not tripped** (this is exactly the
+"volunteer-mediated hand-over" scale-boundary the prior pass named, now confirmed to have a *live* instantiation).
+Fallback route = a consumer-authorised third-party CAD (Loop/Bright/n3rgy) reading the HAN; plus the meter holds **~13
+months of HH history locally**, so a pilot can be a one-shot retrospective ingest, not a standing feed. **Sharpens the
+pilot spec with three real constraints:** (a) HH is consumer-controlled but **not default-on** — a volunteer must opt
+their meter into HH storage (a real onboarding/consent step); (b) supplier-portal data is **~1 day lagged** (never
+real-time — matches C-S3); (c) the hand-over is the scale line — Poesys must stay a **recipient of consumer-exported
+files**, never a live puller. **CONFIRMS/HARDENS the smallest-honest-pilot conclusion, overturns nothing** — it is
+live-viable today independent of the paused midata. Honesty facts untouched (no volunteer approached, no data held).
+**No atom opened, no map level change** (BUILD-open doubly director-reserved: doors #5 + #7). With the pilot's ingest
+mechanism now validated to a live route, F3 has **no dangling load-bearing assumption left**; residual is genuinely
+churn/graduation only. Await director graduation.
+
 ## F4 — International expansion probe
 
 **Purpose.** The pitch asserts "global by design"; §13 admits transfer is unproven. Produce **evidence for or
