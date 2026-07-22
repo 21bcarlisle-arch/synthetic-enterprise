@@ -292,6 +292,27 @@ three residuals left for their own draws). **No atom opened, no map level change
 `PORTABILITY_DEBT.md` code remediations stay director/twin-reserved). Next drawable increment: **F5** or a
 remaining F4 residual, else await director graduation.
 
+**Increment (2026-07-22, forward-discovery tick, R17) — SEMO reconciliation timetable CLOSED, §4.6
+sharpened** (`f4_...md` §11). The tick drew **F4** (agenda+staging empty, core/idle lanes empty); network
+probed **live first** (SEMO primary docs returned), so the highest-value remaining `[recall, validate]`
+residual — the **SEMO settlement reconciliation timetable**, §4.6's open item and the analogue to Elexon
+R1/R2/R3/RF — was worked against primary sources (SEMO Settlement FAQ + Settlement Calendar, sem-o.com;
+none SIM ground truth). **Closed:** SEMO runs **Indicative → Initial at the 5th *working day* → just TWO
+scheduled resettlement runs (M+4, M+13) → Ad-hoc**, terminal scheduled lag **13 months**. Mapped onto the
+repo's GB timetable — hardcoded **twice verbatim** (`settlement_reconciliation.py:28-38` +
+`settlement_timetable.py:65-89`: `R1=1/R2=3/R3=5/RF=28` months, four-run `_RUNS` list, a `RunName` Literal
+`initial|R1|R2|R3|RF`, a shares-sum-to-1.0 assert) — this **sharpens §4.6 from "BREAK (contained)" to a
+genuine STRUCTURE break**: the run *count* differs (4→2, so the Literal + four-tuple are a GB-shaped enum
+not a value), the tail is **less than half** (28mo→13mo), the initial offset unit differs (**months vs
+working days** — SEMO's Initial isn't expressible in the month-keyed schema), and the 0.60/0.25/0.12/0.03
+share curve has no SEMO analogue at these breakpoints. It's the **third** independently-duplicated GB
+constant block whose *shape* is GB-baked (with §4.5 `48` + §4.8 currency), a natural companion to the
+settlement-granularity item in `PORTABILITY_DEBT.md`. **CONFIRMS/strengthens the headline (portable where it
+reasons, GB-bound where it transacts), overturns nothing.** Single-track discipline held (F4's other two
+residuals — ESB MPRN penetration, CRU↔Ofgem SLC mapping — left for their own draws). **No atom opened, no
+map level change** (BUILD-open + the `PORTABILITY_DEBT.md` code remediations stay director/twin-reserved).
+Residual now: two lower-priority `[recall, validate]` F4 refinements, else await director graduation.
+
 ## F5 — Simulated competitor field
 
 **Purpose.** Already flagged as an Epoch-2 gap: pricing/retention decisions currently face **no opposition**, so

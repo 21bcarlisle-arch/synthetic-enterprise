@@ -305,3 +305,57 @@ structurally-distinct missing line item. **No absorb/break call overturned.** Re
 lower-priority, non-blocking. **No atom opened, no map level change** (BUILD-open + the `PORTABILITY_DEBT.md`
 code-remediation candidates stay director/twin-reserved). Next drawable increment: **F5** (per-supplier %
 shares) or a remaining F4 residual, else await director graduation.
+
+---
+
+## 11. Increment (2026-07-22, F4 network tick) — SEMO reconciliation timetable CLOSED, §4.6 sharpened
+
+A later scheduled tick drew **F4** with core/idle BUILD empty and staging empty. Network was probed
+**live first** (SEMO reachable, primary docs returned) — not a drained-pending-network artifact — so a real
+pre-authored `[recall, validate]` residual was open and was worked against a primary source. Closed the
+**highest-value remaining residual: the SEMO settlement reconciliation timetable** (§4.6's open item, the
+analogue to Elexon R1/R2/R3/RF). The other two residuals (ESB MPRN smart-meter penetration; CRU↔Ofgem SLC
+mapping) were **left for their own future draws** (single-track discipline, no scope creep). Sources are
+SEMO's own settlement documents; none is SIM ground truth.
+
+**Primary-source SEMO timetable (Settlement FAQ + Settlement Calendar, sem-o.com).**
+- **Indicative** run precedes Initial.
+- **Initial Settlement Statement:** issued at **12:00 on the 5th Working Day after the Trading Day** (an
+  M+5-*working-day* offset — not a month offset).
+- **Two scheduled Resettlement runs only:** **M+4** (four months) and **M+13** (thirteen months). Scheduled
+  resettlement exists to fold in revised meter data from Meter Data providers.
+- **Ad-hoc** resettlement as necessary (the SEMO analogue to Elexon's dispute-driven runs).
+- **Terminal scheduled lag = 13 months.**
+
+**Code-anchored comparison — this is a STRUCTURE break, not a value edit (sharpens §4.6).** The repo
+hardcodes the GB Elexon timetable **twice, verbatim** — `company/regulatory/settlement_reconciliation.py:28-38`
+(`_R1_MONTHS=1, _R2_MONTHS=3, _R3_MONTHS=5, _RF_MONTHS=28`; shares `0.60/0.25/0.12/0.03`) and
+`simulation/settlement_timetable.py:65-89` (the same constants, a `RunName` Literal
+`"initial"|"R1"|"R2"|"R3"|"RF"` at `:81`, a fixed **four**-entry `_RUNS` list at `:85-89`, and an
+`assert` at `:74-76` that the four shares sum to exactly 1.0). Mapping SEMO onto this reveals the break is
+deeper than §4.6's "editing both copies" framing implied:
+- **Run count differs (4 → 2):** GB has four scheduled runs (R1/R2/R3/RF); SEMO has two (M+4/M+13). The
+  `RunName` Literal type and the four-tuple `_RUNS` list are a **GB-shaped enum**, not a value — a second
+  market needs a *different-length* run structure, which the Literal + the shares-sum-to-1.0 assert
+  structurally forbid without a code change.
+- **Terminal lag is less than half (28 mo → 13 mo):** GB's RF tail runs to 28 months; SEMO's final
+  scheduled resettlement closes at M+13. The reconciliation-exposure model's whole time-shape (how long
+  cash stays uncertain) is GB-calibrated.
+- **The initial-run offset unit differs (months → working days):** SEMO's Initial is a *5-working-day*
+  offset; the code's entire timetable is keyed in **months post-delivery**, so SEMO's Initial isn't even
+  expressible in the existing schema without a unit change.
+- **The share-per-run curve has no SEMO analogue at these breakpoints:** `0.60/0.25/0.12/0.03` is a GB
+  error-discovery calibration partitioned across four GB run-dates; it cannot be re-keyed to two SEMO dates
+  by editing numbers.
+
+**Verdict unchanged, sharpened.** This is the **third independently-duplicated GB constant block** whose
+*shape* — not just its values — is GB-baked (alongside §4.5's `48` and §4.8's currency), and it upgrades
+§4.6 from "BREAK (contained)" in the sense of *isolated* to a genuine **structural** break: the run count,
+the `RunName` enum, the offset unit and the share partition all assume the Elexon four-run model. It
+**confirms and strengthens** §5's headline — *portable where it reasons, GB-bound where it transacts* — and
+sits naturally in the `PORTABILITY_DEBT.md` register as a companion to the settlement-granularity item (both
+are "a regime-config the code hardcodes as a GB constant"). **No absorb/break call overturned.** Remaining F4
+residuals (**ESB MPRN smart-meter penetration**; **CRU↔Ofgem SLC mapping**) stay `[recall, validate]`,
+lower-priority, non-blocking. **No atom opened, no map level change** (BUILD-open + the `PORTABILITY_DEBT.md`
+code remediations stay director/twin-reserved). Next drawable increment: **F5** (per-supplier % shares —
+already closed on its own tick) or a remaining F4 residual, else await director graduation.
