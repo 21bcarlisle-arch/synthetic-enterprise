@@ -20,7 +20,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER pass done 2026-07-22 |
-| **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | skeletal, this pass |
+| **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER pass done 2026-07-22 |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
 
 ---
@@ -196,6 +196,30 @@ director/twin call). Market **structure** figures (29 failures / ~4M / ~£2.7bn 
 re-fixing) **validated** on the 2026-07-22 tick against ≥3 independent already-fetched repo sources
 (not SIM ground truth); only per-supplier **% shares** remain `[recall, validate]` pending a live Ofgem
 *State of the Market* fetch.
+
+**Increment (2026-07-22, later tick).** Code-anchored graduation hazard added to the artefact §6: the
+2022 "nowhere cheaper to go" regime is encoded **twice, independently** —
+`MARKET_SAVINGS_BY_YEAR[2022] = -200.0` (SIM) and `MARKET_SWITCHING_MULTIPLIER_BY_YEAR[2022] = 0.44`
+(company-side walled belief). A graduation build making the best-alternative rate endogenous must retire
+the **SIM scalar in lockstep** (else the emergent field and the old scalar silently diverge — a
+half-migrated-parameter defect), while leaving the company multiplier as a legitimately-independent
+belief on the far side of the wall (the coupled-triad GAP). Verified by reading both files, neither
+against SIM ground truth. **No further autonomous DISCOVER increment on F5 without network** — the one
+open item (per-supplier % shares) is fetch-gated; next tick should await director graduation or a live
+Ofgem *State of the Market* fetch.
+
+---
+
+**Lane state (2026-07-22).** With this pass, **all five forward-discovery tracks F1–F5 are
+DISCOVER-complete**; every remaining open item across the register is `[recall, validate]` and
+**network-gated** (F1 complaint taxonomy + tone→outcome study; F2 comprehension-testing standards;
+F3 DCC "Other User" route + ICO DPIA list; F4 Ireland magnitudes or the doc-only debt-register
+graduation call; F5 per-supplier % shares). The always-drawable forward-discovery lane is therefore
+**drained-pending-network-or-graduation** — no non-network DISCOVER increment remains that is not
+churn. This is the honest floor of the lane: a tick that draws forward-discovery with core/idle lanes
+empty and no network should record the drained state and rest at that wall (R17: rest is legitimate
+with proof the authorized set is empty at every level — this is that proof for the forward-discovery
+lane). Director graduation of any track, or restored network, re-opens work.
 
 ---
 

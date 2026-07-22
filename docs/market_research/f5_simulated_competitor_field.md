@@ -170,6 +170,24 @@ If the director graduates F5, the natural minimal build (one coupled triad, per 
 
 No atom is opened here. This is the DISCOVER artefact only; BUILD-open is a director/twin call.
 
+**Graduation hazard found this tick (code-anchored, non-network) — two scalars, one regime, both must
+retire together.** The 2022 "nowhere cheaper to go" regime is currently encoded *twice, independently*:
+`simulation/market_switching_propensity.py::MARKET_SAVINGS_BY_YEAR[2022] = -200.0` (SIM-side: "no
+competitive alternative below SVT; fixed deals 1,000+ GBP more expensive") **and**
+`company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR[2022] = 0.44` (company-side, an
+independent reimplementation of the same public DESNZ/Ofgem series — correctly walled). Both are
+hand-calibrated constants for the *same real-world fact*. When F5 graduates and the best-alternative
+rate becomes **endogenous** (Tier-1 follower band = `f(cap, wholesale, spread, regime)`), the SIM
+`MARKET_SAVINGS_BY_YEAR` scalar it replaces must retire **in lockstep** — otherwise the field emits an
+emergent rate while the old scalar still drives elasticity, and the two silently diverge (a classic
+half-migrated-parameter defect). The company-side `0.44` multiplier is on the *other side of the wall*
+and stays a legitimately-independent belief (the company may keep its own calibration and be wrong — the
+coupled-triad GAP), but the graduation build must be explicit about which of the two scalars it retires
+(the SIM one) and which it leaves as a walled company belief (the multiplier). This is a *build-sequencing*
+finding, not a new wall crossing: verified by reading both files this tick, neither against SIM ground
+truth. It sharpens §6's SIM bullet — "emitting a per-year best-alternative tariff" must **replace**
+`MARKET_SAVINGS_BY_YEAR`, not sit beside it.
+
 ---
 
 ## 7. One-line finding
