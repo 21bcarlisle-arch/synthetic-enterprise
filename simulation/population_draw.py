@@ -577,22 +577,62 @@ def region_weights_from_curriculum(curriculum: Optional[dict] = None) -> Dict[st
     return c["region_marginal_synthetic_acquisitions"]["value"]
 
 
-def low_carbon_adoption_eligibility_multiplier(cohort_tenure: str, curriculum: Optional[dict] = None) -> float:
+#: The three low-carbon assets whose adoption is tenure-gated per-asset. Kept in
+#: sync with `simulation.life_events`' three gated adoption events (solar_install
+#: -> solar_pv, ev_acquired -> ev, heat_pump_installed -> heat_pump).
+ADOPTION_ASSETS = ("solar_pv", "ev", "heat_pump")
+
+
+def low_carbon_adoption_eligibility_multiplier(
+    cohort_tenure: str, asset: Optional[str] = None, curriculum: Optional[dict] = None
+) -> float:
     """BUILD_PLAN step 2: the tenure→low-carbon-adoption gating STRENGTH,
     read live from the director curriculum (`tenure_adoption_gating_strength`,
-    R13 -- never hardcoded here). Rented tenures (`gated_tenures`) get the
-    `renter_adoption_propensity_multiplier` (DESNZ Spring-2026-anchored,
-    0.17 ≈ the 7%/42% owner-vs-renter agency ratio); all other tenures get
-    `owner_multiplier` (1.0 -- unchanged eligibility). A pure function so it
-    is independently testable and wireable into any per-premise adoption
-    draw (e.g. `simulation.life_events.generate_life_events`'s own optional
-    `adoption_eligibility_multiplier` parameter) without this module ever
-    needing to know about that caller."""
+    R13 -- never hardcoded here).
+
+    ASSET-AGNOSTIC (asset=None, the original signature -- byte-identical): rented
+    tenures (`gated_tenures`) get the scalar `renter_adoption_propensity_multiplier`
+    (0.17 ≈ the 7%/42% owner-vs-renter agency ratio); all others get
+    `owner_multiplier` (1.0). Unchanged so every existing caller/test is preserved.
+
+    PER-ASSET (asset in ADOPTION_ASSETS -- director CONFIRMED 2026-07-22): reads
+    `value["per_asset"][asset][cohort_tenure]`. Solar/EV/heat-pump gate rented
+    tenures DIFFERENTLY (a roof-mod needs a landlord's permission; an EV only needs
+    off-street parking, already carried by `has_driveway`; a heat pump is the
+    landlord's capital call) -- so a single scalar over-collapses three physically
+    distinct barriers. ASSERTED R13 curriculum, falsifiable (population register),
+    NEVER tuned to company outcomes. If the per_asset table is absent or lacks this
+    asset/tenure, FALLS BACK to the asset-agnostic scalar (fail-safe, never raises
+    on a curriculum that predates this refinement).
+
+    A pure function -- independently testable and wireable into any per-premise
+    adoption draw (e.g. `simulation.life_events.generate_life_events`'s own optional
+    `adoption_eligibility_multiplier`) without this module knowing about the caller.
+    """
     c = curriculum if curriculum is not None else _load_cohort_curriculum()
     gating = c["tenure_adoption_gating_strength"]["value"]
+    if asset is not None:
+        per_asset = gating.get("per_asset") or {}
+        asset_table = per_asset.get(asset)
+        if isinstance(asset_table, dict) and cohort_tenure in asset_table:
+            return float(asset_table[cohort_tenure])
+        # fail-safe: an older curriculum without per_asset -> asset-agnostic scalar
     if cohort_tenure in gating["gated_tenures"]:
         return float(gating["renter_adoption_propensity_multiplier"])
     return float(gating["owner_multiplier"])
+
+
+def low_carbon_adoption_eligibility_multipliers_by_asset(
+    cohort_tenure: str, curriculum: Optional[dict] = None
+) -> dict:
+    """The full per-asset multiplier map for a tenure, ready to pass straight to
+    `generate_life_events(adoption_eligibility_multiplier=...)`: one factor per
+    asset in ADOPTION_ASSETS. Each entry resolves via the per-asset table with the
+    asset-agnostic scalar as its fail-safe fallback (see the single-asset fn)."""
+    return {
+        asset: low_carbon_adoption_eligibility_multiplier(cohort_tenure, asset, curriculum)
+        for asset in ADOPTION_ASSETS
+    }
 
 
 @dataclass(frozen=True)

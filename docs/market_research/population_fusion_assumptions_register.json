@@ -23,7 +23,7 @@
    "fidelity_ledger_ref": "id in the fidelity evidence ledger once a fused entry is committed as a declared risk; null until then"
   },
   "hard_boundary": "No personal microdata. Entries are populated from published aggregates/cross-tabs only. Refutation tests use the shadow-billing VOLUNTEER track (consented) or the counterfactual-twin machinery, never obtained unit records.",
-  "notes": "Entries below are seeded from the landscape doc section 4 'prior expectations to test, not assert'. They are HYPOTHESES (status=hypothesis) so stage 3 can attach the real measured association and flip status to evidenced without re-authoring the structure -- this is the 'design so it is cheap later' the ruling asks for. No association value here is measured.",
+  "notes": "Entries below are seeded from the landscape doc section 4 'prior expectations to test, not assert'. They are HYPOTHESES (status=hypothesis) so stage 3 can attach the real measured association and flip status to evidenced without re-authoring the structure -- this is the 'design so it is cheap later' the ruling asks for. No association value here is measured. | 2026-07-22: added 3 per-asset x tenure ADOPTION-GATING hypotheses (solar_pv/ev/heat_pump, provenance=assumed/status=hypothesis) per FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 4 -- director-ASSERTED R13 magnitudes registered as falsifiable against observed renter/owner adoption ratios via cohort_discovery.py. These are BEHAVIOURAL-gating hypotheses (tenure -> adoption propensity), a distinct class from the taxonomy-crossing/fusion entries above.",
   "stage2_evidence_source": "docs/market_research/population_coverage/{marginals,crosstabs,association_matrix}.json (Census 2021 via Nomis; DfT VEH0135)",
   "measurable_fusion_bar": "A fusion (provenance=fused) is PERMITTED only if the shared keys explain the pair's association to within a stated tolerance in a source where BOTH keys and target are jointly seen (residual-association test). Where the residual cannot even be measured because the pair is never jointly observed (all D-tech-x-household and E-attitude-x-anything), there is by definition NO positive evidence -> the pair is CROSSED (assumed), never fused. This makes the ruling's 'fusion only with positive evidence' a mechanism, not a judgement call.",
   "key_finding_aggregate_vs_tail": "Aggregate Cramer's V UNDERSTATES tail-concentrated coupling. heating_fuel x region reads V=0.070 (orthogonal) but oil-only ranges 0.12% (London) to 7.83% (Wales), ~65x. Refutation/crossing decisions gate on TAIL lift, not aggregate V, because the coverage objective is the worst cell.",
@@ -409,6 +409,78 @@
    "fidelity_ledger_ref": null,
    "residual_measurable": true,
    "knee_note": "Recoupling must EARN its place via the re-derived learning-value knee (director 2026-07-21: segments earn their place by measured learning value, not schema completeness). tenure already ranks #2 by learning value (0.22); whether the tenure-gated adoption cell clears the knee is decided by build_learning_frontier.py on the merged schema, not by this entry's existence."
+  },
+  {
+   "pair": [
+    "tenure",
+    "solar_pv_adoption_eligibility"
+   ],
+   "provenance": "assumed",
+   "prior_belief": "roof modification requires the landlord's permission AND the split incentive (landlord pays, tenant benefits) is acute -- private rent the most suppressed; social landlords run some programmes so social rent less so",
+   "conditional_independence_assumption": null,
+   "shared_keys": null,
+   "refutation_condition": "The behavioural discovery loop (company/analytics/cohort_discovery.py) observes, from acquisition + interaction data, a renter-vs-owner solar_pv adoption-rate ratio materially different from the asserted gating magnitudes (private_rent 0.1, social_rent 0.25, owners 1.0) -- e.g. a private-rent solar_pv adoption rate >2x or <0.5x what the asserted factor implies given the same eligibility base -- would REFUTE the asserted magnitude and require the director to re-set the curriculum dial (R13). The factor is falsifiable, not fixed.",
+   "test_bed": "shadow_billing_volunteers",
+   "status": "hypothesis",
+   "fidelity_ledger_ref": null,
+   "asserted_factors": {
+    "own_outright": 1.0,
+    "own_mortgage": 1.0,
+    "private_rent": 0.1,
+    "social_rent": 0.25
+   },
+   "anchor": "ASSERTED (roof mod + split incentive; director 2026-07-22)",
+   "curriculum_ref": "docs/design/segmentation_curriculum_v1.json#tenure_adoption_gating_strength.value.per_asset",
+   "authority": "director CONFIRMED 2026-07-22 (FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 4); condition met -- cohort_discovery.py discovery-consumer exists",
+   "note": "R13 ASSERTED director curriculum -- changeable on his word, NEVER tuned to company outcomes. Registered as a FALSIFIABLE hypothesis per item 4; the behavioural loop can refute the magnitude."
+  },
+  {
+   "pair": [
+    "tenure",
+    "ev_adoption_eligibility"
+   ],
+   "provenance": "assumed",
+   "prior_belief": "the dominant renter barrier for EVs is off-street charging, ALREADY carried by the has_driveway eligibility gate -- so tenure adds only a weak residual split-incentive effect; the weakest of the three gates",
+   "conditional_independence_assumption": null,
+   "shared_keys": null,
+   "refutation_condition": "The behavioural discovery loop (company/analytics/cohort_discovery.py) observes, from acquisition + interaction data, a renter-vs-owner ev adoption-rate ratio materially different from the asserted gating magnitudes (private_rent 0.55, social_rent 0.55, owners 1.0) -- e.g. a private-rent ev adoption rate >2x or <0.5x what the asserted factor implies given the same eligibility base -- would REFUTE the asserted magnitude and require the director to re-set the curriculum dial (R13). The factor is falsifiable, not fixed.",
+   "test_bed": "shadow_billing_volunteers",
+   "status": "hypothesis",
+   "fidelity_ledger_ref": null,
+   "asserted_factors": {
+    "own_outright": 1.0,
+    "own_mortgage": 1.0,
+    "private_rent": 0.55,
+    "social_rent": 0.55
+   },
+   "anchor": "ASSERTED weakest (has_driveway already carries the off-street barrier; director 2026-07-22)",
+   "curriculum_ref": "docs/design/segmentation_curriculum_v1.json#tenure_adoption_gating_strength.value.per_asset",
+   "authority": "director CONFIRMED 2026-07-22 (FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 4); condition met -- cohort_discovery.py discovery-consumer exists",
+   "note": "R13 ASSERTED director curriculum -- changeable on his word, NEVER tuned to company outcomes. Registered as a FALSIFIABLE hypothesis per item 4; the behavioural loop can refute the magnitude."
+  },
+  {
+   "pair": [
+    "tenure",
+    "heat_pump_adoption_eligibility"
+   ],
+   "provenance": "assumed",
+   "prior_belief": "a heat pump is the landlord's capital call; DESNZ Spring-2026 tracker: 42% of renters say the decision is 'not theirs to make' vs 7% of owners -- social landlords retrofit at scale so social rent less suppressed than private",
+   "conditional_independence_assumption": null,
+   "shared_keys": null,
+   "refutation_condition": "The behavioural discovery loop (company/analytics/cohort_discovery.py) observes, from acquisition + interaction data, a renter-vs-owner heat_pump adoption-rate ratio materially different from the asserted gating magnitudes (private_rent 0.14, social_rent 0.35, owners 1.0) -- e.g. a private-rent heat_pump adoption rate >2x or <0.5x what the asserted factor implies given the same eligibility base -- would REFUTE the asserted magnitude and require the director to re-set the curriculum dial (R13). The factor is falsifiable, not fixed.",
+   "test_bed": "shadow_billing_volunteers",
+   "status": "hypothesis",
+   "fidelity_ledger_ref": null,
+   "asserted_factors": {
+    "own_outright": 1.0,
+    "own_mortgage": 1.0,
+    "private_rent": 0.14,
+    "social_rent": 0.35
+   },
+   "anchor": "DESNZ Public Attitudes Tracker Spring 2026 (42% renters vs 7% owners 'not theirs to make'); director 2026-07-22",
+   "curriculum_ref": "docs/design/segmentation_curriculum_v1.json#tenure_adoption_gating_strength.value.per_asset",
+   "authority": "director CONFIRMED 2026-07-22 (FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 4); condition met -- cohort_discovery.py discovery-consumer exists",
+   "note": "R13 ASSERTED director curriculum -- changeable on his word, NEVER tuned to company outcomes. Registered as a FALSIFIABLE hypothesis per item 4; the behavioural loop can refute the magnitude."
   }
  ]
 }

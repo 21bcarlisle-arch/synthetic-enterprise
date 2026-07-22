@@ -563,3 +563,56 @@ def test_multiplier_is_clamped_to_zero_one_range():
         negative = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=-3.0)
         at_zero = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=0.0)
         assert negative == at_zero
+
+
+# ---------------------------------------------------------------------------
+# FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 2: PER-ASSET dict form
+# (director CONFIRMED 2026-07-22). Each of the three gates uses its own asset's
+# factor; a uniform dict is byte-identical to the scalar; the independent C-S2
+# substreams mean zeroing one asset's gate leaves the other two byte-identical.
+# ---------------------------------------------------------------------------
+_ASSET_OF_EVENT = {"solar_install": "solar_pv", "ev_acquired": "ev", "heat_pump_installed": "heat_pump"}
+
+
+def test_uniform_per_asset_dict_is_byte_identical_to_the_scalar():
+    h = _semi()
+    for seed in range(60):
+        scalar = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=0.17)
+        uniform = generate_life_events(
+            h, 2016, 2025, seed=seed,
+            adoption_eligibility_multiplier={"solar_pv": 0.17, "ev": 0.17, "heat_pump": 0.17},
+        )
+        assert scalar == uniform
+
+
+def test_per_asset_dict_gates_only_its_own_asset():
+    # Zero solar, leave ev + heat_pump ungated. Independent substreams (C-S2)
+    # mean the ev/heat_pump events are byte-identical to the fully-ungated run,
+    # while solar_install is eliminated -- proof the gate is per-asset, not shared.
+    h = _semi()
+    per_asset = {"solar_pv": 0.0, "ev": 1.0, "heat_pump": 1.0}
+    saw_solar = False
+    for seed in range(200):
+        default = generate_life_events(h, 2016, 2025, seed=seed)
+        gated = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=per_asset)
+        assert not [e for e in gated if e.event_type == "solar_install"]
+        # ev + heat_pump (and every non-adoption event) unchanged from default
+        default_kept = [e for e in default if e.event_type != "solar_install"]
+        gated_kept = [e for e in gated if e.event_type != "solar_install"]
+        assert default_kept == gated_kept
+        saw_solar |= any(e.event_type == "solar_install" for e in default)
+    assert saw_solar, "test household never adopted solar in the ungated arm -- widen seeds"
+
+
+def test_missing_asset_key_defaults_to_ungated():
+    # A partial dict (only solar named) leaves ev + heat_pump at 1.0 (ungated) --
+    # byte-identical to the fully-default run for those two gates.
+    h = _semi()
+    for seed in range(60):
+        default = generate_life_events(h, 2016, 2025, seed=seed)
+        partial = generate_life_events(
+            h, 2016, 2025, seed=seed, adoption_eligibility_multiplier={"solar_pv": 0.0},
+        )
+        default_non_solar = [e for e in default if e.event_type != "solar_install"]
+        partial_non_solar = [e for e in partial if e.event_type != "solar_install"]
+        assert default_non_solar == partial_non_solar

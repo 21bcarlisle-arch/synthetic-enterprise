@@ -73,6 +73,22 @@ _AUTHORITATIVE_COUPLING = {
     # mutation controls fire, ledger entry written under W1_5. Derived W1_5->C13 ==
     # this authoritative entry, so build_coupling()'s cross-check passes.
     "W1_5": "C13",
+    # W1_6 physics-price-signal <-> C13 weather-normalisation belief (the weather-
+    # PRICE facet of the same cascade). DIRECTOR-AUTHORIZED 2026-07-22 console
+    # (segmentation-integration follow-on, item 1: "wire the ledger pair"). W1_6's
+    # DERIVED-price chain was built to L3-quality 2026-07-20 and its belief-vs-truth
+    # gap MEASURED (coupled_gap_ledger#W1_6_physics_price_signal, cold_still_tail
+    # 0.397 -- the linear company belief under-prices the convex cold-still spike),
+    # ledger twin_atom_id already == C13. Until now W1_6 reached the Proof panel only
+    # via _coupled_gaps' defensive "ledger entry not in live coupling" branch; this
+    # promotes it to a first-class authoritative pair (pair_count unchanged at 10 --
+    # the defensive branch stops adding it, the authoritative row replaces it). C13
+    # is the nearest registered company weather twin and carries BOTH the demand
+    # (W1_5) and price (W1_6) belief facets; a dedicated company price-belief C-atom
+    # remains a proposed follow-on. W1_6 is NOT a C-twin and no C-twin names it in
+    # depends_on, so build_coupling never DERIVES this pair -- it is filled in from
+    # the table (like W2_9->C11), no cross-check conflict.
+    "W1_6": "C13",
 }
 
 # TWIN-EXEMPT world atoms (director-authored exemptions from binding rule 1).

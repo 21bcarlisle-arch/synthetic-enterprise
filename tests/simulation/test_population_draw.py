@@ -495,3 +495,52 @@ def test_low_carbon_adoption_multiplier_reads_curriculum_not_hardcoded():
     mutated = copy.deepcopy(mutated)
     mutated["tenure_adoption_gating_strength"]["value"]["renter_adoption_propensity_multiplier"] = 0.5
     assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", curriculum=mutated) == 0.5
+
+
+# ---------------------------------------------------------------------------
+# FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 2: PER-ASSET x tenure
+# (director CONFIRMED 2026-07-22, ASSERTED R13 curriculum). Solar/EV/heat-pump
+# gate rented tenures differently; asset=None stays the asset-agnostic scalar.
+# ---------------------------------------------------------------------------
+
+def test_per_asset_multiplier_reads_the_curriculum_table():
+    c = pd._load_cohort_curriculum()
+    per_asset = c["tenure_adoption_gating_strength"]["value"]["per_asset"]
+    for asset in pd.ADOPTION_ASSETS:
+        for tenure in pd.TENURE_LEVELS:
+            assert pd.low_carbon_adoption_eligibility_multiplier(tenure, asset) == \
+                per_asset[asset][tenure]
+    # owner tenures are ungated (1.0) for every asset; renters differ per asset
+    assert pd.low_carbon_adoption_eligibility_multiplier("own_outright", "solar_pv") == 1.0
+    assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", "solar_pv") == 0.10
+    assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", "ev") == 0.55
+    assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", "heat_pump") == 0.14
+    assert pd.low_carbon_adoption_eligibility_multiplier("social_rent", "heat_pump") == 0.35
+
+
+def test_asset_none_is_the_original_asset_agnostic_scalar():
+    # The pre-refinement signature (no asset) must be byte-identical to before:
+    # rented -> scalar, owner -> owner_multiplier.
+    gating = pd._load_cohort_curriculum()["tenure_adoption_gating_strength"]["value"]
+    assert pd.low_carbon_adoption_eligibility_multiplier("private_rent") == \
+        gating["renter_adoption_propensity_multiplier"]
+    assert pd.low_carbon_adoption_eligibility_multiplier("own_mortgage") == gating["owner_multiplier"]
+
+
+def test_multipliers_by_asset_returns_a_factor_for_every_asset():
+    m = pd.low_carbon_adoption_eligibility_multipliers_by_asset("private_rent")
+    assert set(m) == set(pd.ADOPTION_ASSETS)
+    assert m == {"solar_pv": 0.10, "ev": 0.55, "heat_pump": 0.14}
+    owner = pd.low_carbon_adoption_eligibility_multipliers_by_asset("own_outright")
+    assert owner == {a: 1.0 for a in pd.ADOPTION_ASSETS}
+
+
+def test_per_asset_falls_back_to_scalar_when_table_absent():
+    # An older curriculum that predates the per_asset refinement must not raise;
+    # it degrades to the asset-agnostic scalar (fail-safe).
+    import copy
+    old = copy.deepcopy(pd._load_cohort_curriculum())
+    del old["tenure_adoption_gating_strength"]["value"]["per_asset"]
+    assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", "solar_pv", curriculum=old) == \
+        old["tenure_adoption_gating_strength"]["value"]["renter_adoption_propensity_multiplier"]
+    assert pd.low_carbon_adoption_eligibility_multiplier("own_outright", "solar_pv", curriculum=old) == 1.0

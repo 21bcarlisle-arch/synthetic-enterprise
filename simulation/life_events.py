@@ -308,7 +308,7 @@ def generate_life_events(
     sim_start_year: int,
     sim_end_year: int,
     seed: int | None = None,
-    adoption_eligibility_multiplier: float = 1.0,
+    adoption_eligibility_multiplier: "float | dict" = 1.0,
 ) -> list[LifeEvent]:
     """Generate all life events for a household over the simulation period.
 
@@ -327,26 +327,50 @@ def generate_life_events(
               probability of the three LOW-CARBON adoption events (solar_
               install, ev_acquired, heat_pump_installed) ONLY -- boiler
               replacement, insulation, and the economic/demographic events are
-              untouched. DEFAULT 1.0 (no gating -- byte-identical to every
-              existing call site, proven by `test_default_multiplier_is_byte_
-              identical_to_no_multiplier`). The caller is expected to pass
-              `simulation.population_draw.low_carbon_adoption_eligibility_
-              multiplier(cohort_tenure)` once the live run pipeline is wired
-              to compute a household's cohort tenure -- that live-run WIRING
-              is deliberately NOT done in this pass (R13: population-draw
-              live-run activation is director-reserved curriculum, matching
-              the precedent already recorded on W2_2_population_draw's own
-              maturity-map history -- this parameter is the tested MECHANISM,
-              not yet the activation). Clamped to [0, 1] (a multiplier can
-              only ever reduce/preserve eligibility, never manufacture
-              probability mass above 1.0 -- R15 fail-closed on a malformed
-              caller value rather than a silent >1 probability).
+              untouched.
+
+              Accepts EITHER form:
+                * a float -- applied to ALL THREE gates identically (the
+                  original asset-agnostic API, unchanged).
+                * a dict {"solar_pv": x, "ev": y, "heat_pump": z} -- a PER-ASSET
+                  factor (director CONFIRMED 2026-07-22): each gate uses its own
+                  asset's factor, because a renter's barrier to solar (roof mod),
+                  to an EV (already carried by has_driveway) and to a heat pump
+                  (landlord capital call) are physically distinct. Produced by
+                  `simulation.population_draw.low_carbon_adoption_eligibility_
+                  multipliers_by_asset(cohort_tenure)`. A missing asset key falls
+                  back to 1.0 (that gate ungated).
+
+              DEFAULT 1.0 (no gating -- byte-identical to every existing call
+              site, proven by `test_default_multiplier_is_byte_identical_to_no_
+              multiplier`; a uniform dict {a:v,...} is byte-identical to the
+              float v). Live-run WIRING (passing a real per-household tenure
+              factor) is deliberately NOT done in this pass (R13: population-draw
+              live-run activation is director-reserved curriculum, matching the
+              precedent on W2_2_population_draw's maturity-map history -- this
+              parameter is the tested MECHANISM, item 5 is the activation). Each
+              per-gate factor is clamped to [0, 1] (a multiplier can only reduce/
+              preserve eligibility, never manufacture probability mass above 1.0
+              -- R15 fail-closed on a malformed caller value).
 
     Returns:
         Sorted list of LifeEvents. Empty list if no events occur.
     """
     base_seed = _base_seed_for(household, seed)
-    _adopt_mult = min(1.0, max(0.0, adoption_eligibility_multiplier))
+
+    # Resolve the adoption gating to one clamped [0,1] factor PER asset gate. A
+    # scalar applies to all three (byte-identical to the original API); a dict is
+    # read per-asset with a missing key defaulting to 1.0 (that gate ungated).
+    def _gate_factor(asset: str) -> float:
+        if isinstance(adoption_eligibility_multiplier, dict):
+            raw = adoption_eligibility_multiplier.get(asset, 1.0)
+        else:
+            raw = adoption_eligibility_multiplier
+        return min(1.0, max(0.0, raw))
+
+    _adopt_mult_solar = _gate_factor("solar_pv")
+    _adopt_mult_ev = _gate_factor("ev")
+    _adopt_mult_hp = _gate_factor("heat_pump")
     # One independent, named substream per emitted event type (C-S2). A draw in
     # any one of these can never shift the sequence any other one produces, so a
     # future event type is added by APPENDING a substream, not by threading a new
@@ -372,7 +396,7 @@ def generate_life_events(
                 and household.is_residential
                 and household.property_type != PropertyType.FLAT
                 and household.roof_aspect not in ("north", "na")):
-            prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year) * _adopt_mult
+            prob = _annual_prob(_SOLAR_INSTALL_PROB_BY_YEAR, year) * _adopt_mult_solar
             _s = sub["solar_install"]
             if _s.random() < prob:
                 kwp = round(_s.uniform(2.5, 4.5), 1)
@@ -400,7 +424,7 @@ def generate_life_events(
 
         # -- EV acquisition --
         if not has_ev and household.is_residential and household.has_driveway:
-            prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year) * _adopt_mult
+            prob = _annual_prob(_EV_ACQUIRED_PROB_BY_YEAR, year) * _adopt_mult_ev
             _s = sub["ev_acquired"]
             if _s.random() < prob:
                 charger_kw = _s.choice([3.7, 7.0, 7.0, 22.0])  # weighted toward 7kW
@@ -415,7 +439,7 @@ def generate_life_events(
         # -- Heat pump installation (gas-heated resi, physically eligible) --
         if (household.hp_eligible
                 and heating in (HeatingSystem.GAS_BOILER_COMBI, HeatingSystem.GAS_BOILER_SYSTEM)):
-            prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year) * _adopt_mult
+            prob = _annual_prob(_HEAT_PUMP_INSTALL_PROB_BY_YEAR, year) * _adopt_mult_hp
             _s = sub["heat_pump_installed"]
             if _s.random() < prob:
                 events.append(LifeEvent(
