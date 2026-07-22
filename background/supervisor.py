@@ -1409,6 +1409,115 @@ def _rule0_harden_draw(rng: Any = None) -> dict | None:
     return picker.choices(pool, weights=weights, k=1)[0]
 
 
+# =============================================================================
+# THE TICK NEVER RESTS WHILE AUTHORIZED WORK EXISTS AT ANY PRIORITY
+# -----------------------------------------------------------------------------
+# HARD RULE (harness-level, alongside R1-R16; director console 2026-07-22).
+# The draw ladder spans THREE authority levels: (1) CORE -- BUILD/SITE below
+# target; (2) IDLE-ADVANCE -- DISCOVER/FRAME on idle atoms + the PRIORITIES
+# backlog; (3) FORWARD-DISCOVERY -- the standing F1-F5 register (this lane).
+# REST is legitimate ONLY with PROOF the authorized set is EMPTY AT EVERY
+# LEVEL. The forward-discovery register is the ALWAYS-DRAWABLE final lane:
+# OPTIONAL/preemptible DISCOVER tracks that YIELD to core but are drawn before
+# the tick ever rests. Before 2026-07-22 this lane was DESIGNED (FORWARD_
+# DISCOVERY_REGISTER.md; atom H_forward_discovery_draw, provenance:proposal,
+# level 0) but NEVER WIRED INTO THE DRAW -- so a core-gated tick with a full
+# register RESTED (the 95-min R13-wait stall, 2026-07-22). "Consumed" (steer
+# actioned -> design doc + atom authored) is NOT "absorbed" (mechanism live in
+# the running draw + R15-proven). A future stall of THIS class is an R10 breach
+# of THIS RULE, not a new incident. R15-proven both ways in
+# tests/background/test_forward_discovery_draw.py.
+# =============================================================================
+FORWARD_DISCOVERY_REGISTER_PATH = PROJECT_DIR / "docs" / "design" / "FORWARD_DISCOVERY_REGISTER.md"
+
+# A drawable forward-discovery track header, e.g. "## F1 -- Simulating conversations".
+_FWD_TRACK_RE = re.compile(r"^##\s*(F\d+)\s+[—-]\s+(.+?)\s*$", re.MULTILINE)
+
+
+def _forward_discovery_tracks(register_path: Path | None = None) -> list[tuple[str, str]]:
+    """Parse the forward-discovery register into its drawable DISCOVER tracks
+    (F1..Fn), highest-rank first (file order). Returns [] if the register is
+    absent/unreadable/empty. An ABSENT register IS an empty authorized set at
+    this level -- that is exactly the PROOF that rest requires -- so this
+    reports 'empty' honestly here; the load-bearing anti-rest guarantee lives
+    in the LADDER ORDER (this lane sits ABOVE rest in both `_self_refill_draw`
+    and `_is_drained_and_gated`), never in pretending a missing file has work."""
+    path = register_path or FORWARD_DISCOVERY_REGISTER_PATH
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return []
+    return [(m.group(1), m.group(2).strip()) for m in _FWD_TRACK_RE.finditer(text)]
+
+
+def _forward_discovery_draw(rng: Any = None, register_path: Path | None = None) -> str | None:
+    """THE ALWAYS-DRAWABLE LANE (director steer 2026-07-22 §3, SELF_MEASUREMENT_
+    UNIFIED_DESIGN.md §3; mechanised 2026-07-22 under the HARD RULE above). When
+    CORE (BUILD/SITE) and IDLE-ADVANCE (DISCOVER/FRAME + backlog) are all empty/
+    gated, the draw falls through HERE instead of resting -- a standing F1-F5
+    DISCOVER track from FORWARD_DISCOVERY_REGISTER.md. DISCOVER-ONLY, optional/
+    preemptible (yields INSTANTLY to any core atom next cycle). Returns None
+    ONLY when the register is genuinely empty/absent -- with F1-F5 standing,
+    rare by construction, so the tick rests rarely and legitimately.
+
+    Rank order = file order (F1 highest). Dial-weighted-random pick BIASED to
+    rank so F1 (mission-required x highest) is preferred without starving lower
+    tracks. INDEPENDENCE (R15): keyed on the ACTUAL parsed register content,
+    never a constant -- emptying the register is caught by the genuinely-empty
+    test; dropping this rung from the ladder is caught by the must-not-rest
+    test (both in test_forward_discovery_draw.py)."""
+    tracks = _forward_discovery_tracks(register_path)
+    if not tracks:
+        return None
+    picker = rng or random
+    weights = [len(tracks) - i for i in range(len(tracks))]
+    track_id, title = picker.choices(tracks, weights=weights, k=1)[0]
+    return (
+        "FORWARD-DISCOVERY self-refill (ALWAYS-DRAWABLE lane -- core + idle-advance lanes "
+        f"empty/gated, so the tick draws forward-discovery instead of resting): {track_id} -- {title}. "
+        "DISCOVER-ONLY (optional/preemptible: yields INSTANTLY to any core atom next cycle; no BUILD "
+        "code, no new map atoms). Work its 'Key DISCOVER questions' in docs/design/FORWARD_DISCOVERY_"
+        "REGISTER.md; anchor to real sources, validate against an INDEPENDENT source (never SIM ground "
+        "truth), honour the epistemic wall. NTFY only on a notable finding."
+    )
+
+
+def forward_discovery_law_status(register_path: Path | None = None) -> dict:
+    """Live status of the HARD RULE 'THE TICK NEVER RESTS WHILE AUTHORIZED WORK
+    EXISTS AT ANY PRIORITY' (director console 2026-07-22). Returned as data so
+    the daily self-note (SM1, `background/daily_self_note.py` -- NOT YET BUILT;
+    this is its named morning-report home per SELF_MEASUREMENT_UNIFIED_DESIGN.md
+    'reuse don't accrete') can render one line every morning unprompted, and so
+    the supervisor can log it live every cycle in the meantime.
+
+    `wired` proves the always-drawable rung is actually in the ladder (not just
+    designed) -- the exact 'consumed vs absorbed' check that this whole incident
+    is about: a True here means the mechanism is LIVE in the running draw, not
+    merely that a design doc exists."""
+    tracks = _forward_discovery_tracks(register_path)
+    wired = "_forward_discovery_draw" in globals() and callable(globals()["_forward_discovery_draw"])
+    return {
+        "rule": "THE TICK NEVER RESTS WHILE AUTHORIZED WORK EXISTS AT ANY PRIORITY",
+        "always_drawable_lane_wired": wired,
+        "forward_discovery_tracks": [t[0] for t in tracks],
+        "register_nonempty": bool(tracks),
+        "rest_currently_legitimate_only_if": "core + idle-advance + forward-discovery ALL empty",
+    }
+
+
+def forward_discovery_law_status_line(register_path: Path | None = None) -> str:
+    """One-line render of the above for the per-cycle supervisor log + the SM1
+    morning note when it lands."""
+    s = forward_discovery_law_status(register_path)
+    tracks = ",".join(s["forward_discovery_tracks"]) or "NONE"
+    return (
+        "TICK-NEVER-RESTS law: always-drawable lane "
+        f"{'WIRED' if s['always_drawable_lane_wired'] else 'NOT-WIRED(!)'} | "
+        f"forward-discovery backlog=[{tracks}] | "
+        f"rest legitimate only if core+idle+forward ALL empty"
+    )
+
+
 def _self_refill_draw() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
     PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
@@ -1492,6 +1601,10 @@ def _self_refill_draw() -> str | None:
         "THREE-LANE self-refill (atoms-drawn-per-cycle): "
         f"BUILD={len(build_atoms)}, SITE={len(site_atoms)}, DISCOVERY={len(discovery_atoms)}"
     )
+    # Live per-cycle status of the always-drawable HARD RULE (until SM1's daily self-note
+    # renders it every morning). Makes 'is the anti-rest lane actually wired' visible EVERY
+    # cycle -- the consumed-vs-absorbed check the 2026-07-22 stall was about.
+    log(forward_discovery_law_status_line())
     if sum(_raw) > MAX_CONCURRENT_FORKS:
         log(
             f"BOUNDED FAN-OUT: capped {sum(_raw)} available atoms -> {MAX_CONCURRENT_FORKS} concurrent "
@@ -1545,6 +1658,16 @@ def _self_refill_draw() -> str | None:
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
 
+    # ALWAYS-DRAWABLE LANE (HARD RULE, director console 2026-07-22): CORE (BUILD/SITE) +
+    # IDLE-ADVANCE (DISCOVER/FRAME + backlog) are all empty/gated here -> fall through to the
+    # FORWARD-DISCOVERY register (F1-F5) BEFORE the Rule-0 HARDEN treadmill or any rest. This is
+    # the ladder rung whose ABSENCE caused the 95-min R13-wait stall (the register was full; the
+    # tick rested because this lane was never wired). Preferred over the HARDEN treadmill the
+    # director declines every cycle: standing DISCOVER work beats re-verifying finished atoms.
+    forward_item = _forward_discovery_draw()
+    if forward_item:
+        return forward_item
+
     # RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): an empty feasible set
     # is a DEFECT IN THE DIALS, not a reason to hold. Every below-target lane and
     # the backlog are empty -> yield the below-target dial and draw HARDEN/red-
@@ -1597,8 +1720,16 @@ def _is_drained_and_gated() -> bool:
             return False
         if _actionable_backlog_item():
             return False
-        # All real lanes + backlog empty. It is a RESTING state only if at-target HARDEN atoms
-        # actually exist; otherwise it is a genuinely-empty map = a WALL (map_exhausted), not a rest.
+        # ALWAYS-DRAWABLE LANE (HARD RULE, director console 2026-07-22): rest is legitimate ONLY
+        # with PROOF the authorized set is empty AT EVERY LEVEL -- including forward-discovery.
+        # While the F1-F5 register has a drawable track, this is NOT a resting state (the tick must
+        # draw it, not rest). This is the mirror of the rung added to `_self_refill_draw`; without
+        # it, `_is_drained_and_gated` would green-light a rest that `_self_refill_draw` has already
+        # refused, and find_work's rest branch (`refill and _is_drained_and_gated()`) would fire.
+        if _forward_discovery_draw():
+            return False
+        # All real lanes + backlog + forward-discovery empty. It is a RESTING state only if at-target
+        # HARDEN atoms exist; otherwise a genuinely-empty map = a WALL (map_exhausted), not a rest.
         return _rule0_harden_draw() is not None
     except Exception:
         return False

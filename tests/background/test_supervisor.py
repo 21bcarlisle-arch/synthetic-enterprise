@@ -65,6 +65,15 @@ def _isolate(tmp_path, monkeypatch):
     # -- defaults to a nonexistent tmp_path file so pre-existing backlog-
     # fallback tests still exercise the fallback path specifically.
     monkeypatch.setattr(supervisor, "MATURITY_MAP_PATH", tmp_path / "maturity_map.yaml")
+    # ALWAYS-DRAWABLE LANE (HARD RULE, director console 2026-07-22): the tick
+    # never rests while the forward-discovery register has work. Point the
+    # register at a nonexistent tmp file so this hermetic world is EMPTY AT EVERY
+    # LEVEL by default -- otherwise these unit tests leak the real (non-empty)
+    # FORWARD_DISCOVERY_REGISTER.md and every "map empty -> rest/exhausted" test
+    # would (correctly, per the new law) draw forward-discovery instead. Tests
+    # that assert rest now genuinely have an empty authorized set at every level;
+    # the forward-discovery lane itself is proven in test_forward_discovery_draw.py.
+    monkeypatch.setattr(supervisor, "FORWARD_DISCOVERY_REGISTER_PATH", tmp_path / "FORWARD_DISCOVERY_REGISTER.md")
     # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
     # other live-state path above -- point it at a nonexistent tmp file so the
     # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts
