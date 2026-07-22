@@ -171,6 +171,22 @@ its *current* status is `[recall, validate]`. Sources all independent, none SIM 
 current status) — direction-settled, not open. **F3 is now DISCOVER-complete to the depth this lane warrants;**
 next tick should draw **F4** or await director graduation.
 
+**Increment (2026-07-22, forward-discovery tick, R17) — midata current-status residual CLOSED** (`f3_...md`
+§Increment). The tick drew **F3** (core/idle empty; the concurrent `run_complete` is owned by the auto-processor,
+not this lane); network probed **live first** (Ofgem 200, GOV.UK 200), so the one *materially* open residual —
+whether F3's sole energy-sector precedent (**midata**) is a *live* route or a *lapsed* one — was worked against a
+primary source. **Closed:** midata is **paused, not live** — Ofgem's programme-update page verbatim *"Work on
+midata has been paused for 2020/21"* (temporary pause from FY2020/21, never discontinued); independently
+corroborated that DESNZ **did not revive it** but moved to the broader **Energy Digitalisation Framework + a
+forthcoming smart-data-scheme consultation** (enabling infra = a Data Sharing Infrastructure + **Consumer Consent
+Service**, still-forming). **Sharpens, overturns nothing:** the earlier "not bare consent — named accreditation
+gate on top" correction is *reinforced* — the one consent-based licence-instrumented energy precedent is **not
+operational today** and its successor isn't yet a usable route, so there is **no live shortcut precedent**; the
+"raises the bar" conclusion stands harder (pilot stays volunteer-supplies-own-data). Honesty facts untouched (no
+volunteer approached, no household data held). **No atom opened, no map level change** (BUILD-open doubly
+director-reserved: doors #5 + #7). Residual now purely churn (Art. 35(4) wording; DESNZ-2024 tier text). Next
+drawable increment: none non-churn across F1–F5 — **the register is DISCOVER-complete**; await director graduation.
+
 ## F4 — International expansion probe
 
 **Purpose.** The pitch asserts "global by design"; §13 admits transfer is unproven. Produce **evidence for or

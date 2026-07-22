@@ -245,3 +245,38 @@ data is a **regulated, consent-gated, licence-instrumented** activity, not a fre
   named triggers. Residual `[recall, validate]` (need a primary fetch, minor): the *exact* Art. 35(4) enumerated
   list wording, the primary DESNZ-2024 tier wording, and midata's *current* operational status. These are
   refinements, not open questions of direction — **F3 is DISCOVER-complete to the depth this lane warrants.**
+
+### Increment (2026-07-22, forward-discovery tick, R17 — midata current-status residual CLOSED)
+
+F3 was drawn on a scheduled forward-discovery tick (core/idle lanes empty; the concurrent `run_complete`
+is owned by the auto-processor, not this lane). Network was probed **live first** (Ofgem HTTP 200, GOV.UK
+HTTP 200 — not a drained-pending-network artifact), so the one *materially* open residual — **midata's
+*current* operational status** (Finding C's caveat, the thing that decides whether F3's sole energy-sector
+precedent is a *live* route or a *lapsed* one) — was worked against a primary source rather than rested.
+
+**Closed, `observed-with-evidence`:** midata in energy is **paused, not a live route.** Ofgem's own
+programme-update page (*Update on the midata in energy programme*) states verbatim: *"Work on midata has been
+paused for 2020/21, as we recognise that there are a number of programmes in train across the industry that
+will also impact industry data availability and quality"* — a **temporary pause from FY2020/21**, never a
+formal discontinuation (Ofgem still calls it *"a key tool ... to protect current and future energy consumers"*).
+Validated against an **independent** thread (never SIM ground truth): the reason it stalled — poor data quality,
+weak incentives to share, patchy supplier participation — and, crucially, that **DESNZ did not revive midata**
+but moved to a **broader Energy Digitalisation Framework + a forthcoming energy *smart data scheme* consultation**,
+whose enabling infrastructure is a **Data Sharing Infrastructure + Consumer Consent Service** (DESNZ = strategic
+policy owner, Ofgem = implementation/regulatory delivery). Sources: Ofgem midata-update page (primary) + techUK
+Energy Digitalisation Framework / Solar Power Portal DESNZ-smart-data coverage (independent corroboration).
+
+**Consequence for F3 — sharpens, overturns nothing.** The earlier increment's material correction ("not
+bare consent — a named accreditation gate sits on top") is *reinforced*: the one consent-based, licence-
+instrumented energy precedent a validation partner might have leaned on (**midata**) is **not currently
+operational**, and its successor (the smart-data scheme) is **still-forming, not yet a usable route**. So there
+is **no live shortcut precedent** — the F3 "raises the bar" conclusion stands harder, not softer: at pilot scale
+the volunteer must **supply their own data** (self-service midata/DCC download stays the clean, accreditation-
+free boundary), because no operational third-party-access framework exists to lean on today. The **honesty
+facts are untouched**: no volunteer approached, no household data held. **No atom opened, no map level change**
+(BUILD-open here stays *doubly* director-reserved — one-way doors #5 safety-posture + #7 real customer).
+
+**Residual now purely churn.** Only two `[recall, validate]` refinements remain (exact Art. 35(4) enumerated-list
+wording; primary DESNZ-2024 tier text) — both direction-settled label-precision, not open questions. Single-track
+discipline held: the other tracks' residuals were left for their own draws. **F3 is DISCOVER-complete with no
+materially-open item remaining.**
