@@ -256,3 +256,61 @@ DESNZ *Competition in UK Electricity Markets 2024* (Sep 2025,
 `assets.publishing.service.gov.uk/media/68da73e049e17d00a56ffb60/`); Ofgem retail-market-indicators data
 portal; corroborated by Cornwall Insight / Solar Power Portal reporting of the Ofgem-confirmed Octopus #1
 position. All observable-side public sources; none is SIM ground truth.
+
+---
+
+## 9. Increment (2026-07-22, later tick) — the switching-series calibration target is DOUBLE-VALUED, and the callable one is live-DISCONFIRMED
+
+**Code-anchored finding, validated against a live independent source (network probed live this tick:
+ofgem.gov.uk / gov.uk HTTP 200).** §5 names the F5 graduation calibration target precisely: "the field's
+best-alternative rate, run through the existing elasticity curve, must reproduce the observed 2016–2025
+switching series (R13 baseline wall)." This tick found that the repo holds **two independent "observed
+switching series" that materially disagree in exactly the crisis years F5 hinges on** — and that they
+diverge on *which* is sourced and *which* is a clean callable:
+
+| year | `docs/market_research/churn_price_elasticity.md` §1 (cites DESNZ QEP 2.1 / Energy UK / Ofgem SotM) | `company/market/market_report.py::_UK_SWITCHING_RATE_PCT` (per-line unsourced) |
+|---|---|---|
+| 2017 | 14% | 18.5% |
+| 2019 | 21% | 18.9% |
+| **2020** | **23%** (6.39m) | **14.2%** |
+| **2021** | **18%** (5.06m) | **6.1%** |
+| 2022 | 3–4% | 2.8% |
+| 2025 | 15–18% | 13.0% |
+
+**Live-source adjudication (independent, observable-side, NOT SIM ground truth):** Energy UK electricity
+switching (via Energy UK press + GOV.UK *Quarterly Domestic Energy Switching Statistics*) reports **2020 ≈
+5.9m switches** and **2021 ≈ 5.1m switches ("14% lower than 2020")**. On the ~28m domestic-account
+denominator that is **~21% (2020) and ~18% (2021)** — which **corroborates the `churn_price_elasticity.md`
+series closely (2020: 23%/6.39m; 2021: 18%/5.06m ≈ exact)** and **disconfirms the `market_report.py`
+series by ~3× in 2021 (6.1% vs a live-validated ~18%)**. The two series roughly agree only at the 2022
+trough (2.8% vs 3–4%); for 2020–2021 the `market_report.py` numbers are not any recognisable published
+gross-switch figure and carry no per-line citation (the module docstring claims Ofgem/Energy Trends/Citizens
+Advice provenance generically, but the crisis-year values match none of them).
+
+**Why this is a graduation hazard, not a live defect (severity, honestly stated).** `get_switching_rate()`
+/ `market_benchmark()` / `_UK_SWITCHING_RATE_PCT` currently have **zero consumers** across
+`company/ saas/ simulation/ site/ background/` — the series drives no live output today, so nothing is
+presently wrong on the surfaces. **But it is precisely the landmine an F5 build would step on:** it is the
+one *clean, importable* `get_switching_rate(year: int) -> float` accessor, docstringed as authoritative
+Ofgem market intelligence, sitting in the company market module — exactly what a graduation build would
+reach for as §5's calibration target, in preference to a series buried in a markdown research doc. A build
+that calibrated the emergent competitor field so its elasticity output reproduced `get_switching_rate()`
+would be calibrating to figures live Energy UK data disconfirms ~3× in the two most important regime years
+(the 2020 engagement peak and the 2021 pre-collapse), silently baking a wrong best-alternative reactivity
+into the field for the era that most distinguishes Era A from the crisis.
+
+**Disposition (build-sequencing, sharpens §5/§6 — no atom opened, no map level change, honours the wall).**
+Switching rates are public observables (the company MAY read them — the wall is intact; validation was
+against Energy UK / GOV.UK, never the SIM scalar). The graduation build must (a) treat
+`churn_price_elasticity.md` §1 as the **authoritative** switching-series calibration target (it is sourced
+*and* live-corroborated), (b) **reconcile or retire** `market_report.py::_UK_SWITCHING_RATE_PCT` in the
+same change so a single "observed switching series" exists in code — mirroring §6's two-scalars-one-regime
+hazard (`MARKET_SAVINGS_BY_YEAR` must retire in lockstep): here a **second** double-valued anchor for the
+same real-world fact, on the *observable* side rather than the SIM side, both needing single-sourcing
+before the field is calibrated. Verified by reading both repo files this tick and adjudicating against a
+live independent Energy UK / GOV.UK source; the SIM scalar was not used as a check.
+
+**Source (this tick):** Energy UK electricity switching reports (`energy-uk.org.uk/news/switching-remains-down-at-year-end/`
+— 2021 total 5.1m, "14% lower than 2020" ⟹ 2020 ≈ 5.9m); GOV.UK *Quarterly Domestic Energy Switching
+Statistics* (`gov.uk/government/statistical-data-sets/quarterly-domestic-energy-switching-statistics`).
+Observable-side public data; none is SIM ground truth.

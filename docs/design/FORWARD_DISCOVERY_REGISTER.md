@@ -399,6 +399,21 @@ top-three=44%) — a graduation build must calibrate the *domestic* field to the
 competitive tail), not overturn it. **No atom opened, no map level change.** This closes the **last
 non-churn network-gated increment across the whole F1–F5 register.**
 
+**Increment (2026-07-22, later tick) — SECOND double-valued anchor found, live-disconfirmed** (`f5_...md` §9).
+Network probed live (ofgem/gov.uk HTTP 200). §5's graduation calibration target ("reproduce the observed
+2016–2025 switching series") is **double-valued in the repo**: `churn_price_elasticity.md` §1 (DESNZ/Energy
+UK/Ofgem-cited) and `company/market/market_report.py::_UK_SWITCHING_RATE_PCT` (per-line unsourced) disagree
+**~3× in 2021 (18% vs 6.1%)** and materially in 2020 (23% vs 14.2%). A **live independent adjudication** —
+Energy UK / GOV.UK *Quarterly Domestic Energy Switching Statistics*: 2020 ≈ 5.9m, 2021 ≈ 5.1m switches
+(~21% / ~18% on ~28m accounts) — **corroborates the sourced markdown series and disconfirms the
+`market_report.py` callable by ~3×** in the crisis years. Severity: **graduation hazard, not live defect** —
+`get_switching_rate()` has ZERO consumers today, but it is the one clean importable accessor an F5 build
+would reach for as the calibration target. This is the observable-side twin of §6's SIM-side
+two-scalars-one-regime hazard: a second double-valued anchor for the same real-world fact that a graduation
+build must single-source (authoritative = the sourced + live-corroborated markdown series) before
+calibrating the field. Verified by reading both repo files + a live Energy UK/GOV.UK fetch; SIM scalar not
+used as a check. **No atom opened, no map level change.**
+
 ---
 
 **Lane state (2026-07-22).** With this pass, **all five forward-discovery tracks F1–F5 are
