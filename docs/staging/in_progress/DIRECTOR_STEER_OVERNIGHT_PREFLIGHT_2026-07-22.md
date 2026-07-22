@@ -1,3 +1,20 @@
+> **[IN-PROGRESS DISPOSITION — worker tick 2026-07-22 ~20:31 UTC]** ACTIONED. Pre-flight verified and
+> reported to the director TWICE (NTFY 20:19 UTC initial + 20:30 UTC DELTA post-wiring): daemons up on the
+> wired commit `cd8b953ca` (supervisor 114010 / ntfy_responder 114246, restarted 21:25 BST), worker-tick
+> timer armed (60s cadence, last fire 20:30:51 UTC), deadman live and consuming the rest-legitimate line,
+> NTFY env present on tonight's spawned units, signed-message leg GREEN post-wiring. Self-refill dial yielded
+> and hardened (ARCH1 @20:19, H23 @20:30) — already done this evening, not re-churned. Overnight state is
+> **rest-with-proof**: forward-discovery register F1–F5 is DISCOVER-drained/dispositioned; F1 triad build is on
+> its propose-then-proceed window (not yet drawable, hence the dial yield). Novelty freeze respected — zero
+> new classes.
+>
+> **Parked here (NOT staging root) to stop this actioned file re-firing a bounded worker invocation every 60s
+> all night — the treadmill defect CLAUDE.md warns of.** Remaining is a genuine wall, **director-reserved, not
+> actionable-now**: (1) **[ACT] director** ratify the R16 authz-trust console entry — the phone-authority wiring
+> is LIVE in the running gate but `gate_authorizations.jsonl` has no entry recording its ratification (flagged
+> in the 20:30 NTFY; self-authorization forbidden). (2) daylight [ACT] final archival to `done/` once the freeze
+> lifts. Unblocks on the director's console word.
+
 # DIRECTOR STEER — Overnight pre-flight: verify the restarts, freeze the novelty, state the queue (2026-07-22)
 
 **Type:** [STEER] — tonight-scoped. Purpose: maximise the probability of the first clean night under R17. The wiring ratification is in flight; this governs how tonight ends and runs.
