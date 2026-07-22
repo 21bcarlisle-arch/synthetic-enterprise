@@ -16,7 +16,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 
 | rank | track | class | criticality | status |
 |---|---|---|---|---|
-| **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER pass done 2026-07-22 |
+| **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER-complete 2026-07-22 (both open items closed, network tick) |
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER pass done 2026-07-22 |
@@ -63,10 +63,23 @@ complaint spread, behavioural-economics causal effects, Ofgem CSAT Wave 20 payme
 prepay 80% / std-credit 76%) — none SIM ground truth; **magnitudes are mostly cross-domain imports** (only Opower
 + UK switching are energy-native), so a build samples magnitude from a distribution (R10 simplification), not a
 point estimate. Candidate graduation = the **SIM-response / COMPANY-generator+estimator / HARNESS-gap coupled
-triad**; **no atom opened** (director/twin BUILD-open call). Two open items are **network-gated** (`[recall,
-validate]`): complaint-**category** taxonomy (Energy Ombudsman / Ofgem league tables) and a UK-energy tone→outcome
-study — recorded so they are not re-searched fruitlessly. **No further autonomous DISCOVER increment on F1 without
-network** — next tick should draw F3 or F4 (both still skeletal) or await director graduation.
+triad**; **no atom opened** (director/twin BUILD-open call).
+
+**Increment (2026-07-22, network-restored tick) — both open items CLOSED** (`f1_...md` §Increment). Network probed
+live (Ombudsman + Ofgem HTTP 200), so the two previously network-gated items were worked against primary sources,
+none SIM ground truth. (1) **Complaint-category taxonomy** — Energy Ombudsman 2024 (92,938 cases, −24% YoY;
+**billing 58%** dominant, then customer-service, then smart-meters; within-billing: disputed usage 22% / disputed
+balances 8% / back-billing 3,218) gives the *inbound complaint-type mix*; Citizens Advice star-rating gives the
+*company-facing outcome axes + weights* — **customer-service 55% / complaints 35% / customer-commitments 10%**, so
+the triad's outcome score should be CS-heavy, not equal-weighted. (2) **UK-energy-native tone→outcome study** —
+Ofgem complaint-handling research (Ombudsman Services: Energy, Dec 2013; older → a modern-wave refresh is a minor
+`[recall, validate]`) supplies a *direct energy-sector* linkage where before only cross-domain imports existed:
+tone/language/personalisation → **disengagement**; complaint experience → **~1 in 2 switched/planned to switch**;
+and the belief-vs-reality split (**57% domestic dissatisfied**, ~half "supplier thinks resolved / customer disagrees")
+is **the coupled-triad GAP in the wild**. Net: the tone→outcome effect's *direction/sign* is now energy-native
+corroborated (magnitude stays cross-domain → sample-from-distribution R10). **F1 is now DISCOVER-complete with both
+open items closed; no atom opened, no map write** — next tick should draw a still-open increment (F2/F4/F5) or await
+director graduation.
 
 ## F2 — Explaining what we do, simply
 
@@ -248,6 +261,15 @@ disciplined to the single drawn track, the other tracks' network-gated items (**
 tone→outcome; **F2** comprehension standards; **F4** Ireland magnitudes; **F5** per-supplier % shares) were **left
 for their own future draws** rather than opportunistically swept (single-track draw, no scope creep). If network
 persists, those remain the drawable increments; otherwise the drained-pending-network floor above stands.
+
+**Lane state update (2026-07-22, F1 network tick).** A later scheduled tick drew **F1** (highest) with network
+again live, and closed **both** of F1's network-gated items against primary sources (Energy Ombudsman 2024 category
+data + Citizens Advice rating weights = the taxonomy; Ofgem complaint-handling research = the UK-energy-native
+tone→outcome linkage) — see F1 §Increment. Single-track discipline held: the remaining tracks' network-gated items
+(**F2** comprehension standards; **F4** Ireland magnitudes; **F5** per-supplier % shares) were left for their own
+future draws. Residual F1 items are now only minor `[recall, validate]` refinements (modern per-lever energy tone
+magnitude; exact CS/smart-meter category %), not open questions. Drawable non-churn increments now sit in **F2/F4/F5**
+(each network-gated) or await director graduation.
 
 ---
 

@@ -179,3 +179,90 @@ as an R10 simplification.
 
 *Forward-discovery pass, 2026-07-22. Every external figure re-cited from a prior fetched source in
 `docs/market_research/`; no SIM ground truth read; no fabricated numbers; gaps labelled honestly (R9).*
+
+---
+
+## Increment (2026-07-22, network-restored tick) — both open items CLOSED against live independent sources
+
+Network was probed live this tick (Ombudsman + Ofgem both HTTP 200; standing memory `no-network-in-autonomous-runs`
+correctly says network is env-dependent, PROBE before declaring drained). Both `[recall, validate]` items above
+were worked against **primary published sources**, none SIM ground truth.
+
+### Open item 1 — complaint-CATEGORY taxonomy — CLOSED (Energy Ombudsman 2024 + Citizens Advice methodology)
+
+The *inbound* complaint arrival mix that a SIM response model needs is now anchored to two disjoint published
+sources:
+
+**Energy Ombudsman 2024 (the WHAT — inbound complaint type mix):** 92,938 cases accepted in 2024, **down 24%** on
+2023's 122,829. Category split:
+
+| Complaint category | Share of 2024 volume | Note |
+|---|---|---|
+| **Billing** | **58%** (largest) | dominant inbound driver, consistent with Q1's renewal/bill-shock triggers |
+| Customer service | (2nd) | tone/handling-sensitive by nature — the F1 lever |
+| Smart meters | (3rd) | rising with rollout |
+
+Within **billing** (the sub-taxonomy a message-generator's complaint-response branch keys to):
+*disputed gas/electricity usage* **22%** of billing disputes · *disputed account balances* **8%** · *back-billing*
+**3,218** disputes. (Source: Energy Ombudsman, "updated complaints data for 2024".)
+
+**Citizens Advice star-rating (the company-facing performance taxonomy + weights)** — the axes a supplier is
+scored on, i.e. the *outcome dimensions* a conversation model should move, and how reality weights them:
+
+| Rating axis | Weight (revised methodology) | Maps to F1 lever |
+|---|---|---|
+| **Customer service** (contact ease, call-wait, accurate/regular bills, working smart meters, timely service) | **55%** | channel + timing + tone |
+| **Complaints** (handling, sourced from CA consumer service, Extra Help Unit, Energy Ombudsman) | **35%** | tone + handling |
+| **Customer commitments** (Guaranteed Standards / voluntary customer guarantees) | **10%** | policy, not conversation |
+
+Scored 0–5 per axis (0 = data not supplied), aggregated to an overall star rating; suppliers legally compelled to
+supply the data under CA's statutory information powers. **Design consequence for F1:** the harness "did the
+message improve the outcome" score (Q3/triad) should be weighted **customer-service-heavy (55%) over complaints
+(35%)** to match how reality scores suppliers — not equal-weighted.
+
+### Open item 2 — UK-energy-native tone→outcome study — CLOSED (Ofgem complaint-handling research)
+
+The prior pass's honest caveat was that magnitudes were *mostly cross-domain imports* (only Opower + UK switching
+energy-native). Ofgem's complaint-handling consumer research (Ombudsman Services: Energy research, **Dec 2013** —
+older, so a `[recall, validate]` refresh against a newer Ofgem CSAT wave is desirable, but it IS UK-energy-native
+and regulator-published) supplies a **direct energy-sector tone→behaviour linkage**, not a cross-domain import:
+
+- **Tone → disengagement (the message-quality edge, energy-native):** consumers reported concerns about the
+  **tone, layout, language and lack of personalisation** of complaint communications, and **disengage** from the
+  process — "worn out … other priorities take over … no further action." This is a UK-energy observation of exactly
+  the F1 mechanism (message quality → behaviour), where before we only had cross-sector debt-letter analogues.
+- **Handling → switching (the outcome that matters to the P&L):** **nearly one in two** complainants had already
+  switched or planned to switch **as a result of their complaints experience** — a tone/handling → churn edge,
+  energy-native and independent of Opower.
+- **Belief-vs-reality gap, made concrete (validates the Q3 wall):** **57% of domestic** (52% small-business)
+  complainants were dissatisfied with handling, and in **nearly half** of cases the *supplier* considered the case
+  resolved while the *customer did not*. This supplier-thinks-resolved / customer-disagrees split **is the
+  coupled-triad GAP in the wild** — the company's belief about the outcome diverging from the true customer state,
+  exactly what the HARNESS must score and what an intent-leak would wrongly collapse.
+
+**Net effect on the Q2 confidence caveat:** the *direction and sign* of the tone→outcome effect is now
+**UK-energy-native corroborated** (Ofgem), not merely cross-domain-imported; the numeric *magnitude* of the uplift
+per nudge lever remains cross-domain (the Ofgem work is qualitative + switching-incidence, not a per-lever effect
+size), so the BUILD guidance is unchanged: **model the effect's presence/sign with energy-native confidence,
+sample the magnitude from a distribution (R10 simplification).** One residual `[recall, validate]`: a *modern*
+(post-2020) UK-energy per-lever tone effect size, and the exact Energy-Ombudsman customer-service vs smart-meter
+percentage splits (the 2024 page gave billing precisely but only ranked the other two).
+
+**Independence check (R15 spirit):** the three sources triangulated here — Energy Ombudsman category data, Citizens
+Advice rating methodology, Ofgem complaint-handling research — are mutually disjoint and none is SIM output; they
+agree on direction (how-you-contact moves complaint/switching/satisfaction outcomes) while measuring different
+facets (inbound type mix / scored outcome axes / tone→disengagement→switching).
+
+### Lane note
+F1 is now **DISCOVER-complete with both prior open items closed** — the taxonomy and the energy-native tone→outcome
+linkage that the register's Key DISCOVER questions asked for are answered against primary sources. Candidate
+graduation is unchanged (the SIM-response / COMPANY-generator+estimator / HARNESS-gap coupled triad); **no atom
+opened, no map write** (BUILD-open is a director/twin call). Only minor `[recall, validate]` refinements remain
+(modern per-lever energy tone magnitude; exact CS/smart-meter category percentages) — direction-settled, not open.
+Next tick should draw a still-open increment elsewhere (F2 comprehension standards, F4 Ireland magnitudes, F5
+per-supplier shares) or await director graduation.
+
+*Increment sources (live-fetched this tick, all independent of SIM ground truth): Energy Ombudsman —
+"updated complaints data for 2024"; Citizens Advice — star-rating revised methodology / "how the scores are worked
+out"; Ofgem — "Complaints to Ombudsman Services: Energy" research report (Dec 2013) and related consumer-outcomes
+research. No SIM ground truth read; no fabricated numbers; older-source caveat labelled (R9).*
