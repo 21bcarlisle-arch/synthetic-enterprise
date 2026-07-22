@@ -204,6 +204,65 @@ the name.)
   so a future tick does not re-run the same sweep. F2 is **DISCOVER-complete** pending live fetch or
   graduation — no further autonomous DISCOVER increment is available on this track without network.
 
+### Increment (2026-07-22, network tick) — the six comprehension-testing standards CLOSED against primary sources
+
+Network was live this scheduled tick (`ico.org.uk`, `ofgem.gov.uk`, `gov.uk`, `handbook.fca.org.uk`,
+`assets.publishing.service.gov.uk` all reachable), so the fetch-gated `[recall, validate]` items above —
+the exact residual §5 named as *only* closable by a live fetch — were worked against **primary /
+regulator sources**. Single-track discipline held (F2 only; the other tracks' network-gated items left
+for their own draws). Result: **5 of the 6 standards now `[VALIDATED, live fetch]`; the 6th (Crystal
+Mark) is a private certification, not a regulatory floor** — downgraded to a non-load-bearing note, not
+a residual risk. Each validation *strengthened* the failable Tier-1 / outcome-tested Tier-2 bar of §3;
+none moved it. Findings:
+
+- **UK GDPR Article 12(1)** `[VALIDATED — ICO "Right to be informed"]`. Confirmed verbatim: information
+  must be *"concise, transparent, intelligible, easily accessible… using clear and plain language."* New,
+  bar-relevant: Art. 12 requires clear plain language **"in particular for any information addressed
+  specifically to a child"** — i.e. the regulation itself endorses a *lowest-reading-age* target, which
+  is exactly the Tier-1 readability floor F2 proposes. Corroborates the DATA half of §2a.
+- **Ofgem SLC 0 / Standards of Conduct** `[VALIDATED — Ofgem OFG1163 "Licence guide: Standards of Conduct",
+  5 April 2024]`. Confirmed verbatim: information to domestic customers must be *"complete, accurate and
+  not misleading"* and *"communicated in plain and intelligible language, with more important information
+  being given appropriate prominence."* The "appropriate prominence" clause is a **concrete, testable
+  addition** to §2b — the money-explainer must not merely be plain, it must give the load-bearing money
+  facts (credit-balance protection, exit terms) visual precedence; a build-side prominence check is
+  R15-mutable.
+- **FCA Consumer Duty PRIN 2A** `[VALIDATED — FCA Handbook PRIN 2A.5]`. Confirmed and sharpened: PRIN
+  2A.5.3R requires communications be **understood by the intended audience**; PRIN 2A.5.10R requires
+  firms **test communication effectiveness where appropriate** (esp. complex products, high-value
+  transactions, vulnerable groups) and **adapt** where a *"notably lower response rate"* signals the
+  message was not understood. The honest caveat of §2c holds and is now source-anchored: energy retail is
+  **Ofgem-, not FCA-regulated**, so this is a *borrowed precedent* — but its "test → monitor → adapt →
+  outcome-signal" loop is the direct precedent for F2's Tier-2 say-back judge (comprehension as an
+  *evidenced outcome*, not an asserted one).
+- **GDS reading-age-9** `[VALIDATED — GOV.UK content design]`. Confirmed **exactly age 9** (not "~9"):
+  GOV.UK writes for a reading age of 9 because it writes *for the lowest literacy level of its audience*.
+  New corroborating magnitude for the Tier-1 floor's justification: per the National Literacy Trust,
+  **1 in 7 adults in England have literacy at or below Entry Level 3** (the literacy of a 9–11-year-old) —
+  a concrete, citable reason the readability floor must be set low, and that plain text is preferred *by
+  all readers regardless of literacy*. This is the strongest single validation for making Tier-1 a hard
+  gate rather than a nicety.
+- **CMA Energy Market Investigation, Final Report (24 June 2016)** `[VALIDATED — CMA final report,
+  assets.publishing.service.gov.uk]`. Confirmed: the investigation turned on retail customers being
+  **disengaged** and unable to *understand and compare*; barriers identified included lack of confidence
+  in comparison and perceived switching cost; remedies (disengaged-customer database, tariff-restriction
+  removal, PPM safeguard cap) treat **comprehensibility as an outcome to be evidenced**, not assumed —
+  the precedent §2c claimed, now source-confirmed.
+- **Plain English "Crystal Mark"** `[NOT a regulatory standard — downgraded]`. This is a **private
+  certification** issued by the Plain English Campaign, not a regulator floor. It belongs in the bar only
+  as an *optional external attestation*, never as the Tier-1 gate (which must be a mechanical, R15-mutable
+  readability threshold the firm controls). Removed from the "six standards to validate" set as
+  non-load-bearing; not a residual.
+
+**Consequence for the bar (§3) and graduation (§6):** unchanged in *shape*, strengthened in *anchoring* —
+the Tier-1 readability floor is now backed by two independent regulator-adjacent targets (UK GDPR's
+child-clarity clause + GDS reading-age-9 with the 1-in-7 literacy magnitude) and a prominence requirement
+(Ofgem SLC 0); the Tier-2 outcome judge is now backed by the FCA test-monitor-adapt loop and the CMA
+evidenced-outcome precedent. On graduation these five enter `ASSUMPTIONS.md` as `[VALIDATED, live fetch,
+2026-07-22]` rather than `[recall]`. **No atom opened; no BUILD; level unchanged** (BUILD-open is a
+director/twin call). This closes F2's last non-churn DISCOVER increment — F2 now has **no open
+network-gated item**; residual work is the doc-only graduation call only.
+
 ---
 
 ## 6. Candidate graduation shape (PROPOSAL ONLY — not map-registered)

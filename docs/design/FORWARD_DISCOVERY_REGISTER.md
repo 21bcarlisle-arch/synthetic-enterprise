@@ -17,7 +17,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 | rank | track | class | criticality | status |
 |---|---|---|---|---|
 | **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER-complete 2026-07-22 (both open items closed, network tick) |
-| **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
+| **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER-complete 2026-07-22 (6 standards closed, network tick) |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER pass done 2026-07-22 |
 | **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER pass done 2026-07-22 |
@@ -92,10 +92,12 @@ money; where the current site/pitch fails that bar.
 
 **Tag:** committed (legal) × high. **Status:** DISCOVER-complete (2026-07-22) —
 `docs/market_research/f2_explaining_what_we_do_simply.md`. The one open item (validate the six
-comprehension-testing standards) was re-tested by an exhaustive corpus sweep on the second 2026-07-22
-tick and confirmed **not closable without a live fetch** (no independent repo source exists); recorded
-so it is not re-run. **No further autonomous DISCOVER increment on F2 without network** — next tick
-should draw another track (F1/F3/F4) or await director graduation.
+comprehension-testing standards) was **CLOSED on a later 2026-07-22 network tick** (see §Increment in the
+artefact): 5 of 6 standards validated against primary/regulator sources (ICO Art. 12(1); Ofgem OFG1163
+SLC 0; FCA Handbook PRIN 2A.5; GOV.UK GDS reading-age-9; CMA EMI Final Report 2016), the 6th (Crystal
+Mark) downgraded as a private certification, not a regulatory floor. **F2 now has no open network-gated
+item** — residual is the doc-only graduation call only; next tick should draw another still-open track
+(F4/F5) or await director graduation.
 
 **Finding (2026-07-22 tick).** F2 fails on the **reader, not the writing**: the live public surface
 (`site/index.html`) is a correct *expert* pitch — "Where to go" doors keyed *"Energy CEO / COO"*,
@@ -270,6 +272,18 @@ tone→outcome linkage) — see F1 §Increment. Single-track discipline held: th
 future draws. Residual F1 items are now only minor `[recall, validate]` refinements (modern per-lever energy tone
 magnitude; exact CS/smart-meter category %), not open questions. Drawable non-churn increments now sit in **F2/F4/F5**
 (each network-gated) or await director graduation.
+
+**Lane state update (2026-07-22, F2 network tick).** A later scheduled tick drew **F2** (rank 2, the highest-ranked
+still-open track) with network again live (`ico.org.uk`, `ofgem.gov.uk`, `gov.uk`, `handbook.fca.org.uk`,
+`assets.publishing.service.gov.uk` all reachable) and **closed F2's one open item** — the six comprehension-testing
+standards — against primary/regulator sources (see F2 §Increment): UK GDPR Art. 12(1) (ICO), Ofgem SLC 0 (OFG1163),
+FCA PRIN 2A.5 (FCA Handbook), GDS reading-age-9 (GOV.UK), and the CMA EMI Final Report 2016 all validated; the sixth,
+the Plain English Crystal Mark, downgraded as a private certification (not a regulatory floor), so removed from the
+set rather than left residual. Single-track discipline held: the remaining tracks' network-gated items (**F4** Ireland
+magnitudes; **F5** per-supplier % shares) were left for their own future draws. **Drawable non-churn increments now
+sit in F4/F5** (each network-gated) or await director graduation; F1/F2/F3 are DISCOVER-complete with no open
+network-gated item. If network persists, F4/F5 are the drawable increments; otherwise the drained-pending-network
+floor above stands for those two.
 
 ---
 
