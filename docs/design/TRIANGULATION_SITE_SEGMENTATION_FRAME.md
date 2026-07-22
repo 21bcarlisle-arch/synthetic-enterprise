@@ -128,8 +128,18 @@ proceed, not applied here):** add a **decision-linkage gate** to the frontier �
 value only if at least one company decision (pricing, targeting, contact cadence, credit) is
 *conditioned* on membership; a cohort that no decision reads is decorative and scores zero regardless of
 its η². This sharpens VoI from "outcome variance explained" to "outcome variance explained *that a
-decision can act on*." **Do NOT apply until the board's framing confirms it sharpens ours** (the steer's
-own condition) and the director ratifies the metric change (values-adjacent → propose-then-proceed).
+decision can act on*."
+
+> **✅ RATIFIED — CHOSEN (director console, 2026-07-22).** The decision-linkage gate is ratified as an
+> amendment to the learning-value metric. Director's words: *"It mechanises the board's pairwise test and
+> bridges their uplift objective with our learning-value objective without collapsing either."* The two
+> conditions above are now MET: the board's Spec 006 §3 "useful vs decorative" pairwise test confirmed it
+> sharpens ours, and the director has ratified the values-adjacent metric change. Status: **CHOSEN**, not
+> yet mechanised — the frontier code (`build_learning_frontier.py`) still computes pure η²/VoI. **Follow-on
+> BUILD** (candidate atom `SPEC006_decision_linkage_metric`, §3): a cohort scores learning value only if
+> ≥1 company decision (pricing, targeting, contact cadence, credit) is conditioned on its membership;
+> decorative cohorts score **zero regardless of η²**. That build is now unblocked from its "awaiting
+> ratification" gate and available on a granted turn. Recorded to `decision_log.jsonl` same date.
 
 **"NOT credible" battery seed (Spec 006) — a segmentation is NOT credible if:** (a) any segment label /
 attitude / sensitivity crosses the wall to the company directly (R10 class-fail); (b) the company's
@@ -151,7 +161,7 @@ own risk tag).
 - **`SPEC006_coverage_matrix`** — the board-segments × data-derived-cohorts coverage test (§2.2), both
   directions reported. *DISCOVER now (structure); populate when the board spec lands.*
 - **`SPEC006_decision_linkage_metric`** — the "useful vs decorative" → decision-linkage-gate amendment to
-  the learning-value frontier (§2.4). *FRAME now; metric change is values-adjacent → propose-then-proceed,
+  the learning-value frontier (§2.4). **RATIFIED/CHOSEN by director console 2026-07-22 — now BUILD-ready on a granted turn** (mechanise into `build_learning_frontier.py`). *Was: FRAME now; metric change is values-adjacent → propose-then-proceed,
   director-ratified.*
 
 ---
