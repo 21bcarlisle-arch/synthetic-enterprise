@@ -1433,21 +1433,65 @@ FORWARD_DISCOVERY_REGISTER_PATH = PROJECT_DIR / "docs" / "design" / "FORWARD_DIS
 # A drawable forward-discovery track header, e.g. "## F1 -- Simulating conversations".
 _FWD_TRACK_RE = re.compile(r"^##\s*(F\d+)\s+[—-]\s+(.+?)\s*$", re.MULTILINE)
 
+# The ranking-table row that carries each track's LIVE status in its last cell, e.g.
+# "| **F1** | Simulating conversations | mission-required | **highest** ... | DISCOVER-complete ... |".
+# The status cell is the authoritative per-track completion signal (one source, not scattered body
+# prose). Greedy "(?:[^\n]*\|)" consumes every interior pipe up to the LAST one so the final capture
+# is the status cell whatever the column count.
+_FWD_STATUS_ROW_RE = re.compile(r"^\|\s*\*\*(F\d+)\*\*\s*\|(?:[^\n]*\|)\s*([^|\n]*?)\s*\|\s*$", re.MULTILINE)
+
+# A whole track section, "## Fn ...\n<body up to the next ## Fn or EOF>" -- used only to surface each
+# complete track's own 'Candidate graduation' line in the batched director [ACT] (never to self-open).
+_FWD_SECTION_RE = re.compile(r"^##\s*(F\d+)\b[^\n]*\n(.*?)(?=^##\s*F\d+\b|\Z)", re.MULTILINE | re.DOTALL)
+
 
 def _forward_discovery_tracks(register_path: Path | None = None) -> list[tuple[str, str]]:
-    """Parse the forward-discovery register into its drawable DISCOVER tracks
-    (F1..Fn), highest-rank first (file order). Returns [] if the register is
-    absent/unreadable/empty. An ABSENT register IS an empty authorized set at
-    this level -- that is exactly the PROOF that rest requires -- so this
-    reports 'empty' honestly here; the load-bearing anti-rest guarantee lives
-    in the LADDER ORDER (this lane sits ABOVE rest in both `_self_refill_draw`
-    and `_is_drained_and_gated`), never in pretending a missing file has work."""
+    """Parse the forward-discovery register into ALL its DISCOVER tracks (F1..Fn),
+    highest-rank first (file order). Returns [] if the register is
+    absent/unreadable/empty. This is the STRUCTURAL parse (every track that exists);
+    DRAWABILITY (which of these still has open DISCOVER work) is a separate filter
+    applied in `_forward_discovery_draw` via `_forward_discovery_complete_ids`, so a
+    fully-graduated register still parses non-empty here while offering nothing to draw.
+    An ABSENT register IS an empty authorized set at this level -- exactly the PROOF that
+    rest requires -- so this reports 'empty' honestly; the load-bearing anti-rest guarantee
+    lives in the LADDER ORDER (this lane sits ABOVE rest in both `_self_refill_draw` and
+    `_is_drained_and_gated`), never in pretending a missing file has work."""
     path = register_path or FORWARD_DISCOVERY_REGISTER_PATH
     try:
         text = Path(path).read_text(encoding="utf-8")
     except OSError:
         return []
     return [(m.group(1), m.group(2).strip()) for m in _FWD_TRACK_RE.finditer(text)]
+
+
+def _forward_discovery_complete_ids(register_path: Path | None = None) -> set[str]:
+    """Track ids whose ranking-table status cell reads 'DISCOVER-complete'. A DISCOVER-
+    complete track has LEFT the authorized drawable set (director console 2026-07-22, R17
+    fail-open fix): the DISCOVER work is done, so re-drawing it is the 'treadmill in new
+    clothes' churn -- once complete, its only remaining move is a director GRADUATION call,
+    surfaced once as an [ACT] (see `forward_discovery_graduation_proposal`), never re-drawn.
+
+    R15 / FAIL-SAFE TOWARD WORK: on any read error, or a register with no status table, this
+    returns the EMPTY set -- so nothing is excluded and every parsed track stays drawable. The
+    harmful failure mode is resting when real DISCOVER work remains; erring toward 'drawable'
+    keeps the anti-rest pressure. Keyed on the ACTUAL parsed status cell, never a constant, so a
+    mutation that hard-codes 'all complete' is caught by the must-not-rest-with-open-track test."""
+    path = register_path or FORWARD_DISCOVERY_REGISTER_PATH
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return set()
+    return {
+        m.group(1) for m in _FWD_STATUS_ROW_RE.finditer(text)
+        if "discover-complete" in m.group(2).lower()
+    }
+
+
+def _forward_discovery_drawable_tracks(register_path: Path | None = None) -> list[tuple[str, str]]:
+    """The tracks that are STILL DRAWABLE -- parsed tracks minus DISCOVER-complete ones. This is
+    the authorized forward-discovery set the draw and the rest predicate both consult."""
+    complete = _forward_discovery_complete_ids(register_path)
+    return [t for t in _forward_discovery_tracks(register_path) if t[0] not in complete]
 
 
 def _forward_discovery_draw(rng: Any = None, register_path: Path | None = None) -> str | None:
@@ -1466,8 +1510,12 @@ def _forward_discovery_draw(rng: Any = None, register_path: Path | None = None) 
     never a constant -- emptying the register is caught by the genuinely-empty
     test; dropping this rung from the ladder is caught by the must-not-rest
     test (both in test_forward_discovery_draw.py)."""
-    tracks = _forward_discovery_tracks(register_path)
+    tracks = _forward_discovery_drawable_tracks(register_path)
     if not tracks:
+        # Every track is DISCOVER-complete (or the register is empty/absent): the authorized
+        # forward-discovery set is empty, so this lane offers nothing to draw and the tick may
+        # rest with that PROOF (director console 2026-07-22, R17 fail-open fix). The graduation
+        # of the complete tracks is a director [ACT], surfaced separately, not a draw.
         return None
     picker = rng or random
     weights = [len(tracks) - i for i in range(len(tracks))]
@@ -1493,15 +1541,26 @@ def forward_discovery_law_status(register_path: Path | None = None) -> dict:
     `wired` proves the always-drawable rung is actually in the ladder (not just
     designed) -- the exact 'consumed vs absorbed' check that this whole incident
     is about: a True here means the mechanism is LIVE in the running draw, not
-    merely that a design doc exists."""
-    tracks = _forward_discovery_tracks(register_path)
+    merely that a design doc exists.
+
+    Reports DRAWABLE vs COMPLETE separately (R17 fail-open fix, director console
+    2026-07-22): a DISCOVER-complete track has left the authorized set, so listing it as
+    'backlog' would be the exact dishonesty the fix removes -- `drawable_tracks` is what
+    actually keeps the tick working; `complete_tracks` are done and await a director
+    graduation [ACT], not a re-draw."""
+    all_tracks = _forward_discovery_tracks(register_path)
+    complete = _forward_discovery_complete_ids(register_path)
+    drawable = [t[0] for t in all_tracks if t[0] not in complete]
     wired = "_forward_discovery_draw" in globals() and callable(globals()["_forward_discovery_draw"])
     return {
         "rule": "THE TICK NEVER RESTS WHILE AUTHORIZED WORK EXISTS AT ANY PRIORITY",
         "always_drawable_lane_wired": wired,
-        "forward_discovery_tracks": [t[0] for t in tracks],
-        "register_nonempty": bool(tracks),
-        "rest_currently_legitimate_only_if": "core + idle-advance + forward-discovery ALL empty",
+        "forward_discovery_tracks": [t[0] for t in all_tracks],
+        "drawable_tracks": drawable,
+        "complete_tracks": sorted(complete),
+        "register_nonempty": bool(all_tracks),
+        "drawable_nonempty": bool(drawable),
+        "rest_currently_legitimate_only_if": "core + idle-advance + forward-discovery-DRAWABLE ALL empty",
     }
 
 
@@ -1509,13 +1568,87 @@ def forward_discovery_law_status_line(register_path: Path | None = None) -> str:
     """One-line render of the above for the per-cycle supervisor log + the SM1
     morning note when it lands."""
     s = forward_discovery_law_status(register_path)
-    tracks = ",".join(s["forward_discovery_tracks"]) or "NONE"
+    drawable = ",".join(s["drawable_tracks"]) or "NONE"
+    complete = ",".join(s["complete_tracks"]) or "NONE"
+    rest_ok = "REST-LEGITIMATE" if not s["drawable_nonempty"] else "must-draw"
     return (
         "TICK-NEVER-RESTS law: always-drawable lane "
         f"{'WIRED' if s['always_drawable_lane_wired'] else 'NOT-WIRED(!)'} | "
-        f"forward-discovery backlog=[{tracks}] | "
-        f"rest legitimate only if core+idle+forward ALL empty"
+        f"forward-discovery drawable=[{drawable}] complete=[{complete}] | "
+        f"{rest_ok} (rest legitimate only when core+idle+forward-DRAWABLE all empty)"
     )
+
+
+def _first_graduation_line(body: str) -> str:
+    """The track's own 'Candidate graduation' note (what would move to FRAME), extracted
+    verbatim from its register section so the director [ACT] is GROUNDED, not invented. Falls
+    back to a pointer if the track phrases it differently. Markdown emphasis stripped; truncated."""
+    for pat in (r"[Cc]andidate graduation[^\n]*", r"graduation\s*=[^\n]*"):
+        m = re.search(pat, body)
+        if m:
+            s = re.sub(r"[*`]", "", m.group(0)).strip()
+            return (s[:220] + "…") if len(s) > 221 else s
+    return "see this track's 'Candidate graduation' note in the register"
+
+
+def forward_discovery_graduation_proposal(register_path: Path | None = None):
+    """Build the batched director [ACT] for every DISCOVER-complete track (director console
+    2026-07-22, R17 fail-open fix, decision 3). Returns (message, sorted_complete_ids) or None
+    if no track is complete.
+
+    GRADUATION IS DIRECTOR-RESERVED (the register's own discipline: a track graduates 'by explicit
+    director steer'). This function only SURFACES, per complete track, its own candidate-graduation
+    line (what would move to FRAME) and names what it needs from the director (his steer). It NEVER
+    self-opens a track into FRAME/BUILD -- no atom is opened, no map level moves here."""
+    path = register_path or FORWARD_DISCOVERY_REGISTER_PATH
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return None
+    complete = _forward_discovery_complete_ids(path)
+    if not complete:
+        return None
+    titles = dict(_forward_discovery_tracks(path))
+    sections = {m.group(1): m.group(2) for m in _FWD_SECTION_RE.finditer(text)}
+    lines = [
+        f"{tid} ({re.sub(r'[*_]', '', titles.get(tid, '')).strip()}): "
+        f"{_first_graduation_line(sections.get(tid, ''))}"
+        for tid in sorted(complete)
+    ]
+    msg = (
+        f"[ACT] Forward-discovery register: {len(complete)} track(s) now DISCOVER-complete and "
+        "awaiting YOUR graduation call. The always-drawable lane has left them (rest is now "
+        "legitimate, proof: authorized set empty at every level) -- I will NOT self-open any into "
+        "FRAME/BUILD. Per track, candidate graduation (what would move to FRAME) -> what it needs "
+        "from you = your explicit steer to graduate / hold / drop. Full detail: "
+        "docs/design/FORWARD_DISCOVERY_REGISTER.md.\n" + "\n".join(f"  - {ln}" for ln in lines)
+    )
+    return msg, sorted(complete)
+
+
+def maybe_emit_graduation_proposal(register_path: Path | None = None, notify_fn=None) -> str | None:
+    """Emit the batched graduation [ACT] ONCE per complete-set, from run_cycle's quiet-rest
+    branch. Idempotency is the notify contract's own transition store (G-N1/R5), keyed on the
+    sorted complete-id set: an unchanged all-complete state never re-pages (kills the every-4-min
+    churn), while a NEW track completing later re-fires with the updated batch. Returns the sent
+    message, or None if nothing is complete / the send was suppressed as unchanged.
+
+    R15: keyed on the ACTUAL complete-id set (via `forward_discovery_graduation_proposal`), never a
+    constant -- so the once-only guard tracks real state, and a set change is a real transition."""
+    proposal = forward_discovery_graduation_proposal(register_path)
+    if proposal is None:
+        return None
+    msg, complete_ids = proposal
+    _notify = notify_fn or notify
+    result = _notify(
+        msg, kind="digest",
+        transition_key="forward_discovery_graduation",
+        state=",".join(complete_ids),
+        headers={"Title": "[ACT] Forward-discovery graduation"},
+    )
+    if isinstance(result, str) and result.startswith("suppressed:"):
+        return None
+    return msg
 
 
 def _self_refill_draw() -> str | None:
@@ -2221,6 +2354,16 @@ def run_cycle() -> None:
             # exhausted (no map-exhausted escalation). A genuinely new signal wakes it next turn.
             log("Drained-and-gated quiet wait -- resting (blocked on a director act); not "
                 "exhausted, not an idle defect. A genuinely new signal wakes it immediately.")
+            # R17 fail-open fix (director console 2026-07-22): if we are resting because the
+            # forward-discovery register is fully DISCOVER-complete, surface each complete
+            # track's graduation proposal to the director ONCE (batched [ACT], transition-keyed
+            # so it never re-pages unchanged) -- then rest. Do NOT self-open any track. Non-fatal.
+            try:
+                emitted = maybe_emit_graduation_proposal()
+                if emitted:
+                    log("Forward-discovery graduation [ACT] emitted (batched, once per complete-set).")
+            except Exception as e:  # noqa: BLE001
+                log(f"Graduation proposal emit failed (non-fatal, rest continues): {e}")
         return
 
     _check_stuck_escalation(reason)

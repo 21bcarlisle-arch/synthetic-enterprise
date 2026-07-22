@@ -34,6 +34,36 @@ body
 
 _EMPTY_REGISTER = "# Forward-Discovery Register\n\n(no drawable tracks)\n"
 
+# A register whose ranking table marks EVERY track DISCOVER-complete: structurally non-empty
+# (the ## Fn headers exist) but the authorized drawable set is empty -- the exact state that
+# produced the 2026-07-22 "fail-open churn" (the tick re-drew finished tracks every ~4 min).
+_REGISTER_ALL_COMPLETE = """# Forward-Discovery Register
+
+| rank | track | class | criticality | status |
+|---|---|---|---|---|
+| **F1** | Simulating conversations | mission-required | **highest** — x | DISCOVER-complete 2026-07-22 (closed) |
+| **F2** | Explaining what we do, simply | committed | high — y | DISCOVER-complete 2026-07-22 (closed) |
+
+## F1 — Simulating conversations *(highest)*
+body. Candidate graduation = the coupled-triad build.
+## F2 — Explaining what we do, simply
+body. graduation = harness bar before site page.
+"""
+
+# One track complete, one still OPEN: the drawable set is {F2}, so the tick must NOT rest.
+_REGISTER_PARTIAL = """# Forward-Discovery Register
+
+| rank | track | class | criticality | status |
+|---|---|---|---|---|
+| **F1** | Simulating conversations | mission-required | **highest** — x | DISCOVER-complete 2026-07-22 (closed) |
+| **F2** | Explaining what we do, simply | committed | high — y | OPEN — one item still open |
+
+## F1 — Simulating conversations *(highest)*
+body. Candidate graduation = the coupled-triad build.
+## F2 — Explaining what we do, simply
+body still open.
+"""
+
 
 def _gate_core_and_idle_lanes(monkeypatch):
     """Put the core (BUILD/SITE) and idle-advance (DISCOVER/FRAME + backlog)
@@ -137,3 +167,115 @@ def test_rung_is_load_bearing_mutation(monkeypatch, tmp_path):
         "must fall back to a rest -- if it still returns False, some OTHER lane is masking "
         "the rung and the both-ways proof is not isolating the forward-discovery lane."
     )
+
+
+# --------------------------------------------------------------------------- #
+# R17 FAIL-OPEN FIX (director console 2026-07-22): a DISCOVER-complete track LEAVES
+# the authorized drawable set; rest with that PROOF is legitimate. BOTH ways below.
+# --------------------------------------------------------------------------- #
+
+def test_complete_tracks_leave_the_drawable_set(monkeypatch, tmp_path):
+    """Structural parse still sees both tracks; the DRAWABLE set is empty; the draw
+    returns None -- the completed tracks are no longer re-drawn (the churn is gone)."""
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_ALL_COMPLETE)
+    assert [t[0] for t in sup._forward_discovery_tracks()] == ["F1", "F2"]  # parse unchanged
+    assert sup._forward_discovery_complete_ids() == {"F1", "F2"}
+    assert sup._forward_discovery_drawable_tracks() == []
+    assert sup._forward_discovery_draw() is None
+
+
+def test_all_complete_register_permits_rest(monkeypatch, tmp_path):
+    """R17 direction A: core+idle gated AND every forward track DISCOVER-complete ->
+    the authorized set is empty at every level -> rest is LEGITIMATE. This is the exact
+    'fail-open churn' state (finished register, tick grinding) now resolved to rest."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_ALL_COMPLETE)
+    assert sup._is_drained_and_gated() is True, (
+        "rest refused with EVERY forward track DISCOVER-complete -- the fail-open churn "
+        "(re-drawing finished tracks every cycle) would return. R17 permits rest here."
+    )
+
+
+def test_partial_complete_still_forbids_rest(monkeypatch, tmp_path):
+    """R17 direction B: one track complete, one still OPEN -> the open track is drawable
+    -> the tick MUST draw it, NOT rest. Incomplete register still forbids rest."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_PARTIAL)
+    assert [t[0] for t in sup._forward_discovery_drawable_tracks()] == ["F2"]
+    refill = sup._self_refill_draw()
+    assert refill is not None and "FORWARD-DISCOVERY self-refill" in refill and "F2" in refill
+    assert sup._is_drained_and_gated() is False, (
+        "TICK RESTED while an OPEN forward track (F2) remained drawable -- R17 breach."
+    )
+
+
+def test_completion_filter_is_load_bearing_mutation(monkeypatch, tmp_path):
+    """R15 MUTATION for the NEW rung: neuter the completion filter (pretend nothing is ever
+    complete) with an ALL-COMPLETE register -> the finished tracks re-enter the drawable set
+    and the tick REFUSES to rest = the fail-open churn returns. Proves the filter, not luck,
+    is what makes rest legitimate."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_ALL_COMPLETE)
+    # Control: with the filter LIVE, an all-complete register rests.
+    assert sup._is_drained_and_gated() is True
+
+    # MUTATE: completion detection dead -> every track looks drawable again.
+    monkeypatch.setattr(sup, "_forward_discovery_complete_ids", lambda *a, **k: set())
+    assert sup._is_drained_and_gated() is False, (
+        "MUTATION not caught: with the completion filter dead, a fully-finished register "
+        "must look like live work and REFUSE rest -- if it still rests, the filter is not "
+        "the thing gating rest and the churn could silently return."
+    )
+
+
+def test_malformed_status_table_fails_safe_toward_work(monkeypatch, tmp_path):
+    """FAIL-SAFE (R15): a register with tracks but NO parseable status table marks NOTHING
+    complete -> all tracks stay drawable -> the tick works, never wrongly rests."""
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_WITH_TRACKS)  # no status table at all
+    assert sup._forward_discovery_complete_ids() == set()
+    assert [t[0] for t in sup._forward_discovery_drawable_tracks()] == ["F1", "F2", "F3"]
+
+
+# --------------------------------------------------------------------------- #
+# Graduation proposal: exactly ONE batched [ACT] per complete-set (decision 3)
+# --------------------------------------------------------------------------- #
+
+def test_graduation_proposal_batches_complete_tracks(monkeypatch, tmp_path):
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_ALL_COMPLETE)
+    result = sup.forward_discovery_graduation_proposal()
+    assert result is not None
+    msg, ids = result
+    assert ids == ["F1", "F2"]
+    assert "[ACT]" in msg and "will NOT self-open" in msg
+    assert "F1" in msg and "F2" in msg
+    assert "coupled-triad build" in msg  # grounded in the track's own candidate-graduation line
+
+
+def test_no_graduation_proposal_when_nothing_complete(monkeypatch, tmp_path):
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_WITH_TRACKS)  # tracks, none complete
+    assert sup.forward_discovery_graduation_proposal() is None
+
+
+def test_graduation_emit_fires_once_per_complete_set(monkeypatch, tmp_path):
+    """The batched [ACT] fires ONCE for a given complete-set and is suppressed as unchanged
+    thereafter (transition-only via the notify contract). A CHANGED set re-fires."""
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_ALL_COMPLETE)
+    calls = []
+
+    def fake_notify(msg, **kw):
+        calls.append((msg, kw))
+        # Mimic the contract's transition store: suppress an unchanged (key, state).
+        key, state = kw.get("transition_key"), kw.get("state")
+        seen = fake_notify.__dict__.setdefault("_seen", {})
+        if seen.get(key) == state:
+            return f"suppressed:unchanged:{key}"
+        seen[key] = state
+        return "id-1"
+
+    first = sup.maybe_emit_graduation_proposal(notify_fn=fake_notify)
+    second = sup.maybe_emit_graduation_proposal(notify_fn=fake_notify)
+    assert first is not None          # first emit sends
+    assert second is None             # unchanged complete-set suppressed (no re-page churn)
+    assert len(calls) == 2 and calls[0][1]["kind"] == "digest"
+    assert calls[0][1]["transition_key"] == "forward_discovery_graduation"
+    assert calls[0][1]["state"] == "F1,F2"
