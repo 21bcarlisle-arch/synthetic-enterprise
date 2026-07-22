@@ -8,6 +8,20 @@ HMAC-verified `RULING:<action>:<atom>` inbounds; deadman folds the proven-rest s
 on legitimate rest). R15 both-ways re-proven THROUGH the gate (33 gate tests incl. reserved-action /
 repurpose / worker-forgery / no-key / stale-replay fail-closed). Daemons restarted (R2). Live end-to-end
 proof with the director pending (his phone-side HMAC setup).
+**⚠️ POST-WIRING SECURITY FINDING (2026-07-22, flagged to the director, OPEN):** the live mutation
+proof passed (genuine ruling authorizes; reserved-action / repurpose / tamper / wrong-key / stale all
+fail-closed). BUT the TAUTOLOGY guard's premise — "the worker can't read the HMAC key" — is **not met
+live**: `worker-tick.service` loads `EnvironmentFile=.env.ntfy` (SE_WAKE_HMAC_KEY) and
+`worker_tick.spawn_invocation` does `os.environ.copy()`, so the spawned `claude -p` worker **inherits
+the key** and (HMAC being symmetric) could sign a forged `director_ntfy` ruling that passes the wall
+cleanly. Not worse than the pre-existing console self-declaration residual (the wall is detection-only),
+but a forged director_ntfy carries a valid signature → harder to detect. **Fix (director's call — it's
+a key/env-boundary change):** strip `SE_WAKE_HMAC_KEY` from the worker spawn env (pop it in
+`spawn_invocation`, as it already pops `ANTHROPIC_BASE_URL`; the worker needs `SE_NTFY_TOPIC` to SEND,
+not the wake key to SIGN). Only `director_input_log` provenance-verification reads the key in the worker
+context — a downgrade to unverified-provenance logging, not authorization. Until closed, the strong
+channel's worker-unforgeability is aspirational, not proven.
+
 **(historical) Status when written:** PROPOSED — designed + R15-proven, NOT applied.
 **Provenance:** `docs/staging/DIRECTOR_STEER_PHONE_AUTHORITY_CHANNEL_2026-07-22.md`, Part 2.
 **Steer tag:** *Part 1 proceed; Part 2 propose-then-ratify (console, final time).*

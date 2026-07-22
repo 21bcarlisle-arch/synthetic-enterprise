@@ -34,9 +34,18 @@ Proven in tests/background/test_director_authority_channels.py:
   * PASS         a genuine HMAC-signed director ruling / marked advisor doc PASSES and carries provenance.
   * FAIL-SILENT guard — an unavailable HMAC key makes a director_ntfy entry INVALID (verify returns None):
     an unavailable check is a FAILED check, never a pass-through (R15 doctrine).
-  * TAUTOLOGY guard — the HMAC key lives outside the working tree, so the autonomous worker (the only
-    plausible forger) structurally cannot mint a valid director_ntfy entry. This ALSO discharges the
-    "prevention layer" that gate_authorization.py's docstring deferred (a worker-forged channel entry).
+  * TAUTOLOGY guard — the HMAC key lives outside the working TREE (not in git). The design INTENT is
+    that the autonomous worker cannot mint a valid director_ntfy entry because it cannot read the key.
+    ⚠️ LIVE GAP (found 2026-07-22, flagged to the director, NOT yet closed): out-of-TREE is not the
+    same as out-of-worker-ENV. `worker-tick.service` loads EnvironmentFile=.env.ntfy (which carries
+    SE_WAKE_HMAC_KEY) and `worker_tick.spawn_invocation` does `os.environ.copy()`, so the spawned
+    `claude -p` worker currently INHERITS the key — and HMAC is symmetric, so whoever can verify can
+    sign. Until the key is stripped from the worker's spawn env (the fix: pop SE_WAKE_HMAC_KEY there,
+    as spawn_invocation already pops ANTHROPIC_BASE_URL — the worker needs SE_NTFY_TOPIC to SEND, not
+    the wake key to SIGN), this channel is NOT worker-unforgeable and the gate-wall's deferred
+    "prevention layer" is NOT discharged. Severity: no worse than the pre-existing console self-
+    declaration residual (the wall is detection-only by design), but a forged director_ntfy carries a
+    VALID signature so it is HARDER to detect — director's call whether to strip the key now.
   * REPLAY/REPURPOSE guard — the signed text must bind the (action, atom) it authorizes, so a valid
     signature for one ruling cannot be lifted onto a different ledger record.
 """
