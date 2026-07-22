@@ -1,3 +1,9 @@
+> **FOLDED — in_progress (2026-07-22, autonomous worker).** These sourced anchors are folded into
+> `docs/design/WHOLESALE_VALUE_CHAIN_FRAME.md` §3.1/§3.2/§3.4/§8.5, tagged `[advisor-sourced — verify vs
+> primary at BUILD]` per R9 (candidates, not inherited facts). Honest gaps in §D remain BUILD
+> discovery-agent work; the incoming board blind-spec is the third leg to reconcile. Parked alongside the
+> steer it companions.
+
 # ADVISOR DISCOVERY — Wholesale product & shaped-cost anchors (companion to WHOLESALE_VALUE_CHAIN steer, 2026-07-22)
 
 **Type:** [EVIDENCE] — advisor web research, sourced. **Candidates to verify against primary documents, not facts to inherit** (R9). Fold into the WHOLESALE_VALUE_CHAIN DISCOVER; where your reading of the primary sources differs, yours wins with citation.

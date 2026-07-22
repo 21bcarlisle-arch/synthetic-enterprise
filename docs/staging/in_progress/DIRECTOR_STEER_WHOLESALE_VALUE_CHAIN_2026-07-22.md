@@ -1,3 +1,16 @@
+> **PARKED — in_progress (2026-07-22, autonomous worker).** DISCOVER→FRAME done →
+> `docs/design/WHOLESALE_VALUE_CHAIN_FRAME.md` (shaped-cost benchmark, unified product ladder, cover fan
+> + value-add ledger, tariffs-from-stack; reconciled with THE_VALUE_CYCLE_FRAMING / W1_6 / EPOCH2_BC —
+> extend/unify, don't fork; folds the companion `ADVISOR_DISCOVERY_WHOLESALE_ANCHORS` sourced anchors per
+> R9; candidate atoms WVC_1–WVC_5; R10/R15-failable invariants WVC-1/2/3).
+> **OPEN SUB-ITEM (the only genuinely-open, contract-touching decision):** `WVC_5_tariff_from_stack` —
+> whether the constructed shaped cost stack *replaces* or *sits behind* the published Ofgem cap (FRAME
+> §8.1), plus confirmation no billed-history mutation path exists. **Unblocks when:** the director's 2h
+> veto window on the FRAME lapses without objection → BUILD proceeds `WVC_1→WVC_5` on standing authority
+> (WVC_5 last, behind the bill-immutability guard); `WVC_1`–`WVC_4` are extensions of existing trading
+> organs and need no further gate once framed. A board blind-spec of a competent GB trading function is
+> incoming — reconcile it with the FRAME + primary-source DISCOVER at BUILD (disagreements are findings).
+
 # DIRECTOR STEER — The wholesale value chain: products, shaped cost, and where trading value is created (2026-07-22)
 
 **Type:** [STEER] — a material Epoch-2 correction from the director's 20 years in this industry. DISCOVER→FRAME first; mechanism yours; the *construct* below is the wall.
