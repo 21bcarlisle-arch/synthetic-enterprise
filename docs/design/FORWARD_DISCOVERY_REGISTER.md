@@ -204,6 +204,21 @@ framework that doesn't yet exist. CONFIRMS/sharpens, overturns nothing; two prim
 truth. Honesty facts untouched (no volunteer approached, no data held). **No atom opened, no map level change.**
 Residual now genuinely churn only (ICO Art. 35(4) exact list wording — page still 403's, verdict independent of it).
 
+**Increment (2026-07-22, forward-discovery tick, R17) — the LAST labelled residual (ICO Art. 35(4) exact list)
+CLOSED against a primary source; DPIA verdict now on-the-nose, not inferred** (`f3_...md` §Increment). The tick drew
+**F3** (agenda+staging empty, core/idle empty); network probed **live first** (ico/gov.uk/ofgem 200). The ICO
+high-risk-examples page **403'd yet again** (persistent server block, all passes), but the ICO's Art. 35(4) list *as
+submitted to the EDPB* is regulator-hosted at edpb.europa.eu — fetched and **text-extracted with `pdftotext`** (primary
+read, not paraphrase). The verbatim ten categories confirm Finding B **on-the-nose**: F3's exact processing hits **#3
+Large-scale profiling — whose first-listed example is literally "Data processed by Smart Meters"**, plus **#1 Innovative
+technologies** and **#6 Data matching** in reach — so DPIA-mandatory no longer rests on inference, the ICO's own list
+names F3's data source. Honest precision (no overclaim): **#9 Targeting-of-vulnerable does NOT cleanly apply** (scoped to
+*marketing*/children, F3 is neither — the vulnerable hook stays the WP248 *criterion*, not the #9 *example*), and at N=1
+scale the trigger runs through #1-combined-with-a-criterion + the design/class reading of #3, not a raw large-scale claim.
+CONFIRMS/strengthens, overturns nothing; primary regulator source, not SIM ground truth. Honesty facts untouched. **No
+atom opened, no map level change.** **F3 now has ZERO labelled-open item of any grade** — register DISCOVER-complete; no
+non-churn increment remains across F1–F5; await director graduation.
+
 ## F4 — International expansion probe
 
 **Purpose.** The pitch asserts "global by design"; §13 admits transfer is unproven. Produce **evidence for or

@@ -334,3 +334,50 @@ DAP review + the DESNZ/Ofgem joint letter), neither SIM ground truth; corroborat
 + #7 real customer). **Residual now genuinely churn only:** the ICO Art. 35(4) *exact enumerated-list wording* (page
 still 403's; verdict independent of it). With both materially-open residuals now primary-sourced (tier text) or shown
 to be hardened-not-open (wider-access status), **F3 is DISCOVER-complete**; no non-churn increment remains.
+
+### Increment (2026-07-22, forward-discovery tick, R17 — the last labelled residual, ICO Art. 35(4) exact list, CLOSED against a primary source; verdict now on-the-nose, not inferred)
+
+F3 was drawn again on a scheduled forward-discovery tick (agenda + staging empty; core/idle lanes empty/gated). Network
+was probed **live first** (ico.org.uk / gov.uk / ofgem.gov.uk all HTTP 200), so the one labelled-open residual — the
+**ICO Art. 35(4) *exact enumerated-list wording*** (Finding B's caveat; the ICO high-risk-examples page has 403'd on
+*every* prior pass) — was worked rather than rested. The ICO page **403'd yet again** (a persistent server-side block,
+not a network fault — consistent across passes). **But a primary route around it surfaced:** the ICO's actual Art. 35(4)
+list *as submitted to the EDPB* is regulator-hosted at `edpb.europa.eu/.../uk_ico_article_354_list_for_edpb.pdf`; WebFetch
+could not decode its compressed streams, so it was **text-extracted directly with `pdftotext -layout`** (the same
+primary-read technique the DESNZ-tier pass used, not a fast-model paraphrase). `observed-with-evidence`.
+
+**The verbatim ICO Art. 35(4) list — ten "types of processing operation requiring a DPIA"** (each requires a DPIA when
+combined with any other criterion from EDPB WP248rev01): **(1) Innovative technologies** ("new technologies, or the
+novel application of existing technologies (including AI)"; examples: AI/ML/deep-learning, connected vehicles, *smart
+technologies incl. wearables*, neuro-measurement/emotional-response analysis, some IoT); **(2) Denial of service**
+("decisions about an individual's access to a product, service, opportunity or benefit … based to any extent on
+automated decision-making (including profiling)"; examples: credit checks, mortgage/insurance applications, pre-check
+processes); **(3) Large-scale profiling** ("any profiling of individuals on a large scale"; **first named example:
+"Data processed by Smart Meters or IoT applications"**, then fitness/lifestyle monitoring, social media, AI applied to
+existing process); **(4) Biometric data**; **(5) Genetic data**; **(6) Data matching** ("combining, comparing or
+matching personal data obtained from multiple sources"; examples: fraud prevention, direct marketing, monitoring uptake
+of statutory services/benefits); **(7) Invisible processing** (Art. 14(5)(b) reliance; list brokering, online tracking,
+data aggregation); **(8) Tracking** (geolocation/behaviour; incl. wealth profiling of high-net-worth individuals);
+**(9) Targeting of children / other vulnerable individuals** ("for *marketing* purposes, profiling or other automated
+decision-making, or … offer[ing] online services directly to children"); **(10) Risk of physical harm** (breach could
+jeopardise physical health/safety; whistleblowing, social-care records).
+
+**Consequence for F3 — confirms Finding B on-the-nose, sharpens, overturns nothing.** The prior pass had DPIA-mandatory
+as `observed-with-evidence` from the Art. 35(3)(a) trigger + ICO high-risk *criteria* (WebSearch summaries). The exact
+list now anchors it **on the ICO's own named examples**, and the match is unusually direct: F3's processing class squarely
+hits **#3 Large-scale profiling — whose *first-listed* example is literally "Data processed by Smart Meters"** (F3 is
+profiling of household circumstances inferred from HH smart-meter consumption), plus **#1 Innovative technologies** (the
+novel four-dimensional modelling stack, which alone triggers when combined with any other WP248 criterion), with **#6
+Data matching** in reach (a parallel bill combines consumption + actual tariff + payment method). So the DPIA verdict no
+longer rests on inference — the ICO's published list names F3's exact data source. **Honest precision (no overclaim):**
+**#9 does NOT cleanly apply** — its trigger is scoped to *marketing* / offering online services to children, and F3 is
+neither, so the "vulnerable individuals" hook is the WP248 vulnerable-data-subjects *criterion* (Finding B), not the
+Art. 35(4) #9 *example*; and at N=1 pilot scale the count is not literally "large-scale", so the mandatory trigger runs
+through **#1 Innovative-tech-combined-with-a-criterion** and the design/class reading of #3, not a raw large-scale claim.
+
+**Net:** the last labelled residual is closed against a primary regulator source; the DPIA-mandatory conclusion is
+**strengthened** (named, not inferred). Honesty facts untouched: no volunteer approached, no household data held; DISCOVER
+read live published law, ran nothing. **No atom opened, no map level change** (BUILD-open stays doubly director-reserved —
+one-way doors #5 + #7). **F3 now has zero labelled-open item of any grade** — every question in its register entry is
+primary-sourced or director-gated. Next drawable increment: none non-churn across F1–F5 (register DISCOVER-complete);
+await director graduation or a newly-authored network-gated question.
