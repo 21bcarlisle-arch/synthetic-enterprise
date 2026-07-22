@@ -89,7 +89,16 @@ they're not yet meaningful.
 **Key DISCOVER questions.** The minimum competitor model that makes pricing/retention meaningful
 (tariff-following vs strategic entrants), anchored to **real switching-market behaviour**.
 
-**Tag:** mission-required × high. **Status:** skeletal.
+**Tag:** mission-required × high. **Status:** DISCOVER pass done 2026-07-22 — `docs/market_research/f5_simulated_competitor_field.md`.
+
+**Finding (2026-07-22 tick).** The competitor field is a **scalar, not a field**: best-alternative rate
+is a fixed historical series (`simulation/market_switching_propensity.py::MARKET_SAVINGS_BY_YEAR`,
+company-side `market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR`), so pricing/retention face a
+*non-reactive* opponent. The observable-tariff wall is already correct (`company/market/tariff_benchmarking.py`,
+public sources only) — the missing piece is a *response edge*. Minimum useful model = a cap/wholesale-endogenous
+**tariff-follower band** + 1–3 **regime-gated strategic archetypes** (Era A challenger-boom vs Era B
+post-consolidation). Candidate coupled-triad shape proposed in the artefact; **no atom opened** (BUILD-open is a
+director/twin call). Market-share figures are `[recall, validate]` pending an Ofgem *State of the Market* fetch.
 
 ---
 
