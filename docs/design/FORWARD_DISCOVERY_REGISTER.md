@@ -18,7 +18,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 |---|---|---|---|---|
 | **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER-complete 2026-07-22 (both open items closed, network tick) |
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER-complete 2026-07-22 (6 standards closed, network tick) |
-| **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
+| **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER-complete 2026-07-22 (direction-settled to the depth this lane warrants; body §F3) |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER-complete 2026-07-22 (Ireland magnitudes closed, network tick) |
 | **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER-complete 2026-07-22 (per-supplier % shares closed, network tick) |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
