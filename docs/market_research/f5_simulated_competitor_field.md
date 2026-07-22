@@ -65,9 +65,10 @@ into SoLR**; SoLR mutualisation **~£2.7bn / ~£94/household** (`company_commerc
 matching the pre-crisis ~35% engaged share (`svt_rates_active_passive_2016_2025.md:80`, Ofgem SotM
 Jan 2026). (`ofgem_regulation.md:84` says "28 by December 2021" — a consistent by-that-date subset of
 the full Jul-21→May-22 wave, not a conflict.) The field collapsed to a post-consolidation oligopoly.
-Approximate per-supplier household-supply shares below remain `[recall, validate — STILL OPEN: no
-per-firm % share table exists in the already-fetched repo corpus; needs a live fetch of Ofgem *State
-of the Market* retail-market-share data]`:
+Approximate per-supplier household-supply shares below were the *era-shape* recall; the precise Q2 2025
+per-firm shares are now **CLOSED against Ofgem *State of the Market* (Jan 2026) — see §8** (Octopus 25 /
+British Gas 21 / E.ON 16 / OVO 12 / EDF 10 / Scottish Power 8; six-largest 92%). The table below keeps the
+*archetype* mapping; use §8 for the calibrated figures:
 
 | Archetype | Real exemplar(s) | ~share | Pricing behaviour |
 |---|---|---|---|
@@ -140,11 +141,11 @@ strategy that moved them.
   - **CLOSED — market structure:** the SoLR-failure count (**29 / ~4M / ~£2.7bn / ~£94/hh**), the
     post-2023 re-fixing (~one-third), and the two-era shape are now corroborated by ≥3 independent
     Ofgem/NAO-anchored docs (cited inline in §2). These no longer need a fetch.
-  - **STILL OPEN — per-supplier % shares:** the §2 table's per-firm percentages (British Gas ~20–24%,
-    Octopus ~20%+, etc.) have **no independent corroborating source in the repo corpus** and remain
-    `[recall, validate]` pending a live fetch of Ofgem *State of the Market* retail-market-share data.
-    This is the *only* remaining fetch-gated item in F5; the rest of the artefact stands on validated
-    or structural (low-risk) claims.
+  - **CLOSED — per-supplier % shares:** the §2 table's per-firm percentages were `[recall, validate]`
+    with no repo-corpus corroboration; they are now closed against a live fetch of Ofgem *State of the
+    Market* (Jan 2026) — Q2 2025 domestic-electricity shares Octopus 25 / British Gas 21 / E.ON 16 /
+    OVO 12 / EDF 10 / Scottish Power 8, six-largest 92% (**see §8**, with the domestic-vs-all-sectors
+    denominator caveat). No fetch-gated item now remains open in F5.
 - The market-share table (§2) must be validated against **Ofgem *State of the Market* / retail market
   share data** and the SoLR-failure count against **Ofgem's SoLR record** — never against SIM ground
   truth (the scalar series is *not* an independent check; it is the thing being replaced).
@@ -197,8 +198,8 @@ so pricing/retention face a non-reactive opponent. The observable-tariff wall is
 missing piece is a *response edge* — the minimum being a cap/wholesale-endogenous follower band plus
 1–3 regime-gated strategic archetypes. Market *structure* figures (29 supplier failures / ~4M customers
 / ~£2.7bn SoLR mutualisation / post-2023 re-fixing) are now **validated** against independent
-already-fetched repo sources (§5); only the per-supplier **% shares** remain `[recall, validate]`
-pending a live fetch of Ofgem *State of the Market*.
+already-fetched repo sources (§5); the per-supplier **% shares** were the last `[recall, validate]`
+item and are now **CLOSED** against a live Ofgem *State of the Market* (Jan 2026) fetch — **see §8**.
 
 ---
 
