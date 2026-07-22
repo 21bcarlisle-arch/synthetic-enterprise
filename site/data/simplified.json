@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-22T13:42:20Z",
+  "generated_at": "2026-07-22T13:57:27Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -1055,7 +1055,7 @@
         {
           "atom_id": "H_forward_discovery_draw",
           "atom_name": "Forward-discovery draw: when the BUILD feasible set is empty the supervisor routes through the dial-widen (priority classes + headroom sensor) and hands the next DISCOVER/FRAME item BEFORE any allow-stop; drain is claimable only after that ALSO returns empty",
-          "level_current": 0,
+          "level_current": 1,
           "level_target": 3,
           "notes": [
             "2026-07-19 AUTHORED (proposal) from docs/retrospectives/2026-07-19-direction-without-mechanism.md, director-caught false-drain. The MECHANISM behind the standing forward-discovery direction (currently prose only -- priority classes + headroom sensor were folded into a design doc, not built). Makes RULE 0 enforceable: an empty BUILD draw MUST widen to DISCOVER/FRAME and return work before any allow-stop; drain is claimable only after the widened draw also returns empty. R15: plant one idle DISCOVER-able atom -> the draw returns it, never allow-stops. loop_stage idle: H-lane is OFF the open product fronts, so DISCOVER/FRAME/author NOW, BUILD needs a director H-lane open (blocked_on director_h_lane_open) -- that gate is itself the friction the retro names.",
