@@ -11,13 +11,13 @@
       "level_target": 3,
       "loop_stage": "idle",
       "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
+      "expert_hour_status": "attempted_finding_open",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 22
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "D3_catchup_rebilling",
