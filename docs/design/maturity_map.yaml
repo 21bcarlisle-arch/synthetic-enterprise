@@ -1386,6 +1386,7 @@
   name: "L4 price as a DERIVED output: national weather -> national demand + renewable output -> residual demand -> merit order -> wholesale price (price is NEVER an independent draw)"
   lane: W1_market_weather
   value_stream: wholesale_to_price
+  couples_with: [C13_weather_normalisation]
   chain: weather_cascade
   epoch: 3
   level_current: 3
@@ -1404,7 +1405,7 @@
   name: "Weather-normalisation twin (COUPLED): the company INFERS its book's weather-sensitivity from confounded meter data -- gap = predicted vs actual demand under a given weather outturn (world twin of W1_5)"
   lane: C_customer_ops
   value_stream: wholesale_to_price
-  couples_with: [W1_5_premise_demand_shape]
+  couples_with: [W1_5_premise_demand_shape, W1_6_physics_price_signal]
   chain: weather_cascade
   epoch: 3
   level_current: 3

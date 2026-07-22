@@ -1667,7 +1667,9 @@
         "W1_3_national_weather_signal",
         "W1_5_premise_demand_shape"
       ],
-      "couples_with": [],
+      "couples_with": [
+        "C13_weather_normalisation"
+      ],
       "chain": "weather_cascade",
       "at_target": true,
       "stalled": true,
@@ -1690,7 +1692,8 @@
         "A6_coupled_triad_gap_metric"
       ],
       "couples_with": [
-        "W1_5_premise_demand_shape"
+        "W1_5_premise_demand_shape",
+        "W1_6_physics_price_signal"
       ],
       "chain": "weather_cascade",
       "at_target": true,
