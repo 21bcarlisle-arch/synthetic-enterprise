@@ -19,7 +19,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 | **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER pass done 2026-07-22 |
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER pass done 2026-07-22 |
-| **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | skeletal, this pass |
+| **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER pass done 2026-07-22 |
 | **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | skeletal, this pass |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
 
@@ -146,7 +146,34 @@ against** the transferability claim — not a market-entry plan.
 structure, settlement, tariff regulation, data availability, consumer protection); assess which variations the
 architecture's parameters absorb vs which break assumptions. (Ties to the standing portability constraints.)
 
-**Tag:** aspirational × medium. **Status:** skeletal.
+**Tag:** aspirational × medium. **Status:** DISCOVER pass done (2026-07-22) —
+`docs/market_research/f4_international_expansion_probe.md`.
+
+**Finding (2026-07-22 tick).** The candidate second market is the **Republic of Ireland (SEM/I-SEM)** —
+the *gentlest realistic* pick (adjacency, HH heritage), chosen so that if even the closest neighbour
+breaks assumptions the "just a variable" reading of §11 is optimistic. §11's "what stays constant" list
+**splits cleanly, and the code says where**: the **brain/governance layer ABSORBS** — obligations
+register is `regime`-keyed + extensible (`obligations_register.py`, CRU fits as new rows), decision
+architecture/observability are counterparty-free (`internal_seams.py`), invariant *classes* carry a
+`jurisdiction` field + effective-dates. But the **transactional core BREAKS**: **currency is the deepest
+blocker** (no `Money` type; **~6,100 `_gbp` field names**), **tax** is hardcoded VAT literals keyed by
+segment not jurisdiction (`invoice.py`, `dual_fuel_bill.py`), **settlement granularity** is `48`
+duplicated across ~10 modules (mild for IE, a hard break for ERCOT-15min/NEM-5min — the gentle pick
+*hides* it), the **reconciliation window** is Elexon-hardwired (duplicated sim+company), and the
+**SIM-seam payload vocabulary** is GB-baked (`mpan`, `:SP`, Elexon/NBP). One sharper class-level break:
+the **price-cap invariant structurally assumes a GB institution** — Ireland has *no* domestic cap, so it
+needs to be **regime-optional, not re-anchored** (a class change, not a value change). Verdict: **§13's
+admission is correct and now quantified — the architecture is portable where it reasons and GB-bound
+where it transacts**; transfer is a data-and-adapter exercise for the brain, a real rework for the
+plumbing. Verdicts anchored to **actual repo code** (independent of SIM ground truth); Ireland *magnitudes*
+(VAT %, PSO levy, ISP length) are `[recall, validate]` pending a SEMO/CRU/Revenue fetch. **Meta-finding:**
+the portability debt the doctrine says to "log" is logged **diffusely** (inline notes, no rankable
+register) — "mentioned somewhere" reads as covered when it isn't. Candidate graduation, ranked by break
+depth: (1) a **doc-only consolidated `PORTABILITY_DEBT.md`** register, (2) a `Money`/currency abstraction
+(remediation-on-touch), (3) a `market.settlement_granularity` config, (4) making the cap invariant
+regime-optional; **no atom opened** (director/twin call). **No further autonomous DISCOVER increment on
+F4 without network** — remaining work is a doc-only graduation call or a live fetch; next tick should
+draw a still-open track or await director graduation.
 
 ## F5 — Simulated competitor field
 
