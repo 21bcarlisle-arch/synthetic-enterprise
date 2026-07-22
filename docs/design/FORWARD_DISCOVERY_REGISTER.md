@@ -16,7 +16,7 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 
 | rank | track | class | criticality | status |
 |---|---|---|---|---|
-| **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | skeletal, this pass |
+| **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER pass done 2026-07-22 |
 | **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER pass done 2026-07-22 |
 | **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | skeletal, this pass |
 | **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | skeletal, this pass |
@@ -46,7 +46,27 @@ generator keyed to segment + situation; (b) a *customer* response model mapping 
 action + reply. Anchor generation to real contact/complaint data; validate against an **independent** source
 (never SIM ground truth). **Directly serves segmentation:** channel-preference and trust are conversation-revealed.
 
-**Tag:** mission-required × highest. **Status:** skeletal — awaiting first DISCOVER pass (optional class).
+**Tag:** mission-required × highest. **Status:** DISCOVER pass done (2026-07-22) —
+`docs/market_research/f1_simulating_conversations.md`.
+
+**Finding (2026-07-22 tick).** The pitch's premise is **externally corroborated**: Which? 2025 shows a **~6×
+complaint-ratio spread** across suppliers on the same regulated product (Octopus 261 vs 1,525 complaints/100k) —
+tone/handling IS a real differentiator, not a nicety. The message→behaviour edge already has a benchmark library
+(`NUDGE_PHYSICS_BENCHMARKS.md`: debt-letter **tone +3 to +10pp**, framing 10–35%, anchoring 8–20%), wired to the
+two hidden conversation traits **FramingSusceptibility / ToneSusceptibility** (`nudge_physics.py`, independent
+per-customer draws — no demographic cross-tab exists, §2.3, so susceptibility is an irreducible latent). The
+**epistemic wall** is the whole point: SIM holds true susceptibility, COMPANY may only hold a **Bayesian belief
+updated on observed replies** (a conversation adds message-response/latency-by-channel as the new observable
+stream); a company whose action correlates with the true trait beyond what replies justify is an **intent-leak
+the harness must catch (R15 mutation lever)**. Direction validated across **three disjoint sources** — Which?
+complaint spread, behavioural-economics causal effects, Ofgem CSAT Wave 20 payment-channel×satisfaction (DD 82% /
+prepay 80% / std-credit 76%) — none SIM ground truth; **magnitudes are mostly cross-domain imports** (only Opower
++ UK switching are energy-native), so a build samples magnitude from a distribution (R10 simplification), not a
+point estimate. Candidate graduation = the **SIM-response / COMPANY-generator+estimator / HARNESS-gap coupled
+triad**; **no atom opened** (director/twin BUILD-open call). Two open items are **network-gated** (`[recall,
+validate]`): complaint-**category** taxonomy (Energy Ombudsman / Ofgem league tables) and a UK-energy tone→outcome
+study — recorded so they are not re-searched fruitlessly. **No further autonomous DISCOVER increment on F1 without
+network** — next tick should draw F3 or F4 (both still skeletal) or await director graduation.
 
 ## F2 — Explaining what we do, simply
 
