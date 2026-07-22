@@ -56,10 +56,18 @@ Price competition intense; "tease-and-squeeze" the dominant challenger tactic (c
 acquisition fix → roll to expensive SVT). Savings available £150–£350/yr. This is the era the model
 must let a *strategic entrant* exist in.
 
-**Era B — post-crisis consolidation (≈2022–present).** ~29 suppliers failed 2021–22 `[recall,
-validate: Ofgem SoLR record]`; SoLR mutualisation costs socialised onto bills. The field collapsed
-to a post-consolidation oligopoly. Approximate household-supply shares `[recall, validate against
-Ofgem *State of the Market* / retail market share data]`:
+**Era B — post-crisis consolidation (≈2022–present).** **29 suppliers failed Jul 2021–May 2022**
+`[VALIDATED 2026-07-22 against independent already-fetched repo sources — not SIM ground truth]`:
+`company_commercial_strategy.md:103` (Ofgem SotM 2025 / NAO), `energy_market_complexity_june2026.md:99`,
+and `svt_rates_active_passive_2016_2025.md:75` all independently record **29 failures / ~4M customers
+into SoLR**; SoLR mutualisation **~£2.7bn / ~£94/household** (`company_commercial_strategy.md:103`,
+`energy_market_complexity_june2026.md:16,98`); ~one-third of customers back on fixed deals by Jul 2025,
+matching the pre-crisis ~35% engaged share (`svt_rates_active_passive_2016_2025.md:80`, Ofgem SotM
+Jan 2026). (`ofgem_regulation.md:84` says "28 by December 2021" — a consistent by-that-date subset of
+the full Jul-21→May-22 wave, not a conflict.) The field collapsed to a post-consolidation oligopoly.
+Approximate per-supplier household-supply shares below remain `[recall, validate — STILL OPEN: no
+per-firm % share table exists in the already-fetched repo corpus; needs a live fetch of Ofgem *State
+of the Market* retail-market-share data]`:
 
 | Archetype | Real exemplar(s) | ~share | Pricing behaviour |
 |---|---|---|---|
@@ -127,6 +135,16 @@ strategy that moved them.
 
 ## 5. Independence & validation
 
+- **Validation status (2026-07-22 tick, no live network — cross-checked against already-fetched,
+  independent, published-source repo docs; the SIM scalar was NOT used as a check):**
+  - **CLOSED — market structure:** the SoLR-failure count (**29 / ~4M / ~£2.7bn / ~£94/hh**), the
+    post-2023 re-fixing (~one-third), and the two-era shape are now corroborated by ≥3 independent
+    Ofgem/NAO-anchored docs (cited inline in §2). These no longer need a fetch.
+  - **STILL OPEN — per-supplier % shares:** the §2 table's per-firm percentages (British Gas ~20–24%,
+    Octopus ~20%+, etc.) have **no independent corroborating source in the repo corpus** and remain
+    `[recall, validate]` pending a live fetch of Ofgem *State of the Market* retail-market-share data.
+    This is the *only* remaining fetch-gated item in F5; the rest of the artefact stands on validated
+    or structural (low-risk) claims.
 - The market-share table (§2) must be validated against **Ofgem *State of the Market* / retail market
   share data** and the SoLR-failure count against **Ofgem's SoLR record** — never against SIM ground
   truth (the scalar series is *not* an independent check; it is the thing being replaced).
@@ -159,5 +177,7 @@ No atom is opened here. This is the DISCOVER artefact only; BUILD-open is a dire
 **The competitor field is a scalar, not a field:** best-alternative rate is a fixed historical series,
 so pricing/retention face a non-reactive opponent. The observable-tariff wall is already correct; the
 missing piece is a *response edge* — the minimum being a cap/wholesale-endogenous follower band plus
-1–3 regime-gated strategic archetypes. Market-share figures herein are `[recall, validate]` pending a
-fetch of Ofgem *State of the Market*.
+1–3 regime-gated strategic archetypes. Market *structure* figures (29 supplier failures / ~4M customers
+/ ~£2.7bn SoLR mutualisation / post-2023 re-fixing) are now **validated** against independent
+already-fetched repo sources (§5); only the per-supplier **% shares** remain `[recall, validate]`
+pending a live fetch of Ofgem *State of the Market*.

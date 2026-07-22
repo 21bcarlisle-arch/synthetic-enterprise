@@ -98,7 +98,10 @@ company-side `market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR`), so pr
 public sources only) — the missing piece is a *response edge*. Minimum useful model = a cap/wholesale-endogenous
 **tariff-follower band** + 1–3 **regime-gated strategic archetypes** (Era A challenger-boom vs Era B
 post-consolidation). Candidate coupled-triad shape proposed in the artefact; **no atom opened** (BUILD-open is a
-director/twin call). Market-share figures are `[recall, validate]` pending an Ofgem *State of the Market* fetch.
+director/twin call). Market **structure** figures (29 failures / ~4M / ~£2.7bn SoLR / post-2023
+re-fixing) **validated** on the 2026-07-22 tick against ≥3 independent already-fetched repo sources
+(not SIM ground truth); only per-supplier **% shares** remain `[recall, validate]` pending a live Ofgem
+*State of the Market* fetch.
 
 ---
 
