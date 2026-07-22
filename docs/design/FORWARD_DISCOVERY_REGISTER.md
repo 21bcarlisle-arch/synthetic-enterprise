@@ -57,8 +57,12 @@ not a nicety, and a trust mechanism. Feeds F3 (volunteer) and the site.
 energy-sector precedents); a **testable bar** — can a lay reader say back what Poesys does with their data and
 money; where the current site/pitch fails that bar.
 
-**Tag:** committed (legal) × high. **Status:** DISCOVER pass done 2026-07-22 —
-`docs/market_research/f2_explaining_what_we_do_simply.md`.
+**Tag:** committed (legal) × high. **Status:** DISCOVER-complete (2026-07-22) —
+`docs/market_research/f2_explaining_what_we_do_simply.md`. The one open item (validate the six
+comprehension-testing standards) was re-tested by an exhaustive corpus sweep on the second 2026-07-22
+tick and confirmed **not closable without a live fetch** (no independent repo source exists); recorded
+so it is not re-run. **No further autonomous DISCOVER increment on F2 without network** — next tick
+should draw another track (F1/F3/F4) or await director graduation.
 
 **Finding (2026-07-22 tick).** F2 fails on the **reader, not the writing**: the live public surface
 (`site/index.html`) is a correct *expert* pitch — "Where to go" doors keyed *"Energy CEO / COO"*,

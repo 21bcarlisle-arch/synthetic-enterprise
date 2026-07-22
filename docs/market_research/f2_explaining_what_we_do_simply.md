@@ -185,6 +185,24 @@ the name.)
   its unverified figures. **These are wording/citation validations, not structural risks** — the
   *shape* of the bar (teach-back + readability floor, two-tier so it can fail) is well-established and
   low-risk.
+- **Exhaustive-corpus verification (2026-07-22, second forward-discovery tick).** The "no independent
+  repo corroboration" claim above was re-tested by an **exhaustive** case-insensitive sweep of the
+  corpus (`docs/market_research/`, `docs/domain_artefact_library/`, `docs/vision/`, all `ASSUMPTIONS.md`,
+  `company/compliance/`) across all six standards and multiple phrasings ("reading age", "Flesch",
+  "Crystal Mark", "plain and intelligible", "PRIN 2A", "Article 12", "consumer understanding", …).
+  **Result: confirmed — zero independent source documents corroborate the plain-language / comprehension
+  content of any of the six.** Two adjacent classes of hit exist and are *not* corroboration: (a) the
+  simulated company's own **compliance code** names Consumer Duty and an internal `CONSUMER_UNDERSTANDING`
+  outcome (`company/compliance/consumer_duty.py`, `obligations_register.py` cites "Ofgem SLC 0" — but
+  attached to the PSR-vulnerability obligation, and quoting **none** of the plain-language wording) —
+  an internal artefact, not a fetched source; (b) the three already-`[VALIDATED]` research files
+  (`smart_meter_hh_data_consent_2026.md`, `company_customer_comms.md`, `ofgem_licence_readiness.md`)
+  corroborate *adjacent machinery* (consent regime, SLC 22A/22B/31B notice floor, credit-balance
+  ring-fencing) only — exactly the scope §2 already claims. **Consequence:** no non-network path can
+  close these six; they are closable only by a **live fetch of the primary sources** (or superseded if
+  the director graduates F2 and they enter `ASSUMPTIONS.md` at build). This negative result is recorded
+  so a future tick does not re-run the same sweep. F2 is **DISCOVER-complete** pending live fetch or
+  graduation — no further autonomous DISCOVER increment is available on this track without network.
 
 ---
 
