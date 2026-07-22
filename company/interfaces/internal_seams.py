@@ -224,3 +224,31 @@ def module_to_relpath(module: str) -> str:
     ('company.billing') map to the package __init__ path for classification."""
 
     return module.replace(".", "/") + ".py"
+
+
+def classify_module(module: str) -> Domain | None:
+    """Classify an *imported dotted module* into a Domain, handling BOTH forms:
+
+      * a module file    -- ``company.billing.invoice`` -> ``company/billing/invoice.py``
+      * a package import  -- ``company.billing``         -> the ``company/billing/`` dir
+
+    ``classify_path`` alone (used on FILE paths) misses the package form: a bare
+    ``from company.billing import invoice`` yields the module string
+    ``company.billing``, whose file-form ``company/billing.py`` matches no
+    DOMAIN_PATHS entry and returns None -- so the cross-domain crossing would be
+    INVISIBLE (a FAIL-OPEN gap, R15). This resolver closes it: if the file form
+    does not classify, try the module as a package DIRECTORY and match it against
+    the guarded directory prefixes.
+
+    Returns (Domain, resolved_as_file) via the sibling ``_module_domain`` in the
+    verifier; here we return only the Domain (or None) for the simple callers.
+    """
+
+    dom = classify_path(module_to_relpath(module))
+    if dom is not None:
+        return dom
+    pkg = module.replace(".", "/") + "/"
+    for domain, matcher in DOMAIN_PATHS:
+        if matcher.endswith("/") and pkg.startswith(matcher):
+            return domain
+    return None

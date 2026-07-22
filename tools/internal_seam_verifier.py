@@ -42,6 +42,8 @@ if str(_REPO_ROOT) not in sys.path:
 from company.interfaces.internal_seams import (  # noqa: E402
     APPROVED_SEAM_MODULE,
     BASELINE_ALLOWLIST,
+    Domain,
+    classify_module,
     classify_path,
     module_to_relpath,
 )
@@ -64,18 +66,44 @@ class Violation:
         )
 
 
-def _iter_imported_modules(tree: ast.AST):
-    """Yield (module_dotted_path, lineno) for every import in the AST."""
+def _iter_import_statements(tree: ast.AST):
+    """Yield (candidate_modules, lineno) per import STATEMENT.
+
+    ``candidate_modules`` is the tuple of dotted module strings the statement
+    could be reaching. For ``from PKG import a, b`` we cannot tell from the
+    statement alone whether ``a``/``b`` are submodules or symbols, so we emit
+    BOTH the parent ``PKG`` and each ``PKG.a`` candidate and let classification
+    pick the most specific guarded match. This is what closes the FAIL-OPEN gap
+    where ``from company.billing import invoice`` (module string
+    ``company.billing``) previously classified to None and slipped through.
+    """
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                yield alias.name, node.lineno
+                yield (alias.name,), node.lineno
         elif isinstance(node, ast.ImportFrom):
             # Ignore relative imports (level>0) -- they stay within a package.
             if node.level and node.level > 0:
                 continue
             if node.module:
-                yield node.module, node.lineno
+                candidates = [node.module]
+                for alias in node.names:
+                    if alias.name and alias.name != "*":
+                        candidates.append(f"{node.module}.{alias.name}")
+                yield tuple(candidates), node.lineno
+
+
+def _module_domain(module: str):
+    """Resolve an imported module to (Domain|None, resolved_as_file: bool).
+
+    ``resolved_as_file`` is True when the module matched a domain via its .py
+    file path (the most specific signal) and False when it only matched a guarded
+    package directory -- used to prefer the specific submodule over its package.
+    """
+    dom = classify_path(module_to_relpath(module))
+    if dom is not None:
+        return dom, True
+    return classify_module(module), False
 
 
 def _is_baseline_allowed(file_rel: str, imported_module: str) -> bool:
@@ -99,23 +127,39 @@ def check_file(path: Path) -> list[Violation]:
     tree = ast.parse(source, filename=str(path))
 
     violations: list[Violation] = []
-    for module, lineno in _iter_imported_modules(tree):
-        if module == APPROVED_SEAM_MODULE or module.startswith(
-            APPROVED_SEAM_MODULE + "."
-        ):
-            continue  # the approved seam is always allowed
-        imported_domain = classify_path(module_to_relpath(module))
-        if imported_domain is None or imported_domain == importing_domain:
-            continue  # non-domain import, or same-domain -- fine
-        if _is_baseline_allowed(file_rel, module):
-            continue  # documented pre-seam debt
+    for candidates, lineno in _iter_import_statements(tree):
+        # Resolve every candidate module this statement could reach; keep the
+        # foreign, non-baseline ones.
+        resolved: list[tuple[str, Domain, bool]] = []
+        for module in candidates:
+            if module == APPROVED_SEAM_MODULE or module.startswith(
+                APPROVED_SEAM_MODULE + "."
+            ):
+                continue  # the approved seam is always allowed
+            imported_domain, as_file = _module_domain(module)
+            if imported_domain is None or imported_domain == importing_domain:
+                continue  # non-domain import, or same-domain -- fine
+            if _is_baseline_allowed(file_rel, module):
+                continue  # documented pre-seam debt
+            resolved.append((module, imported_domain, as_file))
+        if not resolved:
+            continue
+        # One violation per import STATEMENT. Pick the most specific guarded
+        # domain (prefer a submodule matched as a .py file over its package),
+        # and report the shortest module string that names it (the statement's
+        # own module, not a synthesised submodule candidate).
+        pool = [r for r in resolved if r[2]] or resolved
+        chosen_domain = max(pool, key=lambda r: len(r[0]))[1]
+        report_module = min(
+            (r[0] for r in resolved if r[1] == chosen_domain), key=len
+        )
         violations.append(
             Violation(
                 file=file_rel,
                 lineno=lineno,
                 importing_domain=importing_domain.value,
-                imported_module=module,
-                imported_domain=imported_domain.value,
+                imported_module=report_module,
+                imported_domain=chosen_domain.value,
             )
         )
     return violations

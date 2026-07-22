@@ -59,6 +59,56 @@ def test_mutation_planted_cross_domain_import_is_flagged(tmp_path, monkeypatch):
     assert v.imported_module == "company.billing.payments"
 
 
+@pytest.mark.parametrize(
+    "import_line, expected_module, expected_domain",
+    [
+        # `from PKG import submodule` -- module string is the bare package
+        # `company.billing`, whose file-form `company/billing.py` matched no
+        # DOMAIN_PATHS entry, so this crossing was previously INVISIBLE
+        # (a FAIL-OPEN gap, R15). It must now be flagged.
+        ("from company.billing import invoice", "company.billing", "billing"),
+        # ... and resolved to the SPECIFIC domain when the name is a submodule
+        # that lives in a different domain (collections inside billing/).
+        (
+            "from company.billing import collections",
+            "company.billing.collections",
+            "collections",
+        ),
+        # plain `import PKG` of a guarded package directory.
+        ("import company.billing", "company.billing", "billing"),
+    ],
+)
+def test_mutation_package_form_cross_domain_import_is_flagged(
+    import_line, expected_module, expected_domain
+):
+    """R15 regression: the package-import forms that previously slipped past
+    classify_path's file-only matching are now caught. A pricing file reaching
+    into billing/collections via any of these forms MUST be flagged."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_pkgform_probe.py"
+    planted.write_text(import_line + "  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == expected_domain
+    assert v.imported_module == expected_module
+
+
+def test_classify_module_resolves_package_form():
+    """Unit-level guard for the resolver that closes the gap: a bare guarded
+    package classifies to its domain (file-only classify_path returns None)."""
+    assert seams.classify_path(seams.module_to_relpath("company.billing")) is None
+    assert seams.classify_module("company.billing") is seams.Domain.BILLING
+    assert seams.classify_module("company.pricing") is seams.Domain.PRICING
+    # A specific submodule still resolves most-specifically.
+    assert seams.classify_module("company.billing.collections") is seams.Domain.COLLECTIONS
+    # A non-guarded package is still None.
+    assert seams.classify_module("company.trading") is None
+
+
 def test_mutation_removing_baseline_entry_reintroduces_violation():
     """Independence check: the real pricing->billing crossing is a violation
     when NOT allowlisted -- proving the baseline is what suppresses it, and the
