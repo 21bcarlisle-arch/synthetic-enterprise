@@ -1,0 +1,9 @@
+[Unit]
+Description=Synthetic Enterprise daily self-note timer — fire the unprompted morning status once each morning (07:00 local). The note is only a "morning note" if it actually fires unprompted (R15: an unscheduled note is fail-silent) — this is that schedule, committed as IaC. The service is idempotent per day, so a Persistent catch-up replay after downtime still produces exactly one note.
+
+[Timer]
+OnCalendar=*-*-* 07:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

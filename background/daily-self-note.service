@@ -1,0 +1,10 @@
+[Unit]
+Description=Synthetic Enterprise: SM1 daily self-note — the unprompted morning status (verified autonomous work with the auto-process treadmill EXCLUDED, longest stall + honest cause, and the R17 THE-TICK-NEVER-RESTS law status). Reader/publisher ONLY: it reads git+ledgers and writes a note (docs/observability/daily-self-note.md) + one NTFY; §2 HARD LAW — it has NO path into the draw and the draw never reads it. Fires once/morning (idempotent per day).
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# NTFY secret via the Option-2 out-of-tree location; `-` = still run (and log the note) if absent.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+ExecStart=/usr/bin/python3 -m background.daily_self_note

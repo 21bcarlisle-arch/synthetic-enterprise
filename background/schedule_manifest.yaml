@@ -100,3 +100,24 @@ systemd_units:
       The fast local-staged-doc wake (~seconds vs the 60s timer). LIVE since the 2026-07-20 cutover.
       A staged doc is the primary continuity case (both 2026-07-19 failures hit it). Independent of
       worker-tick.timer (R15: kill the timer and this still wakes on a staged doc).
+
+  - name: daily-self-note.service
+    unit_file: background/daily-self-note.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — runs one note and EXITS; inactive(dead) is correct
+    reason: >-
+      SM1 (SELF_MEASUREMENT_UNIFIED_DESIGN.md §1). The oneshot the .timer fires: computes the
+      morning self-note from reused organs (git + gate_authorizations.jsonl) — verified autonomous
+      work with the auto-process treadmill EXCLUDED, longest stall, and the R17 THE-TICK-NEVER-RESTS
+      status (the director's standing morning ask) — and publishes it (note log + one NTFY). §2 HARD
+      LAW: reader/publisher ONLY, NO path into the draw. Not enabled/active itself (the .timer drives
+      it); flagging it down would be wrong.
+
+  - name: daily-self-note.timer
+    unit_file: background/daily-self-note.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — an unscheduled morning note is fail-silent (R15)
+    reason: >-
+      Fires SM1 once each morning (07:00 local) so the status arrives UNPROMPTED — the last open
+      thread of the self-measurement steer. Idempotent per day + Persistent, so a catch-up replay
+      after downtime still yields exactly one note.
