@@ -16,12 +16,38 @@ Thinking ahead is worth fidelity budget only for futures ranked high on **both**
 
 | rank | track | class | criticality | status |
 |---|---|---|---|---|
-| **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER-complete 2026-07-22 (both open items closed, network tick) |
-| **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER-complete 2026-07-22 (6 standards closed, network tick) |
-| **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER-complete 2026-07-22 (direction-settled to the depth this lane warrants; body §F3) |
-| **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER-complete 2026-07-22 (Ireland magnitudes closed, network tick) |
-| **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER-complete 2026-07-22 (per-supplier % shares closed, network tick) |
+| **F1** | Simulating conversations | mission-required | **highest** — the pitch's core abatement mechanism | DISCOVER-complete 2026-07-22; **GRADUATED → FRAME** (director 2026-07-22): coupled-triad design, build proposal via gate → `docs/design/frame/F1_conversations_coupled_triad_FRAME.md` |
+| **F2** | Explaining what we do, simply | committed (legal duty) | high — comprehension = valid consent + trust | DISCOVER-complete 2026-07-22; **FOLDED into site work** (director 2026-07-22): lay-reader path, not separately graduated (Spec 005 ABSENT row) |
+| **F3** | Volunteer programme mechanics | mission-required | high — critical path to any real household | DISCOVER-complete 2026-07-22; **HELD** (director 2026-07-22): doubly one-way-door reserved; revisit when genuinely near volunteers; no-data/no-approach facts stay true |
+| **F4** | International expansion probe | aspirational | medium — tests the "global by design" claim | DISCOVER-complete 2026-07-22; **GRADUATED item (1) only** (director 2026-07-22): the doc-only `PORTABILITY_DEBT.md` register; items (2)-(4) are remediation-on-touch notes in it, not builds |
+| **F5** | Simulated competitor field | mission-required | high — pricing/retention are meaningless unopposed | DISCOVER-complete 2026-07-22; **HELD** (director 2026-07-22): graduates into VALUE_CHAIN Epoch-2 scope when the pricing organ lands, not standalone; the flagged graduation hazard stands |
 | — | *Watching briefs (contingent policy)* | contingent | low | see bottom |
+
+---
+
+## Director graduation rulings — 2026-07-22 (console; the five-track [ACT] resolved)
+
+All five tracks were DISCOVER-complete and resting legitimately with proof (R17); graduation was
+director-reserved. The rulings (verbatim intent), now the authoritative disposition of the register:
+
+- **F1 CONVERSATIONS — GRADUATE to FRAME only.** Design the SIM-response / company-generator /
+  harness-gap coupled triad, reconciled with the segmentation schema (channel/trust as
+  conversation-revealed traits). **Build proposal comes back through the gate** — no BUILD atom
+  opened here. FRAME artefact: `docs/design/frame/F1_conversations_coupled_triad_FRAME.md`.
+- **F2 PLAIN-LANGUAGE — DO NOT graduate separately.** Fold its findings into the **site work** as
+  the lay-reader path (Spec 005 ABSENT row). A SITE-lane (L2) item, not a forward-discovery graduation.
+- **F3 VOLUNTEER — HOLD at DISCOVER-complete.** Doubly one-way-door reserved; revisit only when we
+  are genuinely near volunteers. The **no-data / no-approach facts must stay true.**
+- **F4 INTERNATIONAL — GRADUATE item (1) only:** the doc-only `PORTABILITY_DEBT.md` register (already
+  written; ratified). Items (2)-(4) are **remediation-on-touch notes in it, not builds.**
+- **F5 COMPETITOR FIELD — HOLD.** Graduates into the **VALUE_CHAIN Epoch-2** scope when the pricing
+  organ lands, not standalone; the flagged graduation hazard (endogenous best-alternative rate) stands.
+
+Mechanism note: a dispositioned track keeps `DISCOVER-complete` in its status cell, so it stays
+**non-drawable** (the tick rests) while dropping out of the graduation [ACT] (the call is made) —
+`supervisor.py::_forward_discovery_dispositioned_ids`, R15-tested. The register is now fully
+dispositioned: **zero drawable tracks, zero awaiting a ruling.** Re-openers: a new track authored,
+or the director revisiting a HELD track.
 
 ---
 

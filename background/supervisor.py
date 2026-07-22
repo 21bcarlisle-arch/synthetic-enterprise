@@ -1494,6 +1494,30 @@ def _forward_discovery_drawable_tracks(register_path: Path | None = None) -> lis
     return [t for t in _forward_discovery_tracks(register_path) if t[0] not in complete]
 
 
+# A DISPOSITIONED track has a director GRADUATION RULING recorded in its status cell (graduated /
+# held / folded / superseded). It has left the forward-discovery lane for good, so it must NOT be
+# re-surfaced in the graduation [ACT] (that [ACT] is only for tracks AWAITING a ruling). A
+# dispositioned track keeps 'DISCOVER-complete' in its cell too, so `_forward_discovery_complete_ids`
+# already excludes it from the DRAWABLE set -- this predicate refines ONLY the [ACT], never rest/draw.
+_FWD_DISPOSITIONED_RE = re.compile(r"graduat|\bheld\b|\bhold\b|folded|superseded", re.IGNORECASE)
+
+
+def _forward_discovery_dispositioned_ids(register_path: Path | None = None) -> set[str]:
+    """Track ids whose status cell records a director graduation ruling (graduated/held/folded/
+    superseded). Fail-safe: on any error, the EMPTY set -- so an unparseable cell errs toward
+    'still awaiting a ruling' (the [ACT] re-surfaces it), never toward silently dropping a track
+    that genuinely needs the director. Keyed on the ACTUAL status cell, never a constant (R15)."""
+    path = register_path or FORWARD_DISCOVERY_REGISTER_PATH
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return set()
+    return {
+        m.group(1) for m in _FWD_STATUS_ROW_RE.finditer(text)
+        if _FWD_DISPOSITIONED_RE.search(m.group(2))
+    }
+
+
 def _forward_discovery_draw(rng: Any = None, register_path: Path | None = None) -> str | None:
     """THE ALWAYS-DRAWABLE LANE (director steer 2026-07-22 §3, SELF_MEASUREMENT_
     UNIFIED_DESIGN.md §3; mechanised 2026-07-22 under the HARD RULE above). When
@@ -1550,7 +1574,9 @@ def forward_discovery_law_status(register_path: Path | None = None) -> dict:
     graduation [ACT], not a re-draw."""
     all_tracks = _forward_discovery_tracks(register_path)
     complete = _forward_discovery_complete_ids(register_path)
+    dispositioned = _forward_discovery_dispositioned_ids(register_path)
     drawable = [t[0] for t in all_tracks if t[0] not in complete]
+    awaiting = sorted(complete - dispositioned)
     wired = "_forward_discovery_draw" in globals() and callable(globals()["_forward_discovery_draw"])
     return {
         "rule": "THE TICK NEVER RESTS WHILE AUTHORIZED WORK EXISTS AT ANY PRIORITY",
@@ -1558,6 +1584,8 @@ def forward_discovery_law_status(register_path: Path | None = None) -> dict:
         "forward_discovery_tracks": [t[0] for t in all_tracks],
         "drawable_tracks": drawable,
         "complete_tracks": sorted(complete),
+        "awaiting_graduation": awaiting,          # DISCOVER-complete but no director ruling yet
+        "dispositioned_tracks": sorted(dispositioned),  # director has ruled (graduated/held/folded)
         "register_nonempty": bool(all_tracks),
         "drawable_nonempty": bool(drawable),
         "rest_currently_legitimate_only_if": "core + idle-advance + forward-discovery-DRAWABLE ALL empty",
@@ -1605,25 +1633,29 @@ def forward_discovery_graduation_proposal(register_path: Path | None = None):
         text = Path(path).read_text(encoding="utf-8")
     except OSError:
         return None
-    complete = _forward_discovery_complete_ids(path)
-    if not complete:
+    # AWAITING = reached DISCOVER-complete but NOT yet ruled on by the director. A track the
+    # director has already dispositioned (graduated/held/folded) has left the lane and must not be
+    # re-surfaced -- else the [ACT] would keep asking for a call already made (director console
+    # 2026-07-22: F1 graduated, F2 folded, F3/F5 held, F4 item-1 graduated -> awaiting becomes {}).
+    awaiting = sorted(_forward_discovery_complete_ids(path) - _forward_discovery_dispositioned_ids(path))
+    if not awaiting:
         return None
     titles = dict(_forward_discovery_tracks(path))
     sections = {m.group(1): m.group(2) for m in _FWD_SECTION_RE.finditer(text)}
     lines = [
         f"{tid} ({re.sub(r'[*_]', '', titles.get(tid, '')).strip()}): "
         f"{_first_graduation_line(sections.get(tid, ''))}"
-        for tid in sorted(complete)
+        for tid in awaiting
     ]
     msg = (
-        f"[ACT] Forward-discovery register: {len(complete)} track(s) now DISCOVER-complete and "
+        f"[ACT] Forward-discovery register: {len(awaiting)} track(s) now DISCOVER-complete and "
         "awaiting YOUR graduation call. The always-drawable lane has left them (rest is now "
         "legitimate, proof: authorized set empty at every level) -- I will NOT self-open any into "
         "FRAME/BUILD. Per track, candidate graduation (what would move to FRAME) -> what it needs "
         "from you = your explicit steer to graduate / hold / drop. Full detail: "
         "docs/design/FORWARD_DISCOVERY_REGISTER.md.\n" + "\n".join(f"  - {ln}" for ln in lines)
     )
-    return msg, sorted(complete)
+    return msg, awaiting
 
 
 def maybe_emit_graduation_proposal(register_path: Path | None = None, notify_fn=None) -> str | None:

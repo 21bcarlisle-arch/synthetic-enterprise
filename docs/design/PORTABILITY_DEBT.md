@@ -7,6 +7,14 @@ moves no map level**: consolidating already-surfaced debt is DISCOVER output, no
 *code-remediation* items below (a `Money` type, a settlement-granularity config, a regime-optional cap
 invariant) remain **director/twin BUILD calls** and are named here as candidates only, not opened.
 
+> **Director ruling — 2026-07-22 (console; F4 graduation):** *"GRADUATE item (1) only: the doc-only
+> `PORTABILITY_DEBT.md` register. Items (2)-(4) become remediation-on-touch notes in it, not builds."*
+> This ratifies exactly the state below: **item (1) — this consolidated register — is the graduation**
+> (doc-only, done), and every code-remediation row (the `Money` type #1, VAT-by-jurisdiction #2,
+> settlement-granularity config #3, and the rest) is a **remediation-on-touch note, NOT a build**. No
+> atom is opened by this ruling; a row becomes a build only if the director later opens one explicitly.
+> The register's own **append-and-rerank maintenance rule** (below) is the standing home for future debt.
+
 ## Why this file exists
 
 The **portability doctrine** (`docs/staging/done/PORTABILITY_DESIGN_CONSTRAINTS.md`, 2026-07-10,

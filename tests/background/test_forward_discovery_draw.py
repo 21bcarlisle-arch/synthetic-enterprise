@@ -256,6 +256,53 @@ def test_no_graduation_proposal_when_nothing_complete(monkeypatch, tmp_path):
     assert sup.forward_discovery_graduation_proposal() is None
 
 
+# A register where the director has RULED on every complete track (graduated/held/folded). They
+# stay DISCOVER-complete (non-drawable) but must NOT be re-surfaced in the [ACT] -- the call is made.
+_REGISTER_ALL_DISPOSITIONED = """# Forward-Discovery Register
+
+| rank | track | class | criticality | status |
+|---|---|---|---|---|
+| **F1** | Simulating conversations | mission-required | **highest** — x | DISCOVER-complete; GRADUATED → FRAME (director 2026-07-22) |
+| **F2** | Explaining what we do, simply | committed | high — y | DISCOVER-complete; FOLDED into site (director 2026-07-22) |
+| **F3** | Volunteer programme mechanics | mission-required | high — z | DISCOVER-complete; HELD (director 2026-07-22) |
+
+## F1 — Simulating conversations *(highest)*
+body. Candidate graduation = the coupled-triad build.
+## F2 — Explaining what we do, simply
+body. graduation = harness bar before site page.
+## F3 — Volunteer programme mechanics
+body.
+"""
+
+
+def test_dispositioned_tracks_stay_non_drawable_but_drop_from_the_act(monkeypatch, tmp_path):
+    """Director-ruled tracks (graduated/held/folded) keep DISCOVER-complete in their cell, so the
+    tick still RESTS (they are non-drawable) -- but the graduation [ACT] no longer re-asks for a
+    call already made. Both properties at once."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_ALL_DISPOSITIONED)
+    # Still non-drawable -> rest holds (the fix's rest guarantee survives the ruling).
+    assert sup._forward_discovery_drawable_tracks() == []
+    assert sup._is_drained_and_gated() is True
+    # But no [ACT] -- every complete track has been ruled on (awaiting set empty).
+    assert sup._forward_discovery_dispositioned_ids() == {"F1", "F2", "F3"}
+    assert sup.forward_discovery_graduation_proposal() is None
+
+
+def test_act_surfaces_only_the_still_awaiting_track(monkeypatch, tmp_path):
+    """Mixed register: F1 ruled (graduated), F2 still awaiting a call. The [ACT] names ONLY F2."""
+    reg = _REGISTER_ALL_DISPOSITIONED.replace(
+        "| DISCOVER-complete; FOLDED into site (director 2026-07-22) |",
+        "| DISCOVER-complete 2026-07-22 (awaiting a ruling) |",
+    )
+    _point_register_at(monkeypatch, tmp_path, reg)
+    result = sup.forward_discovery_graduation_proposal()
+    assert result is not None
+    msg, ids = result
+    assert ids == ["F2"]                 # only the un-ruled track
+    assert "F2" in msg and "1 track(s)" in msg
+
+
 def test_graduation_emit_fires_once_per_complete_set(monkeypatch, tmp_path):
     """The batched [ACT] fires ONCE for a given complete-set and is suppressed as unchanged
     thereafter (transition-only via the notify contract). A CHANGED set re-fires."""
