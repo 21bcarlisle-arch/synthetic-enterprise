@@ -146,6 +146,37 @@ itself is not. This restores the honest under-count invariant, now enforced by
 `_counts_rework_after_revert_but_not_the_revert` /
 `_drops_same_level_reaffirmation` (mechanism, not just prose — MAKE_IT_STICK).
 
+**HARDEN re-verify (2026-07-22, RULE-0 self-refill draw of this AT-target atom).**
+Exit suite re-run green (`tests/tools/test_effort_calibration.py` +
+`tests/background/test_effort_digest.py`, **48 passed**). The
+demotion/re-affirmation control was **mutation-tested live** (R15): weakening the
+guard `cur.to_level <= prev.to_level` → `<` (i.e. re-admitting same-level
+re-affirmations as effort) reds
+`test_compute_durations_drops_same_level_reaffirmation`; restored → green. The
+control fires on its own named defect — not theatre.
+
+**NEW red-team finding (QUEUED, not fixed on sight — SELF_INTERRUPT_DISCIPLINE):
+batched-level-commit compression of the `by_size` distribution.** The map now
+carries real `size:` fields, so `calibration_by_size` reports live for the first
+time — but only the **`L`** band has ≥2-transition atoms, and its **median is
+0.56h** (durations feeding it: H11_naive_organ L1→L2 0.26h, G11 L2→L3 0.49h,
+G5 L1→L2 0.56h, A6 L2→L3 21.92h, H11 L2→L3 29.42h). The three sub-hour values
+are **not build effort** — they are consecutive level stamps landing minutes
+apart because CLAUDE.md *endorses* batching level bumps into nearby commits
+("batch levels"). So the L-band median is a batching artefact, and the band
+badly contradicts its own anchor (§2: L = "~1–2 day transitions"). This is in
+the **documented safe under-count direction** (§4/§5) — it deflates, never
+inflates, so it cannot manufacture a completion gate — but the practical
+consequence is that **`by_size` is not yet a trustworthy read** ("L atoms take
+0.56h" is false) and should not be surfaced as calibration truth until either
+(a) enough non-batched transitions dilute the artefact, or (b) `compute_durations`
+learns to treat two level bumps inside one batching window (< ~1h apart, same
+atom) as a single transition rather than two — the same class as the demotion
+exclusion, a non-effort pair that shouldn't count. Candidate follow-on atom
+(NOT registered here — orchestrator is sole map writer per THREE_LANES):
+`G5_batch_window_coalesce` — coalesce sub-window consecutive rises; keep the
+under-count invariant. Filed as a finding, not actioned, per QUEUE-by-default.
+
 ## 5. THE GUARDRAIL — dial, not a wall (non-negotiable)
 
 Sizing and calibration are diagnostics. They inform decomposition and

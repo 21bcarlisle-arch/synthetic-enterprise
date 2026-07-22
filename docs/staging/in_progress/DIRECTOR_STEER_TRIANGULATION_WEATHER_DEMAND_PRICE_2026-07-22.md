@@ -1,5 +1,12 @@
 # DIRECTOR STEER — Extend the triangulation: weather, demand, and wholesale price FORMATION (2026-07-22)
 
+> **PARKED in in_progress/ (2026-07-22, autonomous tick).** DISCOVER→FRAME done, doc-only, reversible:
+> `docs/design/TRIANGULATION_WEATHER_DEMAND_PRICE_FRAME.md` (design principle recorded proposed-for-canon;
+> all three domains reconciled vs the live map; candidate atoms named; "NOT credible" battery seeds).
+> **OPEN sub-item / what unblocks:** board Specs 002/003/004 have NOT landed (commissioned blind, in
+> parallel) — line-by-line reconciliation (met/partial/absent/NA) and the generator/engine model-family
+> BUILD proposals are pending their arrival. Move to done/ once all three specs are reconciled.
+
 **Type:** [STEER] — extends the Spec-001 pattern (blind board expectation × advisor documentary anchors × your primary DISCOVER) to three further domains. The pattern has proven itself: the blind route surfaced gas-first, which no inside route produced. Mechanism yours; the constructs below are the wall.
 
 ## The three domains
