@@ -438,3 +438,62 @@ untouched: **no volunteer approached, no household data held** — DISCOVER read
 #7 real customer). With the pilot's ingest mechanism now validated to a live route, F3 has **no dangling load-bearing
 assumption left** — the register entry is DISCOVER-complete to a depth that would survive a build handoff; await
 director graduation.
+
+## §Increment (2026-07-22, forward-discovery tick, R17) — Q1's security-review scope validated against TWO independent external standards (the one F3 section never externally anchored)
+
+The tick drew **F3** (agenda empty except an auto-processor-owned `run_complete`; core/idle BUILD lanes empty).
+Network probed **live first** (ico.org.uk 200, ncsc.gov.uk 200, gov.uk 200 — not a drained-pending-network artifact).
+Every *labelled* F3 residual was already closed, but **Q1 (the security-review scope — the literal deliverable of this
+DISCOVER pass, "the review is the gate; its scope is the deliverable") self-admits at line 36–37 it was *"Assembled
+from the repo's own security-profile doctrine and UK data-protection law already cited in-repo — **not re-derived from
+a live standard**."*** It is the one F3 section whose *finding was never cross-checked against an external, independent
+framework — unlike Q2 (DCC accreditation, midata) and Q3 (live ingest route), each of which got a primary-source pass.
+This increment closes that gap by validating the seven-item scope against **two authoritative external standards**,
+both primary-sourced this tick, neither SIM ground truth:
+- **UK GDPR Article 35(7)** — the *statutory minimum content of a DPIA* — text-read from the primary source
+  (`legislation.gov.uk/eur/2016/679/article/35`; the ICO's own DPIA how-to page 403'd again, consistent with prior
+  passes, so the primary statute was read directly). Art. 35(7) mandates four elements: (a) systematic description of
+  processing + purposes; **(b) a necessity-and-proportionality assessment**; (c) an assessment of risks to rights &
+  freedoms; (d) the measures to address those risks (safeguards, security measures, mechanisms). Plus **Art. 35(2)**
+  (seek the DPO's advice) and **Art. 35(9)** (seek data subjects' views where appropriate).
+- **NCSC Cyber Essentials** — the *baseline UK technical-controls set* — read from `ncsc.gov.uk/cyberessentials`:
+  five controls — **firewalls, secure configuration, security-update (patch) management, user access control, malware
+  protection**.
+
+**Verdict — CONFIRMS the scope is well-founded, and SHARPENS it with three named additions to make it a *complete*
+reviewable deliverable; overturns nothing.** Mapping Q1's seven items onto the two standards:
+
+- **Strong coverage / CONFIRMED.** The DPIA-first gate (item 1) is exactly right — F3's processing hits Art. 35(1)
+  new-technology-high-risk **and** Art. 35(3)(a) systematic-extensive-profiling triggers on the statute's own wording,
+  so mandatory-DPIA is now confirmed against the *statutory trigger text*, not just the ICO example list closed in a
+  prior pass. Art. 35(7)**(d)** "measures to address risks" is covered **densely** by items 4 (Hardened storage),
+  5 (consent lifecycle → verified deletion), 6 (Art. 33 breach path) and 7 (channel security). Art. 35**(9)** (views
+  of data subjects) is *structurally satisfied* by the pilot design itself — the volunteers ARE the data subjects,
+  consulted by construction — a happy alignment worth naming.
+- **GAP-1 (Art. 35(7)(b)) — a named necessity-and-proportionality assessment is missing.** Q1 item 3 requires
+  *data-minimisation* (the minimum field-set), which is adjacent but **not the same statutory test**: necessity asks
+  *"is any HH ingest necessary at all to achieve the purpose"* and proportionality asks *"is the intrusion justified by
+  the benefit."* For a **non-supplier third party** this is the *sharpest* DPIA question in the whole scope — the
+  necessity bar is unusually high precisely because Poesys has no contract-necessity fallback (Q2's Finding A), so a
+  reviewer must justify why the volunteer cannot self-compute the gap without handing raw HH data over at all. The
+  scope should add necessity-and-proportionality as its own first-class deliverable, distinct from minimisation.
+- **GAP-2 (Art. 35(2)) — no DPO / independent sign-off step.** The statute requires the DPIA seek the DPO's advice;
+  Q1 lists no independent review/sign-off gate. For a go-live this is a real omission (and dovetails with door #5 being
+  director-reserved — the *human* sign-off is the non-delegable core of the gate).
+- **GAP-3 (Cyber Essentials) — item 4's technical-controls list is a subset of the baseline.** The Hardened-profile
+  description ("container, unreadable creds, audit, RBAC" + encryption at rest/in transit) maps cleanly to CE's
+  *user-access-control* and *secure-configuration* controls, but **omits two of the five baseline controls —
+  security-update/patch management and malware protection** (firewalls ≈ the existing egress allowlist, partial). A
+  complete storage-posture item should reference the full CE-5 (or NCSC CAF) baseline, not just access + config, so
+  the review can't pass while leaving unpatched/un-scanned surface holding real household data.
+
+**Net:** the security-review scope was *sound in shape* and is now **externally corroborated as such**, while gaining
+three concrete, standards-anchored additions (necessity-and-proportionality as a named test; a DPO/independent sign-off
+gate; the full CE-5 technical baseline for the storage item) that turn it from an internally-assembled list into a
+deliverable that would **survive an external DPA/security reviewer's read**. This is the one F3 section that had not
+had its finding validated against an independent standard; it now has. **CONFIRMS/sharpens, overturns nothing.** Sources
+are primary regulator/statute (legislation.gov.uk) + NCSC, both independent, neither SIM ground truth. Honesty facts
+untouched: **no volunteer approached, no household data held** — DISCOVER read published standards, ran nothing. **No
+atom opened, no map level change** (BUILD-open stays doubly director-reserved: one-way doors #5 safety-posture + #7
+real customer). With Q1 now externally validated, F3 has **no un-anchored section and no dangling thread left** —
+residual is genuinely churn/graduation only; await director graduation.

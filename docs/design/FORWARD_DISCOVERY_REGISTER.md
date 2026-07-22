@@ -243,6 +243,28 @@ live-viable today independent of the paused midata. Honesty facts untouched (no 
 mechanism now validated to a live route, F3 has **no dangling load-bearing assumption left**; residual is genuinely
 churn/graduation only. Await director graduation.
 
+**Increment (2026-07-22, forward-discovery tick, R17) — Q1's security-review SCOPE validated against two independent
+external standards (the one F3 section never externally anchored)** (`f3_...md` §Increment, last). The tick drew **F3**;
+network probed **live first** (ico/ncsc/gov.uk 200). Every *labelled* residual was already closed, but **Q1 — the
+security-review scope, the literal deliverable of the pass — self-admits (line 36–37) it was assembled from in-repo
+doctrine, "not re-derived from a live standard"**: it is the one F3 section whose finding was never cross-checked
+against an external framework (unlike Q2/Q3, each primary-sourced). Closed by validating the seven-item scope against
+**UK GDPR Art. 35(7)** (statutory DPIA-content minimum, read from `legislation.gov.uk` — the ICO how-to page 403'd
+again) and **NCSC Cyber Essentials** (the five baseline technical controls). **Verdict — CONFIRMS the scope is
+well-founded, SHARPENS it with three standards-anchored additions, overturns nothing:** the DPIA-first gate is
+confirmed against Art. 35's *statutory trigger text* (35(1) new-tech-high-risk + 35(3)(a) systematic-profiling), and
+Art. 35(7)(d) "measures" is densely covered by items 4–7 — but three genuine gaps surface. **GAP-1 (Art. 35(7)(b)):**
+no explicit **necessity-and-proportionality assessment** — distinct from item 3's data-minimisation, and the *sharpest*
+DPIA question for a non-supplier third party (is any HH ingest necessary at all vs. the volunteer self-computing, given
+Poesys has no contract-necessity fallback). **GAP-2 (Art. 35(2)):** no **DPO/independent sign-off** step named.
+**GAP-3 (Cyber Essentials):** item 4's Hardened-profile list ("container, unreadable creds, audit, RBAC" + encryption)
+omits **two of the five baseline controls — security-update/patch management and malware protection**. Net: the scope
+was sound in shape and is now externally corroborated as such, gaining three concrete additions that would let it
+survive an external DPA/security reviewer's read. Sources primary (legislation.gov.uk statute) + NCSC, both
+independent, neither SIM ground truth; honesty facts untouched (no volunteer approached, no data held). **No atom
+opened, no map level change** (doors #5 + #7). With Q1 now externally validated, F3 has **no un-anchored section left**;
+residual is genuinely churn/graduation only. Await director graduation.
+
 ## F4 — International expansion probe
 
 **Purpose.** The pitch asserts "global by design"; §13 admits transfer is unproven. Produce **evidence for or
