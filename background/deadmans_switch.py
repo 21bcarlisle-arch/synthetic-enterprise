@@ -244,6 +244,17 @@ def _reping_open_action_needed_items() -> None:
     register_item(), which no longer gates anything. A failed/falsy send leaves
     the item due, so the very next deadman cycle (<= POLL_INTERVAL_SECONDS)
     retries instead of going silent for a day."""
+    # CLASS FIX (2026-07-21, R10): before re-pinging, reconcile the register against
+    # observable staging state -- clear any `staged:` item whose doc has left the root
+    # by ANY archival route (done/, in_progress/, removed), not just the single sweep
+    # that used to be the sole clear path. This is what stops an already-consumed steer
+    # from being re-pinged to the director daily. Fail-safe: a reconcile error never
+    # blocks the re-ping pass (Rule 0).
+    try:
+        for item_id in action_needed.reconcile_staged_items(STAGING_DIR):
+            log(f"Reconciled (cleared) already-archived staged item: {item_id}")
+    except Exception as _e:
+        log(f"staged-item reconcile skipped (non-fatal): {_e}")
     for entry in action_needed.due_for_reping():
         sent_id = notify(action_needed.format_action_needed(
             entry["item_id"], entry["what"], entry["how"], entry["why"],

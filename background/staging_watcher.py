@@ -259,15 +259,15 @@ def check_remote(seen: set[str]) -> set[str]:
         local_path = STAGING_DIR / name
         if local_path.exists():
             continue  # already present
-        # Do NOT resurrect a doc that has already been consumed+archived to
-        # done/ (2026-07-16 re-stick root cause): while local HEAD is behind
-        # origin, local_head..origin/main keeps containing the [ADVISOR-STAGED]
-        # commits that first added these docs, so this bridge re-materialised
-        # them into root every cycle even after they were moved to done/ --
-        # re-jamming the supervisor forever. An archived copy in done/ is the
-        # canonical "consumed" signal; skip it. (A genuine re-issue reuses a
-        # fresh name, as advisor/director docs already do.)
-        if (_done_dir() / name).exists():
+        # Do NOT resurrect a doc that has already been consumed: archived to done/
+        # (2026-07-16 re-stick root cause) OR parked to in_progress/ (2026-07-21
+        # class-fix -- the 2026-07-16 fix guarded done/ ONLY, so a doc consumed into
+        # in_progress/ was still re-materialised into root and re-pinged). While local
+        # HEAD is behind origin, local_head..origin/main keeps containing the
+        # [ADVISOR-STAGED] commits that first added these docs, so this bridge would
+        # re-materialise them into root every cycle. Either subdir is the canonical
+        # "consumed" signal; skip it. (A genuine re-issue reuses a fresh name.)
+        if (_done_dir() / name).exists() or (_in_progress_dir() / name).exists():
             continue
         rc4, content, err4 = _run(["git", "show", "origin/main:" + remote_path])
         if rc4 != 0:
@@ -323,6 +323,13 @@ def _done_dir() -> Path:
     monkeypatch STAGING_DIR get a matching done/ dir (see action_needed.py's
     _resolve_path for the same call-time-vs-def-time lesson)."""
     return STAGING_DIR / DONE_DIRNAME
+
+
+def _in_progress_dir() -> Path:
+    """docs/staging/in_progress/, derived from STAGING_DIR at CALL time (same
+    call-time reason as _done_dir). A doc parked here is consumed-but-open, an
+    equally-valid 'do not resurrect into root' signal as done/."""
+    return STAGING_DIR / "in_progress"
 
 
 def _from_rich_timestamp(path: Path) -> datetime:

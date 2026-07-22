@@ -241,6 +241,44 @@ def clear_item(item_id: str, path: Path | None = None) -> None:
         save_register(reg, path)
 
 
+def reconcile_staged_items(staging_root, path: Path | None = None) -> list[str]:
+    """CLASS FIX (2026-07-21, R10 -- extend the invariant so the whole class fails,
+    not the two instances): clear every `staged:NAME` register item whose file no
+    longer sits in the staging ROOT. Such a doc has been consumed by SOME route --
+    archived to done/, parked to in_progress/, or removed -- and is no longer an open
+    root item the director needs paging about.
+
+    The defect this closes: a `staged:` item used to be cleared from exactly ONE code
+    path (staging_watcher.archive_from_rich's ROOT->done sweep). EVERY other archival
+    route -- a manual mv, a worker commit, a park to in_progress/ -- left the register
+    item orphaned, and the deadman re-pinged it to the director daily forever (real
+    incident 2026-07-21: value-frontier + throughput + segmentation-learning, three
+    consumed steers re-pinging ~24h after consumption, twice in one day). Clearing now
+    depends on the OBSERVABLE state (is the doc still an open root file?), not on which
+    code path happened to archive it -- so no future archival route can orphan an item.
+
+    A doc still sitting in the root is genuinely unprocessed and is left to re-ping.
+    Returns the list of item_ids cleared (for logging/tests).
+
+    R15 FAIL-SAFE: an unobservable staging root (the directory does not exist) is a
+    FAILED check, not "everything is archived" -- clearing all director-paging items
+    because we cannot see the root would be the fail-open defect this very register
+    exists to avoid. So a missing root clears NOTHING (keep re-pinging: over-paging is
+    the safe direction, silently dropping a genuine escalation is not)."""
+    root = Path(staging_root)
+    if not root.is_dir():
+        return []
+    register = load_register(path)
+    cleared = [
+        item_id for item_id in register
+        if item_id.startswith("staged:")
+        and not (root / item_id[len("staged:"):]).is_file()
+    ]
+    for item_id in cleared:
+        clear_item(item_id, path=path)
+    return cleared
+
+
 def open_items(path: Path | None = None) -> list[dict]:
     return [e for e in load_register(path).values() if not e["resolved"]]
 

@@ -340,3 +340,72 @@ def test_resolve_by_pin_closes_the_matching_open_escalation(path):
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# --------------------------------------------------------------------------- #
+# reconcile_staged_items -- the 2026-07-21 R10 class-fix (a staged item whose
+# doc has left the root by ANY archival route is cleared; one still in the root
+# is left to re-ping). Mutation-style: prove it FIRES per route and does NOT
+# over-clear a genuinely-open root item.
+# --------------------------------------------------------------------------- #
+def _mk(root, sub, name):
+    d = root / sub if sub else root
+    d.mkdir(parents=True, exist_ok=True)
+    (d / name).write_text("x")
+
+
+def test_reconcile_clears_items_archived_by_any_route(path, tmp_path):
+    root = tmp_path / "staging"
+    root.mkdir()
+    # Four staged items, each consumed by a DIFFERENT route (the whole class):
+    for nm in ("DONE.md", "PARKED.md", "ROOT.md"):
+        action_needed.register_item(f"staged:{nm}", "read it", "action", "director", path=path)
+    action_needed.register_item("staged:GONE.md", "read it", "action", "director", path=path)
+    action_needed.register_item("not-a-staged-item", "x", "y", "z", path=path)  # untouched
+    _mk(root, "done", "DONE.md")            # archived to done/
+    _mk(root, "in_progress", "PARKED.md")   # parked to in_progress/
+    _mk(root, "", "ROOT.md")                # STILL in root -> genuinely open
+    # GONE.md exists nowhere -> removed
+
+    cleared = set(action_needed.reconcile_staged_items(root, path=path))
+
+    assert cleared == {"staged:DONE.md", "staged:PARKED.md", "staged:GONE.md"}
+    reg = action_needed.load_register(path)
+    assert "staged:ROOT.md" in reg          # still an open root item -> NOT cleared
+    assert "not-a-staged-item" in reg        # non-staged untouched
+    for gone in ("staged:DONE.md", "staged:PARKED.md", "staged:GONE.md"):
+        assert gone not in reg
+
+
+def test_reconcile_stops_the_reping_of_a_consumed_item(path, tmp_path):
+    """The end-to-end property: a consumed (archived) staged item is due_for_reping
+    BEFORE reconcile and gone AFTER -- i.e. the daily re-ping is actually stopped."""
+    root = tmp_path / "staging"
+    root.mkdir()
+    old = "2026-07-19T05:00:00+00:00"  # last confirmed send well over 24h ago
+    action_needed.register_item("staged:CONSUMED.md", "read it", "act", "director",
+                                path=path, now=old)
+    action_needed.mark_sent("staged:CONSUMED.md", path=path, now=old)
+    _mk(root, "done", "CONSUMED.md")  # it has since been archived
+
+    due_before = {e["item_id"] for e in action_needed.due_for_reping(path=path)}
+    assert "staged:CONSUMED.md" in due_before   # would re-ping the director
+
+    action_needed.reconcile_staged_items(root, path=path)
+
+    due_after = {e["item_id"] for e in action_needed.due_for_reping(path=path)}
+    assert "staged:CONSUMED.md" not in due_after  # re-ping stopped at the source
+
+
+def test_reconcile_fails_safe_on_missing_root(path, tmp_path):
+    """R15 fail-safe: an unobservable staging root (dir missing) must clear NOTHING
+    -- clearing every director-paging item because we cannot see the root is the
+    fail-open defect this register exists to prevent."""
+    action_needed.register_item("staged:X.md", "w", "h", "y", path=path)
+    assert action_needed.reconcile_staged_items(tmp_path / "nope", path=path) == []
+    assert "staged:X.md" in action_needed.load_register(path)  # NOT dropped
+
+    # An empty (but existing) root -> the item's doc genuinely isn't there -> cleared.
+    empty = tmp_path / "staging"
+    empty.mkdir()
+    assert action_needed.reconcile_staged_items(empty, path=path) == ["staged:X.md"]
