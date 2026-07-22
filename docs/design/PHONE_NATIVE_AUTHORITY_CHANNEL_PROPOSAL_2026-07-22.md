@@ -1,6 +1,14 @@
 # PROPOSAL — Phone-native director authority (end the console dependency)
 
-**Status:** PROPOSED — designed + R15-proven, **NOT applied**. One console ratification (below) applies it.
+**Status:** ✅ **APPLIED 2026-07-22** — the director ratified in a live console turn ("wire the
+phone-authority channel"), the last routine console act. Wired: `gate_authorization.py` now accepts
+`director_authority_channels.is_valid_phone_authority` entries for ROUTINE actions (console composes
+additively, unchanged); the advisor-bridge git-authorship check is added; `ntfy_responder.py` ledgers
+HMAC-verified `RULING:<action>:<atom>` inbounds; deadman folds the proven-rest signal (no false STALL
+on legitimate rest). R15 both-ways re-proven THROUGH the gate (33 gate tests incl. reserved-action /
+repurpose / worker-forgery / no-key / stale-replay fail-closed). Daemons restarted (R2). Live end-to-end
+proof with the director pending (his phone-side HMAC setup).
+**(historical) Status when written:** PROPOSED — designed + R15-proven, NOT applied.
 **Provenance:** `docs/staging/DIRECTOR_STEER_PHONE_AUTHORITY_CHANNEL_2026-07-22.md`, Part 2.
 **Steer tag:** *Part 1 proceed; Part 2 propose-then-ratify (console, final time).*
 

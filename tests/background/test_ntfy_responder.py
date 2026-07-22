@@ -391,3 +391,29 @@ def test_register_inbound_prunes_outside_window():
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# ── PHONE-NATIVE AUTHORITY: responder ledgers a HMAC-verified RULING (director ratification 2026-07-22)
+def test_maybe_ledger_director_ruling_writes_on_valid_signature(tmp_path, monkeypatch):
+    import background.ntfy_utils as ntfy_utils
+    from background import director_authority_channels as dac
+    from background import gate_authorization as G
+    monkeypatch.setattr(ntfy_utils, "WAKE_HMAC_KEY", "test-key-responder")
+    led = tmp_path / "gate_authorizations.jsonl"
+    monkeypatch.setattr(G, "LEDGER_PATH", led)
+    signed = ntfy_utils.sign_wake_message(dac._bound_signed_text("BUILD_OPEN", "AtomX"))
+    entry = responder._maybe_ledger_director_ruling(signed)
+    assert entry is not None and entry["action"] == "BUILD_OPEN" and entry["atom"] == "AtomX"
+    assert entry["channel"] == dac.DIRECTOR_NTFY
+    assert len(G.read_ledger(led)) == 1
+
+
+def test_maybe_ledger_director_ruling_ignores_ordinary_message(tmp_path, monkeypatch):
+    import background.ntfy_utils as ntfy_utils
+    from background import gate_authorization as G
+    monkeypatch.setattr(ntfy_utils, "WAKE_HMAC_KEY", "test-key-responder")
+    led = tmp_path / "gate_authorizations.jsonl"
+    monkeypatch.setattr(G, "LEDGER_PATH", led)
+    # An ordinary human message is not a signed RULING → nothing ledgered, no crash.
+    assert responder._maybe_ledger_director_ruling("hey can you check the dashboard") is None
+    assert G.read_ledger(led) == []

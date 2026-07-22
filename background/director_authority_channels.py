@@ -42,7 +42,13 @@ Proven in tests/background/test_director_authority_channels.py:
 """
 from __future__ import annotations
 
-from background.ntfy_utils import verify_wake_message
+# NOTE: `verify_wake_message` is imported LAZILY inside is_valid_director_ntfy (not at module top).
+# background.ntfy_utils RAISES at import if SE_NTFY_TOPIC is unset (the send-path topic), but HMAC
+# verification only needs SE_WAKE_HMAC_KEY. A top-level import would make this module — and, since
+# the 2026-07-22 wiring, gate_authorization which imports it — hard-fail to import in any process
+# lacking the NTFY *send* topic (e.g. the pre-commit import check). Deferring the import decouples
+# authority-verification from the send env; the key check itself still fails-closed if the HMAC key
+# is unavailable (verify_wake_message returns None).
 
 # ── the ROUTINE allowlist — the ONLY actions a non-console channel may authorize ──────────────
 # Mirrors the gate ledger's existing routine action vocabulary + GRADUATE (forward-discovery). A
@@ -100,6 +106,14 @@ def is_valid_director_ntfy(entry, *, max_age_seconds: int = NTFY_MAX_AGE_SECONDS
         return False
     signed = entry.get("signed_payload")
     if not isinstance(signed, str) or not signed:
+        return False
+    try:
+        from background.ntfy_utils import verify_wake_message  # lazy: see module-top note
+    except Exception:
+        # ntfy_utils unavailable (e.g. the send-topic env is unset in this process). An
+        # unavailable verification is a FAILED check (R15 fail-silent guard), never a pass —
+        # FAIL-CLOSED rather than raise, so a caller evaluating authority in a topic-less process
+        # rejects the entry instead of crashing.
         return False
     verified_text = verify_wake_message(signed, max_age_seconds=max_age_seconds)
     if verified_text is None:  # no key, bad signature, or stale — all FAIL-CLOSED

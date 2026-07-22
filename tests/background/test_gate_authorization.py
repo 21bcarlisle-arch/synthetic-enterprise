@@ -256,3 +256,140 @@ def test_record_twin_level_up_writes_honest_envelope_and_refuses_l3(tmp_path):
     with pytest.raises(ValueError):
         G.record_twin_level_up("A", None, "no level", path=led)  # type: ignore[arg-type]
     assert len(G.read_ledger(led)) == 1  # only the valid L2 entry was ever written
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# PHONE-NATIVE AUTHORITY WIRING (director console ratification 2026-07-22).
+# R15 both ways THROUGH the gate predicates (not just the pure dac module): a genuine phone ruling
+# authorizes a live promotion; a forged/reserved/repurposed/keyless one does NOT clear the wall.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+import background.ntfy_utils as _ntfy_utils
+from background import director_authority_channels as _dac
+
+_PHONE_KEY = "test-hmac-key-for-gate-wiring"
+
+
+def _key(monkeypatch):
+    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", _PHONE_KEY)
+
+
+def _signed_ntfy_entry(action="BUILD_OPEN", atom="F1a", *, key_text=None, provenance="phone ruling"):
+    text = _dac._bound_signed_text(action, atom)
+    signed = _ntfy_utils.sign_wake_message(text)  # signs with the patched global key
+    return {"atom": atom, "action": action, "authorized_by": "director",
+            "channel": _dac.DIRECTOR_NTFY, "signed_payload": signed, "provenance": provenance}
+
+
+def _bridge_runner(author):
+    """A fake git runner returning `author` as %an for `git log -1 --format=%an <c>`."""
+    class _R:
+        returncode = 0
+        stdout = author + "\n"
+    return lambda args: _R()
+
+
+# ── PASS: a genuine phone ruling clears a live promotion through the gate wall ──────────────────
+def test_phone_ntfy_BUILD_OPEN_authorizes_a_promotion(tmp_path, monkeypatch):
+    _key(monkeypatch)
+    entry = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")
+    assert G._is_valid_authorization(entry) is True
+    r = _eval(tmp_path, {"X": "idle"}, {"X": "build"}, [entry])
+    assert r["status"] == "GATE_CLEAN", r  # phone authority actually clears the wall live
+
+
+def test_phone_advisor_ruling_authorizes_only_with_bridge_authorship(monkeypatch):
+    entry = {"atom": "Y", "action": "BUILD_OPEN", "authorized_by": "director",
+             "channel": _dac.ADVISOR_RULING, "ruling_marker": _dac.RULING_MARKER,
+             "commit": "abc123", "provenance": "advisor [DIRECTOR-RULING]"}
+    # Bridge-authored commit → valid; any other author → rejected (fail-closed).
+    assert G._valid_phone_authority(entry, "BUILD_OPEN",
+                                    runner=_bridge_runner(G.ADVISOR_BRIDGE_AUTHOR_NAME)) is True
+    assert G._valid_phone_authority(entry, "BUILD_OPEN",
+                                    runner=_bridge_runner("Rich Carlisle")) is False
+    assert G._advisor_commit_is_bridge_authored("", runner=_bridge_runner("x")) is False  # no commit
+
+
+def test_phone_level_up_and_front_open_accept_genuine_rulings(monkeypatch):
+    _key(monkeypatch)
+    lvl = _signed_ntfy_entry(action="LEVEL_UP_PROPOSED", atom="Z")
+    assert G.is_valid_level_up(lvl) is True
+    fo = _signed_ntfy_entry(action="FRONT_OPEN", atom="W")
+    fo["front"] = "epoch2"
+    assert G.is_valid_front_open(fo) is True
+
+
+# ── FAIL-CLOSED: the wall the phone channel must NOT cross ──────────────────────────────────────
+def test_R15_reserved_action_rejected_even_with_perfect_signature(monkeypatch):
+    _key(monkeypatch)
+    # A safety/authz-trust action is NOT on ROUTINE_ACTIONS → invalid even perfectly signed.
+    for reserved in ("SKIP_PERMISSIONS", "PROFILE_CHANGE", "SAFETY_CONTROL_CHANGE", "BUILD_OPENX"):
+        e = _signed_ntfy_entry(action=reserved, atom="X")
+        assert G._valid_phone_authority(e, reserved) is False, reserved
+        assert G._is_valid_authorization(e) is False, reserved
+
+
+def test_R15_signature_cannot_be_repurposed_across_actions(monkeypatch):
+    _key(monkeypatch)
+    # Perfectly signed for BUILD_OPEN — must NOT satisfy a LEVEL_UP predicate.
+    e = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")
+    assert G.is_valid_level_up(e) is False
+    assert G._valid_director_act(e, "LEVEL_UP_PROPOSED") is False
+
+
+def test_R15_worker_forgery_wrong_key_rejected(monkeypatch):
+    _key(monkeypatch)
+    good = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")
+    # Re-sign the same text with a DIFFERENT (worker) key → verification fails against the real key.
+    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", "worker-forged-key")
+    forged_sig = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("BUILD_OPEN", "X"))
+    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", _PHONE_KEY)  # back to the real key
+    good["signed_payload"] = forged_sig
+    assert G._is_valid_authorization(good) is False
+
+
+def test_R15_no_key_fails_closed(monkeypatch):
+    entry = _signed_ntfy_entry(action="BUILD_OPEN", atom="X")  # signed while key present in helper? no
+    monkeypatch.setattr(_ntfy_utils, "WAKE_HMAC_KEY", None)  # key unavailable ⇒ verify returns None
+    assert G._is_valid_authorization(entry) is False
+
+
+def test_console_authorization_still_works_no_regression(tmp_path):
+    # The additive wiring must not break the pre-existing console path.
+    console = _valid_entry("X")  # {atom, action:BUILD_OPEN, authorized_by:director, channel:console,...}
+    assert G._is_valid_authorization(console) is True
+    r = _eval(tmp_path, {"X": "idle"}, {"X": "build"}, [console])
+    assert r["status"] == "GATE_CLEAN"
+
+
+# ── The responder-side writer: fail-closed minting of a director_ntfy ledger entry ──────────────
+def test_record_director_ntfy_ruling_writes_only_on_valid_signature(tmp_path, monkeypatch):
+    _key(monkeypatch)
+    led = tmp_path / "ledger.jsonl"
+    signed = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("BUILD_OPEN", "A"))
+    e = G.record_director_ntfy_ruling(signed, path=led)
+    assert e is not None and e["action"] == "BUILD_OPEN" and e["atom"] == "A"
+    assert e["channel"] == _dac.DIRECTOR_NTFY and e["authorized_by"] == "director"
+    assert len(G.read_ledger(led)) == 1
+    # And that written entry actually authorizes through the read-side predicate.
+    assert G._is_valid_authorization(G.read_ledger(led)[0]) is True
+
+
+def test_record_director_ntfy_ruling_mints_nothing_on_bad_input(tmp_path, monkeypatch):
+    _key(monkeypatch)
+    led = tmp_path / "ledger.jsonl"
+    # Unsigned junk, a non-RULING signed message, and a RESERVED action all write NOTHING.
+    assert G.record_director_ntfy_ruling("not a signed payload", path=led) is None
+    plain = _ntfy_utils.sign_wake_message("hello there")  # valid HMAC but not a RULING
+    assert G.record_director_ntfy_ruling(plain, path=led) is None
+    reserved = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("SKIP_PERMISSIONS", "A"))
+    assert G.record_director_ntfy_ruling(reserved, path=led) is None
+    assert G.read_ledger(led) == []  # fail-closed: no ledger pollution
+
+
+def test_record_director_ntfy_ruling_rejects_stale_replay(tmp_path, monkeypatch):
+    _key(monkeypatch)
+    led = tmp_path / "ledger.jsonl"
+    stale = _ntfy_utils.sign_wake_message(_dac._bound_signed_text("BUILD_OPEN", "A"),
+                                          timestamp=1)  # ancient
+    assert G.record_director_ntfy_ruling(stale, path=led) is None
+    assert G.read_ledger(led) == []

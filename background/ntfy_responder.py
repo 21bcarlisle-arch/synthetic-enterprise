@@ -235,6 +235,28 @@ def _write_to_staging(message: str) -> Path | None:
     return path
 
 
+def _maybe_ledger_director_ruling(message: str):
+    """PHONE-NATIVE AUTHORITY (director console ratification 2026-07-22): if an inbound NTFY message
+    HMAC-verifies as a bound `RULING:<action>:<atom>` for a ROUTINE action, mint a director_ntfy
+    authority ledger entry so the gate predicates accept it. FAIL-CLOSED and FAIL-SAFE: an
+    unverifiable / stale / reserved-action / malformed message ledgers NOTHING (record_director_ntfy_
+    ruling returns None), and any exception is swallowed so authority-ledgering never crashes the
+    responder. Returns the written entry or None. The message is STILL staged normally afterward so
+    the agent is woken to ACT on the now-cleared gate (ledger + act, per the live-proof requirement)."""
+    try:
+        from background.gate_authorization import record_director_ntfy_ruling
+        entry = record_director_ntfy_ruling(
+            message.strip(),
+            provenance="director_ntfy inbound ruling (HMAC-verified by ntfy_responder)")
+        if entry is not None:
+            log(f"[DIRECTOR-RULING ledgered] director_ntfy {entry['action']}:{entry['atom']} "
+                "— HMAC-verified inbound; gate authority recorded (the agent acts on the cleared gate)")
+        return entry
+    except Exception as exc:  # never let authority-ledgering crash the responder
+        log(f"director-ruling ledgering skipped (non-fatal): {exc}")
+        return None
+
+
 def _rate_state_file() -> Path:
     """Resolved at CALL time from the module global PROJECT_DIR (same pattern as
     _write_to_staging) so a test's monkeypatch of PROJECT_DIR redirects it."""
@@ -423,6 +445,10 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
             classify_and_log_message(message, channel_hint="ntfy")
         except Exception:
             pass  # logging must never block real inbound processing
+
+        # PHONE-NATIVE AUTHORITY: mint a director_ntfy authority entry if this is a signed RULING
+        # (fail-closed inside; a normal message ledgers nothing and just stages as usual below).
+        _maybe_ledger_director_ruling(message)
 
         staged_path = _write_to_staging(message)
         reply = build_status_reply(staged_path)

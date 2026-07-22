@@ -447,6 +447,23 @@ def _check_operational_layer_signal() -> None:
         log(f"operational-layer signal check error: {e}")
 
 
+def _rest_is_proven_legitimate() -> bool:
+    """True ONLY if it can POSITIVELY confirm there is no authorized work anywhere -- the supervisor's
+    `_is_drained_and_gated()` (BUILD/SITE/DISCOVER/backlog/forward-discovery-DRAWABLE all empty). This
+    is the machine truth behind the 'REST-LEGITIMATE' status line the director told the deadman to
+    consume: a proven rest means no commit is EXPECTED, so the [STALL] backstop must not false-page it.
+
+    This reads DISK truth (is there work to do?), not a live-process heartbeat, so consuming it does
+    NOT surrender the deadman's independence -- it still fires on a wedged loop that HAS drawable work.
+    FAIL-SAFE TOWARD ALARM (R15): any import/read error, or an inability to confirm rest, returns
+    False, so the deadman keeps its power to page whenever it cannot PROVE the rest is legitimate."""
+    try:
+        from background.supervisor import _is_drained_and_gated
+        return bool(_is_drained_and_gated())
+    except Exception:
+        return False
+
+
 def run_cycle() -> None:
     _reping_open_action_needed_items()
     _check_pull_loop_transport()
@@ -473,10 +490,26 @@ def run_cycle() -> None:
     staged = _unprocessed_staging_files() + _misparked_actionable_in_progress()
 
     blocked = bool(staged) and since_commit >= BLOCKED_THRESHOLD_SECONDS
-    silent_stall = since_commit >= SILENT_STALL_THRESHOLD_SECONDS
+    stall_by_clock = since_commit >= SILENT_STALL_THRESHOLD_SECONDS
+    # PROVEN-REST FOLD (director console 2026-07-22, point 3): a legitimate proven rest -- the
+    # authorized set is empty at EVERY level (R17) -- means NO commit is EXPECTED, so the STALL
+    # backstop must NOT false-page it. Tonight's 19:33 [STALL] was exactly this: all forward-discovery
+    # tracks dispositioned, every lane drained-and-gated, the tick resting with proof -- not wedged.
+    # Only suppress when we can POSITIVELY confirm rest is legitimate; if work is drawable but no
+    # commit is moving, that IS a real stall and still pages (fail-safe toward alarm).
+    proven_rest = (not staged) and stall_by_clock and _rest_is_proven_legitimate()
+    silent_stall = stall_by_clock and not proven_rest
 
     if not (blocked or silent_stall):
-        if staged:
+        if proven_rest:
+            log(
+                f"[STALL] suppressed -- {since_commit / 60:.0f}min with no commit, but rest is PROVEN "
+                "legitimate (authorized set empty at every level: BUILD/SITE/DISCOVER/backlog/"
+                "forward-discovery-drawable all empty per _is_drained_and_gated). A proven rest is not "
+                "a stall (R17). Re-arming."
+            )
+            clear_transition(_COMMIT_KEY)
+        elif staged:
             log(
                 f"Work queued ({len(staged)} file(s)) but commit recent "
                 f"({since_commit / 60:.0f}min ago) -- not blocked"

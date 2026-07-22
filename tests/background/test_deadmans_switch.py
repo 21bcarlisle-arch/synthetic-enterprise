@@ -311,15 +311,40 @@ def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
 
 
 def test_silent_stall_fires_with_empty_queue(monkeypatch):
-    """Backstop tier: a wedged main session with NOTHING queued still trips an
-    alarm once no commit has landed for SILENT_STALL_THRESHOLD_SECONDS."""
+    """Backstop tier: a wedged main session with NOTHING queued but work UNDONE (rest not proven
+    legitimate) still trips an alarm once no commit has landed for SILENT_STALL_THRESHOLD_SECONDS.
+    The proven-rest fold (2026-07-22) only suppresses STALL when rest is PROVABLY legitimate; here
+    it is not, so STALL must still fire."""
     assert dms._unprocessed_staging_files() == []  # genuinely empty queue
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: False)  # a real wedge, not a rest
     monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
     calls = []
     monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert len(calls) == 1
     assert "[STALL]" in calls[0]
+
+
+def test_proven_rest_suppresses_stall(monkeypatch):
+    """PROVEN-REST FOLD (director console 2026-07-22, point 3; R15 direction A): empty queue + a
+    stale commit BUT rest is provably legitimate (authorized set empty at every level) => NO [STALL].
+    This is tonight's 19:33 false-alarm class, now fixed: a proven rest is not a stall."""
+    assert dms._unprocessed_staging_files() == []
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)   # drained-and-gated: no work
+    monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert calls == []                                   # no false STALL page
+    assert "suppressed" in dms.LOG_FILE.read_text() and "PROVEN" in dms.LOG_FILE.read_text()
+
+
+def test_rest_is_proven_legitimate_fails_safe_toward_alarm(monkeypatch):
+    """R15 killer-pattern (FAIL-SILENT guard): if the drained-and-gated check cannot run, the
+    predicate returns False (NOT a silent pass), so the deadman keeps its power to fire."""
+    import background.supervisor as _sup
+    monkeypatch.setattr(_sup, "_is_drained_and_gated", lambda: (_ for _ in ()).throw(RuntimeError("boom")))
+    assert dms._rest_is_proven_legitimate() is False
 
 
 def test_usage_pause_suppresses_the_alarm(monkeypatch):
@@ -546,6 +571,7 @@ def test_run_complete_pile_with_stale_commit_still_stalls(monkeypatch):
     (this is the exact blackout shape -- markers piling while nothing commits)."""
     for i in range(30):
         (dms.STAGING_DIR / f"run_complete_2026071{i:02d}.md").write_text("marker")
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: False)  # blackout is not a rest
     monkeypatch.setattr(dms, "_last_meaningful_commit_epoch", lambda: time.time() - 2 * 3600)
     calls = []
     monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))

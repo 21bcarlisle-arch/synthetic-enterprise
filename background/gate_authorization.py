@@ -37,7 +37,26 @@ from pathlib import Path
 
 import yaml
 
+# PHONE-NATIVE AUTHORITY WIRING (director console ratification 2026-07-22,
+# PHONE_NATIVE_AUTHORITY_CHANNEL_PROPOSAL_2026-07-22.md). This import is THE authorization-trust
+# change the proposal held for a single console act: gate_authorization.py now ALSO accepts a
+# director_ntfy (HMAC-signed) or advisor_ruling entry for ROUTINE actions, in addition to the
+# console channel. The two systems compose ADDITIVELY -- console validity is unchanged; the phone
+# channels only ADD acceptance for the default-deny ROUTINE_ACTIONS allowlist. Reserved actions
+# (safety/authz-trust/Tier-1/one-way-door) stay console-only, enforced by dac's allowlist.
+from background import director_authority_channels as dac
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+
+# The advisor-bridge git identity (CLAUDE.md: "21bcarlisle-arch is a legitimate identity -- Rich's
+# advisor using his GitHub token via the staging bridge"). The advisor_ruling channel requires the
+# carrying commit to be authored by this identity. NOTE (honest limitation, flagged to the director):
+# advisor commits are NOT GPG-signed and share the director's email, so this keys on the author NAME
+# only -- a defence-in-depth layer on top of R7 (committed git state) + the [DIRECTOR-RULING] marker,
+# NOT a cryptographic guarantee. The autonomous worker could set an author name, so the advisor_ruling
+# channel is weaker than director_ntfy (whose HMAC key is out-of-tree and worker-unreadable). The
+# strong channel is director_ntfy; advisor_ruling is the advisor's convenience path.
+ADVISOR_BRIDGE_AUTHOR_NAME = "21bcarlisle-arch"
 MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 # Committed baseline: loop_stage per atom at the gate-wall genesis commit. A promotion is any
 # atom that was 'idle' at genesis and has since advanced past idle -- that is the moment the
@@ -107,16 +126,12 @@ def promotions_since_baseline(current: dict, baseline: dict) -> list:
 
 
 def _is_valid_authorization(entry) -> bool:
-    """A ledger entry counts as authorization ONLY if it is a director-console BUILD_OPEN with
-    provenance. A twin/machine self-write tagged anything other than console, or missing
-    provenance, does NOT authorize -- 'not marking your own homework'."""
-    return (
-        isinstance(entry, dict)
-        and entry.get("action") == "BUILD_OPEN"
-        and entry.get("authorized_by") == "director"
-        and entry.get("channel") == "console"
-        and bool(str(entry.get("provenance") or "").strip())
-    )
+    """A ledger entry counts as BUILD_OPEN authorization if it is a director-console BUILD_OPEN with
+    provenance, OR (since the 2026-07-22 phone ratification) a phone-native director_ntfy/advisor_ruling
+    BUILD_OPEN (BUILD_OPEN is on the ROUTINE_ACTIONS allowlist). A twin/machine self-write tagged
+    anything other than these, or missing provenance, does NOT authorize -- 'not marking your own
+    homework'; and the worker cannot mint a director_ntfy entry (HMAC key is out-of-tree)."""
+    return _valid_director_act(entry, "BUILD_OPEN")
 
 
 def authorized_atoms(ledger: list) -> set:
@@ -129,14 +144,9 @@ def _is_valid_hold(entry) -> bool:
     deliberately parked it RED pending live verification (NOT authorized -- it stays uncleared).
     Same director-console provenance requirement as an authorization. A hold does NOT wave the
     atom through; it distinguishes a director-acknowledged known-red from an unacknowledged
-    violation, so the deadman does not hourly-re-page a state the director already parked (R5)."""
-    return (
-        isinstance(entry, dict)
-        and entry.get("action") == "HELD_PENDING_VERIFICATION"
-        and entry.get("authorized_by") == "director"
-        and entry.get("channel") == "console"
-        and bool(str(entry.get("provenance") or "").strip())
-    )
+    violation, so the deadman does not hourly-re-page a state the director already parked (R5).
+    Accepts a console hold OR (since 2026-07-22) a phone-native HELD (on the ROUTINE allowlist)."""
+    return _valid_director_act(entry, "HELD_PENDING_VERIFICATION")
 
 
 def held_atoms(ledger: list) -> set:
@@ -157,7 +167,8 @@ SCOPE_ACTIONS = ("FRONT_OPEN", "GATE_CLEAR", "FRONT_CLOSE", "LEVEL_UP_PROPOSED")
 def _valid_console_act(entry, action: str) -> bool:
     """The four-check console-validity predicate for an arbitrary record `action`. Same trust model
     as _is_valid_authorization (which is the BUILD_OPEN-specialised form) — a non-console / no-
-    provenance / non-director entry is NOT a director act, whatever it self-declares as its action."""
+    provenance / non-director entry is NOT a director act, whatever it self-declares as its action.
+    PURE console predicate — the phone channels are added by `_valid_director_act`, never here."""
     return (
         isinstance(entry, dict)
         and entry.get("action") == action
@@ -167,24 +178,70 @@ def _valid_console_act(entry, action: str) -> bool:
     )
 
 
+def _advisor_commit_is_bridge_authored(commit, *, runner=None) -> bool:
+    """Git-authorship check for the advisor_ruling channel: is `commit` authored by the advisor
+    bridge identity? FAIL-CLOSED — a missing commit, a git error, an unknown commit, or a
+    non-bridge author all return False (an unverifiable authorship is a FAILED check, R15). `runner`
+    is injectable for tests. See ADVISOR_BRIDGE_AUTHOR_NAME for this check's honest limitation."""
+    c = str(commit or "").strip()
+    if not c:
+        return False
+    run = runner or (lambda args: subprocess.run(
+        ["git", *args], cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=15))
+    try:
+        r = run(["log", "-1", "--format=%an", c])
+        if getattr(r, "returncode", 1) != 0:
+            return False
+        return (r.stdout or "").strip() == ADVISOR_BRIDGE_AUTHOR_NAME
+    except Exception:
+        return False
+
+
+def _valid_phone_authority(entry, action: str, *, runner=None) -> bool:
+    """Does this entry carry valid ROUTINE director authority for EXACTLY `action` via a phone-native
+    channel? Two channels, action-matched so a signature for one routine action can never satisfy a
+    predicate for another (the REPURPOSE guard, preserved at the gate boundary too):
+      - director_ntfy: dac.is_valid_director_ntfy (HMAC-signed, key out-of-tree, bound to action:atom).
+      - advisor_ruling: dac.is_valid_advisor_ruling (marker + structural provenance) AND the carrying
+        commit is bridge-authored (`_advisor_commit_is_bridge_authored`) — the git check the proposal
+        adds at the wiring layer (impure, so it lives here, not in the pure dac validator).
+    FAIL-CLOSED throughout; `entry.action == action` required on both branches."""
+    if not (isinstance(entry, dict) and entry.get("action") == action):
+        return False
+    if dac.is_valid_director_ntfy(entry):
+        return True
+    if dac.is_valid_advisor_ruling(entry):
+        return _advisor_commit_is_bridge_authored(entry.get("commit"), runner=runner)
+    return False
+
+
+def _valid_director_act(entry, action: str, *, runner=None) -> bool:
+    """Console OR phone-native routine authority for `action` — the umbrella every routine `is_valid_*`
+    predicate routes through since the 2026-07-22 ratification. Console validity is unchanged; the
+    phone channels only ADD acceptance, and only for the default-deny ROUTINE_ACTIONS allowlist that
+    dac enforces (a reserved/safety/authz-trust action fails on the phone branch even with a perfect
+    signature). Additive by construction — a console entry still passes via `_valid_console_act`."""
+    return _valid_console_act(entry, action) or _valid_phone_authority(entry, action, runner=runner)
+
+
 def is_valid_front_open(entry) -> bool:
     """A FRONT_OPEN opens a declared front: authorizes continuous BUILD of every in-region, non-
     gated atom (present and future) until a FRONT_CLOSE. Requires a non-empty `front` id + the four
     console checks. The scaling win: ONE act authorizes a REGION."""
-    return _valid_console_act(entry, "FRONT_OPEN") and bool(str(entry.get("front") or "").strip())
+    return _valid_director_act(entry, "FRONT_OPEN") and bool(str(entry.get("front") or "").strip())
 
 
 def is_valid_front_close(entry) -> bool:
     """A FRONT_CLOSE re-freezes a front's region to DISCOVER/FRAME (R11: every open has a tested
     close whose effect is real). Requires a non-empty `front` id + the four console checks."""
-    return _valid_console_act(entry, "FRONT_CLOSE") and bool(str(entry.get("front") or "").strip())
+    return _valid_director_act(entry, "FRONT_CLOSE") and bool(str(entry.get("front") or "").strip())
 
 
 def is_valid_gate_clear(entry) -> bool:
     """A GATE_CLEAR waves ONE specific atom through ONE specific gate (narrower than opening a
     front). Requires a non-empty `atom` + the four console checks. `gate` is optional (absent =>
     clears any gate for that atom, like a per-atom BUILD_OPEN)."""
-    return _valid_console_act(entry, "GATE_CLEAR") and bool(str(entry.get("atom") or "").strip())
+    return _valid_director_act(entry, "GATE_CLEAR") and bool(str(entry.get("atom") or "").strip())
 
 
 # The DIRECTOR_TWIN standing approver may ratify ROUTINE levels only (director console
@@ -224,7 +281,7 @@ def is_valid_level_up(entry) -> bool:
     and structurally capped at L2 so it can never over-reach into the director's L3+ reservation."""
     if is_valid_twin_level_up(entry):
         return True
-    if not (_valid_console_act(entry, "LEVEL_UP_PROPOSED") and bool(str(entry.get("atom") or "").strip())):
+    if not (_valid_director_act(entry, "LEVEL_UP_PROPOSED") and bool(str(entry.get("atom") or "").strip())):
         return False
     lvl = entry.get("level")
     return lvl is None or isinstance(lvl, int)
@@ -294,6 +351,53 @@ def _append_twin_record(fields: dict, provenance: str, *, ts: float | None = Non
                         path: Path | None = None) -> None:
     """Append ONE twin record with the HONEST director_twin/twin envelope (never the console one)."""
     _append_envelope(fields, provenance, "director_twin", "twin", ts=ts, path=path)
+
+
+def record_director_ntfy_ruling(signed_payload: str, *, provenance: str | None = None,
+                                max_age_seconds: int | None = None, ts: float | None = None,
+                                path: Path | None = None) -> dict | None:
+    """THE ONLY path that mints a director_ntfy authority ledger entry. Called by ntfy_responder on
+    an inbound message. FAIL-CLOSED: verifies `signed_payload` HMAC-signs a fresh, bound
+    `RULING:<action>:<atom>` for a ROUTINE action, and writes NOTHING otherwise (unverifiable,
+    stale, reserved-action, or malformed → returns None, no ledger write). The autonomous worker
+    cannot mint one because it cannot read SE_WAKE_HMAC_KEY to produce a valid signature (the
+    out-of-tree-key TAUTOLOGY guard). Returns the written entry, or None.
+
+    Belt-and-braces: the assembled entry is re-validated through dac.is_valid_director_ntfy before
+    the write, so the ledgered record is exactly one the read-side predicates will accept — no path
+    writes an entry that would later be judged invalid."""
+    max_age = dac.NTFY_MAX_AGE_SECONDS if max_age_seconds is None else max_age_seconds
+    if not isinstance(signed_payload, str) or not signed_payload.strip():
+        return None
+    try:
+        from background.ntfy_utils import verify_wake_message
+    except Exception:
+        return None  # ntfy_utils unavailable (no send topic) -> mint nothing (fail-closed)
+    verified = verify_wake_message(signed_payload, max_age_seconds=max_age)
+    if verified is None or not verified.startswith("RULING:"):
+        return None  # no key / bad signature / stale / not a ruling → mint nothing
+    parts = verified.split(":", 2)   # ["RULING", action, atom]
+    if len(parts) != 3:
+        return None
+    _, action, atom = parts[0], parts[1].strip(), parts[2].strip()
+    stamp = ts if ts is not None else time.time()
+    entry = {
+        "atom": atom, "action": action, "ts": stamp,
+        "authorized_by": "director", "channel": dac.DIRECTOR_NTFY,
+        "provenance": provenance or f"director_ntfy HMAC-verified ruling '{verified}'",
+        "signed_payload": signed_payload,
+    }
+    # Only write what the read-side predicate will accept (routine action, bound, fresh).
+    if not dac.is_valid_director_ntfy(entry, max_age_seconds=max_age):
+        return None
+    p = path or LEDGER_PATH
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with p.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception:
+        return None
+    return entry
 
 
 def _append_envelope(fields: dict, provenance: str, authorized_by: str, channel: str, *,
