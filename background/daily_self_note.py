@@ -214,8 +214,11 @@ def publish(note: str, now: datetime, *, send=None) -> None:
     LAST_DATE_STAMP.write_text(_today(now), encoding="utf-8")
     if send is None:
         try:
-            from background.ntfy_utils import send_ntfy
-            send = lambda m: send_ntfy(m, headers={"Title": "Daily self-note"})  # noqa: E731
+            from background.notify import notify
+            # The daily note is a once-per-day DIGEST (G-N2), routed through the ONE contract
+            # rather than a direct send_ntfy path. Idempotency is already guaranteed by
+            # already_ran_today()/the day-stamp above, so no transition_key is needed here.
+            send = lambda m: notify(m, kind="digest", headers={"Title": "Daily self-note"})  # noqa: E731
         except Exception:  # noqa: BLE001
             return
     # ONE terse digest line (R5 transition discipline: the note itself is the payload in the log).
