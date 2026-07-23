@@ -157,6 +157,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   <div class="card">
     <p class="muted" style="margin-bottom:14px" id="finance-intro">Loading...</p>
     <div class="kpis" id="finance-kpis"></div>
+    <div class="passport" id="finance-unit-note"></div>
   </div>
   <div class="card">
     <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
@@ -385,23 +386,56 @@ function renderFinance(d){
   var f=d.finance||{};
   var b=f.settled_basis||{};
   var settledProv = !!b.provisional;
+  // RC6 (DIRECTOR §C, 2026-07-23): financials are unit economics, never bare totals.
+  // The book is a small DRAWN SAMPLE; a £22.6M total from ~19 customers is misleading
+  // without its N and its draw. State N + the draw; lead with £/customer and rates;
+  // demote every cumulative total to a caveated, small-print figure. N is the count of
+  // customers in the drawn sample (company.json stress_bands.total -- the same sample
+  // the finance totals are earned by). Denominator is stated on every ratio (no hidden
+  // division). Director verbatim: "I don't take financials as useful ... certainly not
+  // totals from a random sample of customers."
+  var N=(d.stress_bands||{}).total;
+  var yr=esc(f.latest_year);
+  var drawLine = (N!=null)
+    ? " <b>This run's book is a drawn sample of N="+N+" customers</b> (curriculum-weighted "+
+      "historical replay, 2016&ndash;"+yr+"). The cumulative totals below are earned across that "+
+      "small book and <b>scale with it &mdash; not meaningful in isolation</b>; read the unit "+
+      "economics (&pound;/customer, rates), not the totals."
+    : "";
   el("finance-intro").innerHTML=
     "The company keeps three clocks and they do not agree -- that is the point. The <b>settled</b> "+
     "clock is the settlement-derived P&amp;L; the <b>billed</b> clock is what customers were actually "+
     "invoiced; the <b>banked</b> clock is cash actually collected. A number without its clock is a "+
-    "defect here, not a rounding choice.";
+    "defect here, not a rounding choice."+drawLine;
   var netCls = (f.settled_net_margin_gbp>=0)?"pos":"neg";
+  // Unit economics: latest-year total / N, denominator stated explicitly (same clock, same year).
+  var hasN = (N!=null && Number(N)>0);
+  var nmPer  = hasN ? f.latest_year_net_margin_gbp/N : null;
+  var revPer = hasN ? f.latest_year_revenue_gbp/N    : null;
+  var perBasis = yr+" · billed · ÷ "+esc(N)+" sampled customers";
+  var perCls = (nmPer==null)?"":(nmPer>=0?"pos":"neg");
   var kpis=[
-    kpiTile("Net margin", gbp(f.settled_net_margin_gbp, settledProv), (b.clock||"settled")+" clock"+(settledProv?" · provisional":""), netCls),
-    kpiTile("Net margin", gbp(f.billed_net_margin_gbp), "billed clock (bill-derived ledger)", (f.billed_net_margin_gbp>=0?"pos":"neg")),
-    kpiTile("Revenue billed", gbp(f.billed_revenue_gbp), "billed clock · "+num(f.invoice_count)+" invoices"),
-    kpiTile("Revenue banked", gbp(f.banked_revenue_gbp), "banked clock · cash collected"),
-    kpiTile("Collection rate", pct(f.collection_rate_pct), "banked ÷ billed"),
+    // --- UNIT ECONOMICS + RATES (book-size-honest, lead the panel) ---
+    kpiTile("Net margin / customer", gbpFull(nmPer), perBasis, perCls),
+    kpiTile("Revenue / customer", gbpFull(revPer), perBasis),
+    kpiTile("Collection rate", pct(f.collection_rate_pct), "banked ÷ billed · a rate, book-size-invariant"),
+    // --- CUMULATIVE TOTALS (demoted; each carries the scales-with-book caveat) ---
+    kpiTile("Net margin (total)", gbp(f.settled_net_margin_gbp, settledProv), (b.clock||"settled")+" · 10-yr cumulative · scales with drawn book"+(settledProv?" · provisional":""), netCls),
+    kpiTile("Net margin (total)", gbp(f.billed_net_margin_gbp), "billed (bill-derived ledger) · 10-yr cumulative · scales with drawn book", (f.billed_net_margin_gbp>=0?"pos":"neg")),
+    kpiTile("Revenue billed (total)", gbp(f.billed_revenue_gbp), "billed · 10-yr cumulative · scales with drawn book · "+num(f.invoice_count)+" invoices"),
+    kpiTile("Revenue banked (total)", gbp(f.banked_revenue_gbp), "banked · 10-yr cumulative · scales with drawn book"),
     kpiTile("Treasury (end)", gbp(f.treasury_end_gbp), "banked clock · from "+gbp(f.treasury_start_gbp)),
-    kpiTile("Corp. tax "+esc(f.latest_year), gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
-    kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived")
+    kpiTile("Corp. tax "+yr, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
+    kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
   ];
   el("finance-kpis").innerHTML=kpis.join("");
+  el("finance-unit-note").innerHTML = (N!=null)
+    ? "<b>Why unit economics.</b> The totals above are 10-year cumulative across a drawn book of "+
+      "<b>N="+esc(N)+" sampled customers</b> (curriculum-weighted replay); they scale with the book "+
+      "and are <b>not meaningful in isolation</b> &mdash; a bigger draw makes every total bigger with "+
+      "no change in how well the supplier runs. The &pound;/customer figures and rates are the reading "+
+      "that transfers between books. Every ratio states its denominator; no total is presented as a headline."
+    : "";
 
   var r=f.reconciliation||{};
   el("bridge-intro").innerHTML=
