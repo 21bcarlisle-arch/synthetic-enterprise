@@ -54,6 +54,31 @@ link findings before §A.
 
 ---
 
+## R11 LIVE-SITE PIXEL VERIFY — done this tick (closes the §B/§C POST-DEPLOY loops)
+The §B/§C landings were all left "committed, not yet published; confirm on next auto-process
+publish." Multiple auto-process publishes have since landed (HEAD `94096b133`, origin==local).
+Verified against the LIVE site (`poesys.net`, HTTP 200) this tick — evidence quoted:
+- **§B MOAP diagram — LIVE ✓.** Root `/` is byte-identical to local `site/index.html`
+  (sha `5fb477245126e195…`); `.moap` section + `assets/model-on-a-page.svg` present; the live
+  asset resolves (HTTP 200, 19 398 bytes, sha `be3c407044fc28799a14…` = the director-approved v4).
+- **§C /company renderFinance — LIVE ✓.** Live `data/company.json` `finance.latest_year_net_margin_gbp
+  = 511281.69`, `stress_bands.total = 19` → **£26,909.56/customer** (matches the doc). Cost-to-serve
+  distribution live: **£219.95 / £505.43 median / £4,218.12** (min/median/max); by_segment resi £465.86
+  (n=14) vs IC £3,219.18 (n=5); by_payment_channel dd £440.00 (n=9) / std_credit £439.89 (n=3);
+  by_tenure £357.44 (n=8) / £374.81 (n=2) / £505.49 (n=2) — every figure matches §C. Render markers
+  `finance-unit-note` + `cost-to-serve-dist` present live.
+- **§C /now panel 2 — LIVE ✓.** `renderPanelSupplier` + `renderFinance` present live; same finance
+  node → same £26,909.56/customer.
+- **§C /project investor reframe — R11 LIVE-VERIFY FAILS (ORPHANED) ✗ [→ §A].** The local door
+  `site/project/index.html` carries the reframe (`renderKpis`, `inv-unit-note`, £80,056/customer),
+  but LIVE `/project` and `/project/*` **301-redirect to `/proof/`** (`site/_redirects` SITE_V5 block),
+  and `/proof/` carries **none** of those markers (grep empty). A visitor cannot reach the reframed
+  investor unit-economics. This is the §A canonical-door contradiction made concrete: `/project` is a
+  redirect SOURCE yet was reframed as if canonical. **NOT fixed this tick** — whether to drop the
+  redirect (make /project canonical) or migrate the reframe onto /proof IS the §A IA decision
+  (director-pixel-gated). Acting now would either be wrong (if /project folds) or re-wedge the gate.
+  Logged as the load-bearing evidence FOR §A.
+
 ## OPEN sub-items (sequenced)
 
 ### §A — WORDS → DIAGRAM → EVIDENCE IA decision  [BLOCKS §D; director-pixel-gated]
@@ -63,6 +88,11 @@ clocks; carbon). Decide the CANONICAL DOOR SET — which doors survive, which fo
 redirects — resolving the `/method` contradiction above. Per ruling #3 the rendered
 diagram returns to the director as pixels ([ACT]) BEFORE it becomes the nav spine.
 The v4 SVG (see §B) is the approved content; the NAV-SPINE adoption is the gated part.
+**Concrete cost of leaving §A open (found on the live site this tick):** the §C /project
+investor-summary reframe (£80,056/customer, unit-economics leading, totals demoted) is LIVE-ORPHANED
+— `/project` 301-redirects to `/proof/`, which does not carry the reframe. Either decision resolves
+it: if `/project` folds, the reframe must migrate onto `/proof`; if `/project` is canonical, the
+redirect must go. Both are §A. Until §A, one director-approved reframe is unreachable to visitors.
 
 ### §B — Embed the director-APPROVED model-on-a-page diagram (F-MOAP-1)  [LANDED 2026-07-23 tick]
 **DONE this tick.** Hosted ONCE on the front-door fold (`site/index.html`, new `.moap` section
