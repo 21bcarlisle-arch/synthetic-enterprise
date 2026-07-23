@@ -1,3 +1,24 @@
+> **[CC PROCESSING STATUS -- 2026-07-23, parked in in_progress/]**
+> DONE this tick: **item 1** -- publish gate UNWEDGED. R9 cause (NOT the suspected R16 level-surface
+> class): the commit-time level-surface gate's LEVEL_SENSITIVE_TESTS omitted
+> `tests/design/test_maturity_map_facets.py`, so F1c's value_stream-hygiene violation
+> (`close_to_learn` not on the reviewed allowlist, registered f27a06a39) passed at commit and only
+> the full publish gate caught it. Instance fix: F1c reviewed onto REVIEWED_CLOSE_TO_LEARN. R10 class
+> fix: facets test added to the commit-time level-surface gate so the whole class is now
+> structurally uncommittable. Full publish gate GREEN (18672 passed). **item 2** -- axis-3 weather
+> verdicts recorded in `docs/observability/director_axis_verdicts.jsonl`. **item 3(c)** -- weather
+> steer consumed -> `docs/design/WEATHER_SIM_PURPOSE_FRAME.md`; W1_6/F2 lane implication surfaced as
+> director findings F-i/F-ii/F-iii, not silently resolved.
+>
+> OPEN (blocking sub-items -> next tick/lane): **3(a)** F1c harness-gap BUILD leg (under the existing
+> F1 waiver -- a separate BUILD atom). **3(b)** F1a/F1b L1/L2 level moves = the TWIN's ledger-backed
+> call; no self-claim on any surface until the twin's entry exists (not mine). **3(d)** the R13
+> ratification's stale-pin sweep result -- one line in today's daily note (needs the sweep result;
+> not fabricated here). Unblocks when: the F1 BUILD lane draws F1c; the twin logs F1a/F1b level
+> entries; the R13 stale-pin sweep runs.
+
+---
+
 # [DIRECTOR-RULING] — Unwedge the publish gate (R16 class); axis-3 weather verdicts RATIFIED; sequencing (2026-07-23)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Three parts.
