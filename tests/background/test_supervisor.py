@@ -74,6 +74,12 @@ def _isolate(tmp_path, monkeypatch):
     # that assert rest now genuinely have an empty authorized set at every level;
     # the forward-discovery lane itself is proven in test_forward_discovery_draw.py.
     monkeypatch.setattr(supervisor, "FORWARD_DISCOVERY_REGISTER_PATH", tmp_path / "FORWARD_DISCOVERY_REGISTER.md")
+    # OPEN-CAMPAIGN LANE (SEVENTH CLASS, director ruling 2026-07-23): same isolation as the
+    # forward-discovery register above -- point the campaign register at a nonexistent tmp file so
+    # this hermetic world is EMPTY AT EVERY LEVEL by default; otherwise these "map empty -> rest/
+    # exhausted" tests would leak the real (open SITE_V5) CAMPAIGN_REGISTER.yaml and (correctly, per
+    # the new law) draw the open campaign. The lane itself is proven in test_open_campaign_draw.py.
+    monkeypatch.setattr(supervisor, "CAMPAIGN_REGISTER_PATH", tmp_path / "CAMPAIGN_REGISTER.yaml")
     # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
     # other live-state path above -- point it at a nonexistent tmp file so the
     # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts

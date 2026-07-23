@@ -1,0 +1,51 @@
+# CAMPAIGN_REGISTER.yaml -- machine-readable open-campaign register.
+#
+# DIRECTOR RULING 2026-07-23 (DIRECTOR_RULING_CAMPAIGN_CONTINUATION_AND_SITE_VERDICT), the
+# SEVENTH CLASS -- campaign continuation: "an open campaign in PRIORITIES with unfinished items
+# IS drawable work -- finishing surface N rolls directly into surface N+1, no doorbell required."
+# A seventh rest-while-work-exists class is an R10 breach of R17; the fix is to R17's enumeration,
+# not a special case.
+#
+# THIS FILE is the authority the draw reads (R16: the ledger is authority, not PRIORITIES prose --
+# the 14:03Z stall happened because the campaign lived only as a comment block whose "<-- NEXT"
+# marker the draw could not see). `background/supervisor.py::_open_campaign_draw` parses THIS file;
+# an OPEN campaign with any OPEN item forbids rest and is enumerated in the authorized set.
+#
+# DISCIPLINE (mirrors the maturity map's own level moves):
+#   * Mark an item `landed` in the SAME commit its surface lands live + passes its Expert Hour.
+#     A DEPLOYED-but-verdict-FAILED surface is NOT landed -- its job is not done, so it stays open
+#     (e.g. surface 1 below: MVP live at 87ce1b980 but axis-1 = FAIL, iterate against the rubric).
+#   * When EVERY item of a campaign is `landed`, set the campaign `status: closed` -- only then does
+#     this campaign stop forbidding rest (the "all items landed permits rest" half of the R15 pair).
+#   * A campaign the director has cancelled: `status: cancelled` (leaves the drawable set, no rest-forbid).
+# R15 both ways is proven in tests/background/test_open_campaign_draw.py.
+
+campaigns:
+  - id: SITE_V5
+    title: 'Site rebuild -- five-surface IA (director-ratified 2026-07-23)'
+    status: open
+    lane: site
+    ruling: docs/staging/in_progress/DIRECTOR_RULING_SITE_REBUILD_V5_STRUCTURE_2026-07-23.md
+    dod: 'docs/design/SITE_V5_STRUCTURE_CONFIRMATION.md §4 (per-surface DoD); three goals + didactic-graph rule'
+    items:
+      - id: surface_1_front_door
+        title: 'Front door -- the pitch (v4 argument, 10-second test; swap /now/ landing LAST)'
+        status: open
+        note: >-
+          MVP deployed 2026-07-23 (87ce1b980) but axis-1 verdict = FAIL ("It still looks awful",
+          DIRECTOR_RULING_CAMPAIGN_CONTINUATION 2026-07-23 §3). NOT landed -- iterate in PARALLEL
+          strictly against BRAND_CONSTITUTION + the Spec-005 rubric rows (type-only wordmark,
+          colour-as-information-never-decoration, ten-second test, walk-any-claim-to-data), and
+          present the next iteration AS SCORED RUBRIC ROWS so the director's verdict lands row-by-row.
+      - id: surface_2_the_world
+        title: 'The World -- walkable causal chain weather->wholesale->segments->usage->bills->carbon'
+        status: open
+      - id: surface_3_the_company
+        title: 'The Company -- the supplier SaaS shown as product (real run outputs, never effort metrics)'
+        status: open
+      - id: surface_4_proof
+        title: 'Proof -- fidelity incl. failures, claim-status per figure, corrections-in-place, challenge channel; Method + Simplified fold in here'
+        status: open
+      - id: surface_5_director_window
+        title: 'Director window -- auth, off-nav MVP (reserved queue + machine health; DO battery DEFERRED this pass)'
+        status: open

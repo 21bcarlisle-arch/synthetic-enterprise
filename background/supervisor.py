@@ -1641,6 +1641,81 @@ def _forward_discovery_draw(rng: Any = None, register_path: Path | None = None) 
     )
 
 
+CAMPAIGN_REGISTER_PATH = PROJECT_DIR / "docs" / "design" / "CAMPAIGN_REGISTER.yaml"
+
+
+def _open_campaign_items(register_path: Path | None = None) -> list[tuple[str, str, str]]:
+    """The SEVENTH-CLASS lane (director ruling 2026-07-23, DIRECTOR_RULING_CAMPAIGN_CONTINUATION):
+    every OPEN item of every OPEN campaign in the machine-readable register. Returns a list of
+    (campaign_id, item_id, item_title) -- unfinished work that is drawable WITHOUT a doorbell,
+    because "an open campaign in PRIORITIES with unfinished items IS drawable work -- finishing
+    surface N rolls directly into surface N+1".
+
+    Reads docs/design/CAMPAIGN_REGISTER.yaml (R16: the ledger is authority, not PRIORITIES prose --
+    the 14:03Z stall was the campaign living only as a comment block the draw could not see). An
+    item counts as unfinished unless its status is exactly `landed`; a campaign contributes items
+    only while its status is `open` (a `closed`/`cancelled` campaign leaves the drawable set, which
+    is the "all items landed permits rest" half of the R15 pair).
+
+    INDEPENDENCE (R15): keyed on the ACTUAL parsed register content, never a constant -- emptying
+    the register (or landing every item) is caught by the may-rest test; dropping this rung from the
+    ladder is caught by the must-not-rest test (both in test_open_campaign_draw.py)."""
+    import yaml
+
+    path = register_path or CAMPAIGN_REGISTER_PATH
+    try:
+        doc = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return []
+    if not isinstance(doc, dict):
+        return []
+    out: list[tuple[str, str, str]] = []
+    for camp in doc.get("campaigns") or []:
+        if not isinstance(camp, dict):
+            continue
+        if str(camp.get("status", "")).strip().lower() != "open":
+            continue
+        cid = str(camp.get("id", "?"))
+        for item in camp.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("status", "")).strip().lower() == "landed":
+                continue
+            out.append((cid, str(item.get("id", "?")), str(item.get("title", "")).strip()))
+    return out
+
+
+def _open_campaign_draw(register_path: Path | None = None) -> str | None:
+    """The SEVENTH-CLASS draw rung (director ruling 2026-07-23). Returns a draw message enumerating
+    the OPEN items of every OPEN campaign, or None when no campaign has an unfinished item (rest is
+    then legitimate on this level). Sits ABOVE the PRIORITIES backlog / propose-half / forward-
+    discovery / HARDEN rungs: an open product campaign is the highest-value fallback when the three
+    below-target lanes are empty (PRODUCT-FIRST). Preemptible -- yields to any below-target atom next
+    cycle, same as the other fallback rungs.
+
+    R15: this is the rung whose ABSENCE reproduced the 14:03Z stall (SITE_V5 open, surfaces 2-5
+    drawable, the tick rested because no lane enumerated the campaign)."""
+    items = _open_campaign_items(register_path)
+    if not items:
+        return None
+    by_campaign: dict[str, list[str]] = {}
+    for cid, iid, title in items:
+        by_campaign.setdefault(cid, []).append(f"{iid} ({title})" if title else iid)
+    blocks = "; ".join(
+        f"{cid}: " + " | ".join(names) for cid, names in by_campaign.items()
+    )
+    return (
+        "OPEN-CAMPAIGN self-refill (SEVENTH CLASS, director ruling 2026-07-23 -- an open campaign "
+        "with unfinished items IS drawable work; finishing item N rolls into item N+1, NO doorbell): "
+        f"{blocks}. Draw the next unfinished item of the highest-priority open campaign (SITE_V5 "
+        "first: build surfaces 2->5 in order, each landed LIVE + Expert-Hour-reviewed against its "
+        "single job before the next; iterate any DEPLOYED-but-FAILED surface in parallel and present "
+        "it as SCORED RUBRIC ROWS). On landing a surface LIVE + pixel-verified (R11), mark its item "
+        "`landed` in docs/design/CAMPAIGN_REGISTER.yaml the SAME commit. Per-surface DoD: each "
+        "campaign's `dod` field."
+    )
+
+
 def forward_discovery_law_status(register_path: Path | None = None) -> dict:
     """Live status of the HARD RULE 'THE TICK NEVER RESTS WHILE AUTHORIZED WORK
     EXISTS AT ANY PRIORITY' (director console 2026-07-22). Returned as data so
@@ -1721,6 +1796,10 @@ def authorized_set_enumeration() -> dict:
         ("build", lambda: _maturity_map_draw_concurrent(exclude_stalled=True)),
         ("site", lambda: _site_lane_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn)),
         ("discover_frame", lambda: _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn)),
+        # SEVENTH CLASS (director ruling 2026-07-23): an open campaign with unfinished items forbids
+        # rest -- enumerated as its own level so the whole-set proof includes it. A lane-scoped proof
+        # can never again ground rest (the exact 14:03Z breach: SITE_V5 open, this level not counted).
+        ("open_campaign", _open_campaign_draw),
         ("backlog", _actionable_backlog_item),
         ("propose_half", _propose_half_draw),
         ("forward_discovery", _forward_discovery_draw),
@@ -1955,6 +2034,19 @@ def _self_refill_draw() -> str | None:
             + " || ".join(sections)
         )
 
+    # OPEN-CAMPAIGN LANE (SEVENTH CLASS, director ruling 2026-07-23): the three below-target lanes
+    # are empty here -> before ANY lower rung or rest, draw the next unfinished item of an OPEN
+    # campaign. This sits ABOVE backlog/propose-half/forward-discovery/HARDEN because an open PRODUCT
+    # campaign is the highest-value fallback (PRODUCT-FIRST). Its ABSENCE was the exact 14:03Z stall:
+    # SITE_V5 open with surfaces 2-5 drawable, the tick rested because no lane enumerated the campaign.
+    campaign_item = _open_campaign_draw()
+    if campaign_item:
+        log(
+            "OPEN-CAMPAIGN: below-target lanes empty/gated -> drawing the next unfinished item of an "
+            "open campaign (finishing item N rolls into N+1, no doorbell; R17 SEVENTH CLASS 2026-07-23)"
+        )
+        return campaign_item
+
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
@@ -2034,6 +2126,13 @@ def _is_drained_and_gated() -> bool:
         if _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn):
             return False
         if _actionable_backlog_item():
+            return False
+        # OPEN-CAMPAIGN LANE (SEVENTH CLASS, director ruling 2026-07-23): rest is illegitimate while
+        # an open campaign has any unfinished item. Mirror of the rung added to `_self_refill_draw`;
+        # without it, `_is_drained_and_gated` would green-light the exact 14:03Z rest the draw now
+        # refuses. A lane-scoped proof can never again ground rest -- the WHOLE set, open campaigns
+        # included, must be empty (ruling §2).
+        if _open_campaign_draw():
             return False
         # PROPOSE-HALF LANE (director ruling 2026-07-23, R17 CLASS FIX): rest is illegitimate while a
         # BUILD-gated item's ungated build-PROPOSAL step is still open. This is the mirror of the rung

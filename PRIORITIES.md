@@ -9,10 +9,17 @@
 #   Three goals are the standard: (1) marketing, (2) SIM causal-relationship observability,
 #   (3) e2e supplier-SaaS evidence. Didactic graphs are the centre of gravity (every major graph
 #   teaches ONE proven relationship, states its hypothesis in-copy, cites the anchor).
+#   MACHINE-READABLE STATE: docs/design/CAMPAIGN_REGISTER.yaml is now the AUTHORITY the draw reads
+#   (R16). The SEVENTH-CLASS rung (supervisor.py::_open_campaign_draw) enumerates every OPEN item of
+#   every OPEN campaign as always-drawable work, so surface N landing rolls into N+1 with NO doorbell
+#   (this comment block is a human summary; the draw does NOT parse it -- that was the 14:03Z stall).
 #   BUILD one surface per phase, in order 1->5, each landed LIVE + Expert-Hour-reviewed against its
 #   single job before the next starts (per-surface DoD in the confirmation doc):
-#     1. Front door -- the pitch (v4 argument, 10-sec test; swap /now/ landing LAST).   <-- NEXT
-#     2. The World -- walkable causal chain weather->wholesale->segments->usage->bills->carbon.
+#     1. Front door -- the pitch (v4 argument, 10-sec test; swap /now/ landing LAST).
+#        MVP deployed 2026-07-23 (87ce1b980) but AXIS-1 VERDICT = FAIL ("It still looks awful",
+#        DIRECTOR_RULING_CAMPAIGN_CONTINUATION 2026-07-23). Item stays OPEN -> ITERATE against
+#        BRAND_CONSTITUTION + Spec-005 rubric, present next iteration as SCORED RUBRIC ROWS.
+#     2. The World -- walkable causal chain weather->wholesale->segments->usage->bills->carbon.  <-- NEXT
 #     3. The Company -- the supplier SaaS as product (real run outputs, never effort metrics).
 #     4. Proof -- fidelity incl. failures, claim-status, corrections-in-place, challenge channel;
 #        Method + Simplified fold in here.

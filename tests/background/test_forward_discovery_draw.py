@@ -74,6 +74,10 @@ def _gate_core_and_idle_lanes(monkeypatch):
     monkeypatch.setattr(sup, "_site_lane_draw_concurrent", lambda *a, **k: [])
     monkeypatch.setattr(sup, "_idle_discover_frame_draw_concurrent", lambda *a, **k: [])
     monkeypatch.setattr(sup, "_actionable_backlog_item", lambda *a, **k: None)
+    # SEVENTH-CLASS open-campaign lane gated too (director ruling 2026-07-23): these tests prove the
+    # FORWARD-DISCOVERY rung in isolation, so the open-campaign rung above it must be empty here, else
+    # the real (open SITE_V5) register would leak in and forbid the rest these tests exercise.
+    monkeypatch.setattr(sup, "_open_campaign_draw", lambda *a, **k: None)
 
 
 def _point_register_at(monkeypatch, tmp_path, contents: str):
@@ -458,7 +462,7 @@ def test_authorized_set_enumeration_names_every_level(monkeypatch, tmp_path):
     _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
     _point_proposals_at(monkeypatch, tmp_path)
     e = sup.authorized_set_enumeration()
-    assert set(e) == {"build", "site", "discover_frame", "backlog", "propose_half", "forward_discovery"}
+    assert set(e) == {"build", "site", "discover_frame", "open_campaign", "backlog", "propose_half", "forward_discovery"}
     assert e["propose_half"] is True and e["build"] is False and e["forward_discovery"] is False
     line = sup.authorized_set_enumeration_line()
     assert "propose_half=Y" in line and "MUST-DRAW" in line and "propose_half" in line
