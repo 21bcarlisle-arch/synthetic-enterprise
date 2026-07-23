@@ -647,6 +647,50 @@
       "stall_consecutive_unchanged": 2
     },
     {
+      "id": "W2_12_change_of_tenancy_debt_physics",
+      "name": "Change-of-tenancy debt physics -- one credit-risk exit + two deemed-rate entries (double jeopardy), and the prime high-value acquisition moment",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "discover",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_5_life_event_stream"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "W2_13_occupancy_consumption_volume_shape",
+      "name": "Occupancy -> consumption volume and shape (people count, adults vs children) folded into the held HH load-shape clustering lane",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "discover",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_1_archetype_layers"
+      ],
+      "couples_with": [
+        "W1_5_premise_demand_shape"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
       "id": "W3_1_price_cap_binding",
       "name": "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)",
       "lane": "W3_industry_systems",
@@ -2691,7 +2735,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 129,
+  "total_atoms": 131,
   "epoch2_movements": [
     {
       "id": "M1",

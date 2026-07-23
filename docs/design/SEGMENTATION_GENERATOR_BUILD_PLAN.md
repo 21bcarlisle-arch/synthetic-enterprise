@@ -44,3 +44,14 @@ No external cross-tab exists for these → director-set curriculum (R13). The ge
 11. region marginal for synthetic acquisitions (`population_draw.py:54` standing R10 placeholder)
 
 Items 5-10 are already crossed by the conservative fusion gate and need no new value unless the director wants to fuse one; items 1-4 and 11 are the live curriculum inputs the generator needs.
+
+## 6. Prepayment estate — DECIDED requirement on this build (director verdict 2026-07-23)
+Source: `DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md` §2. Spec-006 finding stands — richest company-side payment machinery, **no drawn PPM estate to meet it** (the draw stamps a binary `direct_debit|other`; `high_needs_prepay_proxy` is simultaneously the highest-consequence critical group, mean 3.08, top-decile share .562). When the prepayment estate is drawn it MUST contain **at minimum two sub-populations with OPPOSITE payment reliability**:
+
+- **Debt-mandated PPM** — arrived via the arrears pathway; elevated default / self-disconnection risk; maps to the existing company-side `PaymentMethodSource.DEBT_MANDATED`.
+- **Choice PPM / cash-cheque budget-controllers** — pay regularly and consistently; chose prepay for control of incomings/outgoings; **NOT a distress population**. *A build that stamps all PPM as distressed is WRONG and is refuted by this requirement.*
+
+Both sub-populations carry **elevated contact propensity** (prepay calls a lot — practitioner anchor, consistent with the assisted/phone channel skew already in `critical_groups`). Mechanism design is the agent's; **sub-population shares are R13** (director-reserved) unless an Ofgem/EHS anchor is found first — discovery preferred. Couples to the new fusion entry `['payment_method','structural_block']` (§1 of the verdicts doc), which becomes load-bearing the moment this estate exists.
+
+## 7. New coupling hypotheses seeded into the fusion register (verdicts doc §1)
+Four generative-coupling hypotheses registered `provenance=assumed / status=hypothesised / coupling_strength=null` (`population_fusion_assumptions_register.json`): `cars_or_vans × ev_adoption_eligibility` (generative coupling — the draw consumes it; NOT a segmentation axis, the frontier finding that cars earns ~zero marginal learning value as an axis is unchanged), `engagement × price_sensitivity` (strength R13), `payment_method × structural_block` (§6), `engagement × affluence` (U-shape, non-monotonic). **These are blocking input to the draw-wiring step specifically** (verdicts doc §3 sequencing constraint) — the register entries must exist before the population draw is wired, or they become retrofits against a shipped draw. Every entry carries an `evidence_route` (discovery pass before any hand-set value) and a `refutation_condition`. Strengths without an external anchor ride the director's R13 batch (adds to §5 above); do not set them here.

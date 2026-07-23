@@ -549,6 +549,41 @@
   real_world_twin: "a real supplier's DD-discount business case that looks justified until you notice the DD cohort is clean because bad payers were already pushed off it"
   depends_on: [W2_4_household_budget]
 
+- id: W2_12_change_of_tenancy_debt_physics
+  name: "Change-of-tenancy debt physics -- one credit-risk exit + two deemed-rate entries (double jeopardy), and the prime high-value acquisition moment"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  provenance: proposal
+  epoch: 3
+  level_current: 0
+  level_target: 1
+  loop_stage: discover
+  dial_inherited: 3
+  evidence: ["docs/staging/DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md"]
+  file_scope: []
+  simplifications: ["2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 1). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it; DOES NOT block generator wiring (touches the billing/lifecycle process model, not the population draw). Scope: home-move exists today as churn/acquisition MECHANICS (home_move_win_rate.py, churn_journey, customer_events) but the DEBT and REVENUE physics OF the move itself are NOT confirmed built -- move-out final-bill non-payment risk, move-in landing on deemed rates, the void-property problem (Board Spec 006 item 9 PARTIAL). Director frame, register VERBATIM: every tenancy change is ONE credit-risk exit PLUS TWO deemed-rate entries (double jeopardy), and simultaneously the prime acquisition moment for high-value low-churn customers. The atom UNIFIES three things currently held separately: acquisition (thin), deemed-tariff path (built), bad debt (built). DISCOVER first: read the three current mechanisms and name the exact seam where the debt/revenue physics of the move would attach; fold, do not duplicate. BUILD stays gated (EPOCH_GATING -- author now, BUILD when opened)."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's home-move flow: a move-out final bill that may never be paid, two accounts landing on deemed rates, a void property, and the single best moment to win a high-value low-churn customer"
+  depends_on: [W2_5_life_event_stream]
+
+- id: W2_13_occupancy_consumption_volume_shape
+  name: "Occupancy -> consumption volume and shape (people count, adults vs children) folded into the held HH load-shape clustering lane"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  couples_with: [W1_5_premise_demand_shape]
+  provenance: proposal
+  epoch: 3
+  level_current: 0
+  level_target: 1
+  loop_stage: discover
+  dial_inherited: 3
+  evidence: ["docs/staging/DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md"]
+  file_scope: []
+  simplifications: ["2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 2). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it. Scope: occupancy archetypes currently drive COMPLAINT propensity only -- two extra people in a house changes how OFTEN they call, not WHAT they use. The atom wires occupancy (people count, adults vs children where anchorable) into demand VOLUME and SHAPE, alongside the director causal sketch -- hours-at-home, cooking fuel, overnight device load -- as candidate shape drivers. NATURAL HOME (director: fold, do not duplicate): the held HH load-shape clustering lane -- concretely simulation/demand_model.py::build_demand_shape and simulation/premise_demand.py (W1_5_premise_demand_shape), which ALREADY consume an occupancy_multiplier for shape; this atom deepens that from a scalar multiplier into a people-count/composition-driven volume+shape response. DISCOVER first: confirm exactly where occupancy enters the demand path today and what an anchorable people-count response would add; couples_with W1_5. BUILD stays gated (EPOCH_GATING)."]
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real household's demand: more people at home means more kWh and a different half-hourly shape (hours-at-home, cooking, overnight device load), not just more phone calls"
+  depends_on: [W2_1_archetype_layers]
+
 - id: W3_1_price_cap_binding
   name: "Ofgem price cap as a BINDING constraint on SVT pricing (not just a lookup)"
   lane: W3_industry_systems
