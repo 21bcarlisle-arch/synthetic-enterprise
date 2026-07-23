@@ -1,0 +1,51 @@
+# DECLARED DEFECTS REGISTER -- the machine-readable rung 4 of the WORK-SOURCE HIERARCHY
+# (director ruling 2026-07-23, DIRECTOR_RULING_WORK_IS_THE_DEFAULT + NIGHT_ENFORCEMENT).
+#
+# WHY THIS FILE EXISTS: a declared fidelity defect that is NOT in the drawable set is a
+# contradiction (ruling rung 4). Before this register the spike-tail defect was "declared top
+# priority, untouched five days" -- declared only in FRAME prose the draw could not see, so
+# `authorized_set_enumeration` read all-empty -> REST-LEGITIMATE while a top-priority defect sat
+# open. This file makes every declared defect DRAWABLE by construction: the draw
+# (`supervisor.py::_declared_defect_backlog_draw`) walks it as rung 4, above the PRIORITIES-prose
+# backlog / propose-half / forward-discovery / HARDEN floor.
+#
+# INVARIANT (R15-enforced, tests/background/test_defect_backlog_draw.py):
+#   - any defect with status != `closed` is DRAWABLE -> rest is illegitimate while one exists.
+#   - a defect is `closed` ONLY when its fidelity gap is measured-closed (the ledger figure moves),
+#     NOT when a plan (propose-doc) is written. A plan is `plan_doc`; the defect stays open until the
+#     sim/company fix lands and the gap is re-measured. (Otherwise the loop would go idle beside a
+#     still-open gap the instant a plan existed -- the exact failure this rung fixes.)
+#
+# SCHEMA per defect:
+#   id            stable slug
+#   title         one line
+#   declared_at   ISO date it was declared a defect
+#   source        where it was declared (doc / ledger / director ruling)
+#   priority      1 = highest (drawn first); ties broken by declared_at (oldest first)
+#   status        open | closed   (open = drawable; closed = gap measured-closed, left the set)
+#   evidence      the grounded figure(s) -- belief vs truth, so the gap is real not asserted
+#   plan_doc      the minted propose-doc (rung 4 mint), or null if not yet planned
+#   closes_when   the measurable condition that moves it to `closed`
+
+defects:
+  - id: SPIKE_TAIL_SSP_RESIDUAL
+    title: 'SSP spike tail: the residual position settled at System Sell Price is not shaped like reality'
+    declared_at: '2026-07-18'
+    source: >-
+      docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md (per G4 fidelity ledger);
+      re-declared top-priority + "untouched five days" in
+      DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23 and NIGHT_ENFORCEMENT_2026-07-23.
+    priority: 1
+    status: open
+    evidence: >-
+      Imbalance-price (SSP) distribution understated in the tail: model max GBP 574/MWh vs real
+      GBP 4,038/MWh; negative-price fraction 0.013% (model) vs 2.241% (real), per G4's ledger.
+      SSP peak confirmed against Elexon Insights API: real max GBP 4,000.00/MWh exactly, 8 Jan 2021
+      SP39. Consequence: the residual position settled at SSP -- where the spike tail becomes
+      commercially real (hedged blocks vs consumed half-hourly shape) -- cannot bite the company as
+      it bit real suppliers in 2021-22.
+    plan_doc: docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
+    closes_when: >-
+      the SSP/imbalance generator's tail (max, negative-fraction, and the shape between) is
+      re-measured against the G4 ledger and matches real within the ledger's stated tolerance,
+      AND the company's residual-at-SSP exposure is shown to move under the corrected tail.

@@ -1,20 +1,29 @@
-# [CC PROCESSING STATUS -- 2026-07-23] IN PROGRESS (rung 2 ABSORBED; rungs 4/5/7 + seed OPEN)
+# [CC PROCESSING STATUS -- 2026-07-23 NIGHT] IN PROGRESS (rungs 2 + 4 ABSORBED + seeds MINTED; rungs 5/7 OPEN)
 #
-# The class-of-classes fix = a 7-rung WORK-SOURCE HIERARCHY the draw walks. RUNG 2 (open campaigns) is
-# LIVE + R15-proven (commit 321f34dff, supervisor.py::_open_campaign_draw) -- the same mechanism that
-# absorbs the seventh-class ruling. Rungs 1/3/6 already exist (staged docs; below-target atoms incl.
-# propose-halves; forward-discovery register).
+# The class-of-classes fix = a 7-rung WORK-SOURCE HIERARCHY the draw walks. Rungs 1/2/3/6 LIVE.
+#   RUNG 2 (open campaigns) LIVE + R15-proven (supervisor.py::_open_campaign_draw).
+#   RUNG 4 (declared-defect backlog) LIVE + R15-proven THIS TICK (night-enforcement §1):
+#     supervisor.py::_declared_defect_backlog_draw reads docs/design/DECLARED_DEFECTS_REGISTER.yaml,
+#     wired into _self_refill_draw + authorized_set_enumeration + _is_drained_and_gated. PROVEN both
+#     ways (tests/background/test_defect_backlog_draw.py, 7 tests). LIVE FLIP DEMONSTRATED: before,
+#     authorized_set_enumeration read all-empty -> REST-LEGITIMATE / drained=True with the spike-tail
+#     defect sitting open; after, defect_backlog=Y -> MUST-DRAW / drained=False. The contradiction
+#     (a declared defect not in the drawable set) is now impossible by construction.
+#   SEEDS MINTED THIS TICK (night-enforcement §2, propose-then-proceed): docs/design/proposals/
+#     PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md (register plan_doc); PROPOSE_PREMISE_DEMAND_PUBLISH_SPEC003.md;
+#     PROPOSE_SCENARIO_FOLLOWONS_RANKED.md (the rung-5 data source).
 #
-# OPEN (why parked in in_progress, not root) -- the remaining rungs, each a named build:
-#   RUNG 4 -- defect & findings backlog auto-mintable into atoms/propose-docs; INVARIANT: a declared
-#     defect NOT in the drawable set is a contradiction (enforce). Spike-tail defect is #1.
-#   RUNG 5 -- registered follow-ons as a drawable queue (the scenario steer alone registered five).
-#   RUNG 7 -- the PLANNER rung: 1-6 empty -> bounded planning turn (read DIRECTOR_AXES + epoch arc +
-#     fidelity ledger) that MINTS the next batch as propose-then-proceed docs. Rest only BELOW rung 7.
-#   R15 both directions (mint-not-rest with axes populated + spike-tail declared; rest with 1-7 exhausted).
-#   SEED NOW (rung 4/5, no waiting): spike-tail attack plan; premise-demand publish (Spec 003); cap
-#     observation-window + MC-2 collateral test; scenario steer's 5 follow-ons as one ranked doc.
-# UNBLOCKS: each rung is an independent contract-touching build (tests first); drawn on subsequent ticks.
+# STILL OPEN (honest red, credited -- night-enforcement: silent misses are the breach, honest reds are not):
+#   RUNG 5 -- wire registered follow-ons as a drawable draw rung. DATA SOURCE now exists
+#     (PROPOSE_SCENARIO_FOLLOWONS_RANKED.md); the draw fn + wiring + R15 pair remain.
+#   RUNG 7 -- the PLANNER rung. NOT landed tonight, deliberately: a real coupling was found first ->
+#     maybe_emit_graduation_proposal fires ONLY in run_cycle's quiet-rest branch (supervisor.py:2651);
+#     a planner that makes rest structurally unreachable would silence the forward-discovery graduation
+#     [ACT] to the director. The rung-7 build MUST decouple that [ACT] from the rest branch first, or
+#     it introduces a director-facing regression. Landing it blind in an unsupervised night tick is the
+#     exact "tired mega-turn on the release rung" the OPS1 standard forbids. Named here, drawn next tick.
+#   R15 (b) "rest with 1-7 exhausted" lands with rung 7.
+# UNBLOCKS: rungs 5/7 are independent contract-touching builds (tests first); drawn on subsequent ticks.
 # -----------------------------------------------------------------------------------------------------
 
 # [DIRECTOR-RULING] — WORK IS THE DEFAULT: the class-of-classes fix. The drawable set is never empty by construction. (2026-07-23)

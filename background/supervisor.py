@@ -1716,6 +1716,88 @@ def _open_campaign_draw(register_path: Path | None = None) -> str | None:
     )
 
 
+DECLARED_DEFECTS_REGISTER_PATH = PROJECT_DIR / "docs" / "design" / "DECLARED_DEFECTS_REGISTER.yaml"
+
+
+def _open_declared_defects(register_path: Path | None = None) -> list[dict]:
+    """RUNG 4 of the WORK-SOURCE HIERARCHY (director ruling 2026-07-23, WORK_IS_THE_DEFAULT): every
+    DECLARED fidelity defect whose gap is still open. Returns the open defects sorted by priority
+    (1 = highest), ties broken by declared_at (oldest first -- the spike tail, "untouched five days",
+    sorts to the top). Reads docs/design/DECLARED_DEFECTS_REGISTER.yaml (R16: a machine-readable
+    ledger, not FRAME prose -- the whole point is that a declared defect the draw could not SEE read
+    as REST-LEGITIMATE while a top-priority defect sat open).
+
+    A defect counts open unless its status is exactly `closed`; `closed` means the fidelity gap was
+    re-measured shut, NOT merely that a plan was written (else the loop would idle beside a still-open
+    gap the instant a `plan_doc` existed -- the exact failure this rung fixes).
+
+    INDEPENDENCE (R15): keyed on the ACTUAL parsed register content, never a constant -- emptying the
+    register (or closing every defect) is caught by the may-rest test; dropping this rung from the
+    ladder is caught by the must-not-rest test (both in test_defect_backlog_draw.py)."""
+    import yaml
+
+    path = register_path or DECLARED_DEFECTS_REGISTER_PATH
+    try:
+        doc = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return []
+    if not isinstance(doc, dict):
+        return []
+    out: list[dict] = []
+    for d in doc.get("defects") or []:
+        if not isinstance(d, dict):
+            continue
+        if str(d.get("status", "")).strip().lower() == "closed":
+            continue
+        out.append(d)
+    out.sort(key=lambda d: (_as_int(d.get("priority"), 99), str(d.get("declared_at", "9999"))))
+    return out
+
+
+def _as_int(v: Any, default: int) -> int:
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return default
+
+
+def _declared_defect_backlog_draw(register_path: Path | None = None) -> str | None:
+    """RUNG 4 draw (director ruling 2026-07-23, WORK_IS_THE_DEFAULT: "a declared defect that is not in
+    the drawable set is a contradiction; enforce that as an invariant"). Returns a draw message for the
+    highest-priority OPEN declared defect, or None when every declared defect is `closed` (rest is then
+    legitimate ON THIS LEVEL). Sits ABOVE the PRIORITIES-prose backlog / propose-half / forward-discovery
+    / HARDEN floor: a declared fidelity defect is real product work, higher value than re-DISCOVER or the
+    HARDEN treadmill.
+
+    If the top defect already has a `plan_doc`, the draw is to ADVANCE the fix per that plan; if not, the
+    draw is to MINT the plan first (propose-then-proceed). Either way the defect stays drawable until its
+    `closes_when` condition is measured -- being idle beside a declared defect is the failure (ruling).
+
+    R15: this is the rung whose ABSENCE reproduced today's state -- spike-tail declared, no staged docs,
+    `authorized_set_enumeration` all-empty -> REST-LEGITIMATE while the top defect sat open."""
+    defects = _open_declared_defects(register_path)
+    if not defects:
+        return None
+    top = defects[0]
+    others = [str(d.get("id", "?")) for d in defects[1:]]
+    plan = str(top.get("plan_doc") or "").strip()
+    plan_clause = (
+        f"Its attack plan is minted: {plan} -- ADVANCE the fix per that plan (propose-then-proceed, "
+        "normal window)."
+        if plan and plan.lower() not in ("none", "null")
+        else "No plan_doc yet -- MINT the propose-doc first (propose-then-proceed), then advance."
+    )
+    tail = f" Also open (lower priority): {', '.join(others)}." if others else ""
+    return (
+        "DECLARED-DEFECT self-refill (RUNG 4, director ruling 2026-07-23 WORK_IS_THE_DEFAULT -- a "
+        "declared fidelity defect that is not in the drawable set is a contradiction): top open defect "
+        f"{top.get('id', '?')} -- {str(top.get('title', '')).strip()}. Evidence: "
+        f"{str(top.get('evidence', '')).strip()} {plan_clause} It stays drawable until measured shut: "
+        f"{str(top.get('closes_when', '')).strip()} On close, set status: closed in "
+        f"docs/design/DECLARED_DEFECTS_REGISTER.yaml the SAME commit.{tail}"
+    )
+
+
 def forward_discovery_law_status(register_path: Path | None = None) -> dict:
     """Live status of the HARD RULE 'THE TICK NEVER RESTS WHILE AUTHORIZED WORK
     EXISTS AT ANY PRIORITY' (director console 2026-07-22). Returned as data so
@@ -1800,6 +1882,10 @@ def authorized_set_enumeration() -> dict:
         # rest -- enumerated as its own level so the whole-set proof includes it. A lane-scoped proof
         # can never again ground rest (the exact 14:03Z breach: SITE_V5 open, this level not counted).
         ("open_campaign", _open_campaign_draw),
+        # RUNG 4 (director ruling 2026-07-23, WORK_IS_THE_DEFAULT): a declared fidelity defect that is
+        # not in the drawable set is a contradiction. Its ABSENCE was today's state -- spike-tail
+        # declared, this level uncounted, the whole-set proof read all-empty -> REST-LEGITIMATE.
+        ("defect_backlog", _declared_defect_backlog_draw),
         ("backlog", _actionable_backlog_item),
         ("propose_half", _propose_half_draw),
         ("forward_discovery", _forward_discovery_draw),
@@ -2047,6 +2133,21 @@ def _self_refill_draw() -> str | None:
         )
         return campaign_item
 
+    # RUNG 4 -- DECLARED-DEFECT BACKLOG (director ruling 2026-07-23, WORK_IS_THE_DEFAULT): the
+    # below-target lanes and every open campaign are empty here -> before ANY lower rung or rest,
+    # draw the highest-priority open declared fidelity defect. "A declared defect that is not in the
+    # drawable set is a contradiction." Its ABSENCE was today's exact state: spike-tail declared top
+    # priority, no staged docs, the whole-set enumeration all-empty -> the tick called rest legitimate
+    # while a five-day-untouched defect sat open. Sits ABOVE the PRIORITIES-prose fallback / propose-
+    # half / forward-discovery / HARDEN floor -- a declared fidelity gap is real product work.
+    defect_item = _declared_defect_backlog_draw()
+    if defect_item:
+        log(
+            "DECLARED-DEFECT: below-target + open-campaign lanes empty/gated -> drawing the "
+            "highest-priority open declared defect (RUNG 4; WORK_IS_THE_DEFAULT 2026-07-23)"
+        )
+        return defect_item
+
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
@@ -2133,6 +2234,14 @@ def _is_drained_and_gated() -> bool:
         # refuses. A lane-scoped proof can never again ground rest -- the WHOLE set, open campaigns
         # included, must be empty (ruling §2).
         if _open_campaign_draw():
+            return False
+        # RUNG 4 -- DECLARED-DEFECT BACKLOG (director ruling 2026-07-23, WORK_IS_THE_DEFAULT): rest is
+        # illegitimate while any declared fidelity defect is still open. Mirror of the rung added to
+        # `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light the exact today-
+        # state rest the draw now refuses (spike-tail declared, whole-set read all-empty). A declared
+        # defect not in the drawable set is a contradiction -- the WHOLE set, defects included, must be
+        # empty before rest (ruling rung 4).
+        if _declared_defect_backlog_draw():
             return False
         # PROPOSE-HALF LANE (director ruling 2026-07-23, R17 CLASS FIX): rest is illegitimate while a
         # BUILD-gated item's ungated build-PROPOSAL step is still open. This is the mirror of the rung
