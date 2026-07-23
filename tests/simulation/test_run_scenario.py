@@ -44,10 +44,16 @@ def test_expand_daily_to_hh_all_periods_present():
     assert periods == list(range(1, 49))
 
 
-def test_expand_daily_to_hh_price_preserved():
+def test_expand_daily_to_hh_daily_mean_preserved():
+    """The expansion now applies a MEAN-PRESERVING intraday shape (SPIKE_TAIL_SSP_RESIDUAL fix): the 48
+    periods carry a within-day profile, but the day's MEAN SSP equals the daily generator price (the
+    daily-generator calibration is untouched — R12/R13)."""
+    from statistics import fmean
     daily = _daily_records("2027-01-01", "2027-01-01", price=123.45)
     hh = _expand_daily_to_hh(daily)
-    assert all(r["systemSellPrice"] == 123.45 for r in hh)
+    # abs=1e-3 accommodates the per-period 4dp rounding residual across 48 periods; the shape is
+    # mean-preserving by construction (see test_forward_intraday_shape for the population-level check).
+    assert fmean(r["systemSellPrice"] for r in hh) == pytest.approx(123.45, abs=1e-3)
 
 
 def test_expand_daily_to_hh_date_preserved():

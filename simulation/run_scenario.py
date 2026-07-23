@@ -22,23 +22,31 @@ from datetime import date, timedelta
 
 from sim.scenario.bimodal_generator import SCENARIOS as ELEC_SCENARIOS, generate_scenario_prices
 from sim.scenario.gas_scenario_generator import GAS_SCENARIOS, generate_gas_scenario_prices
+from sim.scenario.intraday_shape import shape_day
 
 
-def _expand_daily_to_hh(daily_records: list[dict]) -> list[dict]:
-    """Convert daily price records to half-hourly format (48 periods per day).
+def _expand_daily_to_hh(daily_records: list[dict], seed: str = "scenario") -> list[dict]:
+    """Convert daily scenario price records to half-hourly format (48 periods per day).
 
-    The historical Elexon SSP records have one row per settlement period (1-48).
-    This expands daily scenario prices into that format so the settlement lookup
-    `elec_price_lookup[(date, period)]` works correctly.
+    The historical Elexon SSP records have one row per settlement period (1-48); this expands the
+    daily scenario prices into that format so the settlement lookup `elec_price_lookup[(date, period)]`
+    works correctly.
+
+    The 48 periods carry a MEAN-PRESERVING intraday SSP shape (sim.scenario.intraday_shape.shape_day):
+    a diurnal profile plus a possible tightness-keyed scarcity spike and oversupply trough, so the
+    forward residual settles against a within-day SSP profile — the block-hedge-vs-spiky-shape mismatch
+    that bit real suppliers in 2021-22 (SPIKE_TAIL_SSP_RESIDUAL). The day's MEAN SSP is unchanged (the
+    daily-generator calibration is untouched, R12/R13); only the within-day distribution is added.
+    Deterministic in (day, seed): a fixed history replays byte-identical (C-S2).
     """
     hh = []
     for r in daily_records:
-        price = r["systemSellPrice"]
+        periods = shape_day(r["systemSellPrice"], r["settlementDate"], seed=seed)
         for period in range(1, 49):
             hh.append({
                 "settlementDate": r["settlementDate"],
                 "settlementPeriod": period,
-                "systemSellPrice": price,
+                "systemSellPrice": periods[period - 1],
             })
     return hh
 
@@ -85,7 +93,7 @@ def build_extended_price_feeds(
         return historical_elec, historical_gas
 
     elec_daily = generate_scenario_prices(scenario_actual_from, year_to, scenario, seed=_seed)
-    elec_hh = _expand_daily_to_hh(elec_daily)
+    elec_hh = _expand_daily_to_hh(elec_daily, seed=_seed)
     for _r in elec_hh:
         _r["data_regime"] = "synthetic"
     extended_elec = historical_elec + elec_hh

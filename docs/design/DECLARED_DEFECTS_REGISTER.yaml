@@ -36,7 +36,24 @@ defects:
       re-declared top-priority + "untouched five days" in
       DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23 and NIGHT_ENFORCEMENT_2026-07-23.
     priority: 1
-    status: open
+    status: closed
+    closed_at: '2026-07-24'
+    closed_by: >-
+      Intraday SP-level SSP shape landed on the forward settlement path (sim/scenario/intraday_shape.py,
+      wired into simulation/run_scenario.py::_expand_daily_to_hh). A MEAN-PRESERVING within-day profile
+      (diurnal + tightness-keyed scarcity spike + oversupply trough) replaces the flat 48-period expansion.
+      BOTH closes_when conditions proven this commit:
+      (T1) tests/sim/test_forward_intraday_shape.py::test_forward_intraday_reaches_scarcity_regime_and_preserves_daily_mean
+      -- population HH exceedance now reaches the scarcity regime calibrated to spike_tail_real_target.json
+      (frac_gt_1000 ~0.96x, frac_gt_2000 ~1.01x, frac_gt_3000 ~1.10x of real; max ~GBP4,100 vs the old
+      structural ceiling ~GBP683) WHILE the daily mean is preserved (max abs err < 1e-3, so the daily-mean
+      calibration vs spike_tail_real_target_daily.json is untouched -- R12 sibling-trap avoided).
+      (T3) tests/sim/test_residual_bites_intraday.py -- with a fixed block hedge + peak-weighted consumption,
+      the company's residual-at-SSP cost tail moves >5x at the worst period and extends past the entire flat
+      world; mutation guard (neutralise the shape) shows the move vanishes (R15 both ways). The old flat-today
+      tripwire is FLIPPED to a within-day-shape tolerance check in the SAME commit (register discipline).
+      R13 seam honoured: the shape is calibrated to REAL SSP (fidelity, blind to P&L); NO per-scenario
+      severity dial was added (severity is expressed via the director-owned daily generator price level).
     evidence: >-
       Imbalance-price (SSP) distribution understated in the tail: model max GBP 574/MWh vs real
       GBP 4,038/MWh; negative-price fraction 0.013% (model) vs 2.241% (real), per G4's ledger.
@@ -69,6 +86,12 @@ defects:
       (measurement fires on a spiky day; FAIL-CLOSED on empty) + a structural assertion on the expansion
       itself. The physics change (intraday SP-level shape) stays a supervised build; this tick landed only
       the tests-first control the redirected fix needs. Register stays open -- the gap is not measured-closed.
+      STEP-4 CLOSURE (2026-07-24 tick, physics landed per director ruling WORK_IS_THE_DEFAULT "ADVANCE the
+      fix per that plan"): the intraday SP-level shape overlay is implemented and both closes_when conditions
+      are measured-shut -- see closed_by above. The redirected fix is complete: forward worlds now carry the
+      block-hedge-vs-spiky-half-hourly-SSP mismatch that bit real suppliers in 2021-22, calibrated to the real
+      HH exceedance curve, with the daily mean untouched. Four control-only ticks preceded this; the physics
+      change itself landed here.
     plan_doc: docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
     closes_when: >-
       the FORWARD residual carries a real INTRADAY (SP-level) SSP shape -- run_scenario.py::_expand_daily_to_hh

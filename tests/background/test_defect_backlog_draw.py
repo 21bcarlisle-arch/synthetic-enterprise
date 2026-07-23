@@ -146,14 +146,26 @@ def test_rung_is_in_authorized_set_enumeration() -> None:
     assert "_declared_defect_backlog_draw" in refill_src, "rung 4 not in the _self_refill_draw ladder"
 
 
-def test_real_register_has_spike_tail_drawable() -> None:
-    """The committed register makes the spike-tail defect drawable RIGHT NOW -- live, not latent.
-    This is the whole point: today the whole-set enumeration read all-empty despite this open defect."""
-    draw = sup._declared_defect_backlog_draw()  # real DECLARED_DEFECTS_REGISTER_PATH
-    assert draw is not None, "the real register must make the spike-tail defect drawable"
-    assert "SPIKE_TAIL_SSP_RESIDUAL" in draw
-    # And it is reflected in the whole-set enumeration, so rest can no longer be called legitimate.
-    assert sup.authorized_set_enumeration()["defect_backlog"] is True
+def test_real_register_backlog_draw_consistent_with_open_defects() -> None:
+    """The mechanism's verdict tracks the REAL committed register's live open-defect set (R15 independence
+    on the actual file, not a fixture) -- an open defect re-arms the draw, a closed one legitimately empties
+    the rung. RECONCILED 2026-07-24: SPIKE_TAIL_SSP_RESIDUAL was measured shut (the intraday-shape fix
+    landed -- see the register closed_by / test_forward_intraday_shape.py + test_residual_bites_intraday.py),
+    so it must NOT be in the open set, and the draw/enumeration reflect the real remaining open defects
+    (whatever they are), never a hard-coded assumption that spike-tail is open."""
+    open_defects = sup._open_declared_defects()  # real DECLARED_DEFECTS_REGISTER_PATH
+    open_ids = [d.get("id") for d in open_defects]
+    draw = sup._declared_defect_backlog_draw()
+    enum = sup.authorized_set_enumeration()["defect_backlog"]
+    if open_defects:
+        assert draw is not None and enum is True, "an open defect must arm the draw + enumeration"
+        assert any(oid in draw for oid in open_ids)
+    else:
+        assert draw is None and enum is False, "no open defect => this rung is legitimately empty"
+    # The spike-tail fix is measured-shut, so it is NOT in the open set (a closed defect never re-draws).
+    assert "SPIKE_TAIL_SSP_RESIDUAL" not in open_ids, (
+        "SPIKE_TAIL_SSP_RESIDUAL is marked closed in the real register but still reads as open"
+    )
 
 
 def test_independence_not_a_constant(tmp_path: Path) -> None:

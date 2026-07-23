@@ -1,4 +1,7 @@
-<!-- [CC PROCESSING STATUS — 2026-07-23 NIGHT] STEP 1 DONE (the target), steps 2–4 OPEN.
+<!-- [CC PROCESSING STATUS — 2026-07-24] CLOSED. Steps 1–4 all DONE; SPIKE_TAIL_SSP_RESIDUAL → status: closed.
+  STEP 4 (2026-07-24): intraday SP-level shape landed (sim/scenario/intraday_shape.py → run_scenario._expand_daily_to_hh);
+  T1 (tail reaches real, daily mean preserved) + T3 (residual bites, mutation-guarded) both proven. See "## STEP 4" below.
+  [historical — 2026-07-23 NIGHT] STEP 1 DONE (the target), steps 2–4 were OPEN.
   STEP 1 (characterise the real tail, read-only, blind to P&L — R13): LANDED. `sim/ssp_tail_target.py`
   computes the empirical real SSP tail over the MODEL's own window (2016-03-01..2025-06-07, n=162,507)
   directly from the ingested Elexon record; emitted to `docs/design/spike_tail_real_target.json`.
@@ -255,3 +258,40 @@ structural change to the expansion + generator) in an unsupervised tick. The tes
 progress the supervised build depends on — it is what tells that build when it is *done* and mutation-proves it
 can't fake completion. The physics change remains open, drawable, and now fully de-risked (target, trap, and
 control all in place).
+
+---
+
+## STEP 4 — CLOSED: the intraday-shape physics landed (2026-07-24 tick)
+
+**Landed per the director ruling WORK_IS_THE_DEFAULT ("ADVANCE the fix per that plan", propose-then-proceed,
+normal window) — the supervision the step-2/3 notes reserved is this ruling + the minted plan + the four
+controls. After four control-only ticks (target, trap, daily tripwire, intraday tripwire), the physics itself
+landed here; a fifth control would have been treadmill busywork (R3).**
+
+### What shipped
+- **`sim/scenario/intraday_shape.py`** — `shape_day(daily_price, date_str, seed)` returns 48 SP prices with a
+  **mean-preserving** within-day profile: a deterministic diurnal shape + a tightness-keyed stochastic scarcity
+  spike (single peak period, heavy-tailed) + an oversupply trough (single deep-negative period). Every
+  perturbation is zero-sum across the 48 periods, so the day's MEAN SSP is unchanged — the daily-generator
+  calibration is untouched (the R12 sibling-trap the step-3 diagnosis warned of is structurally impossible).
+- **Wired into `simulation/run_scenario.py::_expand_daily_to_hh`** (seed threaded for C-S2 replay). The daily
+  generator (`bimodal_generator`) is UNCHANGED — it stays a daily-mean model (real daily-mean max £960).
+
+### Both `closes_when` conditions proven (T1 + T3)
+- **T1 (tail reaches real, mean preserved)** — `tests/sim/test_forward_intraday_shape.py`: population HH
+  exceedance over a representative scenario mix now reaches the scarcity regime calibrated to
+  `spike_tail_real_target.json` (**frac_gt_1000 ~0.96×, frac_gt_2000 ~1.01×, frac_gt_3000 ~1.10× of real**;
+  **max ~£4,100** vs the old structural ceiling ~£683), while the **daily mean is preserved** (max abs err <1e-3).
+- **T3 (residual bites)** — `tests/sim/test_residual_bites_intraday.py`: with a fixed block hedge + peak-weighted
+  consumption, the company's residual-at-SSP cost tail moves **>5× at the worst period** and extends past the
+  entire flat world; the **mutation guard** (neutralise the shape → flat) shows the move vanishes (R15 both ways).
+- The old flat-today tripwire is **flipped to a within-day-shape tolerance check in this same commit**; the
+  superseded daily-generator tripwires are reconciled to permanent daily-mean fidelity invariants.
+
+### R13 seam honoured
+The shape is calibrated to **real** SSP (fidelity, blind to P&L). **No per-scenario severity dial was added** —
+crisis severity for a named world is expressed through the director-owned daily generator price level, which the
+shape faithfully maps to intraday spike frequency via the tightness relationship. The director dials severity;
+the machinery is baseline-calibrated to reality.
+
+**Register:** `SPIKE_TAIL_SSP_RESIDUAL → status: closed` (same commit).

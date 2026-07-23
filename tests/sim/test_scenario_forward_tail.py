@@ -1,4 +1,11 @@
-"""Failable control on the ACTUAL forward SSP settlement path (SPIKE_TAIL_SSP_RESIDUAL).
+"""Fidelity invariants on the DAILY forward generator (SPIKE_TAIL_SSP_RESIDUAL — reconciled 2026-07-24).
+
+RECONCILED: this file began (step-2) as a failable TRIPWIRE claiming the daily generator starved the
+scarcity tail and should be reshaped to reach GBP4,038. The step-3 diagnosis established that was the wrong
+locus: the daily generator is a DAILY-MEAN model (real daily-mean max GBP960), and the GBP4,038 tail is a
+HALF-HOURLY phenomenon that belongs in the INTRADAY expansion (sim/scenario/intraday_shape.py, where the
+fix landed 2026-07-24). So these are now PERMANENT FIDELITY INVARIANTS — the daily generator must STAY a
+daily-mean model and NOT itself reach the HH scarcity tail — not tripwires awaiting a daily-generator fix.
 
 WHY THIS EXISTS (step-2 CORRECTION, 2026-07-23 tick): the attack plan's original controls
 (tests/sim/test_ssp_tail_model.py) measure `sim/price_engine.py::synthetic_price`. Recon this tick
@@ -48,17 +55,22 @@ def _worst_preset_tail() -> dict:
     return tail_stats(prices)
 
 
-def test_forward_tail_gap_is_real_today():
-    """The forward SSP generator that settles the residual STARVES the scarcity-spike tail RIGHT NOW.
-    Real SSP reached GBP4,038 (8 Jan 2021 SP39); the generator's heaviest preset cannot clear GBP1,000.
-    Flip this the moment the crisis-spike overlay lands (register closes_when)."""
+def test_daily_generator_stays_a_daily_mean_model():
+    """RECONCILED 2026-07-24 (step-3 diagnosis): this began as a 'gap-is-real, flip-when-fixed' tripwire
+    on the DAILY generator. The step-3 diagnosis established the daily generator is a DAILY-MEAN model and
+    the real DAILY-MEAN SSP max is only GBP960 (docs/design/spike_tail_real_target_daily.json) -- the
+    GBP4,038 scarcity tail is a HALF-HOURLY phenomenon that lives in the INTRADAY expansion, not the daily
+    series (a daily price tuned toward GBP4,038 would be the R12 sibling-trap). So the fix landed in the
+    intraday expansion (sim/scenario/intraday_shape.py), NOT here; this assertion is now a PERMANENT
+    FIDELITY INVARIANT: the daily generator must stay a daily-mean model and NOT itself reach the
+    half-hourly scarcity tail. If it ever does, the daily calibration has drifted (a defect, not progress)."""
     t = _worst_preset_tail()
     assert t["max"] < 1000.0, (
-        f"forward generator max is {t['max']:.0f} -- if it now reaches the real >GBP1,000 scarcity "
-        "regime the crisis-spike overlay has landed: set SPIKE_TAIL_SSP_RESIDUAL status: closed and "
-        "flip this assertion to a real tolerance check in the SAME commit (register closes_when)"
+        f"daily generator max is {t['max']:.0f} -- the daily-mean model has drifted into the half-hourly "
+        "scarcity tail (real daily-mean max is GBP960); the daily generator must NOT reach the HH tail "
+        "(that lives in the intraday expansion). This is a daily-calibration defect, not the spike fix."
     )
-    assert t["exceedance_gbp"]["frac_gt_2000"] == 0.0, "generator still cannot reach the >GBP2,000 spike"
+    assert t["exceedance_gbp"]["frac_gt_2000"] == 0.0, "daily-mean generator must not reach the >GBP2,000 HH spike"
 
 
 def test_measurement_can_see_a_spike():
@@ -70,12 +82,15 @@ def test_measurement_can_see_a_spike():
     assert with_spike["exceedance_gbp"]["frac_gt_2000"] > 0.0
 
 
-def test_crisis_spike_overlay_not_yet_implemented():
-    """The doc-vs-code gap made mechanical: the module docstring promises a crisis-spike overlay, but
-    generate_scenario_prices does not implement one. When it does (a variable/branch named for the
-    crisis/scarcity spike appears in the generate loop), this fails -- a reminder to close the register."""
+def test_scarcity_spike_lives_in_intraday_expansion_not_daily_generator():
+    """RECONCILED 2026-07-24: the scarcity-spike overlay landed in the INTRADAY expansion
+    (sim/scenario/intraday_shape.py, applied by run_scenario._expand_daily_to_hh), NOT in the daily
+    generate_scenario_prices -- because the real GBP4,038 spike is a half-hourly (sub-daily) phenomenon,
+    not a daily-mean one (step-3 diagnosis). This asserts the SEPARATION holds: the daily generator stays
+    a daily-mean model free of intraday scarcity-spike logic. If a crisis/scarcity spike branch ever
+    appears in the daily loop, the daily model has absorbed a sub-daily phenomenon it should not carry."""
     gen_src = inspect.getsource(bg.generate_scenario_prices).lower()
     assert "crisis" not in gen_src and "scarcity" not in gen_src, (
-        "generate_scenario_prices now references a crisis/scarcity spike -- if the overlay is implemented "
-        "and the tail reaches real, close SPIKE_TAIL_SSP_RESIDUAL and flip test_forward_tail_gap_is_real_today"
+        "generate_scenario_prices now references a crisis/scarcity spike -- the scarcity tail belongs in "
+        "the intraday expansion (sim/scenario/intraday_shape.py), not the daily-mean generator"
     )
