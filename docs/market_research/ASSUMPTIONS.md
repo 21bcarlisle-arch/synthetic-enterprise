@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-07-22 from current codebase.
+Last seeded: 2026-07-23 from current codebase.
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -385,6 +385,27 @@ adoption correlation and W2_10's `organisation`↔W2_4-budget coupling were conf
 | ~~Pricing actions not implemented~~ | ~~High~~ | CLOSED Phase 44a — £3/MWh uplift at renewal for net-negative accounts |
 | **Per-customer satisfaction heterogeneity (`sim_satisfaction.py`)** | **Medium — 67%/28% of all satisfaction datapoints sit at exactly one of two shared values (BASELINE_SATISFACTION=0.70 minus a single -0.05 step); real GB population data (Ofgem Wave 20) shows continuous spread even within one payment-type/vulnerability cohort. No per-customer noise term exists.** | **Candidate next phase — see "Customer Satisfaction Population Distribution" section above for anchors (income-stress gap ~23pt doing-well-vs-vulnerable; payment-method gap ~6pt DD-vs-standard-credit; population-level continuous spread, not point clustering)** |
 | **Opex/cost-to-serve never deducted from portfolio-wide annual net_gbp (`saas/cost_to_serve.py`)** | **CRITICAL — MARGIN_REALISM Step 2 diagnosis identified this as the single largest missing cost line explaining the sim's ~2-3x elevated net margin vs real ~1-3% benchmark. Real anchors now available: DCC comms £19.01/yr (elec)/£14.32/yr (gas) per smart meter (H confidence); Ofgem cap "operating, debt and industry costs" allowance £297.92 (DD)/£441.10 (SC)/£308.04 (PPM) per dual-fuel customer/year (H confidence, but bundled category — see MARGIN_REALISM Step 3 section above for the double-counting caveat); payment processing/postage/credit-check/Elexon/Xoserve/MOP-DC-DA remain explicit gaps.** | **MARGIN_REALISM Step 3 — build in progress, see `docs/staging/done/MARGIN_REALISM_amended.md`** |
+
+## Occupancy → Consumption Volume & Shape (W2_13, 2026-07-23, discovery-agent Job 2)
+
+Requested check for atom `W2_13_occupancy_consumption_volume_shape` (couples_with
+W1_5_premise_demand_shape): can a people-count / composition-driven demand VOLUME and SHAPE
+response be anchored to real UK sources, deepening the existing scalar `occupancy_multiplier`?
+Full findings, direct quotes and sourcing detail:
+`docs/market_research/occupancy_consumption_volume_shape_w2_13.md`. **Job 1 (the exact
+`simulation/premise_demand.py`/`demand_model.py::build_demand_shape` code seam) is out of the
+discovery-agent's epistemic scope and is not covered by this doc or this row — a
+code-authorized agent must locate the seam and author the combined DISCOVER-COMPLETE doc at
+`docs/design/W2_13_OCCUPANCY_CONSUMPTION_VOLUME_SHAPE_DISCOVER.md`.**
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| Electricity annual consumption by number of adults (volume response) | Not modelled — `occupancy_multiplier` is a scalar, not a people-count/composition-driven response | DESNZ NEED 2023 median kWh/yr by number of adults, E&W: 1 adult 1,993; 2 adults 2,867 (+43.8%); 3 adults 3,318 (+15.7%); 4 adults 3,772 (+13.6%); 5+ adults 4,129 (+9.5%) — sublinear, largest jump on the 1→2-adult transition | DESNZ NEED 2025 report, `Consumption_additional_EW_2023.xlsx` Table_A14, gov.uk, fetched 2026-07-23 | 2026-07-23 | H — primary accredited official statistics, parsed directly from published data table |
+| Gas annual consumption by number of adults (volume response) | Not modelled | Same source, Table_A13: 1 adult 8,546 kWh/yr; 2 adults 10,624 (+24.3%); 3 adults 11,576 (+9.0%); 4 adults 12,734 (+10.0%); 5+ adults 14,486 (+13.8%) — sublinear, smaller 1→2 jump than electricity (heating driven more by dwelling size than occupancy) | Same NEED source, Table_A13 | 2026-07-23 | H |
+| Adults-vs-children marginal volume decomposition | Not modelled; no distinct children-count field | NEED's "number of adults" gradient above is adults-only — no NEED table found this session cross-tabulating adults × children jointly; EFUS water-use data (households with children 71% under-1x-shower-per-person-per-day vs 38% without) corroborates a real but distinct children dampening effect on PER-PERSON intensity, not resolvable to a clean marginal-kWh figure | NEED footnote 3 (adults = Experian-modelled); EFUS heating-and-occupancy report §5.2.2 | 2026-07-23 | Gap — R10-distribution-candidate, do not assume a child = an adult's marginal volume |
+| Daytime (9am-5pm) hours-at-home by household composition (shape driver) | Not modelled — no composition-driven shape adjustment exists | EFUS 2017 (Interview 3, winter 2018/19, n≈1,170): weekday "someone in all day" 9am-5pm — 43% all households; by household size 67% (5+ persons) vs 37% (1 person); by pensioner presence 63% vs 34%; by employment 60% (all unemployed) vs 35% (someone employed). Evening (88%) and overnight (94%) occupancy are near-universal regardless of composition — shape adjustment should concentrate on the daytime window only | DESNZ/BRE "Energy Follow-Up Survey: Heating patterns and occupancy" (EFUS 2017 series), §4.1-4.2, gov.uk, fetched 2026-07-23 | 2026-07-23 | H for the occupancy-rate inputs; R10-distribution-candidate for the kWh-shape-weight conversion |
+| Cooking fuel split by household composition | Not modelled | NOT FOUND this session — existing heating-fuel-type anchors (gas boiler ~86%) are heating not cooking, and are not composition-cross-tabulated | Searched EFUS heating-and-occupancy report (no cooking content); `efus-light-appliances-smart-tech.pdf` identified as an unfetched candidate, same EFUS 2017 publication page | 2026-07-23 | Gap — R10-distribution-candidate, named follow-up source not yet fetched |
+| Overnight device/standby load by household composition | Not modelled | NOT FOUND this session | Same as above | 2026-07-23 | Gap — R10-distribution-candidate, named follow-up source not yet fetched |
 
 ---
 

@@ -580,7 +580,7 @@
   dial_inherited: 3
   evidence: ["docs/staging/DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md"]
   file_scope: []
-  simplifications: ["2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 2). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it. Scope: occupancy archetypes currently drive COMPLAINT propensity only -- two extra people in a house changes how OFTEN they call, not WHAT they use. The atom wires occupancy (people count, adults vs children where anchorable) into demand VOLUME and SHAPE, alongside the director causal sketch -- hours-at-home, cooking fuel, overnight device load -- as candidate shape drivers. NATURAL HOME (director: fold, do not duplicate): the held HH load-shape clustering lane -- concretely simulation/demand_model.py::build_demand_shape and simulation/premise_demand.py (W1_5_premise_demand_shape), which ALREADY consume an occupancy_multiplier for shape; this atom deepens that from a scalar multiplier into a people-count/composition-driven volume+shape response. DISCOVER first: confirm exactly where occupancy enters the demand path today and what an anchorable people-count response would add; couples_with W1_5. BUILD stays gated (EPOCH_GATING)."]
+  simplifications: ["2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 2). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it. Scope: occupancy archetypes currently drive COMPLAINT propensity only -- two extra people in a house changes how OFTEN they call, not WHAT they use. The atom wires occupancy (people count, adults vs children where anchorable) into demand VOLUME and SHAPE, alongside the director causal sketch -- hours-at-home, cooking fuel, overnight device load -- as candidate shape drivers. NATURAL HOME (director: fold, do not duplicate): the held HH load-shape clustering lane -- concretely simulation/demand_model.py::build_demand_shape and simulation/premise_demand.py (W1_5_premise_demand_shape), which ALREADY consume an occupancy_multiplier for shape; this atom deepens that from a scalar multiplier into a people-count/composition-driven volume+shape response. DISCOVER first: confirm exactly where occupancy enters the demand path today and what an anchorable people-count response would add; couples_with W1_5. BUILD stays gated (EPOCH_GATING).", "2026-07-23 DISCOVER COMPLETE (docs/design/W2_13_OCCUPANCY_CONSUMPTION_VOLUME_SHAPE_DISCOVER.md). SEAM NAMED = simulation/demand_model.py::build_demand_shape at the occupancy_multiplier call site (line ~174-175) + occupancy_multiplier (line 93): occupancy TODAY is a 3-category SHAPE-only multiplier (0.75-1.4, near-1.0 so it redistributes but does NOT scale total volume) keyed on a categorical occupancy_pattern string from saas/property_model.py -- no people-count, no adults-vs-children, no volume gradient. FOLD not fork: deepen the one call site -- (1) add a per-household VOLUME factor on the base level following the NEED per-adult SUBLINEAR curve (elec +43.8/+15.7/+13.6/+9.5pp for the 2nd-5th adult, DESNZ NEED 2023, ANCHORED H); (2) deepen occupancy_multiplier so the DAYTIME window (09:00-17:00) ONLY responds to composition (EFUS 2017: ~30pp daytime at-home swing by size/pensioner/employment; evening 88% / overnight 94% near-universal -> unchanged, ANCHORED H); category returns become the no-people-count fallback. STAYS R10 (sample, do not point-estimate): child-vs-adult marginal increment (NEED is adults-only), the occupancy-rate->kWh-shape-weight conversion, cooking-fuel/overnight-device load (unfetched lead: efus-light-appliances-smart-tech.pdf). couples_with W1_5: volume factor is deterministic and distinct from W1_5 idiosyncratic noise; gap measured against W1_5. Level-1 PROPOSED; level_current held at 0 (cell move is the director per the level gate, R16). BUILD stays EPOCH-gated."]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real household's demand: more people at home means more kWh and a different half-hourly shape (hours-at-home, cooking, overnight device load), not just more phone calls"
   depends_on: [W2_1_archetype_layers]
@@ -2314,3 +2314,60 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier quant risk desk estimating the dependence structure of the weather-to-demand-to-generation-to-price-to-imbalance cascade from history -- getting the joint tail right (cold and still together), not a single Pearson number that lies in the bulk"
   evidence: [docs/design/EPOCH2_D_CASCADE_CORRELATION_ESTIMATION_DISCOVER.md, docs/design/EPOCH2_COUPLED_WORLD_CAMPAIGN_DECOMPOSITION.md]
+
+- id: F1a_sim_customer_response
+  name: "F1a SIM customer response model -- typed message->response over the wall; hidden susceptibility scalars scale benchmarked nudge uplift; response is a distinct-in-time event (behind the wall, allowed to hold truth)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  couples_with: [F1b_company_comms]
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  evidence: [docs/design/proposals/F1_conversations_coupled_triad_BUILD_PROPOSAL.md, docs/design/frame/F1_conversations_coupled_triad_FRAME.md, docs/market_research/f1_simulating_conversations.md]
+  file_scope: [simulation/conversation_response.py, tests/simulation/test_conversation_response.py]
+  depends_on: [W2_5_life_event_stream]
+  blocked_on: null
+  simplifications: ['2026-07-23 REGISTERED (director BUILD waiver, DIRECTOR_RULING_F1_WINDOW_WAIVED_2026-07-23.md, commit 5143ed41f: proceed to BUILD exactly as proposed). SEAM CONTRACT (proposal section 6 first sequenced step) LANDED SAME TURN: interface/contracts/conversation_seam.py -- typed versioned ConversationMessage{situation,channel,product,tone,framing,emitted_step,offer?} + ConversationResponse{response_id,responds_to,action,channel_chosen,latency,responded_step}; C-S3 async enforced structurally (latency<=0 rejected at construction + responded_step>emitted_step pairing validator); no hidden-scalar field (structural test); 12 tests pass, epistemic PASS. F1a BUILD (this atom) = the SIM response model consuming that contract: action prob = situation base rate modulated by hidden {FramingSusceptibility,ToneSusceptibility} x benchmarked uplift, saturating; REUSE simulation/nudge_physics.py latents (do NOT re-draw); own named RNG substream (C-S2); message->response lag a declared parameter (C-S5). level_current 0 -- cell moves via director ratify (R16), never self-promoted. L3 director-reserved (curriculum: Energy-Ombudsman complaint arrivals). NEXT TICK: build F1a to the seam contract, then blocked_on director_level_up.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real customer deciding whether to open, click, pay, switch or complain in response to a supplier message -- the decision driven by hidden susceptibilities the supplier can never directly observe, only infer from what the customer actually did"
+
+- id: F1b_company_comms
+  name: "F1b COMPANY comms: situation-keyed segment-gated message generator + per-customer Bayesian susceptibility estimator updated on observed replies ONLY (in front of the wall, allowed to be wrong)"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  couples_with: [F1a_sim_customer_response]
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  evidence: [docs/design/proposals/F1_conversations_coupled_triad_BUILD_PROPOSAL.md, docs/design/frame/F1_conversations_coupled_triad_FRAME.md]
+  file_scope: [company/comms/conversation_generator.py, company/comms/susceptibility_estimator.py, tests/company/comms/test_conversation_comms.py]
+  depends_on: [W2_5_life_event_stream]
+  blocked_on: null
+  simplifications: ['2026-07-23 REGISTERED (director BUILD waiver, commit 5143ed41f). Builds against the seam contract interface/contracts/conversation_seam.py landed the same turn. F1b = generator keyed to (segment-BELIEF, situation-trigger) over the eight DISCOVER Q1 triggers (renewal 42-49d SLC 22A, tariff-change 30d, missed-payment, bill-shock, inbound-complaint, win-back, welcome, annual-statement), channel SEGMENT-GATED (SME broker/TPI; PSR accessible formats; residential digital-first -- may NOT assume one channel) + a per-customer Bayesian belief over each susceptibility updated ONLY on observed replies/actions/latency, NEVER the true scalar (epistemic wall -- the exact conversation-revealed-trait reconciliation the ruling asked, reconciled with segmentation_joint_structure.md). Explicitly permitted to diverge from truth -- the divergence IS the score. EXIT: epistemic-verifier PASS on the diff; a belief-update that reads the true scalar must FAIL it (R15). level_current 0 -- director ratify moves the cell (R16). NEXT TICK: build F1b to the seam contract (parallel-safe with F1a, disjoint file_scope), then blocked_on director_level_up.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier CRM that picks who to message, on which channel, with which framing, and slowly learns which customers respond to which nudge -- from nothing but which past messages landed, never from reading the customer's mind"
+
+- id: F1c_harness_conversation_gap
+  name: "F1c HARNESS conversation gap: belief-vs-truth susceptibility gap per customer + CA-weighted (55/35/10) outcome uplift + R15 intent-leak control that FIRES on a peeking company (measures, never helps either side)"
+  lane: H_harness
+  value_stream: close_to_learn
+  couples_with: [F1a_sim_customer_response, F1b_company_comms]
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: frame
+  dial_inherited: 3
+  provenance: proposal
+  evidence: [docs/design/proposals/F1_conversations_coupled_triad_BUILD_PROPOSAL.md, docs/design/frame/F1_conversations_coupled_triad_FRAME.md]
+  file_scope: [tests/harness/test_conversation_gap.py, background/conversation_gap_ledger.py]
+  depends_on: [F1a_sim_customer_response, F1b_company_comms]
+  blocked_on: null
+  simplifications: ['2026-07-23 REGISTERED (director BUILD waiver, commit 5143ed41f). Lands LAST of the triad (needs F1a emitting a truth scalar and F1b emitting a belief) but its spec is written test-first. Reports THREE things: (1) belief-vs-truth susceptibility gap per customer (company posterior mean vs SIM true scalar) -- the coupled-triad GAP, per digest + Proof door; (2) did the conversation improve the outcome vs a no-message/neutral control, scored on the Citizens-Advice weighting 55/35/10 (CS-heavy, NOT equal-weighted); (3) MANDATORY R15 intent-leak control -- a company whose action correlates with the true hidden trait BEYOND what its observed replies justify is an intent-leak the harness must CATCH. EXIT (R15 doctrine, the wall is theatre without it): inject a peeking F1b variant that reads the true scalar -> the intent-leak control FIRES. Anti-goal-seek (R12): the gap is a diagnostic to MEASURE, never to minimise by tuning -- success is catching the leak, not a small gap. Coupled-triad binding A6: no F1a world part reaches L3 until F1b has faced it and the gap is measured. level_current 0 -- director ratify moves the cell (R16).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an independent regulator/ombudsman measuring whether a supplier's messaging actually helped customers (Citizens-Advice-weighted) and whether the supplier is covertly exploiting private knowledge of customer vulnerability it should not be acting on"
