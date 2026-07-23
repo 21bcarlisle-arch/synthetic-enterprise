@@ -56,6 +56,89 @@ def test_fail_closed_on_empty_sample_r15():
         assert out.get("n", 0) == 0, out
 
 
+def _sample_cells(rows):
+    # rows: {cid: (cost, {field: value, ...})} -> a sample carrying cost + cell attrs.
+    return {
+        "customers": {
+            cid: dict({"cost_to_serve_gbp": cost}, **attrs) for cid, (cost, attrs) in rows.items()
+        }
+    }
+
+
+def test_payment_channel_coverage_cell_follows_source_r15():
+    # RC6 §C follow-on: cost-to-serve broken out by payment_channel -- the load-bearing
+    # activity-based-pricing cell. R15: each cell's median FOLLOWS its members (a baked
+    # figure fails). standard_credit customers here cost more to serve than direct_debit.
+    out = _cost_to_serve_distribution(
+        _sample_cells(
+            {
+                "C1": (100.0, {"payment_channel": "direct_debit"}),
+                "C2": (200.0, {"payment_channel": "direct_debit"}),
+                "C3": (900.0, {"payment_channel": "standard_credit"}),
+                "C4": (1100.0, {"payment_channel": "standard_credit"}),
+            }
+        )
+    )
+    cells = {c["cell"]: c for c in out["by_payment_channel"]}
+    assert set(cells) == {"direct_debit", "standard_credit"}
+    assert cells["direct_debit"]["n"] == 2 and cells["direct_debit"]["median_gbp"] == 150.0
+    assert cells["standard_credit"]["n"] == 2 and cells["standard_credit"]["median_gbp"] == 1000.0
+    # Killer mutation: move one standard_credit customer's cost -> its cell median moves.
+    mutated = _cost_to_serve_distribution(
+        _sample_cells(
+            {
+                "C1": (100.0, {"payment_channel": "direct_debit"}),
+                "C2": (200.0, {"payment_channel": "direct_debit"}),
+                "C3": (900.0, {"payment_channel": "standard_credit"}),
+                "C4": (5000.0, {"payment_channel": "standard_credit"}),
+            }
+        )
+    )
+    mcells = {c["cell"]: c for c in mutated["by_payment_channel"]}
+    assert mcells["standard_credit"]["median_gbp"] != cells["standard_credit"]["median_gbp"]
+
+
+def test_absent_cell_attribute_is_skipped_not_bucketed():
+    # A customer with no payment_channel (gas leg / I&C) is SKIPPED from the cell
+    # breakdown, never bucketed as a fabricated "None" cell. The total still counts it.
+    out = _cost_to_serve_distribution(
+        _sample_cells(
+            {
+                "C1": (100.0, {"payment_channel": "direct_debit"}),
+                "C2": (200.0, {"payment_channel": "direct_debit"}),
+                "Cg": (300.0, {}),  # gas leg: no payment_channel
+            }
+        )
+    )
+    assert out["n"] == 3  # the total counts all three
+    cells = {c["cell"]: c for c in out["by_payment_channel"]}
+    assert "None" not in cells and None not in cells
+    # only direct_debit present -> a single cell is not a distribution -> collapses to []
+    assert out["by_payment_channel"] == []
+
+
+def test_single_cell_group_collapses_to_empty():
+    # A cell group with only ONE distinct populated cell is theatre (the total covers
+    # it) -> emitted as [] rather than a one-bar "distribution".
+    out = _cost_to_serve_distribution(
+        _sample_cells(
+            {
+                "C1": (100.0, {"tenure": "owner_occupier"}),
+                "C2": (200.0, {"tenure": "owner_occupier"}),
+            }
+        )
+    )
+    assert out["by_tenure"] == []
+
+
+def test_cells_absent_on_bare_sample_no_crash():
+    # The bare sample (cost only, no cell attrs) must still produce a valid distribution
+    # with empty cell groups -- the follow-on must not break the base function.
+    out = _cost_to_serve_distribution(_sample({"C1": 100.0, "C2": 200.0}))
+    assert out["available"] is True
+    assert out["by_payment_channel"] == [] and out["by_tenure"] == []
+
+
 def test_no_goal_seek_reads_only_cost_to_serve_r12():
     # R12/R13: the distribution reads cost_to_serve_gbp ONLY -- a company-P&L field
     # (net_gbp) on the customer must not perturb it (no write-back / goal-seek path).

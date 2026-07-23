@@ -154,13 +154,34 @@ dropped distribution frame → render test reds). Full site suite **280 passed, 
 `cost-to-serve-dist` added to the render-harness id whitelist so it is R11-observable. **Live-site
 pixel verify (poesys.net, mobile) is POST-DEPLOY** — committed, not yet published; confirm on the next
 auto-process publish.
+**Cost-to-serve DISTRIBUTIONS across richer coverage cells DONE — later 2026-07-23 tick
+(`tools/generate_company_data.py::_cost_to_serve_distribution` + `site/company/index.html::renderFinance`).**
+The distribution now breaks out beyond resi/IC into the two coverage cells the director named that this
+run's sample can populate: **by_payment_channel** (the load-bearing activity-based-pricing cell) and
+**by_tenure**, built from the SAME drawn accounts. A cell with an absent attribute (gas legs / I&C carry
+no residential attribute) is **SKIPPED, never bucketed as a fabricated "None" cell**, and a single-cell
+group **collapses to `[]`** (a one-bar "distribution" is theatre — the total already covers it). Live
+render verified to pixel against regenerated `company.json` (N=19): **payment channel** — direct_debit
+(n=9) median £440.00 · standard_credit (n=3) median £439.89; **tenure** — owner_occupier (n=8) median
+£357.44 · private_renter (n=2) £374.81 · social_renter (n=2) £505.49. R11 (5 live-data render tests now
+PASS not skip — cells present in regenerated `company.json`) + R15 mutation-proven BOTH ways
+(`test_generate_company_data.py`: per-cell median FOLLOWS its members, absent attr skipped, single-cell
+collapses, base sample uncrashed; `test_company_door.py`: rendered cell pixel FOLLOWS source + empty group
+omits its sentence). Full site+generator suite **291 passed, 6 skipped**. **fuel_poverty NOT shipped as a
+cell — honestly logged:** this run's drawn sample carries no `fuel_poverty: True` customers (all False or
+absent), so a fuel-poverty cell would be degenerate (single-valued) and correctly collapses to `[]`; it
+lights up automatically when the draw includes a fuel-poor account. **Live-site pixel verify (poesys.net,
+mobile) is POST-DEPLOY** — code + regenerated `company.json` committed; confirm on the next auto-process publish.
 **STILL OPEN (honestly logged, not faked):** **arrears £-per-customer** DISTRIBUTION — the run output
 carries per-customer *behavioural* arrears proxies (`payment_miss_trajectory`, `bill_shock_history`,
 `payment_behaviour_analytics`) but NO authoritative per-customer arrears **£ balance** (only the C1
-drill-down carries `balance_gbp`; `customer_sample.json` does not emit it for the book). Emitting a
-per-customer arrears-£ across the sample is genuine generator data-plumbing (add an arrears-£ field to
-the sample export), a follow-on step. Cost-to-serve DISTRIBUTIONS across richer coverage cells
-(payment-channel, tenure, fuel-poverty) are also a follow-on — segment (resi/IC) is the cell shipped.
+drill-down carries `balance_gbp`; `customer_sample.json` does not emit it for the book; confirmed by
+tracing `per_customer_behavioral` in `run_output_latest.json` — only late/dd-fail *counts* and *rates*,
+no £). Emitting a per-customer arrears-£ across the sample is genuine **SIM-emission** data-plumbing
+(thread an arrears-£ balance from the settlement/billing layer through the run export → sample export →
+generator → panels) — a bigger structural change touching the SIM run, deserving a supervised build, not
+a bounded-tick blind-land. Richer cost-to-serve cells beyond payment-channel/tenure (payment-channel ×
+tenure crosses, smart-meter) remain a follow-on where the sample gains variation.
 
 <details><summary>original §C brief</summary>
 Convert every financial surface to £-per-customer (margin, cost-to-serve, arrears),

@@ -444,6 +444,15 @@ function renderFinance(d){
   // high-cost-to-serve tail net-negative). Source: company.json.cost_to_serve, built
   // from the same drawn sample the household drill-down uses.
   var cts=d.cost_to_serve||{};
+  // RC6 §C follow-on: cost-to-serve across the additional coverage cells the director
+  // named (payment channel, tenure), rendered as a spread of medians -- absent cells
+  // (gas/I&C) are skipped upstream, so an empty group simply omits its sentence.
+  var ctsCell=function(label, arr){
+    if(!arr || !arr.length) return "";
+    return " By "+esc(label)+": "+arr.map(function(s){
+      return esc(s.cell)+" (n="+esc(s.n)+"): median "+gbpFull(s.median_gbp);
+    }).join(" &middot; ")+".";
+  };
   el("cost-to-serve-dist").innerHTML = cts.available
     ? "<b>Cost to serve &mdash; the distribution, not the total.</b> Across the drawn book of "+
       "<b>N="+esc(cts.n)+"</b> customers, lifetime cost-to-serve spans "+gbpFull(cts.min_gbp)+
@@ -451,8 +460,10 @@ function renderFinance(d){
       " (max), mean "+gbpFull(cts.mean_gbp)+" &mdash; "+esc(cts.basis)+". By segment: "+
       (cts.by_segment||[]).map(function(s){
         return esc(s.segment)+" (n="+esc(s.n)+"): median "+gbpFull(s.median_gbp);
-      }).join(" &middot; ")+
-      ". A single book total would hide this spread; activity-based pricing needs the "+
+      }).join(" &middot; ")+"."+
+      ctsCell("payment channel", cts.by_payment_channel)+
+      ctsCell("tenure", cts.by_tenure)+
+      " A single book total would hide this spread; activity-based pricing needs the "+
       "per-customer figure &mdash; a flat margin makes the high-cost-to-serve tail net-negative."
     : "<span class=\"muted\">Cost-to-serve distribution unavailable for this run's sample.</span>";
 

@@ -172,6 +172,56 @@ def test_cost_to_serve_distribution_follows_source_r15():
     assert "1,234.56" in html and "98,765.43" in html, html
 
 
+def test_cost_to_serve_payment_channel_cell_renders_r11_r15():
+    # RC6 §C follow-on: cost-to-serve broken out by the payment_channel coverage cell
+    # (the activity-based-pricing cell) must render its per-cell medians. R11: the
+    # rendered pixel carries the actual cell values; R15: mutating a cell median moves
+    # the pixel. Uses a controlled data dict so the test runs regardless of the live
+    # generator version (the always-on generator R15 lives in test_generate_company_data).
+    d = _live()
+    d["cost_to_serve"] = {
+        "available": True,
+        "n": 4,
+        "min_gbp": 100.0, "median_gbp": 250.0, "max_gbp": 1100.0, "mean_gbp": 462.5,
+        "basis": "lifetime cost-to-serve per customer · settled clock · drawn sample",
+        "values_gbp": [100.0, 200.0, 900.0, 1100.0],
+        "by_segment": [{"segment": "resi", "n": 4, "median_gbp": 250.0}],
+        "by_payment_channel": [
+            {"cell": "direct_debit", "n": 2, "median_gbp": 150.0},
+            {"cell": "standard_credit", "n": 2, "median_gbp": 1000.0},
+        ],
+        "by_tenure": [],
+    }
+    out = _render(d)
+    html = out["cost-to-serve-dist"]["innerHTML"]
+    assert "payment channel" in html.lower(), html
+    assert "direct_debit" in html and "150.00" in html, html
+    assert "standard_credit" in html and "1,000.00" in html, html
+    # R15: mutate a cell median -> the rendered pixel must move.
+    d["cost_to_serve"]["by_payment_channel"][1]["median_gbp"] = 4321.98
+    html2 = _render(d)["cost-to-serve-dist"]["innerHTML"]
+    assert "4,321.98" in html2, html2
+
+
+def test_cost_to_serve_empty_cell_group_omits_sentence():
+    # An empty cell group (e.g. no populated tenure cells this run) must NOT render a
+    # dangling "By tenure:" fragment -- it is simply omitted.
+    d = _live()
+    d["cost_to_serve"] = {
+        "available": True, "n": 2,
+        "min_gbp": 100.0, "median_gbp": 150.0, "max_gbp": 200.0, "mean_gbp": 150.0,
+        "basis": "lifetime cost-to-serve per customer · settled clock · drawn sample",
+        "values_gbp": [100.0, 200.0],
+        "by_segment": [{"segment": "resi", "n": 2, "median_gbp": 150.0}],
+        "by_payment_channel": [], "by_tenure": [],
+    }
+    html = _render(d)["cost-to-serve-dist"]["innerHTML"]
+    assert "By payment channel" not in html, html
+    assert "By tenure" not in html, html
+    # the base distribution still renders.
+    assert "distribution, not the total" in html, html
+
+
 def test_cost_to_serve_fail_closed_when_unavailable_r15():
     # FAIL-CLOSED: an unavailable distribution must NOT render a silently-zero total
     # as if it were a real figure -- it must say so.

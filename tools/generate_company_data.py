@@ -310,7 +310,7 @@ def _cost_to_serve_distribution(sample):
         if cts is None:
             continue
         seg = "ic" if "IC" in str(cid) else "resi"
-        rows.append((float(cts), seg))
+        rows.append((float(cts), seg, c))
     if not rows:
         return {"available": False, "n": 0}
 
@@ -328,20 +328,48 @@ def _cost_to_serve_distribution(sample):
 
     by_segment = []
     for seg in ("resi", "ic"):
-        segvals = [v for v, s in rows if s == seg]
+        segvals = [v for v, s, _ in rows if s == seg]
         if segvals:
             st = _stats(segvals)
             st["segment"] = seg
             by_segment.append(st)
 
-    out = _stats([v for v, _ in rows])
+    # RC6 §C follow-on (DIRECTOR "distributions across coverage cells"): cost-to-serve
+    # broken out across ADDITIONAL cells the director named beyond resi/IC, built from
+    # the SAME drawn accounts. payment_channel is the load-bearing activity-based-pricing
+    # cell (standard-credit customers cost materially more to serve than direct-debit);
+    # tenure is a secondary cell. Customers whose cell attribute is absent (gas legs /
+    # I&C accounts carry no residential attribute) are SKIPPED, never bucketed as a
+    # fabricated cell. A cell group is emitted only when >=2 distinct populated cells
+    # exist -- a single-cell "distribution" is theatre, so it collapses to nothing (the
+    # total already covers it). Reads cost_to_serve_gbp + the cell key ONLY (no P&L
+    # field), so R12/R13 no-goal-seek holds for the cells too.
+    def _by_cell(field):
+        cells = {}
+        for v, _s, c in rows:
+            key = c.get(field)
+            if key is None or key == "":
+                continue
+            cells.setdefault(str(key), []).append(v)
+        if len(cells) < 2:
+            return []
+        out_cells = []
+        for key in sorted(cells):
+            st = _stats(cells[key])
+            st["cell"] = key
+            out_cells.append(st)
+        return out_cells
+
+    out = _stats([v for v, _, _ in rows])
     out.update(
         dict(
             available=True,
             clock="settled",
             basis="lifetime cost-to-serve per customer · settled clock · drawn sample",
-            values_gbp=[round(v, 2) for v, _ in sorted(rows)],
+            values_gbp=[round(v, 2) for v, _, _ in sorted(rows, key=lambda r: r[0])],
             by_segment=by_segment,
+            by_payment_channel=_by_cell("payment_channel"),
+            by_tenure=_by_cell("tenure"),
         )
     )
     return out
