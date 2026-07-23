@@ -217,3 +217,41 @@ Aggregating the same real Elexon SSP record (n=162,507 HH over 2016-03-01..2025-
 Unchanged — the fidelity gap is not measured-closed (no intraday shape yet; T3 not done). This tick removed
 the *guesswork* from the fix, not the gap. The forward-tail tripwire (`test_scenario_forward_tail.py`) stays
 GREEN and drawable.
+
+---
+
+## STEP 3 CONTROL — the failable tripwire now sits on the CORRECT (intraday) locus (2026-07-23 tick)
+
+**Landed this tick (tests-first, R4 smallest-closed-loop; R15 both-ways). NOT the physics change — that stays
+the supervised build the step-2/3 notes reserved. This is the missing control the redirected fix needs.**
+
+The step-3 diagnosis redirected the fix from the *daily* generator to the *intraday* expansion
+(`run_scenario.py::_expand_daily_to_hh`), but until this tick the only live tripwire
+(`test_scenario_forward_tail.py`) still measured the *daily* generator — a locus the diagnosis showed is the
+wrong comparand (daily-mean max is £960; it should NOT reach the real HH tail). So the actual fix locus had no
+failable control. Now it does:
+
+- **`tests/sim/test_forward_intraday_shape.py`** (3 tests, all green):
+  - `test_forward_intraday_shape_is_flat_today` — asserts every forward day's 48 SPs carry an **identical**
+    price (zero within-day spread), so the residual settles with **no intraday shape**. GREEN now; **FAILS** the
+    moment the intraday-shape overlay lands → forces `SPIKE_TAIL_SSP_RESIDUAL → closed` + this assertion flipped
+    to a within-day-shape tolerance check in the SAME commit (the register's updated `closes_when`).
+  - `test_measurement_can_see_intraday_shape` — R15 killer-mutation companion: a day with a spiky SP registers a
+    positive spread, so GREEN above means "no intraday shape", not "measurement broken". Verified: a mutation
+    introducing an SP39=£4,000 spike trips the gap-is-real assertion; empty input FAIL-CLOSES.
+  - `test_expansion_is_flat_by_construction` — direct structural assertion on `_expand_daily_to_hh` itself,
+    independent of any preset.
+- **Register updated:** `closes_when` re-pointed to the intraday-shape condition (worst-SP exceedance vs
+  `spike_tail_real_target.json`, daily mean preserved vs `spike_tail_real_target_daily.json`); the superseded
+  daily-generator `closes_when` noted as such. Status **stays `open`** — a control is not a closure.
+- **Debt flagged (not fixed):** `test_scenario_forward_tail.py::test_forward_tail_gap_is_real_today` still
+  frames its closure as the daily generator reaching the real tail; that framing is superseded by this
+  diagnosis (its `max < 1000` assertion happens to stay true-to-real). Left green + untouched to keep this tick
+  minimal; reconciling its docstring is a follow-on.
+
+**Why this is the right bounded advance (not a stall, not a mega-turn):** the register invariant forbids resting
+beside an open defect; the "tired mega-turn" bar forbids blind-landing the intraday physics (R13-straddling,
+structural change to the expansion + generator) in an unsupervised tick. The tests-first control is genuine
+progress the supervised build depends on — it is what tells that build when it is *done* and mutation-proves it
+can't fake completion. The physics change remains open, drawable, and now fully de-risked (target, trap, and
+control all in place).

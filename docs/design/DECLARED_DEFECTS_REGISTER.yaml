@@ -62,10 +62,20 @@ defects:
       absent while every HH of a forward day is equal. Corrected fix = intraday SP-level shape in the forward
       path (bigger structural change, supervised build), calibrated to the new daily target. Emitted this tick:
       docs/design/spike_tail_real_target_daily.json (daily_mean + daily_max), R15-proven in test_ssp_tail_target.py.
+      STEP-3 CONTROL (2026-07-23 tick): the failable tripwire now exists on the CORRECT (intraday) locus --
+      tests/sim/test_forward_intraday_shape.py asserts run_scenario.py::_expand_daily_to_hh currently flat-
+      expands one daily price across all 48 SPs (zero intraday spread), so the forward residual carries NO
+      within-day shape. GREEN now; FAILS when the intraday-shape overlay lands. R15-proven both ways
+      (measurement fires on a spiky day; FAIL-CLOSED on empty) + a structural assertion on the expansion
+      itself. The physics change (intraday SP-level shape) stays a supervised build; this tick landed only
+      the tests-first control the redirected fix needs. Register stays open -- the gap is not measured-closed.
     plan_doc: docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
     closes_when: >-
-      the FORWARD SSP generator's tail (sim/scenario/bimodal_generator.py: max, negative-fraction, and
-      the exceedance shape between) is re-measured against docs/design/spike_tail_real_target.json and
-      matches real within the ledger's stated tolerance -- i.e. tests/sim/test_scenario_forward_tail.py
-      flips from gap-is-real to a real tolerance check -- AND the company's residual-at-SSP exposure is
-      shown to move under the corrected forward tail (T3).
+      the FORWARD residual carries a real INTRADAY (SP-level) SSP shape -- run_scenario.py::_expand_daily_to_hh
+      (or the generator feeding it) produces a within-day profile whose worst periods reach the scarcity regime
+      calibrated to the half-hourly exceedance curve in docs/design/spike_tail_real_target.json while the daily
+      mean stays near docs/design/spike_tail_real_target_daily.json -- i.e. tests/sim/test_forward_intraday_shape.py
+      flips from flat-is-real-today to a within-day-shape tolerance check -- AND the company's residual-at-SSP
+      exposure is shown to move under the corrected intraday tail (T3). (NOTE: the earlier daily-generator
+      closes_when via test_scenario_forward_tail.py is superseded -- the step-3 diagnosis established the daily
+      path is the wrong comparand; the daily-mean max is GBP960 and should NOT reach the real HH tail.)
