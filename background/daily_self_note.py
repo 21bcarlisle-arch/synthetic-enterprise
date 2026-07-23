@@ -127,8 +127,14 @@ def r17_status() -> tuple[str | None, str | None]:
     LAZILY and read-only — this is a READ of draw state, never a write into it (§2 severance:
     the note reads the world; it never feeds the draw). Fail-closed on import/read error."""
     try:
-        from background.supervisor import forward_discovery_law_status_line
-        return forward_discovery_law_status_line(), None
+        from background.supervisor import (
+            forward_discovery_law_status_line,
+            authorized_set_enumeration_line,
+        )
+        # Ruling 2026-07-23 (R17 class fix §2): the daily note publishes the WHOLE-SET enumeration,
+        # not a lane-scoped forward-discovery line only -- a lane-scoped proof can never again ground
+        # rest, so the note must show every level's drawable/empty verdict.
+        return f"{forward_discovery_law_status_line()} || {authorized_set_enumeration_line()}", None
     except Exception as e:  # noqa: BLE001
         return None, f"R17 status unavailable ({type(e).__name__}: {str(e)[:80]})"
 

@@ -1430,6 +1430,13 @@ def _rule0_harden_draw(rng: Any = None) -> dict | None:
 # =============================================================================
 FORWARD_DISCOVERY_REGISTER_PATH = PROJECT_DIR / "docs" / "design" / "FORWARD_DISCOVERY_REGISTER.md"
 
+# Where a graduated-to-FRAME track's BUILD PROPOSAL lands. A proposal artefact here (named
+# `<Fn>_*.md`) is the concrete, self-releasing signal that the track's PROPOSE HALF is done --
+# writing it DRAINS the propose-half draw (R11 no-orphan: the release triggers a real artefact,
+# never nothing). Directory may not exist until the first proposal is written (that is fine --
+# absent dir = no proposal written = every propose-half still drawable, the safe direction).
+FORWARD_PROPOSAL_DIR_PATH = PROJECT_DIR / "docs" / "design" / "proposals"
+
 # A drawable forward-discovery track header, e.g. "## F1 -- Simulating conversations".
 _FWD_TRACK_RE = re.compile(r"^##\s*(F\d+)\s+[—-]\s+(.+?)\s*$", re.MULTILINE)
 
@@ -1492,6 +1499,86 @@ def _forward_discovery_drawable_tracks(register_path: Path | None = None) -> lis
     the authorized forward-discovery set the draw and the rest predicate both consult."""
     complete = _forward_discovery_complete_ids(register_path)
     return [t for t in _forward_discovery_tracks(register_path) if t[0] not in complete]
+
+
+# The PROPOSE-HALF class fix (director ruling 2026-07-23, DIRECTOR_RULING_R17_BREACH_AND_CLASS_FIX;
+# the R10-breach-of-R17 the ruling declares). The overnight stall: F1 was GRADUATED → FRAME and its
+# BUILD PROPOSAL was drawable all night (proposing needs no gate -- that IS propose-then-proceed), but
+# NO lane enumerated it, so the tick rested over doable work. The class (not the F1 instance): an atom
+# whose BUILD is gated still has an UNGATED PROPOSAL step -- that step is ALWAYS drawable work. This
+# names it in code as its own lane so a graduated-but-unproposed track can never again ground rest.
+#
+# A track's status cell records the propose-half when it names BOTH the FRAME stage it graduated to AND
+# a "build proposal" step (the exact F1 shape: "GRADUATED → FRAME ... build proposal via gate"). This
+# marker is what distinguishes a propose-half graduation from the other dispositions that carry NO build-
+# proposal step: FOLDED (into site work), HELD (director-reserved), or a doc-only graduation. Keyed on
+# the ACTUAL cell text (R15 independence -- a mutation hard-coding it is caught by the must-not-rest test).
+_FWD_PROPOSE_HALF_MARKER = "build proposal"
+
+
+def _proposal_written_ids(proposal_dir: Path | None = None) -> set[str]:
+    """Track ids whose BUILD PROPOSAL artefact already exists on disk (`docs/design/proposals/<Fn>_*.md`).
+    Writing the proposal DRAINS that track's propose-half -- a concrete, self-releasing transition
+    (R11 no-orphan: the release is the artefact appearing, never a silent flag). FAIL-SAFE TOWARD WORK
+    (R15): an absent/unreadable directory returns the EMPTY set, so NOTHING is counted as written and
+    every propose-half stays drawable -- the harmful failure mode is resting over a propose step that is
+    actually open, so ambiguity keeps the anti-rest pressure. Keyed on the ACTUAL files present, never a
+    constant, so a mutation pretending 'all proposals written' is caught by the must-not-rest test."""
+    d = Path(proposal_dir or FORWARD_PROPOSAL_DIR_PATH)
+    try:
+        return {
+            m.group(1) for p in d.glob("F*.md")
+            for m in [re.match(r"(F\d+)_", p.name)] if m
+        }
+    except OSError:
+        return set()
+
+
+def _forward_discovery_propose_half_tracks(
+    register_path: Path | None = None, proposal_dir: Path | None = None
+) -> list[tuple[str, str]]:
+    """Graduated-to-FRAME tracks whose BUILD PROPOSAL is NOT yet written -- the ungated PROPOSE HALF of
+    a BUILD-gated item, ALWAYS drawable (director ruling 2026-07-23, R17 class fix). Highest-rank first.
+    A track is a drawable propose-half iff (a) its status cell records graduation to FRAME with a build-
+    proposal step (the `_FWD_PROPOSE_HALF_MARKER`), AND (b) no proposal artefact exists for it yet. BOTH
+    signals are real (register cell + filesystem), never a constant (R15); writing the proposal drains it.
+    FAIL-SAFE: an unreadable register returns [] (this lane offers nothing) -- the anti-rest guarantee
+    lives in the LADDER ORDER (this rung sits ABOVE rest in both `_self_refill_draw` and
+    `_is_drained_and_gated`), never in pretending a missing file has work."""
+    path = register_path or FORWARD_DISCOVERY_REGISTER_PATH
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return []
+    written = _proposal_written_ids(proposal_dir)
+    titles = dict(_forward_discovery_tracks(register_path))
+    out: list[tuple[str, str]] = []
+    for m in _FWD_STATUS_ROW_RE.finditer(text):
+        tid, cell = m.group(1), m.group(2).lower()
+        if "frame" in cell and _FWD_PROPOSE_HALF_MARKER in cell and tid not in written:
+            out.append((tid, titles.get(tid, "")))
+    return out
+
+
+def _propose_half_draw(
+    register_path: Path | None = None, proposal_dir: Path | None = None
+) -> str | None:
+    """Draw the highest-ranked drawable PROPOSE HALF, or None if none is open. Sits in the ladder ABOVE
+    the forward-discovery DISCOVER draw and the RULE-0 HARDEN treadmill: a graduated track's build
+    proposal is the next real step toward opening a BUILD atom -- higher value than re-DISCOVERing a
+    complete track or re-verifying a finished one. R7: this states what exists; the granted session
+    writes the proposal (propose-then-proceed, no BUILD code, no map level change)."""
+    tracks = _forward_discovery_propose_half_tracks(register_path, proposal_dir)
+    if not tracks:
+        return None
+    tid, title = tracks[0]
+    return (
+        "PROPOSE-HALF self-refill (ALWAYS-DRAWABLE -- director ruling 2026-07-23, R17 class fix: a "
+        "BUILD-gated item's ungated PROPOSAL step is drawable work; the tick NEVER rests over it): "
+        f"{tid} -- {title}. Write the build proposal (the triad build plan) THROUGH THE GATE into "
+        f"docs/design/proposals/{tid}_*.md -- propose-then-proceed, no BUILD code, no map level change; "
+        "the proposal artefact IS the drawable deliverable, and writing it drains this rung."
+    )
 
 
 # A DISPOSITIONED track has a director GRADUATION RULING recorded in its status cell (graduated /
@@ -1577,6 +1664,7 @@ def forward_discovery_law_status(register_path: Path | None = None) -> dict:
     dispositioned = _forward_discovery_dispositioned_ids(register_path)
     drawable = [t[0] for t in all_tracks if t[0] not in complete]
     awaiting = sorted(complete - dispositioned)
+    propose_half = [t[0] for t in _forward_discovery_propose_half_tracks(register_path)]
     wired = "_forward_discovery_draw" in globals() and callable(globals()["_forward_discovery_draw"])
     return {
         "rule": "THE TICK NEVER RESTS WHILE AUTHORIZED WORK EXISTS AT ANY PRIORITY",
@@ -1586,9 +1674,10 @@ def forward_discovery_law_status(register_path: Path | None = None) -> dict:
         "complete_tracks": sorted(complete),
         "awaiting_graduation": awaiting,          # DISCOVER-complete but no director ruling yet
         "dispositioned_tracks": sorted(dispositioned),  # director has ruled (graduated/held/folded)
+        "propose_half_tracks": propose_half,      # graduated-to-FRAME, build proposal not yet written (R17 class fix 2026-07-23)
         "register_nonempty": bool(all_tracks),
-        "drawable_nonempty": bool(drawable),
-        "rest_currently_legitimate_only_if": "core + idle-advance + forward-discovery-DRAWABLE ALL empty",
+        "drawable_nonempty": bool(drawable) or bool(propose_half),
+        "rest_currently_legitimate_only_if": "core + idle-advance + propose-halves + forward-discovery-DRAWABLE ALL empty",
     }
 
 
@@ -1598,13 +1687,56 @@ def forward_discovery_law_status_line(register_path: Path | None = None) -> str:
     s = forward_discovery_law_status(register_path)
     drawable = ",".join(s["drawable_tracks"]) or "NONE"
     complete = ",".join(s["complete_tracks"]) or "NONE"
+    propose = ",".join(s["propose_half_tracks"]) or "NONE"
     rest_ok = "REST-LEGITIMATE" if not s["drawable_nonempty"] else "must-draw"
     return (
         "TICK-NEVER-RESTS law: always-drawable lane "
         f"{'WIRED' if s['always_drawable_lane_wired'] else 'NOT-WIRED(!)'} | "
         f"forward-discovery drawable=[{drawable}] complete=[{complete}] | "
-        f"{rest_ok} (rest legitimate only when core+idle+forward-DRAWABLE all empty)"
+        f"propose-half open=[{propose}] | "
+        f"{rest_ok} (rest legitimate only when core+idle+propose-half+forward-DRAWABLE all empty)"
     )
+
+
+def authorized_set_enumeration() -> dict:
+    """The WHOLE authorized set enumerated PER LEVEL with its drawable/empty verdict (director ruling
+    2026-07-23, R17 class fix §2: 'Rest-legitimacy must enumerate the WHOLE authorized set -- core,
+    idle-advance, propose-halves, site lane, discovery -- and publish that enumeration ... every time
+    it rests. A lane-scoped proof can never again ground rest.'). Each value True = that level has
+    drawable work (so rest is ILLEGITIMATE); False = empty/gated. Rest is legitimate ONLY when EVERY
+    level is False. Each verdict is the SAME call the draw makes (independence, R15) -- never a constant.
+    FAIL-SAFE TOWARD WORK: a per-level error reads True (drawable), so ambiguity FORBIDS rest -- the
+    anti-idleness direction, matching `_is_drained_and_gated`'s own fail-safe. HARDEN is deliberately
+    EXCLUDED: the RULE-0 HARDEN treadmill is what rest is legitimate INSTEAD of (it is the always-present
+    at-target re-verify floor), so counting it would make rest impossible by construction."""
+    none_drawn: frozenset = frozenset()
+
+    def _safe(fn) -> bool:
+        try:
+            return bool(fn())
+        except Exception:
+            return True  # unsure -> assume work exists -> forbid rest (Rule 0 wins any tie)
+
+    levels = [
+        ("build", lambda: _maturity_map_draw_concurrent(exclude_stalled=True)),
+        ("site", lambda: _site_lane_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn)),
+        ("discover_frame", lambda: _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn)),
+        ("backlog", _actionable_backlog_item),
+        ("propose_half", _propose_half_draw),
+        ("forward_discovery", _forward_discovery_draw),
+    ]
+    return {name: _safe(fn) for name, fn in levels}
+
+
+def authorized_set_enumeration_line() -> str:
+    """One-line render of the whole-set enumeration for the per-cycle log + the daily self-note. Names
+    EVERY level and whether it holds drawable work, so a rest is only ever published alongside proof that
+    all six are empty -- the whole-set proof the ruling demands, never a lane-scoped one."""
+    e = authorized_set_enumeration()
+    drawable = [k for k, v in e.items() if v]
+    parts = " ".join(f"{k}={'Y' if v else '.'}" for k, v in e.items())
+    verdict = "REST-LEGITIMATE (whole authorized set empty)" if not drawable else f"MUST-DRAW: {','.join(drawable)}"
+    return f"AUTHORIZED-SET enumeration [{parts}] -> {verdict}"
 
 
 def _first_graduation_line(body: str) -> str:
@@ -1770,6 +1902,10 @@ def _self_refill_draw() -> str | None:
     # renders it every morning). Makes 'is the anti-rest lane actually wired' visible EVERY
     # cycle -- the consumed-vs-absorbed check the 2026-07-22 stall was about.
     log(forward_discovery_law_status_line())
+    # WHOLE-SET enumeration every cycle (director ruling 2026-07-23, R17 class fix §2): a rest is only
+    # ever published alongside proof ALL SIX levels are empty -- a lane-scoped proof can never again
+    # ground rest. Published here (status line) and in the daily self-note (r17_status).
+    log(authorized_set_enumeration_line())
     if sum(_raw) > MAX_CONCURRENT_FORKS:
         log(
             f"BOUNDED FAN-OUT: capped {sum(_raw)} available atoms -> {MAX_CONCURRENT_FORKS} concurrent "
@@ -1822,6 +1958,20 @@ def _self_refill_draw() -> str | None:
     backlog_item = _actionable_backlog_item()
     if backlog_item:
         return f"self-refill from PRIORITIES.md backlog (fallback, maturity map unavailable): {backlog_item}"
+
+    # PROPOSE-HALF LANE (director ruling 2026-07-23, R17 CLASS FIX): a BUILD-gated item whose
+    # graduation carries an ungated build-PROPOSAL step is drawable in that propose half -- ALWAYS.
+    # This rung sits ABOVE forward-discovery DISCOVER and the HARDEN treadmill: writing a graduated
+    # track's build proposal is the next real step toward a BUILD atom, higher value than re-DISCOVER
+    # or re-verify. Its ABSENCE was the exact overnight R10-breach (F1 graduated to FRAME, proposal
+    # drawable all night, no lane enumerated it -> the tick rested over doable work).
+    propose_item = _propose_half_draw()
+    if propose_item:
+        log(
+            "PROPOSE-HALF: core+idle+backlog empty/gated -> drawing an ungated build-proposal step "
+            "(a BUILD-gated item's propose half is always drawable; R17 class fix 2026-07-23)"
+        )
+        return propose_item
 
     # ALWAYS-DRAWABLE LANE (HARD RULE, director console 2026-07-22): CORE (BUILD/SITE) +
     # IDLE-ADVANCE (DISCOVER/FRAME + backlog) are all empty/gated here -> fall through to the
@@ -1884,6 +2034,14 @@ def _is_drained_and_gated() -> bool:
         if _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=none_drawn):
             return False
         if _actionable_backlog_item():
+            return False
+        # PROPOSE-HALF LANE (director ruling 2026-07-23, R17 CLASS FIX): rest is illegitimate while a
+        # BUILD-gated item's ungated build-PROPOSAL step is still open. This is the mirror of the rung
+        # added to `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light a rest the
+        # draw has already refused (the exact overnight breach: a graduated-but-unproposed track present,
+        # the tick resting over it). A lane-scoped proof can never again ground rest -- the WHOLE set,
+        # propose-halves included, must be empty (ruling §2).
+        if _propose_half_draw():
             return False
         # ALWAYS-DRAWABLE LANE (HARD RULE, director console 2026-07-22): rest is legitimate ONLY
         # with PROOF the authorized set is empty AT EVERY LEVEL -- including forward-discovery.

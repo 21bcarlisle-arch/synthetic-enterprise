@@ -326,3 +326,148 @@ def test_graduation_emit_fires_once_per_complete_set(monkeypatch, tmp_path):
     assert len(calls) == 2 and calls[0][1]["kind"] == "digest"
     assert calls[0][1]["transition_key"] == "forward_discovery_graduation"
     assert calls[0][1]["state"] == "F1,F2"
+
+
+# --------------------------------------------------------------------------- #
+# PROPOSE-HALF CLASS FIX (director ruling 2026-07-23, DIRECTOR_RULING_R17_BREACH_AND_CLASS_FIX):
+# an R10-breach-of-R17. A BUILD-gated item's UNGATED build-PROPOSAL step is ALWAYS drawable. The
+# overnight stall: F1 graduated to FRAME, its build proposal drawable all night, no lane enumerated
+# it -> the tick rested over doable work. These prove the new rung is load-bearing BOTH ways.
+# --------------------------------------------------------------------------- #
+
+# F1 graduated to FRAME with a build-proposal step (the exact overnight shape); F2 FOLDED and F3 HELD
+# carry NO build-proposal step. Every track is DISCOVER-complete, so the forward-discovery DRAWABLE set
+# is empty -- the ONLY thing forbidding rest here is F1's open propose-half (clean isolation).
+_REGISTER_F1_PROPOSE_HALF = """# Forward-Discovery Register
+
+| rank | track | class | criticality | status |
+|---|---|---|---|---|
+| **F1** | Simulating conversations | mission-required | **highest** — x | DISCOVER-complete; GRADUATED → FRAME (director): coupled-triad design, build proposal via gate → docs/design/frame/F1.md |
+| **F2** | Explaining what we do, simply | committed | high — y | DISCOVER-complete; FOLDED into site work (director) |
+| **F3** | Volunteer programme mechanics | mission-required | high — z | DISCOVER-complete; HELD (director) |
+
+## F1 — Simulating conversations *(highest)*
+body.
+## F2 — Explaining what we do, simply
+body.
+## F3 — Volunteer programme mechanics
+body.
+"""
+
+
+def _point_proposals_at(monkeypatch, tmp_path, *written_ids: str):
+    """Point the proposal-dir constant at a tmp dir, optionally pre-seeding it with written
+    proposal artefacts (F1_x.md ...) so the propose-half for those tracks reads as DRAINED."""
+    d = tmp_path / "proposals"
+    d.mkdir(exist_ok=True)
+    for tid in written_ids:
+        (d / f"{tid}_build_proposal.md").write_text("proposal", encoding="utf-8")
+    monkeypatch.setattr(sup, "FORWARD_PROPOSAL_DIR_PATH", d)
+    return d
+
+
+def test_propose_half_parses_only_the_frame_plus_proposal_track(monkeypatch, tmp_path):
+    """Independence (R15): the propose-half is keyed on the ACTUAL cell text -- FRAME *and* a
+    'build proposal' step. F2 (FOLDED) and F3 (HELD) carry no build-proposal step -> excluded."""
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
+    _point_proposals_at(monkeypatch, tmp_path)  # nothing written yet
+    tracks = sup._forward_discovery_propose_half_tracks()
+    assert [t[0] for t in tracks] == ["F1"], "only the FRAME+build-proposal track is a drawable propose-half"
+    assert sup._propose_half_draw() is not None
+    assert "PROPOSE-HALF self-refill" in sup._propose_half_draw()
+
+
+def test_propose_half_forbids_rest_the_overnight_breach(monkeypatch, tmp_path):
+    """THE FAILING TEST FIRST (ruling §2): core+idle+backlog gated, every forward track DISCOVER-
+    complete, BUT F1's build proposal is unwritten -> the propose half is drawable -> the tick MUST
+    draw it, NOT rest. This is the EXACT overnight state (a pending-proposal item, everything else
+    gated). FAILS if the tick rests."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
+    _point_proposals_at(monkeypatch, tmp_path)  # F1 proposal NOT written
+
+    # Forward-discovery DISCOVER lane is empty (all complete) -> the draw falls to the propose-half.
+    assert sup._forward_discovery_draw() is None
+    refill = sup._self_refill_draw()
+    assert refill is not None and "PROPOSE-HALF self-refill" in refill and "F1" in refill
+    assert "RULE 0" not in refill  # propose-half is preferred over the HARDEN treadmill
+
+    assert sup._is_drained_and_gated() is False, (
+        "TICK RESTED while a graduated-but-unproposed track (F1) had an open propose half -- "
+        "the exact overnight R10-breach-of-R17 the ruling declares."
+    )
+
+
+def test_propose_half_drains_when_proposal_written_permits_rest(monkeypatch, tmp_path):
+    """THE OTHER DIRECTION (ruling §2): once F1's build proposal IS written, the propose half drains;
+    with everything else gated and all forward tracks complete, the authorized set is genuinely empty
+    at every level -> rest is LEGITIMATE. Writing the proposal is the concrete, self-releasing transition
+    (R11 no-orphan)."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
+    _point_proposals_at(monkeypatch, tmp_path, "F1")  # F1 proposal WRITTEN -> propose-half drained
+
+    assert sup._forward_discovery_propose_half_tracks() == []
+    assert sup._propose_half_draw() is None
+    assert sup._is_drained_and_gated() is True, (
+        "rest refused even though F1's proposal is written and the whole authorized set is empty -- "
+        "the rule must PERMIT rest here, not livelock forever on a drained propose-half."
+    )
+
+
+def test_propose_half_rung_is_load_bearing_mutation(monkeypatch, tmp_path):
+    """R15 MUTATION: with ONLY propose-half work present, neuter the propose-half draw (simulate the
+    pre-fix un-wired state) -> the tick RESTS again. Proves the rung, not luck, prevents the stall:
+    kill it, the overnight breach returns."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
+    _point_proposals_at(monkeypatch, tmp_path)  # F1 propose-half OPEN
+
+    # Control: with the rung LIVE, the open propose-half means no rest.
+    assert sup._is_drained_and_gated() is False
+
+    # MUTATE: the propose-half reader is dead (the pre-fix state, no lane enumerates it).
+    monkeypatch.setattr(sup, "_propose_half_draw", lambda *a, **k: None)
+    assert sup._is_drained_and_gated() is True, (
+        "MUTATION not caught: with the propose-half rung dead, a graduated-but-unproposed track must "
+        "return the tick to a (wrong) rest -- if it still refuses rest, some OTHER lane is masking the "
+        "rung and the both-ways proof is not isolating the propose-half lane."
+    )
+
+
+def test_propose_half_marker_absent_does_not_forbid_rest(monkeypatch, tmp_path):
+    """FOLDED/HELD graduations (no build-proposal step) must NOT be read as propose-halves: they carry
+    no ungated proposal work, so they correctly permit rest. Guards against the rung firing on every
+    graduation (which would make rest impossible)."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    # Strip F1's build-proposal marker -> now NO track has a build-proposal step.
+    reg = _REGISTER_F1_PROPOSE_HALF.replace(
+        "GRADUATED → FRAME (director): coupled-triad design, build proposal via gate → docs/design/frame/F1.md",
+        "GRADUATED → FRAME (director): folded, no separate build proposal-step-here",
+    ).replace("build proposal-step-here", "step")  # remove the literal marker phrase entirely
+    _point_register_at(monkeypatch, tmp_path, reg)
+    _point_proposals_at(monkeypatch, tmp_path)
+    assert sup._forward_discovery_propose_half_tracks() == []
+    assert sup._is_drained_and_gated() is True
+
+
+def test_authorized_set_enumeration_names_every_level(monkeypatch, tmp_path):
+    """The WHOLE-SET enumeration (ruling §2) names every level and forbids rest while ANY holds work.
+    Here only the propose-half is open -> enumeration reports it and the verdict is MUST-DRAW."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
+    _point_proposals_at(monkeypatch, tmp_path)
+    e = sup.authorized_set_enumeration()
+    assert set(e) == {"build", "site", "discover_frame", "backlog", "propose_half", "forward_discovery"}
+    assert e["propose_half"] is True and e["build"] is False and e["forward_discovery"] is False
+    line = sup.authorized_set_enumeration_line()
+    assert "propose_half=Y" in line and "MUST-DRAW" in line and "propose_half" in line
+
+
+def test_authorized_set_enumeration_all_empty_is_rest_legitimate(monkeypatch, tmp_path):
+    """When every level is empty (F1 proposal written), the enumeration verdict is REST-LEGITIMATE."""
+    _gate_core_and_idle_lanes(monkeypatch)
+    _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
+    _point_proposals_at(monkeypatch, tmp_path, "F1")
+    line = sup.authorized_set_enumeration_line()
+    assert "REST-LEGITIMATE" in line and "=Y" not in line
