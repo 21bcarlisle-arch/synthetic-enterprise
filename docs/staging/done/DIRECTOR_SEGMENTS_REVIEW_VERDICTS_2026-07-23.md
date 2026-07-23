@@ -89,8 +89,12 @@ yours; sub-population shares are R13 unless an Ofgem/EHS anchor is found first (
 - **All coupling strengths without external anchors** (entries 2, partially 4; PPM shares in §2 absent an
   anchor): R13 batch.
 - **Age as a schema dimension**: named, not admitted.
-- **Decision-linkage gate on the frontier metric** (board Child-test fold-in): values-adjacent, awaits
-  director ratification separately.
+- **Decision-linkage gate on the frontier metric** (board Child-test fold-in): values-adjacent. **[CORRECTED
+  2026-07-23, DIRECTOR_RULING_DECISION_LINKAGE_PRECEDENCE_2026-07-23]** — this "awaits ratification separately"
+  line was a parallel-session context gap: the director already RATIFIED this gate as CHOSEN by console on
+  2026-07-22 (`decision_log.jsonl:53`, frame §2.4). The 2026-07-22 ratification STANDS; it was not withdrawn.
+  Do not un-wire, hold, or re-park. (Only mechanisation in `build_learning_frontier.py` remains — candidate
+  BUILD atom `SPEC006_decision_linkage_metric`, still gated as a follow-on.)
 
 ## 5. Risk
 

@@ -665,7 +665,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 7
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "W2_13_occupancy_consumption_volume_shape",
@@ -688,7 +688,28 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 11
+    },
+    {
+      "id": "W2_14_continuous_behavioural_engagement_model",
+      "name": "Continuous behavioural engagement model -- latent distributed propensity replacing the three discrete lifetime bins (state-dependent, movable by life events, service episodes and price shocks)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 1,
+      "loop_stage": "discover",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_5_life_event_stream"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -2735,7 +2756,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 131,
+  "total_atoms": 132,
   "epoch2_movements": [
     {
       "id": "M1",
