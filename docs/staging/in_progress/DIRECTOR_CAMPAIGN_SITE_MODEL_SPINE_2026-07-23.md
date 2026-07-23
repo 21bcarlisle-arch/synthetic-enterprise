@@ -64,7 +64,23 @@ redirects — resolving the `/method` contradiction above. Per ruling #3 the ren
 diagram returns to the director as pixels ([ACT]) BEFORE it becomes the nav spine.
 The v4 SVG (see §B) is the approved content; the NAV-SPINE adoption is the gated part.
 
-### §B — Embed the director-APPROVED model-on-a-page diagram (F-MOAP-1)  [proceed-able now]
+### §B — Embed the director-APPROVED model-on-a-page diagram (F-MOAP-1)  [LANDED 2026-07-23 tick]
+**DONE this tick.** Hosted ONCE on the front-door fold (`site/index.html`, new `.moap` section
+placed as the bridge from the thesis into "Three ways in" — the diagram's world→company→score maps
+onto the three doors). Form shipped: **native SVG asset** `site/assets/model-on-a-page.svg`
+(byte-identical to the approved v4, sha `be3c407044…f7cd0f`), referenced as `<img>` scaled to the
+column (`width:100%`) — crisp on mobile, no HTML bloat, glyph grammar + BRAG colour preserved intact.
+Real alt text (names governance/world/wall/company/score). R11 (published-tree pixel: `<img>` present
++ asset resolves) and R15 (guard fails when the asset is hidden) proven by
+`site/test_home_door.py::test_model_on_a_page_diagram_hosted_and_resolves`; full front-door lane green
+(70 passed). **Live-site pixel verify (R11 on poesys.net, mobile viewport) is POST-DEPLOY** — the
+change is committed, not yet published; verify on the next auto-process publish. No /simplified door
+resurrected. **F-MOAP-2 registered** on `THE_MODEL_ON_A_PAGE.md` (wall made two-way; bills OUTBOUND;
+inbound observable = the payment/complaint answering a bill; settlement-late a first-class inbound gate).
+"lives rerun across worlds" chip left as director-approved (asset is sha-pinned, 4 rounds approved;
+softening an approved pixel is riskier than leaving it — my call, not escalated). §A/§C/§D still open.
+
+<details><summary>original §B brief</summary>
 Asset: `docs/staging/assets/poesys_model_on_a_page_v4.svg`
 (SHA-256 `be3c407044fc28799a1419a415ca55bb915493bd3e7c9c5b81d74b0049f7cd0f`) — already
 director-approved (four rounds). Host: front-door fold on the next surface-1
@@ -79,6 +95,7 @@ touched: inbound observable is the payment/complaint answering a bill, never the
 bill; settlement-late is a first-class inbound gate). Borderline "lives rerun across
 worlds" chip: soften to "designed to rerun" if the claim-status rubric reads it as
 present-tense TF2 (my call, do not escalate).
+</details>
 
 ### §C — Financials reframe (RC6): unit economics, never bare totals
 Convert every financial surface to £-per-customer (margin, cost-to-serve, arrears),

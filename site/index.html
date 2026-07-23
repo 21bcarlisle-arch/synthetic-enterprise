@@ -91,6 +91,17 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 .door .dt { font-size: 17px; font-weight: 700; margin-top: 8px; }
 .door .dd { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-top: 8px; }
 
+/* the whole model on one page -- the director-approved v4 diagram, hosted once.
+   Native SVG asset (crisp on mobile, its own file), scaled to the column; the
+   glyph grammar (. _ ~) and BRAG semantics inside it are information, kept as-is. */
+.moap { padding: 34px 0; border-bottom: 1px solid var(--text); }
+.moap h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.moap .lead { margin-top: 12px; font-size: 13.5px; line-height: 1.6; color: var(--muted); max-width: 64ch; }
+.moap figure { margin-top: 20px; border: 1px solid var(--border); background: var(--surface); }
+.moap img { display: block; width: 100%; height: auto; }
+.moap figcaption { padding: 12px 16px; border-top: 1px solid var(--border);
+  font-size: 11px; color: var(--muted); line-height: 1.55; }
+
 .also { padding: 22px 0 6px; font-size: 12.5px; color: var(--muted); }
 .also a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
 .also a:hover { border-bottom-color: var(--text); }
@@ -145,6 +156,19 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
   <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
   <div class="thesis-caveat" id="thesis-caveat"></div>
   <div class="thesis-evidence" id="thesis-evidence"></div>
+</section>
+
+<section class="moap">
+  <h2>The whole model on one page</h2>
+  <p class="lead">World, wall, company, score &mdash; how a governed AI runs a UK energy supplier against
+    the real half-hourly record, seeing the world only through what crosses the wall. The three doors
+    below open onto the parts of this diagram.</p>
+  <figure>
+    <img src="./assets/model-on-a-page.svg"
+         alt="A one-page schematic of the poesys model, read top to bottom. Governance: one human director sets mission and Tier-1 calls; a board holds six stances in tension; AI builders design, build, test and deploy; a harness of gates, rules and a maturity map builds and steers everything below. The World (sim ground truth, behind the wall): real weather drives half-hourly price and demand over the 2016-25 record of 168k periods including the crisis, over a population of households drawn fresh every run with coupled hidden traits; the world moves ahead of the books and settlement lands months late; ground truth never crosses the wall, and cohorts are drawn for learning value not headcount. The Wall: ground truth never crosses; everything else is an interface flow in one of two directions -- inbound (market feeds, forecasts with error, meter reads, payments, complaints and replies, late settlement) and outbound (bills, offers, messages); the company touches the world only through what it sends. The Company (sees only through the wall): acquire, forecast the book, price tariffs, hedge forward, bill out, collect, settle late and learn from the true-up -- one integrated agentic stack across trading, finance, billing, CRM, operations and debt; bills run on three clocks, billed, settled and banked, with truth arriving months behind the money; it can be wrong, and it can die. The Score: survive (a hard constraint judged worst-case), earn (probability-weighted expected value), and abate (grid intensity times household use, in pounds per tonne of CO2e).">
+    <figcaption>Source: docs/design/THE_MODEL_ON_A_PAGE.md (director-canon, v4). The glyph grammar
+      (<code>.</code> planned, <code>_</code> partial, <code>~</code> not yet) and BRAG colour are information.</figcaption>
+  </figure>
 </section>
 
 <div class="sec">Three ways in</div>

@@ -159,3 +159,27 @@ def test_at_least_one_claim_evidence_link():
     assert './data/dashboard.json' in text, "no data-source evidence link found"
     assert 'href="./company/"' in text or 'href="./method/"' in text, \
         "no claim->evidence link to an evidence door found"
+
+
+# ---------------------------------------------------------------------------
+# F-MOAP-1: the director-approved model-on-a-page diagram is hosted on the front
+# door, exactly once, as a resolvable asset with real alt text.
+# R11 (verify to the rendered value): the <img src> the page ships MUST resolve to
+# a file that exists in the published tree -- a broken image is a dead pixel.
+# R15 (a control that can FAIL): the guard fails if the asset is missing (rename
+# the file -> red) or the alt text is stripped (accessibility regression -> red).
+# ---------------------------------------------------------------------------
+def test_model_on_a_page_diagram_hosted_and_resolves():
+    text = INDEX.read_text()
+    m = re.search(r'<img\s+src="(\./assets/model-on-a-page\.svg)"\s+alt="([^"]+)"', text)
+    assert m, "model-on-a-page diagram <img> (with src+alt) not found on the front door"
+    src, alt = m.group(1), m.group(2)
+    # Hosted exactly once -- ONE host, no duplicate embeds (§B: one host).
+    assert text.count("assets/model-on-a-page.svg") == 1, "diagram must be hosted exactly once"
+    # R11: the referenced asset exists in the published tree.
+    asset = (HERE / "assets" / "model-on-a-page.svg")
+    assert asset.exists(), f"diagram asset missing on disk: {asset}"
+    # Alt text is real, not a placeholder -- names the model's four movements.
+    assert len(alt) > 200, "alt text too thin for a complex diagram (accessibility)"
+    for movement in ("wall", "company", "score", "governance"):
+        assert movement.lower() in alt.lower(), f"alt text omits the {movement!r} movement"

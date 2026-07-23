@@ -25,10 +25,14 @@ demand (2016–2025, 168k settlement periods, the actual record including the 20
 population of synthetic households — different mix every run — each with coupled hidden traits and a
 metered life.
 
-**THE WALL:** The company sees only what a real supplier could: market feeds and forward curves,
-*published forecasts with realistic error*, meter reads (imperfect), bills, payments, complaints,
-replies. Never ground truth. Forecast error is the wall on the future; discovery-through-behaviour
-is the wall on the customer.
+**THE WALL (two-way — F-MOAP-2, 2026-07-23):** Ground truth never crosses; everything else is an
+interface flow in one of two directions. *Inbound* (what the company sees): market feeds and forward
+curves, *published forecasts with realistic error*, meter reads (imperfect), payments, complaints,
+replies, and **settlement — arriving late** (a first-class inbound gate: the truth about a period lands
+months behind it). *Outbound* (what the company sends): **bills, offers, messages**. A bill is
+**outbound**, never an observable — the inbound observable is the *payment or complaint that answers a
+bill*, not the bill itself. Forecast error is the wall on the future; discovery-through-behaviour is the
+wall on the customer.
 
 **THE COMPANY:** Acquires customers → forecasts its book's shaped demand → prices tariffs from the
 cost stack → hedges forward to delivery → bills on three clocks (billed/settled/banked) → collects →
