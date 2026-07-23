@@ -1,3 +1,13 @@
+> **STATUS (parked in in_progress/ — one open sub-item) 2026-07-23:**
+> Sub-item (a) ADOPT TO CANON — **DONE**: `docs/design/THE_MODEL_ON_A_PAGE.md` (Tier-2 canon).
+> Sub-item (b) SEED /simplified — **OPEN, blocked on a director IA decision** (not build capacity):
+> the SITE_V5 five-surface IA (`SITE_V5_STRUCTURE_CONFIRMATION.md` §row 4, director-ratified the same
+> day) folded `site/simplified/` into Proof and killed that door. Choosing the lay-page host —
+> resurrect `/simplified`, fold into an existing surface, or defer — is a category-6 IA/values call
+> reserved to the director (finding F-MOAP-1 in the canon doc). Escalated via NTFY; default if no
+> reply: host the plain-language model-on-a-page as a Front-door fold on the next surface_1 iteration,
+> NOT a resurrected door. UNBLOCKS ON: the director's host choice.
+
 # [DIRECTOR-CANON] — THE MODEL ON A PAGE (2026-07-23)
 
 **Type:** [DIRECTOR-RULING → canon] via advisor bridge. The director asked for the whole design on one page, split into exactly two timeframes: what the machine runs on NOW (core), and what it EVOLVES INTO (later). Adopt as `docs/design/THE_MODEL_ON_A_PAGE.md` (canon, Tier-2), and treat it as the seed for the /simplified lay page — same content, plainer words. Where this page and any FRAME doc disagree, surface as a finding.
