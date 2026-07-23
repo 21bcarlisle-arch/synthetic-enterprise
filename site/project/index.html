@@ -132,6 +132,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   </div>
 
   <div class="sec">Investor Summary</div>
+  <div id="inv-unit-note" style="color:var(--muted);font-size:12px;margin:2px 0 10px;line-height:1.5"></div>
   <div class="inv-grid" id="inv-kpis"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
 
   <!-- v4 pitch §5-6: the economic moat -->
@@ -528,9 +529,33 @@ function renderKpis(){if(!D||!PH)return;var ann=(D.financial||{}).annual||[];var
   // basisNote() -- never hand-typed here.
   var nmBasis=((D&&D.portfolio&&D.portfolio.basis)||{}).net_margin_gbp;
   var nmTitle=nmBasis?((nmBasis.clock||"unstated")+" clock"+(nmBasis.provisional?", PROVISIONAL":"")+(nmBasis.bridge_available?" -- see the reconciliation bridge on the front page":"")):"";
-  var kpis=[{l:"Started",v:PH.start_date||"June 2026"},{l:"Phases shipped",v:PH.total_phases||"--"},{l:"Tests passing",v:lt.toLocaleString()},{l:"Net margin (all time)",v:gbp(totalNet),g:totalNet>=0,title:nmTitle},{l:"Treasury (end 2025)",v:gbp(treasury)},{l:"Crisis survived",v:"2021-22"},{l:"Sim runs",v:rhTotal},{l:"Built by",v:"1 human + Claude + Qwen"}];
+  // RC6 (DIRECTOR §C, 2026-07-23): financials are unit economics, never bare totals.
+  // The book is a small DRAWN SAMPLE, so a cumulative net-margin total is misleading
+  // without its N and its draw (director verbatim: "certainly not totals from a random
+  // sample of customers"). N = the drawn customer sample (D.customers.lifetime keys --
+  // the same book the annual net_gbp figures are earned across, matching the /company
+  // door's N). Lead with the £/customer figure (transfers between books); demote every
+  // cumulative total to a caveated tile; state N + the draw above the grid.
+  var lifetime=(D.customers||{}).lifetime||{};
+  var N=Object.keys(lifetime).length;
+  var hasN=N>0;
+  var nmPer=hasN?totalNet/N:null;                       // all-years net margin per customer (same basis as the total)
+  var perTitle=(nmTitle?nmTitle+" · ":"")+"all-years cumulative ÷ "+N+" sampled customers -- the figure that transfers between books";
+  var totalTitle=(nmTitle?nmTitle+" · ":"")+"10-yr cumulative · scales with drawn book (N="+N+"); not meaningful in isolation -- read the £/customer figure";
+  var kpis=[{l:"Started",v:PH.start_date||"June 2026"},{l:"Phases shipped",v:PH.total_phases||"--"},{l:"Tests passing",v:lt.toLocaleString()},
+    // --- UNIT ECONOMICS leads; the cumulative total is demoted + caveated ---
+    {l:"Net margin / customer (all-yr)",v:hasN?gbp(nmPer):"--",g:nmPer!=null&&nmPer>=0,title:perTitle},
+    {l:"Net margin (total)",v:gbp(totalNet),g:totalNet>=0,title:totalTitle},
+    {l:"Treasury (end 2025)",v:gbp(treasury),title:"banked clock · stock at period end · a drawn-book figure"},
+    {l:"Crisis survived",v:"2021-22"},{l:"Sim runs",v:rhTotal},{l:"Built by",v:"1 human + Claude + Qwen"}];
   if(cte!=null)kpis.push({l:"Test executions",v:cte.toLocaleString(),title:cteTitle});
-  document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){return'<div class="kpi"'+(k.title?' title="'+k.title.replace(/"/g,"&quot;")+'"':'')+'><div class="kl">'+k.l+'</div><div class="kv'+(k.g?" green":"")+'">'+k.v+'</div></div>';}).join("");}
+  document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){return'<div class="kpi"'+(k.title?' title="'+k.title.replace(/"/g,"&quot;")+'"':'')+'><div class="kl">'+k.l+'</div><div class="kv'+(k.g?" green":"")+'">'+k.v+'</div></div>';}).join("");
+  var un=document.getElementById("inv-unit-note");
+  if(un)un.innerHTML=hasN
+    ? "<b>This run's book is a drawn sample of N="+N+" customers</b> (curriculum-weighted historical replay, 2016&ndash;2025). "+
+      "The cumulative financial totals below are earned across that small book and <b>scale with it &mdash; not meaningful in "+
+      "isolation</b>; read the &pound;/customer figure, which transfers between books."
+    : "";}
 function renderCharts(){if(!PH)return;var tp=PH.test_progression||[];var lineOpts={responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{maxTicksLimit:5,color:"#52514e"},grid:{color:"#e1e0d9"}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"}}}};new Chart(document.getElementById("ct"),{type:"line",data:{labels:tp.map(function(p){return p[0];}),datasets:[{data:tp.map(function(p){return p[1];}),borderColor:"#0ca30c",backgroundColor:"rgba(12,163,12,0.1)",fill:true,borderWidth:2,pointRadius:1}]},options:lineOpts});var pd=PH.phase_dates||[];var dm={};pd.forEach(function(p){dm[p[0]]=(dm[p[0]]||0)+1;});var days=Object.keys(dm).sort();var barOpts={responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ctx.parsed.y+" phase"+(ctx.parsed.y===1?"":"s")+" shipped";}}}},scales:{x:{ticks:{color:"#52514e",autoSkip:false,maxRotation:60,minRotation:60,font:{size:9}},grid:{display:false}},y:{ticks:{color:"#52514e"},grid:{color:"#e1e0d9"},title:{display:true,text:"Phases shipped",color:"#52514e",font:{size:10}}}}};new Chart(document.getElementById("cp"),{type:"bar",data:{labels:days,datasets:[{data:days.map(function(d){return dm[d];}),backgroundColor:"rgba(42,120,214,0.6)"}]},options:barOpts});}
 // Director page comments 2026-07-12: "so what... velocity and depth?" /
 // "show the mix of tests... scope of what we are testing" -- real

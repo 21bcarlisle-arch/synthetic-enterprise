@@ -97,7 +97,7 @@ worlds" chip: soften to "designed to rerun" if the claim-status rubric reads it 
 present-tense TF2 (my call, do not escalate).
 </details>
 
-### §C — Financials reframe (RC6): unit economics, never bare totals  [COMPANY DOOR + /now PANEL 2 LANDED 2026-07-23; /project inv-kpis OPEN]
+### §C — Financials reframe (RC6): unit economics, never bare totals  [COMPANY + /now PANEL 2 + /project inv-kpis LANDED 2026-07-23; only cost-to-serve/arrears DISTRIBUTIONS remain (data-plumbing)]
 
 **/now panel 2 (supplier) DONE — later 2026-07-23 tick (`site/now/index.html::renderPanelSupplier`).**
 The operator window now LEADS with **Net margin / customer** (`latest_year_net_margin_gbp ÷ N`,
@@ -124,12 +124,23 @@ are not meaningful in isolation." R11 render (against live `company.json`) + R15
 FAILS; totals carry the caveat) — 13 pass; full site suite 274 pass. `finance-unit-note` added to
 the render harness whitelist so it is R11-observable. **Live-site pixel verify (poesys.net, mobile)
 is POST-DEPLOY** — committed, not yet published; confirm on the next auto-process publish.
-**STILL OPEN:** the same reframe on **/project (investor summary)** — its `inv-kpis` grid
-(`site/project/index.html`, populated ~L533) renders financial totals that need the £/customer +
-N-stated + demoted-total treatment; plus
-cost-to-serve/arrears £-per-customer and DISTRIBUTIONS across coverage cells (needs the generator to
-emit an authoritative per-customer denominator + distribution — company.json currently carries only
-the aggregate N; a follow-on data-plumbing step, logged here not faked).
+**/project (investor summary) DONE — later 2026-07-23 tick (`site/project/index.html::renderKpis`).**
+The Investor-Summary grid now LEADS the financial figures with **Net margin / customer (all-yr)**
+(`Σ annual net_gbp ÷ N`, N = drawn book = `D.customers.lifetime` key count = **19**, matching the
+/company door) and **demotes the cumulative total** (`Net margin (total)`) with a
+`scales with drawn book (N=19); not meaningful in isolation` caveat in its tooltip. A new draw note
+above the grid (`#inv-unit-note`) STATES N + the draw ("drawn sample of N=19 customers,
+curriculum-weighted historical replay, 2016–2025"). Treasury tagged as a drawn-book stock. Label
+disambiguated `(all-yr)` so it does not read as the /company door's *latest-year* £/customer figure.
+R11 render (live data: N=19 → **£80,056/customer**, total £1,521,070) + R15 failable tests in
+`site/project/test_project_door.py` (`test_investor_net_margin_per_customer_follows_N_and_book`:
+per-customer value AND stated N FOLLOW N+annual under mutation — a baked ratio FAILS) — 28 pass.
+Harness `ids` extended with `inv-unit-note`. **Live-site pixel verify (poesys.net, mobile) is
+POST-DEPLOY** — committed, not yet published; confirm on the next auto-process publish.
+**STILL OPEN (data-plumbing, logged not faked):** cost-to-serve/arrears £-per-customer and
+DISTRIBUTIONS across coverage cells need the generator to emit an authoritative per-customer
+denominator + distribution (dashboard.json carries only the aggregate book, not per-customer
+cost-to-serve/arrears splits) — a follow-on step, not this tick.
 
 <details><summary>original §C brief</summary>
 Convert every financial surface to £-per-customer (margin, cost-to-serve, arrears),

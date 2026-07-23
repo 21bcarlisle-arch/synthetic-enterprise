@@ -77,6 +77,43 @@ def test_investor_kpis_render_live_phase_count_and_tests():
     assert f">{grouped}<" in kpis, kpis
 
 
+# ---------------------------------------------------------------------------
+# RC6 (DIRECTOR §C, 2026-07-23): investor financials are unit economics, never
+# bare totals. The note states the drawn-book N; the panel leads with a
+# £/customer figure and demotes the cumulative total with a scales-with-book
+# caveat. Director verbatim: "certainly not totals from a random sample of
+# customers."
+# ---------------------------------------------------------------------------
+def test_investor_financials_are_unit_economics_with_N_stated():
+    d = _live()
+    N = len(d["dashboard"]["customers"]["lifetime"])
+    out = _render(d)
+    note = out["inv-unit-note"]["innerHTML"]
+    kpis = out["inv-kpis"]["innerHTML"]
+    # R11: the draw note states the live drawn-book N (customers.lifetime keys).
+    assert f"N={N} customers" in note, note
+    # The panel leads with the unit-economics figure and demotes the total.
+    assert "Net margin / customer" in kpis, kpis
+    assert "scales with drawn book" in kpis, kpis
+
+
+def test_investor_net_margin_per_customer_follows_N_and_book():
+    # R15: the per-customer pixel and the stated N must MOVE with the source
+    # (drawn-book size and annual net) -- proving it is a live division, not a
+    # hard-coded constant. A baked ratio would fail this.
+    d = _live()
+    d["dashboard"]["financial"]["annual"] = [
+        {"year": 2025, "net_gbp": 1_000_000, "treasury_end_gbp": 0}
+    ]
+    d["dashboard"]["customers"]["lifetime"] = {"X1": {}, "X2": {}, "X3": {}, "X4": {}}
+    out = _render(d)
+    note = out["inv-unit-note"]["innerHTML"]
+    kpis = out["inv-kpis"]["innerHTML"]
+    assert "N=4 customers" in note, note
+    # 1,000,000 / 4 = 250,000 -> gbp() renders "£250,000" as the tile value.
+    assert ">£250,000<" in kpis, kpis
+
+
 def test_build_evidence_domain_count_renders_live_test_mix():
     d = _live()
     out = _render(d)

@@ -74,7 +74,7 @@ if (sandbox.REG) sandbox.renderRegulatory();
 if (sandbox.DEC) sandbox.renderDecisions();
 
 const ids = [
-  "inv-kpis", "be-domain-count", "epoch2-strip",
+  "inv-kpis", "inv-unit-note", "be-domain-count", "epoch2-strip",
   "mm-view-body", "pp-body", "dt-body",
   "disc-hedge-band", "disc-hedge-passport",
   "reg-module-count", "reg-domain-count", "reg-slc-domains",
