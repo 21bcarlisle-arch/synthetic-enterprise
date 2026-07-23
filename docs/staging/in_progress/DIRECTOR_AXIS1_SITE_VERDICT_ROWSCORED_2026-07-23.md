@@ -1,3 +1,14 @@
+> **STATUS (parked in in_progress/ — standing rubric, sub-items still open).** This is the axis-1
+> rubric the whole SITE_V5 campaign scores against, not a one-shot task. **Applied so far:** RC1
+> (registers-are-sources) — landed on /company (surface 3, plain-English governance layer) and /proof
+> (surface 4, simplifications register moved to a labelled appendix). RC5 (no effort-as-outcomes) —
+> landed on /company and /proof. **Still open:** RC2 (the real lay page — reconcile with SITE_V5's
+> five-surface IA, which folds Simplified into Proof rather than making /simplified the lay page; the
+> lay page lands with the Front door, surface 1), RC3 (charts on /now + /world chart grammar), RC4
+> (site-wide brand/hierarchy pass incl. tilde-on-figures kill + chat-widget question — iteration 6/last).
+> Unblocks when those surfaces are drawn by the open-campaign self-refill. Kept out of the supervisor's
+> unprocessed-staging scan by living here, per the multi-part-staged-instruction convention.
+
 # [DIRECTOR-RULING] — Axis-1 verdict, row-scored from the director's own screenshots; the five root causes; iteration order (2026-07-23)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. The director reviewed six live pages (/now, /world, /method, /company, /project, /simplified) on his phone and rendered the verdict "awful". The advisor decomposed it with him into the specific verdicts below. **The ratified structure stands** (causal chain, clocks, honesty placeholders, wall crossings) — the failure is the presentation layer and content selection. Fix those; do not re-architect the IA.
