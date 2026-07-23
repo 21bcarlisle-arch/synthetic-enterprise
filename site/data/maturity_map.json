@@ -664,8 +664,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "W2_13_occupancy_consumption_volume_shape",
@@ -687,8 +687,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "W3_1_price_cap_binding",

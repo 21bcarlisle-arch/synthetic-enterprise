@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T06:49:02Z",
+  "generated_at": "2026-07-23T07:05:07Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -1336,6 +1336,24 @@
           ]
         },
         {
+          "atom_id": "W2_12_change_of_tenancy_debt_physics",
+          "atom_name": "Change-of-tenancy debt physics -- one credit-risk exit + two deemed-rate entries (double jeopardy), and the prime high-value acquisition moment",
+          "level_current": 0,
+          "level_target": 1,
+          "notes": [
+            "2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 1). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it; DOES NOT block generator wiring (touches the billing/lifecycle process model, not the population draw). Scope: home-move exists today as churn/acquisition MECHANICS (home_move_win_rate.py, churn_journey, customer_events) but the DEBT and REVENUE physics OF the move itself are NOT confirmed built -- move-out final-bill non-payment risk, move-in landing on deemed rates, the void-property problem (Board Spec 006 item 9 PARTIAL). Director frame, register VERBATIM: every tenancy change is ONE credit-risk exit PLUS TWO deemed-rate entries (double jeopardy), and simultaneously the prime acquisition moment for high-value low-churn customers. The atom UNIFIES three things currently held separately: acquisition (thin), deemed-tariff path (built), bad debt (built). DISCOVER first: read the three current mechanisms and name the exact seam where the debt/revenue physics of the move would attach; fold, do not duplicate. BUILD stays gated (EPOCH_GATING -- author now, BUILD when opened)."
+          ]
+        },
+        {
+          "atom_id": "W2_13_occupancy_consumption_volume_shape",
+          "atom_name": "Occupancy -> consumption volume and shape (people count, adults vs children) folded into the held HH load-shape clustering lane",
+          "level_current": 0,
+          "level_target": 1,
+          "notes": [
+            "2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 2). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it. Scope: occupancy archetypes currently drive COMPLAINT propensity only -- two extra people in a house changes how OFTEN they call, not WHAT they use. The atom wires occupancy (people count, adults vs children where anchorable) into demand VOLUME and SHAPE, alongside the director causal sketch -- hours-at-home, cooking fuel, overnight device load -- as candidate shape drivers. NATURAL HOME (director: fold, do not duplicate): the held HH load-shape clustering lane -- concretely simulation/demand_model.py::build_demand_shape and simulation/premise_demand.py (W1_5_premise_demand_shape), which ALREADY consume an occupancy_multiplier for shape; this atom deepens that from a scalar multiplier into a people-count/composition-driven volume+shape response. DISCOVER first: confirm exactly where occupancy enters the demand path today and what an anchorable people-count response would add; couples_with W1_5. BUILD stays gated (EPOCH_GATING)."
+          ]
+        },
+        {
           "atom_id": "W2_1_archetype_layers",
           "atom_name": "Customer archetype layers (home type, payment channel, tenure, fuel poverty, occupancy)",
           "level_current": 3,
@@ -1559,6 +1577,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 123,
-  "total_notes": 495
+  "total_atoms_with_notes": 125,
+  "total_notes": 497
 }
