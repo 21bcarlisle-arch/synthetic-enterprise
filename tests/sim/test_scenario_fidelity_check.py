@@ -13,13 +13,20 @@ import pytest
 from sim.scenario import fidelity_check as F
 
 
-def _ar1(n, mean, sd, phi, seed):
-    """A stationary AR(1) return series (autocorrelated, like real energy returns)."""
+def _ar1(n, mean, sd, phi, seed, tdf=None):
+    """A stationary AR(1) return series (autocorrelated, like real energy returns).
+    `tdf` (Student-t degrees of freedom) makes the innovations HEAVY-TAILED -- a
+    spike-prone series like real UK energy returns -- while keeping the target sd."""
     rng = np.random.default_rng(seed)
     x = np.zeros(n)
     innov_sd = sd * np.sqrt(1 - phi**2)
+    if tdf is not None:
+        innov = rng.standard_t(df=tdf, size=n)
+        innov = innov / np.std(innov) * innov_sd  # heavy-tailed, unit-scaled to target sd
+    else:
+        innov = rng.normal(0, innov_sd, size=n)
     for t in range(1, n):
-        x[t] = phi * x[t - 1] + rng.normal(0, innov_sd)
+        x[t] = phi * x[t - 1] + innov[t]
     return x + mean
 
 
@@ -59,6 +66,33 @@ def test_wrong_autocorrelation_generator_fires():
     v = F.check_scenario_fidelity(gen, ref, n_boot=300, seed=7)
     assert not v.passed
     assert "lag1_autocorr" in v.diverging()
+
+
+def test_flat_tail_generator_fires():
+    """R15 (2026-07-24 HARDEN red-team): a generator that matches mean, volatility AND
+    lag-1 persistence but FLATTENS the spike tail (Gaussian innovations against a
+    heavy-tailed reference) must FAIL on the tail_ratio moment. Before tail_ratio was
+    added this exact generator PASSED every check -- the blind spot this test locks."""
+    ref = _ar1(4000, mean=0.0, sd=1.0, phi=0.6, seed=1, tdf=3)   # heavy-tailed, spike-prone
+    gen = _ar1(2000, mean=0.0, sd=1.0, phi=0.6, seed=2)          # Gaussian, flat tail
+    # match mean AND std to the reference by construction, so ONLY the tail can differ
+    gen = (gen - gen.mean()) / np.std(gen, ddof=1) * np.std(ref, ddof=1) + ref.mean()
+    v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
+    assert not v.passed
+    assert "tail_ratio" in v.diverging()
+    # the blind-spot proof: with mean+std matched by construction, mean/std do NOT fire --
+    # only the tail moment catches this generator (before it was added, nothing did)
+    assert "mean" not in v.diverging()
+    assert "std" not in v.diverging()
+
+
+def test_matching_heavy_tailed_generator_passes():
+    """The tail moment must not false-fire: a generator drawn from the SAME
+    heavy-tailed process as the reference agrees on tail_ratio too -> passes."""
+    ref = _ar1(4000, mean=0.0, sd=1.0, phi=0.6, seed=1, tdf=3)
+    gen = _ar1(2000, mean=0.0, sd=1.0, phi=0.6, seed=5, tdf=3)
+    v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
+    assert v.passed, v.diverging()
 
 
 def test_deterministic_given_seed():

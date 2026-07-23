@@ -4,7 +4,10 @@ WHAT. A fidelity SANITY CHECK for the synthetic-futures generator: on the scenar
 where the generated distribution is *expected to agree* with real history (the
 `baseline_2025`-style preset), the generated return series must not statistically
 diverge from real 2016-2025 returns on shared distributional moments (mean,
-volatility, lag-1 autocorrelation). Design: SYNTHETIC_FUTURES_GENERATION_FRAME.md
+volatility, lag-1 autocorrelation, and spike-tail heaviness -- see `_tail_ratio`,
+added 2026-07-24 after a HARDEN red-team found the mean/std/autocorr set PASSES a
+Gaussian generator whose spike tail is grossly flat vs a heavy-tailed reference).
+Design: SYNTHETIC_FUTURES_GENERATION_FRAME.md
 S3/S8 -- "reconcile to real distributional moments", using a BLOCK BOOTSTRAP of the
 real returns as the *reference*, not as a second generator to maintain.
 
@@ -69,10 +72,28 @@ def _lag1_autocorr(v: np.ndarray) -> float:
     return float(np.corrcoef(a, b)[0, 1])
 
 
+def _tail_ratio(v: np.ndarray) -> float:
+    """Spike heaviness: the 99th percentile of |deviation| expressed in std units --
+    "how many sigma does the worst 1% of moves reach". A dimensionless tail moment
+    the first two (mean/std) are STRUCTURALLY BLIND to: a generator can match mean,
+    volatility AND lag-1 persistence yet flatten the spike/negative-price tail (draw
+    Gaussian innovations where real UK energy returns are heavy-tailed) and pass every
+    other check. That flattened tail is exactly the risk-relevant feature this atom's
+    synthetic futures exist to stress the company with (Dunkelflaute scarcity spikes,
+    negative-price days), so a fidelity SANITY check blind to it green-lights the one
+    defect that matters most. Robust under the moving-block bootstrap (a high quantile,
+    not the 4th moment -- kurtosis CIs are too wide to fire on anything but the extreme)."""
+    s = float(np.std(v, ddof=1))
+    if s == 0:
+        raise DegenerateSeriesError("zero std -- tail ratio undefined")
+    return float(np.quantile(np.abs(v - np.mean(v)), 0.99) / s)
+
+
 MOMENTS: Dict[str, Callable[[np.ndarray], float]] = {
     "mean": _mean,
     "std": _std,
     "lag1_autocorr": _lag1_autocorr,
+    "tail_ratio": _tail_ratio,
 }
 
 
