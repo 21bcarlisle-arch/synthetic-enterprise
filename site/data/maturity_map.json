@@ -1728,10 +1728,7 @@
       "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W1_3_national_weather_signal",
-        "W1_5_premise_demand_shape"
-      ],
+      "depends_on": [],
       "couples_with": [
         "C13_weather_normalisation"
       ],
