@@ -64,9 +64,29 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .stage-tag { font-family: ui-monospace, monospace; color: var(--text); }
 .rag-legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0 14px; font-size: 11px; color: var(--muted); }
 details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin-top: 10px; }
-/* mobile pass (SITE1_expert_doors): phone-legible board pack, no horizontal body
-   scroll. The finance/hedge/obligations tables already scroll inside .table-scroll;
-   this tightens chrome and shrinks the hero. Desktop (>640px) layout is unchanged. */
+/* SURFACE-3's single job (SITE_V5, ruling 2026-07-23): the supplier SaaS shown as
+   PRODUCT -- real run outputs, never effort metrics. The capability grid is the
+   page's new centre of gravity: each card is a product capability whose headline
+   is READ from the latest run's outputs (capabilities.json), never authored here.
+   The falsifiable hypothesis (didactic-graph rule) lets an Expert Hour walk any
+   card to its data file and fail it. */
+.hyp { font-size: 12px; color: var(--text); line-height: 1.65; max-width: 760px;
+  border-left: 3px solid var(--blue); padding: 10px 14px; background: var(--surface); border-radius: 6px; margin-bottom: 14px; }
+.hyp strong { color: var(--blue); }
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 12px; }
+.cap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; }
+.cap-name { font-size: 14px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.2px; }
+.cap-desc { font-size: 12px; color: var(--muted); line-height: 1.55; flex: 1; }
+.cap-headline { font-size: 15px; font-weight: 700; color: var(--blue); margin: 12px 0 3px; letter-spacing: -0.3px; }
+.cap-headline.planned { color: var(--amber); }
+.cap-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.cap-foot .cl { font-size: 9px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+/* coverage: the one product against the vendors the market buys instead */
+.cov-cat { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12px; align-items: baseline; }
+.cov-cat:last-child { border-bottom: none; }
+.cov-name { font-weight: 600; }
+.cov-leaders { color: var(--muted); font-size: 11px; grid-column: 1 / 2; }
+.cov-right { text-align: right; white-space: nowrap; }
 @media (max-width: 640px) {
   .wrap { padding: 28px 16px; }
   .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
@@ -74,34 +94,54 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   .sec { margin-top: 32px; }
   .card { padding: 16px; }
   .bridge-row { gap: 6px; }
+  .cap-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
-  <a href="../now/" class="nav-link">Now</a>
   <a href="../" class="nav-link">Home</a>
-  <a href="../company/" class="nav-link active">Company</a>
-  <a href="../world/" class="nav-link">World</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link active">The Company</a>
   <a href="../proof/" class="nav-link">Proof</a>
-  <a href="../method/" class="nav-link">Method</a>
-  <a href="../project/" class="nav-link">Journey</a>
-  <a href="../simplified/" class="nav-link">Simplified</a>
 </nav>
 <div class="wrap">
 
   <div class="hero-h">The Company</div>
   <p class="hero-p">
-    The board pack. What a real energy supplier's board would read at quarter-close:
-    the trading and risk position, the finance on all three clocks it actually keeps
-    (settled, billed, banked -- they diverge, and the divergence is shown, not smoothed),
-    one household seen the whole way down to its arrears, and the compliance organs with
-    their honest RED and AMBER kept. Every figure carries its clock (R14) and links to the
-    file it came from.
+    A working UK energy supplier, rendered as one SaaS product. It prices, hedges, bills, collects,
+    serves customers and stays compliant &mdash; the whole supplier, end to end, spanning what the
+    market normally buys from a dozen specialist vendors. Everything below is a real output from the
+    latest settlement run, carrying its clock (R14) and a link to the file it came from. What you will
+    not find here is an effort metric: no test counts, no commit charts &mdash; a product is judged by
+    what it does, not how much was typed.
   </p>
 
-  <!-- 0. OPERATIONAL STATE (the director's window: what the supplier is doing right now + why) -->
+  <!-- SURFACE-3's single job: the SaaS shown as PRODUCT -- the capability grid -->
+  <div class="sec">What the product does &mdash; capabilities, each a real output from the latest run</div>
+  <p class="hyp">
+    <strong>Hypothesis (falsifiable):</strong> this is one working product, not a demo &mdash; every
+    headline figure below is READ from the latest run's outputs, never authored on the page. Walk any
+    card to its data file and the figure will be there. If any were a mock, the file would not contain
+    it. Failures are shown at face value (the churn model's live recall reads 0%, kept in view, not
+    smoothed).
+  </p>
+  <div class="cap-grid" id="cap-grid"><div class="card"><div class="muted">Loading...</div></div></div>
+  <div class="passport" id="cap-passport"></div>
+
+  <!-- What the market buys instead: the one product vs the vendor stack -->
+  <div class="sec">What it replaces &mdash; one product against the vendor stack the market buys</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px" id="cov-intro">Loading...</p>
+    <div class="kpis" id="cov-kpis"></div>
+    <div id="cov-body"><div class="muted">Loading...</div></div>
+    <div class="passport" id="cov-passport"></div>
+  </div>
+
+  <div class="sec" style="margin-top:52px">The evidence &mdash; walk any capability down to its numbers</div>
+
+  <!-- 0. OPERATIONAL STATE (the product, running live: what the supplier is doing right now + why) -->
   <div class="sec">Supplier state &mdash; what the book is doing right now</div>
   <div class="card">
     <p class="muted" style="margin-bottom:14px" id="state-intro">Loading...</p>
@@ -113,7 +153,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   </div>
 
   <!-- 1. THREE-CLOCK FINANCE -->
-  <div class="sec">Finance &mdash; the three clocks a supplier actually keeps</div>
+  <div class="sec">Pricing &amp; finance &mdash; the three clocks a supplier actually keeps</div>
   <div class="card">
     <p class="muted" style="margin-bottom:14px" id="finance-intro">Loading...</p>
     <div class="kpis" id="finance-kpis"></div>
@@ -126,7 +166,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   </div>
 
   <!-- 2. TRADING & RISK -->
-  <div class="sec">Trading &amp; Risk &mdash; the book's hedge position &amp; limits</div>
+  <div class="sec">Hedging &amp; risk &mdash; the book's hedge position &amp; limits</div>
   <div class="card">
     <p class="muted" style="margin-bottom:14px" id="trading-intro">Loading...</p>
     <div class="kpis" id="trading-kpis"></div>
@@ -139,8 +179,8 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="passport" id="trading-passport"></div>
   </div>
 
-  <!-- 3. HOUSEHOLD DRILL-DOWN -->
-  <div class="sec">Household drill-down &mdash; one real account, the whole way down</div>
+  <!-- 3. HOUSEHOLD DRILL-DOWN (billing + credit & collections + customer service) -->
+  <div class="sec">Billing &amp; collections &mdash; one real account, the whole way down</div>
   <div class="card">
     <p class="muted" style="margin-bottom:14px" id="hh-intro">Loading...</p>
     <p style="margin-bottom:14px;font-size:13px"><a href="../customers/" style="color:var(--blue);text-decoration:none">Open the full customer portal &rarr;</a> &mdash; every account seen the same way down: bills, statements, payment timeline and risk.</p>
@@ -154,7 +194,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   </div>
 
   <!-- 3b. PERSONALISATION (v4 pitch §7) -->
-  <div class="sec">Personalisation &mdash; every household its own plan, not a segment average</div>
+  <div class="sec">Customer service &amp; personalisation &mdash; every household its own plan, not a segment average</div>
   <div class="card">
     <p class="muted" style="margin-bottom:8px"><strong>Their own plan and path.</strong> Every household is meant to hold a cost-and-carbon trajectory &mdash; what they spend, what they emit, and how both move when the boiler ages, a baby arrives, an EV lands &mdash; so every intervention is judged against it: did this household's cost and carbon actually bend, or did we merely send a message?</p>
     <p class="muted" style="margin-bottom:8px"><strong>Timing, not just targeting.</strong> Slow-moving traits set the range of what's possible; fast-moving states (a house move, a bill shock, a cold snap, the week before payday) move within it. Habits reset at moments of change, and an intervention timed to one of those windows outperforms the same one sent at random.</p>
@@ -162,7 +202,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   </div>
 
   <!-- 4. COMPLIANCE ORGANS -->
-  <div class="sec">Compliance organs &mdash; the obligations register &amp; tiered controls</div>
+  <div class="sec">Compliance &mdash; the obligations register &amp; tiered controls</div>
   <div class="card">
     <p class="muted" style="margin-bottom:8px" id="oblig-intro">Loading...</p>
     <div class="rag-legend">
@@ -201,6 +241,16 @@ function gbpFull(v){ return v==null?"--":(v<0?"-":"")+"£"+Number(Math.abs(v)).t
 function pct(v){ return v==null?"--":Number(v).toFixed(2)+"%"; }
 function ragClass(s){ s=(s||"").toUpperCase(); if(s==="GREEN")return"green"; if(s==="AMBER")return"amber"; if(s==="RED")return"red"; if(s==="BLUE")return"blue"; return"manual"; }
 function el(id){ return document.getElementById(id); }
+// Normalise an evidence link to a target that resolves under the five-surface IA.
+// The killed/folded doors: /sim/ has no page (data lives on The World); /project/
+// (Journey) and /method/ fold into Proof. Rewriting here keeps every capability
+// card's evidence link resolving through the IA change, not just today.
+function normLink(u){
+  return String(u||"#")
+    .replace("../sim/","../world/")
+    .replace("../project/","../proof/")
+    .replace("../method/","../proof/");
+}
 
 // A KPI tile with a `//` basis line (R14: clock always shown).
 function kpiTile(label, value, basis, klass){
@@ -209,7 +259,78 @@ function kpiTile(label, value, basis, klass){
     (basis?'<div class="kpi-basis">// '+esc(basis)+'</div>':'')+'</div>';
 }
 
-// The director's operational window: what the book is doing RIGHT NOW, at a glance.
+// SURFACE-3's single job: render the product's capability grid from published run
+// outputs only (render-not-author). Each card pulls its headline from
+// capabilities.json; a null headline degrades to an honest "not yet measured"
+// rather than fabricating a figure.
+function renderCapabilities(c){
+  var grid=el("cap-grid");
+  if(!grid) return;
+  var cards=(c&&c.cards)||[];
+  if(!cards.length){ grid.innerHTML='<div class="card"><div class="muted">Capability data unavailable.</div></div>'; return; }
+  grid.innerHTML=cards.map(function(x){
+    var has=x.headline!=null&&String(x.headline).trim()!=="";
+    var headline=has?esc(x.headline):"not yet measured";
+    var status=has?"MEASURED":"PLANNED";
+    var link=x.evidence_link?('<a class="cap-link evlink" href="'+esc(normLink(x.evidence_link))+'">walk it &rarr;</a>'):"";
+    return '<div class="cap">'+
+      '<div class="cap-name">'+esc(x.name)+'</div>'+
+      '<div class="cap-desc">'+esc(x.description)+'</div>'+
+      '<div class="cap-headline'+(has?'':' planned')+'">'+headline+'</div>'+
+      '<div class="cap-foot"><span class="cl">'+status+' &middot; latest run</span>'+link+'</div>'+
+    '</div>';
+  }).join("");
+  el("cap-passport").innerHTML=
+    "<b>Passport.</b> Claim-status: each headline is a MEASURED output of the latest settlement run "+
+    "(basis: run outputs, "+esc(cards.length)+" capabilities), rendered not authored; a capability whose "+
+    "metric is not yet instrumented is shown PLANNED, never faked. Source: "+
+    '<a class="evlink" href="../data/capabilities.json" target="_blank" rel="noopener">capabilities.json</a>'+
+    (c&&c.generated_at?" &middot; generated "+esc(c.generated_at):"")+".";
+}
+
+// The one product against the vendor stack the market actually buys. Grouped by
+// bucket (B = built core, A = adjacent, C = integration edges); each category
+// names the real market leaders it stands in for. Effort metrics (test counts)
+// are deliberately NOT surfaced -- the single job is product capability.
+function renderCoverage(s){
+  var body=el("cov-body");
+  if(!body) return;
+  var cats=(s&&s.categories)||[];
+  if(!cats.length){ body.innerHTML='<div class="muted">Coverage data unavailable.</div>'; return; }
+  var bc=(s&&s.bucket_counts)||{};
+  el("cov-intro").innerHTML=
+    "A real supplier stitches this together from a dozen specialist vendors &mdash; a CIS, an ETRM, an "+
+    "ERP, a collections engine, an engagement platform, a compliance stack. Here it is one product. Each "+
+    "row is a capability category with the market leaders it stands in for, and whether a module for it "+
+    "exists in the build. <b>B</b> = built core, <b>A</b> = adjacent, <b>C</b> = integration edge.";
+  el("cov-kpis").innerHTML=[
+    kpiTile("Categories", num(s.total_categories!=null?s.total_categories:cats.length), "capability categories mapped"),
+    kpiTile("Built core (B)", num(bc.B||0), "modules present"),
+    kpiTile("Adjacent (A)", num(bc.A||0), "partial / adjacent"),
+    kpiTile("Integration edges (C)", num(bc.C||0), "external seams")
+  ].join("");
+  var order={B:0,A:1,C:2};
+  var sorted=cats.slice().sort(function(a,b){ return (order[a.bucket]||9)-(order[b.bucket]||9); });
+  body.innerHTML=sorted.map(function(c){
+    var me=c.modules_exist||[];
+    var have=me.filter(function(m){return m.exists;}).length;
+    var mod=me.length?(have+"/"+me.length+" module"+(me.length===1?"":"s")):"seam";
+    var bcls=c.bucket==="B"?"blue":(c.bucket==="A"?"amber":"grey");
+    return '<div class="cov-cat">'+
+      '<div class="cov-name">'+esc(c.category)+'</div>'+
+      '<div class="cov-right"><span class="badge '+bcls+'">'+esc(c.bucket)+'</span> <span class="muted">'+esc(mod)+'</span></div>'+
+      '<div class="cov-leaders">stands in for: '+esc(c.market_leaders)+'</div>'+
+    '</div>';
+  }).join("");
+  el("cov-passport").innerHTML=
+    "<b>Passport.</b> Claim-status: module existence is checked against the repo at generation time "+
+    "(exists = the path is present, not that it is complete); market-leader names are the real vendors "+
+    "each category maps to, for orientation. No effort metric (test counts, commits) is surfaced here. Source: "+
+    '<a class="evlink" href="../data/saas_coverage.json" target="_blank" rel="noopener">saas_coverage.json</a>'+
+    (s&&s.generated_at?" &middot; generated "+esc(s.generated_at):"")+".";
+}
+
+// The product, running live: what the book is doing RIGHT NOW, at a glance.
 function renderState(d){
   var f=d.finance||{}, t=d.trading_risk||{};
   el("state-intro").innerHTML=
@@ -412,13 +533,21 @@ function renderBuild(d){
   if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
   if(d.dashboard_generated_at)parts.push("data "+d.dashboard_generated_at);
   if(d.generated_at)parts.push("page data generated "+d.generated_at);
-  el("build-note").textContent=parts.length?("This board pack is a rendering of repo data only — "+parts.join(" · ")):"Build stats unavailable.";
+  el("build-note").textContent=parts.length?("This whole page is a rendering of repo data only, never a mock — "+parts.join(" · ")):"Build stats unavailable.";
 }
 
-fetch("../data/decisions.json?t="+Date.now()).then(function(r){return r.json();}).then(renderDecisions).catch(function(e){
+function jget(url){ return fetch(url+"?t="+Date.now()).then(function(r){return r.json();}); }
+
+jget("../data/capabilities.json").then(renderCapabilities).catch(function(){
+  var g=el("cap-grid"); if(g) g.innerHTML='<div class="card"><div class="muted">capabilities.json unavailable at generation time</div></div>';
+});
+jget("../data/saas_coverage.json").then(renderCoverage).catch(function(){
+  var b=el("cov-body"); if(b) b.innerHTML='<div class="muted">saas_coverage.json unavailable at generation time</div>';
+});
+jget("../data/decisions.json").then(renderDecisions).catch(function(){
   el("state-decisions").innerHTML='<div class="muted">decisions.json unavailable at generation time</div>';
 });
-fetch("../data/company.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+jget("../data/company.json").then(function(d){
   renderState(d);
   renderFinance(d);
   renderTrading(d);

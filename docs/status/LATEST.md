@@ -1,5 +1,26 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-23T15:21:06Z
+Last updated: 2026-07-23T15:36:26Z
+
+**PRODUCT LANDED (2026-07-23) — SITE_V5 surface 3 (The Company) rebuilt as the supplier SaaS shown as PRODUCT.**
+Drawn by the seventh-class open-campaign self-refill (no doorbell): surface 2 landed, so the draw rolled to the next
+unfinished item in 1→5 order. `site/company/` is rebuilt so its single job — **e2e supplier-SaaS evidence, real run
+outputs never effort metrics** — is the page's centre of gravity: a **capability grid** (render-not-author from
+`capabilities.json`; 12 capabilities, each headline a real output of the latest run — "1,588 bills settled", "avg
+hedge fraction 88%", "23 obligations tracked, 19 GREEN") leads, then a **"what it replaces" vendor-coverage map**
+(`saas_coverage.json` — the one product vs Kraken / Gentrack / Brady / NetSuite / Aryza / Braze / Opower across 22
+categories), then the deep board-pack sections reframed as "walk any capability to its numbers" (pricing & finance
+three-clock, hedging & risk, billing & collections drill-down, customer service, compliance). **Single-job
+discipline:** no effort metric on the surface (`test_count=18504` kept off, **R15-guarded**); honesty kept (churn
+live recall **0%**, carbon **"not yet measured" PLANNED**, not faked). Nav cut to the five-surface IA; falsifiable
+hypothesis on-surface (didactic rule); every capability evidence link resolves through the IA change (`normLink`
+rewrites the killed /sim//project//method/ doors). **R11+R15** proven by 9 render-harness tests
+(`site/company/test_company_door.py` — execute the page's real inline JS against published JSON; mutation flips the
+capability-grid pixel + finance figures, proving independence). **Site-lane gate green** (241 site tests pass).
+**Expert-Hour** (phase-close-evaluator, fresh context) = **PASS** against the single job. Marked `landed` in
+`CAMPAIGN_REGISTER.yaml` same commit; SITE_V5 stays OPEN (surface 1 FAIL + surfaces 4-5), so the draw persists.
+Follow-on (non-blocking, belongs to surface 4): the regulatory/carbon cards link to `../proof/#regulatory` — that
+anchor lands when Proof absorbs the regulatory fold (link HTTP-resolves now; the figures already render on this
+page's own Compliance section).
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 2 (The World) rebuilt around the walkable causal chain.**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): with surface 1 deployed-but-FAILED, the draw

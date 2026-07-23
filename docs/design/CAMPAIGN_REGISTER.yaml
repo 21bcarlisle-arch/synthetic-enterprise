@@ -53,7 +53,24 @@ campaigns:
           (b) an external-anchor-URL resolution test.
       - id: surface_3_the_company
         title: 'The Company -- the supplier SaaS shown as product (real run outputs, never effort metrics)'
-        status: open
+        status: landed
+        note: >-
+          LANDED 2026-07-23. Rebuilt around the PRODUCT: a capability grid (render-not-author from
+          capabilities.json -- 12 capabilities, each headline a real output of the latest run:
+          "1,588 bills settled", "avg hedge fraction 88%", "23 obligations tracked, 19 GREEN") is the
+          new centre of gravity, followed by a "what it replaces" vendor-coverage map (saas_coverage.json
+          -- the one product vs Kraken/Gentrack/Brady/NetSuite/Aryza/Braze/Opower across 22 categories),
+          then the deep board-pack sections reframed as "walk any capability to its numbers" (pricing &
+          finance three-clock, hedging & risk, billing & collections drill-down, customer service,
+          compliance). Single-job discipline: NO effort metric on the surface (test_count=18504 kept off,
+          R15-guarded); honesty kept (churn live recall 0%, carbon "not yet measured" PLANNED, not faked).
+          Nav cut to the five-surface IA. Falsifiable hypothesis on-surface (didactic rule). R11+R15 proven
+          by 9 render-harness tests (execute the page's real JS against published data; mutation flips the
+          capability-grid pixel + finance figures); full site-lane gate green (241 passed). Expert-Hour
+          (phase-close-evaluator) = PASS against the single job. Follow-on (non-blocking, belongs to
+          surface 4): the regulatory-stack/carbon cards link to ../proof/#regulatory; that anchor lands
+          when Proof absorbs the regulatory fold -- link HTTP-resolves now, the regulatory figures already
+          render on this page's own Compliance section.
       - id: surface_4_proof
         title: 'Proof -- fidelity incl. failures, claim-status per figure, corrections-in-place, challenge channel; Method + Simplified fold in here'
         status: open
