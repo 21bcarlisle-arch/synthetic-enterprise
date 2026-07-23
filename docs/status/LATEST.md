@@ -1,5 +1,23 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-23T13:45:59Z
+Last updated: 2026-07-23T15:04:21Z
+
+**SEVENTH-CLASS STALL MECHANISED SHUT (2026-07-23, `1abeb558e`) — open campaigns are now always-drawable.**
+Director ruling (CAMPAIGN_CONTINUATION §2, R10-on-R17): "an open campaign with unfinished items IS drawable work
+— finishing surface N rolls into N+1, no doorbell." Absorbed as a mechanism, not consumed: `supervisor.py::
+_open_campaign_draw` reads a new machine-readable authority `docs/design/CAMPAIGN_REGISTER.yaml` (R16) and forbids
+rest while any OPEN campaign has an unfinished item — wired into `_self_refill_draw` (above backlog), `_is_drained_
+and_gated`, and the whole-set `authorized_set_enumeration` (7th level `open_campaign`). **R15 both ways**
+(`tests/background/test_open_campaign_draw.py`, 8 tests): the must-not-rest control reproduces today's 14:03Z state
+(SITE_V5 open, surfaces 2-5 drawable, tick rested) and now draws; the may-rest control passes only when every item
+is `landed`. Proof it's load-bearing NOW: the live enumeration reads `[build=. site=. discover_frame=. open_campaign=Y
+backlog=. propose_half=. forward_discovery=.] → MUST-DRAW: open_campaign` — without this rung this very tick rests.
+**R2:** live immediately on the per-tick `pull_next_work.py` hook (fresh `find_work` import per invocation); the
+persistent `supervisor.py` daemon (PID 114010, Jul-22 code) needs a systemd restart from MAIN/console to absorb it
+on its own cycle — **flagged, not done from the worker seat** (self-kill/console-sanctity). This is **rung 2** of the
+7-rung WORK-SOURCE HIERARCHY (`DIRECTOR_RULING_WORK_IS_THE_DEFAULT`, the class-of-classes fix); rungs 4/5/7 (defect
+backlog auto-mint, follow-on queue, PLANNER rung) remain open, parked in `docs/staging/in_progress/` with headers.
+**Site verdict recorded (`director_axis_verdicts.jsonl`): axis-1 front-door MVP = FAIL 1/5** ("It still looks awful")
+— surface 1 stays OPEN → iterate vs BRAND_CONSTITUTION + Spec-005 rubric as scored rows; surfaces 2-5 roll next.
 
 **PRODUCT LANDED (2026-07-23, `87ce1b980`) — SITE_V5 surface 1 (Front door) MVP is LIVE + pixel-verified.**
 The front door at poesys.net is rebuilt to the five-surface IA (Home / The World / The Company / Proof; Director
@@ -289,7 +307,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (496s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
