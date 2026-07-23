@@ -1,5 +1,20 @@
 {
-  "generated_at": "2026-07-23T23:05:31.056888+00:00",
-  "open_count": 0,
-  "items": []
+  "generated_at": "2026-07-23T23:14:24.594176+00:00",
+  "open_count": 2,
+  "items": [
+    {
+      "item_id": "executor-wall_escalated-c8a08eb7",
+      "what": "Headless executor hit a one-way door (WALL) \u2014 NTFY'd, loop CONTINUING other atoms.",
+      "how": "Decide this one-way door at your cadence (reply via NTFY/PIN); the loop is NOT blocked \u2014 it is drawing other work meanwhile and will act on your answer at the next boundary. Details: the escalated item + docs/observability/build-executor-log.md. ESCALATION IS NTFY, NEVER THE WINDOW: nothing is waiting in the interactive pane.\nReply to CLOSE: start your NTFY with PIN F576 (e.g. 'PIN F576 PROCEED').",
+      "why": "Unattended loop self-stopped and is awaiting a director decision. Draw: DOOR B: open a new epoch",
+      "first_asked_at": "2026-07-23T23:14:24.594054+00:00"
+    },
+    {
+      "item_id": "executor-wall_escalated-f13e76f1",
+      "what": "Headless executor hit a one-way door (WALL) \u2014 NTFY'd, loop CONTINUING other atoms.",
+      "how": "Decide this one-way door at your cadence (reply via NTFY/PIN); the loop is NOT blocked \u2014 it is drawing other work meanwhile and will act on your answer at the next boundary. Details: the escalated item + docs/observability/build-executor-log.md. ESCALATION IS NTFY, NEVER THE WINDOW: nothing is waiting in the interactive pane.\nReply to CLOSE: start your NTFY with PIN 8883 (e.g. 'PIN 8883 PROCEED').",
+      "why": "Unattended loop self-stopped and is awaiting a director decision. Draw: DOOR A: spend real money on X",
+      "first_asked_at": "2026-07-23T23:14:24.593696+00:00"
+    }
+  ]
 }
