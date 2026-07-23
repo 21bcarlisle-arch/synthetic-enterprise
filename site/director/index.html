@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poesys -- Director</title>
+<title>Poesys -- Director window</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <style>
@@ -45,6 +45,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 720px; }
 .sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-bottom: 12px; margin-top: 44px; }
+.sec-1 { color: var(--purple); }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
 .muted { color: var(--muted); font-size: 12px; line-height: 1.6; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -55,13 +56,19 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .kpi.good .kpi-v { color: var(--green); }
 .kpi.alarm { border: 1px solid var(--red); }
 .kpi.alarm .kpi-v { color: var(--red); }
+.kpi.warn .kpi-v { color: var(--amber); }
 .evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .evlink:hover { border-bottom-color: var(--blue); }
 .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
 .badge.ok { color: var(--green); border: 1px solid var(--green); }
+.badge.live { color: var(--green); border: 1px solid var(--green); }
+.badge.stale { color: var(--red); border: 1px solid var(--red); }
+.badge.retired { color: var(--muted); border: 1px solid var(--border); }
+.badge.running { color: var(--teal); border: 1px solid var(--teal); }
 .badge.reserved { color: var(--purple); border: 1px solid var(--purple); }
 .badge.routed { color: var(--amber); border: 1px solid var(--amber); }
 .banner { border-left: 3px solid var(--purple); background: var(--surface2); padding: 12px 14px; border-radius: 6px; font-size: 12px; line-height: 1.6; margin-bottom: 18px; }
+.hyp { border-left: 3px solid var(--blue); background: var(--surface2); padding: 10px 14px; border-radius: 6px; font-size: 12px; line-height: 1.6; margin: 4px 0 16px; }
 .q-row { padding: 12px 0; border-bottom: 1px solid var(--border); }
 .q-row:last-child { border-bottom: none; }
 .q-q { font-size: 13px; font-weight: 600; }
@@ -71,24 +78,36 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .qq-item:last-child { border-bottom: none; }
 .qq-name { font-family: ui-monospace, monospace; font-size: 12px; }
 .qq-time { font-size: 10px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* reserved-queue item */
+.rq { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.rq:last-child { border-bottom: none; }
+.rq-id { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; }
+.rq-line { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 5px; }
+.rq-line b { color: var(--text); font-weight: 600; }
+.rq-age { font-size: 10px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+/* machine-health daemon row */
+.dm { display: grid; grid-template-columns: 1fr auto auto; gap: 8px 12px; align-items: baseline;
+  padding: 9px 0; border-bottom: 1px solid var(--border); }
+.dm:last-child { border-bottom: none; }
+.dm-name { font-family: ui-monospace, monospace; font-size: 12px; }
+.dm-age { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dm-anom { grid-column: 1 / -1; font-size: 11px; color: var(--red); }
 .plan-note { font-size: 12px; color: var(--muted); line-height: 1.6; margin-top: 10px; }
 .fail { border-left: 3px solid var(--red); background: var(--surface2); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: var(--red); }
 .tier-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
 .tier-row:last-child { border-bottom: none; }
 .tier-row .t-conf { font-weight: 600; }
-/* mobile pass (SITE1_expert_doors): phone-legible governance door, no horizontal
-   body scroll. KPI grids already auto-fit; this tightens chrome and lets the
-   queue rows / verbatim Q&A wrap long filenames and paths. Desktop (>640px)
-   layout is unchanged. */
+.deeper { margin-top: 40px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.deeper-h { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 28px 0 4px; }
 @media (max-width: 640px) {
   .wrap { padding: 28px 16px; }
   .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
   .hero-h { font-size: 22px; }
   .sec { margin-top: 32px; }
   .card { padding: 16px; }
-  .qq-item { flex-wrap: wrap; gap: 4px 12px; }
-  .qq-name { overflow-wrap: anywhere; }
-  .q-a { overflow-wrap: break-word; }
+  .qq-item, .dm { flex-wrap: wrap; gap: 4px 12px; }
+  .qq-name, .dm-name { overflow-wrap: anywhere; }
+  .q-a, .rq-line { overflow-wrap: break-word; }
 }
 </style>
 </head>
@@ -100,80 +119,226 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <a href="../company/" class="nav-link">The Company</a>
   <a href="../proof/" class="nav-link">Proof</a>
 </nav>
+
 <div class="wrap">
 
-  <div class="hero-h">The Director's Bench</div>
+  <div class="hero-h">The Director's Window</div>
   <p class="hero-p">
-    The governance door. A read-only rendering of the machine's relationship to its
-    principal: the twin that answers the builder from a fixed canon, the anti-decay
-    metrics that alarm when a human becomes a bottleneck, the action-needed queue, and
-    the provisional plan as a diagnostic (never a target). Every figure is generated
-    from repo data only.
+    The authenticated ops pane. It does two jobs and no more this pass: the
+    <b>reserved queue</b> &mdash; the decisions the machine has parked for your own
+    hand and cannot take itself &mdash; and <b>machine health</b> &mdash; the live
+    daemon set, honest about what is stale. Every figure is generated from repo data
+    only. Delta-view, the decision battery and the stop control are deliberately
+    deferred (Spec-005 §3); an ops pane that cannot act is honest, one that fakes a
+    write control would not be.
   </p>
 
-  <div class="banner" id="ro-banner">
-    <b>Read-only.</b> This surface renders published state. It cannot act. Every write
-    the director owns &mdash; repo/keys/settings, curriculum difficulty, dials, the Epoch-4
-    fitness function &mdash; is a one-way door reserved to the director's own console
-    (CLAUDE.md, one-way-door categories 5/6/8; ADVISOR_STEER_TWIN_READONLY.md). The twin
-    below <em>answers</em>; it never <em>acts</em>.
+  <div class="banner" id="access-banner">
+    <b>How this pane is gated.</b> It is off-nav and <code>noindex</code> &mdash;
+    unlisted, reachable only by knowing the URL. The view itself is <b>not
+    behind a lock</b>: it renders read-only repo state, and a client-side PIN
+    that opened with any key would be theatre, not a control (R15). The
+    <b>authenticated</b> affordance is the comment box (bottom-left): it reuses
+    the site's auth pattern &mdash; a PIN checked <em>server-side</em> by
+    <code>background/director_comments.py</code> before anything is ever staged,
+    the only place a browser PIN means anything here. Real director writes
+    (repo/keys/curriculum/fitness) stay console-only (one-way-door categories
+    5/6/8); the decision battery and stop control that would need genuine
+    write-auth are deferred this pass, so there is nothing to fake-gate.
   </div>
 
-  <!-- 1. TWIN FIDELITY / ANTI-DECAY -->
-  <div class="sec">Director-Twin Fidelity &mdash; the voice, measured</div>
+  <div id="ops">
+
+  <!-- 1. RESERVED QUEUE (the single job, first) -->
+  <div class="sec sec-1">Reserved queue &mdash; what only you can action</div>
+  <div class="hyp" id="reserved-hyp"></div>
   <div class="card">
-    <p class="muted" id="twin-intro">Loading...</p>
-    <div class="kpis" id="twin-kpis"></div>
-    <div class="muted" id="twin-passport"></div>
+    <p class="muted" id="reserved-intro">Loading...</p>
+    <div class="kpis" id="reserved-kpis"></div>
+    <div id="reserved-body"><div class="muted">Loading...</div></div>
+    <div class="muted" id="reserved-passport"></div>
   </div>
 
-  <!-- 2. ACTION-NEEDED QUEUE + DIRECTOR HOURS -->
-  <div class="sec">Action-Needed Queue &amp; Director-Hours</div>
+  <!-- 2. MACHINE HEALTH (the single job, second) -->
+  <div class="sec sec-1">Machine health &mdash; is the machine alive</div>
+  <div class="hyp" id="health-hyp"></div>
   <div class="card">
-    <p class="muted" id="queue-intro">Loading...</p>
-    <div class="kpis" id="queue-kpis"></div>
-    <div id="queue-body"><div class="muted">Loading...</div></div>
-    <div class="muted" id="queue-passport"></div>
+    <p class="muted" id="health-intro">Loading...</p>
+    <div class="kpis" id="health-kpis"></div>
+    <div id="health-body"><div class="muted">Loading...</div></div>
+    <div class="muted" id="health-passport"></div>
   </div>
 
-  <!-- 3. TWIN Q&A HISTORY -->
-  <div class="sec">What The Twin Was Asked</div>
-  <div class="card">
-    <p class="muted" id="qa-intro">Loading...</p>
-    <div id="qa-body"><div class="muted">Loading...</div></div>
+  <!-- DEEPER GOVERNANCE CONTEXT (read-only, below the MVP) -->
+  <div class="deeper">
+    <div class="deeper-h">Deeper context &mdash; read-only governance rendering</div>
+
+    <div class="sec">Director-Twin fidelity &mdash; the voice, measured</div>
+    <div class="card">
+      <p class="muted" id="twin-intro">Loading...</p>
+      <div class="kpis" id="twin-kpis"></div>
+      <div class="muted" id="twin-passport"></div>
+    </div>
+
+    <div class="sec">What the twin was asked</div>
+    <div class="card">
+      <p class="muted" id="qa-intro">Loading...</p>
+      <div id="qa-body"><div class="muted">Loading...</div></div>
+    </div>
+
+    <div class="sec">The provisional plan &mdash; a diagnostic, never a target (Law A)</div>
+    <div class="card">
+      <p class="muted" id="plan-intro">Loading...</p>
+      <div class="kpis" id="plan-kpis"></div>
+      <div id="plan-body"></div>
+      <div class="plan-note" id="plan-passport"></div>
+    </div>
+
+    <div class="sec">Curriculum rack &amp; dials</div>
+    <div class="card">
+      <div id="curriculum-note"><div class="muted">Loading...</div></div>
+    </div>
   </div>
 
-  <!-- 4. PROVISIONAL PLAN DIAGNOSTIC -->
-  <div class="sec">The Provisional Plan &mdash; a diagnostic, never a target (Law A)</div>
-  <div class="card">
-    <p class="muted" id="plan-intro">Loading...</p>
-    <div class="kpis" id="plan-kpis"></div>
-    <div id="plan-body"></div>
-    <div class="plan-note" id="plan-passport"></div>
-  </div>
-
-  <!-- 5. CURRICULUM RACK (director-reserved) -->
-  <div class="sec">Curriculum Rack &amp; Dials</div>
-  <div class="card">
-    <div id="curriculum-note"><div class="muted">Loading...</div></div>
-  </div>
-
+  </div><!-- /#ops -->
 </div>
 
 <script>
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function num(n){return Number(n).toLocaleString();}
 function shortTime(s){ if(!s) return ""; return String(s).slice(0,16).replace("T"," "); }
+function ageFrom(ts, now){
+  if(!ts) return null;
+  var t = new Date(ts).getTime();
+  if(isNaN(t)) return null;
+  return Math.max(0, (now - t) / 1000); // seconds
+}
+function ageStr(sec){
+  if(sec==null) return "n/a";
+  var h = sec/3600;
+  if(h < 48) return h.toFixed(1)+"h";
+  return (h/24).toFixed(1)+"d";
+}
 
-/* 1. TWIN FIDELITY -------------------------------------------------------- */
+// Freshness window for machine health: a non-retired daemon whose last heartbeat
+// is older than this renders STALE. Stated on-surface so the claim is falsifiable.
+var HEALTH_STALE_HOURS = 6;
+
+/* 1. RESERVED QUEUE ------------------------------------------------------- */
+function renderReserved(d, now){
+  var r=(d&&d.reserved)||{};
+  var sys=(d&&d.sys)||{};
+  var plan=(d&&d.plan)||{};
+  var dh=plan.director_hours||{};
+  var items=r.items||[];
+  var stag=sys.staging_queue||[];
+  document.getElementById("reserved-hyp").innerHTML=
+    "<b>Falsifiable claim.</b> Every item here is a decision the machine classified as "+
+    "one it may NOT take itself (a one-way door, a values call, a level-up) and parked "+
+    "for you. If this panel is empty it says so plainly &mdash; an empty render would be a "+
+    "failure, not an empty queue.";
+  document.getElementById("reserved-intro").innerHTML=
+    "The durable register of things waiting on you specifically (docs/observability/"+
+    "action_needed_register.json). Open items only; a resolved item leaves the queue. "+
+    "The objective (MAKE_IT_STICK) is to keep this SHORT &mdash; your attention is the only "+
+    "genuinely scarce resource.";
+  var ages=items.map(function(it){return ageFrom(it.first_asked_at, now);}).filter(function(x){return x!=null;});
+  var oldest=ages.length?Math.max.apply(null,ages):null;
+  var kpis=[
+    {l:"Open reserved items",v:num(items.length),cls:(items.length>3?"alarm":(items.length>0?"warn":"good")),s:"decisions parked for you"},
+    {l:"Oldest waiting",v:ageStr(oldest),cls:(oldest!=null&&oldest>48*3600?"alarm":""),s:"since first asked"},
+    {l:"Staging files",v:num(stag.length),cls:(stag.length>3?"alarm":""),s:"awaiting agent action"},
+    {l:"Director-hours / day",v:(dh.estimated_director_hours_per_day!=null?dh.estimated_director_hours_per_day.toFixed(2):"n/a"),s:"estimated (anchored)"}
+  ];
+  document.getElementById("reserved-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+  if(!items.length){
+    document.getElementById("reserved-body").innerHTML=
+      '<div class="muted">Reserved queue empty &mdash; nothing is currently parked for your decision. '+
+      'The machine is proceeding on everything it is allowed to (PROCEED_BY_DEFAULT).</div>';
+  } else {
+    document.getElementById("reserved-body").innerHTML=items.map(function(it){
+      var age=ageFrom(it.first_asked_at, now);
+      return '<div class="rq"><div class="rq-id">'+esc(it.item_id)+' <span class="badge reserved">RESERVED</span></div>'+
+        '<div class="rq-line"><b>What:</b> '+esc(it.what)+'</div>'+
+        (it.how?'<div class="rq-line"><b>How:</b> '+esc(it.how)+'</div>':'')+
+        (it.why?'<div class="rq-line"><b>Why:</b> '+esc(it.why)+'</div>':'')+
+        '<div class="rq-age">first asked '+esc(shortTime(it.first_asked_at))+' &middot; waiting '+esc(ageStr(age))+'</div></div>';
+    }).join("");
+  }
+  document.getElementById("reserved-passport").innerHTML=
+    "<b>Passport.</b> Feed generated "+esc(shortTime(r.generated_at))+". "+esc(dh.caveat||"")+
+    " Sources: <a class=\"evlink\" href=\"../data/director_reserved.json\">director_reserved.json</a>; "+
+    "<a class=\"evlink\" href=\"../data/system_status.json\">system_status.json</a>; "+
+    "<a class=\"evlink\" href=\"../data/provisional_plan.json\">provisional_plan.json</a>.";
+}
+
+/* 2. MACHINE HEALTH ------------------------------------------------------- */
+function renderHealth(d, now){
+  var h=(d&&d.health)||{};
+  var agents=h.agents||[];
+  document.getElementById("health-hyp").innerHTML=
+    "<b>Falsifiable claim.</b> Every non-retired daemon reports a heartbeat within "+
+    HEALTH_STALE_HOURS+"h. A daemon past that window renders <span class=\"badge stale\">STALE</span> "+
+    "in red &mdash; this panel can fail, and does when a process dies (R15).";
+  var live=0, stale=0, retired=0, anoms=0;
+  var rows=agents.map(function(a){
+    var st=String(a.status||"").toLowerCase();
+    var sec=ageFrom(a.last_heartbeat, now);
+    var isRetired=(st==="retired");
+    var isStale=(!isRetired && (sec==null || sec > HEALTH_STALE_HOURS*3600));
+    var isRunning=(st==="running");
+    if(isRetired) retired++;
+    else if(isStale) stale++;
+    else live++;
+    if(a.anomaly) anoms++;
+    var badge = isRetired ? '<span class="badge retired">RETIRED</span>'
+      : isStale ? '<span class="badge stale">STALE</span>'
+      : isRunning ? '<span class="badge running">RUNNING</span>'
+      : '<span class="badge live">LIVE</span>';
+    return '<div class="dm"><span class="dm-name">'+esc(a.name)+'</span>'+
+      '<span>'+badge+'</span>'+
+      '<span class="dm-age">'+esc(ageStr(sec))+'</span>'+
+      (a.anomaly?'<span class="dm-anom">&#9888; '+esc(a.anomaly)+'</span>':'')+'</div>';
+  }).join("");
+  var freshSec=ageFrom(h.last_updated, now);
+  var kpis=[
+    {l:"Daemons tracked",v:num(agents.length),s:"in the process set"},
+    {l:"Live",v:num(live),cls:"good",s:"heartbeat < "+HEALTH_STALE_HOURS+"h"},
+    {l:"Stale",v:num(stale),cls:(stale>0?"alarm":"good"),s:"past freshness window"},
+    {l:"Retired",v:num(retired),s:"decommissioned, not stale"},
+    {l:"Anomalies",v:num(anoms),cls:(anoms>0?"alarm":"good"),s:"self-reported faults"},
+    {l:"Table freshness",v:ageStr(freshSec),cls:(freshSec!=null&&freshSec>HEALTH_STALE_HOURS*3600?"alarm":""),s:"agent_status.json age"}
+  ];
+  document.getElementById("health-intro").innerHTML=
+    "The live daemon set from docs/observability/agent_status.json (each daemon writes its "+
+    "own heartbeat). STALE and RETIRED are shown, not hidden &mdash; a health pane that only "+
+    "shows green is theatre.";
+  document.getElementById("health-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+  if(!agents.length){
+    document.getElementById("health-body").innerHTML=
+      '<div class="fail">No daemons in the process table &mdash; an empty health table is a failure to render, not a healthy machine.</div>';
+  } else {
+    document.getElementById("health-body").innerHTML=rows;
+  }
+  document.getElementById("health-passport").innerHTML=
+    "<b>Passport.</b> Table generated "+esc(shortTime(h.last_updated))+". Source: "+
+    "<a class=\"evlink\" href=\"../data/agent_status.json\">agent_status.json</a>.";
+}
+
+/* 3. TWIN FIDELITY (deeper context) --------------------------------------- */
 function renderTwin(d){
   var t=(d&&d.twin)||{};
   var f=t.fidelity||{};
   document.getElementById("twin-intro").innerHTML=
     "The builder-facing twin answers the agent's sequencing/scope/design questions from a "+
     "fixed director-authored canon (Law B: it must NOT learn from outcomes). One-way-door "+
-    "questions are never answered &mdash; they route to the director. These counters are the "+
-    "fidelity record.";
+    "questions are never answered &mdash; they route to you. These counters are the fidelity record.";
   var qa=t.recent_qa||[];
   var lats=qa.map(function(q){return Number(q.latency_seconds||0);}).filter(function(x){return x>0;});
   var medLat = lats.length ? lats.slice().sort(function(a,b){return a-b;})[Math.floor((lats.length-1)/2)] : null;
@@ -193,46 +358,13 @@ function renderTwin(d){
     "<b>Passport.</b> "+esc(t.note||"")+" Source: <a class=\"evlink\" href=\"../data/director_twin.json\">director_twin.json</a>.";
 }
 
-/* 2. ACTION-NEEDED QUEUE + DIRECTOR HOURS --------------------------------- */
-function renderQueue(d){
-  var sys=(d&&d.sys)||{};
-  var plan=(d&&d.plan)||{};
-  var dh=plan.director_hours||{};
-  var q=sys.staging_queue||[];
-  document.getElementById("queue-intro").innerHTML=
-    "Files awaiting the agent's action in docs/staging/ (the director stages instructions here; "+
-    "staging = approval). The anti-decay objective (MAKE_IT_STICK) is to MINIMISE director-hours "+
-    "&mdash; the only genuinely scarce resource.";
-  var kpis=[
-    {l:"Staging queue",v:num(q.length),cls:(q.length>3?"alarm":""),s:"files awaiting action"},
-    {l:"Director-hours / day",v:(dh.estimated_director_hours_per_day!=null?dh.estimated_director_hours_per_day.toFixed(2):"n/a"),s:"estimated (anchored)"},
-    {l:"from_rich touches",v:num(dh.from_rich_touches||0),s:(dh.window_days||"?")+"-day window"},
-    {l:"Tier-1 gates closed",v:num(dh.tier1_gates_closed_all_time||0),s:"all-time, director-authenticated"}
-  ];
-  document.getElementById("queue-kpis").innerHTML=kpis.map(function(k){
-    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
-      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
-  }).join("");
-  if(!q.length){
-    document.getElementById("queue-body").innerHTML='<div class="muted">Queue empty &mdash; nothing awaiting action.</div>';
-  } else {
-    document.getElementById("queue-body").innerHTML=q.map(function(it){
-      return '<div class="qq-item"><span class="qq-name">'+esc(it.filename)+'</span>'+
-        '<span class="qq-time">'+esc(shortTime(it.modified_at))+' &middot; '+num(it.size_bytes||0)+' B</span></div>';
-    }).join("");
-  }
-  document.getElementById("queue-passport").innerHTML=
-    "<b>Passport.</b> "+esc(dh.caveat||"")+" Sources: <a class=\"evlink\" href=\"../data/system_status.json\">system_status.json</a>; "+
-    "<a class=\"evlink\" href=\"../data/provisional_plan.json\">provisional_plan.json</a>.";
-}
-
-/* 3. TWIN Q&A HISTORY ----------------------------------------------------- */
+/* 4. TWIN Q&A HISTORY ----------------------------------------------------- */
 function renderQA(d){
   var t=(d&&d.twin)||{};
   var qa=t.recent_qa||[];
   document.getElementById("qa-intro").innerHTML=
     "The actual questions the twin fielded, verbatim, with latency and whether they were "+
-    "answered or routed to the director. Empty answers are kept &mdash; not hidden.";
+    "answered or routed to you. Empty answers are kept &mdash; not hidden.";
   if(!qa.length){
     document.getElementById("qa-body").innerHTML='<div class="fail">No twin Q&amp;A recorded &mdash; an empty history is a failure to render, not an empty state.</div>';
     return;
@@ -248,7 +380,7 @@ function renderQA(d){
   }).join("");
 }
 
-/* 4. PROVISIONAL PLAN ----------------------------------------------------- */
+/* 5. PROVISIONAL PLAN ----------------------------------------------------- */
 function renderPlan(d){
   var plan=(d&&d.plan)||{};
   var ect=plan.empirical_cycle_times||{};
@@ -275,21 +407,23 @@ function renderPlan(d){
     esc(plan.law_a||"")+' <a class="evlink" href="../data/provisional_plan.json">provisional_plan.json</a>';
 }
 
-/* 5. CURRICULUM RACK (reserved) ------------------------------------------- */
+/* 6. CURRICULUM RACK (reserved) ------------------------------------------- */
 function renderCurriculum(d){
   document.getElementById("curriculum-note").innerHTML=
     '<p class="muted">The curriculum (which worlds the company lives through) and the difficulty '+
-    'dials are the DIRECTOR\'s by right (R13; one-way-door category 6). Difficulty changes are '+
+    'dials are yours by right (R13; one-way-door category 6). Difficulty changes are '+
     'named, versioned, director-authored artefacts &mdash; never silent parameter drift, and never '+
     'adjusted by the agent in response to company outcomes. <span class="badge reserved">DIRECTOR-RESERVED</span></p>'+
     '<p class="muted" style="margin-top:10px">This door does not render a write UI for the rack: a static '+
-    'rendering cannot authenticate the director, and category-8 platform administration is console-only. '+
+    'rendering cannot authenticate you, and category-8 platform administration is console-only. '+
     'Building a fake-auth dials panel here would be theatre. Honest partial &gt; false complete.</p>';
 }
 
-function renderAll(d){
+function renderAll(d, nowMs){
+  var now = nowMs || (d && d.now ? new Date(d.now).getTime() : Date.now());
+  renderReserved(d, now);
+  renderHealth(d, now);
   renderTwin(d);
-  renderQueue(d);
   renderQA(d);
   renderPlan(d);
   renderCurriculum(d);
@@ -298,14 +432,20 @@ function renderAll(d){
 Promise.all([
   fetch("../data/director_twin.json?t="+Date.now()).then(function(r){return r.json();}),
   fetch("../data/provisional_plan.json?t="+Date.now()).then(function(r){return r.json();}),
-  fetch("../data/system_status.json?t="+Date.now()).then(function(r){return r.json();})
+  fetch("../data/system_status.json?t="+Date.now()).then(function(r){return r.json();}),
+  fetch("../data/director_reserved.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {items:[]};}),
+  fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {agents:[]};})
 ]).then(function(res){
-  renderAll({twin:res[0],plan:res[1],sys:res[2]});
+  renderAll({twin:res[0],plan:res[1],sys:res[2],reserved:res[3],health:res[4]});
 }).catch(function(e){
-  console.error("director door load error:",e);
-  document.getElementById("twin-intro").innerHTML='<span style="color:var(--red)">Could not load director data.</span>';
+  console.error("director window load error:",e);
+  document.getElementById("reserved-intro").innerHTML='<span style="color:var(--red)">Could not load director data.</span>';
 });
 </script>
+<!-- The authenticated write channel: PIN checked server-side by
+     background/director_comments.py. Reads above are open; this is the only
+     place a browser PIN means anything on this off-nav pane. -->
+<script src="../shared/director-comments.js"></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
 </html>

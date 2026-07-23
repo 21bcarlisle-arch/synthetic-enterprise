@@ -26,7 +26,49 @@ REGISTER_PATH = (
     / "docs" / "observability" / "action_needed_register.json"
 )
 
+# Off-nav Director window (site surface 5) reads the OPEN items from here.
+# Mirrored on every real-register save the same way agent_status.py mirrors
+# its liveness table -- so the "reserved queue" the director sees is live, not
+# a stale snapshot. Open items only; the send-clock bookkeeping is stripped.
+SITE_RESERVED_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "site" / "data" / "director_reserved.json"
+)
+
 RE_PING_SECONDS = 24 * 60 * 60  # daily, per the director's own rule
+
+
+def _mirror_reserved_to_site(register: dict[str, dict]) -> None:
+    """Publish the OPEN director-reserved items to site/data for surface 5.
+
+    Best-effort and never raises into the caller (a mirror failure must never
+    break a register write). Open items only -- a resolved item is not
+    "reserved for the director" any more, so it leaves the queue. Fields are
+    the presentation fields (what/how/why/first_asked_at); the last_sent_at /
+    last_pinged_at send-clocks stay internal to the observability register.
+    """
+    try:
+        items = [
+            {
+                "item_id": v.get("item_id", k),
+                "what": v.get("what", ""),
+                "how": v.get("how", ""),
+                "why": v.get("why", ""),
+                "first_asked_at": v.get("first_asked_at"),
+            }
+            for k, v in sorted(register.items())
+            if not v.get("resolved", False)
+        ]
+        payload = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "open_count": len(items),
+            "items": items,
+        }
+        SITE_RESERVED_PATH.parent.mkdir(parents=True, exist_ok=True)
+        SITE_RESERVED_PATH.write_text(json.dumps(payload, indent=2))
+    except Exception:
+        # Mirror is advisory; a broken site feed must not wedge the register.
+        pass
 
 
 def _resolve_path(path: Path | None) -> Path:
@@ -51,6 +93,11 @@ def save_register(register: dict[str, dict], path: Path | None = None) -> None:
     path = _resolve_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(register, indent=2, sort_keys=True))
+    # Only mirror to the site feed when writing the REAL register -- a test
+    # passing a tmp_path must not touch site/data (test-isolation; same guard
+    # rationale as _resolve_path's call-time lookup).
+    if path == REGISTER_PATH:
+        _mirror_reserved_to_site(register)
 
 
 def format_action_needed(item_id: str, what: str, how: str, why: str) -> str:

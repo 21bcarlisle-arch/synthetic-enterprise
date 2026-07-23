@@ -4,7 +4,9 @@
 // JSON so a test can assert on the RENDERED pixels (R11), not the source string.
 //
 // Usage: node _render_harness.mjs <index.html>   (combined data JSON on stdin,
-//        shape {twin, plan, sys}).
+//        shape {twin, plan, sys, reserved, health, now}). `now` (ISO string) is
+//        optional -- it pins the clock so time-relative renders (reserved item age,
+//        daemon-heartbeat staleness) are deterministic under test.
 import fs from "node:fs";
 import vm from "node:vm";
 
@@ -19,7 +21,12 @@ const data = JSON.parse(fs.readFileSync(0, "utf8"));
 
 const elements = {};
 function stub(id) {
-  const e = { id, _inner: "", _text: "" };
+  // Enough of an Element to let the inline script's veil-init IIFE run without
+  // throwing (addEventListener/style/classList are no-ops here) while still
+  // capturing innerHTML/textContent for the render assertions.
+  const e = { id, _inner: "", _text: "", value: "",
+    addEventListener() {}, style: {},
+    classList: { add() {}, remove() {}, toggle() {} } };
   Object.defineProperty(e, "innerHTML", { get() { return e._inner; }, set(v) { e._inner = String(v); } });
   Object.defineProperty(e, "textContent", { get() { return e._text; }, set(v) { e._text = String(v); } });
   return e;
@@ -32,17 +39,23 @@ const document = {
 const inert = { then() { return inert; }, catch() { return inert; } };
 function fetch() { return inert; }
 const Promise_ = { all() { return inert; } };
+// Minimal window with an in-memory localStorage so the veil IIFE's PIN lookup
+// is inert under test (no PIN saved -> it wires no-op listeners).
+const window = { localStorage: { getItem() { return null; }, setItem() {} } };
 
-const sandbox = { document, fetch, console, Date, Number, String, Object, Math, JSON, Promise: Promise_ };
+const sandbox = { document, window, fetch, console, Date, Number, String, Object, Math, JSON, Promise: Promise_ };
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
 
-sandbox.renderAll(data);
+// `now` is passed through data.now (renderAll reads it); an explicit nowMs arg
+// takes precedence when the test wants a hard pin.
+const nowMs = data.now ? new Date(data.now).getTime() : undefined;
+sandbox.renderAll(data, nowMs);
 
 const ids = [
-  "ro-banner",
+  "reserved-hyp", "reserved-intro", "reserved-kpis", "reserved-body", "reserved-passport",
+  "health-hyp", "health-intro", "health-kpis", "health-body", "health-passport",
   "twin-intro", "twin-kpis", "twin-passport",
-  "queue-intro", "queue-kpis", "queue-body", "queue-passport",
   "qa-intro", "qa-body",
   "plan-intro", "plan-kpis", "plan-body", "plan-passport",
   "curriculum-note",

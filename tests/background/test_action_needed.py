@@ -409,3 +409,54 @@ def test_reconcile_fails_safe_on_missing_root(path, tmp_path):
     empty = tmp_path / "staging"
     empty.mkdir()
     assert action_needed.reconcile_staged_items(empty, path=path) == ["staged:X.md"]
+
+
+# --------------------------------------------------------------------------- #
+# Site mirror (surface 5 "reserved queue"): open items only, and test-isolated.
+# --------------------------------------------------------------------------- #
+def test_site_mirror_publishes_open_items_only():
+    reg = {
+        "open-a": {"item_id": "open-a", "what": "sign R", "how": "reply",
+                   "why": "one-way door", "first_asked_at": "2026-07-20T00:00:00+00:00",
+                   "resolved": False},
+        "done-b": {"item_id": "done-b", "what": "old ask", "how": "reply",
+                   "why": "x", "first_asked_at": "2026-07-01T00:00:00+00:00",
+                   "resolved": True},
+    }
+    import json
+    from background import action_needed as an
+    # Capture the payload without touching the real site file.
+    written = {}
+    orig = an.SITE_RESERVED_PATH
+
+    class FakePath:
+        def __init__(self):
+            self.parent = self
+        def mkdir(self, *a, **k):
+            pass
+        def write_text(self, s):
+            written["payload"] = json.loads(s)
+
+    an.SITE_RESERVED_PATH = FakePath()
+    try:
+        an._mirror_reserved_to_site(reg)
+    finally:
+        an.SITE_RESERVED_PATH = orig
+
+    payload = written["payload"]
+    assert payload["open_count"] == 1
+    ids = [it["item_id"] for it in payload["items"]]
+    assert ids == ["open-a"]
+    assert "resolved" not in payload["items"][0]  # send-clock bookkeeping stripped
+    assert "last_sent_at" not in payload["items"][0]
+
+
+def test_save_register_to_tmp_does_not_touch_site_feed(path, monkeypatch):
+    # A test writing a tmp register must NEVER mirror to the real site feed
+    # (same isolation guarantee as agent_status's hardcoded SITE path).
+    called = {"n": 0}
+    from background import action_needed as an
+    monkeypatch.setattr(an, "_mirror_reserved_to_site",
+                        lambda reg: called.__setitem__("n", called["n"] + 1))
+    an.save_register({"a": {"item_id": "a", "resolved": False}}, path=path)
+    assert called["n"] == 0, "a tmp-path save must not mirror to site/data"

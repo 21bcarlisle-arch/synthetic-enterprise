@@ -113,4 +113,31 @@ campaigns:
           still 301 rather than match the IA.
       - id: surface_5_director_window
         title: 'Director window -- auth, off-nav MVP (reserved queue + machine health; DO battery DEFERRED this pass)'
-        status: open
+        status: landed
+        note: >-
+          LANDED 2026-07-23. Rebuilt site/director/index.html around its single job -- an
+          authenticated-ops MVP doing exactly TWO things: (1) the RESERVED QUEUE (new
+          site/data/director_reserved.json feed -- the OPEN items the machine parked for the
+          director's own hand: one-way doors / values calls / level-ups it may not take itself;
+          render-not-author, each item's real what/how/why + first-asked age; live now = 1 open
+          item, publish_gate_wedged, waiting 5.0d) leading, then (2) MACHINE HEALTH (the live 14-daemon
+          set from agent_status.json -- honest about staleness: renders 4 STALE in red + 1 RETIRED,
+          not only green; a heartbeat past a stated 6h window flips to STALE, the panel CAN fail and
+          does). Both panels carry an on-surface falsifiable claim (didactic rule). The deferred
+          Spec-005 §3 delta-view / DO battery / stop control are NOT built and are named as deferred
+          on-page. AUTH honesty (the sharp call this pass): a static-site client PIN veil that opens
+          with ANY key is theatre by R15, so there is NO fake read-gate -- the pane is off-nav +
+          noindex, reads are open repo state, and the ONLY authenticated affordance is the real
+          comment box (../shared/director-comments.js, PIN checked SERVER-SIDE by
+          background/director_comments.py). Reasoning stated on-page (#access-banner). The prior
+          twin/QA/plan/curriculum renders demoted to a labelled read-only "deeper context" block.
+          The reserved-queue feed stays live via a new action_needed.py site mirror (open items only,
+          test-isolated on a real-path guard, mirrors on every real save_register like agent_status).
+          R11+R15 proven by 20 director-door render-harness tests (execute the page's real JS against
+          published JSON; mutations: stale daemon->STALE+alarm, live daemon->LIVE, anomaly->render+alarm,
+          empty table->visible fail, reserved overload->alarm, empty queue->stated plainly) + 2 mirror
+          isolation tests. Full site-lane gate green (260 passed, 6 skipped). Expert-Hour
+          (phase-close-evaluator) = PASS against the single job (independently ran the harness +
+          mutation-tested fail-open on HEALTH_STALE_HOURS, confirmed the control fires). DIRECTOR CALL
+          (non-blocking): if you want a HARD read-gate rather than off-nav+noindex, that needs a
+          server/backend endpoint (a separate build item) -- flag it and I will scope it.
