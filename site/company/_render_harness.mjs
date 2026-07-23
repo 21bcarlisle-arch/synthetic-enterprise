@@ -23,6 +23,7 @@ const dataDir = path.join(path.dirname(htmlPath), "..", "data");
 function loadDisk(name) { try { return JSON.parse(fs.readFileSync(path.join(dataDir, name), "utf8")); } catch { return null; } }
 const caps = raw && raw.company && "capabilities" in raw ? raw.capabilities : loadDisk("capabilities.json");
 const cov = raw && raw.company && "coverage" in raw ? raw.coverage : loadDisk("saas_coverage.json");
+const decs = raw && raw.company && "decisions" in raw ? raw.decisions : loadDisk("decisions.json");
 
 const elements = {};
 function stub(id) {
@@ -46,6 +47,7 @@ vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
 sandbox.renderCapabilities(caps);
 sandbox.renderCoverage(cov);
+sandbox.renderDecisions(decs);
 sandbox.renderState(d);
 sandbox.renderFinance(d);
 sandbox.renderTrading(d);
@@ -56,7 +58,7 @@ sandbox.renderBuild(d);
 const ids = [
   "cap-grid", "cap-passport",
   "cov-intro", "cov-kpis", "cov-body", "cov-passport",
-  "state-kpis",
+  "state-kpis", "state-decisions",
   "finance-intro", "finance-kpis", "bridge-intro", "bridge-body", "finance-passport",
   "trading-intro", "trading-kpis", "hedge-body", "trading-passport",
   "hh-intro", "hh-attrs", "hh-kpis", "hh-detail", "hh-passport",

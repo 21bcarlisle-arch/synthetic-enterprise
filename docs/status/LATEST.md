@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-23T15:36:26Z
+Last updated: 2026-07-23T15:41:00Z
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 3 (The Company) rebuilt as the supplier SaaS shown as PRODUCT.**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): surface 2 landed, so the draw rolled to the next
@@ -21,6 +21,15 @@ capability-grid pixel + finance figures, proving independence). **Site-lane gate
 Follow-on (non-blocking, belongs to surface 4): the regulatory/carbon cards link to `../proof/#regulatory` — that
 anchor lands when Proof absorbs the regulatory fold (link HTTP-resolves now; the figures already render on this
 page's own Compliance section).
+**Row-scored self-claim vs the director's axis-1 verdict (`DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED`, /company
+baseline 1/5):** **RC1** (machine-exhaust-as-content — the flagship /company offender) **ADDRESSED**: the raw
+"Recent decisions" decision-log dump (commit-speak on the board view) is replaced by a plain-English governance
+presentation layer — aggregate stats computed from the log (N decisions, reversible vs one-way-door, confidence,
+date span) + a drill-down link to the raw `decisions.json`, regression-guarded (`test_decisions_are_a_plain_
+english_layer_not_raw_log_rc1`). **RC5** (effort-as-outcomes) **ADDRESSED**: outcome metrics lead, no test/commit
+counts on the surface (R15-guarded). **Deferred to their sequenced iterations** (director's order): RC3 charts,
+RC4 site-wide brand/hierarchy (the tilde-on-board-figures kill + the director-comment-widget question, item 6/last).
+Per the director's iteration order the NEXT campaign draw is **/simplified → the real lay page (RC2)**.
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 2 (The World) rebuilt around the walkable causal chain.**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): with surface 1 deployed-but-FAILED, the draw

@@ -127,6 +127,22 @@ def test_coverage_maps_real_market_vendors():
     assert "Brady" in body or "NetSuite" in body, body
 
 
+def test_decisions_are_a_plain_english_layer_not_raw_log_rc1():
+    # RC1 (DIRECTOR_AXIS1 verdict 2026-07-23): internal registers/logs are SOURCES,
+    # never surfaces. The governance panel must render a plain-English presentation
+    # layer with a drill-down link, NOT dump the raw decision-log "what"/"why" text.
+    d = json.loads(DATA.read_text())
+    out = _render(d)
+    panel = out["state-decisions"]["innerHTML"]
+    # a drill-down to the raw artefact is present...
+    assert "decisions.json" in panel, "missing drill-down to the raw decision log"
+    # ...and the raw internal decision-log entries are NOT dumped onto the surface.
+    decs = json.loads((HERE.parent / "data" / "decisions.json").read_text()).get("decisions", [])
+    raw_texts = [x.get("what", "") for x in decs if len(x.get("what", "")) > 25]
+    for t in raw_texts:
+        assert t not in panel, f"raw decision-log exhaust leaked onto the surface: {t[:40]!r}"
+
+
 def test_never_surfaces_an_effort_metric():
     # The single job forbids effort metrics on this surface. saas_coverage.json
     # carries a test_count (18504) for internal use; it must NOT reach the product

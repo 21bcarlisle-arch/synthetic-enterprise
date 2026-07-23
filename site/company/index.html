@@ -148,7 +148,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="kpis" id="state-kpis"></div>
   </div>
   <div class="card">
-    <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Recent decisions &amp; why</div>
+    <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">How the supplier governs itself</div>
     <div id="state-decisions"><div class="muted">Loading...</div></div>
   </div>
 
@@ -346,17 +346,39 @@ function renderState(d){
   ].join("");
 }
 
+// RC1 fix (DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED 2026-07-23): the raw decision
+// log is a SOURCE, never a surface. This renders a plain-English presentation
+// layer -- the governance capability in words, aggregate stats computed from the
+// log -- with a drill-down link to the raw artefact, instead of dumping the
+// internal decision-log entries (commit-speak) onto the board view.
+function isReversible(x){ return String(x.reversible)==="True"||x.reversible===true; }
 function renderDecisions(dd){
-  var decs=(dd&&dd.decisions||[]).slice(0,6);
-  if(!decs.length){ el("state-decisions").innerHTML='<div class="muted">No recent decisions recorded.</div>'; return; }
-  el("state-decisions").innerHTML=decs.map(function(x){
-    var rev=(String(x.reversible)==="True"||x.reversible===true)?"reversible":"one-way door";
-    return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
-      '<div style="font-weight:600">'+esc(x.what||"")+'</div>'+
-      '<div class="muted" style="margin-top:3px">'+esc(x.why||"")+'</div>'+
-      '<div class="muted" style="margin-top:4px;font-size:10px;letter-spacing:.04em">'+esc(x.timestamp||"")+
-      ' &middot; '+rev+' &middot; '+esc(x.confidence||"")+'</div></div>';
-  }).join("");
+  var decs=(dd&&dd.decisions)||[];
+  var box=el("state-decisions");
+  if(!decs.length){ box.innerHTML='<div class="muted">No decision log available at generation time.</div>'; return; }
+  var rev=decs.filter(isReversible).length;
+  var oneway=decs.length-rev;
+  var conf={}; decs.forEach(function(x){ var c=(x.confidence||"unstated").toLowerCase(); conf[c]=(conf[c]||0)+1; });
+  var confStr=Object.keys(conf).sort(function(a,b){return conf[b]-conf[a];})
+    .map(function(k){ return conf[k]+" "+esc(k); }).join(", ");
+  // date span from the log timestamps
+  var ts=decs.map(function(x){return String(x.timestamp||"").slice(0,10);}).filter(Boolean).sort();
+  var span=ts.length?(ts[0]===ts[ts.length-1]?ts[0]:(ts[0]+" to "+ts[ts.length-1])):"--";
+  box.innerHTML=
+    '<p class="muted" style="margin-bottom:12px">The supplier runs itself. Every move it makes is logged with '+
+    'its reasoning and a reversal path <em>before</em> it acts &mdash; reversible by default, a one-way door only '+
+    'when it truly is one. That discipline, not the individual entries, is the product: an autonomous operator that '+
+    'stays accountable. Across its last <b>'+decs.length+'</b> logged decisions ('+esc(span)+'), <b>'+rev+'</b> were '+
+    'reversible and <b>'+oneway+'</b> crossed a one-way door.</p>'+
+    '<div class="kpis" style="margin-bottom:8px">'+
+      kpiTile("Logged decisions", num(decs.length), "each with a why + reversal path")+
+      kpiTile("Reversible", num(rev), "revert on the director's word")+
+      kpiTile("One-way doors", num(oneway), "escalated, not taken silently")+
+      kpiTile("Confidence", esc(confStr||"--"), "self-stated per decision")+
+    '</div>'+
+    '<p class="muted" style="margin:0">The raw decision log is an internal engineering artefact, kept out of the '+
+    'board view. Inspect it in full: '+
+    '<a class="evlink" href="../data/decisions.json" target="_blank" rel="noopener">decisions.json &rarr;</a></p>';
 }
 
 function renderFinance(d){
