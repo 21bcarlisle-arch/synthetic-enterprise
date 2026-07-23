@@ -495,6 +495,108 @@ def test_real_roster_business_segment_never_residential():
 
 
 # ---------------------------------------------------------------------------
+# W2_5 HARDEN 2026-07-24 (Rule-0 self-refill, dial yielded): emission-gate vs
+# canonical-timeline consistency.
+#
+# generate_life_events() gates the ==LOW-only demographic events (new_baby,
+# divorce) on income_stress mutated in a FIXED per-year PROCESSING order
+# (income_recovery is processed before new_baby/divorce). But each event's
+# DATE is an independent per-substream draw, and apply_events() -- the ONLY
+# income_stress any consumer sees (household_demand.income_stress_at_date ->
+# churn + bad-debt) -- replays in DATE order. So when a same-year
+# income_recovery is dated AFTER a new_baby/divorce it enabled, the canonical
+# (date-ordered) timeline places the LOW-gated event while the household is
+# still HIGH-stress: the event's own emission precondition is violated in the
+# authoritative timeline (a "divorce only when stable income" event happening
+# to a HIGH-stress household).
+#
+# QUEUED DEFECT, not fixed here (SELF_INTERRUPT_DISCIPLINE + R4 + R10): the fix
+# is a core-generation-loop change (evaluate the within-year demographic gates
+# in date order) that shifts every household's event stream -> full sim re-run
+# + downstream triage -> a BUILD, not a bounded HARDEN patch. See the W2_5
+# maturity-map simplifications entry. These two controls MECHANISE the defect
+# (MAKE_IT_STICK): the seed-42 control proves it is NOT live in production; the
+# xfail(strict) control encodes the invariant, is proven to FIRE on the live
+# defect (R15 can-fail), and auto-alarms (XPASS -> strict failure) the day the
+# generator is fixed, forcing this note + the map entry to be closed.
+# ---------------------------------------------------------------------------
+
+from simulation.household import IncomeStress
+
+_LOW_GATED_DEMOGRAPHIC_EVENTS = {"new_baby", "divorce"}
+
+
+def _stress_before(household: Household, events, event) -> IncomeStress:
+    """income_stress in the canonical (date-ordered) timeline just before `event`."""
+    prior = [e for e in events if e.event_date < event.event_date]
+    return apply_events(household, prior).income_stress
+
+
+def _lowgate_violations(household: Household, seeds) -> list:
+    """LOW-gated demographic events that land while NOT low-stress in the
+    reconstructed (consumer-visible) timeline."""
+    out = []
+    for seed in seeds:
+        events = generate_life_events(household, 2016, 2025, seed=seed)
+        for e in events:
+            if e.event_type in _LOW_GATED_DEMOGRAPHIC_EVENTS:
+                if _stress_before(household, events, e) != IncomeStress.LOW:
+                    out.append((seed, e.event_date, e.event_type))
+    return out
+
+
+def test_lowgated_demographic_events_hold_on_real_roster_seed42():
+    # Production roster + production seed: proves the emission/reconstruction
+    # divergence is NOT LIVE today (a latent hole, same class as the
+    # residential-gate finding). If a future roster/seed change makes it live,
+    # this fails loudly rather than the defect silently entering production.
+    from simulation.run_phase2b import CUSTOMERS
+    register = build_household_register(CUSTOMERS)
+    for cid, hh in register.items():
+        if not hh.is_residential:
+            continue
+        cid_seed = 42 ^ (int(__import__("hashlib").md5(cid.encode()).hexdigest()[:8], 16) & 0xFFFF)
+        v = _lowgate_violations(hh, [cid_seed])
+        assert v == [], (
+            f"{cid}: LOW-gated demographic event lands while not low-stress in "
+            f"the canonical timeline {v} -- the W2_5 emission/reconstruction "
+            f"defect is now LIVE in production"
+        )
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "W2_5 QUEUED DEFECT (2026-07-24): new_baby/divorce are gated on "
+    "income_stress==LOW in the generator's fixed PROCESSING order, but "
+    "apply_events (the value consumers see) replays in DATE order, so a "
+    "same-year later income_recovery can leave the LOW-gated event landing "
+    "while the household is still HIGH-stress (~1.4% of such events on the "
+    "real roster across seeds). Fix = date-order the within-year gate "
+    "evaluation (a BUILD: shifts every event stream, needs a full sim run). "
+    "When fixed, this XPASSes -> strict failure -> close this note + the map."
+))
+def test_lowgated_demographic_gate_holds_in_canonical_timeline():
+    # THE INVARIANT (currently violated -> xfail): every LOW-gated demographic
+    # event must land at a date when the reconstructed income_stress is LOW.
+    # Proven to FIRE on the real defect (R15 can-fail): a HIGH-start
+    # residential household over seeds 0-999 contains real violations today.
+    hh = Household(
+        customer_id="HS", property_type=PropertyType.SEMI_DETACHED,
+        build_era=BuildEra.POST_2000, epc_rating="C", bedrooms=3,
+        heating_system=HeatingSystem.GAS_BOILER_COMBI, boiler_age=BoilerAge.MID,
+        has_solar=False, solar_kwp=0.0, solar_install_year=None,
+        has_battery=False, battery_kwh=0.0, has_ev=False, ev_charger_kw=0.0,
+        has_smart_meter=False, smart_meter_install_year=None,
+        insulation=InsulationLevel.PARTIAL, has_driveway=True, roof_aspect="S",
+        income_stress=IncomeStress.HIGH,
+    )
+    violations = _lowgate_violations(hh, range(1000))
+    assert violations == [], (
+        f"{len(violations)} LOW-gated demographic events land while not "
+        f"low-stress in the canonical timeline, e.g. {violations[:3]}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # SEGMENTATION_GENERATOR_BUILD_PLAN.md step 2: tenure->low-carbon-adoption
 # gating MECHANISM (`adoption_eligibility_multiplier`). Default OFF (1.0) so
 # every existing call site is byte-identical; the multiplier measurably
