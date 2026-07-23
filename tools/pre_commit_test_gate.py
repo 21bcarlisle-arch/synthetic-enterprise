@@ -65,6 +65,13 @@ LEVEL_SENSITIVE_TESTS = [
     "tests/tools/test_level_promotion_gate.py",
     "tests/tools/test_generate_proof_coupled_gaps.py",
     "tests/test_coupled_triad_gate.py",
+    # R10 class fix (2026-07-23, DIRECTOR_RULING_UNWEDGE_AND_AXIS3 item 1): the level-surface gate
+    # ran the level/ledger/reconciler tests on a maturity_map.yaml edit but NOT the map-HYGIENE
+    # facets (value_stream hygiene C3, coupling topology C5). So the F1c registration (an atom given
+    # value_stream=close_to_learn but never added to the reviewed allowlist) passed at commit time
+    # and only the full publish gate caught it -> wedge. Registration-time facet violations are now
+    # caught at commit, making the whole class (not just this instance) structurally uncommittable.
+    "tests/design/test_maturity_map_facets.py",
 ]
 
 
