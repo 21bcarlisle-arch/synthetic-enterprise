@@ -4,8 +4,12 @@
 // .then(d => ...) runs it) against the supplied live proof.json, so a door-level
 // test can assert on the RENDERED pixels (R11) across the door, not one panel.
 //
-// Usage: node _door_harness.mjs <index.html>   (proof.json on stdin)
+// Usage: node _door_harness.mjs <index.html>   (stdin: EITHER a bare proof.json,
+//   back-compat, OR a wrapper {proof, method, simplified} to inject mutated
+//   method/simplified payloads for R15 independence tests). When not injected,
+//   method.json and simplified.json are read from ../data/ on disk.
 import fs from "node:fs";
+import path from "node:path";
 import vm from "node:vm";
 
 const htmlPath = process.argv[2];
@@ -13,7 +17,12 @@ const html = fs.readFileSync(htmlPath, "utf8");
 const m = html.match(/<script>([\s\S]*?)<\/script>/);
 if (!m) { console.error("no inline <script> found"); process.exit(2); }
 const code = m[1];
-const data = JSON.parse(fs.readFileSync(0, "utf8"));
+const raw = JSON.parse(fs.readFileSync(0, "utf8"));
+const data = raw && raw.proof ? raw.proof : raw;
+const dataDir = path.join(path.dirname(htmlPath), "..", "data");
+function loadDisk(name) { try { return JSON.parse(fs.readFileSync(path.join(dataDir, name), "utf8")); } catch { return null; } }
+const method = raw && raw.proof && "method" in raw ? raw.method : loadDisk("method.json");
+const simplified = raw && raw.proof && "simplified" in raw ? raw.simplified : loadDisk("simplified.json");
 
 const elements = {};
 function stub(id) {
@@ -48,12 +57,18 @@ sandbox.renderVerification(data);
 sandbox.renderOpenWork(data);
 sandbox.renderPredictions(data);
 sandbox.renderRetros(data);
+sandbox.renderCorrections(data);
 sandbox.renderBuild(data);
+sandbox.renderMethod(method);
+sandbox.renderSimplified(simplified);
 
 const ids = [
   "timeline-intro", "verify-kpis", "banked-note",
   "openwork-intro", "gap-intro", "gap-kpis",
   "pred-intro", "pred-kpis", "build-note",
+  "method-framing", "method-roles", "method-rules",
+  "simplified-intro", "simplified-kpis", "simplified-body",
+  "corrections-intro", "corrections",
 ];
 const out = {};
 for (const id of ids) {

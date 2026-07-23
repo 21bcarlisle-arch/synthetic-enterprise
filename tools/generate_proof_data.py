@@ -635,6 +635,54 @@ def _not_proven():
     ]
 
 
+def _corrections():
+    """SITE_V5 surface 4 single job -- "corrects itself in public", made real.
+    Real, documented retractions: a claim this project MADE, then withdrew when
+    the evidence turned. Each renders IN PLACE on the Proof surface -- the old
+    value struck through, the corrected value beside it, the artefact linked --
+    so a wrong figure is never silently deleted. R9: each is an observed incident
+    with a real artefact, not an inferred narrative. This is a designed feed, not
+    a live-recomputed one; it is appended to by hand when a retraction happens."""
+    return [
+        dict(
+            id="COR-1",
+            date="2026-07-05",
+            claim="The risk model leaves the book almost unhedged through calm, low-volatility years.",
+            was="hedge fraction ≈ near-zero in calm regimes (an early finding, published)",
+            now="population stays hedged 0.80–0.90 throughout",
+            status="RETRACTED",
+            correction="Traced to a point-in-time volatility-lookback leak — a foresight bug in the "
+                       "company's own vol calculation, not a real strategy. With the leak fixed the "
+                       "book stays heavily hedged across regimes.",
+            source="docs/review_gates/done/HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md",
+        ),
+        dict(
+            id="COR-2",
+            date="2026-07-23",
+            claim="The Company page's board pack shows the company's recent governance decisions.",
+            was='raw internal decision-log text (commit-speak, advisor riders) dumped as "Recent decisions"',
+            now="a plain-English governance layer with a drill-down to the raw decisions.json",
+            status="RETRACTED",
+            correction="Called by the director's axis-1 review (RC1): internal registers and logs are "
+                       "SOURCES, never surfaces. The raw dump was withdrawn and replaced with an "
+                       "aggregate presentation layer; the raw artefact stays one click away.",
+            source="docs/staging/DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED_2026-07-23.md",
+        ),
+        dict(
+            id="COR-3",
+            date="2026-07-21",
+            claim="An overnight period with no atoms drawn was a legitimately-empty feasible set (honest rest).",
+            was='"rest was correct — nothing was drawable"',
+            now="a real draw bug — a target-matched dependency gate propagated a high-level wall down the whole cascade",
+            status="RETRACTED",
+            correction="R9 self-correction: the empty draw was NOT legitimate. The dependency gate was "
+                       "target-matched, so W1_4's L3 wall blocked every downstream atom. Fixed with a "
+                       "level-matched dep gate (commit 0a072a842); the blocked atoms became drawable.",
+            source="docs/retrospectives/",
+        ),
+    ]
+
+
 def generate():
     try:
         dashboard = json.loads(DASHBOARD_PATH.read_text())
@@ -660,6 +708,7 @@ def generate():
         predictions=_predictions_ledger(),
         principles=_principles(),
         not_proven=_not_proven(),
+        corrections=_corrections(),
     )
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))

@@ -15,10 +15,19 @@ https://www.poesys.net/* https://poesys.net/:splat 301
 # SIM -> The World (sim depth re-homed under World unchanged)
 /sim /world/ 301
 /sim/* /world/ 301
-# Platform -> The Method (harness/architecture content folds into Method)
-/platform /method/ 301
-/platform/* /method/ 301
-# Casebook (method-casebook) -> The Method (the brief's own Method door is
-# the home page's "Inspect the method" card, which points at /method/)
-/method-casebook /method/ 301
-/method-casebook/* /method/ 301
+# SITE_V5 (ruling 2026-07-23): five-surface IA. Method + Simplified fold into
+# Proof; Journey is killed. Their old URLs 301 to Proof (or its anchors). The
+# absorbed content is rendered on /proof/ (method-anchor, simplified-anchor).
+/method /proof/ 301
+/method/* /proof/ 301
+/simplified /proof/ 301
+/simplified/* /proof/ 301
+/project /proof/ 301
+/project/* /proof/ 301
+/tours /proof/ 301
+/tours/* /proof/ 301
+# Platform + Casebook previously pointed at the (now killed) Method door -> Proof.
+/platform /proof/ 301
+/platform/* /proof/ 301
+/method-casebook /proof/ 301
+/method-casebook/* /proof/ 301

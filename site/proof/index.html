@@ -33,6 +33,42 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .badge.provisional { color: var(--amber); border: 1px solid var(--amber); }
 .badge.ok { color: var(--green); border: 1px solid var(--green); }
 .badge.open { color: var(--amber); border: 1px solid var(--amber); }
+.badge.blue { color: var(--blue); border: 1px solid var(--blue); }
+.badge.amber { color: var(--amber); border: 1px solid var(--amber); }
+.badge.red { color: var(--red); border: 1px solid var(--red); }
+.badge.green { color: var(--green); border: 1px solid var(--green); }
+.mono { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
+.claim-legend { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; margin: 22px 0 4px; }
+.cl-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 10px; }
+.cl-row { font-size: 12px; color: var(--muted); line-height: 2.1; }
+.cl-row .badge { margin-right: 2px; }
+/* Method fold-in + Simplified appendix (SITE_V5 surface 4: Method + Simplified fold in here). */
+.method-rule { border-bottom: 1px solid var(--border); padding: 12px 0; }
+.method-rule:last-child { border-bottom: none; }
+.method-rule-h { font-size: 13px; font-weight: 600; }
+.method-rule-id { color: var(--blue); font-weight: 700; margin-right: 6px; font-family: ui-monospace, monospace; }
+.method-rule-d { font-size: 12px; color: var(--text); line-height: 1.55; margin: 4px 0; }
+.method-rule-i { font-size: 11px; color: var(--muted); line-height: 1.6; border-left: 2px solid var(--amber); padding-left: 10px; margin-top: 4px; }
+.role-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.role-row:last-child { border-bottom: none; }
+.role-name { font-weight: 600; min-width: 160px; }
+.role-desc { color: var(--muted); line-height: 1.55; }
+.simp-lane { border-bottom: 1px solid var(--border); padding: 10px 0; }
+.simp-lane:last-child { border-bottom: none; }
+.simp-lane-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 12px; font-weight: 600; }
+.simp-lane-count { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* Corrections rendered IN PLACE -- the surface's single job made mechanical. */
+.cor { border-left: 3px solid var(--red); padding: 12px 0 12px 14px; margin-bottom: 14px; }
+.cor:last-child { margin-bottom: 0; }
+.cor-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cor-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); }
+.cor-date { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cor-claim { font-size: 13px; font-weight: 600; margin: 6px 0; }
+.cor-swap { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 12px; margin: 4px 0; }
+.cor-was { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--red); }
+.cor-arrow { color: var(--muted); }
+.cor-now { color: var(--text); font-weight: 600; }
+.cor-note { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 6px; }
 /* timeline */
 .tl-row { position: relative; padding: 0 0 4px 118px; margin-bottom: 14px; border-left: 2px solid var(--border); margin-left: 8px; }
 .tl-row:last-child { margin-bottom: 0; }
@@ -156,24 +192,62 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <a href="../" class="nav-link">Home</a>
-  <a href="../company/" class="nav-link">Company</a>
-  <a href="../world/" class="nav-link">World</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
   <a href="../proof/" class="nav-link active">Proof</a>
-  <a href="../method/" class="nav-link">Method</a>
-  <a href="../project/" class="nav-link">Journey</a>
-  <a href="../simplified/" class="nav-link">Simplified</a>
 </nav>
 <div class="wrap">
 
-  <div class="hero-h">The Proof</div>
+  <div class="hero-h">Proof</div>
   <p class="hero-p">
-    The credibility door. Not a claim that this company is good -- a rendering of its
-    honesty and learning discipline, made checkable. Every failure turned into a permanent
-    rule; every verification pass and the defects it caught; every level held honestly below
-    target with a named blocker; the open-work list unhidden; and a pre-registered predictions
-    ledger graded against reality, misses and ungraded entries kept. Every figure below links
-    to the file it came from.
+    The single job of this surface: show that this company <strong>corrects itself in public</strong>.
+    Not a claim that it is good &mdash; a rendering of its honesty made checkable. Every failure is
+    turned into a permanent rule and left on the record; every figure can be walked to the file it
+    came from, under a claim-status vocabulary; corrections are shown <em>in place</em>, never quietly
+    deleted; and anyone can challenge any number here. The Method (how this is built) and the full
+    simplifications register fold in below.
   </p>
+
+  <!-- CLAIM-STATUS LEGEND (SITE_CONSTITUTION rule 6 vocabulary) + didactic hypothesis -->
+  <div class="claim-legend" id="claim-legend">
+    <div class="cl-title">The claim-status vocabulary used across this page</div>
+    <div class="cl-row">
+      <span class="badge blue">VERIFIED</span> a consumer's fetch confirmed it (R1) &mdash;
+      <span class="badge amber">PROVISIONAL</span> real but still moving or externally uncalibrated &mdash;
+      <span class="badge amber">PLANNED</span> named but not yet measured, never faked &mdash;
+      <span class="badge red">RETRACTED</span> was wrong, shown struck through with the correction linked (below).
+    </div>
+    <div class="hyp" style="margin-top:12px">
+      <strong>Falsifiable hypothesis.</strong> Every figure on this surface can be walked to the repo
+      file it was rendered from &mdash; each section carries its source link and its claim-status &mdash;
+      and every withdrawn claim is shown in place, not deleted. If you find a number whose source link
+      is missing or does not match, or a claim that was quietly changed rather than struck and corrected
+      &mdash; this surface has failed its one job. <a class="evlink" href="#challenge-channel">Challenge it &rarr;</a>
+    </div>
+  </div>
+
+  <!-- CHALLENGE CHANNEL -- the "corrects itself in public" loop, made usable -->
+  <div class="sec">Challenge a figure</div>
+  <div class="card" id="challenge-channel">
+    <p class="muted" style="line-height:1.7">
+      This surface exists to be disputed. Any figure on it is challengeable: press the
+      <b>feedback</b> affordance (bottom-right of every page), name the figure and why you think it
+      is wrong, and enter the PIN. It is checked server-side (<span class="mono">background/director_comments.py</span>)
+      and staged for review &mdash; the site never reads back from the channel, so the box can neither
+      confirm nor leak. A challenge that lands becomes a <b>correction rendered in place</b>: the
+      figure is struck, the corrected value shown beside it, and &mdash; if it forged a rule &mdash; a
+      new row in the <a class="evlink" href="#timeline-anchor">Incident &rarr; Rule</a> timeline below.
+      That is what &ldquo;corrects itself in public&rdquo; means here: not that no figure is ever
+      wrong, but that a wrong one is never silently deleted.
+    </p>
+  </div>
+
+  <!-- CORRECTIONS RENDERED IN PLACE -- the single job, made mechanical (not prose) -->
+  <div class="sec">Corrections in place &mdash; claims this project withdrew</div>
+  <div class="card">
+    <p class="muted" id="corrections-intro">Loading...</p>
+    <div id="corrections"><div class="muted">Loading...</div></div>
+  </div>
 
   <!-- FIDELITY INSTRUMENT (atom G4) -- the director's window into G1/G2/G3 -->
   <div class="sec">Fidelity &mdash; the model vs the real world (W1_6 SSP price engine)</div>
@@ -223,7 +297,7 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
   </div>
 
   <!-- 1. INCIDENT -> RULE TIMELINE -->
-  <div class="sec">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
+  <div class="sec" id="timeline-anchor">Incident &rarr; Rule &mdash; failures converted to mechanisms</div>
   <div class="card">
     <p class="muted" id="timeline-intro">Loading...</p>
   </div>
@@ -277,6 +351,32 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
       multi-false-claim problem closes, or a harness rule changes.
     </p>
     <div id="retro-list"><div class="muted">Loading...</div></div>
+  </div>
+
+  <!-- 5. METHOD FOLD-IN (SITE_V5 surface 4: Method folds into Proof) -->
+  <div class="sec" id="method-anchor">The Method &mdash; how this company is built</div>
+  <div class="card">
+    <p class="muted" id="method-framing">Loading...</p>
+  </div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:10px">Who does what &mdash; the operating model.</p>
+    <div id="method-roles"><div class="muted">Loading...</div></div>
+  </div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:10px">The permanent rules, each with the real incident that forged it. This is the same discipline the timeline above shows, listed in full.</p>
+    <div id="method-rules"><div class="muted">Loading...</div></div>
+  </div>
+
+  <!-- 6. SIMPLIFICATIONS REGISTER (APPENDIX) -- the raw register re-homed as a clearly-labelled
+       appendix (SITE_V5 surface 4 / RC1: internal registers are sources, not front-page surfaces). -->
+  <div class="sec" id="simplified-anchor">Appendix &mdash; the simplifications register</div>
+  <div class="card">
+    <p class="muted" id="simplified-intro">Loading...</p>
+    <div class="kpis" id="simplified-kpis"></div>
+    <details>
+      <summary>Show the per-lane register &rarr;</summary>
+      <div id="simplified-body" style="margin-top:10px"><div class="muted">Loading...</div></div>
+    </details>
   </div>
 
   <div class="card">
@@ -733,12 +833,86 @@ function renderFidelity(d){
 }
 
 function renderBuild(d){
+  // RC5 (DIRECTOR_AXIS1 verdict 2026-07-23): effort metrics are not outcomes -- the
+  // test-count is deliberately NOT surfaced here. This footer is provenance only:
+  // which run's data this page rendered, so the whole page stays walkable to a commit.
   var parts=[];
-  if(d.phase)parts.push("Phase "+d.phase);
-  if(d.test_count)parts.push(Number(d.test_count).toLocaleString()+" tests");
   if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
   if(d.generated_at)parts.push("generated "+d.generated_at);
-  document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
+  document.getElementById("build-note").textContent=parts.length?
+    ("This whole page is a rendering of repo data only, never a mock -- "+parts.join(" · ")):"Build stats unavailable.";
+}
+
+// SITE_V5 surface 4 single job: "corrects itself in public", made MECHANICAL.
+// Each correction renders in place -- the withdrawn claim struck through, the
+// corrected value beside it, the artefact linked, a RETRACTED status badge. A
+// wrong figure is never silently deleted. Fail closed + visible (R15).
+function renderCorrections(d){
+  var cors=(d&&d.corrections)||[];
+  var intro=document.getElementById("corrections-intro");
+  var body=document.getElementById("corrections");
+  intro.innerHTML="This company gets things wrong. Here are real claims it MADE and then WITHDREW when the "+
+    "evidence turned -- rendered in place, not deleted: the old value struck through, the corrected value "+
+    "beside it, the artefact that forced the change linked. This is what the "+
+    '<span class="badge red">RETRACTED</span> status means, made mechanical.';
+  if(!cors.length){
+    body.innerHTML='<div class="muted">No corrections on the record yet.</div>';
+    return;
+  }
+  body.innerHTML=cors.map(function(c){
+    var src=c.source?'<a class="evlink" href="#" onclick="return false" title="'+esc(c.source)+'">'+esc(c.source)+' &rarr;</a>':'';
+    return '<div class="cor"><div class="cor-head"><span class="badge red">'+esc(c.status||"RETRACTED")+'</span>'+
+      '<span class="cor-id">'+esc(c.id||"")+'</span><span class="cor-date">'+esc(c.date||"")+'</span></div>'+
+      '<div class="cor-claim">'+esc(c.claim)+'</div>'+
+      '<div class="cor-swap"><span class="cor-was">'+esc(c.was||"")+'</span>'+
+        '<span class="cor-arrow">&rarr;</span><span class="cor-now">'+esc(c.now||"")+'</span></div>'+
+      (c.correction?'<div class="cor-note">'+esc(c.correction)+'</div>':'')+
+      (src?'<div class="cor-note">'+src+'</div>':'')+'</div>';
+  }).join("");
+}
+
+// --- SITE_V5 surface 4: Method + Simplified fold into Proof ---
+
+function renderMethod(m){
+  if(!m){ document.getElementById("method-framing").textContent="method.json unavailable at generation time."; return; }
+  document.getElementById("method-framing").innerHTML=esc(m.method_framing||
+    "How this company is built -- the operating model and the rules earned from real incidents.");
+  var roles=((m.operating_model||{}).roles)||[];
+  document.getElementById("method-roles").innerHTML=roles.length?roles.map(function(r){
+    return '<div class="role-row"><div class="role-name">'+esc(r.name)+'</div>'+
+      '<div class="role-desc">'+esc(r.description)+'</div></div>';
+  }).join(""):'<div class="muted">No operating-model roles recorded.</div>';
+  var rules=m.rules||[];
+  document.getElementById("method-rules").innerHTML=rules.length?rules.map(function(r){
+    return '<div class="method-rule"><div class="method-rule-h"><span class="method-rule-id">'+esc(r.id)+'</span>'+esc(r.name)+'</div>'+
+      '<div class="method-rule-d">'+esc(r.description)+'</div>'+
+      (r.incident?'<div class="method-rule-i">'+esc(r.incident)+'</div>':'')+'</div>';
+  }).join(""):'<div class="muted">No rules recorded.</div>';
+}
+
+function renderSimplified(s){
+  var intro=document.getElementById("simplified-intro");
+  var kp=document.getElementById("simplified-kpis");
+  var body=document.getElementById("simplified-body");
+  if(!s || !(s.lanes && s.lanes.length)){
+    intro.textContent="Simplifications register not available at generation time.";
+    kp.innerHTML=""; body.innerHTML=""; return;
+  }
+  intro.innerHTML="Every simplification the model makes is written down against the atom that makes it. "+
+    "This is the raw register, re-homed here as an appendix (it is a <strong>source, not a headline</strong>): "+
+    esc(num(s.total_notes))+" notes across "+esc(num(s.total_atoms_with_notes))+" atoms in "+esc(num(s.lanes.length))+" lanes. "+
+    "The forensic reader drills in; the front of the page stays plain-English.";
+  kp.innerHTML=[
+    {l:"Simplification notes",v:num(s.total_notes)},
+    {l:"Atoms with notes",v:num(s.total_atoms_with_notes)},
+    {l:"Lanes",v:num(s.lanes.length)}
+  ].map(function(k){ return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>'; }).join("");
+  body.innerHTML=s.lanes.map(function(ln){
+    var atoms=ln.atoms||[];
+    var noteCount=atoms.reduce(function(a,x){return a+((x.notes||[]).length);},0);
+    return '<div class="simp-lane"><div class="simp-lane-h"><span>'+esc(ln.lane_name||ln.lane)+'</span>'+
+      '<span class="simp-lane-count">'+esc(atoms.length)+' atom(s) &middot; '+esc(noteCount)+' note(s)</span></div></div>';
+  }).join("")||'<div class="muted">No lanes.</div>';
 }
 
 function renderNotProven(d){
@@ -763,6 +937,7 @@ fetch("../data/proof.json?t="+Date.now()).then(function(r){return r.json();}).th
   renderOpenWork(d);
   renderPredictions(d);
   renderRetros(d);
+  renderCorrections(d);
   renderBuild(d);
 }).catch(function(e){
   console.error("proof.json load error:",e);
@@ -774,6 +949,20 @@ fetch("../data/fidelity.json?t="+Date.now()).then(function(r){return r.json();})
 }).catch(function(e){
   console.error("fidelity.json load error:",e);
   document.getElementById("fid-tail").innerHTML='<div class="gap-fail">Could not load fidelity.json</div>';
+});
+
+fetch("../data/method.json?t="+Date.now()).then(function(r){return r.json();}).then(function(m){
+  renderMethod(m);
+}).catch(function(e){
+  console.error("method.json load error:",e);
+  document.getElementById("method-framing").innerHTML='<span style="color:var(--red)">Could not load method.json</span>';
+});
+
+fetch("../data/simplified.json?t="+Date.now()).then(function(r){return r.json();}).then(function(s){
+  renderSimplified(s);
+}).catch(function(e){
+  console.error("simplified.json load error:",e);
+  document.getElementById("simplified-intro").innerHTML='<span style="color:var(--red)">Could not load simplified.json</span>';
 });
 </script>
 <script src="../shared/director-comments.js" defer></script>

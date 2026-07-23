@@ -82,7 +82,35 @@ campaigns:
           HTTP-resolves now, the regulatory figures already render on this page's own Compliance section.
       - id: surface_4_proof
         title: 'Proof -- fidelity incl. failures, claim-status per figure, corrections-in-place, challenge channel; Method + Simplified fold in here'
-        status: open
+        status: landed
+        note: >-
+          LANDED 2026-07-23. Rebuilt around the single job -- "corrects itself in public", made
+          MECHANICAL, not asserted. New centre of gravity: a claim-status vocabulary legend
+          (VERIFIED/PROVISIONAL/PLANNED/RETRACTED, SITE_CONSTITUTION rule 6) + a falsifiable
+          hypothesis (every figure walks to its repo file; every withdrawn claim shown in place);
+          a CHALLENGE CHANNEL wired to the real server-side-checked director-comments mechanism
+          (background/director_comments.py, write-only, site never reads back); and a "Corrections
+          in place" panel fed by a new proof.json.corrections feed of THREE real documented
+          retractions this project made and withdrew (calm-year near-naked-hedging = a vol-lookback
+          foresight bug; the /company raw decision-log dump = RC1; the "overnight rest was legitimate"
+          claim = a real target-matched draw bug, R9) -- each rendered struck-through with the
+          corrected value beside it and the artefact linked. METHOD folds in (renderMethod from
+          method.json -- framing, operating-model roles, the R1..Rn rules with their forging
+          incidents); the SIMPLIFICATIONS register folds in as a clearly-labelled plain-English
+          appendix (renderSimplified -- per-lane aggregate counts, raw register a click away, RC1
+          honoured: registers are sources not surfaces). Nav cut to the five-surface IA; Method,
+          Journey, Simplified doors KILLED with /method /simplified /project /tours /platform
+          /method-casebook -> /proof 301s and a full-link walk across all five surviving surfaces
+          (director nav also cut). RC5 honoured: test-count effort metric stripped from the footer,
+          R15-guarded. R11+R15 proven by 51 proof render-harness tests (execute the page's real JS
+          against published JSON; mutation flips method rules, simplified totals, corrections values;
+          fail-closed-visible when corrections empty). Full site-lane gate green (site/ suite).
+          Expert-Hour (phase-close-evaluator) run: first pass NEEDS_WORK caught two real honesty gaps
+          (claim-status overclaim in the hero copy; "corrections in place" was prose with no render
+          path -- an orphan transition); BOTH fixed this same landing (copy made true to the rendered
+          pixels; the corrections feed + render path + tests built). Non-blocking follow-on (belongs to
+          RC4 iteration 6): stale 7-door navs on off-nav auxiliary pages (glossary, wip-flow, customers)
+          still 301 rather than match the IA.
       - id: surface_5_director_window
         title: 'Director window -- auth, off-nav MVP (reserved queue + machine health; DO battery DEFERRED this pass)'
         status: open

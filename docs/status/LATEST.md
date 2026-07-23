@@ -1,5 +1,33 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-23T15:41:00Z
+Last updated: 2026-07-23T16:05:41Z
+
+**PRODUCT LANDED (2026-07-23) — SITE_V5 surface 4 (Proof) rebuilt around "corrects itself in public", made MECHANICAL.**
+Drawn by the seventh-class open-campaign self-refill (no doorbell): surfaces 2 & 3 landed, so the draw rolled to the
+next unfinished item in 1→5 order. `site/proof/` is rebuilt so its single job — **show that this company corrects
+itself in public** — is asserted nowhere and rendered everywhere. New centre of gravity: (1) a **claim-status
+vocabulary legend** (VERIFIED/PROVISIONAL/PLANNED/RETRACTED, SITE_CONSTITUTION rule 6) + a falsifiable hypothesis
+(every figure walks to its repo file; every withdrawn claim shown in place); (2) a **challenge channel** wired to the
+real server-side-checked director-comments mechanism (`background/director_comments.py`, write-only, site never reads
+back); (3) a **"Corrections in place"** panel fed by a NEW `proof.json.corrections` feed of **three real documented
+retractions** this project made and withdrew — calm-year near-naked-hedging (a vol-lookback foresight bug), the
+/company raw decision-log dump (RC1), the "overnight rest was legitimate" claim (a real target-matched draw bug, R9) —
+each rendered **struck-through** with the corrected value beside it and the artefact linked. **Method folds in**
+(`renderMethod` from `method.json` — framing, operating-model roles, R1..Rn rules with their forging incidents); the
+**simplifications register folds in** as a clearly-labelled plain-English **appendix** (`renderSimplified` — per-lane
+aggregate counts, raw register a click away; RC1 honoured: registers are sources not surfaces). Nav cut to the
+five-surface IA; **Method / Journey / Simplified doors KILLED** — `/method /simplified /project /tours /platform
+/method-casebook → /proof` 301s, full-link walk clean across all five surviving surfaces (director nav also cut).
+**RC5** honoured: test-count effort metric stripped from the footer (R15-guarded). **R11+R15** proven by **51 proof
+render-harness tests** (`site/proof/test_proof_door.py` — execute the page's real inline JS against published JSON;
+mutation flips method rules, simplified totals, corrections values; fail-closed-visible when the corrections feed is
+empty). **Full site-lane gate green.** **Expert-Hour** (phase-close-evaluator, fresh context): first pass
+**NEEDS_WORK** caught two real honesty gaps — a claim-status **overclaim** in the hero copy, and "corrections in place"
+being **prose with no render path** (an orphan transition, R11); **both fixed this same landing** (copy made true to the
+rendered pixels; the corrections feed + render path + 3 tests built). Marked `landed` in `CAMPAIGN_REGISTER.yaml` same
+commit; SITE_V5 stays OPEN (surface 1 FAIL + surface 5), so the draw persists. Non-blocking follow-on (belongs to RC4
+iteration 6): stale 7-door navs on off-nav auxiliary pages (glossary, wip-flow, customers) still 301 rather than match
+the IA. **The corrections feed is a designed, hand-appended feed** (not live-recomputed) — a new retraction is added to
+`tools/generate_proof_data.py::_corrections` when it happens.
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 3 (The Company) rebuilt as the supplier SaaS shown as PRODUCT.**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): surface 2 landed, so the draw rolled to the next
@@ -354,7 +382,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (626s / 10 min):
+**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
