@@ -1,3 +1,14 @@
+> **PARKED IN in_progress/ (2026-07-23).** FRAME landed + pushed:
+> `docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md` (commit 87ce1b980). Director did NOT veto
+> (ruling 1dd89af03). **Still-open sub-items (why this is parked, not done/):**
+> (1) **SPINE_1 build** — the scenario-spine mechanism BUILD proceeds on standing authority, subject to the
+> sequencing guard (must NOT preempt PRODUCT-FIRST queue items 1–2); a WVC-lane BUILD atom for the orchestrator
+> to register/draw. (2) **Launch-world VALUES** (`neso_central`/`crisis_2021_22`/`supply_glut`, §A.6, sourced)
+> await **director R13 ratification** before any non-baseline world enters rotation. (3) **Friction amendment**
+> (§B) rides the authorized WVC_3/WVC_4 build — code lands with those atoms. **Unblocks when:** SPINE_1 is
+> registered + built (mechanism), the director ratifies the launch-world values, and WVC_3/WVC_4 carry the
+> friction term. Follow-ons SPINE_1–5 named for the map (orchestrator registers). Then → done/.
+
 # [DIRECTOR-STEER] — Scenario spine, trading friction, and the pricing of forecast error (2026-07-23)
 
 **Type:** [STEER] via advisor bridge, from a live director conversation 2026-07-23. Decisions below are DECIDED
