@@ -1,3 +1,25 @@
+# [CC PROCESSING STATUS — 2026-07-23] IN PROGRESS (sequence step 1 DONE)
+#
+# STEP 1 (structure confirmation against canon) is COMPLETE — verdict CONFIRMED, no
+# propose-back. Artifact: `docs/design/SITE_V5_STRUCTURE_CONFIRMATION.md`. The five-surface IA,
+# the three goals, the kills, the didactic-graph rule and the 1→5 sequence are all reconciled
+# against BRAND_CONSTITUTION / SITE_CONSTITUTION (rules 1–7) / _redirects / the site-lane gate /
+# fronts.yaml (site build is authorized now under the open SUPPLIER front). The one IA conflict
+# (six-door → five-surface) is one this ruling itself resolved.
+#
+# OPEN (the still-open sub-items — why this file is parked in in_progress, not root):
+#   §4.2 — build the five surfaces, ONE per phase, in order 1→5, each landed LIVE and
+#   Expert-Hour-reviewed against its single job before the next starts. Tracked as a ranked
+#   campaign in PRIORITIES.md (§SITE_V5 REBUILD CAMPAIGN, top of queue). Per-surface DoD in the
+#   confirmation doc §4.
+#   NEXT DRAWABLE PHASE: Surface 1 — Front door MVP (v4 argument, 10-second test; swap the
+#   /now/ landing LAST). UNBLOCKS when it lands live + passes its Expert Hour → then Surface 2.
+#
+# Parked here (excluded from the supervisor unprocessed-staging scan) so it does not re-grant a
+# turn every cycle with nothing new to do; the ongoing build is driven by the PRIORITIES.md
+# campaign entry via the L2 SITE lane, not by a staging re-scan.
+# ─────────────────────────────────────────────────────────────────────────────────────────────
+
 # DIRECTOR RULING — Site rebuild: ratified structure + MVP sequence (2026-07-23)
 
 **Provenance.** Director-ratified in advisor conversation, 2026-07-23. Follows the director's live axis-1 review of the

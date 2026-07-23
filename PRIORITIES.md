@@ -2,6 +2,24 @@
 # last director review: 2026-07-11 (docs/staging/SPIKE_WEEKEND.md -- advisor-staged,
 #   director-decided, P1 time-boxed spike, now through Monday 03:59 weekly reset)
 #
+# === SITE_V5 REBUILD CAMPAIGN (2026-07-23, director-ratified, SUPERSEDES the six-door site IA) ===
+#   Ruling: docs/staging/in_progress/DIRECTOR_RULING_SITE_REBUILD_V5_STRUCTURE_2026-07-23.md
+#   Structure CONFIRMED (sequence step 1): docs/design/SITE_V5_STRUCTURE_CONFIRMATION.md -- no
+#   propose-back; the five-surface IA is decided. L2 SITE lane, ungated (SUPPLIER front, site/).
+#   Three goals are the standard: (1) marketing, (2) SIM causal-relationship observability,
+#   (3) e2e supplier-SaaS evidence. Didactic graphs are the centre of gravity (every major graph
+#   teaches ONE proven relationship, states its hypothesis in-copy, cites the anchor).
+#   BUILD one surface per phase, in order 1->5, each landed LIVE + Expert-Hour-reviewed against its
+#   single job before the next starts (per-surface DoD in the confirmation doc):
+#     1. Front door -- the pitch (v4 argument, 10-sec test; swap /now/ landing LAST).   <-- NEXT
+#     2. The World -- walkable causal chain weather->wholesale->segments->usage->bills->carbon.
+#     3. The Company -- the supplier SaaS as product (real run outputs, never effort metrics).
+#     4. Proof -- fidelity incl. failures, claim-status, corrections-in-place, challenge channel;
+#        Method + Simplified fold in here.
+#     5. Director window -- auth, off-nav MVP (reserved queue + machine health; DO battery DEFERRED).
+#   Kills: /now/ default landing; site/shadow/** (noindex min, removal preferred); Method & Journey
+#   as separate doors; test-count + commits/day public charts (internal build stamp untouched).
+#
 # === SPIKE_WEEKEND ACTIVE (2026-07-11 -> Monday 03:59). Full text: docs/staging/
 #   in_progress/SPIKE_WEEKEND.md. NTFY cadence overridden (see CLAUDE.md) -- twice-daily digest
 #   + immediate only for [ACTION NEEDED]/Tier 1. Quality gates unchanged (pixel rule, fresh-
