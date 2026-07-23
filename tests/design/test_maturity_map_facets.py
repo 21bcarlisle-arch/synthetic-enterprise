@@ -49,6 +49,12 @@ REVIEWED_CLOSE_TO_LEARN = {
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",
+    # 2026-07-23 reviewed (publish-gate unwedge, DIRECTOR_RULING_UNWEDGE_AND_AXIS3): the harness/
+    # gap-measurement leg of the F1 conversations coupled triad -- measures the belief-vs-truth GAP
+    # between the SIM customer response (F1a) and the COMPANY's estimated susceptibility (F1b), NOT
+    # revenue. Same close_to_learn class as its siblings A6_coupled_triad_gap_metric and
+    # F1_epistemic_verifier; close_to_learn is its TRUE stream, not a dumping-ground default.
+    "F1c_harness_conversation_gap",
     "ARCH1_internal_seams", "BRAND1_identity_system",
     "E1_ledger_double_entry", "E2_revenue_reconciliation", "E3_accrual_restatement",
     "E4_supplier_reporting_standard",
