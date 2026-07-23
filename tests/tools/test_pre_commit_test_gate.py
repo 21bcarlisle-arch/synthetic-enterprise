@@ -217,6 +217,64 @@ def test_r15_scrub_prevents_leaked_git_dir_corruption__mutation_proof():
     )
 
 
+def _staged_deletions(repo, clean_env):
+    """Index-vs-HEAD staged changes for the isolated repo (read with a clean env)."""
+    return _run_git(["diff", "--cached", "--name-status"], cwd=repo, env=clean_env).stdout.strip()
+
+
+def test_r15_scrub_prevents_leaked_index_phantom_deletion__mutation_proof():
+    """R15 mutation proof for the SECOND named corruption mode of the H24/H26 incident:
+    INDEX PHANTOM-DELETIONS (the mode that actually wedged the publish/commit chain), distinct
+    from the core.bare flip already covered by
+    test_r15_scrub_prevents_leaked_git_dir_corruption__mutation_proof.
+
+    Named defect: during a `git commit` the hook inherits GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE
+    pointing at the in-progress commit's index; an unscrubbed gate-run test that stages a removal
+    (`git rm --cached ...`) from its own neutral cwd then obeys those leaked vars and phantom-deletes
+    a file from the REAL index -- observed in the incident as "index phantom-deletions" and a
+    tree-deleting commit. Proven in BOTH directions against a throwaway isolated repo, never the real
+    worktree. Complements the core.bare proof so the control is measured against more than one of the
+    corruption modes it actually caused (R15 CONTROLS_THAT_CANNOT_FAIL: a control proven on only one
+    of its defect's faces is under-proven).
+    """
+    clean_env = gate._gitless_env(dict(os.environ))
+    isolated_repo = _make_isolated_repo(clean_env)  # has a committed seed.txt, clean index
+    assert _staged_deletions(isolated_repo, clean_env) == "", "fixture must start with a clean index"
+
+    # A neutral cwd that is NOT a git repo -- so the only way `git rm --cached` can touch an index
+    # is by obeying the leaked GIT_DIR/GIT_INDEX_FILE, exactly the commit-time leak vector.
+    neutral_cwd = tempfile.mkdtemp(prefix="h24_idx_neutral_cwd_")
+
+    leaked_env = dict(clean_env)
+    leaked_env["GIT_DIR"] = str(Path(isolated_repo) / ".git")
+    leaked_env["GIT_WORK_TREE"] = isolated_repo
+    leaked_env["GIT_INDEX_FILE"] = str(Path(isolated_repo) / ".git" / "index")
+
+    # --- WITH the shipped scrub (the real code path) --- must FAIL, index untouched ---
+    scrubbed_env = gate._gitless_env(leaked_env)
+    assert [k for k in scrubbed_env if k.startswith("GIT_")] == []
+    with_scrub = _run_git(["rm", "--cached", "seed.txt"], cwd=neutral_cwd, env=scrubbed_env)
+    assert with_scrub.returncode != 0, (
+        "with GIT_* scrubbed and a non-repo cwd, `git rm --cached` must FAIL -- if it succeeds, "
+        "the leaked GIT_INDEX_FILE is still reaching the isolated repo's index"
+    )
+    assert _staged_deletions(isolated_repo, clean_env) == "", (
+        "the scrub must leave the isolated repo's index untouched (no phantom deletion)"
+    )
+
+    # --- WITHOUT the scrub (the mutation: leak passed straight through, the pre-fix gate) ---
+    # must REPRODUCE the phantom deletion, proving the defect is real and the scrub is what stops it.
+    without_scrub = _run_git(["rm", "--cached", "seed.txt"], cwd=neutral_cwd, env=leaked_env)
+    assert without_scrub.returncode == 0, (
+        "expected the unscrubbed leaked GIT_INDEX_FILE to let `git rm --cached` succeed against the "
+        "isolated repo -- if it didn't, this test can't demonstrate the phantom-deletion defect"
+    )
+    assert _staged_deletions(isolated_repo, clean_env) == "D\tseed.txt", (
+        "the unscrubbed leak must reproduce the INDEX phantom-deletion (seed.txt staged for removal) "
+        "on the ISOLATED repo -- proving the second named H24/H26 corruption mode is real"
+    )
+
+
 def test_committed_hook_invokes_the_gate_and_aborts_on_failure():
     # Reconstruct-from-repo: the committed hook itself must call the gate and abort on non-zero.
     hook = (ROOT / "tools" / "git-hooks" / "pre-commit").read_text()
