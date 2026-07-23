@@ -1,3 +1,13 @@
+> **[IN PROGRESS — parked 2026-07-23 by worker tick]**
+> **DONE this tick (committed 8882cac61, pushed):** §2 CLASS FIX — the propose-half is now an always-drawable lane, mechanised as a class in `supervisor.py` (`_propose_half_draw` / `_forward_discovery_propose_half_tracks`, wired into both `_self_refill_draw` and `_is_drained_and_gated`), R15 both ways (failing-test-first reproduces the overnight state; proposal-written drains it; kill-the-rung mutation returns the stall — 23 pass). Whole-set enumeration (`authorized_set_enumeration_line`, all six levels) published in the per-cycle status line AND the daily note (`r17_status`). On the REAL register F1's propose-half is now visible → the tick can no longer rest over it.
+> **STILL OPEN (blocking sub-items; each its own subsequent tick):**
+> §3.1 Write the F1 conversations build proposal (the mechanism now auto-draws this every tick until written into `docs/design/proposals/F1_*.md`).
+> §3.2 Draw the F2 site fold-in (lay-reader path, Spec 005 ABSENT row).
+> §3.3 MC-2: build the collateral death-test FIRST (falsifiable spec: price move alone → cash call; 2021–22 replay ≥1 death-by-collateral, P&L surviving) as a red test awaiting its mechanism.
+> §3.4 MC-1: mechanism-or-script classification of every battery behaviour, re-grades marked.
+> §3.5 Report the 01:05 sanity-daemon new category in full in today's daily note.
+> **UNBLOCKS WHEN:** each sub-item's own artefact is committed. §3.1 self-drains the new rung.
+
 # [DIRECTOR-RULING] — R17 breach declared; the rest-proof class fix; immediate work order (2026-07-23)
 
 **Type:** [DIRECTOR-RULING] via the advisor bridge (wired 2026-07-22, commit 0675ec915). This is the first live use of the bridge channel. Director's verbatim verdict on the overnight: *"It built absolutely nothing all night. That's a total disaster."*
