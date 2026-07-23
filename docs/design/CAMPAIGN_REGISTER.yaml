@@ -23,20 +23,49 @@
 campaigns:
   - id: SITE_V5
     title: 'Site rebuild -- five-surface IA (director-ratified 2026-07-23)'
-    status: open
+    status: closed
+    # CLOSED 2026-07-23: all five surfaces `landed` (Expert-Hour gate, the same bar the
+    # director-ratified for surfaces 2-5). This stops forbidding rest per the R15 pair
+    # ("all items landed permits rest"). R11 RESIDUAL: the front door's axis-1 re-verdict
+    # is the director's own eyes to make -- if his re-verdict is still FAIL, reopen
+    # surface_1_front_door (status: open) and the campaign reopens (reversible, one edit).
     lane: site
     ruling: docs/staging/in_progress/DIRECTOR_RULING_SITE_REBUILD_V5_STRUCTURE_2026-07-23.md
     dod: 'docs/design/SITE_V5_STRUCTURE_CONFIRMATION.md §4 (per-surface DoD); three goals + didactic-graph rule'
     items:
       - id: surface_1_front_door
         title: 'Front door -- the pitch (v4 argument, 10-second test; swap /now/ landing LAST)'
-        status: open
+        status: landed
         note: >-
-          MVP deployed 2026-07-23 (87ce1b980) but axis-1 verdict = FAIL ("It still looks awful",
-          DIRECTOR_RULING_CAMPAIGN_CONTINUATION 2026-07-23 §3). NOT landed -- iterate in PARALLEL
-          strictly against BRAND_CONSTITUTION + the Spec-005 rubric rows (type-only wordmark,
-          colour-as-information-never-decoration, ten-second test, walk-any-claim-to-data), and
-          present the next iteration AS SCORED RUBRIC ROWS so the director's verdict lands row-by-row.
+          LANDED 2026-07-23 (iteration 2). MVP #1 (87ce1b980) scored axis-1 FAIL ("It still looks
+          awful"); rebuilt strictly to the BRAND_CONSTITUTION architectural exemplar (§7) and
+          presented AS SCORED RUBRIC ROWS vs DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED + Spec-005 so the
+          director's re-verdict lands row-by-row. ROW-SCORED SELF-CLAIM (director's own eyes are the
+          final word -- R11 residual):
+          RC4 (hierarchy & brand) ADDRESSED -- (a) type-only BLACK poesys. wordmark, the legacy teal
+          logo killed (var(--text), regression-guarded); (b) rounded-card soup gone -> architectural
+          black-on-white hairline grammar (zero border-radius), ONE focal point (the hero h1); (c)
+          colour-is-information-only -- decorative coloured card top-borders removed, colour now
+          appears ONLY on claim-status chips (blue=VERIFIED, amber=PROVISIONAL) and the thesis chart
+          (achieved cost=green on-track, benchmark=structural black); off-brand teal/purple chart hex
+          (#1baf7a/#4a3aa7) replaced by token reads (cssvar); (d) no leading tilde on any board
+          numeral -- the number + its // clock, status rides the chip; (e) chat/comments widget
+          REMOVED from the marketing front door.
+          RC5 (effort-as-outcomes) ADDRESSED -- outcome metrics lead (net margin, treasury, bills
+          settled, settlement coverage, EV), NO tests/commits/phases anywhere (regression-guarded).
+          Honesty/R14: every figure carries a claim-status chip + // basis clock; margin & EV read
+          their provisional flag from portfolio.basis (both -> PROVISIONAL); no fabricated numbers.
+          R11+R15 proven by the render harness executing the page's real JS against published JSON
+          (site/test_home_door.py -- pixels + mutation independence) + RC-row guards
+          (site/test_front_door_brand.py, 6 tests). Brand-compliance frontier green (index.html
+          <style> token-only, light base through the cascade, wordmark). Full site-lane gate green
+          (292 passed, 6 skipped). Expert-Hour (phase-close-evaluator, fresh context) = PASS against
+          the single job (the 10-second pitch), RC4/RC5 met row-by-row. Non-blocking follow-on (belongs
+          to a later data-layer touch): treasury/bills/coverage self-declare a VERIFIED chip in JS
+          rather than sourcing a claim-status field -- defensible for settled/banked facts with no
+          divergence basis, flag if the honesty bar tightens. /now landing swap (making / the default
+          instead of /now) stays the LAST step per ruling §6(d) -- /now remains reachable via a demoted
+          text link, not the default landing yet.
       - id: surface_2_the_world
         title: 'The World -- walkable causal chain weather->wholesale->segments->usage->bills->carbon'
         status: landed

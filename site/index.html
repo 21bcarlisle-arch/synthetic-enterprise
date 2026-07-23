@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poesys -- Synthetic Enterprise</title>
+<title>poesys. -- the energy supplier that hides nothing</title>
 <meta name="description" content="An enterprise simulator for a UK energy supplier, built and run by AI. Mission: carbon abatement through personalisation, measured in £ per tonne of CO2 saved. Autonomy is the method, not the headline.">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://poesys.net/">
-<meta property="og:title" content="Poesys -- Synthetic Enterprise">
+<meta property="og:title" content="poesys. -- the energy supplier that hides nothing">
 <meta property="og:url" content="https://poesys.net">
 <meta property="og:description" content="An enterprise simulator for a UK energy supplier, built and run by AI -- carbon abatement through personalisation, measured in £ per tonne of CO2 saved.">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -15,220 +15,219 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="./brand/brand.css">
 <style>
-/* brand palette: consumed from ../brand/brand.css (BRAND_CONSTITUTION.md) */
+/* SITE_V5 surface 1 (Front door) -- iteration 2, rebuilt to the BRAND_CONSTITUTION
+   architectural exemplar (§7) after the director's axis-1 verdict FAIL ("It still
+   looks awful"). This rebuild is scored row-by-row against DIRECTOR_AXIS1_SITE_VERDICT
+   + Spec-005: RC4 (hierarchy & brand -- black-on-white architecture, one thing the eye
+   lands on, colour is information never decoration, type-only black wordmark, chat
+   widget removed), RC5 (outcome metrics lead, no effort metrics). Colour lives ONLY in
+   the token source (brand.css); this <style> consumes tokens, never raw hex. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+body { background: var(--bg); color: var(--text); font-family: var(--font-house);
+  font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 
-/* FRONT DOOR -- rebuilt to POESYS_SITE_BRIEF.md §4 (2026-07-18, Campaign A):
-   the 60-second job is the claim, the live pulse, the thesis number, and the
-   four doors -- nothing else. Learning-curve/commits charts moved to Journey
-   (site/project/) which already owns build-cadence narrative; the settled/
-   billed reconciliation bridge lives on The Company (site/company/) in more
-   depth than a front-door card could show; "why we're different" narrative
-   prose is not evidence-linked data and is exactly the brochure-page risk
-   principle 6 (2 of SITE_CONSTITUTION.md) warns against -- it dies here. */
-.hero { max-width: 760px; margin: 0 auto; padding: 56px 20px 24px; text-align: center; }
-.hero h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px; }
-.hero h1 span { color: var(--blue); }
-.hero p.honesty-line { font-size: 13px; color: var(--text); line-height: 1.6; max-width: 620px; margin: 0 auto 14px;
-  border: 1px solid var(--amber); border-radius: 8px; padding: 10px 14px; background: var(--surface); }
-.hero p.honesty-line strong { color: var(--amber); }
-.hero p.pitch { font-size: 15px; color: var(--muted); line-height: 1.7; max-width: 640px; margin: 0 auto; }
-.wrap { max-width: 1000px; margin: 0 auto; padding: 8px 20px 48px; }
-.sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); margin-bottom: 12px; margin-top: 40px; text-align: center; }
+/* -- architectural document column on the paper ground (exemplar .site) -- */
+.shell { max-width: 1060px; margin: 0 auto; background: var(--surface); border: 1px solid var(--border); }
+.inner { padding: 0 56px; }
+@media (max-width: 640px) { .inner { padding: 0 22px; } }
 
-.pulse-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 24px 0 32px; }
-.pulse-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; }
-.pulse-item .pl { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
-.pulse-item .pv { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
-.pulse-item .pv a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
-.pulse-item .pv a:hover { border-bottom-color: var(--blue); }
-.pulse-item .pn { font-size: 9px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
-.pulse-item .pn a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
-.pulse-item .pn a:hover { border-bottom-color: var(--blue); }
-.provisional-badge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: 0.3px; color: var(--amber);
-  border: 1px solid var(--amber); border-radius: 4px; padding: 1px 4px; margin-left: 4px; vertical-align: middle; }
+/* nav -- type-only wordmark (black), no pills, one strong rule under it */
+.site-nav { display: flex; justify-content: space-between; align-items: baseline;
+  padding: 26px 0 22px; border-bottom: 1px solid var(--text); }
+.nav-logo { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+nav.doors { display: flex; gap: 26px; font-size: 13px; font-weight: 500; }
+nav.doors a { color: var(--muted); text-decoration: none; }
+nav.doors a:hover { color: var(--text); }
+nav.doors a.active { color: var(--text); font-weight: 700; }
+@media (max-width: 640px) { nav.doors { gap: 16px; font-size: 12px; flex-wrap: wrap; justify-content: flex-end; } }
 
-.thesis-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; margin-bottom: 32px; }
-.thesis-headline { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-.thesis-hypothesis { font-size: 12px; color: var(--text); line-height: 1.6; margin-bottom: 12px; max-width: 640px;
-  border-left: 2px solid var(--blue); padding-left: 10px; }
-.thesis-sentence { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; max-width: 640px; }
-.thesis-chart-wrap { position: relative; height: 160px; max-width: 480px; margin: 0 auto; }
-.thesis-caveat { font-size: 11px; color: var(--amber); margin-top: 12px; border-left: 2px solid var(--amber); padding-left: 10px; }
-.thesis-evidence { font-size: 10px; color: var(--muted); margin-top: 10px; }
-.thesis-evidence a { color: inherit; text-decoration: none; border-bottom: 1px dashed var(--border); }
-.thesis-evidence a:hover { border-bottom-color: var(--blue); }
+/* hero -- the one thing the eye lands on: the argument, all black */
+.hero { padding: 64px 0 44px; border-bottom: 1px solid var(--text); }
+.hero h1 { font-size: clamp(30px, 5.2vw, 54px); font-weight: 700; letter-spacing: -0.03em;
+  line-height: 1.05; max-width: 18ch; }
+.honesty { margin-top: 26px; border-left: 3px solid var(--text); padding: 4px 0 4px 16px;
+  font-size: 14px; line-height: 1.6; max-width: 60ch; color: var(--muted); }
+.honesty strong { color: var(--text); font-weight: 700; }
+.pitch { margin-top: 22px; font-size: 15px; line-height: 1.65; max-width: 62ch; color: var(--muted); }
+.pitch strong { color: var(--text); font-weight: 600; }
 
-.door-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 8px; }
-.door-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-decoration: none;
-  color: var(--text); display: block; transition: border-color .15s, transform .15s; border-top: 3px solid var(--blue); }
-.door-card:hover { border-color: var(--blue); transform: translateY(-2px); }
-.door-card.honesty { border-top-color: var(--amber); }
-.door-card .dp { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); margin-bottom: 6px; }
-.door-card .dt { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-.door-card .dd { font-size: 12px; color: var(--muted); line-height: 1.5; }
+/* section label */
+.sec { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+  color: var(--muted); padding: 30px 0 0; }
 
-/* mobile pass (SITE1_expert_doors pattern, site/test_expert_doors_mobile.py):
-   phone-legible front door, nav wraps instead of overflowing, no horizontal
-   body scroll. Desktop (>640px) layout is unchanged. */
-@media (max-width: 640px) {
-  .wrap { padding: 8px 16px 40px; }
-  .hero { padding: 40px 16px 16px; }
-  .hero h1 { font-size: 22px; }
-  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
-  .thesis-card { padding: 16px; }
-  .sec { margin-top: 28px; }
-}
+/* outcome figures -- architectural cells, right hairline dividers, claim-status + // clock */
+.figures { display: grid; grid-template-columns: repeat(5, 1fr); border-bottom: 1px solid var(--text); }
+@media (max-width: 860px) { .figures { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 460px) { .figures { grid-template-columns: 1fr; } }
+.fig { padding: 22px 18px 24px 0; border-right: 1px solid var(--border); border-top: 1px solid var(--border); }
+.fig .fk { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; min-height: 24px; }
+.fig .fv { font-size: clamp(20px, 2.4vw, 26px); font-weight: 700; letter-spacing: -0.02em; margin-top: 8px; }
+.fig .fc { margin-top: 8px; font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+.tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px; margin-top: 8px; color: var(--text); }
+.tag-verified { background: var(--blue-soft); }
+.tag-prov { background: var(--amber-soft); }
+
+/* thesis -- the argument, one chart, its falsifiable hypothesis */
+.thesis { padding: 34px 0; border-bottom: 1px solid var(--text); }
+.thesis h2 { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.thesis h2 .tag { vertical-align: middle; margin-top: 0; margin-left: 8px; }
+.hypo { margin-top: 14px; border-left: 3px solid var(--text); padding-left: 14px; font-size: 13px; line-height: 1.6; max-width: 64ch; }
+.hypo strong { font-weight: 700; }
+.thesis-sentence { margin-top: 18px; font-size: 14px; line-height: 1.6; color: var(--muted); max-width: 64ch; }
+.thesis-chart-wrap { position: relative; height: 150px; max-width: 500px; margin: 18px 0 0; }
+.thesis-caveat { margin-top: 16px; border-left: 3px solid var(--amber); padding-left: 14px; font-size: 11.5px; color: var(--muted); line-height: 1.6; max-width: 64ch; }
+.thesis-evidence { margin-top: 12px; font-size: 11px; color: var(--muted); }
+.thesis-evidence a, .fc a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.thesis-evidence a:hover, .fc a:hover { border-bottom-color: var(--text); }
+
+/* three ways in -- square blocks, hairline, > prompt; no decorative colour */
+.doors-in { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 22px; }
+@media (max-width: 720px) { .doors-in { grid-template-columns: 1fr; } }
+.door { display: block; text-decoration: none; color: var(--text); padding: 24px 22px 26px 0;
+  border-top: 1px solid var(--border); border-right: 1px solid var(--border); }
+.doors-in .door:last-child { border-right: none; }
+.door:hover { background: var(--surface2); }
+.door .dp { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.door .dt { font-size: 17px; font-weight: 700; margin-top: 8px; }
+.door .dd { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-top: 8px; }
+
+.also { padding: 22px 0 6px; font-size: 12.5px; color: var(--muted); }
+.also a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+.also a:hover { border-bottom-color: var(--text); }
+
+.foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  padding: 24px 0 30px; font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
+<div class="shell"><div class="inner">
+
 <!-- SITE_V5 surface 1 (front door): the five-surface IA -- Home / The World /
-     The Company / Proof. Director window is off-nav (auth-gated). The old
-     Method / Journey / Simplified doors fold into Proof/World at their own
-     surfaces; Now stops being the default landing (swap sequenced LAST). Nav
-     canonical list mirrored in site/test_home_door.py in lockstep. -->
-<nav class="site-nav">
+     The Company / Proof. Director window is off-nav (auth-gated). Method / Journey /
+     Simplified fold into Proof/World at their own surfaces. /now stays reachable but
+     is no longer the default landing (swap sequenced LAST). Nav canonical list
+     mirrored in site/test_home_door.py in lockstep. -->
+<header class="site-nav">
   <a href="./" class="nav-logo wordmark">poesys.</a>
-  <a href="./" class="nav-link active">Home</a>
-  <a href="./world/" class="nav-link">The World</a>
-  <a href="./company/" class="nav-link">The Company</a>
-  <a href="./proof/" class="nav-link">Proof</a>
-</nav>
+  <nav class="doors">
+    <a href="./" class="active">Home</a>
+    <a href="./world/">The World</a>
+    <a href="./company/">The Company</a>
+    <a href="./proof/">Proof</a>
+  </nav>
+</header>
 
-<div class="hero">
-  <h1>An energy company built and run by AI -- to find <span>the cheapest tonne of carbon left.</span></h1>
-  <p class="honesty-line"><strong>No customers. No licence. A running simulator.</strong> A fully autonomous
-    licensed supplier will not be permitted -- a licence needs accountable humans -- and we say so up front.
-    Autonomy is the <em>how</em>, not the headline.</p>
-  <p class="pitch">
-    An enterprise simulator for a UK energy supplier. Not a model of a company; a running one --
-    it settles half-hourly against real Elexon and NESO market data since 2016, takes only proven
-    answers toward the real world, and discovers its world only the way a real supplier would --
-    meter reads, market feeds, customer contacts, bills, regulatory publications -- never the
-    simulation's own internals. The mission is <strong>carbon abatement through
-    personalisation</strong>, measured in £ per tonne of CO&#8322; saved -- personalisation at near-zero
-    marginal cost is the thesis.
-  </p>
+<section class="hero">
+  <h1>An energy company built and run by AI, to find the cheapest tonne of carbon left.</h1>
+  <p class="honesty"><strong>No customers. No licence. A running simulator</strong> -- a fully
+    autonomous licensed supplier will not be permitted, because a licence needs accountable
+    humans, and we say so up front. Autonomy is the <em>how</em>, not the headline.</p>
+  <p class="pitch">Not a model of a company; a running one. It settles half-hourly against real
+    Elexon and NESO market data since 2016, takes only proven answers toward the real world, and
+    discovers its world the way a real supplier would -- meter reads, market feeds, customer
+    contacts, bills, regulatory publications -- never the simulation's own internals. The mission
+    is <strong>carbon abatement through personalisation</strong>, measured in £ per tonne of
+    CO&#8322; saved.</p>
+</section>
+
+<div class="sec">The record so far</div>
+<div class="figures" id="pulse-strip">
+  <div class="fig"><div class="fk">Loading</div><div class="fv">...</div></div>
 </div>
 
-<div class="wrap">
-  <a href="./now/" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
-    background:var(--surface);border:1px solid var(--blue);border-radius:10px;padding:14px 18px;margin-bottom:18px;
-    text-decoration:none;color:var(--text)">
-    <span>
-      <span style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--blue)">Operator view</span>
-      <span style="display:block;font-size:16px;font-weight:700;margin-top:3px">The Business Right Now &rarr;</span>
-      <span style="display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5">One page, causal order: what the world is doing &rarr; what the supplier is doing &rarr; one real customer &rarr; their carbon. The running state, connected.</span>
-    </span>
-    <span style="font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap">Open &rarr;</span>
+<section class="thesis">
+  <h2>Cost-to-serve: the numerator of &pound;/tCO&#8322; <span class="tag tag-prov">PROVISIONAL</span></h2>
+  <p class="hypo"><strong>Hypothesis (falsifiable):</strong> knowing each household's true cost-to-serve
+    lets the supplier price below the flat-margin benchmark; the gap it frees is the budget for
+    abating a tonne of CO&#8322; at near-zero marginal cost. If the true per-household cost sits at
+    or above the benchmark, the thesis fails right here -- the chart below is where you check.</p>
+  <p class="thesis-sentence" id="thesis-sentence">Loading...</p>
+  <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
+  <div class="thesis-caveat" id="thesis-caveat"></div>
+  <div class="thesis-evidence" id="thesis-evidence"></div>
+</section>
+
+<div class="sec">Three ways in</div>
+<div class="doors-in">
+  <a class="door" href="./world/">
+    <div class="dp">Curious &middot; how it works</div>
+    <div class="dt">The World &gt;</div>
+    <div class="dd">The simulation, walkable: weather &rarr; wholesale price &rarr; segments &rarr; usage &rarr; bills &rarr; carbon. Each link opens onto live data and its external anchor -- Elexon, ONS, DESNZ, Ofgem.</div>
   </a>
-
-  <div class="pulse-strip" id="pulse-strip">
-    <div class="pulse-item"><div class="pl">Loading</div><div class="pv">...</div></div>
-  </div>
-
-  <div class="thesis-card">
-    <div class="thesis-headline">Cost-to-serve: the numerator of &pound;/tCO&#8322; <span class="provisional-badge">PROVISIONAL</span></div>
-    <p class="thesis-hypothesis"><strong>Hypothesis (falsifiable):</strong> knowing each household's true cost-to-serve
-      lets the supplier price below the flat-margin benchmark; the gap it frees is the budget for abating a tonne of
-      CO&#8322; at near-zero marginal cost. If the true per-household cost sits at or above the benchmark, the thesis
-      fails right here -- the chart below is where you check.</p>
-    <p class="thesis-sentence" id="thesis-sentence">Loading...</p>
-    <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
-    <div class="thesis-caveat" id="thesis-caveat"></div>
-    <div class="thesis-evidence" id="thesis-evidence"></div>
-  </div>
-
-  <div class="sec">Three ways in</div>
-  <div class="door-grid">
-    <a class="door-card" href="./world/">
-      <div class="dp">Curious &middot; how does it actually work</div>
-      <div class="dt">The World &rarr;</div>
-      <div class="dd">The simulation, walkable: weather &rarr; wholesale price &rarr; segments &rarr; usage &rarr; bills &rarr; carbon. Each link opens onto live data and its external anchor (Elexon, ONS, DESNZ, Ofgem).</div>
-    </a>
-    <a class="door-card" href="./company/">
-      <div class="dp">Energy CEO / COO</div>
-      <div class="dt">The Company &rarr;</div>
-      <div class="dd">The supplier as product: pricing, hedging, billing, credit &amp; collections, compliance -- real outputs from the latest run, not a feature list.</div>
-    </a>
-    <a class="door-card honesty" href="./proof/">
-      <div class="dp">Domain expert / skeptic</div>
-      <div class="dt">Proof &rarr;</div>
-      <div class="dd">Fidelity results including the failures, a claim-status on every figure, corrections rendered in place, and a challenge channel -- the page an expert checks first to decide whether to trust the rest.</div>
-    </a>
-  </div>
-  <div style="margin-top:20px;font-size:13px;color:var(--muted);text-align:center">
-    Also: <a href="./glossary/" style="color:var(--blue);text-decoration:none">Glossary</a></div>
+  <a class="door" href="./company/">
+    <div class="dp">Energy CEO / COO</div>
+    <div class="dt">The Company &gt;</div>
+    <div class="dd">The supplier as product: pricing, hedging, billing, credit &amp; collections, compliance -- real outputs from the latest run, never a feature list.</div>
+  </a>
+  <a class="door" href="./proof/">
+    <div class="dp">Domain expert / skeptic</div>
+    <div class="dt">Proof &gt;</div>
+    <div class="dd">Fidelity results including the failures, a claim-status on every figure, corrections rendered in place, and a challenge channel -- the page an expert checks first.</div>
+  </a>
 </div>
+
+<div class="also">Operator? <a href="./now/">The business right now &gt;</a> &middot; <a href="./glossary/">Glossary &gt;</a></div>
+
+<footer class="foot">
+  <span>poesys. -- built and run by AI, directed by a human.</span>
+  <span>// every figure carries its clock</span>
+</footer>
+
+</div></div>
 <script>
 function gbp(n){if(n==null)return "--";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return (n<0?"-":"")+"£"+s;}
 function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
 
-function monthLabel(ym){
-  if(!ym)return "--";
-  var parts=String(ym).split("-");
-  var names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  var mi=parseInt(parts[1],10)-1;
-  return (names[mi]||parts[1])+" "+parts[0];
-}
+// Colour lives in the token source only (BRAND_CONSTITUTION law 1). The chart reads
+// its colours from the linked brand.css variables at render time -- no raw hex here.
+// In the headless render harness getComputedStyle is absent, so this returns "" and the
+// (stubbed) chart simply gets no colour; the asserted pixels are the text, not the bars.
+function cssvar(n){try{return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}catch(e){return "";}}
 
-// PULSE STRIP (POESYS_SITE_BRIEF.md §4): every value rendered from
-// site/data/*.json at fetch time -- never hand-typed here (SITE_CONSTITUTION
-// rule 3). Each item's passport (basis/freshness/scope) sits in its .pn line.
+// FIGURES (RC5: outcome metrics lead -- net margin, treasury, bills, settlement
+// coverage, enterprise value; NO effort metric). Every value rendered from
+// site/data/*.json at fetch time (SITE_CONSTITUTION rule 3), each carrying a
+// claim-status chip (rule 6) and a // basis clock (R14). No leading tilde on any
+// numeral (RC4): the number and its clock, the status is the chip.
+function chip(status){
+  return status==="provisional"
+    ? '<span class="tag tag-prov">PROVISIONAL</span>'
+    : '<span class="tag tag-verified">VERIFIED</span>';
+}
 function renderPulseStrip(dashboard, supplier, method, lastBill){
   var p=(dashboard&&dashboard.portfolio)||{};
+  var basis=p.basis||{};
   var mo=((dashboard&&dashboard.monthly_ops)||{}).monthly||[];
-  var lastMonth=mo.length?mo[mo.length-1].month:null;
-  var window=(supplier&&supplier.simulation_window)||"--";
-  var book=(dashboard&&dashboard.customers&&dashboard.customers.book_annual)||[];
-  var lastBookRow=book.length?book[book.length-1]:null;
-  var bookVal=lastBookRow?((lastBookRow.active_elec||0)+(lastBookRow.active_gas||0))+" accounts":"--";
-  var bookNote=lastBookRow?("as of "+lastBookRow.year+" &middot; site/data/dashboard.json"):"";
-  var tr=(method&&method.track_record)||{};
-  var hg=tr.hedge_grading||{};
-  var predVal=hg.graded_count!=null?(hg.graded_count+" graded / "+((hg.graded_count||0)+(hg.ungraded_count||0))+" logged"):"--";
-  var predEntries=hg.entries||[];
-  var latestPred=predEntries.length?predEntries[predEntries.length-1]:null;
-  var predNote=latestPred?("latest: "+esc(latestPred.decision_run_at)+" "+esc(latestPred.hedge_recommendation)+" -- "+esc(latestPred.outcome)):"pre-registered, misses kept";
-
-  var billItem;
-  if(lastBill&&lastBill.invoice){
-    var inv=lastBill.invoice;
-    billItem={l:"Last Bill (sample account)", v:'<a href="./customers/?acc='+encodeURIComponent(lastBill.id)+'&tab=billing">'+esc(inv.id)+'&nbsp;&rarr;</a>',
-      n:esc(inv.date)+" &middot; "+gbp(inv.amount_gbp)+" &middot; account "+esc(lastBill.id)+" (featured household, not portfolio-wide max -- see Simplified)"};
-  } else {
-    billItem={l:"Last Bill Issued", v:"Not yet aggregated", n:"portfolio-wide last-bill index not yet built -- see the featured household on The Company door"};
-  }
-
+  var months=mo.length;
+  var win=(supplier&&supplier.simulation_window)||"--";
+  var marginProv=((basis.net_margin_gbp)||{}).provisional?"provisional":"verified";
+  var evProv=((basis.enterprise_value_gbp)||{}).provisional?"provisional":"verified";
+  var bills=(p.bills_total!=null)?Number(p.bills_total).toLocaleString("en-GB"):"--";
   var items=[
-    {l:"Sim Date", v:esc(monthLabel(lastMonth)), n:"most recent settled month, "+esc(window)+" window &middot; dashboard.json"},
-    {l:"Book Size", v:esc(bookVal), n:bookNote},
-    billItem,
-    {l:"Prediction vs Realised", v:esc(predVal), n:predNote},
-    {l:"Treasury", v:gbp(p.treasury_end_gbp), n:"banked clock, end of window &middot; dashboard.json"},
-    {l:"Enterprise Value", v:gbp(p.enterprise_value_gbp)+'<span class="provisional-badge">PROVISIONAL</span>', n:'settled clock -- <a href="./company/">see the reconciliation bridge</a>'}
+    {l:"Net margin &mdash; all time", v:gbp(p.net_margin_gbp), s:marginProv,
+      c:'// settled clock &middot; full '+esc(win)+' replay &middot; <a href="./data/dashboard.json" target="_blank" rel="noopener">source</a>'},
+    {l:"Treasury &mdash; banked", v:gbp(p.treasury_end_gbp), s:"verified",
+      c:"// banked clock &middot; end of window"},
+    {l:"Bills settled", v:bills, s:"verified",
+      c:"// issued "+esc(win)+" &middot; full historical replay"},
+    {l:"Settlement coverage", v:(months?months+" months":"--"), s:"verified",
+      c:"// half-hourly Elexon/NESO &middot; point-in-time blindfold"},
+    {l:"Enterprise value", v:gbp(p.enterprise_value_gbp), s:evProv,
+      c:'// derived from settled margin &middot; <a href="./company/">see the bridge</a>'}
   ];
   document.getElementById("pulse-strip").innerHTML=items.map(function(it){
-    return '<div class="pulse-item"><div class="pl">'+it.l+'</div><div class="pv">'+it.v+'</div><div class="pn">'+(it.n||"")+'</div></div>';
+    return '<div class="fig"><div class="fk">'+it.l+'</div><div class="fv">'+it.v+'</div>'
+      +chip(it.s)+'<div class="fc">'+it.c+'</div></div>';
   }).join("");
 }
 
 var thesisChart=null;
 function renderThesisChart(dashboard){
-  // ADVISOR_STEER_THESIS_CHART.md fixes (2026-07-11, director Expert Hour):
-  // (1) per-household figures, not book totals mislabelled as per-household;
-  // (2) basis labelled on the chart itself (passport rule), sourced from the
-  // data layer's own population_basis field, not invented here;
-  // (3) the TRUE side's incompleteness is a badge ON the bar/axis label, not
-  // a footnote alone -- an expert reading only the bars for five seconds
-  // still sees it's a floor.
+  // ADVISOR_STEER_THESIS_CHART.md fixes (2026-07-11): per-household figures; basis
+  // labelled on the chart from the data layer's own population_basis; the TRUE side's
+  // incompleteness carried as a badge on the bar, not a footnote alone. Colours are
+  // BRAG (RC4): the company's achieved cost = green (on track), the incumbent
+  // benchmark = structural black -- colour is information, never decoration.
   var ol=(dashboard&&dashboard.opex_ledger)||{};
   var trueCost=ol.true_opex_per_household_gbp;
   var benchCost=ol.benchmark_opex_per_household_gbp;
@@ -244,26 +243,22 @@ function renderThesisChart(dashboard){
   var basis=ol.population_basis||"resi households";
   var hhCount=ol.household_count;
   if(sentEl)sentEl.innerHTML="Per household ("+esc(basis)+(hhCount?(", "+hhCount+" households"):"")+"): the TRUE cost-base runs at "+gbp(trueCost)+" against a "+gbp(benchCost)+" incumbent-benchmark allowance -- a "+gbp(gapPerHh)+" gap per household.";
-  if(caveatEl)caveatEl.textContent="TRUE side is a cost FLOOR, not a complete figure: AI-compute cost is not yet populated -- the usage data needed to price it honestly is too thin/stale to use without fudging a number (open costing-basis question, see Simplified). Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Simplified).";
+  if(caveatEl)caveatEl.textContent="TRUE side is a cost FLOOR, not a complete figure: AI-compute cost is not yet populated -- the usage data needed to price it honestly is too thin/stale to use without fudging a number (open costing-basis question, see Proof). Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Proof).";
   if(evEl)evEl.innerHTML="Source: <a href=\"./data/dashboard.json\" target=\"_blank\" rel=\"noopener\">site/data/dashboard.json &rarr; opex_ledger</a>, generated "+esc((dashboard.meta&&dashboard.meta.generated_at)||"--")+".";
 
   var ctx=document.getElementById("thesis-chart");
   if(!ctx)return;
   if(thesisChart)thesisChart.destroy();
+  var inkColour=cssvar("--text");
+  var mutedColour=cssvar("--muted");
+  var hairColour=cssvar("--border");
   thesisChart=new Chart(ctx,{type:"bar",data:{
-    // Short labels -- the "per household" framing is already stated in the
-    // sentence above the chart, and the 480px-wide chart-wrap (site's own
-    // narrow layout) clips a longer y-axis label (caught 2026-07-11 via a
-    // real Playwright screenshot: "Benchmark/household (incumbent)" was
-    // rendering truncated to "enchmark/household (incumbent)" -- the exact
-    // class of bug curl/DOM-text verification cannot catch, only a real
-    // rendered pixel check can).
     labels:["TRUE cost (FLOOR)","Benchmark (incumbent)"],
     datasets:[{
       data:[trueCost,benchCost],
-      backgroundColor:["#1baf7a","#4a3aa7"],
-      borderRadius:4,
-      barThickness:48
+      backgroundColor:[cssvar("--green-bright"),cssvar("--text")],
+      borderRadius:0,
+      barThickness:44
     }]
   },options:{
     indexAxis:"y",
@@ -274,8 +269,8 @@ function renderThesisChart(dashboard){
       datalabels:false
     },
     scales:{
-      x:{ticks:{color:"#52514e",callback:function(v){return gbp(v);}},grid:{color:"#e1e0d9"}},
-      y:{ticks:{color:"#0b0b0b",font:{size:12,weight:"600"}},grid:{display:false}}
+      x:{ticks:{color:mutedColour,callback:function(v){return gbp(v);}},grid:{color:hairColour}},
+      y:{ticks:{color:inkColour,font:{size:12,weight:"600"}},grid:{display:false}}
     }
   },plugins:[{
     id:"valueLabels",
@@ -286,13 +281,10 @@ function renderThesisChart(dashboard){
         var bar=meta.data[i];
         if(!bar)return;
         ctx2.save();
-        ctx2.fillStyle="#0b0b0b";
-        ctx2.font="700 12px sans-serif";
+        ctx2.fillStyle=inkColour;
+        ctx2.font="700 12px "+(cssvar("--font-house")||"sans-serif");
         ctx2.textAlign="left";
         ctx2.textBaseline="middle";
-        // Defect 1 fix: the floor caveat is IN the chart (on the bar itself),
-        // not only in a footnote paragraph below -- an expert reading only
-        // the bars for the first five seconds still sees it's incomplete.
         ctx2.fillText(gbp(val)+(i===0?" (floor)":""),bar.x+8,bar.y);
         ctx2.restore();
       });
@@ -300,39 +292,16 @@ function renderThesisChart(dashboard){
   }]});
 }
 
-// "Last bill issued" needs one concrete, real invoice to link to (rule 3: a
-// rendering, never an author). company.json's household is the site's own
-// existing named drill-down household (used identically on The Company
-// door) -- we fetch ITS raw ledger file and take its own last invoice,
-// rather than inventing a portfolio-wide "most recent" figure that would
-// require aggregating every account's ledger (not yet built -- honestly
-// flagged in the pulse item's passport note above, not hidden).
-function fetchLastBill(company){
-  var hh=(company&&company.household)||{};
-  if(!hh.available||!hh.id)return Promise.resolve(null);
-  return fetch("./data/customers/"+encodeURIComponent(hh.id)+".json?t="+Date.now())
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(acct){
-      if(!acct||!acct.invoices||!acct.invoices.length)return null;
-      return {id:hh.id, invoice:acct.invoices[acct.invoices.length-1]};
-    })
-    .catch(function(){return null;});
-}
-
 Promise.all([
   fetch("./data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
   fetch("./data/supplier.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/company.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+  fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
 ]).then(function(rs){
-  var dashboard=rs[0], supplier=rs[1], method=rs[2], company=rs[3];
+  var dashboard=rs[0], supplier=rs[1], method=rs[2];
   renderThesisChart(dashboard);
-  return fetchLastBill(company).then(function(lastBill){
-    renderPulseStrip(dashboard, supplier, method, lastBill);
-  });
+  renderPulseStrip(dashboard, supplier, method, null);
 }).catch(function(e){console.error("Load error:",e);});
 </script>
-<script src="./shared/director-comments.js" defer></script>
-<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
+<footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
 </html>

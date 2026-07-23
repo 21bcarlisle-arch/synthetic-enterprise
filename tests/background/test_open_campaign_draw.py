@@ -127,19 +127,18 @@ def test_rung_is_in_authorized_set_enumeration():
     assert "open_campaign" in enum, "open_campaign must be an enumerated level of the authorized set"
 
 
-def test_real_register_has_site_v5_drawable():
-    """The committed register still makes SITE_V5 drawable NOW (live, not latent): surface 2 is
-    landed (2026-07-23), but surface 1 (front door, deployed-but-FAILED) and surfaces 3-5 remain
-    open, so the campaign must-draw persists."""
-    items = sup._open_campaign_items()  # real CAMPAIGN_REGISTER_PATH
-    ids = {i[1] for i in items}
-    assert "SITE_V5" in {i[0] for i in items}
-    # surface 2 has landed -> it is no longer in the drawable set...
-    assert "surface_2_the_world" not in ids
-    # ...but at least one of the still-open surfaces is, so the campaign draws.
-    assert ids & {"surface_1_front_door", "surface_3_the_company",
-                  "surface_4_proof", "surface_5_director_window"}
-    assert sup._open_campaign_draw() is not None
+def test_real_register_site_v5_closed_all_surfaces_landed():
+    """The committed register reflects the LIVE truth (2026-07-23): all five SITE_V5 surfaces are
+    `landed` and the campaign is `closed`, so it contributes NOTHING to the drawable set -- the
+    R15 'all items landed permits rest' half, proven against the REAL register (not just the
+    synthetic _ALL_LANDED fixture). Both-ways independence is proven in
+    test_independence_not_a_constant. If the director re-verdicts the front door FAIL and it is
+    reopened (status: open), this test flips and the campaign must-draws again."""
+    items = sup._open_campaign_items()  # real CAMPAIGN_REGISTER_PATH -- only OPEN items of OPEN campaigns
+    # A closed campaign yields no drawable items, so SITE_V5 is absent from the drawable set.
+    assert "SITE_V5" not in {i[0] for i in items}
+    # No other open campaign exists, so the live register drives no open-campaign must-draw.
+    assert sup._open_campaign_draw() is None
 
 
 def test_independence_not_a_constant(tmp_path):

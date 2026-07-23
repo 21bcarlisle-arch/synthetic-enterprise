@@ -129,8 +129,12 @@ def test_thesis_freshness_pixel_is_independent_of_render():
 # R3 (nav is canonical) and R1 (claim -> evidence)
 # ---------------------------------------------------------------------------
 def _site_nav(text: str) -> str:
-    m = re.search(r'<nav class="site-nav">(.*?)</nav>', text, re.S)
-    assert m, "site-nav block not found"
+    # SITE_V5 surface 1 iteration 2 (2026-07-23): the nav is the architectural
+    # header block (BRAND_CONSTITUTION exemplar) -- type-only wordmark + the door
+    # links. The canonical door list + Home-active + director-absent invariants are
+    # unchanged; only the markup grammar moved (tests move with the doors).
+    m = re.search(r'<header class="site-nav">(.*?)</header>', text, re.S)
+    assert m, "site-nav header block not found"
     return m.group(1)
 
 
@@ -143,7 +147,7 @@ def test_canonical_nav_present_and_director_absent():
     for label in ("Home", "The World", "The Company", "Proof"):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
     # Home is the current door -> marked active.
-    assert 'href="./" class="nav-link active">Home</a>' in nav
+    assert 'href="./" class="active">Home</a>' in nav
     # The Director door is auth-gated and must NOT appear in the public nav.
     assert "./director/" not in nav, "Director door must not be in the public nav"
     assert ">Director</a>" not in nav

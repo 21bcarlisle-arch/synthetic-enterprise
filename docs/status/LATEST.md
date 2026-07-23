@@ -1,5 +1,30 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-23T16:05:41Z
+Last updated: 2026-07-23T16:53:25Z
+
+**PRODUCT LANDED (2026-07-23) — SITE_V5 surface 1 (Front door) iteration 2: rebuilt to the BRAND_CONSTITUTION architectural exemplar. SITE_V5 CAMPAIGN CLOSED (all 5 surfaces landed).**
+Drawn by the seventh-class open-campaign self-refill (no doorbell): surfaces 2–5 landed, so the draw rolled to the last
+open item, the front door. MVP #1 (`87ce1b980`) scored axis-1 **FAIL — "It still looks awful"**; `site/index.html` is
+rebuilt strictly to the exemplar (§7) and presented **AS SCORED RUBRIC ROWS** vs
+`DIRECTOR_AXIS1_SITE_VERDICT_ROWSCORED` + Spec-005 so the director's re-verdict lands **row-by-row**:
+**RC4 (hierarchy & brand) ADDRESSED** — (a) type-only **BLACK** `poesys.` wordmark, legacy teal logo killed; (b)
+rounded-card soup → **architectural black-on-white hairline grammar** (zero border-radius), ONE focal point (the hero
+h1); (c) **colour is information only** — decorative coloured card top-borders removed, colour now appears ONLY on
+claim-status chips (blue=VERIFIED, amber=PROVISIONAL) and the thesis chart (achieved cost=green on-track,
+benchmark=structural black); off-brand teal/purple chart hex (`#1baf7a`/`#4a3aa7`) replaced by token reads; (d) **no
+leading tilde** on any board numeral — the number + its `//` clock, status rides the chip; (e) **chat widget REMOVED**
+from the marketing front door. **RC5 (effort-as-outcomes) ADDRESSED** — outcome metrics lead (net margin £1,521,070,
+treasury £3,898,729, 1,588 bills, 113 settlement months, EV £7,803,340 PROVISIONAL), **no** tests/commits/phases
+anywhere. **Honesty/R14:** every figure carries a claim-status chip + `//` basis clock; margin & EV read their
+provisional flag from `portfolio.basis`; no fabricated numbers. **R11+R15** proven by the render harness executing the
+page's real inline JS against published JSON (`site/test_home_door.py` — pixels + mutation independence) + 6 RC-row
+guards (`site/test_front_door_brand.py`); brand-compliance frontier green. **Full site-lane gate green (292 passed, 6
+skipped).** **Expert-Hour** (phase-close-evaluator, fresh context) = **PASS** against the single job (the 10-second
+pitch), RC4/RC5 met row-by-row. Marked `landed` in `CAMPAIGN_REGISTER.yaml` **same commit**; all five surfaces now
+landed → **campaign `status: closed`** (stops forbidding rest, R15 "all landed permits rest" half; the real-register
+draw test flipped to prove closure). **R11 RESIDUAL — the director's own eyes:** if his axis-1 re-verdict is still
+FAIL, reopen `surface_1_front_door` (one edit) and the campaign reopens (reversible). Non-blocking follow-on:
+treasury/bills/coverage self-declare a VERIFIED chip in JS (defensible for settled/banked facts); the `/now` landing
+swap stays the LAST step (ruling §6d) — `/now` reachable via a demoted link, not the default landing yet.
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 4 (Proof) rebuilt around "corrects itself in public", made MECHANICAL.**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): surfaces 2 & 3 landed, so the draw rolled to the
