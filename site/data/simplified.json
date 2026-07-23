@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T07:05:07Z",
+  "generated_at": "2026-07-23T07:20:20Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -1341,7 +1341,8 @@
           "level_current": 0,
           "level_target": 1,
           "notes": [
-            "2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 1). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it; DOES NOT block generator wiring (touches the billing/lifecycle process model, not the population draw). Scope: home-move exists today as churn/acquisition MECHANICS (home_move_win_rate.py, churn_journey, customer_events) but the DEBT and REVENUE physics OF the move itself are NOT confirmed built -- move-out final-bill non-payment risk, move-in landing on deemed rates, the void-property problem (Board Spec 006 item 9 PARTIAL). Director frame, register VERBATIM: every tenancy change is ONE credit-risk exit PLUS TWO deemed-rate entries (double jeopardy), and simultaneously the prime acquisition moment for high-value low-churn customers. The atom UNIFIES three things currently held separately: acquisition (thin), deemed-tariff path (built), bad debt (built). DISCOVER first: read the three current mechanisms and name the exact seam where the debt/revenue physics of the move would attach; fold, do not duplicate. BUILD stays gated (EPOCH_GATING -- author now, BUILD when opened)."
+            "2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 1). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it; DOES NOT block generator wiring (touches the billing/lifecycle process model, not the population draw). Scope: home-move exists today as churn/acquisition MECHANICS (home_move_win_rate.py, churn_journey, customer_events) but the DEBT and REVENUE physics OF the move itself are NOT confirmed built -- move-out final-bill non-payment risk, move-in landing on deemed rates, the void-property problem (Board Spec 006 item 9 PARTIAL). Director frame, register VERBATIM: every tenancy change is ONE credit-risk exit PLUS TWO deemed-rate entries (double jeopardy), and simultaneously the prime acquisition moment for high-value low-churn customers. The atom UNIFIES three things currently held separately: acquisition (thin), deemed-tariff path (built), bad debt (built). DISCOVER first: read the three current mechanisms and name the exact seam where the debt/revenue physics of the move would attach; fold, do not duplicate. BUILD stays gated (EPOCH_GATING -- author now, BUILD when opened).",
+            "2026-07-23 DISCOVER COMPLETE (docs/design/W2_12_CHANGE_OF_TENANCY_DEBT_PHYSICS_DISCOVER.md): all five components already exist separately (account_closure.py move-out exit + DEBT_REFERRED/SLC21B; deemed_contract.py + cot.py deemed-rate entries + void uplift; change_of_tenancy_register.py CoT orchestration; home_move_win_rate.py thin acquisition; life_events.py MOVE trigger). SEAM NAMED = change_of_tenancy_register.py: a life_events MOVE fans out to the three existing engines as ONE causal transaction. Two gaps to fold (no new engines): (1) DEBT physics = p(move-out final bill unpaid) as a modelled outcome at closure; (2) acquisition-VALUE physics = win outcome carries landed-occupant CLV (enterprise_value.py). Closes Board Spec 006 item 9. Level-1 PROPOSED (proposals log); level_current held at 0 -- the cell move is the director's per the level-promotion gate. BUILD stays EPOCH-gated."
           ]
         },
         {
@@ -1351,6 +1352,15 @@
           "level_target": 1,
           "notes": [
             "2026-07-23 AUTHORED as a DISCOVER atom by director verdict (DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 3, item 2). provenance: proposal / loop_stage: discover -- non-blocking, the loop self-draws it. Scope: occupancy archetypes currently drive COMPLAINT propensity only -- two extra people in a house changes how OFTEN they call, not WHAT they use. The atom wires occupancy (people count, adults vs children where anchorable) into demand VOLUME and SHAPE, alongside the director causal sketch -- hours-at-home, cooking fuel, overnight device load -- as candidate shape drivers. NATURAL HOME (director: fold, do not duplicate): the held HH load-shape clustering lane -- concretely simulation/demand_model.py::build_demand_shape and simulation/premise_demand.py (W1_5_premise_demand_shape), which ALREADY consume an occupancy_multiplier for shape; this atom deepens that from a scalar multiplier into a people-count/composition-driven volume+shape response. DISCOVER first: confirm exactly where occupancy enters the demand path today and what an anchorable people-count response would add; couples_with W1_5. BUILD stays gated (EPOCH_GATING)."
+          ]
+        },
+        {
+          "atom_id": "W2_14_continuous_behavioural_engagement_model",
+          "atom_name": "Continuous behavioural engagement model -- latent distributed propensity replacing the three discrete lifetime bins (state-dependent, movable by life events, service episodes and price shocks)",
+          "level_current": 0,
+          "level_target": 1,
+          "notes": [
+            "2026-07-23 AUTHORED as a DISCOVER atom by director ratification (DIRECTOR_R13_ENGAGEMENT_MIX_RATIFICATION_2026-07-23.md section 3). provenance: proposal / loop_stage: discover -- non-blocking, self-drawn; MUST NOT delay or block the ratified static share edit (that landed 2026-07-22, commit 9542cdd1b). Director standing ask: the three discrete engagement bins (ACTIVE/PASSIVE/DISENGAGED in simulation/household_segments.py) are a BOUNDING SIMPLIFICATION. The future model should treat engagement as a LATENT, DISTRIBUTED PROPENSITY -- state-dependent, movable by life events, service episodes and price shocks (a household can BECOME disengaged), not a trait fixed for the whole tenure. Coupled per the registered fusion hypotheses: engagement x price_sensitivity, and a U-shape by affluence (fusion-register, DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23.md section 1). Q-B of the R13 ruling registered the sibling 'regime-timed engagement schedule' as a NAMED candidate curriculum scenario (a future epoch-4-class director lever), distinct from THIS atom (the continuous within-household model). DISCOVER first: confirm exactly where the discrete engagement bin enters the churn/renewal path today (household_segments.py::engagement_level_for_customer -> _ACTIVE_RENEWAL_PROBABILITY_BY_ENGAGEMENT, consumed by company/crm/churn_model.py) and what a latent movable propensity would add; do not begin build without a granted turn. BUILD stays gated (EPOCH_GATING -- author now, BUILD when opened)."
           ]
         },
         {
@@ -1577,6 +1587,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 125,
-  "total_notes": 497
+  "total_atoms_with_notes": 126,
+  "total_notes": 499
 }
