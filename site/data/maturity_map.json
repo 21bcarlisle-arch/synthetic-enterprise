@@ -688,7 +688,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 26
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "W2_14_continuous_behavioural_engagement_model",
@@ -2674,6 +2674,77 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 6
+    },
+    {
+      "id": "F1a_sim_customer_response",
+      "name": "F1a SIM customer response model -- typed message->response over the wall; hidden susceptibility scalars scale benchmarked nudge uplift; response is a distinct-in-time event (behind the wall, allowed to hold truth)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_5_life_event_stream"
+      ],
+      "couples_with": [
+        "F1b_company_comms"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 31
+    },
+    {
+      "id": "F1b_company_comms",
+      "name": "F1b COMPANY comms: situation-keyed segment-gated message generator + per-customer Bayesian susceptibility estimator updated on observed replies ONLY (in front of the wall, allowed to be wrong)",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_5_life_event_stream"
+      ],
+      "couples_with": [
+        "F1a_sim_customer_response"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 8
+    },
+    {
+      "id": "F1c_harness_conversation_gap",
+      "name": "F1c HARNESS conversation gap: belief-vs-truth susceptibility gap per customer + CA-weighted (55/35/10) outcome uplift + R15 intent-leak control that FIRES on a peeking company (measures, never helps either side)",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "frame",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "F1a_sim_customer_response",
+        "F1b_company_comms"
+      ],
+      "couples_with": [
+        "F1a_sim_customer_response",
+        "F1b_company_comms"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -2756,7 +2827,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 132,
+  "total_atoms": 135,
   "epoch2_movements": [
     {
       "id": "M1",
