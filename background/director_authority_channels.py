@@ -36,16 +36,19 @@ Proven in tests/background/test_director_authority_channels.py:
     an unavailable check is a FAILED check, never a pass-through (R15 doctrine).
   * TAUTOLOGY guard — the HMAC key lives outside the working TREE (not in git). The design INTENT is
     that the autonomous worker cannot mint a valid director_ntfy entry because it cannot read the key.
-    ⚠️ LIVE GAP (found 2026-07-22, flagged to the director, NOT yet closed): out-of-TREE is not the
-    same as out-of-worker-ENV. `worker-tick.service` loads EnvironmentFile=.env.ntfy (which carries
-    SE_WAKE_HMAC_KEY) and `worker_tick.spawn_invocation` does `os.environ.copy()`, so the spawned
-    `claude -p` worker currently INHERITS the key — and HMAC is symmetric, so whoever can verify can
-    sign. Until the key is stripped from the worker's spawn env (the fix: pop SE_WAKE_HMAC_KEY there,
-    as spawn_invocation already pops ANTHROPIC_BASE_URL — the worker needs SE_NTFY_TOPIC to SEND, not
-    the wake key to SIGN), this channel is NOT worker-unforgeable and the gate-wall's deferred
-    "prevention layer" is NOT discharged. Severity: no worse than the pre-existing console self-
-    declaration residual (the wall is detection-only by design), but a forged director_ntfy carries a
-    VALID signature so it is HARDER to detect — director's call whether to strip the key now.
+    ✅ GAP CLOSED (found 2026-07-22, flagged to the director before reliance; director ruled OPTION 1
+    on 2026-07-23 — DIRECTOR_RULING_HMAC_GAP_OPTION_1 — and it is now applied): out-of-TREE was not
+    the same as out-of-worker-ENV. `worker-tick.service` loads EnvironmentFile=.env.ntfy (which
+    carries SE_WAKE_HMAC_KEY) and the spawners did `os.environ.copy()`, so the spawned model process
+    INHERITED the key — and HMAC is symmetric, so whoever can verify can sign. The fix strips
+    SE_WAKE_HMAC_KEY from EVERY model-facing spawn env via one enumerable forbidden set
+    (`secrets_location.MODEL_FACING_FORBIDDEN_SECRETS` / `scrub_model_facing_env`), routed through
+    `worker_tick._worker_env`, `build_executor._child_env`, `autonomous_runner`, `director_twin`, and
+    the `worker_seat` tmux `-e` override — the worker keeps SE_NTFY_TOPIC to SEND but can never hold
+    the key to SIGN. R15 both directions + the R10 class guard are proven in
+    tests/background/test_model_facing_secret_scrub.py (a no-op mutation of the scrub reds 5 tests).
+    Verification stays daemon-side (ntfy_responder / gate check), which reads the key from its OWN
+    process env, never a spawned copy — so the genuine director-ruling path is unaffected.
   * REPLAY/REPURPOSE guard — the signed text must bind the (action, atom) it authorizes, so a valid
     signature for one ruling cannot be lifted onto a different ledger record.
 """

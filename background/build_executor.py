@@ -42,6 +42,10 @@ from typing import Any, Callable, Optional
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
+import sys  # noqa: E402
+sys.path.insert(0, str(PROJECT_DIR))
+from background.secrets_location import scrub_model_facing_env  # noqa: E402
+
 # --- Primitive #3: absolute CLAUDE_BIN path + existence guard ----------------
 # Full path since nvm isn't active in a subprocess env (real operational lesson).
 CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
@@ -205,7 +209,9 @@ def _child_env() -> dict:
     env = os.environ.copy()
     env.pop("ANTHROPIC_BASE_URL", None)
     env["DISABLE_AUTOUPDATER"] = "1"
-    return env
+    # Authority gap fix (DIRECTOR_RULING_HMAC_GAP_OPTION_1, 2026-07-23): strip
+    # SE_WAKE_HMAC_KEY so this headless turn cannot forge a director-signed message.
+    return scrub_model_facing_env(env)
 
 
 def dispatch_turn(

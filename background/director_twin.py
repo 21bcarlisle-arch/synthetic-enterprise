@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import re
+import os
 import subprocess
 import time
 from dataclasses import dataclass
@@ -36,6 +37,7 @@ from typing import Callable
 
 from background import gate_authorization
 from background.one_way_door import classify_action
+from background.secrets_location import scrub_model_facing_env
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 CANON_PATH = PROJECT_DIR / "docs" / "design" / "DIRECTOR_CANON.md"
@@ -100,6 +102,11 @@ def _default_invoke(prompt: str) -> str:
             capture_output=True,
             text=True,
             timeout=180,
+            # Authority gap fix (DIRECTOR_RULING_HMAC_GAP_OPTION_1, 2026-07-23): even
+            # though --tools= denies this model any tool access, strip SE_WAKE_HMAC_KEY
+            # from its env too — defence in depth, one enumerable forbidden set for
+            # every model-facing spawn (the twin must never hold the signing key).
+            env=scrub_model_facing_env(os.environ.copy()),
         )
     return result.stdout.strip()
 

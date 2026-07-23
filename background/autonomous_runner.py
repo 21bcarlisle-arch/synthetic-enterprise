@@ -86,6 +86,7 @@ AUTONOMOUS_PROMPT = (
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background.agent_status import update_agent_status  # noqa: E402
+from background.secrets_location import scrub_model_facing_env  # noqa: E402
 
 _turn_times: deque = deque()
 _active_proc = None
@@ -196,6 +197,9 @@ def launch_turn() -> None:
     # point of failure that silently killed all overnight autonomous turns.
     env = os.environ.copy()
     env.pop("ANTHROPIC_BASE_URL", None)
+    # Authority gap fix (DIRECTOR_RULING_HMAC_GAP_OPTION_1, 2026-07-23): strip
+    # SE_WAKE_HMAC_KEY so this model turn cannot forge a director-signed message.
+    scrub_model_facing_env(env)
     # Belt-and-braces (2026-07-11, root-caused live): this Popen's env is a
     # copy of autonomous_runner.py's OWN process environment, not something
     # freshly read from tmux's global environment at spawn time -- if the

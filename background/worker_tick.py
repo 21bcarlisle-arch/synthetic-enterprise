@@ -42,6 +42,8 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
+from background.secrets_location import scrub_model_facing_env  # noqa: E402
+
 # THE single kill switch for ALL autonomous execution (same flag the Stop hook reads — no second
 # flag; DIRECTOR_ANSWERS_C7 #6). Console-only/director-reserved. FAIL-CLOSED.
 ENABLE_FLAG = PROJECT_DIR / "docs" / "observability" / ".build_executor_enabled"
@@ -198,6 +200,22 @@ def _resolve_claude() -> str | None:
     return matches[-1] if matches else None
 
 
+def _worker_env() -> dict:
+    """Per-launch env for the spawned `claude -p` worker. Copies this process's env,
+    then applies hygiene: go direct to Anthropic (drop the optional proxy), force
+    DISABLE_AUTOUPDATER, mark the Stop-hook worker discriminator, and — the authority
+    gap fix (DIRECTOR_RULING_HMAC_GAP_OPTION_1, 2026-07-23) — SCRUB every model-facing
+    forbidden secret (SE_WAKE_HMAC_KEY) so the worker keeps SE_NTFY_TOPIC to SEND but
+    can never hold the wake key to SIGN a forged director-authority message. The scrub
+    is the shared class-fix (secrets_location.scrub_model_facing_env); every model-
+    facing spawner routes through it."""
+    env = os.environ.copy()
+    env.pop("ANTHROPIC_BASE_URL", None)   # go direct to Anthropic (proxy is optional monitoring)
+    env["DISABLE_AUTOUPDATER"] = "1"
+    env["SE_SBI_WORKER"] = "1"            # the Stop-hook worker discriminator (inherited by the hook)
+    return scrub_model_facing_env(env)
+
+
 def spawn_invocation(reason: str) -> "subprocess.Popen | None":
     """Spawn ONE headless bounded `claude -p` worker invocation. Returns the Popen (still running),
     or None if it could not be launched. The invocation is marked SE_SBI_WORKER=1 (the Stop hook's
@@ -212,10 +230,7 @@ def spawn_invocation(reason: str) -> "subprocess.Popen | None":
     if not claude_bin:
         _log("claude binary not found — cannot spawn invocation")
         return None
-    env = os.environ.copy()
-    env.pop("ANTHROPIC_BASE_URL", None)   # go direct to Anthropic (proxy is optional monitoring)
-    env["DISABLE_AUTOUPDATER"] = "1"
-    env["SE_SBI_WORKER"] = "1"            # the Stop-hook worker discriminator (inherited by the hook)
+    env = _worker_env()
     prompt = WORKER_PREAMBLE + "[SCHEDULED-TICK doorbell -- R7: act on real disk/git state] " + reason
     try:
         return subprocess.Popen(

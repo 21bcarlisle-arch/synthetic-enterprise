@@ -30,6 +30,9 @@ import time
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_DIR))
+from background.secrets_location import MODEL_FACING_FORBIDDEN_SECRETS  # noqa: E402
+
 SESSION_NAME = "claude"
 MODEL = "claude-opus-4-8"
 # The dedicated worker conversation id (same as the old watchdog's — the seat's identity is stable).
@@ -227,15 +230,35 @@ def _report(status: str) -> None:
         pass
 
 
+def _seed_env_flags() -> list[str]:
+    """tmux `-e` env flags for the new seat. DISABLE_AUTOUPDATER plus — the authority
+    gap fix (DIRECTOR_RULING_HMAC_GAP_OPTION_1, 2026-07-23) — an explicit EMPTY value
+    for every model-facing forbidden secret (SE_WAKE_HMAC_KEY). tmux new-session
+    otherwise inherits the server's environment, which may carry the wake key; `-e
+    SE_WAKE_HMAC_KEY=` overrides it to empty in the seat, and an empty key is
+    fail-closed at verify_wake_message (`if not WAKE_HMAC_KEY: return None`). The seat
+    is a model-facing `claude` process: it may SEND (SE_NTFY_TOPIC) but must never hold
+    the key to SIGN. Driven by the same enumerable forbidden set as
+    secrets_location.scrub_model_facing_env — one list, every spawn path."""
+    flags = ["-e", "DISABLE_AUTOUPDATER=1"]
+    for name in sorted(MODEL_FACING_FORBIDDEN_SECRETS):
+        flags += ["-e", f"{name}="]
+    return flags
+
+
+def _seed_cmd(claude_bin: str) -> list[str]:
+    """The full `tmux new-session` argv for the worker seat (extracted so a test can
+    assert the authority-secret env override is present without launching tmux)."""
+    return (["tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", str(PROJECT_DIR)]
+            + _seed_env_flags() + seat_argv(claude_bin))
+
+
 def seed_seat(claude_bin: str) -> None:
     """Create the tmux worker seat with a DETERMINISTIC session id. No reaping; no pane injection.
     Archives any stale transcript first so `--session-id WORKER_SESSION_ID` yields exactly that live
     id (IDENTITY_DRIFT_FIX)."""
     _archive_stale_transcript()
-    subprocess.run(
-        ["tmux", "new-session", "-d", "-s", SESSION_NAME, "-c", str(PROJECT_DIR),
-         "-e", "DISABLE_AUTOUPDATER=1"] + seat_argv(claude_bin),
-        capture_output=True)
+    subprocess.run(_seed_cmd(claude_bin), capture_output=True)
 
 
 def main() -> None:

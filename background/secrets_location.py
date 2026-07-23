@@ -25,6 +25,33 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
+# ── Authority secrets that must NEVER reach a model-facing process ──────────────
+# DIRECTOR_RULING_HMAC_GAP_OPTION_1 (2026-07-23). SE_WAKE_HMAC_KEY is the SYMMETRIC
+# key that signs director-authority wake/ntfy messages; whoever can verify can also
+# SIGN. A spawned `claude -p` worker (or any model-facing fork/sub-agent) that
+# inherited it via os.environ.copy() could forge a director_ntfy ruling with a VALID
+# signature (director_authority_channels.py's LIVE GAP). The worker needs only
+# SE_NTFY_TOPIC to SEND ordinary NTFYs — never the wake key to SIGN. So this set is
+# stripped from EVERY model-facing spawn env (worker_tick, autonomous_runner,
+# build_executor, director_twin, worker_seat). Verification stays daemon-side
+# (ntfy_responder / gate check), which reads the key from its OWN process env, not a
+# spawned copy. Class-fix (R10): every spawner calls scrub_model_facing_env(), so a
+# new spawn path can be checked against one enumerable list, not re-audited ad hoc.
+MODEL_FACING_FORBIDDEN_SECRETS = frozenset({"SE_WAKE_HMAC_KEY"})
+
+
+def scrub_model_facing_env(env: dict) -> dict:
+    """Remove every authority-signing secret from `env` IN PLACE and return it, so a
+    model-facing child process cannot mint a forged director-authority signature.
+
+    FAIL-CLOSED by construction: pop-with-default never raises on an absent key, and
+    the forbidden set is the SOLE source of truth — adding a secret here strips it
+    from all spawners at once. The child keeps everything else (SE_NTFY_TOPIC etc.)
+    so it can still SEND ordinary NTFYs; it simply cannot SIGN."""
+    for name in MODEL_FACING_FORBIDDEN_SECRETS:
+        env.pop(name, None)
+    return env
+
 NEW_SECRETS_DIR = Path.home() / ".config" / "synthetic-enterprise"
 OLD_SECRETS_DIR = PROJECT_DIR / "background"
 
