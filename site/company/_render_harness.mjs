@@ -59,7 +59,7 @@ const ids = [
   "cap-grid", "cap-passport",
   "cov-intro", "cov-kpis", "cov-body", "cov-passport",
   "state-kpis", "state-decisions",
-  "finance-intro", "finance-kpis", "bridge-intro", "bridge-body", "finance-passport",
+  "finance-intro", "finance-kpis", "finance-unit-note", "bridge-intro", "bridge-body", "finance-passport",
   "trading-intro", "trading-kpis", "hedge-body", "trading-passport",
   "hh-intro", "hh-attrs", "hh-kpis", "hh-detail", "hh-passport",
   "oblig-intro", "oblig-kpis", "oblig-body", "tiered-block", "oblig-passport",

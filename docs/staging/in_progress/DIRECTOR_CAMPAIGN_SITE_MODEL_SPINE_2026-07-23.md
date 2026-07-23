@@ -97,7 +97,27 @@ worlds" chip: soften to "designed to rerun" if the claim-status rubric reads it 
 present-tense TF2 (my call, do not escalate).
 </details>
 
-### §C — Financials reframe (RC6): unit economics, never bare totals
+### §C — Financials reframe (RC6): unit economics, never bare totals  [COMPANY DOOR LANDED 2026-07-23 tick; /now + /project OPEN]
+**DONE this tick — The Company finance panel (`site/company/index.html::renderFinance`).**
+The director's exact complaint ("totals from a random sample of customers") made concrete: the
+book is a **drawn sample of N=19 customers** (from `company.json::stress_bands.total`, the same
+sample the totals are earned by), now STATED on the panel with the draw ("curriculum-weighted
+historical replay, 2016–2025"). The grid now **leads with unit economics** — Net margin/customer
+(£26,909.56, 2025) and Revenue/customer (£67,578.98, 2025), each with its **denominator stated
+inline** (`÷ 19 sampled customers`, same clock/year — no hidden division) — plus the Collection
+rate (a book-size-invariant RATE). Every cumulative total is **demoted and caveated** (`10-yr
+cumulative · scales with drawn book`), with a small-print footnote: totals "scale with the book and
+are not meaningful in isolation." R11 render (against live `company.json`) + R15 failable tests in
+`site/company/test_company_door.py` (per-customer value+denominator FOLLOW N — a hardcoded ratio
+FAILS; totals carry the caveat) — 13 pass; full site suite 274 pass. `finance-unit-note` added to
+the render harness whitelist so it is R11-observable. **Live-site pixel verify (poesys.net, mobile)
+is POST-DEPLOY** — committed, not yet published; confirm on the next auto-process publish.
+**STILL OPEN:** the same reframe on **/now panel 2** and **/project (investor summary)**; plus
+cost-to-serve/arrears £-per-customer and DISTRIBUTIONS across coverage cells (needs the generator to
+emit an authoritative per-customer denominator + distribution — company.json currently carries only
+the aggregate N; a follow-on data-plumbing step, logged here not faked).
+
+<details><summary>original §C brief</summary>
 Convert every financial surface to £-per-customer (margin, cost-to-serve, arrears),
 RATES (collection %, hedge cover, complaint rate), DISTRIBUTIONS across coverage
 cells, £/tCO₂e when instrumented — with **N and the draw stated on every panel**
@@ -106,6 +126,7 @@ footnotes marked "scales with drawn book; not meaningful in isolation." Belief-v
 gaps are first-class financial exhibits. Apply across /company, /now panel 2, /project
 (investor summary). Director verbatim: "I don't take financials as useful at all.
 Certainly not totals from a random sample of customers."
+</details>
 
 ### §D — Fix the 22 links + flip link_walk into a GATING test  [BLOCKED on §A]
 Once §A fixes the canonical door set: correct the 22 non-canonical links to point at

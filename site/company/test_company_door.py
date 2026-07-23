@@ -90,6 +90,48 @@ def test_settled_net_margin_is_independent_of_render():
     assert "42" in body and ("42.4" in body or "42,424" in body or "42.42" in body), body
 
 
+# --- RC6 (DIRECTOR §C, 2026-07-23): financials are unit economics, never bare totals ---
+
+
+def test_finance_states_book_size_N_and_draw_rc6():
+    # The finance panel must state N (the drawn sample) and the draw, and lead with a
+    # per-customer figure -- the director does not accept "totals from a random sample".
+    d = _live()
+    n = d["stress_bands"]["total"]
+    out = _render(d)
+    intro = out["finance-intro"]["innerHTML"]
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert f"N={n}" in intro, intro
+    assert "drawn sample" in intro.lower(), intro
+    assert "Net margin / customer" in kpis, kpis
+    note = out["finance-unit-note"]["innerHTML"]
+    assert f"N={n}" in note and "not meaningful in isolation" in note, note
+
+
+def test_finance_totals_marked_scales_with_book_rc6():
+    # Every cumulative total must carry the "scales with drawn book" caveat.
+    out = _render(_live())
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert "scales with drawn book" in kpis, kpis
+
+
+def test_finance_per_customer_follows_book_size_rc6():
+    # R15 (a control must be able to FAIL): the £/customer figure and its stated
+    # denominator must follow N. Mutate the sample size; both the denominator label
+    # and the rendered value must change -- a hardcoded ratio would fail this.
+    d = _live()
+    d["finance"]["latest_year_net_margin_gbp"] = 700000.0
+    d["stress_bands"]["total"] = 7
+    out = _render(d)
+    kpis = out["finance-kpis"]["innerHTML"]
+    assert "÷ 7 sampled customers" in kpis, kpis
+    assert "100,000.00" in kpis, kpis  # 700000 / 7, denominator-stated
+    # And a different N moves the value (independence, not a constant):
+    d["stress_bands"]["total"] = 14
+    out2 = _render(d)
+    assert "50,000.00" in out2["finance-kpis"]["innerHTML"], out2["finance-kpis"]["innerHTML"]
+
+
 # --- SURFACE-3 single job: the SaaS shown as PRODUCT (SITE_V5, ruling 2026-07-23) ---
 
 
