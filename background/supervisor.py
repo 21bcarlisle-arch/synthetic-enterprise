@@ -302,8 +302,18 @@ def _real_staged_instructions() -> list[str]:
     # Genuinely-blocked in_progress items (no worker banner / a real wall, not "authorised NOW") are
     # NOT surfaced, so a done-analysis-awaiting-a-director-[ACT] correctly stays parked. Fail-open.
     try:
-        from background.staging_disposition import misparked_actionable_in_progress
+        from background.staging_disposition import (
+            misparked_actionable_in_progress,
+            misparked_open_campaign_in_progress,
+        )
         real.extend("in_progress/" + n for n in misparked_actionable_in_progress(STAGING_DIR / "in_progress"))
+        # SECOND net (2026-07-23 NIGHT_ENFORCEMENT addendum, the 20:00Z bug): a director-authored
+        # CAMPAIGN doc parked here with a PROCEED-ABLE sub-item carries no worker banner (net above
+        # misses it) and is not in CAMPAIGN_REGISTER.yaml (_open_campaign_draw misses it) -> the tick
+        # idled beside open campaign work. Surface it too; de-dup if both nets flag the same doc.
+        for n in misparked_open_campaign_in_progress(STAGING_DIR / "in_progress", CAMPAIGN_REGISTER_PATH):
+            if "in_progress/" + n not in real:
+                real.append("in_progress/" + n)
     except Exception:  # a detection error must never break the draw
         pass
     return real

@@ -80,6 +80,13 @@ def _isolate(tmp_path, monkeypatch):
     # exhausted" tests would leak the real (open SITE_V5) CAMPAIGN_REGISTER.yaml and (correctly, per
     # the new law) draw the open campaign. The lane itself is proven in test_open_campaign_draw.py.
     monkeypatch.setattr(supervisor, "CAMPAIGN_REGISTER_PATH", tmp_path / "CAMPAIGN_REGISTER.yaml")
+    # DECLARED-DEFECT BACKLOG LANE (RUNG 4, director ruling 2026-07-23 WORK_IS_THE_DEFAULT): same
+    # isolation as the campaign/forward-discovery registers above -- point the defect register at a
+    # nonexistent tmp file so this hermetic world is EMPTY AT EVERY LEVEL by default; otherwise these
+    # "map empty -> rest/exhausted" tests leak the real (open SPIKE_TAIL_SSP_RESIDUAL) register and
+    # (correctly, per the rung) draw the open defect. Added when the rung landed (572fd628b) omitted
+    # it, reddening 16 find_work tests. The lane itself is proven in test_defect_backlog_draw.py.
+    monkeypatch.setattr(supervisor, "DECLARED_DEFECTS_REGISTER_PATH", tmp_path / "DECLARED_DEFECTS_REGISTER.yaml")
     # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
     # other live-state path above -- point it at a nonexistent tmp file so the
     # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts
