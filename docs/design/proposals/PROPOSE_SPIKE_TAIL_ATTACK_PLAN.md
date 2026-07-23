@@ -8,12 +8,24 @@
   an empty/uncomputable distribution RAISES (never a silently-zero pass); shape maths proven on a
   synthetic; ledger-consistency asserted on the real cache. This gives T1 its missing numeric target.
   STEP 2 (locate the truncation) — recon done: the ~£574 ceiling is NOT a clip to remove; it is the
-  emergent ceiling of the OLS 3-feature (gas/demand/wind) regression (run_phase3b) with no scarcity/BM-
-  spike term and no explicit negative-price process. The structural scarcity multiplier that would lift
-  the tail already exists but is GATED OFF (sim/price_engine.py:162). STEPS 3–4 (reshape the generator +
-  prove the residual bites, T1/T2/T3) — NOT blind-landed in an unsupervised night tick (the ruling's
-  "tired mega-turn" bar): a baseline-world generator change (R13) deserves a supervised build. Defect
-  stays `open` and drawable (register invariant: a characterised target does NOT close the gap). -->
+  emergent ceiling of the residual-demand scarcity form (sim/price_engine.py::synthetic_price, the
+  calibrated A0/A1/A2/X_TIGHT constants) applied over real gas/demand/wind drivers — no scarcity/BM-
+  spike term above the convex kicker and no explicit negative-price surplus floor. Confirmed by direct
+  re-measurement (§2 of docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md: model max £574.22,
+  0.013% negative, nothing above £1000).
+  STEP 3 (control-first, LANDED 2026-07-23 tick): the T1/T2 failable controls built BEFORE the physics
+  change (plan tag "proceed, tests-first"; R4 smallest-closed-loop-first; R15 control-can-fail).
+  `sim/ssp_tail_model.py` re-measures the MODEL tail from the generator (not a stored figure — no
+  tautology) through the SAME sim.ssp_tail_target.tail_stats as the real target, so T1 grades
+  like-for-like. `tests/sim/test_ssp_tail_model.py`: T1 (strict-xfail — model≈real within tol; XPASS on
+  reshape trips it), T2 (no company/saas import → no P&L write-back into the baseline tail, R13),
+  FAIL-CLOSED, and test_gap_is_real_today (GREEN — asserts the truncation exists NOW; fails the moment
+  the tail is reshaped, forcing register-close + marker-removal same commit). 10 pass / 1 xfail.
+  STEP 3-PHYSICS + STEP 4 (reshape the generator so the tail's SHAPE matches real; prove the residual
+  bites, T3) — STILL OPEN, NOT blind-landed in an unsupervised tick (the ruling's "tired mega-turn"
+  bar): a baseline-world generator change (R13) deserves a supervised build. Defect stays `open` and
+  drawable — the gap is now a LIVE tripwire, not just prose (register invariant: a characterised target
+  + a failable control do NOT close the gap; only T1 passing + T3 do). -->
 
 # [PROPOSE-THEN-PROCEED] Spike-tail attack plan — the SSP residual settled at the wrong tail
 

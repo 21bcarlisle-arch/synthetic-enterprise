@@ -41,6 +41,33 @@ def _percentile(sorted_vals: list[float], p: float) -> float:
     return sorted_vals[k]
 
 
+def tail_stats(values) -> dict:
+    """The numeric tail-shape block (n, max/min, percentiles, negative-fraction, exceedance curve)
+    for any SSP-price distribution -- shared by the REAL target (this module) and the MODEL tail
+    (sim/ssp_tail_model.py) so T1 grades like-for-like (same maths on both sides, no apples-to-oranges
+    that would let a spurious 'match' pass). Raises on an empty distribution (FAIL-CLOSED: an
+    uncomputable tail is a failed check, never a silently-zero pass -- R15 fail-open guard)."""
+    ssp = sorted(float(v) for v in values)
+    n = len(ssp)
+    if n == 0:
+        raise ValueError("empty distribution -- a tail computed from no data is a FAILED check, not zero")
+    neg = sum(1 for x in ssp if x < 0.0)
+    exceedance = {f"frac_gt_{int(t)}": sum(1 for x in ssp if x > t) / n for t in EXCEEDANCE_THRESHOLDS_GBP}
+    return {
+        "n": n,
+        "max": ssp[-1],
+        "min": ssp[0],
+        "mean": statistics.fmean(ssp),
+        "median": _percentile(ssp, 50),
+        "p95": _percentile(ssp, 95),
+        "p99": _percentile(ssp, 99),
+        "p99_9": _percentile(ssp, 99.9),
+        "p99_99": _percentile(ssp, 99.99),
+        "frac_negative": neg / n,
+        "exceedance_gbp": exceedance,
+    }
+
+
 def real_ssp_tail(start_date: str = MODEL_START_DATE, end_date: str = MODEL_END_DATE) -> dict:
     """The empirical real SSP tail over [start_date, end_date], computed from the ingested Elexon
     record. Raises on an empty/missing distribution (FAIL-CLOSED: an uncomputable target is a failure,
@@ -53,30 +80,17 @@ def real_ssp_tail(start_date: str = MODEL_START_DATE, end_date: str = MODEL_END_
             f"no cached SSP records for {start_date}..{end_date} -- cannot compute the real tail target "
             "(FAIL-CLOSED: a missing target is a failed check, not an empty pass)"
         )
-    ssp = sorted(
+    ssp = [
         float(r["systemSellPrice"])
         for r in records
         if isinstance(r.get("systemSellPrice"), (int, float))
-    )
-    n = len(ssp)
-    if n == 0:
+    ]
+    if not ssp:
         raise ValueError("cached SSP records carry no numeric systemSellPrice -- FAIL-CLOSED")
-    neg = sum(1 for x in ssp if x < 0.0)
-    exceedance = {f"frac_gt_{int(t)}": sum(1 for x in ssp if x > t) / n for t in EXCEEDANCE_THRESHOLDS_GBP}
     return {
         "source": "sim/cache/elexon_ssp_full.json (real Elexon settlement SSP, via sim.cache_store.get_cached_prices)",
         "window": {"start": start_date, "end": end_date},
-        "n": n,
-        "max": ssp[-1],
-        "min": ssp[0],
-        "mean": statistics.fmean(ssp),
-        "median": _percentile(ssp, 50),
-        "p95": _percentile(ssp, 95),
-        "p99": _percentile(ssp, 99),
-        "p99_9": _percentile(ssp, 99.9),
-        "p99_99": _percentile(ssp, 99.99),
-        "frac_negative": neg / n,
-        "exceedance_gbp": exceedance,
+        **tail_stats(ssp),
     }
 
 
