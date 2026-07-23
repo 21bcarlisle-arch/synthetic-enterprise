@@ -1,3 +1,21 @@
+<!-- PARKED in_progress 2026-07-23 ~19:45Z (worker tick). OPEN SUB-ITEMS ONLY:
+  §1 UNWEDGE — DONE. Cause: SITE_V5 surface-1 rebuild (eb94267b1) dropped the /method/ nav
+     link from site/index.html; Phase-RQ invariant test_every_site_page_links_to_method blocked
+     the content publish gate. Fixed (Method restored on the secondary 'also' line, dd45de549),
+     gate green (18695 passed), committed 1a29fe3b0, pushed live.
+  §2 PROVE LIVE — DONE (R11): poesys.net renders <a href="./method/">The Method ></a>; five-door
+     nav intact; surfaces world/company/proof/now all 200 live. (/method/ 301->/proof/ = the
+     deliberate "Method folds into Proof" fold; link lands on a real 200 page.)
+  §3 MECHANISE (OPEN) — director part 3: a publish-gate wedge >60min = priority-zero rung-1
+     DRAWABLE work (R15 failing-test-first reproducing today's gate-red/tick-idle state).
+     PLUS the class defect this exposed: the site-lane PRE-COMMIT scope (test_home_door,
+     front_door_brand, evidence_links, expert_doors_mobile) does NOT include
+     test_nav_story_platform_method_rq, so a front-door rebuild lands green-locally while
+     wedging the publish gate (R2 scope gap). Class fix: site-lane pre-commit must run the
+     nav-story reachability invariant (or the publish-gate content-test set).
+  §4 NTFY [STATUS] — DONE this tick.
+  UNBLOCKS-ON: §3 built + R15-proven. Everything else is closed. -->
+
 # [DIRECTOR-RULING] — Publish gate wedged 3.5h and escalating: PRIORITY ZERO. Diagnose, fix, republish, prove live. (2026-07-23)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge.
