@@ -32,6 +32,17 @@ EXCEEDANCE_THRESHOLDS_GBP = (200.0, 300.0, 500.0, 1000.0, 2000.0, 3000.0)
 
 TARGET_ARTIFACT_PATH = Path(__file__).resolve().parent.parent / "docs" / "design" / "spike_tail_real_target.json"
 
+# The DAILY-granularity real target (step-3 diagnosis, 2026-07-23). The forward scenario generator
+# (sim/scenario/bimodal_generator.py) emits ONE price per calendar day, flat-expanded to 48 identical
+# half-hours by simulation/run_scenario.py::_expand_daily_to_hh. So the residual in forward worlds
+# settles against a DAILY price with NO intraday shape -- the generator's natural comparand is the real
+# DAILY tail, NOT the half-hourly one above. `spike_tail_real_target.json` (HH) and this artifact (daily)
+# together make the granularity seam explicit, so a future T1 grades the generator like-for-like instead
+# of against a half-hourly max no daily-mean series can (or should) reach.
+DAILY_TARGET_ARTIFACT_PATH = (
+    Path(__file__).resolve().parent.parent / "docs" / "design" / "spike_tail_real_target_daily.json"
+)
+
 
 def _percentile(sorted_vals: list[float], p: float) -> float:
     n = len(sorted_vals)
@@ -94,7 +105,74 @@ def real_ssp_tail(start_date: str = MODEL_START_DATE, end_date: str = MODEL_END_
     }
 
 
+def _daily_aggregate(records, agg: str) -> list[float]:
+    """Collapse half-hourly SSP records to one value per settlementDate. agg="mean" gives the daily
+    average SSP (the generator's natural comparand -- its daily price flat-expands to 48 equal SPs);
+    agg="max" gives the worst SP of each day (where the real half-hourly spike lives). Raises on empty
+    (FAIL-CLOSED)."""
+    from collections import defaultdict
+
+    buckets: dict[str, list[float]] = defaultdict(list)
+    for r in records:
+        v = r.get("systemSellPrice")
+        if isinstance(v, (int, float)):
+            buckets[r["settlementDate"]].append(float(v))
+    if not buckets:
+        raise ValueError("no numeric daily SSP buckets -- FAIL-CLOSED")
+    if agg == "mean":
+        return [statistics.fmean(vs) for vs in buckets.values()]
+    if agg == "max":
+        return [max(vs) for vs in buckets.values()]
+    raise ValueError(f"unknown daily aggregation '{agg}' (expected 'mean' or 'max')")
+
+
+def real_ssp_daily_tail(
+    agg: str = "mean", start_date: str = MODEL_START_DATE, end_date: str = MODEL_END_DATE
+) -> dict:
+    """The empirical real DAILY SSP tail over [start_date, end_date], aggregating the ingested half-hourly
+    Elexon record to one value per day (agg="mean" or "max"). This is the granularity the FORWARD generator
+    actually settles at (daily price, flat-expanded to 48 SPs) -- so it, not the half-hourly target, is what
+    the generator's daily tail must be graded against. Raises on an empty/missing distribution (FAIL-CLOSED).
+
+    BLIND TO COMPANY P&L (R12/R13): a baseline-fidelity target from real settlement history only."""
+    from sim.cache_store import get_cached_prices  # local import: cheap/side-effect-free module import
+
+    records = get_cached_prices(start_date, end_date)
+    if not records:
+        raise ValueError(
+            f"no cached SSP records for {start_date}..{end_date} -- cannot compute the daily tail target "
+            "(FAIL-CLOSED: a missing target is a failed check, not an empty pass)"
+        )
+    daily = _daily_aggregate(records, agg)
+    return {
+        "source": "sim/cache/elexon_ssp_full.json aggregated to daily via sim.ssp_tail_target._daily_aggregate",
+        "granularity": f"daily_{agg}",
+        "window": {"start": start_date, "end": end_date},
+        **tail_stats(daily),
+    }
+
+
 def _main(argv: list[str]) -> int:
+    if "--daily" in argv:
+        target = {
+            "why": (
+                "The forward scenario generator emits one price per day, flat-expanded to 48 equal "
+                "half-hours (run_scenario.py::_expand_daily_to_hh), so forward residuals settle at DAILY "
+                "granularity with no intraday shape. daily_mean is the generator's natural comparand; "
+                "daily_max shows where the real half-hourly spike (GBP4,038) actually lives -- it is a "
+                "sub-daily phenomenon a daily-mean series cannot and should not reach."
+            ),
+            "daily_mean": real_ssp_daily_tail("mean"),
+            "daily_max": real_ssp_daily_tail("max"),
+        }
+        text = json.dumps(target, indent=2)
+        if "--emit" in argv:
+            DAILY_TARGET_ARTIFACT_PATH.write_text(text + "\n", encoding="utf-8")
+            print(f"wrote {DAILY_TARGET_ARTIFACT_PATH}")
+        else:
+            print(text)
+        return 0
+
     target = real_ssp_tail()
     text = json.dumps(target, indent=2)
     if "--emit" in argv:

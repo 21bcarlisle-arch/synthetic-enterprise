@@ -160,3 +160,60 @@ with spike magnitude drawn from a heavy-tailed distribution calibrated to the re
   (coupled-triad measurement on a fixed-seed forward run).
 - **Close:** `SPIKE_TAIL_SSP_RESIDUAL → closed` in the same commit the tail is re-measured within
   tolerance AND T3 passes (register `closes_when`).
+
+---
+
+## STEP 3 DIAGNOSIS — the granularity question is RESOLVED, and it redirects the fix (2026-07-23 tick)
+
+**The granularity question step-3-PHYSICS flagged is now answered by tracing the code, and answering it
+changes what the fix should be. Landed this tick as read-only characterisation + the corrected target;
+the physics change stays a supervised build, but is now aimed correctly.**
+
+### The forward residual settles at DAILY granularity, flat (traced)
+`simulation/run_scenario.py::_expand_daily_to_hh` takes each daily generator price and writes it to **all
+48 settlement periods of that day, identically**. `hedged_settlement.py` then settles the residual against
+those per-(date, period) prices. So in forward/curriculum worlds **there is no intraday SSP shape at all** —
+every half-hour of a day carries the same number. The generator's price is therefore a **daily-mean-like**
+quantity, and its natural real comparand is the real **daily** tail, not the half-hourly one.
+
+### The corrected target — real DAILY tail (`docs/design/spike_tail_real_target_daily.json`, emitted this tick)
+Aggregating the same real Elexon SSP record (n=162,507 HH over 2016-03-01..2025-06-07, 3,386 days) to per-day:
+
+| metric | real **daily-mean** | real **daily-max** (worst SP/day) | real **half-hourly** (the register figure) | forward generator (daily) |
+|---|---|---|---|---|
+| max SSP | **£960** | £4,038 | £4,038 | ~£683 |
+| >£1,000 fraction | **0.0** (never) | 0.56% | 0.044% | 0 |
+| neg fraction | **0.18%** | 0.0 | 2.24% | 1.8–13.5% (per-scenario) |
+
+**Two load-bearing facts fall out (blind to P&L, R13):**
+1. **No real DAY ever averaged above £1,000** (daily-mean max £960). The £4,038 / >£2,000 / 2.24%-negative
+   figures the register cites are **half-hourly** phenomena — a single settlement period, not a day. Grading
+   the daily generator against them is a **category error**. The generator's ~£683 daily max is *not* wildly
+   short of the real daily-mean max (£960); it is short of a **half-hourly** peak no daily-mean series can or
+   should reach. A daily price tuned toward £4,038 would be **less** real, not more — the **R12 sibling-trap**
+   to the one step-2 avoided on `price_engine`.
+2. **The real "bite" is intraday.** 2021–22 killed suppliers because a *flat block hedge* met a *spiky
+   half-hourly SSP* — the block-vs-shape mismatch *within* the day. The flat 48-period expansion means forward
+   worlds have **zero intraday shape**, so that mismatch is **structurally absent regardless of the daily
+   number**. The generator's whole-day-negative model (a full flat-negative day) likewise *overstates* daily
+   negatives (real daily-mean 0.18%) while being the wrong shape for the half-hourly reality (2.24%).
+
+### What this means for the fix (redirected)
+- The defect's **conclusion is still true** — forward worlds cannot bite the company via the tail the way
+  reality does. But its stated **fix** ("crisis-spike overlay on the daily generator calibrated to £4,038")
+  is **wrong**: it would inflate daily means past anything real and *still* not create the intraday
+  block-vs-shape mismatch that does the biting.
+- The **correct** fix is **intraday (SP-level) shape** in the forward path: the generator (or the HH-expansion
+  step) must produce a *within-day* SSP profile whose worst periods can reach the scarcity regime, calibrated
+  to `daily_max` / the half-hourly exceedance curve, while the daily *mean* stays near `daily_mean`. This is a
+  larger structural change to `_expand_daily_to_hh` + the generator, and it straddles R13 (intraday-shape
+  *machinery* = fidelity; per-scenario spike *severity* = director-reserved curriculum) — it **deserves the
+  supervised build the step-2 note reserved**, now with the target and the trap both identified.
+- **R15 landed this tick:** `sim.ssp_tail_target.real_ssp_daily_tail` + 4 tests in `test_ssp_tail_target.py`
+  (FAIL-CLOSED on empty; `_daily_aggregate` mean/max proven on a synthetic spike day; and the granularity
+  fact asserted against the real cache — daily-mean max < 0.5× the HH max, daily-max ≈ the HH max).
+
+### Register status: stays `open`
+Unchanged — the fidelity gap is not measured-closed (no intraday shape yet; T3 not done). This tick removed
+the *guesswork* from the fix, not the gap. The forward-tail tripwire (`test_scenario_forward_tail.py`) stays
+GREEN and drawable.

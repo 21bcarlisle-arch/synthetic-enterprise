@@ -1,0 +1,55 @@
+{
+  "why": "The forward scenario generator emits one price per day, flat-expanded to 48 equal half-hours (run_scenario.py::_expand_daily_to_hh), so forward residuals settle at DAILY granularity with no intraday shape. daily_mean is the generator's natural comparand; daily_max shows where the real half-hourly spike (GBP4,038) actually lives -- it is a sub-daily phenomenon a daily-mean series cannot and should not reach.",
+  "daily_mean": {
+    "source": "sim/cache/elexon_ssp_full.json aggregated to daily via sim.ssp_tail_target._daily_aggregate",
+    "granularity": "daily_mean",
+    "window": {
+      "start": "2016-03-01",
+      "end": "2025-06-07"
+    },
+    "n": 3386,
+    "max": 960.2364733333334,
+    "min": -16.908350208333335,
+    "mean": 78.72261596187215,
+    "median": 57.26246833333334,
+    "p95": 209.11396666666667,
+    "p99": 351.05833916666666,
+    "p99_9": 563.7811127083334,
+    "p99_99": 960.2364733333334,
+    "frac_negative": 0.0017720023626698169,
+    "exceedance_gbp": {
+      "frac_gt_200": 0.05522740696987596,
+      "frac_gt_300": 0.01919669226225635,
+      "frac_gt_500": 0.002067336089781453,
+      "frac_gt_1000": 0.0,
+      "frac_gt_2000": 0.0,
+      "frac_gt_3000": 0.0
+    }
+  },
+  "daily_max": {
+    "source": "sim/cache/elexon_ssp_full.json aggregated to daily via sim.ssp_tail_target._daily_aggregate",
+    "granularity": "daily_max",
+    "window": {
+      "start": "2016-03-01",
+      "end": "2025-06-07"
+    },
+    "n": 3386,
+    "max": 4037.8,
+    "min": 25.88786,
+    "mean": 162.07732566475133,
+    "median": 115.0,
+    "p95": 413.31,
+    "p99": 774.0,
+    "p99_9": 3916.28,
+    "p99_99": 4037.8,
+    "frac_negative": 0.0,
+    "exceedance_gbp": {
+      "frac_gt_200": 0.18015357353809805,
+      "frac_gt_300": 0.08357944477259303,
+      "frac_gt_500": 0.02982870643827525,
+      "frac_gt_1000": 0.005611340815121087,
+      "frac_gt_2000": 0.0032486709982279976,
+      "frac_gt_3000": 0.002067336089781453
+    }
+  }
+}

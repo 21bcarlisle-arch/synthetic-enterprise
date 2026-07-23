@@ -53,6 +53,15 @@ defects:
       overlay is UNIMPLEMENTED. The fix is a physics-shaped crisis-spike overlay on the FORWARD scenario
       generator, calibrated to spike_tail_real_target.json (machinery = fidelity; per-scenario severity =
       director-reserved curriculum, R13). Live tripwire on the real path: tests/sim/test_scenario_forward_tail.py.
+      STEP-3 DIAGNOSIS (2026-07-23, code-traced -- redirects the fix, gap unchanged): run_scenario.py::
+      _expand_daily_to_hh writes each daily generator price to all 48 half-hours identically, so the forward
+      residual settles at DAILY granularity with NO intraday shape. The real DAILY-MEAN SSP max is GBP960 (never
+      >GBP1,000) with 0.18% negative days; the GBP4,038 / 2.24% figures are HALF-HOURLY (a single SP), so grading
+      the daily generator against them is a category error and a daily price tuned toward GBP4,038 would be LESS
+      real (an R12 sibling-trap). The real bite is INTRADAY (flat block hedge vs spiky HH SSP), structurally
+      absent while every HH of a forward day is equal. Corrected fix = intraday SP-level shape in the forward
+      path (bigger structural change, supervised build), calibrated to the new daily target. Emitted this tick:
+      docs/design/spike_tail_real_target_daily.json (daily_mean + daily_max), R15-proven in test_ssp_tail_target.py.
     plan_doc: docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
     closes_when: >-
       the FORWARD SSP generator's tail (sim/scenario/bimodal_generator.py: max, negative-fraction, and
