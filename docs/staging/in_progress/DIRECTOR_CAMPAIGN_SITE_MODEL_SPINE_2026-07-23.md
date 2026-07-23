@@ -97,7 +97,19 @@ worlds" chip: soften to "designed to rerun" if the claim-status rubric reads it 
 present-tense TF2 (my call, do not escalate).
 </details>
 
-### §C — Financials reframe (RC6): unit economics, never bare totals  [COMPANY DOOR LANDED 2026-07-23 tick; /now + /project OPEN]
+### §C — Financials reframe (RC6): unit economics, never bare totals  [COMPANY DOOR + /now PANEL 2 LANDED 2026-07-23; /project inv-kpis OPEN]
+
+**/now panel 2 (supplier) DONE — later 2026-07-23 tick (`site/now/index.html::renderPanelSupplier`).**
+The operator window now LEADS with **Net margin / customer** (`latest_year_net_margin_gbp ÷ N`,
+denominator stated inline `÷ 19 sampled customers`, same clock/year — no hidden division), keeps
+Collections as a book-size-invariant RATE (relabelled so), and **demotes the cumulative net-margin
+total** to `Net margin (total) · settled clock · cumulative · scales with drawn book`. The "so what"
+line reframed to read the per-customer figure, not the total. Mirrors `site/company::renderFinance`.
+R11 render verified against LIVE `company.json` (N=19 → **£26,909.56/customer**, matches the Company
+door). R15 failable test `test_panel2_net_margin_per_customer_follows_N` (per-customer value AND its
+stated denominator FOLLOW N under mutation — a baked ratio FAILS; total keeps its caveat); existing
+panel-2 tests still green; full site suite **275 passed, 6 skipped**. **Live-site pixel verify
+(poesys.net, mobile) is POST-DEPLOY** — committed, not yet published; confirm on next auto-process publish.
 **DONE this tick — The Company finance panel (`site/company/index.html::renderFinance`).**
 The director's exact complaint ("totals from a random sample of customers") made concrete: the
 book is a **drawn sample of N=19 customers** (from `company.json::stress_bands.total`, the same
@@ -112,7 +124,9 @@ are not meaningful in isolation." R11 render (against live `company.json`) + R15
 FAILS; totals carry the caveat) — 13 pass; full site suite 274 pass. `finance-unit-note` added to
 the render harness whitelist so it is R11-observable. **Live-site pixel verify (poesys.net, mobile)
 is POST-DEPLOY** — committed, not yet published; confirm on the next auto-process publish.
-**STILL OPEN:** the same reframe on **/now panel 2** and **/project (investor summary)**; plus
+**STILL OPEN:** the same reframe on **/project (investor summary)** — its `inv-kpis` grid
+(`site/project/index.html`, populated ~L533) renders financial totals that need the £/customer +
+N-stated + demoted-total treatment; plus
 cost-to-serve/arrears £-per-customer and DISTRIBUTIONS across coverage cells (needs the generator to
 emit an authoritative per-customer denominator + distribution — company.json currently carries only
 the aggregate N; a follow-on data-plumbing step, logged here not faked).

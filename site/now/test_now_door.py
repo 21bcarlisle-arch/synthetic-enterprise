@@ -185,6 +185,34 @@ def test_panel2_net_position_is_independent_of_render():
     assert "£4.20m" in out["p2-metrics"]["innerHTML"], out["p2-metrics"]
 
 
+def _gbp_full(v: float) -> str:
+    # mirror index.html gbpFull: en-GB thousands, 2dp, £, sign
+    return ("-" if v < 0 else "") + "£" + f"{abs(v):,.2f}"
+
+
+def test_panel2_net_margin_per_customer_follows_N():
+    """RC6 (DIRECTOR §C, 2026-07-23): unit economics, never bare totals. Panel 2 now
+    LEADS with net margin PER CUSTOMER = latest-year net margin / N (N = the drawn
+    sample, stress_bands.total), denominator stated inline. R15 independence: a baked
+    ratio would not move when N moves -- so mutate N and assert BOTH the per-customer
+    pixel AND its stated denominator follow. The cumulative total is demoted and keeps
+    its scales-with-book caveat (never a headline)."""
+    c = _live_company()
+    c["finance"]["latest_year_net_margin_gbp"] = 400000
+    c["finance"]["latest_year"] = 2025
+    c["stress_bands"]["total"] = 10
+    m = _render_live(c)["p2-metrics"]["innerHTML"]
+    assert _gbp_full(40000) in m, m               # 400000 / 10, per customer
+    assert "÷ 10 sampled customers" in m, m       # denominator stated (no hidden division)
+    # move N: the per-customer pixel and its denominator both follow -- not a baked ratio
+    c["stress_bands"]["total"] = 20
+    m = _render_live(c)["p2-metrics"]["innerHTML"]
+    assert _gbp_full(20000) in m, m               # 400000 / 20
+    assert "÷ 20 sampled customers" in m, m
+    # the cumulative total is demoted + caveated, never presented as a headline
+    assert "scales with drawn book" in m, m
+
+
 def test_panel2_hedge_band_pill_is_computed():
     # R15: a hedge ratio outside the 0.80-0.90 band flips the pill off ON PLAN.
     c = _live_company()

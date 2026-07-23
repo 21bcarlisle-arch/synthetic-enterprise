@@ -278,13 +278,28 @@ function renderPanelWorld(weather, market){
 function renderPanelSupplier(company, decisions){
   var f=(company&&company.finance)||{}, t=(company&&company.trading_risk)||{};
   var hf=t.latest_avg_hf;
+  // RC6 (DIRECTOR §C, 2026-07-23): unit economics, never bare totals. The book is a
+  // small DRAWN SAMPLE (N = stress_bands.total, the same sample the totals are earned
+  // by). Lead with £/customer + rates (book-size-invariant), demote the cumulative
+  // total to a caveated figure, state N and the denominator on the ratio -- no hidden
+  // division. Mirrors site/company::renderFinance. Director verbatim: "I don't take
+  // financials as useful ... certainly not totals from a random sample of customers."
+  var N=((company&&company.stress_bands)||{}).total;
+  var hasN=(N!=null&&Number(N)>0);
+  var yr=esc(f.latest_year);
+  var nmPer=hasN?f.latest_year_net_margin_gbp/N:null;
+  var perBasis=yr+" · billed · ÷ "+esc(N)+" sampled customers";
   var kpis=[
+    // Unit economics + rates lead (book-size-honest); the total is demoted below.
+    metric("Net margin / customer",gbpFull(nmPer),perBasis,
+      (nmPer==null?"":(nmPer>=0?"up":"down"))),
     metric("Forward book hedged",(hf!=null?(hf*100).toFixed(1)+"%":"--"),
       "avg HF "+esc(t.latest_hedge_year||"")+" · band 80–90%"),
-    metric("Net margin",gbpScale(f.settled_net_margin_gbp),"settled clock · cumulative",
-      (Number(f.settled_net_margin_gbp)<0?"down":"up")),
     metric("Collections",(f.collection_rate_pct!=null?Number(f.collection_rate_pct).toFixed(1)+"%":"--"),
-      "billed → banked")
+      "billed → banked · a rate, book-size-invariant"),
+    metric("Net margin (total)",gbpScale(f.settled_net_margin_gbp),
+      "settled clock · cumulative · scales with drawn book",
+      (Number(f.settled_net_margin_gbp)<0?"down":"up"))
   ];
   document.getElementById("p2-metrics").innerHTML=kpis.join("");
 
@@ -306,7 +321,9 @@ function renderPanelSupplier(company, decisions){
   var band=(hf!=null&&hf>=0.80&&hf<=0.90);
   document.getElementById("p2-sowhat").innerHTML='<b>So what:</b> '+
     (band?"positioned inside the hedge band":"hedge is outside the 80–90% band — check the risk desk")+
-    "; net margin "+gbpScale(f.settled_net_margin_gbp)+" on the settled clock, collections "+
+    "; net margin "+gbpFull(nmPer)+"/customer ("+yr+", &divide; "+esc(N)+" sampled) — the "+
+    gbpScale(f.settled_net_margin_gbp)+" cumulative total scales with the drawn book, so read the "+
+    "per-customer figure; collections "+
     (f.collection_rate_pct!=null?Number(f.collection_rate_pct).toFixed(1)+"%":"--")+".";
 }
 
