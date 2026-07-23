@@ -114,3 +114,48 @@ every existing run is byte-identical (prove it, same discipline as the D3 actual
 3. Follow-ons (3)–(5) + carbon/collateral breadcrumbs registered as map candidates with this doc cited.
 4. Wall test + byte-identical-baseline test named in the FRAME as R15 obligations.
 5. Governing-rationale section reflected wherever the wholesale lane states its purpose.
+
+---
+
+## AMENDMENT (same conversation, 2026-07-23) — scenario sampling weights: tails over the middle
+
+**Director decision (DECIDED).** Scenario selection across runs is NOT proportional Monte Carlo. Proportional
+sampling burns the run budget rediscovering the middle of the distribution (the scenario version of sampling
+customers proportionally — the exact defect the segmentation value-frontier ruling corrected). Sampling is
+deliberately TAIL-HEAVY: overweight less-likely variants, because learning value and survival information
+concentrate there.
+
+**The discipline that keeps this rigorous (DECIDED — importance-sampling split):**
+1. **Two weightings, never conflated.** The SAMPLING distribution (which worlds actually run — tail-heavy) is
+   distinct from the PROBABILITY measure (real-world likelihood — NESO pathway weightings, historical base
+   rates). Any expected-value figure computed across runs reweights each run by its true-world probability, so EV
+   stays unbiased while stress coverage stays dense. Conflating them drifts every valuation pessimistic — an
+   R12-class distortion in the opposite direction to goal-seeking.
+2. **Two verdicts, differently weighted.** EV is probability-weighted. **Survival is worst-case over the sampled
+   set, UNWEIGHTED** — a world's unlikeliness discounts its EV contribution but never excuses dying in it.
+   Survival stays a hard constraint outside the scalar (standing law); this is the scenario-level expression of
+   the same G1 CVaR/worst-cell scoring logic, and mirrors Ofgem's supplier financial-resilience stress-test
+   posture (regulation-as-fidelity-oracle: the rule exists because suppliers died in the tail).
+3. **Weather draws inside each world follow the same principle.** W1_3's finding stands: the joint cold-and-still
+   tail carries ~2.34× the mass independence predicts. Within-world weather sampling overweights joint tails
+   under the same run-weight bookkeeping — no double-counting between world-level and weather-level weights
+   (state how the two layers compose in the FRAME).
+4. **Weights are curriculum (R13) and live behind the wall.** Sampling weights and true-probability assignments
+   are director-owned, versioned artefacts. The company NEVER observes either — it does not know it is living in
+   an overweighted tail; it just experiences a hard world. Only the tournament/scorer, outside the wall, applies
+   the reweighting.
+
+**Requirement folded into A (scenario spine FRAME):** the FRAME must carry the sampling-vs-probability split, the
+run-weight bookkeeping (per-run true-probability tag persisted with run output so any later aggregate can
+reweight), the unweighted worst-case survival verdict, the world/weather weight composition, and the R13
+ownership of both weightings. **Additional R15 obligation:** a mutation test proving an EV aggregate computed
+WITHOUT reweighting is caught (fails loudly), so the biased-average trap is structurally uncommittable.
+
+**Risk addendum:** failure mode (v) — tail-heavy sampling silently leaking into fitness so the tournament selects
+for paranoia rather than judgment; mitigated by the reweighting being applied at the scorer, R12 (no diagnostic
+becomes a target), and the survival/EV split above. Failure mode (vi) — probability measure going stale as the
+real world moves; mitigated by version-pinning with review at epoch boundaries (same cadence as harness
+best-practice re-checks).
+
+**DoD addendum:** 6. FRAME states both weightings, their owners (director, R13), the per-run probability tag, the
+worst-case survival verdict, and the no-unweighted-aggregate R15 test.
