@@ -1,5 +1,22 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-23T15:04:21Z
+Last updated: 2026-07-23T15:21:06Z
+
+**PRODUCT LANDED (2026-07-23) — SITE_V5 surface 2 (The World) rebuilt around the walkable causal chain.**
+Drawn by the seventh-class open-campaign self-refill (no doorbell): with surface 1 deployed-but-FAILED, the draw
+rolled to the next unfinished item. `site/world/` is rebuilt so its single job — SIM causal-relationship
+observability — is the page's centre of gravity: a walkable spine **weather (240 HDD, Dec-2025) → wholesale (SSP
+£85.92/MWh, settled) → segments (14-home book) → usage & behaviour (household C1) → bills (£5,067.57 billed) →
+carbon (£/tCO₂e, PLANNED)**. Every node renders a REAL figure read from published run data (render-not-author) +
+its external anchor (Open-Meteo/DESNZ, Elexon, ONS/Ofgem) + an evidence link to the source file; the carbon end is
+honestly **PLANNED** (E5 three-ledger unbuilt — no fabricated abatement figure); the chain states a falsifiable
+hypothesis on-surface so an Expert Hour can walk any link to its data and fail it. Nav cut to the five-surface IA.
+**R11+R15** proven by 30 render-harness tests (`site/world/test_world_door.py` — execute the page's real inline JS
+against the published JSON; mutation flips the weather/segments/wholesale/bills figures, proving independence, not
+baked constants). **Expert-Hour** (phase-close-evaluator, fresh context) = **PASS** against the single job; two
+honesty/coverage findings fixed in-place (carbon numerator wording, graceful "--" not "0 homes", +2 mutation
+tests). Site-lane gate green (all `site/` tests pass). Marked `landed` in `CAMPAIGN_REGISTER.yaml` same commit;
+SITE_V5 stays OPEN (surface 1 FAIL + surfaces 3-5), so the campaign draw persists. Follow-ons (non-blocking):
+inline graphs in the spine, external-anchor URL-resolution test.
 
 **SEVENTH-CLASS STALL MECHANISED SHUT (2026-07-23, `1abeb558e`) — open campaigns are now always-drawable.**
 Director ruling (CAMPAIGN_CONTINUATION §2, R10-on-R17): "an open campaign with unfinished items IS drawable work
@@ -307,7 +324,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (499s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (626s / 10 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881

@@ -18,6 +18,10 @@ const d = JSON.parse(fs.readFileSync(0, "utf8"));
 const weather = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], "utf8")) : null;
 // Optional third arg: path to market.json (intra-day wholesale feed).
 const market = process.argv[4] ? JSON.parse(fs.readFileSync(process.argv[4], "utf8")) : null;
+// Optional args 5-7: company.json / customers.json / dashboard.json (causal chain).
+const company = process.argv[5] ? JSON.parse(fs.readFileSync(process.argv[5], "utf8")) : null;
+const customers = process.argv[6] ? JSON.parse(fs.readFileSync(process.argv[6], "utf8")) : null;
+const dashboard = process.argv[7] ? JSON.parse(fs.readFileSync(process.argv[7], "utf8")) : null;
 
 const elements = {};
 function stub(id) {
@@ -39,6 +43,7 @@ const sandbox = { document, fetch, console, Date, Number, String, Object, Math, 
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
+sandbox.renderCausalChain({ world: d, weather, market, company, customers, dashboard });
 sandbox.renderWorldState(d, weather, market);
 sandbox.renderWall(d);
 sandbox.renderSimDepth(d);
@@ -47,6 +52,7 @@ sandbox.renderLibrary(d);
 sandbox.renderBuild(d);
 
 const ids = [
+  "causal-chain",
   "state-stamp", "wstate-intro", "wstate-lag", "wstate-kpis", "wstate-intraday", "wstate-regime", "wstate-basis",
   "wall-intro", "wall-band", "crossings",
   "sim-intro", "sim-depth",

@@ -39,7 +39,18 @@ campaigns:
           present the next iteration AS SCORED RUBRIC ROWS so the director's verdict lands row-by-row.
       - id: surface_2_the_world
         title: 'The World -- walkable causal chain weather->wholesale->segments->usage->bills->carbon'
-        status: open
+        status: landed
+        note: >-
+          LANDED 2026-07-23. Rebuilt around the walkable causal spine (weather 240 HDD -> wholesale
+          SSP £85.92/MWh -> book 14 homes -> household C1 -> £5,067.57 billed -> carbon PLANNED) as
+          the page's new centre of gravity; each node renders a REAL figure from published data
+          (render-not-author) + external anchor + evidence link; carbon end honestly PLANNED (E5
+          three-ledger unbuilt, no fabricated £/tCO2e); falsifiable hypothesis on-surface; nav cut to
+          the five-surface IA. R11+R15 proven by 30 render-harness tests (execute the page's real JS
+          against published data; mutation flips weather/segments/wholesale/bills figures). Expert-Hour
+          (phase-close-evaluator) = PASS against the single job. Follow-ons (non-blocking, next
+          iteration): (a) inline graphs in the spine itself (graphs currently in deeper sections);
+          (b) an external-anchor-URL resolution test.
       - id: surface_3_the_company
         title: 'The Company -- the supplier SaaS shown as product (real run outputs, never effort metrics)'
         status: open

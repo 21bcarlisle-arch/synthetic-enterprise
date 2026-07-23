@@ -128,11 +128,17 @@ def test_rung_is_in_authorized_set_enumeration():
 
 
 def test_real_register_has_site_v5_drawable():
-    """The committed register really makes SITE_V5 surfaces 2-5 drawable NOW (live, not latent)."""
+    """The committed register still makes SITE_V5 drawable NOW (live, not latent): surface 2 is
+    landed (2026-07-23), but surface 1 (front door, deployed-but-FAILED) and surfaces 3-5 remain
+    open, so the campaign must-draw persists."""
     items = sup._open_campaign_items()  # real CAMPAIGN_REGISTER_PATH
     ids = {i[1] for i in items}
     assert "SITE_V5" in {i[0] for i in items}
-    assert "surface_2_the_world" in ids
+    # surface 2 has landed -> it is no longer in the drawable set...
+    assert "surface_2_the_world" not in ids
+    # ...but at least one of the still-open surfaces is, so the campaign draws.
+    assert ids & {"surface_1_front_door", "surface_3_the_company",
+                  "surface_4_proof", "surface_5_director_window"}
     assert sup._open_campaign_draw() is not None
 
 

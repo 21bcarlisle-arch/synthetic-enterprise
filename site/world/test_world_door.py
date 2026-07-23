@@ -338,3 +338,163 @@ def test_world_state_intraday_absent_feed_degrades_gracefully(tmp_path):
     assert "unavailable" in idz, idz
     # weather KPIs still present
     assert f"{round(w['monthly'][-1]['hdd'])} HDD" in out["wstate-kpis"]["innerHTML"]
+
+
+# --- THE CAUSAL CHAIN (surface-2 single job): the walkable spine renders REAL
+# figures from published data, and a source mutation must change the rendered
+# node (R11 + R15 independence -- the chain is not a set of baked constants). ---
+
+COMPANY = HERE.parent / "data" / "company.json"
+CUSTOMERS = HERE.parent / "data" / "customers.json"
+DASHBOARD = HERE.parent / "data" / "dashboard.json"
+
+
+def _render_chain(data, weather, market, company, customers, dashboard, tmp_path) -> dict:
+    """Render the World door with all six data sources the causal chain reads."""
+    paths = []
+    for name, obj in [
+        ("weather.json", weather), ("market.json", market), ("company.json", company),
+        ("customers.json", customers), ("dashboard.json", dashboard),
+    ]:
+        p = tmp_path / name
+        p.write_text(json.dumps(obj))
+        paths.append(str(p))
+    proc = subprocess.run(
+        [NODE, str(HARNESS), str(INDEX)] + paths,
+        input=json.dumps(data), capture_output=True, text=True, timeout=30,
+    )
+    assert proc.returncode == 0, f"harness failed: {proc.stderr}"
+    return json.loads(proc.stdout)
+
+
+def _live_company():
+    return json.loads(COMPANY.read_text())
+
+
+def _live_customers():
+    return json.loads(CUSTOMERS.read_text())
+
+
+def _live_dashboard():
+    return json.loads(DASHBOARD.read_text())
+
+
+def test_causal_chain_renders_all_six_nodes(tmp_path):
+    # R11: every node of the spine renders, in order, with its role -- the page's
+    # single job (weather -> wholesale -> segments -> usage -> bills -> carbon).
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        _live_company(), _live_customers(), _live_dashboard(), tmp_path)
+    html = out["causal-chain"]["innerHTML"]
+    for name in ["Weather", "Wholesale", "Segments", "Usage", "Bills", "Carbon"]:
+        assert name in html, f"chain node {name} missing"
+
+
+def test_causal_chain_weather_node_renders_live_hdd(tmp_path):
+    # R11: the weather node renders the ACTUAL latest realised HDD from weather.json.
+    w = _live_weather()
+    hdd = round(w["monthly"][-1]["hdd"])
+    out = _render_chain(_live(), w, _market_fixture(),
+                        _live_company(), _live_customers(), _live_dashboard(), tmp_path)
+    assert f"{hdd} HDD" in out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_wholesale_node_renders_live_ssp(tmp_path):
+    # R11 + R14: the wholesale node renders the settled annual-mean SSP with a
+    # settled clock, read from the blindfold crossing.
+    d = _live()
+    ssp = [c for c in d["wall"]["crossings"] if c.get("id") == "blindfold"][0]["series"][-1]
+    out = _render_chain(d, _live_weather(), _market_fixture(),
+                        _live_company(), _live_customers(), _live_dashboard(), tmp_path)
+    html = out["causal-chain"]["innerHTML"]
+    assert f"£{ssp['mean']}/MWh" in html, html
+    assert "settled" in html.lower()
+
+
+def test_causal_chain_segments_node_renders_live_book(tmp_path):
+    # R11: the segments node renders the actual book size from customers.json.
+    cu = _live_customers()
+    n = cu.get("customer_count", len(cu["customers"]))
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        _live_company(), cu, _live_dashboard(), tmp_path)
+    assert f"{n} homes" in out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_bills_node_renders_live_household(tmp_path):
+    # R11: the bills node renders the real household's billed figure from company.json.
+    co = _live_company()
+    billed = co["household"]["billed_gbp"]
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        co, _live_customers(), _live_dashboard(), tmp_path)
+    # rendered with en-GB grouping, e.g. £5,067.57
+    rendered = f"£{billed:,.2f}"
+    assert rendered in out["causal-chain"]["innerHTML"], out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_carbon_node_is_honestly_open(tmp_path):
+    # SITE_CONSTITUTION honesty: the carbon node must be marked PLANNED (not yet
+    # measured), name the E5 three-ledger, and NOT fabricate a £/tCO2e figure.
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        _live_company(), _live_customers(), _live_dashboard(), tmp_path)
+    html = out["causal-chain"]["innerHTML"]
+    assert "PLANNED" in html, html
+    assert "not yet measured" in html.lower(), html
+    assert "E5" in html, html
+
+
+def test_causal_chain_states_falsifiable_hypothesis():
+    # Didactic-graph rule (ruling 2026-07-23 mitigation c): the chain states its
+    # own falsifiable hypothesis on-surface so an Expert Hour can fail it.
+    html = INDEX.read_text().lower()
+    assert "hypothesis" in html and "falsifiable" in html
+    assert "one coupled" in html
+
+
+def test_causal_chain_hdd_is_independent_of_render(tmp_path):
+    # R15 independence: mutate the latest HDD to a sentinel; the weather node must
+    # follow the data, proving the figure is read, not baked.
+    w = _live_weather()
+    w["monthly"][-1]["hdd"] = 8888.0
+    out = _render_chain(_live(), w, _market_fixture(),
+                        _live_company(), _live_customers(), _live_dashboard(), tmp_path)
+    assert "8888 HDD" in out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_book_size_is_independent_of_render(tmp_path):
+    # R15 independence: mutate the book size; the segments node must follow.
+    cu = _live_customers()
+    cu["customer_count"] = 4242
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        _live_company(), cu, _live_dashboard(), tmp_path)
+    # num() renders with en-GB grouping, e.g. "4,242 homes"
+    assert f"{4242:,} homes" in out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_wholesale_ssp_is_independent_of_render(tmp_path):
+    # R15 independence: mutate the settled SSP mean; the wholesale node must
+    # follow (a baked constant equal to the live value would not).
+    d = _live()
+    bf = [c for c in d["wall"]["crossings"] if c.get("id") == "blindfold"][0]
+    bf["series"][-1]["mean"] = 55555
+    out = _render_chain(d, _live_weather(), _market_fixture(),
+                        _live_company(), _live_customers(), _live_dashboard(), tmp_path)
+    assert "£55555/MWh" in out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_bills_billed_is_independent_of_render(tmp_path):
+    # R15 independence: mutate the household billed figure; the bills node must follow.
+    co = _live_company()
+    co["household"]["billed_gbp"] = 33333.33
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        co, _live_customers(), _live_dashboard(), tmp_path)
+    assert "£33,333.33 billed" in out["causal-chain"]["innerHTML"]
+
+
+def test_causal_chain_degrades_gracefully_without_optional_sources(tmp_path):
+    # R15 fail-closed: with company/customers/dashboard absent, the chain still
+    # renders (weather + wholesale nodes) and does not crash or fabricate.
+    out = _render_chain(_live(), _live_weather(), _market_fixture(),
+                        None, None, None, tmp_path)
+    html = out["causal-chain"]["innerHTML"]
+    assert "Weather" in html and "Carbon" in html
+    # missing sources render as "--", never a fabricated "0 homes" value
+    assert "0 homes" not in html and "14 homes" not in html

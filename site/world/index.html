@@ -109,30 +109,69 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .kpi-l { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
 .kpi-v { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; }
 details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin-top: 10px; }
+/* THE CAUSAL CHAIN -- surface-2's single job (SITE_V5, ruling 2026-07-23):
+   the walkable spine weather->wholesale->segments->usage->bills->carbon. Each
+   node renders a REAL figure from published data (render-not-author) + its
+   external anchor + an evidence link; the connector states the coupling to the
+   next node. The chain states its own falsifiable hypothesis (didactic-graph
+   rule) so an Expert Hour can walk any link to its data and fail it. */
+.chain-hyp { font-size: 12px; color: var(--text); line-height: 1.65; max-width: 760px;
+  border-left: 3px solid var(--blue); padding: 10px 14px; background: var(--surface); border-radius: 6px; margin-bottom: 6px; }
+.chain-hyp strong { color: var(--blue); }
+.chain { margin-top: 14px; }
+.chain-node { position: relative; }
+.chain-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.chain-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.chain-idx { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+  border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--blue); }
+.chain-name { font-size: 15px; font-weight: 700; }
+.chain-role { font-size: 11px; color: var(--muted); }
+.chain-figure { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin: 2px 0; }
+.chain-figure-l { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.chain-couples { font-size: 12px; color: var(--text); line-height: 1.6; margin-top: 10px;
+  border-left: 2px solid var(--border); padding-left: 10px; }
+.chain-links { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; font-size: 10px; }
+.chain-links a { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.chain-links a:hover { border-bottom-color: var(--blue); }
+.chain-links .k { color: var(--muted); }
+.chain-conn { display: flex; align-items: center; gap: 10px; padding: 6px 0 6px 30px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.chain-conn .arrow { color: var(--blue); font-weight: 800; font-size: 16px; }
+.cbadge { display: inline-block; font-size: 8px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
+.cbadge.BLUE { color: var(--blue); border: 1px solid var(--blue); }
+.cbadge.AMBER { color: var(--amber); border: 1px solid var(--amber); }
+.cbadge.GREEN { color: var(--green); border: 1px solid var(--green); }
+@media (max-width: 640px) { .chain-conn { padding-left: 16px; } .chain-figure { font-size: 19px; } }
 </style>
 </head>
 <body>
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
-  <a href="../now/" class="nav-link">Now</a>
   <a href="../" class="nav-link">Home</a>
-  <a href="../company/" class="nav-link">Company</a>
-  <a href="../world/" class="nav-link active">World</a>
+  <a href="./" class="nav-link active">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
   <a href="../proof/" class="nav-link">Proof</a>
-  <a href="../method/" class="nav-link">Method</a>
-  <a href="../project/" class="nav-link">Journey</a>
-  <a href="../simplified/" class="nav-link">Simplified</a>
 </nav>
 <div class="wrap">
 
   <div class="hero-h">The World</div>
   <p class="hero-p" id="hero-p">
-    The two-sided wall. This company cannot see inside the simulation it runs in -- it discovers
-    its world only the way a real UK supplier would. Below, on four real crossings, the SIM's
-    ground truth on one side, the COMPANY's own view on the other, and the honest gap between
-    them. The gap is not a defect: it is the wall working. Every figure links to the file it
-    came from.
+    One coupled physical system, walked end to end. A cold sky raises heating demand, which tightens
+    the wholesale market, which lands as a price on a population of awkward homes, whose usage and
+    behaviour become bills -- and, ultimately, the cheapest tonne of carbon left. Walk the chain
+    below: every node carries a real figure from the published run, its external anchor, and a link
+    to the file it came from. Deeper down: the two-sided wall (what the company can and cannot see),
+    the realised market, and the full assumption library.
   </p>
+
+  <!-- THE CAUSAL CHAIN -- surface-2's single job (the walkable spine) -->
+  <div class="sec">The causal chain &mdash; weather &rarr; wholesale &rarr; segments &rarr; usage &rarr; bills &rarr; carbon</div>
+  <p class="chain-hyp">
+    <strong>Hypothesis (falsifiable):</strong> this is ONE coupled system, not scattered series &mdash;
+    perturb the weather and the effect propagates all the way to the bill (and, once instrumented, to
+    &pound;/tCO&#8322;e). If any link were fabricated or decorative, walking it to its data would fail.
+    Every figure below is read from published run output, never authored on the page.
+  </p>
+  <div class="chain" id="causal-chain"><div class="chain-card"><div class="muted">Loading...</div></div></div>
 
   <!-- 0. OPERATIONAL STATE (the director's window: what the world is doing right now) -->
   <div class="sec">World state &mdash; what the world is doing right now <span id="state-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
@@ -474,6 +513,90 @@ function renderWorldState(world, weather, market){
     "realised series (R12), never a target.";
 }
 
+// THE CAUSAL CHAIN (surface-2's single job): render the walkable spine from
+// published data only (render-not-author). Each node pulls a REAL figure from
+// the run outputs; missing data degrades to "--" rather than fabricating.
+function cbadge(status){
+  var cls=(status==="PLANNED"||status==="PROVISIONAL")?"AMBER":"BLUE";
+  return '<span class="cbadge '+cls+'">'+esc(status)+'</span>';
+}
+function chainNode(n){
+  var links=(n.links||[]).map(function(l){
+    return '<a href="'+esc(l.url)+'"'+(l.ext?' target="_blank" rel="noopener"':'')+'>'+esc(l.label)+(l.ext?" ↗":"")+'</a>';
+  }).join("");
+  return '<div class="chain-node"><div class="chain-card">'+
+    '<div class="chain-head"><span class="chain-idx">'+esc(n.idx)+'</span>'+
+      '<span class="chain-name">'+esc(n.name)+'</span> '+cbadge(n.status)+
+      ' <span class="chain-role">'+esc(n.role)+'</span></div>'+
+    '<div class="chain-figure">'+esc(n.figure)+'</div>'+
+    '<div class="chain-figure-l">'+esc(n.figure_label)+'</div>'+
+    '<div class="chain-couples">'+esc(n.couples)+'</div>'+
+    '<div class="chain-links"><span class="k">walk it:</span>'+links+'</div>'+
+  '</div></div>';
+}
+function renderCausalChain(s){
+  var el=document.getElementById("causal-chain");
+  if(!el)return;
+  s=s||{};
+  var weather=s.weather, world=s.world, company=s.company, customers=s.customers, dashboard=s.dashboard;
+  // 1. WEATHER -- realised latest month (weather.json)
+  var wm=(weather&&weather.monthly&&weather.monthly.length)?weather.monthly[weather.monthly.length-1]:null;
+  // 2. WHOLESALE -- settled annual-mean SSP from the blindfold crossing (world.json)
+  var bf=((world&&world.wall&&world.wall.crossings)||[]).filter(function(c){return c.id==="blindfold";})[0];
+  var ssp=(bf&&bf.series&&bf.series.length)?bf.series[bf.series.length-1]:null;
+  // 3. SEGMENTS -- the synthetic book (customers.json)
+  var cust=(customers&&customers.customers)||[];
+  var segCount={};
+  cust.forEach(function(c){var g=c.segment||"?";segCount[g]=(segCount[g]||0)+1;});
+  var segStr=Object.keys(segCount).sort().map(function(k){return segCount[k]+" "+k;}).join(" · ");
+  var nCust=(customers&&customers.customer_count!=null)?customers.customer_count:cust.length;
+  // Absent book -> honest "--", never a fabricated "0 homes".
+  var segFigure=(nCust>0)?(num(nCust)+" homes · "+(segStr||"--")):"--";
+  // 4/5. USAGE + BILLS -- one real household (company.household) + book totals (dashboard.portfolio)
+  var hh=(company&&company.household)||{};
+  var port=(dashboard&&dashboard.portfolio)||{};
+
+  var nodes=[
+    { idx:1, name:"Weather", status:"SETTLED", role:"the sky (realised)",
+      figure: wm?(Math.round(wm.hdd)+" HDD · "+wm.mean_temp_c+"°C"):"--",
+      figure_label: wm?("realised heating demand, "+wm.month+" (base 15.5°C, Open-Meteo London)"):"weather series unavailable",
+      couples:"→ a cold, still month raises heating demand and cuts wind — the market must meet the shortfall.",
+      links:[ {label:"weather.json",url:"../data/weather.json"}, {label:"Open-Meteo / DESNZ degree-days",url:"https://www.gov.uk/government/collections/degree-days",ext:true} ] },
+    { idx:2, name:"Wholesale", status:"SETTLED", role:"the price of energy",
+      figure: ssp?("£"+ssp.mean+"/MWh"):"--",
+      figure_label: ssp?("settled annual-mean SSP "+ssp.year+" · tail p95 £"+ssp.p95+" · peak £"+ssp.max+" (Elexon, settled clock)"):"market series unavailable",
+      couples:"→ demand + scarcity form the price the supplier must buy at, half-hour by half-hour — the cold-and-still tail is where suppliers fail.",
+      links:[ {label:"world.json",url:"../data/world.json"}, {label:"the wall (settled SSP depth)",url:"#crossings"}, {label:"Elexon settlement price",url:"https://www.elexon.co.uk/data/",ext:true} ] },
+    { idx:3, name:"Segments", status:"PROVISIONAL", role:"who absorbs the price",
+      figure: segFigure,
+      figure_label:"the synthetic book by segment (small by design — a discovery population, not a market share claim)",
+      couples:"→ the same price bites differently by segment, tenure, engagement and payment channel — a resi flat is not an I&C site.",
+      links:[ {label:"customers.json",url:"../data/customers.json"}, {label:"ONS household / Ofgem segments",url:"https://www.ofgem.gov.uk/energy-data-and-research",ext:true} ] },
+    { idx:4, name:"Usage & behaviour", status:"PROVISIONAL", role:"the demand each home places",
+      figure: hh&&hh.available?((hh.engagement_level||"?")+" · "+(hh.payment_channel||"?").replace("_"," ")+" · "+num(hh.invoice_count)+" invoices"):"--",
+      figure_label: hh&&hh.available?("one real household ("+hh.id+", "+hh.segment+", "+(hh.dual_fuel?"dual-fuel":"single-fuel")+") — usage × behaviour, discovered through its bills, not read from the sim"):"household unavailable",
+      couples:"→ usage × tariff × how the household reacts (a passive payer defaults; an engaged one switches) becomes the bill.",
+      links:[ {label:"company.json",url:"../data/company.json"}, {label:"the supplier (product)",url:"../company/"}, {label:"Ofgem TDCV",url:"https://www.ofgem.gov.uk/average-gas-and-electricity-use-explained",ext:true} ] },
+    { idx:5, name:"Bills", status:"PROVISIONAL", role:"what the household pays",
+      figure: hh&&hh.available&&hh.billed_gbp!=null?("£"+num(hh.billed_gbp)+" billed"):"--",
+      figure_label: hh&&hh.available?("that household lifetime: £"+num(hh.banked_gbp)+" banked, cost-to-serve £"+num(hh.cost_to_serve_gbp)+" · book "+num(port.bills_total)+" bills, £"+num(Math.round(port.cost_to_serve_gbp||0))+" total cost-to-serve (billed clock)"):"bills unavailable",
+      couples:"→ the money side. But the mission is not money — it is the carbon the money abates.",
+      links:[ {label:"company.json",url:"../data/company.json"}, {label:"the supplier accounts",url:"../company/"}, {label:"Ofgem price cap",url:"https://www.ofgem.gov.uk/energy-price-cap",ext:true} ] },
+    { idx:6, name:"Carbon", status:"PLANNED", role:"the cheapest tonne left",
+      figure:"£/tCO₂e — not yet measured",
+      figure_label:"the mission metric = (cost-to-serve + cost-to-persuade, incl. compute) ÷ carbon abated. Only the cost-to-serve part of the numerator is measured above (£"+num(Math.round(port.cost_to_serve_gbp||0))+" book); the cost-to-persuade/compute term AND the denominator (carbon abated) are the E5 three-ledger, an epoch-3 atom not yet built — shown open, not faked.",
+      couples:"∩ the chain's honest open end: when E5 lands, perturbing node 1 will propagate all the way to here.",
+      links:[ {label:"the mission (Proof)",url:"../proof/"}, {label:"DESNZ carbon values",url:"https://www.gov.uk/government/publications/valuation-of-greenhouse-gas-emissions-for-policy-appraisal-and-evaluation",ext:true} ] }
+  ];
+
+  var html="";
+  nodes.forEach(function(n,i){
+    html+=chainNode(n);
+    if(i<nodes.length-1){ html+='<div class="chain-conn"><span class="arrow">↓</span></div>'; }
+  });
+  el.innerHTML=html;
+}
+
 function renderBuild(d){
   var parts=[];
   if(d.phase)parts.push("Phase "+d.phase);
@@ -483,12 +606,17 @@ function renderBuild(d){
   document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
 }
 
+function j(url){return fetch(url+"?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;});}
 Promise.all([
   fetch("../data/world.json?t="+Date.now()).then(function(r){return r.json();}),
-  fetch("../data/weather.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
-  fetch("../data/market.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+  j("../data/weather.json"),
+  j("../data/market.json"),
+  j("../data/company.json"),
+  j("../data/customers.json"),
+  j("../data/dashboard.json")
 ]).then(function(res){
-  var d=res[0], weather=res[1], market=res[2];
+  var d=res[0], weather=res[1], market=res[2], company=res[3], customers=res[4], dashboard=res[5];
+  renderCausalChain({world:d, weather:weather, market:market, company:company, customers:customers, dashboard:dashboard});
   renderWorldState(d, weather, market);
   renderWall(d);
   renderSimDepth(d);
