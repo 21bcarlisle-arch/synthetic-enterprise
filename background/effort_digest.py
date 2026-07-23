@@ -81,6 +81,17 @@ def render_digest_section(
             )
         )
 
+    # Visible degrade (R15 HARDEN 2026-07-24): a malformed level in the map
+    # (e.g. a non-numeric quoted `level_current`) is isolated by
+    # remaining_effort_report rather than crashing the digest -- surface it so
+    # the typo is FIXED, never silently swallowed.
+    if remaining.get("n_malformed"):
+        lines.append(
+            "- ⚠ {} atom(s) EXCLUDED with a malformed level (fix the map): {}.".format(
+                remaining["n_malformed"], ", ".join(remaining["malformed_atoms"])
+            )
+        )
+
     lane_lines = [
         "{}: est {:.1f}h vs actual {:.1f}h ({}{:.1f}h, {})".format(
             lane,

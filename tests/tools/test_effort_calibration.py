@@ -485,6 +485,46 @@ def test_remaining_effort_report_ignores_atoms_missing_level_fields():
     assert report["n_below_target"] == 0
 
 
+def test_remaining_effort_report_isolates_malformed_level_not_crashes_whole_digest():
+    # R15 HARDEN (red-team of this atom's own invariant, 2026-07-24): a single
+    # hand-edit typo -- a NON-NUMERIC quoted level (`"L2"`) -- must NOT raise
+    # TypeError and zero the ENTIRE effort digest (the idle-hole/"whole-draw-
+    # stops" class the SIBLING supervisor-half draw was explicitly hardened
+    # against). The malformed atom is ISOLATED and COUNTED (visible degrade,
+    # honest under-count invariant), while well-formed atoms are still summed.
+    # This is the failing-before / isolating-after mutation proof: pre-fix the
+    # raw `"L2" < 3` comparison crashed the call; the assertion below only
+    # holds because the isolation guard now exists (remove it -> TypeError).
+    registry = _registry(
+        GOOD1=dict(lane="H_harness", size="M", level_current=0, level_target=1),
+        BAD=dict(lane="H_harness", level_current="L2", level_target=3),  # garbage level
+        GOOD2=dict(lane="H_harness", size="S", level_current=1, level_target=2),
+    )
+    report = remaining_effort_report(
+        registry, by_lane={}, by_size={"status": "no_size_data_yet", "bands": {}}
+    )
+    assert report["n_below_target"] == 2            # GOOD1, GOOD2 -- BAD excluded, not crashing
+    assert report["n_malformed"] == 1               # degrade is VISIBLE, not silent
+    assert report["malformed_atoms"] == ["BAD"]
+    assert report["total_expected_hours"] == pytest.approx(
+        SIZE_BAND_ANCHOR_HOURS["M"] + SIZE_BAND_ANCHOR_HOURS["S"]
+    )
+
+
+def test_remaining_effort_report_counts_quoted_numeric_level_typo():
+    # The common hand-edit typo is a quoted NUMERIC level (`level_current: "2"`
+    # instead of `2`). That is unambiguous, so it is COERCED and counted
+    # correctly (not isolated) -- robustness without dropping real work.
+    registry = _registry(
+        A1=dict(lane="H_harness", size="M", level_current="1", level_target=3),
+    )
+    report = remaining_effort_report(
+        registry, by_lane={}, by_size={"status": "no_size_data_yet", "bands": {}}
+    )
+    assert report["n_below_target"] == 1
+    assert report["n_malformed"] == 0
+
+
 # ---------------------------------------------------------------------------
 # L2 SIZING half -- estimate_vs_actual_by_lane
 # ---------------------------------------------------------------------------

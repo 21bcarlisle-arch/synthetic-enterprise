@@ -114,6 +114,33 @@ def test_render_digest_section_no_below_target_atoms(tmp_path):
     assert "No below-target atoms." in section
 
 
+def test_render_digest_section_surfaces_malformed_level_not_crash(tmp_path):
+    # R15 HARDEN (2026-07-24): a malformed (non-numeric quoted) level in the
+    # live map must NOT crash the digest -- it is isolated and surfaced as a
+    # visible ⚠ warning so the typo gets FIXED, never silently swallowed.
+    repo = tmp_path / "repo_malformed"
+    repo.mkdir()
+    _run_git(["init", "-q"], repo)
+    _run_git(["config", "user.email", "test@example.com"], repo)
+    _run_git(["config", "user.name", "Test"], repo)
+    design_dir = repo / "docs" / "design"
+    design_dir.mkdir(parents=True)
+    map_path = design_dir / "maturity_map.yaml"
+    _write_map(map_path, [
+        {"id": "Z1_ok", "lane": "H_harness", "size": "M",
+         "level_current": 0, "level_target": 2, "loop_stage": "build"},
+        {"id": "Z9_bad", "lane": "H_harness",
+         "level_current": "L2", "level_target": 3, "loop_stage": "build"},  # typo
+    ])
+    _run_git(["add", "docs/design/maturity_map.yaml"], repo)
+    _commit(repo, "seed with a malformed level", 3_100_000)
+
+    section = effort_digest.render_digest_section(map_path=map_path, repo_root=repo)
+    assert section.startswith("**EFFORT SIZING**")   # did NOT crash / blank out
+    assert "malformed level" in section
+    assert "Z9_bad" in section
+
+
 def test_render_digest_section_degrades_when_map_unreadable(tmp_path):
     missing = tmp_path / "does_not_exist.yaml"
     assert effort_digest.render_digest_section(map_path=missing) == ""

@@ -390,13 +390,29 @@ def remaining_effort_report(
         by_lane = by_lane if by_lane is not None else calibration_by_lane(durations)
         by_size = by_size if by_size is not None else calibration_by_size(durations)
 
-    below_target = [
-        aid
-        for aid, info in registry.items()
-        if info.get("level_current") is not None
-        and info.get("level_target") is not None
-        and info.get("level_current") < info.get("level_target")
-    ]
+    # Per-atom isolation of malformed levels -- SAME doctrine as this atom's
+    # sibling supervisor-half draw, which was explicitly hardened against this
+    # exact hand-edit typo class (a quoted `level_current` string): one bad
+    # atom must NOT crash the whole report. A raw `"2" < 3` raises TypeError
+    # and would zero the ENTIRE effort digest (the idle-hole/"whole-draw-stops"
+    # class). We coerce to int (so the common quoted-number typo is still
+    # counted correctly), isolate a genuinely non-numeric level, and COUNT the
+    # isolated atoms so the degrade is VISIBLE, never a silently-zeroed digest
+    # (extends the honest under-count invariant, R10 -- close the class).
+    below_target = []
+    malformed = []
+    for aid, info in registry.items():
+        cur = info.get("level_current")
+        tgt = info.get("level_target")
+        if cur is None or tgt is None:
+            continue
+        try:
+            is_below = int(cur) < int(tgt)
+        except (TypeError, ValueError):
+            malformed.append(aid)
+            continue
+        if is_below:
+            below_target.append(aid)
 
     total_hours = 0.0
     sized_count = 0
@@ -420,6 +436,8 @@ def remaining_effort_report(
         "n_below_target": len(below_target),
         "n_sized": sized_count,
         "n_unsized": len(below_target) - sized_count,
+        "n_malformed": len(malformed),
+        "malformed_atoms": sorted(malformed),
         "total_expected_hours": round(total_hours, 2) if sized_count else None,
         "per_atom": per_atom,
         "guardrail": (
