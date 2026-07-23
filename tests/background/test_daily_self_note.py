@@ -91,6 +91,77 @@ def test_empty_diff_counts_as_republish_not_substantive():
 
 
 # --------------------------------------------------------------------------- #
+# DIRECTOR-RULING 2026-07-23 — PRODUCT vs MACHINERY split (the headline metric)
+# --------------------------------------------------------------------------- #
+
+def test_product_vs_machinery_classification():
+    fake = FakeGit([
+        ("aaa", "wholesale cover organ", 3000, ["company/wholesale/cover.py"]),
+        ("bbb", "supervisor draw fix", 2000, ["background/supervisor.py"]),
+        ("ccc", "sim demand curve", 1000, ["simulation/demand.py", "tests/simulation/test_demand.py"]),
+    ])
+    vw, err = sm1.verified_work(_runner=fake)
+    assert err is None
+    assert vw["product_count"] == 2 and vw["machinery_count"] == 1
+    assert "supervisor draw fix" in vw["machinery_subjects"]
+    assert "wholesale cover organ" in vw["product_subjects"]
+    # counts partition the substantive set exactly
+    assert vw["product_count"] + vw["machinery_count"] == vw["substantive_count"]
+
+
+def test_file_class_test_inherits_area_and_unknown_defaults_machinery():
+    assert sm1._file_class("tests/company/test_billing.py") == "product"
+    assert sm1._file_class("tests/background/test_supervisor.py") == "machinery"
+    assert sm1._file_class("site/index.html") == "product"
+    assert sm1._file_class("some_root_script.py") == "machinery"  # unrecognised → NOT product
+    assert sm1._file_class("docs/status/LATEST.md") is None  # non-substantive
+    for churn in ("site/data/dashboard.json", "site/state/x.json",
+                  "site/shadow/index.html", "site/snapshots/y.json"):
+        assert sm1._file_class(churn) is None, f"{churn} must stay churn"  # generated subtrees
+
+
+def test_site_pages_substantive_but_generated_subtrees_are_churn():
+    """Ruling: site PAGES are product & substantive; the auto-process-regenerated subtrees
+    (data/state/shadow/snapshots) stay churn (§1) — else auto-process republishes inflate product."""
+    fake = FakeGit([
+        ("aaa", "SITE V5 pages", 2000, ["site/index.html", "site/company/index.html"]),
+        # a realistic auto-process commit: only generated site subtrees + docs churn
+        ("bbb", "Auto-process run complete", 1000,
+         ["site/data/dashboard.json", "site/state/x.json", "site/shadow/index.html",
+          "docs/status/LATEST.md"]),
+    ])
+    vw, err = sm1.verified_work(_runner=fake)
+    assert err is None
+    assert vw["substantive_count"] == 1 and vw["republish_count"] == 1
+    assert vw["product_count"] == 1  # the SITE V5 page build is product, the republish is not
+
+
+def test_mixed_commit_is_product_if_any_file_is_product():
+    # a commit touching both a machinery and a product file counts as PRODUCT (product is proven,
+    # not diluted) — matches _commit_class "any product file"
+    assert sm1._commit_class(["background/supervisor.py", "saas/churn.py"]) == "product"
+    assert sm1._commit_class(["background/supervisor.py", "hooks/x.py"]) == "machinery"
+
+
+def test_machinery_only_window_renders_failure_verdict(monkeypatch, tmp_path):
+    """R15: the metric must FIRE on its own named defect — a machinery-only day. A day that fixed
+    only machinery must render the ruling's 'the day FAILED' verdict, not a flattering green."""
+    _isolate(monkeypatch, tmp_path)
+    fake = FakeGit([("bbb", "governance meta-fix", 2000, ["background/supervisor.py"])])
+    note = sm1.render_note(NOW.isoformat(), _runner=fake)
+    assert "PRODUCT: 0" in note
+    assert "the day FAILED" in note
+
+
+def test_product_window_does_not_render_failure_verdict(monkeypatch, tmp_path):
+    _isolate(monkeypatch, tmp_path)
+    fake = FakeGit([("aaa", "wholesale organ", 2000, ["company/wholesale/cover.py"])])
+    note = sm1.render_note(NOW.isoformat(), _runner=fake)
+    assert "PRODUCT: 1" in note
+    assert "the day FAILED" not in note
+
+
+# --------------------------------------------------------------------------- #
 # R15 — FAIL-CLOSED: an unavailable source is a RED, never a silent zero
 # --------------------------------------------------------------------------- #
 

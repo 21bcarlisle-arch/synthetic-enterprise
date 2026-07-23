@@ -1,5 +1,29 @@
 # Current Priorities
 
+**last director review: 2026-07-23**
+
+---
+
+## TOP OF QUEUE — [DIRECTOR-RULING] PRODUCT FIRST (2026-07-23, `docs/staging/done/DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23.md`)
+
+Director's verdict, verbatim: *"Nothing material is happening."* The recent verified hours are
+dominated by MACHINERY (governance, continuity, authority, measurement) while PRODUCT — the ratified
+axes / commercial spine — has barely moved in visible terms. This re-rank is the sole priority order
+(no new scope; every item is previously authorized/declared). **Machinery from here only on breakage,
+or as an explicit named dependency of an item below — stated as such in the commit.**
+
+1. **SITE V5 build** — structure confirmed; build the pages. The director's window/showcase; output he can open.
+2. **Generator draw-wiring** — its blocking input (the segments verdicts) landed; ship the draw so the richer population exists.
+3. **VALUE_CHAIN first organs** — replace the static cap dict with real observation-window mechanics (a declared FAIL); build the MC-2 collateral death-test (work-ordered, not built).
+4. **Premise demand published** — half-hourly household curves to a visible surface (Spec 003's two-level test is the bar).
+5. **Spike-tail defect** — the top-ranked fidelity defect, untouched since declared.
+
+Standing: F1 triad completion + twin level moves proceed (product). Reviews must land as PRODUCT
+changes, not further meta. Metric mechanised the same day in `background/daily_self_note.py`
+(`_commit_class` / PRODUCT-vs-MACHINERY headline + machinery-only FAILED verdict, R15-proven).
+
+---
+
 **Recurring class found across today's DISCOVER sweep (2026-07-12, R10 -- class-level registration,
 not an instance fix): "orphaned capability modules"** -- real, non-trivial, real-data-anchored
 company-side modules that exist, pass their own tests, and are never wired to the live decision

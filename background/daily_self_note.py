@@ -46,8 +46,50 @@ _SUBSTANTIVE_PREFIXES = (
 )
 
 
+# DIRECTOR-RULING 2026-07-23 (PRODUCT FIRST): site AUTHORED pages/templates are the director's
+# window = product, so they count as substantive. The GENERATED subtrees below are regenerated
+# every auto-process run (churn) and stay EXCLUDED — verified against real auto-process commits,
+# which touch ONLY these paths under site/ (§1 churn exclusion preserved, not weakened).
+_SITE_GENERATED_SUBTREES = ("site/data/", "site/state/", "site/shadow/", "site/snapshots/")
+
+
 def _is_substantive_file(f: str) -> bool:
+    if f.startswith("site/"):
+        return not f.startswith(_SITE_GENERATED_SUBTREES)
     return f.endswith(".py") or any(f.startswith(p) for p in _SUBSTANTIVE_PREFIXES)
+
+
+# DIRECTOR-RULING 2026-07-23 (PRODUCT FIRST): split the already-substantive commits into PRODUCT
+# (moves the director's axes / commercial spine — the site, wholesale organs, demand surfaces, the
+# population generator, fidelity of the simulated world) vs MACHINERY (harness, continuity,
+# authority, measurement, governance, meta-fixes). This is a v1, PROVISIONAL prefix classifier —
+# the ruling names the definitions "ledger-governed", so this is the seed to be governed, not the
+# final word. It splits ONLY the substantive set; the §1 mechanical-republish exclusion is unchanged.
+_PRODUCT_PREFIXES = (
+    "company/", "saas/", "simulation/", "sim/", "interface/", "site/",
+    "docs/market_research/", "docs/vision/", "docs/domain_artefact_library/",
+)
+_PRODUCT_TEST_AREAS = frozenset({"company", "saas", "simulation", "sim", "interface", "site"})
+
+
+def _file_class(f: str) -> str | None:
+    """PRODUCT / MACHINERY / None(non-substantive). A test file inherits the class of what it
+    tests (tests/<area>/...); everything else is classed by prefix. Default is MACHINERY so an
+    unrecognised path can never inflate the product count (fail-toward-machinery, matching the
+    ruling's intent that machinery is the residual, product the thing that must be proven)."""
+    if not _is_substantive_file(f):
+        return None
+    if f.startswith("tests/"):
+        parts = f.split("/")
+        area = parts[1] if len(parts) > 1 else ""
+        return "product" if area in _PRODUCT_TEST_AREAS else "machinery"
+    return "product" if any(f.startswith(p) for p in _PRODUCT_PREFIXES) else "machinery"
+
+
+def _commit_class(files: list[str]) -> str:
+    """A substantive commit is PRODUCT if ANY of its files is product-class, else MACHINERY.
+    (Caller guarantees the commit is already substantive — not a mechanical republish.)"""
+    return "product" if any(_file_class(f) == "product" for f in files) else "machinery"
 
 
 def _run_git(*args: str) -> tuple[str | None, str | None]:
@@ -78,6 +120,8 @@ def verified_work(window_hours: int = 24, _runner=_run_git) -> tuple[dict | None
         return None, err
     lines = [ln for ln in out.splitlines() if ln.strip()]
     substantive: list[str] = []
+    product: list[str] = []
+    machinery: list[str] = []
     republish = 0
     for ln in lines:
         sha, _, subject = ln.partition("\t")
@@ -88,9 +132,13 @@ def verified_work(window_hours: int = 24, _runner=_run_git) -> tuple[dict | None
         if _is_mechanical_republish(files):
             republish += 1
         else:
-            substantive.append(subject.strip())
+            subj = subject.strip()
+            substantive.append(subj)
+            (product if _commit_class(files) == "product" else machinery).append(subj)
     return {"substantive_count": len(substantive), "republish_count": republish,
-            "substantive_subjects": substantive}, None
+            "substantive_subjects": substantive,
+            "product_count": len(product), "product_subjects": product,
+            "machinery_count": len(machinery), "machinery_subjects": machinery}, None
 
 
 def longest_stall(window_hours: int = 24, _runner=_run_git) -> tuple[dict | None, str | None]:
@@ -179,6 +227,22 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
             lines.append(f"    - {s}")
         if vw["substantive_count"] == 0:
             lines.append("    - ⚠ ZERO verified product progress this window (full pipeline liveness ≠ autonomy).")
+
+    # DIRECTOR-RULING 2026-07-23 (PRODUCT FIRST): the headline split + the one plain-words question.
+    lines += ["", "**PRODUCT vs MACHINERY** _(DIRECTOR-RULING 2026-07-23 — the headline; "
+              "diagnostic-never-target, definitions provisional/ledger-governed)_"]
+    if vw_err:
+        lines.append(f"- {_red(vw_err)}")
+    else:
+        lines.append(f"- **PRODUCT: {vw['product_count']}** · MACHINERY: {vw['machinery_count']} "
+                     "_(substantive commits; regenerated site/docs churn already excluded upstream)_")
+        for s in vw["product_subjects"][:8]:
+            lines.append(f"    - 🟢 {s}")
+        lines.append("- **What can the director SEE or JUDGE today that he could not yesterday?** "
+                     "— agent narrates in product terms (the note computes the split; it cannot judge visibility).")
+        if vw["product_count"] == 0 and vw["machinery_count"] > 0:
+            lines.append("    - 🔴 PRODUCT=0, MACHINERY-only window. Per the ruling: **the day FAILED "
+                         "regardless of how many machinery classes got fixed.**")
 
     lines += ["", "**Longest stall + honest cause** _(deadman meaningful-commit clock)_"]
     if st_err:
