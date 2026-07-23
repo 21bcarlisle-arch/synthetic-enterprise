@@ -1,0 +1,25 @@
+{
+  "source": "sim/cache/elexon_ssp_full.json (real Elexon settlement SSP, via sim.cache_store.get_cached_prices)",
+  "window": {
+    "start": "2016-03-01",
+    "end": "2025-06-07"
+  },
+  "n": 162507,
+  "max": 4037.8,
+  "min": -185.33,
+  "mean": 78.72157266388133,
+  "median": 55.95,
+  "p95": 227.0,
+  "p99": 394.05,
+  "p99_9": 720.41,
+  "p99_99": 3700.0,
+  "frac_negative": 0.022183659780809443,
+  "exceedance_gbp": {
+    "frac_gt_200": 0.06597869630231314,
+    "frac_gt_300": 0.021512919443470127,
+    "frac_gt_500": 0.003809066686358126,
+    "frac_gt_1000": 0.0004430578375085381,
+    "frac_gt_2000": 0.00023383608090728398,
+    "frac_gt_3000": 0.00014768594583617936
+  }
+}

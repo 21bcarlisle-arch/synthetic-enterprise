@@ -1,3 +1,20 @@
+<!-- [CC PROCESSING STATUS — 2026-07-23 NIGHT] STEP 1 DONE (the target), steps 2–4 OPEN.
+  STEP 1 (characterise the real tail, read-only, blind to P&L — R13): LANDED. `sim/ssp_tail_target.py`
+  computes the empirical real SSP tail over the MODEL's own window (2016-03-01..2025-06-07, n=162,507)
+  directly from the ingested Elexon record; emitted to `docs/design/spike_tail_real_target.json`.
+  Confirms + extends the G4 ledger: max £4,037.80, frac_negative 0.02218 (ledger 0.02241 ✓), p95 £227
+  (ledger 220 ✓), AND the exceedance curve the ledger lacked (>£200: 6.6%, >£500: 0.38%, >£1000: 0.044%,
+  >£2000: 0.023%). R15 on the TARGET itself (tests/sim/test_ssp_tail_target.py, 5 tests): FAIL-CLOSED —
+  an empty/uncomputable distribution RAISES (never a silently-zero pass); shape maths proven on a
+  synthetic; ledger-consistency asserted on the real cache. This gives T1 its missing numeric target.
+  STEP 2 (locate the truncation) — recon done: the ~£574 ceiling is NOT a clip to remove; it is the
+  emergent ceiling of the OLS 3-feature (gas/demand/wind) regression (run_phase3b) with no scarcity/BM-
+  spike term and no explicit negative-price process. The structural scarcity multiplier that would lift
+  the tail already exists but is GATED OFF (sim/price_engine.py:162). STEPS 3–4 (reshape the generator +
+  prove the residual bites, T1/T2/T3) — NOT blind-landed in an unsupervised night tick (the ruling's
+  "tired mega-turn" bar): a baseline-world generator change (R13) deserves a supervised build. Defect
+  stays `open` and drawable (register invariant: a characterised target does NOT close the gap). -->
+
 # [PROPOSE-THEN-PROCEED] Spike-tail attack plan — the SSP residual settled at the wrong tail
 
 **Minted:** 2026-07-23, RUNG 4 (declared-defect backlog) of the WORK-SOURCE HIERARCHY
