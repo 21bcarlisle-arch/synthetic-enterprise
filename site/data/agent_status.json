@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-23T21:33:25.949258+00:00",
+  "last_updated": "2026-07-23T21:39:26.694229+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T21:33:25.949258+00:00",
+      "last_heartbeat": "2026-07-23T21:39:26.694229+00:00",
       "last_action": "Heartbeat \u2014 9 files tracked",
-      "last_action_ts": "2026-07-23T21:33:25.949258+00:00",
+      "last_action_ts": "2026-07-23T21:39:26.694229+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T21:31:03.823738+00:00",
-      "last_action": "Waiting for next cycle (3h 25m remaining)",
-      "last_action_ts": "2026-07-23T21:31:03.823738+00:00",
+      "last_heartbeat": "2026-07-23T21:36:03.824864+00:00",
+      "last_action": "Waiting for next cycle (3h 20m remaining)",
+      "last_action_ts": "2026-07-23T21:36:03.824864+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-23T21:29:29.271636+00:00",
-      "last_action": "Sim started \u2014 git=6307fa1d0",
-      "last_action_ts": "2026-07-23T21:29:29.271636+00:00",
+      "last_heartbeat": "2026-07-23T21:38:08.172989+00:00",
+      "last_action": "Sim started \u2014 git=3fdea46bf",
+      "last_action_ts": "2026-07-23T21:38:08.172989+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-17T11:04:50.734485+00:00",
+      "last_heartbeat": "2026-07-23T21:36:37.968470+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-17T11:04:50.734485+00:00",
+      "last_action_ts": "2026-07-23T21:36:37.968470+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T21:32:28.637875+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~8min",
-      "last_action_ts": "2026-07-23T21:32:28.637875+00:00",
+      "last_heartbeat": "2026-07-23T21:38:36.656688+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~14min",
+      "last_action_ts": "2026-07-23T21:38:36.656688+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
