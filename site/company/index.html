@@ -158,6 +158,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <p class="muted" style="margin-bottom:14px" id="finance-intro">Loading...</p>
     <div class="kpis" id="finance-kpis"></div>
     <div class="passport" id="finance-unit-note"></div>
+    <div class="passport" id="cost-to-serve-dist"></div>
   </div>
   <div class="card">
     <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
@@ -436,6 +437,24 @@ function renderFinance(d){
       "no change in how well the supplier runs. The &pound;/customer figures and rates are the reading "+
       "that transfers between books. Every ratio states its denominator; no total is presented as a headline."
     : "";
+
+  // RC6 (DIRECTOR §C): cost-to-serve as a DISTRIBUTION, never a bare total. A single
+  // book-total cost figure hides that cost-to-serve is spread wide across customers --
+  // and activity-based pricing needs the per-customer figure (a flat margin makes the
+  // high-cost-to-serve tail net-negative). Source: company.json.cost_to_serve, built
+  // from the same drawn sample the household drill-down uses.
+  var cts=d.cost_to_serve||{};
+  el("cost-to-serve-dist").innerHTML = cts.available
+    ? "<b>Cost to serve &mdash; the distribution, not the total.</b> Across the drawn book of "+
+      "<b>N="+esc(cts.n)+"</b> customers, lifetime cost-to-serve spans "+gbpFull(cts.min_gbp)+
+      " (min) &rarr; <b>"+gbpFull(cts.median_gbp)+" median</b> &rarr; "+gbpFull(cts.max_gbp)+
+      " (max), mean "+gbpFull(cts.mean_gbp)+" &mdash; "+esc(cts.basis)+". By segment: "+
+      (cts.by_segment||[]).map(function(s){
+        return esc(s.segment)+" (n="+esc(s.n)+"): median "+gbpFull(s.median_gbp);
+      }).join(" &middot; ")+
+      ". A single book total would hide this spread; activity-based pricing needs the "+
+      "per-customer figure &mdash; a flat margin makes the high-cost-to-serve tail net-negative."
+    : "<span class=\"muted\">Cost-to-serve distribution unavailable for this run's sample.</span>";
 
   var r=f.reconciliation||{};
   el("bridge-intro").innerHTML=

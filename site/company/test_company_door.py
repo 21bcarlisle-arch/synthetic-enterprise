@@ -132,6 +132,57 @@ def test_finance_per_customer_follows_book_size_rc6():
     assert "50,000.00" in out2["finance-kpis"]["innerHTML"], out2["finance-kpis"]["innerHTML"]
 
 
+def test_cost_to_serve_rendered_as_distribution_not_total_rc6_r11():
+    # RC6 §C (DIRECTOR 2026-07-23): cost-to-serve is a DISTRIBUTION, never a bare
+    # total. R11 (verify to the rendered value): the live per-customer min/median/max
+    # from company.json.cost_to_serve must appear in the rendered pixel, framed as a
+    # spread, with N and the segment split -- not a single headline number.
+    d = _live()
+    cts = d.get("cost_to_serve")
+    if not (cts and cts.get("available")):
+        # R2: the running auto-processor may still be on the pre-cost_to_serve
+        # generator and regenerate company.json without the field until it restarts.
+        # Don't wedge the publish gate on that transient -- the always-on R15
+        # guarantee lives in tools/test_generate_company_data.py (tests the function).
+        pytest.skip("cost_to_serve not in live company.json yet (pre-deploy / old generator process)")
+    out = _render(d)
+    html = out["cost-to-serve-dist"]["innerHTML"]
+    assert "distribution, not the total" in html, html
+    assert f"N={cts['n']}" in html, html
+    # The actual live min/median/max render (comma-grouped £ to 2dp):
+    for key in ("min_gbp", "median_gbp", "max_gbp"):
+        shown = f"{cts[key]:,.2f}"
+        assert shown in html, (key, shown, html)
+    # Coverage-cell distribution: every segment's median renders.
+    for seg in cts["by_segment"]:
+        assert seg["segment"] in html and f"{seg['median_gbp']:,.2f}" in html, (seg, html)
+
+
+def test_cost_to_serve_distribution_follows_source_r15():
+    # R15 (a control must be able to FAIL): the rendered spread must FOLLOW the
+    # source values -- a hardcoded/baked figure would fail this. Mutate the median
+    # and max in the source; the rendered pixel must move.
+    d = _live()
+    if not (d.get("cost_to_serve") or {}).get("available"):
+        pytest.skip("cost_to_serve not in live company.json yet (pre-deploy / old generator process)")
+    d["cost_to_serve"]["median_gbp"] = 1234.56
+    d["cost_to_serve"]["max_gbp"] = 98765.43
+    out = _render(d)
+    html = out["cost-to-serve-dist"]["innerHTML"]
+    assert "1,234.56" in html and "98,765.43" in html, html
+
+
+def test_cost_to_serve_fail_closed_when_unavailable_r15():
+    # FAIL-CLOSED: an unavailable distribution must NOT render a silently-zero total
+    # as if it were a real figure -- it must say so.
+    d = _live()
+    d["cost_to_serve"] = {"available": False, "n": 0}
+    out = _render(d)
+    html = out["cost-to-serve-dist"]["innerHTML"]
+    assert "unavailable" in html.lower(), html
+    assert "distribution, not the total" not in html, html
+
+
 # --- SURFACE-3 single job: the SaaS shown as PRODUCT (SITE_V5, ruling 2026-07-23) ---
 
 

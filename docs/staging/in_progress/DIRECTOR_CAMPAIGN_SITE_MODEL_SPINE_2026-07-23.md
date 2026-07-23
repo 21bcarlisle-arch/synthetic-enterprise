@@ -137,10 +137,30 @@ R11 render (live data: N=19 → **£80,056/customer**, total £1,521,070) + R15 
 per-customer value AND stated N FOLLOW N+annual under mutation — a baked ratio FAILS) — 28 pass.
 Harness `ids` extended with `inv-unit-note`. **Live-site pixel verify (poesys.net, mobile) is
 POST-DEPLOY** — committed, not yet published; confirm on the next auto-process publish.
-**STILL OPEN (data-plumbing, logged not faked):** cost-to-serve/arrears £-per-customer and
-DISTRIBUTIONS across coverage cells need the generator to emit an authoritative per-customer
-denominator + distribution (dashboard.json carries only the aggregate book, not per-customer
-cost-to-serve/arrears splits) — a follow-on step, not this tick.
+**Cost-to-serve DISTRIBUTION DONE — later 2026-07-23 tick (`tools/generate_company_data.py::_cost_to_serve_distribution`
++ `site/company/index.html::renderFinance`).** The generator now emits `company.json.cost_to_serve`:
+per-customer lifetime cost-to-serve (settled clock) as a DISTRIBUTION — min/median/mean/max, the
+sorted per-customer values, AND the coverage-cell split by segment — built from the same
+`customer_sample.json` accounts the household drill-down uses (no fresh un-cross-checkable aggregate).
+The Company finance panel renders it as a spread, not a total: live values render **£219.95 (min)
+→ £505.43 median → £4,218.12 (max)**, revealing what a single total hides — **resi median £465.86
+(n=14) vs IC median £3,219.18 (n=5)**, a ~7× coverage-cell gap that is the load-bearing fact for
+activity-based pricing (a flat margin makes the high-cost-to-serve IC tail net-negative). R11 render
+(against live `company.json`) + R15 failable tests BOTH ways (`test_generate_company_data.py`: the
+distribution FOLLOWS per-customer values under mutation, FAIL-CLOSED on empty, no-goal-seek reads
+cost_to_serve only; `test_company_door.py`: R11 min/median/max/segment pixels + render-independence +
+fail-closed-when-unavailable) — mutation-proven to fire both ways (baked median → generator test reds;
+dropped distribution frame → render test reds). Full site suite **280 passed, 6 skipped**.
+`cost-to-serve-dist` added to the render-harness id whitelist so it is R11-observable. **Live-site
+pixel verify (poesys.net, mobile) is POST-DEPLOY** — committed, not yet published; confirm on the next
+auto-process publish.
+**STILL OPEN (honestly logged, not faked):** **arrears £-per-customer** DISTRIBUTION — the run output
+carries per-customer *behavioural* arrears proxies (`payment_miss_trajectory`, `bill_shock_history`,
+`payment_behaviour_analytics`) but NO authoritative per-customer arrears **£ balance** (only the C1
+drill-down carries `balance_gbp`; `customer_sample.json` does not emit it for the book). Emitting a
+per-customer arrears-£ across the sample is genuine generator data-plumbing (add an arrears-£ field to
+the sample export), a follow-on step. Cost-to-serve DISTRIBUTIONS across richer coverage cells
+(payment-channel, tenure, fuel-poverty) are also a follow-on — segment (resi/IC) is the cell shipped.
 
 <details><summary>original §C brief</summary>
 Convert every financial surface to £-per-customer (margin, cost-to-serve, arrears),

@@ -289,6 +289,64 @@ def _compliance(dashboard):
     )
 
 
+def _cost_to_serve_distribution(sample):
+    """Per-customer cost-to-serve as a DISTRIBUTION, never a bare total (RC6 §C,
+    DIRECTOR 2026-07-23: "distributions across coverage cells ... certainly not
+    totals from a random sample of customers"). Cost-to-serve is a lifetime
+    cumulative figure (settled clock). Built from customer_sample.json -- the same
+    real named accounts the household drill-down uses -- so it is not a fresh,
+    un-cross-checkable aggregate. The raw per-customer values are emitted (sorted)
+    so the page renders the SPREAD, and the segment split gives the coverage-cell
+    distribution the director asked for. Activity-based pricing (a standing project
+    constraint) needs the per-customer figure, not the average: a flat margin makes
+    the high-cost-to-serve tail net-negative, and only the distribution shows it.
+
+    FAIL-CLOSED (R15): an empty/uncomputable sample returns available:False, never
+    a silently-zero total the page would render as a real figure."""
+    custs = ((sample or {}).get("customers")) or {}
+    rows = []
+    for cid, c in custs.items():
+        cts = c.get("cost_to_serve_gbp")
+        if cts is None:
+            continue
+        seg = "ic" if "IC" in str(cid) else "resi"
+        rows.append((float(cts), seg))
+    if not rows:
+        return {"available": False, "n": 0}
+
+    def _stats(vs):
+        s = sorted(vs)
+        n = len(s)
+        median = s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2.0
+        return dict(
+            n=n,
+            min_gbp=round(s[0], 2),
+            median_gbp=round(median, 2),
+            mean_gbp=round(sum(s) / n, 2),
+            max_gbp=round(s[-1], 2),
+        )
+
+    by_segment = []
+    for seg in ("resi", "ic"):
+        segvals = [v for v, s in rows if s == seg]
+        if segvals:
+            st = _stats(segvals)
+            st["segment"] = seg
+            by_segment.append(st)
+
+    out = _stats([v for v, _ in rows])
+    out.update(
+        dict(
+            available=True,
+            clock="settled",
+            basis="lifetime cost-to-serve per customer · settled clock · drawn sample",
+            values_gbp=[round(v, 2) for v, _ in sorted(rows)],
+            by_segment=by_segment,
+        )
+    )
+    return out
+
+
 def _stress_bands(sample):
     """The book by each customer's latest income-stress band -- re-homed from the
     retired SIM-Explorer 'Customers' tab into The Company (v4 §4①, affordability/
@@ -335,6 +393,7 @@ def generate():
         finance=_three_clock_finance(dashboard, bridge, ledger),
         trading_risk=_trading_risk(dashboard),
         household=_household(sample, ledger),
+        cost_to_serve=_cost_to_serve_distribution(sample),
         stress_bands=_stress_bands(sample),
         compliance=_compliance(dashboard),
     )
