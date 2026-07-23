@@ -1,3 +1,21 @@
+# [CC PROCESSING STATUS -- 2026-07-23] IN PROGRESS (part 2 ABSORBED; parts 1 & 3 OPEN)
+#
+# PART 2 (SEVENTH CLASS -- campaign continuation) is ABSORBED, not merely consumed: the open-campaign
+# draw rung is LIVE + R15-proven (commit 321f34dff). supervisor.py::_open_campaign_draw reads
+# docs/design/CAMPAIGN_REGISTER.yaml and forbids rest while any OPEN campaign has an unfinished item;
+# wired into _self_refill_draw (above backlog), _is_drained_and_gated, and authorized_set_enumeration
+# (7th level 'open_campaign'). Test: tests/background/test_open_campaign_draw.py (must-not-rest
+# reproduces the 14:03Z state; may-rest when all landed). Closes the "surface N -> rest until doorbell" class.
+#
+# OPEN sub-items (why parked in in_progress, not root):
+#   PART 1 -- daily note must compute TURN-AWARE utilisation (spawn/turn logs, not commit gaps) alongside
+#     the product/machinery split. Home: background/daily_self_note.py (NOT YET BUILT).
+#   PART 3 -- SITE build continues: surfaces 2->5 (campaign rolls, now auto-drawn via CAMPAIGN_REGISTER.yaml);
+#     iterate surface 1 (axis-1 FAIL recorded in director_axis_verdicts.jsonl) vs BRAND_CONSTITUTION +
+#     Spec-005 rubric, next iteration AS SCORED RUBRIC ROWS. Unblocks per surface: land LIVE + Expert-Hour
+#     + mark item `landed` in the register.
+# -----------------------------------------------------------------------------------------------------
+
 # [DIRECTOR-RULING] — Seventh class: campaigns must roll. Site verdict: front door FAILS. Utilisation truth. (2026-07-23)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Three parts.

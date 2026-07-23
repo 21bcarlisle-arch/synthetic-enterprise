@@ -1,3 +1,22 @@
+# [CC PROCESSING STATUS -- 2026-07-23] IN PROGRESS (rung 2 ABSORBED; rungs 4/5/7 + seed OPEN)
+#
+# The class-of-classes fix = a 7-rung WORK-SOURCE HIERARCHY the draw walks. RUNG 2 (open campaigns) is
+# LIVE + R15-proven (commit 321f34dff, supervisor.py::_open_campaign_draw) -- the same mechanism that
+# absorbs the seventh-class ruling. Rungs 1/3/6 already exist (staged docs; below-target atoms incl.
+# propose-halves; forward-discovery register).
+#
+# OPEN (why parked in in_progress, not root) -- the remaining rungs, each a named build:
+#   RUNG 4 -- defect & findings backlog auto-mintable into atoms/propose-docs; INVARIANT: a declared
+#     defect NOT in the drawable set is a contradiction (enforce). Spike-tail defect is #1.
+#   RUNG 5 -- registered follow-ons as a drawable queue (the scenario steer alone registered five).
+#   RUNG 7 -- the PLANNER rung: 1-6 empty -> bounded planning turn (read DIRECTOR_AXES + epoch arc +
+#     fidelity ledger) that MINTS the next batch as propose-then-proceed docs. Rest only BELOW rung 7.
+#   R15 both directions (mint-not-rest with axes populated + spike-tail declared; rest with 1-7 exhausted).
+#   SEED NOW (rung 4/5, no waiting): spike-tail attack plan; premise-demand publish (Spec 003); cap
+#     observation-window + MC-2 collateral test; scenario steer's 5 follow-ons as one ranked doc.
+# UNBLOCKS: each rung is an independent contract-touching build (tests first); drawn on subsequent ticks.
+# -----------------------------------------------------------------------------------------------------
+
 # [DIRECTOR-RULING] — WORK IS THE DEFAULT: the class-of-classes fix. The drawable set is never empty by construction. (2026-07-23)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. This absorbs and supersedes the pattern behind all seven stall classes. Consume together with the seventh-class ruling in this queue.
