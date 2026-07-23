@@ -1,6 +1,18 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
 Last updated: 2026-07-23T13:45:59Z
 
+**PRODUCT LANDED (2026-07-23, `87ce1b980`) — SITE_V5 surface 1 (Front door) MVP is LIVE + pixel-verified.**
+The front door at poesys.net is rebuilt to the five-surface IA (Home / The World / The Company / Proof; Director
+off-nav), with a distinct honesty line above the fold ("No customers. No licence. A running simulator"), the
+`/now/` "default landing" framing de-throned (landing swap sequenced LAST), doors mapped to the three public
+surfaces, and the thesis chart now stating its falsifiable hypothesis in copy. R11 confirmed on the live site
+(honesty line, hypothesis, and new nav all render); site-lane gate green (60 passed); `test_home_door` canonical
+nav updated in lockstep. **Remaining surface-1 steps (next tick):** Expert-Hour (cold-eyes) pass against the
+single job, then the `/now/` landing swap; then surface 2 (The World). Alongside: the **scenario-spine + trading-
+friction FRAME** landed (`docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md`) — director did NOT veto
+(ruling `1dd89af03`); launch-world values (`neso_central`/`crisis_2021_22`/`supply_glut`, sourced anchors incl.
+SSP max £4,000/MWh confirmed vs Elexon API) await R13 ratification; SPINE_1–5 named for the map.
+
 **OVERNIGHT-REST DRAW BUG FIXED + DEPLOYED (2026-07-21 ~07:25, `0a072a842`, supervisor restarted via systemd):**
 The overnight rest (23:00→06:00, zero work commits) **was a real draw bug**, not a correct hold — the earlier
 tick's "correct hold, nothing DRAWABLE" claim (`6898247b8`) was WRONG and is **retracted (R9)**: I re-checked
