@@ -409,4 +409,25 @@ code-authorized agent must locate the seam and author the combined DISCOVER-COMP
 
 ---
 
+## Scenario Spine & Trading-Friction Anchors (2026-07-23, discovery-agent)
+
+Requested check for a SIM scenario-spine FRAME: NESO Future Energy Scenarios central-path
+anchors, 2021-22 crisis magnitudes, a supply-glut world anchor, and GB wholesale bid-offer
+spread by horizon. Full findings, direct quotes, live-fetched Elexon API data and citations:
+`docs/market_research/scenario_spine_and_friction_anchors_2026-07-23.md`.
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| Historical SSP crisis-peak (~£4,038/MWh cited by sim's G4 ledger) | ~£4,038/MWh | £4,000.00/MWh exactly, 8 Jan 2021 SP39 — highest value found in this session's Elexon sampling | Elexon Insights API, dataset DISEBSP, queried live 2026-07-23 | 2026-07-23 | ✓ Corroborated to within ~1% |
+| Negative SSP half-hours during 2021-22 crisis (~2.24% cited by sim's G4 ledger) | ~2.24% | Not independently computed this session (would need a full bulk scan of ~17,520 crisis-window settlement periods) | Elexon Insights API spot-checks only | 2026-07-23 | Gap — UNSOURCED at the precise-% level, directionally plausible only |
+| NESO FES 2025 central-path electricity demand growth to 2030/2050 | Not yet modelled as a named scenario spine | Peak demand: 57.5GW (2024) → 62.1-64.7GW (2030) → 120.1-143.6GW (2050); annual demand 287TWh → 335-345TWh → 705-797TWh (Holistic Transition = NESO's own reference pathway) | NESO FES 2025 "Pathways to Net Zero", Nov 2025 V.5, retrieved 2026-07-23 | 2026-07-23 | H — new anchor for scenario-spine build |
+| NESO FES 2025 central-path wind+solar buildout to 2030/2050 | Not yet modelled | 49.0GW (2024) → 112.9-124.4GW (2030, +2.3-2.5x) → 226.9-256.1GW (2050) | NESO FES 2025, same source | 2026-07-23 | H — capacity buildout materially outpaces demand growth to 2030; mechanistic driver of negative-price growth |
+| Central-path gas price trend (DESNZ Assumption B, real 2024 prices) | Not yet modelled as a named scenario spine | 226 p/therm (2022 avg) → 84 p/therm (2024) → 71 p/therm (2030) → 66 p/therm (2050 plateau) | DESNZ "Fossil Fuel Price Assumptions 2025", gov.uk, retrieved 2026-07-23 (NBP Day-Ahead ICIS basis) | 2026-07-23 | H — FES itself does not publish a p/therm table; DESNZ is the standard cross-government proxy |
+| Ofgem price-cap wholesale-cost jump, single crisis quarter (Aug 2022 reset) | Not directly modelled as a standalone line | £1,077 → £2,491/year wholesale-cost component; total cap £1,971 → £3,549/year (+80%) | Ofgem "Default tariff cap update from 1 October 2022" letter, 26 Aug 2022, fetched live 2026-07-23 | 2026-07-23 | H — primary Ofgem document |
+| NBP gas single-day/intraday peak price during 2021-22 crisis | Not sourced | Could not fetch a live primary figure this session (Ofgem WMI portal blocks automated access; general web search unproductive) | Attempted Ofgem WMI, EUR-Lex, Wikipedia — all partial/blocked | 2026-07-23 | Gap — UNSOURCED, best proxy is the DESNZ annual-average series above |
+| EU gas storage-fill mandate (80%/90% targets, Reg 2022/1032) driving 2022 seasonal-spread inversion | Not modelled | Mechanism confirmed (mandatory summer storage-fill competed with normal supply); specific 80%/90% numeric targets NOT re-verified against EUR-Lex primary text this session (empty fetch response) | Wikipedia "2021-2023 global energy crisis", fetched live 2026-07-23; EUR-Lex fetch attempted, blocked | 2026-07-23 | Gap — mechanism H, exact numeric targets L/UNSOURCED |
+| Supply-glut world anchor: COVID spring-2020 negative-price magnitude | Not yet modelled as a named scenario spine | SSP down to −£60 to −£66/MWh; 37.5-43.75% of half-hours negative (13 Apr 2020, 24 May 2020) — more extreme than the 2024/2026 high-solar comparator already logged (−£29/MWh, 17%) | Elexon Insights API, dataset DISEBSP, queried live 2026-07-23 | 2026-07-23 | H — primary source, self-computed |
+| Supply-glut world anchor: COVID spring-2020 demand collapse | Not yet modelled | −23.7% (lockdown week avg TSD 23,654MW vs same calendar week prior year 30,993MW) — confirms and modestly exceeds the commonly-cited "~20%" figure | Elexon Insights API, dataset INDO/ITSDO, queried live 2026-07-23 | 2026-07-23 | H — primary source, self-computed (YoY same-week comparison, imperfect weather control) |
+| GB wholesale bid-offer spread by horizon (trading-friction table) | 0.5% base + 0.2%/yr tenor, capped 1.5% (Phase 43b) | No change from prior finding — see `docs/market_research/findings/bid_ask_spread_2026_06_23.md`; Ofgem WMI live portal inaccessible to automated fetch this session (redirect loop), June figures re-confirmed as best available | Ofgem WMI (2026-06-23 data) + CMA Appendix 7.1 | 2026-07-23 (re-confirmed, no new data) | ✓ OK, no change |
+
 *Maintained by `background/discovery_agent.py`. Manual updates should note the source and date.*

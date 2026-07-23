@@ -136,7 +136,11 @@ def _site_nav(text: str) -> str:
 
 def test_canonical_nav_present_and_director_absent():
     nav = _site_nav(INDEX.read_text())
-    for label in ("Home", "Company", "World", "Proof", "Method", "Journey", "Simplified"):
+    # SITE_V5 surface 1: the five-surface IA -- Home / The World / The Company /
+    # Proof (Director window is off-nav, auth-gated). Method/Journey/Simplified
+    # folded into Proof/World at their own surfaces; updated in lockstep with the
+    # nav rebuild (SITE_V5_STRUCTURE_CONFIRMATION.md §1: tests move with the doors).
+    for label in ("Home", "The World", "The Company", "Proof"):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
     # Home is the current door -> marked active.
     assert 'href="./" class="nav-link active">Home</a>' in nav
