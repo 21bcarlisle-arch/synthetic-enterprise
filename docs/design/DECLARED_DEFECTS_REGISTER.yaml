@@ -44,8 +44,19 @@ defects:
       SP39. Consequence: the residual position settled at SSP -- where the spike tail becomes
       commercially real (hedged blocks vs consumed half-hourly shape) -- cannot bite the company as
       it bit real suppliers in 2021-22.
+      STEP-2 CORRECTION (2026-07-23, code-traced): the GBP574 figure was measured from
+      sim/price_engine.py::synthetic_price, which is GATED OFF and never settles the residual (it is a
+      conditional-MEAN merit-order model; its tail is thin by construction and reshaping its A0/A1/A2
+      would be an R12 number-tune). The residual actually settles against REAL Elexon SSP historically
+      (tail already real) and against sim/scenario/bimodal_generator.py in forward worlds -- which tops
+      out ~GBP683 and never reaches the >GBP1,000 scarcity regime because its documented crisis-spike
+      overlay is UNIMPLEMENTED. The fix is a physics-shaped crisis-spike overlay on the FORWARD scenario
+      generator, calibrated to spike_tail_real_target.json (machinery = fidelity; per-scenario severity =
+      director-reserved curriculum, R13). Live tripwire on the real path: tests/sim/test_scenario_forward_tail.py.
     plan_doc: docs/design/proposals/PROPOSE_SPIKE_TAIL_ATTACK_PLAN.md
     closes_when: >-
-      the SSP/imbalance generator's tail (max, negative-fraction, and the shape between) is
-      re-measured against the G4 ledger and matches real within the ledger's stated tolerance,
-      AND the company's residual-at-SSP exposure is shown to move under the corrected tail.
+      the FORWARD SSP generator's tail (sim/scenario/bimodal_generator.py: max, negative-fraction, and
+      the exceedance shape between) is re-measured against docs/design/spike_tail_real_target.json and
+      matches real within the ledger's stated tolerance -- i.e. tests/sim/test_scenario_forward_tail.py
+      flips from gap-is-real to a real tolerance check -- AND the company's residual-at-SSP exposure is
+      shown to move under the corrected forward tail (T3).

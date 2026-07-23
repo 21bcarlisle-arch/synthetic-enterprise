@@ -21,11 +21,22 @@
   reshape trips it), T2 (no company/saas import → no P&L write-back into the baseline tail, R13),
   FAIL-CLOSED, and test_gap_is_real_today (GREEN — asserts the truncation exists NOW; fails the moment
   the tail is reshaped, forcing register-close + marker-removal same commit). 10 pass / 1 xfail.
-  STEP 3-PHYSICS + STEP 4 (reshape the generator so the tail's SHAPE matches real; prove the residual
-  bites, T3) — STILL OPEN, NOT blind-landed in an unsupervised tick (the ruling's "tired mega-turn"
-  bar): a baseline-world generator change (R13) deserves a supervised build. Defect stays `open` and
-  drawable — the gap is now a LIVE tripwire, not just prose (register invariant: a characterised target
-  + a failable control do NOT close the gap; only T1 passing + T3 do). -->
+  STEP 2 CORRECTION (LANDED 2026-07-23 tick, code-traced): steps 3/3-PHYSICS were about to reshape the
+  WRONG generator. `sim/price_engine.py::synthetic_price` (the ~GBP574 the register measures) is GATED
+  OFF and never settles the residual (its own docstring); the residual actually settles against real
+  Elexon SSP historically (tail already real, GBP4,038) and against `sim/scenario/bimodal_generator.py`
+  in forward/synthetic worlds (wired via simulation/run_scenario.py). The forward generator tops out at
+  ~GBP683 (heaviest preset) and NEVER enters the >GBP1,000 scarcity regime, because the "Crisis spikes"
+  its own docstring promises are NOT implemented in generate_scenario_prices. Reshaping price_engine's
+  A0/A1/A2 toward GBP4,038 would be an R12 number-tune (the tail is a conditional-mean model's residual,
+  not its output). NEW failable control on the RIGHT path: tests/sim/test_scenario_forward_tail.py
+  (gap-is-real tripwire, R15-proven both ways — GREEN now, FAILS when the overlay lands + reaches real).
+  See "## STEP 2 CORRECTION" below for the mechanism design + the R13 fidelity-vs-curriculum seam.
+  STEP 3-PHYSICS + STEP 4 (implement the crisis-spike overlay so the forward tail's SHAPE matches real;
+  prove the residual bites, T3) — STILL OPEN, NOT blind-landed in an unsupervised tick (the ruling's
+  "tired mega-turn" bar): a scenario-generator tail change straddles R13 (machinery = fidelity, per-
+  scenario severity = director-reserved curriculum) and deserves a supervised build. Defect stays `open`
+  and drawable — the gap is now a LIVE tripwire on the real settlement path, not just prose. -->
 
 # [PROPOSE-THEN-PROCEED] Spike-tail attack plan — the SSP residual settled at the wrong tail
 
@@ -84,3 +95,68 @@ drawable as rung 4; the loop is idle beside it at its peril (ruling).
 
 **Risk & proportionality:** reversible SIM generator change with named failable tests; baseline-fidelity reason
 only, decided blind to P&L (R13). Tag: **proceed, tests-first.**
+
+---
+
+## STEP 2 CORRECTION — the truncation is in the forward SCENARIO generator, not the merit-order engine
+
+**Landed 2026-07-23 tick (code-traced, R4 "name the nearest working analogue and state the diff").**
+
+### What actually settles the residual (traced, not asserted)
+- `simulation/settlement.py` and `simulation/hedged_settlement.py` settle the residual against
+  `record["systemSellPrice"]` read **straight from the ingested Elexon cache** — i.e. **real SSP**, which
+  already carries the real GBP4,038 max / -£? tail over the 2016–25 historical window. Over history the
+  company is *already* exposed to the real tail.
+- Beyond history (forward/curriculum worlds), SSP is **generated**: `simulation/run_scenario.py` →
+  `sim/scenario/bimodal_generator.py` (and `gas_scenario_generator.py`). **This** is where a thin tail
+  means "the world cannot bite the company the way 2021–22 bit real suppliers."
+- `sim/price_engine.py::synthetic_price` — the ~GBP574 figure the register/plan measured — is a
+  candidate **conditional-mean** merit-order model, **gated OFF in every phase** (its own docstring:
+  "changes only a code path nothing currently reads from"). It is graded by MAE against real, "never a
+  target." A conditional-mean model's tail is thin *by construction* — the scarcity/imbalance tail is
+  its **residual**, not its output. Reshaping A0/A1/A2 to hit GBP4,038 would be an **R12 number-tune**
+  that destroys the MAE fit and models the wrong physics. **This is the trap the correction avoids.**
+
+### The truncation, precisely located (empirical, `sim/scenario/bimodal_generator.py`)
+| metric | forward generator (heaviest preset, fixed seed) | real |
+|---|---|---|
+| max SSP | **~£683** (never > £1,000) | £4,038 (SP39, 8 Jan 2021) |
+| >£2,000 exceedance | **0** | non-zero |
+| neg fraction | 1.8–13.5% (a per-scenario dial) | 2.24% |
+
+Three structural causes:
+1. **The promised crisis-spike overlay is unbuilt.** The docstring lists "Crisis spikes: rare
+   (< 1/year average), drawn from extreme upper tail," but `generate_scenario_prices` implements only
+   regime modes + dunkelflaute + a negative overlay — **no crisis/scarcity spike branch** (mechanised in
+   `test_crisis_spike_overlay_not_yet_implemented`).
+2. **Daily granularity.** One price per calendar day; the real spike tail is a **half-hourly (SP-level)**
+   phenomenon (the record max is a single half-hour). A daily mean structurally cannot reach SP39=£4,000.
+3. **Hard negative clip at −£75** (`negative_price_floor`), shallower than the real oversupply tail.
+
+### The mechanism (what the real tail actually is — so the fix is physics, not a number)
+The GBP4,038 tail is **not** merit-order marginal cost. It is **Balancing-Mechanism cash-out / scarcity
+pricing** — the imbalance price (SSP) formed from the marginal balancing action when the system is short
+(NIV-tagged, VoLL-linked under the single-price cash-out reform), a half-hourly settlement phenomenon.
+The deep negatives are oversupply + constraint/curtailment cash-out. So the fix is a **scarcity-spike
+overlay** keyed on system tightness (dunkelflaute / low-margin days already flagged in the generator),
+with spike magnitude drawn from a heavy-tailed distribution calibrated to the real exceedance curve
+(`docs/design/spike_tail_real_target.json`), **not** a nudge to the mean-price constants.
+
+### R13 seam — what is fidelity (buildable) vs curriculum (director-reserved)
+- **Machinery = fidelity, proceed-then-propose:** that the generator is *able* to produce a
+  physics-shaped scarcity spike at all, and that its shape is calibrated to the real exceedance curve.
+  The current inability to reach the regime under *any* preset is a fidelity-of-machinery defect.
+- **Severity = curriculum, DIRECTOR-RESERVED (R13):** per-scenario `crisis_spikes_per_year` and the spike
+  magnitude ceiling for each named world ("2027 central" vs "2021-style gas crisis") are difficulty
+  dials — named, versioned, director-authored. The overlay ships with conservative machinery defaults;
+  the director sets each scenario's severity.
+
+### Remaining open steps (supervised build)
+- **3-PHYSICS:** implement the crisis-spike overlay in `bimodal_generator` (and mirror in
+  `gas_scenario_generator`), calibrated to `spike_tail_real_target.json`; resolve the daily→half-hourly
+  granularity question (either an SP-level spike sub-draw or an explicit time-scale simplification per
+  R10/C-S5). Flip `test_forward_tail_gap_is_real_today` to a real tolerance check when it reaches real.
+- **4 / T3:** show the company's residual-at-SSP exposure MOVES under the corrected forward tail
+  (coupled-triad measurement on a fixed-seed forward run).
+- **Close:** `SPIKE_TAIL_SSP_RESIDUAL → closed` in the same commit the tail is re-measured within
+  tolerance AND T3 passes (register `closes_when`).
