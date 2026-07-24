@@ -113,7 +113,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     A working UK energy supplier, rendered as one SaaS product. It prices, hedges, bills, collects,
     serves customers and stays compliant &mdash; the whole supplier, end to end, spanning what the
     market normally buys from a dozen specialist vendors. Everything below is a real output from the
-    latest settlement run, carrying its clock (R14) and a link to the file it came from. What you will
+    latest settlement run, carrying its clock (billed, settled or banked) and a link to the file it came from. What you will
     not find here is an effort metric: no test counts, no commit charts &mdash; a product is judged by
     what it does, not how much was typed.
   </p>
@@ -338,7 +338,7 @@ function renderState(d){
   el("state-intro").innerHTML=
     "A live read of the book as of the last run &mdash; cash on hand, the settled net margin, the hedge cover "+
     "the risk desk is carrying, and how much of what was billed has actually been collected. Every figure carries "+
-    "its clock (R14). The decisions below are the last moves the autonomous supplier made, with its reasons.";
+    "its clock (billed, settled or banked). The decisions below are the last moves the autonomous supplier made, with its reasons.";
   el("state-kpis").innerHTML=[
     kpiTile("Treasury (cash)", gbp(f.treasury_end_gbp,true), "banked", ""),
     kpiTile("Net margin", gbp(f.settled_net_margin_gbp,true), "settled", (Number(f.settled_net_margin_gbp)<0?"red":"green")),

@@ -508,9 +508,9 @@ function renderWorldState(world, weather, market){
     "Basis: weather is realised Open-Meteo "+((weather&&weather.metadata&&weather.metadata.location)||"London")+
     " (base "+((weather&&weather.metadata&&weather.metadata.hdd_base_c)||"15.5")+"°C HDD), as of "+esc(weatherAsOf||"--")+"; "+
     "intra-day wholesale is the real half-hourly settlement price feed (£/MWh, observed clock), as of "+esc(settleAsOf||"--")+
-    "; settled mean/p95 is Elexon SSP, annual. Each figure carries its own as-of and clock (R14); the "+lagN+
+    "; settled mean/p95 is Elexon SSP, annual. Each figure carries its own as-of and clock (billed, settled or banked); the "+lagN+
     "-month gap between them is the settlement lag, shown not hidden. Regime + movement are diagnostics computed from the "+
-    "realised series (R12), never a target.";
+    "realised series, never a target.";
 }
 
 // THE CAUSAL CHAIN (surface-2's single job): render the walkable spine from
@@ -584,8 +584,8 @@ function renderCausalChain(s){
       links:[ {label:"company.json",url:"../data/company.json"}, {label:"the supplier accounts",url:"../company/"}, {label:"Ofgem price cap",url:"https://www.ofgem.gov.uk/energy-price-cap",ext:true} ] },
     { idx:6, name:"Carbon", status:"PLANNED", role:"the cheapest tonne left",
       figure:"£/tCO₂e — not yet measured",
-      figure_label:"the mission metric = (cost-to-serve + cost-to-persuade, incl. compute) ÷ carbon abated. Only the cost-to-serve part of the numerator is measured above (£"+num(Math.round(port.cost_to_serve_gbp||0))+" book); the cost-to-persuade/compute term AND the denominator (carbon abated) are the E5 three-ledger, an epoch-3 atom not yet built — shown open, not faked.",
-      couples:"∩ the chain's honest open end: when E5 lands, perturbing node 1 will propagate all the way to here.",
+      figure_label:"the mission metric = (cost-to-serve + cost-to-persuade, incl. compute) ÷ carbon abated. Only the cost-to-serve part of the numerator is measured above (£"+num(Math.round(port.cost_to_serve_gbp||0))+" book); the cost-to-persuade/compute term AND the denominator (carbon abated) are a three-part ledger that is planned but not yet built — shown open, not faked.",
+      couples:"∩ the chain's honest open end: once the carbon-abatement ledger lands, perturbing node 1 will propagate all the way to here.",
       links:[ {label:"the mission (Proof)",url:"../proof/"}, {label:"DESNZ carbon values",url:"https://www.gov.uk/government/publications/valuation-of-greenhouse-gas-emissions-for-policy-appraisal-and-evaluation",ext:true} ] }
   ];
 

@@ -137,7 +137,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <b>How this pane is gated.</b> It is off-nav and <code>noindex</code> &mdash;
     unlisted, reachable only by knowing the URL. The view itself is <b>not
     behind a lock</b>: it renders read-only repo state, and a client-side PIN
-    that opened with any key would be theatre, not a control (R15). The
+    that opened with any key would be theatre, not a control. The
     <b>authenticated</b> affordance is the comment box (bottom-left): it reuses
     the site's auth pattern &mdash; a PIN checked <em>server-side</em> by
     <code>background/director_comments.py</code> before anything is ever staged,
@@ -282,7 +282,7 @@ function renderHealth(d, now){
   document.getElementById("health-hyp").innerHTML=
     "<b>Falsifiable claim.</b> Every non-retired daemon reports a heartbeat within "+
     HEALTH_STALE_HOURS+"h. A daemon past that window renders <span class=\"badge stale\">STALE</span> "+
-    "in red &mdash; this panel can fail, and does when a process dies (R15).";
+    "in red &mdash; this panel can fail, and does when a process dies.";
   var live=0, stale=0, retired=0, anoms=0;
   var rows=agents.map(function(a){
     var st=String(a.status||"").toLowerCase();
@@ -386,7 +386,7 @@ function renderPlan(d){
   var ect=plan.empirical_cycle_times||{};
   var conc=plan.concurrency||{};
   document.getElementById("plan-intro").innerHTML=
-    "Dates are forecasts; exit tests remain the ONLY gate. No atom is promoted, and no "+
+    "Dates are forecasts; exit tests remain the ONLY gate. No capability is promoted, and no "+
     "verification shortened, to hit a forecast. Re-forecast cadence: "+esc(plan.re_forecast_cadence||"")+".";
   var kpis=[
     {l:"Observed transitions",v:num(ect.transition_count||0),s:"level moves measured"},

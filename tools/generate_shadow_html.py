@@ -163,6 +163,13 @@ def _page(title, active, body, ts, git_commit="?", phase="?"):
     return (
         "<!DOCTYPE html><html lang=en><head><meta charset=UTF-8>"
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        # External-register (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24):
+        # the /shadow/* pages are INTERNAL mirrors that embed LATEST.md (atoms,
+        # R-numbers, campaign names, commit-speak). They are not lead surfaces and
+        # must never be indexed as one -- noindex gates them from outside readers /
+        # search, matching the rest of the internal cluster (project, wip-flow,
+        # director, method all carry this already).
+        '<meta name="robots" content="noindex, nofollow">'
         + "<title>" + title + " - Synthetic Enterprise</title>" + CSS + "</head>"
         + "<body>" + _nav(active)
         + '<div class="container">' + body + footer + "</div>"

@@ -73,6 +73,25 @@ def test_footer_shows_unknown_when_meta_missing():
     assert "Phase ?" in html
 
 
+def test_shadow_mirrors_carry_noindex_external_register():
+    """DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER (2026-07-24): the /shadow/*
+    pages are INTERNAL mirrors that embed LATEST.md -- full of internal vocab
+    (atoms, R-numbers, campaign names, commit-speak). They are not lead surfaces
+    and must never be indexed as one: every shadow builder must emit
+    robots=noindex so an outside reader / search engine cannot land on the
+    project-talking-to-itself register. Mutation guard: dropping the meta tag
+    from the page wrapper fails this on all five builders."""
+    builders = [
+        build_index(_dash(), "ts"),
+        build_customers(_dash(), {"customers": {}}, "ts"),
+        build_supplier(_dash(), "ts"),
+        build_sim({}, "ts"),
+        build_project(_dash(), "internal LATEST.md body", "ts"),
+    ]
+    for html in builders:
+        assert '<meta name="robots" content="noindex, nofollow">' in html, html[:200]
+
+
 def test_shadow_page_uses_v4_light_design_system():
     """WEBSITE_AS_SHOWCASE.md Part 0 (Phase RE): the shadow mirror must share
     site/sim/index.html's light v4 tokens (:root custom properties, site-nav),

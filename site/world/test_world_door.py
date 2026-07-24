@@ -432,13 +432,18 @@ def test_causal_chain_bills_node_renders_live_household(tmp_path):
 
 def test_causal_chain_carbon_node_is_honestly_open(tmp_path):
     # SITE_CONSTITUTION honesty: the carbon node must be marked PLANNED (not yet
-    # measured), name the E5 three-ledger, and NOT fabricate a £/tCO2e figure.
+    # measured), describe the missing carbon-abatement ledger in plain external
+    # language, and NOT fabricate a £/tCO2e figure.
+    # External-register (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24):
+    # the honest-open node must NOT name the internal atom label "E5" on this
+    # public surface — the plain-English "planned but not yet built" carries it.
     out = _render_chain(_live(), _live_weather(), _market_fixture(),
                         _live_company(), _live_customers(), _live_dashboard(), tmp_path)
     html = out["causal-chain"]["innerHTML"]
     assert "PLANNED" in html, html
     assert "not yet measured" in html.lower(), html
-    assert "E5" in html, html
+    assert "not yet built" in html.lower(), html
+    assert "E5" not in html, html
 
 
 def test_causal_chain_states_falsifiable_hypothesis():

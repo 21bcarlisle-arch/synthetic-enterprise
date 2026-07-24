@@ -11,11 +11,27 @@
 >   No glyph glossary. Folded into the front-door surface (F-MOAP-1 director default host). Site suite
 >   282 passed / 6 skipped; link_walk 0 dead/redirected; local render-verified (live propagation of the
 >   Pages deploy pending at commit time).
-> - **[ ] OPEN — iteration 3:** the site-wide **external-register sweep** — internal vocab (atoms,
->   HARDEN, rungs, R-numbers, campaign names, tier labels, commit-speak) removed from every public
->   surface (incl. the /shadow/* internal mirrors that embed LATEST.md); internal narrative behind
->   /proof only. Test per page: *company explaining an idea, or a project talking to itself?*
-> **Next draw = iteration 3 (site-wide external-register sweep).** Archive to done/ only when all three are landed + verified.
+> - **[◑ MOSTLY DONE — iteration 3, external-register sweep]** (this change) — two verified parts landed:
+>   **(a) Every outside-facing lead surface swept clean.** The front-door path an outsider actually walks
+>   (Home → World / Company / Proof, plus Customers / Now / Glossary via the "also"/node links) now carries
+>   zero internal citations in *rendered* text: front-door alt-text ("Tier-1 calls"→"the irreversible calls";
+>   "a harness of gates, rules and a maturity map"→"an automated system of checks and a running build plan"),
+>   World (removed R14/R12 citations, "E5 three-ledger / epoch-3 atom"→"a three-part / carbon-abatement ledger
+>   planned but not yet built"), Company + Customers ("clock (R14)"→"clock (billed, settled or banked)"),
+>   Director ("(R15)"×2 dropped; "No atom is promoted"→"No capability is promoted"). Verified by a rendered-text
+>   scan (scripts/styles/comments stripped): all six doors CLEAN. The stale `test_causal_chain..._honestly_open`
+>   test that *required* "E5" on-surface was flipped to forbid it (honesty props — PLANNED / not-yet-measured /
+>   no fabricated £ — retained). Site suite **364 passed / 6 skipped**, link_walk 0 dead/redirected.
+>   **(b) /shadow/* internal mirrors gated (director named these explicitly).** They embed LATEST.md wholesale
+>   (atoms/R-numbers/campaign names/commit-speak) and were the only internal pages still INDEXED. Fixed at the
+>   *generator* (`tools/generate_shadow_html.py` emits `robots=noindex,nofollow`), regenerated all 5 outputs,
+>   R15-proven both ways by a new mutation-tested control (`test_shadow_mirrors_carry_noindex_external_register`).
+>   The rest of the internal cluster (project, wip-flow, simplified, method, director) is *already* orphaned from
+>   the outside-reader path **and** noindex → not a lead surface, satisfies "internal narrative, not on a lead surface."
+>   **[ ] REMAINING (one design call):** those orphaned internal-narrative pages (project / wip-flow / simplified)
+>   still *render* internal vocab in their bodies and are not literally "behind /proof" — decide fold-under-/proof
+>   (nav + link consolidation) vs leave as URL-only internal views. Small, reversible; needs no new mechanism.
+> **Next draw = iteration 3 REMAINING (internal-cluster /proof disposition).** Archive to done/ once that lands.
 
 # [DIRECTOR-RULING] — IDEA FIRST, EXTERNAL REGISTER: no headline financials at this stage; the diagram's stages visible in plain outside language (2026-07-24)
 

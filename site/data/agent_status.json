@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-24T09:48:42.851049+00:00",
+  "last_updated": "2026-07-24T10:04:15.249661+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-24T09:48:42.851049+00:00",
+      "last_heartbeat": "2026-07-24T10:04:15.249661+00:00",
       "last_action": "Heartbeat \u2014 5 files tracked",
-      "last_action_ts": "2026-07-24T09:48:42.851049+00:00",
+      "last_action_ts": "2026-07-24T10:04:15.249661+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-24T09:44:09.642421+00:00",
-      "last_action": "Waiting for next cycle (3h 15m remaining)",
-      "last_action_ts": "2026-07-24T09:44:09.642421+00:00",
+      "last_heartbeat": "2026-07-24T10:04:09.645192+00:00",
+      "last_action": "Waiting for next cycle (2h 55m remaining)",
+      "last_action_ts": "2026-07-24T10:04:09.645192+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-24T09:42:54.899123+00:00",
-      "last_action": "Run complete in 467s \u2014 3775 KB (run_output_ba379e82d_20260724T093507Z.json)",
-      "last_action_ts": "2026-07-24T09:42:54.899123+00:00",
+      "last_heartbeat": "2026-07-24T09:58:25.904085+00:00",
+      "last_action": "Run complete in 490s \u2014 3775 KB (run_output_8edf08d9b_20260724T095016Z.json)",
+      "last_action_ts": "2026-07-24T09:58:25.904085+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-24T09:47:01.156092+00:00",
+      "last_heartbeat": "2026-07-24T10:03:14.019428+00:00",
       "last_action": "Cycle complete -- current stuck-key unchanged for ~0min",
-      "last_action_ts": "2026-07-24T09:47:01.156092+00:00",
+      "last_action_ts": "2026-07-24T10:03:14.019428+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
