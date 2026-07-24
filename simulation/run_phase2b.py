@@ -95,6 +95,8 @@ from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
 from company.trading.forward_book import ForwardContract, TradingBook, assign_default_counterparty
+from company.trading.wholesale_credit_exposure import build_credit_register_from_exposure
+from company.finance.margin_call_book import build_margin_calls_from_mtm
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost, compute_realized_var
 from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
@@ -2284,6 +2286,67 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         print(f"WARNING [coupled-triad W2_11<->D5] live gap measurement failed: {_triad_exc}")
         _traceback.print_exc()
 
+    # --- VALUE_CHAIN observation feed (2026-07-24): mark the company's own trading book at
+    # an end-of-run OBSERVABLE forward-price snapshot and populate the two board-level
+    # credit/liquidity registers so their fields MOVE on a real run (previously inert).
+    # Every input is wall-clean: the company's OWN open book, netted MtM (ISDA netting) marked
+    # at the company's OWN observable forward price. CompanyTariffEngine reads public spot
+    # history only (never sim.forward_curve) -- no simulation internal is read. The credit
+    # register captures the counterparty-credit side (company is owed); the margin-call book
+    # captures the sign-complement liquidity side (company posts variation margin when OTM).
+    _wholesale_credit_summary = None
+    _margin_call_summary = None
+    try:
+        _mark_engine = CompanyTariffEngine()
+        _current_fwd_by_commodity: dict[str, float] = {}
+        for _fuel, _recs in (("electricity", elec_records), ("gas", gas_records)):
+            try:
+                _current_fwd_by_commodity[_fuel] = _mark_engine.get_forward_price(
+                    _fuel, effective_end, _recs
+                )
+            except ValueError:
+                pass  # insufficient observable history at the mark date -> leave that fuel unmarked
+        # Portability: derive each open contract's commodity from the customer register, never
+        # hardcode a counterparty or fuel. Contracts whose commodity has no current mark are
+        # skipped by exposure_by_counterparty (no price -> not marked).
+        _commodity_by_cid = {c["customer_id"]: c["commodity"] for c in _ALL_KNOWN_CUSTOMERS}
+        _mark_prices: dict[str, float] = {}
+        for _c in trading_book.open_contracts():
+            _px = _current_fwd_by_commodity.get(_commodity_by_cid.get(_c.customer_id))
+            if _px is not None:
+                _mark_prices[_c.customer_id] = _px
+        _exposure = trading_book.exposure_by_counterparty(_mark_prices)
+        _credit_register = build_credit_register_from_exposure(_exposure)
+        _largest = _credit_register.largest_exposure()
+        _breaches = _credit_register.limit_breaches()
+        _wholesale_credit_summary = {
+            "mark_date": effective_end,
+            "current_forward_price_by_commodity": {
+                k: round(v, 4) for k, v in _current_fwd_by_commodity.items()
+            },
+            "n_counterparties": len(_credit_register.all_records()),
+            "total_net_exposure_gbp": round(_credit_register.total_net_exposure_gbp(), 2),
+            "total_collateral_held_gbp": round(_credit_register.total_collateral_held_gbp(), 2),
+            "largest_counterparty": _largest.counterparty_id if _largest else None,
+            "largest_net_exposure_gbp": round(_largest.net_exposure_gbp, 2) if _largest else 0.0,
+            "largest_utilisation_pct": round(_largest.utilisation_pct, 2) if _largest else 0.0,
+            "is_limit_breached": len(_breaches) > 0,
+            "n_breach": len(_breaches),
+        }
+        # Sign-complement: variation margin the company must POST where its netted position
+        # is out-of-the-money at the same mark. Dates are observable run state, not a clock read.
+        _settlement_deadline = (
+            date.fromisoformat(effective_end) + timedelta(days=1)
+        ).isoformat()
+        _margin_book = build_margin_calls_from_mtm(
+            _exposure, as_of_date=effective_end, settlement_deadline=_settlement_deadline
+        )
+        _margin_call_summary = _margin_book.margin_call_summary()
+    except Exception as _feed_exc:  # pragma: no cover - defensive, run must not die
+        import traceback as _feed_tb
+        print(f"WARNING [value-chain credit/margin feed] failed: {_feed_exc}")
+        _feed_tb.print_exc()
+
     return {
         "all_records": all_records,
         "administration_event": administration_event,
@@ -2341,6 +2404,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "demand_estimation_log": demand_estimation_log,  # Phase 23a: full log for report
         # Phase 43a: company trading book — forward position lifecycle
         "trading_book": trading_book.summary(),
+        # VALUE_CHAIN observation feed (2026-07-24): the two board-level credit/liquidity
+        # registers, marked at an end-of-run observable forward-price snapshot (None if the
+        # mark could not be formed from observable history).
+        "wholesale_credit_exposure": _wholesale_credit_summary,
+        "margin_call_book": _margin_call_summary,
         # Phase AF: DSR/Capacity Market flexibility revenue
         "flexibility_revenue_summary": flexibility_revenue_summary,
         "flexibility_revenue_by_year": _flex_by_year,

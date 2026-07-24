@@ -1,6 +1,10 @@
 import pytest
 from company.finance.margin_call_book import (
-    MarginCallBook, MarginCallEvent, MarginCallStatus
+    MarginCallBook, MarginCallEvent, MarginCallStatus, build_margin_calls_from_mtm
+)
+from company.trading.forward_book import ForwardContract, TradingBook
+from company.trading.wholesale_credit_exposure import (
+    ClearingStatus, CounterpartyCreditRating, CounterpartyType,
 )
 
 
@@ -138,3 +142,107 @@ def test_record_call_returns_call():
     c = _call()
     result = book.record_call(c)
     assert result is c
+
+
+# --- VALUE_CHAIN observation feed: build_margin_calls_from_mtm (2026-07-24) ---
+# R15 both-ways: the feed is proven against the REAL producer
+# (TradingBook.exposure_by_counterparty), not a hand-built dict, so it is tied to the live
+# stream the run loop consumes. Each control asserts the feed is LOAD-BEARING (variation
+# margin ACTUALLY moves off the netted MtM) and that the liquidity controls CAN FIRE.
+
+def _otm_contract(customer_id, cp_id, agreed, notional, cp_type, rating):
+    """A bilateral contract; at a lower spot it nets OUT-of-the-money (company owes margin)."""
+    return ForwardContract(
+        customer_id=customer_id, term_start="2022-01-01", term_end="2022-12-31",
+        notional_mwh=notional, agreed_price_gbp_per_mwh=agreed, hedge_fraction=1.0,
+        bid_ask_cost_gbp=0.0, counterparty_id=cp_id, counterparty_type=cp_type,
+        clearing_status=ClearingStatus.BILATERAL_ISDA, counterparty_rating=rating,
+    )
+
+
+def _feed(book_contracts, prices, **kw):
+    book = TradingBook()
+    for c in book_contracts:
+        book.open_hedge(c)
+    exposure = book.exposure_by_counterparty(prices)
+    return build_margin_calls_from_mtm(
+        exposure, as_of_date="2022-06-30", settlement_deadline="2022-07-01", **kw
+    )
+
+
+def test_margin_feed_derives_variation_margin_from_otm():
+    """LOAD-BEARING: an OTM netted position (agreed £90, spot £40, 1000 MWh -> netted -£50k)
+    posts variation margin = £50k. A feed that zeroed VM would leave outstanding at 0."""
+    mc = _feed(
+        [_otm_contract("C1", "TRADER-1", 90.0, 1000.0,
+                       CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)],
+        {"C1": 40.0},
+    )
+    assert mc.margin_call_summary()["total_calls"] == 1
+    assert abs(mc.total_outstanding_gbp() - 50_000.0) < 0.01
+
+
+def test_margin_feed_in_the_money_posts_no_margin():
+    """Fail-open guard: an ITM netted position (company is OWED, not owing) must NOT create a
+    margin call — that credit side belongs to the credit register, not this liquidity book."""
+    mc = _feed(
+        [_otm_contract("C1", "BANK-1", 40.0, 1000.0,
+                       CounterpartyType.MAJOR_BANK, CounterpartyCreditRating.AA)],
+        {"C1": 100.0},  # spot > agreed -> ITM -> netted +£60k
+    )
+    assert mc.margin_call_summary()["total_calls"] == 0
+    assert mc.total_outstanding_gbp() == 0.0
+
+
+def test_margin_feed_stress_controls_can_fire():
+    """R15: a large adverse mark (agreed £90, spot £40, 20_000 MWh -> netted -£1.0M -> VM £1.0M)
+    MUST make is_stress_event / is_liquidity_stressed fire. A book that can never stress is
+    fail-open — this proves it can."""
+    mc = _feed(
+        [_otm_contract("C1", "TRADER-1", 90.0, 20_000.0,
+                       CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)],
+        {"C1": 40.0},
+        credit_facility_gbp=1_000_000.0,
+    )
+    s = mc.margin_call_summary()
+    assert s["stress_events"] == 1               # VM £1.0M > £500k stress threshold
+    assert s["is_liquidity_stressed"] is True    # £1.0M outstanding > 0.8 × £1.0M facility
+
+
+def test_margin_feed_idempotent_on_replay():
+    """C-S1: re-feeding the SAME snapshot into the SAME book adds no duplicate call."""
+    contracts = [_otm_contract("C1", "TRADER-1", 90.0, 1000.0,
+                               CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)]
+    book = TradingBook()
+    for c in contracts:
+        book.open_hedge(c)
+    exposure = book.exposure_by_counterparty({"C1": 40.0})
+    mc = build_margin_calls_from_mtm(exposure, as_of_date="2022-06-30",
+                                     settlement_deadline="2022-07-01")
+    # Feed the identical snapshot a second time into the same book.
+    build_margin_calls_from_mtm(exposure, as_of_date="2022-06-30",
+                               settlement_deadline="2022-07-01", book=mc)
+    assert mc.margin_call_summary()["total_calls"] == 1
+
+
+def test_margin_feed_deterministic_replay():
+    """C-S2: two fresh feeds of the same snapshot produce identical call content."""
+    contracts = [_otm_contract("C1", "TRADER-1", 90.0, 1000.0,
+                               CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)]
+    book = TradingBook()
+    for c in contracts:
+        book.open_hedge(c)
+    exposure = book.exposure_by_counterparty({"C1": 40.0})
+    a = build_margin_calls_from_mtm(exposure, as_of_date="2022-06-30", settlement_deadline="2022-07-01")
+    b = build_margin_calls_from_mtm(exposure, as_of_date="2022-06-30", settlement_deadline="2022-07-01")
+    assert a.margin_call_summary() == b.margin_call_summary()
+
+
+def test_margin_feed_skips_unattributed():
+    """A contract with no counterparty forms no phantom margin call (wall/data-quality)."""
+    mc = _feed(
+        [ForwardContract(customer_id="C1", term_start="2022-01-01", term_end="2022-12-31",
+                         notional_mwh=1000.0, agreed_price_gbp_per_mwh=90.0, hedge_fraction=1.0)],
+        {"C1": 40.0},  # OTM but UNATTRIBUTED
+    )
+    assert mc.margin_call_summary()["total_calls"] == 0
