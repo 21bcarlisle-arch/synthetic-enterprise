@@ -115,8 +115,17 @@ def test_emit_appends_a_well_formed_g2_record(tmp_path):
     stored = ledger[fem.REL_ID]
     assert stored["atom_id"] == fem.ATOM_ID
     assert stored["relationship"]["provenance"] == "estimated_from_data"
-    assert stored["relationship"]["simplification_id"] is None
+    # The emitted row carries the registered calm-year negative-lift bound
+    # (scope-2b): the +1.17 aggregate hides 6 negative per-cell calm cells, so
+    # a null simplification would (correctly) red G2's positive-headline control.
+    assert (
+        stored["relationship"]["simplification_id"]
+        == fem.CALM_LOW_X_SIMPLIFICATION_ID
+    )
+    assert stored["relationship"]["simplification_note"]  # honest bound is emitted, not null
     assert stored == record
+    # The emitted record passes its own DoD gate (the bound is registered).
+    assert fel.fidelity_evidence_gate(fem.ATOM_ID, ledger_path=path).passed
 
 
 def test_emitted_record_carries_a_real_git_commit_stamp(real_record):

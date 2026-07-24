@@ -270,7 +270,14 @@ def fidelity_evidence_gate(atom_id: str, *, ledger_path: Optional[Path] = None) 
         (c) any of its records carries an `ablation` block whose
             `crn.substream_isolated` is not `True` (a CRN ablation Delta
             recorded without proven substream isolation is noise, S1.3/S5
-            killer-mutation-B, never a valid emitted number).
+            killer-mutation-B, never a valid emitted number);
+        (d) any of its records asserts a POSITIVE aggregate lift
+            (`relationship.strength.value > 0`) while carrying one or more
+            NEGATIVE per-cell lifts and `simplification_id is None` -- a
+            positive headline that silently hides that the model loses to the
+            naive baseline in named cells (R10 class control, ssp_negative_lift
+            mint 2026-07-24: closure is a registered simplification bounding
+            those cells, never a silent aggregate).
 
     FAIL-CLOSED (R15 fail-silent doctrine): if the ledger itself cannot be
     read (missing / unreadable / malformed JSON / not an object), THIS is
@@ -313,5 +320,44 @@ def fidelity_evidence_gate(atom_id: str, *, ledger_path: Optional[Path] = None) 
                     "isolation (crn.substream_isolated is not True) -- a Delta "
                     "without isolation is noise, not evidence (S1.3/S5)"
                 )
+
+        # (d) R10 class control -- the "positive headline hides per-cell losses"
+        # defect (PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24, scope-2b).
+        # A record that asserts a POSITIVE aggregate lift while SILENTLY carrying
+        # one or more NEGATIVE per-cell lifts, with no registered simplification,
+        # is concealing that the model LOSES to the naive baseline in named cells
+        # behind a single positive summary number (the mint's "a silent +1.17
+        # headline that hides the per-cell losses is not an acceptable close").
+        # Closure is a registered `simplification_id` bounding those cells -- R10
+        # requires the whole CLASS fail automatically, not an instance fix; any
+        # future emitted row with a positive aggregate and hidden per-cell losses
+        # reds here until it registers its honest bound. A row whose aggregate is
+        # itself <= 0 is honestly bad, not concealing, so this class targets the
+        # positive-headline case specifically.
+        strength = rel.get("strength") or {}
+        agg_value = strength.get("value")
+        per_cell = rec.get("per_cell_lift") or []
+        negative_cells = [
+            str(c.get("cell", "<cell>"))
+            for c in per_cell
+            if isinstance(c, Mapping)
+            and isinstance(c.get("lift"), (int, float))
+            and not isinstance(c.get("lift"), bool)
+            and c["lift"] < 0
+        ]
+        if (
+            isinstance(agg_value, (int, float))
+            and not isinstance(agg_value, bool)
+            and agg_value > 0
+            and negative_cells
+            and simplification_id is None
+        ):
+            reasons.append(
+                f"{rel_id}: aggregate lift {agg_value:+.3f} asserted positive while "
+                f"{len(negative_cells)} per-cell lift(s) are NEGATIVE "
+                f"({', '.join(negative_cells)}) with simplification_id=null -- a "
+                "positive headline that hides per-cell losses (R10: register a "
+                "simplification bounding these cells, never a silent aggregate)"
+            )
 
     return GateResult(atom_id=atom_id, passed=not reasons, reasons=tuple(reasons))

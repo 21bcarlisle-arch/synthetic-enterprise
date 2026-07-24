@@ -245,6 +245,64 @@ def test_R15_killer_mutation_c_ablation_without_crn_isolation_reds(tmp_path):
     assert result2.passed is True
 
 
+def test_R15_killer_mutation_d_positive_headline_hides_negative_per_cell_reds(tmp_path):
+    """(d) A record asserting a POSITIVE aggregate lift while carrying NEGATIVE
+    per-cell lifts and a null `simplification_id` must red -- the "positive
+    headline hides per-cell losses" defect (PLANNER_MINTED_ssp_negative_lift
+    mint 2026-07-24 scope-2b, the real W1_6 SSP-scarcity row). Closure is a
+    registered simplification bounding the negative cells, never a silent
+    aggregate."""
+    path = tmp_path / "ledger.json"
+    rec = _good_record(rel_id="ssp_scarcity_row", atom_id="W1_6_price",
+                       simplification_id=None)
+    # Aggregate reads +1.17 (positive headline) ...
+    rec["relationship"]["strength"] = {"stat": "MAE_lift", "value": 1.168,
+                                       "u": None, "ci": None, "ci_method": None}
+    # ... while two named per-cell lifts are NEGATIVE (model loses to naive there).
+    rec["per_cell_lift"] = [
+        {"cell": "y2016", "err_naive": 19.4, "err_model": 17.2, "lift": 2.23,
+         "commercial_weight": 1.0},
+        {"cell": "y2020", "err_naive": 19.0, "err_model": 22.2, "lift": -3.22,
+         "commercial_weight": 1.0},
+        {"cell": "y2025", "err_naive": 32.8, "err_model": 35.1, "lift": -2.28,
+         "commercial_weight": 1.0},
+    ]
+    fel.append_record(rec, ledger_path=path)
+    result = fel.fidelity_evidence_gate("W1_6_price", ledger_path=path)
+    assert result.passed is False
+    assert any("positive headline that hides per-cell losses" in r for r in result.reasons)
+    # The reason names the offending cells (the honesty payload the fix must bound).
+    assert any("y2020" in r and "y2025" in r for r in result.reasons)
+
+    # Remove the defect: register the honest simplification bounding those cells -> green.
+    path2 = tmp_path / "ledger2.json"
+    rec2 = dict(rec)
+    rec2["relationship"] = dict(rec["relationship"])
+    rec2["relationship"]["simplification_id"] = "ssp_scarcity_calm_low_x_underfit_bounded"
+    fel.append_record(rec2, ledger_path=path2)
+    result2 = fel.fidelity_evidence_gate("W1_6_price", ledger_path=path2)
+    assert result2.passed is True
+
+
+def test_gate_d_does_not_fire_when_aggregate_is_itself_negative(tmp_path):
+    """(d) guard: a row whose aggregate lift is <= 0 is honestly bad, not
+    concealing -- the "positive headline" class must NOT fire on it (else the
+    control would demand a simplification for an already-honest negative
+    result). Legitimate-edge-case test alongside the defect case."""
+    path = tmp_path / "ledger.json"
+    rec = _good_record(rel_id="honestly_bad_row", atom_id="X_honest",
+                       simplification_id=None)
+    rec["relationship"]["strength"] = {"stat": "MAE_lift", "value": -0.5,
+                                       "u": None, "ci": None, "ci_method": None}
+    rec["per_cell_lift"] = [
+        {"cell": "c1", "err_naive": 1.0, "err_model": 1.5, "lift": -0.5,
+         "commercial_weight": 1.0},
+    ]
+    fel.append_record(rec, ledger_path=path)
+    result = fel.fidelity_evidence_gate("X_honest", ledger_path=path)
+    assert result.passed is True
+
+
 def test_gate_catches_missing_substream_isolated_key_entirely(tmp_path):
     """A malformed ablation.crn block that OMITS `substream_isolated` (not
     just sets it False) must still red -- `is not True` is the guard, not

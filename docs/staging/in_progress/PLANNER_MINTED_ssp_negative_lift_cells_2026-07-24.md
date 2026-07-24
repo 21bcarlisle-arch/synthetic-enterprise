@@ -152,3 +152,58 @@ The prior tick's DISCOVER/FRAME hypothesis 2 asserted, tagged `[inferred — Tes
 - **(b) R10 NAMED SIMPLIFICATION for the residual — REQUIRED, class-level.** Register: *"the single-physics residual-demand scarcity form under-fits ~3 low-x / crisis-adjacent cells (2020, 2021, 2025) vs a 3-feature linear model by up to ~£2.7/MWh MAE even when locally recalibrated — accepted because the form must be one physics across the window."* Carry the measured per-cell residual. This is a class registration (R10), not an instance patch, and an honest bound beats a silent +1.17 headline.
 
 **Walls untouched:** doc-only + one new diagnostic tool (`tools/ssp_refit_local_vs_global.py`); no SSP constant changed on disk, no level moved, no curriculum value chosen, no company P&L read. The tool is a DIAGNOSTIC (measures the model), not a control gating any promotion — R15 mutation-testing applies to controls, N/A here. Scope step 2 (parts a+b) is the next drawable increment on this mint.
+
+---
+
+## SCOPE STEP 2 PART (b) — R10 named simplification MECHANISED + registered (DONE, 2026-07-24 worker tick)
+
+Test A + Test B (prior ticks) established the two honest closes. This tick SHIPS part (b) — the honest
+bound, mechanised as a class-level control so the whole class fails automatically (R10), not an instance
+fix — and defers part (a) as a deliberately-grounded follow-on. Code + tests, not another analysis note.
+
+### What shipped (evidence)
+1. **R10 class control (the mechanism).** `background/fidelity_evidence_ledger.py::fidelity_evidence_gate`
+   gains reason **(d)**: any ledger record asserting a POSITIVE aggregate lift (`strength.value > 0`)
+   while carrying one or more NEGATIVE per-cell lifts, with `simplification_id is None`, REDS the DoD
+   gate — the "silent +1.17 headline that hides the per-cell losses" defect this mint named, now an
+   automatic failure for the ENTIRE class (any future emitted physics row, not just this one), until it
+   registers an honest bound. Verified FIRING on the real W1_6 row pre-registration (6 negative cells
+   named), passing post-registration.
+2. **R15 both-ways.** `tests/test_fidelity_evidence_ledger.py` gains
+   `test_R15_killer_mutation_d_...` (positive-headline-hides-negative-per-cell reds; registering a
+   simplification greens) + `test_gate_d_does_not_fire_when_aggregate_is_itself_negative` (legitimate
+   edge case: an honestly-negative aggregate is not concealing, must NOT demand a simplification).
+   The emitter's own DoD test now asserts the emitted row carries the bound and passes the gate.
+3. **The named simplification, registered.** `simplification_id =
+   ssp_scarcity_form_calm_low_x_underfit_bounded_2026_07_24` on the W1_6 ledger row (+ a
+   `simplification_note` carrying the measured per-cell bound). `background/fidelity_emitter.py` now
+   EMITS this bound BY DEFAULT (`CALM_LOW_X_SIMPLIFICATION_ID` / `_SIMPLIFICATION_NOTE`) — so a re-emit
+   cannot silently drop it; a null simplification would red its own DoD gate. Full bound documented in
+   `docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md` ("Named simplification" section).
+4. **Verification:** `tests/test_fidelity_evidence_ledger.py tests/test_live_fidelity_evidence.py
+   tests/test_fidelity_emitter.py tests/test_fidelity_inspection_chain.py site/proof/test_fidelity_panel.py`
+   all green (109 tests); epistemic-verifier PASS (no company/sim boundary touched — background/docs/tests only).
+
+### The bound (measured, honest)
+The single-global scarcity form earns its structure in scarcity/crisis; the +1.17 aggregate is
+concentrated (2022 +5.55 + weak-baseline 2016–18), and it LOSES to a per-cell OLS in 6 calm cells.
+Test B decomposes: **~half calibration-recoverable** (y2019/y2023/y2024 flip under a local A0/A1 refit)
+and **~3 cells form-irreducible** (y2020/y2021/y2025, up to ~£2.7/MWh even after local refit).
+
+### Part (a) — era-aware A0/A1 recalibration — DELIBERATE GROUNDED FOLLOW-ON, not done here (why)
+The recoverable half needs an era-aware A0/A1 recalibration tracking the x-drift. This is **not** an
+autonomous worker-tick action: choosing the era partition to flip a lift cell's sign, ungrounded, IS
+R12 goal-seek by another name. The partition must be externally grounded (renewables-penetration /
+dispatchable-capacity boundaries — the module already flags `DISPATCHABLE_CAPACITY_MW=35000` held
+constant while the real fleet shrank with coal exit), an R13-sensitive BASELINE decision. Compounding
+this: the director's **2026-07-19 console steer ranks calm-year MAE below the spike-tail priority** —
+so part (a) is explicitly NOT top fidelity work, and the honest bound-and-register (part b, done) is
+the director-aligned close. Part (a) remains the drawable follow-on for a deliberate grounded pass,
+best begun with a DISCOVER grounding of the fleet-capacity / renewables-penetration era boundaries
+(network-gated).
+
+> **Tick note (2026-07-24, RUNG-7 doorbell):** doorbell again fired the stale "rungs 1–6 empty → MINT"
+> read; disk contradicts it (this mint + siblings open in `in_progress/`, director-waived). Correct draw
+> = advance a drawable next step, NOT mint a sixth batch. This tick advanced THIS mint's scope-2 by
+> shipping part (b) as real code + R15 tests (broke the doc-only pattern the sibling mint's tick-notes
+> warned against). No mint this tick: premise false.

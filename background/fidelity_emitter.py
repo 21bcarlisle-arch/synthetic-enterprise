@@ -114,6 +114,30 @@ DRIVER_FAMILY = "price_engine_ssp_calibration"
 REL_ID = "W1_6_physics_price_signal::ssp_residual_demand_scarcity_calibration_2026_07_19"
 WORLD_SERIES_REF = "elexon_ssp_calibration_full_2016_03_01_to_2025_06_07"
 
+# R10 named simplification for the calm-year negative-lift bound (registered
+# 2026-07-24, PLANNER_MINTED_ssp_negative_lift_cells scope-2b). The single
+# global residual-demand scarcity form EARNS its structure in scarcity/crisis
+# regimes but UNDER-FITS the renewables-heavy low-x calm years, losing to a
+# per-cell OLS in 6 cells; Test-B (tools/ssp_refit_local_vs_global.py) shows
+# ~half is calibration-recoverable (a future era-aware A0/A1 recalibration
+# tracking the observed x-drift -- a deliberate grounded follow-on) and ~3
+# cells (y2020/y2021/y2025) are a form-irreducible <=~2.7 GBP/MWh residual.
+# Registering this is what makes the +1.17 aggregate honest under G2's
+# positive-headline control (fidelity_evidence_gate reason d). Full bound:
+# docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md.
+CALM_LOW_X_SIMPLIFICATION_ID = "ssp_scarcity_form_calm_low_x_underfit_bounded_2026_07_24"
+_SIMPLIFICATION_NOTE = (
+    "R10 named simplification (PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24 "
+    "scope-2b). The single-global residual-demand scarcity form earns its structure "
+    "in scarcity/high-x and crisis regimes but under-fits the renewables-heavy low-x "
+    "calm years, losing to a per-cell OLS in 6 cells (y2019/y2020/y2021/y2023/y2024/"
+    "y2025). ~half is calibration-recoverable (era-aware A0/A1 recal, part-2a follow-on), "
+    "~3 cells (y2020/y2021/y2025) a form-irreducible <=~2.7 GBP/MWh residual. Accepted "
+    "not tuned: the form must be one physics across the window (R13, P&L-blind) and the "
+    "director's 2026-07-19 console steer ranks calm-year MAE below the spike-tail "
+    "priority. Bound: docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md."
+)
+
 # 2021/2022 are the real UK gas-crisis years (docs/fidelity/EPOCH2_PRICE_ENGINE
 # _FIDELITY_EVIDENCE.md 2.4's own per-year table shows 2022 as by far the
 # highest-MAE year) -- used only as a human-readable regime tag on each cell,
@@ -227,13 +251,17 @@ def build_price_engine_evidence_record(
     per_cell: Optional[Sequence[fgs.LiftResult]] = None,
     *,
     provenance: str = "estimated_from_data",
-    simplification_id: Optional[str] = None,
+    simplification_id: Optional[str] = CALM_LOW_X_SIMPLIFICATION_ID,
 ) -> Dict[str, Any]:
     """Build the G2-shaped ledger record dict for the price-engine SSP
-    calibration. `provenance`/`simplification_id` default to the honest real
-    values (fit against 157k real periods, no simplification needed) --
+    calibration. `provenance` defaults to the honest real value (fit against
+    157k real periods). `simplification_id` defaults to the registered
+    calm-year negative-lift bound (`CALM_LOW_X_SIMPLIFICATION_ID`, 2026-07-24
+    scope-2b) -- REQUIRED under G2's positive-headline control (gate reason d):
+    the +1.17 aggregate carries negative per-cell lifts in 6 low-x calm cells,
+    so a null simplification would (correctly) red the DoD gate. Both are
     overridable ONLY so `tests/test_fidelity_emitter.py` can construct the
-    R15 killer-mutation-B variant (`provenance="asserted"`,
+    R15 killer-mutation variants (`provenance="asserted"`,
     `simplification_id=None`) against this module's OWN real numbers rather
     than a hand-built fixture.
     """
@@ -290,6 +318,11 @@ def build_price_engine_evidence_record(
                 "not concealed"
             ),
             "simplification_id": simplification_id,
+            "simplification_note": (
+                _SIMPLIFICATION_NOTE
+                if simplification_id == CALM_LOW_X_SIMPLIFICATION_ID
+                else None
+            ),
         },
         "per_cell_lift": [
             {
@@ -313,7 +346,7 @@ def emit_price_engine_fidelity_evidence(
     ledger_path=None,
     *,
     provenance: str = "estimated_from_data",
-    simplification_id: Optional[str] = None,
+    simplification_id: Optional[str] = CALM_LOW_X_SIMPLIFICATION_ID,
 ) -> Dict[str, Any]:
     """Fit live, build the G2 record, and append it via G2's own
     `append_record` (structural validation only, per G2's own R10 note).

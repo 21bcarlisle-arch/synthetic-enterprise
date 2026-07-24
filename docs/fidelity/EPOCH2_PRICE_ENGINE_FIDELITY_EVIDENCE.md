@@ -272,3 +272,41 @@ The spike tail is what triggers **collateral calls and kills suppliers** — so 
 is reproducing the extreme tail** (spike magnitude + negative-price frequency), NOT the mean. Registered as
 director direction; the emitter/G1 scoring already computes worst-cell CVaR — the emphasis is now exposure-tail,
 not average.
+
+## Named simplification — calm-year negative-lift bound (registered 2026-07-24, scope-2b)
+**`simplification_id: ssp_scarcity_form_calm_low_x_underfit_bounded_2026_07_24`** (on the W1_6
+fidelity-ledger row; mechanised by `background/fidelity_evidence_ledger.py::fidelity_evidence_gate`
+reason (d) — a positive aggregate lift that hides negative per-cell lifts reds the DoD gate until an
+honest bound is registered; R15 both-ways proven in `tests/test_fidelity_evidence_ledger.py`).
+
+**The bound.** The single-global residual-demand scarcity form (`sim/price_engine.py`, one A0/A1/A2
+across 2016-03..2025-06) EARNS its structure in scarcity/high-x and crisis regimes but UNDER-FITS the
+renewables-heavy low-x calm years, LOSING to a per-cell OLS in 6 of 10 year-cells (y2019 −0.79,
+y2020 −3.22, y2021 −2.21, y2023 −0.27, y2024 −1.18, y2025 −2.28 £/MWh MAE lift). The headline
++1.17 £/MWh aggregate lift is therefore CONCENTRATED (2022 crisis peak +5.55, plus 2016–18 wins
+against the weak gas-floor baseline), NOT a uniform edge.
+
+**Decomposition (evidence, not assertion).** `tools/ssp_scarcity_dwell_fraction.py` (Test A) refuted
+the "scarcity term dormant in calm years" hypothesis — the convex kicker is live 17.5–55% of every
+year — and redirected the mechanism to **secular x-distribution drift** (median x 0.73→0.46 over the
+decade as renewables grow). `tools/ssp_refit_local_vs_global.py` (Test B) then decomposed the loss by
+refitting the SAME form locally per cell (X_TIGHT/exponent/A2 held fixed):
+- **~half is calibration-recoverable** — a same-form local A0/A1 refit FLIPS y2019/y2023/y2024
+  non-negative (per-year A0 drifts 0.11→1.11, A1 0.9→2.0 with the x-distribution).
+- **~3 cells are form-irreducible** — y2020 (−0.41), y2021-crisis (−1.20), y2025 (−2.73) stay
+  negative even after a local refit: a residual the residual-demand form cannot represent at up to
+  ~£2.7/MWh MAE regardless of calibration freshness.
+
+**Why accepted (not tuned) — R13/R12.** (1) The form must be ONE physics across the window (a
+baseline/fidelity property, decided blind to company P&L). (2) The director's **2026-07-19 console
+steer** (recorded above) ranks calm-year MAE as *"the average trap … years where nothing commercial
+is at stake"* below the spike-tail priority — so honestly bounding-and-registering the calm-year loss
+is the director-aligned close, and recalibrating it is explicitly NOT the top price-engine fidelity
+work.
+
+**The recoverable half is a DELIBERATE follow-on, not closed here (part-2a).** An era-aware A0/A1
+recalibration tracking the observed x-drift would recover y2019/y2023/y2024, but the era partition is
+an R13-sensitive baseline choice that must be externally grounded (renewables-penetration / dispatchable-
+capacity boundaries — the module already flags `DISPATCHABLE_CAPACITY_MW=35000` as held-constant while
+the real fleet shrank with coal exit), NOT autonomously curve-fit to flip the sign of a lift cell. It is
+tracked as the part-2a follow-on on `PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md`.

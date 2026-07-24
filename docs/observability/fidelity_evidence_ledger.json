@@ -108,7 +108,8 @@
       ],
       "provenance": "estimated_from_data",
       "series_ref": "sim/cache/elexon_ssp_full.json;sim/cache/elexon_demand_full.json;sim/cache/elexon_agws_full.json;sim/gas_prices_history.py (NBP)",
-      "simplification_id": null,
+      "simplification_id": "ssp_scarcity_form_calm_low_x_underfit_bounded_2026_07_24",
+      "simplification_note": "R10 named simplification (PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24 scope-2b; bound registered in docs/fidelity/EPOCH2_PRICE_ENGINE_FIDELITY_EVIDENCE.md). The single-global residual-demand scarcity form EARNS its structure in scarcity/high-x and crisis regimes (2022 crisis +5.55 lift; 2016-18 weak-baseline wins) but UNDER-FITS the renewables-heavy low-x calm years, LOSING to a per-cell OLS in 6 cells (y2019 -0.79, y2020 -3.22, y2021 -2.21, y2023 -0.27, y2024 -1.18, y2025 -2.28). Test-B (tools/ssp_refit_local_vs_global.py) decomposes this: ~half is CALIBRATION-recoverable (a same-form local A0/A1 refit flips y2019/y2023/y2024 non-negative -- a future era-aware A0/A1 recalibration tracking the observed x-drift, part-2a, a DELIBERATE grounded follow-on not autonomously curve-fit), and ~3 cells (y2020, y2021, y2025) are a FORM-irreducible residual of up to ~2.7 GBP/MWh MAE surviving even a local refit. The +1.17 aggregate lift is thus concentrated (2022 crisis + weak-baseline early years), NOT a uniform edge. Accepted (not tuned) because: (1) the form must be ONE physics across the window (R13 baseline, P&L-blind); (2) the director's 2026-07-19 console steer ranks calm-year MAE 'the average trap ... where nothing commercial is at stake' below the spike-tail priority, so the honest bound-and-register close is director-aligned and the calm-year recalibration is explicitly NOT the top fidelity work.",
       "strength": {
         "best_naive_baseline_id": "ols_regression_3feature",
         "ci": null,
@@ -132,5 +133,18 @@
       }
     },
     "run_git_commit": "4d1e899d18cb1c64dd79eb593bd5d848e7f1955a"
+  },
+  "live_payment_detection_gap": {
+    "atom_id": "W2_11_payment_truth",
+    "rel_id": "live_payment_detection_gap",
+    "relationship": {
+      "believed_failures": 16,
+      "cell_id": "A1_G2",
+      "detection_gap": 0.627906976744186,
+      "kind": "payment_failure_detection",
+      "provenance": "estimated_from_data",
+      "simplification_id": "live_payment_gap_regime_mixed_attributed_to_G2",
+      "true_failures": 43
+    }
   }
 }
