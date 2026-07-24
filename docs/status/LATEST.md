@@ -1,5 +1,18 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-24T05:59:51Z
+Last updated: 2026-07-24T06:09:24Z
+
+**PRODUCT LANDED (2026-07-24) — SITE_V5 canonical-door fold COMMITTED (director Decision A: "COMMIT THE FOLD").**
+`DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24.md` resolved the one decision (§A) the SITE_MODEL_SPINE
+campaign was walled on. One pass, gate-on-green: (1) all **22** non-canonical internal links (→ legacy `/method`,
+`/project`, `/simplified`) rewritten to the canonical `/proof` anchors — **R11 link-walk now 0/0** (was 22); (2) the
+`/project` **investor reframe re-homed onto `/proof#project-anchor`** and **render-verified live** via the page's own JS
+against published data — **£80,056/customer** (net margin ÷ N=19), total £1,521,070, treasury £3,824,376, all carrying
+their claim-status + `//` basis clock (RC6: unit economics leads, totals demoted/caveated); no longer orphaned on the
+killed door; (3) the temporary `/method` live-door **retired** — every remaining door's nav is the canonical set only
+(Home/World/Company/Proof, no ghost entries); (4) the R11 link-walk **flipped from mechanism-only to a LIVE publish
+gate** (`site/test_link_walk.py::test_live_site_has_no_noncanonical_links`), **R15-proven failable** (injected
+killed-door link → gate reds; clean → passes). **Full site suite green (283 passed, 6 skipped).** After the fold, the
+SITE_MODEL_SPINE evidence-pages work is unblocked and proceeds per the ruling.
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 1 (Front door) iteration 2: rebuilt to the BRAND_CONSTITUTION architectural exemplar. SITE_V5 CAMPAIGN CLOSED (all 5 surfaces landed).**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): surfaces 2–5 landed, so the draw rolled to the last
@@ -407,7 +420,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (492s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (489s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881

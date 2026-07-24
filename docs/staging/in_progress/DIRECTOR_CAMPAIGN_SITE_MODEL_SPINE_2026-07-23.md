@@ -1,15 +1,19 @@
 # [IN PROGRESS] Site campaign continuation — WORDS → DIAGRAM → EVIDENCE + financials reframe + R11 link integrity (2026-07-23)
 
-**DISPOSITION: FULLY BLOCKED — AWAITING DIRECTOR (§A). No drawable sub-item remains.**
-Every drawable part of this campaign has landed (§B, §C — both live-verified). The entire
-remainder is walled on ONE director-pixel decision, §A (below), which was ESCALATED to the
-director on 2026-07-24 (commit `47ebc31f3`, NTFY real_alarm) and is awaiting his answer — do
-NOT re-escalate, and do NOT act on §A/§D before he answers. The only other remainder, the §C
-arrears-£-per-customer DISTRIBUTION, is explicitly a SIM-emission BUILD (threading an arrears-£
-balance through the settlement→export→generator chain), NOT a bounded-tick campaign item — it
-belongs in the normal BUILD draw, not here. This park therefore carries NO drawable-work
-disposition marker BY DESIGN (staging_disposition park-honesty contract): it stays quiet
-until the director answers §A, at which point §D + the §C /project orphan unblock in one pass.
+**DISPOSITION (updated 2026-07-24): §A RESOLVED by the director — THE FOLD IS COMMITTED.**
+§A was answered by `DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24.md` ("Decision A:
+COMMIT THE FOLD" — /method, /simplified, /project, /tours fold into /proof; the temporary /method
+live-door retired). The one-pass fold has now LANDED: all 22 non-canonical internal links rewritten
+to the canonical /proof anchors (R11 link-walk 0/0 — was 22); the §C /project investor reframe
+(£80,056/customer, £1,521,070 total, N=19) RE-HOMED onto /proof at `#project-anchor` and
+render-verified live via the page's own JS (no longer orphaned — §D done); every remaining door's
+nav made canonical (Home/World/Company/Proof, no ghost entries — condition 4); the R11 link-walk
+flipped from mechanism-only to a LIVE publish gate (`test_link_walk.py::test_live_site_has_no_noncanonical_links`),
+R15-proven failable (injected killed-door link → gate reds). Full site suite green (283 passed).
+**Only remainder: the §C arrears-£-per-customer DISTRIBUTION** — a SIM-emission BUILD (threading an
+arrears-£ balance through the settlement→export→generator chain), which belongs in the normal BUILD
+draw, NOT here. This park is otherwise DISCHARGED; the SITE_MODEL_SPINE evidence-pages work
+(evidence behind the diagram nodes) proceeds per the ruling's "after the fold" section.
 
 **BLOCKING OPEN SUB-ITEM (why this is parked here, not the scanned root):** §A — the
 canonical-door decision (which SITE_V5 doors survive vs fold/redirect) is

@@ -385,11 +385,18 @@ def _site_nav(text: str) -> str:
 
 
 def test_canonical_nav_present_and_director_absent():
+    # SITE_V5 fold (DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24): /project is a
+    # KILLED door -- it folds into /proof. Its nav must now reflect the canonical
+    # door set ONLY (Home/Company/World/Proof), with no ghost entries for the
+    # retired Method/Journey/Simplified doors (ruling condition 4).
     nav = _site_nav(INDEX.read_text())
-    for label in ("Home", "Company", "World", "Proof", "Method", "Journey", "Simplified"):
+    for label in ("Home", "Company", "World", "Proof"):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
-    # Journey is the current door -> marked active.
-    assert 'href="../project/" class="nav-link active">Journey</a>' in nav
+    # Killed doors must not survive as ghost nav entries.
+    for ghost in ("Method", "Journey", "Simplified"):
+        assert f">{ghost}</a>" not in nav, f"retired door {ghost!r} still a nav entry"
+    # /project folds into /proof -> Proof is the active door.
+    assert 'href="../proof/" class="nav-link active">Proof</a>' in nav
     # The Director door is auth-gated and must NOT appear in the public nav.
     assert "../director/" not in nav, "Director door must not be in the public nav"
     assert ">Director</a>" not in nav

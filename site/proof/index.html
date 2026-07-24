@@ -353,6 +353,18 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     <div id="retro-list"><div class="muted">Loading...</div></div>
   </div>
 
+  <!-- 4b. INVESTOR SUMMARY / UNIT ECONOMICS (SITE_V5: /project folds into Proof;
+       DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24 -- the £/customer investor reframe
+       re-homed here so it is reachable + rendered on a canonical door, not orphaned
+       on the killed /project page. RC6 discipline (unit economics leads, cumulative
+       totals demoted + caveated, N + draw stated). Rendered off dashboard.json +
+       phases.json, never hand-typed. -->
+  <div class="sec" id="project-anchor">Investor summary &mdash; the unit economics</div>
+  <div class="card">
+    <p class="muted" id="inv-unit-note" style="margin-bottom:12px">Loading...</p>
+    <div class="kpis" id="inv-kpis"><div class="muted">Loading...</div></div>
+  </div>
+
   <!-- 5. METHOD FOLD-IN (SITE_V5 surface 4: Method folds into Proof) -->
   <div class="sec" id="method-anchor">The Method &mdash; how this company is built</div>
   <div class="card">
@@ -963,6 +975,49 @@ fetch("../data/simplified.json?t="+Date.now()).then(function(r){return r.json();
 }).catch(function(e){
   console.error("simplified.json load error:",e);
   document.getElementById("simplified-intro").innerHTML='<span style="color:var(--red)">Could not load simplified.json</span>';
+});
+
+// Investor summary / unit economics (folded in from the killed /project door,
+// DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24). RC6: unit economics (net margin /
+// customer) leads; the cumulative total is demoted + caveated with its N and draw.
+// gbp() + the figures are rendered off run data, never hand-typed.
+function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
+function renderInvestor(D,PH){
+  if(!D)return;
+  var ann=(D.financial||{}).annual||[];
+  var totalNet=ann.reduce(function(s,r){return s+(r.net_gbp||0);},0);
+  var treasury=ann.length?(ann[ann.length-1].treasury_end_gbp||0):0;
+  var nmBasis=((D.portfolio&&D.portfolio.basis)||{}).net_margin_gbp||{};
+  var nmClk=nmBasis.clock?((nmBasis.clock)+" clock"+(nmBasis.provisional?", PROVISIONAL":"")):"";
+  var lifetime=(D.customers||{}).lifetime||{};
+  var N=Object.keys(lifetime).length;
+  var hasN=N>0;
+  var nmPer=hasN?totalNet/N:null;                       // all-years net margin per customer (same basis as the total)
+  var perTitle=(nmClk?nmClk+" · ":"")+"all-years cumulative ÷ "+N+" sampled customers -- the figure that transfers between books";
+  var totalTitle=(nmClk?nmClk+" · ":"")+"10-yr cumulative · scales with drawn book (N="+N+"); not meaningful in isolation -- read the £/customer figure";
+  var kpis=[
+    {l:"Net margin / customer (all-yr)",v:hasN?gbp(nmPer):"--",g:nmPer!=null&&nmPer>=0,title:perTitle},
+    {l:"Net margin (total)",v:gbp(totalNet),g:totalNet>=0,title:totalTitle},
+    {l:"Treasury (end 2025)",v:gbp(treasury),title:"banked clock · stock at period end · a drawn-book figure"},
+    {l:"Sampled customers (N)",v:hasN?String(N):"--",title:"the drawn book this run's financials are earned across"}
+  ];
+  document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi"'+(k.title?' title="'+esc(k.title).replace(/"/g,"&quot;")+'"':'')+
+      '><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v"'+(k.g?' style="color:var(--green)"':'')+'>'+k.v+'</div></div>';
+  }).join("");
+  var un=document.getElementById("inv-unit-note");
+  if(un)un.innerHTML=hasN
+    ? "<b>This run's book is a drawn sample of N="+N+" customers</b> (curriculum-weighted historical replay, 2016&ndash;2025). "+
+      "The cumulative financial totals are earned across that small book and <b>scale with it &mdash; not meaningful in "+
+      "isolation</b>; read the &pound;/customer figure, which transfers between books."
+    : "The customer book is empty in the latest run — no unit economics to report.";
+}
+Promise.all([
+  fetch("../data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+  fetch("../data/phases.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+]).then(function(rs){renderInvestor(rs[0],rs[1]);}).catch(function(e){
+  console.error("investor summary load error:",e);
+  document.getElementById("inv-unit-note").innerHTML='<span style="color:var(--red)">Could not load investor summary data</span>';
 });
 </script>
 <script src="../shared/director-comments.js" defer></script>

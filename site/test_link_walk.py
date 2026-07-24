@@ -1,25 +1,51 @@
-"""R15 mechanism self-test for the R11 internal link-walk (link_walk.classify).
+"""R15 mechanism self-test for the R11 internal link-walk (link_walk.classify)
+PLUS the live-site cleanliness gate.
 
-This is a MECHANISM test, NOT a site-cleanliness gate. It proves the walker can
-distinguish canonical / dead / redirected links using synthetic fixture trees --
-so it passes green regardless of the live site's current 22 non-canonical links.
+Two roles in one file:
+  1. MECHANISM self-tests (R15) -- prove the walker can distinguish canonical /
+     dead / redirected links using synthetic fixture trees, and that the control
+     can FAIL on each of its named defects (not vacuously green).
+  2. LIVE GATE -- assert the real site has zero dead / redirected internal links.
 
-WHY NOT ASSERT THE LIVE SITE IS CLEAN (yet): the SITE_V5 IA is mid-cutover
-(/method et al. are both live nav doors AND redirect sources). Asserting zero
-findings against the real site would re-wedge the just-cleared publish gate. The
-live assertion flips on only once the WORDS->DIAGRAM->EVIDENCE canonical door set
-is decided (director-pixel-gated). See link_walk.py module docstring + the parked
-campaign doc for the sequencing.
+WHY THE LIVE GATE IS ON NOW (2026-07-24, DIRECTOR_RULING_CANONICAL_DOOR_A):
+Decision A (COMMIT THE FOLD) resolved the door set -- /method, /simplified,
+/project, /tours fold into /proof; the temporary /method live-door is retired.
+With the canonical door set decided, the live assertion flips on and becomes the
+publish gate the ruling names ("the R11 link-walk must pass green post-fold ...
+use it as the gate"). Prior to the ruling this was deliberately a mechanism-only
+test because the IA was mid-cutover (asserting clean then would have re-wedged
+the publish gate); that condition is gone.
 
-R15 (a control must be able to FAIL): the two positive tests below mutate in a
-dead link and a redirect-source link respectively and assert classify() reports
-each -- proving the control fires on both its named defects, not vacuously. The
-negative test proves a wholly-canonical tree yields zero findings (independence
--- classify() is not always-positive).
+R15 (a control must be able to FAIL): the two positive fixture tests below mutate
+in a dead link and a redirect-source link respectively and assert classify()
+reports each -- proving the control fires on both its named defects. The negative
+fixture test proves a wholly-canonical tree yields zero findings (independence --
+classify() is not always-positive). The live gate rests on that proven mechanism.
 """
 from pathlib import Path
 
 from link_walk import classify
+
+# The live site root is this test file's own directory (site/).
+_SITE_ROOT = Path(__file__).resolve().parent
+
+
+def test_live_site_has_no_noncanonical_links():
+    """LIVE GATE (R11, DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24): the deployed
+    site must have zero dead and zero redirected internal links. Every internal
+    link points at a canonical door, never at a legacy /redirects source. This is
+    the publish gate for the SITE_V5 fold -- if it reds, an internal link points
+    at a killed door (fix the link, do not revive the door)."""
+    findings = classify(_SITE_ROOT)
+    assert findings["DEAD"] == [], (
+        "dead internal links (target missing on disk): "
+        + "; ".join(f"{src} -> {url}" for src, _, url in findings["DEAD"])
+    )
+    assert findings["REDIRECTED"] == [], (
+        "internal links pointing at a legacy /redirects source (fix the link to "
+        "the canonical door, per DIRECTOR_RULING_CANONICAL_DOOR_A): "
+        + "; ".join(f"{src} -> {url}" for src, _, url in findings["REDIRECTED"])
+    )
 
 
 def _write(root: Path, rel: str, html: str) -> None:
