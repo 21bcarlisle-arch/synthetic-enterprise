@@ -20,3 +20,14 @@ The /world causal spine currently renders each node as a single figure (240 HDD,
 
 ## Propose-then-proceed window
 Reversible (site render + tests; git reverts). No one-way door. Proceed on draw; director's axis-1 verdict on the landed surface is his eyes (R11 residual), never a build gate.
+
+---
+## DISPOSITION — CLOSE, no build (2026-07-24 worker tick; honest cheap-close per scope's own "valid outcome, not a failure")
+**The gap is not real: the capability already exists on the correct surface.** The mint's premise ("no inline spine graphs exist ... grep of `site/index.html`") grepped the WRONG file. Surface_2 / the walkable spine is `site/world/index.html` (its own line 166: "surface-2's single job (the walkable spine)"), NOT the homepage narrative index. On `/world`, **every causal-chain crossing node already renders an inline visual from published data (render-not-author):**
+- `forward_basis` — 10-pt forecast-error series; `demand_estimation` — 10-pt abs-error series; `blindfold` — 10-pt annual-mean SSP series (crisis years in red) — `tools/generate_world_data.py` builds each `series`, `site/world/index.html:254-266,313-317` renders them.
+- `meter_reads` — carries a **settlement-ladder** inline visual (SF→R1→R2→R3→RF, `:268-273`), the appropriate shape for its mechanism (estimate→actual correction over ~28mo), not a time series.
+- Plus the market panel's intra-day SSP sparkline + HDD-regime trajectory (`:490-520`).
+
+The director-named follow-on ("inline graphs in the spine itself (graphs currently in deeper sections)") is therefore **already satisfied on surface_2**. Adding graphs to the *homepage* narrative spine would contradict its RC7 idea-first minimalism (prose + "Look:" deep-links by design). No build. Archived to `done/`.
+
+**Queued harness finding (SELF_INTERRUPT_DISCIPLINE — note, don't fix on sight):** the RUNG-7 planner mints from DIRECTOR_AXES but its gap-verification grepped the homepage, not surface_2 — a mint can assert a false gap when it inspects the wrong surface. Class: planner-mint gap-claims need a surface-resolution step (which file backs which axis surface) before asserting "the gap is real".

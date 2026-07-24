@@ -22,3 +22,13 @@ A 20-year veteran opening the site should be able to see WHICH segments the book
 
 ## Propose-then-proceed window
 Reversible throughout (site feed + render + tests; git reverts). No one-way door. Proceed on draw; the only director touchpoint is the axis-2 *verdict* on the landed surface (his eyes = acceptance, R11 residual — never a build gate).
+
+---
+## DISPOSITION — CLOSE, no build (2026-07-24 worker tick; the DISCOVER/AUDIT step's honest outcome)
+**Scope step 1 (AUDIT) resolves this to a no-build: the proposed surface contradicts a same-day standing director ruling.** `docs/staging/done/DIRECTOR_RULING_FRONT_MISSION_BLOCK_2026-07-24.md` (2026-07-24, director via advisor bridge) rules, verbatim:
+- The cost-arbitrage / cost-to-serve leg does **not** lead — it was moved to `/proof` (economics section, `site/proof/index.html:377` `#economics-anchor`), kept "a direction, not a figure" (`:1061`), losing front-door billing.
+- "£7/household true cost-to-serve (five households, AI-compute unpopulated, current-book snapshot) **fails the veteran sniff test** — real UK CTS runs in the hundreds of £/household." Under **RC7, no cohort-derived £ figure leads any page**; on /proof it appears only with N, floor-not-figure framing, and its missing-lines enumeration.
+
+This doc proposes exactly the declined artefact: a per-segment `{value, cost-to-serve, net margin £/%, net-negative flag}` feed **rendered as a ranked verdict that "leads with the OUTCOME (which segments subsidise which)."** That is (a) cohort-derived £ leading a public surface (RC7 wall), and (b) built on the same thin data (segments derive from the same ~5-household book that already failed the sniff test). The axis-2 Efficiency intent is **already served** in the director-sanctioned form: the /proof economics leg, direction-not-figure. Category-6 wall (what leads a public surface = director's by right) + RC7. No build. Archived to `done/`.
+
+**Queued harness finding (SELF_INTERRUPT_DISCIPLINE — note, don't fix):** the RUNG-7 planner minted this from DIRECTOR_AXES.md WITHOUT cross-checking the most-recent director rulings, so it proposed rebuilding an artefact a same-day ruling explicitly demoted. Class: planner-mint must reconcile against `docs/staging/done/DIRECTOR_RULING_*` (recent) before asserting a gap, not only against the (slower-moving) axes doc. Same class as the surface-resolution finding on the sibling `world_spine_inline_graphs` mint.
