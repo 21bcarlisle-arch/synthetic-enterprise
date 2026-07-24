@@ -2125,9 +2125,29 @@ def _director_axes_present(axes_path: Path | None = None) -> bool:
     return bool(re.search(r"^###\s+\d+\.\s+\S", text, re.MULTILINE))
 
 
+def _pending_planner_mints(staging_dir: Path | None = None) -> bool:
+    """True if a PLANNER_MINTED_* batch is still UNCONSUMED -- i.e. one or more
+    `PLANNER_MINTED_*.md` files sit directly in docs/staging/ (NOT in done/,
+    in_progress/, fyi/ -- those are consumed/parked). This is RUNG 1 (staged docs):
+    while a minted batch is pending, the unprocessed-staging path draws it, so the
+    planner must NOT mint another batch on top -- otherwise every tick appends 'MINT
+    the next batch' regardless of the pile, an unbounded-accretion treadmill (observed
+    live 2026-07-24: 5 minted docs pending yet enumeration still showed planner=Y).
+    Makes the mechanism enforce _planner_rung_draw's own docstring contract ('rung 1
+    gates it; no per-cycle churn'), which was previously prose-only. FAIL-CLOSED for
+    MINTING: if the directory can't be read we assume a batch may be pending (return
+    True -> planner stays quiet) rather than mint blindly."""
+    d = staging_dir or STAGING_DIR
+    try:
+        return any(p.name.startswith(PLANNER_MINTED_PREFIX) for p in Path(d).glob("*.md"))
+    except OSError:
+        return True
+
+
 def _planner_rung_draw(
     axes_path: Path | None = None,
     disabled_flag: Path | None = None,
+    staging_dir: Path | None = None,
 ) -> str | None:
     """RUNG 7 -- THE PLANNER (director ruling WORK_IS_THE_DEFAULT 2026-07-23, commit 48495a455).
 
@@ -2143,9 +2163,12 @@ def _planner_rung_draw(
     This is the DETECTOR + DOORBELL only. The spawned bounded worker does the actual reading (axes,
     epoch arc, fidelity ledger, open campaigns) and writes propose-then-proceed docs into
     docs/staging/. Once minted, those occupy RUNG 1 (staged docs) and are drawn there -- so the
-    planner naturally re-fires only once a whole minted batch is consumed (rung 1 gates it; no
-    per-cycle churn). R15 both ways in test_planner_rung.py: axes-populated+lanes-empty MINTS;
-    axes-absent RESTS."""
+    planner re-fires only once a whole minted batch is consumed. That gate is now MECHANISED
+    (`_pending_planner_mints`): while any `PLANNER_MINTED_*.md` sits unconsumed in staging root the
+    planner returns None (no per-cycle churn). It was previously prose-only, and on 2026-07-24 the
+    code did NOT enforce it -- 5 minted docs pended yet the enumeration still showed planner=Y, the
+    unbounded-accretion treadmill MAKE_IT_STICK warns about. R15 both ways in test_planner_rung.py:
+    axes-populated+lanes-empty+no-pending-batch MINTS; axes-absent RESTS; pending-batch RESTS."""
     flag = disabled_flag or PLANNER_RUNG_DISABLED_FLAG
     try:
         if Path(flag).exists():
@@ -2153,6 +2176,11 @@ def _planner_rung_draw(
     except OSError:
         pass
     if not _director_axes_present(axes_path):
+        return None
+    # RUNG 1 GATES RUNG 7: a minted batch already pending in staging means the
+    # unprocessed-staging path is drawing it -- do NOT mint another on top (the
+    # per-cycle-churn treadmill this rung's docstring already promised was gated).
+    if _pending_planner_mints(staging_dir):
         return None
     return (
         "RUNG 7 PLANNER self-refill (director ruling WORK_IS_THE_DEFAULT 2026-07-23): rungs 1-6 are "

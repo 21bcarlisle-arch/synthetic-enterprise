@@ -50,9 +50,21 @@ def _no_disable_flag(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "PLANNER_RUNG_DISABLED_FLAG", tmp_path / ".no_disable_flag")
 
 
+def _empty_staging(tmp_path, monkeypatch):
+    """Point STAGING_DIR at an EMPTY dir so no real PLANNER_MINTED_* batch is pending --
+    the state in which the planner is allowed to mint. Without this isolation the real
+    repo staging dir (which routinely holds a pending minted batch) would gate every
+    'planner mints' assertion. Returns the dir so a test can drop a mint into it."""
+    d = tmp_path / "staging"
+    d.mkdir(exist_ok=True)
+    monkeypatch.setattr(sup, "STAGING_DIR", d)
+    return d
+
+
 def _gate_rungs_1_to_6(monkeypatch, tmp_path):
     """Every rung 1-6 empty/gated -- the exact drained state that must reach the planner."""
     monkeypatch.setattr(sup, "log", lambda *a, **k: None)
+    _empty_staging(tmp_path, monkeypatch)
     monkeypatch.setattr(sup, "_maturity_map_draw_concurrent", lambda *a, **k: [])
     monkeypatch.setattr(sup, "_site_lane_draw_concurrent", lambda *a, **k: [])
     monkeypatch.setattr(sup, "_idle_discover_frame_draw_concurrent", lambda *a, **k: [])
@@ -81,6 +93,7 @@ def test_axes_present_false_on_empty_and_absent(tmp_path, monkeypatch):
 def test_planner_draw_fires_on_populated_axes(tmp_path, monkeypatch):
     _axes(tmp_path, monkeypatch, _POPULATED_AXES)
     _no_disable_flag(tmp_path, monkeypatch)
+    _empty_staging(tmp_path, monkeypatch)
     msg = sup._planner_rung_draw()
     assert msg is not None
     assert "RUNG 7 PLANNER" in msg and "MINT" in msg and "propose-then-proceed" in msg
@@ -89,7 +102,36 @@ def test_planner_draw_fires_on_populated_axes(tmp_path, monkeypatch):
 def test_planner_draw_silent_on_absent_axes(tmp_path, monkeypatch):
     _axes(tmp_path, monkeypatch, None)
     _no_disable_flag(tmp_path, monkeypatch)
+    _empty_staging(tmp_path, monkeypatch)
     assert sup._planner_rung_draw() is None
+
+
+# ─────────────────── RUNG 1 GATES RUNG 7: pending minted batch (R15, the 2026-07-24 defect) ──────────────────
+
+def test_pending_mints_detector_true_when_batch_in_staging(tmp_path, monkeypatch):
+    d = _empty_staging(tmp_path, monkeypatch)
+    assert sup._pending_planner_mints() is False
+    (d / "PLANNER_MINTED_some_slug_2026-07-24.md").write_text("proposal")
+    assert sup._pending_planner_mints() is True
+
+
+def test_pending_mints_ignores_consumed_subdirs(tmp_path, monkeypatch):
+    """A minted doc moved to done/ or in_progress/ is CONSUMED -> no longer gates."""
+    d = _empty_staging(tmp_path, monkeypatch)
+    (d / "done").mkdir()
+    (d / "done" / "PLANNER_MINTED_consumed_2026-07-24.md").write_text("done")
+    assert sup._pending_planner_mints() is False
+
+
+def test_planner_rests_while_minted_batch_pending(tmp_path, monkeypatch):
+    """The 2026-07-24 treadmill: axes populated + lanes empty, but a minted batch already
+    pends in staging -> the planner must NOT mint another batch on top (rung 1 gates rung 7)."""
+    _gate_rungs_1_to_6(monkeypatch, tmp_path)
+    _axes(tmp_path, monkeypatch, _POPULATED_AXES)
+    (sup.STAGING_DIR / "PLANNER_MINTED_front_mission_2026-07-24.md").write_text("pending")
+    assert sup._planner_rung_draw() is None
+    e = sup.authorized_set_enumeration()
+    assert e["planner"] is False
 
 
 # ─────────────────────────── MINT (the 13:06Z failing test) ──────────────────────────
