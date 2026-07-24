@@ -4,14 +4,18 @@
 >   diagram promoted with plain build-stage framing; /proof "Investor summary" retired → reframed as
 >   teaching-cohort diagnostics ("N=19, not scaled company economics"); R10 class guard added; site
 >   suite 282 passed / 6 skipped; render-verified. (Commit stamped in this same change.)
-> - **[ ] OPEN — iteration 2:** the diagram with **every node wearing its stage plainly** (Live /
->   Building / Planned), one plain-English sentence + one click to a "look at this" view (real weather
->   → real prices; believed-vs-true; a household's year). This is the substantive front-door build.
+> - **[✅ DONE — iteration 2, RC7 node-by-node stage view]** (commit `9cf8e1d59`) beneath the diagram,
+>   every node wears its stage in plain words (Live / Building / Planned) with one plain-English
+>   sentence + one "look at this" click each — including the three director-named views: real weather
+>   → real prices (world), what it believed vs what was true (company), a household's year (customers).
+>   No glyph glossary. Folded into the front-door surface (F-MOAP-1 director default host). Site suite
+>   282 passed / 6 skipped; link_walk 0 dead/redirected; local render-verified (live propagation of the
+>   Pages deploy pending at commit time).
 > - **[ ] OPEN — iteration 3:** the site-wide **external-register sweep** — internal vocab (atoms,
 >   HARDEN, rungs, R-numbers, campaign names, tier labels, commit-speak) removed from every public
 >   surface (incl. the /shadow/* internal mirrors that embed LATEST.md); internal narrative behind
 >   /proof only. Test per page: *company explaining an idea, or a project talking to itself?*
-> **Next draw = continue at iteration 2.** Archive to done/ only when all three are landed + verified.
+> **Next draw = iteration 3 (site-wide external-register sweep).** Archive to done/ only when all three are landed + verified.
 
 # [DIRECTOR-RULING] — IDEA FIRST, EXTERNAL REGISTER: no headline financials at this stage; the diagram's stages visible in plain outside language (2026-07-24)
 
