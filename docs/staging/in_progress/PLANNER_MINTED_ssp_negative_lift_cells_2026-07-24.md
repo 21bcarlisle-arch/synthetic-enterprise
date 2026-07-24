@@ -207,3 +207,65 @@ best begun with a DISCOVER grounding of the fleet-capacity / renewables-penetrat
 > = advance a drawable next step, NOT mint a sixth batch. This tick advanced THIS mint's scope-2 by
 > shipping part (b) as real code + R15 tests (broke the doc-only pattern the sibling mint's tick-notes
 > warned against). No mint this tick: premise false.
+
+---
+
+## SCOPE STEP 2 PART (a) — externally GROUNDED (DONE, 2026-07-24 tenth worker tick, R13/R12-clean)
+
+Part (b) (prior tick) shipped the honest bound + R10 class control. Part (a) — the era-aware A0/A1
+recalibration that recovers the ~half calibration-recoverable cells — was deferred as "network-gated,
+best begun with a DISCOVER grounding of the fleet-capacity / renewables-penetration era boundaries,"
+and flagged that choosing the era partition **ungrounded IS R12 goal-seek by another name**. This tick
+**network was UP** (elexon 200 / neso 302 — the sole prior gate), so the genuine drawable step was to
+do that grounding. **This tick ships the grounding, NOT the baseline BUILD** (see "still deferred" below).
+
+### What shipped (evidence)
+`docs/market_research/ssp_dispatchable_fleet_renewables_era_boundaries_2026-07-24.md` — a discovery-agent
+research pass over **published DESNZ DUKES Ch.5 workbooks** (`DUKES_5.6.xlsx`/`5.7.xlsx`) + coal-exit
+timeline, accessed 2026-07-24. Every quantitative claim tagged observed-with-evidence (with source) or
+inferred. `ASSUMPTIONS.md` gains the calibrated section. **The era boundaries are derived from real
+fossil-capacity plateaus and coal-share cliffs — NOT from our model's lift table** (R12/R13-clean by
+construction: the grounding is blind to company P&L and to the residual it will later inform).
+
+### The externally-grounded era structure (observed-with-evidence, DUKES)
+- GB "total fossil-fuels capacity" fell **49,835 MW (2016) → 36,250 MW (2024)** in **three visible
+  plateaus, not smoothly**: ~50 GW (2016–18) → ~42–44 GW (2019–22) → ~36–40 GW (2023–24).
+- Coal generation share: 22.4% (2015) → 9.0% (2016) → **2.1% (2019)** → 0.7% (2024) → **0% from 1 Oct 2024**
+  (Ratcliffe-on-Soar). Renewables share 24.5% (2016) → 43.1% (2020, COVID-denominator confound flagged)
+  → **50.4% (2024)**.
+- **Candidate eras (grounded in the plateau/cliff structure): Era A 2016–18 / Era B 2019–22 / Era C
+  2023–25.** Single largest structural break = **2018→2019** (coal 5.0%→2.1%, fossil capacity −12.5% in
+  one year — the biggest single-year move in the series).
+
+### Why this is the grounding part (a) needed (mechanism, not tuning — R4/R12)
+The constant `DISPATCHABLE_CAPACITY_MW=35000` is **~3.6% off the real 2024 figure but ~42% too low for
+2016–18** — so the residual-demand denominator `x = (demand−renewables)/35000` is materially miscentred
+at the window's early end, and the miscentring **plateaus in the same 3-era structure**. This independently
+explains — from real fleet physics, not from the lift table — the negative-lift onset: losers begin at
+**2019 (Era B onward)**, exactly where the single global fit (centred on 35000 MW / the whole-window
+x-distribution) drifts off the true per-era denominator. The era-aware A0/A1 partition part (a) will use
+is now **externally justified**, closing the R12 goal-seek hazard the deferral named.
+
+### STILL DEFERRED (honest — the baseline BUILD is NOT done this tick, and why)
+Part (a) proper is an **R13 baseline change to the core price engine** (the whole company prices/hedges/
+settles against SSP). Two live reasons keep it a deliberate follow-on rather than a bounded-tick action:
+1. **Director priority:** the 2026-07-19 console steer ranks calm-year MAE **below the spike-tail
+   priority** — force-shipping a below-priority baseline recalibration autonomously is not the director-
+   aligned move; the grounding (cheap, reversible, doc-only) is.
+2. **Operational-rebuild standard:** a baseline recalibration deserves its own focused, R15-mutation-tested
+   pass (era partition wired + per-cell fidelity re-measured + ledger row updated), "one verified sub-step,
+   show-me before advancing" — not a tail-of-tick rush. The denominator question (35000 MW held constant
+   vs the real 2016→2024 decline) is now surfaced by the grounding and belongs in that same pass.
+
+**Next drawable step (no wall, now grounded):** the era-aware A0/A1 (and constant-denominator) baseline
+recalibration BUILD — a deliberate R13 pass, per-cell fidelity target (never lift as a target), R15
+both-ways on the new calibration, ledger row + coupled-triad HARNESS gap re-measured.
+
+> **Tick note (2026-07-24, RUNG-7 doorbell, tenth worker tick):** doorbell fired the stale "rungs 1–6
+> empty → MINT" read; disk contradicts it (6 `PLANNER_MINTED_*` open + director-waived — a mint here is
+> the over-production `DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24` intervened on). Correct draw =
+> advance a genuine drawable step. Network was UP this tick — the sole gate on part (a)'s DISCOVER
+> grounding — so I shipped that grounding (real published DUKES sources → market_research doc), converting
+> part (a) from "network-gated / ungrounded R12 hazard" to "externally grounded, ready for a deliberate
+> R13 baseline pass." **No mint: premise false. No baseline BUILD: deferred deliberately (below spike-tail
+> + deserves its own R15-tested pass).**
