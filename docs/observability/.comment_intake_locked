@@ -1,0 +1,4 @@
+LOCKED 2026-07-24 by DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24.md
+Reason: director denies authorship of the 10:22Z /supplier/ comment -> unauthorized-input incident.
+Effect: background/director_comments.py accepts nothing, stages nothing (check_once early-returns; _write_comment_to_staging refuses).
+Re-enable: DIRECTOR RULING ONLY (remove this file), with full-provenance staging per the incident point 6. Do NOT remove as an agent.

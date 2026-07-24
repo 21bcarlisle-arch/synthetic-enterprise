@@ -17,6 +17,9 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(dc, "STAGING_DIR", tmp_path / "staging")
     monkeypatch.setattr(dc, "COMMENTS_TOPIC", "test-comments-topic")
     monkeypatch.setattr(dc, "COMMENTS_PIN", "correct-pin-123")
+    # Isolate the intake lock at a tmp path (absent => unlocked) so the tests here never read the
+    # REAL .comment_intake_locked flag (which is present live per the 2026-07-24 security incident).
+    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", tmp_path / ".comment_intake_locked")
     (tmp_path / "staging").mkdir()
     yield
 
@@ -153,6 +156,70 @@ def test_check_once_multiple_submissions_mixed_valid_invalid(monkeypatch):
     assert "good one" in all_content
     assert "another good one" in all_content
     assert "forged" not in all_content
+
+# ── INTAKE LOCK — fail closed (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT 2026-07-24) ────────────
+# R15 both ways: locked => a VALID, correct-PIN submission still stages NOTHING (the lock is not a
+# PIN check — it refuses even authentic-looking input); unlocked => the same submission stages
+# normally (so the lock is a real, removable gate, not the channel simply being dead).
+
+def test_intake_lock_flag_absent_is_unlocked(tmp_path, monkeypatch):
+    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", tmp_path / "nope")
+    assert dc.intake_locked() is False
+
+
+def test_intake_lock_flag_present_is_locked(tmp_path, monkeypatch):
+    flag = tmp_path / ".comment_intake_locked"
+    flag.write_text("locked")
+    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", flag)
+    assert dc.intake_locked() is True
+
+
+def test_write_comment_refuses_when_locked(tmp_path, monkeypatch):
+    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", tmp_path / ".comment_intake_locked")
+    (tmp_path / ".comment_intake_locked").write_text("locked")
+    monkeypatch.setattr(dc, "STAGING_DIR", tmp_path / "staging2")
+    monkeypatch.setattr(dc, "LOG_FILE", tmp_path / "log2.md")
+    out = dc._write_comment_to_staging({"page": "/supplier/", "state": "", "data_ts": "", "comment": "forged authentic-looking comment"})
+    assert out is None
+    assert not (tmp_path / "staging2").exists() or list((tmp_path / "staging2").iterdir()) == []
+
+
+def test_check_once_stages_nothing_when_locked_even_valid_pin(monkeypatch):
+    """The load-bearing lock proof: a submission with the CORRECT PIN — indistinguishable from a
+    genuine one — stages NOTHING while locked, and the daemon does not even poll the network."""
+    dc.INTAKE_LOCK_FILE.write_text("locked")  # the tmp-isolated flag from _isolate
+    net = []
+    monkeypatch.setattr(dc.requests, "get", lambda *a, **k: net.append(1))
+    calls = []
+    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
+    new_since = dc.check_once(500)
+    assert new_since == 500                       # watermark unchanged (no silent catch-up on unlock)
+    assert net == []                              # did not poll while locked
+    assert list(dc.STAGING_DIR.iterdir()) == []   # staged nothing
+    assert calls == []                            # echoed nothing
+
+
+def test_check_once_stages_again_once_unlocked(monkeypatch):
+    """Removing the flag re-opens the channel (mutation of the lock proof): the SAME valid submission
+    that staged nothing while locked now stages — proving the earlier silence was the lock, not a
+    dead channel."""
+    monkeypatch.setattr(dc, "notify", lambda msg, **k: None)
+    monkeypatch.setattr(
+        dc.requests, "get",
+        lambda url, params, timeout: _mock_response([
+            {"event": "message", "time": 1000, "id": "m1", "message": _submission()},
+        ]),
+    )
+    # locked -> nothing
+    dc.INTAKE_LOCK_FILE.write_text("locked")
+    dc.check_once(500)
+    assert list(dc.STAGING_DIR.iterdir()) == []
+    # unlocked -> stages
+    dc.INTAKE_LOCK_FILE.unlink()
+    new_since = dc.check_once(500)
+    assert new_since == 1000
+    assert len(list(dc.STAGING_DIR.iterdir())) == 1
+
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,

@@ -62,6 +62,26 @@ POLL_INTERVAL_SECONDS = 20
 COMMENTS_TOPIC: Optional[str] = os.environ.get("SE_COMMENTS_TOPIC")
 COMMENTS_PIN: Optional[str] = os.environ.get("SE_COMMENTS_PIN")
 
+# ── INTAKE LOCK — fail closed (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT 2026-07-24) ──────────────
+# The director DENIED authorship of a 10:22Z comment this channel accepted. Until an explicit director
+# ruling re-enables it, the intake is LOCKED: accept nothing, stage nothing. The lock is a flag FILE
+# (not an env var / code constant) so it is (a) live the moment the file exists — a running daemon reads
+# it every cycle, no redeploy — and (b) reversible by removing the file, which is a director-reserved act.
+# FAIL-CLOSED: any error resolving the flag reads as LOCKED, never as open. Re-enable is a deliberate act,
+# never a side effect. Removing the flag alone re-opens the channel; per the incident, that removal is a
+# director ruling with full-provenance staging (point 6) — do not remove it as an agent.
+INTAKE_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".comment_intake_locked"
+
+
+def intake_locked() -> bool:
+    """True if the comment intake is locked (fail closed). Locked == the flag file is present OR the
+    check itself cannot be resolved (an unreadable lock state is a LOCKED state — an intake we cannot
+    prove is open must stay shut). Never raises."""
+    try:
+        return INTAKE_LOCK_FILE.exists()
+    except OSError:
+        return True
+
 
 def log(msg: str) -> None:
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -118,7 +138,13 @@ def parse_comment_submission(message: str) -> Optional[dict]:
     }
 
 
-def _write_comment_to_staging(parsed: dict) -> Path:
+def _write_comment_to_staging(parsed: dict) -> Optional[Path]:
+    # INTAKE LOCK (fail closed): the staging write is the authority-path entry, so it is guarded HERE
+    # too — not only at check_once — so no caller (test, replay, future code) can stage while locked.
+    # Returns None without writing when locked; callers must treat None as "not staged".
+    if intake_locked():
+        log("INTAKE LOCKED — refused to stage a comment (fail closed). Re-enable is a director ruling.")
+        return None
     # Microsecond precision, plus an incrementing suffix on collision --
     # a single check_once() call can process several queued submissions
     # within the same second (found live via a test sending 2 in one poll
@@ -145,6 +171,12 @@ def check_once(since: float) -> float:
     """Poll once for messages posted after `since` on the comments topic.
     Returns the new watermark. Never raises on a network hiccup -- same
     best-effort contract as every other NTFY poller in this codebase."""
+    if intake_locked():
+        # Fail-closed: do not even POLL while locked (no fetch, no parse, no stage). Watermark is left
+        # UNCHANGED so re-enabling is the director's deliberate act, not a silent catch-up.
+        log("INTAKE LOCKED — staging path disabled (fail closed); not polling. "
+            "Re-enable only by director ruling (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT 2026-07-24).")
+        return since
     if not COMMENTS_TOPIC:
         log("SE_COMMENTS_TOPIC not set -- skipping poll")
         return since
@@ -178,6 +210,8 @@ def check_once(since: float) -> float:
             continue
 
         staged_path = _write_comment_to_staging(parsed)
+        if staged_path is None:
+            continue  # intake locked (fail closed) -- nothing staged, nothing to echo
         log(f"Comment staged as {staged_path.name} -- page={parsed['page']!r}")
         notify(f"Comment received from {parsed['page']} and queued for review.", kind="director_echo")
         update_agent_status(

@@ -9,3 +9,4 @@
 - [2026-07-16 18:27 UTC] Director comments daemon started
 - [2026-07-16 21:30 UTC] Director comments daemon started
 - [2026-07-17 06:25 UTC] Director comments daemon started
+- [2026-07-24 13:06 UTC] SECURITY INCIDENT (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24): director denies authorship of the 10:22Z /supplier/ comment. INTAKE LOCKED (fail closed): flag .comment_intake_locked created; check_once + _write_comment_to_staging now refuse; running daemon (pid 893588, up since Jul17) STOPPED. Provenance: no from_rich_comment_* staged today (last 2026-07-12); no /supplier/ page exists on the site; no decision_log consumption today; nothing to quarantine. Re-enable = director ruling only.

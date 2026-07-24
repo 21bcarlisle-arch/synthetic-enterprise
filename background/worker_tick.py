@@ -53,6 +53,23 @@ SCHEDULED_FLAG = PROJECT_DIR / "docs" / "observability" / ".scheduled_invocation
 LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".worker_tick.lock"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "worker-tick-log.md"
 HEALTH_FILE = PROJECT_DIR / "docs" / "observability" / ".worker_tick_health.json"
+# RAIL-3 HEARTBEAT (DIRECTOR_RULING_HEARTBEAT_AND_QUIET_CLASSIFICATION 2026-07-24). Unlike LOG_FILE
+# and HEALTH_FILE (both .gitignored -> never leave this machine), this lives under site/data/, which
+# process_run_complete.py commits WHOLE every publish cycle. So the tick verdict is fetchable from
+# ORIGIN without SSH -- the ruling's acceptance test. Placed here (not worker-tick-log.md) because a
+# liveness signal the advisor cannot fetch is fail-silent.
+HEARTBEAT_FILE = PROJECT_DIR / "site" / "data" / "tick_heartbeat.json"
+HEARTBEAT_RECENT_MAX = 15
+# Map the raw tick outcome onto the director's three verdict classes (drew / rested / exception),
+# plus 'paused' for the kill-switch / pre-cutover states that are neither work nor rest.
+_VERDICT_CLASS = {
+    "SPAWNED": "drew",
+    "LOCK_HELD": "drew",        # a prior invocation is still running -- the machine IS drawing
+    "REST_NO_WORK": "rested",
+    "DRAW_ERROR": "exception",
+    "DISABLED": "paused",
+    "NOT_SCHEDULED": "paused",
+}
 
 MODEL = "claude-opus-4-8"
 
@@ -84,6 +101,50 @@ def _write_health(outcome: str, detail: str = "") -> None:
         HEALTH_FILE.write_text(json.dumps(
             {"ts": time.time(), "outcome": outcome, "detail": detail[:500]}))
     except Exception:
+        pass
+
+
+def _enumeration_line() -> str:
+    """The whole-set enumeration (every authorized level + drawable Y/.) as one line, per the
+    ruling's 'timestamp · drew/rested/exception · the whole-set enumeration'. Best-effort: a pure
+    read of the maturity map (NO inference), imported lazily so a gated tick pays nothing. Never
+    raises -- a heartbeat must ship even if the enumeration can't be computed."""
+    try:
+        from background.supervisor import authorized_set_enumeration_line
+        return authorized_set_enumeration_line()
+    except Exception as e:  # pragma: no cover - defensive
+        return f"(enumeration unavailable: {e!r})"
+
+
+def _write_heartbeat(decision: "TickDecision", enumeration: str) -> None:
+    """Write the origin-verifiable tick heartbeat (see HEARTBEAT_FILE). One line per tick:
+    timestamp · verdict(drew/rested/exception) · whole-set enumeration, plus a rolling `recent`
+    window so 'is it actually ticking' is answerable from advancing timestamps alone. No inference,
+    never raises -- liveness reporting must not itself be able to wedge the tick."""
+    ts = time.time()
+    iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
+    verdict = _VERDICT_CLASS.get(decision.outcome, decision.outcome.lower())
+    line = f"[{iso}] {verdict} ({decision.outcome}) -- {enumeration}"
+    record = {
+        "ts": ts,
+        "ts_iso": iso,
+        "verdict": verdict,               # drew | rested | exception | paused
+        "outcome": decision.outcome,      # raw TickDecision outcome
+        "detail": decision.detail[:300],
+        "enumeration": enumeration,       # the whole-set enumeration line (every level, Y/.)
+        "line": line,                     # the single human-readable line the ruling asks for
+    }
+    try:
+        HEARTBEAT_FILE.parent.mkdir(parents=True, exist_ok=True)
+        recent: list = []
+        if HEARTBEAT_FILE.is_file():
+            try:
+                recent = (json.loads(HEARTBEAT_FILE.read_text()).get("recent") or [])
+            except Exception:
+                recent = []
+        record["recent"] = ([line] + recent)[:HEARTBEAT_RECENT_MAX]
+        HEARTBEAT_FILE.write_text(json.dumps(record, indent=2))
+    except Exception:  # pragma: no cover - defensive
         pass
 
 
@@ -255,11 +316,17 @@ def run_tick() -> TickDecision:
         d = decide_tick(enabled, scheduled, invocation_in_flight() if enabled and scheduled else False,
                         (None, False))
         _write_health(d.outcome, d.detail)
+        # Gated tick (paused/dark/in-flight): still ship a heartbeat for liveness, but skip the
+        # map read -- the cheap path stays cheap (no supervisor import when autonomy is off).
+        _write_heartbeat(d, f"(not evaluated -- tick {d.outcome})")
         _log(f"{d.outcome}: {d.detail[:120]}")
         return d
     draw = _draw()
     d = decide_tick(True, True, False, draw)
     _write_health(d.outcome, d.detail)
+    # RAIL-3: ship the verdict + whole-set enumeration on every drew/rested/exception tick. _draw()
+    # already imported supervisor, so the enumeration read is free here.
+    _write_heartbeat(d, _enumeration_line())
     if d.spawn:
         proc = spawn_invocation(d.reason)
         if proc is not None:

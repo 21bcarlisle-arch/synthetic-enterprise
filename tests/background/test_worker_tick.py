@@ -21,6 +21,10 @@ import background.worker_tick as wt
 
 REPO = Path(__file__).resolve().parents[2]
 
+# Captured at import, BEFORE the autouse _isolate fixture repoints it at tmp -- so the structural
+# ship-path guard can assert the module's REAL default.
+_REAL_HEARTBEAT_FILE = wt.HEARTBEAT_FILE
+
 
 @pytest.fixture(autouse=True)
 def _isolate(tmp_path, monkeypatch):
@@ -31,6 +35,7 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(wt, "LOCK_FILE", tmp_path / ".worker_tick.lock")
     monkeypatch.setattr(wt, "LOG_FILE", tmp_path / "worker-tick-log.md")
     monkeypatch.setattr(wt, "HEALTH_FILE", tmp_path / ".worker_tick_health.json")
+    monkeypatch.setattr(wt, "HEARTBEAT_FILE", tmp_path / "tick_heartbeat.json")
     return tmp_path
 
 
@@ -140,3 +145,59 @@ def test_malformed_lock_not_in_flight(_isolate):
 def test_draw_error_is_loud_not_spawn():
     d = wt.decide_tick(True, True, False, RuntimeError("supervisor import blew up"))
     assert d.spawn is False and d.outcome == "DRAW_ERROR"
+
+
+# ---- RAIL-3 HEARTBEAT: origin-verifiable liveness (DIRECTOR_RULING_HEARTBEAT... 2026-07-24) -------
+
+def test_heartbeat_ships_under_site_data():
+    """The load-bearing ABSORPTION property: the heartbeat lands on the auto-published surface
+    (site/data/*.json is committed WHOLE by process_run_complete.py), NOT in the .gitignored
+    worker-tick-log.md that never reaches origin. If someone moves it off site/data, the
+    fetch-from-origin acceptance test silently breaks -- so guard it structurally. Uses the REAL
+    module constant, not the tmp-isolated one."""
+    real = Path(wt.__file__).resolve().parents[1] / "site" / "data" / "tick_heartbeat.json"
+    assert _REAL_HEARTBEAT_FILE == real, _REAL_HEARTBEAT_FILE
+    assert _REAL_HEARTBEAT_FILE.parent.name == "data" and _REAL_HEARTBEAT_FILE.parent.parent.name == "site"
+
+
+def test_heartbeat_written_at_rest_carries_enumeration(_isolate, monkeypatch):
+    """A rested tick ships a heartbeat classed 'rested' with the whole-set enumeration attached."""
+    (_isolate / ".build_executor_enabled").write_text("")
+    (_isolate / ".scheduled_invocations_enabled").write_text("")
+    monkeypatch.setattr(wt, "_draw", lambda: (None, False))
+    monkeypatch.setattr(wt, "spawn_invocation", lambda reason: None)
+    monkeypatch.setattr(wt, "_enumeration_line", lambda: "AUTHORIZED-SET enumeration [build=. site=.] -> REST-LEGITIMATE")
+    wt.run_tick()
+    hb = json.loads((_isolate / "tick_heartbeat.json").read_text())
+    assert hb["verdict"] == "rested" and hb["outcome"] == "REST_NO_WORK"
+    assert "AUTHORIZED-SET enumeration" in hb["enumeration"]
+    assert hb["line"].startswith("[") and "rested" in hb["line"]
+    assert hb["recent"] and hb["recent"][0] == hb["line"]
+
+
+def test_heartbeat_verdict_tracks_outcome_not_constant(_isolate, monkeypatch):
+    """MUTATION: the verdict is DERIVED from the tick outcome, not a constant. A drew tick reads
+    'drew'; a rested tick reads 'rested' -- so the heartbeat can distinguish work from rest (a
+    constant 'drew' would hide a stall behind a false-live signal)."""
+    # drew
+    drew = wt.TickDecision(True, "SPAWNED", reason="x", detail="drew-detail")
+    wt._write_heartbeat(drew, "enum-A")
+    hb = json.loads((_isolate / "tick_heartbeat.json").read_text())
+    assert hb["verdict"] == "drew"
+    # rested (same file, appends to recent, verdict flips)
+    rested = wt.TickDecision(False, "REST_NO_WORK", detail="rested-detail")
+    wt._write_heartbeat(rested, "enum-B")
+    hb = json.loads((_isolate / "tick_heartbeat.json").read_text())
+    assert hb["verdict"] == "rested"
+    assert len(hb["recent"]) == 2 and "drew" in hb["recent"][1]  # prior verdict preserved in the window
+    # exception classifies distinctly too
+    exc = wt.TickDecision(False, "DRAW_ERROR", detail="boom")
+    wt._write_heartbeat(exc, "enum-C")
+    assert json.loads((_isolate / "tick_heartbeat.json").read_text())["verdict"] == "exception"
+
+
+def test_heartbeat_recent_window_bounded(_isolate):
+    for i in range(wt.HEARTBEAT_RECENT_MAX + 5):
+        wt._write_heartbeat(wt.TickDecision(False, "REST_NO_WORK", detail=f"t{i}"), f"enum{i}")
+    hb = json.loads((_isolate / "tick_heartbeat.json").read_text())
+    assert len(hb["recent"]) == wt.HEARTBEAT_RECENT_MAX     # rolls, never grows unbounded
