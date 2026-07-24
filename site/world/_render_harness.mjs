@@ -22,6 +22,8 @@ const market = process.argv[4] ? JSON.parse(fs.readFileSync(process.argv[4], "ut
 const company = process.argv[5] ? JSON.parse(fs.readFileSync(process.argv[5], "utf8")) : null;
 const customers = process.argv[6] ? JSON.parse(fs.readFileSync(process.argv[6], "utf8")) : null;
 const dashboard = process.argv[7] ? JSON.parse(fs.readFileSync(process.argv[7], "utf8")) : null;
+// Optional arg 8: premise_demand.json (the demand-arrow evidence panel).
+const premiseDemand = process.argv[8] ? JSON.parse(fs.readFileSync(process.argv[8], "utf8")) : null;
 
 const elements = {};
 function stub(id) {
@@ -44,6 +46,7 @@ sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
 sandbox.renderCausalChain({ world: d, weather, market, company, customers, dashboard });
+sandbox.renderPremiseDemand(premiseDemand);
 sandbox.renderWorldState(d, weather, market);
 sandbox.renderWall(d);
 sandbox.renderSimDepth(d);
@@ -53,6 +56,7 @@ sandbox.renderBuild(d);
 
 const ids = [
   "causal-chain",
+  "pd-stamp", "pd-intro", "pd-bar", "pd-table", "pd-basis",
   "state-stamp", "wstate-intro", "wstate-lag", "wstate-kpis", "wstate-intraday", "wstate-regime", "wstate-basis",
   "wall-intro", "wall-band", "crossings",
   "sim-intro", "sim-depth",

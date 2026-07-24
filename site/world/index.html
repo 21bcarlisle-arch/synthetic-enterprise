@@ -173,6 +173,17 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   </p>
   <div class="chain" id="causal-chain"><div class="chain-card"><div class="muted">Loading...</div></div></div>
 
+  <!-- DEMAND-ARROW EVIDENCE (weather -> demand): the campaign's WORDS->DIAGRAM->EVIDENCE
+       requirement -- the demand arrow of the spine above must carry its evidence chart.
+       Belief-vs-truth for the company's half-hourly demand-normalisation model. -->
+  <div class="sec">Demand shape &mdash; the company's demand belief vs no-skill truth <span id="pd-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
+  <div class="card">
+    <p class="muted" id="pd-intro">Loading...</p>
+    <div id="pd-bar" style="margin-top:14px"></div>
+    <div id="pd-table" style="margin-top:16px"></div>
+    <p class="basis" id="pd-basis" style="margin-top:10px"></p>
+  </div>
+
   <!-- 0. OPERATIONAL STATE (the director's window: what the world is doing right now) -->
   <div class="sec">World state &mdash; what the world is doing right now <span id="state-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
   <div class="card">
@@ -534,6 +545,104 @@ function chainNode(n){
     '<div class="chain-links"><span class="k">walk it:</span>'+links+'</div>'+
   '</div></div>';
 }
+// DEMAND-ARROW EVIDENCE: renders W1_5 premise-demand belief-vs-truth (site/data/
+// premise_demand.json). R15: fails closed and VISIBLE when the feed is absent /
+// available:false / has no cells -- never a silently empty or fabricated bar.
+function pdBar(label,mae,noskill,color){
+  // Width relative to the largest MAE on show (so bars are comparable). MAE is a
+  // DIAGNOSTIC (R12) -- lower = closer to the real demand outturn.
+  var w=(mae!=null&&noskill)?Math.max(4,Math.round(100*mae/Math.max(mae,noskill))):4;
+  var beats=(mae!=null&&noskill!=null)?(mae<noskill):null;
+  return '<div style="margin:6px 0">'+
+    '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px">'+
+      '<span>'+esc(label)+'</span><span style="font-variant-numeric:tabular-nums">'+num(mae)+' MW MAE'+
+      (beats===false?' <span style="color:var(--red)">(worse than no-skill)</span>':(beats===true?' <span style="color:var(--green)">(beats no-skill)</span>':''))+'</span>'+
+    '</div>'+
+    '<div style="background:var(--border);border-radius:4px;height:14px;overflow:hidden">'+
+      '<div style="width:'+w+'%;height:100%;background:'+color+'"></div>'+
+    '</div></div>';
+}
+function renderPremiseDemand(pd){
+  var introEl=document.getElementById("pd-intro");
+  var barEl=document.getElementById("pd-bar");
+  var tblEl=document.getElementById("pd-table");
+  var basisEl=document.getElementById("pd-basis");
+  var stampEl=document.getElementById("pd-stamp");
+  if(!introEl||!barEl)return;
+  // R15 fail-closed VISIBLE: no feed / not available / no cells -> a red block.
+  if(!pd||pd.available!==true||!pd.cells||!pd.cells.length){
+    var why=pd&&pd.reason?(" ("+esc(pd.reason)+")"):"";
+    introEl.innerHTML='<span style="color:var(--red)">Demand-shape evidence unavailable'+why+
+      ' &mdash; the belief-vs-truth feed did not load. The arrow carries no chart until it does.</span>';
+    if(barEl)barEl.innerHTML="";
+    if(tblEl)tblEl.innerHTML="";
+    if(basisEl)basisEl.innerHTML="";
+    return;
+  }
+  var worst=pd.worst||{};
+  introEl.innerHTML=
+    "The <strong>weather &rarr; demand</strong> arrow of the spine above, walked to its evidence. "+
+    "The company builds a half-hourly demand-normalisation model from the observable weather &mdash; it "+
+    "cannot read the sim's true demand. Two belief forms are measured against a <strong>no-skill baseline</strong> "+
+    "("+esc(pd.baseline_label||"climatological mean")+"): "+
+    "<strong>L1</strong> <span style=\"font-family:ui-monospace,monospace;font-size:11px\">"+esc(pd.belief_form_l1||"")+"</span> "+
+    "(r&sup2; "+esc(pd.r2_l1)+"), then <strong>L2</strong> adds "+
+    "<span style=\"font-family:ui-monospace,monospace;font-size:11px\">"+esc(pd.belief_form_l2||"")+"</span> "+
+    "(r&sup2; "+esc(pd.r2_l2)+"). The score is the <strong>worst-explained cell</strong> &mdash; not the flattering "+
+    "population average. "+esc(pd.honesty_note||"");
+
+  // Two-level bar on the WORST cell: no-skill vs L1 vs L2, MAE in MW (lower=better).
+  var ns=worst.mae_noskill, l1=worst.mae_model_l1, l2=worst.mae_model;
+  var l2col=(l2!=null&&ns!=null&&l2<ns)?"var(--green)":"var(--red)";
+  var l1col=(l1!=null&&ns!=null&&l1<ns)?"var(--green)":"var(--red)";
+  barEl.innerHTML=
+    '<div style="font-size:12px;color:var(--text);margin-bottom:8px">Worst-explained cell: <strong>'+esc(worst.label||pd.worst_cell)+
+      '</strong> &middot; N='+num(worst.n)+' half-hours &middot; lower MAE = closer to the real demand outturn</div>'+
+    pdBar("No-skill baseline (g0 = climatological mean)",ns,ns,"var(--muted)")+
+    pdBar("L1 belief (temperature only)",l1,ns,l1col)+
+    pdBar("L2 belief (+ CWV wind-chill term) — headline",l2,ns,l2col)+
+    '<div style="font-size:11px;color:var(--muted);margin-top:8px">In this worst cell the wind-chill (CWV) term barely '+
+    'moves the error (a near-tie, MAE '+num(l2)+' MW vs no-skill '+num(ns)+' MW) &mdash; shown, not hidden. It earns its '+
+    'keep in the wind-relevant cells below, where the model beats no-skill.</div>';
+
+  // Per-cell MAE table: N stated (never a total-over-sample), gap = model/no-skill.
+  var rows='';
+  pd.cells.forEach(function(c){
+    var beats=(c.mae_model!=null&&c.mae_noskill!=null)&&(c.mae_model<c.mae_noskill);
+    rows+='<tr style="border-top:1px solid var(--border)">'+
+      '<td style="padding:6px 8px">'+esc(c.label)+'</td>'+
+      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+num(c.n)+'</td>'+
+      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+num(c.mae_noskill)+'</td>'+
+      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+num(c.mae_model_l1)+'</td>'+
+      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums;color:'+(beats?"var(--green)":"var(--red)")+'">'+num(c.mae_model)+'</td>'+
+      '<td style="padding:6px 8px;text-align:right;font-variant-numeric:tabular-nums">'+esc(c.gap)+'</td>'+
+      '</tr>';
+  });
+  tblEl.innerHTML=
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em">'+
+      '<th style="padding:6px 8px;text-align:left">Cell</th>'+
+      '<th style="padding:6px 8px;text-align:right">N (HH)</th>'+
+      '<th style="padding:6px 8px;text-align:right">No-skill MAE</th>'+
+      '<th style="padding:6px 8px;text-align:right">L1 MAE</th>'+
+      '<th style="padding:6px 8px;text-align:right">L2 MAE</th>'+
+      '<th style="padding:6px 8px;text-align:right">gap</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="font-size:10px;color:var(--muted);margin-top:6px">MAE in MW. gap = model MAE &divide; no-skill MAE '+
+    '(&lt;1 the model beats blind; &gt;1 it is worse). Per-cell with its own N &mdash; never a total over the sample.</div>';
+
+  var basis=[];
+  if(pd.n_train!=null)basis.push("n_train="+num(pd.n_train));
+  if(worst.label||pd.worst_cell)basis.push("worst cell = "+esc(worst.label||pd.worst_cell));
+  basis.push("MAE in MW (half-hourly demand outturn)");
+  if(pd.measured_at)basis.push("measured "+esc(String(pd.measured_at).slice(0,10)));
+  if(pd.run_git_commit)basis.push("run "+esc(String(pd.run_git_commit).slice(0,8)));
+  basisEl.innerHTML="Basis: "+basis.join(" &middot; ")+
+    ". Source: coupled-gap ledger, atom "+esc(pd.atom||"W1_5")+" (twin "+esc(pd.twin_atom||"C13")+
+    ") &mdash; a rendering of an already-measured result, not re-computed here.";
+  if(stampEl)stampEl.textContent=pd.measured_at?("as of "+String(pd.measured_at).slice(0,10)):"";
+}
+
 function renderCausalChain(s){
   var el=document.getElementById("causal-chain");
   if(!el)return;
@@ -613,10 +722,12 @@ Promise.all([
   j("../data/market.json"),
   j("../data/company.json"),
   j("../data/customers.json"),
-  j("../data/dashboard.json")
+  j("../data/dashboard.json"),
+  j("../data/premise_demand.json")
 ]).then(function(res){
-  var d=res[0], weather=res[1], market=res[2], company=res[3], customers=res[4], dashboard=res[5];
+  var d=res[0], weather=res[1], market=res[2], company=res[3], customers=res[4], dashboard=res[5], premiseDemand=res[6];
   renderCausalChain({world:d, weather:weather, market:market, company:company, customers:customers, dashboard:dashboard});
+  renderPremiseDemand(premiseDemand);
   renderWorldState(d, weather, market);
   renderWall(d);
   renderSimDepth(d);

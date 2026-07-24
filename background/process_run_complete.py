@@ -967,6 +967,17 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/data/world.json (Door 5 THE WORLD)")
     except Exception as exc:
         log("world.json generation failed: {}".format(exc))
+    try:
+        # Door 5 demand-arrow evidence: the WORDS->DIAGRAM->EVIDENCE campaign
+        # requires the weather->demand arrow of the World causal spine to carry its
+        # belief-vs-truth chart. A rendering of the already-measured W1_5 coupled-gap
+        # result -- wired here for the same R11 no-orphan-transition reason as world.json
+        # (a generated surface must ride the regen cycle or it silently freezes).
+        from tools.generate_premise_demand_data import generate as gen_premise_demand
+        gen_premise_demand()
+        log("Generated site/data/premise_demand.json (Door 5 demand-arrow evidence)")
+    except Exception as exc:
+        log("premise_demand.json generation failed: {}".format(exc))
     # (2026-07-20 v4 site rebuild) The combined "Method + Simplified" casebook surface
     # (site/method-casebook/) was RETIRED -- redundant with the separate canonical Method
     # (roles/rules/loop/retro/track-record) and Simplified (register) doors, which cover its
