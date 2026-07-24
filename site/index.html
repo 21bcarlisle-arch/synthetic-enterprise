@@ -141,10 +141,19 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     CO&#8322; saved.</p>
 </section>
 
-<div class="sec">The record so far</div>
-<div class="figures" id="pulse-strip">
-  <div class="fig"><div class="fk">Loading</div><div class="fv">...</div></div>
-</div>
+<section class="moap">
+  <h2>The whole model on one page</h2>
+  <p class="lead">World, wall, company, score &mdash; the whole supplier on one page. Every part carries
+    its build stage in plain sight: <strong>live</strong>, <strong>partly built</strong>, or
+    <strong>planned</strong> &mdash; so you see the idea and the honest state of it in one look, no
+    glossary needed. The three doors below open onto the parts of this diagram.</p>
+  <figure>
+    <img src="./assets/model-on-a-page.svg"
+         alt="A one-page schematic of the poesys model, read top to bottom. Governance: one human director sets mission and Tier-1 calls; a board holds six stances in tension; AI builders design, build, test and deploy; a harness of gates, rules and a maturity map builds and steers everything below. The World (sim ground truth, behind the wall): real weather drives half-hourly price and demand over the 2016-25 record of 168k periods including the crisis, over a population of households drawn fresh every run with coupled hidden traits; the world moves ahead of the books and settlement lands months late; ground truth never crosses the wall, and cohorts are drawn for learning value not headcount. The Wall: ground truth never crosses; everything else is an interface flow in one of two directions -- inbound (market feeds, forecasts with error, meter reads, payments, complaints and replies, late settlement) and outbound (bills, offers, messages); the company touches the world only through what it sends. The Company (sees only through the wall): acquire, forecast the book, price tariffs, hedge forward, bill out, collect, settle late and learn from the true-up -- one integrated agentic stack across trading, finance, billing, CRM, operations and debt; bills run on three clocks, billed, settled and banked, with truth arriving months behind the money; it can be wrong, and it can die. The Score: survive (a hard constraint judged worst-case), earn (probability-weighted expected value), and abate (grid intensity times household use, in pounds per tonne of CO2e).">
+    <figcaption>Source: docs/design/THE_MODEL_ON_A_PAGE.md (director-canon, v4). The glyph grammar
+      (<code>.</code> planned, <code>_</code> partial, <code>~</code> not yet) and BRAG colour are information.</figcaption>
+  </figure>
+</section>
 
 <section class="thesis">
   <h2>Cost-to-serve: the numerator of &pound;/tCO&#8322; <span class="tag tag-prov">PROVISIONAL</span></h2>
@@ -156,19 +165,6 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
   <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
   <div class="thesis-caveat" id="thesis-caveat"></div>
   <div class="thesis-evidence" id="thesis-evidence"></div>
-</section>
-
-<section class="moap">
-  <h2>The whole model on one page</h2>
-  <p class="lead">World, wall, company, score &mdash; how a governed AI runs a UK energy supplier against
-    the real half-hourly record, seeing the world only through what crosses the wall. The three doors
-    below open onto the parts of this diagram.</p>
-  <figure>
-    <img src="./assets/model-on-a-page.svg"
-         alt="A one-page schematic of the poesys model, read top to bottom. Governance: one human director sets mission and Tier-1 calls; a board holds six stances in tension; AI builders design, build, test and deploy; a harness of gates, rules and a maturity map builds and steers everything below. The World (sim ground truth, behind the wall): real weather drives half-hourly price and demand over the 2016-25 record of 168k periods including the crisis, over a population of households drawn fresh every run with coupled hidden traits; the world moves ahead of the books and settlement lands months late; ground truth never crosses the wall, and cohorts are drawn for learning value not headcount. The Wall: ground truth never crosses; everything else is an interface flow in one of two directions -- inbound (market feeds, forecasts with error, meter reads, payments, complaints and replies, late settlement) and outbound (bills, offers, messages); the company touches the world only through what it sends. The Company (sees only through the wall): acquire, forecast the book, price tariffs, hedge forward, bill out, collect, settle late and learn from the true-up -- one integrated agentic stack across trading, finance, billing, CRM, operations and debt; bills run on three clocks, billed, settled and banked, with truth arriving months behind the money; it can be wrong, and it can die. The Score: survive (a hard constraint judged worst-case), earn (probability-weighted expected value), and abate (grid intensity times household use, in pounds per tonne of CO2e).">
-    <figcaption>Source: docs/design/THE_MODEL_ON_A_PAGE.md (director-canon, v4). The glyph grammar
-      (<code>.</code> planned, <code>_</code> partial, <code>~</code> not yet) and BRAG colour are information.</figcaption>
-  </figure>
 </section>
 
 <div class="sec">Three ways in</div>
@@ -208,42 +204,13 @@ function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){retur
 // (stubbed) chart simply gets no colour; the asserted pixels are the text, not the bars.
 function cssvar(n){try{return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}catch(e){return "";}}
 
-// FIGURES (RC5: outcome metrics lead -- net margin, treasury, bills, settlement
-// coverage, enterprise value; NO effort metric). Every value rendered from
-// site/data/*.json at fetch time (SITE_CONSTITUTION rule 3), each carrying a
-// claim-status chip (rule 6) and a // basis clock (R14). No leading tilde on any
-// numeral (RC4): the number and its clock, the status is the chip.
-function chip(status){
-  return status==="provisional"
-    ? '<span class="tag tag-prov">PROVISIONAL</span>'
-    : '<span class="tag tag-verified">VERIFIED</span>';
-}
-function renderPulseStrip(dashboard, supplier, method, lastBill){
-  var p=(dashboard&&dashboard.portfolio)||{};
-  var basis=p.basis||{};
-  var mo=((dashboard&&dashboard.monthly_ops)||{}).monthly||[];
-  var months=mo.length;
-  var win=(supplier&&supplier.simulation_window)||"--";
-  var marginProv=((basis.net_margin_gbp)||{}).provisional?"provisional":"verified";
-  var evProv=((basis.enterprise_value_gbp)||{}).provisional?"provisional":"verified";
-  var bills=(p.bills_total!=null)?Number(p.bills_total).toLocaleString("en-GB"):"--";
-  var items=[
-    {l:"Net margin &mdash; all time", v:gbp(p.net_margin_gbp), s:marginProv,
-      c:'// settled clock &middot; full '+esc(win)+' replay &middot; <a href="./data/dashboard.json" target="_blank" rel="noopener">source</a>'},
-    {l:"Treasury &mdash; banked", v:gbp(p.treasury_end_gbp), s:"verified",
-      c:"// banked clock &middot; end of window"},
-    {l:"Bills settled", v:bills, s:"verified",
-      c:"// issued "+esc(win)+" &middot; full historical replay"},
-    {l:"Settlement coverage", v:(months?months+" months":"--"), s:"verified",
-      c:"// half-hourly Elexon/NESO &middot; point-in-time blindfold"},
-    {l:"Enterprise value", v:gbp(p.enterprise_value_gbp), s:evProv,
-      c:'// derived from settled margin &middot; <a href="./company/">see the bridge</a>'}
-  ];
-  document.getElementById("pulse-strip").innerHTML=items.map(function(it){
-    return '<div class="fig"><div class="fk">'+it.l+'</div><div class="fv">'+it.v+'</div>'
-      +chip(it.s)+'<div class="fc">'+it.c+'</div></div>';
-  }).join("");
-}
+// RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24): the cohort-derived
+// financial pulse strip (net margin / treasury / enterprise value / bills) that used
+// to lead this door is REMOVED. £-figures earned across the small teaching cohort fail
+// the veteran sniff test (£80k/customer is a simulation artefact, not scaled economics)
+// and no cohort-derived £ may lead a public surface. Those diagnostics now live only
+// inside the /proof deep-evidence page, explicitly framed as teaching-cohort output.
+// The front carries the idea (hero + thesis) and the honest build state (the diagram).
 
 var thesisChart=null;
 function renderThesisChart(dashboard){
@@ -316,15 +283,11 @@ function renderThesisChart(dashboard){
   }]});
 }
 
-Promise.all([
-  fetch("./data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/supplier.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};}),
-  fetch("./data/method.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
-]).then(function(rs){
-  var dashboard=rs[0], supplier=rs[1], method=rs[2];
-  renderThesisChart(dashboard);
-  renderPulseStrip(dashboard, supplier, method, null);
-}).catch(function(e){console.error("Load error:",e);});
+fetch("./data/dashboard.json?t="+Date.now())
+  .then(function(r){return r.json();})
+  .catch(function(){return {};})
+  .then(function(dashboard){ renderThesisChart(dashboard); })
+  .catch(function(e){console.error("Load error:",e);});
 </script>
 <footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
