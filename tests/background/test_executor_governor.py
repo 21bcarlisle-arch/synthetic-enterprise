@@ -302,6 +302,54 @@ def test_run_loop_alternating_distinct_walls_ntfy_each_then_back_off(tmp_path):
     assert slept["n"] >= 1, "re-seen distinct walls must back off, not hot-spin"
 
 
+def test_same_open_wall_after_success_pages_director_once_not_per_clear(monkeypatch, tmp_path):
+    """R15 COMPOSITION red-team (HARDEN 2026-07-24, H19_escalation_ntfy_route_around).
+
+    run_loop CLEARS the in-memory `escalated_reasons` latch on every `success` (real progress
+    means 'nothing-else-drawable' no longer holds). So the SAME still-unresolved one-way door,
+    re-drawn AFTER an intervening success, is 'newly seen' again and run_loop calls alert()
+    afresh each time. The ONLY thing that then stops the director being RE-PAGED for ONE open
+    door is the PERSISTENT action_needed fire-once gate inside the REAL _alert_wall -- NOT the
+    cleared in-memory latch. Each guard is unit-tested alone (clear-on-success route-around;
+    _alert_wall fire-once); NOTHING tested their COMPOSITION on the real escalate->success->
+    escalate path. This does.
+
+    Mutation proof (R15): make _alert_wall's persistent should_notify gate an in-memory latch
+    (the exact historical bug class the persistent gate replaced) and the director gets one page
+    PER escalate-after-success -> 3, not 1. This test then FAILS -- so the control can fire."""
+    _enable(tmp_path)
+    sent = []
+    import background.ntfy_utils as nu
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "mock-msg-id")
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
+    # Spy on alert invocations while still driving the REAL _alert_wall (the persistent gate is
+    # the system under test) -- run_loop resolves `_alert_wall` from the module global at call time.
+    real_alert = executor_governor._alert_wall
+    alert_calls = {"n": 0}
+
+    def _counting_alert(result, *, kind="wall_escalated"):
+        alert_calls["n"] += 1
+        return real_alert(result, kind=kind)
+
+    monkeypatch.setattr(executor_governor, "_alert_wall", _counting_alert)
+    # The SAME door A, never resolved, drawn three times -- each time AFTER a success clears the
+    # in-memory latch.
+    seq = iter(["escalated", "success", "escalated", "success", "escalated"])
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: _FakeResult(next(seq), atom_reason="DOOR A: spend real money on X"),
+        max_cycles=5,
+        sleep=lambda _s: None,
+    )
+    assert summary.cycles == 5, "loop must keep drawing through every escalate/success (route-around)"
+    assert alert_calls["n"] == 3, (
+        "run_loop must re-alert on each escalate-after-success -- the in-memory latch is cleared by "
+        f"the intervening success, which is exactly what makes the persistent gate load-bearing; "
+        f"got {alert_calls['n']}")
+    assert len(sent) == 1, (
+        "the director must be PAGED ONCE for one still-open door despite 3 clear-on-success "
+        f"re-alerts (persistent fire-once gate is the sole backstop); got {len(sent)} pages")
+
+
 # ===========================================================================
 # MAP RECONCILIATION — an unfolded level report STOPS the loop (fail-closed, F2)
 # ===========================================================================
