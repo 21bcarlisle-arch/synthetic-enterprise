@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, Iterable, List, Optional
 
 
 class CounterpartyType(str, Enum):
@@ -138,6 +138,82 @@ def observation_window_credit_limit(
         return base
     multiplier = 1.0 - (1.0 - _WINDOW_LIMIT_FLOOR_FRACTION) * behaviour.adverse_score
     return round(base * multiplier, 2)
+
+
+# --- VALUE_CHAIN BUILD ladder step 3, prerequisite 1: the RESOLUTION-observation seam ---
+# (2026-07-24). The observation-window cap above is LIVE but DORMANT: nothing yet feeds an
+# ObservedCounterpartyBehaviour with adverse conduct, so on a real run the cap equals the rating
+# prior. This is the COMPANY-SIDE CONSUMER CONTRACT that closes that gap — the typed seam a
+# resolution stream plugs into.
+#
+# WALL PLACEMENT (Tier-1, decisive — this seam exists to make it un-crossable):
+#   * The adverse signal the cap needs is a COUNTERPARTY's conduct on margin the counterparty
+#     OWES the company (the owed-to-us / credit-exposure leg this register tracks) — NOT the
+#     company's own conduct on margin the company owes (the liquidity leg tracked by
+#     company.finance.margin_call_book.build_margin_calls_from_mtm, the sign-complement). Folding
+#     the company-owes calls into this cap would erode a counterparty's line on the COMPANY's own
+#     (dis)honour — a semantics inversion. This seam only accepts counterparty-attributed
+#     resolutions, so that inversion cannot be wired by accident.
+#   * WHETHER a counterparty settles / disputes / defaults is a WORLD property (its true default
+#     propensity lives behind the wall). The company may only OBSERVE the outcome (did the cash
+#     arrive, was the amount contested). So this function AGGREGATES observed outcomes; it never
+#     DECIDES them. In the coupled triad the producer is a WORLD counterparty-behaviour model the
+#     company observes through settlement outcomes — authored as its own atom, gated on its own
+#     side of the wall. Building the consumer contract first (typed-flow-seam preference) fixes the
+#     wall-correct shape before the producer exists; it is a contract, not a board-surfaced empty
+#     organ, so it is not the "organ with no blood" the DON'T-ACCRETE rule forbids.
+class MarginResolution(str, Enum):
+    """The OBSERVED terminal outcome of a margin call a counterparty owed the company: it paid
+    (SETTLED), contested the amount (DISPUTED — a soft adverse signal), or failed to pay
+    (DEFAULTED — the maximal adverse signal). An observable on the company's own book, never the
+    counterparty's hidden default propensity."""
+
+    SETTLED = "settled"
+    DISPUTED = "disputed"
+    DEFAULTED = "defaulted"
+
+
+@dataclass(frozen=True)
+class CounterpartyResolutionOutcome:
+    """A single observed, counterparty-attributed margin-call resolution. ``call_id`` is the
+    resolved call's stable id — the dedup key that makes the fold idempotent under an
+    at-least-once feed (C-S2). One TERMINAL resolution per ``call_id`` is the producer's
+    contract; an escalation (dispute→default) is emitted by the producer as the terminal
+    DEFAULTED, not modelled here."""
+
+    call_id: str
+    counterparty_id: str
+    resolution: MarginResolution
+
+
+def observed_behaviour_from_resolutions(
+    outcomes: Iterable[CounterpartyResolutionOutcome],
+) -> Dict[str, ObservedCounterpartyBehaviour]:
+    """Fold a stream of OBSERVED counterparty margin-call resolutions into the per-counterparty
+    ``ObservedCounterpartyBehaviour`` the observation-window cap consumes.
+
+    Order-invariant (C-S1: single / late / out-of-order arrival tolerated — counts do not depend
+    on sequence) and idempotent by ``call_id`` (C-S2: the same terminal resolution delivered twice
+    is harmless, not double-counted). Deterministic and pure: no clock, no RNG, no I/O — replaying
+    the same set reproduces identical counts. A ``call_id`` re-seen with a DIFFERENT resolution is
+    a producer contract breach; first-seen wins, deterministically (the producer owns terminality).
+    """
+    tally: Dict[str, Dict[str, int]] = {}
+    seen_call_ids: set[str] = set()
+    for o in outcomes:
+        if o.call_id in seen_call_ids:
+            continue  # C-S2: duplicate delivery of an already-observed call is idempotent
+        seen_call_ids.add(o.call_id)
+        counts = tally.setdefault(
+            o.counterparty_id, {"settled": 0, "disputed": 0, "defaulted": 0}
+        )
+        counts[o.resolution.value] += 1
+    return {
+        cp_id: ObservedCounterpartyBehaviour(
+            n_settled=c["settled"], n_disputed=c["disputed"], n_defaulted=c["defaulted"]
+        )
+        for cp_id, c in tally.items()
+    }
 
 
 @dataclass(frozen=True)

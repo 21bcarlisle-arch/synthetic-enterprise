@@ -139,3 +139,86 @@ class TestBehaviourScore:
         # C-S2: the same observed counts reproduce the same cap.
         b = ObservedCounterpartyBehaviour(n_settled=3, n_disputed=2, n_defaulted=1)
         assert observation_window_credit_limit(RATING, b) == observation_window_credit_limit(RATING, b)
+
+
+# --- prerequisite 1: the RESOLUTION-observation seam (2026-07-24) ---
+# R15 both-ways for observed_behaviour_from_resolutions — the company-side consumer contract
+# that folds observed counterparty margin-call resolutions into the ObservedCounterpartyBehaviour
+# the cap consumes. Wall-clean: it aggregates observed outcomes, never decides them.
+from company.trading.wholesale_credit_exposure import (
+    MarginResolution,
+    CounterpartyResolutionOutcome,
+    observed_behaviour_from_resolutions,
+)
+
+
+def _out(call_id, cp, res):
+    return CounterpartyResolutionOutcome(call_id=call_id, counterparty_id=cp, resolution=res)
+
+
+class TestResolutionSeam:
+    def test_folds_counts_per_counterparty(self):
+        outcomes = [
+            _out("c1", "CP_A", MarginResolution.SETTLED),
+            _out("c2", "CP_A", MarginResolution.DISPUTED),
+            _out("c3", "CP_A", MarginResolution.DEFAULTED),
+            _out("c4", "CP_B", MarginResolution.SETTLED),
+        ]
+        by_cp = observed_behaviour_from_resolutions(outcomes)
+        assert set(by_cp) == {"CP_A", "CP_B"}
+        assert (by_cp["CP_A"].n_settled, by_cp["CP_A"].n_disputed, by_cp["CP_A"].n_defaulted) == (1, 1, 1)
+        assert (by_cp["CP_B"].n_settled, by_cp["CP_B"].n_disputed, by_cp["CP_B"].n_defaulted) == (1, 0, 0)
+
+    def test_feeds_the_cap_end_to_end(self):
+        # The whole point: an observed adverse stream must MOVE the cap below the rating prior.
+        # MUTATION (proves teeth): if the fold miscounted defaults as settled (n_defaulted->0),
+        # adverse_score would be 0 and the cap would NOT erode — this assertion reds.
+        outcomes = [_out(f"d{i}", "CP1", MarginResolution.DEFAULTED) for i in range(4)]
+        beh = observed_behaviour_from_resolutions(outcomes)["CP1"]
+        assert beh.n_defaulted == 4
+        eroded = observation_window_credit_limit(RATING, beh)
+        assert eroded == pytest.approx(PRIOR * _WINDOW_LIMIT_FLOOR_FRACTION)  # all-defaulted → floor
+        assert eroded < PRIOR
+
+    def test_C_S2_idempotent_by_call_id(self):
+        # Duplicate delivery of the SAME call is harmless — not double-counted.
+        # MUTATION: drop the seen_call_ids dedup → n_defaulted becomes 2, adverse_score unchanged
+        # here (still 1.0) but the count assertion reds, proving the dedup fires.
+        dup = [
+            _out("same", "CP1", MarginResolution.DEFAULTED),
+            _out("same", "CP1", MarginResolution.DEFAULTED),
+        ]
+        beh = observed_behaviour_from_resolutions(dup)["CP1"]
+        assert beh.n_defaulted == 1
+        assert beh.n_observed == 1
+
+    def test_C_S1_order_invariant(self):
+        # Single / late / out-of-order arrival tolerated: counts do not depend on sequence.
+        a = [
+            _out("c1", "CP1", MarginResolution.SETTLED),
+            _out("c2", "CP1", MarginResolution.DEFAULTED),
+        ]
+        b = list(reversed(a))
+        assert observed_behaviour_from_resolutions(a)["CP1"] == observed_behaviour_from_resolutions(b)["CP1"]
+
+    def test_empty_stream_is_benign(self):
+        # No observed conduct → no records → the cap stays at the rating prior (benign default).
+        assert observed_behaviour_from_resolutions([]) == {}
+        assert observation_window_credit_limit(RATING, None) == PRIOR
+
+    def test_clean_settle_history_does_not_erode(self):
+        # A counterparty that always paid must NOT lose its line (one-directional erosion).
+        # MUTATION: weight settled as adverse → this reds.
+        outcomes = [_out(f"s{i}", "CP1", MarginResolution.SETTLED) for i in range(6)]
+        beh = observed_behaviour_from_resolutions(outcomes)["CP1"]
+        assert beh.adverse_score == 0.0
+        assert observation_window_credit_limit(RATING, beh) == PRIOR
+
+    def test_wall_only_counterparty_attributed_input(self):
+        # The seam accepts ONLY counterparty-attributed resolutions — the type system forbids
+        # feeding the company-owes liquidity leg (which has no counterparty-credit meaning here).
+        # This is the structural guard against the sign-inversion the module note names.
+        o = _out("c1", "CP_X", MarginResolution.DISPUTED)
+        assert o.counterparty_id == "CP_X"
+        by_cp = observed_behaviour_from_resolutions([o])
+        assert list(by_cp) == ["CP_X"]
