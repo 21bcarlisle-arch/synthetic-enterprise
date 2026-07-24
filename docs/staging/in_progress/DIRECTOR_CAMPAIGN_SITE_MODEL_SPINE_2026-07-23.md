@@ -237,3 +237,47 @@ mechanism). Then it is the director's R11 "publish fails on any non-canonical li
 **Sequencing / risk:** presentation + IA within ratified structure; no sim/company/saas
 code. Do NOT consume §B/§C ahead of a green publish gate, and do NOT act on §D before §A.
 — Worker tick, 2026-07-23, carrying the director's round-2 site verdicts.
+
+---
+
+## §A ESCALATED TO DIRECTOR + machinery-treadmill finding — worker tick 2026-07-24 00:2x UTC
+
+**Why this tick did NOT do the drawn H24 HARDEN.** The scheduled doorbell drew, via RULE-0
+self-refill, `H24_precommit_gate_git_env_isolation` for HARDEN. Verified on disk: H24 is
+COMPLETE — `tools/pre_commit_test_gate.py::_gitless_env` strips all `GIT_*`, covered by a unit
+test, an integration test (subprocess gets the scrubbed env), and an R15 both-directions
+mutation proof (`test_r15_scrub_prevents_leaked_git_dir_corruption__mutation_proof`) across all
+three named incident faces (index-phantom-deletion, tree-deleting-commit, core.bare=true; commit
+`a501f9cc0` = "3rd/final named incident face"). **There is no honest hardening left; a 4th face
+would be theatre.** Per the PRODUCT-FIRST ruling (`d40b9cd7c`, machinery-only = FAILED / R15) the
+dial was yielded per RULE-0 but REDIRECTED from H24 busywork to the one thing that actually
+advances the product: escalating the §A wall.
+
+**§A escalated to the director as [ACT] (NTFY, real_alarm).** The entire remaining campaign is
+walled on ONE director-pixel decision (§A). Made precise for a cheap decision:
+- SITE_V5 (ruling 2026-07-23) already folds `/method /simplified /project /tours → /proof/` in
+  `site/_redirects` (five-surface IA). Canonical, on disk.
+- BUT `dd45de549` RESTORED `/method` as a live door to un-wedge a nav-story gate, and the front
+  door + 22 internal nav links still point at the folded doors (`link_walk.py`: 22 non-canonical,
+  0 dead). The two mechanisms contradict.
+- **Concrete live cost:** the §C `/project` investor reframe (£80,056/customer, approved) is
+  LIVE-ORPHANED — `/project` 301→`/proof/`, which does not carry the reframe. A visitor cannot
+  reach a director-approved surface right now.
+- **The ask (recommend YES):** confirm the already-approved v4 model-on-a-page SVG becomes the
+  nav spine and the four doors fold to `/proof/` canonically → then §D (fix 22 links + gate
+  link_walk) and the §C orphan (migrate reframe onto `/proof`) unblock in one pass. If instead a
+  door survives, name which — that reverses the redirect. Either answer is 2 minutes of pixels.
+
+**Machinery-treadmill finding (PRODUCT-vs-MACHINERY split, per d40b9cd7c daily-note requirement).**
+Because the product lane is walled at §A, the supervisor self-refill has cycled machinery HARDEN
+through AT-TARGET atoms (A2, H24, H23, H19, B1, G1, H6, H10, W2_5…) roughly every ~2 min for
+~2.5h (worker-tick-log 21:46→00:16+, supervisor-log 19:42→00:16). Machinery-only = the FAILED
+state the ruling names. **Named defect (8th draw-gap flag; QUEUED per SELF_INTERRUPT_DISCIPLINE,
+not fixed on sight — it is a `supervisor.py` mechanism change, not a bounded-tick blind-land):
+there is no HARDEN-SATURATION draw-marker.** `H23_frame_saturation_draw_marker` already stops the
+idle-DISCOVER/FRAME self-refill re-handing a FRAME-saturated atom; its SIBLING for the HARDEN
+self-refill does not exist, so a fully-hardened atom (H24 at 3rd/final face) is re-offered
+endlessly. Fix (proposed atom): when product is walled AND every atom is at-target with no honest
+hardening left, the self-refill should escalate the wall + REST rather than manufacture redundant
+HARDEN — mutation-proven both directions, mirroring H23. (Audit-sibling-half heuristic.)
+— Worker tick, 2026-07-24, product-first over machinery-busywork.
