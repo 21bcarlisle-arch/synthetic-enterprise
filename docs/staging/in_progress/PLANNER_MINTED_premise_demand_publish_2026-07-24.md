@@ -1,3 +1,16 @@
+> **IN_PROGRESS — one open sub-item (2026-07-24).** BUILD DONE + pushed to origin
+> (commit `44be09451`): generator `tools/generate_premise_demand_data.py` →
+> `site/data/premise_demand.json`; two-level worst-cell bar + per-cell MAE table on
+> `/world` behind the demand arrow; R11 render-harness test (asserts rendered 2276/2190/
+> n=3337) + R15 fail-closed-visible mutations (data + render sides); wired into the
+> `process_run_complete` regen cycle. site-lane gate green (291 passed).
+> **OPEN:** the R11 *live-pixel* verify on the DEPLOYED surface — at 2026-07-24T19:4xZ
+> `https://poesys.net/data/premise_demand.json` still 404 (deploy pending the next publish
+> cycle + Cloudflare build). **Unblocks when:** the publish daemon deploys the pushed
+> commit; then fetch `https://poesys.net/world/` (+ the feed) and assert the rendered
+> MAE 2276 / no-skill 2190 and N=3337 appear on the live page. Archive to `done/` only
+> after that live fetch confirms. No further build work remains.
+
 # [PLANNER-MINTED] Publish premise half-hourly demand belief-vs-truth to a visible site surface (2026-07-24)
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Rungs 1–6 drew empty this
