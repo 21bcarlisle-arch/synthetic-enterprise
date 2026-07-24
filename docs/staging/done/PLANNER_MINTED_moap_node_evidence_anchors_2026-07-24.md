@@ -1,9 +1,18 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- SUPERVISOR_DRAW: closed -->
+<!-- draw-visibility marker (2026-07-24): CLOSED — R11 live-pixel verify CONFIRMED, archiving to done/. -->
 
 # [PLANNER-MINTED] Walk each front-door MODEL-ON-A-PAGE node to ITS evidence (per-node deep anchors) (2026-07-24)
 
-> **STATUS (2026-07-24, worker tick): BUILT + GATED + PUSHED — only live-pixel verify pending.**
+> **CLOSED (2026-07-24, worker tick): DONE — R11 live-pixel verify CONFIRMED on poesys.net.**
+> The CDN has propagated `136573668`. Live fetch of https://poesys.net/ serves all 6 `node-look` hrefs with
+> their #fragments (`./proof/#method-anchor`, `./world/#causal-chain`, `./customers/#cust-who`,
+> `./world/#crossings`, `./company/#state-decisions`, `./proof/#not-proven`), and each fragment `id` was
+> confirmed present on its deployed target page (curl over the 6 target pages: every `id="…"` found, none
+> MISSING). The claim "walk any front-door diagram node to its evidence anchor" now holds on the rendered
+> site, not just the file. The MOAP live gate (`site/link_walk.py::moap_node_findings`) prevents regression
+> to page-tops. Mint discharged — archived to `docs/staging/done/`.
+>
+> **STATUS (2026-07-24, worker tick): BUILT + GATED + PUSHED — live-pixel verify now CONFIRMED (above).**
 > Audit confirmed the gap was real (all 6 diagram nodes linked to bare page-tops). Wired every node to its
 > verified deep anchor (method→/proof/#method-anchor, world→/world/#causal-chain, households→/customers/#cust-who,
 > wall→/world/#crossings, company→/company/#state-decisions, score→/proof/#not-proven). New MOAP gate in
