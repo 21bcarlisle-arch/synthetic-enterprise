@@ -49,6 +49,20 @@ Grep for non-test constructors of BOTH `WholesaleCreditExposureRegister(` and `M
 - **Counterparty credit rating** — `CounterpartyCreditRating`: **publicly observable** (agency ratings are published; a real supplier reads them). Legal to use — it is NOT a sim internal. The window would *modulate* the rating-anchored starting cap by observed behaviour (settled-on-time vs disputed/defaulted margin calls), not replace the public prior.
 - **Own counterparty-behaviour history** — `MarginCallStatus` transitions (RECEIVED→SETTLED vs DISPUTED/DEFAULTED): the company's own observed record of how a counterparty honoured calls; the erosion signal.
 
+---
+
+## BUILD ladder step 1 — counterparty attribution on `ForwardContract` (DONE, 2026-07-24 worker tick)
+
+Grounded by the prior-tick DISCOVER pass (`docs/market_research/uk_supplier_hedge_counterparty_distribution_2026-07-24.md`). Reversible, company-side, wall-clean.
+
+- **`ForwardContract` gains a counterparty dimension** (`company/trading/forward_book.py`) reusing the register's OWN taxonomy so the attribution feeds `WholesaleCreditExposureRegister` directly, not a parallel enum: `counterparty_id`, `counterparty_type` (`CounterpartyType`), `clearing_status` (`ClearingStatus`), `counterparty_rating` (`CounterpartyCreditRating`), `broker_arranged: bool`. All defaulted → backward-compatible (the sole non-test constructor, `run_phase2b.py:1641`, and every existing test still build unchanged; 98 forward-book tests green).
+- **`assign_default_counterparty()`** — deterministic (hashlib, NOT salted `hash()` → C-S2 reproducible replay), wall-safe (reads only company-observable contract attributes). Realises the **R10 named simplification**: ~50/50 cleared/bilateral (measured 50.8/49.2 over 3000), bilateral weighted bank≈20%/trader≈20%/generator≈10%, concentrated to an 11-name active pool. The split is inferred-best-estimate (RQ2 ungrounded-gap — no public supplier-level split exists), flagged for external cross-check, never sourced/tuned.
+- **`TradingBook.exposure_by_counterparty()`** — ISDA-netted per-counterparty MtM: sums SIGNED MtM per name, then credit exposure = `max(0, netted)`. This IS the consumable feed for the register (`gross_credit_exposure_gbp` → `WholesaleCreditRecord.gross_mtm_gbp`), proven by a shape test that builds a real record from the aggregation.
+- **Wall placement enforced by test:** CCP-cleared carries no per-name rating (CCP default waterfall absorbs); bilateral carries a PUBLISHED rating band (readable observable), true default-prob stays sim-internal.
+- **R15 both ways:** the distribution test FAILS on a collapsed single-channel split; the exposure test FAILS if netting were removed (a hedged-both-ways counterparty would overstate) or if credit exposure went negative (fail-open). 15 new tests, full trading/market path green (727 passed).
+
+**Next drawable step (unchanged sequencing):** the LIVE FEED — wire `assign_default_counterparty` at `open_hedge` and construct/populate the register from `exposure_by_counterparty` each run step (give the organ blood), THEN the observation-window cap on top. Step 1 delivers the per-counterparty exposure the feed needs.
+
 **Wall check:** every input above is either the company's own book/cash state or a public publication (ratings, prices). None reads sim ground truth (no counterparty true default-probability, no future price). Epistemically clean — confirm with `python3 -m tools.epistemic_verifier` on the eventual BUILD diff.
 
 ### 4. Restated BUILD ladder (revised by the FRAME)
