@@ -58,3 +58,28 @@ Grep for non-test constructors of BOTH `WholesaleCreditExposureRegister(` and `M
 4. Verify: epistemic-verifier on the diff; full suite for `company/trading|finance|risk` paths.
 
 **Walls untouched by this FRAME:** doc-only, no code changed, no level moved, no curriculum value chosen. The MC-2 difficulty escalation still stands for the director when step 3 is reached.
+
+---
+
+## FRAME EXTENSION (Scope step 1, deepened) — 2026-07-24 second worker tick
+
+The first FRAME found the registers have no live constructor and named the live feed as the next BUILD step. A second read of the *source* the feed would draw from surfaces a **deeper, decisive prerequisite the first FRAME assumed away** — recording it here so the next BUILD tick does not half-build a cosmetic organ (DON'T-ACCRETE).
+
+### The blocker: the forward book has NO counterparty dimension
+- **Evidence (`company/trading/forward_book.py:31`):** `ForwardContract` is keyed by `customer_id` with fields `term_start/term_end/notional_mwh/agreed_price_gbp_per_mwh/hedge_fraction/bid_ask_cost_gbp`. **There is no `counterparty` field anywhere on `ForwardContract` or `TradingBook`** (grep confirmed: zero hits). The book models the company's hedges as abstract positions, MtM'd against observed prices (`portfolio_mtm`, `:216`), with **no attribution to who the trade is *with*.**
+- **Evidence (fresh, both registers):** grep for non-test constructors of `WholesaleCreditExposureRegister(` and `MarginCallBook(` across `company/`/`saas/`/`sim/`/`simulation/` returns **nothing** — confirmed still true this tick.
+- **Consequence:** `WholesaleCreditExposureRegister` and `MarginCallBook` are **counterparty-keyed** (`WholesaleCreditRecord.counterparty_id`, `_CREDIT_LIMIT_BY_RATING` by rating, per-counterparty margin calls). The only live MtM stream (`TradingBook.portfolio_mtm`) carries **no counterparty axis to key them on.** So the "live feed" is not a mechanical adapter over existing data — the data it needs (which counterparty each forward sits with) **does not exist in the book yet.**
+
+### Why the naive fix is the accretion trap, not the fix
+Attributing every forward to a single synthetic OTC counterparty *would* let the feed compile, but it collapses the register to one row — a per-counterparty exposure organ with exactly one counterparty is cosmetic, the "organ with no blood in it" DON'T-ACCRETE forbids. The believability point (Axis 3: a 20-year veteran reads the counterparty concentration and CCP/bilateral split) is **destroyed** by a single-counterparty stub. So the honest ladder gains a step *before* the live feed.
+
+### Restated BUILD ladder (revised again by this deeper FRAME)
+1. **Counterparty-attribution model (NEW load-bearing prerequisite):** give the forward book a counterparty dimension — each `ForwardContract` (or each hedge execution) is booked *with* a counterparty (bank / energy-trader / generator / CCP-cleared vs bilateral-ISDA), so a real per-counterparty MtM stream exists. **Design question for grounding (DISCOVER-workable now, read-only):** how do UK suppliers' OTC/exchange forward hedges actually distribute across counterparties and clearing venues (ICE/LCH cleared vs bilateral ISDA)? This is a *believability modelling choice* (Axis 3, reversible, NOT curriculum values and NOT a one-way door) — proceed under PROCEED_BY_DEFAULT once grounded, register any un-grounded default as an R10 named simplification. **Wall check:** the counterparty a company trades with, and public agency ratings, are the company's own book / public observables — epistemically clean; no sim internal.
+2. **Live feed** (was step 1): now has a real per-counterparty stream to wire into both registers behind the typed seam. R15 both-ways as before.
+3. **Observation-window cap** (unchanged): rating-anchored prior modulated by observed settle/dispute history.
+4. **MC-2 collateral death-test** (unchanged): benign path survives, MC-2 path dies; MC-2 *difficulty* stays R13 curriculum → escalate the value.
+5. Verify: epistemic-verifier on the diff; full suite for `company/trading|finance|risk`.
+
+**Next drawable step is now item 1 above (counterparty-attribution), reversible-build under standing PRODUCT-FIRST authority — best begun with a short DISCOVER grounding pass on real UK supplier hedge-counterparty distribution before the book change.** No code changed, no level moved, no curriculum value chosen this tick.
+
+> **Tick note (2026-07-24, RUNG-7 doorbell):** this tick fired on a stale "rungs 1–6 empty → MINT" read. Disk state contradicts it: five `PLANNER_MINTED_*` docs are open in `in_progress/` and the director **waived** their windows (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`) — so rungs 1–6 are NOT empty and minting a sixth batch would be the over-production the director just intervened on. Correct draw per the waiver's sequencing guard = the top PRODUCT-FIRST item. Item 1 (`generator_draw_wiring`) is at its director-reserved activation wall (reversible half already shipped). Item 2 (this doc) had a genuinely drawable next step — advanced here by deepening the FRAME so the next BUILD tick starts on the real prerequisite, not a cosmetic stub. No mint this tick: premise false.
