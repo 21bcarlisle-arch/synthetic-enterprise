@@ -159,6 +159,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="kpis" id="finance-kpis"></div>
     <div class="passport" id="finance-unit-note"></div>
     <div class="passport" id="cost-to-serve-dist"></div>
+    <div class="passport" id="arrears-dist"></div>
   </div>
   <div class="card">
     <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
@@ -466,6 +467,40 @@ function renderFinance(d){
       " A single book total would hide this spread; activity-based pricing needs the "+
       "per-customer figure &mdash; a flat margin makes the high-cost-to-serve tail net-negative."
     : "<span class=\"muted\">Cost-to-serve distribution unavailable for this run's sample.</span>";
+
+  // §C remainder of DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE: the ARREARS-£ balance
+  // DISTRIBUTION -- the sibling of cost-to-serve. RC7 / FRONT_MISSION_BLOCK wall:
+  // a cohort-derived £ figure, so it lives ONLY here behind the /company
+  // drill-down (never a lead), framed as a FLOOR (gross owed, not a point
+  // estimate) with N and its missing-lines enumerated. Source:
+  // company.json.arrears, built from the company's OWN billed-minus-banked
+  // ledger (no sim-internal hardship/churn truth crosses the wall).
+  var arr=d.arrears||{};
+  var arrCell=function(label, cells){
+    if(!cells || !cells.length) return "";
+    return " By "+esc(label)+": "+cells.map(function(s){
+      return esc(s.cell)+" (n="+esc(s.n)+"): median "+gbpFull(s.median_gbp);
+    }).join(" &middot; ")+".";
+  };
+  el("arrears-dist").innerHTML = arr.available
+    ? "<b>Arrears &mdash; the distribution, and a floor, never a single number.</b> "+
+      "Across the drawn book of <b>N="+esc(arr.n)+"</b> accounts, the per-customer "+
+      "balance (billed minus banked, the company's own ledger) spans "+gbpFull(arr.min_gbp)+
+      " (most in credit) &rarr; <b>"+gbpFull(arr.median_gbp)+" median</b> &rarr; "+
+      gbpFull(arr.max_gbp)+" (deepest arrears) &mdash; "+esc(arr.in_arrears)+" in arrears, "+
+      esc(arr.in_credit)+" in credit"+
+      ((arr.settled>0)?", "+esc(arr.settled)+" square":"")+
+      ". Gross exposure is a <b>floor of "+
+      gbpFull(arr.gross_exposure_gbp)+"</b> (positive balances only; credit balances "+
+      "do not net off a bad-debt base) &mdash; "+esc(arr.basis)+". By segment: "+
+      (arr.by_segment||[]).map(function(s){
+        return esc(s.segment)+" (n="+esc(s.n)+"): median "+gbpFull(s.median_gbp);
+      }).join(" &middot; ")+"."+
+      arrCell("payment channel", arr.by_payment_channel)+
+      arrCell("tenure", arr.by_tenure)+
+      " <span class=\"muted\">Not yet captured: "+
+      (arr.missing_lines||[]).map(esc).join("; ")+".</span>"
+    : "<span class=\"muted\">Arrears distribution unavailable for this run's sample.</span>";
 
   var r=f.reconciliation||{};
   el("bridge-intro").innerHTML=

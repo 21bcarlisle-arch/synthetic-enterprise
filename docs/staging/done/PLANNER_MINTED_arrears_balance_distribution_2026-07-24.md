@@ -1,6 +1,18 @@
 # [PLANNER-MINTED] Emit the per-customer ARREARS-£ balance distribution (SIM-emission BUILD) (2026-07-24)
 
-> **STATUS (2026-07-24, worker tick): RULING-CHECKED CLEAN + FRAME sufficient — READY FOR NORMAL BUILD DRAW.**
+> **STATUS (2026-07-24, worker tick): BUILT — steps 1–4 landed; R11 live-pixel verify PENDING next publish.**
+> The arrears-£ distribution is emitted as a sibling of cost-to-serve inside `company.json`
+> (`tools/generate_company_data.py::_arrears_distribution`) — per-customer arrears = total billed − total
+> banked from the company's OWN `billing_ledger.json` (through-the-wall observable, no sim internals),
+> aggregated min/median/max + gross-exposure FLOOR + in-arrears/in-credit/square counts + by_segment /
+> by_payment_channel / by_tenure, with RC7 floor-not-figure framing and a missing-lines enumeration.
+> Rendered behind the `/company` finance drill-down (element `arrears-dist`, never a lead slot — RC7 wall).
+> Wired automatically (the generator is already in `process_run_complete`'s regen cycle, line ~938).
+> R15 both-ways + R11 render-harness tests: 9 generator-side (`tools/test_generate_company_data.py`) +
+> 4 render-side (`site/company/test_company_door.py`) — all green (38 in the door suite, 326 in site/).
+> R11 verify-to-the-rendered-value on the DEPLOYED surface remains pending the next publish.
+>
+> _(prior status:)_ **RULING-CHECKED CLEAN + FRAME sufficient — READY FOR NORMAL BUILD DRAW.**
 > Ruling-checked against the 2026-07-24 rulings: RC7 / FRONT_MISSION_BLOCK respected (no cohort-£ leads; arrears
 > appears only behind a /company or /proof drill-down with N + floor-not-figure framing + missing-lines) — this is
 > the compliant sibling of the segment-efficiency-£ mint that was correctly closed NO-BUILD for leading. Serves a

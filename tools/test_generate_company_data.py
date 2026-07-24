@@ -7,7 +7,10 @@ R15 (a control must be able to FAIL): the distribution must FOLLOW the per-custo
 cost_to_serve_gbp values (a baked/aggregate-only figure fails these), split by
 coverage cell (segment), and FAIL-CLOSED on an empty sample (never a silent zero).
 """
-from tools.generate_company_data import _cost_to_serve_distribution
+from tools.generate_company_data import (
+    _arrears_distribution,
+    _cost_to_serve_distribution,
+)
 
 
 def _sample(vals_by_id):
@@ -152,3 +155,115 @@ def test_no_goal_seek_reads_only_cost_to_serve_r12():
     with_pnl = _cost_to_serve_distribution(s)
     assert with_pnl["values_gbp"] == plain["values_gbp"]
     assert with_pnl["median_gbp"] == plain["median_gbp"]
+
+
+# --- SITE_MODEL_SPINE §C remainder: the arrears-£ balance distribution ---
+#
+# Through-the-wall observable: arrears = total_billed - total_paid per customer,
+# from the company's OWN ledger (billing_ledger.json). R15: the distribution must
+# FOLLOW those per-customer balances (a baked figure fails); the gross floor is
+# positive-balances-only; FAIL-CLOSED on a ledger with no billed/paid pair.
+
+
+def _ledger(billed_paid_by_id):
+    return {
+        "customers": {
+            cid: {"total_billed_gbp": b, "total_paid_gbp": p, "segment": seg}
+            for cid, (b, p, seg) in billed_paid_by_id.items()
+        }
+    }
+
+
+def test_arrears_follows_billed_minus_banked_r15():
+    # arrears per customer = billed - paid; the distribution is derived from THEM.
+    out = _arrears_distribution(
+        {},
+        _ledger({"C1": (1000.0, 900.0, "resi"), "C2": (500.0, 700.0, "resi"),
+                 "C3": (2000.0, 1500.0, "resi")}),
+    )
+    assert out["available"] is True and out["n"] == 3
+    assert out["clock"] == "billed_minus_banked"
+    # balances: C1=+100, C2=-200 (credit), C3=+500 -> sorted [-200, 100, 500]
+    assert out["values_gbp"] == [-200.0, 100.0, 500.0]
+    assert out["min_gbp"] == -200.0 and out["max_gbp"] == 500.0
+    assert out["median_gbp"] == 100.0
+
+
+def test_arrears_mutation_of_one_balance_moves_distribution_r15():
+    # Killer mutation: change ONE customer's paid amount -> its balance, and the
+    # max + gross floor, must move.
+    base = _arrears_distribution({}, _ledger({"C1": (1000.0, 900.0, "resi"),
+                                              "C2": (1000.0, 950.0, "resi")}))
+    mutated = _arrears_distribution({}, _ledger({"C1": (1000.0, 900.0, "resi"),
+                                                 "C2": (1000.0, 100.0, "resi")}))
+    assert mutated["max_gbp"] != base["max_gbp"] and mutated["max_gbp"] == 900.0
+    assert mutated["gross_exposure_gbp"] != base["gross_exposure_gbp"]
+
+
+def test_arrears_gross_exposure_is_positive_only_floor():
+    # RC7 floor-not-figure: gross exposure sums ONLY positive balances -- a credit
+    # balance must NOT net it down (a bad-debt base is not reduced by prepayers).
+    out = _arrears_distribution(
+        {},
+        _ledger({"C1": (1000.0, 900.0, "resi"),   # +100 (owes)
+                 "C2": (1000.0, 2000.0, "resi")}),  # -1000 (in credit)
+    )
+    assert out["gross_exposure_gbp"] == 100.0  # NOT 100 - 1000
+    assert out["gross_exposure_is_floor"] is True
+    assert out["in_arrears"] == 1 and out["in_credit"] == 1
+
+
+def test_arrears_segment_split_is_the_coverage_cell_distribution():
+    out = _arrears_distribution(
+        {},
+        _ledger({"C1": (1000.0, 900.0, "resi"), "C2": (1000.0, 800.0, "resi"),
+                 "I1": (5000.0, 4000.0, "I&C"), "I2": (5000.0, 2000.0, "I&C")}),
+    )
+    segs = {s["segment"]: s for s in out["by_segment"]}
+    assert set(segs) == {"resi", "I&C"}
+    assert segs["resi"]["n"] == 2 and segs["resi"]["median_gbp"] == 150.0
+    assert segs["I&C"]["n"] == 2 and segs["I&C"]["median_gbp"] == 2000.0
+
+
+def test_arrears_payment_channel_cell_joins_sample_r15():
+    # The activity cell (payment_channel) is joined from customer_sample, not the
+    # ledger. Standard-credit vs direct-debit split must follow the source balances.
+    ledger = _ledger({"C1": (1000.0, 950.0, "resi"), "C2": (1000.0, 900.0, "resi"),
+                      "C3": (1000.0, 500.0, "resi"), "C4": (1000.0, 400.0, "resi")})
+    sample = {"customers": {
+        "C1": {"payment_channel": "direct_debit"},
+        "C2": {"payment_channel": "direct_debit"},
+        "C3": {"payment_channel": "standard_credit"},
+        "C4": {"payment_channel": "standard_credit"},
+    }}
+    out = _arrears_distribution(sample, ledger)
+    cells = {c["cell"]: c for c in out["by_payment_channel"]}
+    assert cells["direct_debit"]["median_gbp"] == 75.0   # (50, 100)
+    assert cells["standard_credit"]["median_gbp"] == 550.0  # (500, 600)
+
+
+def test_arrears_absent_cell_attribute_skipped_not_bucketed():
+    # A customer with no payment_channel in the sample (I&C leg) is skipped from
+    # the cell split, never bucketed as a fabricated cell.
+    ledger = _ledger({"C1": (1000.0, 900.0, "resi"), "C2": (1000.0, 800.0, "resi"),
+                      "I1": (5000.0, 4000.0, "I&C")})
+    sample = {"customers": {
+        "C1": {"payment_channel": "direct_debit"},
+        "C2": {"payment_channel": "standard_credit"},
+        "I1": {},  # no channel
+    }}
+    out = _arrears_distribution(sample, ledger)
+    total_cell_n = sum(c["n"] for c in out["by_payment_channel"])
+    assert total_cell_n == 2  # I1 excluded from the cell split
+
+
+def test_arrears_fail_closed_on_empty_ledger_r15():
+    # FAIL-CLOSED: no customer carrying BOTH billed and paid -> available:False.
+    for empty in ({}, {"customers": {}}, {"customers": {"C1": {"segment": "resi"}}}, None):
+        out = _arrears_distribution({}, empty)
+        assert out.get("available") is not True, out
+        assert out.get("n", 0) == 0, out
+    # missing_lines are always enumerated when available (RC7 honest-absent).
+    ok = _arrears_distribution({}, _ledger({"C1": (100.0, 50.0, "resi"),
+                                            "C2": (100.0, 90.0, "resi")}))
+    assert ok["missing_lines"] and len(ok["missing_lines"]) >= 3

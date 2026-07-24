@@ -233,6 +233,99 @@ def test_cost_to_serve_fail_closed_when_unavailable_r15():
     assert "distribution, not the total" not in html, html
 
 
+def test_arrears_rendered_as_distribution_and_floor_rc7_r11():
+    # DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE §C: arrears-£ per customer as a
+    # DISTRIBUTION and a FLOOR, never a single number. RC7 / FRONT_MISSION_BLOCK:
+    # a cohort-derived £ figure, so it appears behind this drill-down with N, the
+    # floor framing and its missing-lines -- never a lead. R11: the live
+    # min/median/max + gross floor from company.json.arrears render as pixels.
+    d = _live()
+    arr = d.get("arrears")
+    if not (arr and arr.get("available")):
+        # R2: a pre-arrears generator process may still regenerate company.json
+        # without the field until it restarts -- don't wedge the publish gate on
+        # that transient. The always-on R15 guarantee lives in the generator test.
+        pytest.skip("arrears not in live company.json yet (pre-deploy / old generator process)")
+    out = _render(d)
+    html = out["arrears-dist"]["innerHTML"]
+    assert "distribution, and a floor" in html, html
+    assert f"N={arr['n']}" in html, html
+    assert "floor" in html.lower(), html
+
+    # the actual live spread + gross floor render, in the page's own gbpFull
+    # format (negatives are "-£1,681.05" -- the £ sits between sign and digits).
+    def _gbpfull(v):
+        return ("-" if v < 0 else "") + "£" + f"{abs(v):,.2f}"
+    for key in ("min_gbp", "median_gbp", "max_gbp", "gross_exposure_gbp"):
+        shown = _gbpfull(arr[key])
+        assert shown in html, (key, shown, html)
+    # the in-arrears / in-credit counts render (the split, not a bare total):
+    assert f"{arr['in_arrears']} in arrears" in html, html
+    assert f"{arr['in_credit']} in credit" in html, html
+    # every segment median renders, and the missing-lines are enumerated. The
+    # segment name is HTML-escaped on the page (I&C -> I&amp;C), so compare escaped.
+    import html as _htmlmod
+    for seg in arr["by_segment"]:
+        seg_esc = _htmlmod.escape(str(seg["segment"]))
+        assert seg_esc in html and _gbpfull(seg["median_gbp"]) in html, (seg, html)
+    assert "Not yet captured" in html and arr["missing_lines"][0][:20] in html, html
+
+
+def test_arrears_distribution_follows_source_r15():
+    # R15 (a control must be able to FAIL): the rendered spread/floor must FOLLOW
+    # the source -- a hardcoded figure would fail this. Mutate the median, max and
+    # gross exposure in the source; the rendered pixel must move.
+    d = _live()
+    if not (d.get("arrears") or {}).get("available"):
+        pytest.skip("arrears not in live company.json yet (pre-deploy / old generator process)")
+    d["arrears"]["median_gbp"] = 1357.91
+    d["arrears"]["max_gbp"] = 24680.13
+    d["arrears"]["gross_exposure_gbp"] = 86420.75
+    html = _render(d)["arrears-dist"]["innerHTML"]
+    assert "1,357.91" in html and "24,680.13" in html and "86,420.75" in html, html
+
+
+def test_arrears_payment_channel_cell_renders_r11_r15():
+    # The activity-based-pricing cell: arrears broken out by payment_channel must
+    # render its per-cell medians (standard-credit runs higher than direct-debit).
+    # R11: the pixel carries the cell values; R15: mutating a cell median moves it.
+    d = _live()
+    d["arrears"] = {
+        "available": True, "n": 4,
+        "min_gbp": -50.0, "median_gbp": 120.0, "max_gbp": 900.0, "mean_gbp": 242.5,
+        "clock": "billed_minus_banked",
+        "basis": "per-customer arrears balance = total billed - total banked "
+                 "(cumulative, own ledger) - drawn sample",
+        "in_arrears": 3, "in_credit": 1, "gross_exposure_gbp": 1020.0,
+        "gross_exposure_is_floor": True,
+        "values_gbp": [-50.0, 90.0, 150.0, 900.0],
+        "by_segment": [{"segment": "resi", "n": 4, "median_gbp": 120.0}],
+        "by_payment_channel": [
+            {"cell": "direct_debit", "n": 2, "median_gbp": 60.0},
+            {"cell": "standard_credit", "n": 2, "median_gbp": 480.0},
+        ],
+        "by_tenure": [],
+        "missing_lines": ["no aged-debt bucketing (30/60/90+ days)"],
+    }
+    html = _render(d)["arrears-dist"]["innerHTML"]
+    assert "payment channel" in html.lower(), html
+    assert "direct_debit" in html and "60.00" in html, html
+    assert "standard_credit" in html and "480.00" in html, html
+    d["arrears"]["by_payment_channel"][1]["median_gbp"] = 5678.90
+    html2 = _render(d)["arrears-dist"]["innerHTML"]
+    assert "5,678.90" in html2, html2
+
+
+def test_arrears_fail_closed_when_unavailable_r15():
+    # FAIL-CLOSED: an unavailable arrears distribution must NOT render a
+    # silently-zero total as a real figure -- it must say so.
+    d = _live()
+    d["arrears"] = {"available": False, "n": 0}
+    html = _render(d)["arrears-dist"]["innerHTML"]
+    assert "unavailable" in html.lower(), html
+    assert "distribution, and a floor" not in html, html
+
+
 # --- SURFACE-3 single job: the SaaS shown as PRODUCT (SITE_V5, ruling 2026-07-23) ---
 
 

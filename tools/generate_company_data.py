@@ -375,6 +375,136 @@ def _cost_to_serve_distribution(sample):
     return out
 
 
+def _arrears_distribution(sample, ledger):
+    """Per-customer ARREARS-£ balance as a DISTRIBUTION -- the sibling of
+    cost-to-serve, and the last remainder of DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE
+    §C (arrears-£-per-customer). A real UK supplier carries a customer-level
+    aged-debt ledger and provisions against it; bad debt is one of the largest
+    cost-to-serve line items and is heavily segment-shaped (standard-credit and
+    early-tenure accounts carry materially more arrears than direct-debit).
+
+    THROUGH-THE-WALL OBSERVABLE (epistemic wall): arrears = Σ(bills issued) -
+    Σ(payments received) per customer, read ONLY from the company's OWN
+    billed-vs-banked ledger (billing_ledger.json: total_billed_gbp,
+    total_paid_gbp). No sim-internal hardship/churn truth is read -- a real
+    supplier knows its own bills and its own receipts and nothing more. The
+    company's belief-vs-truth GAP against the sim's true arrears is a separate
+    HARNESS measure (coupled-triad), out of scope here.
+
+    R14 (basis clock): the balance is billed MINUS banked -- every figure carries
+    that clock. R12 (anti-goal-seek): arrears is a DIAGNOSTIC, never a target; no
+    parameter is tuned toward a plausible arrears band. FAIL-CLOSED (R15): a
+    ledger with no customer carrying BOTH a billed and a paid figure returns
+    available:False, never a silently-zero total the page renders as real.
+
+    RC7 / FRONT_MISSION_BLOCK wall: this is a cohort-derived £ figure, so it may
+    only appear behind a /company drill-down -- never a lead slot -- with N, a
+    FLOOR framing (gross exposure is a floor on the bad-debt base, not a point
+    estimate) and its missing-lines enumerated. Those are carried on the JSON so
+    the render cannot drop them."""
+    led_custs = ((ledger or {}).get("customers")) or {}
+    samp_custs = ((sample or {}).get("customers")) or {}
+    rows = []  # (arrears_gbp, segment, sample_customer_or_None, ledger_customer)
+    for cid, lc in led_custs.items():
+        billed = lc.get("total_billed_gbp")
+        paid = lc.get("total_paid_gbp")
+        if billed is None or paid is None:
+            continue
+        arrears = round(float(billed) - float(paid), 2)
+        seg = lc.get("segment") or "unknown"
+        rows.append((arrears, seg, samp_custs.get(cid) or {}, lc))
+    if not rows:
+        return {"available": False, "n": 0}
+
+    def _stats(vs):
+        s = sorted(vs)
+        n = len(s)
+        median = s[n // 2] if n % 2 else (s[n // 2 - 1] + s[n // 2]) / 2.0
+        return dict(
+            n=n,
+            min_gbp=round(s[0], 2),
+            median_gbp=round(median, 2),
+            mean_gbp=round(sum(s) / n, 2),
+            max_gbp=round(s[-1], 2),
+        )
+
+    # Segment split (resi / SME / I&C carry structurally different arrears scale).
+    by_segment = []
+    for seg in sorted({r[1] for r in rows}):
+        segvals = [a for a, s, _, _ in rows if s == seg]
+        if segvals:
+            st = _stats(segvals)
+            st["segment"] = seg
+            by_segment.append(st)
+
+    # Additional coverage cells from the SAME accounts, joined to customer_sample
+    # for the cell attribute (payment_channel is the load-bearing activity cell:
+    # standard-credit accounts run materially higher arrears than direct-debit;
+    # tenure is secondary). A cell key absent on an account (I&C legs carry no
+    # residential attribute) is SKIPPED, never bucketed as a fabricated cell; a
+    # group with <2 populated cells collapses to nothing (a one-cell
+    # "distribution" is theatre). Reads the cell key only -- no P&L field -- so
+    # R12/R13 no-goal-seek holds for the cells too.
+    def _by_cell(field):
+        cells = {}
+        for a, _s, sc, _lc in rows:
+            key = (sc or {}).get(field)
+            if key is None or key == "":
+                continue
+            cells.setdefault(str(key), []).append(a)
+        if len(cells) < 2:
+            return []
+        out_cells = []
+        for key in sorted(cells):
+            st = _stats(cells[key])
+            st["cell"] = key
+            out_cells.append(st)
+        return out_cells
+
+    in_arrears = sum(1 for a, _, _, _ in rows if a > 0.005)
+    in_credit = sum(1 for a, _, _, _ in rows if a < -0.005)
+    # Accounts square to the penny (billed == banked) are neither -- counted so
+    # the split adds up to N (a veteran smell-test: 14 + 3 must not read as < N).
+    settled = len(rows) - in_arrears - in_credit
+    # FLOOR (RC7 floor-not-figure): gross exposure is Sigma of the POSITIVE
+    # balances only -- credit balances do not net off a bad-debt provision base,
+    # so this is a floor on what is owed to us, not a tidy net point estimate.
+    gross_exposure = round(sum(a for a, _, _, _ in rows if a > 0), 2)
+
+    out = _stats([a for a, _, _, _ in rows])
+    out.update(
+        dict(
+            available=True,
+            clock="billed_minus_banked",
+            basis="per-customer arrears balance = total billed - total banked "
+                  "(cumulative, own ledger) - drawn sample",
+            in_arrears=in_arrears,
+            in_credit=in_credit,
+            settled=settled,
+            gross_exposure_gbp=gross_exposure,
+            gross_exposure_is_floor=True,
+            values_gbp=[round(a, 2) for a, _, _, _ in sorted(rows, key=lambda r: r[0])],
+            by_segment=by_segment,
+            by_payment_channel=_by_cell("payment_channel"),
+            by_tenure=_by_cell("tenure"),
+            # Missing-lines enumeration (RC7): what this balance does NOT yet
+            # capture, stated so the panel cannot read as a complete aged-debt
+            # picture. Honest-absent, not smoothed.
+            missing_lines=[
+                "no aged-debt bucketing (30/60/90+ days) -- a single cumulative "
+                "balance, not a dunning-stage split",
+                "write-offs and provisions not yet deducted -- gross owed, not "
+                "net-of-provision",
+                "timing: a balance may include bills issued but not yet due, so "
+                "it overstates true overdue arrears",
+                "the drawn sample, not the full book -- a floor across N, never "
+                "a book total",
+            ],
+        )
+    )
+    return out
+
+
 def _stress_bands(sample):
     """The book by each customer's latest income-stress band -- re-homed from the
     retired SIM-Explorer 'Customers' tab into The Company (v4 §4①, affordability/
@@ -422,6 +552,7 @@ def generate():
         trading_risk=_trading_risk(dashboard),
         household=_household(sample, ledger),
         cost_to_serve=_cost_to_serve_distribution(sample),
+        arrears=_arrears_distribution(sample, ledger),
         stress_bands=_stress_bands(sample),
         compliance=_compliance(dashboard),
     )
