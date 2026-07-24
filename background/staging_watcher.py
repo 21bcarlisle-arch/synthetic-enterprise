@@ -570,7 +570,7 @@ def main() -> None:
 
         # Heartbeat at top of every cycle
         try:
-            update_agent_status("staging-watcher", status="idle", last_action=f"Heartbeat — {len(seen)} files tracked")
+            update_agent_status("staging-watcher", status="idle", last_action=f"Heartbeat — {len(seen)} files tracked", is_heartbeat=True)
         except Exception:
             pass
 

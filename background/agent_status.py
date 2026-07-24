@@ -71,6 +71,7 @@ def update_agent_status(
     anomaly: str | None = None,
     role: str | None = None,
     produces: str | None = None,
+    is_heartbeat: bool = False,
 ) -> None:
     """Update one agent's entry in agent_status.json.
 
@@ -78,6 +79,17 @@ def update_agent_status(
     last_action: short description of the most recent thing the agent did
     anomaly: non-None string if there's an active problem to surface
     role/produces: only needed on first write; ignored if already set
+    is_heartbeat: STATUS-SEMANTICS SEPARATION (R10, 2026-07-24 security incident,
+        DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT). A pure liveness ping proves the
+        daemon is alive but did NO real work -- it must advance `last_heartbeat` while
+        leaving `last_action`/`last_action_ts` frozen at the last REAL action. Passing
+        is_heartbeat=True does exactly that. The phantom "10:22Z comment" incident was
+        invented by reading a fresh top-level `last_updated` beside a stale `last_action`
+        string as if the action were fresh: the conflation was that EVERY update stamped
+        last_action_ts=now, so a liveness ping forged an action time. `last_action_ts` is
+        now the action's OWN time; heartbeat time is a separate field that alone moves on
+        a ping. Callers that did real work leave this False (the default). See
+        tests/background/test_agent_status.py for the R15 both-ways proof.
     """
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -95,8 +107,15 @@ def update_agent_status(
 
             entry["status"] = status
             entry["last_heartbeat"] = now
-            entry["last_action"] = last_action
-            entry["last_action_ts"] = now
+            if is_heartbeat:
+                # Liveness ping: prove alive without forging a fresh action time.
+                # Leave last_action/last_action_ts frozen at the last REAL action; on a
+                # first-ever write (no prior action) record honest "none yet" sentinels.
+                entry.setdefault("last_action", "(no action yet)")
+                entry.setdefault("last_action_ts", None)
+            else:
+                entry["last_action"] = last_action
+                entry["last_action_ts"] = now
             entry["anomaly"] = anomaly
             if role is not None and "role" not in entry:
                 entry["role"] = role

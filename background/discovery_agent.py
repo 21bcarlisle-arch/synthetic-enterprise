@@ -241,7 +241,8 @@ def main() -> None:
             _sleep_remaining -= _chunk
             if _sleep_remaining > 0:
                 update_agent_status("discovery-daemon", status="idle",
-                                    last_action=f"Waiting for next cycle ({_sleep_remaining//3600}h {(_sleep_remaining%3600)//60}m remaining)")
+                                    last_action=f"Waiting for next cycle ({_sleep_remaining//3600}h {(_sleep_remaining%3600)//60}m remaining)",
+                                    is_heartbeat=True)
 
 
 if __name__ == "__main__":

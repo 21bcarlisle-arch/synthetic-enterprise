@@ -2926,6 +2926,7 @@ def main() -> None:
             update_agent_status(
                 "supervisor", status="idle",
                 last_action=f"Cycle complete -- current stuck-key unchanged for ~{elapsed_min}min",
+                is_heartbeat=True,  # liveness ping, not a real action (R10 status-semantics sweep, 2026-07-24)
             )
         except Exception:
             pass

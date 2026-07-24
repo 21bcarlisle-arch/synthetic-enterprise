@@ -140,21 +140,21 @@ def main():
         if is_peak_hours():
             now = datetime.now(timezone.utc)
             log(f"Peak hours (16:00-19:00 GMT) — pausing. Current time: {now.strftime('%H:%M UTC')}")
-            update_agent_status("background-worker", status="idle", last_action=f"Peak hours pause — {now.strftime('%H:%M UTC')}")
+            update_agent_status("background-worker", status="idle", last_action=f"Peak hours pause — {now.strftime('%H:%M UTC')}", is_heartbeat=True)
             time.sleep(60 * 15)  # check every 15min during peak
             continue
 
         # Read task queue
         if not TASKS_FILE.exists():
             log("No background-tasks.md found — sleeping")
-            update_agent_status("background-worker", status="idle", last_action="No task queue found — sleeping")
+            update_agent_status("background-worker", status="idle", last_action="No task queue found — sleeping", is_heartbeat=True)
             time.sleep(60 * CHECK_INTERVAL_MINUTES)
             continue
 
         tasks_content = TASKS_FILE.read_text()
         if "## QUEUED" not in tasks_content:
             log("No queued tasks — sleeping")
-            update_agent_status("background-worker", status="idle", last_action="No queued tasks — sleeping")
+            update_agent_status("background-worker", status="idle", last_action="No queued tasks — sleeping", is_heartbeat=True)
             time.sleep(60 * CHECK_INTERVAL_MINUTES)
             continue
 

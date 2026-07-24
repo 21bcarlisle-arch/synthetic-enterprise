@@ -261,7 +261,7 @@ def main() -> None:
             elif _active_proc is not None:
                 update_agent_status("autonomous-runner", status="working", last_action="Autonomous turn running")
             else:
-                update_agent_status("autonomous-runner", status="idle", last_action="Polling — idle")
+                update_agent_status("autonomous-runner", status="idle", last_action="Polling — idle", is_heartbeat=True)
 
             idle = idle_seconds()
 
