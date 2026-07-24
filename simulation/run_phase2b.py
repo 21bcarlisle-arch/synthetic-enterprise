@@ -94,7 +94,7 @@ from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
-from company.trading.forward_book import ForwardContract, TradingBook
+from company.trading.forward_book import ForwardContract, TradingBook, assign_default_counterparty
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost, compute_realized_var
 from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
@@ -1637,15 +1637,24 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 # notional_mwh = hedged portion of EAC estimate.
                 if company_fwd and hf > 0:
                     _tenor_years = term_days_count / 365.25
-                    _bid_ask = compute_bid_ask_cost(company_fwd, _tenor_years) * (eac_kwh / 1000.0) * hf
+                    _notional_mwh = (eac_kwh / 1000.0) * hf
+                    _bid_ask = compute_bid_ask_cost(company_fwd, _tenor_years) * _notional_mwh
+                    # VALUE_CHAIN step 2: attribute a counterparty at signing (deterministic,
+                    # wall-safe — reads only company-observable contract attributes).
+                    _cp = assign_default_counterparty(cid, term_start_str, _notional_mwh)
                     trading_book.open_hedge(ForwardContract(
                         customer_id=cid,
                         term_start=term_start_str,
                         term_end=term_end_str,
-                        notional_mwh=(eac_kwh / 1000.0) * hf,
+                        notional_mwh=_notional_mwh,
                         agreed_price_gbp_per_mwh=company_fwd,
                         hedge_fraction=hf,
                         bid_ask_cost_gbp=round(_bid_ask, 4),
+                        counterparty_id=_cp.counterparty_id,
+                        counterparty_type=_cp.counterparty_type,
+                        clearing_status=_cp.clearing_status,
+                        counterparty_rating=_cp.counterparty_rating,
+                        broker_arranged=_cp.broker_arranged,
                     ))
                     # Add hedge_pnl_gbp per settlement record (decomposed from supply margin).
                     for rec in term_records:

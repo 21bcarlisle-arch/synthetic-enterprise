@@ -210,3 +210,73 @@ class TestFeedsRegisterShape:
         assert record.gross_mtm_gbp == 2000.0
         assert record.credit_limit_gbp == 3_000_000.0  # AA band from the register
         assert not record.is_limit_breached
+
+
+class TestCounterpartyDistribution:
+    """VALUE_CHAIN step 2 — the price-free credit-channel composition surfaced in
+    trading_book.summary(). R15 both ways: the distribution DISCRIMINATES attributed
+    from un-attributed books, so a wiring regression at the run's open_hedge call site
+    (forwards opened with no counterparty) surfaces as unattributed_count > 0.
+    """
+
+    def _run_style_book(self, n):
+        # Build the book the way run_phase2b does: assign_default_counterparty at signing,
+        # then open_hedge. This is the wiring under test, reconstructed.
+        book = TradingBook()
+        for i in range(n):
+            cid, term_start, notional = f"CUST{i}", "2022-01-01", 10.0 + (i % 7)
+            cp = assign_default_counterparty(cid, term_start, notional)
+            book.open_hedge(ForwardContract(
+                customer_id=cid, term_start=term_start, term_end="2023-01-01",
+                notional_mwh=notional, agreed_price_gbp_per_mwh=80.0, hedge_fraction=0.9,
+                counterparty_id=cp.counterparty_id, counterparty_type=cp.counterparty_type,
+                clearing_status=cp.clearing_status, counterparty_rating=cp.counterparty_rating,
+                broker_arranged=cp.broker_arranged,
+            ))
+        return book
+
+    def test_healthy_book_fully_attributed(self):
+        # Every forward opened the run's way carries a counterparty → no unattributed.
+        d = self._run_style_book(200).counterparty_distribution()
+        assert d["contract_count"] == 200
+        assert d["attributed_count"] == 200
+        assert d["unattributed_count"] == 0
+        # Both credit channels present and summing to the whole book (netting-route mix).
+        assert d["cleared_count"] > 0 and d["bilateral_count"] > 0
+        assert d["cleared_count"] + d["bilateral_count"] == 200
+
+    def test_wiring_regression_surfaces_as_unattributed(self):
+        # R15 negative: if the open_hedge call site regressed and stopped attributing,
+        # the book would open forwards with no counterparty. The distribution CATCHES it
+        # (unattributed_count == whole book), so the metric is not fail-open.
+        book = TradingBook()
+        for i in range(50):
+            book.open_hedge(ForwardContract(
+                f"C{i}", "2022-01-01", "2023-01-01", 10.0, 80.0, 0.9,
+            ))
+        d = book.counterparty_distribution()
+        assert d["attributed_count"] == 0
+        assert d["unattributed_count"] == 50
+        assert d["distinct_counterparties"] == 0
+
+    def test_broker_and_notional_aggregated(self):
+        d = self._run_style_book(300).counterparty_distribution()
+        # broker-arranged is a subset of bilateral, never exceeds it.
+        assert 0 <= d["broker_arranged_count"] <= d["bilateral_count"]
+        # notional accumulates across the book (no contract dropped).
+        assert d["total_notional_mwh"] > 0
+        assert sum(e["contract_count"] for e in d["by_counterparty"]) == 300
+
+    def test_summary_carries_distribution(self):
+        # The board consumer reads it off trading_book.summary() → run output.
+        summ = self._run_style_book(20).summary()
+        assert "counterparty_distribution" in summ
+        assert summ["counterparty_distribution"]["contract_count"] == 20
+        assert summ["counterparty_distribution"]["unattributed_count"] == 0
+
+    def test_empty_book_is_clean_not_crash(self):
+        # Fail-safe: an empty run (no hedges) yields zeros, never a divide/keyerror.
+        d = TradingBook().counterparty_distribution()
+        assert d["contract_count"] == 0
+        assert d["unattributed_count"] == 0
+        assert d["by_counterparty"] == []

@@ -386,10 +386,85 @@ class TradingBook:
             entry["gross_credit_exposure_gbp"] = round(max(0.0, entry["netted_mtm_gbp"]), 2)
         return agg
 
+    def counterparty_distribution(self) -> dict:
+        """Board-level credit-channel composition of the run's hedge book.
+
+        VALUE_CHAIN step 2 output. Price-free view: how the run's forward hedging
+        splits across the credit channels assigned at signing
+        (assign_default_counterparty, wired in run_phase2b at open_hedge). This is the
+        board's answer to "who are we exposed to, and through which clearing route?" —
+        available without a price snapshot because it counts positions, not MtM.
+
+        Distinct from exposure_by_counterparty(): that computes the live per-counterparty
+        MtM CREDIT EXPOSURE (needs a point-in-time forward-price snapshot) and is the feed
+        into WholesaleCreditExposureRegister, populated in the observation-window step.
+
+        `unattributed_count` is the wiring self-check: it must be 0 in a healthy run — any
+        forward opened without a counterparty (regression at the open_hedge call site)
+        surfaces here as a non-zero unattributed count.
+        """
+        by_clearing: dict[str, int] = {}
+        by_type: dict[str, int] = {}
+        by_counterparty: dict[str, dict] = {}
+        attributed = 0
+        broker_arranged = 0
+        total_notional = 0.0
+        for c in self._contracts:
+            cp_id = c.counterparty_id or "UNATTRIBUTED"
+            if c.counterparty_id:
+                attributed += 1
+            if c.broker_arranged:
+                broker_arranged += 1
+            total_notional += c.notional_mwh
+            clearing = c.clearing_status.value if c.clearing_status else "unattributed"
+            cptype = c.counterparty_type.value if c.counterparty_type else "unattributed"
+            by_clearing[clearing] = by_clearing.get(clearing, 0) + 1
+            by_type[cptype] = by_type.get(cptype, 0) + 1
+            entry = by_counterparty.get(cp_id)
+            if entry is None:
+                entry = {
+                    "counterparty_id": cp_id,
+                    "counterparty_type": cptype,
+                    "clearing_status": clearing,
+                    "counterparty_rating": (
+                        c.counterparty_rating.value if c.counterparty_rating else None
+                    ),
+                    "contract_count": 0,
+                    "notional_mwh": 0.0,
+                    "broker_arranged_count": 0,
+                }
+                by_counterparty[cp_id] = entry
+            entry["contract_count"] += 1
+            entry["notional_mwh"] += c.notional_mwh
+            if c.broker_arranged:
+                entry["broker_arranged_count"] += 1
+        for entry in by_counterparty.values():
+            entry["notional_mwh"] = round(entry["notional_mwh"], 3)
+        total = len(self._contracts)
+        return {
+            "contract_count": total,
+            "attributed_count": attributed,
+            "unattributed_count": total - attributed,
+            "distinct_counterparties": len(
+                [k for k in by_counterparty if k != "UNATTRIBUTED"]
+            ),
+            "cleared_count": by_clearing.get(ClearingStatus.CLEARED_CCP.value, 0),
+            "bilateral_count": by_clearing.get(ClearingStatus.BILATERAL_ISDA.value, 0),
+            "broker_arranged_count": broker_arranged,
+            "total_notional_mwh": round(total_notional, 3),
+            "by_clearing_status": by_clearing,
+            "by_counterparty_type": by_type,
+            "by_counterparty": sorted(
+                by_counterparty.values(), key=lambda e: -e["contract_count"]
+            ),
+        }
+
     def summary(self) -> dict:
         return {
             "contract_count": self.contract_count,
             "total_hedged_mwh": round(self._total_hedged_mwh, 3),
             "total_hedge_pnl_gbp": round(self._total_pnl_gbp, 2),
             "total_bid_ask_cost_gbp": round(self._total_bid_ask_cost_gbp, 2),
+            # VALUE_CHAIN step 2: credit-channel composition of the hedge book.
+            "counterparty_distribution": self.counterparty_distribution(),
         }
