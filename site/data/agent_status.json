@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-23T23:47:29.101716+00:00",
+  "last_updated": "2026-07-24T00:03:15.309886+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T23:47:13.118647+00:00",
+      "last_heartbeat": "2026-07-24T00:03:15.309886+00:00",
       "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-23T23:47:13.118647+00:00",
+      "last_action_ts": "2026-07-24T00:03:15.309886+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T23:46:03.844253+00:00",
-      "last_action": "Waiting for next cycle (1h 10m remaining)",
-      "last_action_ts": "2026-07-23T23:46:03.844253+00:00",
+      "last_heartbeat": "2026-07-24T00:01:03.847131+00:00",
+      "last_action": "Waiting for next cycle (0h 55m remaining)",
+      "last_action_ts": "2026-07-24T00:01:03.847131+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T23:41:43.136721+00:00",
-      "last_action": "Run complete in 500s \u2014 3775 KB (run_output_b2297c660_20260723T233323Z.json)",
-      "last_action_ts": "2026-07-23T23:41:43.136721+00:00",
+      "last_heartbeat": "2026-07-23T23:57:22.381196+00:00",
+      "last_action": "Run complete in 512s \u2014 3775 KB (run_output_21d5fd5e7_20260723T234850Z.json)",
+      "last_action_ts": "2026-07-23T23:57:22.381196+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T23:20:47.852374+00:00",
+      "last_heartbeat": "2026-07-23T23:50:47.862917+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-23T23:20:47.852374+00:00",
+      "last_action_ts": "2026-07-23T23:50:47.862917+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-23T23:47:29.101716+00:00",
-      "last_action": "Cycle complete -- current stuck-key unchanged for ~143min",
-      "last_action_ts": "2026-07-23T23:47:29.101716+00:00",
+      "last_heartbeat": "2026-07-24T00:01:48.085232+00:00",
+      "last_action": "Cycle complete -- current stuck-key unchanged for ~157min",
+      "last_action_ts": "2026-07-24T00:01:48.085232+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
