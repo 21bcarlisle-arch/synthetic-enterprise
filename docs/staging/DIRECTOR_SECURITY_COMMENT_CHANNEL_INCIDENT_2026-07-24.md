@@ -16,3 +16,18 @@
 **Risk & proportionality:** lock = removing an input, reversible by ruling; investigation read-only; quarantine touches only artifacts derived from the denied comment. Tag: **security — lock first, evidence second, re-enable only by director ruling.**
 
 — Advisor bridge, carrying the director's denial, 2026-07-24.
+
+---
+
+## ADDENDUM (same hour) — Advisor artifact-check RE-SCOPES the incident: no comment occurred today
+
+Advisor fetched the artifacts before this doc was consumed: **all 35 `from_rich_comment_*` files date 2026-07-09→12** (the director's own review-era comments plus one Playwright test fixture on /supplier). **No artifact exists for 2026-07-24.** The "10:22Z staged comment" was the advisor mis-reading `agent_status.json`, which pairs a fresh heartbeat timestamp with a stale `last_action` string — telemetry-as-evidence, the advisor's R9 miss, logged.
+
+**Re-scoped work (replaces §2–§3's hunt; the rest stands):**
+1. **Confirm with one glob** that no 2026-07-24 comment artifact exists anywhere (close the phantom formally).
+2. **Fix the status-semantics class (R10):** `last_action_ts` must be the action's own time; heartbeat time is a separate field. Sweep every daemon's status emission for the same conflation — misleading telemetry is how this incident got invented.
+3. **Synthetic-marker class (R10) stands:** a Playwright test fixture lived in the `from_rich_*` authority namespace for two weeks. Synthetic/test inputs get an unmistakable marker and a namespace that structurally cannot be consumed as director voice; test proves it.
+4. **Ghost-form sweep stands:** is the /supplier form (or any folded page's form) still live and submitting? Fold behaviour, not just links.
+5. **The channel stays LOCKED.** With the advisor bridge live and phone-signing pending, the director is inclined to **retire page-comments as an authority path** — if page comments ever return, they land as unauthenticated suggestions requiring bridge confirmation, never as director voice. Present retirement vs redesign as a one-line [ACT] for the director's ruling; do not re-enable meanwhile.
+
+— Addendum by advisor bridge, owning the over-read, 2026-07-24.
