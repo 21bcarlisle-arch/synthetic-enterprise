@@ -257,6 +257,15 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     lines += ["", "**R17 — THE TICK NEVER RESTS (status, standing morning report)**"]
     lines.append(f"- {r17 if r17 else _red(r17_err)}")
 
+    # DIRECTOR_AXES twin pre-score gap (read-only; §2-severed — a diagnostic the
+    # note reads, never a number that feeds the draw). Fail-closed on import/read.
+    lines += ["", "**Twin pre-score gap** _(belief-vs-truth on the director; Law B — never trains the twin)_"]
+    try:
+        from background.axis_prescore import retro_gap_line
+        lines.append(f"- {retro_gap_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated gap
+        lines.append(f"- {_red(f'twin pre-score gap unavailable: {e}')}")
+
     lines += ["", "**Resource inputs**"]
     lines.append(f"- {res if res else _red(res_err)}")
 

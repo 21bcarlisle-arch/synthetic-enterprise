@@ -1,9 +1,15 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-<!-- draw-visibility marker (2026-07-24): FRAME confirmed the gap; the reversible writer BUILD is self-drawable (Law B / HARD LAW §2 honoured — diagnostic only, never wired to draw/reward). Surfaced so the next tick draws it instead of it vanishing into the in_progress/ blind spot. -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- draw-visibility marker (2026-07-24): COMPLETE — scope 1-3 all discharged this tick; archiving to done/. No self-drawable step remains (a live pre-score fires only on a real director-verdict cadence event, which is external). -->
 
-> **[IN-PROGRESS — 2026-07-24 worker tick] FRAME DONE; reversible BUILD is the self-drawable next step.**
-> **Gap VERIFIED on disk this tick:** `docs/observability/director_axis_verdicts.jsonl` holds 5 rows, ALL `source: "director_verdict"` — **0 `twin_prediction`**; `grep -rnE 'director_axis_verdicts|twin_prediction|pre_score' background/*.py` → **no writer anywhere**. The twin pre-score loop (DIRECTOR_AXES §verdict-loop step 3) is prose-only, never mechanised (the MAKE_IT_STICK decay mode).
-> **NEXT DRAWABLE STEP (no wall, reversible):** the scope-2 BUILD — `background/axis_prescore.py` appending `{axis, axis_number, source:"twin_prediction", rationale, ts, recorded_date}` to the ledger via `director_twin.py`'s existing read-only `_default_invoke` (canon+origin facts only, no new authority), plus one R15 both-ways test (fires: a prediction is written before a verdict; fails-closed: a malformed/absent prediction is detected, not silently skipped), and the retro gap-line read. Parked FRAME-first per no-tired-mega-turn; the writer proceeds under reversible authority (git reverts). **UNBLOCKS:** self — no wall (Law B: the prediction NEVER trains the twin; HARD LAW §2: the ledger is NEVER consumed by any draw/reward — a writer + a retro read only).
+> **[DONE — 2026-07-24 worker tick] Scope 1 (FRAME) + 2 (reversible BUILD writer + R15 both-ways test) + 3 (retro gap-line read) all shipped.**
+> **Gap that was verified & is now closed:** `director_axis_verdicts.jsonl` held 5 `director_verdict` rows and 0 `twin_prediction`; NO writer existed anywhere (MAKE_IT_STICK prose-only decay). The mechanism is now LIVE.
+> **BUILD shipped this tick:**
+> - `background/axis_prescore.py` — the pre-score writer: `record_twin_prescore(...)` appends `{axis, axis_number, source:"twin_prediction", predicted_verdict, rationale, ts, recorded_date}` to the ledger; `prescore_axis(...)` invokes the twin via `director_twin._default_invoke` (read-only, canon+origin only, no new authority); `prediction_gap()` / `retro_gap_line()` are the read-only retro diagnostic.
+> - `tests/background/test_axis_prescore.py` — **R15 both-ways (12 tests, all green):** FIRES (a valid prediction is written and `prediction_gap` pairs it against a later verdict; the writer is load-bearing) / FAILS-CLOSED (a missing/blank verdict, missing rationale, empty reply, or blank required field all raise `MalformedPrediction`, and NOTHING is written — mutation-confirmed defence-in-depth: parse AND record both fail closed). Plus a §2-severance test asserting `supervisor.py` never imports the module.
+> - `background/daily_self_note.py` — the read-only gap line wired into the morning note (renders the honest-absent line today: "NO twin_prediction rows yet — the mechanism is live but has not run before a verdict").
+> - **Gates:** `tools/epistemic_verifier` PASS (525 files); `test_daily_self_note` + `test_director_twin` still green (34 passed/1 skipped).
+> **Walls honoured (for the ledger):** Law B — the prediction is logged & read, NEVER trains the twin / updates canon. HARD LAW §2 — the module is a WRITER + a RETRO READ only; supervisor.py does not import it (tested). Verdicts stay the director's; only the twin's PREDICTION side is built.
+> **No open sub-item.** The next event is external (a live pre-score before a real director-verdict cadence event) — not a build step. Archived to `done/`.
 
 # [PLANNER-MINTED] Mechanise the DIRECTOR_AXES twin pre-score loop (currently prose-only) (2026-07-24)
 
