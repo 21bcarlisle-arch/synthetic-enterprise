@@ -40,3 +40,16 @@ Generator ground truth (the true failures are sim truth — the company still di
 
 ## Propose-then-proceed window
 Proceeds immediately as a bounded harness slice under reversible-build authority. If a cell's honest disposition is "register a residual simplification," that lands without a wall. SOURCE 1 remains the parent mint's roadmap-gated half.
+
+---
+## RESOLUTION (2026-07-25, SOURCE 2 BUILT + LIVE-WIRED)
+**Status: DONE — the drawable SOURCE 2 slice is built, tested, and wired into the live run.** Archived to `done/`.
+
+**What shipped:**
+- `tools/couple_w2_11_d5.py`: `score_detection_by_partition` (per-partition DETECTION scoring via the SAME `detection_gap` scorer — no bespoke metric, R15 independence), `detection_cell_measurements` (per-cell `CellMeasurement` map ready for emission), and `uk_price_regime` (world-side date→G1/G2 classifier grounded in the REAL 2021-09..2023-03 UK gas-crisis window per Ofgem's cap trajectory — historical fact, not an R13 curriculum knob; G3 acute-tail NOT asserted from a calendar).
+- `background/live_fidelity_evidence.py`: `emit_live_fidelity_cells` lights each honestly-measured `A1_Gx` cell (one ledger row per cell, keyed by `cell_rel_id` so cells never overwrite), each carrying `_DETECTION_REGIME_PARTITIONED_SIMP_ID` — the honest residual that **DETECTION is regime-resolved while BELIEF/AGEING stay regime-mixed** (they read the account-level running belief, which double-counts a customer spanning regimes; named, never silently split). Single-cell `emit_live_fidelity_evidence` kept as the conservative single-regime fallback.
+- `simulation/run_phase2b.py`: the live emit now partitions by observed regime — a run spanning calm+crisis lights ≥2 cells; a single-regime run collapses to one (unchanged behaviour). Non-fatal wrapper preserved.
+
+**R15 both ways (33 tests, all green):** per-cell lighting reports distinct measured gaps + widening never makes the grid cleaner (extra cell only raises the worst-cell floor) + empty map raises (fail-closed) + each per-cell chain holds no belief leak + partition conserves the whole run's failures with no double-count + the classifier reads only harness truth. The grid can still never report `clean` while any of the 15 cells is dark.
+
+**Honesty guard held (mint §"what this atom is NOT"):** this widens measurement COVERAGE, not detection CAPABILITY. Lighting more cells shows the SAME structural non-DD blind spot recurring per regime (a near-zero cell would be a leak, not a win). SOURCE 1 (the detection capability) remains the parent mint's roadmap-gated half — untouched.

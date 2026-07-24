@@ -122,7 +122,7 @@ import argparse
 import hashlib
 import subprocess
 from datetime import date, datetime, time, timedelta, timezone
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
@@ -472,6 +472,165 @@ def score_triad(
         ),
     }
     return {"detection": det, "belief": bel, "ageing": age, "stats": stats, "notes": notes}
+
+
+# UK gas-crisis regime window (HISTORICAL FACT, not a curriculum knob -- R13).
+# Wholesale gas/power ran at sustained crisis levels from the autumn-2021
+# supply squeeze through the 2022 Russia-Ukraine spike; the domestic price cap
+# rose from ~£1,277 (Oct-2021) to ~£3,549-capped (Oct-2022, EPG-shielded). This
+# window classifies which of a live run's periods sit in the crisis regime (G2)
+# vs calm (G1) for the DETECTION per-cell partition. It is a WORLD-side reading
+# of REAL history (citeable to Ofgem's cap trajectory), never an agent-tuned
+# difficulty setting, and never crosses the wall into company belief. The
+# boundaries are deliberately conservative (the core sustained-spike window);
+# the residual (periods near the boundary) collapses honestly into whichever
+# side it falls, registered by the emit-side simplification.
+_GAS_CRISIS_START = date(2021, 9, 1)
+_GAS_CRISIS_END = date(2023, 3, 31)
+
+
+def uk_price_regime(due_date: date) -> str:
+    """WORLD-side price-regime label for a billing period's due date: 'G2'
+    (crisis / sustained spike) inside the 2021-09..2023-03 UK gas-crisis
+    window, else 'G1' (calm / soft market). Reads only the date -- a real
+    supplier's own calendar knowledge -- never simulation internals. G3 (acute
+    correlated tail) is NOT assigned here: an acute cold-and-still tail is a
+    within-regime event, not a calendar window, so asserting it from a date
+    would be a fabricated attribution."""
+    if _GAS_CRISIS_START <= due_date <= _GAS_CRISIS_END:
+        return "G2"
+    return "G1"
+
+
+def _detection_sets_by_partition(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    partition_of: Callable[[PeriodRecord], str],
+    payment_terms_days: int,
+) -> Tuple[Dict[str, set], Dict[str, set]]:
+    """(truth_by_part, flagged_by_part) -- the shared partitioning both the
+    gap scorer and the emission-prep reuse. Each failed (customer, period) case
+    is attributed to `partition_of(record)`; each observed DD-failure is mapped
+    back to the partition of the exact case its `value_date` matches (so a
+    customer spanning regimes contributes each period to the right cell, no
+    double-count). `partition_of` reads ONLY the harness-held PeriodRecord."""
+    by_customer: Dict[str, List[PeriodRecord]] = {}
+    for r in records:
+        by_customer.setdefault(r.customer_id, []).append(r)
+
+    truth_by_part: Dict[str, set] = {}
+    flagged_by_part: Dict[str, set] = {}
+    for cid, periods in by_customer.items():
+        account_id = periods[0].account_id
+        snapshot = consumer.snapshot(
+            account_id, as_of=as_of, payment_terms_days=payment_terms_days
+        )
+        due_to_period = {r.due_date: r.period_index for r in periods}
+        rec_by_period = {r.period_index: r for r in periods}
+        for r in periods:
+            if r.result == "failed":
+                truth_by_part.setdefault(partition_of(r), set()).add((cid, r.period_index))
+        for dd_fail in snapshot.recent_dd_failures:
+            p = due_to_period.get(dd_fail.value_date)
+            if p is not None:
+                key = partition_of(rec_by_period[p])
+                flagged_by_part.setdefault(key, set()).add((cid, p))
+    return truth_by_part, flagged_by_part
+
+
+def detection_cell_measurements(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    regime_of: Callable[[PeriodRecord], str] = None,
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+    archetype: str = "A1",
+) -> Dict[str, "object"]:
+    """Per-cell DETECTION measurements ready for
+    `background.live_fidelity_evidence.emit_live_fidelity_cells`: maps each
+    observed regime to grid cell `f"{archetype}_{regime}"` and returns
+    `{cell_id: CellMeasurement(detection_gap, true_failures, believed_failures,
+    regime_label)}`. `regime_of` defaults to `uk_price_regime` on the record's
+    due date (the payment scenario's cast is the affordability-stressed A1
+    archetype throughout -- the honest dimension this pair varies is regime).
+
+    Imports `CellMeasurement` lazily so this harness stays free of an
+    import-time dependency on the emit bridge (and the bridge stays free of
+    any sim import). Cells with no failures at all are omitted (nothing
+    honestly measured -> stays dark via the grid's fail-open floor)."""
+    from background.live_fidelity_evidence import CellMeasurement
+
+    if regime_of is None:
+        regime_of = lambda rec: uk_price_regime(rec.due_date)  # noqa: E731
+
+    truth_by_part, flagged_by_part = _detection_sets_by_partition(
+        records, consumer, as_of, regime_of, payment_terms_days
+    )
+    out: Dict[str, object] = {}
+    for regime in set(truth_by_part) | set(flagged_by_part):
+        truth = truth_by_part.get(regime, set())
+        flagged = flagged_by_part.get(regime, set())
+        if not truth:
+            continue  # no true failures in this regime -> nothing measured here
+        gap = detection_gap(truth, flagged).gap
+        if gap is None:
+            continue
+        cell_id = f"{archetype}_{regime}"
+        out[cell_id] = CellMeasurement(
+            detection_gap=float(gap),
+            true_failures=len(truth),
+            believed_failures=len(flagged),
+            regime_label=regime,
+        )
+    return out
+
+
+def score_detection_by_partition(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    partition_of: Callable[[PeriodRecord], str],
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+) -> Dict[str, GapResult]:
+    """Score the DETECTION dimension SEPARATELY per partition key -- the
+    honestly-partitionable half of the triad (SOURCE 2 of PLANNER_MINTED_
+    payment_grid_coverage_2026-07-25, "light the dark payment-gap grid cells").
+
+    `partition_of(record) -> key` is a WORLD-side classifier (e.g. the observed
+    price regime of `record.due_date`): it reads ONLY the harness-held
+    `PeriodRecord` truth and NEVER crosses the wall into the company belief.
+    Returns `{key: GapResult}`, each cell's gap computed by the SAME
+    `detection_gap` scorer `score_triad` uses (R15 independence -- no second
+    metric), over ONLY that partition's (customer, period) cases.
+
+    WHY ONLY DETECTION (the named residual, `_DETECTION_REGIME_PARTITIONED_
+    SIMP_ID` on the emit side). Detection is pure set-membership over the
+    passed cases: each (customer, period) failure is attributed to its OWN
+    partition, and each observed DD-failure is mapped back to the partition of
+    the exact case its `value_date` matches -- so a customer whose life spans
+    two regimes contributes each period to the correct cell, no double-count.
+    BELIEF and AGEING cannot be split this way: they read the company's
+    account-level arrears/ageing snapshot, a single running belief per account
+    that would be double-counted if a spanning customer's belief were charged
+    to two cells. Those stay regime-MIXED (the honest residual), never silently
+    partitioned. R12: emits what was measured per cell, tunes nothing."""
+    truth_by_part, flagged_by_part = _detection_sets_by_partition(
+        records, consumer, as_of, partition_of, payment_terms_days
+    )
+
+    out: Dict[str, GapResult] = {}
+    for key in set(truth_by_part) | set(flagged_by_part):
+        res = detection_gap(truth_by_part.get(key, set()), flagged_by_part.get(key, set()))
+        res.note = (
+            f"partition {key!r}: W2_11 true payment failure (any channel) vs "
+            "D5's DD-failure-observed belief, over ONLY this partition's cases "
+            "(world-side partition, never leaked company-side). The non-DD "
+            "no-remittance blind spot recurs here by construction (R12/R13) -- "
+            "a near-zero gap would be a leak, not a win."
+        )
+        out[key] = res
+    return out
 
 
 def _git_head() -> Optional[str]:

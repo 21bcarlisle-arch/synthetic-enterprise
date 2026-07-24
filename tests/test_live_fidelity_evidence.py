@@ -30,9 +30,12 @@ import pytest
 from background.live_fidelity_evidence import (
     DEFAULT_ATOM_ID,
     LIVE_CELL_ID,
+    CellMeasurement,
     LiveFidelityGateFailure,
     build_inspection_chain,
     build_ledger_record,
+    cell_rel_id,
+    emit_live_fidelity_cells,
     emit_live_fidelity_evidence,
 )
 from background.fidelity_evidence_ledger import (
@@ -107,6 +110,91 @@ def test_one_measured_cell_leaves_fourteen_untested(ledger):
     # Fail-open: every untested cell scores >= the worst measured cell, so the
     # worst cell is never the measured one alone unless it is the max.
     assert em.grid_score.worst_cell in em.grid_score.severities
+
+
+# --------------------------------------------------------------------------
+# PER-CELL (regime-partitioned) emission -- SOURCE 2 of
+# PLANNER_MINTED_payment_grid_coverage_2026-07-25. Lights >1 cell honestly.
+# --------------------------------------------------------------------------
+
+def test_multicell_lights_each_measured_cell_distinctly(ledger):
+    em = emit_live_fidelity_cells(
+        cell_gaps={
+            "A1_G1": CellMeasurement(detection_gap=0.10, true_failures=8,
+                                     believed_failures=7, regime_label="G1_calm"),
+            "A1_G2": CellMeasurement(detection_gap=0.42, true_failures=20,
+                                     believed_failures=6, regime_label="G2_crisis"),
+        },
+        as_of=_AS_OF, ledger_path=ledger,
+    )
+    assert em.gate.passed
+    assert set(em.cell_ids) == {"A1_G1", "A1_G2"}
+    # Each cell carries its OWN measured gap into the grid.
+    assert em.grid_score.severities["A1_G1"] == pytest.approx(0.10)
+    assert em.grid_score.severities["A1_G2"] == pytest.approx(0.42)
+    # Two lit cells -> 13 dark; the grid is NEVER clean while any cell is dark.
+    assert len(em.grid_score.untested_cells) == 13
+    assert em.grid_score.clean is False
+    # Two distinct ledger rows, keyed by per-cell rel_id (no overwrite).
+    data = json.loads(ledger.read_text())
+    assert cell_rel_id("A1_G1") in data and cell_rel_id("A1_G2") in data
+    assert data[cell_rel_id("A1_G1")]["relationship"]["detection_gap"] == 0.10
+    assert data[cell_rel_id("A1_G2")]["relationship"]["detection_gap"] == 0.42
+
+
+def test_multicell_widening_never_makes_the_grid_cleaner(ledger, tmp_path):
+    """Lighting MORE cells is pure coverage: an extra measured cell can only
+    RAISE the worst-cell severity, never lower the untested floor (fail-open).
+    Prove it -- add a WORSE second cell and the fidelity score cannot improve."""
+    one = emit_live_fidelity_cells(
+        cell_gaps={"A1_G1": CellMeasurement(0.10, 8, 7, "G1_calm")},
+        as_of=_AS_OF, ledger_path=tmp_path / "one.json",
+    )
+    two = emit_live_fidelity_cells(
+        cell_gaps={
+            "A1_G1": CellMeasurement(0.10, 8, 7, "G1_calm"),
+            "A1_G2": CellMeasurement(0.42, 20, 6, "G2_crisis"),
+        },
+        as_of=_AS_OF, ledger_path=ledger,
+    )
+    # More measured cells -> fewer dark cells, never MORE.
+    assert len(two.grid_score.untested_cells) < len(one.grid_score.untested_cells)
+    # Fidelity score (worst cell, lower=better) never IMPROVES by adding a cell.
+    assert two.grid_score.fidelity_score >= one.grid_score.fidelity_score
+
+
+def test_multicell_records_carry_the_partitioned_simplification(ledger):
+    """The honest residual: each per-cell record names that DETECTION is
+    regime-resolved while BELIEF/AGEING stay regime-mixed -- not the blanket
+    single-cell `attributed_to_G2` simplification."""
+    emit_live_fidelity_cells(
+        cell_gaps={"A1_G1": CellMeasurement(0.10, 8, 7, "G1_calm")},
+        as_of=_AS_OF, ledger_path=ledger,
+    )
+    rec = json.loads(ledger.read_text())[cell_rel_id("A1_G1")]
+    simp = rec["relationship"]["simplification_id"]
+    assert simp == "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed"
+    assert rec["relationship"]["provenance"] == "estimated_from_data"
+
+
+def test_multicell_empty_map_raises(ledger):
+    """Fail-closed: an empty cell map would silently light nothing -- refuse
+    it rather than emit a vacuous 'all dark' pass."""
+    with pytest.raises(ValueError):
+        emit_live_fidelity_cells(cell_gaps={}, as_of=_AS_OF, ledger_path=ledger)
+
+
+def test_multicell_chain_per_cell_holds_no_belief_leak(ledger):
+    em = emit_live_fidelity_cells(
+        cell_gaps={"A1_G1": CellMeasurement(0.10, 8, 7, "G1_calm"),
+                   "A1_G2": CellMeasurement(0.42, 20, 6, "G2_crisis")},
+        as_of=_AS_OF, ledger_path=ledger,
+    )
+    for cid, chain in em.chains.items():
+        belief_nodes = chain.nodes_of_layer("BELIEF_ACTION")
+        assert len(belief_nodes) == 1
+        assert belief_nodes[0].truth_ref is None  # the wall in the data model
+        assert belief_nodes[0].cell == cid
 
 
 # --------------------------------------------------------------------------

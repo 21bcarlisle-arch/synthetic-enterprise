@@ -2264,19 +2264,46 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             # bridge failure is loud-but-non-fatal: the run must not die on a
             # HARNESS emission (defensive, matching the enclosing block).
             try:
-                _fid_as_of = max(r.due_date for r in _payment_triad.records).isoformat()
-                _fid_em = emit_live_fidelity_evidence(
-                    detection_gap=_det.gap,
-                    true_failures=_triad_result["stats"]["n_true_failures"],
-                    believed_failures=_triad_result["stats"]["n_flagged_failures"],
-                    as_of=_fid_as_of,
+                _fid_as_of_date = max(r.due_date for r in _payment_triad.records)
+                _fid_as_of = _fid_as_of_date.isoformat()
+                # SOURCE 2 (PLANNER_MINTED_payment_grid_coverage_2026-07-25):
+                # partition the DETECTION dimension by the run's OWN observed
+                # price regime (world-side UK gas-crisis calendar, never leaked
+                # company-side) and light each honestly-measured A1_Gx cell,
+                # instead of collapsing the whole regime-mixed run onto A1_G2.
+                # A run spanning calm + crisis lights >1 cell; a single-regime
+                # run lights one. Belief/ageing stay regime-mixed (named
+                # simplification on each per-cell record).
+                from tools.couple_w2_11_d5 import detection_cell_measurements
+                from background.live_fidelity_evidence import emit_live_fidelity_cells
+                _cell_gaps = detection_cell_measurements(
+                    _payment_triad.records, _payment_triad.consumer, _fid_as_of_date,
                 )
-                print(
-                    f"[fidelity-evidence G1/G2/G3] LIVE emission: cell {_fid_em.cell_id} "
-                    f"gap={_fid_em.detection_gap} -> grid worst {_fid_em.grid_score.worst_cell} "
-                    f"({_fid_em.grid_score.fidelity_score:.4f}), gate PASS, "
-                    f"{len(_fid_em.grid_score.untested_cells)} cells untested"
-                )
+                if len(_cell_gaps) >= 2:
+                    _mc = emit_live_fidelity_cells(cell_gaps=_cell_gaps, as_of=_fid_as_of)
+                    _lit = ", ".join(
+                        f"{c}={_cell_gaps[c].detection_gap:.4f}" for c in _mc.cell_ids
+                    )
+                    print(
+                        f"[fidelity-evidence G1/G2/G3] LIVE per-cell emission: "
+                        f"{len(_mc.cell_ids)} cells lit ({_lit}) -> grid worst "
+                        f"{_mc.grid_score.worst_cell} ({_mc.grid_score.fidelity_score:.4f}), "
+                        f"gate PASS, {len(_mc.grid_score.untested_cells)} cells untested"
+                    )
+                else:
+                    # Single regime present -> conservative single-cell collapse.
+                    _fid_em = emit_live_fidelity_evidence(
+                        detection_gap=_det.gap,
+                        true_failures=_triad_result["stats"]["n_true_failures"],
+                        believed_failures=_triad_result["stats"]["n_flagged_failures"],
+                        as_of=_fid_as_of,
+                    )
+                    print(
+                        f"[fidelity-evidence G1/G2/G3] LIVE emission: cell {_fid_em.cell_id} "
+                        f"gap={_fid_em.detection_gap} -> grid worst {_fid_em.grid_score.worst_cell} "
+                        f"({_fid_em.grid_score.fidelity_score:.4f}), gate PASS, "
+                        f"{len(_fid_em.grid_score.untested_cells)} cells untested"
+                    )
             except Exception as _fid_exc:  # pragma: no cover - defensive
                 print(f"WARNING [fidelity-evidence G1/G2/G3] live emission failed: {_fid_exc}")
         else:

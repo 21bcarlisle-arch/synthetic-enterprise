@@ -169,6 +169,123 @@ def test_ageing_gap_zero_when_truth_equals_belief():
 
 
 # ---------------------------------------------------------------------------
+# Per-cell partition (SOURCE 2 of PLANNER_MINTED_payment_grid_coverage): the
+# DETECTION dimension partitioned by a WORLD-side classifier lights each cell
+# with its OWN measured gap, conserves the whole, and never double-counts a
+# customer whose life spans two partitions.
+# ---------------------------------------------------------------------------
+
+def _regime_of_period(rec) -> str:
+    """A synthetic WORLD-side regime classifier for the offline (single-year)
+    scenario: even billing periods -> 'G1' (calm), odd -> 'G2' (crisis). Every
+    customer has N_PERIODS periods, so each customer SPANS both partitions --
+    exactly the spanning-customer case the belief-contamination residual is
+    about."""
+    return "G1" if rec.period_index % 2 == 0 else "G2"
+
+
+def test_partition_lights_distinct_cells_and_conserves_the_whole():
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    per_cell = pair.score_detection_by_partition(
+        records, consumer, as_of, _regime_of_period
+    )
+    # Both regimes get lit (the population spans even and odd periods).
+    assert set(per_cell) == {"G1", "G2"}, per_cell
+    for key, res in per_cell.items():
+        assert res.gap is not None, key
+
+    # CONSERVATION: the union of the partitions' TRUE-failure cases is exactly
+    # the whole run's true-failure set, partitioned disjointly by period (no
+    # case lost, none double-counted).
+    whole_truth = {
+        (r.customer_id, r.period_index) for r in records if r.result == "failed"
+    }
+    g1_truth = {
+        (r.customer_id, r.period_index)
+        for r in records
+        if r.result == "failed" and _regime_of_period(r) == "G1"
+    }
+    g2_truth = whole_truth - g1_truth
+    assert g1_truth and g2_truth, "both partitions must carry real failures"
+    assert g1_truth.isdisjoint(g2_truth)
+    assert g1_truth | g2_truth == whole_truth
+
+
+def test_partition_detection_gap_matches_a_manual_subset_score():
+    """R15 independence: the per-cell gap is the SAME `detection_gap` scorer
+    applied to just that cell's cases -- prove it by reconstructing one cell's
+    gap by hand and asserting equality (the partition adds no bespoke metric,
+    it only routes cases to the right cell)."""
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    per_cell = pair.score_detection_by_partition(
+        records, consumer, as_of, _regime_of_period
+    )
+
+    # Manually rebuild G1's truth/flagged sets exactly as the function should.
+    by_customer = {}
+    for r in records:
+        by_customer.setdefault(r.customer_id, []).append(r)
+    manual_truth, manual_flagged = set(), set()
+    for cid, periods in by_customer.items():
+        snap = consumer.snapshot(periods[0].account_id, as_of=as_of,
+                                 payment_terms_days=pair.PAYMENT_TERMS_DAYS)
+        due_to_period = {r.due_date: r.period_index for r in periods}
+        rec_by_period = {r.period_index: r for r in periods}
+        for r in periods:
+            if r.result == "failed" and _regime_of_period(r) == "G1":
+                manual_truth.add((cid, r.period_index))
+        for dd in snap.recent_dd_failures:
+            p = due_to_period.get(dd.value_date)
+            if p is not None and _regime_of_period(rec_by_period[p]) == "G1":
+                manual_flagged.add((cid, p))
+    expected = detection_gap(manual_truth, manual_flagged)
+    assert per_cell["G1"].gap == expected.gap
+
+
+def test_uk_price_regime_marks_the_gas_crisis_window():
+    import datetime as _dt
+    # Calm years -> G1.
+    assert pair.uk_price_regime(_dt.date(2018, 6, 1)) == "G1"
+    assert pair.uk_price_regime(_dt.date(2025, 1, 1)) == "G1"
+    # The 2021-22 gas crisis -> G2 (historical fact, not a knob).
+    assert pair.uk_price_regime(_dt.date(2021, 10, 1)) == "G2"
+    assert pair.uk_price_regime(_dt.date(2022, 6, 1)) == "G2"
+    # Just before/after the window -> back to calm.
+    assert pair.uk_price_regime(_dt.date(2021, 8, 1)) == "G1"
+    assert pair.uk_price_regime(_dt.date(2023, 4, 1)) == "G1"
+
+
+def test_detection_cell_measurements_map_to_grid_cells_with_counts():
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    cells = pair.detection_cell_measurements(
+        records, consumer, as_of, regime_of=_regime_of_period
+    )
+    # Even/odd period split -> both A1_G1 and A1_G2 cells lit.
+    assert set(cells) == {"A1_G1", "A1_G2"}, cells
+    for cell_id, m in cells.items():
+        assert cell_id.startswith("A1_")
+        assert m.true_failures > 0
+        # believed (flagged) never exceeds true (the blind spot only loses).
+        assert m.believed_failures <= m.true_failures
+        assert 0.0 <= m.detection_gap <= 1.0
+        assert m.regime_label in ("G1", "G2")
+
+
+def test_partition_classifier_reads_only_harness_truth_never_the_consumer():
+    """WALL: the partition_of callable is handed ONLY PeriodRecord (harness
+    truth). A classifier that tried to reach a company-belief attribute off the
+    record finds nothing there -- PeriodRecord carries no belief field."""
+    records, _consumer, _ledger, _as_of = pair.build_scenario(50, seed=3)
+    r = records[0]
+    for forbidden in ("arrears_risk_belief", "snapshot", "observed_failures",
+                      "recent_dd_failures", "belief"):
+        assert not hasattr(r, forbidden), (
+            f"PeriodRecord must not expose company-belief field {forbidden!r} "
+            "to the world-side partition classifier"
+        )
+
+
+# ---------------------------------------------------------------------------
 # End-to-end: valid GapResults written to a TEMP ledger (never the real one).
 # ---------------------------------------------------------------------------
 
