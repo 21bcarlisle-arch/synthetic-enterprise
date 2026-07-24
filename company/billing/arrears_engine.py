@@ -101,6 +101,40 @@ def age_open_items(
     return items
 
 
+def oldest_unpaid_bill_date(
+    ledger: AccountLedger,
+    as_of: dt.date,
+) -> Optional[dt.date]:
+    """FIFO appropriation for a balance-based (rolling) account: apply every credit
+    (payments, write-offs, credit adjustments) against bill debits OLDEST-FIRST, and
+    return the valid_time of the oldest bill NOT yet fully covered — the oldest bill
+    the outstanding balance actually still owes. Returns None if every bill is
+    covered (any residual balance is non-bill: interest/debit-adjustment).
+
+    This is the FIFO a rolling balance IMPLIES: a payment reduces the oldest debt
+    first, so once early bills are settled the arrears age from a LATER bill, not
+    from the account's first-ever bill. Pure function of the event set (C-S2)."""
+    bills = sorted(
+        (e for e in ledger.events()
+         if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time <= as_of),
+        key=lambda e: (e.valid_time, e.event_id),
+    )
+    if not bills:
+        return None
+    # Total credit magnitude available to appropriate against bills, oldest-first.
+    credit = round(sum(
+        e.amount_gbp for e in ledger.events()
+        if not e.event_type.is_debit and e.valid_time <= as_of
+    ), 2)
+    for b in bills:
+        if credit >= round(b.amount_gbp, 2) - 0.005:
+            credit = round(credit - b.amount_gbp, 2)
+            continue
+        # this bill is only partially (or not) covered → oldest unpaid
+        return b.valid_time
+    return None  # every bill fully covered by credits
+
+
 def age_balance(
     ledger: AccountLedger,
     as_of: dt.date,
@@ -108,16 +142,20 @@ def age_balance(
 ) -> Optional[AgedItem]:
     """Balance-based ageing: the whole positive rolling balance, aged from the
     OLDEST unpaid bill's due date (FIFO — payments reduce the oldest debt first,
-    which is what a rolling balance implies). Returns None if not in arrears."""
+    which is what a rolling balance implies). Returns None if not in arrears.
+
+    HARDENED (D5 red-team): the anchor is the oldest bill still UNPAID under FIFO
+    appropriation, NOT the account's oldest bill ever. Anchoring to the first-ever
+    bill OVER-AGED a recent arrears whose earlier bills had been paid off (a £X
+    balance from last month's bill was aged into 90+ and over-dunned — an SLC-27
+    hazard for resi). If the residual balance owes no bill (all bills covered by
+    credits; the balance is interest/adjustment), it ages from as_of (current)."""
     bal = ledger.balance(as_of)
     if bal <= 0.005:
         return None
-    # oldest bill debit still 'covered' by the outstanding balance
-    bill_dates = sorted(
-        e.valid_time for e in ledger.events()
-        if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time <= as_of
-    )
-    oldest = bill_dates[0] if bill_dates else as_of
+    oldest = oldest_unpaid_bill_date(ledger, as_of)
+    if oldest is None:
+        oldest = as_of  # residual is non-bill (interest/adjustment); not an aged bill
     due = oldest + dt.timedelta(days=payment_terms_days)
     days = (as_of - due).days
     return AgedItem(

@@ -77,6 +77,42 @@ def test_age_balance_none_when_not_in_arrears():
     assert age_balance(led, as_of=dt.date(2024, 3, 1)) is None
 
 
+def test_age_balance_fifo_ages_from_oldest_UNPAID_not_oldest_ever():
+    """R15 FAILABLE (D5 red-team) — under FIFO appropriation, a payment settles the
+    oldest bill first, so once early bills are paid off the arrears must age from a
+    LATER unpaid bill. The pre-fix code anchored to the account's oldest bill EVER,
+    over-ageing a recent £X arrears into 90+ and over-dunning it (an SLC-27 hazard).
+
+    MUTATION PROOF: revert age_balance to anchor on `bill_dates[0]` (oldest bill
+    ever) and this test RED-lights — the due date jumps back ~5 months and the
+    bucket flips current→90+. Independent of the code path: the expected date is
+    computed here from the KNOWN-unpaid bill, not read back from the function."""
+    led = AccountLedger("A")
+    led.post(_bill("b1", "A", 100.0, 1))                       # Jan 1 — will be PAID
+    led.post(LedgerEvent("p1", "A", LedgerEventType.PAYMENT_CREDIT, 100.0,
+                         dt.date(2024, 1, 20), TT))            # clears b1 exactly
+    led.post(LedgerEvent("b2", "A", LedgerEventType.BILL_DEBIT, 100.0,
+                         dt.date(2024, 2, 20), TT))            # Feb 20 — the real arrears
+    item = age_balance(led, as_of=dt.date(2024, 3, 10), payment_terms_days=14)
+    assert item.outstanding_gbp == 100.0
+    # oldest UNPAID is b2 (Feb 20), due Mar 5 → 5 days overdue → 'current'
+    assert item.due_date == dt.date(2024, 3, 5)
+    assert item.bucket == "current"
+
+
+def test_age_balance_fifo_partial_payment_keeps_oldest_unpaid():
+    """A partial payment does NOT fully cover the oldest bill, so ageing stays
+    anchored to it (FIFO can't skip a bill it hasn't finished paying)."""
+    led = AccountLedger("A")
+    led.post(_bill("b1", "A", 100.0, 1))                       # Jan 1
+    led.post(LedgerEvent("p1", "A", LedgerEventType.PAYMENT_CREDIT, 60.0,
+                         dt.date(2024, 1, 20), TT))            # only £60 of b1
+    led.post(LedgerEvent("b2", "A", LedgerEventType.BILL_DEBIT, 100.0,
+                         dt.date(2024, 2, 20), TT))
+    item = age_balance(led, as_of=dt.date(2024, 3, 10), payment_terms_days=14)
+    assert item.due_date == dt.date(2024, 1, 15)   # b1 still not fully covered
+
+
 # --- dunning ---
 
 def test_dunning_paths_exist_per_segment():
