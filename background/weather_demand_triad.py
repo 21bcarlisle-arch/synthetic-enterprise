@@ -87,8 +87,18 @@ def _cells(rec: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
     """The scoring grid (campaign requirement 1: span the range of NEED / stress,
     score the worst cell). Boolean masks over the record:
       * cold_windy_tail -- the wind-chill corner where the temperature-only
-        degree-day belief is blindest (the cell that stresses W1_5's physics;
-        expected worst).
+        degree-day belief is most PHYSICALLY blind (the cell that stresses
+        W1_5's wind/regional physics). NOTE (measured, not designed): this is
+        NOT the worst-SCORING cell -- on the real record the worst gap is
+        `summer` (~1.04 vs cold_windy_tail ~0.94). The score is normalised to
+        each cell's OWN no-skill mean, and the heating regime's high demand
+        variance makes cold_windy_tail's no-skill baseline EASY to beat, while
+        the low-variance summer/shoulder cells (near-zero HDD/CDD signal) make
+        theirs hard to beat -- so "belief most physically blind" and "belief
+        scores worst" are DIFFERENT cells. Honest per R12: reported as measured
+        (`test_earns_keep_in_winter_but_harmful_in_summer`), the design's a
+        priori "cold tail worst" hunch was refuted by the data -- that discovery
+        is exactly what the coupled triad is for.
       * cold             -- the coldest quintile (deep heating load).
       * winter / summer  -- seasonal regimes.
     """

@@ -168,3 +168,53 @@ method grounding, seam gap, open questions), `docs/design/COUPLED_TRIAD_DESIGN.m
 family). Domain methods named as real, checkable UK-energy practice; exact current-edition
 figures/coefficients flagged uncertain and left for BUILD to confirm against a real published source
 (Historical Ground Truth).*
+
+---
+
+## Expert-Hour cold-eyes pass — worker tick 2026-07-24 (HARDEN, RULE-0 self-refill draw)
+
+**Supersedes §7's stale disposition.** C13 has since been BUILT to **L3 (harden)** — `level_current: 3`
+in `maturity_map.yaml`. The §7 "HELD at L0" table is a pre-build artefact.
+
+**Draw context (honest):** the SITE_MODEL_SPINE product campaign is walled at §A (director-pixel
+decision, escalated `47ebc31f3`, awaiting the director — NOT re-escalated this tick). With no
+below-target work anywhere, RULE-0 self-refill yielded the dial to this at-target atom. This is the
+**machinery/at-target treadmill** the prior tick flagged (PRODUCT-FIRST ruling `d40b9cd7c`); the
+queued fix is the missing **HARDEN-saturation draw-marker** (8th draw-gap flag, `supervisor.py`
+mechanism change — QUEUED per SELF_INTERRUPT_DISCIPLINE, not blind-landed in a bounded tick). No
+fresh NTFY: the dial-yielded + §A-walled state was already notified last tick and is UNCHANGED (R5 —
+do not repeat an unchanged status).
+
+**What the pass verified (evidence quoted):**
+- Exit tests re-run GREEN: `tests/company/test_weather_normalisation_belief.py` +
+  `tests/test_weather_demand_triad.py` → **24 passed**.
+- Live triad (`python3 -m background.weather_demand_triad`, 3337 aligned days): L1 fit
+  `demand ~ 23954 + 748.9*HDD + 506.4*CDD` (R²=0.551); L2 (+CWV wind) adds `b_windchill=-23.1`
+  (R²=0.552). Population gap L2/L1 = 0.661/0.662. Per-cell worst = **summer 1.039** (score),
+  then shoulder 1.011, warm 1.005, cold_windy_tail 0.939, cold 0.935, winter 0.863.
+- Epistemic wall INTACT: `weather_normalisation_belief.py` imports nothing from `sim/`/`simulation/`,
+  is a pure OLS estimator fed observables by the harness; the triad is the only side-by-side holder.
+
+**Two belief-vs-truth findings — REAL, already TESTED, NOT defects (R12: measured, never tuned):**
+1. **Worst cell is `summer`, not the design-anticipated cold-windy tail.** The score normalises to
+   each cell's own no-skill mean; the low-variance summer/shoulder cells (near-zero degree-day signal)
+   make their no-skill baseline hard to beat, so the temperature-only belief scores gap>1 there, while
+   the high-variance heating regime is easy to beat. "Most physically blind" (cold tail) ≠ "scores
+   worst" (summer). Captured by `test_earns_keep_in_winter_but_harmful_in_summer` +
+   `test_score_is_the_worst_cell_not_the_average`.
+2. **The L2 CWV wind-chill term fits NEGATIVE (-23.1) and worsens its own target cell**
+   (cold_windy_tail L1 0.925 → L2 0.939). Honest confounding: in GB the windiest heating days are
+   often milder Atlantic systems, so the naive `HDD × excess-wind` OLS interaction picks up a
+   negative correlation. This is exactly the kind of weather-normalisation mistake real suppliers
+   make — the company is ALLOWED to be wrong; that is the point. Captured by
+   `test_cwv_term_measured_honestly_on_the_real_record`. **NOT "fixed" toward a positive coefficient**
+   — forcing the sign would be R12 goal-seeking against a target.
+
+**One fidelity fix landed this tick:** the `_cells` docstring in `weather_demand_triad.py` asserted
+cold_windy_tail was the "expected worst" cell — falsified by the live data. Corrected to state the
+measured reality (summer worst, and WHY the no-skill normalisation makes physical-blindness and
+worst-score diverge), with a pointer to the test. Documentation-fidelity, no behaviour change.
+
+**Disposition:** C13 is honestly at-target (L3 harden); no honest hardening remains beyond the
+comment fix — the belief-vs-truth findings are real, tested, and correctly reported. A further
+"hardening" pass here would be theatre. `expert_hour` outcome: **attempted → at-target, no defect.**
