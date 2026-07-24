@@ -269,3 +269,74 @@ both-ways on the new calibration, ledger row + coupled-triad HARNESS gap re-meas
 > part (a) from "network-gated / ungrounded R12 hazard" to "externally grounded, ready for a deliberate
 > R13 baseline pass." **No mint: premise false. No baseline BUILD: deferred deliberately (below spike-tail
 > + deserves its own R15-tested pass).**
+
+---
+
+## TEST C — does the GROUNDED era partition actually recover the cells? (DONE, 2026-07-24 twelfth worker tick, R13/R12-clean)
+
+Part (a) was grounded last tick (DUKES 3-era partition, blind to the lift table) and deferred as an
+R13 baseline pass. But grounding the era boundaries from **fossil-capacity plateaus** and then *assuming*
+those are the right partition to key an A0/A1 recalibration on is an untested leap — exactly the
+"measure the smallest closed-loop test before you build" gap (R4). Test B measured only PER-YEAR refits
+(an upper bound; not deployable — you cannot fit a year on its own future). **This tick measures the
+deployable question:** refit the SAME form PER ERA (3 fits, the structure a real recalibration would use)
+and ask whether the DUKES capacity-eras recover the negative-lift cells. Diagnostic only — new tool
+`tools/ssp_refit_era_partitioned.py`, reuses `recal._fit_form` + the Test-B helpers as libraries, no
+constant changed on disk, no P&L read (R13/R12-clean by construction, same as Test A/B). Reproduce:
+`python3 -m tools.ssp_refit_era_partitioned`.
+
+| yr | era | med_x | gMAE | **eraMAE** | lMAE (per-yr) | olsMAE | gLift | **eraLift** | lLift | outcome |
+|----|-----|------|------|------|------|------|------|------|------|------|
+| 2016 | A | 0.730 | 17.18 | 17.08 | 19.22 | 25.13 | +7.95 | +8.04 | +5.90 | win |
+| 2017 | A | 0.689 | 17.16 | 17.29 | 17.15 | 22.56 | +5.40 | +5.27 | +5.41 | win |
+| 2018 | A | 0.673 | 19.43 | 18.94 | 18.39 | 21.71 | +2.28 | +2.77 | +3.32 | win |
+| **2019** | B | 0.635 | 18.82 | 19.44 | 17.02 | 18.02 | −0.79 | **−1.42** | +1.01 | **era WORSENS** (per-yr flips +) |
+| **2020** | B | 0.546 | 22.19 | 22.57 | 19.38 | 18.97 | −3.22 | **−3.60** | −0.41 | **era WORSENS** |
+| **2021** | B | 0.601 | 50.22 | 50.95 | 49.21 | 48.01 | −2.21 | **−2.94** | −1.20 | **era WORSENS** (crisis) |
+| 2022 | B | 0.521 | 79.16 | 77.94 | 77.91 | 84.71 | +5.55 | +6.77 | +6.80 | win (crisis) |
+| **2023** | C | 0.529 | 44.12 | 41.95 | 41.56 | 43.86 | −0.27 | **+1.91** | +2.30 | **ERA-FLIP →+** |
+| 2024 | C | 0.534 | 29.35 | 28.57 | 28.00 | 28.17 | −1.18 | −0.40 | +0.17 | era-neg (per-yr flips +) |
+| **2025** | C | 0.461 | 35.09 | 32.01 | 35.54 | 32.81 | −2.28 | **+0.80** | −2.73 | ERA-FLIP →+ (per-yr-neg too; small-n L1 artefact) |
+
+Per-era fits: **A(16-18)** A0=0.508 A1=1.294 A2=0.503 · **B(19-22)** A0=0.305 A1=1.271 **A2=4.971** · **C(23-25)** A0=0.500 A1=1.437 A2=3.358.
+(Refits A0/A1/A2 per era — an UPPER BOUND on the narrower A0/A1-only part-(a) proposal: any cell this fuller refit fails to recover, the A0/A1-only version fails too.)
+
+### The decisive finding — the grounded partition is MISALIGNED (evidence before narrative, R9)
+The DUKES fossil-capacity 3-era partition recovers only **2 of 6** negative-lift cells (2023, 2025) vs
+**3** for the per-year upper bound — and, materially, it **makes 3 cells WORSE than the untouched global
+fit** (2019 −0.79→−1.42, 2020 −3.22→−3.60, 2021 −2.21→−2.94). The mechanism is visible in the era
+coefficients: **Era B (2019–2022) pools the CALM 2019/2020 years with the CRISIS 2021/2022 years**, so its
+pooled fit takes a large scarcity kicker (**A2=4.97**, four-to-ten× Era A/C's) to price the crisis — and
+that crisis-tuned line is *wrong* for calm 2019/2020, pushing them further negative. This is the exact
+"crisis poisons its era-mate" hazard: a capacity-plateau boundary is not a price-regime boundary. 2019
+is the tell — a per-year refit flips it to +1.01, but binning it with 2021/22 drives it to −1.42.
+
+### Consequence for the deferred part-(a) baseline pass (redirected, still R13-deferred)
+The grounding remains sound and useful (the constant `DISPATCHABLE_CAPACITY_MW=35000` really is ~42% too
+low for 2016–18 — a real denominator-fidelity fix). **But part (a) must NOT key the A0/A1 recalibration on
+the DUKES capacity eras** — that partition under-performs and breaks 2019. The calibration-relevant
+partition is a **price-REGIME / x-distribution split that separates crisis (2021/22) from calm**, not the
+fossil-capacity plateaus. Two honest part-(a) sub-questions this now hands the deferred pass, pre-measured:
+1. **The denominator fix** (35000 → era-varying dispatchable capacity, DUKES-grounded) is a *separate,
+   legitimate* fidelity change from the A0/A1-regime recalibration — do not conflate them.
+2. **The A0/A1 partition must be crisis-vs-calm regime-aware**, and the ledger already tags each cell's
+   `regime` — so the regime split is itself externally/structurally grounded, not lift-table-derived (R12-safe).
+Part (a) stays a **deliberate, director-priority-deferred R13 pass** (below spike-tail per 2026-07-19;
+deserves its own R15-mutation-tested build, not a tail-of-tick rush) — this tick only *measured which
+partition it must use*, saving it from building on the misaligned one.
+
+**Walls untouched:** doc + one new diagnostic tool; no SSP constant changed on disk, no level moved, no
+curriculum value chosen, no company P&L read. The tool is a DIAGNOSTIC (measures the model), not a control
+gating a promotion — R15 mutation-testing applies to controls, N/A here. Epistemic-verifier **PASS** (525
+files, tools/ imports simulation as a library; no company/sim boundary crossed).
+
+> **Tick note (2026-07-24, RUNG-7 doorbell, twelfth worker tick):** doorbell fired the stale "rungs 1–6
+> empty → MINT" read AGAIN; disk contradicts it (6 `PLANNER_MINTED_*` open, director-waived; 5 marked
+> `blocked`, this one `self-drawable`). Minting a 7th batch = the over-production
+> `DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24` intervened on. Correct draw = advance THIS mint's one
+> genuinely-drawable step. The prior tick's grounding *assumed* the DUKES capacity-eras were the right
+> A0/A1 partition; this tick MEASURED it (Test C) and found the partition **misaligned** — it recovers
+> fewer cells and worsens 2019/2020/2021 by binning calm with crisis. Real code + a decision-relevant
+> finding (broke no doc-only pattern), keeping the deferred R13 baseline pass from building on the wrong
+> partition. **No mint: premise false. No baseline BUILD: still deferred (below spike-tail + deserves its
+> own R15 pass), now with its partition pre-diagnosed.**
