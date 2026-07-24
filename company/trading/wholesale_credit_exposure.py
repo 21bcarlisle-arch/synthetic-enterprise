@@ -60,6 +60,86 @@ _CREDIT_LIMIT_BY_RATING: Dict[CounterpartyCreditRating, float] = {
 _CLEARED_EXPOSURE_HAIRCUT = 0.10     # CCP-cleared: 10% of MtM counts (collateral covers most)
 
 
+# --- VALUE_CHAIN BUILD ladder step 3: the observation-window cap (2026-07-24) ---
+# The declared FAIL (PRIORITIES.md PRODUCT-FIRST item 3, verbatim): the credit cap was a
+# *static dict* — a fixed rating-band number a 20-year veteran reads as a tell that the
+# collateral mechanics are cosmetic (Axis 3 believability). Real credit control does not stop
+# at the rating band: a line is TIGHTENED when a counterparty's OWN observed conduct on the
+# margin calls it exchanges with the company deteriorates (disputes, then defaults). This is
+# the observation-window mechanism — the cap is a rating-anchored PRIOR eroded by the company's
+# OWN observed settle/dispute record over the window.
+#
+# WALL: the erosion signal is the company's own record of how its counterparties honoured the
+# margin calls it exchanged with them (MarginCallStatus transitions it observes first-hand) and
+# the PUBLIC agency rating band — both company-side observables, never a simulation internal
+# (never the counterparty's TRUE default probability, which stays behind the wall). Confirmed by
+# tools.epistemic_verifier on the diff.
+#
+# NAMED SIMPLIFICATION (R10), deliberately one-directional: observed conduct can only ERODE the
+# rating-anchored prior, never EARN a line ABOVE the rating band. A real board does not lift a
+# rating-based limit merely because a name has paid cleanly — the rating is the ceiling; observed
+# misconduct only tightens. Modelling an earn-up above the band is left as a named follow-on, not
+# asserted here.
+#
+# BENIGN DEFAULT (the doc's authorised scope — "mint the mechanism + a benign default"): with NO
+# observed conduct over the window the multiplier is exactly 1.0, so the cap equals the rating
+# prior and every existing consumer is unchanged. This is HONEST, not cosmetic: a counterparty
+# with no adverse history rightly retains its full rating-based line. The LIVE settlement-history
+# feed (a multi-period exposure sample + a margin-call settle/dispute RESOLUTION mechanic — both
+# verified absent from the run loop today) is the named next drawable step; until it lands the
+# mechanism is live and proven but dormant, and this file does NOT claim the live cap moves yet.
+_WINDOW_LIMIT_FLOOR_FRACTION = 0.25   # observed misconduct can cut a line to at most 1/4 of the rating prior
+_DISPUTE_WEIGHT = 0.5                  # a disputed call is a soft adverse signal
+_DEFAULT_WEIGHT = 1.0                  # a defaulted call is the maximal adverse signal
+
+
+@dataclass(frozen=True)
+class ObservedCounterpartyBehaviour:
+    """The company's OWN observed record of a counterparty's margin-call conduct over the
+    observation window — a through-the-wall observable. The company sees first-hand whether the
+    margin calls it exchanged with a counterparty were SETTLED, DISPUTED, or DEFAULTED
+    (``MarginCallStatus`` transitions on its own book); it never reads the counterparty's true
+    default probability. Counts, so it accumulates idempotently across sample points (C-S2)."""
+
+    n_settled: int = 0
+    n_disputed: int = 0
+    n_defaulted: int = 0
+
+    @property
+    def n_observed(self) -> int:
+        return self.n_settled + self.n_disputed + self.n_defaulted
+
+    @property
+    def adverse_score(self) -> float:
+        """Weighted fraction of observed conduct that was adverse, in [0, 1]. Zero when nothing
+        has been observed (the benign default) or when every observed call settled cleanly."""
+        if self.n_observed == 0:
+            return 0.0
+        weighted = _DISPUTE_WEIGHT * self.n_disputed + _DEFAULT_WEIGHT * self.n_defaulted
+        return min(1.0, weighted / self.n_observed)
+
+
+def observation_window_credit_limit(
+    rating: CounterpartyCreditRating,
+    behaviour: Optional[ObservedCounterpartyBehaviour] = None,
+    *,
+    rating_prior: Optional[float] = None,
+) -> float:
+    """The observation-window credit cap: the rating-anchored prior eroded by observed conduct.
+
+    ``rating_prior`` defaults to ``_CREDIT_LIMIT_BY_RATING[rating]``. With no observed conduct
+    (``behaviour is None`` or ``n_observed == 0``) the prior stands unchanged — the benign
+    default. As observed disputes/defaults accumulate, the cap erodes monotonically toward
+    ``_WINDOW_LIMIT_FLOOR_FRACTION`` of the prior (an all-defaulted history). One-directional by
+    design (see module note): observed conduct never earns a line above the rating band.
+    """
+    base = rating_prior if rating_prior is not None else _CREDIT_LIMIT_BY_RATING[rating]
+    if behaviour is None or behaviour.n_observed == 0:
+        return base
+    multiplier = 1.0 - (1.0 - _WINDOW_LIMIT_FLOOR_FRACTION) * behaviour.adverse_score
+    return round(base * multiplier, 2)
+
+
 @dataclass(frozen=True)
 class WholesaleCreditRecord:
     counterparty_id: str
@@ -69,6 +149,10 @@ class WholesaleCreditRecord:
     gross_mtm_gbp: float
     collateral_held_gbp: float
     credit_limit_override_gbp: Optional[float] = None
+    # Observation-window signal: the company's OWN observed margin-call conduct for this name over
+    # the window. Absent (None) → the rating-anchored prior stands (benign default, backward-
+    # compatible). Present with adverse conduct → the cap erodes via observation_window_credit_limit.
+    observed_behaviour: Optional[ObservedCounterpartyBehaviour] = None
 
     @property
     def net_exposure_gbp(self) -> float:
@@ -81,7 +165,10 @@ class WholesaleCreditRecord:
     def credit_limit_gbp(self) -> float:
         if self.credit_limit_override_gbp is not None:
             return self.credit_limit_override_gbp
-        return _CREDIT_LIMIT_BY_RATING[self.credit_rating]
+        # Observation-window cap: rating-anchored prior eroded by observed conduct. With no
+        # observed_behaviour this equals the static rating prior (benign default), so an override
+        # (e.g. CCP no-per-name-limit) and every prior consumer are unchanged.
+        return observation_window_credit_limit(self.credit_rating, self.observed_behaviour)
 
     @property
     def utilisation_pct(self) -> float:
