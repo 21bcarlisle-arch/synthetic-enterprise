@@ -183,6 +183,52 @@ def test_extract_report_data_dd_collection_book_defaults_to_empty_dict():
     assert data["dd_collection_book"] == {}
 
 
+def test_extract_report_data_forwards_value_chain_credit_organs():
+    """VALUE_CHAIN surfacing (2026-07-24): run_phase2b computes the trading
+    book + wholesale-credit-exposure + margin-call registers, but the
+    extract whitelist dropped all three -- so the mid-run PEAK credit
+    exposure the multi-period-sampling feed captures never reached the
+    published run-output JSON. Same silent-drop class as dd_collection_book.
+    R15 mutation: deleting any of the three forwarding lines reds the matching
+    assertion below (the register no longer reaches the board surface)."""
+    run_output = _run_output()
+    run_output["phase2b"]["trading_book"] = {
+        "contract_count": 42,
+        "total_hedged_mwh": 12345.6,
+        "total_bid_ask_cost_gbp": 9876.5,
+    }
+    run_output["phase2b"]["wholesale_credit_exposure"] = {
+        "mark_date": "2025-06-07",
+        "n_counterparties": 11,
+        "peak_sample_date": "2021-12-31",
+        "peak_total_net_exposure_gbp": 786528.0,
+        "peak_is_limit_breached": False,
+        "sample_series": [{"sample_date": "2021-12-31", "total_net_exposure_gbp": 786528.0}],
+    }
+    run_output["phase2b"]["margin_call_book"] = {
+        "n_calls": 3,
+        "total_variation_margin_gbp": 120000.0,
+        "credit_facility_gbp": 5_000_000.0,
+    }
+    data = extract_report_data(run_output)
+    assert data["trading_book"]["contract_count"] == 42
+    # the board-meaningful figure: mid-run peak exposure, not the near-empty
+    # end-of-run mark -- must survive to the persisted JSON verbatim.
+    assert data["wholesale_credit_exposure"]["peak_total_net_exposure_gbp"] == 786528.0
+    assert data["wholesale_credit_exposure"]["peak_sample_date"] == "2021-12-31"
+    assert data["margin_call_book"]["n_calls"] == 3
+
+
+def test_extract_report_data_value_chain_organs_default_to_empty_dict():
+    """A run_output whose phase2b never emitted the value-chain registers
+    (older shape / feed skipped) surfaces empty dicts, never a KeyError --
+    the fail-open edge the whitelist must tolerate (C-S1: partial arrival)."""
+    data = extract_report_data(_run_output())  # no value-chain keys in phase2b
+    assert data["trading_book"] == {}
+    assert data["wholesale_credit_exposure"] == {}
+    assert data["margin_call_book"] == {}
+
+
 def test_extract_report_data_splits_by_year():
     data = extract_report_data(_run_output())
 

@@ -203,3 +203,26 @@ The live feed marks the book at a **single end-of-run** snapshot. Over a full 20
 - **Sampling cadence** is semi-annual (a named simplification — finer cadence would catch a sharper intra-year peak; bounded here, follow-on if a veteran flags it). **MC-2 death-test** unchanged; its difficulty stays R13 curriculum.
 
 > **Tick note (2026-07-24, RUNG-7 doorbell, seventh worker tick):** doorbell fired the stale "rungs 1–6 empty → MINT" read a SEVENTH time; disk contradicts it (6 self-drawable/blocked `PLANNER_MINTED_*` open, director-waived — a seventh mint batch = the over-production the director intervened on). SSP sibling remains worker-tick-exhausted (part-a director-reserved). Correct draw = advance THIS mint's genuine drawable step — shipped multi-period sampling as real code + R15 both-ways (broke no doc-only pattern). No mint: premise false.
+
+
+---
+
+## BUILD ladder -- RUN-OUTPUT SURFACING (step-3 prerequisite 3) SHIPPED (DONE, 2026-07-24 eighth worker tick)
+
+Prereq (2) multi-period sampling (last commit `0f4011040`) gave the register real mid-run blood, which the step-3 note said UNBLOCKS prereq (3) surfacing for the exposure side. That was the genuine drawable step this tick.
+
+### The gap (verified on real disk)
+`run_phase2b` returns `trading_book`, `wholesale_credit_exposure` and `margin_call_book` (`simulation/run_phase2b.py:2456-2461`), but the published `docs/reports/run_output_latest.json` had **80 top-level keys, none of the three** -- `saas/reporting/annual_report.py::extract_report_data` (the whitelist that reduces the run_output before persistence) **silently dropped all three**. So the board-meaningful **peak GBP 786,528 net exposure at 2021-12-31** the multi-period feed now captures was invisible to every surface reading the JSON. Same silent-drop class as `dd_collection_book` (wired 2026-07-12). `_section_trading_book` (`annual_report.py:3196`) already **consumes** `trading_book` -- rendering **0 contracts** today because it arrived empty (a live-but-starved consumer, not a new organ).
+
+### What shipped (mechanism + verification)
+- **`saas/reporting/annual_report.py::extract_report_data`** now forwards `trading_book` / `wholesale_credit_exposure` / `margin_call_book` from `phase2b` into the persisted-JSON return dict (three `phase2b.get(..., {})` lines -- fail-open-tolerant to older run shapes, C-S1 partial arrival).
+- **`tests/saas/reporting/test_annual_report.py`** +2 tests (dd_collection_book precedent): `test_extract_report_data_forwards_value_chain_credit_organs` asserts the peak exposure + sample_date + trading/margin figures survive to the extracted JSON verbatim; `test_extract_report_data_value_chain_organs_default_to_empty_dict` proves the older-shape edge yields `{}` not a KeyError.
+- **R15 both-ways PROVEN this tick:** dropping the `wholesale_credit_exposure` forward -> `{}` reds the forwards test (mutant exit 1); clean restore greens all 194. Epistemic-verifier **PASS** on the diff (saas/reporting forwards already-company-side phase2b output; no sim read).
+
+### HONEST remaining (verified)
+- **R11 live-pixel is PENDING the next publish:** this tick wired the serializer + proved it in unit test, but `run_output_latest.json` is regenerated only by a full sim run via `process_run_complete`. The three keys will appear (with moving numbers) on the next auto-processed run; I did NOT run a full sim in this bounded tick. "Done" here = the serializer forwards + tested, NOT yet the live JSON -- stated per R11 rather than claimed.
+- **(1) RESOLUTION world-half** (conduct -> cap erosion) stays a walled coupled atom -> the observation-window cap remains honestly DORMANT (equals the rating prior) until fed adverse behaviour.
+- **MC-2 death-test** unchanged; difficulty stays R13 curriculum -> escalate the value.
+- A board-surface (site) rendering of these figures is a natural follow-on once the live JSON carries them.
+
+> **Tick note (2026-07-24, RUNG-7 doorbell, eighth worker tick):** doorbell fired the stale "rungs 1-6 empty -> MINT" read an EIGHTH time; disk contradicts it (this mint has a genuine drawable next step, director-waived). Correct draw = advance it -- shipped the run-output surfacing serializer fix + 2 tests + R15 both-ways, and caught that `trading_book` (a sibling organ with an already-live starved consumer) was dropped by the same whitelist. No mint: premise false.

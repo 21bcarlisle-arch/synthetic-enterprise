@@ -637,6 +637,18 @@ def extract_report_data(run_output: dict) -> dict:
         "roc_summary": phase2b.get("roc_summary", {}),
         "fit_summary": phase2b.get("fit_summary", {}),
         "ccl_summary": phase2b.get("ccl_summary", {}),
+        # VALUE_CHAIN surfacing (2026-07-24): the trading book + its two
+        # board-level credit/liquidity registers are computed by run_phase2b
+        # but were silently dropped by this whitelist -- so the mid-run PEAK
+        # credit exposure the multi-period-sampling feed now captures was
+        # invisible to the published run-output JSON and every board surface
+        # reading it. Same silent-drop class as dd_collection_book (wired
+        # 2026-07-12). _section_trading_book already CONSUMES trading_book
+        # (rendering 0 contracts today because it arrived empty). Forward all
+        # three so the board can read the register's real blood.
+        "trading_book": phase2b.get("trading_book", {}),
+        "wholesale_credit_exposure": phase2b.get("wholesale_credit_exposure", {}),
+        "margin_call_book": phase2b.get("margin_call_book", {}),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
         "by_billing_account": by_billing_account,
