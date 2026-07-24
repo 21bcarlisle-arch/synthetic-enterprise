@@ -275,6 +275,79 @@ def test_r15_scrub_prevents_leaked_index_phantom_deletion__mutation_proof():
     )
 
 
+def _head_sha(repo, clean_env):
+    return _run_git(["rev-parse", "HEAD"], cwd=repo, env=clean_env).stdout.strip()
+
+
+def _head_tree_names(repo, clean_env):
+    """Files present in HEAD's committed tree (read with a clean env)."""
+    return _run_git(["ls-tree", "--name-only", "HEAD"], cwd=repo, env=clean_env).stdout.strip()
+
+
+def test_r15_scrub_prevents_leaked_tree_deleting_commit__mutation_proof():
+    """R15 mutation proof for the THIRD and most destructive named corruption mode of the
+    H24/H26 incident: a LEAKED TREE-DELETING COMMIT -- a gate-run test that not only stages a
+    removal but COMMITS it, landing a new commit on the real repo's HEAD whose tree has the file
+    deleted ("once producing a commit that deleted the whole tree").
+
+    This is distinct from the two faces already proven:
+      - core.bare flip (test_r15_scrub_prevents_leaked_git_dir_corruption__mutation_proof) mutates
+        CONFIG;
+      - index phantom-deletion (test_r15_scrub_prevents_leaked_index_phantom_deletion__mutation_proof)
+        mutates the INDEX but stops before a commit is written.
+    The third face proves the failure reaches HEAD itself: an unscrubbed leak lets a `git rm --cached`
+    + `git commit` sequence from a neutral cwd advance the isolated repo's HEAD to a commit whose tree
+    is EMPTY. R15 CONTROLS_THAT_CANNOT_FAIL: a control is under-proven while any face of its named
+    defect is unmeasured -- all three incident faces now fire against the scrub, both directions, on a
+    throwaway isolated repo, never the real worktree.
+    """
+    clean_env = gate._gitless_env(dict(os.environ))
+    isolated_repo = _make_isolated_repo(clean_env)  # committed seed.txt, clean index, HEAD present
+    baseline_head = _head_sha(isolated_repo, clean_env)
+    assert _head_tree_names(isolated_repo, clean_env) == "seed.txt", "fixture HEAD must hold seed.txt"
+
+    # A neutral cwd that is NOT a git repo -- so the only way a commit can reach ANY repo is by
+    # obeying the leaked GIT_DIR/GIT_INDEX_FILE, exactly the commit-time leak vector.
+    neutral_cwd = tempfile.mkdtemp(prefix="h24_commit_neutral_cwd_")
+
+    leaked_env = dict(clean_env)
+    leaked_env["GIT_DIR"] = str(Path(isolated_repo) / ".git")
+    leaked_env["GIT_WORK_TREE"] = isolated_repo
+    leaked_env["GIT_INDEX_FILE"] = str(Path(isolated_repo) / ".git" / "index")
+
+    def _stage_and_commit(env):
+        _run_git(["rm", "--cached", "seed.txt"], cwd=neutral_cwd, env=env)
+        return _run_git(
+            ["commit", "-q", "-m", "leaked tree-deleting commit"], cwd=neutral_cwd, env=env,
+        )
+
+    # --- WITH the shipped scrub (the real code path) --- HEAD + tree must be untouched ---
+    scrubbed_env = gate._gitless_env(leaked_env)
+    assert [k for k in scrubbed_env if k.startswith("GIT_")] == []
+    _stage_and_commit(scrubbed_env)
+    assert _head_sha(isolated_repo, clean_env) == baseline_head, (
+        "with GIT_* scrubbed the leaked commit must NOT land -- HEAD must be unmoved"
+    )
+    assert _head_tree_names(isolated_repo, clean_env) == "seed.txt", (
+        "the scrub must leave the isolated repo's committed tree intact (seed.txt still present)"
+    )
+
+    # --- WITHOUT the scrub (the mutation: leak passed straight through, the pre-fix gate) ---
+    # must REPRODUCE the tree-deleting commit: HEAD advances to a commit whose tree is empty.
+    res = _stage_and_commit(leaked_env)
+    assert res.returncode == 0, (
+        "expected the unscrubbed leaked env to let `git commit` succeed against the isolated repo "
+        f"-- if it didn't, this test can't demonstrate the tree-deleting-commit defect: {res.stderr}"
+    )
+    assert _head_sha(isolated_repo, clean_env) != baseline_head, (
+        "the unscrubbed leak must LAND A NEW COMMIT on the isolated repo's HEAD"
+    )
+    assert _head_tree_names(isolated_repo, clean_env) == "", (
+        "the unscrubbed leaked commit must DELETE THE WHOLE TREE (HEAD tree now empty) -- proving "
+        "the third named H24/H26 corruption mode is real and the scrub is what prevents it"
+    )
+
+
 def test_committed_hook_invokes_the_gate_and_aborts_on_failure():
     # Reconstruct-from-repo: the committed hook itself must call the gate and abort on non-zero.
     hook = (ROOT / "tools" / "git-hooks" / "pre-commit").read_text()
