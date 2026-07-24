@@ -1,7 +1,7 @@
 # [PLANNER-MINTED] Attack the SSP residual-demand model's NEGATIVE-lift cells (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 3). Attaches to existing atom `W1_6_physics_price_signal` (fidelity-ledger row `ssp_residual_demand_scarcity_calibration_2026_07_19`).
-> **BLOCKING SUB-ITEM (open):** ~~Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4)~~ **DONE this tick (2026-07-24 worker tick) — see the "DISCOVER/FRAME diagnosis" section appended below.** Mechanism named: **single global MAE-fit + a yardstick switch**, not a model regression. Scope step 2 BUILD (regime-aware calibration OR an R10 named simplification) proceeds under reversible authority, **strictly R13/R12-governed** (P&L-blind, mechanism-not-tuning). **UNBLOCKS:** self — no wall; the next drawable step is the confirming closed-loop check (Test A below: dwell-fraction above X_TIGHT per cell) then the structural refit/simplification decision.
+> **BLOCKING SUB-ITEM (open):** ~~Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4)~~ **DONE.** ~~Test A (dwell-fraction above X_TIGHT per cell)~~ **DONE this tick (2026-07-24 worker tick) — see "Test A RESULT" section appended below. Test A REFUTED the inferred "scarcity term dormant in calm years" sub-hypothesis: the term is live 17–55% of the time in EVERY year and dwell DECLINES secularly (renewables growth), and the 2022 crisis WIN-cell has among the LOWEST dwell (18.4%). The mechanism is redirected: a single GLOBAL fit against a secularly-drifting x-distribution (median x 0.73→0.46 over 2016→2025), not scarcity dormancy.** Scope step 2 BUILD (regime/time-aware calibration OR an R10 named simplification) proceeds under reversible authority, **strictly R13/R12-governed** (P&L-blind, mechanism-not-tuning). **UNBLOCKS:** self — no wall; the next drawable step is now **Test B** (diagnostic refit of A0/A1 on the drift-corrected / later-year x-distribution, holding the scarcity structure fixed) then the structural refit-vs-simplification decision.
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Minted from a fidelity-ledger row. **Propose-then-proceed.**
 
@@ -78,3 +78,40 @@ The nearest working analogue is the winner it loses to: **`ols_regression_3featu
 2. **R10 named simplification (if the calm-year gap is irreducible under one honest global form):** register "the residual-demand merit-order form earns its structure in scarcity regimes; in calm regimes it trades up to ~£3/MWh MAE vs a per-cell linear refit, accepted because the form must be *one* physics across the window and scarcity is where merit-order pricing is commercially load-bearing" — with the measured per-cell residual. A silent +1.17 headline that hides the per-cell losses is **not** an acceptable close (R10 class registration required, not an instance fix).
 
 **Next drawable step (no wall):** run Test A (a ~20-line data pass over the existing SSP/demand/renewables series — no sim change, no calibration change), attach the dwell-fraction table to this doc, then take the regime-aware-refit-vs-simplification decision. All of it stays P&L-blind (R13) and mechanism-not-target (R12).
+
+---
+
+## Test A RESULT — scarcity-term dwell fraction per year (DONE 2026-07-24 worker tick, R4/R13/R12-clean)
+
+**Harness:** `tools/ssp_scarcity_dwell_fraction.py` — a pure data pass over the SAME series the model is calibrated against (`sim/cache/elexon_demand_full.json` demand + `sim/cache/elexon_agws_full.json` wind+solar), joined per `(settlementDate, settlementPeriod)`, using the model's OWN constants (`X_TIGHT=0.70`, `DISPATCHABLE_CAPACITY_MW=35000`, imported from `sim.price_engine`). No calibration constant touched, no company P&L read — R13 (fidelity-to-reality, P&L-blind) and R12 (mechanism, not benchmark-tuning) both hold by construction. Re-runnable: `python3 -m tools.ssp_scarcity_dwell_fraction`.
+
+`x = (demand_mw − renewable_generation_mw) / 35000`. `dwell_fraction` = fraction of half-hours with `x > 0.70`, i.e. where the convex scarcity kicker `A2·(x−0.70)^2` is LIVE (it is exactly zero at or below the threshold).
+
+| year | HH n | dwell_n (x>0.70) | **dwell_fraction** | median x | max x | lift (from ledger) | best baseline |
+|------|-----:|-----:|-----:|-----:|-----:|-----:|---|
+| 2016 | 14484 | 8025 | **0.554** | 0.730 | 1.41 | +2.23 win | gas_floor |
+| 2017 | 17169 | 8219 | **0.479** | 0.689 | 1.36 | +0.25 win | gas_floor |
+| 2018 | 17308 | 7807 | **0.451** | 0.673 | 1.32 | +0.04 win | gas_floor |
+| 2019 | 17231 | 6569 | **0.381** | 0.635 | 1.30 | −0.79 LOSS | ols_3feat |
+| 2020 | 16576 | 4031 | **0.243** | 0.545 | 1.23 | −3.22 LOSS | ols_3feat |
+| 2021 | 16834 | 5153 | **0.306** | 0.601 | 1.26 | −2.21 LOSS (crisis) | ols_3feat |
+| 2022 | 14967 | 2760 | **0.184** | 0.520 | 1.21 | +5.55 WIN (crisis) | ols_3feat |
+| 2023 | 17463 | 3613 | **0.207** | 0.528 | 1.20 | −0.27 LOSS | ols_3feat |
+| 2024 | 17523 | 3633 | **0.207** | 0.534 | 1.24 | −1.18 LOSS | ols_3feat |
+| 2025 |  7570 | 1326 | **0.175** | 0.461 | 1.21 | −2.28 LOSS | ols_3feat |
+
+(HH n < 17520/yr as expected: 2016 starts ~March per the cache coverage note; 2025 is a partial year to ~June. Coverage is sound for a distributional read.)
+
+### What Test A REFUTES (evidence before narrative, R9)
+The prior tick's DISCOVER/FRAME hypothesis 2 asserted, tagged `[inferred — Test A below confirms]`: *"In calm years residual demand rarely crosses x=0.70, so A2 is dormant."* **Test A refutes this.**
+1. **The scarcity term is NOT dormant in any calm year** — it is live 17.5%–38.1% of the time in every "calm losing" cell (2019 0.38, 2020 0.24, 2023 0.21, 2024 0.21, 2025 0.18). "Rarely crosses" is false; it crosses one to two half-hours in five.
+2. **Dwell does not separate winners from losers.** The 2022 cell WINS by the largest margin (+5.55) with among the LOWEST dwell (0.184) — *lower* than 2019/2020/2021 which all LOSE. If the scarcity kicker earned the wins, the +5.55 crisis cell would have the highest dwell; it does not. So the 2022 edge is the **gas-floor passthrough** catching the gas-crisis price level (`P = P_gas_floor × multiplier` — the floor tracks the crisis directly), NOT the scarcity term. `[inferred from the co-occurrence of the largest win with a low dwell; consistent with 2016–18 also winning against the weak gas_floor-alone baseline.]`
+
+### What Test A REDIRECTS the diagnosis toward (the corrected mechanism)
+**Secular distributional drift in x, not scarcity dormancy.** `median x` falls monotonically 0.730 (2016) → 0.461 (2025) as renewables penetration grows and residual demand shrinks. A **single global** A0/A1/A2 fit is centred on the whole-window x-distribution; it is therefore progressively **miscentred** for the later low-x years, exactly the calm cells that lose. A per-cell OLS re-centres on each year's own (lower) x-distribution and gas-passthrough regime, so it claws back 0.27–3.22 MAE. The compromise is not "crisis observations pull A2"; it is "one global line cannot sit correctly on a distribution whose centre moves ~0.27 in x across the decade AND whose gas-floor level regime-shifts."
+
+### Consequence for the scope-2 decision (unchanged shortlist, better-grounded)
+- **Regime/time-aware calibration (preferred, structural):** condition A0/A1 on the x-distribution regime (equivalently on era/renewables-penetration), holding the scarcity structure (X_TIGHT/exponent/A2) fixed — one physics, drift-aware calibration. Success = fidelity-to-real-SSP per cell, decided blind to P&L (R13). **Test B is the confirming step:** re-fit A0/A1 on later-year (low-x) observations only, hold the scarcity tail fixed, re-measure the calm-cell MAE; if the gap to OLS closes, drift-miscentring is confirmed as the mechanism.
+- **R10 named simplification (fallback):** register "a single global residual-demand line trades up to ~£3/MWh MAE in the low-x renewables-heavy later years vs a per-era refit, accepted because the form must be one physics across the window" — with the measured per-cell residual. Still requires class registration, not an instance patch.
+
+**Walls untouched:** doc-only + one new diagnostic tool; no SSP constant changed, no level moved, no curriculum value chosen, no company P&L read. `tools/ssp_scarcity_dwell_fraction.py` is a DIAGNOSTIC (measures the model), not a control gating any promotion — R15 mutation-testing applies to controls, N/A here.
