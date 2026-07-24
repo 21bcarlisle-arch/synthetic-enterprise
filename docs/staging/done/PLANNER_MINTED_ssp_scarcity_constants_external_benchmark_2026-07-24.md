@@ -24,3 +24,14 @@ Turns the scarcity constants from *"OLS-fit, internally motivated"* into *"cross
 
 ## Propose-then-proceed window
 Standard planner window; DISCOVER is fully reversible (doc-only). Register a finding/atom rather than editing the price engine on sight (SELF_INTERRUPT_DISCIPLINE: queue, don't fix-on-sight).
+
+
+---
+
+## DISPOSITION — DISCOVER DONE (2026-07-24 worker tick)
+
+Dispatched to the read-only discovery-agent. Network was available; general web search engines were bot-blocked, but direct gov.uk URL-walking + gov.uk's `/api/search.json` yielded **two genuine anchors** (both `observed-with-evidence`, cited):
+1. **DECC Capacity Market (2015):** DDM price ceiling **£6,000/MWh** — the fitted multiplier's max output (~£574/MWh) sits ~1 order of magnitude below both this ceiling and the real SSP max (£4,038/MWh), externally GROUNDING (not newly finding) the already-honest tail-underproduction gap.
+2. **Statutory Security of Supply Report (2025):** GB Reliability Standard **LOLE ≤ 3 hrs/yr** (~0.034% of periods) — the code's scarcity kicker firing on ~30–40% of periods reads as a general tight-margin markup, not a literal loss-of-load mechanism (interpretation note, `inferred`).
+
+**No source using the identical functional form was found → A0/A1/A2 as literal magnitudes remain UNBENCHMARKED; the S3 gap STANDS, now bounded** by the two anchors. R12/R13 held throughout: gather-only, NO constant changed, NO recalibration performed or recommended, decided blind to company P&L. Recorded to `docs/market_research/ssp_scarcity_constants_external_benchmark_2026-07-24.md` (+ ASSUMPTIONS.md rows) and folded into the fidelity doc as simplification item 5. An honest bounded-partial is a fidelity gain, not a failure. Any recalibration is the separate `ssp_negative_lift_cells` mint (R4/R12/R13-governed). Archived to done/.

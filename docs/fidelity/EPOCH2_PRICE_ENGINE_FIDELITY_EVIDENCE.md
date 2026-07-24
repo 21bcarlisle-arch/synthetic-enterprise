@@ -193,6 +193,28 @@ patch), every hand-set (not-fit-to-data) constant introduced or retained in this
    asserted physical constants), but the SELECTION among near-equal-MAE grid points is a modelling
    judgement, logged here for transparency.
 
+5. **No third-party published benchmark cross-checks the fitted `A0/A1/A2` magnitudes as literal
+   numbers** (the gap named in the fidelity-ledger row's `independent_anchor` field). A DISCOVER
+   pass on 2026-07-24 (full findings + citations: `docs/market_research/ssp_scarcity_constants_external_benchmark_2026-07-24.md`)
+   sought a published UK benchmark and found two genuine ANCHORS that bound and contextualise the
+   scarcity term without benchmarking its functional form (both `observed-with-evidence`):
+   - **DECC Capacity Market (2015)** — the Dynamic Dispatch Model "allows market prices to spike up
+     to £6,000/MWh" (regulatory price ceiling). The fitted multiplier's own max output (~£574/MWh)
+     sits ~1 order of magnitude below both this ceiling and the real observed SSP max (£4,038/MWh) —
+     externally grounding, not newly discovering, the already-honest **tail-underproduction** gap
+     (§ elsewhere in this doc). This is a bound, not a licence to raise the tail: R12 forbids tuning
+     toward it; the tail gap remains a diagnosed mechanism issue, unchanged this pass.
+   - **Statutory Security of Supply Report (2025)** — the GB Reliability Standard is LOLE ≤ 3 hrs/yr
+     (~0.034 % of periods). The code's scarcity kicker firing on ~30–40 % of periods is therefore
+     better read as a general **tight-margin markup** than a literal loss-of-load mechanism — a
+     naming/interpretation note (`inferred`), not a defect and not a recalibration cue.
+
+   **No source using the identical `A0 + A1·x + A2·max(0, x−X_TIGHT)^p` functional form was found**, so
+   `A0/A1/A2` as literal magnitudes **remain unbenchmarked — the gap STANDS, now bounded** by the
+   two anchors above. Honoured throughout (R12/R13): this pass GATHERED and RECORDED external context
+   only; **no constant was changed, no recalibration performed or recommended**, decided blind to
+   company P&L.
+
 ---
 
 ## 4. Provenance
