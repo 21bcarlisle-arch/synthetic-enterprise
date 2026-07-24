@@ -1,7 +1,7 @@
 # [PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death-test (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 2 — PRODUCT-FIRST item 3, the declared static-cap FAIL + MC-2 collateral death-test). No map atom yet (tracked in `docs/PRIORITIES.md` item 3 + steer `DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22.md`); register on BUILD open.
-> **BLOCKING SUB-ITEM (open):** Scope 1 (FRAME the static-cap call sites + name through-the-wall observable inputs) is drawable now. Scope 2-3 BUILD (observation-window cap + MC-2 death-test) proceeds under reversible authority, **but the MC-2 scenario *difficulty* is R13 curriculum — escalate any difficulty knob, never tune** (mint the mechanism + a benign default only). **UNBLOCKS:** self for the mechanism; director for any named curriculum-difficulty value. FRAME not yet done this tick (generator FRAME drew first per sequencing guard, PRODUCT-FIRST item 2 outranks item 3).
+> **BLOCKING SUB-ITEM (open):** ~~Scope 1 (FRAME the static-cap call sites + name through-the-wall observable inputs)~~ **DONE this tick — see the FRAME section appended below.** Scope 2-3 BUILD (observation-window cap + MC-2 death-test) proceeds under reversible authority, **but the MC-2 scenario *difficulty* is R13 curriculum — escalate any difficulty knob, never tune** (mint the mechanism + a benign default only). **UNBLOCKS:** self for the mechanism; director for any named curriculum-difficulty value. **FRAME surfaced a prerequisite:** both target registers (`WholesaleCreditExposureRegister`, `MarginCallBook`) have **no live (non-test) constructor** — they are modelled organs not yet in the run loop, so an observation-window cap has nothing to observe until the register is first fed the company's own live MtM/margin-call stream. The next drawable BUILD step is therefore the **live feed**, then the window mechanic on top; details in the FRAME.
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Rungs 1–6 empty this tick. **Propose-then-proceed.**
 
@@ -28,3 +28,33 @@ Curriculum values / the MC-2 scenario *difficulty* is director-owned if it becom
 
 ## Propose-then-proceed window
 Standing PRODUCT-FIRST reversible-build authority; proceed. Escalate only the irreducible core (a curriculum-difficulty value) via NTFY while continuing to draw.
+
+---
+
+## FRAME (Scope step 1) — 2026-07-24 worker tick
+
+**Method:** grep for the static cap constructs across `company/trading/`, `company/risk/`, `company/finance/`; read the two organs; grep for live (non-test) constructors. Evidence is file:line below.
+
+### 1. The static caps (the declared FAIL, located)
+- **`company/trading/wholesale_credit_exposure.py:51` — `_CREDIT_LIMIT_BY_RATING`**: a hardcoded `Dict[CounterpartyCreditRating, float]` (AAA £5.0M → UNRATED £0.1M). Read via `WholesaleCreditRecord.credit_limit_gbp` (`:81`), which drives `utilisation_pct` (`:87`), `is_limit_breached` (`:93`), `headroom_gbp` (`:97`). This is the "static cap dict" of the ruling verbatim — a fixed number standing in for what a counterparty's CSA actually grants.
+- **`company/finance/margin_call_book.py:39` — `MarginCallBook.__init__(credit_facility_gbp=5_000_000.0)`**: a second static cap — the liquidity facility the death-loop drains against. Drives `headroom_gbp` (`:65`), `is_liquidity_stressed` (`:68`), `stress_events` (`:71`). The MC-2 death-test lives against THIS cap (liquidity), while the credit dict is the counterparty-exposure cap — two distinct caps, don't conflate.
+
+### 2. Prerequisite surfaced (material) — the organs are not in the live loop
+Grep for non-test constructors of BOTH `WholesaleCreditExposureRegister(` and `MarginCallBook(` returns **nothing in `company/`/`saas/`/`sim/`** — only tests construct them. So the FAIL is doubly cosmetic: the cap is static **and** the register never sees a real run's exposure. **Consequence for sequencing:** an observation-window cap "earned/eroded from observed exposure over a rolling window" has no exposure stream to observe yet. The next BUILD step is the **live feed** (wire the company's own per-step MtM + margin-call events into the register from the trading path), *then* the window mechanic on top. Building the window first would be an organ with no blood in it — a fresh cosmetic layer, exactly the accretion OPS1/DON'T-ACCRETE forbids.
+
+### 3. Through-the-wall observable inputs the window MAY use (all company-side; none a sim internal)
+- **Own margin calls received** — `MarginCallEvent` (initial + variation margin, deadline, status) — the company's own cash demands; observable by definition (`margin_call_book.py:15`).
+- **Own mark-to-market exposure** — `gross_mtm_gbp` per counterparty: the replacement cost the company itself computes from its own book against observed market prices (through the wall — the price feed is a public observable, the position is the company's own).
+- **Own posted/held collateral** — `collateral_held_gbp`: the company's own CSA postings.
+- **Counterparty credit rating** — `CounterpartyCreditRating`: **publicly observable** (agency ratings are published; a real supplier reads them). Legal to use — it is NOT a sim internal. The window would *modulate* the rating-anchored starting cap by observed behaviour (settled-on-time vs disputed/defaulted margin calls), not replace the public prior.
+- **Own counterparty-behaviour history** — `MarginCallStatus` transitions (RECEIVED→SETTLED vs DISPUTED/DEFAULTED): the company's own observed record of how a counterparty honoured calls; the erosion signal.
+
+**Wall check:** every input above is either the company's own book/cash state or a public publication (ratings, prices). None reads sim ground truth (no counterparty true default-probability, no future price). Epistemically clean — confirm with `python3 -m tools.epistemic_verifier` on the eventual BUILD diff.
+
+### 4. Restated BUILD ladder (revised by the FRAME)
+1. **Live feed FIRST** (new drawable prerequisite): wire the company's own per-step MtM + margin-call stream into `WholesaleCreditExposureRegister` / `MarginCallBook` from the trading path, behind the existing typed seam — no new engine (portability lens). *This is the load-bearing step the original scope assumed already existed.*
+2. **Observation-window cap**: rolling-window cap = rating-anchored prior modulated by observed exposure + settle/dispute history; replaces the static read in `credit_limit_gbp`. R15 both ways (fires on the wire present; mutation reverts to static → cap stops moving).
+3. **MC-2 collateral death-test**: a spike scenario draining liquidity past `MarginCallBook`'s facility → collateral distress / company can die. R15: PASSES (survives) on benign path, FAILS (dies) on MC-2 path. **MC-2 *difficulty* (spike magnitude/shape) is R13 curriculum — escalate the value, mint only the mechanism + a benign default.**
+4. Verify: epistemic-verifier on the diff; full suite for `company/trading|finance|risk` paths.
+
+**Walls untouched by this FRAME:** doc-only, no code changed, no level moved, no curriculum value chosen. The MC-2 difficulty escalation still stands for the director when step 3 is reached.
