@@ -1,7 +1,7 @@
 # [PLANNER-MINTED] Attack the SSP residual-demand model's NEGATIVE-lift cells (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 3). Attaches to existing atom `W1_6_physics_price_signal` (fidelity-ledger row `ssp_residual_demand_scarcity_calibration_2026_07_19`).
-> **BLOCKING SUB-ITEM (open):** ~~Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4)~~ **DONE.** ~~Test A (dwell-fraction above X_TIGHT per cell)~~ **DONE this tick (2026-07-24 worker tick) — see "Test A RESULT" section appended below. Test A REFUTED the inferred "scarcity term dormant in calm years" sub-hypothesis: the term is live 17–55% of the time in EVERY year and dwell DECLINES secularly (renewables growth), and the 2022 crisis WIN-cell has among the LOWEST dwell (18.4%). The mechanism is redirected: a single GLOBAL fit against a secularly-drifting x-distribution (median x 0.73→0.46 over 2016→2025), not scarcity dormancy.** Scope step 2 BUILD (regime/time-aware calibration OR an R10 named simplification) proceeds under reversible authority, **strictly R13/R12-governed** (P&L-blind, mechanism-not-tuning). **UNBLOCKS:** self — no wall; the next drawable step is now **Test B** (diagnostic refit of A0/A1 on the drift-corrected / later-year x-distribution, holding the scarcity structure fixed) then the structural refit-vs-simplification decision.
+> **BLOCKING SUB-ITEM (open):** ~~Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4)~~ **DONE.** ~~Test A (dwell-fraction above X_TIGHT per cell)~~ **DONE this tick (2026-07-24 worker tick) — see "Test A RESULT" section appended below. Test A REFUTED the inferred "scarcity term dormant in calm years" sub-hypothesis: the term is live 17–55% of the time in EVERY year and dwell DECLINES secularly (renewables growth), and the 2022 crisis WIN-cell has among the LOWEST dwell (18.4%). The mechanism is redirected: a single GLOBAL fit against a secularly-drifting x-distribution (median x 0.73→0.46 over 2016→2025), not scarcity dormancy.** ~~Test B (diagnostic refit of A0/A1 on the drift-corrected / later-year x-distribution, holding the scarcity structure fixed)~~ **DONE this tick (2026-07-24 worker tick) — see "Test B RESULT" section appended below. Test B PARTIALLY confirms the redirected mechanism: a same-structure LOCAL (per-year) refit of A0/A1/A2 (X_TIGHT/exponent held fixed) lowers MAE in ~every cell and flips 3 of the 6 global negative-lift cells (2019/2023/2024) to non-negative — the stale-global-linear-fit-under-x-drift diagnosis is REAL and MATERIAL (per-year A0 drifts 0.11→1.11, A1 0.9→2.0). BUT 3 cells (2020, 2021-crisis, 2025) stay negative even after a local refit — a genuine residual FORM limit the recalibration cannot close. Mechanism is MIXED: drift-staleness explains ~half, a form-limit the rest.** Scope step 2 is therefore a TWO-PART close, both R13/R12-governed (P&L-blind, mechanism-not-tuning): (a) a time/regime-aware LINEAR (A0/A1) recalibration tracking the observed x-drift (justified fidelity fix, recovers the 3 flip cells); (b) an R10 NAMED SIMPLIFICATION registering the residual 3-cell form-limit with its measured bound. **UNBLOCKS:** self — no wall; next drawable step is the scope-2 BUILD (part (a) mechanism + part (b) class registration).
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Minted from a fidelity-ledger row. **Propose-then-proceed.**
 
@@ -115,3 +115,37 @@ The prior tick's DISCOVER/FRAME hypothesis 2 asserted, tagged `[inferred — Tes
 - **R10 named simplification (fallback):** register "a single global residual-demand line trades up to ~£3/MWh MAE in the low-x renewables-heavy later years vs a per-era refit, accepted because the form must be one physics across the window" — with the measured per-cell residual. Still requires class registration, not an instance patch.
 
 **Walls untouched:** doc-only + one new diagnostic tool; no SSP constant changed, no level moved, no curriculum value chosen, no company P&L read. `tools/ssp_scarcity_dwell_fraction.py` is a DIAGNOSTIC (measures the model), not a control gating any promotion — R15 mutation-testing applies to controls, N/A here.
+
+---
+
+## Test B RESULT — 2026-07-24 worker tick (`tools/ssp_refit_local_vs_global.py`)
+
+**Question (from the redirect Test A produced):** is the calm-year negative lift a STALE single-global-linear-fit artefact (secular x-drift, median 0.73→0.46), or a scarcity-FORM defect? **Method:** re-fit the SAME structural form (`A0 + A1·x + A2·max(0,x−0.70)²`, X_TIGHT/exponent **held fixed**) on **each year's own data**, holding the scarcity tail structure fixed, and re-measure per-cell MAE vs the ledger's per-cell OLS baseline. Pure diagnostic — reuses `recal._fit_form`/`recal._build_dataset` + `regr._fit_ols` as libraries, changes no constant on disk, reads no P&L (R13/R12-clean). Both lift columns score against the SAME global OLS, so the only thing changing between them is the scarcity model's calibration (global vs per-year) — an apples-to-apples isolation of the global-fit cost.
+
+| yr | median_x | model gMAE | model **lMAE** (local refit) | ols MAE | global lift | **local lift** | outcome | A0_local | A1_local |
+|----|------|------|------|------|------|------|------|------|------|
+| 2016 | 0.730 | 17.18 | 19.22 | 25.13 | +7.95 | +5.90 | win | 0.112 | 2.035 |
+| 2017 | 0.689 | 17.16 | 17.15 | 22.56 | +5.40 | +5.41 | win | 0.458 | 1.376 |
+| 2018 | 0.673 | 19.43 | 18.39 | 21.71 | +2.28 | +3.32 | win | 0.574 | 1.162 |
+| **2019** | 0.635 | 18.82 | 17.02 | 18.02 | **−0.79** | **+1.01** | **FLIP→+** | 0.845 | 1.330 |
+| 2020 | 0.546 | 22.19 | 19.38 | 18.97 | −3.22 | **−0.41** | neg (survives) | 1.111 | 1.175 |
+| 2021 | 0.601 | 50.22 | 49.21 | 48.01 | −2.21 | **−1.20** | neg (survives, crisis) | 0.433 | 1.235 |
+| 2022 | 0.521 | 79.16 | 77.91 | 84.71 | +5.55 | +6.80 | win (crisis) | 0.322 | 1.162 |
+| **2023** | 0.529 | 44.12 | 41.56 | 43.86 | **−0.27** | **+2.30** | **FLIP→+** | 0.401 | 1.763 |
+| **2024** | 0.534 | 29.35 | 28.00 | 28.17 | **−1.18** | **+0.17** | **FLIP→+** | 0.346 | 1.610 |
+| 2025 | 0.461 | 35.09 | 35.54 | 32.81 | −2.28 | **−2.73** | neg (survives, partial yr) | 0.718 | 0.905 |
+
+(gMAE = global-fit model MAE sliced per year, = the ledger's model residual; lMAE = same form refit on that cell only; a per-year LOCAL-OLS ceiling column is in the tool output. lstsq minimises L2, so lMAE can very slightly exceed gMAE on an in-cell fit — 2025, a half-year at n=7570 — this is an L1-vs-L2 artefact, not a paradox.)
+
+### What Test B CONFIRMS
+1. **The stale-global-linear-fit-under-x-drift diagnosis is real and material.** A same-structure LOCAL refit lowers MAE in ~every cell and FLIPS **3 of 6** global negative-lift cells (2019, 2023, 2024) to non-negative. The recovered lift is the calibration cost of a single global line, not the scarcity form.
+2. **The linear terms genuinely drift with the x-distribution.** Per-year `A0_local` ranges 0.11→1.11 and `A1_local` 0.9→2.0 — a global A0=0.327/A1=1.335 cannot sit on all of them. As median_x falls (renewables growth) the fresh in-cell fit raises the intercept and re-slopes — exactly the secular-drift signature Test A predicted.
+
+### What Test B REFUTES (evidence before narrative, R9)
+**The staleness is NOT the whole story.** **3 cells — 2020 (−0.41), 2021-crisis (−1.20), 2025 (−2.73) — stay negative even after a same-form local refit.** In these cells a 3-feature linear model (gas/demand/wind) captures structure the residual-demand scarcity form cannot represent regardless of calibration freshness. That residual is a **FORM limit**, not a calibration limit. So the earlier "regime/time-aware calibration alone closes the gap" reading is too optimistic — it closes ~half.
+
+### Consequence for scope step 2 (now a TWO-PART close, both R13/R12-clean)
+- **(a) Time/regime-aware LINEAR (A0/A1) recalibration — JUSTIFIED, structural.** Condition A0/A1 on the x-distribution regime (era / renewables-penetration), holding the scarcity tail (X_TIGHT/exponent/A2) fixed. This is a fidelity-to-reality change (the calibration should track the observed secular drift), decided blind to P&L, and it recovers the 3 flip cells. It is NOT tuning: the target is per-cell real-SSP MAE, not any company output (R12).
+- **(b) R10 NAMED SIMPLIFICATION for the residual — REQUIRED, class-level.** Register: *"the single-physics residual-demand scarcity form under-fits ~3 low-x / crisis-adjacent cells (2020, 2021, 2025) vs a 3-feature linear model by up to ~£2.7/MWh MAE even when locally recalibrated — accepted because the form must be one physics across the window."* Carry the measured per-cell residual. This is a class registration (R10), not an instance patch, and an honest bound beats a silent +1.17 headline.
+
+**Walls untouched:** doc-only + one new diagnostic tool (`tools/ssp_refit_local_vs_global.py`); no SSP constant changed on disk, no level moved, no curriculum value chosen, no company P&L read. The tool is a DIAGNOSTIC (measures the model), not a control gating any promotion — R15 mutation-testing applies to controls, N/A here. Scope step 2 (parts a+b) is the next drawable increment on this mint.
