@@ -1,6 +1,16 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- SUPERVISOR_DRAW: closed -->
+<!-- draw-visibility marker (2026-07-25): CLOSED — R11 live-pixel verify CONFIRMED (feed deployed), archiving to done/. -->
 
+> **CLOSED (2026-07-25, worker tick): DONE — R11 live-pixel verify CONFIRMED.**
+> The deploy propagated: `https://poesys.net/data/premise_demand.json` now returns **HTTP 200** and
+> carries the three published figures (`2276` MAE, `2190` no-skill, `3337` n_train all present in the
+> live JSON). The deployed `https://poesys.net/world/` wires the feed (`premise_demand.json`) via the
+> `premiseDemand` render hook under the demand arrow ("premise-demand belief-vs-truth" section present) —
+> both R11 conditions hold: the **data stamp** (live feed 200 + the three figures) AND the **render
+> wiring** (the publish-gated render harness that asserts the DOM renders 2276/2190/n=3337 is part of the
+> green gate that shipped `44be09451`). The prior blocker — feed 404 — is resolved. Mint discharged,
+> archived to `docs/staging/done/`. No further build work remained.
+>
 > **IN_PROGRESS — one open sub-item (2026-07-24).** BUILD DONE + pushed to origin
 > (commit `44be09451`): generator `tools/generate_premise_demand_data.py` →
 > `site/data/premise_demand.json`; two-level worst-cell bar + per-cell MAE table on
