@@ -148,3 +148,73 @@ class WholesaleCreditExposureRegister:
             f"Limit breaches: {n_breach}. "
             f"ISDA/CSA governs bilateral OTC; EMIR clearing mandate."
         )
+
+
+# --- VALUE_CHAIN BUILD ladder step 2: the live feed (2026-07-24) ---
+# A CCP-cleared position carries no per-name credit limit — the clearing house's default
+# waterfall (initial margin + default fund + skin-in-the-game) absorbs a member default,
+# so a supplier does not set a bilateral-style credit line against ICE Clear Europe / LCH.
+# The register still counts CCP *net* exposure (haircut by _CLEARED_EXPOSURE_HAIRCUT) but it
+# can never breach a per-name limit. Expressed as a large finite override (JSON-safe, unlike
+# float('inf')) rather than a rating-band cap, which would false-breach a big cleared book.
+_CCP_NO_PER_NAME_LIMIT_GBP = 1e15
+
+
+def build_credit_register_from_exposure(
+    exposure_by_counterparty: Dict[str, dict],
+) -> "WholesaleCreditExposureRegister":
+    """Populate a WholesaleCreditExposureRegister from the trading book's live feed.
+
+    VALUE_CHAIN BUILD ladder step 2 — the feed transform. Input is the exact output of
+    ``company.trading.forward_book.TradingBook.exposure_by_counterparty(prices)`` (ISDA-netted
+    per-counterparty MtM credit exposure at a point-in-time forward-price snapshot). This is a
+    PURE transform (no I/O, no clock, deterministic) so a replay of the same exposure reproduces
+    an identical register (C-S2). It is wall-clean: every input field is the company's OWN book
+    (netted MtM of its own positions) or a PUBLIC agency rating band — no simulation internal.
+
+    Mapping decisions (each an R10-flagged modelling choice, not a sourced figure):
+    - ``gross_credit_exposure_gbp`` (already ``max(0, netted)`` under ISDA netting) → the record's
+      ``gross_mtm_gbp``. An out-of-the-money net position (company owes) is zero credit exposure.
+    - ``collateral_held_gbp`` = 0.0 here — CSA collateral/variation-margin postings are modelled by
+      the observation-window step (ladder step 3), not this feed. NAMED SIMPLIFICATION: this feed
+      reports GROSS-of-collateral bilateral exposure; it is an upper bound on the true net line.
+    - CCP-cleared rows (``counterparty_rating is None``) get ``_CCP_NO_PER_NAME_LIMIT_GBP`` as a
+      limit override (no per-name limit — the default waterfall absorbs) and a nominal AAA rating
+      slot only to satisfy the required field; the override, not the rating, governs the limit.
+    - The ``"UNATTRIBUTED"`` bucket (contracts opened with no counterparty — a wiring regression the
+      book's ``counterparty_distribution().unattributed_count`` self-check already surfaces) is
+      SKIPPED: it has no counterparty identity/rating to form a credit record from.
+
+    Returns a freshly-built register (does not mutate any shared state).
+    """
+    register = WholesaleCreditExposureRegister()
+    for cp_id, entry in exposure_by_counterparty.items():
+        if cp_id == "UNATTRIBUTED":
+            continue
+        type_val = entry.get("counterparty_type")
+        clearing_val = entry.get("clearing_status")
+        if type_val is None or clearing_val is None:
+            # No counterparty identity → not a formable credit record (same class as UNATTRIBUTED).
+            continue
+        counterparty_type = CounterpartyType(type_val)
+        clearing_status = ClearingStatus(clearing_val)
+        rating_val = entry.get("counterparty_rating")
+        if rating_val is None:
+            # CCP-cleared: no per-name rating/limit.
+            credit_rating = CounterpartyCreditRating.AAA
+            limit_override: Optional[float] = _CCP_NO_PER_NAME_LIMIT_GBP
+        else:
+            credit_rating = CounterpartyCreditRating(rating_val)
+            limit_override = None
+        register.register(
+            WholesaleCreditRecord(
+                counterparty_id=cp_id,
+                counterparty_type=counterparty_type,
+                credit_rating=credit_rating,
+                clearing_status=clearing_status,
+                gross_mtm_gbp=float(entry.get("gross_credit_exposure_gbp", 0.0)),
+                collateral_held_gbp=0.0,
+                credit_limit_override_gbp=limit_override,
+            )
+        )
+    return register
