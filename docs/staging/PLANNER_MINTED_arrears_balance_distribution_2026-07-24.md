@@ -1,5 +1,16 @@
 # [PLANNER-MINTED] Emit the per-customer ARREARS-£ balance distribution (SIM-emission BUILD) (2026-07-24)
 
+> **STATUS (2026-07-24, worker tick): RULING-CHECKED CLEAN + FRAME sufficient — READY FOR NORMAL BUILD DRAW.**
+> Ruling-checked against the 2026-07-24 rulings: RC7 / FRONT_MISSION_BLOCK respected (no cohort-£ leads; arrears
+> appears only behind a /company or /proof drill-down with N + floor-not-figure framing + missing-lines) — this is
+> the compliant sibling of the segment-efficiency-£ mint that was correctly closed NO-BUILD for leading. Serves a
+> real, still-open named campaign item (SITE_MODEL_SPINE §C remainder). The step-1 FRAME (settlement→bill→payment→
+> arrears chain; through-the-wall observable = Σ(bills issued) − Σ(payments received) per customer from the
+> company's OWN ledger; diff vs the cost-to-serve emission) is complete in this doc. NOT built this tick: the BUILD
+> is a real core SIM-emission increment (generator + regen wiring + site panel + R15/R11 tests) — a serial BUILD-
+> lane draw, deliberately NOT opened at a site-lane tick's tail (no wide/tired build front). Left drawable in
+> staging root for the next BUILD draw; the ruling-check need not be repeated.
+
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7 — rungs 1–6 empty this tick). **Propose-then-proceed.** Minted from a ratified open-campaign remainder, ruling-checked against the 2026-07-24 rulings before minting (RC7 / FRONT_MISSION_BLOCK).
 
 ## Ratified goal / campaign follow-on served
