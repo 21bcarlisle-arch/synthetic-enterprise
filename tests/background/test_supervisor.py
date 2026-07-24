@@ -87,6 +87,14 @@ def _isolate(tmp_path, monkeypatch):
     # (correctly, per the rung) draw the open defect. Added when the rung landed (572fd628b) omitted
     # it, reddening 16 find_work tests. The lane itself is proven in test_defect_backlog_draw.py.
     monkeypatch.setattr(supervisor, "DECLARED_DEFECTS_REGISTER_PATH", tmp_path / "DECLARED_DEFECTS_REGISTER.yaml")
+    # PUBLISH-GATE WEDGE LANE (RUNG 1, PRIORITY ZERO, director rulings 2026-07-23/24): same isolation
+    # as every register above -- point the gate-state + last-tested-hash files at nonexistent tmp
+    # files so this hermetic world has NO active wedge by default; otherwise these "map empty ->
+    # rest/exhausted" tests leak the REAL .publish_gate_state.json (currently wedged) and (correctly,
+    # per the rung) draw unwedge work instead of resting. The lane itself is proven both ways in
+    # test_publish_gate_wedge_draw.py.
+    monkeypatch.setattr(supervisor, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
+    monkeypatch.setattr(supervisor, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
     # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
     # other live-state path above -- point it at a nonexistent tmp file so the
     # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts

@@ -1230,14 +1230,24 @@ def _read_publish_gate_state():
             raise ValueError("gate state is not an object")
         st.setdefault("failures", [])
         st.setdefault("alerted_at", None)
+        # wedge_since (2026-07-24, WEDGE3_AND_RUNG1_MECHANISE): the PERSISTENT start-of-streak
+        # timestamp -- NOT trimmed to the 1h window like `failures`, so it is the only field that
+        # can measure a wedge older than the window. Set on the first failure of a streak, preserved
+        # across every later failure, cleared to None on the next clean publish. The supervisor's
+        # RUNG-1 unwedge draw (background/supervisor.py::_publish_gate_wedge_active) reads it to
+        # decide ">60 min". Without it the ">60 min" rule was un-mechanisable (window trimming caps
+        # the oldest surviving `failures`/`alerted_at` timestamp below 60 min for a live wedge) --
+        # the exact reason the prose rule was consumed-not-absorbed twice.
+        st.setdefault("wedge_since", None)
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
-        return {"failures": [], "alerted_at": None, "state_unavailable": True}
+        return {"failures": [], "alerted_at": None, "wedge_since": None, "state_unavailable": True}
 
 
 def _write_publish_gate_state(state):
-    out = {"failures": state.get("failures", []), "alerted_at": state.get("alerted_at")}
+    out = {"failures": state.get("failures", []), "alerted_at": state.get("alerted_at"),
+           "wedge_since": state.get("wedge_since")}
     PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
 
@@ -1297,6 +1307,11 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                     if isinstance(f, dict) and now - float(f.get("ts", 0)) <= PUBLISH_GATE_WINDOW_SECONDS]
         failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind, "git_hash": git_hash})
         count = len(failures)
+        # PERSISTENT wedge-start (2026-07-24): preserve the existing streak start; only stamp `now`
+        # when the streak is starting (no prior wedge_since). Survives the 1h window trim above so a
+        # long wedge's true age stays measurable. Cleared to None by record_publish_gate_success.
+        prev_wedge_since = state.get("wedge_since")
+        wedge_since = prev_wedge_since if isinstance(prev_wedge_since, (int, float)) else now
         threshold_met = unavailable or count >= PUBLISH_GATE_FAILURE_THRESHOLD
         last_alert = state.get("alerted_at")
         armed = last_alert is None or (now - float(last_alert)) >= PUBLISH_GATE_COOLDOWN_SECONDS
@@ -1306,7 +1321,7 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
             _fire_publish_gate_alert(failures, kind, rc, git_hash, unavailable, send_ntfy_fn)
             alerted_at = now
             fired = True
-        _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at})
+        _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at, "wedge_since": wedge_since})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
         return {"count": count, "kind": kind, "threshold_met": threshold_met, "fired": fired}
@@ -1324,7 +1339,7 @@ def record_publish_gate_success(*, now=None):
         if PUBLISH_GATE_STATE_FILE.exists():
             prev = _read_publish_gate_state()
             had_state = bool(prev.get("failures")) or prev.get("alerted_at") is not None
-        _write_publish_gate_state({"failures": [], "alerted_at": None})
+        _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None})
         if had_state:
             log("Publish gate recovered -- cleared wedge state, re-armed alarm.")
             try:

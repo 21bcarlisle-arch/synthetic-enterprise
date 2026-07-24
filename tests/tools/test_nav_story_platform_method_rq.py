@@ -23,10 +23,21 @@ def _read(rel):
     return (PROJECT / rel).read_text()
 
 
+# NOTE (2026-07-24, SITE_V5 fold, director Decision A `..._DOOR_A_COMMIT_THE_FOLD_...`,
+# committed 5b8152bb7): the standalone /method DOOR was retired; the Method content re-homes as
+# a canonical anchor on /proof (`proof/#method-anchor`). Every nav page now reaches Method via
+# that anchor, not a top-level `method/` link. The invariant is UNCHANGED in intent (every page
+# can reach the Method content) -- only its canonical target moved. `site/method/index.html`
+# itself is retained as the anchor's content page (see test_method_page_* below, still passing).
+CANONICAL_METHOD_ANCHOR = "proof/#method-anchor"
+
+
 def test_every_site_page_links_to_method():
     for rel in SITE_PAGES_WITH_NAV:
         html = _read(rel)
-        assert 'method/' in html, rel + " missing a Method nav link"
+        assert CANONICAL_METHOD_ANCHOR in html, (
+            rel + " missing the canonical Method anchor link (" + CANONICAL_METHOD_ANCHOR + ")"
+        )
 
 
 def test_method_page_exists_and_is_well_formed():
@@ -69,7 +80,8 @@ def test_project_tab_still_has_timeline_system_regulatory_overview():
 
 def test_project_overview_points_to_method():
     html = _read("site/project/index.html")
-    assert '../method/' in html
+    # (SITE_V5 fold 2026-07-24) Method is reached via the canonical /proof anchor, not '../method/'.
+    assert '../' + CANONICAL_METHOD_ANCHOR in html
     # (v4 retirement) the old '../platform/' link is removed -- platform re-homes into Method.
     assert '../platform/' not in html
 
@@ -77,4 +89,5 @@ def test_project_overview_points_to_method():
 def test_home_page_method_card_links_not_placeholder():
     html = _read("site/index.html")
     assert "coming next" not in html.lower()
-    assert 'href="./method/"' in html
+    # (SITE_V5 fold 2026-07-24) the home Method card links to the canonical /proof anchor.
+    assert 'href="./' + CANONICAL_METHOD_ANCHOR + '"' in html

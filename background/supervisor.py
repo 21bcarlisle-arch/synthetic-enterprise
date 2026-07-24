@@ -229,6 +229,21 @@ IDLE_TURN_COUNTER_FILE = PROJECT_DIR / "docs" / "observability" / ".supervisor_i
 BUILD_IN_PROGRESS_FILE = PROJECT_DIR / "docs" / "observability" / ".build_in_progress.json"
 BUILD_IN_PROGRESS_TTL_SECONDS = 3600
 
+# PUBLISH-GATE WEDGE RUNG 1 (director rulings UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 +
+# WEDGE3_AND_RUNG1_MECHANISE 2026-07-24, SECOND consumed-not-absorbed on the same rule). A publish
+# gate that has been failing for >60 min while alerts fire and the tick idles is PRIORITY-ZERO
+# drawable work -- it blocks ALL publishing, so it outranks every product/HARDEN lane. These two
+# files are WRITTEN by background/process_run_complete.py (record_publish_gate_failure/_success --
+# failures trimmed to a 1h window, cleared on the next clean publish; .last_tested_hash rewritten
+# only on a PASS). The supervisor only READS them (never blocks: local disk reads only, per the
+# module doctrine above). Detector: _publish_gate_wedge_active(); wired as the TOP rung of
+# _self_refill_draw and mirrored in _is_drained_and_gated. R15-proven both ways in
+# test_publish_gate_wedge_draw.py.
+PUBLISH_GATE_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_gate_state.json"
+LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
+PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS = 60 * 60   # director ruling: a wedge older than 60 min is rung-1
+PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mirrors the H15 alarm threshold)
+
 # Names that live directly in docs/staging/ but are not real work items.
 _IGNORED_STAGING_NAMES = {".gitkeep"}
 
@@ -1990,6 +2005,101 @@ def maybe_emit_graduation_proposal(register_path: Path | None = None, notify_fn=
     return msg
 
 
+def _current_head_hash() -> str | None:
+    """The current repo HEAD (short), for the wedge detector's INDEPENDENCE cross-check.
+    Read-only, fully defensive -- any git error returns None (the detector then keys on the
+    failures list alone, never crashing the draw)."""
+    try:
+        r = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=str(PROJECT_DIR),
+                           capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() or None if r.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def _publish_gate_wedge_active(
+    now: float | None = None,
+    head: str | None = None,
+    state_path: Path | None = None,
+    last_tested_path: Path | None = None,
+) -> str | None:
+    """RUNG 1 (PRIORITY ZERO) detector: is the publish gate WEDGED and older than 60 minutes?
+
+    Returns an unwedge draw message if so, else None. This is the highest rung -- a wedged publish
+    gate blocks ALL publishing, so it outranks every product/HARDEN lane (director rulings
+    UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24). Mechanised
+    because the prose rule was CONSUMED-NOT-ABSORBED twice: 2h17m of alarms fired into tick silence
+    on both 2026-07-23 and 2026-07-24 because no draw rung ever surfaced 'go fix the failing gate'.
+
+    Signal source: process_run_complete.py's .publish_gate_state.json (`failures` list trimmed to a
+    1h window and CLEARED on the next clean publish; `alerted_at`/`wedge_since` timestamps) plus
+    .last_tested_hash (rewritten ONLY on a gate PASS).
+
+    Two-part predicate:
+      * WEDGED (precise, so no phantom draw): `failures` has >= PUBLISH_GATE_WEDGE_MIN_FAILURES
+        entries (a sustained wedge fails every ~10min, never a lone flake), AND -- INDEPENDENCE
+        (R15, anti-tautology) -- an INDEPENDENT signal confirms it: the gate has recorded NO pass at
+        the current HEAD (.last_tested_hash != HEAD). If the gate passed at HEAD the failures are
+        stale and this returns None.
+      * OLDER THAN 60 MIN (generous, fail-safe TOWARD drawing): age = now - the OLDEST available
+        wedge timestamp (wedge_since if the writer stamped it, else alerted_at, else the earliest
+        in-window failure ts). MIN() maximises measured age because the harmful failure mode is NOT
+        drawing unwedge work while wedged; drawing it when marginal is cheap.
+
+    FAIL-SAFE: an unreadable/absent/malformed state file returns None (no phantom wedge -- the lower
+    rungs still draw real work), never an exception into the draw ladder. R15-proven both ways
+    (fires on this morning's exact recorded state; silent on a passed/empty gate) in
+    test_publish_gate_wedge_draw.py."""
+    now = time.time() if now is None else now
+    sp = state_path or PUBLISH_GATE_STATE_FILE
+    try:
+        state = json.loads(Path(sp).read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(state, dict):
+        return None
+    failures = state.get("failures") or []
+    if not isinstance(failures, list) or len(failures) < PUBLISH_GATE_WEDGE_MIN_FAILURES:
+        return None
+    # INDEPENDENCE (R15): cross-check against .last_tested_hash -- keyed on real cross-process state,
+    # never the same source the failures came from. A pass at HEAD => stale failures => no draw.
+    head = head if head is not None else _current_head_hash()
+    lp = last_tested_path or LAST_TESTED_HASH_FILE
+    try:
+        last_tested = Path(lp).read_text().strip()
+    except OSError:
+        last_tested = ""
+    if head and last_tested and head == last_tested:
+        return None
+    # AGE: oldest available wedge signal. Fail-safe toward drawing.
+    ts_candidates = [float(f["ts"]) for f in failures
+                     if isinstance(f, dict) and isinstance(f.get("ts"), (int, float))]
+    for key in ("wedge_since", "alerted_at"):
+        v = state.get(key)
+        if isinstance(v, (int, float)):
+            ts_candidates.append(float(v))
+    if not ts_candidates:
+        return None
+    age = now - min(ts_candidates)
+    if age < PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS:
+        return None
+    age_min = int(age // 60)
+    last_reason = ""
+    if isinstance(failures[-1], dict):
+        last_reason = str(failures[-1].get("reason", ""))
+    return (
+        "PUBLISH-GATE WEDGE self-refill (RUNG 1, PRIORITY ZERO -- director rulings "
+        "UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24): the "
+        f"publish gate has been FAILING for ~{age_min} min ({len(failures)} failures in-window, no "
+        f"pass at HEAD {head or '?'}) and is BLOCKING ALL publishing -- this OUTRANKS every product/"
+        "HARDEN lane. DIAGNOSE the failing test with evidence (R9): run the exact gate "
+        "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "
+        "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
+        "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
+        f"cause. Last recorded failure: {last_reason}"
+    )
+
+
 def _self_refill_draw() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
     PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
@@ -2047,6 +2157,16 @@ def _self_refill_draw() -> str | None:
     digest/log reader sees each lane's independent activity directly, per the
     staged instruction's own DoD. `map_exhausted` (find_work) is True only
     when ALL THREE lanes AND the backlog fallback are genuinely empty."""
+    # RUNG 1 -- PUBLISH-GATE WEDGE (PRIORITY ZERO, director rulings 2026-07-23/24). Checked FIRST,
+    # above every product/HARDEN lane: a publish gate wedged >60 min blocks ALL publishing, so
+    # unwedging it is the single highest-value draw. Its ABSENCE was the exact 2h17m tick-silence
+    # stall on both 2026-07-23 and 2026-07-24 (the prose rule consumed-not-absorbed twice). R15:
+    # proven to fire on the wedged state and stay silent on a passed/empty gate.
+    wedge = _publish_gate_wedge_active()
+    if wedge:
+        log("PUBLISH-GATE WEDGE (RUNG 1, PRIORITY ZERO): gate wedged >60min -> drawing unwedge work "
+            "above every product/HARDEN lane (director ruling WEDGE3_AND_RUNG1_MECHANISE 2026-07-24)")
+        return wedge
     build_atoms = _maturity_map_draw_concurrent(exclude_stalled=True)
     drawn_ids: set[str] = {a["id"] for a in build_atoms if "id" in a}
 
@@ -2226,6 +2346,12 @@ def _is_drained_and_gated() -> bool:
     harmful failure mode is resting when real work exists, so ambiguity keeps the anti-idleness
     pressure -- Rule 0's 'the to-do list is never empty' wins any tie)."""
     try:
+        # RUNG 1 -- PUBLISH-GATE WEDGE (PRIORITY ZERO, director rulings 2026-07-23/24): rest is
+        # NEVER legitimate while the publish gate is wedged >60min -- that is the highest-priority
+        # drawable work. Mirror of the top rung added to `_self_refill_draw`; without it,
+        # `_is_drained_and_gated` would green-light the exact 2h17m rest the draw now refuses.
+        if _publish_gate_wedge_active():
+            return False
         if _maturity_map_draw_concurrent(exclude_stalled=True):
             return False
         # BUILD empty (returned above if not) -> nothing was drawn, so exclude_ids is empty; an
