@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-24T01:52:44Z
+Last updated: 2026-07-24T02:08:02Z
 
 **PRODUCT LANDED (2026-07-23) — SITE_V5 surface 1 (Front door) iteration 2: rebuilt to the BRAND_CONSTITUTION architectural exemplar. SITE_V5 CAMPAIGN CLOSED (all 5 surfaces landed).**
 Drawn by the seventh-class open-campaign self-refill (no doorbell): surfaces 2–5 landed, so the draw rolled to the last
