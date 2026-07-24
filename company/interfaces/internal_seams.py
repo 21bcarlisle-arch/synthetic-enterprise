@@ -92,8 +92,11 @@ APPROVED_SEAM_MODULE = "company.interfaces.internal_seams"
 # without a big-bang refactor. Every entry carries a reason (no silent
 # allowlisting -- a silent cap reads as "clean" when it isn't).
 #
-# Key: (importing_file_repo_relpath, imported_module_prefix) -> reason.
-# The verifier allows an import if the imported module starts with the prefix.
+# Key: (importing_file_repo_relpath, imported_module) -> reason.
+# The verifier allows an import if the imported module equals the keyed module
+# or is a submodule of it (dotted-component boundary, NOT a raw string prefix:
+# an entry for `company.billing.contract` allows that module and
+# `company.billing.contract.*`, but NOT a sibling `company.billing.contract_termination`).
 # ---------------------------------------------------------------------------
 BASELINE_ALLOWLIST: dict[tuple[str, str], str] = {
     (

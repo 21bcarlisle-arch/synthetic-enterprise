@@ -107,8 +107,23 @@ def _module_domain(module: str):
 
 
 def _is_baseline_allowed(file_rel: str, imported_module: str) -> bool:
+    """True iff this crossing is a documented pre-seam baseline entry.
+
+    The allowlist key's module is matched on a DOTTED-COMPONENT BOUNDARY, not a
+    raw string prefix (R15 fail-open fix): an entry grandfathering
+    ``company.billing.contract`` must allow that module and its submodules
+    (``company.billing.contract.renewal_summary``) but MUST NOT silently allow a
+    sibling that merely shares the string prefix (``company.billing.contract_termination``,
+    ``company.billing.contractZZZ``) -- that would widen the seam past the one
+    named crossing the baseline documents, re-opening the fail-closed guarantee
+    the verifier exists to provide. This mirrors the dot-boundary discipline the
+    approved-seam check already uses (``APPROVED_SEAM_MODULE + "."``)."""
     for (allow_file, allow_prefix) in BASELINE_ALLOWLIST:
-        if file_rel == allow_file and imported_module.startswith(allow_prefix):
+        if file_rel != allow_file:
+            continue
+        if imported_module == allow_prefix or imported_module.startswith(
+            allow_prefix + "."
+        ):
             return True
     return False
 

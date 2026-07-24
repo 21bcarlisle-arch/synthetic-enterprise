@@ -132,6 +132,59 @@ def test_mutation_removing_baseline_entry_reintroduces_violation():
 
 
 # --------------------------------------------------------------------------
+# R15 MUTATION: the baseline allowlist matches on a dotted-component boundary,
+# not a raw string prefix -- a sibling module sharing the prefix is NOT
+# silently grandfathered (that would widen the seam past the one named crossing
+# and re-open the fail-closed guarantee).
+# --------------------------------------------------------------------------
+def test_baseline_does_not_over_permit_sibling_prefix():
+    """The pricing->billing baseline grandfathers `company.billing.contract`.
+    A crossing into a SIBLING that merely shares the string prefix
+    (`company.billing.contract_termination`, `company.billing.contractZZZ`) is a
+    NEW, undocumented crossing and MUST NOT be allowed -- only the exact module
+    and its true submodules are baseline-covered."""
+    f = "company/pricing/switching_recommendation.py"
+    # The documented crossing and its submodules ARE allowed.
+    assert verifier._is_baseline_allowed(f, "company.billing.contract")
+    assert verifier._is_baseline_allowed(f, "company.billing.contract.renewal_summary")
+    # String-prefix siblings are NOT (this returned True before the fix).
+    assert not verifier._is_baseline_allowed(f, "company.billing.contract_termination")
+    assert not verifier._is_baseline_allowed(f, "company.billing.contractZZZ")
+
+
+def test_mutation_sibling_prefix_crossing_is_flagged_end_to_end(monkeypatch):
+    """End-to-end through check_file, with the baseline genuinely IN PLAY for the
+    probed file (a monkeypatched entry keyed to the probe path). The documented
+    crossing `company.billing.contract` is grandfathered, but a sibling
+    (`company.billing.contract_settlement`) is a NEW undocumented crossing and
+    MUST still be flagged. Under the loose-prefix bug the sibling was swallowed
+    by the baseline and check_file returned [] -- this test would have RED then."""
+    probe_rel = "company/pricing/_seam_sibling_probe.py"
+    monkeypatch.setitem(
+        seams.BASELINE_ALLOWLIST,
+        (probe_rel, "company.billing.contract"),
+        "TEST baseline entry: grandfathers company.billing.contract only.",
+    )
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_sibling_probe.py"
+    # Two crossings: the grandfathered one (must be silent) and its sibling
+    # sharing the string prefix (must be flagged despite the baseline).
+    planted.write_text(
+        "from company.billing.contract import renewal_summary  # noqa\n"
+        "from company.billing.contract_settlement import settle  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == "billing"
+    assert v.imported_module == "company.billing.contract_settlement"
+
+
+# --------------------------------------------------------------------------
 # Fail-closed, not fail-open / fail-silent.
 # --------------------------------------------------------------------------
 def test_unparseable_file_raises_not_passes(tmp_path):
