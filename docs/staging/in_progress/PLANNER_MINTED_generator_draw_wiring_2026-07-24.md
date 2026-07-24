@@ -1,7 +1,17 @@
 # [PLANNER-MINTED] Ship the population-generator DRAW-WIRING (2026-07-24)
 
-> **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, origin commit 4b31c60d6, PRODUCT-FIRST item 2). **Scope step 1 (FRAME) DONE this tick — see the FRAME section appended below.**
-> **BLOCKING SUB-ITEM (open):** Scope step 2 (BUILD the draw into the live population path) hits the **R13 curriculum wall** — wiring `draw_population` into the live run changes which world the company faces, which W2_2's own history (`maturity_map.yaml`, "L2 ACTIVATION IS DIRECTOR-RESERVED CURRICULUM") and this very ruling ("curriculum values remain director-reserved") both reserve to the director. **UNBLOCKS ON:** a director word on whether the 2026-07-24 waiver authorises *live activation* of the draw-wiring, or whether the flip-on stays R13-curriculum-reserved (STAGED-but-off wiring is buildable now either way; the *activation* is the escalated core). Escalated via NTFY this tick.
+> **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, origin commit 4b31c60d6, PRODUCT-FIRST item 2). **Scope step 1 (FRAME) DONE — see the FRAME section below. Scope step 2 REVERSIBLE HALF (the default-OFF seam) + step 3 (R15 both-ways) DONE this tick — see "BUILD (reversible half)" below.**
+> **BLOCKING SUB-ITEM (open):** The R13 **ACTIVATION** — flipping `SE_DRAW_POPULATION=1` on AND wiring the ~19 `run_phase*` entrypoints to consume the seam — changes which world the company faces every run, reserved to the director (W2_2's own ruling + the 2026-07-24 waiver's "curriculum values remain director-reserved"). The reversible mechanism is now BUILT and tested default-OFF; **UNBLOCKS ON:** a director word authorising live activation. Escalated via NTFY (prior tick + this one). Per ESCALATION_IS_NTFY the reversible half shipped; only the irreducible activation core is held.
+
+---
+
+## BUILD (reversible half) — DONE 2026-07-24 worker tick
+
+Section D's proposed next step, shipped:
+- **`simulation/live_population.py`** — the single population accessor seam. Default-OFF it returns the static `CUSTOMERS` book (byte-identical); with the director-reserved `SE_DRAW_POPULATION=1` flag it ADDITIVELY appends the synthetic SYN-* 2021-2025 acquisition cohort via `SyntheticCustomer.to_customer_dict()` (ground-truth `cohort` excluded by construction). Does NOT wire itself into any entrypoint — that wiring + the flag flip are the held activation.
+- **`tests/simulation/test_live_population_seam.py`** — R15 BOTH-WAYS (8 tests, all green): flag-on adds SYN-* (wire is load-bearing) / flag-off reverts EXACTLY to the static book (mutation proves the SYN entries come from the flag, not an unconditional path); + determinism/replay (C-S2), + the epistemic-wall guard (no returned dict ever carries `cohort`), + the seam imports no `company` logic.
+- **Gates:** `tools/epistemic_verifier` PASS (491 files, no barrier violations); the pre-existing `test_cohort_draw_default_off_is_byte_identical` still green (seam did not perturb the generator).
+- **Honest activation-time follow-on (not silent):** SYN-* dicts and static `CUSTOMERS` dicts do not share an identical key set — entrypoints must be hardened to the SYN shape BEFORE the flag flips on. That hardening is part of the held activation, documented in the module docstring.
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Rungs 1–6 drew empty this tick; minted from a ratified goal. **Propose-then-proceed.**
 
