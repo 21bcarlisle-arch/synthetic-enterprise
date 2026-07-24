@@ -253,6 +253,65 @@ class TestGetPriceHistoryAsOf:
         dates_after = [r["settlementDate"] for r in history_after]
         assert dates_after == ["2020-06-13", "2020-06-14"]
 
+    def test_MUTATION_same_day_leak_control_fires_on_its_named_defect(self):
+        """R15 mutation-proof (2026-07-24 HARDEN, W1_reveal_over_time): the
+        control that closes the same-day-price leak is the `+1 day`
+        transaction_time offset in build_price_bitemporal_log(). A guard test
+        that only ever asserts the CORRECT behaviour is worth nothing under
+        R15 unless the control it rests on can be shown to FAIL on its own
+        named defect -- otherwise it is indistinguishable from a tautology
+        (checked value derived from the same source it checks) or a
+        fail-open that would pass even with the leak live.
+
+        So this test reconstructs the EXACT pre-fix (leaky) encoding the fix
+        replaced -- transaction_time == valid_date's own midnight, i.e. a
+        `+0 day` offset -- and asserts the leak REAPPEARS: date D's own
+        daily-mean price becomes visible to a decision made at midnight(D),
+        which is precisely the future-data leak the point-in-time blindfold
+        exists to prevent. The live control, fed the identical prices, must
+        exclude it. If a future refactor silently reverted the offset to +0
+        (or any value <= 0), the production `build_price_bitemporal_log()`
+        would match the mutant and the sibling guard
+        (test_same_day_price_not_visible_at_midnight_but_prior_day_is) would
+        go red -- so this test PINS that the guard's pass is caused by the
+        control, not by an accident of the fixture."""
+        prices = [("2020-06-13", 40.0), ("2020-06-14", 999.0)]  # D-1, D
+        decision_at_midnight_D = dt.datetime(2020, 6, 14, 0, 0)
+
+        # MUTANT: the named defect -- transaction_time == valid_date midnight
+        # (the encoding this atom's expert_hour finding recorded as the leak).
+        leaky_log = BitemporalEventLog()
+        for d, p in prices:
+            vd = dt.date.fromisoformat(d)
+            leaky_log.record(
+                entity_id="electricity",
+                fact_type="daily_mean_spot_price",
+                valid_time=vd,
+                transaction_time=dt.datetime.combine(vd, dt.time.min),  # +0 days
+                value=p,
+            )
+        leaky_view = PointInTimeView(decision_at_midnight_D, bitemporal_log=leaky_log)
+        leaked = [r["settlementDate"] for r in leaky_view.get_price_history_as_of("electricity")]
+        # The leak is real under the mutant: D's own price is visible at midnight(D).
+        assert "2020-06-14" in leaked, (
+            "mutation-proof invalid: the reconstructed pre-fix encoding did NOT "
+            "reproduce the same-day leak, so the guard test proves nothing"
+        )
+
+        # The live control, given identical prices, must EXCLUDE the same-day price.
+        fixed_log = build_price_bitemporal_log([
+            {"settlementDate": d, "systemSellPrice": p} for d, p in prices
+        ], [])
+        fixed_view = PointInTimeView(decision_at_midnight_D, bitemporal_log=fixed_log)
+        fixed = [r["settlementDate"] for r in fixed_view.get_price_history_as_of("electricity")]
+        assert fixed == ["2020-06-13"], (
+            "the live control failed to exclude date D's own price at midnight(D) "
+            "-- the same-day leak is live in production"
+        )
+        # The ONLY difference between mutant and control is the transaction_time
+        # offset, so the exclusion is attributable to the control, not the fixture.
+        assert "2020-06-14" in leaked and "2020-06-14" not in fixed
+
     def test_returns_chronological_order(self):
         elec = [
             {"settlementDate": "2020-06-03", "systemSellPrice": 42.0},
