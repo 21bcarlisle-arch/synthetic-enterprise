@@ -1,5 +1,16 @@
 # [PLANNER-MINTED] Walk each front-door MODEL-ON-A-PAGE node to ITS evidence (per-node deep anchors) (2026-07-24)
 
+> **STATUS (2026-07-24, worker tick): BUILT + GATED + PUSHED — only live-pixel verify pending.**
+> Audit confirmed the gap was real (all 6 diagram nodes linked to bare page-tops). Wired every node to its
+> verified deep anchor (method→/proof/#method-anchor, world→/world/#causal-chain, households→/customers/#cust-who,
+> wall→/world/#crossings, company→/company/#state-decisions, score→/proof/#not-proven). New MOAP gate in
+> `site/link_walk.py` (`moap_node_findings`) fails closed on a bare page-top / missing #id, R15-proven both ways
+> + live-gate green (`test_link_walk.py`, 8 passed; site suite 306 passed/7 skipped). Committed+pushed `136573668`.
+> **BLOCKING SUB-ITEM (the only open thing):** R11 live-pixel verify — at 20:xxZ poesys.net still served the old
+> page-top hrefs (deploy of 136573668 not yet propagated). UNBLOCKS: once the CDN serves 136573668, one fetch of
+> https://poesys.net/ confirms the 6 `node-look` hrefs render with their #fragments; then archive to done/. The
+> live gate now PREVENTS any regression to page-tops, so this is a confirmation fetch, not further build.
+
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7 — rungs 1–6 empty this tick). **Propose-then-proceed.** Ruling-checked before minting: this is the explicitly-named "next" item and is distinct from the already-closed `world_spine_inline_graphs` (see "Distinctness" below) — not a re-draw.
 
 ## Ratified goal / campaign follow-on served
