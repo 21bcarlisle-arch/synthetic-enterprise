@@ -51,6 +51,7 @@ sandbox.renderDecisions(decs);
 sandbox.renderState(d);
 sandbox.renderFinance(d);
 sandbox.renderTrading(d);
+sandbox.renderWholesale(d);
 sandbox.renderHousehold(d);
 sandbox.renderCompliance(d);
 sandbox.renderBuild(d);
@@ -61,6 +62,7 @@ const ids = [
   "state-kpis", "state-decisions",
   "finance-intro", "finance-kpis", "finance-unit-note", "cost-to-serve-dist", "arrears-dist", "bridge-intro", "bridge-body", "finance-passport",
   "trading-intro", "trading-kpis", "hedge-body", "trading-passport",
+  "wholesale-intro", "wholesale-kpis", "wholesale-cp-body", "wholesale-passport",
   "hh-intro", "hh-attrs", "hh-kpis", "hh-detail", "hh-passport",
   "oblig-intro", "oblig-kpis", "oblig-body", "tiered-block", "oblig-passport",
   "build-note",

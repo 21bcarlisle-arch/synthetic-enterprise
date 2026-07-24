@@ -150,11 +150,28 @@ def _trading_risk(dashboard):
         var_limit_pct_of_term_revenue=trading.get("var_limit_pct_of_term_revenue"),
         forward_term_count=len(forward_terms),
         forward_curve_mean_abs_error_pct=mean_abs_err,
+        # Wholesale value-chain organs (VALUE_CHAIN mint): who the hedges sit
+        # with, per-counterparty credit exposure, and the margin-call book. All
+        # company-observable (own netted MtM, own margin calls, public ratings).
+        wholesale=trading.get("wholesale") or {"available": False},
         passport=dict(
-            sources=["site/data/dashboard.json (trading.hedge_annual, .forward_terms)"],
+            sources=[
+                "site/data/dashboard.json (trading.hedge_annual, .forward_terms)",
+                "docs/reports/run_output_latest.json "
+                "(trading_book, wholesale_credit_exposure, margin_call_book)",
+            ],
             note="Hedge fraction is the share of forecast volume forward-bought; "
                  "basis-risk error is the company's own curve vs the sim's ground "
-                 "truth (the company never reads sim internals -- epistemic wall).",
+                 "truth (the company never reads sim internals -- epistemic wall). "
+                 "Wholesale credit exposure is ISDA-netted MtM owed TO the company, "
+                 "marked at a point-in-time forward curve; peak is the mid-run high "
+                 "(exposure peaks at a price shock, not run-end). Collateral held is "
+                 "reported as 0 (an UPPER-BOUND simplification -- CSA/variation-margin "
+                 "postings are not yet modelled); the observation-window credit cap is "
+                 "live but dormant (it erodes a line only on observed counterparty "
+                 "default conduct, whose producer is a walled coupled SIM atom); the "
+                 "MC-2 collateral death-test is not yet built (its difficulty is "
+                 "director-owned curriculum).",
         ),
     )
 

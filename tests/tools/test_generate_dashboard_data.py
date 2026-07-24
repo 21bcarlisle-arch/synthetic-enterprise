@@ -8,7 +8,7 @@ import pytest
 from tools.generate_dashboard_data import (
     _fmt, extract_portfolio, extract_financial, count_run_history_total,
     extract_regulatory, _SLC_OBLIGATIONS, extract_reputation, extract_opex_ledger,
-    extract_b2_taxonomy, extract_customers,
+    extract_b2_taxonomy, extract_customers, extract_trading,
 )
 import json
 
@@ -655,3 +655,63 @@ def test_extract_customers_organic_bill_shock_count_defaults_when_field_absent()
     row = next(r for r in result["book_annual"] if r["year"] == 2019)
     assert row["bill_shock_count"] == 1
     assert row["organic_bill_shock_count"] == 1
+
+
+# --- VALUE_CHAIN wholesale organs surfaced to the trading block ---------------
+
+def _run_data_with_wholesale():
+    return {
+        "years": {},
+        "trading_book": {
+            "contract_count": 96,
+            "counterparty_distribution": {
+                "distinct_counterparties": 12,
+                "cleared_count": 38,
+                "bilateral_count": 58,
+                "broker_arranged_count": 15,
+                "by_counterparty_type": {"major_bank": 25, "clearing_house": 38},
+            },
+        },
+        "wholesale_credit_exposure": {
+            "mark_date": "2025-06-07",
+            "total_net_exposure_gbp": 284737.35,
+            "largest_counterparty": "GENERATOR-1",
+            "largest_net_exposure_gbp": 182662.07,
+            "largest_utilisation_pct": 18.27,
+            "total_collateral_held_gbp": 0.0,
+            "n_breach": 0,
+            "peak_total_net_exposure_gbp": 786528.7,
+            "peak_sample_date": "2021-12-31",
+        },
+        "margin_call_book": {
+            "total_outstanding_gbp": 1392351.1,
+            "total_calls": 7,
+            "credit_facility_gbp": 5000000.0,
+            "headroom_gbp": 3607648.9,
+            "is_liquidity_stressed": False,
+        },
+    }
+
+
+def test_extract_trading_surfaces_wholesale_organs():
+    """The three VALUE_CHAIN organs (attribution, credit exposure, margin book)
+    reach the dashboard trading block with the board-meaningful figures intact."""
+    w = extract_trading(_run_data_with_wholesale(), [])["wholesale"]
+    assert w["available"] is True
+    # mid-run peak is the board-meaningful credit-exposure figure
+    assert w["peak_net_exposure_gbp"] == 786528.7
+    assert w["peak_sample_date"] == "2021-12-31"
+    assert w["distinct_counterparties"] == 12
+    assert w["cleared_count"] == 38 and w["bilateral_count"] == 58
+    assert w["largest_counterparty"] == "GENERATOR-1"
+    assert w["margin_outstanding_gbp"] == 1392351.1
+    assert w["facility_headroom_gbp"] == 3607648.9
+    # collateral is the documented upper-bound simplification (0 -> reported)
+    assert w["collateral_held_gbp"] == 0.0
+
+
+def test_extract_trading_wholesale_fails_open_on_older_run_shape():
+    """A run output predating the organs (2026-07-24 git 15b6e8c4a) must not
+    KeyError -- the block degrades to available:False (C-S1 partial arrival)."""
+    w = extract_trading({"years": {}}, [])["wholesale"]
+    assert w == {"available": False}

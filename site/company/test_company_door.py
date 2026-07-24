@@ -65,6 +65,35 @@ def test_trading_hedge_fraction_renders_live_value():
     assert pct in kpis, f"expected {pct} in {kpis}"
 
 
+def _gbp(v):
+    """Mirror the page's own gbp() k/M formatter -- computed independently of the
+    render so the assertion is not a tautology (R15 independence)."""
+    n = abs(float(v))
+    if n >= 1e6:
+        s = f"{n / 1e6:.2f}M"
+    elif n >= 1e3:
+        s = f"{n / 1e3:.1f}k"
+    else:
+        s = f"{n:.0f}"
+    return ("-" if v < 0 else "") + "£" + s
+
+
+def test_wholesale_peak_credit_exposure_renders_live_value():
+    """VALUE_CHAIN: the mid-run peak credit exposure and the largest counterparty
+    reach the rendered pixel from the live company.json (R11)."""
+    d = _live()
+    w = d["trading_risk"].get("wholesale") or {}
+    if not w.get("available"):
+        pytest.skip("wholesale organs not present in this run's company.json")
+    out = _render(d)
+    kpis = out["wholesale-kpis"]["innerHTML"]
+    peak = _gbp(w["peak_net_exposure_gbp"])
+    assert peak in kpis, f"expected peak {peak} in {kpis}"
+    assert w["largest_counterparty"] in kpis, kpis
+    # the mid-run peak date must be shown (the board-meaningful clock on the figure)
+    assert w["peak_sample_date"] in kpis, kpis
+
+
 def test_obligations_count_renders_live():
     d = _live()
     out = _render(d)

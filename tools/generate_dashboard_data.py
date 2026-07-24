@@ -456,12 +456,57 @@ def extract_trading(data, spot_monthly):
             "term_count": len(entries),
         })
 
+    # Wholesale value-chain organs (VALUE_CHAIN mint): counterparty attribution,
+    # per-counterparty credit exposure, and the margin-call book. All three are
+    # company-observable (own netted MtM, own margin calls, public rating bands)
+    # -- never a sim internal. Fail-open to available:False on older run shapes
+    # (C-S1 partial-arrival tolerance): the keys were only added to run output
+    # on 2026-07-24 (git 15b6e8c4a).
+    tb = data.get("trading_book") or {}
+    ce = data.get("wholesale_credit_exposure") or {}
+    mc = data.get("margin_call_book") or {}
+    cpd = tb.get("counterparty_distribution") or {}
+    if tb or ce or mc:
+        wholesale = {
+            "available": True,
+            # counterparty attribution (who the hedges sit with)
+            "contract_count": tb.get("contract_count"),
+            "distinct_counterparties": cpd.get("distinct_counterparties"),
+            "cleared_count": cpd.get("cleared_count"),
+            "bilateral_count": cpd.get("bilateral_count"),
+            "broker_arranged_count": cpd.get("broker_arranged_count"),
+            "by_counterparty_type": cpd.get("by_counterparty_type"),
+            # credit exposure (owed TO the company, ISDA-netted, MtM-driven)
+            "eor_mark_date": ce.get("mark_date"),
+            "eor_net_exposure_gbp": ce.get("total_net_exposure_gbp"),
+            "largest_counterparty": ce.get("largest_counterparty"),
+            "largest_net_exposure_gbp": ce.get("largest_net_exposure_gbp"),
+            "largest_utilisation_pct": ce.get("largest_utilisation_pct"),
+            "collateral_held_gbp": ce.get("total_collateral_held_gbp"),
+            "n_breach": ce.get("n_breach"),
+            # mid-run peak (the board-meaningful figure -- exposure peaks at a
+            # price shock, not at run-end when most terms have delivered)
+            "peak_net_exposure_gbp": ce.get("peak_total_net_exposure_gbp"),
+            "peak_sample_date": ce.get("peak_sample_date"),
+            "sampling": ce.get("sampling"),
+            "n_samples": ce.get("n_samples"),
+            # margin-call book (the liquidity leg the collateral death-loop drains)
+            "margin_outstanding_gbp": mc.get("total_outstanding_gbp"),
+            "margin_calls": mc.get("total_calls"),
+            "credit_facility_gbp": mc.get("credit_facility_gbp"),
+            "facility_headroom_gbp": mc.get("headroom_gbp"),
+            "is_liquidity_stressed": mc.get("is_liquidity_stressed"),
+        }
+    else:
+        wholesale = {"available": False}
+
     return {
         "spot_monthly": committee_enriched,
         "hedge_annual": hedge_annual,
         "forward_terms": forward_terms[:500],  # cap for payload size
         "var_annual": var_annual,
         "var_limit_pct_of_term_revenue": VAR_REVENUE_LIMIT,
+        "wholesale": wholesale,
     }
 
 
