@@ -1,5 +1,8 @@
 # [PLANNER-MINTED] Close the belief-vs-truth PAYMENT-FAILURE detection gap (W2_11) (2026-07-24)
 
+> **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 4 — FRAME/DISCOVER half only, as the doc scopes). Attaches to existing atom `W2_11_payment_behaviour_source` (`maturity_map.yaml`).
+> **BLOCKING SUB-ITEM (open):** Scope step 1 (DISCOVER/FRAME diagnosis of the 0.63 detection gap) is drawable now (doc-only); the **detection BUILD is roadmap-gated** — Billing+CRM rotate in after the three axes stabilise. **UNBLOCKS ON:** the director rotating Billing+CRM in / opening the front. FRAME half not yet done this tick (product-first lane drew the generator FRAME first per the ruling's sequencing guard) — next drawable DISCOVER item.
+
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Minted from a fidelity-ledger row. **Propose-then-proceed.**
 
 ## Fidelity-ledger row served

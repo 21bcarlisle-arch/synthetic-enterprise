@@ -1,5 +1,8 @@
 # [PLANNER-MINTED] Attack the SSP residual-demand model's NEGATIVE-lift cells (2026-07-24)
 
+> **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 3). Attaches to existing atom `W1_6_physics_price_signal` (fidelity-ledger row `ssp_residual_demand_scarcity_calibration_2026_07_19`).
+> **BLOCKING SUB-ITEM (open):** Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4) is drawable now (doc-only, idle-drawable). A baseline-changing BUILD proceeds under reversible authority once the mechanism is named, **strictly R13/R12-governed** (P&L-blind, mechanism-diagnosis not benchmark-tuning; the honest close may be an R10 named simplification). **UNBLOCKS:** self — no wall; DISCOVER not yet done this tick (generator FRAME drew first per sequencing guard). Next drawable DISCOVER item.
+
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Minted from a fidelity-ledger row. **Propose-then-proceed.**
 
 ## Fidelity-ledger row served
