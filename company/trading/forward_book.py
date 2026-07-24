@@ -236,6 +236,25 @@ class TradingBook:
         return [c for c in self._contracts
                 if (c.customer_id, c.term_start) in self._closed_keys]
 
+    def all_contracts(self) -> list[ForwardContract]:
+        """Every contract ever booked (open + settled + closed), for point-in-time
+        reconstruction. The book retains settled contracts (only _closed_keys grows), so
+        the full history is available at end-of-run."""
+        return list(self._contracts)
+
+    def live_contracts_as_of(self, as_of_date: str) -> list[ForwardContract]:
+        """Contracts calendar-live on as_of_date (term_start <= as_of_date <= term_end).
+
+        VALUE_CHAIN multi-period credit-exposure sampling. The end-of-run open_contracts()
+        view is near-empty over a 2016-2025 run because almost every term has delivered, so
+        the board-meaningful PEAK counterparty exposure — which occurs mid-run at maximum
+        concurrent open position during a price shock — is invisible in a single end-of-run
+        mark. This returns the book's calendar-live positions as-of a past date,
+        reconstructed from the retained contract set. Wall-clean: reads only the company's
+        OWN book term windows. Liveness is the calendar window, independent of _closed_keys
+        (an early manual close does not retract that the position was live before it)."""
+        return [c for c in self._contracts if c.term_start <= as_of_date <= c.term_end]
+
 
     def amend_hedge(
         self,
@@ -358,8 +377,27 @@ class TradingBook:
         current_prices: {customer_id: current_forward_price_gbp_per_mwh}.
         Contracts with no counterparty attribution net under the "UNATTRIBUTED" key.
         """
+        return self._exposure_over(self.open_contracts(), current_prices)
+
+    def exposure_by_counterparty_as_of(
+        self, current_prices: dict[str, float], as_of_date: str
+    ) -> dict:
+        """ISDA-netted per-counterparty credit exposure over the positions calendar-live on
+        as_of_date. Identical netting to exposure_by_counterparty (see there) — the only
+        difference is the contract set: live-as-of a point in time rather than end-of-run
+        open. current_prices must be the POINT-IN-TIME forward mark at as_of_date (use
+        CompanyTariffEngine.get_forward_price, which itself only reads spot history before
+        the mark date). This is the VALUE_CHAIN multi-period feed: sampling it across the run
+        window captures the peak mid-run exposure a single end-of-run mark misses."""
+        return self._exposure_over(self.live_contracts_as_of(as_of_date), current_prices)
+
+    def _exposure_over(
+        self, contracts: list[ForwardContract], current_prices: dict[str, float]
+    ) -> dict:
+        """Shared ISDA-netting core for exposure_by_counterparty / _as_of — nets SIGNED MtM
+        per counterparty over the given contract set, then credit exposure = max(0, netted)."""
         agg: dict[str, dict] = {}
-        for c in self.open_contracts():
+        for c in contracts:
             price = current_prices.get(c.customer_id)
             if price is None:
                 continue

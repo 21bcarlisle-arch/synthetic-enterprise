@@ -2333,6 +2333,56 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             "is_limit_breached": len(_breaches) > 0,
             "n_breach": len(_breaches),
         }
+        # VALUE_CHAIN multi-period sampling (2026-07-24): the single end-of-run mark above
+        # marks a near-EMPTY book (almost every 2016-2025 term has delivered by effective_end)
+        # -> the board-meaningful PEAK credit exposure, which occurs mid-run at maximum
+        # concurrent open position during a price shock, was invisible. Sample the retained
+        # book semi-annually at point-in-time forward marks (get_forward_price reads only spot
+        # history before each mark date -> point-in-time discipline holds) and capture the peak.
+        # Wall-clean: own book calendar windows + own observable forward marks; no sim internal.
+        _samples: list[dict] = []
+        try:
+            _sample_years = sorted({c.term_start[:4] for c in trading_book.all_contracts()})
+        except Exception:  # pragma: no cover - defensive
+            _sample_years = [effective_end[:4]]
+        _sample_dates = [
+            f"{_y}{_mmdd}" for _y in _sample_years for _mmdd in ("-06-30", "-12-31")
+            if f"{_y}{_mmdd}" < effective_end
+        ] + [effective_end]
+        for _sd in _sample_dates:
+            _fwd_sd: dict[str, float] = {}
+            for _fuel, _recs in (("electricity", elec_records), ("gas", gas_records)):
+                try:
+                    _fwd_sd[_fuel] = _mark_engine.get_forward_price(_fuel, _sd, _recs)
+                except ValueError:
+                    pass  # insufficient observable history at this mark date -> skip fuel
+            _live_sd = trading_book.live_contracts_as_of(_sd)
+            _mp_sd = {
+                _c.customer_id: _fwd_sd[_commodity_by_cid[_c.customer_id]]
+                for _c in _live_sd
+                if _commodity_by_cid.get(_c.customer_id) in _fwd_sd
+            }
+            _reg_sd = build_credit_register_from_exposure(
+                trading_book.exposure_by_counterparty_as_of(_mp_sd, _sd)
+            )
+            _samples.append({
+                "sample_date": _sd,
+                "n_live_contracts": len(_live_sd),
+                "n_counterparties": len(_reg_sd.all_records()),
+                "total_net_exposure_gbp": round(_reg_sd.total_net_exposure_gbp(), 2),
+                "n_breach": len(_reg_sd.limit_breaches()),
+            })
+        _peak = max(_samples, key=lambda s: s["total_net_exposure_gbp"], default=None)
+        _wholesale_credit_summary.update({
+            "sampling": "semi-annual point-in-time marks (VALUE_CHAIN multi-period)",
+            "n_samples": len(_samples),
+            "peak_sample_date": _peak["sample_date"] if _peak else None,
+            "peak_total_net_exposure_gbp": _peak["total_net_exposure_gbp"] if _peak else 0.0,
+            "peak_n_live_contracts": _peak["n_live_contracts"] if _peak else 0,
+            "peak_n_counterparties": _peak["n_counterparties"] if _peak else 0,
+            "peak_is_limit_breached": bool(_peak and _peak["n_breach"] > 0),
+            "sample_series": _samples,
+        })
         # Sign-complement: variation margin the company must POST where its netted position
         # is out-of-the-money at the same mark. Dates are observable run state, not a clock read.
         _settlement_deadline = (
