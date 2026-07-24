@@ -15,6 +15,8 @@ R15 both ways:
     and the enumeration shows planner=. (rest legitimate below rung 7).
   * SHADOW RAIL: the disable flag reverts to prior behaviour with no code change.
 """
+import json
+
 import background.supervisor as sup
 
 
@@ -50,6 +52,12 @@ def _no_disable_flag(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "PLANNER_RUNG_DISABLED_FLAG", tmp_path / ".no_disable_flag")
 
 
+def _no_rest_proof(tmp_path, monkeypatch):
+    """Point the rest-with-proof marker at an absent path -- the default MINTING state (no fresh
+    proof exists), so a populated-axes test mints rather than resting on a leaked real marker."""
+    monkeypatch.setattr(sup, "PLANNER_REST_PROOF_PATH", tmp_path / ".no_rest_proof.json")
+
+
 def _empty_staging(tmp_path, monkeypatch):
     """Point STAGING_DIR at an EMPTY dir so no real PLANNER_MINTED_* batch is pending --
     the state in which the planner is allowed to mint. Without this isolation the real
@@ -74,6 +82,7 @@ def _gate_rungs_1_to_6(monkeypatch, tmp_path):
     monkeypatch.setattr(sup, "_propose_half_draw", lambda *a, **k: None)
     monkeypatch.setattr(sup, "_forward_discovery_draw", lambda *a, **k: None)
     _no_disable_flag(tmp_path, monkeypatch)
+    _no_rest_proof(tmp_path, monkeypatch)
 
 
 # ─────────────────────────── detector unit (independence, R15) ──────────────────────────
@@ -93,6 +102,7 @@ def test_axes_present_false_on_empty_and_absent(tmp_path, monkeypatch):
 def test_planner_draw_fires_on_populated_axes(tmp_path, monkeypatch):
     _axes(tmp_path, monkeypatch, _POPULATED_AXES)
     _no_disable_flag(tmp_path, monkeypatch)
+    _no_rest_proof(tmp_path, monkeypatch)
     _empty_staging(tmp_path, monkeypatch)
     msg = sup._planner_rung_draw()
     assert msg is not None
@@ -102,6 +112,7 @@ def test_planner_draw_fires_on_populated_axes(tmp_path, monkeypatch):
 def test_planner_draw_silent_on_absent_axes(tmp_path, monkeypatch):
     _axes(tmp_path, monkeypatch, None)
     _no_disable_flag(tmp_path, monkeypatch)
+    _no_rest_proof(tmp_path, monkeypatch)
     _empty_staging(tmp_path, monkeypatch)
     assert sup._planner_rung_draw() is None
 
@@ -192,3 +203,127 @@ def test_shadow_rail_flag_disables_planner(tmp_path, monkeypatch):
     flag.write_text("disabled for rollback")
     monkeypatch.setattr(sup, "PLANNER_RUNG_DISABLED_FLAG", flag)
     assert sup._planner_rung_draw() is None
+
+
+# ───────────── REST-WITH-PROOF: the SECOND treadmill (mints in in_progress/, R15 both ways) ─────────────
+#
+# `_pending_planner_mints` only sees staging ROOT. Once a fully-blocked minted batch moves to
+# in_progress/ it reads as consumed -> the planner RE-FIRES every tick into a proven-empty ratified-
+# goal set. A planning turn that proves "no un-minted non-walled step exists" writes a dated verdict
+# (`write_planner_rest_proof`); while that proof stays FRESH the planner rests-with-proof. The proof
+# is keyed on LIVE state (UTC day + axes content hash + in_progress blocked-slug set), never a
+# constant, so a new ruling / new day / newly-unblocked mint re-plans immediately.
+
+
+def _write_blocked_in_progress_mint(staging_dir, slug, drawable=False):
+    """Drop a PLANNER_MINTED_* doc into in_progress/ with a SUPERVISOR_DRAW marker."""
+    ip = staging_dir / "in_progress"
+    ip.mkdir(exist_ok=True)
+    marker = "self-drawable" if drawable else "blocked"
+    (ip / f"PLANNER_MINTED_{slug}.md").write_text(
+        f"<!-- SUPERVISOR_DRAW: {marker} -->\n# minted {slug}\n"
+    )
+
+
+def _fresh_rest_proof(tmp_path, monkeypatch, axes_contents, blocked_slugs):
+    """Wire a populated-axes + all-blocked-in_progress world with a matching FRESH rest proof.
+    Returns (staging_dir, proof_path)."""
+    _axes(tmp_path, monkeypatch, axes_contents)
+    _no_disable_flag(tmp_path, monkeypatch)
+    d = _empty_staging(tmp_path, monkeypatch)
+    for s in blocked_slugs:
+        _write_blocked_in_progress_mint(d, s)
+    proof = tmp_path / ".planner_rest_with_proof.json"
+    monkeypatch.setattr(sup, "PLANNER_REST_PROOF_PATH", proof)
+    sup.write_planner_rest_proof(
+        [f"PLANNER_MINTED_{s}.md" for s in blocked_slugs],
+        "every ratified step minted-and-blocked or walled",
+    )
+    return d, proof
+
+
+def test_rest_with_proof_rests_when_marker_fresh_and_state_unchanged(tmp_path, monkeypatch):
+    """REST: axes populated, mints parked-blocked in in_progress/, a fresh matching proof exists ->
+    the planner rests-with-proof (returns None) instead of re-firing into the proven-empty state."""
+    _fresh_rest_proof(tmp_path, monkeypatch, _POPULATED_AXES, ["front_mission", "value_chain"])
+    assert sup._planner_rest_proof_fresh() is True
+    assert sup._planner_rung_draw() is None
+
+
+def test_rest_with_proof_MINTS_when_no_marker(tmp_path, monkeypatch):
+    """MINT (mutation A -- marker absent): the SAME parked-blocked world but NO proof marker ->
+    the planner must MINT (a missing marker fails closed to minting, never a phantom rest)."""
+    _axes(tmp_path, monkeypatch, _POPULATED_AXES)
+    _no_disable_flag(tmp_path, monkeypatch)
+    _no_rest_proof(tmp_path, monkeypatch)
+    d = _empty_staging(tmp_path, monkeypatch)
+    _write_blocked_in_progress_mint(d, "front_mission")
+    assert sup._planner_rest_proof_fresh() is False
+    msg = sup._planner_rung_draw()
+    assert msg is not None and "RUNG 7 PLANNER" in msg
+
+
+def test_rest_with_proof_REPLANS_when_axes_change(tmp_path, monkeypatch):
+    """MINT (mutation B -- a new director axis/ruling): a fresh proof is written, then DIRECTOR_AXES
+    content changes. The recorded axes_sha no longer matches -> the proof is stale -> re-plan.
+    This is the independence guarantee (R15): keyed on real axes content, not a constant."""
+    _, _ = _fresh_rest_proof(tmp_path, monkeypatch, _POPULATED_AXES, ["front_mission"])
+    assert sup._planner_rest_proof_fresh() is True  # baseline: fresh
+    # Director adds a 4th ratified axis -> file content (and its sha) changes.
+    (tmp_path / "DIRECTOR_AXES.md").write_text(
+        _POPULATED_AXES + "\n### 4. Billing\n- Rotate billing + CRM in.\n"
+    )
+    assert sup._planner_rest_proof_fresh() is False
+    assert sup._planner_rung_draw() is not None
+
+
+def test_rest_with_proof_REPLANS_when_a_mint_is_unblocked(tmp_path, monkeypatch):
+    """MINT (mutation C -- a blocked mint newly unblocked): a fresh proof covers a blocked batch,
+    then one parked mint flips blocked -> self-drawable. Real RUNG-1 work now exists -> re-plan."""
+    d, _ = _fresh_rest_proof(tmp_path, monkeypatch, _POPULATED_AXES, ["front_mission"])
+    assert sup._planner_rest_proof_fresh() is True
+    # The mint is unblocked: rewrite its draw marker to self-drawable.
+    (d / "in_progress" / "PLANNER_MINTED_front_mission.md").write_text(
+        "<!-- SUPERVISOR_DRAW: self-drawable -->\n# minted front_mission (now unblocked)\n"
+    )
+    assert sup._planner_rest_proof_fresh() is False
+    assert sup._planner_rung_draw() is not None
+
+
+def test_rest_with_proof_REPLANS_when_day_rolls(tmp_path, monkeypatch):
+    """MINT (mutation D -- a new UTC day): a proof dated yesterday can never silence today's planner
+    -- the daily re-check. A stale/constant marker that never invalidates must RED this test."""
+    d, proof = _fresh_rest_proof(tmp_path, monkeypatch, _POPULATED_AXES, ["front_mission"])
+    marker = json.loads(proof.read_text())
+    marker["date"] = "2020-01-01"  # yesterday, forever ago
+    proof.write_text(json.dumps(marker))
+    assert sup._planner_rest_proof_fresh() is False
+    assert sup._planner_rung_draw() is not None
+
+
+def test_rest_with_proof_MINTS_on_malformed_marker(tmp_path, monkeypatch):
+    """MINT (fail-closed): a malformed / non-dict marker must NOT validate a rest -> the planner
+    mints. An unreadable proof is a FAILED proof (R15 fail-open guard)."""
+    _axes(tmp_path, monkeypatch, _POPULATED_AXES)
+    _no_disable_flag(tmp_path, monkeypatch)
+    d = _empty_staging(tmp_path, monkeypatch)
+    _write_blocked_in_progress_mint(d, "front_mission")
+    proof = tmp_path / ".planner_rest_with_proof.json"
+    proof.write_text("not json {{{")
+    monkeypatch.setattr(sup, "PLANNER_REST_PROOF_PATH", proof)
+    assert sup._planner_rest_proof_fresh() is False
+    proof.write_text("[1, 2, 3]")  # valid json, wrong type
+    assert sup._planner_rest_proof_fresh() is False
+    assert sup._planner_rung_draw() is not None
+
+
+def test_in_progress_slug_partition_fail_closed_on_unmarked(tmp_path, monkeypatch):
+    """An UNMARKED in_progress mint fails closed to 'blocked' (invisible to the draw, per 04fe15d69)
+    -- never fabricates phantom self-drawable work that would wrongly re-plan."""
+    d = _empty_staging(tmp_path, monkeypatch)
+    ip = d / "in_progress"
+    ip.mkdir()
+    (ip / "PLANNER_MINTED_unmarked.md").write_text("# no draw marker at all\n")
+    part = sup._in_progress_minted_slugs()
+    assert part["self_drawable"] == []
+    assert part["blocked"] == ["PLANNER_MINTED_unmarked.md"]

@@ -107,6 +107,7 @@ never a directive -- same discipline as every other wake in this codebase.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import random
 import re
@@ -2118,6 +2119,13 @@ DIRECTOR_AXES_PATH = PROJECT_DIR / "docs" / "design" / "DIRECTOR_AXES.md"
 FIDELITY_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "fidelity_evidence_ledger.json"
 PLANNER_RUNG_DISABLED_FLAG = PROJECT_DIR / "docs" / "observability" / ".planner_rung_disabled"
 PLANNER_MINTED_PREFIX = "PLANNER_MINTED_"
+# REST-WITH-PROOF marker (2026-07-25, PLANNER_MINTED_planner_rest_with_proof_saturation):
+# when a planner turn concludes NO un-minted, non-walled ratified-goal next-step exists (every
+# ratified step already minted-and-blocked or walled), it writes this dated verdict. The planner
+# then RESTS-WITH-PROOF (returns None) instead of RE-FIRING into the proven-empty state, but ONLY
+# while the marker stays FRESH: same UTC day, DIRECTOR_AXES content unchanged, and no in_progress/
+# mint flipped blocked -> self-drawable. Any of those change -> the marker is stale -> re-plan.
+PLANNER_REST_PROOF_PATH = PROJECT_DIR / "docs" / "observability" / ".planner_rest_with_proof.json"
 
 
 def _director_axes_present(axes_path: Path | None = None) -> bool:
@@ -2153,6 +2161,107 @@ def _pending_planner_mints(staging_dir: Path | None = None) -> bool:
         return True
 
 
+def _axes_content_sha(axes_path: Path | None = None) -> str:
+    """SHA-256 of the DIRECTOR_AXES file's ACTUAL content. Independence (R15): the rest-proof
+    marker is keyed on this real content hash, never a constant -- a new director axis or ruling
+    changes the file, changes the hash, and invalidates any prior rest proof so the planner
+    RE-PLANS. Returns "" (never matches a recorded hash) if the file is unreadable, so an absent/
+    unreadable axes file can never validate a stale proof."""
+    p = axes_path or DIRECTOR_AXES_PATH
+    try:
+        text = Path(p).read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _in_progress_minted_slugs(staging_dir: Path | None = None) -> dict[str, list[str]]:
+    """Partition PLANNER_MINTED_* docs parked in docs/staging/in_progress/ by their SUPERVISOR_DRAW
+    marker into {'blocked': [...], 'self_drawable': [...]} (both sorted). The draw-marker is read
+    from the `<!-- SUPERVISOR_DRAW: ... -->` line. FAIL-CLOSED to 'blocked' for an UNMARKED parked
+    mint (per 04fe15d69: an unmarked in_progress mint is invisible to the draw) so a missing marker
+    never fabricates phantom drawable work. Used by the rest-proof freshness check: a mint that
+    flips blocked->self-drawable (newly unblocked) invalidates the proof and re-plans."""
+    d = staging_dir or STAGING_DIR
+    ip = Path(d) / "in_progress"
+    blocked: list[str] = []
+    drawable: list[str] = []
+    try:
+        files = sorted(ip.glob(PLANNER_MINTED_PREFIX + "*.md"))
+    except OSError:
+        return {"blocked": [], "self_drawable": []}
+    for f in files:
+        try:
+            head = f.read_text(encoding="utf-8")[:600]
+        except OSError:
+            continue
+        if re.search(r"SUPERVISOR_DRAW:\s*self-drawable", head):
+            drawable.append(f.name)
+        else:
+            blocked.append(f.name)
+    return {"blocked": sorted(blocked), "self_drawable": sorted(drawable)}
+
+
+def _planner_rest_proof_fresh(
+    axes_path: Path | None = None,
+    staging_dir: Path | None = None,
+    proof_path: Path | None = None,
+    today: str | None = None,
+) -> bool:
+    """True iff a FRESH rest-with-proof marker authorises the planner to rest instead of re-firing.
+    'Fresh' means, all three (any failing -> re-plan):
+      1. `date` == today's UTC date (daily re-check -- a new day always re-plans);
+      2. `axes_sha` == the current DIRECTOR_AXES content hash (a new axis/ruling re-plans);
+      3. the recorded `minted_blocked_slugs` STILL exactly equals the current in_progress/ blocked
+         set AND no in_progress/ mint is now self-drawable (a mint newly unblocked re-plans).
+    FAIL-CLOSED: a missing / malformed / non-dict marker returns False (mint, don't fabricate a
+    rest). This is the anti-treadmill guarantee: rest only with a proof that still matches reality,
+    never a stale/constant marker that would silence the planner forever (R15 mutation-tested both
+    ways in test_planner_rung.py)."""
+    p = proof_path or PLANNER_REST_PROOF_PATH
+    try:
+        marker = json.loads(Path(p).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    if not isinstance(marker, dict):
+        return False
+    today = today or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if marker.get("date") != today:
+        return False
+    if marker.get("axes_sha") != _axes_content_sha(axes_path):
+        return False
+    cur = _in_progress_minted_slugs(staging_dir)
+    if cur["self_drawable"]:
+        return False  # a parked mint newly drawable -> real RUNG-1 work exists -> re-plan
+    if sorted(marker.get("minted_blocked_slugs") or []) != cur["blocked"]:
+        return False  # the blocked set changed (mint consumed / new wall) -> re-plan
+    return True
+
+
+def write_planner_rest_proof(
+    minted_blocked_slugs: list[str],
+    proof_summary: str,
+    axes_path: Path | None = None,
+    proof_path: Path | None = None,
+) -> Path:
+    """Write the dated rest-with-proof verdict a planning turn produces when it concludes NO
+    un-minted, non-walled ratified-goal next-step exists. Records {date, axes_sha,
+    minted_blocked_slugs, proof_summary} so `_planner_rest_proof_fresh` can later confirm the
+    verdict still matches reality. The planner then rests-with-proof until the day rolls, the axes
+    change, or a blocked mint is unblocked -- never a silent forever-rest."""
+    p = proof_path or PLANNER_REST_PROOF_PATH
+    marker = {
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "axes_sha": _axes_content_sha(axes_path),
+        "minted_blocked_slugs": sorted(minted_blocked_slugs),
+        "proof_summary": proof_summary,
+        "written_at": datetime.now(timezone.utc).isoformat(),
+    }
+    Path(p).parent.mkdir(parents=True, exist_ok=True)
+    Path(p).write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
+    return Path(p)
+
+
 def _planner_rung_draw(
     axes_path: Path | None = None,
     disabled_flag: Path | None = None,
@@ -2177,7 +2286,17 @@ def _planner_rung_draw(
     planner returns None (no per-cycle churn). It was previously prose-only, and on 2026-07-24 the
     code did NOT enforce it -- 5 minted docs pended yet the enumeration still showed planner=Y, the
     unbounded-accretion treadmill MAKE_IT_STICK warns about. R15 both ways in test_planner_rung.py:
-    axes-populated+lanes-empty+no-pending-batch MINTS; axes-absent RESTS; pending-batch RESTS."""
+    axes-populated+lanes-empty+no-pending-batch MINTS; axes-absent RESTS; pending-batch RESTS.
+
+    REST-WITH-PROOF (2026-07-25, PLANNER_MINTED_planner_rest_with_proof_saturation): a SECOND
+    treadmill exists once mints move to in_progress/ (parked-blocked) -- `_pending_planner_mints`
+    only sees staging ROOT, so a fully-blocked parked batch reads as consumed and the planner
+    RE-FIRES every tick into a proven-empty ratified-goal set. A planning turn that PROVES no
+    un-minted non-walled step exists writes a dated verdict via `write_planner_rest_proof`; while
+    that proof stays FRESH (`_planner_rest_proof_fresh`) the planner rests-with-proof. Keyed on live
+    state (UTC day + axes content hash + in_progress blocked-slug set), never a constant, so it
+    re-plans the moment a new ruling/day/unblocked-mint appears -- R15 both ways in
+    test_planner_rung.py."""
     flag = disabled_flag or PLANNER_RUNG_DISABLED_FLAG
     try:
         if Path(flag).exists():
@@ -2191,6 +2310,14 @@ def _planner_rung_draw(
     # per-cycle-churn treadmill this rung's docstring already promised was gated).
     if _pending_planner_mints(staging_dir):
         return None
+    # REST-WITH-PROOF GATE (2026-07-25): when a prior planning turn proved every ratified-goal
+    # next-step is ALREADY minted-and-blocked or walled, it wrote a dated verdict marker. While that
+    # proof stays FRESH (same UTC day, DIRECTOR_AXES content unchanged, no in_progress/ mint newly
+    # unblocked) the planner RESTS-WITH-PROOF rather than RE-FIRING a bounded worker into the
+    # proven-empty state every tick -- the anti-treadmill guarantee R17 demands, keyed on live state
+    # not a constant so a new ruling / a new day / an unblocked mint re-plans immediately.
+    if _planner_rest_proof_fresh(axes_path, staging_dir):
+        return None
     return (
         "RUNG 7 PLANNER self-refill (director ruling WORK_IS_THE_DEFAULT 2026-07-23): rungs 1-6 are "
         "empty but the director's ratified goals are NOT -- minting from ratified goals is AUTHORIZED "
@@ -2201,8 +2328,13 @@ def _planner_rung_draw(
         "propose-then-proceed docs into docs/staging/ named '" + PLANNER_MINTED_PREFIX + "<slug>_<date>.md'. "
         "Each names the axis / fidelity-ledger row / campaign follow-on it serves, the real-world "
         "fidelity gained, and its propose-then-proceed window. Director-reserved walls stay untouched "
-        "(one-way doors, L3 levels, curriculum values, generator ground truth). Then STOP -- the minted "
-        "docs become RUNG-1 staged work the next tick draws. This IS work; do not rest."
+        "(one-way doors, L3 levels, curriculum values, generator ground truth). If -- and ONLY if -- "
+        "you PROVE no un-minted, non-walled ratified-goal next-step exists (every ratified step is "
+        "already minted-and-blocked or walled), call background.supervisor.write_planner_rest_proof("
+        "minted_blocked_slugs, proof_summary) to record the premise-FALSE verdict and REST-WITH-PROOF "
+        "instead of minting a duplicate -- that marker makes the planner rest honestly until the day "
+        "rolls, the axes change, or a blocked mint is unblocked. Otherwise MINT and STOP -- the minted "
+        "docs become RUNG-1 staged work the next tick draws. This IS work; do not rest without proof."
     )
 
 

@@ -95,6 +95,15 @@ def _isolate(tmp_path, monkeypatch):
     # test_publish_gate_wedge_draw.py.
     monkeypatch.setattr(supervisor, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
     monkeypatch.setattr(supervisor, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
+    # PLANNER REST-WITH-PROOF marker (RUNG 7, 2026-07-25): same isolation as every register/state
+    # above -- point the marker at a nonexistent tmp file so this hermetic world has NO fresh rest
+    # proof by default; otherwise a "map empty -> planner" test would leak the REAL
+    # .planner_rest_with_proof.json (if the live planner has rested-with-proof) and (correctly, per
+    # the gate) rest instead of showing the planner drawable. The gate itself is proven both ways in
+    # test_planner_rung.py. Lesson (feedback_new_draw_rung_needs_fixture_isolation): every new
+    # draw-rung state path must be isolated here or it reds all "map empty -> rest/mint" find_work
+    # tests and wedges the next supervisor commit.
+    monkeypatch.setattr(supervisor, "PLANNER_REST_PROOF_PATH", tmp_path / ".planner_rest_with_proof.json")
     # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
     # other live-state path above -- point it at a nonexistent tmp file so the
     # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts
