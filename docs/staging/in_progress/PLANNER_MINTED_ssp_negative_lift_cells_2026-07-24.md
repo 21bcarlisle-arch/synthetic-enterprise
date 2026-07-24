@@ -1,10 +1,16 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-<!-- draw-visibility marker (2026-07-24): self-drawable next step, no wall — surfaced to the draw so rung-7 does not over-mint over it. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- draw-visibility marker (2026-07-25): FLIPPED self-drawable -> blocked. The autonomous-drawable DIAGNOSTIC lane is now EXHAUSTED (Tests A/B/C/D complete — the partition question is fully answered, per-year ceiling reached). The ONE remaining step is part (a): an R13 BASELINE recalibration of the core price engine, which is (i) director-priority-deferred BELOW the spike-tail per the 2026-07-19 console steer and (ii) requires its own deliberate R15-mutation-tested pass per the operational-rebuild standard — a wall for a bounded autonomous tick, not a lack of a next idea. Still an OPEN mint (keeps the rung-7 "rungs empty" premise FALSE), just no longer self-drawn each tick. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] Attack the SSP residual-demand model's NEGATIVE-lift cells (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 3). Attaches to existing atom `W1_6_physics_price_signal` (fidelity-ledger row `ssp_residual_demand_scarcity_calibration_2026_07_19`).
-> **BLOCKING SUB-ITEM (open):** ~~Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4)~~ **DONE.** ~~Test A (dwell-fraction above X_TIGHT per cell)~~ **DONE this tick (2026-07-24 worker tick) — see "Test A RESULT" section appended below. Test A REFUTED the inferred "scarcity term dormant in calm years" sub-hypothesis: the term is live 17–55% of the time in EVERY year and dwell DECLINES secularly (renewables growth), and the 2022 crisis WIN-cell has among the LOWEST dwell (18.4%). The mechanism is redirected: a single GLOBAL fit against a secularly-drifting x-distribution (median x 0.73→0.46 over 2016→2025), not scarcity dormancy.** ~~Test B (diagnostic refit of A0/A1 on the drift-corrected / later-year x-distribution, holding the scarcity structure fixed)~~ **DONE this tick (2026-07-24 worker tick) — see "Test B RESULT" section appended below. Test B PARTIALLY confirms the redirected mechanism: a same-structure LOCAL (per-year) refit of A0/A1/A2 (X_TIGHT/exponent held fixed) lowers MAE in ~every cell and flips 3 of the 6 global negative-lift cells (2019/2023/2024) to non-negative — the stale-global-linear-fit-under-x-drift diagnosis is REAL and MATERIAL (per-year A0 drifts 0.11→1.11, A1 0.9→2.0). BUT 3 cells (2020, 2021-crisis, 2025) stay negative even after a local refit — a genuine residual FORM limit the recalibration cannot close. Mechanism is MIXED: drift-staleness explains ~half, a form-limit the rest.** Scope step 2 is therefore a TWO-PART close, both R13/R12-governed (P&L-blind, mechanism-not-tuning): (a) a time/regime-aware LINEAR (A0/A1) recalibration tracking the observed x-drift (justified fidelity fix, recovers the 3 flip cells); (b) an R10 NAMED SIMPLIFICATION registering the residual 3-cell form-limit with its measured bound. **UNBLOCKS:** self — no wall; next drawable step is the scope-2 BUILD (part (a) mechanism + part (b) class registration).
+> **BLOCKING SUB-ITEM (open, 2026-07-25):** part (a) — an **R13 baseline recalibration** of the core price engine (era/regime-aware A0/A1 + the DUKES-grounded denominator fix). **Now fully partition-diagnosed** (Test D, this tick): use the **crisis-vs-calm price-regime** split for the calm cells (recovers 2019/2023/2025, matching the per-year ceiling, harms no calm cell — beats the misaligned DUKES capacity eras), do **not** pool 2021 with 2022 (the "crisis" pool is itself heterogeneous — pooling worsens 2021), and accept the residual 2020/2024 form-limit already bounded by part (b)'s R10 simplification. **UNBLOCKS ON:** a deliberate director-priority R13/R15 baseline pass (below the spike-tail per 2026-07-19; deserves its own R15-mutation-tested build, not a tail-of-tick rush). The autonomous DIAGNOSTIC lane is EXHAUSTED — marker flipped self-drawable→blocked above.
+>
+> <details><summary>Prior blocking-sub-item history (Tests A/B — resolved)</summary>
+>
+> ~~Scope step 1 (DISCOVER/FRAME — diagnose WHY the calm-year cells lose to the OLS baseline, R4)~~ **DONE.** ~~Test A (dwell-fraction above X_TIGHT per cell)~~ **DONE this tick (2026-07-24 worker tick) — see "Test A RESULT" section appended below. Test A REFUTED the inferred "scarcity term dormant in calm years" sub-hypothesis: the term is live 17–55% of the time in EVERY year and dwell DECLINES secularly (renewables growth), and the 2022 crisis WIN-cell has among the LOWEST dwell (18.4%). The mechanism is redirected: a single GLOBAL fit against a secularly-drifting x-distribution (median x 0.73→0.46 over 2016→2025), not scarcity dormancy.** ~~Test B (diagnostic refit of A0/A1 on the drift-corrected / later-year x-distribution, holding the scarcity structure fixed)~~ **DONE this tick (2026-07-24 worker tick) — see "Test B RESULT" section appended below. Test B PARTIALLY confirms the redirected mechanism: a same-structure LOCAL (per-year) refit of A0/A1/A2 (X_TIGHT/exponent held fixed) lowers MAE in ~every cell and flips 3 of the 6 global negative-lift cells (2019/2023/2024) to non-negative — the stale-global-linear-fit-under-x-drift diagnosis is REAL and MATERIAL (per-year A0 drifts 0.11→1.11, A1 0.9→2.0). BUT 3 cells (2020, 2021-crisis, 2025) stay negative even after a local refit — a genuine residual FORM limit the recalibration cannot close. Mechanism is MIXED: drift-staleness explains ~half, a form-limit the rest.** Scope step 2 is therefore a TWO-PART close, both R13/R12-governed (P&L-blind, mechanism-not-tuning): (a) a time/regime-aware LINEAR (A0/A1) recalibration tracking the observed x-drift (justified fidelity fix, recovers the 3 flip cells); (b) an R10 NAMED SIMPLIFICATION registering the residual 3-cell form-limit with its measured bound. **UNBLOCKS:** self — no wall; next drawable step is the scope-2 BUILD (part (a) mechanism + part (b) class registration).
+>
+> </details>
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7). Minted from a fidelity-ledger row. **Propose-then-proceed.**
 
@@ -340,3 +346,60 @@ files, tools/ imports simulation as a library; no company/sim boundary crossed).
 > finding (broke no doc-only pattern), keeping the deferred R13 baseline pass from building on the wrong
 > partition. **No mint: premise false. No baseline BUILD: still deferred (below spike-tail + deserves its
 > own R15 pass), now with its partition pre-diagnosed.**
+
+---
+
+## TEST D — does the REDIRECTED (crisis-vs-calm regime) partition actually recover the cells? (DONE, 2026-07-25 worker tick, R13/R12-clean)
+
+Test C found the DUKES capacity-era partition MISALIGNED and **redirected** part (a) to a "price-REGIME /
+x-distribution partition that separates crisis (2021/22) from calm" — but then, committing the very
+untested-leap error (R4) it had just criticised in the capacity-era grounding, it **asserted** that
+redirect without measuring it. This tick closes that gap: refit the SAME structural form on a **TWO-pool
+crisis-vs-calm regime partition** (crisis = {2021, 2022}, the ledger's own `regime` tag — a market-history
+fact, not a lift-table choice; calm = the complement) and re-measure per-cell lift. Diagnostic only — new
+tool `tools/ssp_refit_regime_partitioned.py`, reuses `recal._fit_form` + the Test-B/C helpers as libraries,
+no constant changed on disk, no P&L read (R13/R12-clean by construction, same as Tests A/B/C). Reproduce:
+`python3 -m tools.ssp_refit_regime_partitioned`.
+
+| yr | regime | med_x | gMAE | **regMAE** | lMAE (per-yr) | olsMAE | gLift | **regLift** | lLift | outcome |
+|----|--------|------|------|------|------|------|------|------|------|------|
+| 2016 | calm | 0.730 | 17.18 | 18.12 | 19.22 | 25.13 | +7.95 | +7.00 | +5.90 | win |
+| 2017 | calm | 0.689 | 17.16 | 18.64 | 17.15 | 22.56 | +5.40 | +3.92 | +5.41 | win |
+| 2018 | calm | 0.673 | 19.43 | 20.35 | 18.39 | 21.71 | +2.28 | +1.35 | +3.32 | win |
+| **2019** | calm | 0.635 | 18.82 | 17.30 | 17.02 | 18.02 | **−0.79** | **+0.72** | +1.01 | **REGIME-FLIP →+** (capacity-era WORSENED this to −1.42) |
+| 2020 | calm | 0.546 | 22.19 | 20.81 | 19.38 | 18.97 | −3.22 | **−1.84** | −0.41 | regime-neg (improved from −3.22, survives) |
+| **2021** | crisis | 0.601 | 50.22 | 51.11 | 49.21 | 48.01 | −2.21 | **−3.11** | −1.20 | **regime-WORSENS** (crisis pool 2021≠2022) |
+| 2022 | crisis | 0.521 | 79.16 | 77.83 | 77.91 | 84.71 | +5.55 | +6.88 | +6.80 | win (crisis) |
+| **2023** | calm | 0.529 | 44.12 | 41.85 | 41.56 | 43.86 | **−0.27** | **+2.01** | +2.30 | **REGIME-FLIP →+** |
+| 2024 | calm | 0.534 | 29.35 | 28.25 | 28.00 | 28.17 | −1.18 | **−0.08** | +0.17 | regime-neg (near-flip; per-yr flips +) |
+| **2025** | calm | 0.461 | 35.09 | 31.56 | 35.54 | 32.81 | **−2.28** | **+1.25** | −2.73 | **REGIME-FLIP →+** (per-yr-neg too; small-n L1 artefact) |
+
+Pool fits: **calm** A0=0.497 A1=1.461 A2=0.952 (n=125,310) · **crisis(2021/22)** A0=0.313 A1=1.235 **A2=5.256** (n=31,796).
+(Refits A0/A1/A2 per pool — an UPPER BOUND on the narrower A0/A1-only part-(a) proposal, same convention as Tests B/C.)
+
+### The decisive finding (evidence before narrative, R9) — MIXED, and it CLOSES the diagnostic chain
+1. **The regime partition beats the capacity eras on the CALM side, exactly as Test C's redirect predicted.** It flips **3 of 6** cells (2019/2023/2025) — matching the per-year *ceiling* of 3 and beating the DUKES capacity eras' 2 — and, decisively, it **recovers 2019 (+0.72)**, the cell the capacity partition *broke* to −1.42 by binning calm 2019 with crisis 2021/22. It **harms no calm cell**; 2020 (−3.22→−1.84) and 2024 (−1.18→−0.08) improve toward zero even where they don't flip. **Test C's redirect is CONFIRMED for the calm cells.**
+2. **But the "crisis" pool is itself heterogeneous — it must NOT be pooled.** Lumping 2021 with 2022 gives a crisis line dominated by 2022's far higher price level, **worsening 2021 (−2.21→−3.11)**. 2021 and 2022 are both "gas-crisis" by tag but different price *levels*; the calibration granularity for the crisis tail is finer than a single crisis pool.
+3. **A residual form-limit survives every partition (2020, 2024).** These improve but stay negative under both regime and (2020) per-year refits — the genuine form-limit already **bounded by part (b)'s R10 named simplification** (`ssp_scarcity_form_calm_low_x_underfit_bounded_2026_07_24`). No partition closes it; the honest bound is the load-bearing close, exactly as part (b) registered.
+
+### Consequence for the deferred part-(a) baseline pass (now fully partition-diagnosed, still R13-deferred)
+The diagnostic chain is **complete** — the partition question is answered end to end (per-year is the ceiling; the crisis-vs-calm regime split matches it on the recoverable cells; no finer autonomous test remains). The deferred part-(a) R13 pass now has its full recipe, pre-measured:
+- **Key A0/A1 on the crisis-vs-calm price-regime split** (recovers 2019/2023/2025, harms no calm cell) — NOT the DUKES capacity eras (Test C: misaligned).
+- **Do not pool 2021 with 2022** — the crisis tail needs finer granularity than one pool (or a level-anchored crisis treatment), else 2021 regresses.
+- **Accept the 2020/2024 residual** as the form-limit part (b)'s R10 simplification already bounds — part (a)'s achievable scope is the 3 flip cells, not all 6.
+- Combine with the separate, legitimate **denominator fidelity fix** (35000 MW → era-varying dispatchable capacity, DUKES-grounded) — kept distinct from the A0/A1-regime recalibration per Test C.
+
+Part (a) itself stays a **deliberate, director-priority-deferred R13 pass** (below the spike-tail per the 2026-07-19 steer; deserves its own R15-mutation-tested build, not a tail-of-tick rush). This tick only *measured which partition it must use and which residual it cannot close* — the last autonomously-drawable diagnostic step. **Marker flipped self-drawable→blocked (top of doc): the diagnostic lane is exhausted; the remaining step is a walled R13 baseline build.**
+
+**Walls untouched:** doc + one new diagnostic tool (`tools/ssp_refit_regime_partitioned.py`); no SSP constant changed on disk, no level moved, no curriculum value chosen, no company P&L read. The tool is a DIAGNOSTIC (measures the model), not a control gating a promotion — R15 mutation-testing applies to controls, N/A here.
+
+> **Tick note (2026-07-25, RUNG-7 doorbell):** doorbell fired the stale "rungs 1–6 empty → MINT" read
+> AGAIN; disk contradicts it (4 `PLANNER_MINTED_*` open in `in_progress/`, director-waived; this one was the
+> last `self-drawable`, the rest `blocked`). **No mint: premise FALSE** (per `DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24`
+> + the sibling tick-notes; over-minting is the exact defect that ruling intervened on). Correct draw =
+> advance THIS mint's one genuinely-drawable step: Test C had *asserted* the crisis-vs-calm redirect without
+> measuring it (its own R4 gap, one level up), so this tick MEASURED it (Test D) — the redirect holds for the
+> calm cells (recovers 2019 the eras broke), the crisis pool needs finer granularity, and a 2-cell form-limit
+> survives (already bounded by part b). That **exhausts the autonomous diagnostic lane**, so the marker flips
+> self-drawable→blocked: the sole remaining step is the walled R13 baseline build (below spike-tail, deserves
+> its own R15 pass). Rest on this mint is now PROVEN (no autonomous-drawable step remains), not assumed.
