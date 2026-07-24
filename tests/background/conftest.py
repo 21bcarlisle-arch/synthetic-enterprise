@@ -35,3 +35,11 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     monkeypatch.setattr(
         supervisor, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash", raising=False
     )
+    # RUNG-7 PLANNER (director ruling WORK_IS_THE_DEFAULT 2026-07-23): the planner reads the real
+    # DIRECTOR_AXES.md, which is populated -> planner fires -> rest is never legitimate. That would
+    # flip every "map empty -> rest" assertion in this dir (same fixture-isolation class as the wedge
+    # state above). Default the axes path to an ABSENT tmp file so the planner does NOT fire by
+    # default; the R15 planner tests point it at a populated file explicitly.
+    monkeypatch.setattr(
+        supervisor, "DIRECTOR_AXES_PATH", tmp_path / "DIRECTOR_AXES_absent.md", raising=False
+    )

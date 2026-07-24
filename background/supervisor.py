@@ -1914,6 +1914,11 @@ def authorized_set_enumeration() -> dict:
         ("backlog", _actionable_backlog_item),
         ("propose_half", _propose_half_draw),
         ("forward_discovery", _forward_discovery_draw),
+        # RUNG 7 -- THE PLANNER (director ruling WORK_IS_THE_DEFAULT 2026-07-23): the whole-set proof
+        # must include whether the planner can still MINT from ratified goals. Its ABSENCE from this
+        # enumeration was the 13:06Z breach -- "whole authorized set empty" published while ratified
+        # goals had un-minted next steps. planner=Y => rest illegitimate (mint, don't rest).
+        ("planner", _planner_rung_draw),
     ]
     return {name: _safe(fn) for name, fn in levels}
 
@@ -2097,6 +2102,70 @@ def _publish_gate_wedge_active(
         "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
         "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
         f"cause. Last recorded failure: {last_reason}"
+    )
+
+
+DIRECTOR_AXES_PATH = PROJECT_DIR / "docs" / "design" / "DIRECTOR_AXES.md"
+FIDELITY_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "fidelity_evidence_ledger.json"
+PLANNER_RUNG_DISABLED_FLAG = PROJECT_DIR / "docs" / "observability" / ".planner_rung_disabled"
+PLANNER_MINTED_PREFIX = "PLANNER_MINTED_"
+
+
+def _director_axes_present(axes_path: Path | None = None) -> bool:
+    """True if DIRECTOR_AXES has at least one RATIFIED axis (a '### <n>. <name>' heading under
+    '## v1 axes'). The planner mints the next proposals FROM these ratified goals; their ABSENCE is
+    the only genuinely-exhausted state (rest below rung 7). Independence (R15): keyed on the axes
+    file's ACTUAL content, never a constant. FAIL-CLOSED for MINTING (absent/unreadable -> not
+    present -> planner does not fire) so a missing axes file can never fabricate a phantom mint."""
+    p = axes_path or DIRECTOR_AXES_PATH
+    try:
+        text = Path(p).read_text(encoding="utf-8")
+    except OSError:
+        return False
+    return bool(re.search(r"^###\s+\d+\.\s+\S", text, re.MULTILINE))
+
+
+def _planner_rung_draw(
+    axes_path: Path | None = None,
+    disabled_flag: Path | None = None,
+) -> str | None:
+    """RUNG 7 -- THE PLANNER (director ruling WORK_IS_THE_DEFAULT 2026-07-23, commit 48495a455).
+
+    When rungs 1-6 are genuinely empty, the planner MINTS the next batch of proposals from the
+    director's ratified goals rather than resting -- 'Planning is work; resting instead of planning
+    is the breach.' Returns a bounded planning-turn doorbell if DIRECTOR_AXES holds ratified goals
+    (minting from ratified goals is authorized+expected), else None (genuinely-exhausted -> rest
+    below rung 7; pre-go-live that state should be structurally unreachable).
+
+    SHADOW RAIL: a `.planner_rung_disabled` flag file instantly reverts to the prior behaviour
+    (RULE-0 HARDEN treadmill / rest) with no code change -- a draw-core change must be killable.
+
+    This is the DETECTOR + DOORBELL only. The spawned bounded worker does the actual reading (axes,
+    epoch arc, fidelity ledger, open campaigns) and writes propose-then-proceed docs into
+    docs/staging/. Once minted, those occupy RUNG 1 (staged docs) and are drawn there -- so the
+    planner naturally re-fires only once a whole minted batch is consumed (rung 1 gates it; no
+    per-cycle churn). R15 both ways in test_planner_rung.py: axes-populated+lanes-empty MINTS;
+    axes-absent RESTS."""
+    flag = disabled_flag or PLANNER_RUNG_DISABLED_FLAG
+    try:
+        if Path(flag).exists():
+            return None
+    except OSError:
+        pass
+    if not _director_axes_present(axes_path):
+        return None
+    return (
+        "RUNG 7 PLANNER self-refill (director ruling WORK_IS_THE_DEFAULT 2026-07-23): rungs 1-6 are "
+        "empty but the director's ratified goals are NOT -- minting from ratified goals is AUTHORIZED "
+        "and EXPECTED; resting instead of planning is the breach. Run a BOUNDED planning turn: read "
+        "docs/design/DIRECTOR_AXES.md (ratified axes), the epoch arc (docs/design/maturity_map.yaml), "
+        "the fidelity ledger (docs/observability/fidelity_evidence_ledger.json) and the open-campaign "
+        "register (docs/design/CAMPAIGN_REGISTER.yaml), then MINT the next batch (up to ~5) of "
+        "propose-then-proceed docs into docs/staging/ named '" + PLANNER_MINTED_PREFIX + "<slug>_<date>.md'. "
+        "Each names the axis / fidelity-ledger row / campaign follow-on it serves, the real-world "
+        "fidelity gained, and its propose-then-proceed window. Director-reserved walls stay untouched "
+        "(one-way doors, L3 levels, curriculum values, generator ground truth). Then STOP -- the minted "
+        "docs become RUNG-1 staged work the next tick draws. This IS work; do not rest."
     )
 
 
@@ -2306,6 +2375,19 @@ def _self_refill_draw() -> str | None:
     if forward_item:
         return forward_item
 
+    # RUNG 7 -- THE PLANNER (director ruling WORK_IS_THE_DEFAULT 2026-07-23): rungs 1-6 are empty,
+    # so BEFORE falling to the RULE-0 HARDEN treadmill (re-verifying finished atoms -- the work the
+    # director declines every cycle), MINT the next batch from the director's ratified goals. This is
+    # the rung whose ABSENCE let the 13:06Z tick publish "whole authorized set empty" while owed work
+    # (SITE_MODEL_SPINE evidence pages, premise-demand publish, follow-ons) sat un-minted as prose.
+    # Preferred over the HARDEN treadmill: planning new work beats re-verifying done work.
+    planner_item = _planner_rung_draw()
+    if planner_item:
+        log("RUNG 7 PLANNER: rungs 1-6 empty + ratified goals present -> MINTING the next batch "
+            "(propose-then-proceed) rather than resting or re-verifying finished atoms "
+            "(director ruling WORK_IS_THE_DEFAULT 2026-07-23)")
+        return planner_item
+
     # RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): an empty feasible set
     # is a DEFECT IN THE DIALS, not a reason to hold. Every below-target lane and
     # the backlog are empty -> yield the below-target dial and draw HARDEN/red-
@@ -2395,8 +2477,16 @@ def _is_drained_and_gated() -> bool:
         # refused, and find_work's rest branch (`refill and _is_drained_and_gated()`) would fire.
         if _forward_discovery_draw():
             return False
-        # All real lanes + backlog + forward-discovery empty. It is a RESTING state only if at-target
-        # HARDEN atoms exist; otherwise a genuinely-empty map = a WALL (map_exhausted), not a rest.
+        # RUNG 7 -- THE PLANNER (director ruling WORK_IS_THE_DEFAULT 2026-07-23): rest is illegitimate
+        # while the planner can still MINT from ratified goals. Mirror of the rung added to
+        # `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light the exact 13:06Z
+        # rest the draw now refuses. Rest is legitimate ONLY below rung 7 -- when even planning can
+        # propose nothing within ratified scope (axes absent). Pre-go-live that is structurally
+        # unreachable, which is the point.
+        if _planner_rung_draw():
+            return False
+        # All real lanes + backlog + forward-discovery + planner empty. It is a RESTING state only if
+        # at-target HARDEN atoms exist; otherwise a genuinely-empty map = a WALL (map_exhausted).
         return _rule0_harden_draw() is not None
     except Exception:
         return False

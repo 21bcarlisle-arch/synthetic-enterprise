@@ -466,7 +466,7 @@ def test_authorized_set_enumeration_names_every_level(monkeypatch, tmp_path):
     _point_register_at(monkeypatch, tmp_path, _REGISTER_F1_PROPOSE_HALF)
     _point_proposals_at(monkeypatch, tmp_path)
     e = sup.authorized_set_enumeration()
-    assert set(e) == {"build", "site", "discover_frame", "open_campaign", "defect_backlog", "backlog", "propose_half", "forward_discovery"}
+    assert set(e) == {"build", "site", "discover_frame", "open_campaign", "defect_backlog", "backlog", "propose_half", "forward_discovery", "planner"}
     assert e["propose_half"] is True and e["build"] is False and e["forward_discovery"] is False
     line = sup.authorized_set_enumeration_line()
     assert "propose_half=Y" in line and "MUST-DRAW" in line and "propose_half" in line
