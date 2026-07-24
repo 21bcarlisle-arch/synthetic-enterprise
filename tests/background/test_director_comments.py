@@ -1,229 +1,101 @@
-"""Tests for background/director_comments.py -- DIRECTOR_COMMENTS_BOX.md.
+"""Retirement proof for the director page-comment channel.
 
-Hard requirement under test throughout: a submission with a missing or
-wrong PIN must NEVER be staged, and the daemon must never fabricate
-authenticity."""
-import json
+DIRECTOR RULING — DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24.md: the
+PIN-authenticated page-comment channel is decommissioned as a director-authority
+path, PERMANENTLY. `background/director_comments.py` is now a safe-no-op tombstone
+with the intake authority path deleted.
+
+This module is the R15 proof (both ways) that the channel is INERT and its
+retirement is the EXPECTED state the reconciler protects — not a live daemon that
+merely happens to be down. It replaces the old intake tests (a channel that no
+longer exists cannot be unit-tested for correct staging).
+
+R15 both ways:
+  - INERT: the authority path (`_write_comment_to_staging`), the poll (`check_once`)
+    and the parser (`parse_comment_submission`) are GONE from the module, and a
+    bare `main()` stages nothing. If any of those names is re-added, these tests
+    FAIL — a silent revival of the authority path is caught.
+  - CANNOT-RESURRECT: the reconciler treats `retired`+not-running as OK (no MISSING
+    drift alarm — retirement is expected), and `retired`+running as RETIRED_RUNNING
+    (an alarm) — so a self-healing reconciler can never quietly bring it back.
+"""
+from __future__ import annotations
+
+from pathlib import Path
 
 import pytest
 
 from background import director_comments as dc
+from background import process_reconciler as R
+from background import generate_units as G
+
+MANIFEST_ENTRY = "director-comments"
 
 
-@pytest.fixture(autouse=True)
-def _isolate(tmp_path, monkeypatch):
+# ── INERT: the authority path is deleted, not merely disabled ─────────────────
+def test_authority_path_functions_are_deleted():
+    """The intake authority path, the poll and the parser must NOT exist on the
+    retired module. Re-adding any of them (a silent revival) fails here."""
+    for gone in ("_write_comment_to_staging", "check_once", "parse_comment_submission",
+                 "intake_locked", "STAGING_DIR", "COMMENTS_TOPIC", "COMMENTS_PIN"):
+        assert not hasattr(dc, gone), f"retired channel must not expose {gone!r} — authority path revived?"
+
+
+def test_module_declares_itself_retired():
+    assert getattr(dc, "RETIRED", False) is True
+    assert "RETIRED" in dc.RETIRED_NOTICE.upper()
+
+
+def test_main_is_a_safe_noop_that_stages_nothing(tmp_path, monkeypatch):
+    """A bare launch of the retired daemon stages NOTHING and exits 0 — even if a
+    real staging dir exists. (Ruling point 1: the daemon is a safe no-op.)"""
+    staging = tmp_path / "staging"
+    staging.mkdir()
     monkeypatch.setattr(dc, "LOG_FILE", tmp_path / "log.md")
-    monkeypatch.setattr(dc, "STATE_FILE", tmp_path / "since.json")
-    monkeypatch.setattr(dc, "STAGING_DIR", tmp_path / "staging")
-    monkeypatch.setattr(dc, "COMMENTS_TOPIC", "test-comments-topic")
-    monkeypatch.setattr(dc, "COMMENTS_PIN", "correct-pin-123")
-    # Isolate the intake lock at a tmp path (absent => unlocked) so the tests here never read the
-    # REAL .comment_intake_locked flag (which is present live per the 2026-07-24 security incident).
-    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", tmp_path / ".comment_intake_locked")
-    (tmp_path / "staging").mkdir()
-    yield
+    rc = dc.main()
+    assert rc == 0
+    # Nothing staged anywhere the module could reach.
+    assert list(staging.iterdir()) == []
+    assert not any(staging.glob("from_rich_comment_*"))
 
 
-def _submission(pin="correct-pin-123", page="/supplier/", state="tab=regulatory", data_ts="abc1234", comment="looks wrong"):
-    return f"PIN:{pin}\nPAGE:{page}\nSTATE:{state}\nDATA_TS:{data_ts}\n---\n{comment}"
+# ── The manifest declares retirement (so the reconciler expects it down) ──────
+def test_manifest_entry_is_retired_with_no_generated_unit():
+    entry = next(e for e in R.load_manifest() if e["session"] == MANIFEST_ENTRY)
+    assert entry["state"] == "retired"
+    assert entry["owner"] != "systemd", "a retired daemon must not be systemd-owned (no unit)"
+    # reason+flip are mandatory for a non-enabled entry (schema) and must name the ruling.
+    assert "RETIRE" in entry["reason"].upper()
+    assert entry["flip"]
+    # generate_units emits NO unit for it (retired == no committed unit).
+    assert f"{MANIFEST_ENTRY}.service" not in G.regenerate()
 
 
-def test_parse_valid_submission():
-    parsed = dc.parse_comment_submission(_submission())
-    assert parsed["page"] == "/supplier/"
-    assert parsed["state"] == "tab=regulatory"
-    assert parsed["data_ts"] == "abc1234"
-    assert parsed["comment"] == "looks wrong"
+# ── CANNOT-RESURRECT: reconciler R15 both ways ────────────────────────────────
+def _status_for(session: str, tmux_running: set[str]) -> dict:
+    results = R.reconcile(unit_states={}, seat_active=False, tmux_running=tmux_running)
+    return next(r for r in results if r["session"] == session)
 
 
-def test_parse_rejects_wrong_pin():
-    assert dc.parse_comment_submission(_submission(pin="wrong")) is None
+def test_reconciler_retired_and_down_is_expected_not_missing():
+    """Ruling point 2: retirement is the EXPECTED state — a not-running retired
+    channel must classify OK, never MISSING (no standing drift alarm)."""
+    r = _status_for(MANIFEST_ENTRY, tmux_running=set())
+    assert r["status"] == "OK"
+    assert r["alarm"] is False
 
 
-def test_parse_rejects_missing_pin_field():
-    msg = "PAGE:/supplier/\nSTATE:tab=regulatory\n---\nlooks wrong"
-    assert dc.parse_comment_submission(msg) is None
-
-
-def test_parse_rejects_malformed_no_delimiter():
-    assert dc.parse_comment_submission("just some text with no structure at all") is None
-
-
-def test_parse_rejects_when_comments_pin_not_configured(monkeypatch):
-    monkeypatch.setattr(dc, "COMMENTS_PIN", None)
-    assert dc.parse_comment_submission(_submission()) is None
-
-
-def test_parse_handles_missing_optional_fields():
-    msg = "PIN:correct-pin-123\nPAGE:/customers/\n---\nnice work"
-    parsed = dc.parse_comment_submission(msg)
-    assert parsed["page"] == "/customers/"
-    assert parsed["state"] == ""
-    assert parsed["data_ts"] == ""
-    assert parsed["comment"] == "nice work"
-
-
-def test_write_comment_to_staging_creates_readable_file():
-    parsed = {"page": "/supplier/", "state": "tab=regulatory", "data_ts": "abc1234", "comment": "C6 looks wrong again"}
-    path = dc._write_comment_to_staging(parsed)
-    assert path.exists()
-    content = path.read_text()
-    assert "/supplier/" in content
-    assert "tab=regulatory" in content
-    assert "abc1234" in content
-    assert "C6 looks wrong again" in content
-
-
-def _mock_response(lines):
-    return type("R", (), {"text": "\n".join(json.dumps(l) for l in lines)})()
-
-
-def test_check_once_stages_valid_submission(monkeypatch):
-    calls = []
-    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
-    monkeypatch.setattr(
-        dc.requests, "get",
-        lambda url, params, timeout: _mock_response([
-            {"event": "message", "time": 1000, "id": "m1", "message": _submission()},
-        ]),
-    )
-    new_since = dc.check_once(500)
-    assert new_since == 1000
-    staged = list(dc.STAGING_DIR.iterdir())
-    assert len(staged) == 1
-    assert "director page comment" in staged[0].read_text().lower()
-    assert len(calls) == 1  # ack NTFY sent
-
-
-def test_check_once_never_stages_wrong_pin(monkeypatch):
-    calls = []
-    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
-    monkeypatch.setattr(
-        dc.requests, "get",
-        lambda url, params, timeout: _mock_response([
-            {"event": "message", "time": 1000, "id": "m1", "message": _submission(pin="guessed")},
-        ]),
-    )
-    dc.check_once(500)
-    assert list(dc.STAGING_DIR.iterdir()) == []
-    assert calls == []  # no ack for a rejected submission
-
-
-def test_check_once_ignores_messages_at_or_before_watermark(monkeypatch):
-    monkeypatch.setattr(dc, "notify", lambda msg, **k: None)
-    monkeypatch.setattr(
-        dc.requests, "get",
-        lambda url, params, timeout: _mock_response([
-            {"event": "message", "time": 500, "id": "m1", "message": _submission()},
-        ]),
-    )
-    new_since = dc.check_once(1000)
-    assert new_since == 1000
-    assert list(dc.STAGING_DIR.iterdir()) == []
-
-
-def test_check_once_handles_network_error(monkeypatch):
-    def _raise(*a, **k):
-        import requests as real_requests
-        raise real_requests.RequestException("network down")
-    monkeypatch.setattr(dc.requests, "get", _raise)
-    assert dc.check_once(500) == 500
-
-
-def test_check_once_skips_when_topic_not_configured(monkeypatch):
-    monkeypatch.setattr(dc, "COMMENTS_TOPIC", None)
-    calls = []
-    monkeypatch.setattr(dc.requests, "get", lambda *a, **k: calls.append(1))
-    assert dc.check_once(500) == 500
-    assert calls == []
-
-
-def test_check_once_multiple_submissions_mixed_valid_invalid(monkeypatch):
-    calls = []
-    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
-    monkeypatch.setattr(
-        dc.requests, "get",
-        lambda url, params, timeout: _mock_response([
-            {"event": "message", "time": 1000, "id": "m1", "message": _submission(comment="good one")},
-            {"event": "message", "time": 1001, "id": "m2", "message": _submission(pin="bad", comment="forged")},
-            {"event": "message", "time": 1002, "id": "m3", "message": _submission(comment="another good one")},
-        ]),
-    )
-    dc.check_once(500)
-    staged = list(dc.STAGING_DIR.iterdir())
-    assert len(staged) == 2
-    all_content = " ".join(p.read_text() for p in staged)
-    assert "good one" in all_content
-    assert "another good one" in all_content
-    assert "forged" not in all_content
-
-# ── INTAKE LOCK — fail closed (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT 2026-07-24) ────────────
-# R15 both ways: locked => a VALID, correct-PIN submission still stages NOTHING (the lock is not a
-# PIN check — it refuses even authentic-looking input); unlocked => the same submission stages
-# normally (so the lock is a real, removable gate, not the channel simply being dead).
-
-def test_intake_lock_flag_absent_is_unlocked(tmp_path, monkeypatch):
-    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", tmp_path / "nope")
-    assert dc.intake_locked() is False
-
-
-def test_intake_lock_flag_present_is_locked(tmp_path, monkeypatch):
-    flag = tmp_path / ".comment_intake_locked"
-    flag.write_text("locked")
-    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", flag)
-    assert dc.intake_locked() is True
-
-
-def test_write_comment_refuses_when_locked(tmp_path, monkeypatch):
-    monkeypatch.setattr(dc, "INTAKE_LOCK_FILE", tmp_path / ".comment_intake_locked")
-    (tmp_path / ".comment_intake_locked").write_text("locked")
-    monkeypatch.setattr(dc, "STAGING_DIR", tmp_path / "staging2")
-    monkeypatch.setattr(dc, "LOG_FILE", tmp_path / "log2.md")
-    out = dc._write_comment_to_staging({"page": "/supplier/", "state": "", "data_ts": "", "comment": "forged authentic-looking comment"})
-    assert out is None
-    assert not (tmp_path / "staging2").exists() or list((tmp_path / "staging2").iterdir()) == []
-
-
-def test_check_once_stages_nothing_when_locked_even_valid_pin(monkeypatch):
-    """The load-bearing lock proof: a submission with the CORRECT PIN — indistinguishable from a
-    genuine one — stages NOTHING while locked, and the daemon does not even poll the network."""
-    dc.INTAKE_LOCK_FILE.write_text("locked")  # the tmp-isolated flag from _isolate
-    net = []
-    monkeypatch.setattr(dc.requests, "get", lambda *a, **k: net.append(1))
-    calls = []
-    monkeypatch.setattr(dc, "notify", lambda msg, **k: calls.append(msg))
-    new_since = dc.check_once(500)
-    assert new_since == 500                       # watermark unchanged (no silent catch-up on unlock)
-    assert net == []                              # did not poll while locked
-    assert list(dc.STAGING_DIR.iterdir()) == []   # staged nothing
-    assert calls == []                            # echoed nothing
-
-
-def test_check_once_stages_again_once_unlocked(monkeypatch):
-    """Removing the flag re-opens the channel (mutation of the lock proof): the SAME valid submission
-    that staged nothing while locked now stages — proving the earlier silence was the lock, not a
-    dead channel."""
-    monkeypatch.setattr(dc, "notify", lambda msg, **k: None)
-    monkeypatch.setattr(
-        dc.requests, "get",
-        lambda url, params, timeout: _mock_response([
-            {"event": "message", "time": 1000, "id": "m1", "message": _submission()},
-        ]),
-    )
-    # locked -> nothing
-    dc.INTAKE_LOCK_FILE.write_text("locked")
-    dc.check_once(500)
-    assert list(dc.STAGING_DIR.iterdir()) == []
-    # unlocked -> stages
-    dc.INTAKE_LOCK_FILE.unlink()
-    new_since = dc.check_once(500)
-    assert new_since == 1000
-    assert len(list(dc.STAGING_DIR.iterdir())) == 1
+def test_reconciler_alarms_if_the_retired_channel_is_ever_running():
+    """The mutation half: if the retired authority path is ever observed running
+    (a resurrection), the reconciler alarms RETIRED_RUNNING — it can never be
+    silently brought back."""
+    r = _status_for(MANIFEST_ENTRY, tmux_running={MANIFEST_ENTRY})
+    assert r["status"] == "RETIRED_RUNNING"
+    assert r["alarm"] is True
 
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
-import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational

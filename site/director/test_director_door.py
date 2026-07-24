@@ -270,8 +270,9 @@ def test_curriculum_is_director_reserved_and_no_fake_auth():
 
 
 # --------------------------------------------------------------------------- #
-# Honesty of the access model: reads are open (off-nav/noindex), and the ONLY
-# authenticated affordance is the server-checked comment box -- no theatre lock.
+# Honesty of the access model: reads are open (off-nav/noindex), and this pane
+# now carries NO write affordance -- the PIN-authenticated page-comment box was
+# retired as a director-authority path on 2026-07-24 (director ruling).
 # --------------------------------------------------------------------------- #
 def test_no_fake_read_gate():
     # There must be no client-side PIN veil pretending to gate the read view --
@@ -288,12 +289,15 @@ def test_access_model_is_honestly_stated():
     assert 'id="access-banner"' in src
     assert "noindex" in src
     assert "theatre" in src            # names the failure mode it avoids
-    assert "server-side" in src        # the real auth is the server-checked PIN
+    assert "retired" in src            # the page-comment authority path is retired (2026-07-24 ruling)
     assert "console-only" in src
 
 
-def test_authenticated_write_channel_is_the_comments_box():
-    # "Reuse the comments-box auth pattern" -> the real server-checked write
-    # channel is included on the pane.
+def test_page_comment_write_channel_is_retired():
+    # DIRECTOR RULING 2026-07-24: the PIN-authenticated page-comment channel was
+    # decommissioned as a director-authority path. The widget must be GONE from
+    # this pane (no script tag, no server-side-PIN claim), and the banner must
+    # honestly state the retirement rather than advertise an authenticated box.
     src = INDEX.read_text()
-    assert "../shared/director-comments.js" in src
+    assert "director-comments.js" not in src, "retired widget must be removed from the pane"
+    assert "retired" in src.lower()

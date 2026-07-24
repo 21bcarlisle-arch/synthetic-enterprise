@@ -1,86 +1,60 @@
-"""Director per-page comments -- DIRECTOR_COMMENTS_BOX.md.
+"""Director per-page comment channel — RETIRED (permanently), 2026-07-24.
 
-Every site page carries a small feedback affordance (site/*/index.html's
-shared `director-comments.js` widget). The director's only route to leave a
-comment "with zero friction" from a PUBLIC static site (GitHub Pages, no
-backend) is a message bus -- so the widget POSTs directly to a dedicated,
-comments-only ntfy.sh topic (SE_COMMENTS_TOPIC), distinct from the main
-two-way SE_NTFY_TOPIC channel used for everything else in this project.
+DIRECTOR RULING — DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24.md,
+answering the [ACT] "retire vs redesign the page-comment authority path".
+Director's word: "Retire."
 
-Hard authentication (non-negotiable, per the staged doc): the topic name
-itself is necessarily embedded in public JS (an anonymous browser has to
-know where to POST), so it provides zero protection on its own -- anyone
-reading page source can find it. The real check is the PIN
-(SE_COMMENTS_PIN) the director enters once client-side (stored in
-localStorage from then on, never in any tracked file) and this daemon
-validates SERVER-SIDE before a submission is ever staged. A message with a
-missing/wrong PIN is discarded here -- logged, never written to
-docs/staging/, per the doc's "rejected before entering any queue."
+The PIN-authenticated page-comment channel is decommissioned as a
+director-authority path, PERMANENTLY — not locked pending redesign. Rationale on
+the record: a web form that stages content as the director's voice was the
+weakest link in the authority model and ran unnoticed for a week
+(DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24.md); the advisor bridge
+and the (pending) signed-NTFY path supersede it.
 
-Honest residual limitation (no free message bus offers real per-sender
-auth): if someone both (a) reads the public page source to find the
-comments topic AND (b) separately subscribes to that topic to snoop
-traffic, they could in principle capture a legitimate PIN from a real
-submission in transit and replay it later. This is the same trust model
-already accepted for the main SE_NTFY_TOPIC (secrecy of an unguessable
-random string, not cryptographic sender auth) -- the difference here is
-the topic itself is not secret, only the PIN is. The blast radius is
-bounded regardless: per R7/R8, a comment is DATA with ZERO authority, it
-only ever surfaces for human triage like any from_rich message -- a forged
-comment is queue noise, never an executed action.
+What retirement means in THIS module (ruling point 1):
+  - The intake authority path (`_write_comment_to_staging`) is DELETED. There is
+    no code here that can stage a comment or attribute anything to the director.
+  - The poll (`check_once`) and the parser (`parse_comment_submission`) are
+    DELETED. This daemon fetches nothing and validates nothing.
+  - `main()` is a permanent SAFE NO-OP: it logs the retirement and exits 0. The
+    manifest marks this `state: retired` with no systemd unit generated, so it is
+    never started; but even a bare hand-launch runs no intake — matching the
+    autonomous-runner / executor-daemon retired-daemon "safe no-op" pattern.
 
-Single responsibility, own polling loop, own watermark file -- does not
-share state with ntfy_responder.py (a different daemon, a different
-topic, deliberately not merged into it, matching the "one dumb loop, one
-job" lesson from THE SUPERVISOR rebuild rather than growing another
-multi-responsibility daemon).
+Reconciler (ruling point 2): the manifest entry is `retired`, so the reconciler
+treats a not-running observation as the EXPECTED state (no MISSING drift alarm),
+and a `retired`+running observation alarms RETIRED_RUNNING — a self-healing
+reconciler can never silently resurrect a retired authority path.
+
+History preserved (ruling point 3): the from_rich_comment_* artifacts in
+docs/staging/done/ stay as record. Retirement removes the channel, not the
+archive.
+
+Future (ruling point 4): if page comments ever return as a convenience, they
+return in a clearly NON-AUTHORITY namespace as unauthenticated suggestions,
+actionable only after confirmation through the bridge or a signed director
+channel — a fresh director decision and a DIFFERENT module, never a restart of
+this one. Reviving THIS authority path requires an explicit director ruling.
+
+Synthetic-marker class stands (ruling point 5): test/synthetic inputs carry an
+unmistakable marker and cannot occupy an authority namespace.
 """
 from __future__ import annotations
 
-import json
-import os
 import sys
-import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
-
-import requests
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_DIR))
-
-from background.notify import notify  # noqa: E402
-from background.agent_status import update_agent_status  # noqa: E402
-
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "director-comments-log.md"
-STATE_FILE = PROJECT_DIR / "background" / ".director_comments_since.json"
-STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 
-POLL_INTERVAL_SECONDS = 20
+RETIRED = True  # module-level tombstone marker: the authority path no longer exists.
 
-COMMENTS_TOPIC: Optional[str] = os.environ.get("SE_COMMENTS_TOPIC")
-COMMENTS_PIN: Optional[str] = os.environ.get("SE_COMMENTS_PIN")
-
-# ── INTAKE LOCK — fail closed (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT 2026-07-24) ──────────────
-# The director DENIED authorship of a 10:22Z comment this channel accepted. Until an explicit director
-# ruling re-enables it, the intake is LOCKED: accept nothing, stage nothing. The lock is a flag FILE
-# (not an env var / code constant) so it is (a) live the moment the file exists — a running daemon reads
-# it every cycle, no redeploy — and (b) reversible by removing the file, which is a director-reserved act.
-# FAIL-CLOSED: any error resolving the flag reads as LOCKED, never as open. Re-enable is a deliberate act,
-# never a side effect. Removing the flag alone re-opens the channel; per the incident, that removal is a
-# director ruling with full-provenance staging (point 6) — do not remove it as an agent.
-INTAKE_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".comment_intake_locked"
-
-
-def intake_locked() -> bool:
-    """True if the comment intake is locked (fail closed). Locked == the flag file is present OR the
-    check itself cannot be resolved (an unreadable lock state is a LOCKED state — an intake we cannot
-    prove is open must stay shut). Never raises."""
-    try:
-        return INTAKE_LOCK_FILE.exists()
-    except OSError:
-        return True
+RETIRED_NOTICE = (
+    "director-comments is RETIRED (2026-07-24 director ruling). No intake, no poll, no "
+    "parser, no staging path. A bare launch is a safe no-op that exits. Reviving the "
+    "authority path is a fresh director decision, never a restart."
+)
 
 
 def log(msg: str) -> None:
@@ -92,152 +66,11 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def _load_since() -> float:
-    if STATE_FILE.is_file():
-        try:
-            return json.loads(STATE_FILE.read_text()).get("since", 0.0)
-        except (json.JSONDecodeError, OSError):
-            return 0.0
-    return 0.0
-
-
-def _save_since(since: float) -> None:
-    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STATE_FILE.write_text(json.dumps({"since": since}))
-
-
-def parse_comment_submission(message: str) -> Optional[dict]:
-    """Expected format (see site/*/index.html's director-comments.js):
-        PIN:<pin>
-        PAGE:<path>
-        STATE:<short visible-state description>
-        DATA_TS:<data generated_at / commit, if available>
-        ---
-        <comment text>
-    Returns None if the PIN is missing/wrong or the format doesn't parse --
-    the caller must never stage a None result."""
-    if not COMMENTS_PIN:
-        return None
-    if "---" not in message:
-        return None
-    header, _, body = message.partition("---")
-    fields: dict[str, str] = {}
-    for line in header.splitlines():
-        if ":" in line:
-            key, _, value = line.partition(":")
-            fields[key.strip().upper()] = value.strip()
-
-    if fields.get("PIN") != COMMENTS_PIN:
-        return None
-
-    return {
-        "page": fields.get("PAGE", "(unknown page)"),
-        "state": fields.get("STATE", ""),
-        "data_ts": fields.get("DATA_TS", ""),
-        "comment": body.strip(),
-    }
-
-
-def _write_comment_to_staging(parsed: dict) -> Optional[Path]:
-    # INTAKE LOCK (fail closed): the staging write is the authority-path entry, so it is guarded HERE
-    # too — not only at check_once — so no caller (test, replay, future code) can stage while locked.
-    # Returns None without writing when locked; callers must treat None as "not staged".
-    if intake_locked():
-        log("INTAKE LOCKED — refused to stage a comment (fail closed). Re-enable is a director ruling.")
-        return None
-    # Microsecond precision, plus an incrementing suffix on collision --
-    # a single check_once() call can process several queued submissions
-    # within the same second (found live via a test sending 2 in one poll
-    # cycle, which silently overwrote the first with second-level-only
-    # precision).
-    STAGING_DIR.mkdir(parents=True, exist_ok=True)
-    base_ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
-    path = STAGING_DIR / f"from_rich_comment_{base_ts}.md"
-    suffix = 0
-    while path.exists():
-        suffix += 1
-        path = STAGING_DIR / f"from_rich_comment_{base_ts}_{suffix}.md"
-    path.write_text(
-        "# Director page comment\n\n"
-        f"**Page:** {parsed['page']}\n"
-        f"**Visible state:** {parsed['state'] or '(not provided)'}\n"
-        f"**Data timestamp/commit:** {parsed['data_ts'] or '(not provided)'}\n\n"
-        f"{parsed['comment']}\n"
-    )
-    return path
-
-
-def check_once(since: float) -> float:
-    """Poll once for messages posted after `since` on the comments topic.
-    Returns the new watermark. Never raises on a network hiccup -- same
-    best-effort contract as every other NTFY poller in this codebase."""
-    if intake_locked():
-        # Fail-closed: do not even POLL while locked (no fetch, no parse, no stage). Watermark is left
-        # UNCHANGED so re-enabling is the director's deliberate act, not a silent catch-up.
-        log("INTAKE LOCKED — staging path disabled (fail closed); not polling. "
-            "Re-enable only by director ruling (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT 2026-07-24).")
-        return since
-    if not COMMENTS_TOPIC:
-        log("SE_COMMENTS_TOPIC not set -- skipping poll")
-        return since
-
-    poll_url = f"https://ntfy.sh/{COMMENTS_TOPIC}/json"
-    try:
-        response = requests.get(poll_url, params={"poll": "1", "since": int(since)}, timeout=10)
-    except requests.RequestException as e:
-        log(f"Poll error: {e}")
-        return since
-
-    latest = since
-    for line in response.text.splitlines():
-        if not line.strip():
-            continue
-        try:
-            record = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if record.get("event") != "message":
-            continue
-        msg_time = record.get("time", 0)
-        if msg_time <= since:
-            continue
-        latest = max(latest, msg_time)
-
-        message = record.get("message", "")
-        parsed = parse_comment_submission(message)
-        if parsed is None:
-            log(f"Rejected submission (missing/wrong PIN or malformed) id={record.get('id')!r}")
-            continue
-
-        staged_path = _write_comment_to_staging(parsed)
-        if staged_path is None:
-            continue  # intake locked (fail closed) -- nothing staged, nothing to echo
-        log(f"Comment staged as {staged_path.name} -- page={parsed['page']!r}")
-        notify(f"Comment received from {parsed['page']} and queued for review.", kind="director_echo")
-        update_agent_status(
-            "director-comments", status="idle",
-            last_action=f"Staged comment from {parsed['page']}",
-            role="Validates PIN-authenticated director page comments, stages accepted ones",
-            produces="docs/staging/from_rich_comment_*.md",
-        )
-
-    return latest
-
-
-def main() -> None:
-    if not COMMENTS_TOPIC or not COMMENTS_PIN:
-        log("SE_COMMENTS_TOPIC/SE_COMMENTS_PIN not set -- cannot start (load background/.env.ntfy first)")
-        return
-    log("Director comments daemon started")
-    since = _load_since()
-    while True:
-        try:
-            since = check_once(since)
-            _save_since(since)
-        except Exception as e:
-            log(f"Cycle error: {e}")
-        time.sleep(POLL_INTERVAL_SECONDS)
+def main() -> int:
+    """Permanent safe no-op. The retired daemon stages nothing and polls nothing."""
+    log(RETIRED_NOTICE)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -135,12 +135,15 @@ processes:
     state: enabled
     purpose: "Population-level statistical sanity checks every 30min"
 
+  # ── RETIRED: page-comment authority path decommissioned (director ruling 2026-07-24) ──
   - session: director-comments
     command: python3 background/director_comments.py
     match: director_comments.py
-    owner: systemd
-    state: enabled
-    purpose: "Polls the comments-only ntfy topic, PIN-validated"
+    owner: (none — daemon retired; no systemd unit generated, launcher removed)
+    state: retired
+    reason: "DIRECTOR RULING (DIRECTOR_RULING_RETIRE_PAGE_COMMENT_CHANNEL_2026-07-24.md): the PIN-authenticated page-comment channel is decommissioned as a director-authority path, permanently — a web form staging content as the director's voice was the weakest link and ran unnoticed for a week (DIRECTOR_SECURITY_COMMENT_CHANNEL_INCIDENT_2026-07-24.md). The intake/poll/staging code is deleted (director_comments.py is now a safe-no-op tombstone); the widget is removed from every served page. Retirement is the EXPECTED state — so the reconciler must never report this MISSING, and a `retired`+running observation alarms RETIRED_RUNNING (a self-healing reconciler can never resurrect a retired authority path)."
+    flip: "does not flip — retired permanently. Reviving the authority path is a fresh director decision, never a restart. If page comments ever return, they return in a clearly non-authority namespace as unauthenticated suggestions (ruling point 4) — a different module, never this one."
+    purpose: "RETIRED page-comment authority channel (safe no-op)"
 
   - session: naive-organ
     command: python3 -m background.naive_organ daemon

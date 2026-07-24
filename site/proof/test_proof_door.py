@@ -169,7 +169,14 @@ def test_claim_status_legend_and_challenge_channel_present():
         assert status in text, f"claim-status vocabulary missing {status!r}"
     # The challenge channel -- the "corrects itself in public" loop, made usable.
     assert 'id="challenge-channel"' in text, "challenge channel section missing"
-    assert "director_comments.py" in text, "challenge channel must name its server-side check"
+    # DIRECTOR RULING 2026-07-24: the in-page PIN comment box was retired as a
+    # director-authority path. The challenge section must no longer advertise the
+    # retired widget's server-side check, and must honestly route challenges to the
+    # advisor bridge / a signed director channel.
+    assert "director-comments.js" not in text, "retired page-comment widget must be gone"
+    assert "retired" in text.lower(), "challenge channel must state the page-comment box is retired"
+    assert "advisor bridge" in text.lower() or "signed director" in text.lower(), \
+        "challenge channel must name the surviving director route"
 
 
 def test_method_folds_in_rendered_from_live_data_r11():

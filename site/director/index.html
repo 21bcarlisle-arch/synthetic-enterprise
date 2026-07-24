@@ -137,14 +137,16 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <b>How this pane is gated.</b> It is off-nav and <code>noindex</code> &mdash;
     unlisted, reachable only by knowing the URL. The view itself is <b>not
     behind a lock</b>: it renders read-only repo state, and a client-side PIN
-    that opened with any key would be theatre, not a control. The
-    <b>authenticated</b> affordance is the comment box (bottom-left): it reuses
-    the site's auth pattern &mdash; a PIN checked <em>server-side</em> by
-    <code>background/director_comments.py</code> before anything is ever staged,
-    the only place a browser PIN means anything here. Real director writes
-    (repo/keys/curriculum/fitness) stay console-only (one-way-door categories
-    5/6/8); the decision battery and stop control that would need genuine
-    write-auth are deferred this pass, so there is nothing to fake-gate.
+    that opened with any key would be theatre, not a control. This pane carries
+    <b>no write affordance at all</b>. The PIN-authenticated page-comment box was
+    <b>retired</b> as a director-authority path on 2026-07-24 (director ruling):
+    a web form staging content as the director's voice was the weakest link in
+    the authority model, so it was decommissioned rather than redesigned. All
+    director input now arrives via the advisor bridge or a signed director
+    channel. Real director writes (repo/keys/curriculum/fitness) stay
+    console-only (one-way-door categories 5/6/8); the decision battery and stop
+    control that would need genuine write-auth are deferred this pass, so there
+    is nothing to fake-gate.
   </div>
 
   <div id="ops">
@@ -442,10 +444,11 @@ Promise.all([
   document.getElementById("reserved-intro").innerHTML='<span style="color:var(--red)">Could not load director data.</span>';
 });
 </script>
-<!-- The authenticated write channel: PIN checked server-side by
-     background/director_comments.py. Reads above are open; this is the only
-     place a browser PIN means anything on this off-nav pane. -->
-<script src="../shared/director-comments.js"></script>
+<!-- The page-comment write channel (formerly PIN-checked server-side by
+     background/director_comments.py) was RETIRED as a director-authority path on
+     2026-07-24 (director ruling). Reads above are open; this off-nav pane now
+     carries no write affordance — director input arrives via the advisor bridge
+     or a signed director channel. -->
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
 </html>

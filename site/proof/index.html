@@ -230,15 +230,16 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
   <div class="sec">Challenge a figure</div>
   <div class="card" id="challenge-channel">
     <p class="muted" style="line-height:1.7">
-      This surface exists to be disputed. Any figure on it is challengeable: press the
-      <b>feedback</b> affordance (bottom-right of every page), name the figure and why you think it
-      is wrong, and enter the PIN. It is checked server-side (<span class="mono">background/director_comments.py</span>)
-      and staged for review &mdash; the site never reads back from the channel, so the box can neither
-      confirm nor leak. A challenge that lands becomes a <b>correction rendered in place</b>: the
-      figure is struck, the corrected value shown beside it, and &mdash; if it forged a rule &mdash; a
-      new row in the <a class="evlink" href="#timeline-anchor">Incident &rarr; Rule</a> timeline below.
-      That is what &ldquo;corrects itself in public&rdquo; means here: not that no figure is ever
-      wrong, but that a wrong one is never silently deleted.
+      This surface exists to be disputed. Any figure on it is challengeable. The in-page PIN
+      &ldquo;feedback&rdquo; box that once carried challenges was <b>retired on 2026-07-24</b>
+      (director ruling): a web form staging content as the director's voice was the weakest link
+      in the authority model, so it was decommissioned rather than redesigned. Challenges now reach
+      the director through the advisor bridge or a signed director channel &mdash; never an
+      anonymous, PIN-only web form. A challenge that lands still becomes a <b>correction rendered in
+      place</b>: the figure is struck, the corrected value shown beside it, and &mdash; if it forged
+      a rule &mdash; a new row in the <a class="evlink" href="#timeline-anchor">Incident &rarr;
+      Rule</a> timeline below. That is what &ldquo;corrects itself in public&rdquo; means here: not
+      that no figure is ever wrong, but that a wrong one is never silently deleted.
     </p>
   </div>
 
@@ -1080,7 +1081,6 @@ Promise.all([
   document.getElementById("inv-unit-note").innerHTML='<span style="color:var(--red)">Could not load investor summary data</span>';
 });
 </script>
-<script src="../shared/director-comments.js" defer></script>
 <footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
 </html>
