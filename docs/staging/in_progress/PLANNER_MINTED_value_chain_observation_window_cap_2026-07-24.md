@@ -226,3 +226,37 @@ Prereq (2) multi-period sampling (last commit `0f4011040`) gave the register rea
 - A board-surface (site) rendering of these figures is a natural follow-on once the live JSON carries them.
 
 > **Tick note (2026-07-24, RUNG-7 doorbell, eighth worker tick):** doorbell fired the stale "rungs 1-6 empty -> MINT" read an EIGHTH time; disk contradicts it (this mint has a genuine drawable next step, director-waived). Correct draw = advance it -- shipped the run-output surfacing serializer fix + 2 tests + R15 both-ways, and caught that `trading_book` (a sibling organ with an already-live starved consumer) was dropped by the same whitelist. No mint: premise false.
+
+---
+
+## WORLD-HALF AUTHORED as a coupled-triad FRAME (step-3 prereq 1 world side) — DONE, 2026-07-24 ninth worker tick
+
+The prior eight ticks shipped every non-walled **company-side** step of this mint (attribution → feed
+transform → run-loop feed → observation-window cap mechanism → resolution *consumer* seam → multi-period
+sampling → run-output surfacing, committed through `15b6e8c4a`). This tick's honest finding: **there is no
+non-walled company-side code step left.** The observation-window cap is LIVE but honestly DORMANT — it
+erodes a credit line only when fed observed settle/dispute/default conduct, and the producer of that
+conduct is the **WORLD counterparty-resolution model**, which is a *walled coupled SIM/world atom* (whether
+a counterparty defaults is its true default propensity = behind the wall; a company-side model that decided
+it would be a Tier-1 epistemic violation). Building it autonomously is exactly what the sixth-tick note
+said it is NOT — "a bare company-side worker-tick action."
+
+**So the genuinely-drawable, non-walled, non-cosmetic step = author it (F1 precedent), not build it.**
+Shipped: **`docs/design/frame/WVC_R_counterparty_resolution_coupled_triad_FRAME.md`** — a full coupled-triad
+FRAME (SIM producer + HARNESS gap; the COMPANY consumer leg is already built, the typed-flow-seam-first
+pattern working as intended). It names the three candidate atoms (`WVC_Ra/Rb/Rc`), the belief-vs-truth
+credit gap (no `WVC_*` pair exists in `coupled_gap_ledger.json` yet — that's the harness leg's job), the
+mandatory R15 credit-leak control, the R13 baseline/curriculum split (agency-default-rate anchor =
+baseline; **MC-2 spike difficulty = director-reserved curriculum, a DISTINCT channel from `MIN_HEDGE_FLOOR`
+per the Oxera evidence**), and the two director values-calls. It **opens no atom, moves no level, touches no
+map** — the build proposal returns through the twin/director gate.
+
+**No mint this tick, and this is the CORRECT no-mint (proof-backed, not avoidance):** the entire
+PRODUCT-FIRST front (PRIORITIES items 1-5) is already covered by 6 open `PLANNER_MINTED_*` docs; the two
+self-drawable siblings are now both at walls (SSP: director-reserved grounding, ranked below spike-tail;
+this one: world-half is director/twin-gated, R11 live-pixel + site render pending the next *automatic*
+publish); the F1-F5 forward-discovery register is fully dispositioned (zero drawable). A 9th mint would be
+the over-production `DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24` intervened on. **Unblock triggers named:**
+(a) next auto-processed sim run → the three credit organs appear in `run_output_latest.json` with moving
+numbers (R11 live-pixel) → site render becomes drawable; (b) director/twin opens `WVC_Ra`/`WVC_Rc` for BUILD
+and authors the MC-2 curriculum. Both are gate/publish events, not worker-tick actions.
