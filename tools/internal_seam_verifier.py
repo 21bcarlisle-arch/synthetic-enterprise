@@ -66,7 +66,37 @@ class Violation:
         )
 
 
-def _iter_import_statements(tree: ast.AST):
+def _resolve_relative(
+    pkg_parts: tuple[str, ...], level: int, module: str | None
+) -> str | None:
+    """Resolve a relative ``from ... import`` to its absolute base module.
+
+    ``pkg_parts`` is the importing file's package -- its parent-directory parts,
+    e.g. ``('company', 'billing')`` for ``company/billing/collections.py`` (the
+    same rule holds for a package ``__init__.py``). ``level`` is the ast dot
+    count (1 = current package, 2 = parent, ...). Returns the absolute base
+    dotted module, or ``None`` if the relative import escapes above the repo
+    root (a runtime ``ImportError`` anyway, nothing to classify).
+
+    WHY this exists (R15 fail-open fix, sibling of the dot-boundary allowlist
+    fix): the old code SKIPPED every relative import on the assumption that they
+    "stay within a package". That is FALSE for a cross-package relative such as
+    ``from ..market import imbalance_ledger`` inside ``company/billing/``, which
+    resolves to ``company.market.imbalance_ledger`` (a SETTLEMENT module) and so
+    crosses a domain boundary. Skipping it let a domain evade the ENTIRE seam by
+    switching one absolute cross-domain import to its relative form -- the check
+    could not fire, which is worse than no check.
+    """
+    anchor_len = len(pkg_parts) - (level - 1)
+    if anchor_len < 0:
+        return None
+    anchor = list(pkg_parts[:anchor_len])
+    if module:
+        anchor.extend(module.split("."))
+    return ".".join(anchor) if anchor else None
+
+
+def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
     """Yield (candidate_modules, lineno) per import STATEMENT.
 
     ``candidate_modules`` is the tuple of dotted module strings the statement
@@ -76,21 +106,30 @@ def _iter_import_statements(tree: ast.AST):
     pick the most specific guarded match. This is what closes the FAIL-OPEN gap
     where ``from company.billing import invoice`` (module string
     ``company.billing``) previously classified to None and slipped through.
+
+    Relative imports (``level>0``) are RESOLVED to absolute against
+    ``pkg_parts`` (the importing file's package) rather than skipped -- a
+    cross-package relative import crosses a domain boundary just like an
+    absolute one (R15 fail-open fix).
     """
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 yield (alias.name,), node.lineno
         elif isinstance(node, ast.ImportFrom):
-            # Ignore relative imports (level>0) -- they stay within a package.
             if node.level and node.level > 0:
+                base = _resolve_relative(pkg_parts, node.level, node.module)
+                if base is None:
+                    continue
+            elif node.module:
+                base = node.module
+            else:
                 continue
-            if node.module:
-                candidates = [node.module]
-                for alias in node.names:
-                    if alias.name and alias.name != "*":
-                        candidates.append(f"{node.module}.{alias.name}")
-                yield tuple(candidates), node.lineno
+            candidates = [base]
+            for alias in node.names:
+                if alias.name and alias.name != "*":
+                    candidates.append(f"{base}.{alias.name}")
+            yield tuple(candidates), node.lineno
 
 
 def _module_domain(module: str):
@@ -141,8 +180,13 @@ def check_file(path: Path) -> list[Violation]:
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source, filename=str(path))
 
+    # The importing file's package = its parent-directory parts. Relative
+    # imports resolve against this (company/billing/collections.py ->
+    # ('company','billing')).
+    pkg_parts = Path(file_rel).parent.parts
+
     violations: list[Violation] = []
-    for candidates, lineno in _iter_import_statements(tree):
+    for candidates, lineno in _iter_import_statements(tree, pkg_parts):
         # Resolve every candidate module this statement could reach; keep the
         # foreign, non-baseline ones.
         resolved: list[tuple[str, Domain, bool]] = []

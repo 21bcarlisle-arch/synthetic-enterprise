@@ -185,6 +185,59 @@ def test_mutation_sibling_prefix_crossing_is_flagged_end_to_end(monkeypatch):
 
 
 # --------------------------------------------------------------------------
+# R15 MUTATION: a CROSS-PACKAGE RELATIVE import crosses a domain boundary just
+# like an absolute one, so it must be resolved and flagged -- not skipped. The
+# old code skipped every `level>0` import on the false premise that relative
+# imports "stay within a package"; that let a domain evade the ENTIRE seam by
+# switching one absolute cross-domain import to its relative form.
+# --------------------------------------------------------------------------
+def test_mutation_relative_cross_domain_import_is_flagged():
+    """A pricing file reaching into billing internals via a RELATIVE import
+    (`from ..billing.payments import ...`) MUST be flagged, identically to its
+    absolute form. Returned [] before the fail-open fix -- this would have RED."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_relimport_probe.py"
+    planted.write_text(
+        "from ..billing.payments import reconcile_payment  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == "billing"
+    assert v.imported_module == "company.billing.payments"
+
+
+def test_relative_import_within_same_domain_is_silent():
+    """The fix must not over-fire: a relative import that resolves BACK INTO the
+    importing file's own domain (`from . import price_cap` in a pricing file ->
+    company.pricing.price_cap) is intra-domain and MUST stay silent."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_relsame_probe.py"
+    planted.write_text("from . import price_cap  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert violations == [], [str(v) for v in violations]
+
+
+def test_resolve_relative_semantics():
+    """Unit guard for the relative->absolute resolver. Package parts are the
+    importing file's parent-directory parts; level 1 = current package, 2 =
+    parent, and an import escaping above the repo root resolves to None."""
+    pkg = ("company", "billing")  # company/billing/collections.py
+    assert verifier._resolve_relative(pkg, 1, "invoice") == "company.billing.invoice"
+    assert verifier._resolve_relative(pkg, 2, "market") == "company.market"
+    assert verifier._resolve_relative(pkg, 2, None) == "company"
+    assert verifier._resolve_relative(pkg, 1, None) == "company.billing"
+    # Escapes above the repo root -> None (a runtime ImportError anyway).
+    assert verifier._resolve_relative(pkg, 5, "x") is None
+
+
+# --------------------------------------------------------------------------
 # Fail-closed, not fail-open / fail-silent.
 # --------------------------------------------------------------------------
 def test_unparseable_file_raises_not_passes(tmp_path):
