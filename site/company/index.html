@@ -182,6 +182,20 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="passport" id="trading-passport"></div>
   </div>
 
+  <!-- 2b. WHOLESALE VALUE CHAIN -->
+  <div class="sec">Wholesale value chain &mdash; who the hedges sit with, credit exposure &amp; margin</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:14px" id="wholesale-intro">Loading...</p>
+    <div class="kpis" id="wholesale-kpis"></div>
+    <div class="table-scroll" style="margin-top:6px">
+      <table class="tbl">
+        <thead><tr><th>Counterparty channel</th><th class="num">Contracts</th></tr></thead>
+        <tbody id="wholesale-cp-body"><tr><td colspan="2" class="muted">Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="passport" id="wholesale-passport"></div>
+  </div>
+
   <!-- 3. HOUSEHOLD DRILL-DOWN (billing + credit & collections + customer service) -->
   <div class="sec">Billing &amp; collections &mdash; one real account, the whole way down</div>
   <div class="card">
@@ -546,6 +560,36 @@ function renderTrading(d){
   el("trading-passport").innerHTML="<b>Passport.</b> "+esc(p.note||"")+" Sources: "+(p.sources||[]).map(esc).join("; ")+".";
 }
 
+function renderWholesale(d){
+  var t=d.trading_risk||{}, w=t.wholesale||{};
+  if(!w.available){
+    el("wholesale-intro").textContent="Wholesale value-chain organs not present in this run's output.";
+    el("wholesale-kpis").innerHTML="";
+    el("wholesale-cp-body").innerHTML='<tr><td colspan="2" class="muted">--</td></tr>';
+    el("wholesale-passport").innerHTML="";
+    return;
+  }
+  el("wholesale-intro").innerHTML=
+    "Every forward hedge is booked <b>with a counterparty</b> -- CCP-cleared or bilateral ISDA (bank / trader / generator). "+
+    "Credit exposure is the ISDA-netted mark-to-market the company is owed, marked at a point-in-time forward curve. The "+
+    "<b>peak</b> is the mid-run high at a price shock, not the quieter run-end. The margin-call book is the liquidity leg a "+
+    "collateral death-loop would drain -- still to be built as a scenario the company can fail.";
+  var kpis=[
+    kpiTile("Peak credit exposure", w.peak_net_exposure_gbp!=null?gbp(w.peak_net_exposure_gbp):"--", "mid-run high"+(w.peak_sample_date?" &middot; "+esc(w.peak_sample_date):"")),
+    kpiTile("Counterparties", w.distinct_counterparties!=null?num(w.distinct_counterparties):"--", (w.cleared_count!=null?num(w.cleared_count)+" cleared":"")+(w.bilateral_count!=null?" &middot; "+num(w.bilateral_count)+" bilateral":"")),
+    kpiTile("Largest exposure", w.largest_net_exposure_gbp!=null?gbp(w.largest_net_exposure_gbp):"--", (w.largest_counterparty?esc(w.largest_counterparty):"")+(w.largest_utilisation_pct!=null?" &middot; "+Number(w.largest_utilisation_pct).toFixed(1)+"% of limit":"")),
+    kpiTile("Margin outstanding", w.margin_outstanding_gbp!=null?gbp(w.margin_outstanding_gbp):"--", (w.margin_calls!=null?num(w.margin_calls)+" calls":"")+(w.facility_headroom_gbp!=null?" &middot; "+gbp(w.facility_headroom_gbp)+" headroom":""))
+  ];
+  el("wholesale-kpis").innerHTML=kpis.join("");
+  var bt=w.by_counterparty_type||{};
+  var rows=Object.keys(bt).sort(function(a,b){return bt[b]-bt[a];});
+  el("wholesale-cp-body").innerHTML=rows.length?rows.map(function(k){
+    return '<tr><td>'+esc(String(k).replace(/_/g," "))+'</td><td class="num">'+num(bt[k])+'</td></tr>';
+  }).join(""):'<tr><td colspan="2" class="muted">No counterparty breakdown.</td></tr>';
+  var p=t.passport||{};
+  el("wholesale-passport").innerHTML="<b>Passport.</b> "+esc(p.note||"")+" Sources: "+(p.sources||[]).map(esc).join("; ")+".";
+}
+
 function renderHousehold(d){
   var h=d.household||{};
   if(!h.available){ el("hh-intro").textContent="Household drill-down source not available at generation time."; return; }
@@ -672,6 +716,7 @@ jget("../data/company.json").then(function(d){
   renderState(d);
   renderFinance(d);
   renderTrading(d);
+  renderWholesale(d);
   renderHousehold(d);
   renderCompliance(d);
   renderBuild(d);
