@@ -1,5 +1,16 @@
 # [IN PROGRESS] Site campaign continuation — WORDS → DIAGRAM → EVIDENCE + financials reframe + R11 link integrity (2026-07-23)
 
+**DISPOSITION: FULLY BLOCKED — AWAITING DIRECTOR (§A). No drawable sub-item remains.**
+Every drawable part of this campaign has landed (§B, §C — both live-verified). The entire
+remainder is walled on ONE director-pixel decision, §A (below), which was ESCALATED to the
+director on 2026-07-24 (commit `47ebc31f3`, NTFY real_alarm) and is awaiting his answer — do
+NOT re-escalate, and do NOT act on §A/§D before he answers. The only other remainder, the §C
+arrears-£-per-customer DISTRIBUTION, is explicitly a SIM-emission BUILD (threading an arrears-£
+balance through the settlement→export→generator chain), NOT a bounded-tick campaign item — it
+belongs in the normal BUILD draw, not here. This park therefore carries NO drawable-work
+disposition marker BY DESIGN (staging_disposition park-honesty contract): it stays quiet
+until the director answers §A, at which point §D + the §C /project orphan unblock in one pass.
+
 **BLOCKING OPEN SUB-ITEM (why this is parked here, not the scanned root):** §A — the
 canonical-door decision (which SITE_V5 doors survive vs fold/redirect) is
 director-pixel-gated (ruling #3 requires the master diagram back as pixels before
@@ -18,12 +29,16 @@ restart it. Rung-1 publish-gate rule + claim==pixel (R11) discipline apply.
 
 ---
 
-## Context — the publish-gate wedge is CLEARED (unblocks consumption)
+## Context — the publish-gate wedge is CLEARED (this window is now SPENT)
 The addendum explicitly gated all of this BEHIND the live publish-gate wedge
-("the wedge is the crisis; this is content"). Verified cleared this tick: HEAD
+("the wedge is the crisis; this is content"). Verified cleared 2026-07-23: HEAD
 `92ae6cc04` and its parent `1a29fe3b0` are both successful auto-process completions
 past the failure lineage (last gate failure was `eb94267b1`; both subsequent
-commits processed green). So the campaign may now proceed.
+commits processed green). That green window was CONSUMED — §B and §C both landed
+and were live-verified against poesys.net (see below). Nothing that green unblocked
+remains open: the entire remainder is walled on §A (below), which is director-pixel-
+gated and already escalated. **This park now carries NO drawable sub-item** (see the
+FULLY-BLOCKED disposition at the top) — it is honestly parked, awaiting the director.
 
 ## DONE this tick — R11 link-walk DIAGNOSTIC (serves rulings #2/#3)
 - `site/link_walk.py` — crawls every internal page-nav href across all doors,
@@ -281,3 +296,49 @@ endlessly. Fix (proposed atom): when product is walled AND every atom is at-targ
 hardening left, the self-refill should escalate the wall + REST rather than manufacture redundant
 HARDEN — mutation-proven both directions, mirroring H23. (Audit-sibling-half heuristic.)
 — Worker tick, 2026-07-24, product-first over machinery-busywork.
+
+---
+
+## TREADMILL ROOT-CAUSED + STOPPED — worker tick 2026-07-24 00:4x UTC
+
+**The ~2.5h HARDEN treadmill above had a second, more proximate cause than the missing
+HARDEN-saturation marker — and it was in THIS doc.** The scheduled ticks were not merely
+falling to Rule-0 HARDEN; they never even reached the DRAINED-AND-GATED quiet wait, because
+`find_work()` kept seeing a truthy `primary` ("unprocessed staging"). Traced on real state:
+`background/staging_disposition.py::misparked_open_campaign_in_progress` scans the WHOLE doc
+for its four drawable-work markers (written here with an inserted · so this note cannot itself
+re-trigger the scan: `proceed·able`, `proceed·able-nohyphen`, `may·now·proceed`, `drawable·now`)
+and this doc still carried ONE stale line 26 — *"So the campaign m·ay now proceed."* — from
+2026-07-23 when the
+publish-gate wedge cleared. That window was long since CONSUMED (§B/§C landed), but the string
+lived on, so the detector kept flagging the doc as having drawable work every tick →
+`_real_staged_instructions()` non-empty → `primary` truthy → `find_work` returned
+`primary; ALSO HARDEN` instead of settling quiet (the `refill and _is_drained_and_gated()`
+quiet-wait branch is reached ONLY when `primary` is falsy).
+
+**Fix applied this tick (park-honesty, the detector's own designed contract, lines 79-84 of
+`staging_disposition.py`): "if it is really blocked, say so and it stays parked."** Neutralised
+the single stale trigger line and added the FULLY-BLOCKED disposition banner at the top. VERIFIED
+on real state after the edit:
+- grep for the four markers (regex with the same · convention) → no trigger strings.
+- `misparked_open_campaign_in_progress(...)` → `[]`; `misparked_actionable_in_progress(...)` → `[]`;
+  `_real_staged_instructions()` → `[]`.
+- All real lanes empty (BUILD=0, SITE=0, DISCOVER/FRAME=0 all-FRAME-saturated, backlog/open-campaign/
+  declared-defect/propose-half/forward-discovery all empty) → `_is_drained_and_gated()` → **True**.
+  So `find_work` now settles into the legitimate quiet wait instead of re-offering HARDEN. Treadmill
+  stopped, and the rest is HONEST (everything genuinely walled on the director's §A answer).
+
+**QUEUED mechanism finding (9th draw-gap flag; per SELF_INTERRUPT_DISCIPLINE — a
+`staging_disposition.py` change, R15 mutation-proof both ways, NOT a bounded-tick blind-land):
+`misparked_open_campaign_in_progress` matches its drawable-work markers ANYWHERE in the doc,
+including inside descriptions of COMPLETED/LANDED sub-items and stale historical context.** So a
+genuinely-fully-blocked campaign false-positives on one stale word and manufactures a multi-hour
+treadmill. Proposed durable fix: require a drawable-work marker to sit within an OPEN sub-item's
+scope (e.g. within N lines of an un-struck-through `### §` header whose status is not
+LANDED/DONE/BLOCKED), not merely somewhere in the file; mutation-prove it fires on a doc with a
+proceed·able OPEN item AND stays silent on a doc whose only markers are in landed/blocked context.
+Sibling in spirit to the H23 HARDEN-saturation marker above (audit-sibling-half heuristic): both
+are "a self-refill draw that keeps re-offering already-finished work because its saturation test is
+too coarse." NO NTFY this tick (R5): §A is already with the director (47ebc31f3); stopping an
+internal treadmill by making a park honest is not a new director-facing transition.
+— Worker tick, 2026-07-24, root-cause over re-escalation.
