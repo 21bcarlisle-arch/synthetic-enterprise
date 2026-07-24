@@ -273,3 +273,73 @@ def test_at_least_one_claim_evidence_link():
     text = INDEX.read_text()
     assert 'class="evlink"' in text, "no evidence-link class present on the door"
     assert "maturity_map.yaml" in combined, "banked-levels claim not evidence-linked"
+
+
+# ---------------------------------------------------------------------------
+# DIRECTOR_RULING_FRONT_MISSION_BLOCK (2026-07-24): the cost-to-serve arbitrage
+# leg moved here from the front door, intact. Its R11/R15 render tests moved with
+# it (were site/test_home_door.py::test_thesis_*). The leg is a SUPPORTING leg of
+# the economics; the mission (£/tCO2e vs the £273 yardstick) leads the front door.
+# RC7: the £-figures carry their N, the floor-not-figure framing, and the missing
+# lines -- never a headline number.
+# ---------------------------------------------------------------------------
+DASHBOARD = HERE.parent / "data" / "dashboard.json"
+
+
+def _gbp(n) -> str:
+    """Mirror the page's gbp(): '£' + toLocaleString('en-GB') whole pounds (0 dp)."""
+    if n is None:
+        return "-"
+    return ("-" if n < 0 else "") + "£" + f"{round(abs(n)):,}"
+
+
+def test_cost_to_serve_renders_true_floor_benchmark_and_N():
+    out = _render(_live())
+    sent = out["cts-sentence"]["innerHTML"]
+    ol = json.loads(DASHBOARD.read_text())["opex_ledger"]
+    tc = ol["true_opex_per_household_gbp"]
+    bc = ol["benchmark_opex_per_household_gbp"]
+    assert _gbp(tc) in sent, sent
+    assert _gbp(bc) in sent, sent
+    assert _gbp(bc - tc) in sent, sent
+    # RC7: the N is on the surface, framed as a teaching cohort, not a book.
+    assert "N=" + str(ol["household_count"]) in sent, sent
+    assert "not a figure" in sent or "not a book" in sent, sent
+
+
+def test_cost_to_serve_enumerates_the_missing_lines():
+    out = _render(_live())
+    cav = out["cts-caveat"]["innerHTML"]
+    # Floor-not-figure framing + the specific lines still missing (RC7 honesty caveat).
+    assert "FLOOR" in cav, cav
+    assert "AI-compute" in cav, cav
+    assert "historical series" in cav, cav
+
+
+def test_cost_to_serve_true_pixel_is_independent_of_render():
+    # R15 independence: a mutated source value must move the rendered pixel.
+    d = json.loads(DASHBOARD.read_text())
+    d["opex_ledger"]["true_opex_per_household_gbp"] = 987
+    out = _render({"proof": _live(), "dashboard": d})
+    assert "£987" in out["cts-sentence"]["innerHTML"], out["cts-sentence"]["innerHTML"]
+
+
+def test_cost_to_serve_evidence_cites_its_source():
+    out = _render(_live())
+    ev = out["cts-evidence"]["innerHTML"]
+    # R1: the numbers cite dashboard.json -> opex_ledger.
+    assert 'href="../data/dashboard.json"' in ev, ev
+
+
+def test_cost_to_serve_section_and_hypothesis_present():
+    text = INDEX.read_text()
+    assert 'id="economics-anchor"' in text, "economics anchor (front-door target) missing on /proof"
+    assert "Falsifiable hypothesis" in text, "the falsifiable framing was dropped in the move"
+    # RC4: the CTS bars use brand tokens, never raw hex.
+    m = re.search(r"function renderCostToServe\(.*?\n\}", text, re.S)
+    assert m, "renderCostToServe not found"
+    fn = m.group(0)
+    for bad in ("#1baf7a", "#4a3aa7", "#52514e", "#e1e0d9", "#0b0b0b"):
+        assert bad not in fn, f"off-brand raw hex {bad} in the CTS render (RC4)"
+    # Colour comes from brand tokens (var(--<tok>)), the bars keyed on green-bright/text.
+    assert "var(--" in fn and '"green-bright"' in fn and '"text"' in fn

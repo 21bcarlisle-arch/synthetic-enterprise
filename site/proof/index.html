@@ -366,6 +366,27 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     <div class="kpis" id="inv-kpis"><div class="muted">Loading...</div></div>
   </div>
 
+  <!-- 4c. THE COST-TO-SERVE LEG (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the
+       cost-arbitrage hypothesis that used to LEAD the front door. The director ruled it a
+       supporting leg of the economics -- "not what the idea and pitch really is" -- and moved it
+       here intact, keeping its falsifiable framing and honesty caveats. RC7 breach he named
+       (£7 vs £320 from N=5): on this deep-evidence page the £-figures carry their N, the
+       floor-not-figure framing, and the enumeration of the lines still missing -- never a
+       headline number. Rendered off dashboard.json -> opex_ledger, never hand-typed. -->
+  <div class="sec" id="economics-anchor">The cost-to-serve leg &mdash; the economics that would fund abatement</div>
+  <div class="card">
+    <p class="muted" style="margin-bottom:12px"><strong>Falsifiable hypothesis.</strong> Knowing each
+      household's true cost-to-serve lets the supplier price below the flat-margin benchmark; the gap it
+      frees is the budget for abating a tonne of CO&#8322; at near-zero marginal cost. If the true
+      per-household cost sits at or above the benchmark, the thesis fails right here. This is a supporting
+      leg of the economics, not the mission &mdash; the mission (&pound;/tCO&#8322;e vs the &pound;273
+      yardstick) leads the front door.</p>
+    <p class="muted" id="cts-sentence" style="margin-bottom:12px">Loading...</p>
+    <div id="cts-bars" style="margin-bottom:12px"></div>
+    <p class="muted" id="cts-caveat" style="font-size:12px"></p>
+    <p class="muted" id="cts-evidence" style="font-size:11px;margin-top:8px"></p>
+  </div>
+
   <!-- 5. METHOD FOLD-IN (SITE_V5 surface 4: Method folds into Proof) -->
   <div class="sec" id="method-anchor">The Method &mdash; how this company is built</div>
   <div class="card">
@@ -1018,10 +1039,43 @@ function renderInvestor(D,PH){
       "forecast of a licensed supplier's economics."
     : "The customer book is empty in the latest run — no unit economics to report.";
 }
+// Cost-to-serve leg (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24). The arbitrage
+// hypothesis that used to lead the front door, moved here intact. RC7: the £-figures
+// carry their N (a teaching cohort, not a book), the floor-not-figure framing, and the
+// enumeration of the missing lines. Colour comes from brand tokens only, no raw hex.
+function renderCostToServe(D){
+  var ol=(D&&D.opex_ledger)||{};
+  var trueCost=ol.true_opex_per_household_gbp, benchCost=ol.benchmark_opex_per_household_gbp;
+  var N=ol.household_count, basis=ol.population_basis||"resi households";
+  var sEl=document.getElementById("cts-sentence"), bEl=document.getElementById("cts-bars"),
+      cEl=document.getElementById("cts-caveat"), eEl=document.getElementById("cts-evidence");
+  if(trueCost==null||benchCost==null){
+    if(sEl)sEl.textContent="Dual-ledger data not yet available for this run.";
+    return;
+  }
+  var gap=benchCost-trueCost;
+  if(sEl)sEl.innerHTML="Per household ("+esc(basis)+"): the TRUE cost-base runs at <b>"+gbp(trueCost)+
+    "</b> against a <b>"+gbp(benchCost)+"</b> incumbent-benchmark allowance &mdash; a <b>"+gbp(gap)+
+    "</b> gap per household. This is <b>N="+N+"</b>, a teaching cohort and not a book: read it as a floor "+
+    "and a direction, not a figure &mdash; real UK cost-to-serve runs in the hundreds of £/household.";
+  var maxV=Math.max(trueCost,benchCost)||1;
+  function bar(label,v,tok){
+    var w=Math.max(2,Math.round(100*v/maxV));
+    return '<div style="margin:6px 0"><div style="font-size:11px;color:var(--muted)">'+esc(label)+
+      ' &mdash; '+gbp(v)+'</div><div style="height:16px;width:'+w+'%;background:var(--'+tok+');"></div></div>';
+  }
+  if(bEl)bEl.innerHTML=bar("TRUE cost (FLOOR)",trueCost,"green-bright")+bar("Benchmark (incumbent)",benchCost,"text");
+  if(cEl)cEl.innerHTML="The TRUE side is a cost <b>FLOOR, not a complete figure</b>. The lines still missing: "+
+    "<b>AI-compute cost</b> (the usage data needed to price it honestly is too thin/stale to use without "+
+    "fudging a number &mdash; an open costing-basis question) and a <b>per-year historical series</b> (this "+
+    "is a current-book snapshot, registered as backlog). At N="+N+" a single household moves the average materially.";
+  if(eEl)eEl.innerHTML="Source: <a class=\"evlink\" href=\"../data/dashboard.json\" target=\"_blank\" rel=\"noopener\">"+
+    "dashboard.json &rarr; opex_ledger</a>, generated "+esc((D.meta&&D.meta.generated_at)||"--")+".";
+}
 Promise.all([
   fetch("../data/dashboard.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
   fetch("../data/phases.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
-]).then(function(rs){renderInvestor(rs[0],rs[1]);}).catch(function(e){
+]).then(function(rs){renderInvestor(rs[0],rs[1]);renderCostToServe(rs[0]);}).catch(function(e){
   console.error("investor summary load error:",e);
   document.getElementById("inv-unit-note").innerHTML='<span style="color:var(--red)">Could not load investor summary data</span>';
 });

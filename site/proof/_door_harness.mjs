@@ -23,6 +23,9 @@ const dataDir = path.join(path.dirname(htmlPath), "..", "data");
 function loadDisk(name) { try { return JSON.parse(fs.readFileSync(path.join(dataDir, name), "utf8")); } catch { return null; } }
 const method = raw && raw.proof && "method" in raw ? raw.method : loadDisk("method.json");
 const simplified = raw && raw.proof && "simplified" in raw ? raw.simplified : loadDisk("simplified.json");
+// dashboard.json drives the cost-to-serve leg (renderCostToServe). Injectable via the
+// {proof, dashboard} wrapper so an R15 test can mutate a source value; else read from disk.
+const dashboard = raw && raw.proof && "dashboard" in raw ? raw.dashboard : loadDisk("dashboard.json");
 
 const elements = {};
 function stub(id) {
@@ -61,6 +64,7 @@ sandbox.renderCorrections(data);
 sandbox.renderBuild(data);
 sandbox.renderMethod(method);
 sandbox.renderSimplified(simplified);
+sandbox.renderCostToServe(dashboard);
 
 const ids = [
   "timeline-intro", "verify-kpis", "banked-note",
@@ -69,6 +73,7 @@ const ids = [
   "method-framing", "method-roles", "method-rules",
   "simplified-intro", "simplified-kpis", "simplified-body",
   "corrections-intro", "corrections",
+  "cts-sentence", "cts-caveat", "cts-evidence",
 ];
 const out = {};
 for (const id of ids) {

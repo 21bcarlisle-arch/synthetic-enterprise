@@ -26,10 +26,13 @@ def _style_block(text: str) -> str:
 
 def _script_block(text: str) -> str:
     # The page's own inline script (the CDN + any src= tags are skipped by the bare
-    # <script> match, same convention as the render harness).
+    # <script> match, same convention as the render harness). Since
+    # DIRECTOR_RULING_FRONT_MISSION_BLOCK (2026-07-24) the front door renders no live
+    # figure and carries no inline script -- the "no bad string in the script" guards
+    # below then hold vacuously (there is no script to smuggle a regression into),
+    # which is the correct post-condition, so an absent block returns "".
     m = re.search(r"<script>(.*?)</script>", text, re.S)
-    assert m, "no inline <script> block"
-    return m.group(1)
+    return m.group(1) if m else ""
 
 
 # ---- RC4: type-only BLACK wordmark (not the legacy teal logo) -----------------------------
@@ -68,14 +71,15 @@ def test_no_leading_tilde_on_board_figures():
     assert '"~"+gbp' not in script and "'~'+gbp" not in script, "tilde prefixed to gbp() output (RC4)"
 
 
-# ---- RC4: the thesis chart uses no off-brand raw hex (BRAG only, via the token source) -----
-def test_thesis_chart_has_no_offbrand_hex():
-    script = _script_block(_text())
-    # The prior chart hard-coded teal (#1baf7a) and purple (#4a3aa7) -- off-brand decoration.
+# ---- RC4: the front door carries no raw hex anywhere (BRAG via token source only) ---------
+def test_front_door_has_no_offbrand_hex():
+    # The cost-to-serve chart (which the prior thesis-chart guard covered) moved to
+    # /proof under DIRECTOR_RULING_FRONT_MISSION_BLOCK; its no-hex guard lives there now
+    # (site/proof/test_proof_door.py). This asserts the front door as a whole -- style +
+    # any residual script -- smuggles no off-brand raw hex.
+    text = _text()
     for bad in ("#1baf7a", "#4a3aa7", "#52514e", "#e1e0d9", "#0b0b0b"):
-        assert bad not in script, f"off-brand raw hex {bad} still in the chart script (RC4)"
-    # Colour comes from the token variables at render time.
-    assert 'cssvar("--green-bright")' in script and 'cssvar("--text")' in script
+        assert bad not in _script_block(text), f"off-brand raw hex {bad} on the front door (RC4)"
 
 
 # ---- RC5/RC7: no effort metric AND no cohort-derived financial leads the surface ----------

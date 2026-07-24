@@ -12,7 +12,6 @@
 <meta property="og:description" content="An enterprise simulator for a UK energy supplier, built and run by AI -- carbon abatement through personalisation, measured in £ per tonne of CO2 saved.">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="./brand/brand.css">
 <style>
 /* SITE_V5 surface 1 (Front door) -- iteration 2, rebuilt to the BRAND_CONSTITUTION
@@ -160,6 +159,29 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     CO&#8322; saved.</p>
 </section>
 
+<!-- MISSION block (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the falsifiable claim on
+     the front door is the personalisation-abatement claim itself -- its score named, its
+     yardstick named, its number honestly ABSENT until the instrument runs. It REPLACED the
+     cost-to-serve arbitrage leg that used to lead here (recasting the company as cheap-therefore-
+     green, the wrong thesis); that leg lives on /proof#economics-anchor intact. Uses the .thesis
+     styling; carries NO cohort-derived £ (£273 is a government appraisal value, not a run figure). -->
+<section class="thesis">
+  <h2>The score: &pound; per tonne of CO&#8322;e abated <span class="tag tag-prov">NOT YET MEASURED</span></h2>
+  <p class="hypo"><strong>The claim, falsifiable:</strong> that you cut carbon fastest by knowing each
+    household well &mdash; shifting when it draws power, fitting the right assets, pricing the right tariff,
+    having the right conversation &mdash; run as a real autonomous supplier inside a faithful simulation of
+    the actual UK market. Every line of company code has to answer one question: <em>could a real supplier
+    know this?</em></p>
+  <p class="thesis-sentence">The score is <strong>&pound; per tonne of CO&#8322;e saved</strong>, measured
+    against the yardstick it has to beat &mdash; the UK government's carbon appraisal value,
+    <strong>&pound;273/tCO&#8322;e (2025)</strong>.</p>
+  <p class="thesis-caveat"><strong>The honest state, plainly:</strong> the carbon ledger is designed, not
+    yet instrumented &mdash; no number is shown here until each household's half-hourly meter reads meet real
+    grid carbon intensity. When it runs, the trajectory appears here first. The economics that would fund it
+    &mdash; the true cost-to-serve gap &mdash; are worked through on
+    <a href="./proof/#economics-anchor">Proof</a>.</p>
+</section>
+
 <section class="moap">
   <h2>The whole model on one page</h2>
   <p class="lead">World, wall, company, score &mdash; the whole supplier on one page. Below the
@@ -208,18 +230,6 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
   </div>
 </section>
 
-<section class="thesis">
-  <h2>Cost-to-serve: the numerator of &pound;/tCO&#8322; <span class="tag tag-prov">PROVISIONAL</span></h2>
-  <p class="hypo"><strong>Hypothesis (falsifiable):</strong> knowing each household's true cost-to-serve
-    lets the supplier price below the flat-margin benchmark; the gap it frees is the budget for
-    abating a tonne of CO&#8322; at near-zero marginal cost. If the true per-household cost sits at
-    or above the benchmark, the thesis fails right here -- the chart below is where you check.</p>
-  <p class="thesis-sentence" id="thesis-sentence">Loading...</p>
-  <div class="thesis-chart-wrap"><canvas id="thesis-chart"></canvas></div>
-  <div class="thesis-caveat" id="thesis-caveat"></div>
-  <div class="thesis-evidence" id="thesis-evidence"></div>
-</section>
-
 <div class="sec">Three ways in</div>
 <div class="doors-in">
   <a class="door" href="./world/">
@@ -247,101 +257,6 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 </footer>
 
 </div></div>
-<script>
-function gbp(n){if(n==null)return "--";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return (n<0?"-":"")+"£"+s;}
-function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
-
-// Colour lives in the token source only (BRAND_CONSTITUTION law 1). The chart reads
-// its colours from the linked brand.css variables at render time -- no raw hex here.
-// In the headless render harness getComputedStyle is absent, so this returns "" and the
-// (stubbed) chart simply gets no colour; the asserted pixels are the text, not the bars.
-function cssvar(n){try{return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}catch(e){return "";}}
-
-// RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24): the cohort-derived
-// financial pulse strip (net margin / treasury / enterprise value / bills) that used
-// to lead this door is REMOVED. £-figures earned across the small teaching cohort fail
-// the veteran sniff test (£80k/customer is a simulation artefact, not scaled economics)
-// and no cohort-derived £ may lead a public surface. Those diagnostics now live only
-// inside the /proof deep-evidence page, explicitly framed as teaching-cohort output.
-// The front carries the idea (hero + thesis) and the honest build state (the diagram).
-
-var thesisChart=null;
-function renderThesisChart(dashboard){
-  // ADVISOR_STEER_THESIS_CHART.md fixes (2026-07-11): per-household figures; basis
-  // labelled on the chart from the data layer's own population_basis; the TRUE side's
-  // incompleteness carried as a badge on the bar, not a footnote alone. Colours are
-  // BRAG (RC4): the company's achieved cost = green (on track), the incumbent
-  // benchmark = structural black -- colour is information, never decoration.
-  var ol=(dashboard&&dashboard.opex_ledger)||{};
-  var trueCost=ol.true_opex_per_household_gbp;
-  var benchCost=ol.benchmark_opex_per_household_gbp;
-  var sentEl=document.getElementById("thesis-sentence");
-  var caveatEl=document.getElementById("thesis-caveat");
-  var evEl=document.getElementById("thesis-evidence");
-  if(trueCost==null||benchCost==null){
-    if(sentEl)sentEl.textContent="Dual-ledger data not yet available for this run.";
-    if(evEl)evEl.textContent="Coming -- not yet measured (site/data/dashboard.json has no opex_ledger for this run).";
-    return;
-  }
-  var gapPerHh=benchCost-trueCost;
-  var basis=ol.population_basis||"resi households";
-  var hhCount=ol.household_count;
-  if(sentEl)sentEl.innerHTML="Per household ("+esc(basis)+(hhCount?(", "+hhCount+" households"):"")+"): the TRUE cost-base runs at "+gbp(trueCost)+" against a "+gbp(benchCost)+" incumbent-benchmark allowance -- a "+gbp(gapPerHh)+" gap per household.";
-  if(caveatEl)caveatEl.textContent="TRUE side is a cost FLOOR, not a complete figure: AI-compute cost is not yet populated -- the usage data needed to price it honestly is too thin/stale to use without fudging a number (open costing-basis question, see Proof). Current-book snapshot, not yet a per-year historical series (registered as backlog -- see Proof).";
-  if(evEl)evEl.innerHTML="Source: <a href=\"./data/dashboard.json\" target=\"_blank\" rel=\"noopener\">site/data/dashboard.json &rarr; opex_ledger</a>, generated "+esc((dashboard.meta&&dashboard.meta.generated_at)||"--")+".";
-
-  var ctx=document.getElementById("thesis-chart");
-  if(!ctx)return;
-  if(thesisChart)thesisChart.destroy();
-  var inkColour=cssvar("--text");
-  var mutedColour=cssvar("--muted");
-  var hairColour=cssvar("--border");
-  thesisChart=new Chart(ctx,{type:"bar",data:{
-    labels:["TRUE cost (FLOOR)","Benchmark (incumbent)"],
-    datasets:[{
-      data:[trueCost,benchCost],
-      backgroundColor:[cssvar("--green-bright"),cssvar("--text")],
-      borderRadius:0,
-      barThickness:44
-    }]
-  },options:{
-    indexAxis:"y",
-    responsive:true,maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false},
-      tooltip:{callbacks:{label:function(c){return gbp(c.raw)+(c.dataIndex===0?" -- floor, AI-compute not yet included":"");}}},
-      datalabels:false
-    },
-    scales:{
-      x:{ticks:{color:mutedColour,callback:function(v){return gbp(v);}},grid:{color:hairColour}},
-      y:{ticks:{color:inkColour,font:{size:12,weight:"600"}},grid:{display:false}}
-    }
-  },plugins:[{
-    id:"valueLabels",
-    afterDatasetsDraw:function(chart){
-      var ctx2=chart.ctx;
-      chart.data.datasets[0].data.forEach(function(val,i){
-        var meta=chart.getDatasetMeta(0);
-        var bar=meta.data[i];
-        if(!bar)return;
-        ctx2.save();
-        ctx2.fillStyle=inkColour;
-        ctx2.font="700 12px "+(cssvar("--font-house")||"sans-serif");
-        ctx2.textAlign="left";
-        ctx2.textBaseline="middle";
-        ctx2.fillText(gbp(val)+(i===0?" (floor)":""),bar.x+8,bar.y);
-        ctx2.restore();
-      });
-    }
-  }]});
-}
-
-fetch("./data/dashboard.json?t="+Date.now())
-  .then(function(r){return r.json();})
-  .catch(function(){return {};})
-  .then(function(dashboard){ renderThesisChart(dashboard); })
-  .catch(function(e){console.error("Load error:",e);});
-</script>
 <footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</footer>
 </body>
 </html>

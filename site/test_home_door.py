@@ -19,55 +19,23 @@ R3 (the page is a rendering, never an author) and R1 (every claim links to its
 evidence) are asserted structurally on the nav + evidence links.
 """
 import json
-import math
 import re
-import shutil
-import subprocess
 from pathlib import Path
-
-import pytest
 
 HERE = Path(__file__).resolve().parent
 INDEX = HERE / "index.html"
-HARNESS = HERE / "_render_harness.mjs"
 DATA = HERE / "data"
 
-NODE = shutil.which("node")
-pytestmark = pytest.mark.skipif(NODE is None, reason="node not available")
-
-
-def _gbp(n) -> str:
-    """Mirror the page's gbp(): '£' + toLocaleString('en-GB') grouped whole pounds,
-    round-half-up, negative sign before the '£'. Not a Python float repr."""
-    if n is None:
-        return "--"
-    whole = int(math.floor(abs(n) + 0.5))
-    return ("-" if n < 0 else "") + "£" + f"{whole:,}"
-
-
-def _live() -> dict:
-    return {
-        "dashboard": json.loads((DATA / "dashboard.json").read_text()),
-        "supplier": json.loads((DATA / "supplier.json").read_text()),
-        "method": json.loads((DATA / "method.json").read_text()),
-        "lastBill": None,
-    }
-
-
-def _render(payload: dict) -> dict:
-    proc = subprocess.run(
-        [NODE, str(HARNESS), str(INDEX)],
-        input=json.dumps(payload),
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
-    assert proc.returncode == 0, f"harness failed: {proc.stderr}"
-    return json.loads(proc.stdout)
+# DIRECTOR_RULING_FRONT_MISSION_BLOCK (2026-07-24): the front door no longer renders
+# any live figure -- it leads with the idea (the personalisation-abatement mission),
+# the score/yardstick, the honest "not yet instrumented" state, and the diagram. The
+# cost-to-serve leg (the only dynamic render this door had) moved to /proof, and its
+# R11/R15 render tests moved with it (site/proof/test_proof_door.py). These remaining
+# tests are static-scan structural guards, so no Node render harness is needed.
 
 
 # ---------------------------------------------------------------------------
-# R11: the page renders the live source values (the pixel, not a source string)
+# RC7: no cohort-derived £ figure leads the front door
 # ---------------------------------------------------------------------------
 def test_no_cohort_financials_lead_the_front_door():
     """RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24): no £ figure
@@ -85,46 +53,39 @@ def test_no_cohort_financials_lead_the_front_door():
         assert cohort_fin not in text, f"cohort financial {cohort_fin!r} leads the front door (RC7)"
     # Teeth: the source data DOES carry these fields (so the guard is meaningful,
     # not vacuously passing on an empty schema) -- they are simply not on this door.
-    p = _live()["dashboard"]["portfolio"]
+    p = json.loads((DATA / "dashboard.json").read_text())["portfolio"]
     assert "net_margin_gbp" in p and "treasury_end_gbp" in p
 
 
-def test_thesis_sentence_renders_live_opex_household_figures():
-    d = _live()
-    out = _render(d)
-    sent = out["thesis-sentence"]["innerHTML"]
-    ol = d["dashboard"]["opex_ledger"]
-    assert _gbp(ol["true_opex_per_household_gbp"]) in sent, sent
-    assert _gbp(ol["benchmark_opex_per_household_gbp"]) in sent, sent
-    gap = ol["benchmark_opex_per_household_gbp"] - ol["true_opex_per_household_gbp"]
-    assert _gbp(gap) in sent, sent
-
-
-def test_thesis_evidence_renders_freshness_stamp_and_source_link():
-    d = _live()
-    out = _render(d)
-    ev = out["thesis-evidence"]["innerHTML"]
-    # R2 freshness: the dashboard generated_at stamp is rendered on the surface.
-    assert d["dashboard"]["meta"]["generated_at"] in ev, ev
-    # R1: the thesis number cites its data source.
-    assert 'href="./data/dashboard.json"' in ev, ev
-
-
 # ---------------------------------------------------------------------------
-# R15: independence -- a mutated source value must move the rendered pixel
+# DIRECTOR_RULING_FRONT_MISSION_BLOCK (2026-07-24): the falsifiable claim on the
+# front door is the personalisation-abatement MISSION -- its score (£/tCO2e) and
+# yardstick (£273/tCO2e, 2025) named, its number honestly ABSENT until instrumented.
+# The cost-to-serve arbitrage leg (the wrong thesis: "cheap-therefore-green") is
+# GONE from the front and lives on /proof#economics-anchor. These are static-scan
+# guards on the rendered markup (the block carries no live figure to render).
 # ---------------------------------------------------------------------------
-def test_thesis_true_cost_pixel_is_independent_of_render():
-    d = _live()
-    d["dashboard"]["opex_ledger"]["true_opex_per_household_gbp"] = 987
-    out = _render(d)
-    assert "£987" in out["thesis-sentence"]["innerHTML"]
+def test_mission_block_leads_with_score_and_yardstick():
+    text = INDEX.read_text()
+    # The score and the external yardstick lead the front door, in the v4 register.
+    assert "carbon abatement through personalisation" in text
+    assert "273/tCO&#8322;e (2025)" in text, "the £273/tCO2e (2025) government yardstick is not on the front door"
+    assert "per tonne of CO&#8322;e saved" in text
+    # The honest state is stated plainly: designed, not instrumented, no number shown.
+    assert "designed, not\n    yet instrumented" in text or "designed, not yet instrumented" in text.replace("\n    ", " ")
 
 
-def test_thesis_freshness_pixel_is_independent_of_render():
-    d = _live()
-    d["dashboard"]["meta"]["generated_at"] = "2099-01-01T00:00:00Z"
-    out = _render(d)
-    assert "2099-01-01T00:00:00Z" in out["thesis-evidence"]["innerHTML"]
+def test_cost_arbitrage_leg_no_longer_leads_the_front_door():
+    """The cost-to-serve arbitrage hypothesis recast the company as
+    cheap-therefore-green (the wrong thesis, director 2026-07-24). It must be OFF
+    the front door -- no numerator framing, no live opex_ledger render, no chart."""
+    text = INDEX.read_text()
+    assert "numerator of &pound;/tCO" not in text, "the cost-to-serve numerator leg still leads the front door"
+    assert 'id="thesis-chart"' not in text, "the cost-to-serve chart is still on the front door"
+    assert "renderThesisChart" not in text, "the cost-to-serve render is still on the front door"
+    assert "opex_ledger" not in text, "the front door still renders the cohort opex_ledger figure"
+    # It is preserved on /proof -- the front points there rather than deleting it.
+    assert 'href="./proof/#economics-anchor"' in text, "the front does not point to the relocated economics leg"
 
 
 # ---------------------------------------------------------------------------
@@ -157,9 +118,11 @@ def test_canonical_nav_present_and_director_absent():
 
 def test_at_least_one_claim_evidence_link():
     text = INDEX.read_text()
-    # R1: the thesis figure and the door cards link out to their evidence surfaces.
-    assert './data/dashboard.json' in text, "no data-source evidence link found"
-    assert 'href="./company/"' in text or 'href="./method/"' in text, \
+    # R1: the front door leads with the idea + diagram (no live figure of its own),
+    # so its claims link OUT to the evidence surfaces -- the mission's economics leg
+    # to /proof, and the door/node cards to the World/Company/Proof surfaces.
+    assert 'href="./proof/#economics-anchor"' in text, "mission block does not link to its economics evidence"
+    assert 'href="./company/"' in text or 'href="./world/"' in text, \
         "no claim->evidence link to an evidence door found"
 
 
