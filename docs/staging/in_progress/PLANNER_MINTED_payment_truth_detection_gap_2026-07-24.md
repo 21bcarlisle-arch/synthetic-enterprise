@@ -1,3 +1,6 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+
 # [PLANNER-MINTED] Close the belief-vs-truth PAYMENT-FAILURE detection gap (W2_11) (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 4 — FRAME/DISCOVER half only, as the doc scopes). Attaches to existing atom `W2_11_payment_behaviour_source` (`maturity_map.yaml`).

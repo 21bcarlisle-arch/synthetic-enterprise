@@ -27,3 +27,18 @@ Closes a self-refill blind spot: the planner should not mint fresh work while a 
 
 ## Propose-then-proceed window
 Standard planner window; FRAME is doc-only and fully reversible. Per SELF_INTERRUPT_DISCIPLINE this is queued as a mint (not fixed on sight). If FRAME refutes the gap, close it NO-BUILD with the supervisor-code evidence rather than building a redundant mechanism.
+
+
+---
+
+## DISPOSITION — FRAME confirmed → BUILT + ABSORBED (2026-07-24 worker tick)
+
+**FRAME verdict: gap CONFIRMED and material.** The two existing `in_progress/` nets (`misparked_actionable_in_progress`, `misparked_open_campaign_in_progress`) surfaced **0 of the 6** open `PLANNER_MINTED_*` docs: the actionable-net needs a `[in-progress disposition` banner these mints don't use, and the campaign-net keys on the word "campaign" (a mint is not one). So a genuinely self-drawable next step (`ssp_negative_lift_cells` scope-2 BUILD *"UNBLOCKS: self — no wall"*; `value_chain_observation_window_cap` next BUILD step *"reversible under standing PRODUCT-FIRST authority"*) was invisible to EVERY draw rung → rungs 1–6 drew nothing → rung-7 fired and minted a fresh batch (the 3 docs committed `d39a0ac54` this very tick) while authorised, self-drawable work sat parked. Corroborated independently by the vcap doc's own repeated "Tick note"s (*"doorbell fired the stale 'rungs 1–6 empty → MINT' read AGAIN; disk contradicts it"*). This is the treadmill (consumed-not-absorbed) and the R17 breach-of-class the mint predicted.
+
+**BUILD (absorbed, R15 both-ways):**
+- `background/staging_disposition.py::selfdrawable_mint_in_progress` — a THIRD net on a **structured, machine-legible marker** (`<!-- SUPERVISOR_DRAW: self-drawable -->`), not fragile prose (R3). **Fail-closed:** surfaces a doc ONLY if it carries the self-drawable marker AND not the blocked marker; unmarked or blocked-marked docs stay parked. De-dups vs open-campaign-tracked docs.
+- Wired into `background/supervisor.py::_real_staged_instructions` (the live draw path used by `find_work`) alongside the other two nets.
+- `tests/background/test_staging_disposition.py` — R15 both-ways: fires on a self-drawable mint; fails-closed four ways (blocked-marked, both-markers→blocked-wins, unmarked, open-campaign-tracked). 5 pass; full supervisor draw suite 205 pass (no map-empty→rest regression).
+- **Park-honesty retrofit** onto all 6 open mints: SELF-DRAWABLE on `ssp_negative_lift_cells` + `value_chain_observation_window_cap`; BLOCKED on the 4 genuinely-walled (`moap`/`premise` CDN-or-deploy wait, `generator` R13 director-reserved, `payment` roadmap-gated). Verified: the net now surfaces exactly the self-drawable set, and Mint 3 (`twin_axis_prescore`, FRAME-parked this tick) dogfoods it end-to-end.
+
+Consumed → **absorbed** (mechanism LIVE + R15-proven both ways). Archived to `done/`.

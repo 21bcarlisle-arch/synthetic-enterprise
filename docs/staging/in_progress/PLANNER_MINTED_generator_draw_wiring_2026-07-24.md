@@ -1,3 +1,6 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+
 # [PLANNER-MINTED] Ship the population-generator DRAW-WIRING (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, origin commit 4b31c60d6, PRODUCT-FIRST item 2). **Scope step 1 (FRAME) DONE — see the FRAME section below. Scope step 2 REVERSIBLE HALF (the default-OFF seam) + step 3 (R15 both-ways) DONE this tick — see "BUILD (reversible half)" below.**

@@ -143,3 +143,66 @@ def misparked_open_campaign_in_progress(
         if is_campaign and any(m in text for m in CAMPAIGN_DRAWABLE_MARKERS):
             out.append(p.name)
     return out
+
+
+# ---------------------------------------------------------------------------
+# The waived-mint self-drawable-next-step blind spot (2026-07-24, RUNG-7 planner mint
+# `inprogress_mint_next_step_draw_visibility`, FRAME-confirmed on disk).
+#
+# A THIRD way in_progress/ swallows drawable work, distinct from the two nets above. A worker
+# advancing a director-WAIVED planner mint parks it here between sub-steps with a genuinely
+# SELF-DRAWABLE next step (no wall — "UNBLOCKS: self", "next drawable BUILD step ... reversible").
+# It carries NO `[in-progress disposition` banner (the actionable-net misses it) and is not a
+# campaign (the campaign-net keys on the word "campaign" — a mint is not one). So the self-drawable
+# BUILD step is invisible to EVERY draw rung. FRAME evidence (2026-07-24): 6 PLANNER_MINTED_* docs
+# open in in_progress/, 2 with self-drawable next steps (ssp_negative_lift_cells scope-2,
+# value_chain_observation_window_cap) surfaced by NONE of the existing nets -> rungs 1-6 draw
+# nothing -> rung-7 fires and MINTS a fresh batch (3 more docs this very tick) while authorised,
+# self-drawable work sits parked. That is the treadmill (consumed-not-absorbed) and a candidate
+# R17 breach-of-class.
+#
+# STRUCTURED, not prose (R3 — no fragile free-form-English substring matcher; the primary draw was
+# redesigned onto structured fields for exactly this reason). The worker writes ONE canonical,
+# machine-legible marker line into the doc's disposition block, mirroring how an atom carries
+# `loop_stage`/`blocked_on`. FAIL-CLOSED on both axes: a doc is surfaced ONLY if it carries the
+# self-drawable marker AND does not carry the blocked marker; an unmarked doc, or one marked blocked,
+# stays parked (a mistaken park costs at most a doable step going undrawn until the marker is added,
+# never a walled/director-reserved step being force-drawn).
+#
+# PARK-HONESTY forcing function (same as the campaign-net's, lines 79-84): mark a next step
+# self-drawable => it gets drawn; if it is really walled (director-reserved, CDN/deploy-wait,
+# roadmap-gated), mark it blocked and it stays parked. SELF-TERMINATING: the marker leaves the
+# drawable set the moment the work lands and the doc is archived out of in_progress/, OR the worker
+# flips the marker to blocked when the NEXT step becomes walled — no 2-min re-grant churn while the
+# work is genuinely undrawable, and legitimate persistence while it IS drawable is exactly R17.
+SELF_DRAWABLE_MARKER = "<!-- supervisor_draw: self-drawable -->"
+BLOCKED_MARKER = "<!-- supervisor_draw: blocked -->"
+
+
+def selfdrawable_mint_in_progress(
+    in_progress_dir: Path, register_path: Path | None = None
+) -> list[str]:
+    """Basenames of in_progress/ docs a worker parked with an explicit SELF-DRAWABLE next-step marker
+    (drawable work hidden in the excluded dir) that carry NO blocked marker and are NOT already tracked
+    by an OPEN campaign in the register. Whole-doc scan (the marker sits in the disposition block near
+    the top, but scanning the whole doc costs nothing and tolerates placement). Report-only; NEVER
+    raises (a detection must not crash the draw or the deadman). Fail-closed: unmarked -> parked;
+    blocked marker present -> parked (blocked wins over self-drawable if both are somehow present)."""
+    try:
+        if not in_progress_dir.is_dir():
+            return []
+        candidates = sorted(in_progress_dir.glob("*.md"))
+    except OSError:
+        return []
+    tracked = _open_campaign_referenced_docs(register_path) if register_path else set()
+    out: list[str] = []
+    for p in candidates:
+        if p.name in tracked:
+            continue
+        try:
+            text = p.read_text(encoding="utf-8", errors="replace").lower()
+        except OSError:
+            continue
+        if SELF_DRAWABLE_MARKER in text and BLOCKED_MARKER not in text:
+            out.append(p.name)
+    return out

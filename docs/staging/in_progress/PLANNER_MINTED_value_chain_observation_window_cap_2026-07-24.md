@@ -1,3 +1,6 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- draw-visibility marker (2026-07-24): self-drawable next step, no wall — surfaced to the draw so rung-7 does not over-mint over it. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+
 # [PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death-test (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 2 — PRODUCT-FIRST item 3, the declared static-cap FAIL + MC-2 collateral death-test). No map atom yet (tracked in `docs/PRIORITIES.md` item 3 + steer `DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22.md`); register on BUILD open.

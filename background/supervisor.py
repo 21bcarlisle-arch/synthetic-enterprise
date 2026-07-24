@@ -320,6 +320,7 @@ def _real_staged_instructions() -> list[str]:
         from background.staging_disposition import (
             misparked_actionable_in_progress,
             misparked_open_campaign_in_progress,
+            selfdrawable_mint_in_progress,
         )
         real.extend("in_progress/" + n for n in misparked_actionable_in_progress(STAGING_DIR / "in_progress"))
         # SECOND net (2026-07-23 NIGHT_ENFORCEMENT addendum, the 20:00Z bug): a director-authored
@@ -327,6 +328,14 @@ def _real_staged_instructions() -> list[str]:
         # misses it) and is not in CAMPAIGN_REGISTER.yaml (_open_campaign_draw misses it) -> the tick
         # idled beside open campaign work. Surface it too; de-dup if both nets flag the same doc.
         for n in misparked_open_campaign_in_progress(STAGING_DIR / "in_progress", CAMPAIGN_REGISTER_PATH):
+            if "in_progress/" + n not in real:
+                real.append("in_progress/" + n)
+        # THIRD net (2026-07-24, waived-mint self-drawable-next-step blind spot): a director-waived
+        # planner mint parked here between sub-steps with a genuinely self-drawable next step carries
+        # neither a worker disposition banner nor the word "campaign" -> the two nets above miss it,
+        # rungs 1-6 draw nothing, and rung-7 over-mints while the doable step sits parked. Surface it
+        # so the draw self-recovers instead of minting a fresh batch. Fail-closed structured marker.
+        for n in selfdrawable_mint_in_progress(STAGING_DIR / "in_progress", CAMPAIGN_REGISTER_PATH):
             if "in_progress/" + n not in real:
                 real.append("in_progress/" + n)
     except Exception:  # a detection error must never break the draw

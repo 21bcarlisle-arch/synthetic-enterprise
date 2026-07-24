@@ -1,3 +1,6 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- draw-visibility marker (2026-07-24): self-drawable next step, no wall — surfaced to the draw so rung-7 does not over-mint over it. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+
 # [PLANNER-MINTED] Attack the SSP residual-demand model's NEGATIVE-lift cells (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, item 3). Attaches to existing atom `W1_6_physics_price_signal` (fidelity-ledger row `ssp_residual_demand_scarcity_calibration_2026_07_19`).

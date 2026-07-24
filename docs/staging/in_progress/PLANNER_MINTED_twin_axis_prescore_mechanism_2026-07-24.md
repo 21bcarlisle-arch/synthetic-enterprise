@@ -1,3 +1,10 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- draw-visibility marker (2026-07-24): FRAME confirmed the gap; the reversible writer BUILD is self-drawable (Law B / HARD LAW §2 honoured — diagnostic only, never wired to draw/reward). Surfaced so the next tick draws it instead of it vanishing into the in_progress/ blind spot. -->
+
+> **[IN-PROGRESS — 2026-07-24 worker tick] FRAME DONE; reversible BUILD is the self-drawable next step.**
+> **Gap VERIFIED on disk this tick:** `docs/observability/director_axis_verdicts.jsonl` holds 5 rows, ALL `source: "director_verdict"` — **0 `twin_prediction`**; `grep -rnE 'director_axis_verdicts|twin_prediction|pre_score' background/*.py` → **no writer anywhere**. The twin pre-score loop (DIRECTOR_AXES §verdict-loop step 3) is prose-only, never mechanised (the MAKE_IT_STICK decay mode).
+> **NEXT DRAWABLE STEP (no wall, reversible):** the scope-2 BUILD — `background/axis_prescore.py` appending `{axis, axis_number, source:"twin_prediction", rationale, ts, recorded_date}` to the ledger via `director_twin.py`'s existing read-only `_default_invoke` (canon+origin facts only, no new authority), plus one R15 both-ways test (fires: a prediction is written before a verdict; fails-closed: a malformed/absent prediction is detected, not silently skipped), and the retro gap-line read. Parked FRAME-first per no-tired-mega-turn; the writer proceeds under reversible authority (git reverts). **UNBLOCKS:** self — no wall (Law B: the prediction NEVER trains the twin; HARD LAW §2: the ledger is NEVER consumed by any draw/reward — a writer + a retro read only).
+
 # [PLANNER-MINTED] Mechanise the DIRECTOR_AXES twin pre-score loop (currently prose-only) (2026-07-24)
 
 **Type:** RUNG-7 planner mint (WORK_IS_THE_DEFAULT 2026-07-23, rung 7; rungs 1–6 empty this tick). **Propose-then-proceed.**

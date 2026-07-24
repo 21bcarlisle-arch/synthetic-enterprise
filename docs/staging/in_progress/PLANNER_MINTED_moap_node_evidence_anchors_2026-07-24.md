@@ -1,3 +1,6 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+
 # [PLANNER-MINTED] Walk each front-door MODEL-ON-A-PAGE node to ITS evidence (per-node deep anchors) (2026-07-24)
 
 > **STATUS (2026-07-24, worker tick): BUILT + GATED + PUSHED — only live-pixel verify pending.**
