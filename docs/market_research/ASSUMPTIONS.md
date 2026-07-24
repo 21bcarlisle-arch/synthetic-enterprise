@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-07-23 from current codebase.
+Last seeded: 2026-07-24 from current codebase.
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -433,5 +433,22 @@ spread by horizon. Full findings, direct quotes, live-fetched Elexon API data an
 | Supply-glut world anchor: COVID spring-2020 negative-price magnitude | Not yet modelled as a named scenario spine | SSP down to −£60 to −£66/MWh; 37.5-43.75% of half-hours negative (13 Apr 2020, 24 May 2020) — more extreme than the 2024/2026 high-solar comparator already logged (−£29/MWh, 17%) | Elexon Insights API, dataset DISEBSP, queried live 2026-07-23 | 2026-07-23 | H — primary source, self-computed |
 | Supply-glut world anchor: COVID spring-2020 demand collapse | Not yet modelled | −23.7% (lockdown week avg TSD 23,654MW vs same calendar week prior year 30,993MW) — confirms and modestly exceeds the commonly-cited "~20%" figure | Elexon Insights API, dataset INDO/ITSDO, queried live 2026-07-23 | 2026-07-23 | H — primary source, self-computed (YoY same-week comparison, imperfect weather control) |
 | GB wholesale bid-offer spread by horizon (trading-friction table) | 0.5% base + 0.2%/yr tenor, capped 1.5% (Phase 43b) | No change from prior finding — see `docs/market_research/findings/bid_ask_spread_2026_06_23.md`; Ofgem WMI live portal inaccessible to automated fetch this session (redirect loop), June figures re-confirmed as best available | Ofgem WMI (2026-06-23 data) + CMA Appendix 7.1 | 2026-07-23 (re-confirmed, no new data) | ✓ OK, no change |
+
+## Weather Forecast Error by Horizon — σ(horizon), Wind & Demand (2026-07-24, discovery-agent, DIRECTOR_STEER_WEATHER_SIM_PURPOSE_2026-07-23 gather step)
+
+Requested check: empirical UK wind and demand forecast-vs-outturn error as a function of lead
+time (day-ahead → 72h), pulled live from Elexon Insights Solution API. Prerequisite GATHER
+step for the weather-engine "gather → correlate → select → simulate" law — no simulation
+variable selected or tuned here. Full findings, working-endpoint provenance, both sample
+weeks' full per-horizon tables, and the tail/worst-cell analysis:
+`docs/market_research/WEATHER_FORECAST_ERROR_BY_HORIZON.md`. Compact per-horizon-bucket CSVs:
+`docs/market_research/weather_forecast_error_wind_by_horizon.csv` and
+`docs/market_research/weather_forecast_error_demand_by_horizon.csv`.
+
+| Assumption | SIM value | Industry benchmark | Source | Last checked | Status |
+|---|---|---|---|---|---|
+| Demand day-ahead forecast error by horizon (National Demand Forecast NDF vs INDO outturn) | Not yet modelled — no forecast-error-by-horizon curve exists in the weather/demand layer | MAE ≈ 1.7–4.2% of mean national demand across 0–48h lead time (stdev(err) ≈ 590–1,430 MW on ~25,000–29,000 MW mean demand); two independent weeks (Jan 2026 winter, Mar 2026 spring) agree on order of magnitude; no clean monotonic growth with horizon found in this 2-week sample, and no data exists beyond ~30h (day-ahead forecast simply doesn't reach further) | Elexon Insights API, `/forecast/demand/day-ahead/history` (NDF) vs `/demand/outturn` (INDO), both live-fetched and self-computed 2026-07-24 | 2026-07-24 | M — cross-referenced 2 independent weeks, endpoint proven reliable; sample too short (2 weeks) to fit a smooth σ(horizon) curve, recommend a longer multi-month pull before BUILD use |
+| Wind day-ahead/multi-day forecast error by horizon (WINDFOR forecast vs FUELINST metered WIND outturn) | Not yet modelled — no forecast-error-by-horizon curve exists | Raw comparison shows a large, PERSISTENT positive bias in every horizon bucket, both weeks (+256 to +1,918 MW, i.e. forecast running above actual even at the shortest 0–6h lead) and MAE-as-%-of-mean that does NOT grow monotonically with horizon (12.9–16.7% week 1, 24.9–32.0% week 2, longest 48–73h bucket not the worst in either week) — inconsistent with a genuine forecast-skill-degradation curve | Elexon Insights API, `/datasets/WINDFOR` vs `/datasets/FUELINST` (fuelType=WIND), both live-fetched and self-computed 2026-07-24 | 2026-07-24 | ⚠ Confounded, L→M — inferred (not confirmed against Elexon/NESO methodology docs this session) that WINDFOR forecasts total GB wind including embedded/distribution-connected capacity while FUELINST WIND is BM-metered-only, i.e. the two series likely have different SCOPE, not different accuracy. Do not feed the raw biased MAE into any simulation variable; `stdev(err)` (1,570–2,023 MW wk1, 1,623–1,755 MW wk2 — comparatively horizon-stable) is the safer volatility signal pending scope resolution |
+| Elexon endpoint reliability for historical forecast-vs-outturn pulls (provenance note, not an assumption per se) | n/a | Several endpoints named in prior task briefs are "latest window only" and silently IGNORE `settlementDateFrom/To` for historical queries (`/forecast/demand/day-ahead`, `/generation/outturn`, `/generation/outturn/summary`) — the working historical forms are `/forecast/demand/day-ahead/history?publishTime=...`, `/demand/outturn?settlementDateFrom=...&settlementDateTo=...`, `/datasets/WINDFOR?publishDateTimeFrom=...&publishDateTimeTo=...`, `/datasets/FUELINST?publishDateTimeFrom=...&publishDateTimeTo=...` | Elexon Insights API, probed live 2026-07-24, HTTP 200 vs silently-wrong-window responses compared directly | 2026-07-24 | H — self-verified by direct probe; worth recording so a future DISCOVER pass doesn't re-lose time to the same silent-latest-window trap |
 
 *Maintained by `background/discovery_agent.py`. Manual updates should note the source and date.*

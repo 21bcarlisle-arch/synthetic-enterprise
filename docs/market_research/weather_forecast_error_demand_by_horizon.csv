@@ -1,0 +1,11 @@
+"# source: Elexon Insights Solution API /forecast/demand/day-ahead/history (NDF, National Demand Forecast) vs /demand/outturn (INDO, Initial National Demand Outturn)"
+"# pulled 2026-07-24; week1=2026-01-01..08 (winter), week2=2026-03-15..22 (spring)"
+week,horizon_lo_h,horizon_hi_h,n,mae_mw,bias_mw,stdev_err_mw,mae_pct_of_mean,mean_actual_mw
+2026-01 (winter),0,6,94,607.4,-276.4,639.6,2.27,26762.7
+2026-01 (winter),6,12,96,552.2,305.6,651.1,1.73,31969.3
+2026-01 (winter),12,24,192,836.3,-142.7,1017.7,2.22,37725.3
+2026-01 (winter),24,48,86,549.0,-288.6,589.3,2.02,27161.7
+2026-03 (spring),0,6,94,497.7,38.6,616.0,2.11,23638.0
+2026-03 (spring),6,12,96,1059.9,-138.9,1425.5,4.19,25288.1
+2026-03 (spring),12,24,192,858.2,39.6,1121.3,3.05,28170.5
+2026-03 (spring),24,48,86,547.8,140.2,663.2,2.31,23686.4

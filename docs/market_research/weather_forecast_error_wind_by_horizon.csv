@@ -1,0 +1,14 @@
+"# source: Elexon Insights Solution API /datasets/WINDFOR (forecast) vs /datasets/FUELINST fuelType=WIND (actual, 5-min BM-metered)"
+"# pulled 2026-07-24; week1=2026-01-01..08 (winter), week2=2026-03-15..22 (spring)"
+"# CAVEAT: WINDFOR appears to include embedded (non-BM-metered) wind capacity not present in FUELINST WIND -- see markdown notes, systematic +bias is likely a metering-SCOPE gap not forecast skill"
+week,horizon_lo_h,horizon_hi_h,n,mae_mw,bias_mw,stdev_err_mw,mae_pct_of_mean,mean_actual_mw
+2026-01 (winter),0,6,336,1857.4,1062.5,2022.6,14.6,12759.3
+2026-01 (winter),6,12,336,1884.1,1211.1,1936.4,15.2,12363.1
+2026-01 (winter),12,24,672,1932.9,1562.9,1667.7,16.7,11568.1
+2026-01 (winter),24,48,1337,1642.4,1255.5,1570.3,15.0,10983.5
+2026-01 (winter),48,73,567,1404.9,255.6,1713.4,12.9,10925.9
+2026-03 (spring),0,6,336,2006.7,1917.5,1623.0,24.9,8075.2
+2026-03 (spring),6,12,336,2008.3,1858.4,1705.0,25.3,7929.8
+2026-03 (spring),12,24,672,1990.4,1857.3,1661.4,27.0,7373.0
+2026-03 (spring),24,48,1337,1944.8,1792.4,1704.6,32.0,6071.7
+2026-03 (spring),48,73,567,1468.0,1227.0,1754.4,26.3,5585.4
