@@ -1151,10 +1151,56 @@ def git_commit_push(git_hash, net_margin):
             ))
             return True
 
-        push = subprocess.run(["git", "push"], cwd=str(PROJECT_DIR), timeout=60)
-        if push.returncode == 0:
+        # SELF-VERIFYING PUSH (2026-07-24, 3.5h origin-freeze incident): a bare
+        # `git push` that returns rc=0 WITHOUT advancing origin (a phantom
+        # "Everything up-to-date" against a stale remote-tracking ref) must NOT
+        # reset the throttle -- that is exactly what froze origin for 3.5h: every
+        # cycle recorded a "successful" push that never reached origin, so _push_due
+        # stayed False and 15 real commits piled up locally, unseen by the advisor
+        # bridge (which depends on this pipeline). Explicit refspec (never rely on
+        # bare-push upstream resolution) + ground-truth verification via ls-remote
+        # (the real remote, not the local tracking ref). _record_push_time fires
+        # ONLY on a VERIFIED advance; a phantom logs LOUD and leaves the throttle
+        # untouched so the NEXT cycle retries immediately instead of deferring.
+        push = subprocess.run(["git", "push", "origin", "HEAD:main"],
+                              cwd=str(PROJECT_DIR), timeout=60)
+        local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
+                                    capture_output=True, text=True, timeout=15).stdout.strip()
+        remote_head = ""
+        try:
+            ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
+                                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+            remote_head = ls.stdout.split()[0] if ls.stdout.strip() else ""
+        except Exception as exc:
+            log("Push verify: ls-remote failed ({}) -- cannot confirm origin advanced".format(exc))
+        if _push_reached_origin(push.returncode, remote_head, local_head):
             _record_push_time()
-        return push.returncode == 0
+            return True
+        from background.notify import notify
+        notify(
+            "[SIM] PUSH DID NOT REACH ORIGIN (rc={}, origin={}, head={}) -- publish pipeline "
+            "commits are stacking LOCALLY and the advisor bridge is blind. NOT recording a push "
+            "time; next cycle retries. If this repeats, the remote-tracking ref or auth is the "
+            "cause.".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9]),
+            kind="real_alarm",
+        )
+        log("PUSH did NOT advance origin (rc={}, origin={}, head={}) -- throttle left untouched, "
+            "will retry next cycle".format(push.returncode, (remote_head or "?")[:9], (local_head or "?")[:9]))
+        return False
+
+
+def _push_reached_origin(push_rc: int, remote_head: str, local_head: str) -> bool:
+    """A push counts as SUCCESS only if it advanced origin to the local HEAD.
+
+    The 3.5h origin-freeze (2026-07-24): a bare `git push` returned rc=0 while
+    origin did NOT advance (phantom "Everything up-to-date"), and the caller
+    recorded a push time anyway -- so _push_due() stayed False and every real
+    push was deferred behind a success that never happened. This makes the
+    success condition GROUND-TRUTH: rc==0 AND the real remote head (from
+    ls-remote, not the local tracking ref) equals local HEAD. A phantom rc=0
+    with a stale/behind remote head returns False -> no throttle reset -> retry.
+    """
+    return push_rc == 0 and bool(remote_head) and remote_head == local_head
 
 
 def _push_due() -> bool:

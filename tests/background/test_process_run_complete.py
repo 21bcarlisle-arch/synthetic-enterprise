@@ -442,6 +442,12 @@ def test_git_commit_push_pushes_when_throttle_window_elapsed(tmp_path, monkeypat
         calls.append(cmd)
         m = MagicMock()
         m.returncode = 0
+        # Self-verifying push (2026-07-24 freeze fix): rev-parse HEAD and ls-remote
+        # must report the SAME sha so _push_reached_origin confirms origin advanced.
+        if cmd[:2] == ["git", "rev-parse"]:
+            m.stdout = "deadbeef\n"
+        elif cmd[:2] == ["git", "ls-remote"]:
+            m.stdout = "deadbeef\trefs/heads/main\n"
         return m
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
@@ -451,6 +457,34 @@ def test_git_commit_push_pushes_when_throttle_window_elapsed(tmp_path, monkeypat
     assert result is True
     assert any(c[:2] == ["git", "push"] for c in calls)
     assert push_file.exists()
+
+
+def test_git_commit_push_does_not_record_on_phantom_push(tmp_path, monkeypatch):
+    """THE 3.5h FREEZE, reproduced (R15 would-fire): `git push` returns rc=0 but
+    origin does NOT advance (ls-remote head != local HEAD). git_commit_push must
+    return False and NOT write .last_push_time.json -- so the throttle stays open
+    and the next cycle retries, instead of deferring behind a phantom success."""
+    push_file = tmp_path / ".last_push_time.json"
+    monkeypatch.setattr(prc, "LAST_PUSH_FILE", push_file)  # no prior push recorded -> _push_due True
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
+    monkeypatch.setattr(prc, "notify", lambda *a, **k: None, raising=False)
+
+    def fake_run(cmd, **kwargs):
+        m = MagicMock()
+        m.returncode = 0
+        if cmd[:2] == ["git", "rev-parse"]:
+            m.stdout = "NEWlocalsha\n"
+        elif cmd[:2] == ["git", "ls-remote"]:
+            m.stdout = "OLDremotesha\trefs/heads/main\n"   # origin did NOT advance
+        return m
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    result = prc.git_commit_push("abc1234", 1000.0)
+
+    assert result is False, "a push that did not reach origin must report failure"
+    assert not push_file.exists(), "phantom push must NOT reset the throttle (the freeze)"
 
 
 def test_git_commit_push_no_push_recorded_if_commit_fails(tmp_path, monkeypatch):
@@ -668,3 +702,29 @@ def test_pending_inboxes_folded_before_the_gate_runs():
     assert "merge_atom_status" in src and ".merge()" in src, "pre-gate inbox fold missing"
     assert src.index("_mas.merge()") < src.index("run_fast_tests("), \
         "the inbox fold must run BEFORE the test gate (reconcile, then test)"
+
+
+# ── SELF-VERIFYING PUSH (R15 both-ways) — the 3.5h origin-freeze incident, 2026-07-24 ──
+# A bare `git push` returned rc=0 without advancing origin (phantom "up-to-date"),
+# and _record_push_time was called anyway -> _push_due stayed False -> every real
+# push deferred for 3.5h while 15 commits stacked locally, unseen by the advisor
+# bridge. _push_reached_origin makes success GROUND-TRUTH so the freeze cannot recur.
+
+def test_push_reached_origin_true_only_on_verified_advance():
+    """CORRECT path: rc==0 AND real remote head == local HEAD -> counts as success."""
+    assert prc._push_reached_origin(0, "abc123", "abc123") is True
+
+
+def test_push_reached_origin_false_on_phantom_up_to_date():
+    """THE FREEZE (would-fire): rc==0 but origin did NOT advance (remote behind
+    local). Must NOT count -> throttle not reset -> next cycle retries."""
+    assert prc._push_reached_origin(0, "OLDsha", "NEWsha") is False
+
+
+def test_push_reached_origin_false_on_nonzero_rc():
+    assert prc._push_reached_origin(1, "abc123", "abc123") is False
+
+
+def test_push_reached_origin_false_on_empty_remote_head():
+    """ls-remote failed/empty -> cannot confirm -> not a success (fail-closed)."""
+    assert prc._push_reached_origin(0, "", "abc123") is False
