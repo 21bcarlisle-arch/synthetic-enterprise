@@ -670,7 +670,7 @@ function renderCausalChain(s){
       figure: wm?(Math.round(wm.hdd)+" HDD · "+wm.mean_temp_c+"°C"):"--",
       figure_label: wm?("realised heating demand, "+wm.month+" (base 15.5°C, Open-Meteo London)"):"weather series unavailable",
       couples:"→ a cold, still month raises heating demand and cuts wind — the market must meet the shortfall.",
-      links:[ {label:"weather.json",url:"../data/weather.json"}, {label:"Open-Meteo / DESNZ degree-days",url:"https://www.gov.uk/government/collections/degree-days",ext:true} ] },
+      links:[ {label:"weather.json",url:"../data/weather.json"}, {label:"Open-Meteo historical weather",url:"https://open-meteo.com/en/docs/historical-weather-api",ext:true} ] },
     { idx:2, name:"Wholesale", status:"SETTLED", role:"the price of energy",
       figure: ssp?("£"+ssp.mean+"/MWh"):"--",
       figure_label: ssp?("settled annual-mean SSP "+ssp.year+" · tail p95 £"+ssp.p95+" · peak £"+ssp.max+" (Elexon, settled clock)"):"market series unavailable",
@@ -695,7 +695,7 @@ function renderCausalChain(s){
       figure:"£/tCO₂e — not yet measured",
       figure_label:"the mission metric = (cost-to-serve + cost-to-persuade, incl. compute) ÷ carbon abated. Only the cost-to-serve part of the numerator is measured above (£"+num(Math.round(port.cost_to_serve_gbp||0))+" book); the cost-to-persuade/compute term AND the denominator (carbon abated) are a three-part ledger that is planned but not yet built — shown open, not faked.",
       couples:"∩ the chain's honest open end: once the carbon-abatement ledger lands, perturbing node 1 will propagate all the way to here.",
-      links:[ {label:"the mission (Proof)",url:"../proof/"}, {label:"DESNZ carbon values",url:"https://www.gov.uk/government/publications/valuation-of-greenhouse-gas-emissions-for-policy-appraisal-and-evaluation",ext:true} ] }
+      links:[ {label:"the mission (Proof)",url:"../proof/"}, {label:"DESNZ carbon values",url:"https://www.gov.uk/government/publications/valuation-of-energy-use-and-greenhouse-gas-emissions-for-appraisal",ext:true} ] }
   ];
 
   var html="";

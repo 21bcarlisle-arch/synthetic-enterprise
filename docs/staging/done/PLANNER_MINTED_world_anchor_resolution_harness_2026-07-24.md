@@ -20,3 +20,13 @@ The /world causal spine (weather 240 HDD → wholesale SSP £85.92/MWh → book 
 
 ## Propose-then-proceed window
 Fully reversible (a test + optional probe). No one-way door, no network commitment beyond read-only GETs against already-allowlisted public data domains. Proceed on draw.
+
+---
+## RESOLUTION (2026-07-24, BUILT + found live defects)
+Built `site/world/test_world_anchor_resolution.py` (11 tests, all green). Design correction on the doc's own premise: the gate is keyed on a **CANONICAL_ANCHOR_DOMAINS** believability-source set, NOT the egress allowlist — a real finding is that ofgem.gov.uk / gov.uk (the UK regulator + DESNZ) are canonical believability sources yet deliberately absent from `egress_allowlist.py` (never programmatically fetched, only cited), so keying on egress would have wrongly flagged Ofgem. A consistency test documents the split (ingested market feeds must be egress-allowlisted; citation-only authorities must not be).
+
+**The harness caught two REAL dead anchors on the live /world spine on its first run** (both HTTP 404, confirmed on GET not just HEAD):
+- Weather node → `gov.uk/.../degree-days` (gone) → repointed to `open-meteo.com/en/docs/historical-weather-api` (the actual HDD data source; more honest), label "Open-Meteo historical weather".
+- Carbon node → `gov.uk/.../valuation-of-greenhouse-gas-emissions-for-policy-appraisal-and-evaluation` (gone) → repointed to the current DESNZ `valuation-of-energy-use-and-greenhouse-gas-emissions-for-appraisal` (200).
+
+R15 both ways proven: malformed / off-source / suffix-spoof anchors FAIL; canonical anchors PASS; network probe SKIPS-visibly when offline (control-host gate), runs for real when online.
