@@ -69,15 +69,24 @@ def _render(payload: dict) -> dict:
 # ---------------------------------------------------------------------------
 # R11: the page renders the live source values (the pixel, not a source string)
 # ---------------------------------------------------------------------------
-def test_pulse_strip_renders_live_treasury_and_ev():
-    d = _live()
-    out = _render(d)
-    ps = out["pulse-strip"]["innerHTML"]
-    p = d["dashboard"]["portfolio"]
-    assert _gbp(p["treasury_end_gbp"]) in ps, ps
-    assert _gbp(p["enterprise_value_gbp"]) in ps, ps
-    # EV carries an R2 PROVISIONAL badge on the pulse strip.
-    assert "PROVISIONAL" in ps
+def test_no_cohort_financials_lead_the_front_door():
+    """RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24): no £ figure
+    derived from the curriculum cohort may lead a public surface. The pulse strip
+    (net margin / treasury / enterprise value / bills) is removed from the front
+    door -- those diagnostics live only inside /proof, framed as teaching-cohort
+    output. This is an R10 class guard: it reds if ANY cohort aggregate financial
+    is re-rendered on the front door (re-adding renderPulseStrip -> fail), not just
+    the one instance the ruling caught.
+    """
+    text = INDEX.read_text()
+    assert 'id="pulse-strip"' not in text, "cohort-financial pulse strip is back on the front door (RC7)"
+    assert "renderPulseStrip" not in text, "renderPulseStrip re-added to the front door (RC7)"
+    for cohort_fin in ("net_margin_gbp", "treasury_end_gbp", "enterprise_value_gbp", "bills_total"):
+        assert cohort_fin not in text, f"cohort financial {cohort_fin!r} leads the front door (RC7)"
+    # Teeth: the source data DOES carry these fields (so the guard is meaningful,
+    # not vacuously passing on an empty schema) -- they are simply not on this door.
+    p = _live()["dashboard"]["portfolio"]
+    assert "net_margin_gbp" in p and "treasury_end_gbp" in p
 
 
 def test_thesis_sentence_renders_live_opex_household_figures():
@@ -104,13 +113,6 @@ def test_thesis_evidence_renders_freshness_stamp_and_source_link():
 # ---------------------------------------------------------------------------
 # R15: independence -- a mutated source value must move the rendered pixel
 # ---------------------------------------------------------------------------
-def test_treasury_pixel_is_independent_of_render():
-    d = _live()
-    d["dashboard"]["portfolio"]["treasury_end_gbp"] = 424242
-    out = _render(d)
-    assert "£424,242" in out["pulse-strip"]["innerHTML"]
-
-
 def test_thesis_true_cost_pixel_is_independent_of_render():
     d = _live()
     d["dashboard"]["opex_ledger"]["true_opex_per_household_gbp"] = 987

@@ -78,12 +78,17 @@ def test_thesis_chart_has_no_offbrand_hex():
     assert 'cssvar("--green-bright")' in script and 'cssvar("--text")' in script
 
 
-# ---- RC5: outcome metrics lead; no effort metric on the surface ---------------------------
+# ---- RC5/RC7: no effort metric AND no cohort-derived financial leads the surface ----------
 def test_no_effort_metrics_on_the_surface():
     text = _text().lower()
     for effort in ("tests passing", "tests collected", "test executions", "commits/day", "phases complete"):
         assert effort not in text, f"effort metric {effort!r} on the front door (RC5)"
-    # The outcome figures the surface DOES lead with are rendered from the portfolio.
+    # RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24) SUPERSEDES the RC5
+    # "outcome figures lead" rule for CURRICULUM-COHORT financials: £-figures earned across
+    # the small teaching cohort (net margin / treasury / enterprise value / bills) fail the
+    # veteran sniff test and may not lead a public surface. The front now leads with the idea
+    # (hero + thesis) and the honest build state (the diagram); these cohort financials are
+    # rendered only inside /proof, framed as teaching-cohort output.
     script = _script_block(_text())
-    for outcome in ("net_margin_gbp", "treasury_end_gbp", "enterprise_value_gbp", "bills_total"):
-        assert outcome in script, f"outcome metric {outcome} not rendered"
+    for cohort_fin in ("net_margin_gbp", "treasury_end_gbp", "enterprise_value_gbp", "bills_total"):
+        assert cohort_fin not in script, f"cohort financial {cohort_fin} leads the front door (RC7)"

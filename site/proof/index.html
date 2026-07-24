@@ -353,13 +353,14 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     <div id="retro-list"><div class="muted">Loading...</div></div>
   </div>
 
-  <!-- 4b. INVESTOR SUMMARY / UNIT ECONOMICS (SITE_V5: /project folds into Proof;
-       DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24 -- the £/customer investor reframe
-       re-homed here so it is reachable + rendered on a canonical door, not orphaned
-       on the killed /project page. RC6 discipline (unit economics leads, cumulative
-       totals demoted + caveated, N + draw stated). Rendered off dashboard.json +
-       phases.json, never hand-typed. -->
-  <div class="sec" id="project-anchor">Investor summary &mdash; the unit economics</div>
+  <!-- 4b. TEACHING-COHORT UNIT ECONOMICS (RC7, DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER
+       2026-07-24): the "investor summary" genre is RETIRED until there is something scale-honest
+       to say. Cohort-derived £-figures fail the veteran sniff test (£80k/customer is a simulation
+       artefact, not scaled economics) and may not LEAD any public surface. They survive ONLY here,
+       inside a deep-evidence page, explicitly framed as teaching-cohort output -- never as a
+       headline, never presented as transferable company economics. Rendered off dashboard.json +
+       phases.json, never hand-typed. (id kept as project-anchor so existing canonical links resolve.) -->
+  <div class="sec" id="project-anchor">The teaching cohort &mdash; simulated unit economics, not company economics</div>
   <div class="card">
     <p class="muted" id="inv-unit-note" style="margin-bottom:12px">Loading...</p>
     <div class="kpis" id="inv-kpis"><div class="muted">Loading...</div></div>
@@ -977,10 +978,11 @@ fetch("../data/simplified.json?t="+Date.now()).then(function(r){return r.json();
   document.getElementById("simplified-intro").innerHTML='<span style="color:var(--red)">Could not load simplified.json</span>';
 });
 
-// Investor summary / unit economics (folded in from the killed /project door,
-// DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24). RC6: unit economics (net margin /
-// customer) leads; the cumulative total is demoted + caveated with its N and draw.
-// gbp() + the figures are rendered off run data, never hand-typed.
+// Teaching-cohort unit economics (RC7, DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER
+// 2026-07-24): the investor-summary genre is RETIRED. These cohort-derived £-figures are
+// SIMULATION DIAGNOSTICS, not company economics -- shown here (a deep-evidence page) framed
+// as teaching-cohort output, never celebrated (no green "on track" endorsement), never
+// presented as transferable. gbp() + figures rendered off run data, never hand-typed.
 function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
 function renderInvestor(D,PH){
   if(!D)return;
@@ -992,24 +994,28 @@ function renderInvestor(D,PH){
   var lifetime=(D.customers||{}).lifetime||{};
   var N=Object.keys(lifetime).length;
   var hasN=N>0;
-  var nmPer=hasN?totalNet/N:null;                       // all-years net margin per customer (same basis as the total)
-  var perTitle=(nmClk?nmClk+" · ":"")+"all-years cumulative ÷ "+N+" sampled customers -- the figure that transfers between books";
-  var totalTitle=(nmClk?nmClk+" · ":"")+"10-yr cumulative · scales with drawn book (N="+N+"); not meaningful in isolation -- read the £/customer figure";
+  var nmPer=hasN?totalNet/N:null;                       // all-years net margin ÷ cohort N (a sim artefact, NOT real per-customer economics)
+  var perTitle=(nmClk?nmClk+" · ":"")+"all-years cumulative ÷ "+N+" cohort customers -- a simulation artefact; a real UK supplier earns tens of £/customer/yr, not this";
+  var totalTitle=(nmClk?nmClk+" · ":"")+"10-yr cumulative across N="+N+"; scales with the drawn cohort, meaningless in isolation";
+  // RC7: no green "on track" chrome on cohort figures -- they are diagnostics, not achievements.
   var kpis=[
-    {l:"Net margin / customer (all-yr)",v:hasN?gbp(nmPer):"--",g:nmPer!=null&&nmPer>=0,title:perTitle},
-    {l:"Net margin (total)",v:gbp(totalNet),g:totalNet>=0,title:totalTitle},
-    {l:"Treasury (end 2025)",v:gbp(treasury),title:"banked clock · stock at period end · a drawn-book figure"},
-    {l:"Sampled customers (N)",v:hasN?String(N):"--",title:"the drawn book this run's financials are earned across"}
+    {l:"Sim net margin ÷ cohort N (all-yr)",v:hasN?gbp(nmPer):"--",title:perTitle},
+    {l:"Sim net margin (cohort total)",v:gbp(totalNet),title:totalTitle},
+    {l:"Treasury (end 2025)",v:gbp(treasury),title:"banked clock · stock at period end · a drawn-cohort figure"},
+    {l:"Cohort customers (N)",v:hasN?String(N):"--",title:"the teaching cohort this run's figures are earned across"}
   ];
   document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){
     return '<div class="kpi"'+(k.title?' title="'+esc(k.title).replace(/"/g,"&quot;")+'"':'')+
-      '><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v"'+(k.g?' style="color:var(--green)"':'')+'>'+k.v+'</div></div>';
+      '><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
   }).join("");
   var un=document.getElementById("inv-unit-note");
   if(un)un.innerHTML=hasN
-    ? "<b>This run's book is a drawn sample of N="+N+" customers</b> (curriculum-weighted historical replay, 2016&ndash;2025). "+
-      "The cumulative financial totals are earned across that small book and <b>scale with it &mdash; not meaningful in "+
-      "isolation</b>; read the &pound;/customer figure, which transfers between books."
+    ? "<b>Teaching cohort, N="+N+" &mdash; not scaled company economics.</b> This run's book is a small "+
+      "curriculum-weighted sample drawn for learning value (historical replay, 2016&ndash;2025), not a real "+
+      "customer base. The £-figures below are <b>diagnostics of the simulated run</b>: they scale with the "+
+      "drawn cohort and are meaningless in isolation. A real UK supplier earns on the order of <b>tens of "+
+      "pounds per customer per year</b> &mdash; so read these as simulation output, never as a headline or a "+
+      "forecast of a licensed supplier's economics."
     : "The customer book is empty in the latest run — no unit economics to report.";
 }
 Promise.all([

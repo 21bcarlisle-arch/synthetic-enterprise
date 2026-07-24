@@ -1,3 +1,18 @@
+> **CAMPAIGN PROGRESS (kept in staging root = still the top product item, drawable next tick).**
+> Wedge-3 emergency is COMPLETE (archived `f90e2e85f`), so this ruling governs. Iterations:
+> - **[✅ DONE — iteration 1, RC7 cohort-financials-off-lead]** front door pulse strip removed +
+>   diagram promoted with plain build-stage framing; /proof "Investor summary" retired → reframed as
+>   teaching-cohort diagnostics ("N=19, not scaled company economics"); R10 class guard added; site
+>   suite 282 passed / 6 skipped; render-verified. (Commit stamped in this same change.)
+> - **[ ] OPEN — iteration 2:** the diagram with **every node wearing its stage plainly** (Live /
+>   Building / Planned), one plain-English sentence + one click to a "look at this" view (real weather
+>   → real prices; believed-vs-true; a household's year). This is the substantive front-door build.
+> - **[ ] OPEN — iteration 3:** the site-wide **external-register sweep** — internal vocab (atoms,
+>   HARDEN, rungs, R-numbers, campaign names, tier labels, commit-speak) removed from every public
+>   surface (incl. the /shadow/* internal mirrors that embed LATEST.md); internal narrative behind
+>   /proof only. Test per page: *company explaining an idea, or a project talking to itself?*
+> **Next draw = continue at iteration 2.** Archive to done/ only when all three are landed + verified.
+
 # [DIRECTOR-RULING] — IDEA FIRST, EXTERNAL REGISTER: no headline financials at this stage; the diagram's stages visible in plain outside language (2026-07-24)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Director's verbatim: *"£80k makes no sense either. Why is that the lead number. At this stage what matters more is the idea. And the visibility of each stage of the diagram. In easy normal external views. Not internal project narrative."* Queue behind the wedge-3 emergency; then this governs the campaign.

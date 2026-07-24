@@ -46,13 +46,12 @@ sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
 
-// Drive the same render sequence the page's Promise.all(...).then does, with the
-// supplied live data (lastBill is optional -- the pulse strip degrades gracefully).
+// Drive the same render sequence the page's fetch(...).then does with the supplied
+// live data. RC7 (2026-07-24) removed the cohort-financial pulse strip; the front
+// door now renders only the thesis (the idea's falsifiable mechanism).
 sandbox.renderThesisChart(payload.dashboard);
-sandbox.renderPulseStrip(payload.dashboard, payload.supplier, payload.method, payload.lastBill || null);
 
 const ids = [
-  "pulse-strip",
   "thesis-sentence", "thesis-caveat", "thesis-evidence",
 ];
 const out = {};
