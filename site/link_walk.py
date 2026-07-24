@@ -154,10 +154,62 @@ def classify(site: Path = SITE) -> dict[str, list[tuple[str, str, str]]]:
     return findings
 
 
+# --- MOAP (model-on-a-page) node deep-anchor gate -----------------------------
+# DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24 ("evidence pages behind the diagram
+# nodes next"): every front-door diagram node's "Look:" link must deep-resolve to
+# a *fragment anchor that exists on its target page* -- never a bare page-top. A
+# node that lands the reader at the top of a page (no #id, or a #id absent from
+# the page) fails the walk CLOSED. This is the difference between "asserted" and
+# "verifiable at one click" for the front door's legibility spine.
+_NODE_LOOK = re.compile(r'<a[^>]*class="node-look"[^>]*href=(["\'])([^"\']+)\1',
+                        re.IGNORECASE)
+_ID = re.compile(r'\bid=(["\'])([^"\']+)\1')
+
+
+def _page_file(page: Path, href: str, site: Path = SITE) -> Path | None:
+    """Resolve an href's PATH portion to the on-disk HTML file it names, or None."""
+    path = href.split("?", 1)[0].split("#", 1)[0]
+    if path.startswith("/"):
+        base = (site / path.lstrip("/")).resolve()
+    else:
+        base = (page.parent / path).resolve()
+    if base.is_file():
+        return base
+    if (base / "index.html").is_file():
+        return base / "index.html"
+    return None
+
+
+def moap_node_findings(site: Path = SITE) -> list[tuple[str, str, str]]:
+    """Front-door MOAP nodes whose 'Look:' link does NOT resolve to an existing
+    fragment anchor on its target page. Returns (href, reason, detail). Empty =
+    every diagram node deep-links to a real anchor (the gate is green)."""
+    findings: list[tuple[str, str, str]] = []
+    front = site / "index.html"
+    if not front.is_file():
+        return findings
+    html = front.read_text(encoding="utf-8")
+    for m in _NODE_LOOK.finditer(html):
+        href = m.group(2)
+        frag = href.split("#", 1)[1] if "#" in href else ""
+        if not frag:
+            findings.append((href, "NO_FRAGMENT", "links to a bare page-top"))
+            continue
+        target = _page_file(front, href, site)
+        if target is None:
+            findings.append((href, "DEAD_PAGE", "target page missing on disk"))
+            continue
+        ids = {mm.group(2) for mm in _ID.finditer(target.read_text(encoding="utf-8"))}
+        if frag not in ids:
+            findings.append((href, "MISSING_ANCHOR", f"no id={frag!r} on target page"))
+    return findings
+
+
 def main() -> int:
     findings = classify()
     dead, redir = findings["DEAD"], findings["REDIRECTED"]
-    print("=== R11 internal link-walk (DIAGNOSTIC) ===")
+    moap = moap_node_findings()
+    print("=== R11 internal link-walk ===")
     print(f"redirect sources: {sorted(_redirect_sources())}\n")
     print(f"DEAD links (target missing on disk): {len(dead)}")
     for page_id, href, url in dead:
@@ -165,8 +217,11 @@ def main() -> int:
     print(f"\nREDIRECTED links (point at a legacy redirect source): {len(redir)}")
     for page_id, href, url in redir:
         print(f"  [REDIR] {page_id:28s} href={href!r:30s} -> {url}")
-    total = len(dead) + len(redir)
-    print(f"\nTOTAL non-canonical/dead internal links: {total}")
+    print(f"\nMOAP nodes not deep-anchored (bare page-top / missing #id): {len(moap)}")
+    for href, reason, detail in moap:
+        print(f"  [MOAP]  {reason:14s} href={href!r:34s} -- {detail}")
+    total = len(dead) + len(redir) + len(moap)
+    print(f"\nTOTAL non-canonical/dead/unanchored internal links: {total}")
     return 1 if total else 0
 
 

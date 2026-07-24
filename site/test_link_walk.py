@@ -24,7 +24,7 @@ classify() is not always-positive). The live gate rests on that proven mechanism
 """
 from pathlib import Path
 
-from link_walk import classify
+from link_walk import classify, moap_node_findings
 
 # The live site root is this test file's own directory (site/).
 _SITE_ROOT = Path(__file__).resolve().parent
@@ -103,3 +103,59 @@ def test_redirect_source_link_is_flagged():
         redir_urls = [u for _, _, u in findings["REDIRECTED"]]
         assert any(u.rstrip("/") == "/method" for u in redir_urls), findings
         assert findings["DEAD"] == [], "existing legacy page must not read as DEAD"
+
+
+# --- MOAP node deep-anchor gate (DIRECTOR_RULING_CANONICAL_DOOR_A) ------------
+def test_live_site_moap_nodes_deep_anchored():
+    """LIVE GATE (R11, DIRECTOR_RULING_CANONICAL_DOOR_A 2026-07-24 "evidence pages
+    behind the diagram nodes"): every front-door model-on-a-page node's 'Look:'
+    link must deep-resolve to a fragment anchor that EXISTS on its target page --
+    never a bare page-top or a missing #id. If this reds, a diagram node lands the
+    reader at a page-top instead of at its own evidence figure (add the deep #id)."""
+    findings = moap_node_findings(_SITE_ROOT)
+    assert findings == [], (
+        "front-door MOAP nodes not deep-anchored to a live fragment: "
+        + "; ".join(f"{href} [{reason}: {detail}]" for href, reason, detail in findings)
+    )
+
+
+def _moap_tree(tmp: Path, node_href: str, target_ids: str = 'id="causal-chain"') -> Path:
+    """A minimal front door with one MOAP node link, and a /world target page
+    carrying `target_ids`."""
+    site = tmp / "site"
+    _write(site, "index.html",
+           f'<div class="nodes"><div class="node">'
+           f'<a class="node-look" href="{node_href}">Look &rarr;</a></div></div>')
+    _write(site, "world/index.html", f'<div {target_ids}>chain</div>')
+    return site
+
+
+def test_moap_deep_anchor_clean_has_no_findings():
+    """Independence: a node linking to an existing #id on the target yields zero
+    findings (the control is not always-positive)."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        site = _moap_tree(Path(d), "./world/#causal-chain")
+        assert moap_node_findings(site) == [], moap_node_findings(site)
+
+
+def test_moap_bare_page_top_is_flagged():
+    """R15 direction 1: a node link to a bare page-top (no fragment) fails closed."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        site = _moap_tree(Path(d), "./world/")
+        findings = moap_node_findings(site)
+        assert findings and findings[0][1] == "NO_FRAGMENT", findings
+
+
+def test_moap_missing_anchor_is_flagged():
+    """R15 direction 2: a node link whose #id is absent from the target page fails
+    closed (an anchor that points nowhere is worse than a page-top)."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as d:
+        site = _moap_tree(Path(d), "./world/#nonexistent")
+        findings = moap_node_findings(site)
+        assert findings and findings[0][1] == "MISSING_ANCHOR", findings
