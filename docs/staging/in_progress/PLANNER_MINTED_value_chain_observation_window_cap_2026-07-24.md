@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-<!-- draw-visibility marker (2026-07-24): self-drawable next step, no wall — surfaced to the draw so rung-7 does not over-mint over it. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- draw-visibility marker (2026-07-24, ELEVENTH tick): the board-surface RENDER — the last non-walled company-side step — is now SHIPPED (commit 4f9122457). Every remaining step is walled or automatic: (a) live CDN pixel awaits the next AUTO-publish (not a worker action); (b) WVC_R world-half is director/twin-gated; (c) MC-2 death-test difficulty is director curriculum. Flipped self-drawable→blocked so the next tick neither over-mints nor redraws a walled item. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death-test (2026-07-24)
 
@@ -260,3 +260,45 @@ the over-production `DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24` intervened 
 (a) next auto-processed sim run → the three credit organs appear in `run_output_latest.json` with moving
 numbers (R11 live-pixel) → site render becomes drawable; (b) director/twin opens `WVC_Ra`/`WVC_Rc` for BUILD
 and authors the MC-2 curriculum. Both are gate/publish events, not worker-tick actions.
+
+---
+
+## BOARD-SURFACE RENDER (the mint's named follow-on) — SHIPPED, 2026-07-24 eleventh worker tick
+
+The eighth-tick note wired the run-output serializer and said *"a board-surface (site) rendering of these
+figures is a natural follow-on **once the live JSON carries them**."* Verified this tick: the auto-process
+publish `0ce6024e0` DID land the three organs in `docs/reports/run_output_latest.json` (peak **£786,528 net
+credit exposure at 2021-12-31**, 12 counterparties, largest GENERATOR-1, £1,392,351 margin outstanding). So
+the render was the genuine drawable step — company-side, reversible, PRODUCT-FIRST, wall-clean.
+
+### What shipped (commit `4f9122457`)
+- **`tools/generate_dashboard_data.py::extract_trading`** now forwards `trading_book` / `wholesale_credit_exposure`
+  / `margin_call_book` into `dashboard.trading.wholesale`; **fail-open to `{available:False}`** on older run
+  shapes (C-S1 — the keys only exist from `15b6e8c4a`).
+- **`tools/generate_company_data.py::_trading_risk`** carries the block into `company.trading_risk.wholesale`
+  with an honest passport: collateral=0 is a **stated upper-bound** (CSA postings unmodelled), the
+  observation-window cap is **live but dormant** (erodes only on observed default conduct, whose producer is
+  the walled WVC_R coupled atom), and the **MC-2 death-test is not yet built** (director curriculum).
+- **`site/company/index.html`** — new "Wholesale value chain" card (peak credit exposure + clock, counterparty
+  count/cleared-vs-bilateral, largest exposure + utilisation, margin outstanding + facility headroom, and the
+  by-type channel table). *(This file was swept into the concurrent auto-process commit `57ad65ed4` — the
+  known broad-`git add site/` sweep hazard; render code verified complete on HEAD before proceeding.)*
+- **R11 render assertion** (`site/company/test_company_door.py`, node harness): the peak exposure, largest
+  counterparty and the peak clock reach the actual rendered pixel from the live `company.json`. **Independence:**
+  the expected £-string is computed in-test, not read from the render. **`extract_trading`** surfaced + fail-open
+  unit-tested (`tests/tools/test_generate_dashboard_data.py`). Epistemic-verifier **PASS** (own netted MtM +
+  public ratings only).
+
+### HONEST remaining (verified) — all walled or automatic
+- **Live CDN pixel PENDING the next auto-publish:** the committed `company.json` carries the block and the node
+  harness proves the render against that exact file, but the live poesys.net page won't show it until the next
+  `process_run_complete` publishes `site/` (the currently-live JSON, published by `57ad65ed4`, predates this
+  commit → the page shows the graceful "not present" fallback until then). Not a worker-tick action.
+- **WVC_R world-half** (counterparty resolution → cap erosion) stays a director/twin-gated coupled atom.
+- **MC-2 collateral death-test** unchanged; difficulty is R13 curriculum → escalate the value.
+
+> **Tick note (2026-07-24, RUNG-7 doorbell, ELEVENTH tick):** doorbell fired the stale "rungs 1–6 empty → MINT"
+> read AGAIN; disk contradicts it (2 self-drawable mints open — this one had a genuine drawable step unblocked by
+> the publish landing the organs). Correct draw = advance it, NOT mint a 7th batch (over-production the director
+> waived). Shipped the render as real code + R11/R15 tests, caught (and worked around) the auto-process site-sweep
+> race. Marker flipped self-drawable→blocked: no non-walled company-side step remains. No mint: premise false.
