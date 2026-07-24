@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-24T06:09:24Z
+Last updated: 2026-07-24T09:19:39Z
 
 **PRODUCT LANDED (2026-07-24) — SITE_V5 canonical-door fold COMMITTED (director Decision A: "COMMIT THE FOLD").**
 `DIRECTOR_RULING_CANONICAL_DOOR_A_COMMIT_THE_FOLD_2026-07-24.md` resolved the one decision (§A) the SITE_MODEL_SPINE
