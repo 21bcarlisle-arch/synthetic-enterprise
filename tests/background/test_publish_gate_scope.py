@@ -25,6 +25,7 @@ mutation directions (R15):
 This file lives under tests/background but is deliberately UNMARKED (it validates
 the gate's own scope contract, a publish concern), so it runs IN the gate.
 """
+import ast
 import subprocess
 import sys
 import textwrap
@@ -55,7 +56,40 @@ _MUST_STAY_BLOCKING = [
 
 
 def _is_marked_operational(module_stem):
-    return "pytest.mark.operational" in (_BG / (module_stem + ".py")).read_text()
+    """Return True iff the module carries a REAL module-level operational marker,
+    the way pytest's ``-m "not operational"`` collection actually resolves it --
+    a module-level ``pytestmark = pytest.mark.operational`` (bare, or in a
+    list/tuple of marks).
+
+    HARDEN 2026-07-25 (R15, this atom's own control fidelity): the previous
+    implementation was a naive substring test -- ``"pytest.mark.operational" in
+    source`` -- which DIVERGES from the enforced gate mechanism in both
+    directions and so could give a false verdict:
+      * FALSE POSITIVE -- a module that merely MENTIONS the marker in a docstring,
+        comment or string literal (this very file does, and pytest collects it as
+        NON-operational: ``-m operational`` deselects all 8 of its tests) would be
+        reported operational though the gate would still RUN it -> the
+        content/safety guard could wrongly flag a legitimately-blocking module.
+      * FALSE NEGATIVE -- a marker applied only through an alias
+        (``op = pytest.mark.operational; pytestmark = op``) contains no literal
+        substring, so a genuinely-deselected daemon module would read as blocking.
+    A control whose detection differs from the mechanism it audits is theatre
+    (CONTROLS_THAT_CANNOT_FAIL). This AST detector matches pytest's resolution.
+    """
+    tree = ast.parse((_BG / (module_stem + ".py")).read_text())
+    for node in tree.body:  # module level only -- decorators handled by pytest natively
+        targets = []
+        if isinstance(node, ast.Assign):
+            targets = node.targets
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        if not any(isinstance(t, ast.Name) and t.id == "pytestmark" for t in targets):
+            continue
+        # pytestmark = pytest.mark.operational  (or a list/tuple containing it)
+        attrs = {n.attr for n in ast.walk(node) if isinstance(n, ast.Attribute)}
+        if "operational" in attrs:
+            return True
+    return False
 
 
 # ── the gate config uses the MARKER, not a directory ignore ──────────────────
@@ -115,6 +149,37 @@ def test_content_and_safety_modules_are_NOT_marked_operational():
     gate would no longer block publish) makes this fail."""
     leaked = [m for m in _MUST_STAY_BLOCKING if _is_marked_operational(m)]
     assert not leaked, "these MUST keep blocking the publish but were deselected: {}".format(leaked)
+
+
+# ── the detector must match the ENFORCED mechanism, not a substring (R15) ────
+
+def test_marker_detection_is_faithful_to_pytest_not_a_substring():
+    """Lock the HARDEN 2026-07-25 fix: the guard's operational-marker detector
+    must agree with how the gate's ``-m "not operational"`` actually resolves the
+    marker -- NOT the old naive ``"pytest.mark.operational" in source`` substring.
+
+    This very file is the witness: it MENTIONS ``pytest.mark.operational`` in its
+    docstring and in the ``_write`` helper's literal, yet it carries no
+    module-level marker, so pytest collects it as NON-operational (a real gate run
+    of ``-m operational`` deselects all of its tests). The faithful detector must
+    return False for it; a substring check returns True -- proving the divergence
+    is real and the fix is load-bearing, not cosmetic."""
+    substring_says = "pytest.mark.operational" in (_BG / "test_publish_gate_scope.py").read_text()
+    assert substring_says, "precondition: this file mentions the marker in a literal"
+    # the faithful detector -- and pytest itself -- disagree with the substring.
+    assert _is_marked_operational("test_publish_gate_scope") is False
+
+    # Ground-truth cross-check against pytest's own collection: this module has
+    # ZERO operational-collected tests despite containing the substring.
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", str(_BG / "test_publish_gate_scope.py"),
+         "--collect-only", "-q", "-m", "operational", "-p", "no:cacheprovider"],
+        capture_output=True, text=True,
+    )
+    assert "no tests collected" in (proc.stdout + proc.stderr)
+
+    # And it stays TRUE where a real module-level marker exists (non-vacuous).
+    assert _is_marked_operational("test_supervisor") is True
 
 
 # ── behavioral closed-loop reproduction of the wedge + its fix (R4) ──────────
