@@ -70,6 +70,20 @@ def test_manifest_carries_every_ruling_field():
     assert "crisis-replay" in row["run_id"]
 
 
+def test_survival_headroom_captured_from_every_run():
+    # §6-enabling fields captured from a SURVIVOR (not only deaths), per the
+    # authoritative ruling "capture liquidity-minimum and cover-minimum per run
+    # from the start". §6 metrics themselves stay unbuilt.
+    m = build_manifest(
+        "history-default",
+        RunOutcomes(survived=True, ev_gbp=100.0,
+                    liquidity_headroom_min_gbp=250000.0, collateral_cover_min=1.4),
+    )
+    row = m.to_row()
+    assert row["outcomes"]["liquidity_headroom_min_gbp"] == 250000.0
+    assert row["outcomes"]["collateral_cover_min"] == 1.4
+
+
 def test_death_without_cause_is_rejected():
     with pytest.raises(ValueError):
         RunManifest(

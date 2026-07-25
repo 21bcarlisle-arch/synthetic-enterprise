@@ -72,6 +72,16 @@ before an activated run can publish any derived figure. Registered below.
 3. **§6 survival-usefulness** — margin of survival / breaking strain / cause attribution.
    **REGISTERED ONLY**, director-session gated; do not build ahead of his session on it.
 
+## Twin ruling reconciled (authoritative version)
+A reworded twin `DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md`
+("confirmed by the director this morning") arrived same day — SAME six sections/substance,
+satisfied by the same build. Two nuances unique to it, both honoured:
+- **§6 "capture liquidity-minimum and cover-minimum per run from the start"** →
+  `RunOutcomes.liquidity_headroom_min_gbp` / `collateral_cover_min` added (recorded from every
+  run incl. survivors; the §6 metrics that consume them stay unbuilt, director-session gated).
+- **§5 "report non-domestic as part of the coverage report"** → the audit (15 resi / 4 SME / 5 I&C)
+  is folded into the coverage-report output at activation.
+
 ## Verification
 - 21 new tests green (`tests/background/test_run_manifest.py`, `tests/simulation/test_population_coverage.py`).
 - `tools.epistemic_verifier`: PASS (525 files, no barrier violations).

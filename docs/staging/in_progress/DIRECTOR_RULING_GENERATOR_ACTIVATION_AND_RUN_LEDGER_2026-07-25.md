@@ -1,3 +1,15 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- PARKED 2026-07-25: AUTHORITATIVE reworded twin ("confirmed this morning") of
+     DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md — SAME ruling, same six
+     sections/substance. Additive infra BUILT for both (see docs/design/RUN_LEDGER_AND_SCORES_BUILD_2026-07-25.md).
+     Two nuances unique to THIS version, both honoured: §6 "capture liquidity-minimum and cover-minimum
+     per run from the start" -> RunOutcomes.liquidity_headroom_min_gbp / collateral_cover_min added (fields
+     only; §6 metrics stay unbuilt); §5 "report non-domestic as part of the coverage report" -> fold the
+     15 resi/4 SME/5 I&C audit into the coverage-report output at activation. OPEN blocking sub-item = the
+     ACTIVATION CORE §1 (same as the twin: real SYN region draw so the gate passes, SYN-shape hardening,
+     N param, wire entrypoints + publish gate, flip SE_DRAW_POPULATION=1, re-baseline). §2 mechanism-only
+     (values R13). §6 registered-only, director-session gated. -->
+
 # [DIRECTOR-RULING] — Generator population ACTIVATED (R13); run rotation, run ledger, and the three separated scores (2026-07-25)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the director-reserved wall on `SE_DRAW_POPULATION` and rules the run-management questions it raises. Confirmed by the director this morning.

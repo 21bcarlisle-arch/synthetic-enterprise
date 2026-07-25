@@ -154,6 +154,14 @@ class RunOutcomes:
     worst_cell_fidelity: Optional[float] = None
     death_cause: Optional[str] = None   # required iff not survived
     death_date: Optional[str] = None    # ISO date, required iff not survived
+    # §6 is REGISTERED-not-built, but the authoritative ruling
+    # (DIRECTOR_RULING_GENERATOR_ACTIVATION..., "confirmed this morning") directs:
+    # "capture liquidity-minimum and cover-minimum per run FROM THE START" so the
+    # §6 margin-of-survival design is computable later without a retrofit. These
+    # are recorded from EVERY run (survivors included); the §6 metrics/breaking-
+    # strain that consume them stay unbuilt (director-session gated).
+    liquidity_headroom_min_gbp: Optional[float] = None   # min liquidity headroom reached in the run
+    collateral_cover_min: Optional[float] = None         # min collateral cover ratio reached in the run
 
     def validate(self) -> None:
         if not self.survived and not self.death_cause:
