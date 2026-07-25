@@ -1,3 +1,12 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- PARKED 2026-07-25: additive infra BUILT (§3 manifest/ledger, §4 three-scores+R15 guard,
+     §1.3 coverage report+gate, §5 non-domestic audit) — see docs/design/RUN_LEDGER_AND_SCORES_BUILD_2026-07-25.md.
+     OPEN / blocking sub-item: the ACTIVATION CORE (§1) — make SYN region draw real so the
+     coverage gate can pass, harden ~19 entrypoints for the SYN shape, parameterise N (λ≈40→N≈198),
+     wire live_population() + coverage_gate_ok() into entrypoints/publish gate, flip SE_DRAW_POPULATION=1,
+     re-baseline downstream gated by the coverage report. §2 rotation = wire mechanism (scenario/true-prob
+     values stay R13 director-reserved). §6 survival-usefulness = REGISTERED ONLY, director-session gated. -->
+
 # [DIRECTOR-RULING] — Generator population ACTIVATED; run rotation, run manifest and the three separated scores (2026-07-25)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the walled item `SE_DRAW_POPULATION` (director-reserved) and the run-management questions that go with it. One doc because they are one mechanism.
