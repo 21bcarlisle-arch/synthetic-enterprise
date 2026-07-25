@@ -1,3 +1,20 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- PARKED 2026-07-25 (moved root -> in_progress to stop the empty-root re-grant pathology, per
+     CLAUDE.md multi-part-instruction rule; the B2_OPEX pattern). This steer is a design-session
+     output: large ledger-spine workstream, sequenced and partly director-reserved. Its ONE
+     dependency-forced, non-walled, buildable-now next step (§5 step-1: the bad-debt RECONCILIATION
+     BRIDGE, report-first) is now MINTED as RUNG-1 work ->
+     docs/staging/PLANNER_MINTED_bad_debt_reconciliation_bridge_2026-07-25.md. Draw THAT, not this doc.
+     BLOCKING SUB-ITEMS holding the rest of this steer:
+       (1) §5 steps 2-4 (wire outcome->estimate; the ladder w/ ability-to-pay; CoT attribution) are
+           two-way-door DOWNSTREAM of step-1 landing + being read (don't build on an unreconciled base).
+       (2) DIRECTOR-RESERVED walls R-1..R-5 (method fixed-vs-curriculum-dial; dunning harm ratio;
+           write-off-timing-as-policy; disengaged-majority curriculum/fidelity; holdout discipline) —
+           escalate, do not decide. D5 stands: detection stays SENSING-ONLY, no collections action.
+     UNBLOCK: the reconciliation report lands+read -> re-rank step-2; OR a director ruling on any R-*.
+     Decisions D1-D7 are transmit-and-absorb (R12 diagnostic-not-target; D2 variance = first-class
+     measured, register as a fidelity-ledger row; D3 three-clock bridge on the revenue-bridge standing). -->
+
 # [DIRECTOR-STEER] — Dunning, debt discovery and provisioning: the design session output (2026-07-25)
 
 **Type:** [DIRECTOR-STEER] via advisor bridge. This is the session RESERVED by
