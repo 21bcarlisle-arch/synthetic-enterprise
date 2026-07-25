@@ -1683,7 +1683,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-25T08:25:09Z
+Generated: 2026-07-25T08:58:51Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -1819,7 +1819,7 @@ Decomposes each year's net margin change into: gross margin movement, bad debt, 
 
 > Gross delta: revenue minus energy wholesale cost. Bad debt / capital / policy / network deltas: negative = costs rose (margin impact). Portfolio: active customer count change.
 
-> **Residual Δ (reconciliation):** net margin is *defined* as gross minus exactly these cost lines, so the residual should be ~£0 and the five drivers should fully account for each net movement. A materially non-zero residual is a tripwire, not noise -- it means a cost line has entered net margin without a matching bridge driver (e.g. a renamed/dropped field); when the residual strictly dominates every named driver the Driver column reads **other (unexplained)** rather than confidently naming a minority contributor.
+> **Residual Δ (reconciliation):** net margin is *defined* as gross minus exactly these cost lines, so the residual should be ~£0 and the five drivers should fully account for each net movement. A materially non-zero residual is a tripwire, not noise -- it means a cost line has entered net margin without a matching bridge driver (e.g. a renamed/dropped field); when the residual strictly dominates every named driver the Driver column reads **other (unexplained)** rather than confidently naming a minority contributor. A material residual that does NOT dominate (a real break masked by a larger legitimate driver in the same year) is flagged **⚠ unreconciled** on the Driver cell rather than passing silently.
 
 ## Unbilled Revenue Accrual (Accrual Accounting View)
 
