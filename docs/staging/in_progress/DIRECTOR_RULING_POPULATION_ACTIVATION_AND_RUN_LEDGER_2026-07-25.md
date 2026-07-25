@@ -1,4 +1,12 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCKED-ON (2026-07-25, marker flipped self-drawable->blocked to self-terminate the per-tick
+     re-grant churn per background/staging_disposition doctrine — a walled next-step is marked blocked
+     and stays parked): the ONLY remaining core is §1 ACTIVATION, and it is walled. (1) N/λ R13
+     reconciliation — the ruling's N=200 vs the director-SIGNED λ=1.0 "PROFILE B trickle" constant —
+     is ESCALATED to the director; do NOT self-flip λ (R13 curriculum wall). (2) The flag-flip
+     (SE_DRAW_POPULATION=1) + downstream re-baseline is the director-reserved RELEASE RUNG, gated on
+     the coverage report. Additive infra (§3/§4/§1.3/§5) is BUILT. UNBLOCK: director signs the N-vs-λ
+     call -> flip this marker back to self-drawable and draw the activation sequence. -->
 <!-- PARKED 2026-07-25: additive infra BUILT (§3 manifest/ledger, §4 three-scores+R15 guard,
      §1.3 coverage report+gate, §5 non-domestic audit) — see docs/design/RUN_LEDGER_AND_SCORES_BUILD_2026-07-25.md.
      OPEN / blocking sub-item: the ACTIVATION CORE (§1). PROGRESS 2026-07-25: SYN region draw made

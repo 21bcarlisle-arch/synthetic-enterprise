@@ -165,18 +165,73 @@ def _import_lines(module):
     return lines
 
 
+def _ground_truth_import_violations(import_lines):
+    """Return the import lines (if any) that reach for sim-side ground truth
+    -- the saas belief-of-record property model, or any simulation/sim module.
+
+    The company belief layer builds its property picture from OBSERVED events
+    only (company.crm.property_model / property_discovery). Importing
+    saas/property_model.py (the ground-truth home record) or a simulation
+    module here would be an epistemic-wall breach: the plan would then be able
+    to read a truth a real supplier could never see. This is the shared
+    checker behind every wall-guard test below; a violation is any offending
+    import line.
+    """
+    bad = []
+    for line in import_lines:
+        if 'saas' in line or 'simulation' in line:
+            bad.append(line)
+        elif line.startswith('import sim') or line.startswith('from sim'):
+            bad.append(line)
+    return bad
+
+
+def test_ground_truth_import_guard_actually_fires():
+    # R15 -- the wall guard must be able to FAIL on its own named defect, or it
+    # is theatre. Prove BOTH directions: it passes clean input and it flags
+    # every forbidden ground-truth import form.
+    clean = [
+        'from company.crm.property_model import Property',
+        'import datetime as dt',
+        'from company.crm import property_discovery',
+    ]
+    assert _ground_truth_import_violations(clean) == []
+    dirty = [
+        'from saas.property_model import Property',   # the sim-side ground truth
+        'import simulation.population_draw',
+        'from sim.market import prices',
+    ]
+    assert len(_ground_truth_import_violations(dirty)) == 3
+
+
 def test_decarb_recommender_imports_no_ground_truth():
-    for line in _import_lines(decarb_recommender):
-        assert 'saas' not in line, line
-        assert 'simulation' not in line, line
-        assert not line.startswith('import sim'), line
-        assert not line.startswith('from sim'), line
+    assert _ground_truth_import_violations(_import_lines(decarb_recommender)) == []
 
 
 def test_onboarding_journey_imports_no_ground_truth():
     from company.crm import onboarding_journey
-    for line in _import_lines(onboarding_journey):
-        assert 'saas' not in line, line
-        assert 'simulation' not in line, line
-        assert not line.startswith('import sim'), line
-        assert not line.startswith('from sim'), line
+    assert _ground_truth_import_violations(_import_lines(onboarding_journey)) == []
+
+
+# The discovery module and the registry are the SIBLING HALVES of the same wall
+# (C2 file_scope). Their docstrings PROMISE they import no ground truth --
+# property_discovery.py: "nothing in this module imports from sim/ or
+# simulation/, or from saas/property_model.py". Nothing enforced that promise
+# until now, so a future edit adding `from saas.property_model import Property`
+# to the very heart of the discovery mechanism would have shipped green.
+
+def test_property_discovery_imports_no_ground_truth():
+    from company.crm import property_discovery
+    assert _ground_truth_import_violations(_import_lines(property_discovery)) == []
+
+
+def test_home_registry_imports_no_ground_truth():
+    from company.crm import home_registry
+    assert _ground_truth_import_violations(_import_lines(home_registry)) == []
+
+
+def test_belief_property_model_imports_no_ground_truth():
+    # The company's BELIEF-side property model must never pull the saas
+    # ground-truth property record it is deliberately kept separate from.
+    from company.crm import property_model
+    assert _ground_truth_import_violations(_import_lines(property_model)) == []

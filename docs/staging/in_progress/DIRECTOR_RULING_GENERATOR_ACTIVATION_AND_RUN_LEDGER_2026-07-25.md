@@ -1,4 +1,14 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCKED-ON (2026-07-25, marker flipped self-drawable->blocked to self-terminate the per-tick
+     re-grant churn per background/staging_disposition doctrine — a walled next-step is marked blocked
+     and stays parked): the ONLY remaining core is §1 ACTIVATION, and it is walled. (1) N/λ R13
+     reconciliation — the ruling's N=200 vs the director-SIGNED λ=1.0 "PROFILE B trickle" constant —
+     is ESCALATED to the director; do NOT self-flip λ (R13 curriculum wall). (2) The flag-flip
+     (SE_DRAW_POPULATION=1) + downstream re-baseline is the director-reserved RELEASE RUNG, gated on
+     the coverage report. Additive infra (§3 manifest/ledger, §4 three-scores+R15, §1.3 coverage
+     report+gate, §5 non-domestic audit, §6 fields-only) is BUILT (docs/design/RUN_LEDGER_AND_SCORES_
+     BUILD_2026-07-25.md; 21 tests, epistemic PASS). UNBLOCK: director signs the N-vs-λ call ->
+     flip this marker back to self-drawable and draw the (b)harden/(c)parameterise-N/(d)wire sequence. -->
 <!-- PARKED 2026-07-25: AUTHORITATIVE reworded twin ("confirmed this morning") of
      DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md — SAME ruling, same six
      sections/substance. Additive infra BUILT for both (see docs/design/RUN_LEDGER_AND_SCORES_BUILD_2026-07-25.md).
