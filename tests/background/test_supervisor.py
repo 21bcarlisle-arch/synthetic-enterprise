@@ -12,6 +12,7 @@ failure modes, per the director's directive to test against each one:
 """
 import json
 import time
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -104,6 +105,7 @@ def _isolate(tmp_path, monkeypatch):
     # draw-rung state path must be isolated here or it reds all "map empty -> rest/mint" find_work
     # tests and wedges the next supervisor commit.
     monkeypatch.setattr(supervisor, "PLANNER_REST_PROOF_PATH", tmp_path / ".planner_rest_with_proof.json")
+    monkeypatch.setattr(supervisor, "HARDEN_COOLDOWN_PATH", tmp_path / ".harden_cooldown.json")
     # Isolate the SELF_GOVERNANCE fronts-enforcement flag the same way as every
     # other live-state path above -- point it at a nonexistent tmp file so the
     # BUILD-draw fronts/gates filter is OFF for these UNIT tests (fronts
@@ -2048,6 +2050,120 @@ def test_rule0_harden_draw_picks_an_at_target_atom(tmp_path):
 def test_rule0_harden_draw_none_on_empty_map_a_true_wall(tmp_path):
     _write_map(tmp_path, "[]")
     assert supervisor._rule0_harden_draw() is None
+
+
+# ── AT-TARGET HARDEN COOLDOWN / ROTATION MEMORY (2026-07-25, H1 HARDEN red-team) ──────────
+# The 2026-07-18 red-team registered (not-then-fixed) that the at-target HARDEN draw re-offered
+# the SAME atoms within a few turns -> an agent churned re-verifying atoms it verified minutes ago.
+# The fix is a COOLDOWN (HARDEN is periodic, not saturating): skip an atom hardened within the
+# window AND unchanged since, so the draw ROTATES -- but re-offer immediately iff it CHANGED.
+_TWO_AT_TARGET_MAP = (
+    "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n"
+    "  dial_inherited: 1\n  file_scope: [company/x.py]\n"
+    "- id: B_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n"
+    "  dial_inherited: 1\n  file_scope: [company/y.py]\n"
+)
+
+
+def _atom_from_map(tmp_path, atom_id):
+    import yaml
+    atoms = yaml.safe_load((tmp_path / "maturity_map.yaml").read_text())
+    return next(a for a in atoms if a["id"] == atom_id)
+
+
+def _stamp_cooldown(atom_id, at_iso, sha):
+    supervisor.HARDEN_COOLDOWN_PATH.write_text(
+        json.dumps({atom_id: {"at": at_iso, "sha": sha}}))
+
+
+def test_harden_cooldown_rotates_past_recently_hardened_unchanged_atom(tmp_path):
+    """ROTATION: a just-hardened, unchanged atom is skipped so the draw hands out the OTHER
+    at-target atom instead of re-churning the one verified minutes ago."""
+    _write_map(tmp_path, _TWO_AT_TARGET_MAP)
+    stamped = supervisor.record_harden_pass("A_done")     # dogfooded stamp (real sha)
+    assert stamped is not None
+    for _ in range(25):                                   # weighted-random, but A is filtered out
+        assert supervisor._rule0_harden_draw()["id"] == "B_done"
+
+
+def test_harden_cooldown_reoffers_after_window_expires(tmp_path):
+    """EXPIRY re-offers: A stamped > cooldown ago, B stamped fresh -> only A is drawable again.
+    This assertion FAILS under a 'never-expires' mutation (the constant-marker defect)."""
+    _write_map(tmp_path, _TWO_AT_TARGET_MAP)
+    now = datetime.now(timezone.utc)
+    old = (now - timedelta(hours=supervisor.HARDEN_COOLDOWN_HOURS + 1)).isoformat()
+    supervisor.HARDEN_COOLDOWN_PATH.write_text(json.dumps({
+        "A_done": {"at": old, "sha": supervisor._atom_content_sha(_atom_from_map(tmp_path, "A_done"))},
+        "B_done": {"at": now.isoformat(), "sha": supervisor._atom_content_sha(_atom_from_map(tmp_path, "B_done"))},
+    }))
+    for _ in range(25):
+        assert supervisor._rule0_harden_draw()["id"] == "A_done"
+
+
+def test_harden_cooldown_reoffers_immediately_when_atom_changed(tmp_path):
+    """CHANGED re-offers within the window: A stamped fresh but with a STALE sha (its content
+    changed since -> may have regressed), B stamped fresh + correct sha -> only A is drawable.
+    This is the 'a CHANGED alert re-pages at once' half; it FAILS if sha independence is dropped."""
+    _write_map(tmp_path, _TWO_AT_TARGET_MAP)
+    now = datetime.now(timezone.utc).isoformat()
+    supervisor.HARDEN_COOLDOWN_PATH.write_text(json.dumps({
+        "A_done": {"at": now, "sha": "deadbeefdeadbeef"},   # wrong sha -> content changed
+        "B_done": {"at": now, "sha": supervisor._atom_content_sha(_atom_from_map(tmp_path, "B_done"))},
+    }))
+    for _ in range(25):
+        assert supervisor._rule0_harden_draw()["id"] == "A_done"
+
+
+def test_harden_cooldown_soft_fallback_never_empties_the_draw(tmp_path):
+    """RULE 0 (soft dial): if EVERY at-target atom is in fresh cooldown, the draw must still
+    return one -- a genuinely-empty HARDEN draw would false-trip the LOOP_BROKEN transport alarm.
+    Single atom, freshly stamped + matching sha (so _harden_in_cooldown is True) -> still drawn."""
+    _write_map(tmp_path,
+        "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n"
+        "  dial_inherited: 1\n  file_scope: [company/x.py]\n")
+    supervisor.record_harden_pass("A_done")
+    assert supervisor._harden_in_cooldown(
+        _atom_from_map(tmp_path, "A_done"), supervisor._load_harden_cooldown()) is True
+    assert supervisor._rule0_harden_draw()["id"] == "A_done"   # soft fallback keeps it non-empty
+
+
+def test_harden_cooldown_R15_predicate_fails_on_expiry_and_change(tmp_path):
+    """R15 both-ways on the predicate directly: _harden_in_cooldown must RETURN FALSE (re-offer)
+    when the window has expired OR the content changed, and TRUE only when fresh + unchanged. The
+    killer mutation (return True always -- a constant that never invalidates) is caught by the two
+    FALSE assertions here; a fresh+unchanged TRUE assertion catches the opposite (never-suppress)."""
+    _write_map(tmp_path, _TWO_AT_TARGET_MAP)
+    atom = _atom_from_map(tmp_path, "A_done")
+    real_sha = supervisor._atom_content_sha(atom)
+    now = datetime.now(timezone.utc)
+    fresh = {"A_done": {"at": now.isoformat(), "sha": real_sha}}
+    expired = {"A_done": {"at": (now - timedelta(hours=99)).isoformat(), "sha": real_sha}}
+    changed = {"A_done": {"at": now.isoformat(), "sha": "0000000000000000"}}
+    assert supervisor._harden_in_cooldown(atom, fresh) is True       # fresh + unchanged -> suppress
+    assert supervisor._harden_in_cooldown(atom, expired) is False    # expired -> re-offer
+    assert supervisor._harden_in_cooldown(atom, changed) is False    # changed -> re-offer
+    assert supervisor._harden_in_cooldown(atom, {}) is False         # no record -> re-offer
+
+
+def test_harden_cooldown_fail_open_on_malformed_marker(tmp_path):
+    """FAIL-TOWARD-WORK: a malformed marker file must never silence the draw -> _load returns {}
+    and the draw behaves exactly as before the cooldown existed."""
+    _write_map(tmp_path, _TWO_AT_TARGET_MAP)
+    supervisor.HARDEN_COOLDOWN_PATH.write_text("{ not json")
+    assert supervisor._load_harden_cooldown() == {}
+    assert supervisor._rule0_harden_draw() is not None    # draw unaffected by the broken marker
+
+
+def test_record_harden_pass_merges_and_ignores_phantom(tmp_path):
+    """record_harden_pass MERGES (never clobbers a sibling's record) and never fabricates a stamp
+    for an atom id absent from the map."""
+    _write_map(tmp_path, _TWO_AT_TARGET_MAP)
+    supervisor.record_harden_pass("A_done")
+    supervisor.record_harden_pass("B_done")
+    marker = supervisor._load_harden_cooldown()
+    assert set(marker) == {"A_done", "B_done"}            # both present -> merge, not overwrite
+    assert supervisor.record_harden_pass("GHOST_not_in_map") is None
+    assert "GHOST_not_in_map" not in supervisor._load_harden_cooldown()
 
 
 def test_self_refill_yields_to_harden_when_all_atoms_at_target(tmp_path):

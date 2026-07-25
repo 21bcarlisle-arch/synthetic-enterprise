@@ -114,7 +114,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -1404,6 +1404,121 @@ def _harden_criticality_weight(a: dict) -> int:
     return 3 if str(a.get("lane", "")).startswith("H") else 1
 
 
+# =============================================================================
+# AT-TARGET HARDEN COOLDOWN / ROTATION MEMORY (2026-07-25, H1 HARDEN red-team)
+# -----------------------------------------------------------------------------
+# The 2026-07-18 red-team of H1_supervisor_turn_granting FOUND (and registered,
+# not-then-fixed, as a SELF_INTERRUPT queue item) that the Rule-0 at-target
+# HARDEN draw had NO cooldown / rotation memory: it re-offered the SAME at-target
+# atoms within a few turns, so an agent CHURNED re-verifying atoms it had verified
+# minutes ago -- the at-target analogue of the idle-DISCOVER treadmill H23 fixed.
+# Unlike FRAME (which genuinely SATURATES -> a flag), HARDEN is legitimately
+# PERIODIC (a shipped atom CAN regress), so the correct damper is a COOLDOWN, not
+# a saturation flag: skip an atom HARDEN-verified within the last
+# HARDEN_COOLDOWN_HOURS so the draw ROTATES through the at-target pool -- BUT
+# re-offer it immediately iff its content CHANGED since that pass (a commit touched
+# its file_scope -> it may have regressed -> re-verify now). The real-world twin is
+# exactly on point: an ops on-call auto-page rotation does not re-page the same
+# still-open alert every two minutes; it rotates and backs off, but a CHANGED alert
+# re-pages at once.
+#
+# SOFT DIAL (Rule 0): if the cooldown would EMPTY the pool (every at-target atom
+# recently hardened + unchanged), fall back to the full pool -- a genuinely-empty
+# HARDEN draw would false-trip the LOOP_BROKEN transport alarm and violate 'the
+# to-do list is never empty'. INDEPENDENCE (R15): keyed on each atom's ACTUAL
+# serialised content (`sha`), NEVER a constant -- a stale/constant marker that
+# never invalidates is caught by the mutation test (a changed atom must re-offer
+# within cooldown; an expired stamp must re-offer). FAIL-TOWARD-WORK: any missing/
+# malformed record -> the atom is NOT in cooldown (re-offer), so a broken marker
+# can never silence a real HARDEN draw.
+# =============================================================================
+HARDEN_COOLDOWN_PATH = PROJECT_DIR / "docs" / "observability" / ".harden_cooldown.json"
+HARDEN_COOLDOWN_HOURS = 6
+
+
+def _atom_content_sha(a: dict) -> str:
+    """Stable SHA of an atom's serialised content -- the 'has it CHANGED since its last
+    HARDEN pass' signal (R15 independence: real content, never a constant). A HARDEN pass
+    appends a dated note to the atom, so record_harden_pass stamps the POST-pass sha; a
+    LATER change (a fix/regression note committed to file_scope) flips the sha and re-offers.
+    Returns '' on any serialisation error (never matches a stored sha -> re-offer)."""
+    try:
+        return hashlib.sha256(
+            json.dumps(a, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()[:16]
+    except (TypeError, ValueError):
+        return ""
+
+
+def _load_harden_cooldown(path: Path | None = None) -> dict:
+    """Load the {atom_id: {'at': iso, 'sha': content_sha}} rotation-memory marker. FAIL-OPEN
+    to {} (missing/malformed -> no atom in cooldown -> the draw behaves exactly as it did
+    before the cooldown existed): a broken marker must never silence a real HARDEN draw."""
+    p = path or HARDEN_COOLDOWN_PATH
+    try:
+        d = json.loads(Path(p).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return d if isinstance(d, dict) else {}
+
+
+def _harden_in_cooldown(a: dict, cooldown: dict, now: datetime | None = None) -> bool:
+    """True iff atom `a` was HARDEN-verified recently AND is UNCHANGED since -- so the
+    rotation draw should skip it this pass. False (RE-OFFER) when: no record; a malformed
+    record; the atom's content CHANGED since the record (sha mismatch -> may have regressed,
+    re-verify now); or the cooldown window has elapsed. Every ambiguity resolves to False
+    (fail toward offering work -- Rule 0 / 'the to-do list is never empty')."""
+    if not isinstance(cooldown, dict):
+        return False
+    rec = cooldown.get(a.get("id"))
+    if not isinstance(rec, dict):
+        return False
+    if rec.get("sha") != _atom_content_sha(a):
+        return False                         # changed since last HARDEN -> re-offer now
+    try:
+        last = datetime.fromisoformat(rec["at"])
+    except (KeyError, TypeError, ValueError):
+        return False                         # unparseable stamp -> re-offer (fail toward work)
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+    now = now or datetime.now(timezone.utc)
+    try:
+        return (now - last) < timedelta(hours=HARDEN_COOLDOWN_HOURS)
+    except (TypeError, ValueError):
+        return False
+
+
+def record_harden_pass(atom_id: str, path: Path | None = None,
+                       map_path: Path | None = None, now: datetime | None = None) -> Path | None:
+    """Stamp that a HARDEN pass on `atom_id` just COMPLETED: records {at: now, sha: the atom's
+    CURRENT content sha} so `_harden_in_cooldown` rotates the draw PAST it until the cooldown
+    elapses OR its content changes again. Called by the agent that finishes a Rule-0 HARDEN pass
+    (dogfooded: this very pass stamps H1). MERGES into the existing marker (never clobbers other
+    atoms' records). Returns None (no-op, no stamp) if yaml is unavailable or the atom id is not
+    in the map -- never fabricates a stamp for a phantom atom."""
+    p = path or HARDEN_COOLDOWN_PATH
+    mp = map_path or MATURITY_MAP_PATH
+    try:
+        import yaml
+    except ImportError:
+        return None
+    try:
+        atoms = yaml.safe_load(Path(mp).read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return None
+    if not isinstance(atoms, list):
+        return None
+    atom = next((a for a in atoms if isinstance(a, dict) and a.get("id") == atom_id), None)
+    if atom is None:
+        return None
+    cooldown = _load_harden_cooldown(p)
+    now = now or datetime.now(timezone.utc)
+    cooldown[atom_id] = {"at": now.isoformat(), "sha": _atom_content_sha(atom)}
+    Path(p).parent.mkdir(parents=True, exist_ok=True)
+    Path(p).write_text(json.dumps(cooldown, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return Path(p)
+
+
 def _rule0_harden_draw(rng: Any = None) -> dict | None:
     """RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): the default state of
     the company is WORKING; an empty feasible set is a DEFECT IN THE DIALS, not a
@@ -1437,6 +1552,14 @@ def _rule0_harden_draw(rng: Any = None) -> dict | None:
     # qualifies, fall back to the full at-target pool so the draw stays NON-EMPTY -- a
     # genuinely-empty draw here would false-trip the LOOP_BROKEN transport alarm.
     pool = [a for a in at_target if _has_harden_surface(a)] or at_target
+    # ROTATION MEMORY (2026-07-25, H1 HARDEN red-team fix): skip atoms HARDEN-verified
+    # within the cooldown window AND unchanged since, so the draw ROTATES the at-target
+    # pool instead of re-handing the same atoms within a few turns (the churn the
+    # 2026-07-18 red-team registered). SOFT (Rule 0): if that empties the pool (every
+    # candidate recently hardened + unchanged) fall back so the draw stays non-empty.
+    cooldown = _load_harden_cooldown()
+    rotated = [a for a in pool if not _harden_in_cooldown(a, cooldown)]
+    pool = rotated or pool
     # STRUCTURAL criticality bias (harness/control lanes preferred) folded into the
     # existing dial-weighted-random pick; both are diagnostics, never targets (R12).
     weights = [max(1, a.get("dial_inherited", 1)) * _harden_criticality_weight(a) for a in pool]
