@@ -801,7 +801,21 @@ def _atom_has_frame_doc(atom: dict) -> bool:
         s = str(e)
         if not s.startswith("docs/design/"):
             continue
-        if "FRAME" not in Path(s).name.upper():
+        # `FRAME` must appear as a delimited TOKEN in the filename (the
+        # `<id>_FRAME.md` / `<SLUG>_FRAME.md` convention), NOT as a substring
+        # embedded in a larger word. A bare `"FRAME" in name` substring test
+        # (2026-07-25 HARDEN red-team finding) mis-reads `ONE_FRAMEWORK.md`,
+        # `TIMEFRAME.md`, `..._REFRAMED_...md` as a per-atom FRAME doc and thus
+        # falsely marks the atom FRAME-saturated -- STARVING a genuinely-unframed
+        # atom from the idle DISCOVER/FRAME draw. That is the fail-toward-starve
+        # wrong-side failure: the exact idle-hole this atom exists to prevent,
+        # re-introduced via a substring collision (ONE_FRAMEWORK.md is a real,
+        # heavily-cited repo file -- latent today, one `evidence:` edit from live).
+        # Split on non-alphanumerics and require the whole token `FRAME`; every
+        # legitimate `_FRAME`/`_FRAME_`-convention doc still matches (verified
+        # against the live map), embedded-word collisions no longer do. R15
+        # mutation-tested both directions (test_frame_saturation_draw_marker.py).
+        if "FRAME" not in re.split(r"[^A-Z0-9]+", Path(s).name.upper()):
             continue
         if (PROJECT_DIR / s).exists():
             return True

@@ -319,6 +319,104 @@ def test_regression_noncanonical_prefix_would_have_re_handed(_isolate_map_and_ro
         picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
         assert picked is not None and picked["id"] == "W1_10_ev_heatpump_geography"
 
+
+# ── FRAME-token vs embedded-word FALSE-POSITIVE fix (2026-07-25 HARDEN red-team):
+#    the has-FRAME-doc check keyed on a bare `"FRAME" in name.upper()` SUBSTRING,
+#    so `ONE_FRAMEWORK.md` / `TIMEFRAME.md` / `..._REFRAMED_...md` (a real repo
+#    file, ONE_FRAMEWORK.md, is heavily cited) would read as a per-atom FRAME doc
+#    and FALSELY mark the atom saturated -- starving a genuinely-unframed atom
+#    from the idle DISCOVER/FRAME draw (fail-toward-starve = the idle-hole this
+#    atom exists to prevent). Fix: match FRAME as a delimited token, not a
+#    substring. R15 both directions. ─────────────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "fname",
+    ["ONE_FRAMEWORK.md", "PRICING_FRAMEWORK.md", "TIMEFRAME.md", "PLAN_REFRAMED_v2.md"],
+)
+def test_embedded_frame_substring_is_not_a_frame_doc(_isolate_map_and_root, fname):
+    # FIXES the false-positive: a filename where FRAME is embedded in a larger
+    # word (FRAMEWORK/TIMEFRAME/REFRAMED) is NOT a per-atom FRAME doc -> the atom
+    # keeps its FRAME work and must stay OFFERED, never starved.
+    root = _isolate_map_and_root
+    rel = f"docs/design/{fname}"
+    (root / rel).write_text("# not a FRAME-stage doc\n")
+    atom = _idle_atom("SOME_ATOM", evidence=[rel])
+    assert supervisor._atom_has_frame_doc(atom) is False, fname
+    assert supervisor._is_frame_saturated(atom) is False, fname
+
+
+def test_delimited_frame_token_still_reads_as_frame_doc(_isolate_map_and_root):
+    # The tightening must NOT regress the real convention: `_FRAME.md` and the
+    # `_FRAME_DISCOVER.md` mid-name token both remain delimited FRAME tokens.
+    root = _isolate_map_and_root
+    for fn, aid in [
+        ("ARCH1_FRAME.md", "ARCH1_internal_seams"),
+        ("EPOCH2_A_SCOPE_OF_NEED_SCORING_FRAME_DISCOVER.md", "EPOCH2_A_scope"),
+    ]:
+        rel = f"docs/design/{fn}"
+        (root / rel).write_text("# FRAME\n")
+        atom = _idle_atom(aid, evidence=[rel])
+        assert supervisor._atom_has_frame_doc(atom) is True, fn
+        assert supervisor._is_frame_saturated(atom) is True, fn
+
+
+@pytest.mark.parametrize("draw", ["single", "concurrent"])
+def test_fires_offers_atom_evidenced_only_by_framework_doc(_isolate_map_and_root, draw):
+    # Integration, both entry points: an atom whose ONLY docs/design evidence is
+    # a FRAMEWORK-named doc (embedded FRAME) has real FRAME work left, so it is
+    # the one HANDED, never starved -- while a genuinely saturated (_FRAME.md)
+    # atom beside it is skipped.
+    root = _isolate_map_and_root
+    fw = "docs/design/ONE_FRAMEWORK.md"
+    (root / fw).write_text("# framework, not a per-atom FRAME doc\n")
+    sat = _write_frame_doc(root, "REALLY_SAT")
+    atoms = [
+        _idle_atom("HAS_FRAME_WORK", evidence=[fw]),   # un-saturated (embedded word)
+        _idle_atom("REALLY_SAT", evidence=[sat]),      # saturated (_FRAME.md)
+    ]
+    _write_map(root, atoms)
+    rng = random.Random(2026)
+    for _ in range(50):
+        if draw == "single":
+            picked = supervisor._idle_discover_frame_draw(rng=rng)
+            ids = {picked["id"]} if picked else set()
+        else:
+            picked = supervisor._idle_discover_frame_draw_concurrent(rng=rng, width=3)
+            ids = {a["id"] for a in picked}
+        assert ids == {"HAS_FRAME_WORK"}, f"framework-doc atom starved / sat re-handed: {ids}"
+
+
+def test_regression_substring_rule_would_have_starved_framework_atom(_isolate_map_and_root):
+    # Guard-mutation control for THIS fix (R15): restore the pre-fix bare
+    # substring rule via monkeypatch and assert the FRAMEWORK-only atom is then
+    # (wrongly) marked saturated and STARVED -> the draw returns None. Proves
+    # this test fails if the token-boundary tightening is reverted.
+    import unittest.mock as mock
+    root = _isolate_map_and_root
+    fw = "docs/design/ONE_FRAMEWORK.md"
+    (root / fw).write_text("# framework\n")
+    _write_map(root, [_idle_atom("HAS_FRAME_WORK", evidence=[fw])])
+    # Guard live (token rule): un-saturated -> the atom IS offered.
+    picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
+    assert picked is not None and picked["id"] == "HAS_FRAME_WORK"
+
+    def _substring_pre_fix(atom):
+        from pathlib import Path as _P
+        for e in atom.get("evidence") or []:
+            s = str(e)
+            if not s.startswith("docs/design/"):
+                continue
+            if "FRAME" not in _P(s).name.upper():   # the reverted SUBSTRING rule
+                continue
+            if (supervisor.PROJECT_DIR / s).exists():
+                return True
+        return False
+
+    with mock.patch.object(supervisor, "_atom_has_frame_doc", side_effect=_substring_pre_fix):
+        assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
