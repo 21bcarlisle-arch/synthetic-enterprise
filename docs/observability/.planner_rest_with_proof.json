@@ -1,5 +1,5 @@
 {
-  "date": "2026-07-24",
+  "date": "2026-07-25",
   "axes_sha": "6e8576269993868af95b46ca2391270e5ed401e22fabbfaaf7200d59d5a1deea",
   "minted_blocked_slugs": [
     "PLANNER_MINTED_generator_draw_wiring_2026-07-24.md",
@@ -7,6 +7,6 @@
     "PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md",
     "PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md"
   ],
-  "proof_summary": "RUNG-7 premise FALSE (2026-07-25): all 4 ratified-goal next-steps already minted-and-blocked in in_progress/ or walled (director R13/roadmap-rotation/curriculum). No un-minted non-walled step exists. Unblocks on: day roll, new DIRECTOR_AXES ruling, or a blocked mint flipping self-drawable. See PLANNER_MINTED_planner_rest_with_proof_saturation_2026-07-25.md.",
-  "written_at": "2026-07-24T23:49:04.468368+00:00"
+  "proof_summary": "RUNG-7 premise FALSE (2026-07-25 day-roll re-plan): re-verified nothing new landed since the 2026-07-24 proof. DIRECTOR_AXES content hash UNCHANGED (6e857626), no staged doc/ruling/commit after 2026-07-24T23:49Z introduces a ratified next-step (only a routine auto-process run + a HARDEN rotation + the rest-proof BUILD). All 4 in_progress/ mints stay blocked, none flipped self-drawable, none consumed; no open CAMPAIGN_REGISTER item (lone status:open is a comment). Both open fidelity-ledger rows map onto the two blocked mints: ssp_residual scarcity calibration -> ssp_negative_lift (R13 baseline recalibration, director-priority-deferred below spike-tail); live_payment_detection_gap A1_G1/A1_G2 -> payment_truth_detection (non-DD failures emit no WallResponse by construction = irreducible, R10 simplification). generator_draw_wiring = director-reserved SE_DRAW_POPULATION activation (curriculum). value_chain_observation_window_cap = board render shipped, remainder director/twin-gated + CDN auto-publish. No un-minted non-walled ratified-goal next-step exists. Unblocks on: next day-roll, a new DIRECTOR_AXES ruling (hash change), or a blocked mint flipping self-drawable.",
+  "written_at": "2026-07-25T00:05:35.831215+00:00"
 }
