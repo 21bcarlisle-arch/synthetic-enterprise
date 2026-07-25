@@ -21,8 +21,12 @@ Design stance (R15 -- this control must be able to FAIL):
   * NOT A TAUTOLOGY: the boundary is defined by DOMAIN_PATHS (the spec), and the
     check compares the *importing* file's domain against the *imported* module's
     domain -- two independently-derived facts.
+  * BOTH STATIC AND DYNAMIC crossings are covered: static ``import``/``from``
+    plus dynamic ``importlib.import_module("...")`` / ``__import__("...")`` with
+    a literal target (a domain must not evade the seam by switching one static
+    cross-domain import to its dynamic form -- KL-2b class, R15 fail-open fix).
 The mutation test in tests/tools/test_internal_seam_verifier.py plants a fresh
-cross-domain import and asserts this verifier flags it.
+cross-domain import (static and dynamic forms) and asserts this verifier flags it.
 """
 
 from __future__ import annotations
@@ -96,6 +100,42 @@ def _resolve_relative(
     return ".".join(anchor) if anchor else None
 
 
+def _dynamic_import_target(node: ast.Call) -> str | None:
+    """Return the literal module name a dynamic-import CALL targets, or None.
+
+    Detects the two standard dynamic-import forms with a LITERAL string target:
+      * ``importlib.import_module("company.billing.payments")`` (attribute form)
+        and the bare ``import_module("...")`` name form (``from importlib import
+        import_module``);
+      * the builtin ``__import__("company.billing.invoice")``.
+
+    WHY this exists (R15 fail-open fix; sibling of the same fix already shipped
+    in ``tools/epistemic_verifier`` for the SIM/company wall, KL-2b): the AST
+    walk only visits ``ast.Import``/``ast.ImportFrom`` nodes, so a domain could
+    reach straight into another domain's internals via a dynamic import and the
+    seam could not fire at all -- a domain evading the ENTIRE seam by swapping
+    one static cross-domain import for its dynamic form, which is worse than no
+    check. Only a literal string first argument is statically resolvable; a
+    variable/f-string/concatenation target is a documented heuristic limit (the
+    same scope the epistemic verifier declares), not a silent false-clear."""
+    func = node.func
+    is_import_module = (
+        isinstance(func, ast.Attribute)
+        and func.attr == "import_module"
+        and isinstance(func.value, ast.Name)
+        and func.value.id == "importlib"
+    ) or (isinstance(func, ast.Name) and func.id == "import_module")
+    is_dunder_import = isinstance(func, ast.Name) and func.id == "__import__"
+    if not (is_import_module or is_dunder_import):
+        return None
+    if not node.args:
+        return None
+    first = node.args[0]
+    if isinstance(first, ast.Constant) and isinstance(first.value, str):
+        return first.value
+    return None
+
+
 def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
     """Yield (candidate_modules, lineno) per import STATEMENT.
 
@@ -111,6 +151,11 @@ def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
     ``pkg_parts`` (the importing file's package) rather than skipped -- a
     cross-package relative import crosses a domain boundary just like an
     absolute one (R15 fail-open fix).
+
+    Dynamic imports (``importlib.import_module("...")``, ``__import__("...")``)
+    with a literal string target are also emitted -- a dynamic cross-domain
+    import crosses a boundary just like a static one (R15 fail-open fix, sibling
+    of the epistemic verifier's KL-2b fix; see ``_dynamic_import_target``).
     """
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -130,6 +175,10 @@ def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
                 if alias.name and alias.name != "*":
                     candidates.append(f"{base}.{alias.name}")
             yield tuple(candidates), node.lineno
+        elif isinstance(node, ast.Call):
+            target = _dynamic_import_target(node)
+            if target:
+                yield (target,), node.lineno
 
 
 def _module_domain(module: str):

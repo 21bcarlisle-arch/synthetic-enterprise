@@ -97,6 +97,111 @@ def test_mutation_package_form_cross_domain_import_is_flagged(
     assert v.imported_module == expected_module
 
 
+# --------------------------------------------------------------------------
+# R15 MUTATION: a DYNAMIC cross-domain import (importlib.import_module / the
+# builtin __import__) with a literal target crosses a domain boundary just like
+# a static one, so it must be flagged -- not slipped. The AST walk only visits
+# Import/ImportFrom nodes; without a dynamic-call check a domain could evade the
+# ENTIRE seam by switching one static cross-domain import to its dynamic form
+# (worse than no check). This is the sibling of the epistemic verifier's KL-2b
+# fix, applied to the internal seam.
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "import_line, expected_module, expected_domain",
+    [
+        # importlib.import_module attribute form.
+        (
+            "import importlib\n"
+            "m = importlib.import_module('company.billing.payments')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # bare import_module name form (from importlib import import_module).
+        (
+            "from importlib import import_module\n"
+            "m = import_module('company.billing.payments')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # builtin __import__ form.
+        (
+            "m = __import__('company.billing.invoice')",
+            "company.billing.invoice",
+            "billing",
+        ),
+        # resolves to the SPECIFIC domain when the literal target is a submodule
+        # living in a different domain (collections inside billing/).
+        (
+            "import importlib\n"
+            "m = importlib.import_module('company.billing.collections')",
+            "company.billing.collections",
+            "collections",
+        ),
+    ],
+)
+def test_mutation_dynamic_cross_domain_import_is_flagged(
+    import_line, expected_module, expected_domain
+):
+    """A pricing file reaching into billing/collections via a DYNAMIC import
+    (importlib.import_module / __import__) with a literal target MUST be flagged,
+    identically to its static form. Returned [] before the fail-open fix."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_dyn_probe.py"
+    planted.write_text(import_line + "  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == expected_domain
+    assert v.imported_module == expected_module
+
+
+def test_dynamic_import_non_literal_target_is_a_declared_limit():
+    """A NON-literal dynamic-import target (a variable) is not statically
+    resolvable -- it is a documented heuristic limit (KL-2b scope), not a silent
+    false-clear. Guard the boundary of the fix so it is not mistaken for full
+    dynamic coverage: a same-domain literal stays silent, a variable target is
+    unresolved (no crash, no false positive)."""
+    # Variable target: unresolved, must not crash and must not false-fire.
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_dynvar_probe.py"
+    planted.write_text(
+        "import importlib\n"
+        "name = 'company.billing.payments'\n"
+        "m = importlib.import_module(name)  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert violations == [], [str(v) for v in violations]
+
+
+def test_dynamic_import_target_helper_unit():
+    """Unit guard for the dynamic-import target extractor."""
+    import ast as _ast
+
+    def target(src):
+        call = _ast.parse(src, mode="eval").body
+        return verifier._dynamic_import_target(call)
+
+    assert target("importlib.import_module('company.billing.payments')") == (
+        "company.billing.payments"
+    )
+    assert target("import_module('company.pricing.price_cap')") == (
+        "company.pricing.price_cap"
+    )
+    assert target("__import__('company.billing.invoice')") == (
+        "company.billing.invoice"
+    )
+    # Non-import calls and non-literal targets return None.
+    assert target("some_other_func('company.billing.payments')") is None
+    assert target("importlib.import_module(name)") is None
+    assert target("__import__(pkg + '.x')") is None
+
+
 def test_classify_module_resolves_package_form():
     """Unit-level guard for the resolver that closes the gap: a bare guarded
     package classifies to its domain (file-only classify_path returns None)."""
