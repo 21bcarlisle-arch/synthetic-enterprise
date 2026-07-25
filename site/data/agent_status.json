@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-25T08:25:07.731914+00:00",
+  "last_updated": "2026-07-25T08:40:39.906460+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T08:25:07.731914+00:00",
-      "last_action": "Heartbeat \u2014 4 files tracked",
-      "last_action_ts": "2026-07-25T08:25:07.731914+00:00",
+      "last_heartbeat": "2026-07-25T08:40:39.906460+00:00",
+      "last_action": "Heartbeat \u2014 2 files tracked",
+      "last_action_ts": "2026-07-25T08:40:39.906460+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T08:20:20.962015+00:00",
-      "last_action": "Waiting for next cycle (4h 45m remaining)",
-      "last_action_ts": "2026-07-25T08:20:20.962015+00:00",
+      "last_heartbeat": "2026-07-25T08:40:20.964820+00:00",
+      "last_action": "Waiting for next cycle (4h 25m remaining)",
+      "last_action_ts": "2026-07-25T08:40:20.964820+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T08:18:39.001090+00:00",
-      "last_action": "Run complete in 475s \u2014 3783 KB (run_output_b9aef853f_20260725T081043Z.json)",
-      "last_action_ts": "2026-07-25T08:18:39.001090+00:00",
+      "last_heartbeat": "2026-07-25T08:34:47.645158+00:00",
+      "last_action": "Run complete in 483s \u2014 3783 KB (run_output_3fdc2b838_20260725T082644Z.json)",
+      "last_action_ts": "2026-07-25T08:34:47.645158+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T08:10:36.513781+00:00",
+      "last_heartbeat": "2026-07-25T08:40:36.598805+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-25T08:10:36.513781+00:00",
+      "last_action_ts": "2026-07-25T08:40:36.598805+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -95,9 +95,9 @@
     {
       "name": "discovery-agent",
       "status": "idle",
-      "last_heartbeat": "2026-07-24T22:31:59.988709+00:00",
-      "last_action": "Verified GB dispatchable-fleet capacity / renewables era boundaries 2016-2025 -- H confidence, DUKES 5.6/5.7 direct fetch + Ratcliffe-on-Soar closure cross-check; docs/market_research/ssp_dispatchable_fleet_renewables_era_boundaries_2026-07-24.md",
-      "last_action_ts": "2026-07-24T22:31:59.988709+00:00",
+      "last_heartbeat": "2026-07-25T08:36:43.171427+00:00",
+      "last_action": "Multi-plant SRMC stack ground truth (W1_6 remaining gap): DUKES 5.10/5.14 heat rates+EF (H, confirms live EF_GAS=0.184), DESNZ gen-cost O&M bookends, CPS carbon frozen ~\u00a318/tCO2 2016-2028 (H); ETS market-price series + OCGT fleet-avg + %-hours-gas-marginal = NAMED GAPS (R10). docs/market_research/ssp_multiplant_srmc_stack_heat_rates_2026-07-25.md",
+      "last_action_ts": "2026-07-25T08:36:43.171427+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T08:24:18.432203+00:00",
+      "last_heartbeat": "2026-07-25T08:40:36.917117+00:00",
       "last_action": "Cycle complete -- current stuck-key unchanged for ~369min",
       "last_action_ts": "2026-07-25T06:00:31.799253+00:00",
       "anomaly": null,
