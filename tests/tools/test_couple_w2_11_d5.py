@@ -91,20 +91,28 @@ def test_detection_and_belief_gaps_non_trivial():
     stats = result["stats"]
     assert stats["n_true_failures"] > 0
     assert stats["n_flagged_failures"] > 0
-    assert stats["n_flagged_failures"] < stats["n_true_failures"]
+    # Detection is now TWO paths (DD-failure events + expected-collection
+    # reconciliation, ruling 2026-07-25 §2), so flagged can EXCEED true (the
+    # reconciliation path also picks up mis-allocated/late-boundary invoices as
+    # false positives). The honest invariant is the RESIDUAL gap: it must stay
+    # strictly positive (R12 -- latency/mis-allocation never reach zero).
+    assert 0.0 < det.gap < 1.0, det
 
 
-def test_non_dd_failures_occur_and_are_never_flagged():
-    """The blind spot's own witness: this population MUST contain genuine
-    non-DD failures (or the detection gap's non-triviality would be an
-    accident of population shape, not the mechanism), and NONE of them may
-    ever appear in the belief's flagged set -- the no-remittance blind spot
-    is structural (adapter emits nothing for a failed non-DD payment), so a
-    non-zero count here would mean a leak across the wall."""
+def test_dd_channel_never_leaks_non_dd_but_reconciliation_detects_it():
+    """Witness split (ruling 2026-07-25 §2, R15 both-ways). This population MUST
+    contain genuine non-DD failures (or neither path is exercised). The
+    DD-FAILURE-EVENT channel must NEVER carry one (the adapter emits nothing for
+    a missed push payment -> a non-zero count there is a wall leak). The NEW
+    expected-collection reconciliation path MUST detect some of them (own bills
+    vs own cash, no rail event) -- that is the carve-out working, not a leak."""
     result = pair.measure(_N, seed=_SEED)
     stats = result["stats"]
     assert stats["n_true_non_dd_failures"] > 0, "population shape didn't exercise the blind spot"
+    # LEAK witness: a non-DD case reaching belief via the DD-failure channel.
     assert stats["n_flagged_non_dd_failures"] == 0
+    # CARVE-OUT witness: reconciliation legitimately detects non-DD misses.
+    assert stats["n_flagged_non_dd_via_reconciliation"] > 0
 
 
 # ---------------------------------------------------------------------------
@@ -154,6 +162,100 @@ def test_detection_gap_zero_on_perfect_flagging():
     truth_set = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
     perfect = detection_gap(truth_set, truth_set)
     assert perfect.gap == 0.0
+
+
+# ---------------------------------------------------------------------------
+# R15 both-ways for the expected-collection reconciliation carve-out (director
+# ruling 2026-07-25 §2): the detector must FIRE (narrow the gap on the fix) and
+# must be able to STILL MISS (never fail open to "all detected").
+# ---------------------------------------------------------------------------
+
+def test_reconciliation_fires_and_narrows_the_detection_gap():
+    """MUST-FIRE half. With expected-collection reconciliation the company
+    detects missed push payments it was structurally blind to before, so the
+    detection gap is strictly SMALLER than a DD-failure-event-only belief scored
+    over the same population. Independent of the metric (recall over the same
+    truth set), so this is a real narrowing, not a re-labelled number."""
+    records, consumer, _ledger, as_of = pair.build_scenario(_N, seed=_SEED)
+    truth_set = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
+
+    by_customer: dict = {}
+    for r in records:
+        by_customer.setdefault(r.customer_id, []).append(r)
+
+    dd_only: set = set()
+    both: set = set()
+    for cid, periods in by_customer.items():
+        snap = consumer.snapshot(periods[0].account_id, as_of=as_of)
+        due_to_period = {r.due_date: r.period_index for r in periods}
+        ref_to_period = {r.invoice_ref: r.period_index for r in periods}
+        for f in snap.recent_dd_failures:
+            p = due_to_period.get(f.value_date)
+            if p is not None:
+                dd_only.add((cid, p)); both.add((cid, p))
+        for m in snap.detected_collection_misses:
+            p = ref_to_period.get(m.invoice_ref)
+            if p is not None:
+                both.add((cid, p))
+
+    gap_dd_only = detection_gap(truth_set, dd_only).gap
+    gap_both = detection_gap(truth_set, both).gap
+    assert gap_both < gap_dd_only, (gap_both, gap_dd_only)
+    # and it FIRED on genuine non-DD misses (not just DD ones it already saw)
+    assert both - dd_only, "reconciliation added no new detections"
+
+
+def test_reconciliation_cannot_fail_open():
+    """MUST-STILL-MISS half. Because the detection metric is pure RECALL,
+    flagging every ever-overdue invoice regardless of received cash would drive
+    the gap to zero by flagging everyone -- the fail-open failure mode the ruling
+    forbids. The honest detector reads the ledger's ACTUAL outstanding, so a
+    payment that arrived LATE (cash by as_of) is NOT flagged. This test builds a
+    paid-late invoice and proves: (a) the real detector does not flag it, while
+    (b) a cash-blind mutant (flag any overdue invoice) WRONGLY does -- the
+    mutation is caught by reading real cash."""
+    import datetime as dt
+    from company.billing.account_ledger import LedgerBook, LedgerEvent, LedgerEventType
+
+    lb = LedgerBook()
+    consumer = PaymentObservationConsumer(ledger_book=lb)
+    acc = "ACC-LATE"
+    issue = dt.date(2024, 1, 1)
+    # One invoice, billed then PAID LATE (cash arrives well after due, before as_of).
+    lb.post(LedgerEvent(event_id="b", account_id=acc, event_type=LedgerEventType.BILL_DEBIT,
+                        amount_gbp=120.0, valid_time=issue,
+                        transaction_time=dt.datetime(2024, 1, 1), invoice_ref="INV"))
+    lb.post(LedgerEvent(event_id="p", account_id=acc, event_type=LedgerEventType.PAYMENT_CREDIT,
+                        amount_gbp=120.0, valid_time=dt.date(2024, 2, 10),
+                        transaction_time=dt.datetime(2024, 2, 10), remittance=("INV",)))
+    as_of = dt.date(2024, 3, 1)
+
+    # (a) real detector: reads actual outstanding == 0 -> does NOT flag the paid invoice
+    real = consumer.expected_collection_misses(acc, as_of=as_of)
+    assert real == [], "fail-open: flagged an invoice whose cash was reconciled"
+
+    # (b) cash-blind mutant: flag every BILLED invoice past due+grace, IGNORING
+    # whether cash arrived (reads raw bill events, never the reconciled balance).
+    mutant_flags = [
+        e.invoice_ref for e in lb.ledger(acc).events()
+        if e.event_type == LedgerEventType.BILL_DEBIT
+        and (as_of - (e.valid_time + dt.timedelta(days=14))).days >= 5
+    ]
+    assert mutant_flags == ["INV"], "mutant did not exhibit the fail-open defect"
+    # The real detector diverges from the mutant on exactly this case -> guarded.
+    assert [m.invoice_ref for m in real] != mutant_flags
+
+
+def test_detection_latency_is_registered_not_zero():
+    """Ruling §1: the residual is a detection LATENCY, registered with its
+    measured distribution, never compressed to zero. Every reconciliation
+    detection carries a positive latency (days from due date to observation),
+    and the population summary exposes the distribution."""
+    result = pair.measure(_N, seed=_SEED)
+    lat = result["stats"]["detection_latency_days"]
+    assert lat["n"] > 0
+    assert lat["min_days"] is not None and lat["min_days"] >= 5  # >= grace window
+    assert lat["max_days"] >= lat["median_days"] >= lat["min_days"]
 
 
 def test_belief_gap_zero_when_distributions_match():
@@ -234,8 +336,15 @@ def test_partition_detection_gap_matches_a_manual_subset_score():
         for r in periods:
             if r.result == "failed" and _regime_of_period(r) == "G1":
                 manual_truth.add((cid, r.period_index))
+        ref_to_period = {r.invoice_ref: r.period_index for r in periods}
         for dd in snap.recent_dd_failures:
             p = due_to_period.get(dd.value_date)
+            if p is not None and _regime_of_period(rec_by_period[p]) == "G1":
+                manual_flagged.add((cid, p))
+        # Reconciliation path now also flags (ruling §2) -- must be in the manual
+        # reconstruction too, else the "matches" claim is stale.
+        for m in snap.detected_collection_misses:
+            p = ref_to_period.get(m.invoice_ref)
             if p is not None and _regime_of_period(rec_by_period[p]) == "G1":
                 manual_flagged.add((cid, p))
     expected = detection_gap(manual_truth, manual_flagged)
@@ -265,8 +374,10 @@ def test_detection_cell_measurements_map_to_grid_cells_with_counts():
     for cell_id, m in cells.items():
         assert cell_id.startswith("A1_")
         assert m.true_failures > 0
-        # believed (flagged) never exceeds true (the blind spot only loses).
-        assert m.believed_failures <= m.true_failures
+        # believed (flagged) can now EXCEED true: the reconciliation path (ruling
+        # §2) also picks up mis-allocated/late-boundary invoices as false
+        # positives. The detection gap stays a well-formed recall in [0, 1].
+        assert m.believed_failures >= 0
         assert 0.0 <= m.detection_gap <= 1.0
         assert m.regime_label in ("G1", "G2")
 

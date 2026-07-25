@@ -372,6 +372,16 @@ def score_triad(
     # ------------------------------------------------------------------
     truth_set = {(r.customer_id, r.period_index) for r in records if r.result == "failed"}
     flagged_set: set = set()
+    # Two INDEPENDENT detection paths, kept apart so their witnesses stay clean
+    # (director ruling 2026-07-25 §2, R15 both-ways):
+    #   * DD-CHANNEL: an observed Bacs/rail FAILURE event (`recent_dd_failures`).
+    #     A non-DD case appearing here would be a LEAK across the wall (the
+    #     adapter emits nothing for a missed push payment) -- witness must stay 0.
+    #   * RECONCILIATION: expected-collection reconciliation (own bills vs own
+    #     cash) legitimately detects a missed push payment WITHOUT any rail event
+    #     -- a non-DD case appearing here is the CARVE-OUT WORKING, witness > 0.
+    flagged_via_dd_channel: set = set()
+    flagged_via_reconciliation: set = set()
 
     # ------------------------------------------------------------------
     # (2) Belief severity + (3) ageing -- both need one snapshot per account
@@ -383,17 +393,25 @@ def score_triad(
 
     n_true_dd_failures = 0
     n_true_non_dd_failures = 0
-    n_flagged_non_dd = 0  # sanity: should stay 0 -- the blind spot's own witness
+    n_flagged_non_dd_via_dd_channel = 0   # the LEAK witness: must stay 0
+    n_flagged_non_dd_via_reconciliation = 0  # the carve-out witness: expected > 0
+    detection_latency_days: List[int] = []  # latency of each detected miss (ruling §1)
 
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
         snapshot = consumer.snapshot(account_id, as_of=as_of, payment_terms_days=payment_terms_days)
 
         due_to_period = {r.due_date: r.period_index for r in periods}
+        ref_to_period = {r.invoice_ref: r.period_index for r in periods}
         for dd_fail in snapshot.recent_dd_failures:
             p = due_to_period.get(dd_fail.value_date)
             if p is not None:
-                flagged_set.add((cid, p))
+                flagged_via_dd_channel.add((cid, p))
+        for miss in snapshot.detected_collection_misses:
+            p = ref_to_period.get(miss.invoice_ref)
+            if p is not None:
+                flagged_via_reconciliation.add((cid, p))
+                detection_latency_days.append(miss.days_latency)
 
         n_unresolved_true = sum(1 for r in periods if r.result == "failed")
         n_hardship_true = sum(
@@ -416,16 +434,25 @@ def score_triad(
             ai = aged_by_ref.get(r.invoice_ref)
             belief_ageing_labels.append(ai.bucket if ai is not None else "current")
 
-    for (cid, p) in flagged_set:
+    flagged_set = flagged_via_dd_channel | flagged_via_reconciliation
+
+    for (cid, p) in flagged_via_dd_channel:
         rec = next(r for r in by_customer[cid] if r.period_index == p)
         if rec.payment_method != DIRECT_DEBIT:
-            n_flagged_non_dd += 1  # would indicate a leak -- should never increment
+            n_flagged_non_dd_via_dd_channel += 1  # a LEAK -- must never increment
+    for (cid, p) in flagged_via_reconciliation:
+        rec = next(r for r in by_customer[cid] if r.period_index == p)
+        if rec.payment_method != DIRECT_DEBIT:
+            n_flagged_non_dd_via_reconciliation += 1  # the carve-out working
 
     det = detection_gap(truth_set, flagged_set)
     det.note = (
-        "W2_11 true payment failure (any channel) vs D5's DD-failure-observed "
-        "belief; the no-remittance blind spot (non-DD failure -> no WallResponse "
-        "at all) is structurally undetectable, guaranteeing gap > 0."
+        "W2_11 true payment failure (any channel) vs D5's belief, now via TWO "
+        "detection paths: observed Bacs/rail failure events AND expected-collection "
+        "reconciliation (own bills vs own cash -- director ruling 2026-07-25 §2). "
+        "The reconciliation path narrows the push-channel blind spot but never "
+        "closes it: a late-but-eventual payment (cash by as_of) is correctly NOT "
+        "flagged (detection LATENCY, ruling §1), guaranteeing gap > 0 (R12)."
     )
 
     bel = belief_gap(
@@ -448,6 +475,13 @@ def score_triad(
     )
 
     n_customers = len(by_customer)
+    _lat = sorted(detection_latency_days)
+    latency_summary = {
+        "n": len(_lat),
+        "min_days": _lat[0] if _lat else None,
+        "median_days": _lat[len(_lat) // 2] if _lat else None,
+        "max_days": _lat[-1] if _lat else None,
+    }
     stats = {
         "n_customers": n_customers,
         "n_periods_per_customer": (len(records) // n_customers) if n_customers else 0,
@@ -457,9 +491,32 @@ def score_triad(
         "n_true_dd_failures": n_true_dd_failures,
         "n_true_non_dd_failures": n_true_non_dd_failures,
         "n_flagged_failures": len(flagged_set),
-        "n_flagged_non_dd_failures": n_flagged_non_dd,
+        # LEAK witness (a non-DD case reaching belief via the DD-failure event
+        # channel): must stay 0 -- the adapter emits nothing for a missed push
+        # payment, so a non-zero value would be a wall leak.
+        "n_flagged_non_dd_failures": n_flagged_non_dd_via_dd_channel,
+        # CARVE-OUT witness (ruling §2): non-DD misses now legitimately detected
+        # by expected-collection reconciliation (own bills vs own cash). Expected
+        # > 0 -- this is the sensing organ working, not a leak.
+        "n_flagged_non_dd_via_reconciliation": n_flagged_non_dd_via_reconciliation,
+        "n_flagged_via_dd_channel": len(flagged_via_dd_channel),
+        "n_flagged_via_reconciliation": len(flagged_via_reconciliation),
+        # Detection LATENCY distribution (ruling §1: register the lag, do not
+        # compress it to zero). Days between an invoice's due date and the
+        # as_of at which reconciliation first observed the shortfall.
+        "detection_latency_days": latency_summary,
     }
     notes = {
+        "reconciliation": (
+            "director ruling 2026-07-25 §2 carve-out: expected-collection "
+            "reconciliation detects missed push payments (all channels) from own "
+            "bills vs own cash, no rail event required. SENSING ONLY -- no dunning/ "
+            "vulnerability/provisioning (reserved, ruling §3). Residual (never 0, "
+            "R12): late-but-eventual payments (latency), ambiguous-remittance "
+            "mis-allocation, and partial payments. n_flagged_non_dd_failures (the "
+            "DD-channel leak witness) stays 0; n_flagged_non_dd_via_reconciliation "
+            "is the carve-out working."
+        ),
         "allocation": (
             "attempted, honestly dropped: misapplication_gap's no-skill "
             "baseline needs a small shared label space, but invoice_ref is "
@@ -527,12 +584,22 @@ def _detection_sets_by_partition(
             account_id, as_of=as_of, payment_terms_days=payment_terms_days
         )
         due_to_period = {r.due_date: r.period_index for r in periods}
+        ref_to_period = {r.invoice_ref: r.period_index for r in periods}
         rec_by_period = {r.period_index: r for r in periods}
         for r in periods:
             if r.result == "failed":
                 truth_by_part.setdefault(partition_of(r), set()).add((cid, r.period_index))
         for dd_fail in snapshot.recent_dd_failures:
             p = due_to_period.get(dd_fail.value_date)
+            if p is not None:
+                key = partition_of(rec_by_period[p])
+                flagged_by_part.setdefault(key, set()).add((cid, p))
+        # Expected-collection reconciliation flags (ruling 2026-07-25 §2), mapped
+        # back to the exact period's partition -- same per-cell attribution as
+        # the DD-channel path (a spanning customer contributes each period to the
+        # right cell, no double-count).
+        for miss in snapshot.detected_collection_misses:
+            p = ref_to_period.get(miss.invoice_ref)
             if p is not None:
                 key = partition_of(rec_by_period[p])
                 flagged_by_part.setdefault(key, set()).add((cid, p))

@@ -62,11 +62,18 @@ def test_live_gap_is_non_trivial_and_exhibits_the_blind_spot():
     assert age.gap is not None
 
     stats = result["stats"]
-    # The blind-spot witness: genuine non-DD failures MUST exist and NONE of them
-    # may ever be flagged (a non-zero flagged-non-DD count would be a wall leak).
+    # The blind-spot witness: genuine non-DD failures MUST exist, and none may
+    # ever reach belief via the DD-FAILURE-EVENT channel (a non-zero count there
+    # is a wall leak). Expected-collection reconciliation (ruling 2026-07-25 §2)
+    # now legitimately detects some non-DD misses from own bills vs own cash --
+    # so flagged can EXCEED true (the reconciliation path also picks up
+    # mis-allocated/late-boundary invoices). The honest invariant is the RESIDUAL
+    # detection gap staying strictly positive (asserted above), never that belief
+    # undercounts truth.
     assert stats["n_true_non_dd_failures"] > 0, "population didn't exercise the blind spot"
     assert stats["n_flagged_non_dd_failures"] == 0
-    assert 0 < stats["n_flagged_failures"] < stats["n_true_failures"]
+    assert stats["n_flagged_via_reconciliation"] > 0
+    assert stats["n_flagged_failures"] > 0
 
 
 def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):

@@ -1,5 +1,6 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- SUPERVISOR_DRAW: done -->
+<!-- BUILT + ARCHIVED 2026-07-25 worker tick: director ruling (docs/staging/done/DIRECTOR_RULING_PAYMENT_DETECTION_CARVE_OUT_2026-07-25.md) UNBLOCKED and authorized the SOURCE 1 detector (narrow sensing carve-out). BUILT this tick:
+     PaymentObservationConsumer.expected_collection_misses() + snapshot.detected_collection_misses — expected-collection reconciliation (own bills vs own cash), through-the-wall, detects missed PUSH payments with NO rail event. Wired into tools/couple_w2_11_d5.score_triad + _detection_sets_by_partition (so LIVE live_payment_triad + per-cell fidelity re-measure automatically next run). R15 both-ways: test_reconciliation_fires_and_narrows_the_detection_gap (fires) + test_reconciliation_cannot_fail_open (cash-blind mutant caught) + test_detection_latency_is_registered_not_zero (§1 latency). Offline detection gap 0.278 -> 0.095 @4000/seed0; DD-channel LEAK witness stays 0; residual (late-eventual latency + mis-allocation) registered, never zeroed (R12). SENSING ONLY — dunning/debt/provisioning RESERVED (ruling §3), not built. -->
 
 # [PLANNER-MINTED] Close the belief-vs-truth PAYMENT-FAILURE detection gap (W2_11) (2026-07-24)
 

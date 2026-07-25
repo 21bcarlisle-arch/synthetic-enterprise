@@ -21,6 +21,8 @@ import pytest
 from company.billing.account_ledger import LedgerBook, LedgerEvent, LedgerEventType
 from company.billing.payment_observation_consumer import (
     ArrearsRiskBelief,
+    DEFAULT_RECONCILIATION_GRACE_DAYS,
+    ExpectedCollectionMiss,
     MandateBeliefState,
     PaymentObservationConsumer,
 )
@@ -502,3 +504,86 @@ def test_arrears_risk_belief_can_be_wrong_by_construction():
     assert snap_a.arrears_risk_belief != snap_b.arrears_risk_belief
     assert snap_a.arrears_risk_belief == ArrearsRiskBelief.WATCH
     assert snap_b.arrears_risk_belief == ArrearsRiskBelief.NORMAL
+
+
+# ---------------------------------------------------------------------------
+# Expected-collection reconciliation detector (director ruling 2026-07-25 §2):
+# detect missed PUSH payments (no rail event) from own bills vs own cash.
+# ---------------------------------------------------------------------------
+
+def test_reconciliation_detects_a_never_paid_invoice_of_any_channel():
+    """The carve-out: an invoice billed, past due+grace, with NO cash observed
+    is a detected expected-collection miss -- WITHOUT any failure event (the
+    missed push payment a real supplier notices only by reconciliation)."""
+    lb = LedgerBook()
+    _bill(lb, "ACC-1", "INV-1", 120.0, dt.date(2026, 1, 1))
+    consumer = PaymentObservationConsumer(ledger_book=lb)
+    # no observe() at all -- a push payment that simply never arrived
+    misses = consumer.expected_collection_misses("ACC-1", as_of=dt.date(2026, 3, 1))
+    assert len(misses) == 1
+    m = misses[0]
+    assert isinstance(m, ExpectedCollectionMiss)
+    assert m.invoice_ref == "INV-1"
+    assert m.billed_gbp == 120.0
+    assert m.received_gbp == 0.0
+    assert m.shortfall_gbp == 120.0
+    assert m.days_latency > DEFAULT_RECONCILIATION_GRACE_DAYS
+
+
+def test_reconciliation_silent_within_grace_window():
+    """Detection LATENCY (ruling §1): the detector does not fire the instant a
+    due date passes -- a bank credit can be in transit; it waits out the grace
+    window, so the latency is registered, not compressed to zero."""
+    lb = LedgerBook()
+    issue = dt.date(2026, 1, 1)
+    _bill(lb, "ACC-1", "INV-1", 120.0, issue)
+    consumer = PaymentObservationConsumer(ledger_book=lb)
+    due = issue + dt.timedelta(days=14)  # _bill uses 14-day terms
+    # 2 days past due -> inside a 5-day grace -> not yet observable
+    assert consumer.expected_collection_misses(
+        "ACC-1", as_of=due + dt.timedelta(days=2), grace_days=5
+    ) == []
+    # 6 days past due -> observable
+    assert len(consumer.expected_collection_misses(
+        "ACC-1", as_of=due + dt.timedelta(days=6), grace_days=5
+    )) == 1
+
+
+def test_reconciliation_does_not_flag_a_paid_late_invoice():
+    """Fail-open guard (ruling §2, R15): a payment that arrived LATE (cash by
+    as_of) leaves outstanding == 0, so it is NOT a miss. Reading real cash is
+    what stops the detector fail-opening to 'everyone overdue is a failure'."""
+    lb = LedgerBook()
+    _bill(lb, "ACC-1", "INV-1", 120.0, dt.date(2026, 1, 1))
+    consumer = PaymentObservationConsumer(ledger_book=lb)
+    consumer.observe(_remit_resp("ACC-1", 120.0, "INV-1", dt.date(2026, 2, 10), "corr-1"))
+    assert consumer.expected_collection_misses("ACC-1", as_of=dt.date(2026, 3, 1)) == []
+
+
+def test_reconciliation_flags_partial_payment_shortfall():
+    """A partial payment leaves a residual shortfall -- detected, with the
+    received/shortfall split reported honestly (a real arrears signal)."""
+    lb = LedgerBook()
+    _bill(lb, "ACC-1", "INV-1", 120.0, dt.date(2026, 1, 1))
+    consumer = PaymentObservationConsumer(ledger_book=lb)
+    consumer.observe(_remit_resp("ACC-1", 50.0, "INV-1", dt.date(2026, 2, 10), "corr-1"))
+    misses = consumer.expected_collection_misses("ACC-1", as_of=dt.date(2026, 3, 1))
+    assert len(misses) == 1
+    assert misses[0].received_gbp == 50.0
+    assert misses[0].shortfall_gbp == 70.0
+
+
+def test_reconciliation_is_order_independent():
+    """C-S1/C-S2: the detector is a pure function of the observed ledger set,
+    not of observe() arrival order."""
+    def build(order):
+        lb = LedgerBook()
+        _bill(lb, "ACC-1", "INV-1", 120.0, dt.date(2026, 1, 1))
+        _bill(lb, "ACC-1", "INV-2", 120.0, dt.date(2026, 1, 20))
+        c = PaymentObservationConsumer(ledger_book=lb)
+        resps = [_remit_resp("ACC-1", 120.0, "INV-1", dt.date(2026, 2, 1), "c1")]
+        for r in (resps if order else list(reversed(resps))):
+            c.observe(r)
+        return c.expected_collection_misses("ACC-1", as_of=dt.date(2026, 4, 1))
+    a, b = build(True), build(False)
+    assert [m.invoice_ref for m in a] == [m.invoice_ref for m in b] == ["INV-2"]

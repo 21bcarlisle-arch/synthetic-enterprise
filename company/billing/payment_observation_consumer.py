@@ -74,6 +74,24 @@ though the account is genuinely arrears-aged -- exactly the kind of
 plausible-but-wrong belief H27 is built to catch (see `snapshot()`'s
 `cash_position_note` vs `arrears_risk_belief` divergence in that case).
 
+EXPECTED-COLLECTION RECONCILIATION (director ruling 2026-07-25 §2, the narrow
+sensing carve-out): the blind spot above is a blind spot of the FAILURE-EVENT
+channel only. A real supplier ALSO notices a missed push payment WITHOUT any
+rail event -- by reconciling what it billed against what cash arrived: an
+invoice due, past a grace window, with no matching credit, is itself the
+observable. `expected_collection_misses()` / the snapshot's
+`detected_collection_misses` implement exactly this, from the company's OWN
+ledger only. It is DETECTION (a sensing organ) and is DELIBERATELY NOT wired
+into `arrears_risk_belief` or any action -- dunning, vulnerability/PSR flags,
+arrears-driven pricing and bad-debt provisioning are all RESERVED to the
+director's forthcoming dunning/debt/provisioning session (ruling §3). It
+NARROWS the push-channel detection gap; it never closes it (residual: a
+late-but-eventual payment that arrives before `as_of` is correctly NOT flagged
+-> detection LATENCY; an ambiguous non-DD `correlation_id` -> oldest-first
+allocation can mis-attribute which invoice is the miss; a genuine partial
+payment leaves a residual shortfall). R12 honesty guard: a smaller MEASURED
+gap, never a company that believes it catches everything.
+
 NAMED SIMPLIFICATIONS (R10):
   * `SettlementConfirmation` is treated as a CONFIRMING note on cash already
     recognised via `RemittanceAdvice`/a successful `BacsArruddOutcome`/a
@@ -229,6 +247,57 @@ class RailFailureNote:
     observed_at: dt.datetime
 
 
+# The expected-collection reconciliation grace window: a real supplier does not
+# declare a collection "missed" the instant a due date passes -- a bank credit
+# can be in transit / clearing. It reconciles received cash against issued bills
+# and declares a shortfall only once the invoice is `grace_days` past due with
+# no matching cash observed. This is a DELIBERATELY UNCALIBRATED bank-clearing
+# window (same status as `_arrears_risk_belief`'s invented thresholds), NOT a
+# knob tuned toward any gap number (R12) -- the honest number is whatever the
+# reconciliation measures, never a target. It sets the detection LATENCY for
+# push-channel failures (director ruling 2026-07-25 §1: register the latency,
+# do not compress it to zero).
+DEFAULT_RECONCILIATION_GRACE_DAYS = 5
+
+
+@dataclass(frozen=True)
+class ExpectedCollectionMiss:
+    """A DETECTED expected-collection shortfall (director ruling 2026-07-25 §2,
+    the narrow sensing carve-out): an invoice the company ISSUED, now
+    `days_latency` past its due date + grace, against which it has observed
+    INSUFFICIENT cash on its OWN bank/ledger feed. This is the through-the-wall
+    mechanism a real supplier uses to notice a *missed customer-initiated push
+    payment* that emits no rail failure event at all (standing order / card /
+    prepayment) -- the absence of expected cash by due date is itself the
+    observable, no ARUDD/Bacs message required.
+
+    EPISTEMIC WALL: derived PURELY from the company's own `AccountLedger`
+    (issued `BILL_DEBIT`s and observed `PAYMENT_CREDIT`s), never from
+    `PaymentEvent.result` or any generator internal. It is still a BELIEF -- the
+    cash may yet arrive late (the residual latency below), the shortfall may be
+    a mis-allocated payment (ambiguous non-DD `correlation_id` -> oldest-first),
+    or a genuine partial payment; the detector NARROWS the push-channel blind
+    spot, it never closes it (R12 honesty guard: a smaller MEASURED gap, never a
+    company that believes it catches everything -- which, because the detection
+    metric is pure recall, would be a fail-open flagging-everyone, a WIDER hidden
+    gap wearing a better number).
+
+    SENSING ONLY (ruling §2, binding): this is a detection observable. It
+    licenses NO acting organ -- no dunning, no vulnerability/PSR flag, no
+    arrears-driven pricing or provisioning. Those are RESERVED to the director's
+    forthcoming dunning/debt/provisioning session; building an action on top of
+    this would foreclose its choices."""
+
+    account_id: str
+    invoice_ref: str
+    billed_gbp: float
+    received_gbp: float          # cash observed & allocated to this invoice by as_of
+    shortfall_gbp: float         # billed - received (the observed unpaid amount)
+    due_date: dt.date
+    detected_as_of: dt.date
+    days_latency: int            # detected_as_of - due_date (the observability lag)
+
+
 @dataclass
 class MandateBelief:
     """The company's current inferred state for one mandate, and the single
@@ -265,7 +334,24 @@ class PaymentBeliefSnapshot:
     arrears_risk_belief: ArrearsRiskBelief       # <-- COMPANY GUESS, never truth
     recent_dd_failures: List[DDFailureObservation]
     recent_rail_failures: List[RailFailureNote]
+    # DETECTED expected-collection shortfalls (ruling 2026-07-25 §2): the
+    # through-the-wall detection of missed push payments (all channels), from
+    # own bills vs own observed cash. A BELIEF, not truth (may resolve late).
+    detected_collection_misses: List[ExpectedCollectionMiss]
     cash_position_note: str
+
+
+def _billed_by_invoice(ledger: AccountLedger, as_of: dt.date) -> Dict[str, float]:
+    """Total billed (BILL_DEBIT + any debit adjustment) per invoice_ref, as of
+    `as_of` -- read from the company's OWN ledger events, for the
+    ExpectedCollectionMiss `billed_gbp` context field only. Pure, no beliefs."""
+    out: Dict[str, float] = {}
+    for e in ledger.events():
+        if e.valid_time > as_of or not e.invoice_ref:
+            continue
+        if e.event_type in (LedgerEventType.BILL_DEBIT, LedgerEventType.ADJUSTMENT_DEBIT):
+            out[e.invoice_ref] = round(out.get(e.invoice_ref, 0.0) + e.amount_gbp, 2)
+    return out
 
 
 def _cash_position_note(bal_summary: dict) -> str:
@@ -548,12 +634,79 @@ class PaymentObservationConsumer:
             return ArrearsRiskBelief.HIGH if hardship_suggestive >= 2 else ArrearsRiskBelief.ELEVATED
         return ArrearsRiskBelief.HIGH
 
+    def expected_collection_misses(
+        self,
+        account_id: str,
+        as_of: dt.date,
+        grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+        payment_terms_days: int = 14,
+        disputed_refs: Sequence[str] = (),
+    ) -> List[ExpectedCollectionMiss]:
+        """DETECT missed expected collections by reconciling the company's OWN
+        issued bills against its OWN observed cash (ruling 2026-07-25 §2). Returns
+        one `ExpectedCollectionMiss` per undisputed open invoice that is
+        `grace_days` past its due date with a positive outstanding balance --
+        the through-the-wall signal for a missed push payment that emits no rail
+        failure event.
+
+        WHY THIS IS THROUGH THE WALL: it reads ONLY `age_open_items`, itself a
+        pure function of this account's `AccountLedger` (issued `BILL_DEBIT`s and
+        observed `PAYMENT_CREDIT`s posted from `WallResponse`s). It never touches
+        `PaymentEvent.result`, channel, stress or segment -- exactly like a real
+        supplier that knows what it billed and what cash arrived, and nothing
+        about WHY a payment did not turn up.
+
+        WHY IT CANNOT FAIL OPEN (R15, ruling §2): it keys on the ledger's actual
+        `outstanding_gbp` at `as_of`, so an invoice paid LATE (cash arrived by
+        `as_of`) has `outstanding == 0` and is NOT flagged. A detector that
+        flagged every ever-overdue invoice regardless of received cash would
+        drive the pure-recall detection gap toward zero by flagging everyone --
+        the fail-open failure mode. Reading real cash is the guard; the mutation
+        test `test_reconciliation_cannot_fail_open` proves a cash-blind variant
+        wrongly flags a paid-late invoice while this one does not.
+
+        DETECTION LATENCY (ruling §1): `grace_days` is the observability lag for
+        a push-channel miss -- the detector is deliberately SILENT until an
+        invoice is `grace_days` past due, so the residual latency is registered,
+        never compressed to zero. Order-independent / replay-deterministic
+        (C-S1/C-S2): a pure function of the observed ledger set at `as_of`."""
+        ledger = self.ledger_book.ledger(account_id)
+        aged = age_open_items(
+            ledger,
+            as_of=as_of,
+            payment_terms_days=payment_terms_days,
+            disputed_refs=disputed_refs,
+        )
+        billed_by_ref = _billed_by_invoice(ledger, as_of)
+        misses: List[ExpectedCollectionMiss] = []
+        for item in aged:
+            if item.disputed:
+                continue  # a held dispute does not dun and is not a "miss"
+            if item.days_overdue < grace_days:
+                continue  # within the reconciliation grace window -- not yet observable
+            if item.outstanding_gbp <= 0:
+                continue  # cash reconciled -- nothing missed (fail-open guard)
+            billed = billed_by_ref.get(item.reference, item.outstanding_gbp)
+            misses.append(ExpectedCollectionMiss(
+                account_id=account_id,
+                invoice_ref=item.reference,
+                billed_gbp=billed,
+                received_gbp=round(max(0.0, billed - item.outstanding_gbp), 2),
+                shortfall_gbp=round(item.outstanding_gbp, 2),
+                due_date=item.due_date,
+                detected_as_of=as_of,
+                days_latency=item.days_overdue,
+            ))
+        misses.sort(key=lambda m: (m.due_date, m.invoice_ref))
+        return misses
+
     def snapshot(
         self,
         account_id: str,
         as_of: Optional[dt.date] = None,
         disputed_refs: Sequence[str] = (),
         payment_terms_days: int = 14,
+        reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
     ) -> PaymentBeliefSnapshot:
         """The belief read-out for one account -- H27's gap-scoring surface.
         Pure function of everything `observe()`d so far for this account
@@ -580,6 +733,13 @@ class PaymentObservationConsumer:
             (f for f in self._rail_failures.get(account_id, []) if f.value_date <= as_of),
             key=lambda f: (f.value_date, f.reference),
         )
+        collection_misses = self.expected_collection_misses(
+            account_id,
+            as_of=as_of,
+            grace_days=reconciliation_grace_days,
+            payment_terms_days=payment_terms_days,
+            disputed_refs=disputed_refs,
+        )
         return PaymentBeliefSnapshot(
             account_id=account_id,
             as_of=as_of,
@@ -592,5 +752,6 @@ class PaymentObservationConsumer:
             arrears_risk_belief=self._arrears_risk_belief(account_id, as_of),
             recent_dd_failures=dd_failures,
             recent_rail_failures=rail_failures,
+            detected_collection_misses=collection_misses,
             cash_position_note=_cash_position_note(bal_summary),
         )
