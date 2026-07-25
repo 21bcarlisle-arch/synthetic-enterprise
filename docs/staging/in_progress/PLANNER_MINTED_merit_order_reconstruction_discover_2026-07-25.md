@@ -1,4 +1,12 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- DISPOSITION 2026-07-25: FRAME landed (scope items 1 & 3) →
+     docs/design/frame/W1_6_merit_order_reconstruction_FRAME.md (live-vs-target form + exact diff,
+     evidence-cited to sim/price_engine.py + the W1_6 fidelity row; acceptance test + unmoved-baseline
+     invariant + R15 mutations defined). Scope item 2 DISCOVER partly satisfied by the 2026-07-24 pass
+     (fleet boundaries + £6,000/MWh ceiling + CCGT reference-tech); REMAINING open sub-item = the
+     multi-plant SRMC-stack heat-rate DISCOVER (network-dependent; probe was 403 this tick) + the BUILD,
+     held behind the propose-then-proceed window to 2026-07-28. Moved to in_progress/ (out of the
+     unprocessed-root scan); self-drawable retained so the DISCOVER/BUILD stay drawable. -->
 
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — Merit-order / gas-first price-engine reconstruction: DISCOVER + FRAME (2026-07-25)
 

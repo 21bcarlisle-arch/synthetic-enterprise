@@ -1,4 +1,12 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- DISPOSITION 2026-07-25: FRAME landed (scope item 1) →
+     docs/design/frame/stratified_run_rotation_FRAME.md (grid axes + cell enumeration + deterministic
+     IaC-committed-cursor selector + honest partial-coverage-until-activation + the coverage-of-worlds R15
+     test with its mutations; grounded in background/run_manifest.py + the §4 mixed-basis guard). REMAINING
+     open sub-items = item 2 (wire the selector into build_manifest emission) + item 3 (build the coverage
+     test) = mechanism BUILD, held behind the propose-then-proceed window to 2026-07-28; the population-seed
+     axis stays dormant behind the director-reserved SE_DRAW_POPULATION release rung. Moved to in_progress/;
+     self-drawable retained so the mechanism BUILD stays drawable. -->
 
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — Stratified run-rotation mechanism (world scenario × population seed): FRAME + mechanism wiring (2026-07-25)
 
