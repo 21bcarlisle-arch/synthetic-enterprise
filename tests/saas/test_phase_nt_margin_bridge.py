@@ -8,6 +8,7 @@ from saas.reporting.margin_attribution import (
     build_margin_bridge_series,
     dominant_driver,
     residual_is_material,
+    residual_breaks_reconciliation,
     _direction,
     _FLAT_THRESHOLD_GBP,
     _RESIDUAL_MATERIALITY_GBP,
@@ -214,6 +215,44 @@ class TestResidualReconciliationControl:
         assert residual_is_material(plain) is True
         assert dominant_driver(plain) == "other (unexplained)"
 
+    def test_reconciliation_control_fires_on_break_masked_by_larger_driver(self):
+        # THE FAIL-OPEN this control closes: a materially dropped cost line (£500k
+        # residual) that is masked because a LARGER legitimate driver (£600k gross
+        # swing) co-occurs in the same year. residual_is_material fails open here
+        # (residual does not DOMINATE the £600k driver); the reconciliation control
+        # must still fire -- a break is a break regardless of co-occurring drivers.
+        b = MarginBridge(
+            year_from=2020, year_to=2021,
+            net_delta_gbp=100_000,
+            gross_delta_gbp=600_000,      # larger legitimate driver
+            bad_debt_delta_gbp=0.0, capital_delta_gbp=0.0,
+            policy_cost_delta_gbp=0.0, network_cost_delta_gbp=0.0,
+            portfolio_change=0,
+            residual_gbp=-500_000,        # dropped cost line, does NOT dominate
+            direction="FLAT",
+        )
+        assert residual_is_material(b) is False        # fails open (documented)
+        assert residual_breaks_reconciliation(b) is True  # closes the gap
+
+    def test_reconciliation_control_green_on_reconciled_bridge(self):
+        assert residual_breaks_reconciliation(_bridge_with_residual(0.0)) is False
+
+    def test_reconciliation_control_green_below_floor(self):
+        assert residual_breaks_reconciliation(
+            _bridge_with_residual(_RESIDUAL_MATERIALITY_GBP - 1, named_max=0.0)
+        ) is False
+
+    def test_reconciliation_control_fires_even_when_dominant(self):
+        # The dominant case is a strict subset -- must also fire here.
+        b = _bridge_with_residual(500_000, named_max=1_000)
+        assert residual_breaks_reconciliation(b) is True
+
+    def test_reconciliation_control_works_on_reconstructed_object(self):
+        b = _bridge_with_residual(500_000, named_max=600_000)
+        b = dataclasses.replace(b, net_delta_gbp=b.gross_delta_gbp + b.residual_gbp)
+        plain = type("B", (), dataclasses.asdict(b))()
+        assert residual_breaks_reconciliation(plain) is True
+
     def test_real_pipeline_bridges_reconcile(self):
         # The whole point of the tautology finding: on data built through the real
         # net = gross - (policy+gas_policy) - (network+gas_network) - capital
@@ -227,3 +266,4 @@ class TestResidualReconciliationControl:
         for b in build_margin_bridge_series(run):
             assert abs(b.residual_gbp) < 0.01
             assert residual_is_material(b) is False
+            assert residual_breaks_reconciliation(b) is False

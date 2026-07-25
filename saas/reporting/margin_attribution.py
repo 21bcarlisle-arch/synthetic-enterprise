@@ -106,15 +106,44 @@ def build_margin_bridge_series(run_data: dict) -> list[MarginBridge]:
     return bridges
 
 
-def residual_is_material(bridge: MarginBridge) -> bool:
-    """R15 tripwire: True when the unexplained residual is BOTH above the
-    materiality floor AND strictly larger than every named driver -- i.e. the
-    bridge has failed to explain its own net-margin movement.
+def residual_breaks_reconciliation(bridge: MarginBridge) -> bool:
+    """R15 reconciliation-integrity tripwire: True when the unexplained residual
+    exceeds the materiality floor -- FULL STOP, regardless of how large the named
+    drivers happen to be.
 
-    Returns False on a well-reconciled bridge (residual ~0, the healthy state on
-    real data).  This is deliberately a control that CAN fail: feed it a bridge
-    whose net_delta no longer equals the sum of its drivers (the exact symptom of
-    a dropped/fail-open cost line) and it fires -- see the mutation tests.
+    This is the control that actually catches the defect the bridge exists to
+    guard against: a cost line entering `net_gbp` without a matching bridge
+    driver (a renamed/dropped field, a fail-open `.get(...,0.0)`).  Such a break
+    is a break whether or not some *other* legitimate driver moved more in the
+    same year -- e.g. a big genuine gross-margin swing must not mask a separately
+    dropped £500k cost line.  `residual_is_material` (which additionally requires
+    the residual to DOMINATE every named driver) is the narrower *attribution*
+    question and FAILS OPEN here: it stays green whenever a larger legitimate
+    driver co-occurs, silently passing a materially unreconciled bridge.
+
+    Stays False on a well-reconciled bridge (residual ~£0 -- the healthy state on
+    all real 2016-2025 data, residuals < £0.5 by construction), so it introduces
+    no false positives; it only fires when provenance has genuinely broken.
+    """
+    return abs(bridge.residual_gbp) > _RESIDUAL_MATERIALITY_GBP
+
+
+def residual_is_material(bridge: MarginBridge) -> bool:
+    """Attribution-dominance gate: True when the unexplained residual is BOTH
+    above the materiality floor AND strictly larger than every named driver.
+
+    This governs ONE thing only -- whether `dominant_driver` may confidently name
+    a driver or must read "other (unexplained)".  It is deliberately NARROWER
+    than reconciliation integrity: a material residual that does NOT dominate
+    means a named driver still legitimately explains most of the movement, so the
+    attribution is honest even though the bridge does not fully reconcile.  For
+    the "does the bridge reconcile at all" question use
+    `residual_breaks_reconciliation` -- this function fails open on it by design
+    (see that function's docstring).
+
+    This is a control that CAN fail: a bridge whose net_delta no longer equals
+    the sum of its drivers, with the residual dominating, fires it -- see the
+    mutation tests.
     """
     # Computed inline (not via the dataclass property) so this also works on the
     # lightweight attribute-only objects the report renderer reconstructs from

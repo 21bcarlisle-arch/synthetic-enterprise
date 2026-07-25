@@ -49,7 +49,11 @@ from company.analytics.counterfactual_retention import (
 )
 from company.analytics.threshold_sensitivity import compute_threshold_sensitivity
 from company.risk.credit_risk_stress import build_credit_risk_stress, CRISIS_BAD_DEBT_MULTIPLIER
-from saas.reporting.margin_attribution import build_margin_bridge_series, dominant_driver
+from saas.reporting.margin_attribution import (
+    build_margin_bridge_series,
+    dominant_driver,
+    residual_breaks_reconciliation,
+)
 from saas.reporting.fra_capital_ratio import build_fra_ratio_series, weakest_year, strongest_year
 from saas.reporting.payment_health import build_payment_health_series
 from saas.reporting.portfolio_composition import build_composition_series
@@ -7477,8 +7481,16 @@ def _section_net_margin_bridge(data: dict) -> str:
     best_val = None
     best_label = None
 
+    reconciliation_break = False
     for b in bridges:
         driver = dominant_driver(b)
+        if residual_breaks_reconciliation(b):
+            # A materially unreconciled residual is flagged on EVERY such row,
+            # even when a larger legitimate driver co-occurs (so the break is not
+            # masked by the Driver column confidently naming that driver).
+            reconciliation_break = True
+            if driver != "other (unexplained)":
+                driver = f"{driver} ⚠ unreconciled"
         rag = _rag(b)
         lines.append(
             f"| {b.year_from}\u2192{b.year_to} "
@@ -7516,9 +7528,18 @@ def _section_net_margin_bridge(data: dict) -> str:
         "movement. A materially non-zero residual is a tripwire, not noise -- it means a cost line has "
         "entered net margin without a matching bridge driver (e.g. a renamed/dropped field); when the "
         "residual strictly dominates every named driver the Driver column reads **other (unexplained)** "
-        "rather than confidently naming a minority contributor.",
+        "rather than confidently naming a minority contributor. A material residual that does NOT "
+        "dominate (a real break masked by a larger legitimate driver in the same year) is flagged "
+        "**⚠ unreconciled** on the Driver cell rather than passing silently.",
         "",
     ]
+    if reconciliation_break:
+        lines += [
+            "> **⚠ RECONCILIATION BREAK:** one or more transitions above carry a materially non-zero "
+            "residual (a cost line has entered net margin without a matching bridge driver). Treat the "
+            "attribution for those rows as incomplete until the missing driver is identified.",
+            "",
+        ]
     return "\n".join(lines)
 
 
