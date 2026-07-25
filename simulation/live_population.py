@@ -81,5 +81,12 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     from simulation.population_draw import draw_population
 
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
-    drawn = [sc.to_customer_dict() for sc in draw_population(seed)]
+    # draw_region=True (ACTIVATION §1): the activated book carries REAL regions
+    # from the ratified curriculum marginal, not the UNKNOWN_SYNTHETIC placeholder
+    # — region is a PUBLIC observable the company sees at enrolment (curriculum
+    # note), so it belongs in the saas-shaped dict. The hidden `cohort` stays
+    # excluded by `to_customer_dict()` (wall). Still behind the default-OFF flag:
+    # this only prepares the tested seam; flipping the flag remains the held,
+    # director-reserved release rung.
+    drawn = [sc.to_customer_dict() for sc in draw_population(seed, draw_region=True)]
     return list(CUSTOMERS) + drawn

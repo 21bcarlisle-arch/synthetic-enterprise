@@ -281,8 +281,55 @@ def test_payment_method_share_tracks_dd_anchor():
 
 
 def test_region_is_explicit_placeholder_not_fabricated():
+    # DEFAULT (draw_region omitted): region stays the explicit placeholder.
     for c in pd.draw_population(base_seed=3):
         assert c.region == pd._PLACEHOLDER_REGION
+
+
+# ── ACTIVATION §1: opt-in real region draw (R10 placeholder closure) ─────────
+# A high per-year lambda gives a well-populated cohort for these distributional
+# checks (a TEST param only — the curriculum's own default lambda is untouched).
+_REGION_TEST_LAMBDA = 40.0
+
+
+def test_draw_region_on_yields_real_curriculum_regions_never_placeholder():
+    """With draw_region=True every customer carries a real curriculum region,
+    NOT the UNKNOWN_SYNTHETIC placeholder. R15 mutation guard: this control
+    fails if the draw_region wiring is dropped (region would revert to the
+    placeholder and the `!= _PLACEHOLDER_REGION` assertion would fire)."""
+    curriculum = pd._load_cohort_curriculum()
+    expected_regions = set(
+        curriculum["region_marginal_synthetic_acquisitions"]["value"].keys()
+    )
+    pop = pd.draw_population(
+        base_seed=7, acquisitions_per_year_lambda=_REGION_TEST_LAMBDA, draw_region=True
+    )
+    assert pop, "expected a non-empty cohort at this lambda"
+    assert all(c.region != pd._PLACEHOLDER_REGION for c in pop)
+    assert all(c.region in expected_regions for c in pop)
+
+
+def test_draw_region_observable_matches_cohort_region_same_customer():
+    """Coherence: the OBSERVABLE region drawn by iter_acquisition_events equals
+    the region assign_cohort() draws for the same customer_id+seed — one
+    mechanism, never two independent draws that could disagree."""
+    pop = pd.draw_population(
+        base_seed=11, acquisitions_per_year_lambda=_REGION_TEST_LAMBDA, draw_region=True
+    )
+    assert pop
+    for c in pop:
+        cohort = pd.assign_cohort(c.customer_id, base_seed=11)
+        assert cohort.region == c.region
+
+
+def test_draw_region_deterministic_replay():
+    a = pd.draw_population(
+        base_seed=5, acquisitions_per_year_lambda=_REGION_TEST_LAMBDA, draw_region=True
+    )
+    b = pd.draw_population(
+        base_seed=5, acquisitions_per_year_lambda=_REGION_TEST_LAMBDA, draw_region=True
+    )
+    assert [c.region for c in a] == [c.region for c in b]
 
 
 def test_data_regime_is_synthetic():

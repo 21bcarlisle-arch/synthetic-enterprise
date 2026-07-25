@@ -1,11 +1,19 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
 <!-- PARKED 2026-07-25: additive infra BUILT (§3 manifest/ledger, §4 three-scores+R15 guard,
      §1.3 coverage report+gate, §5 non-domestic audit) — see docs/design/RUN_LEDGER_AND_SCORES_BUILD_2026-07-25.md.
-     OPEN / blocking sub-item: the ACTIVATION CORE (§1) — make SYN region draw real so the
-     coverage gate can pass, harden ~19 entrypoints for the SYN shape, parameterise N (λ≈40→N≈198),
-     wire live_population() + coverage_gate_ok() into entrypoints/publish gate, flip SE_DRAW_POPULATION=1,
-     re-baseline downstream gated by the coverage report. §2 rotation = wire mechanism (scenario/true-prob
-     values stay R13 director-reserved). §6 survival-usefulness = REGISTERED ONLY, director-session gated. -->
+     OPEN / blocking sub-item: the ACTIVATION CORE (§1). PROGRESS 2026-07-25: SYN region draw made
+     REAL (opt-in draw_region=True on iter_acquisition_events, drawn from the ratified curriculum
+     region_marginal via draw_region_for_customer; live_population activated branch now carries real
+     regions; byte-identical default preserved, R15 mutation guard + coherence test). At N≈200 the
+     region axis now realises all 10 cells (worst=10) — the R10 UNKNOWN_SYNTHETIC placeholder blocker
+     is CLOSED. Coverage gate STILL False on ONE cell: heating_fuel:lpg_bottled thin (~0.5% national
+     tail → ~1 at N=200) — a TAIL/N question, not a region defect. REMAINING core: (a) N/λ
+     reconciliation — the ruling's N=200 vs the director-SIGNED λ=1.0 "PROFILE B TRICKLE" constant is
+     an R13 curriculum-value call, ESCALATED to director (do not self-flip λ); (b) design call on the
+     redundancy floor vs a real ~0.5% tail cell (smooth? accept-and-report? raise N?); (c) harden ~19
+     entrypoints for the SYN shape; (d) flip SE_DRAW_POPULATION=1 + re-baseline downstream = held,
+     director-reserved RELEASE RUNG (gated on the coverage report). §2 rotation = wire mechanism
+     (scenario/true-prob values stay R13). §6 survival-usefulness = REGISTERED ONLY, director-session gated. -->
 
 # [DIRECTOR-RULING] — Generator population ACTIVATED; run rotation, run manifest and the three separated scores (2026-07-25)
 

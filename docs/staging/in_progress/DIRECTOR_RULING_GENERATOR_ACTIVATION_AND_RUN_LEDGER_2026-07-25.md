@@ -6,9 +6,14 @@
      per run from the start" -> RunOutcomes.liquidity_headroom_min_gbp / collateral_cover_min added (fields
      only; §6 metrics stay unbuilt); §5 "report non-domestic as part of the coverage report" -> fold the
      15 resi/4 SME/5 I&C audit into the coverage-report output at activation. OPEN blocking sub-item = the
-     ACTIVATION CORE §1 (same as the twin: real SYN region draw so the gate passes, SYN-shape hardening,
-     N param, wire entrypoints + publish gate, flip SE_DRAW_POPULATION=1, re-baseline). §2 mechanism-only
-     (values R13). §6 registered-only, director-session gated. -->
+     ACTIVATION CORE §1 (same as the twin). PROGRESS 2026-07-25: real SYN region draw LANDED (opt-in
+     draw_region, drawn from the ratified curriculum region_marginal; live_population activated branch
+     carries real regions; byte-identical default preserved) — region axis realises all 10 cells at
+     N≈200, the R10 placeholder blocker is CLOSED. Gate still False on ONE tail cell
+     (heating_fuel:lpg_bottled thin at N=200) — N/tail question, not region. REMAINING: N/λ
+     reconciliation (ruling's N=200 vs director-signed λ=1.0 TRICKLE = R13, ESCALATED to director);
+     tail-floor design call; ~19-entrypoint SYN hardening; flag-flip + re-baseline = held director-
+     reserved release rung. §2 mechanism-only (values R13). §6 registered-only, director-session gated. -->
 
 # [DIRECTOR-RULING] — Generator population ACTIVATED (R13); run rotation, run ledger, and the three separated scores (2026-07-25)
 

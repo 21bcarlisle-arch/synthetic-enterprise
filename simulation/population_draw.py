@@ -277,6 +277,7 @@ def iter_acquisition_events(
     band_weights: Optional[Mapping[str, float]] = None,
     region: str = _PLACEHOLDER_REGION,
     assign_cohorts: bool = False,
+    draw_region: bool = False,
 ) -> Iterator[SyntheticCustomer]:
     """Yield synthetic acquisition EVENTS one at a time, in date order
     (C-S1 event-arrival tolerance: a consumer must NOT assume batch
@@ -292,10 +293,22 @@ def iter_acquisition_events(
     12-axis population-coverage taxonomy). Default OFF so existing callers see a
     byte-identical stream -- proven by `test_cohort_draw_default_off_is_byte_
     identical`.
+
+    `draw_region` (default False, ACTIVATION §1): when True each customer's region
+    is drawn from the director-set curriculum marginal via `draw_region_for_
+    customer()` instead of the `_PLACEHOLDER_REGION` literal — the R10-placeholder
+    closure the activation core needs so the coverage report/gate can judge the
+    region axis on real cells. Default OFF preserves the byte-identical placeholder
+    stream (`test_region_is_explicit_placeholder_not_fabricated`); when True the
+    OBSERVABLE region equals the cohort region for the same customer (same
+    substream, see `draw_region_for_customer`). An explicit `region` override is
+    ignored while `draw_region=True`.
     """
     segment_weights = segment_weights or DEFAULT_SEGMENT_WEIGHTS
     commodity_weights = commodity_weights or DEFAULT_COMMODITY_WEIGHTS
     band_weights = band_weights or DEFAULT_BAND_WEIGHTS
+    # Load the curriculum ONCE (not per customer) when drawing regions.
+    region_curriculum = _load_cohort_curriculum() if draw_region else None
 
     rng = _substream(base_seed)
     for year in range(start_year, end_year + 1):
@@ -307,6 +320,11 @@ def iter_acquisition_events(
         for i, offset in enumerate(day_offsets, start=1):
             acq_date = dt.date(year, 1, 1) + dt.timedelta(days=offset)
             cid = f"SYN-{year}-{i:03d}"
+            cust_region = (
+                draw_region_for_customer(cid, base_seed, region_curriculum)
+                if draw_region
+                else region
+            )
             yield _draw_one(
                 rng,
                 customer_id=cid,
@@ -314,7 +332,7 @@ def iter_acquisition_events(
                 segment_weights=segment_weights,
                 commodity_weights=commodity_weights,
                 band_weights=band_weights,
-                region=region,
+                region=cust_region,
                 base_seed=base_seed,
                 assign_cohorts=assign_cohorts,
             )
@@ -577,6 +595,27 @@ def region_weights_from_curriculum(curriculum: Optional[dict] = None) -> Dict[st
     return c["region_marginal_synthetic_acquisitions"]["value"]
 
 
+def draw_region_for_customer(
+    customer_id: str, base_seed: int, curriculum: Optional[dict] = None
+) -> str:
+    """Draw `customer_id`'s region from the director-set curriculum marginal
+    (`region_marginal_synthetic_acquisitions`, R13 — a ratified value, not one
+    minted here), via this subsystem's own per-customer `region` substream
+    (C-S2 isolation, keyed on customer_id so it is order-independent).
+
+    This is the SINGLE region-draw mechanism: `assign_cohort()` (region=None)
+    and `iter_acquisition_events(draw_region=True)` both route through it, so a
+    customer's OBSERVABLE region (saas dict) and its cohort region are the SAME
+    value by construction, never two independent draws that could disagree.
+    Closes the 2026-07-13 R10 placeholder (`_PLACEHOLDER_REGION`): the curriculum
+    marginal exists expressly so synthetic acquisitions stop defaulting to
+    UNKNOWN_SYNTHETIC (see its own `basis` note)."""
+    return _weighted_choice(
+        _cohort_substream(customer_id, base_seed, "region"),
+        region_weights_from_curriculum(curriculum),
+    )
+
+
 #: The three low-carbon assets whose adoption is tenure-gated per-asset. Kept in
 #: sync with `simulation.life_events`' three gated adoption events (solar_install
 #: -> solar_pv, ev_acquired -> ev, heat_pump_installed -> heat_pump).
@@ -687,10 +726,7 @@ def assign_cohort(customer_id: str, base_seed: int, *, region: Optional[str] = N
     )
 
     if region is None:
-        region = _weighted_choice(
-            _cohort_substream(customer_id, base_seed, "region"),
-            region_weights_from_curriculum(c),
-        )
+        region = draw_region_for_customer(customer_id, base_seed, c)
 
     heating_fuel = _weighted_choice(
         _cohort_substream(customer_id, base_seed, "heating_fuel"),
