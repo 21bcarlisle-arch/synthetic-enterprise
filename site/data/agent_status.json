@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-25T15:58:17.456860+00:00",
+  "last_updated": "2026-07-25T16:13:50.087035+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T15:58:17.456860+00:00",
+      "last_heartbeat": "2026-07-25T16:13:50.087035+00:00",
       "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-25T15:58:17.456860+00:00",
+      "last_action_ts": "2026-07-25T16:13:50.087035+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T15:57:11.338319+00:00",
-      "last_action": "Waiting for next cycle (3h 10m remaining)",
-      "last_action_ts": "2026-07-25T15:57:11.338319+00:00",
+      "last_heartbeat": "2026-07-25T16:12:11.340280+00:00",
+      "last_action": "Waiting for next cycle (2h 55m remaining)",
+      "last_action_ts": "2026-07-25T16:12:11.340280+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T15:52:21.433825+00:00",
-      "last_action": "Run complete in 497s \u2014 3783 KB (run_output_8cb73e374_20260725T154404Z.json)",
-      "last_action_ts": "2026-07-25T15:52:21.433825+00:00",
+      "last_heartbeat": "2026-07-25T16:08:07.332522+00:00",
+      "last_action": "Run complete in 480s \u2014 3783 KB (run_output_1fc45cb16_20260725T160007Z.json)",
+      "last_action_ts": "2026-07-25T16:08:07.332522+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T15:56:51.251226+00:00",
+      "last_heartbeat": "2026-07-25T16:13:19.007461+00:00",
       "last_action": "Cycle complete -- current stuck-key unchanged for ~369min",
       "last_action_ts": "2026-07-25T06:00:31.799253+00:00",
       "anomaly": null,
