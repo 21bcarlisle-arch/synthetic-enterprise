@@ -109,12 +109,19 @@ pricing that merely *looks right now*.
 - `docs/market_research/ssp_dispatchable_fleet_renewables_era_boundaries_2026-07-24.md` — DUKES Ch.5 capacity/renewables-share era boundaries → time-indexes `DISPATCHABLE_CAPACITY_MW` and the coal-exit boundary (last GB coal plant closed 2024).
 - `docs/market_research/ssp_scarcity_constants_external_benchmark_2026-07-24.md` — GB cash-out/scarcity **ceiling £6,000/MWh** (DDM design, observed-with-evidence); Reliability Standard **LOLE ≤ 3 h/yr**; **CCGT confirmed as GB reference marginal technology** (CM Net-CONE context); and the honest gap: **no published source uses the same reduced functional form** as the live A0/A1/A2 curve.
 
-**Remaining named gap (the DISCOVER work this reconstruction still needs — network-dependent, not run this tick):**
-a **multi-plant SRMC stack**, not a single CCGT floor: published GB heat rates / thermal efficiencies per
-plant type (CCGT, OCGT, coal-until-2024, and reserve/peaker tiers), variable O&M, and a UK-ETS carbon-price
-time series, from DESNZ/DUKES/BEIS/Ofgem/Elexon. **Pre-load ground-truth context before any local model
-touches sources** (key learning). **No fabricated constants** — cite or leave a named gap (R10). Network was
-403-on-probe this tick; register as the next drawable DISCOVER step, not a claimed closure.
+**Named gap DISCHARGED as far as published GB sources allow (2026-07-25 pass, network available):**
+- `docs/market_research/ssp_multiplant_srmc_stack_heat_rates_2026-07-25.md` — DUKES 5.10.C fleet-average
+  thermal efficiencies 2016–2024 (CCGT ~49%, coal 32–42%, nuclear ~40%, gross-CV basis); DUKES 5.14
+  per-electrical-MWh emission factors; DESNZ 2024 GHG factors give gas = **0.1829 tCO₂/MWh_th**, which
+  **confirms the live `EF_GAS_TCO2_PER_MWH_TH = 0.184` needs no correction**; and the standout finding —
+  UK **Carbon Price Support has been a time-invariant ~£18/tCO₂ constant across the whole 2016–2025 window**
+  (HMRC rate table), wireable into the SRMC stack immediately without the separate ETS market-price series.
+- **Residual R10 named gaps (cited-not-blocking, carried to the BUILD):** (1) EU/UK-ETS actual annual-average
+  traded carbon price 2016–2024 — not found on DESNZ/HMRC/DUKES this pass (try ICE/EEX settlement or DUKES
+  annex next); the ~£18 CPS floor is usable in the interim, the ETS component stays a named gap. (2) OCGT
+  fleet-average efficiency (only new-build reference 34–36% HHV). (3) Coal variable O&M. (4) exact
+  %-of-half-hours-gas-is-marginal (generation-share ~30% + CCGT load-factor 49.8%→27.75% offered as proxies).
+  No constant was fabricated; each gap is left explicit per R10.
 
 ---
 

@@ -1,12 +1,17 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
 <!-- DISPOSITION 2026-07-25: FRAME landed (scope items 1 & 3) →
      docs/design/frame/W1_6_merit_order_reconstruction_FRAME.md (live-vs-target form + exact diff,
      evidence-cited to sim/price_engine.py + the W1_6 fidelity row; acceptance test + unmoved-baseline
-     invariant + R15 mutations defined). Scope item 2 DISCOVER partly satisfied by the 2026-07-24 pass
-     (fleet boundaries + £6,000/MWh ceiling + CCGT reference-tech); REMAINING open sub-item = the
-     multi-plant SRMC-stack heat-rate DISCOVER (network-dependent; probe was 403 this tick) + the BUILD,
-     held behind the propose-then-proceed window to 2026-07-28. Moved to in_progress/ (out of the
-     unprocessed-root scan); self-drawable retained so the DISCOVER/BUILD stay drawable. -->
+     invariant + R15 mutations defined). Scope item 2 DISCOVER now DISCHARGED as far as published GB
+     sources allow (network available 2026-07-25 pass) →
+     docs/market_research/ssp_multiplant_srmc_stack_heat_rates_2026-07-25.md (DUKES 5.10.C/5.14 per-type
+     efficiencies + emission factors, EF_GAS 0.184 CONFIRMED, UK Carbon Price Support ~£18/tCO₂ time-
+     invariant 2016–2025; 4 residual R10 gaps left explicit — ETS annual traded price, OCGT efficiency,
+     coal VOM, %-marginal-hours). BLOCKED now (was self-drawable): NO drawable-now work remains — the
+     DISCOVER is discharged and the only open sub-item is the engine BUILD, held behind the propose-then-
+     proceed window until 2026-07-28 (R13 baseline discipline; no interim tuning). blocked_on: propose-
+     then-proceed BUILD window closes 2026-07-28 (then registers to the maturity map at build-draw,
+     level moves stay blocked_on: director_level_up). The daily planner re-plan re-evaluates it. -->
 
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — Merit-order / gas-first price-engine reconstruction: DISCOVER + FRAME (2026-07-25)
 
