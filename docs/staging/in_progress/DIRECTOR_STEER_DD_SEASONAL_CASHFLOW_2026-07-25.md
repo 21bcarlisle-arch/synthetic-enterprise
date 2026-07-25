@@ -1,3 +1,13 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- PROCESSING NOTE (2026-07-25, worker tick):
+     FRAME done (evidence-cited, 7 dimensions) + proposal minted →
+     docs/staging/PLANNER_MINTED_dd_seasonal_cashflow_physics_2026-07-25.md (RUNG-1, drawable next tick).
+     OPEN sub-item: the DD1–DD5 + DD-H build (level-DD physics, held-credit liability, annual review, site tile).
+     BLOCKED marker = this STEER is not itself re-drawable; its drawable successor is the minted proposal
+     (avoids double-drawing). This steer reopens ONLY if the director revises the requirements or the
+     reserved boundary (seasonal-DD product / growth-timing analysis stay reserved regardless).
+     Variable/seasonal-DD product + growth-timing solvency analysis: REGISTERED as reserved in the proposal. -->
+
 # [DIRECTOR-STEER] — Per-customer DD cash flow: the seasonal credit cycle, and why growth timing is a solvency mechanism (2026-07-25)
 
 **Type:** [STEER] via advisor bridge. Director-authored domain content. Mechanism yours to design; the requirements below are the wall. FRAME first — establish what the billing organ already does before proposing anything.
