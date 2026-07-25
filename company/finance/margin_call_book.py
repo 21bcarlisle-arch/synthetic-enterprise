@@ -35,7 +35,62 @@ class MarginCallEvent:
         return self.variation_margin_gbp > 500_000.0
 
 
+# --- MC-2 §3: the committed trading facility SCALES WITH THE BOOK (2026-07-25) ---
+# DIRECTOR RULING (DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY_2026-07-25.md §3): a hardcoded
+# £5m liquidity facility standing against ANY book is a DEFECT, not a difficulty setting. At the
+# activated N=200 book it is orders of magnitude too large — nothing can kill it, so the MC-2
+# death-by-collateral test would be theatre. A real supplier's committed trading facility (bank RCF
+# + broker/exchange credit lines) is sized to its book: it covers a plausible peak variation-margin
+# posting on the hedge book it actually holds, so a bigger book earns a bigger facility.
+#
+# MECHANISM (observable, book-derived, wall-clean): the facility is a coverage multiple of the
+# book's OWN gross marked exposure — the two-way magnitude of its netted MtM across counterparties,
+# the size of the position it must collateralise — at the point the facility is committed
+# (origination/first construction), floored at a minimum committed facility. Every input is the
+# company's own netted MtM at OBSERVABLE forward prices (the same snapshot the margin feed already
+# consumes) — no simulation internal, no future data. It is set ONCE at construction and held: a
+# later, more adverse mark is called against this FIXED facility, so a large enough price move
+# produces death-by-collateral while the P&L may still survive (the exact 2021–22 shape MC-2 tests).
+#
+# NAMED SIMPLIFICATION (R10) — NOT a difficulty dial (MC-2 §3 / R12): FACILITY_COVERAGE_MULTIPLE and
+# FACILITY_MIN_GBP are sizing parameters pending a real external anchor (published UK-supplier
+# RCF-to-book ratios — registered as forward-discovery). They are set to a plausible operational
+# default and MUST NOT be tuned in either direction to change the MC-2 outcome: shrinking the
+# facility to force a death is the same R12 breach as inflating a multiplier. If the company
+# survives the whole breaking-strain sweep, DIAGNOSE the mechanism (R4, MC-2 §4) — never shrink the
+# facility. FACILITY_MIN_GBP is deliberately modest (a real supplier holds SOME committed RCF
+# regardless of book size) and must stay well below a plausible stress call so it cannot by itself
+# make a stressed book unbreakable.
+FACILITY_COVERAGE_MULTIPLE = 1.5   # committed headroom above the book's gross marked exposure at origination
+FACILITY_MIN_GBP = 250_000.0       # minimum committed operational facility (never zero -> never insta-dead)
+
+
+def book_scaled_credit_facility_gbp(exposure_by_counterparty: dict) -> float:
+    """The committed trading facility, sized to the book's own gross marked exposure.
+
+    ``exposure_by_counterparty`` is the exact output of
+    ``company.trading.forward_book.TradingBook.exposure_by_counterparty(prices)`` — per-counterparty
+    signed ``netted_mtm_gbp``. The book-size signal is the gross two-way magnitude of that mark
+    (``sum |netted_mtm|`` over attributed counterparties): it grows with the number and size of
+    positions and with price dislocation, and it is exactly the exposure the facility exists to
+    cover. PURE + deterministic (C-S2): same snapshot -> same facility.
+
+    Returns ``max(FACILITY_MIN_GBP, FACILITY_COVERAGE_MULTIPLE × gross_marked_exposure)``. The floor
+    guarantees a non-zero facility (a book with no marked exposure is not instantly dead); above it
+    the facility scales linearly with the book, so the fixed-£5m defect is gone.
+    """
+    gross = 0.0
+    for cp_id, entry in exposure_by_counterparty.items():
+        if cp_id == "UNATTRIBUTED":
+            continue
+        gross += abs(float(entry.get("netted_mtm_gbp", 0.0)))
+    return round(max(FACILITY_MIN_GBP, FACILITY_COVERAGE_MULTIPLE * gross), 2)
+
+
 class MarginCallBook:
+    # NOTE (MC-2 §3): the class-level 5m default is retained ONLY as a bare-constructor fallback for
+    # unit tests that build a book with no book context. The LIVE facility is always book-derived via
+    # build_margin_calls_from_mtm -> book_scaled_credit_facility_gbp; it is never 5m in a real run.
     def __init__(self, credit_facility_gbp: float = 5_000_000.0) -> None:
         self._calls: list[MarginCallEvent] = []
         self.credit_facility_gbp = credit_facility_gbp
@@ -97,7 +152,7 @@ def build_margin_calls_from_mtm(
     *,
     as_of_date: str,
     settlement_deadline: str,
-    credit_facility_gbp: float = 5_000_000.0,
+    credit_facility_gbp: "float | None" = None,
     book: "MarginCallBook | None" = None,
 ) -> "MarginCallBook":
     """Derive the variation-margin calls the company must POST from ISDA-netted MtM.
@@ -123,6 +178,12 @@ def build_margin_calls_from_mtm(
     ``UNATTRIBUTED`` bucket and rows with no counterparty identity form no call.
     """
     if book is None:
+        # MC-2 §3: the committed facility is book-derived by default (the fixed-£5m defect is gone).
+        # An explicit credit_facility_gbp is honoured only where a caller sets one deliberately
+        # (unit tests, or a sweep pinning the origination facility); otherwise it scales with the
+        # book's own gross marked exposure at this origination snapshot.
+        if credit_facility_gbp is None:
+            credit_facility_gbp = book_scaled_credit_facility_gbp(exposure_by_counterparty)
         book = MarginCallBook(credit_facility_gbp=credit_facility_gbp)
     existing = {c.call_id for c in book._calls}
     for cp_id in sorted(exposure_by_counterparty):

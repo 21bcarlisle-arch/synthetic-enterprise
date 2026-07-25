@@ -1,3 +1,20 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!--
+STATUS 2026-07-25 (parked in_progress — one sub-item LANDED, remainder belongs to the value_chain atom):
+- §3 FACILITY-SIZING DEFECT: **LANDED.** `company/finance/margin_call_book.py` now derives the
+  committed facility from the book's own gross marked exposure (`book_scaled_credit_facility_gbp`,
+  FACILITY_COVERAGE_MULTIPLE=1.5, floored FACILITY_MIN_GBP=£250k), wired live via
+  `build_margin_calls_from_mtm` (default credit_facility_gbp=None -> book-derived). The fixed £5m is
+  gone from the live path. R15 both-ways: a fixed-facility mutant trips 7 controls; epistemic PASS.
+  Coverage multiple + floor declared R10 named simplification, NOT tuned to outcome (MC-2 §4/R12).
+- OPEN, blocking sub-item -> tracked by `in_progress/PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md`:
+  §2 breaking-strain sweep (0.8/1.0/1.2/1.5×) + run-ledger fields (liquidity_minimum, cover_minimum,
+  outcome+cause); §1 acceptance-bar wiring (price-move-alone cash call; death-by-collateral while P&L
+  survives). Do NOT run the sweep to back-tune the facility (R12).
+- FOLLOW-ON (DISCOVER, non-blocking): calibrate FACILITY_COVERAGE_MULTIPLE / FACILITY_MIN_GBP to
+  published UK-supplier RCF-to-book ratios (external anchor; fidelity-to-reality, blind to P&L, R13).
+- §6 growth/leverage: REGISTERED for its own director session, not built here.
+-->
 # [DIRECTOR-RULING] — MC-2: no difficulty knob. Real 2021–22 history is the test; breaking-strain sweep around it. Facility sizing is a defect, not a dial. (2026-07-25)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the R13 curriculum wall on `PLANNER_MINTED_value_chain_observation_window_cap` (MC-2 death-test difficulty).

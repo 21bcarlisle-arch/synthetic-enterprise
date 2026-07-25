@@ -1,6 +1,7 @@
 import pytest
 from company.finance.margin_call_book import (
-    MarginCallBook, MarginCallEvent, MarginCallStatus, build_margin_calls_from_mtm
+    MarginCallBook, MarginCallEvent, MarginCallStatus, build_margin_calls_from_mtm,
+    book_scaled_credit_facility_gbp, FACILITY_COVERAGE_MULTIPLE, FACILITY_MIN_GBP,
 )
 from company.trading.forward_book import ForwardContract, TradingBook
 from company.trading.wholesale_credit_exposure import (
@@ -246,3 +247,101 @@ def test_margin_feed_skips_unattributed():
         {"C1": 40.0},  # OTM but UNATTRIBUTED
     )
     assert mc.margin_call_summary()["total_calls"] == 0
+
+
+# --- MC-2 §3: book-scaled committed facility (2026-07-25) ---
+# R15 both-ways: the facility must SCALE WITH THE BOOK (the property the director demanded) and the
+# fixed-£5m defect must be gone. Each control is written so that reverting the mechanism to a
+# constant facility (the named defect) makes it FAIL — a control that cannot fail is worthless.
+
+def test_facility_scales_with_book_MUTATION_KILLER():
+    """R15 KILLER: doubling the book's gross marked exposure STRICTLY increases the derived
+    facility. Reverting book_scaled_credit_facility_gbp to a constant (the fixed-£5m defect) makes
+    this assertion FAIL — this is the mutation test proving the control fires on its own defect."""
+    small = {"CP1": {"netted_mtm_gbp": -1_000_000.0}}
+    big = {"CP1": {"netted_mtm_gbp": -2_000_000.0}}
+    f_small = book_scaled_credit_facility_gbp(small)
+    f_big = book_scaled_credit_facility_gbp(big)
+    assert f_big > f_small                       # scales with the book — a constant facility fails here
+    assert f_big == pytest.approx(2 * f_small)   # linear in gross exposure
+
+
+def test_facility_is_not_the_fixed_5m_defect():
+    """The activated small book must NOT get a £5m facility — that was the named defect (an
+    orders-of-magnitude-too-large facility nothing can kill). A £1m gross book gets £1.5m, not £5m."""
+    f = book_scaled_credit_facility_gbp({"CP1": {"netted_mtm_gbp": -1_000_000.0}})
+    assert f == pytest.approx(FACILITY_COVERAGE_MULTIPLE * 1_000_000.0)
+    assert f != 5_000_000.0
+    assert f < 5_000_000.0
+
+
+def test_facility_gross_is_two_way_magnitude():
+    """The book-size signal is the GROSS two-way magnitude of the netted mark: an ITM name (+) and
+    an OTM name (-) both add exposure the facility must relate to — they do not net to zero."""
+    f = book_scaled_credit_facility_gbp({
+        "CP1": {"netted_mtm_gbp": -1_000_000.0},   # company owes
+        "CP2": {"netted_mtm_gbp": +1_000_000.0},   # company owed
+    })
+    assert f == pytest.approx(FACILITY_COVERAGE_MULTIPLE * 2_000_000.0)
+
+
+def test_facility_floor_never_zero():
+    """Fail-safe (R12 the OTHER way): an empty/flat book is NOT instantly dead — the facility floors
+    at FACILITY_MIN_GBP, never zero. A zero facility would force death, the same breach as forcing
+    survival."""
+    assert book_scaled_credit_facility_gbp({}) == pytest.approx(FACILITY_MIN_GBP)
+    assert book_scaled_credit_facility_gbp({"CP1": {"netted_mtm_gbp": 0.0}}) == pytest.approx(FACILITY_MIN_GBP)
+    assert FACILITY_MIN_GBP > 0.0
+
+
+def test_facility_min_cannot_make_stressed_book_unbreakable():
+    """The floor must stay modest — well below a plausible stress call — so it cannot by itself make
+    a stressed book unbreakable (that would re-introduce the theatre the ruling removes)."""
+    assert FACILITY_MIN_GBP <= 500_000.0   # a single stress event (>£500k VM) can exceed the bare floor
+
+
+def test_facility_ignores_unattributed_in_sizing():
+    """UNATTRIBUTED marks are a data-quality bucket, not a real counterparty position — they do not
+    inflate the committed facility."""
+    f = book_scaled_credit_facility_gbp({
+        "CP1": {"netted_mtm_gbp": -1_000_000.0},
+        "UNATTRIBUTED": {"netted_mtm_gbp": -9_000_000.0},
+    })
+    assert f == pytest.approx(FACILITY_COVERAGE_MULTIPLE * 1_000_000.0)
+
+
+def test_builder_derives_book_scaled_facility_by_default():
+    """LOAD-BEARING wiring: with no explicit facility the live builder path derives a book-scaled
+    facility (not £5m). The OTM £50k book (agreed £90, spot £40, 1000 MWh) gets a facility scaled to
+    its own £50k gross mark, floored at the minimum — proving the fixed-£5m default is gone live."""
+    mc = _feed(
+        [_otm_contract("C1", "TRADER-1", 90.0, 1000.0,
+                       CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)],
+        {"C1": 40.0},
+    )
+    # gross mark = £50k -> 1.5 × 50k = £75k < floor -> floored at FACILITY_MIN_GBP
+    assert mc.credit_facility_gbp == pytest.approx(FACILITY_MIN_GBP)
+    assert mc.credit_facility_gbp != 5_000_000.0
+
+
+def test_builder_facility_scales_up_on_larger_book():
+    """A larger book yields a larger derived facility above the floor: agreed £90, spot £40,
+    20_000 MWh -> gross mark £1.0M -> facility 1.5 × £1.0M = £1.5M."""
+    mc = _feed(
+        [_otm_contract("C1", "TRADER-1", 90.0, 20_000.0,
+                       CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)],
+        {"C1": 40.0},
+    )
+    assert mc.credit_facility_gbp == pytest.approx(1_500_000.0)
+
+
+def test_builder_explicit_facility_still_honoured():
+    """A caller pinning an explicit facility (unit test / sweep origination) still overrides the
+    book-derived default — the override path is preserved."""
+    mc = _feed(
+        [_otm_contract("C1", "TRADER-1", 90.0, 20_000.0,
+                       CounterpartyType.ENERGY_TRADER, CounterpartyCreditRating.A)],
+        {"C1": 40.0},
+        credit_facility_gbp=3_000_000.0,
+    )
+    assert mc.credit_facility_gbp == pytest.approx(3_000_000.0)
