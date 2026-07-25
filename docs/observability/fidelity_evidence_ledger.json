@@ -134,17 +134,65 @@
     },
     "run_git_commit": "4d1e899d18cb1c64dd79eb593bd5d848e7f1955a"
   },
+  "bad_debt_provision_vs_realised_variance": {
+    "atom_id": "bad_debt_reconciliation_bridge",
+    "rel_id": "bad_debt_provision_vs_realised_variance",
+    "relationship": {
+      "control_passed": true,
+      "generated_from": "run_output run_output_latest.json (seed=42)",
+      "kind": "bad_debt_provision_vs_realised_variance",
+      "n_years_reconciled": 10,
+      "provenance": "estimated_from_data",
+      "provision_clock": "billed",
+      "provision_total_gbp": 452459.1,
+      "provision_vs_realised_variance_gbp": 448288.14,
+      "provision_vs_realised_variance_ratio": 108.4784,
+      "realised_clock": "settled",
+      "realised_total_gbp": 4170.96,
+      "simplification_id": "bad_debt_recon_flat_vs_realised_only__aging_and_stage_unwired__clocks_named_not_adjusted",
+      "unwired_methods": [
+        "aging_matrix",
+        "stage_recovery"
+      ]
+    }
+  },
   "live_payment_detection_gap": {
     "atom_id": "W2_11_payment_truth",
     "rel_id": "live_payment_detection_gap",
     "relationship": {
-      "believed_failures": 16,
+      "believed_failures": 5,
       "cell_id": "A1_G2",
-      "detection_gap": 0.627906976744186,
+      "detection_gap": 0.2,
       "kind": "payment_failure_detection",
       "provenance": "estimated_from_data",
       "simplification_id": "live_payment_gap_regime_mixed_attributed_to_G2",
-      "true_failures": 43
+      "true_failures": 5
+    }
+  },
+  "live_payment_detection_gap::A1_G1": {
+    "atom_id": "W2_11_payment_truth",
+    "rel_id": "live_payment_detection_gap::A1_G1",
+    "relationship": {
+      "believed_failures": 44,
+      "cell_id": "A1_G1",
+      "detection_gap": 0.5,
+      "kind": "payment_failure_detection",
+      "provenance": "estimated_from_data",
+      "simplification_id": "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed",
+      "true_failures": 36
+    }
+  },
+  "live_payment_detection_gap::A1_G2": {
+    "atom_id": "W2_11_payment_truth",
+    "rel_id": "live_payment_detection_gap::A1_G2",
+    "relationship": {
+      "believed_failures": 0,
+      "cell_id": "A1_G2",
+      "detection_gap": 1.0,
+      "kind": "payment_failure_detection",
+      "provenance": "estimated_from_data",
+      "simplification_id": "live_payment_gap_detection_regime_partitioned_belief_ageing_mixed",
+      "true_failures": 7
     }
   }
 }

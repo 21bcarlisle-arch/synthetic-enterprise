@@ -1,0 +1,127 @@
+{
+  "clocks": {
+    "note": "R14: the flat-haircut provision sits on the BILLED clock (raised at bill issue, rate x revenue); the realised write-off sits on the SETTLED clock (booked post-churn). The variance is therefore part genuine estimate error and part billed-vs-settled timing offset -- named here, not adjusted away.",
+    "provision": "billed",
+    "realised": "settled"
+  },
+  "control": {
+    "passed": true,
+    "reasons": []
+  },
+  "generated_from": "run_output run_output_latest.json (seed=42)",
+  "provision_total_gbp": 452459.1,
+  "provision_vs_realised_variance_gbp": 448288.14,
+  "provision_vs_realised_variance_ratio": 108.4784,
+  "r12_note": "The variance is a DIAGNOSTIC, never a target (steer D1/D2). It is published, never tuned toward a benchmark. This report moves NO published figure (report-first, steer \u00a76).",
+  "realised_total_gbp": 4170.96,
+  "reconciled_methods": [
+    "flat_haircut (saas.payment_behaviour.bad_debt_provision_gbp, billed)",
+    "realised (simulation.arrears_engine.compute_emergent_bad_debt, settled)"
+  ],
+  "unwired_methods": {
+    "aging_matrix": {
+      "clock": "would be as-of/positional (a point-in-time aged balance), distinct from both the billed and settled clocks below",
+      "module": "company/finance/bad_debt_provision.py",
+      "needs": "aged arrears positions per customer as_of a date (ArrearsLedgerItem: outstanding_gbp + days_outstanding), which no run currently emits -- the arrears cascade in simulation.arrears_engine carries stage DATES but no aged open-balance snapshot the company observes.",
+      "status": "unwired -- no run-data input path exists yet"
+    },
+    "stage_recovery": {
+      "clock": "would be process/stage-indexed (expected loss = amount - expected recovery by stage), distinct from billed and settled",
+      "module": "company/finance/debt_collection.py",
+      "needs": "debt records by dunning stage (DebtRecord: amount_gbp + DebtStage + stage_date), i.e. a live dunning ladder placing accounts into initial_reminder/warning/pre_legal/DCA/legal/write_off -- the ladder module has zero live callers, so no run produces stage-classified records.",
+      "status": "unwired -- no run-data input path exists yet"
+    }
+  },
+  "years": [
+    {
+      "flat_provision_gbp": 380.18,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 66.56,
+      "variance_gbp": 313.62,
+      "variance_ratio": 5.7118,
+      "year": 2016
+    },
+    {
+      "flat_provision_gbp": 8277.83,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 515.25,
+      "variance_gbp": 7762.58,
+      "variance_ratio": 16.0657,
+      "year": 2017
+    },
+    {
+      "flat_provision_gbp": 14404.42,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 354.22,
+      "variance_gbp": 14050.2,
+      "variance_ratio": 40.6652,
+      "year": 2018
+    },
+    {
+      "flat_provision_gbp": 39391.76,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 107.39,
+      "variance_gbp": 39284.37,
+      "variance_ratio": 366.8103,
+      "year": 2019
+    },
+    {
+      "flat_provision_gbp": 44485.69,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 0.0,
+      "variance_gbp": 44485.69,
+      "variance_ratio": null,
+      "year": 2020
+    },
+    {
+      "flat_provision_gbp": 57892.42,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 450.32,
+      "variance_gbp": 57442.1,
+      "variance_ratio": 128.5584,
+      "year": 2021
+    },
+    {
+      "flat_provision_gbp": 101616.11,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 9.26,
+      "variance_gbp": 101606.85,
+      "variance_ratio": 10973.662,
+      "year": 2022
+    },
+    {
+      "flat_provision_gbp": 83416.46,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 2491.69,
+      "variance_gbp": 80924.77,
+      "variance_ratio": 33.4779,
+      "year": 2023
+    },
+    {
+      "flat_provision_gbp": 71811.3,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 176.27,
+      "variance_gbp": 71635.03,
+      "variance_ratio": 407.3938,
+      "year": 2024
+    },
+    {
+      "flat_provision_gbp": 30782.93,
+      "provision_clock": "billed",
+      "realised_clock": "settled",
+      "realised_written_off_gbp": 0.0,
+      "variance_gbp": 30782.93,
+      "variance_ratio": null,
+      "year": 2025
+    }
+  ]
+}
