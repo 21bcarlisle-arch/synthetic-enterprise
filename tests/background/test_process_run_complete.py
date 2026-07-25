@@ -728,3 +728,69 @@ def test_push_reached_origin_false_on_nonzero_rc():
 def test_push_reached_origin_false_on_empty_remote_head():
     """ls-remote failed/empty -> cannot confirm -> not a success (fail-closed)."""
     assert prc._push_reached_origin(0, "", "abc123") is False
+
+
+# ── Fault #1 (2026-07-25 overnight publish-freeze): published liveness decoupled from content-change ──
+class TestRefreshPublishedLivenessOnSkip:
+    """The on-disk worker-tick heartbeat updates every 60s but only reached origin via a CONTENT
+    publish; a byte-identical-output night (change-detection SKIP every cycle) froze the PUBLISHED
+    heartbeat ~4h though every daemon was healthy. `_refresh_published_liveness_on_skip` publishes
+    ONLY the liveness surface on a SKIP, throttled to the same 30-min push cadence. Proven both ways:
+    throttled -> no-op; due -> commits ONLY the liveness paths and records a verified push."""
+
+    def _wire(self, tmp_path, monkeypatch, *, push_due, commit_rc=0, reached=True):
+        from contextlib import nullcontext
+        monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+        (tmp_path / "site" / "data").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "docs" / "observability").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "site" / "data" / "tick_heartbeat.json").write_text('{"ts": 1}')
+        (tmp_path / "docs" / "observability" / "agent_status.json").write_text('{"a": 1}')
+        monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: nullcontext())
+        monkeypatch.setattr(prc, "_push_due", lambda: push_due)
+        recorded = []
+        monkeypatch.setattr(prc, "_record_push_time", lambda: recorded.append(True))
+        monkeypatch.setattr(prc, "_push_reached_origin", lambda *a, **k: reached)
+        calls = []
+
+        def fake_run(argv, **kwargs):
+            calls.append(argv)
+            rc = 0
+            if argv[:2] == ["git", "commit"]:
+                rc = commit_rc
+            out = ""
+            if argv[:2] == ["git", "rev-parse"]:
+                out = "LOCALHEAD\n"
+            if argv[:2] == ["git", "ls-remote"]:
+                out = "LOCALHEAD\trefs/heads/main\n"
+            return type("R", (), {"returncode": rc, "stdout": out, "stderr": ""})()
+
+        monkeypatch.setattr(prc.subprocess, "run", fake_run)
+        return calls, recorded
+
+    def test_throttled_is_a_noop(self, tmp_path, monkeypatch):
+        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=False)
+        assert prc._refresh_published_liveness_on_skip("abc123") is False
+        assert calls == []            # no git calls at all while throttled
+        assert recorded == []
+
+    def test_due_commits_only_liveness_paths_and_records_push(self, tmp_path, monkeypatch):
+        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=True, reached=True)
+        assert prc._refresh_published_liveness_on_skip("abc123") is True
+        commit = next(c for c in calls if c[:2] == ["git", "commit"])
+        # commit pathspec is EXACTLY the liveness files -- never the whole index (no concurrent sweep)
+        assert "--" in commit
+        committed_paths = commit[commit.index("--") + 1:]
+        assert {Path(p).name for p in committed_paths} == {"tick_heartbeat.json", "agent_status.json"}
+        assert any(c[:2] == ["git", "push"] for c in calls)
+        assert recorded == [True]      # throttle recorded ONLY on a verified advance
+
+    def test_due_but_phantom_push_does_not_record(self, tmp_path, monkeypatch):
+        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=True, reached=False)
+        assert prc._refresh_published_liveness_on_skip("abc123") is False
+        assert recorded == []          # phantom push (origin did not advance) never resets throttle
+
+    def test_nothing_to_commit_skips_push(self, tmp_path, monkeypatch):
+        calls, recorded = self._wire(tmp_path, monkeypatch, push_due=True, commit_rc=1)
+        assert prc._refresh_published_liveness_on_skip("abc123") is False
+        assert not any(c[:2] == ["git", "push"] for c in calls)
+        assert recorded == []

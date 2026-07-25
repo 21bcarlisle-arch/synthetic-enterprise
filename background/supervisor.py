@@ -245,6 +245,20 @@ LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_h
 PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS = 60 * 60   # director ruling: a wedge older than 60 min is rung-1
 PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mirrors the H15 alarm threshold)
 
+# RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (director console P0, 2026-07-25): a daemon-lifecycle
+# RED that PERSISTS past paging is priority-zero DRAWABLE work, not an alarm to admire. The overnight
+# incident: the operational-layer signal was RED for 13 consecutive hourly checks (a retired daemon's
+# orphaned systemd unit failing the anti-drift reconcile, + a pixel-verification capability regression)
+# and the ONLY response was an hourly page -- no draw rung ever surfaced "go fix the red daemon-lifecycle
+# suite," so the tick rested beside it all night (consumed-not-absorbed, R17/MAKE_IT_STICK). This makes
+# it a mechanism: past OPERATIONAL_RED_DRAWABLE_THRESHOLD consecutive reds, the tick DRAWS the fix.
+# Signal source: process_run_complete.py's .operational_layer_signal.json ({consecutive_red, last_result}
+# -- written by run_operational_layer_signal on each hourly deadman check). Supervisor only READS it.
+# Detector: _operational_red_persistent_draw(); wired as RUNG 1b of _self_refill_draw and mirrored in
+# _is_drained_and_gated. R15-proven both ways in test_operational_red_persistent_draw.py.
+OPERATIONAL_LAYER_SIGNAL_FILE = PROJECT_DIR / "docs" / "observability" / ".operational_layer_signal.json"
+OPERATIONAL_RED_DRAWABLE_THRESHOLD = 3   # director: persistent-RED = >3 consecutive checks -> drawable
+
 # Names that live directly in docs/staging/ but are not real work items.
 _IGNORED_STAGING_NAMES = {".gitkeep"}
 
@@ -2238,6 +2252,70 @@ def _publish_gate_wedge_active(
     )
 
 
+def _operational_red_persistent_draw(
+    now: float | None = None,
+    state_path: Path | None = None,
+) -> str | None:
+    """RUNG 1b (PRIORITY ZERO) detector: has the operational-layer signal been RED for MORE than
+    OPERATIONAL_RED_DRAWABLE_THRESHOLD consecutive checks? Returns a remediation draw message if so,
+    else None.
+
+    Director console P0 (2026-07-25): a persistent operational RED is priority-zero drawable work,
+    not an alarm to admire. The overnight incident this mechanises: the operational-layer signal was
+    RED for 13 consecutive hourly checks (an orphaned systemd unit for a retired daemon failing the
+    anti-drift reconcile, plus a pixel-verification capability regression), and the ONLY response was
+    an hourly page -- no draw rung surfaced 'go fix the red daemon-lifecycle suite', so the tick
+    rested beside it all night (consumed-not-absorbed; the exact class R17/MAKE_IT_STICK forbids).
+
+    Signal source: process_run_complete.py's .operational_layer_signal.json ({consecutive_red,
+    consecutive_green, last_result, ...}) -- WRITTEN by run_operational_layer_signal on each hourly
+    deadman check, READ-ONLY here (local disk read only, per the module doctrine).
+
+    Predicate (fail-safe TOWARD drawing -- a false draw only costs one diagnostic turn that finds
+    nothing and rests, self-correcting; a false SILENCE is the overnight stall):
+      * last_result == 'red' (the signal's own verdict; a green result never draws even if a stale
+        counter lingers), AND
+      * consecutive_red > OPERATIONAL_RED_DRAWABLE_THRESHOLD (past PAGING, which fires at 2 -- so
+        this is the ESCALATION when paging did not get it fixed: >3 consecutive = drawable).
+
+    Note the drawable bar (>3) is deliberately HIGHER than the paging bar (2, OPERATIONAL_LAYER_
+    PERSISTENT_RED_THRESHOLD in process_run_complete.py): page first, and only mechanise into a draw
+    once the alarm has demonstrably not been actioned across several checks.
+
+    FAIL-SAFE: an unreadable/absent/malformed state file returns None (no phantom draw -- the lower
+    rungs still draw real work), never an exception into the draw ladder. R15-proven both ways (fires
+    on the overnight consecutive_red=13/red state; silent on green, on a below-threshold red, and on
+    a malformed file) in test_operational_red_persistent_draw.py."""
+    now = time.time() if now is None else now
+    sp = state_path or OPERATIONAL_LAYER_SIGNAL_FILE
+    try:
+        state = json.loads(Path(sp).read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(state, dict):
+        return None
+    if state.get("last_result") != "red":
+        return None
+    try:
+        consecutive_red = int(state.get("consecutive_red") or 0)
+    except (TypeError, ValueError):
+        return None
+    if consecutive_red <= OPERATIONAL_RED_DRAWABLE_THRESHOLD:
+        return None
+    return (
+        "OPERATIONAL-LAYER PERSISTENT-RED self-refill (RUNG 1b, PRIORITY ZERO -- director console "
+        "2026-07-25): the operational-layer signal (`pytest -m operational`, the daemon-lifecycle / "
+        f"IaC-reconcile / capability suite) has been RED for {consecutive_red} consecutive hourly "
+        "checks -- past paging, so paging did NOT get it fixed. This is priority-zero drawable work "
+        "and OUTRANKS every product/HARDEN lane. DIAGNOSE with evidence (R9): run the exact signal "
+        "`python3 -m pytest tests/ -q -m operational` (see "
+        "background/process_run_complete.py::operational_layer_pytest_argv), NAME the failing "
+        "daemon-lifecycle/capability defect one line, FIX it (regenerate the process-set manifest / "
+        "restore the capability), confirm the suite GREEN, and NTFY the director the cause. The "
+        "signal clears itself on the next hourly check once the suite passes."
+    )
+
+
 DIRECTOR_AXES_PATH = PROJECT_DIR / "docs" / "design" / "DIRECTOR_AXES.md"
 FIDELITY_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "fidelity_evidence_ledger.json"
 PLANNER_RUNG_DISABLED_FLAG = PROJECT_DIR / "docs" / "observability" / ".planner_rung_disabled"
@@ -2528,6 +2606,16 @@ def _self_refill_draw() -> str | None:
         log("PUBLISH-GATE WEDGE (RUNG 1, PRIORITY ZERO): gate wedged >60min -> drawing unwedge work "
             "above every product/HARDEN lane (director ruling WEDGE3_AND_RUNG1_MECHANISE 2026-07-24)")
         return wedge
+    # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (PRIORITY ZERO, director console 2026-07-25).
+    # Checked above every product/HARDEN lane: a daemon-lifecycle RED that has persisted past paging
+    # is the exact overnight stall (13 consecutive reds, hourly page, tick rested beside it) this
+    # mechanises away. R15: proven to fire on the persistent-red state and stay silent on green.
+    op_red = _operational_red_persistent_draw()
+    if op_red:
+        log("OPERATIONAL-LAYER PERSISTENT-RED (RUNG 1b, PRIORITY ZERO): operational suite RED past "
+            "paging threshold -> drawing the daemon-lifecycle fix above every product/HARDEN lane "
+            "(director console 2026-07-25)")
+        return op_red
     build_atoms = _maturity_map_draw_concurrent(exclude_stalled=True)
     drawn_ids: set[str] = {a["id"] for a in build_atoms if "id" in a}
 
@@ -2725,6 +2813,12 @@ def _is_drained_and_gated() -> bool:
         # drawable work. Mirror of the top rung added to `_self_refill_draw`; without it,
         # `_is_drained_and_gated` would green-light the exact 2h17m rest the draw now refuses.
         if _publish_gate_wedge_active():
+            return False
+        # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (PRIORITY ZERO, director console 2026-07-25):
+        # rest is NEVER legitimate while the operational suite has been RED past paging. Mirror of the
+        # rung added to `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light the
+        # exact overnight rest the draw now refuses (13 consecutive reds, tick resting beside them).
+        if _operational_red_persistent_draw():
             return False
         if _maturity_map_draw_concurrent(exclude_stalled=True):
             return False

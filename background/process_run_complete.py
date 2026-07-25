@@ -1231,6 +1231,77 @@ def _record_push_time() -> None:
     LAST_PUSH_FILE.write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
 
 
+# ── Fault #1 (2026-07-25 overnight publish-freeze): liveness publication must NOT
+# be coupled to business-output-change ──────────────────────────────────────────
+LIVENESS_SURFACE_FILES = (
+    "site/data/tick_heartbeat.json",
+    "docs/observability/agent_status.json",
+)
+
+
+def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
+    """Publish ONLY the liveness surface on a change-detection SKIP. Returns True
+    iff a fresh liveness commit reached origin this call.
+
+    ROOT CAUSE (director-flagged, 2026-07-25): the worker-tick heartbeat
+    (site/data/tick_heartbeat.json) is rewritten on disk every 60s, but it only
+    reaches origin as a SIDE-EFFECT of a CONTENT publish (commit_and_push_if_
+    changed of site/). When the sim output is byte-identical across runs -- the
+    common at-rest case, net=£1,521,070 for hours -- the change-detection gate
+    SKIPs every cycle, so no content publish happens and the PUBLISHED heartbeat
+    freezes for hours while every daemon is healthy. Overnight this froze the live
+    site's liveness signal for ~4h though nothing had died. A liveness signal whose
+    freshness depends on the business OUTPUT changing is the defect -- fail-silent:
+    a heartbeat frozen because healthy-and-unchanged is indistinguishable on origin
+    from one frozen because dead.
+
+    Fix: on a SKIP, when a push is DUE (the SAME 30-min throttle as content, so no
+    per-cycle commit spam -- the very thing the change-detection gate exists to
+    prevent), commit+push ONLY the liveness files via the SAME self-verifying push
+    (ground-truth ls-remote, records the throttle only on a verified advance). This
+    bounds published-heartbeat staleness to <= PUSH_THROTTLE_SECONDS instead of
+    unbounded, with no regen/report/site/test. Commits ONLY the explicit paths
+    (never the whole index) so a concurrent writer's staged work is never swept in.
+    """
+    if not _push_due():
+        return False
+    files = [str(PROJECT_DIR / rel) for rel in LIVENESS_SURFACE_FILES
+             if (PROJECT_DIR / rel).exists()]
+    if not files:
+        return False
+    msg = ("chore(liveness): publish heartbeat while sim output unchanged (git={}) -- "
+           "decouples published liveness from content-change (Fault#1 2026-07-25)".format(git_hash))
+    with tree_lock():
+        subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=30)
+        # Commit ONLY these paths (never the whole index): a concurrent publisher's
+        # staged files must not be swept into a liveness commit.
+        result = subprocess.run(["git", "commit", "-m", msg, "--"] + files,
+                                cwd=str(PROJECT_DIR), timeout=30)
+        if result.returncode != 0:
+            # Heartbeat byte-identical to the committed copy -> nothing to commit. Fine.
+            return False
+        push = subprocess.run(["git", "push", "origin", "HEAD:main"],
+                              cwd=str(PROJECT_DIR), timeout=60)
+        local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
+                                    capture_output=True, text=True, timeout=15).stdout.strip()
+        remote_head = ""
+        try:
+            ls = subprocess.run(["git", "ls-remote", "origin", "refs/heads/main"],
+                                cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30)
+            remote_head = ls.stdout.split()[0] if ls.stdout.strip() else ""
+        except Exception as exc:
+            log("Liveness push verify: ls-remote failed ({})".format(exc))
+        if _push_reached_origin(push.returncode, remote_head, local_head):
+            _record_push_time()
+            log("Liveness heartbeat published to origin (sim output unchanged, "
+                "published-liveness decoupled from content-change).")
+            return True
+        log("Liveness heartbeat push did NOT advance origin (rc={}, origin={}, head={}) -- "
+            "throttle untouched, retry next cycle.".format(
+                push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
+        return False
+
+
 def _run_history_max_net():
     hp = PROJECT_DIR / "docs" / "observability" / "run_history.json"
     if not hp.exists():
@@ -1529,6 +1600,14 @@ def _process(marker_path_str):
         log("SKIP (change-detection gate): identical to last processed run "
             "[net=\xa3{:,.0f}, date={}] -- no regen/test/commit. Archived {}.".format(
                 net_margin, fingerprint["date"], marker.name))
+        # Fault #1 (2026-07-25): even on a content SKIP, keep the PUBLISHED liveness
+        # surface fresh on origin (throttled) -- the on-disk heartbeat updates every
+        # 60s but only reached origin via a content publish, so an unchanged-output
+        # night froze the live-site heartbeat ~4h though the machine was healthy.
+        try:
+            _refresh_published_liveness_on_skip(git_hash)
+        except Exception as exc:  # never let liveness publishing break the SKIP path
+            log("Liveness refresh on SKIP raised (non-fatal): {}".format(exc))
         return 0
     if forced:
         log("FORCED processing (a hold was just released) -- bypassing change-detection gate "

@@ -96,6 +96,10 @@ def _isolate(tmp_path, monkeypatch):
     # test_publish_gate_wedge_draw.py.
     monkeypatch.setattr(supervisor, "PUBLISH_GATE_STATE_FILE", tmp_path / ".publish_gate_state.json")
     monkeypatch.setattr(supervisor, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
+    # RUNG 1b operational-red drawable (2026-07-25): isolate its state path too, else the real
+    # overnight-red .operational_layer_signal.json makes every "map empty -> rest" find_work test
+    # draw the persistent-red rung instead of resting.
+    monkeypatch.setattr(supervisor, "OPERATIONAL_LAYER_SIGNAL_FILE", tmp_path / ".operational_layer_signal.json")
     # PLANNER REST-WITH-PROOF marker (RUNG 7, 2026-07-25): same isolation as every register/state
     # above -- point the marker at a nonexistent tmp file so this hermetic world has NO fresh rest
     # proof by default; otherwise a "map empty -> planner" test would leak the REAL
