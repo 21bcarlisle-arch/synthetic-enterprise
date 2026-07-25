@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-25T06:33:01.602690+00:00",
+  "last_updated": "2026-07-25T06:41:31.128314+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T06:33:00.349009+00:00",
-      "last_action": "Heartbeat \u2014 3 files tracked",
-      "last_action_ts": "2026-07-25T06:33:00.349009+00:00",
+      "last_heartbeat": "2026-07-25T06:41:31.128314+00:00",
+      "last_action": "Heartbeat \u2014 2 files tracked",
+      "last_action_ts": "2026-07-25T06:41:31.128314+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,19 +25,19 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T06:33:01.602690+00:00",
-      "last_action": "Waiting for next cycle (0h 30m remaining)",
-      "last_action_ts": "2026-07-25T06:33:01.602690+00:00",
+      "last_heartbeat": "2026-07-25T06:38:01.603510+00:00",
+      "last_action": "Waiting for next cycle (0h 25m remaining)",
+      "last_action_ts": "2026-07-25T06:38:01.603510+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
     },
     {
       "name": "sim-runner",
-      "status": "running",
-      "last_heartbeat": "2026-07-25T06:27:04.571382+00:00",
-      "last_action": "Sim started \u2014 git=8b634104d",
-      "last_action_ts": "2026-07-25T06:27:04.571382+00:00",
+      "status": "idle",
+      "last_heartbeat": "2026-07-25T06:35:13.944281+00:00",
+      "last_action": "Run complete in 489s \u2014 3783 KB (run_output_8b634104d_20260725T062704Z.json)",
+      "last_action_ts": "2026-07-25T06:35:13.944281+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T05:57:30.984645+00:00",
+      "last_heartbeat": "2026-07-25T06:33:55.896420+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-25T05:57:30.984645+00:00",
+      "last_action_ts": "2026-07-25T06:33:55.896420+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T06:32:06.142741+00:00",
+      "last_heartbeat": "2026-07-25T06:40:16.010387+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-25T06:19:55.550846+00:00",
       "anomaly": null,
