@@ -356,3 +356,60 @@ def test_committed_hook_invokes_the_gate_and_aborts_on_failure():
     # and the installer that makes it reconstruct-from-repo exists + sets core.hooksPath
     installer = (ROOT / "tools" / "install_git_hooks.sh").read_text()
     assert "core.hooksPath" in installer and "tools/git-hooks" in installer
+
+
+def _load_facets_module():
+    """Load tests/design/test_maturity_map_facets.py by path (no relative imports),
+    the module the gate runs when maturity_map.yaml is staged."""
+    fp = ROOT / "tests" / "design" / "test_maturity_map_facets.py"
+    spec = importlib.util.spec_from_file_location("_facets_for_gate_proof", fp)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_gate_refuses_an_unparseable_maturity_map__mutation_proof():
+    # R15 / CONTROLS_THAT_CANNOT_FAIL for the H24 SIBLING GAP (registered 2026-07-18, real incident:
+    # a flow-style ", " join fused mid block-sequence produced an invalid maturity_map.yaml that the
+    # test-gate PASSED and pushed to origin, breaking every map consumer). The closure is transitive
+    # (map ∈ LEVEL_SURFACE_FILES -> the gate runs test_maturity_map_facets.py -> its loader parses
+    # the on-disk map -> a ParserError errors the test -> pytest rc!=0 -> commit refused). That
+    # closure was never PROVEN, so a refactor (drop the facet test from the level set, or wrap the
+    # loader in try/except) could silently re-open it. This locks it in, both directions.
+    import yaml
+
+    # Part A -- WIRING: a maturity_map.yaml change MUST pull in the parse-checking facet test.
+    # (Non-vacuous: remove test_maturity_map_facets.py from LEVEL_SENSITIVE_TESTS and this reds.)
+    targets = gate.select_targets(["docs/design/maturity_map.yaml"])
+    assert "tests/design/test_maturity_map_facets.py" in targets, (
+        "a maturity_map.yaml change must run the facet test that parses the map -- without it an "
+        "unparseable map commits green (the 2026-07-18 sibling-gap incident)"
+    )
+
+    # Part B -- NON-VACUITY: that selected test's loader must REFUSE an unparseable map and ACCEPT a
+    # valid one. (Non-vacuous: wrap _load_live_atoms's yaml.safe_load in try/except-return-[] and the
+    # unparseable-map assertion reds.) Points the loader at throwaway temp files; never the real map.
+    facets = _load_facets_module()
+    orig = facets.MAP_PATH
+    bad = Path(tempfile.mkdtemp(prefix="h24_badmap_")) / "maturity_map.yaml"
+    # the exact defect class from the incident: a flow-style ", " join fused into a block sequence
+    bad.write_text("- id: x\n  simplifications:\n  - a', 'b\n    unclosed: [1, 2\n")
+    good = Path(tempfile.mkdtemp(prefix="h24_goodmap_")) / "maturity_map.yaml"
+    good.write_text("- id: x\n  level_current: 1\n")
+    try:
+        facets.MAP_PATH = bad
+        raised = False
+        try:
+            facets._load_live_atoms()
+        except yaml.YAMLError:
+            raised = True
+        assert raised, (
+            "the facet loader must raise a YAMLError on an unparseable map -- if it swallows the "
+            "parse error the gate would pass a broken map (sibling gap re-opened)"
+        )
+        facets.MAP_PATH = good
+        assert isinstance(facets._load_live_atoms(), list), (
+            "a valid map must still parse clean -- else the guard is a tautology that always fires"
+        )
+    finally:
+        facets.MAP_PATH = orig

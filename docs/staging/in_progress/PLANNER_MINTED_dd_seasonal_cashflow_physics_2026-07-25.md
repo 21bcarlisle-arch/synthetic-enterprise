@@ -1,3 +1,8 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+> **PARKED to in_progress/ 2026-07-25** — the FRAME + propose half is DONE (committed 422d41675); this doc IS the "then propose" artifact.
+> **BLOCKING SUB-ITEM:** propose-then-proceed window open **until 2026-07-27** (48h from mint). BUILD of DD1–DD5 + DD-H is deliberately held for director/advisor revision of the requirements or the RESERVED boundary during that window.
+> **UNBLOCKS:** a tick after 2026-07-27 with no director revision → flip this marker to `self-drawable` and register DD1–DD5 + DD-H to the maturity map at build-draw (level moves stay `blocked_on: director_level_up`). Growth analysis + the seasonal-DD product stay director-reserved regardless.
+
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — Per-customer level-DD seasonal cash-flow physics (2026-07-25)
 
 **Provenance:** processing of `DIRECTOR_STEER_DD_SEASONAL_CASHFLOW_2026-07-25.md` (director domain steer, advisor bridge). FRAME-first per the steer; this doc IS the "then propose" half. The steer is parked to `in_progress/`; this minted proposal is its drawable successor.
