@@ -142,6 +142,32 @@ def test_fail_open_nan_fires(css, data):
     assert _has(verify_css_reconciliation(m, data), "fail-open guard")
 
 
+def test_fail_open_nan_volume_fires(css, data):
+    """DEFECT (was FAIL-OPEN): a non-finite `volume_mwh` in a segment, with the
+    aggregate left finite (a serialisation/transform bug on the persisted artifact),
+    previously escaped every check — Control B's only guard was on the aggregate, and
+    a NaN seg_sum makes `abs(finite - NaN) > tol` evaluate silently False. volume_mwh
+    is absent from the _MONEY_KEYS guard, so the control returned clean while the
+    rendered WACOE line would show 'nan'. Must now fire the fail-open guard."""
+    m = copy.deepcopy(css)
+    m["segments"][CSS_SEGMENTS[0]]["volume_mwh"] = float("nan")
+    out = verify_css_reconciliation(m, data)
+    assert _has(out, "fail-open guard"), out
+    assert _has(out, "volume_mwh"), out
+    # clean still passes (control is not stuck-on)
+    assert verify_css_reconciliation(css, data) == []
+
+
+def test_fail_open_nan_gross_margin_fires(css, data):
+    """DEFECT (was FAIL-OPEN): same class for `gross_margin_gbp` — a headline rendered
+    row referenced only by Control B, not by the _MONEY_KEYS guard nor the waterfall."""
+    m = copy.deepcopy(css)
+    m["segments"][CSS_SEGMENTS[0]]["gross_margin_gbp"] = float("nan")
+    out = verify_css_reconciliation(m, data)
+    assert _has(out, "fail-open guard"), out
+    assert _has(out, "gross_margin_gbp"), out
+
+
 def test_fail_open_none_bridge_fires(css, data):
     m = copy.deepcopy(css)
     m["reconciliation"]["statutory_billed_revenue_gbp"] = None

@@ -302,6 +302,18 @@ def verify_css_reconciliation(
     # Control B — aggregate == sum of segments (persisted-artifact integrity).
     for k in ("revenue_gbp", "fuel_gbp", "gross_margin_gbp", "contribution_gbp",
               "transportation_gbp", "environmental_gbp", "volume_mwh"):
+        # FAIL-OPEN guard on the SEGMENT values, not just the aggregate: a single
+        # non-finite segment figure makes `seg_sum` NaN, and `NaN > tol` silently
+        # evaluates False — so the aggregate tie would pass on malformed input. The
+        # _MONEY_KEYS loop above covers revenue/fuel/transport/env/contribution, but
+        # 'gross_margin_gbp' and 'volume_mwh' are referenced ONLY here and would
+        # otherwise fail OPEN (a non-finite value renders as 'nan' in the audited
+        # WACOE / gross-margin lines while this control stays silent). Guard them.
+        bad = [s for s in CSS_SEGMENTS if not _finite_num((segs.get(s) or {}).get(k))]
+        if bad:
+            for s in bad:
+                v.append(f"fail-open guard: {s}.{k} is non-finite ({(segs.get(s) or {}).get(k)!r})")
+            continue
         seg_sum = sum((segs.get(s) or {}).get(k, 0.0) for s in CSS_SEGMENTS)
         if not _finite_num(agg.get(k)) or abs(agg[k] - seg_sum) > tol:
             v.append(f"aggregate '{k}' {agg.get(k)!r} != sum-of-segments {seg_sum:,.2f}")
