@@ -1,12 +1,16 @@
 {
-  "ts": 1784962457.8148284,
-  "ts_iso": "2026-07-25T06:54:17Z",
+  "ts": 1784965385.8447042,
+  "ts_iso": "2026-07-25T07:43:05Z",
   "verdict": "drew",
   "outcome": "SPAWNED",
-  "detail": "unprocessed staging -- DIRECTOR_RULING_PAYMENT_DETECTION_CARVE_OUT_2026-07-25.md, in_progress/DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md, in_progress/DIRECTOR_RULING_POPULATION_",
+  "detail": "unprocessed staging -- PLANNER_MINTED_dd_seasonal_cashflow_physics_2026-07-25.md, in_progress/DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25.md, in_progress/DIRECTOR_RULING_POPULATION_",
   "enumeration": "AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
-  "line": "[2026-07-25T06:54:17Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
+  "line": "[2026-07-25T07:43:05Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
   "recent": [
+    "[2026-07-25T07:43:05Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
+    "[2026-07-25T07:33:10Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y] -> MUST-DRAW: planner",
+    "[2026-07-25T07:21:48Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
+    "[2026-07-25T07:15:27Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=Y] -> MUST-DRAW: planner",
     "[2026-07-25T06:54:17Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
     "[2026-07-25T06:45:32Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
     "[2026-07-25T06:36:20Z] drew (SPAWNED) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
@@ -17,10 +21,6 @@
     "[2026-07-25T06:15:28Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
     "[2026-07-25T06:14:23Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
     "[2026-07-25T06:12:28Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
-    "[2026-07-25T06:11:23Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
-    "[2026-07-25T06:09:28Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
-    "[2026-07-25T06:07:35Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
-    "[2026-07-25T06:06:28Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)",
-    "[2026-07-25T06:05:23Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)"
+    "[2026-07-25T06:11:23Z] rested (REST_NO_WORK) -- AUTHORIZED-SET enumeration [build=. site=. discover_frame=. open_campaign=. defect_backlog=. backlog=. propose_half=. forward_discovery=. planner=.] -> REST-LEGITIMATE (whole authorized set empty)"
   ]
 }
