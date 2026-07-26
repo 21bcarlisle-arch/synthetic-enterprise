@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-26T14:02:01.105152+00:00",
+  "last_updated": "2026-07-26T14:17:29.484617+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-26T14:01:46.705008+00:00",
+      "last_heartbeat": "2026-07-26T14:17:18.712819+00:00",
       "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-26T14:01:46.705008+00:00",
+      "last_action_ts": "2026-07-26T14:17:18.712819+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-26T14:01:14.384793+00:00",
-      "last_action": "Waiting for next cycle (5h 10m remaining)",
-      "last_action_ts": "2026-07-26T14:01:14.384793+00:00",
+      "last_heartbeat": "2026-07-26T14:16:14.388242+00:00",
+      "last_action": "Waiting for next cycle (4h 55m remaining)",
+      "last_action_ts": "2026-07-26T14:16:14.388242+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-26T13:55:49.143503+00:00",
-      "last_action": "Run complete in 494s \u2014 3783 KB (run_output_103813c40_20260726T134735Z.json)",
-      "last_action_ts": "2026-07-26T13:55:49.143503+00:00",
+      "last_heartbeat": "2026-07-26T14:11:19.152232+00:00",
+      "last_action": "Run complete in 473s \u2014 3783 KB (run_output_51e886e97_20260726T140325Z.json)",
+      "last_action_ts": "2026-07-26T14:11:19.152232+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-26T13:35:22.837341+00:00",
+      "last_heartbeat": "2026-07-26T14:05:22.842237+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-26T13:35:22.837341+00:00",
+      "last_action_ts": "2026-07-26T14:05:22.842237+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-26T14:00:59.282364+00:00",
+      "last_heartbeat": "2026-07-26T14:17:29.484617+00:00",
       "last_action": "Cycle complete -- current stuck-key unchanged for ~369min",
       "last_action_ts": "2026-07-25T06:00:31.799253+00:00",
       "anomaly": null,
