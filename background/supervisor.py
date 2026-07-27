@@ -775,7 +775,9 @@ def _atom_has_frame_doc(atom: dict) -> bool:
     only one of those still has genuine FRAME work left and must NOT read as
     saturated. Paths are repo-relative (as stored in `evidence`), resolved
     against `PROJECT_DIR` so the check is real filesystem state, never an
-    assumed string match (R7: verify against disk).
+    assumed string match (R7: verify against disk). The resolved path must be a
+    regular file with non-whitespace content -- an empty/stub file or a directory
+    is not an honest FRAME output (see the inline note at the existence check).
 
     H23 residual-false-negative fix (2026-07-16, note[4]): the prefix was
     originally `docs/design/frame/`, which mis-read the ~11 atoms that carry a
@@ -817,8 +819,25 @@ def _atom_has_frame_doc(atom: dict) -> bool:
         # mutation-tested both directions (test_frame_saturation_draw_marker.py).
         if "FRAME" not in re.split(r"[^A-Z0-9]+", Path(s).name.upper()):
             continue
-        if (PROJECT_DIR / s).exists():
-            return True
+        # Existence alone is NOT enough: a 0-byte / whitespace-only stub (an
+        # interrupted turn's placeholder, or a stray `touch`) is NOT an honest
+        # FRAME-stage output, and an evidence entry that resolves to a DIRECTORY
+        # (e.g. `docs/design/frame/`) is not a doc at all. Counting either as a
+        # complete FRAME doc marks the atom saturated and STARVES it from the
+        # idle FRAME draw -- the fail-toward-starve wrong-side failure this atom
+        # exists to prevent (R15 FAIL-OPEN-on-empty: a check that passes on an
+        # empty/malformed input is worse than none). Require a regular file with
+        # non-whitespace content. A read error reads as "no honest FRAME output"
+        # (fail-toward-offer = the safe side, consistent with this control's
+        # whole philosophy). Live tree: every real FRAME doc is >5KB, so this
+        # tightening changes behaviour only for genuine stubs (2026-07-27 HARDEN
+        # red-team; R15 mutation-tested both directions).
+        p = PROJECT_DIR / s
+        try:
+            if p.is_file() and p.read_text(encoding="utf-8", errors="ignore").strip():
+                return True
+        except OSError:
+            continue
     return False
 
 

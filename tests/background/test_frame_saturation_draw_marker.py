@@ -417,6 +417,107 @@ def test_regression_substring_rule_would_have_starved_framework_atom(_isolate_ma
         assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
 
 
+# ── EMPTY / STUB FRAME-doc FALSE-POSITIVE fix (2026-07-27 HARDEN red-team):
+#    `_atom_has_frame_doc` counted ANY existing evidence path as a complete FRAME
+#    doc -- so a 0-byte / whitespace-only stub (an interrupted turn's placeholder)
+#    or an evidence entry resolving to a DIRECTORY (`docs/design/frame/`) marked
+#    the atom FRAME-saturated and STARVED it from the idle FRAME draw. That is the
+#    fail-toward-starve wrong-side failure this atom exists to prevent (R15
+#    FAIL-OPEN-on-empty: a check that passes on empty/malformed input is worse
+#    than none). Fix: require a regular file with non-whitespace content. Live
+#    tree safe -- every real FRAME doc is >5KB. R15 both directions. ───────────────
+
+
+@pytest.mark.parametrize("body", ["", "   \n\t\n"])
+def test_empty_or_whitespace_frame_doc_is_not_a_frame_doc(_isolate_map_and_root, body):
+    # FIXES the false-positive: an existing but empty/whitespace-only `_FRAME.md`
+    # is a stub, not an honest FRAME output -> the atom keeps its FRAME work and
+    # must stay OFFERED, never starved.
+    root = _isolate_map_and_root
+    rel = "docs/design/frame/STUB_ATOM_FRAME.md"
+    (root / rel).write_text(body)
+    atom = _idle_atom("STUB_ATOM", evidence=[rel])
+    assert supervisor._atom_has_frame_doc(atom) is False
+    assert supervisor._is_frame_saturated(atom) is False
+
+
+def test_directory_evidence_entry_is_not_a_frame_doc(_isolate_map_and_root):
+    # An evidence entry resolving to a DIRECTORY (name carries the FRAME token,
+    # exists() is True for a dir) is not a doc -> not saturated.
+    root = _isolate_map_and_root
+    (root / "docs" / "design" / "frame").mkdir(parents=True, exist_ok=True)
+    atom = _idle_atom("DIR_ATOM", evidence=["docs/design/frame"])
+    assert supervisor._atom_has_frame_doc(atom) is False
+    assert supervisor._is_frame_saturated(atom) is False
+
+
+def test_nonempty_frame_doc_still_reads_as_saturated(_isolate_map_and_root):
+    # The tightening must NOT regress the real convention: a FRAME doc with actual
+    # content still reads as saturated (the FIRES direction of this fix).
+    root = _isolate_map_and_root
+    rel = _write_frame_doc(root, "REAL_ATOM")   # writes "# FRAME -- REAL_ATOM\n"
+    atom = _idle_atom("REAL_ATOM", evidence=[rel])
+    assert supervisor._atom_has_frame_doc(atom) is True
+    assert supervisor._is_frame_saturated(atom) is True
+
+
+@pytest.mark.parametrize("draw", ["single", "concurrent"])
+def test_fires_offers_atom_with_only_a_stub_frame_doc(_isolate_map_and_root, draw):
+    # Integration, both entry points: an atom whose ONLY FRAME evidence is an
+    # empty stub has real FRAME work left, so it is the one HANDED, never starved
+    # -- while a genuinely-complete (_FRAME.md with content) atom beside it is
+    # skipped.
+    root = _isolate_map_and_root
+    stub = "docs/design/frame/STUB_ONLY_FRAME.md"
+    (root / stub).write_text("")                       # empty stub
+    real = _write_frame_doc(root, "COMPLETE")          # real content
+    atoms = [
+        _idle_atom("STUB_ONLY", evidence=[stub]),      # un-saturated (empty stub)
+        _idle_atom("COMPLETE", evidence=[real]),       # saturated (real doc)
+    ]
+    _write_map(root, atoms)
+    rng = random.Random(31337)
+    for _ in range(50):
+        if draw == "single":
+            picked = supervisor._idle_discover_frame_draw(rng=rng)
+            ids = {picked["id"]} if picked else set()
+        else:
+            picked = supervisor._idle_discover_frame_draw_concurrent(rng=rng, width=3)
+            ids = {a["id"] for a in picked}
+        assert ids == {"STUB_ONLY"}, f"stub-only atom starved / real re-handed: {ids}"
+
+
+def test_regression_existence_only_rule_would_have_starved_stub_atom(_isolate_map_and_root):
+    # Guard-mutation control for THIS fix (R15): restore the pre-fix existence-only
+    # rule via monkeypatch and assert the stub-only atom is then (wrongly) marked
+    # saturated and STARVED -> the draw returns None. Proves this test fails if the
+    # content-nonempty tightening is reverted.
+    import unittest.mock as mock
+    root = _isolate_map_and_root
+    stub = "docs/design/frame/STUB_ONLY_FRAME.md"
+    (root / stub).write_text("")
+    _write_map(root, [_idle_atom("STUB_ONLY", evidence=[stub])])
+    # Guard live (content rule): un-saturated -> the atom IS offered.
+    picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
+    assert picked is not None and picked["id"] == "STUB_ONLY"
+
+    def _existence_only_pre_fix(atom):
+        from pathlib import Path as _P
+        import re as _re
+        for e in atom.get("evidence") or []:
+            s = str(e)
+            if not s.startswith("docs/design/"):
+                continue
+            if "FRAME" not in _re.split(r"[^A-Z0-9]+", _P(s).name.upper()):
+                continue
+            if (supervisor.PROJECT_DIR / s).exists():   # the reverted existence-only rule
+                return True
+        return False
+
+    with mock.patch.object(supervisor, "_atom_has_frame_doc", side_effect=_existence_only_pre_fix):
+        assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
