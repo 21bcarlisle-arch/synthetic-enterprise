@@ -418,3 +418,72 @@ def test_never_surfaces_an_effort_metric():
                + out["cov-passport"]["innerHTML"] + out["cov-intro"]["innerHTML"])
     for effort in ("18504", "18,504", "tests collected", "commits/day"):
         assert effort not in surface, f"effort metric {effort!r} leaked onto the product surface"
+
+
+# --- DD5: held customer credit as a LIABILITY beside treasury -------------------
+# DIRECTOR_STEER_DD_SEASONAL_CASHFLOW 2026-07-25, requirement #2: a treasury/cash
+# figure must never stand alone without the customer-credit-balance position, so
+# the cash-rich-but-insolvent tell is legible. Shown HONESTLY -- the instrumented
+# floor (Variable-DD overpayment credit) is separated from the DESIGNED-not-yet-
+# instrumented level-DD seasonal cycle. Never a fabricated figure.
+
+def test_credit_held_liability_renders_beside_treasury_r11():
+    # R11: the held-customer-credit liability tile renders beside treasury on BOTH
+    # the top state KPIs and the finance panel -- treasury never stands alone.
+    d = _live()
+    if not (d.get("arrears") or {}).get("available"):
+        pytest.skip("arrears not in live company.json yet (pre-deploy / old generator process)")
+    out = _render(d)
+    for key in ("state-kpis", "finance-kpis"):
+        html = out[key]["innerHTML"]
+        assert "Treasury" in html, f"{key}: treasury tile missing"
+        assert "Customer credit held" in html, f"{key}: held-credit companion missing -- treasury stands alone"
+    # the expected floor = sum of in-credit (negative) balances in the drawn sample
+    held = sum(-v for v in d["arrears"]["values_gbp"] if v < 0)
+    assert round(held, 2) == 2975.67, f"live floor changed: {held}"
+    # R14: the liability carries its clock/basis (banked/liability), and the panel
+    # states the mechanism + the cash-rich-but-insolvent tell.
+    panel = out["credit-cycle"]["innerHTML"]
+    assert "liability" in panel.lower(), panel
+    assert "cash-rich" in panel.lower() and "insolvent" in panel.lower(), panel
+    assert "2,975.67" in panel, panel  # the real instrumented floor
+
+
+def test_credit_held_follows_source_r15():
+    # R15 (a control must be able to FAIL): the rendered floor must FOLLOW the
+    # source in-credit balances -- a hardcoded figure would fail this. Mutate the
+    # negative balances; the rendered pixel (gbpFull in the panel) must move.
+    d = _live()
+    d["arrears"] = dict(d.get("arrears") or {})
+    d["arrears"]["available"] = True
+    d["arrears"]["n"] = 3
+    d["arrears"]["values_gbp"] = [-1000.50, -234.25, 500.00]  # held = 1234.75, 2 in credit
+    panel = _render(d)["credit-cycle"]["innerHTML"]
+    assert "1,234.75" in panel, panel
+    assert "2 of N=3" in panel, panel
+
+
+def test_credit_held_fail_closed_when_unavailable_r15():
+    # FAIL-CLOSED (R15): with no arrears sample there is no honest held-credit
+    # figure -- the tile must degrade to "--" and say "not instrumented", NEVER a
+    # silently-zero or fabricated number, and never claim a real seasonal balance.
+    d = _live()
+    d["arrears"] = {"available": False, "n": 0}
+    out = _render(d)
+    assert "Customer credit held" in out["state-kpis"]["innerHTML"], out["state-kpis"]["innerHTML"]
+    assert "not instrumented" in out["state-kpis"]["innerHTML"], out["state-kpis"]["innerHTML"]
+    panel = out["credit-cycle"]["innerHTML"]
+    # the mechanism is still stated, but the floor is honestly reported as unavailable
+    assert "cash-rich" in panel.lower(), panel
+    assert "unavailable for this run" in panel.lower(), panel
+
+
+def test_credit_cycle_states_level_dd_not_yet_instrumented():
+    # The honesty wall (same discipline as the carbon panel): the panel must NOT
+    # claim the full level-DD seasonal cycle is modelled -- it must carry the
+    # DESIGNED/INSTRUMENTING status and name what is not yet built (DD1-DD4).
+    panel = _render(_live())["credit-cycle"]["innerHTML"]
+    assert "INSTRUMENTING" in panel, panel
+    assert "yet instrumented" in panel.lower(), panel
+    assert "variable dd" in panel.lower(), panel  # today's engine, honestly named
+    assert "DD1" in panel and "DD4" in panel, panel  # what fills it

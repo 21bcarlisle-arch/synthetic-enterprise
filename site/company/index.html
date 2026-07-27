@@ -160,6 +160,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
     <div class="passport" id="finance-unit-note"></div>
     <div class="passport" id="cost-to-serve-dist"></div>
     <div class="passport" id="arrears-dist"></div>
+    <div class="passport" id="credit-cycle"></div>
   </div>
   <div class="card">
     <div class="chart-title muted" style="margin-bottom:6px;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.06em">Settled &rarr; Billed reconciliation bridge</div>
@@ -256,6 +257,24 @@ function gbp(v, prov){
 }
 function gbpFull(v){ return v==null?"--":(v<0?"-":"")+"£"+Number(Math.abs(v)).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function pct(v){ return v==null?"--":Number(v).toFixed(2)+"%"; }
+// DD5 (DIRECTOR_STEER_DD_SEASONAL_CASHFLOW 2026-07-25, requirement #2): customer credit
+// held is a LIABILITY -- cash the supplier is holding that is owed back to the customer --
+// and a treasury/cash figure must never stand alone without it (cash-rich-but-insolvent is
+// the tell this design exists to surface). Computed HONESTLY from the company's OWN ledger:
+// the sum of in-credit (negative billed-minus-banked) balances in the drawn arrears sample.
+// This is a FLOOR: it is a drawn sample, AND it is today's Variable-DD overpayment credit --
+// NOT the full level-DD seasonal cycle (summer-credit / winter-drawdown against a fixed
+// monthly payment), whose physics (DD1-DD4) is DESIGNED, not yet instrumented. Never a
+// fabricated figure -- if the arrears sample is unavailable this returns null and the tile
+// degrades to "--" with an honest basis.
+function heldCredit(d){
+  var arr=(d&&d.arrears)||{};
+  var vals=arr.values_gbp;
+  if(!arr.available || !vals || !vals.length) return null;
+  var held=0, n=0;
+  vals.forEach(function(v){ if(Number(v)<0){ held += -Number(v); n++; } });
+  return { held_gbp: held, in_credit: n, sample_n: arr.n };
+}
 function ragClass(s){ s=(s||"").toUpperCase(); if(s==="GREEN")return"green"; if(s==="AMBER")return"amber"; if(s==="RED")return"red"; if(s==="BLUE")return"blue"; return"manual"; }
 function el(id){ return document.getElementById(id); }
 // Normalise an evidence link to a target that resolves under the five-surface IA.
@@ -354,8 +373,12 @@ function renderState(d){
     "A live read of the book as of the last run &mdash; cash on hand, the settled net margin, the hedge cover "+
     "the risk desk is carrying, and how much of what was billed has actually been collected. Every figure carries "+
     "its clock (billed, settled or banked). The decisions below are the last moves the autonomous supplier made, with its reasons.";
+  var hc=heldCredit(d);
   el("state-kpis").innerHTML=[
     kpiTile("Treasury (cash)", gbp(f.treasury_end_gbp,true), "banked", ""),
+    // DD5: the held-customer-credit liability sits BESIDE the treasury figure so cash never
+    // stands alone -- some of that cash is owed back. "neu" (blue) = informational, not P&L.
+    kpiTile("Customer credit held", (hc?gbp(hc.held_gbp,true):"--"), (hc?"liability · owed back · floor, "+hc.in_credit+" in credit of N="+hc.sample_n:"not instrumented"), "neu"),
     kpiTile("Net margin", gbp(f.settled_net_margin_gbp,true), "settled", (Number(f.settled_net_margin_gbp)<0?"red":"green")),
     kpiTile("Hedge cover", (t.latest_avg_hf==null?"--":Number(t.latest_avg_hf).toFixed(2)), "avg HF "+esc(t.latest_hedge_year||""), ""),
     kpiTile("Collection", pct(f.collection_rate_pct), "billed &rarr; banked", ""),
@@ -441,6 +464,8 @@ function renderFinance(d){
     kpiTile("Revenue billed (total)", gbp(f.billed_revenue_gbp), "billed · 10-yr cumulative · scales with drawn book · "+num(f.invoice_count)+" invoices"),
     kpiTile("Revenue banked (total)", gbp(f.banked_revenue_gbp), "banked · 10-yr cumulative · scales with drawn book"),
     kpiTile("Treasury (end)", gbp(f.treasury_end_gbp), "banked clock · from "+gbp(f.treasury_start_gbp)),
+    // DD5: held customer credit as a LIABILITY, beside treasury -- part of that cash is owed back.
+    kpiTile("Customer credit held", (function(){var h=heldCredit(d);return h?gbp(h.held_gbp):"--";})(), "banked clock · liability, owed back · sample floor", "neu"),
     kpiTile("Corp. tax "+yr, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
     kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
   ];
@@ -515,6 +540,38 @@ function renderFinance(d){
       " <span class=\"muted\">Not yet captured: "+
       (arr.missing_lines||[]).map(esc).join("; ")+".</span>"
     : "<span class=\"muted\">Arrears distribution unavailable for this run's sample.</span>";
+
+  // DD5 (DIRECTOR_STEER_DD_SEASONAL_CASHFLOW 2026-07-25): the seasonal level-DD credit
+  // cycle and the cash-rich-but-insolvent tell -- director domain content. Shown HONESTLY:
+  // what is instrumented today (the held-credit floor from the arrears ledger) is separated
+  // from what is DESIGNED-not-instrumented (the full summer-credit / winter-drawdown physics,
+  // DD1-DD4). Same honesty discipline as the carbon panel -- never a fabricated number.
+  var hcC=heldCredit(d);
+  el("credit-cycle").innerHTML=
+    "<b>Customer credit held &mdash; a liability, not spare cash "+
+    '<span class="badge amber" style="vertical-align:middle">DESIGNED · INSTRUMENTING</span></b> '+
+    "UK domestic direct debit is conventionally a <b>level monthly payment</b> (estimated annual "+
+    "cost &divide; 12) against heavily seasonal consumption. A customer acquired in spring/summer "+
+    "pays the level DD while using little and <b>builds credit</b>; through winter they use far more "+
+    "than they pay and <b>draw that credit back down</b>. The credit is <b>the customer's money, held "+
+    "by the supplier</b> &mdash; cash on the balance sheet <i>and</i> a liability. A supplier growing "+
+    "aggressively in spring/summer sees cash pour in and can mistake it for the business working: new "+
+    "customers' summer credit funds prior customers' winter draw-down, and the structure <b>holds only "+
+    "while growth continues</b>. That is why <b>a supplier can look cash-rich and be insolvent</b> "+
+    "&mdash; the tell this position exists to surface, and a documented cause of UK supplier failure. "+
+    (hcC
+      ? "<br><br><b>What is instrumented today:</b> the held-credit <b>floor of "+gbpFull(hcC.held_gbp)+
+        "</b> above is the sum of in-credit balances (customers whose banked cash exceeds what they have "+
+        "been billed) across the drawn sample &mdash; <b>"+esc(hcC.in_credit)+" of N="+esc(hcC.sample_n)+
+        "</b> accounts. It is booked beside treasury cash so a cash figure never stands alone."
+      : "<br><br><b>What is instrumented today:</b> the held-credit floor is unavailable for this run's "+
+        "sample, so the tile degrades to &lsquo;--&rsquo; rather than showing a fabricated figure.")+
+    " <span class=\"muted\">What is <b>not</b> yet instrumented: today's billing engine is <b>Variable "+
+    "DD</b> (it collects the exact bill), so the figure above is <b>overpayment credit</b>, not the full "+
+    "<b>level-DD seasonal cycle</b> &mdash; staggered payment anniversaries, a fixed monthly payment that "+
+    "builds summer credit and draws down in winter, and the annual DD review where the estimate meets "+
+    "reality (DD1&ndash;DD4). Until that physics lands, this panel states the mechanism and the real floor "+
+    "honestly rather than modelling a seasonal balance that does not yet exist.</span>";
 
   var r=f.reconciliation||{};
   el("bridge-intro").innerHTML=
