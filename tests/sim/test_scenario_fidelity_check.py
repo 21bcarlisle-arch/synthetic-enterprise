@@ -229,3 +229,39 @@ def test_constant_reference_raises():
 def test_too_short_for_block_raises():
     with pytest.raises(F.DegenerateSeriesError):
         F.block_bootstrap_moment_ci([0.1, 0.2, 0.3], F._mean, block_len=20)
+
+
+def test_contaminated_generator_raises_not_silently_filtered():
+    """R15 (2026-07-28 HARDEN red-team): a generator emitting a MATERIAL fraction of
+    non-finite values (an overflow/blow-up: 40% inf/NaN) is a MALFORMED series. Before
+    the fix, `_clean` SILENTLY FILTERED the non-finite values and the check PASSED on
+    the surviving finite minority -- the classic NaN-blind fail-open. It must now raise
+    loud (fail-open), never return a passing verdict, on that gross a defect."""
+    rng = np.random.default_rng(1)
+    ref = _ar1(3000, 0.0, 10.0, 0.5, 7)
+    good = rng.normal(0, 10, 1800)
+    bad = np.concatenate([np.full(600, np.inf), np.full(600, np.nan)])
+    gen = rng.permutation(np.concatenate([good, bad]))  # 40% non-finite
+    with pytest.raises(F.DegenerateSeriesError):
+        F.check_scenario_fidelity(gen, ref)
+
+
+def test_contaminated_reference_raises():
+    """R15: the same malformed-series guard applies to the REFERENCE side."""
+    rng = np.random.default_rng(2)
+    gen = _ar1(3000, 0.0, 10.0, 0.5, 8)
+    ref = rng.permutation(np.concatenate([rng.normal(0, 10, 1800), np.full(1200, np.nan)]))
+    with pytest.raises(F.DegenerateSeriesError):
+        F.check_scenario_fidelity(gen, ref)
+
+
+def test_incidental_nonfinite_gap_still_tolerated():
+    """The OTHER direction (a control that cannot pass legitimate input is useless): an
+    INCIDENTAL stray gap (<= 1% non-finite) is still silently filtered, not raised --
+    the live real fixture and baseline generator are 100% finite, and a rare gap must
+    not false-fire this non-blocking diagnostic."""
+    ref = _ar1(3000, 0.0, 10.0, 0.5, 3)
+    gen = _ar1(3000, 0.0, 10.0, 0.5, 4).copy()
+    gen[17] = np.nan  # one stray value, 0.03% -- well under the 1% tolerance
+    v = F.check_scenario_fidelity(gen, ref)  # must not raise
+    assert isinstance(v.passed, bool)

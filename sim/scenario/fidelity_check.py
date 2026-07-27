@@ -33,8 +33,11 @@ finding (drives R4 -- diagnose the generator), never a cue to move the tolerance
 
 R15. This is a CONTROL and must FIRE on its named defect: a generator whose mean or
 volatility is clearly wrong must FAIL the check; a generator statistically matching
-the reference must PASS. FAIL-OPEN: empty/constant/too-short input raises loud
-rather than returning a passing verdict.
+the reference must PASS. FAIL-OPEN: empty/constant/too-short input -- OR a series with
+a material fraction of non-finite values (a generator blow-up: inf/NaN, added 2026-07-28
+after a HARDEN red-team found `_clean` SILENTLY FILTERED non-finite values, so a
+generator emitting 40% inf/NaN passed the check on its surviving finite minority) --
+raises loud rather than returning a passing verdict.
 """
 
 from __future__ import annotations
@@ -50,9 +53,24 @@ class DegenerateSeriesError(ValueError):
     raised loud rather than returning a passing-looking verdict."""
 
 
-def _clean(series: Sequence[float], *, min_len: int) -> np.ndarray:
+def _clean(series: Sequence[float], *, min_len: int, max_nonfinite_frac: float = 0.01) -> np.ndarray:
     v = np.asarray(series, dtype=float)
-    v = v[np.isfinite(v)]
+    n_raw = v.size
+    finite = np.isfinite(v)
+    n_nonfinite = int((~finite).sum())
+    # FAIL-OPEN loud (R15, the recurring "reject non-finite FIRST" class): a MATERIAL
+    # fraction of non-finite values is a MALFORMED series (a generator overflow/blow-up),
+    # not an incidental gap to silently drop. Filtering them away silently lets a grossly
+    # defective generator -- e.g. one emitting 40% inf/NaN -- PASS the fidelity sanity
+    # check on the surviving finite minority, the exact catastrophic-generator defect this
+    # check exists to catch. An incidental stray gap (<= max_nonfinite_frac) is still
+    # tolerated (the live real fixture and baseline generator are 100% finite).
+    if n_raw > 0 and n_nonfinite > max_nonfinite_frac * n_raw:
+        raise DegenerateSeriesError(
+            f"{n_nonfinite}/{n_raw} values non-finite (> {max_nonfinite_frac:.0%}) -- "
+            "malformed series (generator blow-up), not an incidental gap to silently drop"
+        )
+    v = v[finite]
     if v.size < min_len:
         raise DegenerateSeriesError(f"need >= {min_len} finite observations, got {v.size}")
     if np.all(v == v[0]):
