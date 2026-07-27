@@ -277,6 +277,14 @@ class StatutoryInterestScopeError(Exception):
     (B2C) account — LPCDA 1998 is B2B only."""
 
 
+class DunningScopeError(Exception):
+    """Raised when a B2C (non-business) segment's dunning path ADVERTISES a
+    statutory late-payment-interest action — LPCDA 1998 is B2B only, and serving a
+    domestic customer an interest notice is a compliance misstatement even when no
+    interest £ is charged (the money side is separately guarded by
+    assert_interest_is_b2b_only)."""
+
+
 class WriteOffAuditError(Exception):
     """Raised when a write-off is not a dated, reasoned, P&L-visible credit
     event (a silent status flip)."""
@@ -340,6 +348,36 @@ def assert_dunning_path_valid(segment: Segment, path=None) -> None:
         if b <= a:
             raise DunningPathError(
                 f"segment {segment.value} triggers not strictly ascending: {triggers}"
+            )
+
+
+# A dunning action naming statutory interest advertises an LPCDA 1998 charge. Kept
+# as one marker so the B2C-scope control cannot drift from how actions are named.
+_INTEREST_ACTION_MARKER = "interest"
+
+
+def assert_dunning_path_scope_valid(segment: Segment, path=None) -> None:
+    """R15 CONTROL — the SIBLING half of assert_interest_is_b2b_only: a B2C
+    (non-business) segment's dunning path must not ADVERTISE a statutory-interest
+    action. LPCDA 1998 is B2B only; a residential path that duns via an
+    'interest_notice' misstates the law to a domestic customer (and is an SLC-27
+    hazard) even though statutory_interest_gbp separately returns 0 for B2C — the
+    money guard alone leaves the MESSAGING half unprotected.
+
+    Independent: it inspects the path's own actions, not the interest figure.
+    Fail-closed: an empty path RAISES (an unformed path is a failed check, not a
+    silent pass). Mutation defect this fires on: an 'interest_notice' step inserted
+    into a residential/B2C dunning path."""
+    steps = list(_DUNNING_PATHS[segment]) if path is None else list(path)
+    if not steps:
+        raise DunningScopeError(f"segment {segment.value} has no dunning path")
+    if segment.is_business:
+        return
+    for s in steps:
+        if _INTEREST_ACTION_MARKER in (s.action or "").lower():
+            raise DunningScopeError(
+                f"B2C segment {segment.value} dunning step {s.action!r} advertises "
+                f"statutory interest: LPCDA 1998 is B2B only"
             )
 
 
@@ -581,10 +619,12 @@ def collections_snapshot(
     # invariants only being checkable on demand:
     #   - the 30/60/90+ scheme still PARTITIONS days-overdue (no gap/overlap);
     #   - bucketing these very items CONSERVES their undisputed value + count;
-    #   - this segment's dunning path is well-formed before a step is selected.
+    #   - this segment's dunning path is well-formed before a step is selected;
+    #   - a B2C segment's path advertises NO statutory-interest action (LPCDA B2B-only).
     assert_age_buckets_partition(age_bucket)
     assert_ageing_conserves_value(items, aggregator=ageing_buckets)
     assert_dunning_path_valid(segment)
+    assert_dunning_path_scope_valid(segment)
 
     undisputed = [it for it in items if not it.disputed]
     max_overdue = max((it.days_overdue for it in undisputed), default=0)

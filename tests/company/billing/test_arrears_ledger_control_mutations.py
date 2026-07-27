@@ -28,6 +28,7 @@ from company.billing.arrears_engine import (
     AgedItem,
     AgeingPartitionError,
     DunningPathError,
+    DunningScopeError,
     DunningStep,
     FixedCompensationError,
     StatutoryInterestScopeError,
@@ -36,6 +37,7 @@ from company.billing.arrears_engine import (
     ageing_buckets,
     assert_age_buckets_partition,
     assert_ageing_conserves_value,
+    assert_dunning_path_scope_valid,
     assert_dunning_path_valid,
     assert_fixed_compensation_once,
     assert_interest_is_b2b_only,
@@ -278,6 +280,48 @@ def test_hardened_current_step_is_order_independent():
     # a real Segment path is well-ordered; confirm selection logic on a real one:
     step = current_dunning_step(Segment.RESIDENTIAL, 60)
     assert step is not None and step.trigger_days_overdue == 56
+
+
+# ===========================================================================
+# CONTROL 4b — assert_dunning_path_scope_valid (SIBLING of the B2B-only interest
+# guard): a B2C segment's dunning path must not ADVERTISE a statutory-interest
+# action. Named defect: an 'interest_notice' step inserted into a residential path.
+# ===========================================================================
+
+def test_dunning_scope_passes_for_every_real_segment():
+    # Real paths: resi/micro-SME advertise no interest; SME/IC (B2B) may.
+    for seg in (Segment.RESIDENTIAL, Segment.MICRO_SME, Segment.SME, Segment.IC):
+        assert_dunning_path_scope_valid(seg)          # clean: does not raise
+
+
+def test_dunning_scope_FIRES_on_b2c_interest_step():
+    # MUTATION: a residential (B2C) path that duns via a statutory-interest notice
+    # — ascending-valid (so assert_dunning_path_valid PASSES it), yet a compliance
+    # misstatement to a domestic customer. Only this control catches it.
+    b2c_with_interest = [
+        DunningStep(0, "reminder", "email/sms"),
+        DunningStep(28, "repayment_plan_offer", "phone"),
+        DunningStep(42, "interest_notice", "letter"),   # MUTATION: LPCDA is B2B only
+    ]
+    assert_dunning_path_valid(Segment.RESIDENTIAL, path=b2c_with_interest)  # slips past
+    with pytest.raises(DunningScopeError):
+        assert_dunning_path_scope_valid(Segment.RESIDENTIAL, path=b2c_with_interest)
+
+
+def test_dunning_scope_allows_interest_step_for_business():
+    # The SAME interest step is legitimate on a B2B path — the control must NOT
+    # fire there (not a blanket ban, a scope rule).
+    b2b_with_interest = [
+        DunningStep(0, "reminder", "email"),
+        DunningStep(30, "interest_notice", "letter"),
+    ]
+    assert_dunning_path_scope_valid(Segment.SME, path=b2b_with_interest)   # no raise
+
+
+def test_dunning_scope_not_fail_open_on_empty():
+    # FAIL-OPEN probe: an empty path is a defect, must raise (not a free pass).
+    with pytest.raises(DunningScopeError):
+        assert_dunning_path_scope_valid(Segment.RESIDENTIAL, path=[])
 
 
 # ===========================================================================
