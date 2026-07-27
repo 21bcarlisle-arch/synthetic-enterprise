@@ -1,3 +1,14 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DISPOSITION 2026-07-27 (RUNG-7 planner): this ruling's three laws + the R10 sweep are DECOMPOSED
+     into four drawable RUNG-1 mints in docs/staging/ (the drawable work lives THERE, this doc is the
+     authority they reference):
+       - PLANNER_MINTED_failure_bias_law_a_suppression_rearm_2026-07-27.md   (LAW A)
+       - PLANNER_MINTED_failure_bias_law_b_lane_isolation_2026-07-27.md      (LAW B)
+       - PLANNER_MINTED_failure_bias_law_c_independent_verification_2026-07-27.md (LAW C)
+       - PLANNER_MINTED_failure_bias_r10_suppression_sweep_2026-07-27.md     (R10 sweep, drawable now)
+     Moved to in_progress/ (open sub-items = the mechanisation, not yet built). blocked_on: the four
+     mints drawing + landing with R15 both-ways. Ruling itself is NOT independently drawable. -->
+
 # [DIRECTOR-RULING] — Three failure-bias laws, and the suppression audit. Why one held assumption stopped everything. (2026-07-27)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. The director's challenge, verbatim: *"I don't get why one assumption caused the whole process to fail. If the assumption can be improved of course do it. But don't ignore why stuff went wrong when it shouldn't."* He is right: the λ contradiction was the trigger, not the disease. This ruling addresses the disease.
