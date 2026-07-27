@@ -484,3 +484,47 @@ def test_gate_refuses_an_unparseable_maturity_map__mutation_proof():
         )
     finally:
         facets.MAP_PATH = orig
+
+
+def test_scrub_does_NOT_close_ambient_cwd_upward_walk__known_residual_boundary():
+    """RED-TEAM boundary test (H24 harden pass, 2026-07-27): mark, as a permanent executable fact,
+    exactly WHERE the GIT_* scrub's protection ends -- so the twice-queued-but-never-captured residual
+    (decision_log 2026-07-27) stops evaporating (consumed != absorbed).
+
+    The scrub removes the ACUTE vector: an inherited GIT_DIR/GIT_INDEX_FILE that lets a stray `git`
+    obey the in-progress commit's index from ANY cwd. The two mutation proofs above cover that.
+
+    But the real gate runs its pytest subprocess with cwd=ROOT (pre_commit_test_gate.main). A gate-run
+    test that shells `git` from that inherited cwd WITHOUT pointing at its own repo still DISCOVERS the
+    real .git by upward directory-walk -- GIT_* being absent does not stop discovery-by-location. This
+    is LATENT, not active: every H24 control/gate-run test uses a throwaway tmp repo with an explicit
+    cwd, so none actually exercises this path. Closing it (e.g. GIT_CEILING_DIRECTORIES) risks
+    regressing control tests that legitimately read the real repo, so it needs its own scoped atom +
+    which-tests analysis (SELF_INTERRUPT_DISCIPLINE) -- NOT a fix-on-sight here.
+
+    STRICTLY READ-ONLY against the real repo: `git rev-parse` only, never a mutating command.
+    """
+    scrubbed_env = gate._gitless_env(dict(os.environ))
+    assert [k for k in scrubbed_env if k.startswith("GIT_")] == []
+
+    # (a) scrub + a neutral NON-repo cwd -> git finds no repo at all. This is the vector the scrub
+    #     DOES close (same asymmetry the mutation proofs rely on).
+    neutral_cwd = tempfile.mkdtemp(prefix="h24_residual_neutral_")
+    at_neutral = _run_git(["rev-parse", "--show-toplevel"], cwd=neutral_cwd, env=scrubbed_env)
+    assert at_neutral.returncode != 0, (
+        "with GIT_* scrubbed and a non-repo cwd, git must resolve NO repository -- the scrub closes "
+        "the leaked-env vector"
+    )
+
+    # (b) scrub + cwd=ROOT (the gate's REAL subprocess cwd) -> git STILL resolves the real repo by
+    #     upward-walk. This is the residual: scrubbing GIT_* does not make gate-run tests location-blind
+    #     to the real .git. Documented here so a future careless mutating command from cwd=ROOT is a
+    #     KNOWN, tested boundary rather than a surprise re-run of the H24/H26 incident.
+    at_root = _run_git(["rev-parse", "--show-toplevel"], cwd=str(ROOT), env=scrubbed_env)
+    assert at_root.returncode == 0 and Path(at_root.stdout.strip()) == ROOT, (
+        "with GIT_* scrubbed but cwd=ROOT, git still discovers the REAL repo via upward-walk -- if "
+        "this ever stops being true the scoped ambient-cwd hardening atom has landed; update this "
+        "boundary marker to assert the new (closed) behaviour"
+    )
+    at_root_bare = _run_git(["rev-parse", "--is-bare-repository"], cwd=str(ROOT), env=scrubbed_env)
+    assert at_root_bare.stdout.strip() == "false", "sanity: the real worktree must never read as bare"
