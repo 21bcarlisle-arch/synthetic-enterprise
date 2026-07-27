@@ -20,23 +20,66 @@ not false-positive; only a real import or name reference does.
 R15 both-ways is pinned IN-SUITE via `test_guard_fires_on_injected_ground_truth_read`:
 the same detector is run over a mutant snippet and MUST flag it. If that test
 ever passes clean, the guard has gone fail-silent and is worthless.
+
+The set of files scanned is DERIVED FROM THE LIVE MAP (C2's file_scope in
+maturity_map.yaml), not hardcoded -- see the 2026-07-27 HARDEN note on
+`C2_FILE_SCOPE` below. A hardcoded copy is the "full-key-set" fail-silent class
+(recurred twice on E4): a belief-layer module added to the map's file_scope
+would escape a stale hardcoded list unguarded. Deriving from the map closes it.
 """
 import ast
+from pathlib import Path
 
 import pytest
+import yaml
 
-# C2's file_scope (maturity_map.yaml, atom C2_discovery_through_interfaces).
-# These are the belief-layer modules that must build property beliefs ONLY from
-# observable events, never from a direct ground-truth read. A new belief-layer
-# module added to C2's file_scope must be added here too (the guard is a class
-# guard over this list, not a per-file assertion).
-C2_FILE_SCOPE = (
-    "company/crm/property_model.py",
-    "company/crm/property_discovery.py",
-    "company/crm/home_registry.py",
-    "company/crm/onboarding_journey.py",
-    "company/crm/decarb_recommender.py",
+# C2's file_scope is the AUTHORITATIVE list of belief-layer modules that must
+# build property beliefs ONLY from observable events, never from a direct
+# ground-truth read. It lives in maturity_map.yaml (atom
+# C2_discovery_through_interfaces) and is derived from there at import time --
+# NOT hardcoded here.
+#
+# R15 (2026-07-27 HARDEN red-team): a hardcoded copy is the "aggregate-tie /
+# full-key-set" fail-silent class that recurred twice on E4 -- if the map's
+# file_scope gains a sixth belief-layer module, a hardcoded tuple would keep
+# scanning the stale five and the new file would cross the wall unguarded,
+# silently. Deriving the coverage set from the live map makes that drift
+# impossible: a file added to C2's file_scope is scanned automatically.
+MAP_PATH = (
+    Path(__file__).resolve().parents[3] / "docs" / "design" / "maturity_map.yaml"
 )
+C2_ATOM_ID = "C2_discovery_through_interfaces"
+
+
+def _c2_file_scope_from_atoms(atoms: list) -> tuple[str, ...]:
+    """Extract C2's file_scope from a maturity-map atom list.
+
+    Fails LOUD (not fail-open) if the atom is missing or its file_scope is
+    empty -- an unavailable coverage set is a FAILED guard, not a passing one
+    (R15 pattern 3). Factored out so the missing/empty cases can be unit-tested
+    without mutating the real map file.
+    """
+    matches = [a for a in atoms if isinstance(a, dict) and a.get("id") == C2_ATOM_ID]
+    if not matches:
+        raise ValueError(
+            f"C2 wall guard cannot find atom {C2_ATOM_ID!r} in the maturity map -- "
+            "coverage set is undefined, guard is not evidence for the wall."
+        )
+    scope = matches[0].get("file_scope") or []
+    if not scope:
+        raise ValueError(
+            f"atom {C2_ATOM_ID!r} has an empty file_scope -- the wall guard would "
+            "scan nothing and pass vacuously (fail-open)."
+        )
+    return tuple(scope)
+
+
+def _c2_file_scope_from_map() -> tuple[str, ...]:
+    atoms = yaml.safe_load(MAP_PATH.read_text())
+    return _c2_file_scope_from_atoms(atoms)
+
+
+C2_FILE_SCOPE = _c2_file_scope_from_map()
 
 # Ground-truth property record + sim internals. A company-side belief module
 # importing any of these has crossed the wall the atom exists to protect.
@@ -164,6 +207,47 @@ def test_guard_catches_reexport_symbol_bypass_that_line_scan_misses():
     )
     violations = _forbidden_reads_in_source(bypass, "victim.py")
     assert any("build_properties" in v for v in violations)
+
+
+def test_coverage_set_is_sourced_from_the_live_map_not_a_hardcoded_copy():
+    """R15 anti-drift pin: the scanned set == C2's live file_scope in the map.
+
+    This is the fix for the "full-key-set" fail-silent class (recurred twice on
+    E4): a belief-layer module added to C2's file_scope in maturity_map.yaml is
+    scanned automatically, with no second list to remember to update. If the
+    guard is ever reverted to a hardcoded tuple that drifts from the map, this
+    assertion fires.
+    """
+    atoms = yaml.safe_load(MAP_PATH.read_text())
+    map_scope = _c2_file_scope_from_atoms(atoms)
+    assert set(C2_FILE_SCOPE) == set(map_scope)
+    assert len(C2_FILE_SCOPE) >= 1
+    # Every declared belief-layer file must actually exist and be scannable --
+    # a file_scope entry pointing at a missing file is itself a wall hole.
+    repo_root = MAP_PATH.parents[2]
+    for rel in C2_FILE_SCOPE:
+        assert (repo_root / rel).exists(), f"C2 file_scope path missing: {rel}"
+
+
+def test_loader_fails_loud_when_atom_missing():
+    """R15 fail-open pin (missing atom): loader must RAISE, never return empty.
+
+    An unavailable coverage set is a failed guard, not a passing one. If the C2
+    atom vanished from the map (rename/delete), the guard must break loudly
+    rather than silently parametrize over nothing.
+    """
+    with pytest.raises(ValueError):
+        _c2_file_scope_from_atoms([{"id": "SOME_OTHER_ATOM", "file_scope": ["x.py"]}])
+
+
+def test_loader_fails_loud_when_file_scope_empty():
+    """R15 fail-open pin (empty scope): an empty file_scope must RAISE.
+
+    Otherwise the parametrized scan would collect zero cases and pass vacuously
+    -- the classic FAIL-OPEN-on-empty pattern.
+    """
+    with pytest.raises(ValueError):
+        _c2_file_scope_from_atoms([{"id": C2_ATOM_ID, "file_scope": []}])
 
 
 def test_guard_does_not_false_positive_on_docstring_mention():

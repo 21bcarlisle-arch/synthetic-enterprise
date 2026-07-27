@@ -150,3 +150,28 @@ uncaught in `company/portal/app.py`.
 
 Note (LAW/queue discipline): this is a QUEUED finding, not a fix. The mutation was scratch and reverted;
 no production code was changed by this pass.
+
+---
+
+## 5. 2026-07-27 follow-up HARDEN pass (self-refill draw, dial=3 yielded) — residual gap in the guard itself, CLOSED
+
+**The §4 QUEUE was absorbed (observed-with-evidence).** The recommended class guard now exists:
+`tests/company/crm/test_c2_wall_read_enforcement.py` — an AST scan over C2's whole file_scope for any
+read of the ground-truth property record (`saas.property_model`/`saas.customers`/`build_properties`) or
+sim internals, with an in-suite R15 both-ways pin (`test_guard_fires_on_injected_ground_truth_read`
+replays the §2 mutation and must flag it), a re-export-bypass test, and a docstring-false-positive guard.
+The 2026-07-22 FAIL-SILENT gap of §2 is genuinely closed; the memory note calling it "QUEUED" was stale.
+
+**This pass red-teamed that guard (audit-the-hardened-mechanism) and found a residual R15 gap.** The
+guard's coverage set `C2_FILE_SCOPE` was a **hardcoded copy** of the map's `file_scope` with nothing
+pinning the two together — the "aggregate-tie / full-key-set" FAIL-SILENT class that recurred TWICE on
+E4 (07-25, 07-27). If C2's `file_scope` in `maturity_map.yaml` gained a sixth belief-layer module, the
+hardcoded tuple would keep scanning the stale five and the new file would cross the wall unguarded,
+silently — the class guard would go partial without any test failing.
+
+**Closed:** `C2_FILE_SCOPE` is now DERIVED from the live map at import time (`_c2_file_scope_from_map`),
+so a file added to the map is scanned automatically. Fail-open handled loud: the loader RAISES if the
+C2 atom is missing (coverage undefined) or its file_scope is empty (vacuous pass). Both-ways proven
+(observed-with-evidence): a scratch map-mutant adding a sixth file yields a 6-file scan set (drift
+caught) while missing-atom / empty-scope both raise `ValueError`. 3 new tests (8→11), full C2 backing
+suite 67 green. Test-only change; no production code, no map edit, no level move (C2 stays L2→L2, idle).
