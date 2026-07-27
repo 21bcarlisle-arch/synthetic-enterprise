@@ -1648,6 +1648,119 @@ def _unconsumed_director_ruling_or_steer(staging_dir: Path | None = None) -> boo
     return False
 
 
+# =============================================================================
+# §2 + §4 of DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27:
+# RULINGS AND STEERS ARE A MINT SOURCE, not only DIRECTOR_AXES.
+# -----------------------------------------------------------------------------
+# §0 diagnosis, verbatim: "Rung-7 mints from DIRECTOR_AXES only, so prose in
+# rulings is invisible to it." §2: "Any ratified ruling or steer that names work
+# is a mint source. On consumption, named work becomes atoms in the map with lane,
+# target level, exit criteria and dependencies." §4: "Each ruling/steer closes with
+# named deliverables ... The machine mints atoms from that block within one tick.
+# A ruling arriving without one is a defect in the ruling -- say so and request it;
+# do not silently absorb it." These functions parse that block and drive the mint
+# instruction the drawn ruling-turn acts on (item 1 already makes a staged ruling
+# DRAW first at rung 1 -- this makes the drawn turn MINT from its block, and flags
+# the §4 defect when the block is absent). R15-proven both ways in test_supervisor.py.
+# =============================================================================
+_WORK_THIS_CREATES_RE = re.compile(
+    r"^#{1,6}\s*WORK\s+THIS\s+CREATES\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
+    re.IGNORECASE | re.DOTALL | re.MULTILINE,
+)
+# A named deliverable inside the block: a numbered ("1." / "1)") or bulleted ("-"/"*") line.
+_DELIVERABLE_LINE_RE = re.compile(r"^\s*(?:\d+[.)]|[-*])\s+(.+?)\s*$", re.MULTILINE)
+
+
+def work_this_creates_deliverables(text: str) -> list[str]:
+    """The named deliverables from a ruling/steer's 'WORK THIS CREATES' block (§4). Returns the
+    deliverable lines (numbered or bulleted, markdown emphasis stripped, truncated), or [] if the
+    doc carries NO such block -- [] is the §4 DEFECT signal, never fabricated work. Independence
+    (R15): keyed on the block's ACTUAL content via a heading regex, never a constant, so neutralising
+    the parser makes the 'block present' case return [] (the mutation the test proves fires)."""
+    m = _WORK_THIS_CREATES_RE.search(text or "")
+    if not m:
+        return []
+    out: list[str] = []
+    for dm in _DELIVERABLE_LINE_RE.finditer(m.group(1)):
+        s = re.sub(r"[*`]", "", dm.group(1)).strip()
+        if s:
+            out.append((s[:200] + "…") if len(s) > 201 else s)
+    return out
+
+
+def _is_ruling_or_steer(name: str, head: str) -> bool:
+    """A [DIRECTOR-RULING]/[STEER] doc, by filename convention OR content header (R7: content is the
+    primary signal). Shares the header regex + naming prefixes with the item-1 draw suppressor so the
+    two can never disagree about what counts as a ruling/steer."""
+    return bool(
+        name.startswith(("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_"))
+        or _DIRECTOR_RULING_STEER_HEADER_RE.search(head)
+    )
+
+
+def ruling_steer_missing_work_block(staging_dir: Path | None = None) -> list[str]:
+    """Staged [DIRECTOR-RULING]/[STEER] docs in the staging ROOT that carry NO 'WORK THIS CREATES'
+    block (§4 defect: 'A ruling arriving without one is a defect in the ruling -- say so and request
+    it; do not silently absorb it.'). Returns sorted filenames. Daemon markers excluded; FAIL-SAFE
+    toward no-phantom-defect: an unreadable staging dir / file returns []/skips."""
+    d = staging_dir or STAGING_DIR
+    try:
+        files = [p for p in Path(d).glob("*.md") if not _is_daemon_marker(p.name)]
+    except OSError:
+        return []
+    missing: list[str] = []
+    for p in files:
+        try:
+            text = p.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if _is_ruling_or_steer(p.name, text[:600]) and not work_this_creates_deliverables(text):
+            missing.append(p.name)
+    return sorted(missing)
+
+
+def ruling_mint_instruction(staged_names: list[str], staging_dir: Path | None = None) -> str | None:
+    """§2+§4 doorbell enrichment: for each drawn [DIRECTOR-RULING]/[STEER] among `staged_names`, state
+    the mint action the drawn turn must take -- 'mint one atom per named deliverable from its WORK THIS
+    CREATES block' (§2: rulings/steers are a mint source; the machine mints from that block within one
+    tick) -- or flag the §4 defect when the block is absent. Returns the clause, or None if no
+    ruling/steer is in the set (so `find_work`'s primary is byte-identical for every non-ruling staged
+    doc -- the common case, and what the existing tests assert). R15: keyed on each doc's ACTUAL parsed
+    block, never a constant."""
+    d = staging_dir or STAGING_DIR
+    parts: list[str] = []
+    for name in staged_names:
+        if _is_daemon_marker(name):
+            continue
+        try:
+            text = (Path(d) / name).read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if not _is_ruling_or_steer(name, text[:600]):
+            continue
+        deliverables = work_this_creates_deliverables(text)
+        if deliverables:
+            joined = "; ".join(f"({i + 1}) {dv}" for i, dv in enumerate(deliverables))
+            parts.append(
+                f"{name}: MINT one atom per named deliverable from its WORK THIS CREATES block "
+                f"[{joined}] -- each with lane + target level + exit criteria + deps; a deliverable "
+                f"ALREADY minted (an existing PLANNER_MINTED_* doc or a map atom) is NOT re-minted "
+                f"(state which are already covered)."
+            )
+        else:
+            parts.append(
+                f"{name}: DEFECT (§4) -- NO 'WORK THIS CREATES' block. A ruling/steer arriving without "
+                f"one is a defect in the ruling: mint what work you can identify from its body AND "
+                f"request the block from the author -- do NOT silently absorb it."
+            )
+    if not parts:
+        return None
+    return (
+        "RULINGS/STEERS ARE A MINT SOURCE (§2+§4 DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE "
+        "2026-07-27): " + " | ".join(parts)
+    )
+
+
 def _rule0_harden_draw(rng: Any = None) -> dict | None:
     """RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): the default state of
     the company is WORKING; an empty feasible set is a DEFECT IN THE DIALS, not a
@@ -3210,6 +3323,13 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
             primary = f"urgent from_rich queued -- {urgent}"
         elif staged:
             primary = f"unprocessed staging -- {', '.join(staged)}"
+            # §2+§4 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27): a drawn
+            # [DIRECTOR-RULING]/[STEER] is a MINT SOURCE -- instruct the drawn turn to mint one atom
+            # per named deliverable from its WORK THIS CREATES block (or flag the §4 missing-block
+            # defect). None for every non-ruling staged doc, so `primary` is byte-identical there.
+            mint = ruling_mint_instruction(staged)
+            if mint:
+                primary = f"{primary}; {mint}"
 
     refill = _self_refill_draw()
 

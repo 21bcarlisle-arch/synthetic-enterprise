@@ -2298,6 +2298,78 @@ def test_harden_suppression_ignores_daemon_markers(tmp_path):
     assert "HARDEN" in (supervisor._self_refill_draw() or "")
 
 
+# ── §2+§4 RULINGS/STEERS ARE A MINT SOURCE (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27) ──
+# §2: any ratified ruling/steer that names work is a MINT SOURCE (not only DIRECTOR_AXES). §4: the
+# named work lives in a 'WORK THIS CREATES' block; a ruling arriving WITHOUT one is a defect -- say
+# so, don't silently absorb. These prove the parser + the doorbell mint instruction both ways (R15).
+
+_RULING_WITH_BLOCK = (
+    "# [DIRECTOR-RULING] -- some ruling\n\nbody prose here\n\n"
+    "## WORK THIS CREATES\n\n"
+    "1. **First deliverable** -- do the thing.\n"
+    "2. Second deliverable, lane harness.\n"
+    "3. `Third` deliverable.\n\n"
+    "**Acceptance:** the usual.\n"
+)
+_RULING_NO_BLOCK = "# [DIRECTOR-RULING] -- names work only in prose\n\ndo the merit-order thing, please.\n"
+
+
+def test_work_this_creates_deliverables_parses_the_block():
+    """§4 parser: the numbered/bulleted deliverables come out, emphasis stripped; a doc with NO
+    block returns [] (the defect signal). R15 mutation-proven via the empty-block case below."""
+    got = supervisor.work_this_creates_deliverables(_RULING_WITH_BLOCK)
+    assert got == ["First deliverable -- do the thing.", "Second deliverable, lane harness.",
+                   "Third deliverable."]
+    assert supervisor.work_this_creates_deliverables(_RULING_NO_BLOCK) == []   # [] == §4 defect
+    # R15 independence: the parser keys on the ACTUAL heading, not the mere presence of numbered
+    # lines -- numbered lines with no WORK THIS CREATES heading yield [] (never fabricated work).
+    assert supervisor.work_this_creates_deliverables("1. a\n2. b\n") == []
+
+
+def test_ruling_mint_instruction_mints_from_block_and_flags_missing_block():
+    """§2+§4 doorbell: a drawn ruling WITH a block -> 'MINT one atom per named deliverable'; a ruling
+    WITHOUT a block -> the §4 DEFECT clause. A non-ruling staged doc -> None (primary byte-identical).
+    Both-ways teeth: the same call fires the mint clause on the block doc and the defect on the other."""
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_A_2026-07-27.md").write_text(_RULING_WITH_BLOCK)
+    msg = supervisor.ruling_mint_instruction(["DIRECTOR_RULING_A_2026-07-27.md"])
+    assert msg is not None and "MINT one atom per named deliverable" in msg
+    assert "First deliverable" in msg and "Second deliverable" in msg
+    (supervisor.STAGING_DIR / "DIRECTOR_STEER_B_2026-07-27.md").write_text(_RULING_NO_BLOCK)
+    msg2 = supervisor.ruling_mint_instruction(["DIRECTOR_STEER_B_2026-07-27.md"])
+    assert msg2 is not None and "DEFECT (§4)" in msg2 and "request the block" in msg2
+    # a plain non-ruling doc contributes nothing -> None (so find_work's primary is unchanged)
+    (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("ordinary staged content, no tag")
+    assert supervisor.ruling_mint_instruction(["SOME_DOC.md"]) is None
+
+
+def test_ruling_steer_missing_work_block_lists_only_blockless_rulings():
+    """§4 defect surface: only ruling/steer docs in the ROOT lacking a block are listed; one WITH a
+    block, and a non-ruling doc, are excluded. Content-driven (a [STEER] header with no filename
+    prefix still counts) -- R7."""
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_HAS_BLOCK.md").write_text(_RULING_WITH_BLOCK)
+    (supervisor.STAGING_DIR / "DIRECTOR_STEER_NO_BLOCK.md").write_text(_RULING_NO_BLOCK)
+    (supervisor.STAGING_DIR / "plain_note.md").write_text("# [ADVISOR-STEER] header, prose only\nwork named here")
+    (supervisor.STAGING_DIR / "not_a_ruling.md").write_text("ordinary doc")
+    assert supervisor.ruling_steer_missing_work_block() == [
+        "DIRECTOR_STEER_NO_BLOCK.md", "plain_note.md",
+    ]
+
+
+def test_find_work_ruling_doorbell_carries_the_mint_instruction(tmp_path):
+    """Wiring: find_work's staging primary for a drawn ruling carries the §2+§4 mint instruction, so
+    the granted turn mints from the block rather than merely 'processing' the ruling. A non-ruling
+    staged doc keeps the plain 'unprocessed staging' primary (no mint clause) -- the common case."""
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_C_2026-07-27.md").write_text(_RULING_WITH_BLOCK)
+    reason, _ = supervisor.find_work(resumed_from_pause=False)
+    assert "unprocessed staging" in reason
+    assert "MINT one atom per named deliverable" in reason
+    # remove the ruling, stage a plain doc: primary has NO mint clause
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_C_2026-07-27.md").unlink()
+    (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("ordinary staged content")
+    reason2, _ = supervisor.find_work(resumed_from_pause=False)
+    assert "unprocessed staging" in reason2 and "MINT one atom per named deliverable" not in reason2
+
+
 # ── DRAINED-AND-GATED quiet wait (ADVISOR_STEER_IDLE_TREADMILL..._2026-07-18, item 1) ──────────
 # The mechanism: when the map is DRAINED of below-target work and the remainder is blocked on a
 # director act, find_work returns a THIRD state (None, map_exhausted=False) -- a quiet wait -- so

@@ -9,11 +9,24 @@ WORK THIS CREATES — progress:
          _is_content_driven_not_only_filename, _ignores_parked_and_archived_rulings, _ignores_daemon_
          markers). Reproduces the exact 2026-07-27 08:23-10:25 state as a failing test. 211 supervisor/
          harden/planner tests green.
-  [OPEN] Item 2 — §2 rung-7 mint-source extension to rulings/steers + the retrospective mints
-         (merit-order/gas-first price reconstruction = the SSP-hold unblock + Board Spec 004
-         reconstructibility; DD seasonal cash-flow FRAME; site evidence-pages-behind-diagram). Lane:
-         harness (mint source) + product (the retrospective atoms). Director tag: DO THIS FIRST of the
-         remainder — unblocks product today.
+  [DONE-harness / retro-mints RECONCILED] Item 2 — §2 mint-source extension LANDED: rulings/steers
+         are now a MINT SOURCE (not only DIRECTOR_AXES). background/supervisor.py::
+         work_this_creates_deliverables (§4 block parser) + ruling_steer_missing_work_block (§4
+         missing-block DEFECT surface) + ruling_mint_instruction, wired into find_work()'s staging
+         primary so a DRAWN [DIRECTOR-RULING]/[STEER] doorbell now instructs "MINT one atom per named
+         deliverable from its WORK THIS CREATES block (state which are already covered)" — closing the
+         §0 root cause ("prose in rulings is invisible to rung-7"). R15 mutation-proven BOTH ways
+         (neutralise parser -> 3 block-present tests fail; restore -> green). 215 supervisor/planner/
+         harden tests green. RETRO MINTS reconciled (the mechanism's own "state which are already
+         covered"): merit-order/gas-first reconstruction ALREADY minted — PLANNER_MINTED_merit_order_
+         reconstruction_discover_2026-07-25.md (in_progress/, DISCOVER+FRAME discharged, BUILD held to
+         propose-then-proceed 2026-07-28); DD seasonal cash-flow FRAME ALREADY minted — PLANNER_MINTED_
+         dd_seasonal_cashflow_physics_2026-07-25.md (in_progress/, FRAME+propose done, BUILD held to
+         2026-07-27); site evidence-pages-behind-diagram tracked under the SITE-model-spine campaign
+         (§A follow-on) + PLANNER_MINTED_moap_node_evidence_anchors_2026-07-24 (done/). So §2's premise
+         "none was ever minted" is OUTDATED as of the 07-25 planner mints — the gap was the MECHANISM
+         (now landed), not the artifacts. NOT yet done: a distinct site-evidence-pages atom if the
+         campaign follow-on proves separable from moap_node_evidence_anchors (defer to that campaign).
   [OPEN] Item 3 — §3 rung-1 ordering test at find_work level (a HARDEN candidate + an unconsumed
          staged ruling -> the ruling's `primary` wins and no HARDEN is appended as 'ALSO'). Partially
          covered by item 1's suppression; add the find_work-level assertion to close it explicitly.
