@@ -2149,6 +2149,56 @@ def test_harden_cooldown_R15_predicate_fails_on_expiry_and_change(tmp_path):
     assert supervisor._harden_in_cooldown(atom, {}) is False         # no record -> re-offer
 
 
+def test_file_scope_sha_tracks_scoped_file_contents(tmp_path):
+    """The file_scope-change signal (2026-07-27 H1 red-team): _file_scope_sha flips when a scoped
+    SOURCE file changes, and FAILS OPEN to '' (never spuriously suppresses) when file_scope is
+    absent or no scoped file exists."""
+    (tmp_path / "s.py").write_text("v1")
+    a = {"id": "X", "file_scope": ["s.py"]}
+    s1 = supervisor._file_scope_sha(a, root=tmp_path)
+    (tmp_path / "s.py").write_text("v2 regressed")
+    s2 = supervisor._file_scope_sha(a, root=tmp_path)
+    assert s1 and s2 and s1 != s2                                   # content change flips the sha
+    assert supervisor._file_scope_sha({"id": "Y"}, root=tmp_path) == ""             # no file_scope
+    assert supervisor._file_scope_sha({"id": "Z", "file_scope": ["gone.py"]}, root=tmp_path) == ""  # missing file
+
+
+def test_harden_cooldown_reoffers_when_shared_file_scope_changes(tmp_path, monkeypatch):
+    """SHARED-FILE blind spot (2026-07-27 H1 self-HARDEN red-team): an atom stays fresh and its OWN
+    maturity-map note is UNCHANGED, but a file in its file_scope moved since the stamp (e.g. a commit
+    hardening a SIBLING atom that shares background/supervisor.py). It MUST re-offer -- the code under
+    this atom's control just changed and may have regressed. R15 both ways: matching scope_sha ->
+    suppress; a changed scoped file -> re-offer. Legacy records (no scope_sha) stay back-compatible.
+    KILLER MUTATION: dropping the `scope_sha != _file_scope_sha(a)` re-offer makes the changed-file
+    assertion return True (suppressed) -- caught here."""
+    monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
+    (tmp_path / "s.py").write_text("v1")
+    atom = {"id": "X", "level_current": 3, "level_target": 3, "loop_stage": "build",
+            "dial_inherited": 1, "file_scope": ["s.py"]}
+    now = datetime.now(timezone.utc)
+    rec = {"at": now.isoformat(), "sha": supervisor._atom_content_sha(atom),
+           "scope_sha": supervisor._file_scope_sha(atom, root=tmp_path)}
+    assert supervisor._harden_in_cooldown(atom, {"X": rec}, now=now) is True    # fresh + code unchanged -> suppress
+    (tmp_path / "s.py").write_text("v2 regressed")                             # file_scope code moves
+    assert supervisor._harden_in_cooldown(atom, {"X": rec}, now=now) is False   # -> re-offer within window
+    legacy = {"at": now.isoformat(), "sha": supervisor._atom_content_sha(atom)}  # pre-scope_sha record
+    assert supervisor._harden_in_cooldown(atom, {"X": legacy}, now=now) is True  # back-compat: scope check skipped
+
+
+def test_record_harden_pass_stamps_scope_sha(tmp_path, monkeypatch):
+    """record_harden_pass writes the file_scope signal so the NEXT tick can detect a shared-file
+    change; the atom here has a real scoped file so scope_sha is a non-empty hash."""
+    monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
+    (tmp_path / "s.py").write_text("body")
+    _write_map(tmp_path,
+        "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n"
+        "  dial_inherited: 1\n  file_scope: [s.py]\n")
+    supervisor.record_harden_pass("A_done")
+    rec = supervisor._load_harden_cooldown()["A_done"]
+    assert rec.get("scope_sha")                                    # non-empty -> scoped file was hashed
+    assert set(rec) >= {"at", "sha", "scope_sha"}
+
+
 def test_harden_cooldown_fail_open_on_malformed_marker(tmp_path):
     """FAIL-TOWARD-WORK: a malformed marker file must never silence the draw -> _load returns {}
     and the draw behaves exactly as before the cooldown existed."""

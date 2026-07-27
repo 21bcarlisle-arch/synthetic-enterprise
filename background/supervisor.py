@@ -1454,7 +1454,9 @@ def _harden_criticality_weight(a: dict) -> int:
 # recently hardened + unchanged), fall back to the full pool -- a genuinely-empty
 # HARDEN draw would false-trip the LOOP_BROKEN transport alarm and violate 'the
 # to-do list is never empty'. INDEPENDENCE (R15): keyed on each atom's ACTUAL
-# serialised content (`sha`), NEVER a constant -- a stale/constant marker that
+# serialised content (`sha`) AND its file_scope source contents (`scope_sha`,
+# 2026-07-27 H1 self-HARDEN red-team -- so a change to SHARED code under a sibling
+# atom's note re-offers too), NEVER a constant -- a stale/constant marker that
 # never invalidates is caught by the mutation test (a changed atom must re-offer
 # within cooldown; an expired stamp must re-offer). FAIL-TOWARD-WORK: any missing/
 # malformed record -> the atom is NOT in cooldown (re-offer), so a broken marker
@@ -1476,6 +1478,38 @@ def _atom_content_sha(a: dict) -> str:
         ).hexdigest()[:16]
     except (TypeError, ValueError):
         return ""
+
+
+def _file_scope_sha(a: dict, root: Path | None = None) -> str:
+    """SHA of the CURRENT contents of an atom's file_scope SOURCE FILES -- the 'has the
+    CONTROLLED CODE changed since its last HARDEN pass' signal, complementing _atom_content_sha
+    (which only sees the atom's OWN maturity-map note). Closes a real blind spot found by the
+    2026-07-27 H1 self-HARDEN red-team: many harness atoms SHARE background/supervisor.py in
+    file_scope (H1, H19, H_forward_discovery_draw, OPS1, ...), so a commit hardening a SIBLING
+    atom moves the shared code but appends its note to the SIBLING's entry -- leaving this atom's
+    yaml, and thus its _atom_content_sha, untouched. Without this the cooldown would suppress a
+    re-verify for up to HARDEN_COOLDOWN_HOURS even though code under this atom's control just
+    moved. Keying on file_scope contents re-offers on ANY such change -- exactly the docstring's
+    stated intent ('a commit touched its file_scope -> re-verify'), previously unimplemented.
+    FAIL-OPEN: '' when file_scope is absent/non-list or NO scoped file exists/reads -- an empty
+    signal never spuriously suppresses; it just falls back to the atom-content + time behaviour."""
+    root = root or PROJECT_DIR
+    scope = a.get("file_scope")
+    if not isinstance(scope, list):
+        return ""
+    h = hashlib.sha256()
+    saw = False
+    for rel in sorted(str(p) for p in scope):
+        try:
+            data = (Path(root) / rel).read_bytes()
+        except (OSError, TypeError, ValueError):
+            continue                         # missing/unreadable -> contributes nothing (a
+            # DELETED scoped file thus flips the sha too -> re-verify, which is correct)
+        h.update(rel.encode("utf-8"))
+        h.update(b"\0")
+        h.update(data)
+        saw = True
+    return h.hexdigest()[:16] if saw else ""
 
 
 def _load_harden_cooldown(path: Path | None = None) -> dict:
@@ -1502,7 +1536,13 @@ def _harden_in_cooldown(a: dict, cooldown: dict, now: datetime | None = None) ->
     if not isinstance(rec, dict):
         return False
     if rec.get("sha") != _atom_content_sha(a):
-        return False                         # changed since last HARDEN -> re-offer now
+        return False                         # atom's own note changed -> re-offer now
+    scope_sha = rec.get("scope_sha")
+    if scope_sha is not None and scope_sha != _file_scope_sha(a):
+        return False                         # file_scope CODE changed (possibly under a sibling
+        # atom's note on a shared file) -> may have regressed -> re-verify now. Guarded on
+        # `is not None` so a legacy record (pre-scope_sha) is back-compat: scope check skipped,
+        # falls back to atom-content + time; the next record_harden_pass writes the new field.
     try:
         last = datetime.fromisoformat(rec["at"])
     except (KeyError, TypeError, ValueError):
@@ -1541,7 +1581,8 @@ def record_harden_pass(atom_id: str, path: Path | None = None,
         return None
     cooldown = _load_harden_cooldown(p)
     now = now or datetime.now(timezone.utc)
-    cooldown[atom_id] = {"at": now.isoformat(), "sha": _atom_content_sha(atom)}
+    cooldown[atom_id] = {"at": now.isoformat(), "sha": _atom_content_sha(atom),
+                         "scope_sha": _file_scope_sha(atom)}
     Path(p).parent.mkdir(parents=True, exist_ok=True)
     Path(p).write_text(json.dumps(cooldown, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return Path(p)
