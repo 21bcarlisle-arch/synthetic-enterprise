@@ -1,0 +1,202 @@
+{
+  "_meta": {
+    "artefact": "cohort_coverage_realised",
+    "atom": "CA2_coverage_report_realised_cohort",
+    "ruling": "DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27 \u00a73",
+    "purpose": "make the realised cohort structure legible \u2014 which cells fill at N=200 and which stay thin, per dimension AND at the ~12-cell value knee. Thin cells are FINDINGS (\u00a73).",
+    "generated_at": "2026-07-27T20:16:54.861225+00:00",
+    "code_sha": "6bb6789ddea7",
+    "provenance": {
+      "base_seed": 20260724,
+      "draw_region": true,
+      "assign_cohorts": true,
+      "year_window": [
+        2021,
+        2025
+      ],
+      "n_target": 200,
+      "acquisitions_per_year_lambda_used": 40.0,
+      "n_realised": 198,
+      "lambda_note": "\u03bb set locally to hit the N_target DIAGNOSTIC draw; the shipped default is \u03bb=1.0 and the live-run \u03bb that realises N=200 is R13-reserved/escalated \u2014 NOT set here."
+    },
+    "rc7": "cell counts only; no cohort-derived financial figure (RC7 holds).",
+    "r12": "cell counts are a diagnostic; thinness is a finding, never a target."
+  },
+  "coverage": {
+    "n_customers": 198,
+    "redundancy_floor": 2,
+    "worst_cell": {
+      "axis": "accommodation",
+      "category": "caravan",
+      "count": 2
+    },
+    "thin_cells": [],
+    "absent_cells": [],
+    "passes_floor": true,
+    "axes": {
+      "tenure": {
+        "counts": {
+          "own_outright": 67,
+          "private_rent": 35,
+          "own_mortgage": 56,
+          "social_rent": 40
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 35
+      },
+      "accommodation": {
+        "counts": {
+          "terraced": 46,
+          "detached": 51,
+          "semi": 53,
+          "flat": 46,
+          "caravan": 2
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 2
+      },
+      "cars": {
+        "counts": {
+          "2plus": 77,
+          "1": 83,
+          "0": 38
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 38
+      },
+      "nssec": {
+        "counts": {
+          "intermediate": 46,
+          "higher": 81,
+          "routine_semi": 58,
+          "unemployed_student": 13
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 13
+      },
+      "heating_fuel": {
+        "counts": {
+          "other_offgas": 12,
+          "mains_gas": 135,
+          "oil": 3,
+          "mixed": 20,
+          "electric": 14,
+          "heat_network": 14
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 3
+      },
+      "region": {
+        "counts": {
+          "Yorkshire and The Humber": 17,
+          "North West": 21,
+          "East": 22,
+          "South West": 18,
+          "South East": 23,
+          "West Midlands": 25,
+          "North East": 9,
+          "London": 30,
+          "East Midlands": 20,
+          "Wales": 13
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 9
+      },
+      "green_stance": {
+        "counts": {
+          "engaged": 65,
+          "neutral": 88,
+          "disengaged": 45
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 45
+      },
+      "price_sensitivity": {
+        "counts": {
+          "medium": 83,
+          "high": 64,
+          "low": 51
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 51
+      },
+      "channel_pref": {
+        "counts": {
+          "digital": 105,
+          "phone": 63,
+          "assisted": 30
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 30
+      },
+      "segment": {
+        "counts": {
+          "resi": 163,
+          "I&C": 10,
+          "SME": 25
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 10
+      },
+      "consumption_band": {
+        "counts": {
+          "HIGH": 54,
+          "MEDIUM": 94,
+          "LOW": 50
+        },
+        "thin_categories": [],
+        "absent_expected": [],
+        "worst_count": 50
+      }
+    },
+    "joints": {
+      "price_sensitivity_x_tenure": {
+        "name": "price_sensitivity_x_tenure",
+        "axes": [
+          "price_sensitivity",
+          "tenure"
+        ],
+        "why": "the ~12-cell value knee (learning_value_frontier.json step 2: 3\u00d74 cells, marginal learning-value +0.221 \u2014 the last big jump before the frontier bends); first real test of whether it survives a draw",
+        "thin_floor": 3,
+        "n_cells_grid": 12,
+        "n_cells_filled": 12,
+        "n_customers_scored": 198,
+        "uniform_expected": 16.5,
+        "thinnest_cell": {
+          "cell": "low|social_rent",
+          "count": 6
+        },
+        "thin_cells": [],
+        "absent_cells": [],
+        "findings": [
+          "KNEE SURVIVES: all 12 cells of price_sensitivity_x_tenure realised at \u22653 (N_scored=198); thinnest low|social_rent=6 vs uniform-expected 16.5. The analytic value knee survives a real draw."
+        ],
+        "cells": {
+          "high|own_outright": 21,
+          "high|own_mortgage": 18,
+          "high|private_rent": 9,
+          "high|social_rent": 16,
+          "low|own_outright": 19,
+          "low|own_mortgage": 14,
+          "low|private_rent": 12,
+          "low|social_rent": 6,
+          "medium|own_outright": 27,
+          "medium|own_mortgage": 24,
+          "medium|private_rent": 14,
+          "medium|social_rent": 18
+        }
+      }
+    }
+  },
+  "gate_ok": true
+}
