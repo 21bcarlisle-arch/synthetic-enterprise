@@ -365,6 +365,7 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
   <div class="card">
     <p class="muted" id="inv-unit-note" style="margin-bottom:12px">Loading...</p>
     <div class="kpis" id="inv-kpis"><div class="muted">Loading...</div></div>
+    <p class="muted" id="inv-treasury-liability" style="margin-top:12px"></p>
   </div>
 
   <!-- 4c. THE COST-TO-SERVE LEG (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the
@@ -1023,13 +1024,28 @@ function renderInvestor(D,PH){
   var kpis=[
     {l:"Sim net margin ÷ cohort N (all-yr)",v:hasN?gbp(nmPer):"--",title:perTitle},
     {l:"Sim net margin (cohort total)",v:gbp(totalNet),title:totalTitle},
-    {l:"Treasury (end 2025)",v:gbp(treasury),title:"banked clock · stock at period end · a drawn-cohort figure"},
+    {l:"Treasury (end 2025)",v:gbp(treasury),title:"banked clock · stock at period end · a drawn-cohort figure · INCLUDES held customer credit, a liability owed back (DD5) -- not spare cash"},
     {l:"Cohort customers (N)",v:hasN?String(N):"--",title:"the teaching cohort this run's figures are earned across"}
   ];
   document.getElementById("inv-kpis").innerHTML=kpis.map(function(k){
     return '<div class="kpi"'+(k.title?' title="'+esc(k.title).replace(/"/g,"&quot;")+'"':'')+
       '><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
   }).join("");
+  // DD_seasonal_cashflow_physics / DD5: the treasury figure must never stand alone. This
+  // banked-clock cash STOCK includes held customer credit -- a LIABILITY owed back, not spare
+  // cash -- so the cash-rich-but-insolvent tell travels with the number wherever it renders.
+  // The instrumented held-credit floor lives on The Company door; the full-book seasonal-credit
+  // position is designed, not yet instrumented (stated honestly, never fabricated here).
+  var tl=document.getElementById("inv-treasury-liability");
+  if(tl)tl.innerHTML=(ann.length
+    ? "<b>The treasury figure does not stand alone.</b> This banked-clock cash <b>stock</b> "+
+      "<b>includes held customer credit</b> &mdash; on level direct debit each household's "+
+      "summer-built credit sits on our balance sheet as a <b>liability owed back</b>, not our "+
+      "profit &mdash; so a supplier can look <b>cash-rich and be balance-sheet insolvent</b>. "+
+      "The instrumented held-credit floor (from the drawn arrears sample) is shown beside "+
+      "treasury on <a href=\"../company/\">The Company</a> door; the full-book seasonal-credit "+
+      "position is <b>designed, not yet instrumented</b> (DD_seasonal_cashflow_physics · DD5)."
+    : "");
   var un=document.getElementById("inv-unit-note");
   if(un)un.innerHTML=hasN
     ? "<b>Teaching cohort, N="+N+" &mdash; not scaled company economics.</b> This run's book is a small "+
