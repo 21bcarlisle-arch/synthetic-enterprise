@@ -18,11 +18,17 @@ Or from the command line:
 
 from __future__ import annotations
 
+import json
 from datetime import date, timedelta
+from pathlib import Path
 
 from sim.scenario.bimodal_generator import SCENARIOS as ELEC_SCENARIOS, generate_scenario_prices
 from sim.scenario.gas_scenario_generator import GAS_SCENARIOS, generate_gas_scenario_prices
 from sim.scenario.intraday_shape import shape_day
+
+# Real 2016-2025 daily-mean SSP reference, extracted once from the 128MB half-hourly cache
+# (sim/cache/elexon_ssp_full.json) into a compact committed fixture -- see reconcile_baseline_fidelity.
+REAL_SSP_DAILY_MEAN_FIXTURE = Path(__file__).resolve().parent.parent / "sim" / "scenario" / "data" / "real_ssp_daily_mean.json"
 
 
 def _expand_daily_to_hh(daily_records: list[dict], seed: str = "scenario") -> list[dict]:
@@ -107,6 +113,74 @@ def build_extended_price_feeds(
     extended_gas = historical_gas + gas_daily
 
     return extended_elec, extended_gas
+
+
+def _daily_returns(prices) -> "list[float]":
+    """First-difference returns (ΔP = P_t - P_{t-1}) of a daily price series.
+
+    ΔP, not log/percentage returns: real UK SSP goes NEGATIVE (negative-price days) and
+    through ~0, which makes log- and pct-returns undefined/explosive. First differences are
+    well-defined everywhere and preserve the volatility-clustering / spike / persistence
+    structure the fidelity moments measure.
+    """
+    import numpy as np
+    v = np.asarray(prices, dtype=float)
+    return np.diff(v)
+
+
+def load_real_ssp_daily_returns(fixture_path: "str | Path | None" = None):
+    """Return the REAL 2016-2025 daily-mean SSP first-difference return series.
+
+    Reads the compact committed fixture (sim/scenario/data/real_ssp_daily_mean.json), a
+    daily-mean aggregation of the real half-hourly Elexon SSP record -- so the 128MB
+    half-hourly cache is never parsed at run/test time. Real published market data (R13:
+    the real reference the baseline generator is measured AGAINST, blind to company P&L).
+    """
+    path = Path(fixture_path) if fixture_path is not None else REAL_SSP_DAILY_MEAN_FIXTURE
+    data = json.loads(path.read_text())
+    return _daily_returns(data["daily_mean_ssp"])
+
+
+def reconcile_baseline_fidelity(
+    scenario: str = "baseline_2025",
+    year_from: int = 2026,
+    year_to: int = 2035,
+    seed: str = "baseline_fidelity",
+    *,
+    generated_returns=None,
+    reference_returns=None,
+):
+    """Swing the fidelity-check blade on the ACTUAL baseline generator vs REAL history.
+
+    check_scenario_fidelity's six R15-hardened distributional moments
+    (mean/std/lag1_autocorr/tail_ratio/tail_skew/vol_clustering) had ZERO production callers
+    for the whole hardening arc -- the blade was sharpened on synthetic red-team fixtures but
+    never swung on the ACTUAL baseline generator's output. Per R15 an uninvoked check is a
+    FAILED check (the FRAME S3 calls it a "hard gate"; a gate that gates nothing protects
+    nothing). This is that caller: it generates the agree-expected baseline scenario, takes
+    first-difference returns of both the generated and the real 2016-2025 SSP series, and
+    reconciles them on every shared moment.
+
+    NON-BLOCKING DIAGNOSTIC (R12/R4). Returns the FidelityVerdict; a divergence is a FINDING
+    that drives diagnosis of the generator, NEVER a publish/scenario-run blocker -- the
+    known hazard (a false-fire jamming the reporting pipeline) is exactly why this is
+    diagnostic-only and is never wired into a gating path. Only a genuinely degenerate/missing
+    reference raises (DegenerateSeriesError, FAIL-OPEN loud).
+
+    R13 / agree-expected only: reconcile ONLY the baseline scenario against real history. The
+    stress presets (dunkelflaute/low-renewables/battery-saturation) are director-authored
+    curriculum that SHOULD diverge from the real record -- divergence there is the point, not
+    a defect. `generated_returns`/`reference_returns` may be injected (tests) to prove the
+    control both fires and passes without re-generating or re-reading the fixture.
+    """
+    from sim.scenario import fidelity_check as F
+
+    if reference_returns is None:
+        reference_returns = load_real_ssp_daily_returns()
+    if generated_returns is None:
+        gen = generate_scenario_prices(year_from, year_to, scenario, seed=seed)
+        generated_returns = _daily_returns([g["systemSellPrice"] for g in gen])
+    return F.check_scenario_fidelity(generated_returns, reference_returns)
 
 
 def run_forward_scenario(

@@ -206,3 +206,95 @@ def test_build_extended_scenario_dates_start_at_year_from():
         r["settlementDate"] for r in ext_elec if r["settlementDate"] >= "2026-01-01"
     )
     assert scenario_dates[0] == "2026-01-01"
+
+
+# ── W1_2 HARDEN 2026-07-28: reconcile_baseline_fidelity -- the PRODUCTION CALLER ──────────
+# check_scenario_fidelity's six hardened moments had ZERO production callers for the entire
+# hardening arc (blade sharpened on synthetic red-team fixtures, never swung on the ACTUAL
+# baseline generator's output -> R15 "an uninvoked check is a failed check"). These tests are
+# that caller and lock what it found: the baseline_2025 generator UNDER-CLUSTERS volatility vs
+# real 2016-2025 SSP (vol_clustering ~0.21 generated vs ~0.42-0.51 real, robust across every
+# real window), a genuine fidelity gap in the generator mechanism (fix lives in
+# bimodal_generator.py, OUTSIDE this atom's file_scope -- registered as a tracked simplification).
+from simulation.run_scenario import (
+    _daily_returns,
+    load_real_ssp_daily_returns,
+    reconcile_baseline_fidelity,
+)
+from sim.scenario import fidelity_check as F
+
+
+def test_daily_returns_are_first_differences():
+    """ΔP (not log/pct returns -- SSP goes negative/through-zero, which breaks those)."""
+    r = _daily_returns([10.0, 12.0, 9.0, 9.0])
+    assert list(r) == [2.0, -3.0, 0.0]
+
+
+def test_real_ssp_fixture_loads_and_is_non_degenerate():
+    """The compact committed real reference exists and is a usable return series."""
+    ref = load_real_ssp_daily_returns()
+    assert len(ref) > 2000                      # ~3500 days of real 2016-2025 SSP
+    assert F._std(F._clean(ref, min_len=20)) > 0  # real dispersion, not degenerate
+
+
+def test_reconcile_swings_the_blade_on_real_generated_output():
+    """The point of the atom's fidelity machinery: the check actually RUNS on the real
+    baseline generator vs real history, reporting every hardened moment (not zero callers)."""
+    v = reconcile_baseline_fidelity()
+    assert {c.moment for c in v.checks} == set(F.MOMENTS)   # all six moments swung
+    assert len(F.MOMENTS) == 6
+
+
+def test_reconcile_detects_baseline_vol_clustering_gap():
+    """LOCKS the 2026-07-28 finding: run against real history, the baseline_2025 generator
+    diverges on vol_clustering (it under-clusters volatility -- real energy stress arrives in
+    multi-day spells the generator's fast-turnover Markov regime does not sustain). This is the
+    control FIRING on a REAL generator defect -- stronger than a synthetic mutation. When the
+    generator is later fixed (bimodal_generator.py, out of file_scope), this sentinel flips and
+    must be revisited, not silently deleted."""
+    v = reconcile_baseline_fidelity()
+    assert not v.passed
+    assert "vol_clustering" in v.diverging()
+
+
+def test_reconcile_deterministic():
+    """C-S2 replay: same inputs -> identical verdict (fixed generator seed + check seed)."""
+    a = reconcile_baseline_fidelity()
+    b = reconcile_baseline_fidelity()
+    assert a.diverging() == b.diverging()
+    assert [c.ref_ci for c in a.checks] == [c.ref_ci for c in b.checks]
+
+
+def test_reconcile_passes_on_a_matching_generator():
+    """R15 the control CAN pass (not fail-closed/tautological): a generated series drawn from
+    the real reference itself agrees on every moment -> passed=True, nothing diverging."""
+    ref = load_real_ssp_daily_returns()
+    v = reconcile_baseline_fidelity(generated_returns=ref, reference_returns=ref)
+    assert v.passed, v.diverging()
+
+
+def test_reconcile_fires_on_an_injected_mean_shift():
+    """R15 the control fires on a clearly-wrong generator: a +50 GBP/MWh return-mean shift
+    (a mis-calibrated generator) is caught on the mean moment."""
+    ref = load_real_ssp_daily_returns()
+    v = reconcile_baseline_fidelity(generated_returns=ref + 50.0, reference_returns=ref)
+    assert not v.passed
+    assert "mean" in v.diverging()
+
+
+def test_reconcile_is_nonblocking_never_raises_on_divergence():
+    """R12/R4: a divergence is a DIAGNOSTIC, never a raise/publish-blocker. The known hazard
+    (a false-fire jamming the reporting pipeline) is why this is diagnostic-only -- it returns a
+    verdict even when the baseline diverges, rather than raising."""
+    v = reconcile_baseline_fidelity()          # currently DIVERGES on vol_clustering
+    assert isinstance(v, F.FidelityVerdict)     # returned, not raised
+
+
+def test_reconcile_fail_open_loud_on_degenerate_reference():
+    """FAIL-OPEN loud: a degenerate/missing reference raises rather than returning a passing
+    verdict (an unavailable check is a failed check, never a silent green)."""
+    with pytest.raises(F.DegenerateSeriesError):
+        reconcile_baseline_fidelity(
+            generated_returns=load_real_ssp_daily_returns(),
+            reference_returns=[3.0] * 500,      # constant -> no dispersion
+        )
