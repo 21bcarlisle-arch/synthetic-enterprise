@@ -312,6 +312,14 @@ def book_weighted_temperature(
     if not temp_keys:
         raise InvalidRegionWeightsError("no regions supplied")
     weights = {r: float(w) for r, w in region_weights.items()}
+    # Non-finite (NaN/inf) FIRST -- a NaN weight is FAIL-OPEN through both the
+    # negative and the sum-to-1 guards below (nan<0 is False, and abs(nan-1)>1e-6
+    # is False), so it would otherwise sail through and produce an all-NaN book
+    # temperature -- exactly the "wrongly-confident weighting no different in shape
+    # from a bug" this control exists to reject (R15 killer pattern #2, FAIL-OPEN).
+    if any(not np.isfinite(w) for w in weights.values()):
+        raise InvalidRegionWeightsError(
+            f"non-finite book weight(s) (NaN/inf): {weights}")
     if any(w < 0 for w in weights.values()):
         raise InvalidRegionWeightsError(
             f"negative book weight(s): {weights}")

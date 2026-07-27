@@ -223,6 +223,27 @@ def test_book_weighted_temperature_rejects_mismatched_lengths():
             {"A": [1.0, 2.0], "B": [1.0, 2.0, 3.0]}, {"A": 0.5, "B": 0.5})
 
 
+def test_book_weighted_temperature_rejects_nonfinite_weight():
+    # R15 killer pattern #2 (FAIL-OPEN): a NaN book weight is invisible to BOTH
+    # the negative guard (nan < 0 is False) AND the sum-to-1 guard (abs(nan-1) >
+    # 1e-6 is False), so without an explicit non-finite check it sails through and
+    # produces an all-NaN book temperature -- a wrongly-confident weighting no
+    # different in shape from a bug, exactly what this FAIL-LOUD control exists to
+    # reject. Mutation proof: delete the np.isfinite guard and this test fails
+    # (book_weighted_temperature returns [nan, nan] instead of raising).
+    with pytest.raises(InvalidRegionWeightsError):
+        book_weighted_temperature(
+            {"A": [0.0, 10.0], "B": [10.0, 20.0]}, {"A": float("nan"), "B": 0.5})
+    with pytest.raises(InvalidRegionWeightsError):
+        book_weighted_temperature(
+            {"A": [0.0, 10.0], "B": [10.0, 20.0]}, {"A": float("inf"), "B": 0.5})
+    # A clean, finite, summing-to-1 weighting still passes (no false positive --
+    # the guard targets the malformed case only).
+    out = book_weighted_temperature(
+        {"A": [0.0, 10.0], "B": [10.0, 20.0]}, {"A": 0.5, "B": 0.5})
+    np.testing.assert_allclose(out, [5.0, 15.0])
+
+
 def test_regional_dispersion_belief_beats_national_only_on_a_skewed_book():
     # The regional-dispersion story, built honestly on SYNTHETIC truth (real
     # per-book demand truth is not available inside this atom's file_scope --
