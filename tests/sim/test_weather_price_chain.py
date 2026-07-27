@@ -111,6 +111,39 @@ def test_r15_i3_merit_order_monotone_in_cold(params):
     assert cold > cold_windy
 
 
+def test_r15_i3_price_monotone_in_residual_demand(params, monkeypatch):
+    # Invariant 3 (FRAME §6) stated DIRECTLY and mutation-proven both ways -- the
+    # sibling test above checks two cold-range POINTS but carries no mutation arm
+    # (the FRAME requires "mutate to non-monotone and it fails"). The invariant's
+    # own wording is "price non-decreasing in RESIDUAL DEMAND at a fixed gas floor"
+    # -- NOT in temperature (price is U-shaped in temp: CDD cooling load lifts the
+    # warm tail), so this orders by residual, not by temperature.
+    #
+    # Sweep residual via a HEATING-range temperature sweep (all <= T_HEAT_C -> pure
+    # HDD, CDD == 0 -> demand strictly rising as it cools -> residual strictly
+    # rising) at fixed wind/cloud/doy/gas, order by residual, and assert the
+    # derived price never FALLS as residual rises.
+    temps = np.linspace(15.0, -12.0, 60)
+    assert float(temps.max()) <= wpc.T_HEAT_C          # pure-HDD sweep (no CDD kink)
+    kw = dict(wind_speed_ms=np.full(60, 6.0), cloud_pct=np.full(60, 50.0),
+              day_of_year=np.full(60, 15), gas_price=np.full(60, 40.0), params=params)
+    price = wpc.derive_price(temp_c=temps, **kw)
+    rd = wpc.residual_demand(temps, kw["wind_speed_ms"], kw["cloud_pct"],
+                             kw["day_of_year"], params)
+    order = np.argsort(rd)
+    # CONTROL: monotone non-decreasing in residual demand (float tol only).
+    assert np.all(np.diff(price[order]) >= -1e-6)
+
+    # MUTATION: replace the merit-order price response with a NON-MONOTONE one
+    # (price falls as residual rises -- dearer when slack, cheaper when tight).
+    # The monotonicity control must FIRE (a downward step appears in residual order)
+    # -- proving it has teeth, not a property that always passes on any price map.
+    monkeypatch.setattr(wpc, "synthetic_price",
+                        lambda gas, demand, renewable: -1.0 * float(demand - renewable))
+    price_mut = wpc.derive_price(temp_c=temps, **kw)
+    assert np.any(np.diff(price_mut[order]) < -1e-6)   # control FIRES on the non-monotone mutant
+
+
 def test_r15_i4_spike_comes_from_weather_residual_coupling(params):
     # The spike must come from the weather->residual-demand couplings, not a
     # stored number. The cold-and-still corner is tight via TWO pathways:
