@@ -697,3 +697,81 @@ def test_hard_rest_cap_silent_within_6h(monkeypatch):
     monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
     dms.run_cycle()
     assert [c for c in calls if "HARD REST CAP" in c] == []
+
+
+# ───────────── LAW C: INDEPENDENT primary-state read (2026-07-27, DIRECTOR_RULING_FAILURE_BIAS_LAWS) ─────────────
+#
+# The 42h stall trusted ONE source: the deadman's proven-rest fold consulted the supervisor's own
+# `_is_drained_and_gated()` enumeration, and self-drawable mints were EXCLUDED from every pager. LAW
+# C severs that -- the deadman now reads in_progress/ DIRECTLY (background.primary_state_scan, no
+# supervisor import) so a self-drawable mint the tick is not drawing pages regardless of what the
+# enumeration claims. Two sources that can disagree.
+
+
+def _write_self_drawable_mint(slug: str, title: str = "LAW-under-test") -> None:
+    ip = dms.STAGING_DIR / "in_progress"
+    ip.mkdir(parents=True, exist_ok=True)
+    (ip / f"PLANNER_MINTED_{slug}.md").write_text(
+        f"<!-- SUPERVISOR_DRAW: self-drawable -->\n# {title}\nbody\n")
+
+
+def test_self_drawable_undrawn_read_is_independent_and_excludes_blocked():
+    """The independent primitive returns SELF-DRAWABLE mints and EXCLUDES blocked/unmarked ones --
+    the exact complement of `_open_blocked_mints()`. Pure-disk read, no supervisor import."""
+    _write_self_drawable_mint("law_a_suppression_rearm", "LAW A")
+    _write_blocked_mint("some_blocked_thing")  # SUPERVISOR_DRAW: blocked
+    ip = dms.STAGING_DIR / "in_progress"
+    (ip / "PLANNER_MINTED_unmarked.md").write_text("# no marker\nbody\n")  # invisible by convention
+    got = dms._self_drawable_undrawn()
+    names = [n for n, _ in got]
+    assert "PLANNER_MINTED_law_a_suppression_rearm.md" in names
+    assert "PLANNER_MINTED_some_blocked_thing.md" not in names   # blocked -> not this pager's class
+    assert "PLANNER_MINTED_unmarked.md" not in names             # unmarked -> excluded (fail-closed)
+
+
+def test_drawable_undrawn_escalation_fires_after_2h_independent_of_enumeration(monkeypatch):
+    """LAW C, direction A (INDEPENDENCE): a self-drawable mint sits undrawn, no work commit for 3h,
+    and the SUPERVISOR'S enumeration reports rest proven-legitimate -- the exact false-empty class.
+    An [ACT] naming the undrawn mint STILL fires, because the deadman reads disk itself and does not
+    trust the tick's verdict. Mutation guard: point the check back at `_rest_is_proven_legitimate`
+    (trust the enumeration) and this goes green->red."""
+    _write_self_drawable_mint("failure_bias_law_a", "LAW A: suppression re-arm")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 3 * 3600)
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)  # enumeration says drained
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    act = [c for c in calls if "SELF-DRAWABLE mint" in c and "[ACT]" in c]
+    assert len(act) == 1
+    assert "failure_bias_law_a" in act[0]
+    assert "LAW C" in act[0]
+
+
+def test_drawable_undrawn_escalation_silent_within_2h(monkeypatch):
+    """LAW C, direction B (MUTATION both-ways): the SAME undrawn mint but only 1h since the last
+    work commit -> NO [ACT]. The 2h threshold is real state, not a constant-fire."""
+    _write_self_drawable_mint("failure_bias_law_b", "LAW B")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 1 * 3600)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert [c for c in calls if "SELF-DRAWABLE mint" in c] == []
+
+
+def test_self_drawable_mint_vetoes_proven_rest_stall(monkeypatch):
+    """LAW C VETO (INDEPENDENCE): empty root queue + a stale commit (100min) + rest 'proven
+    legitimate' (the supervisor verdict that WOULD fold [STALL]) -- BUT a self-drawable mint sits
+    undrawn on disk. The independent read vetoes the suppression, so [STALL] fires and NAMES the
+    mint. Contrast test_proven_rest_suppresses_stall (no mint present -> correctly suppressed): that
+    pair is the mutation both-ways for the veto. 100min is inside [90min STALL, 120min [ACT]) so
+    only the [STALL] tier is under test here."""
+    assert dms._unprocessed_staging_files() == []           # root queue genuinely empty
+    _write_self_drawable_mint("failure_bias_law_c", "LAW C")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 100 * 60)
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)  # would suppress if trusted alone
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    stall = [c for c in calls if "[STALL]" in c]
+    assert len(stall) == 1
+    assert "failure_bias_law_c" in stall[0] and "LAW C" in stall[0]

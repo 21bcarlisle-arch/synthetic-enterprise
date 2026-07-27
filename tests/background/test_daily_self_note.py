@@ -212,3 +212,58 @@ def test_force_reruns_same_day(monkeypatch, tmp_path):
     fake = FakeGit([("bbb", "real work", 2000, ["background/x.py"])])
     sm1.run(now=NOW, send=lambda m: None, _runner=fake)
     assert sm1.run(force=True, now=NOW, send=lambda m: None, _runner=fake) == "published"
+
+
+# --------------------------------------------------------------------------- #
+# LAW C item 2 (2026-07-27, DIRECTOR_RULING_FAILURE_BIAS_LAWS): the note reports
+# EFFECT + cross-checks the tick's enumeration against an INDEPENDENT read of
+# in_progress/, so a false "empty / rest-legitimate" is visible from the second
+# source. Both-ways: contradiction fires on false-rest; agrees otherwise.
+# --------------------------------------------------------------------------- #
+
+def _write_self_drawable(ip, slug):
+    ip.mkdir(parents=True, exist_ok=True)
+    (ip / f"PLANNER_MINTED_{slug}.md").write_text(
+        "<!-- SUPERVISOR_DRAW: self-drawable -->\n# LAW under test\nbody\n")
+
+
+def test_r17_crosscheck_flags_contradiction_when_enumeration_claims_rest(tmp_path):
+    """DIRECTION A: enumeration says REST-LEGITIMATE, but the independent read finds a self-drawable
+    mint undrawn -> 🔴 CONTRADICTION (the 42h-stall class, now visible from the note's second source)."""
+    ip = tmp_path / "in_progress"
+    _write_self_drawable(ip, "failure_bias_law_a")
+    rest_line = lambda: ("TICK-NEVER-RESTS law: always-drawable lane WIRED ... REST-LEGITIMATE", None)
+    line = sm1.r17_effect_crosscheck(in_progress_dir=ip, _status_fn=rest_line)
+    assert "CONTRADICTION" in line and "🔴" in line
+    assert "failure_bias_law_a" in line
+
+
+def test_r17_crosscheck_agrees_when_no_undrawn_mint(tmp_path):
+    """DIRECTION B (mutation both-ways): NO self-drawable mint on disk -> ✅ agree, never a false
+    contradiction. A mutation that hard-coded the 🔴 would RED here."""
+    ip = tmp_path / "in_progress"
+    ip.mkdir()
+    rest_line = lambda: ("TICK-NEVER-RESTS law: ... REST-LEGITIMATE", None)
+    line = sm1.r17_effect_crosscheck(in_progress_dir=ip, _status_fn=rest_line)
+    assert "✅" in line and "AGREES" in line
+    assert "CONTRADICTION" not in line
+
+
+def test_r17_crosscheck_no_false_contradiction_when_enumeration_already_flags_must_draw(tmp_path):
+    """When the enumeration ITSELF reports MUST-DRAW, the two sources agree that work exists -- so a
+    present undrawn mint is an EFFECT line, not a CONTRADICTION (the sources don't disagree)."""
+    ip = tmp_path / "in_progress"
+    _write_self_drawable(ip, "failure_bias_law_b")
+    must_draw = lambda: ("AUTHORIZED-SET enumeration [...] -> MUST-DRAW: forward_discovery", None)
+    line = sm1.r17_effect_crosscheck(in_progress_dir=ip, _status_fn=must_draw)
+    assert "CONTRADICTION" not in line
+    assert "EFFECT" in line and "failure_bias_law_b" in line
+
+
+def test_r17_crosscheck_reads_independently_of_supervisor_import():
+    """INDEPENDENCE: the primitive backing the cross-check imports nothing from supervisor.py."""
+    src = (sm1.PROJECT_DIR / "background" / "primary_state_scan.py").read_text(encoding="utf-8")
+    import_lines = [ln.strip() for ln in src.splitlines()
+                    if ln.strip().startswith(("import ", "from "))]
+    assert not [ln for ln in import_lines if "supervisor" in ln], \
+        "LAW C independence breach: the primary-state scan imports supervisor"

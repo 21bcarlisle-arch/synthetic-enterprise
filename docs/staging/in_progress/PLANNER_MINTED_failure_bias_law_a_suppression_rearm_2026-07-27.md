@@ -27,3 +27,8 @@
 Director already ruled the mechanism; no design-ambiguity propose window. Drawable now as harness BUILD. Disjoint file_scope from LAW B (gate cluster-scoping) and LAW C (watchdog/note derivation) — the three may build concurrently per MULTI_ATOM_DRAW.
 
 — Planner mint, RUNG-7 refill, 2026-07-27.
+
+<!-- PARKED-DRAWABLE (2026-07-27 worker tick): moved to in_progress/ as self-drawable for a later
+     tick to BUILD. LAW C landed this tick (sibling mint); LAW A/B remain drawable BUILD, deferred
+     under bounded-tick discipline (one verified sub-step). SUPERVISOR_DRAW marker above keeps them
+     in the draw. -->

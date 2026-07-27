@@ -69,6 +69,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background.notify import notify, clear_transition  # noqa: E402
 from background import action_needed  # noqa: E402
+from background.primary_state_scan import drawable_undrawn_mints  # noqa: E402  (LAW C independent read)
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "deadmans-switch-log.md"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
@@ -119,6 +120,7 @@ _NON_PROGRESS_SUBJECT_PREFIXES = (
 _COMMIT_KEY = "deadman_commit"        # BLOCKED / STALL (shared timer, tier-agnostic state)
 _OPEN_MINT_KEY = "deadman_open_mint"          # EIGHTH CLASS: blocked mints open while resting
 _HARD_REST_CAP_KEY = "deadman_hard_rest_cap"  # EIGHTH CLASS: rest > 6h in any circumstance
+_DRAWABLE_UNDRAWN_KEY = "deadman_drawable_undrawn"  # LAW C: self-drawable mint undrawn while resting
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _GATE_VIOLATION_KEY = "deadman_gate_violation"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
@@ -339,6 +341,51 @@ def _check_open_mint_escalation(since_commit: float) -> None:
         log(f"HARD REST CAP escalation checked (notify-gated) -- {since_commit / 3600:.1f}h since a work commit")
     else:
         clear_transition(_HARD_REST_CAP_KEY)
+
+
+def _self_drawable_undrawn() -> list[tuple[str, str]]:
+    """LAW C INDEPENDENT READ: (filename, title) for every SELF-DRAWABLE mint parked in
+    `in_progress/`. Delegated to `background.primary_state_scan` -- a module that imports NOTHING
+    from supervisor.py, so this verdict is a SECOND source that can disagree with the tick's own
+    `_is_drained_and_gated()` enumeration (source A). Reads the LIVE `STAGING_DIR / in_progress`
+    (not the frozen `_IN_PROGRESS_DIR`) so the test's STAGING_DIR patch isolates it, matching
+    `_open_blocked_mints`. Never raises."""
+    try:
+        return drawable_undrawn_mints(STAGING_DIR / "in_progress")
+    except Exception:
+        return []
+
+
+def _check_drawable_undrawn_escalation(since_commit: float) -> None:
+    """LAW C escalation duty (2026-07-27, DIRECTOR_RULING_FAILURE_BIAS_LAWS). The deadman must NOT
+    accept the tick's self-declared rest as sufficient -- it INDEPENDENTLY scans primary state for
+    a self-drawable mint sitting undrawn. If one has sat un-worked while NO forward-WORK commit has
+    landed for OPEN_MINT_REST_THRESHOLD (2h), the draw is either wedged or wrongly resting beside
+    drawable work -> [ACT], un-suppressible by the proven-rest fold (fired here, before it).
+
+    This is the counterpart to `_check_open_mint_escalation`: that pages on BLOCKED mints (awaiting
+    the director); this pages on SELF-DRAWABLE mints the tick itself should have drawn. Together
+    they leave no mint class silent. Keyed on the drawable-set signature so a changed set re-alerts
+    immediately and a stable one pages once then hourly (R5). `since_commit` is on the WORK-only
+    clock, so a window of nothing-but-liveness/chore/rest-proof commits still trips it."""
+    undrawn = _self_drawable_undrawn()
+    if undrawn and since_commit >= OPEN_MINT_REST_THRESHOLD_SECONDS:
+        detail = "; ".join(f"{n} ({t})" for n, t in undrawn)
+        notify(
+            f"[ACT] {len(undrawn)} SELF-DRAWABLE mint(s) have sat UNDRAWN in in_progress/ for "
+            f"{since_commit / 3600:.1f}h with no forward-work commit -- the tick is supposed to DRAW "
+            f"these, so either the draw is wedged or it is resting beside drawable work. This page is "
+            f"an INDEPENDENT read of disk (LAW C), so it fires even if the tick's own enumeration "
+            f"reports the authorized set empty. Draw them or explain why they are stuck: {detail}. "
+            f"(DIRECTOR_RULING_FAILURE_BIAS_LAWS LAW C, 2026-07-27.)",
+            kind="real_alarm", transition_key=_DRAWABLE_UNDRAWN_KEY,
+            state="undrawn:" + ",".join(sorted(n for n, _ in undrawn)),
+            re_escalate_after=RE_ESCALATE_SECONDS,
+        )
+        log(f"DRAWABLE-UNDRAWN escalation checked (notify-gated) -- {len(undrawn)} self-drawable "
+            f"mint(s) undrawn, {since_commit / 3600:.1f}h since a work commit")
+    else:
+        clear_transition(_DRAWABLE_UNDRAWN_KEY)
 
 
 def _reping_open_action_needed_items() -> None:
@@ -609,6 +656,9 @@ def run_cycle() -> None:
     # 6h rest window, so we don't double-page it here.
     if activity_epoch > 0:
         _check_open_mint_escalation(since_commit)
+        # LAW C (2026-07-27): the INDEPENDENT primary-state read -- a self-drawable mint sitting
+        # undrawn pages regardless of what the tick's own enumeration claims. Same WORK-clock guard.
+        _check_drawable_undrawn_escalation(since_commit)
     # Queued work = top-level staging PLUS actionable work a worker mis-parked into in_progress/
     # (2026-07-20 class fix): the latter is invisible to the draw AND was invisible to this alarm, the
     # exact 3-hour silent stall. Including it means mis-parked actionable work pages within
@@ -623,7 +673,14 @@ def run_cycle() -> None:
     # tracks dispositioned, every lane drained-and-gated, the tick resting with proof -- not wedged.
     # Only suppress when we can POSITIVELY confirm rest is legitimate; if work is drawable but no
     # commit is moving, that IS a real stall and still pages (fail-safe toward alarm).
-    proven_rest = (not staged) and stall_by_clock and _rest_is_proven_legitimate()
+    #
+    # LAW C INDEPENDENCE (2026-07-27): `_rest_is_proven_legitimate()` is the SUPERVISOR's own verdict
+    # (`_is_drained_and_gated()`) -- a checker trusting the checked. LAW C forbids resting on one
+    # source: the deadman ALSO reads primary state directly (`_self_drawable_undrawn()`, no supervisor
+    # import) and a self-drawable mint sitting undrawn VETOES the suppression, so a false "drained"
+    # enumeration can no longer fold the [STALL] backstop. Two sources that can disagree.
+    undrawn_now = _self_drawable_undrawn()
+    proven_rest = (not staged) and stall_by_clock and _rest_is_proven_legitimate() and not undrawn_now
     silent_stall = stall_by_clock and not proven_rest
 
     if not (blocked or silent_stall):
@@ -656,11 +713,23 @@ def run_cycle() -> None:
             f"box refusing turn grants) -- check the session directly."
         )
     else:  # silent_stall with an empty queue -- the backstop tier
-        msg = (
-            f"[STALL] Dead-man's switch: {since_commit / 60:.0f} min with no git commit and "
-            f"no queued work moving. The main session may be wedged even though nothing is "
-            f"queued -- check it directly."
-        )
+        if undrawn_now:
+            # LAW C: primary state (independent of the tick's enumeration) shows a self-drawable
+            # mint the draw has NOT picked up. Name it -- the [STALL] is not "nothing to do", it is
+            # "drawable work the tick is silently not drawing".
+            names = ", ".join(n for n, _ in undrawn_now[:3]) + ("..." if len(undrawn_now) > 3 else "")
+            msg = (
+                f"[STALL] Dead-man's switch: {since_commit / 60:.0f} min with no git commit while "
+                f"{len(undrawn_now)} SELF-DRAWABLE mint(s) sit undrawn in in_progress/ ({names}). The "
+                f"tick's own enumeration may report rest legitimate, but an INDEPENDENT read of disk "
+                f"(LAW C) shows drawable work -- the draw is wedged or wrongly resting. Check it."
+            )
+        else:
+            msg = (
+                f"[STALL] Dead-man's switch: {since_commit / 60:.0f} min with no git commit and "
+                f"no queued work moving. The main session may be wedged even though nothing is "
+                f"queued -- check it directly."
+            )
     # BLOCKED and STALL share ONE transition (state "STUCK") so a tier flip within the re-escalate
     # window does not re-page -- exactly the prior shared-_last_escalation_ts behaviour, now in the
     # contract. notify() owns transition-only + hourly re-escalate.

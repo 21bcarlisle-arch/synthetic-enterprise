@@ -25,3 +25,14 @@
 Director-ruled mechanism; no propose window. Drawable now. This is the independent-counterpart half of the sweep's remediation (LAW C is what the sweep assigns to any suppression that fails toward quiet).
 
 — Planner mint, RUNG-7 refill, 2026-07-27.
+
+---
+## DISPOSITION — LANDED (core), 2026-07-27 worker tick
+**Item 1 (independent watchdog verdict) + item 2 (daily-note EFFECT cross-check): LANDED and R15-proven both ways.**
+- New independent primitive `background/primary_state_scan.py::drawable_undrawn_mints` — reads `in_progress/` directly, imports NOTHING from `supervisor.py` (the LAW-C second source).
+- Deadman (`deadmans_switch.py`): `_check_drawable_undrawn_escalation` pages `[ACT]` on a self-drawable mint undrawn >2h **regardless of the tick's enumeration**, and a self-drawable mint now **vetoes** the proven-rest `[STALL]` fold — severing the deadman's trust in `_is_drained_and_gated()`.
+- Daily note (`daily_self_note.py::r17_effect_crosscheck`): cross-checks the enumeration STATUS against the independent read; renders 🔴 CONTRADICTION on a false REST-LEGITIMATE.
+- Tests: `test_deadmans_switch.py` LAW-C block + `test_daily_self_note.py` LAW-C block (R15 both ways, independence-import asserted).
+- Register `authorized_set_enumeration` + `daily_note_r17_status` → `landed_partial`.
+
+**Named LAW-C follow-on (recorded in `suppression_register.json`, NOT re-mint on sight):** independence over the OTHER primary sources (open campaign items, defect-ledger rows, drawable maturity atoms — still read only through the supervisor's drained check) and the full dead-hours-with-work-present time-series metric. Lower value now that the concrete self-drawable-mint blind spot is closed.

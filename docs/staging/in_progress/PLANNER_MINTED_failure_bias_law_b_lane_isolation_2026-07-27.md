@@ -26,3 +26,8 @@
 Director-ruled mechanism; no propose window. Drawable now. Disjoint file_scope from LAW A and LAW C (though all three touch `supervisor.py`/deadman/note — coordinate via tree_lock, or sequence if scopes overlap in the same function).
 
 — Planner mint, RUNG-7 refill, 2026-07-27.
+
+<!-- PARKED-DRAWABLE (2026-07-27 worker tick): moved to in_progress/ as self-drawable for a later
+     tick to BUILD. LAW C landed this tick (sibling mint); LAW A/B remain drawable BUILD, deferred
+     under bounded-tick discipline (one verified sub-step). SUPERVISOR_DRAW marker above keeps them
+     in the draw. -->

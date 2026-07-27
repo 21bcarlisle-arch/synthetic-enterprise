@@ -33,6 +33,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 NOTE_LOG = PROJECT_DIR / "docs" / "observability" / "daily-self-note.md"
 LAST_DATE_STAMP = PROJECT_DIR / "docs" / "observability" / ".daily_self_note_last_date"
 RATE_LIMITS_SENSOR = PROJECT_DIR / "docs" / "observability" / ".rate_limits.json"  # SM2 (optional)
+IN_PROGRESS_DIR = PROJECT_DIR / "docs" / "staging" / "in_progress"  # LAW C independent primary-state read
 
 # SUBSTANTIVE-WORK ALLOWLIST (§1 honesty decision, robust form). A denylist of churn dirs is
 # fragile — the auto-process treadmill also sweeps docs/observability + docs/staging/done, which a
@@ -187,6 +188,39 @@ def r17_status() -> tuple[str | None, str | None]:
         return None, f"R17 status unavailable ({type(e).__name__}: {str(e)[:80]})"
 
 
+def r17_effect_crosscheck(in_progress_dir: Path | None = None, _status_fn=r17_status) -> str:
+    """LAW C item 2 (DIRECTOR_RULING_FAILURE_BIAS_LAWS 2026-07-27): the note must report the
+    EFFECT, not merely the STATUS ("lane WIRED"), and it must derive that from PRIMARY state --
+    never solely from the tick's own published enumeration.
+
+    So this cross-checks two sources that can disagree: the tick's enumeration (`r17_status()`,
+    source A) against an INDEPENDENT read of `in_progress/` (source B, `primary_state_scan`, which
+    imports nothing from supervisor.py). If the enumeration claims REST-LEGITIMATE while the
+    independent read finds a self-drawable mint UNDRAWN, that is exactly the 42h-stall class -- a
+    false "empty" claim -- and the note renders it 🔴, visible from the second source. §2-severed:
+    a READ only, never a number that feeds the draw. Fail-closed to a RED, never a flattering ✅."""
+    from background.primary_state_scan import drawable_undrawn_mints
+    d = in_progress_dir or IN_PROGRESS_DIR
+    try:
+        undrawn = drawable_undrawn_mints(d)
+    except Exception as e:  # noqa: BLE001 — an unavailable independent read is a RED, never a silent green
+        return _red(f"LAW-C independent primary-state read unavailable: {e}")
+    status_line, _status_err = _status_fn()
+    up = (status_line or "").upper()
+    claims_rest = bool(status_line) and "REST-LEGITIMATE" in up and "MUST-DRAW" not in up
+    if undrawn:
+        names = ", ".join(n for n, _ in undrawn[:6]) + ("…" if len(undrawn) > 6 else "")
+        if claims_rest:
+            return ("🔴 CONTRADICTION (LAW C): the tick's enumeration reports REST-LEGITIMATE, but an "
+                    f"INDEPENDENT read of in_progress/ shows **{len(undrawn)} self-drawable mint(s) "
+                    f"UNDRAWN** ({names}). Two sources disagree — the enumeration is not to be trusted "
+                    "alone; this is drawable work the tick is silently not drawing (the 42h-stall class).")
+        return (f"⚠ EFFECT: {len(undrawn)} self-drawable mint(s) currently undrawn in in_progress/ "
+                f"({names}); the enumeration DOES flag must-draw, so the two sources AGREE (no false rest).")
+    return ("✅ LAW-C cross-check: no self-drawable mint sits undrawn in in_progress/ — the "
+            "independent primary-state read AGREES with the tick's enumeration (no false-empty).")
+
+
 def resource_inputs() -> tuple[str | None, str | None]:
     """SM2 rate_limits token-headroom sensor (optional). Absent → an honest 'not built' line,
     NOT a hard red (design §4: SM1 fail-closed WITHOUT it). A present-but-stale sensor IS a red."""
@@ -256,6 +290,11 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
 
     lines += ["", "**R17 — THE TICK NEVER RESTS (status, standing morning report)**"]
     lines.append(f"- {r17 if r17 else _red(r17_err)}")
+    # LAW C item 2 (2026-07-27): the note must report EFFECT, not just the WIRED status above, and
+    # must cross-check the enumeration against an INDEPENDENT primary-state read so a false "empty"
+    # is visible from the second source. (Full dead-hours-with-work time-series is a named LAW-C
+    # follow-on; this lands the independence cross-check + the current-snapshot effect.)
+    lines.append(f"- {r17_effect_crosscheck()}")
 
     # DIRECTOR_AXES twin pre-score gap (read-only; §2-severed — a diagnostic the
     # note reads, never a number that feeds the draw). Fail-closed on import/read.
