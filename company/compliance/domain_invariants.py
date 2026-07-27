@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from math import isfinite
 from typing import Optional
 
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
@@ -845,24 +846,32 @@ def check_bill_foots(bill: dict) -> bool:
     to disagree with the components, and generate_billing_ledger recomputes the
     total from the same components downstream. A PRESENT but non-numeric total
     fails CLOSED (R15: a total we cannot read cannot be reconciled). A component
-    that is present but non-numeric also fails CLOSED. Sign-invariant, so it
-    holds equally for a legitimate credit note (total and components share
-    sign)."""
+    that is present but non-numeric also fails CLOSED. A non-finite (NaN/Inf)
+    total or component fails CLOSED explicitly -- a value we cannot arithmetic
+    with cannot foot (F6 HARDEN 2026-07-27: previously this held only incidentally
+    via nan/inf comparison arithmetic, and did not fire at all on the N/A path).
+    Sign-invariant, so it holds equally for a legitimate credit note (total and
+    components share sign)."""
     if "total_amount_gbp" not in bill:
         return True
     try:
         declared = float(bill.get("total_amount_gbp"))
     except (TypeError, ValueError):
         return False  # fail closed: a total we cannot read cannot be reconciled
+    if not isfinite(declared):
+        return False  # fail closed: a non-finite total cannot be reconciled
     footed = 0.0
     for key in _FOOTING_COMPONENT_KEYS:
         raw = bill.get(key, 0.0)
         if raw is None:
             raw = 0.0
         try:
-            footed += float(raw)
+            fval = float(raw)
         except (TypeError, ValueError):
             return False  # fail closed: a component we cannot read cannot foot
+        if not isfinite(fval):
+            return False  # fail closed: a non-finite component cannot foot
+        footed += fval
     return abs(declared - footed) <= _FOOTING_TOLERANCE_GBP
 
 
@@ -870,10 +879,16 @@ def check_bill_line_items_non_negative(bill: dict) -> bool:
     """BILL_LINE_ITEMS_NON_NEGATIVE enforcement: every category line item
     (commodity, non-commodity, standing charge, VAT) must be non-negative,
     EXCEPT for a legitimate credit note (is_credit_bill). A malformed
-    (non-numeric) amount fails CLOSED. Uses the same penny tolerance so a
-    -0.00x rounding artefact is not mistaken for a genuine negative charge."""
-    if is_credit_bill(bill):
-        return True
+    (non-numeric) amount fails CLOSED. A non-finite (NaN/Inf) amount ALSO fails
+    CLOSED, and finiteness is checked BEFORE the credit-note exemption --
+    finiteness is orthogonal to sign, so you can neither bill NOR credit a
+    customer NaN/Inf (F6 HARDEN 2026-07-27: closes a fail-open where a NaN/Inf
+    charge slipped through because `nan < -0.05` and `inf < -0.05` are both
+    False, and -- since this gate runs regardless of whether a total is
+    declared -- was the reachable path a non-finite charge took to a customer).
+    Uses the same penny tolerance so a -0.00x rounding artefact is not mistaken
+    for a genuine negative charge."""
+    credit = is_credit_bill(bill)
     for key in _LINE_ITEM_KEYS:
         raw = bill.get(key, 0.0)
         if raw is None:
@@ -882,7 +897,9 @@ def check_bill_line_items_non_negative(bill: dict) -> bool:
             val = float(raw)
         except (TypeError, ValueError):
             return False  # fail closed
-        if val < -_FOOTING_TOLERANCE_GBP:
+        if not isfinite(val):
+            return False  # fail closed: a NaN/Inf charge is structurally impossible
+        if not credit and val < -_FOOTING_TOLERANCE_GBP:
             return False
     return True
 

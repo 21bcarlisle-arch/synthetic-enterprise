@@ -477,6 +477,39 @@ def test_non_negative_tolerant_of_tiny_rounding_artefact():
     assert check_bill_line_items_non_negative(_footing_bill(vat_gbp=-0.001)) is True
 
 
+def test_non_negative_fires_on_non_finite_charge_even_without_a_total():
+    # F6 HARDEN 2026-07-27, FAIL-OPEN closed. A NaN/Inf charge is numeric to
+    # float() yet structurally impossible. Because `nan < -0.05` and
+    # `inf < -0.05` are both False the sign check let it pass, and since this
+    # gate is the always-on structural check (it runs whether or not a total is
+    # declared, unlike footing which is not-applicable with no total), a
+    # no-total bill was the reachable path a non-finite charge took to a
+    # customer. Both must now fail CLOSED.
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        b = _footing_bill(commodity_amount_gbp=bad)
+        del b["total_amount_gbp"]  # footing not-applicable -> non-negativity is the only structural guard
+        assert check_bill_line_items_non_negative(b) is False
+
+
+def test_non_negative_finiteness_is_orthogonal_to_the_credit_note_exemption():
+    # A legitimate overcharge credit note is exempt from the SIGN check, but
+    # finiteness is orthogonal to sign -- you can neither bill nor credit a
+    # customer NaN/Inf, so a non-finite amount fires even on a credit note.
+    credit = _footing_bill(
+        commodity_amount_gbp=float("nan"), vat_gbp=-3.9,
+        catchup_applied=True, catchup_direction="overcharge",
+    )
+    assert is_credit_bill(credit) is True
+    assert check_bill_line_items_non_negative(credit) is False
+
+
+def test_bill_foots_fails_closed_on_non_finite_total_or_component():
+    # F6 HARDEN 2026-07-27: a non-finite total/component fails CLOSED explicitly,
+    # not by relying on incidental nan/inf comparison arithmetic.
+    assert check_bill_foots(_footing_bill(total_amount_gbp=float("nan"))) is False
+    assert check_bill_foots(_footing_bill(commodity_amount_gbp=float("inf"))) is False
+
+
 # BILL_PERIOD_TEMPORAL_SANE ----------------------------------------------------
 
 def test_period_sane_passes_on_forward_period():

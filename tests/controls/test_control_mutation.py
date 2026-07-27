@@ -266,6 +266,29 @@ def test_bill_non_negativity_fails_closed_on_unreadable_line():
     assert check_bill_line_items_non_negative(_foot_bill(vat_gbp="none")) is False
 
 
+def test_bill_non_negativity_fires_on_non_finite_charge():
+    # Killer-pattern audit (FAIL-OPEN), F6 HARDEN 2026-07-27. A NaN/Inf charge is
+    # numeric to float() yet structurally impossible; because `nan < -0.05` and
+    # `inf < -0.05` are both False it slipped through the sign check, and since
+    # this gate runs regardless of whether a total is declared, a no-total bill
+    # (footing not-applicable) was the reachable path a non-finite charge took to
+    # a customer. Both MUST now fire, and finiteness is orthogonal to sign so a
+    # NaN on a legitimate credit note MUST fire too.
+    assert check_bill_line_items_non_negative(_foot_bill(commodity_amount_gbp=float("nan"))) is False
+    assert check_bill_line_items_non_negative(_foot_bill(standing_charge_gbp=float("inf"))) is False
+    credit = _foot_bill(catchup_applied=True, catchup_direction="overcharge",
+                        commodity_amount_gbp=float("nan"))
+    assert check_bill_line_items_non_negative(credit) is False
+
+
+def test_bill_foots_fails_closed_on_non_finite_total_or_component():
+    # Companion to the above on the footing control: a non-finite total/component
+    # must fail CLOSED explicitly, not rely on incidental nan/inf comparison
+    # arithmetic (F6 HARDEN 2026-07-27).
+    assert check_bill_foots(_foot_bill(total_amount_gbp=float("nan"))) is False
+    assert check_bill_foots(_foot_bill(commodity_amount_gbp=float("inf"))) is False
+
+
 def test_bill_period_sane_fires_on_reversed_and_absurd_span():
     # CORRECT: an ordered, plausible-length period passes. MUTATE(1): reversed
     # dates MUST fire (never the old silent clamp-to-1-day). MUTATE(2): F6 HARDEN
