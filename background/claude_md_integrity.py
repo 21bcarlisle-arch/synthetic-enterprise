@@ -154,6 +154,54 @@ def inert_rules(text: str, root: Path = PROJECT_DIR) -> list[str]:
     return problems
 
 
+def _skill_fires(skill_text: str) -> bool:
+    """True iff a SKILL.md would actually register/route: it has a top-of-file
+    frontmatter block declaring a non-empty `name:` AND a non-empty
+    `description:`. The harness surfaces skills by name (the Skill tool requires
+    an EXACT name) and routes to them on description — a SKILL.md present on disk
+    but empty, truncated, or missing either field is INERT: the loader cannot
+    register or match it, so the procedure moved out of CLAUDE.md into it is
+    silently lost. is_file() alone (dangling_pointers) never catches this.
+    """
+    m = _FRONTMATTER.match(skill_text)
+    if not m:
+        return False
+    fields: dict[str, str] = {}
+    for line in m.group(1).splitlines():
+        stripped = line.strip()
+        for key in ("name:", "description:"):
+            if stripped.startswith(key):
+                fields[key] = stripped[len(key):].strip()
+    return bool(fields.get("name:")) and bool(fields.get("description:"))
+
+
+def inert_skills(text: str, root: Path = PROJECT_DIR) -> list[str]:
+    """Sibling-half of `inert_rules`: a referenced SKILL.md present on disk but
+    INERT (no frontmatter, or missing name/description) fires on nothing.
+
+    `dangling_pointers` verifies a referenced SKILL.md EXISTS; it cannot tell a
+    live skill from an empty/de-frontmattered file. That is the exact FAIL-SILENT
+    decay class `inert_rules` closed for path-scoped rules, on the untested
+    SKILLS half — an emptied phase-close/SKILL.md (the phase-close checklist
+    moved verbatim OUT of CLAUDE.md) passes is_file() silently while the
+    procedure is gone. Only referenced-and-existing skills are checked here; a
+    missing skill is `dangling_pointers`' job (no double-report).
+    """
+    problems: list[str] = []
+    for p in referenced_harness_paths(text):
+        if "/skills/" not in p:
+            continue  # rules are covered by inert_rules; skills only here
+        f = root / p
+        if not f.is_file():
+            continue  # missing => dangling_pointers reports it
+        if not _skill_fires(f.read_text(encoding="utf-8")):
+            problems.append(
+                f"{p} is present but INERT (no frontmatter name/description) — "
+                "the harness cannot register or route to it, silently losing its moved-out procedure"
+            )
+    return problems
+
+
 def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
     """Full integrity check. Empty list ⇒ healthy; else the violations."""
     if text is None:
@@ -166,6 +214,7 @@ def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
             + ", ".join(missing)
         )
     problems += inert_rules(text, root)
+    problems += inert_skills(text, root)
     return problems
 
 

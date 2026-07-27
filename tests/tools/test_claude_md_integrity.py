@@ -190,3 +190,75 @@ def test_full_check_fires_on_inert_rule(tmp_path):
     (tmp_path / "CLAUDE.md").write_text(_RULE_CLAIM, encoding="utf-8")
     _write_rule(tmp_path / ".claude" / "rules", "wall.md", "# no frontmatter\n")
     assert any("INERT" in p for p in integ.check(root=tmp_path))
+
+
+# --- inert_skills: sibling-half of inert_rules on the SKILLS side -------------
+# (2026-07-27 HARDEN red-team, "audit sibling half for hardened class": the
+# 2026-07-27 pass closed present-but-INERT for RULES; dangling_pointers verifies
+# a referenced SKILL.md EXISTS but is blind to an empty/de-frontmattered one, so
+# an emptied phase-close/SKILL.md — the checklist moved verbatim out of CLAUDE.md
+# — passed check() silently. Proven fail-open before the fix. R15 both-ways below.)
+
+_SKILL_CLAIM = "Invoke `.claude/skills/phase-close/SKILL.md` before closing."
+
+
+def _write_skill(root: Path, name: str, body: str):
+    d = root / ".claude" / "skills" / name
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "SKILL.md").write_text(body, encoding="utf-8")
+
+
+def test_real_claude_md_skills_all_fire():
+    """LIVE control: every SKILL.md the real CLAUDE.md references actually fires
+    (has frontmatter with a non-empty name + description)."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    assert integ.inert_skills(text, REPO_ROOT) == []
+
+
+def test_inert_skills_silent_when_no_skill_referenced(tmp_path):
+    """No false positive: a doc referencing no SKILL.md triggers no skills check."""
+    assert integ.inert_skills("Path-scoped rules fire from `.claude/rules/`.", tmp_path) == []
+
+
+def test_inert_skills_fires_on_empty_skill_file(tmp_path):
+    """FAIL-SILENT mutation: an emptied SKILL.md is inert yet passes is_file()."""
+    _write_skill(tmp_path, "phase-close", "")
+    problems = integ.inert_skills(_SKILL_CLAIM, tmp_path)
+    assert any("INERT" in v and "phase-close" in v for v in problems)
+
+
+def test_inert_skills_fires_on_skill_with_no_frontmatter(tmp_path):
+    _write_skill(tmp_path, "phase-close", "# Phase-close checklist\nbody only, no frontmatter\n")
+    assert any("INERT" in v for v in integ.inert_skills(_SKILL_CLAIM, tmp_path))
+
+
+def test_inert_skills_fires_when_name_or_description_missing(tmp_path):
+    """Frontmatter present but missing name (or description) => cannot register/route."""
+    _write_skill(tmp_path, "phase-close", "---\ndescription: has a desc but no name\n---\n# Body\n")
+    assert any("INERT" in v for v in integ.inert_skills(_SKILL_CLAIM, tmp_path))
+    _write_skill(tmp_path, "phase-close", "---\nname: phase-close\n---\n# Body\n")
+    assert any("INERT" in v for v in integ.inert_skills(_SKILL_CLAIM, tmp_path))
+
+
+def test_inert_skills_passes_on_valid_skill(tmp_path):
+    _write_skill(
+        tmp_path, "phase-close",
+        "---\nname: phase-close\ndescription: the phase-close checklist procedure\n---\n\n# Body\n",
+    )
+    assert integ.inert_skills(_SKILL_CLAIM, tmp_path) == []
+
+
+def test_inert_skills_does_not_double_report_missing_skill(tmp_path):
+    """A missing SKILL.md is dangling_pointers' job, not inert_skills' — the
+    latter only judges files that exist, so the two never double-count."""
+    assert integ.inert_skills(_SKILL_CLAIM, tmp_path) == []  # file absent => silent here
+    assert integ.dangling_pointers(_SKILL_CLAIM, tmp_path)   # dangling reports it
+
+
+def test_full_check_fires_on_inert_skill(tmp_path):
+    """End-to-end: check() surfaces an inert (present-but-empty) skill."""
+    (tmp_path / "CLAUDE.md").write_text(_SKILL_CLAIM, encoding="utf-8")
+    _write_skill(tmp_path, "phase-close", "")  # exists (not dangling) but inert
+    problems = integ.check(root=tmp_path)
+    assert any("INERT" in p for p in problems)
+    assert not any("do not exist" in p for p in problems)  # not a dangling report
