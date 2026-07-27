@@ -95,16 +95,15 @@ def dangling_pointers(text: str, root: Path = PROJECT_DIR) -> list[str]:
     return [p for p in referenced_harness_paths(text) if not (root / p).is_file()]
 
 
-def _rule_fires(rule_text: str) -> bool:
-    """True iff a path-scoped rule file would actually FIRE: it has a top-of-file
-    frontmatter block declaring at least one non-empty `paths:` glob. A rule that
-    lost (or never had) its `paths:` frontmatter is INERT — present on disk, firing
-    on nothing. That is the FAIL-SILENT decay this atom exists to kill, and it
-    survives every naive `is_file()` existence check.
+def _rule_globs(rule_text: str) -> list[str]:
+    """Every non-empty glob declared in a rule file's top-of-file `paths:`
+    frontmatter block (YAML list form or inline `paths: ["a", "b"]`). Empty
+    list ⇒ the rule fires on nothing (see `_rule_fires`).
     """
     m = _FRONTMATTER.match(rule_text)
     if not m:
-        return False
+        return []
+    globs: list[str] = []
     in_paths = False
     for line in m.group(1).splitlines():
         stripped = line.strip()
@@ -112,16 +111,44 @@ def _rule_fires(rule_text: str) -> bool:
             in_paths = True
             inline = stripped[len("paths:"):].strip()  # inline form: paths: ["a", "b"]
             if inline and inline not in ("[]", "[ ]"):
-                return True
+                for part in inline.strip("[]").split(","):
+                    g = part.strip().strip("'\"")
+                    if g:
+                        globs.append(g)
+                in_paths = False  # inline form is self-contained on this line
             continue
         if in_paths:
             if stripped.startswith("-"):
-                glob = stripped[1:].strip().strip("'\"")
-                if glob:
-                    return True
+                g = stripped[1:].strip().strip("'\"")
+                if g:
+                    globs.append(g)
             elif stripped and not stripped.startswith("#"):
                 in_paths = False  # a new top-level key ended the paths: block
-    return False
+    return globs
+
+
+def _rule_fires(rule_text: str) -> bool:
+    """True iff a path-scoped rule file would actually FIRE: it has a top-of-file
+    frontmatter block declaring at least one non-empty `paths:` glob. A rule that
+    lost (or never had) its `paths:` frontmatter is INERT — present on disk, firing
+    on nothing. That is the FAIL-SILENT decay this atom exists to kill, and it
+    survives every naive `is_file()` existence check.
+    """
+    return bool(_rule_globs(rule_text))
+
+
+def _glob_prefix_dir(glob: str) -> str:
+    """The static directory prefix of a glob — the path up to (not including) the
+    first segment containing a wildcard. 'company/**/*.py' -> 'company'. A glob
+    whose FIRST segment is already a wildcard ('**/*.py') has no static target
+    directory and returns '' (it matches broadly, so it cannot be a dead target).
+    """
+    parts: list[str] = []
+    for seg in glob.split("/"):
+        if any(ch in seg for ch in "*?[]"):
+            break
+        parts.append(seg)
+    return "/".join(parts)
 
 
 def inert_rules(text: str, root: Path = PROJECT_DIR) -> list[str]:
@@ -151,6 +178,45 @@ def inert_rules(text: str, root: Path = PROJECT_DIR) -> list[str]:
                 f".claude/rules/{f.name} is present but INERT (no firing `paths:` frontmatter) — "
                 "it fires on nothing, silently losing its path-scoped procedure"
             )
+    return problems
+
+
+def rules_targeting_missing_paths(text: str, root: Path = PROJECT_DIR) -> list[str]:
+    """A FIRING rule whose `paths:` glob targets a directory that does not exist
+    is INERT one level deeper than `inert_rules` catches: its frontmatter is
+    non-empty (so `_rule_fires` is True) yet the glob matches ZERO files on disk,
+    so the path-scoped reminder never actually loads.
+
+    This is the exact decay H7 exists to guard against — a protected tree
+    renamed or removed (the portability doctrine, PORTABILITY_DESIGN_CONSTRAINTS,
+    explicitly permits directory renames) leaves the rule glob dangling and the
+    epistemic-wall reminder silently dead, with every existence/frontmatter check
+    still green. Red-teamed 2026-07-27: a rule declaring `simulation/**/*.py`
+    after `simulation/` is renamed passes `inert_rules` today.
+
+    Independence (R15, anti-tautology): the checked value is the real filesystem
+    (does the glob's static prefix resolve to a directory), the oracle is the
+    glob string the rule itself declares — two independent sources; drift fires.
+    Empty list ⇒ every firing rule's glob prefix resolves to a real directory.
+    A missing/empty rules directory is `inert_rules`' job (no double-report).
+    """
+    if not _RULES_DIR_REF.search(text):
+        return []
+    rules_dir = root / ".claude" / "rules"
+    if not rules_dir.is_dir():
+        return []  # inert_rules already reports a missing rules directory
+    problems: list[str] = []
+    for f in sorted(rules_dir.glob("*.md")):
+        for glob in _rule_globs(f.read_text(encoding="utf-8")):
+            prefix = _glob_prefix_dir(glob)
+            if not prefix:
+                continue  # leading-wildcard glob matches broadly; not a dead target
+            if not (root / prefix).is_dir():
+                problems.append(
+                    f".claude/rules/{f.name} declares `paths:` glob '{glob}' whose target "
+                    f"directory '{prefix}/' does not exist — the rule fires on nothing "
+                    "(a renamed/removed protected tree silently killed the reminder)"
+                )
     return problems
 
 
@@ -214,6 +280,7 @@ def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
             + ", ".join(missing)
         )
     problems += inert_rules(text, root)
+    problems += rules_targeting_missing_paths(text, root)
     problems += inert_skills(text, root)
     return problems
 

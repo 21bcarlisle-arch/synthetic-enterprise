@@ -192,6 +192,90 @@ def test_full_check_fires_on_inert_rule(tmp_path):
     assert any("INERT" in p for p in integ.check(root=tmp_path))
 
 
+# --- rules_targeting_missing_paths: dead-target glob (one level below inert) ---
+# (2026-07-28 HARDEN red-team: inert_rules closed present-but-empty `paths:`, but
+# `_rule_fires` returns True on ANY non-empty glob without checking the glob
+# targets a real tree. A rule declaring `simulation/**/*.py` after `simulation/`
+# is renamed (the portability doctrine permits renames) fires on nothing yet
+# passes inert_rules — proven fail-open below. R15 both-ways.)
+
+
+def test_real_claude_md_rule_globs_all_resolve():
+    """LIVE control: every firing rule's `paths:` glob in the real repo points at
+    a directory that actually exists (company/ saas/ sim/ simulation/)."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    assert integ.rules_targeting_missing_paths(text, REPO_ROOT) == []
+
+
+def test_dead_target_glob_fires(tmp_path):
+    """FAIL-SILENT mutation: a rule whose glob targets a non-existent tree fires
+    on nothing (matches zero files) yet inert_rules passes it — this check must
+    catch it."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "simulation_RENAMED/**/*.py"\n---\n\n# Body\n',
+    )
+    # inert_rules is blind to it (the gap this check closes):
+    assert integ.inert_rules(_RULE_CLAIM, tmp_path) == []
+    problems = integ.rules_targeting_missing_paths(_RULE_CLAIM, tmp_path)
+    assert any("simulation_RENAMED" in p and "does not exist" in p for p in problems)
+
+
+def test_dead_target_glob_passes_when_tree_exists(tmp_path):
+    """The restore direction: the same rule glob passes once its target dir is
+    real on disk."""
+    (tmp_path / "company").mkdir()
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "company/**/*.py"\n---\n\n# Body\n',
+    )
+    assert integ.rules_targeting_missing_paths(_RULE_CLAIM, tmp_path) == []
+
+
+def test_dead_target_check_covers_inline_paths_form(tmp_path):
+    """Inline `paths: ["x/**/*.py"]` with a dead target is caught too."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths: ["gone_tree/**/*.py"]\n---\n\n# Body\n',
+    )
+    assert any("gone_tree" in p for p in integ.rules_targeting_missing_paths(_RULE_CLAIM, tmp_path))
+
+
+def test_dead_target_check_ignores_leading_wildcard_glob(tmp_path):
+    """No false positive: a glob whose first segment is a wildcard ('**/*.py')
+    has no static target directory and must not be reported as dead."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "**/*.py"\n---\n\n# Body\n',
+    )
+    assert integ.rules_targeting_missing_paths(_RULE_CLAIM, tmp_path) == []
+
+
+def test_dead_target_check_silent_when_no_rules_claim(tmp_path):
+    """No claim in CLAUDE.md ⇒ nothing to verify (even with a dead-target rule)."""
+    _write_rule(tmp_path / ".claude" / "rules", "wall.md", '---\npaths:\n  - "nope/**/*.py"\n---\n')
+    assert integ.rules_targeting_missing_paths("no rules mention", tmp_path) == []
+
+
+def test_full_check_fires_on_dead_target_glob(tmp_path):
+    """End-to-end: check() surfaces a firing-but-dead-target rule."""
+    (tmp_path / "CLAUDE.md").write_text(_RULE_CLAIM, encoding="utf-8")
+    _write_rule(tmp_path / ".claude" / "rules", "wall.md", '---\npaths:\n  - "ghost/**/*.py"\n---\n')
+    assert any("ghost" in p and "does not exist" in p for p in integ.check(root=tmp_path))
+
+
+def test_glob_prefix_dir_extraction():
+    """Unit: static prefix stops at the first wildcard segment."""
+    assert integ._glob_prefix_dir("company/**/*.py") == "company"
+    assert integ._glob_prefix_dir("a/b/c/*.py") == "a/b/c"
+    assert integ._glob_prefix_dir("**/*.py") == ""
+    assert integ._glob_prefix_dir("sim/*.py") == "sim"
+
+
 # --- inert_skills: sibling-half of inert_rules on the SKILLS side -------------
 # (2026-07-27 HARDEN red-team, "audit sibling half for hardened class": the
 # 2026-07-27 pass closed present-but-INERT for RULES; dangling_pointers verifies
