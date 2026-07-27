@@ -47,3 +47,20 @@ Acceptance: a run's realised cohort distribution is inspectable from published a
 **Risk & proportionality:** curriculum activation of an already-built, tested, default-off mechanism; re-baselining expected and gated; counter-proposal path open. Tag: **proceed.**
 
 — Advisor bridge, carrying the director's ruling and owning the omission that made it necessary. 2026-07-27.
+
+---
+
+## RESOLUTION (2026-07-27, worker tick — MINTED into drawable atoms, NOT yet built)
+
+The four WORK-THIS-CREATES deliverables are minted as drawable maturity-map atoms (`docs/design/maturity_map.yaml`), each with lane + target level + exit criteria + deps. **Consumed ≠ absorbed:** this tick MINTED the work; none of it is BUILT yet. All four sit on OPEN fronts (fronts_reconciler: QUIET, no alarm), so they draw without further authorization; level moves stay `blocked_on: director_level_up` (R16).
+
+| Deliverable | Atom | Lane / front | Status |
+|---|---|---|---|
+| (1) Cohort assignment live at ratified values + seam scan re-proven | `CA1_cohort_assignment_live` | W2_customer_generator / SIM_ACTORS (open) | drawable; curriculum gate cleared by THIS ruling (committed e685eb76d, tag proceed) |
+| (2) Coverage report extended to make realised cohort structure legible, thin cells named | `CA2_coverage_report_realised_cohort` | W2_customer_generator / SIM_ACTORS (open) | drawable; extends existing `simulation/population_coverage.py` per-axis → joint |
+| (3) Fidelity-ledger entries marked untestable-at-current-book + unlock condition | `CA3_segmentation_untestable_ledger_marking` | G_data_learning / EPOCH2_CAMPAIGN (open) | drawable; pool-vs-book honesty (§2) |
+| (4) Either the activation OR an evidenced counter-proposal on sequencing | `CA4_cohort_activation_sequencing_verdict` | W2_customer_generator / SIM_ACTORS (open) | drawable; the go/no-go, default PROCEED (§3), soft-gates CA1 |
+
+**Not re-minted (already covered, stated per doorbell):** the population-EXISTENCE wiring (`draw_population`/`SE_DRAW_POPULATION` — whether synthetic SYN-* households exist at all) is a DISTINCT, pre-existing mint, `PLANNER_MINTED_generator_draw_wiring_2026-07-24.md` (in_progress). This ruling's item (1) is the cohort-VARIETY flag (`assign_cohorts=True`) layered on that population, which the 2026-07-25 population-activation ruling omitted (§0). The `assign_cohort` mechanism itself is already BUILT default-off under `W2_2_population_draw`.
+
+The director's requested answer (activate, or counter-propose) is CA4's deliverable — produced when CA4 is drawn, not by this mint. Archived to `done/`; the atoms carry the work forward.
