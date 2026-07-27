@@ -346,3 +346,67 @@ value may be created. WVC_R world-half proceeds separately under the twin L1/L2 
 > table above) rather than mint a duplicate or rest on a false premise. Zero new company code this tick (a
 > marker + note edit only); the BUILD itself is the next draw. No mint, no rest-proof: premise judgment-false
 > in the OTHER direction — work exists, it was just invisible.
+
+---
+
+## MC-2 COLLATERAL DEATH-TEST — the breaking-strain MECHANISM SHIPPED (DONE, 2026-07-27 thirteenth touch)
+
+The twelfth touch (today, commit `3b5de929c`) cleared the stale block and named the MC-2 collateral
+death-test as the next drawable BUILD. This tick drew it and shipped the **pure death-detection +
+breaking-strain-sweep mechanism** — real code + R15 both-ways, not a FRAME note.
+
+### What shipped (`company/risk/collateral_death_test.py` + `tests/company/risk/test_collateral_death_test.py`)
+- **`breaking_strain_sweep(origination_exposure, stressed_exposure, …)`** — composes the EXISTING real
+  producers (no new engine): `book_scaled_credit_facility_gbp` (facility set ONCE at origination, §3) +
+  `build_margin_calls_from_mtm` (the OTM-leg variation margin) → per-dose `DoseOutcome` over the ruling's
+  **0.8×/1.0×/1.2×/1.5×** severity sweep (§2). The dose scales the *fraction of the observed price move*
+  applied; because a forward's MtM is LINEAR in the mark, interpolating netted MtM is exactly marking at
+  `P_orig + dose·(P_stress − P_orig)` — a MEASUREMENT, not a curriculum world (§2, ruling's own words).
+- **The acceptance bar is mechanised (§1):** it distinguishes `collateral_while_solvent` (dead on cash,
+  **P&L still positive** — the load-bearing 2021–22 shape) from `collateral_insolvent` (dead on both).
+  Reports `liquidity_minimum_gbp` / `cover_minimum` (→ the `RunOutcomes.liquidity_headroom_min_gbp` /
+  `collateral_cover_min` fields that already exist) via `to_run_outcome_fields`.
+- **§4 R4 diagnosis signals, data-driven (never a tuning cue):** `any_name_posted_margin`,
+  `peak_margin_call_gbp`, `facility_gbp`.
+- **R15 BOTH-WAYS proven this tick (9 tests, all green; 1075 in company/risk|finance|trading green;
+  epistemic-verifier PASS):** teeth (survives 0.8×, dies at the real 1.0× while solvent on paper);
+  monotone liquidity-in-dose; cash-rescue; insolvency-vs-MC2-shape distinction; deterministic replay
+  (C-S2); scope-line guard on `to_run_outcome_fields`. **Mutations verified to red their guard:** recompute
+  facility per-dose (§3 fixed-at-origination) reds 5 tests; drop `available_cash` reds the cash-rescue test;
+  drop the `and pnl_survives` clause reds the insolvency-distinction test. Clean restore green.
+
+### DECISIVE EPISTEMIC FINDING (the sign/shape question the earlier FRAMEs assumed away)
+A supplier BUYING forward is **long** → its hedge book goes **IN-the-money on a price spike** (positive
+MtM), so it *receives* variation margin and **posts none**. `build_margin_calls_from_mtm` correctly calls
+margin only on names where netted MtM < 0 (the company is OTM / **short**). **Therefore death-by-collateral
+arises only on OTM/short legs while the long book keeps total P&L positive** — which IS the exact
+"solvent on paper, dead on cash" shape MC-2 targets, and IS the §4 "hedge cover masking the exposure"
+diagnosis the ruling anticipates. A pure long book **cannot die to collateral** (`any_name_posted_margin=
+False`) — per §4 that is a DIAGNOSIS to report, never a cue to shrink the facility (R12).
+
+### SCOPE LINE — two same-day rulings reconciled (documented so the director can correct if misread)
+- **MC-2 ruling §2** explicitly authorises this *collateral breaking-strain measurement* ("ruled this
+  morning … a measurement, not a curriculum world"). Built.
+- **`RUN_LEDGER_AND_SCORES_BUILD_2026-07-25` §6 + the `RunOutcomes` field comment** gate the broader §6
+  survival-usefulness **SCORE** and the growth/leverage **capital organ** to a director session. **NOT
+  built:** no blended survival score, no growth/capital organ, no curriculum value, and **no ledger-row
+  emission from this module** (it returns the raw fields; the run-loop caller emits). This keeps the tick
+  cleanly on the authorised side of the line. Reversible if the director reads the line differently.
+
+### NEXT DRAWABLE STEP (verified; company-side, reversible)
+Wire the sweep into a **real 2021–22 replay** inside `simulation/run_phase2b` (the VALUE_CHAIN feed block):
+form origination + stressed per-counterparty marks via `CompanyTariffEngine.get_forward_price` on the real
+`sim/gas_data/nbp_sap.csv` history (point-in-time, no future leak), fan per-fuel prices to the
+customer-keyed shape (as the existing feed already does at `run_phase2b:2339-2344`), run
+`breaking_strain_sweep`, and merge `to_run_outcome_fields(...)` into a `RunOutcomes` ledger row via
+`background.run_manifest.append_to_ledger`. **This step surfaces the sign/shape question above** — if the
+live book is a pure long book it will NOT die (an honest §4 diagnosis, reported not tuned). WVC_R world-half
+proceeds separately under the twin L1/L2 mechanism authorisation.
+
+> **Tick note (2026-07-27, RUNG-7 doorbell, THIRTEENTH touch):** doorbell fired "unprocessed staging +
+> RUNG-7 mint". Disk: the run_complete_054743Z marker was in-flight under the auto-processor daemon (it
+> published as `03b913a97`, git=0dac92adc — I did NOT race its tree-lock). The self-drawable MC-2 work
+> (opened by the twelfth touch this morning) had a genuine drawable BUILD step, so the correct draw was to
+> ADVANCE it, not mint a duplicate (over-production `DIRECTOR_RULING_PLANNER_MINT_WAIVED` forbids) and not
+> rest (premise false — work existed). Shipped the MC-2 mechanism + R15 both-ways as real code, caught the
+> decisive sign/shape epistemic finding, held the §6 scope line. No mint, no rest-proof.
