@@ -597,6 +597,105 @@ def test_lowgated_demographic_gate_holds_in_canonical_timeline():
 
 
 # ---------------------------------------------------------------------------
+# W2_5 HARDEN 2026-07-27 (Rule-0 self-refill, dial yielded): SIBLING HALF of the
+# emission/reconstruction defect above -- the HIGH-gated demographic events.
+#
+# The block above mechanises the LOW-gated events (new_baby, divorce; gate:
+# income_stress==LOW). Their HIGH-gated siblings -- job_loss and illness (gate:
+# income_stress!=HIGH, "only fires when not already in crisis") -- share the
+# IDENTICAL root cause: the generator evaluates the within-year demographic gates
+# in a fixed PROCESSING order (income_recovery is processed before illness), but
+# the canonical timeline consumers see (apply_events -> household_demand.
+# income_stress_at_date) replays in DATE order. So when a same-year
+# income_recovery (HIGH->LOW, which is what re-enables illness) is dated AFTER the
+# illness it enabled, the canonical timeline places the illness while the
+# household is still HIGH -- the event's own "not already in crisis" emission
+# precondition violated in the authoritative timeline.
+#
+# HARM DIFFERS, ROOT CAUSE IDENTICAL (honest scoping): apply_events sets
+# income_stress=HIGH unconditionally for job_loss/illness, so unlike the LOW-gated
+# case (which silently no-ops -> a lost LOW->MODERATE transition) the reconstructed
+# STATE VALUE is not corrupted here; but the EMISSION precondition is still
+# violated, and the fix is the SAME BUILD as the LOW-gated note (date-order the
+# within-year gate evaluation). Mechanising the sibling half means that one BUILD
+# is proven to close the WHOLE class (R10), not just the LOW-gated half -- a
+# partial fix that date-orders one branch but not the other is caught by this
+# xfail staying red. (job_loss cannot violate today -- it and income_recovery are
+# mutually exclusive per year via the if/elif -- but is named for the contract so
+# a future restructure that decouples them is covered.)
+# Audit-the-sibling-half-of-a-hardened-class (proven G5 pattern).
+# ---------------------------------------------------------------------------
+
+_HIGH_GATED_DEMOGRAPHIC_EVENTS = {"job_loss", "illness"}
+
+
+def _highgate_violations(household: Household, seeds) -> list:
+    """HIGH-gated demographic events (gate: income_stress != HIGH) that land
+    while the reconstructed (consumer-visible) timeline is ALREADY HIGH -- the
+    'only when not already in crisis' emission precondition violated."""
+    out = []
+    for seed in seeds:
+        events = generate_life_events(household, 2016, 2025, seed=seed)
+        for e in events:
+            if e.event_type in _HIGH_GATED_DEMOGRAPHIC_EVENTS:
+                if _stress_before(household, events, e) == IncomeStress.HIGH:
+                    out.append((seed, e.event_date, e.event_type))
+    return out
+
+
+def test_highgated_demographic_events_hold_on_real_roster_seed42():
+    # Production roster + production seed: the HIGH-gated sibling of the
+    # emission/reconstruction divergence is NOT LIVE today (same latent status as
+    # the LOW-gated half -- verified 0 violations). Fails loudly if a future
+    # roster/seed makes it live, rather than the defect silently reaching prod.
+    from simulation.run_phase2b import CUSTOMERS
+    register = build_household_register(CUSTOMERS)
+    for cid, hh in register.items():
+        if not hh.is_residential:
+            continue
+        cid_seed = 42 ^ (int(__import__("hashlib").md5(cid.encode()).hexdigest()[:8], 16) & 0xFFFF)
+        v = _highgate_violations(hh, [cid_seed])
+        assert v == [], (
+            f"{cid}: HIGH-gated demographic event (job_loss/illness) lands while "
+            f"already HIGH in the canonical timeline {v} -- the sibling half of "
+            f"the W2_5 emission/reconstruction defect is now LIVE in production"
+        )
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "W2_5 QUEUED DEFECT sibling half (2026-07-27): illness is gated on "
+    "income_stress!=HIGH in the generator's fixed PROCESSING order, but "
+    "apply_events (the value consumers see) replays in DATE order, so a same-year "
+    "illness dated before the income_recovery that re-enabled it lands while the "
+    "canonical timeline is still HIGH. SAME root cause and SAME BUILD fix as the "
+    "LOW-gated xfail above (date-order the within-year gate evaluation); "
+    "mechanised so the fix is proven to close the WHOLE class, not one branch. "
+    "When fixed, this XPASSes -> strict failure -> close alongside the LOW-gated "
+    "note + the W2_5 maturity-map simplifications entry."
+))
+def test_highgated_demographic_gate_holds_in_canonical_timeline():
+    # THE INVARIANT (currently violated -> xfail): every HIGH-gated demographic
+    # event must land at a date when the reconstructed income_stress is NOT
+    # already HIGH. Proven to FIRE on the real defect (R15 can-fail): a HIGH-start
+    # residential household over seeds 0-999 contains real violations today.
+    hh = Household(
+        customer_id="HS", property_type=PropertyType.SEMI_DETACHED,
+        build_era=BuildEra.POST_2000, epc_rating="C", bedrooms=3,
+        heating_system=HeatingSystem.GAS_BOILER_COMBI, boiler_age=BoilerAge.MID,
+        has_solar=False, solar_kwp=0.0, solar_install_year=None,
+        has_battery=False, battery_kwh=0.0, has_ev=False, ev_charger_kw=0.0,
+        has_smart_meter=False, smart_meter_install_year=None,
+        insulation=InsulationLevel.PARTIAL, has_driveway=True, roof_aspect="S",
+        income_stress=IncomeStress.HIGH,
+    )
+    violations = _highgate_violations(hh, range(1000))
+    assert violations == [], (
+        f"{len(violations)} HIGH-gated demographic events land while already "
+        f"HIGH in the canonical timeline, e.g. {violations[:3]}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # SEGMENTATION_GENERATOR_BUILD_PLAN.md step 2: tenure->low-carbon-adoption
 # gating MECHANISM (`adoption_eligibility_multiplier`). Default OFF (1.0) so
 # every existing call site is byte-identical; the multiplier measurably
