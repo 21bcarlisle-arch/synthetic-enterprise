@@ -382,6 +382,77 @@ def test_settlement_files_classify_as_settlement():
 
 
 # --------------------------------------------------------------------------
+# R15 MUTATION: the --all scan COVERAGE is derived from DOMAIN_PATHS, so it can
+# never silently fall below the spec. A domain root added to DOMAIN_PATHS but
+# missing from the scan roots would be a whole guarded domain the phase-close
+# gate never looks at -- fail-open on missing coverage (killer-pattern 2), worse
+# than no check. This is exactly the module's own declared future work (moving
+# SETTLEMENT to company/settlement/, COLLECTIONS to company/collections/).
+# --------------------------------------------------------------------------
+def test_scan_roots_cover_every_domain_path():
+    """INVARIANT: every DOMAIN_PATHS matcher resolves under some scan root, so no
+    guarded file can live outside the --all scan. Holds by construction now that
+    the roots are derived, not hardcoded."""
+    roots = verifier._domain_scan_roots()
+    for _domain, matcher in seams.DOMAIN_PATHS:
+        m = matcher.rstrip("/")
+        assert any(
+            m == r or m.startswith(r + "/") for r in roots
+        ), f"{matcher} is not covered by any scan root {roots}"
+
+
+def test_scan_roots_pin_current_tree(monkeypatch):
+    """Regression pin: on today's real DOMAIN_PATHS the derived roots equal the
+    three the scan has always used -- so this fail-open fix does NOT change live
+    behaviour (the tree still PASSES, no new files pulled in, no false alarm)."""
+    assert verifier._domain_scan_roots() == [
+        "company/billing",
+        "company/market",
+        "company/pricing",
+    ]
+
+
+def test_mutation_new_domain_root_is_scanned_not_skipped(monkeypatch):
+    """R15 both-ways: add a NEW guarded domain root to DOMAIN_PATHS (the module's
+    own declared future work -- SETTLEMENT as its own top-level package). The
+    derived scan roots MUST include it. The old hardcoded
+    ("company/billing","company/pricing","company/market") literal could NEVER
+    produce this root, so a whole domain would have been silently unscanned by
+    --all (fail-open). This asserts the coverage now tracks the spec."""
+    monkeypatch.setattr(
+        seams,
+        "DOMAIN_PATHS",
+        seams.DOMAIN_PATHS + [(seams.Domain.SETTLEMENT, "company/settlement/")],
+    )
+    monkeypatch.setattr(verifier, "DOMAIN_PATHS", seams.DOMAIN_PATHS)
+    roots = verifier._domain_scan_roots()
+    assert "company/settlement" in roots, roots
+    # And it is genuinely reachable by the --all file walk: a planted violation
+    # in the new domain root is actually scanned and flagged end-to-end.
+    new_dir = REPO_ROOT / "company" / "settlement"
+    created_dir = not new_dir.exists()
+    new_dir.mkdir(parents=True, exist_ok=True)
+    planted = new_dir / "_seam_newdomain_probe.py"
+    planted.write_text(
+        "from company.pricing.price_cap import something  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        scanned = verifier._all_domain_files()
+        assert planted.resolve() in {p.resolve() for p in scanned}, (
+            "new-domain file was not picked up by the --all scan"
+        )
+        violations = verifier.check_file(planted)
+        assert len(violations) == 1, [str(v) for v in violations]
+        assert violations[0].importing_domain == "settlement"
+        assert violations[0].imported_domain == "pricing"
+    finally:
+        planted.unlink()
+        if created_dir:
+            new_dir.rmdir()
+
+
+# --------------------------------------------------------------------------
 # Seam contracts are well-formed.
 # --------------------------------------------------------------------------
 def test_every_seam_message_is_versioned():

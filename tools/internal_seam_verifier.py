@@ -46,6 +46,7 @@ if str(_REPO_ROOT) not in sys.path:
 from company.interfaces.internal_seams import (  # noqa: E402
     APPROVED_SEAM_MODULE,
     BASELINE_ALLOWLIST,
+    DOMAIN_PATHS,
     Domain,
     classify_module,
     classify_path,
@@ -273,9 +274,45 @@ def check_file(path: Path) -> list[Violation]:
     return violations
 
 
+def _domain_scan_roots() -> list[str]:
+    """Derive the directory roots ``--all`` scans FROM ``DOMAIN_PATHS`` -- the
+    single source of truth for where the guarded domains live -- rather than
+    hardcoding them.
+
+    WHY this exists (R15 fail-open fix, coverage/scope class): the scan-root list
+    used to be a hand-maintained duplicate literal
+    ``("company/billing", "company/pricing", "company/market")``. If
+    ``DOMAIN_PATHS`` ever gained an entry with a root OUTSIDE those three -- which
+    is exactly this module's own declared future work (moving SETTLEMENT to a
+    ``company/settlement/`` package, COLLECTIONS to ``company/collections/``) --
+    then ``--all`` (the phase-close gate) would silently NOT scan those files, so
+    a cross-domain violation in the new domain would go UNDETECTED: the control's
+    enforcement SCOPE would drift below the spec it exists to enforce, and a whole
+    domain would read as "clean" while unenforced (R15 killer-pattern 2, fail-open
+    on missing coverage -- worse than no check). Deriving the roots here means the
+    ``--all`` scan can never cover less than ``DOMAIN_PATHS`` declares.
+
+    Each ``DOMAIN_PATHS`` entry is either a directory prefix (``company/billing/``)
+    or an exact file (``company/market/imbalance_ledger.py``); its scan root is the
+    directory itself or the file's parent. Roots nested under another root are
+    dropped (the parent's ``rglob`` already covers them)."""
+    roots: set[str] = set()
+    for _domain, matcher in DOMAIN_PATHS:
+        m = matcher.rstrip("/")
+        if matcher.endswith("/"):
+            roots.add(m)
+        else:  # exact file entry -> its containing directory
+            roots.add(m.rsplit("/", 1)[0] if "/" in m else m)
+    minimal: list[str] = []
+    for r in sorted(roots, key=len):
+        if not any(r == p or r.startswith(p + "/") for p in minimal):
+            minimal.append(r)
+    return sorted(minimal)
+
+
 def _all_domain_files() -> list[Path]:
     files: list[Path] = []
-    for sub in ("company/billing", "company/pricing", "company/market"):
+    for sub in _domain_scan_roots():
         d = _REPO_ROOT / sub
         if d.is_dir():
             files.extend(
