@@ -841,6 +841,72 @@ def _atom_has_frame_doc(atom: dict) -> bool:
     return False
 
 
+# YAML/hand-edit truthy/falsey token forms a map-writer might type for the
+# `frame_saturated` override instead of a bare unquoted `true`/`false`. PyYAML
+# already coerces an UNQUOTED true/false/yes/no/on/off to a Python bool, but a
+# QUOTED value (`"false"`) or a bare integer (0/1) stays a non-bool -- and this
+# atom's own history cites "a quoted level_current string" as a real hand-edit
+# typo class, so the same class reaches the override here.
+_FRAME_SATURATED_TRUE_TOKENS = {"true", "yes", "on", "1"}
+_FRAME_SATURATED_FALSE_TOKENS = {"false", "no", "off", "0"}
+
+
+def _coerce_frame_saturated_override(value: Any) -> bool | None:
+    """Interpret an explicit `frame_saturated` map override robustly, returning
+    True/False for a recognised override or None for "no honest override, fall
+    through to the intrinsic has-FRAME-doc check".
+
+    WHY THIS EXISTS (2026-07-27 HARDEN red-team, R15 FAIL-SILENT -- the SIBLING
+    half of the class every prior H23 pass hardened: they all worked on
+    `_atom_has_frame_doc`, none red-teamed the override-parse itself).
+    `_is_frame_saturated` previously honoured the override ONLY when it was a
+    genuine Python `bool` (`isinstance(explicit, bool)`), else silently fell
+    through to the intrinsic check. But the override is the R11 escape hatch (a
+    SAFETY-CONTROL override, and four live atoms rely on it), and BOTH escape
+    directions FAIL SILENTLY on a non-bool value:
+      * force-OFFER (`frame_saturated: false`) typed as a QUOTED string
+        `"false"` (or `no`/`off`/`0`) -> not a bool -> intrinsic returns True on
+        a FRAME-doc'd atom -> the atom STAYS saturated and is STARVED from the
+        idle draw: the fail-toward-starve wrong-side failure, the exact idle-hole
+        this atom exists to prevent, reached through the escape.
+      * force-SKIP (`frame_saturated: true`) typed as `"true"` -> not a bool ->
+        intrinsic returns False when the FRAME doc has a non-canonical filename
+        (the whole reason the override is used -- the four live
+        `frame_saturated: true` atoms carry DISCOVER-named docs) -> the atom
+        reads un-saturated and is RE-HANDED every tick: the treadmill.
+    Silently swallowing a mistyped safety-control override is R15 FAIL-SILENT --
+    an override the checker cannot read is treated as ABSENT (an unavailable
+    check is a failed check). Fix: accept the natural YAML/hand-edit token forms
+    so the documented escape actually works when typed the way a map-writer would
+    typo it, and LOG (surface, never swallow) a genuinely unrecognised value
+    before falling through to intrinsic -- fail-loud on garbage, not
+    silent-ignore. Falling through rather than crashing keeps one atom's typo
+    from aborting the whole draw, matching the per-atom validation isolation
+    elsewhere in this module. R15 mutation-tested both directions
+    (test_frame_saturation_draw_marker.py)."""
+    if value is None:
+        return None
+    if isinstance(value, bool):  # the canonical, PyYAML-parsed unquoted form
+        return value
+    if isinstance(value, int):  # bare 0/1 (bool is a subclass, handled above)
+        if value in (0, 1):
+            return bool(value)
+    elif isinstance(value, str):
+        token = value.strip().lower()
+        if token in _FRAME_SATURATED_TRUE_TOKENS:
+            return True
+        if token in _FRAME_SATURATED_FALSE_TOKENS:
+            return False
+    log(
+        "H23 _is_frame_saturated: unrecognised `frame_saturated` override "
+        f"{value!r} (expected a bool or a true/false token) -- ignoring it and "
+        "falling through to the intrinsic has-FRAME-doc check. Fix the map "
+        "value: a mistyped safety-control override must not silently vanish "
+        "(R15 FAIL-SILENT)."
+    )
+    return None
+
+
 def _is_frame_saturated(atom: dict) -> bool:
     """H23_frame_saturation_draw_marker: an idle atom is FRAME-saturated when
     no honest FRAME-stage output remains -- it already carries its own complete
@@ -866,9 +932,9 @@ def _is_frame_saturated(atom: dict) -> bool:
     BUILD-gate opens'."""
     if not isinstance(atom, dict):
         return False
-    explicit = atom.get("frame_saturated")
-    if isinstance(explicit, bool):
-        return explicit
+    override = _coerce_frame_saturated_override(atom.get("frame_saturated"))
+    if override is not None:
+        return override
     return _atom_has_frame_doc(atom)
 
 

@@ -518,6 +518,118 @@ def test_regression_existence_only_rule_would_have_starved_stub_atom(_isolate_ma
         assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
 
 
+# ── frame_saturated OVERRIDE robustness (2026-07-27 HARDEN red-team, R15
+#    FAIL-SILENT): the R11 escape must survive being typed the way a map-writer
+#    would typo it (a QUOTED "false"/"true", a bare 0/1). `_is_frame_saturated`
+#    previously honoured the override ONLY for a genuine Python bool and silently
+#    fell through to intrinsic otherwise -- so a mistyped force-OFFER STARVED the
+#    atom and a mistyped force-SKIP RE-HANDED it (the treadmill). This is the
+#    SIBLING half of the class every prior H23 pass hardened (_atom_has_frame_doc).
+#    ──────────────────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("token", ["false", "False", "FALSE", " no ", "off", "0"])
+def test_override_string_falsey_forces_offer(_isolate_map_and_root, token):
+    # force-OFFER via a QUOTED/token frame_saturated on a FRAME-doc'd atom: the
+    # atom is intrinsically saturated (real FRAME doc) but the escape must win ->
+    # NOT saturated -> offered. Pre-fix: the string was ignored -> stayed
+    # saturated -> STARVED (the wrong-side failure).
+    root = _isolate_map_and_root
+    ev = _write_frame_doc(root, "FORCE_OFFER")
+    atom = _idle_atom("FORCE_OFFER", frame_saturated=token, evidence=[ev])
+    assert supervisor._is_frame_saturated(atom) is False
+
+
+@pytest.mark.parametrize("token", ["true", "True", "TRUE", " yes ", "on", "1"])
+def test_override_string_truthy_forces_skip(_isolate_map_and_root, token):
+    # force-SKIP via a QUOTED/token frame_saturated on an atom with NO canonical
+    # FRAME doc (the live use case -- a DISCOVER-named doc the filename heuristic
+    # can't see): the escape must win -> saturated -> skipped. Pre-fix: the string
+    # was ignored -> intrinsic false -> RE-HANDED every tick (the treadmill).
+    atom = _idle_atom("FORCE_SKIP", frame_saturated=token, evidence=[])
+    assert supervisor._is_frame_saturated(atom) is True
+
+
+def test_override_bare_int_0_1(_isolate_map_and_root):
+    # A bare integer 0/1 (bool is an int subclass but 0/1 are not bools) is a
+    # plausible hand-edit: honour it the same way.
+    root = _isolate_map_and_root
+    ev = _write_frame_doc(root, "INT_OFFER")
+    assert supervisor._is_frame_saturated(_idle_atom("INT_OFFER", frame_saturated=0, evidence=[ev])) is False
+    assert supervisor._is_frame_saturated(_idle_atom("INT_SKIP", frame_saturated=1, evidence=[])) is True
+
+
+def test_override_unrecognised_value_logs_and_falls_through(_isolate_map_and_root, monkeypatch):
+    # A genuinely unrecognised override (garbage, an out-of-range int) must NOT be
+    # silently swallowed: it LOGS (surfaced, not vanished) and falls through to the
+    # intrinsic check -- fail-loud on garbage, per R15.
+    root = _isolate_map_and_root
+    ev = _write_frame_doc(root, "GARBAGE")
+    logged = []
+    monkeypatch.setattr(supervisor, "log", lambda msg: logged.append(msg))
+    for bad in ("maybe", "", 2, [], {"x": 1}):
+        assert supervisor._coerce_frame_saturated_override(bad) is None
+    # A FRAME-doc'd atom with a garbage override falls through to intrinsic -> True.
+    assert supervisor._is_frame_saturated(_idle_atom("GARBAGE", frame_saturated="maybe", evidence=[ev])) is True
+    assert logged and all("FAIL-SILENT" in m for m in logged), "garbage override must be logged, not swallowed"
+
+
+def test_override_none_and_missing_use_intrinsic(_isolate_map_and_root):
+    # No override present (or explicit None) -> intrinsic check governs, unchanged.
+    root = _isolate_map_and_root
+    ev = _write_frame_doc(root, "NO_OVERRIDE")
+    assert supervisor._coerce_frame_saturated_override(None) is None
+    assert supervisor._is_frame_saturated(_idle_atom("NO_OVERRIDE", evidence=[ev])) is True
+    assert supervisor._is_frame_saturated(_idle_atom("NO_DOC", evidence=[])) is False
+
+
+@pytest.mark.parametrize("draw", ["single", "concurrent"])
+def test_fires_string_force_offer_atom_is_handed_not_starved(_isolate_map_and_root, draw):
+    # Integration, both entry points: a FRAME-doc'd atom carrying a QUOTED
+    # `frame_saturated: "false"` (string force-OFFER) must be the one HANDED,
+    # while a genuinely-saturated atom (real FRAME doc, no override) beside it is
+    # skipped. Pre-fix the string override was ignored -> BOTH read saturated ->
+    # the draw returned empty and the force-offer atom was starved.
+    root = _isolate_map_and_root
+    ev_offer = _write_frame_doc(root, "STR_OFFER")
+    ev_sat = _write_frame_doc(root, "TRULY_SAT")
+    atoms = [
+        _idle_atom("STR_OFFER", frame_saturated="false", evidence=[ev_offer]),  # force-offered
+        _idle_atom("TRULY_SAT", evidence=[ev_sat]),                             # saturated
+    ]
+    _write_map(root, atoms)
+    rng = random.Random(4242)
+    for _ in range(50):
+        if draw == "single":
+            picked = supervisor._idle_discover_frame_draw(rng=rng)
+            ids = {picked["id"]} if picked else set()
+        else:
+            picked = supervisor._idle_discover_frame_draw_concurrent(rng=rng, width=3)
+            ids = {a["id"] for a in picked}
+        assert ids == {"STR_OFFER"}, f"string force-offer starved / saturated re-handed: {ids}"
+
+
+def test_regression_bool_only_gate_would_have_starved_string_override(_isolate_map_and_root):
+    # Guard-mutation control for THIS fix (R15): restore the pre-fix bool-ONLY
+    # override gate and assert a string force-OFFER atom is then (wrongly) marked
+    # saturated -> STARVED (the draw returns None). Proves this test fails if the
+    # token-coercion is reverted to `isinstance(explicit, bool)`.
+    import unittest.mock as mock
+    root = _isolate_map_and_root
+    ev = _write_frame_doc(root, "STR_ONLY")
+    _write_map(root, [_idle_atom("STR_ONLY", frame_saturated="false", evidence=[ev])])
+    # Coercion live: the string force-offer is honoured -> the atom IS offered.
+    picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
+    assert picked is not None and picked["id"] == "STR_ONLY"
+
+    # Revert simulation: bool-only gate ignores the string -> intrinsic True -> starved.
+    def _bool_only_pre_fix(value):
+        return value if isinstance(value, bool) else None
+
+    with mock.patch.object(supervisor, "_coerce_frame_saturated_override", side_effect=_bool_only_pre_fix):
+        assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
