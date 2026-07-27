@@ -2428,3 +2428,54 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an investor data-room where every headline claim on the one-page overview links to the underlying evidence -- the audited number, the test result, the source -- so a reader can drill from the summary to the primary fact rather than taking the summary on trust"
   depends_on: []
+- id: HX1_exit_criterion_counter_mechanise
+  name: "Harness exit-criterion counter, mechanised: the ratified N=3 consecutive-content-advance / zero-stall-class counter computed from PRIMARY STATE (git history, maturity map, gate-authorizations ledger, fidelity register, backlog), with its R15 pair -- a synthetic stall resets the counter, three clean content advances satisfy it"
+  lane: H_harness
+  value_stream: close_to_learn
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27.md', 'docs/design/HARNESS_EXIT_CRITERION_PROPOSAL_2026-07-27.md']
+  file_scope: [background, tests/background]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27 (WORK THIS CREATES item 1). The director RATIFIED the exit criterion and COMMANDED its mechanisation -- this is a director-opened H-lane build (like R17 forward-discovery), not speculative harness (decision 2a): drawable now, blocked_on null. Deliverable: a counter organ (background/harness_exit_criterion.py + test) that computes, from PRIMARY STATE ONLY and never from the tick''s own enumeration (LAW C, coherence req 4): the count of consecutive product-content atoms that reached their next director-ratified level with declared exit criterion landed, across a span in which the STALL-class intervention count is ZERO. CONTENT-ADVANCE definition (ratified): a product-lane atom (W*/D/B/E/C/F/G-product/SITE, NOT H_harness, NOT a close_to_learn machinery atom) whose next level is director-ratified in the gate-authorizations ledger (R16) WITH a moved fidelity-register row against an unchanged baseline, OR a passing spec-tied acceptance test, OR an R11-verified live-surface change. FALSIFICATION (ratified): any stall-class event, or any claimed advance lacking its exit-criterion delta, resets the counter to ZERO. N=3 is the ratified dial (a director value, read not hardcoded-as-truth). EXIT CRITERIA (R15 pair, BOTH-WAYS mandatory -- coherence acceptance: third-party-computable from repo with NO machine access): (1) a SYNTHETIC STALL injected into the primary-state inputs RESETS the counter to zero (mutation: plant a stall-class event in the span -> counter drops); (2) THREE CLEAN CONTENT ADVANCES with zero stall-class across the span SATISFY it (counter reaches 3); (3) the counter is a PURE FUNCTION of primary state -- same repo state, same value, no dependence on tick memory or self-report (independence, R15 pattern TAUTOLOGY guard); (4) NON-FINITE / MISSING inputs REJECT (fail-closed, R15 pattern FAIL-OPEN guard -- a missing ledger/register does NOT read as zero-stalls-therefore-advancing). R12 BINDING: the counter is a GATE ON A DECISION (may harness investment resume), NEVER a quality score -- it must not appear in any fidelity/maturity/product-quality claim. Depends on HX2 (stall-set coverage) for its stall-class input completeness; level moves stay blocked_on director_level_up (R16 -- no self-bump). Splits into counter-compute + R15-pair sub-steps at build-draw.']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a covenant-compliance test an auditor recomputes from the primary books -- the ledger, the filings, the register -- to a single pass/fail a third party can reproduce without the company''s own say-so, never a number the company asserts about itself"
+  depends_on: [HX2_stall_set_coverage_verdict]
+- id: HX2_stall_set_coverage_verdict
+  name: "Stall-set coverage verdict on the four director-named events: for each of console-rescue, publish-gate-wedge >1h, origin-freeze/push-failure >30min, and advisor-restart-ruling -- confirm it is ALREADY detected, ADD a detector, or ARGUE with evidence that it is not stall-class"
+  lane: H_harness
+  value_stream: close_to_learn
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27.md']
+  file_scope: [background, tests/background, docs/design]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27 (WORK THIS CREATES item 2; the director RETURNED this as a PROBLEM, not a prescription -- section 3). Director-opened H-lane build, drawable now. The proposed stall-class set (proposal doc: idle-turn-with-atoms, draw-failure/map_exhausted while work exists, director-hand-types-next-atom, HARDEN-while-content-unminted, later-ruled-reversible [ACT]) may NOT cover four events that ACTUALLY HAPPENED in the last four days. For EACH, produce a verdict backed by evidence: (E1) EMERGENCY CONSOLE RESCUE -- a granted terminal turn because the machine could not otherwise recover; the proposed set names "director hand-types the next atom" which may NOT cover a recovery rescue (arguably the single strongest stall signal). (E2) PUBLISH-GATE WEDGE >1h -- four occurred, two correlated with the tick going quiet behind them. (E3) ORIGIN FREEZE / PUSH-FAILURE >30min -- the phantom-push incident froze origin 3.5h while the machine believed itself healthy (see [[feedback_self_verifying_push]]). (E4) ADVISOR RULING WHOSE PURPOSE IS RESTARTING STALLED WORK -- binds the advisor (coherence ruling section 4): if the machine must be doorbelled awake by a staged document, the counter resets. EXIT CRITERIA (R15): (1) each of E1-E4 has a WRITTEN verdict -- detected (cite the existing detector), detector-added (cite the new detector + its test), or argued-not-stall-class (cite evidence); (2) any ADDED detector is R15 mutation-proven -- it FIRES on a synthetic instance of its named event and does NOT fire on the benign look-alike (e.g. a legitimate director DECISION-class touch, which is explicitly unrestricted, must NOT trip the console-rescue detector -- the stall/decision split the ruling praises); (3) the stall-class set consumed by HX1 is the UNION of prior detectors + these verdicts, enumerated in one place so HX1 cannot silently miss a class (FAIL-SILENT guard). This atom is HX1''s named dependency (feeds its stall-class input). Level moves blocked_on director_level_up (R16).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a control-coverage audit that walks each incident that actually occurred and asks whether an existing control would have caught it, adding the missing control rather than assuming the register was complete"
+  depends_on: []
+- id: HX3_counter_published_and_derivable
+  name: "The exit-criterion counter published in the daily self-note (current value + cause of last reset) and DERIVABLE by any surface that would claim harness completion -- coherence-by-derivation: a hand-written harness-done claim anywhere is a publish-gate failure"
+  lane: H_harness
+  value_stream: close_to_learn
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27.md']
+  file_scope: [background, tools, tests, docs/observability]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27 (WORK THIS CREATES item 3 + coherence requirements section 4). Director-opened H-lane build, drawable now. Deliverable: (a) background/daily_self_note.py (SM1 -- reuse, do NOT accrete) publishes the HX1 counter''s CURRENT VALUE and the CAUSE OF THE LAST RESET each morning, alongside the already-ruled PRODUCT/MACHINERY split; (b) the coherence-by-derivation gate (tools/moap_coherence_gate.py -- the existing cross-surface publish gate) is extended so that ANY surface (site, diagram, report) stating the harness is "done for now" must DERIVE that claim from the HX1 counter -- a HAND-WRITTEN harness-done claim is a publish-gate failure like any other cross-surface disagreement. EXIT CRITERIA (R11 + R15): (1) the daily note renders the counter value + last-reset-cause, R11-verified to the published value (not the code); (2) MUTATION -- inject a hand-written "harness done for now" string into a published surface with the counter below its threshold -> the coherence gate FIRES (R15; proves the derivation is load-bearing, not decorative); (3) MUTATION -- a surface claiming harness-done while the counter DOES read >=N and zero-stall passes -> the gate PASSES (both-ways). This is the "single answer" surface (ruling section 4: any other informal harness-done test is superseded). R12: the published counter must NOT appear in any fidelity/maturity/product-quality claim -- it is a decision gate only. Depends on HX1 (the counter it publishes) and HX2 (the stall-set feeding it). Level moves blocked_on director_level_up (R16).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a covenant-status line in the board pack that is computed from the compliance test rather than typed by management -- so no one can write 'in compliance' by hand while the underlying test says otherwise"
+  depends_on: [HX1_exit_criterion_counter_mechanise, HX2_stall_set_coverage_verdict]
