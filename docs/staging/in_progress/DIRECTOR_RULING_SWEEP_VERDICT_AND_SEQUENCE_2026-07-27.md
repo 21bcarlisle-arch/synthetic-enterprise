@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-> **PARKED IN in_progress/ — partially actioned (worker tick 2026-07-27).**
+<!-- SUPERVISOR_DRAW: blocked -->
+> **PARKED IN in_progress/ — ALL machinery DISCHARGED; only the (blocked) product draw remains (worker tick 2026-07-27).**
 > **§1 (registration-hole lint) LANDED this tick:** `background/suppression_lint.py` + R15
 > both-ways `tests/background/test_suppression_lint.py` (8 tests) — scans `background/**` for
 > suppression-shaped identifier tokens (director's marker vocabulary), fails when a site is
@@ -11,18 +11,28 @@
 > genuine false-positives (functional `fold` reduce, `contextlib.suppress`, the `silence` var
 > that RAISES T8). Live lint clean (0 violations).
 >
-> **STILL OPEN (the blocking sub-items — drawn in the director's stated order):**
-> - **§2 LAW C (rows 6,7):** landed_partial — `background/primary_state_scan.py` derives the
->   drawable-mint verdict from PRIMARY disk state (live). Named follow-on: extend the
->   independent read to the OTHER primary sources (open campaign items, defect-ledger rows,
->   drawable maturity atoms), currently still via the supervisor's drained check.
-> - **§2 LAW B (rows 1,10) — NEXT MACHINERY DRAW:** harden the still-global pending-batch mint
->   gate to PER-CLUSTER, and close the blocked-exclusion cross-lane leak.
-> - **§2 LAW A (row 3):** give `drained_and_gated_quiet_wait` its explicit re-arm (has the 6h
->   deadman hard cap as an independent backstop — least exposed, do last).
-> - **§3 merit-order / gas-first reconstruction — NEXT PRODUCT DRAW** once the law-mints land:
->   the SSP-baseline unblock condition, Board Spec 004 reconstructibility, R12 no-tuning.
->   (Design corpus already exists: BOARD_SPEC_004_RECONCILIATION.md, WHOLESALE_VALUE_CHAIN_FRAME.md.)
+> **STATUS RECONCILED (RUNG-7 planner tick 2026-07-27):** every §2 machinery item has LANDED —
+> the doc's earlier "STILL OPEN" note was stale. Confirmed as ancestors of HEAD:
+> - **§1 registration-hole lint:** LANDED `3916c3457` (`background/suppression_lint.py`, R15 8-tests).
+> - **§2 LAW C (rows 6,7):** LANDED `37c2a5854` (deadman + daily-note derive rest from PRIMARY state,
+>   `background/primary_state_scan.py`). Named follow-on (extend the independent read to open-campaign /
+>   defect-ledger / maturity sources) is registered in `suppression_register.json` as LOW-VALUE /
+>   deferred — **not** a fresh mintable step (don't re-mint on sight).
+> - **§2 LAW B (rows 1,10):** LANDED `e9df8321b`. Scope-honest finding (R9): the draw ladder, rest
+>   predicate and RUNG-7 planner were ALREADY per-cluster by construction — the EIGHTH-CLASS + LAW-C
+>   fixes had removed the specific global-suppression bugs, so scope item 2 had nothing to re-scope;
+>   LAW B landed as the missing REGRESSION GUARD (4 R15 both-ways tests). **Do not re-file / re-mint.**
+> - **§2 LAW A (row 3):** binding requirement LANDED `88e5d107a` (the `suppression_register` gate IS
+>   Law A's class-fix). Only the OPTIONAL shared-runtime `suppressed_at` primitive remains — deferred
+>   under the SIMPLICITY GUARD (refactor-not-capability; per-site caps already exist + gated).
+>
+> **REMAINING — §3 merit-order / gas-first reconstruction (the NEXT PRODUCT DRAW, now released by the
+> law-mints landing):** minted-and-BLOCKED in `PLANNER_MINTED_merit_order_reconstruction_discover_2026-07-25.md`
+> (DISCOVER + FRAME discharged; BUILD held behind its propose-then-proceed window → **2026-07-28**, R13
+> baseline discipline, no interim tuning). That mint is the drawable authority; this ruling stays a
+> blocked reference so it does not present as phantom self-drawable work while its only open item is
+> parked-blocked elsewhere. **UNBLOCKS ON:** the merit-order mint's window opening 2026-07-28 (it flips
+> self-drawable there, not here).
 >
 > Do NOT re-file the remediated sweep rows (2,4,5,8,9,11,12); rows 8+11 are the reference templates.
 
