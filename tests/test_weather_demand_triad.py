@@ -163,6 +163,38 @@ def test_cwv_term_measured_honestly_on_the_real_record(measurement):
     assert abs(pop_delta) < 0.05             # a small nudge, not a fabricated leap
 
 
+def test_demonstration_cell_below_floor_fails_loud(monkeypatch):
+    # R15 (killer pattern #3, FAIL-SILENT): the wind-blindness demonstration cell
+    # (`cold_windy_tail`, the corner this triad EXISTS to measure) must FAIL LOUD if
+    # it falls below the sample floor -- never be silently skipped so the worst-cell
+    # score computes over the comfortable-middle cells with the demonstration gone
+    # and the ledger's tail_bias_mw quietly None. Inject the defect: shrink the tail
+    # mask below the floor (a future milder-climatology / stricter-tail change).
+    real_tail = wdt.cold_windy_tail_mask
+
+    def tiny_tail(rec):
+        m = real_tail(rec)
+        keep = np.zeros_like(m)
+        keep[np.flatnonzero(m)[: wdt._MIN_CELL_N - 6]] = True  # below floor
+        return keep
+
+    monkeypatch.setattr(wdt, "cold_windy_tail_mask", tiny_tail)
+    with pytest.raises(wdt.DemonstrationCellUnavailableError):
+        wdt.measure()
+
+
+def test_demonstration_cell_present_on_the_real_record(measurement):
+    # The guard's OTHER teeth (not a tautology that always raises): on the REAL
+    # record the demonstration cell IS present with a real gap, so measure() does
+    # NOT raise -- the control fires on its defect and stays silent on good data.
+    tail = measurement["per_cell"]["cold_windy_tail"]
+    assert tail["n"] >= wdt._MIN_CELL_N
+    assert tail["gap"] is not None and tail["gap"] > 0
+    # and the ledger carries a real numeric tail bias, not a silent None.
+    result = wdt.build_gap_result(measurement)
+    assert result.components["tail_bias_mw"] is not None
+
+
 def test_ledger_roundtrip_and_reader_sees_numeric_gap(measurement, tmp_path):
     result = wdt.build_gap_result(measurement)
     ledger = wdt.write_gap_entry(

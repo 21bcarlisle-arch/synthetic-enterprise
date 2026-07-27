@@ -82,6 +82,31 @@ TWIN_ATOM_ID = "C13_weather_normalisation"
 _WINTER_MONTHS = (12, 1, 2)
 _SUMMER_MONTHS = (6, 7, 8)
 
+# Minimum samples for a cell to carry a reportable gap. An INCIDENTAL regime cell
+# below this is skipped (its gap would be noise); the DEMONSTRATION cell is NOT --
+# see below.
+_MIN_CELL_N = 10
+
+# The atom's designated wind-blindness DEMONSTRATION cell -- the reason C13 exists:
+# the temperature-only degree-day belief is PHYSICALLY blind to wind chill on the
+# cold-and-windy corner, and this triad's whole job is to show that gap. It must
+# NEVER be silently dropped. If it ever falls below `_MIN_CELL_N` (a future
+# window/threshold/climatology/data change could shrink it), the measurement is
+# UNAVAILABLE and must FAIL LOUD -- never quietly computed over the comfortable-
+# middle cells with the demonstration absent and the ledger's tail_bias_mw silently
+# None (R15 killer pattern #3, FAIL-SILENT: a measurement that "passes" precisely
+# when the cell it exists to measure is gone). Mirrors the sibling
+# weather_price_triad score-cell guard hardened 2026-07-27 (same defect class).
+_DEMONSTRATION_CELL = "cold_windy_tail"
+
+
+class DemonstrationCellUnavailableError(RuntimeError):
+    """FAIL-LOUD: the wind-blindness demonstration cell (`cold_windy_tail`, the
+    corner this whole coupled triad exists to measure) fell below the sample
+    floor. Raise rather than silently skip it -- a triad that reports a clean
+    worst-cell score while its designated demonstration cell has vanished is a
+    fail-silent measurement (R15 killer pattern #3), worse than none."""
+
 
 def _cells(rec: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
     """The scoring grid (campaign requirement 1: span the range of NEED / stress,
@@ -158,7 +183,15 @@ def measure() -> Dict[str, object]:
     cells = _cells(rec)
     per_cell: Dict[str, Dict[str, float]] = {}
     for name, mask in cells.items():
-        if int(mask.sum()) < 10:
+        if int(mask.sum()) < _MIN_CELL_N:
+            if name == _DEMONSTRATION_CELL:
+                raise DemonstrationCellUnavailableError(
+                    f"demonstration cell {name!r} has only {int(mask.sum())} "
+                    f"samples (need >= {_MIN_CELL_N}); the wind-blindness gap this "
+                    "coupled triad exists to measure is UNAVAILABLE -- refusing to "
+                    "report a worst-cell score with the demonstration silently "
+                    "dropped (FAIL-SILENT, R15 killer pattern #3)"
+                )
             continue
         # Each cell is normalised to ITS OWN climatological-mean no-skill baseline
         # (predict this cell's mean demand) -- so a cell's gap says "vs a blind
