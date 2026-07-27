@@ -142,6 +142,59 @@ def test_matching_skew_direction_generator_passes():
     assert v.passed, v.diverging()
 
 
+def _regime_switch(n, seed, p_stay=0.92, sd_lo=0.5, sd_hi=2.6):
+    """A volatility-CLUSTERED series: a two-state (low-vol / high-vol) Markov chain with
+    persistence `p_stay`, drawing N(0, sd_state) each step. High-vol runs persist, so big
+    moves cluster into multi-day spells -- the ARCH signature of real UK energy stress
+    (Dunkelflaute / gas-crisis regimes). The MARGINAL (a stable two-Gaussian mixture) is
+    seed-stable, so a random shuffle of one draw agrees on mean/std/tail with another draw
+    while destroying the clustering -- exactly the blind spot the vol_clustering moment locks."""
+    rng = np.random.default_rng(seed)
+    sds = (sd_lo, sd_hi)
+    state = 0
+    x = np.zeros(n)
+    for t in range(n):
+        if rng.random() > p_stay:
+            state = 1 - state
+        x[t] = rng.normal(0.0, sds[state])
+    return x - x.mean()
+
+
+def test_isolated_spike_generator_fires():
+    """R15 (2026-07-27 HARDEN red-team): a generator matching the entire return MARGINAL
+    (mean, std, tail_ratio, tail_skew) AND the level lag-1 autocorrelation but emitting its
+    spikes ISOLATED instead of in multi-day SPELLS must FAIL on vol_clustering. The four
+    marginal moments are functions of the return distribution alone and blind to temporal
+    ORDER; a random shuffle of a clustered series is the extreme case -- identical marginal,
+    zero clustering. Sustained consecutive-settlement stress (not a one-day spike a hedge
+    rides out) is what broke the under-hedged 2021 UK suppliers, so this ordering matters."""
+    ref = _regime_switch(4000, seed=1)
+    gen = np.random.default_rng(9).permutation(_regime_switch(2000, seed=2))  # shuffle kills clustering
+    # match mean AND std to the reference by construction so ONLY the temporal ordering differs
+    gen = (gen - gen.mean()) / np.std(gen, ddof=1) * np.std(ref, ddof=1) + ref.mean()
+    v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
+    assert not v.passed, v.diverging()
+    assert "vol_clustering" in v.diverging()
+    # the blind-spot proof: the whole marginal AGREES by construction (shuffle preserves it)
+    # -- only the clustering moment catches the isolated-spike generator; before it was added
+    # nothing did, because every other moment is a function of the marginal alone
+    assert "mean" not in v.diverging()
+    assert "std" not in v.diverging()
+    assert "tail_ratio" not in v.diverging()
+    assert "tail_skew" not in v.diverging()
+
+
+def test_matching_clustered_generator_passes():
+    """The clustering moment must not false-fire: a generator drawn from the SAME
+    regime-switching (volatility-clustered) process as the reference agrees on
+    vol_clustering too -> passes every moment."""
+    ref = _regime_switch(4000, seed=1)
+    gen = _regime_switch(2000, seed=2)
+    gen = (gen - gen.mean()) / np.std(gen, ddof=1) * np.std(ref, ddof=1) + ref.mean()
+    v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
+    assert v.passed, v.diverging()
+
+
 def test_deterministic_given_seed():
     ref = _ar1(2000, 0.0, 1.0, 0.5, seed=1)
     gen = _ar1(1000, 0.0, 1.0, 0.5, seed=2)

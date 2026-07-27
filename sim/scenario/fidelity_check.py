@@ -9,7 +9,11 @@ added 2026-07-24 after a HARDEN red-team found the mean/std/autocorr set PASSES 
 Gaussian generator whose spike tail is grossly flat vs a heavy-tailed reference --
 and spike-tail DIRECTION -- see `_tail_skew`, added 2026-07-27 after a further
 red-team found the |deviation| tail_ratio PASSES a mirror-imaged tail of the same
-magnitude sitting on the wrong side).
+magnitude sitting on the wrong side -- and volatility CLUSTERING -- see
+`_vol_clustering`, added 2026-07-27 after a red-team found all four preceding
+moments are TEMPORAL-marginal blind: a generator matching the entire return
+MARGINAL (mean/std/tail_ratio/tail_skew) plus the return-LEVEL lag-1 autocorr yet
+emitting its spikes ISOLATED instead of in multi-day spells passes every check).
 Design: SYNTHETIC_FUTURES_GENERATION_FRAME.md
 S3/S8 -- "reconcile to real distributional moments", using a BLOCK BOOTSTRAP of the
 real returns as the *reference*, not as a second generator to maintain.
@@ -115,12 +119,40 @@ def _tail_skew(v: np.ndarray) -> float:
     return (up + down) / s                 # cancels to ~0 if the two tails mirror
 
 
+def _vol_clustering(v: np.ndarray) -> float:
+    """Volatility CLUSTERING: the lag-1 autocorrelation of ABSOLUTE deviation from the
+    mean -- the ARCH signature ("do big moves follow big moves"). `_lag1_autocorr`
+    measures persistence of the SIGNED level; the four preceding moments (mean, std,
+    tail_ratio, tail_skew) are functions of the return MARGINAL alone and are all blind
+    to how the spikes are ORDERED IN TIME. So a generator can match the entire marginal
+    AND the level autocorrelation yet emit its heavy-tailed spikes ISOLATED (i.i.d.
+    innovations -- a random shuffle of a real series is the extreme case: identical
+    marginal, zero clustering) rather than in the multi-day SPELLS real UK energy stress
+    actually arrives in (a Dunkelflaute cold-still regime, a gas-crisis run-up -- both
+    persist for days, not one settlement). That temporal difference is risk-relevant
+    precisely because sustained consecutive-settlement stress, not an isolated one-day
+    spike a hedge rides out, is what broke the under-hedged 2021 UK suppliers -- so a
+    fidelity check blind to clustering green-lights a generator that understates exactly
+    the sustained-tail exposure this atom's synthetic futures exist to stress. Lag-1
+    autocorr of |deviation| is the standard clustering statistic and, like the other
+    moments, is stable under the moving-block bootstrap."""
+    if v.size < 2:
+        raise DegenerateSeriesError("need >= 2 points for volatility-clustering autocorrelation")
+    a = np.abs(v - np.mean(v))
+    x, y = a[:-1], a[1:]
+    sx, sy = x.std(), y.std()
+    if sx == 0 or sy == 0:
+        raise DegenerateSeriesError("constant |deviation| window -- clustering autocorrelation undefined")
+    return float(np.corrcoef(x, y)[0, 1])
+
+
 MOMENTS: Dict[str, Callable[[np.ndarray], float]] = {
     "mean": _mean,
     "std": _std,
     "lag1_autocorr": _lag1_autocorr,
     "tail_ratio": _tail_ratio,
     "tail_skew": _tail_skew,
+    "vol_clustering": _vol_clustering,
 }
 
 
