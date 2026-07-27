@@ -32,19 +32,19 @@ Usage:
     python3 -m background.retro_cadence_check          # print, exit 0/1
     python3 -m background.retro_cadence_check --ntfy   # also NTFY if stale
 
-HONEST INTEGRATION NOTE (deliberately not done in this build pass -- see
-this atom's own atom_status inbox entry for the reasoning): this module is
-intentionally standalone rather than wired into background/health_check.py's
-run_health_check() cycle. That one-line integration (import this module,
-call check_retro_staleness(), append to problem_lines/ok_lines exactly like
-that file's own _check_stale_dependencies()) is the remaining small step to
-make this fire automatically inside the existing health-check daemon loop
-without a human or agent needing to invoke this module directly. It was out
-of this build pass's own granted file_scope (existing files under
-background/ were excluded; only a genuinely new file was in scope) -- so
-today this is a real, tested, correct MECHANISM, but not yet a *live*
-trigger. Do not round this up to "fires automatically" until that
-integration lands and is itself verified running.
+LIVE INTEGRATION (landed after this module's first build pass; the earlier
+docstring's "deliberately not done / not yet a live trigger" caveat is now
+SUPERSEDED -- do not re-read it as current): check_retro_staleness() is
+called inside background/health_check.py::run_health_check() (search for
+"A1_learn_loop_chair L3"), so the nudge fires automatically every cycle the
+watchdog runs the health check -- no human or agent invocation needed. It is
+surfaced as an INFORMATIONAL ok-line, never a problem-line: a stale retro is
+a prompt to reflect, not a broken system, so it must not flip run_health_check
+to not-ok. That wiring is itself regression-guarded by
+tests/background/test_health_check.py::test_retro_cadence_nudge_is_live_in_health_check
+(deleting the integration block turns that test red -- absorption, not just
+consumption). This module also remains directly runnable as a CLI
+(`python3 -m background.retro_cadence_check [--ntfy]`).
 """
 from __future__ import annotations
 

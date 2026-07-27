@@ -198,6 +198,59 @@ def test_all_processes_running_reports_ok(monkeypatch):
     assert len(ok_lines) == len(health_check.EXPECTED_PANES) + 8
 
 
+def _mock_health_host_state_clean(monkeypatch):
+    """Mock every host-state-dependent sub-check so run_health_check() exercises
+    only the requested logic, not whatever the live host looks like. Mirrors the
+    full mock set in test_all_processes_running_reports_ok, MINUS the retro
+    check (the caller supplies that)."""
+    monkeypatch.setattr(health_check, "_tmux_panes", lambda: _mock_panes(list(health_check.EXPECTED_PANES.keys())))
+    monkeypatch.setattr(health_check, "_running_scripts", lambda: [])
+    monkeypatch.setattr(health_check, "_check_staging_age", lambda: None)
+    monkeypatch.setattr(health_check, "_check_pixel_verification_capability", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_dependencies", lambda: None)
+    monkeypatch.setattr(health_check, "_check_stale_running_code", lambda: None)
+    monkeypatch.setattr(health_check, "_check_single_interactive_session", lambda: None)
+    from background import process_reconciler
+    monkeypatch.setattr(process_reconciler, "evaluate_pull_loop",
+                        lambda: {"status": "HEALTHY_IDLE", "alarm": False, "detail": "idle"})
+    monkeypatch.setattr(process_reconciler, "evaluate_boot_sha_drift",
+                        lambda: {"head": "abc", "stale": []})
+
+
+def test_retro_cadence_nudge_is_live_in_health_check(monkeypatch):
+    """A1_learn_loop_chair L3 ABSORPTION guard (R15 / consumed!=absorbed): the
+    retro-cadence staleness check must actually be WIRED INTO run_health_check,
+    not merely exist as a standalone module. Every other health_check test mocks
+    check_retro_staleness away to None, so ALL of them would stay green if the
+    integration block (background/health_check.py, "A1_learn_loop_chair L3") were
+    deleted -- leaving the live trigger silently un-guarded. This test fails on
+    that exact mutation: it proves a stale warning reaches ok_lines verbatim, and
+    that a fresh state emits the 'current' line, so the nudge cannot be dropped
+    from the daemon loop without turning a test red."""
+    from background import retro_cadence_check
+    _mock_health_host_state_clean(monkeypatch)
+
+    # STALE: the exact warning string must surface as an informational ok-line,
+    # NEVER a problem-line (a stale retro is a nudge, not a broken system), and
+    # must not flip all_ok.
+    sentinel = "Retro cadence STALE: sentinel-wiring-probe"
+    monkeypatch.setattr(retro_cadence_check, "check_retro_staleness", lambda: sentinel)
+    all_ok, ok_lines, problem_lines = health_check.run_health_check()
+    assert any(sentinel in line for line in ok_lines), (
+        "retro-cadence nudge is NOT wired into run_health_check -- the live "
+        "trigger has been dropped from the health-check loop"
+    )
+    assert not any(sentinel in line for line in problem_lines), (
+        "a stale retro must be informational, never a hard problem-line"
+    )
+    assert all_ok, f"stale retro must not flip all_ok: {problem_lines}"
+
+    # FRESH: the 'current' confirmation line must appear.
+    monkeypatch.setattr(retro_cadence_check, "check_retro_staleness", lambda: None)
+    _all_ok, ok_lines_fresh, _p = health_check.run_health_check()
+    assert any("retrospective cadence current" in line for line in ok_lines_fresh)
+
+
 def test_missing_process_reported_as_problem(monkeypatch):
     present = {k: "python3" for k in health_check.EXPECTED_PANES if k != "dispatcher"}
     monkeypatch.setattr(health_check, "_tmux_panes", lambda: present)
