@@ -176,6 +176,37 @@ def test_scope_prefix_is_not_fooled_by_shared_name_prefix(tmp_path):
     assert "tests_extra/x.py" in exc.value.scope_violations
 
 
+def test_guard_fires_on_out_of_scope_nonascii_filename(tmp_path):
+    """FAIL-OPEN probe on the porcelain parser: git quotes + octal-escapes
+    non-ASCII paths (`"saas/caf\\303\\251.py"`). A naive unescape could, in
+    principle, mangle the path into something that looks in-scope. Assert the
+    guard STILL fires on an out-of-scope non-ASCII file -- the ASCII directory
+    prefix (`saas/`) survives escaping, so the violation is caught regardless.
+    Pins fail-safe behaviour so a future 'unescape properly' refactor cannot
+    silently open a hole."""
+    repo = _init_repo(tmp_path / "r")
+    (repo / "saas").mkdir()
+    (repo / "saas" / "café.py").write_text("# out-of-scope, non-ASCII name\n")
+    with pytest.raises(tl.ScopeViolation) as exc:
+        tl.assert_changes_within_scope(SCOPE, repo_dir=repo)
+    # the offending path is reported (in whatever byte-form git emits); the
+    # verdict is what matters -- an out-of-scope change was NOT let through.
+    assert exc.value.scope_violations, "non-ASCII out-of-scope file must be flagged"
+    assert any("saas" in v for v in exc.value.scope_violations)
+
+
+def test_guard_passes_in_scope_nonascii_untracked(tmp_path):
+    """The mirror of the probe above: an IN-scope non-ASCII filename must NOT be
+    false-flagged (that would wedge a legitimate build whose test file happens
+    to carry an accented name). Guards against a fix for the fail-open probe
+    over-correcting into a fail-closed false positive."""
+    repo = _init_repo(tmp_path / "r")
+    (repo / "tests" / "résumé_test.py").write_text("# in-scope, non-ASCII\n")
+    # Must NOT raise.
+    changed = tl.assert_changes_within_scope(SCOPE, repo_dir=repo)
+    assert changed, "the in-scope non-ASCII file should be seen as a change"
+
+
 # --------------------------------------------------------------------------- #
 # cross-worktree shared lock
 # --------------------------------------------------------------------------- #
