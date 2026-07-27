@@ -86,32 +86,45 @@ def _normalize_path(path_str: str) -> str | None:
     return rel.as_posix().lower()
 
 
+_GLOB_METACHARS = frozenset("*?[]{}")
+
+
 def _spans_whole_tree(normalized: str) -> bool:
-    """A search whose normalized target recurses from the repo ROOT across
-    arbitrary depth reaches BOTH sides of the wall, so it reaches the denied
-    side regardless of which lane is active -- yet it matches neither
-    _LANE_DENIES pattern (those anchor on a concrete first segment like
-    `^(sim|simulation)/`).
+    """A search whose normalized target reaches BOTH sides of the wall
+    reaches the denied side regardless of which lane is active -- yet it
+    matches neither _LANE_DENIES pattern (those anchor on a concrete first
+    segment like `^(sim|simulation)/`).
 
     2026-07-27 HARDEN pass (sibling-half red-team of the already-fixed
     Finding 3): Finding 3 closed the UNSCOPED case -- a Glob/Grep with no
     `path`/pattern (or `path="."`) that recurses from cwd -- via
-    _has_explicit_scope(). But an EXPLICIT `path` set to the repo root
-    itself (e.g. Glob path='/abs/repo/root' pattern='**/*.py', or Grep
-    path='/abs/repo/root') defeats both gates: _has_explicit_scope() sees a
-    non-'.' path and calls it scoped, and the combined target normalizes to
-    a bare '**/*.py' / '.' that anchors on neither side, so the deny regex
-    misses it. Demonstrated live: such a Glob under SE_LANE=supplier
-    returned rc=0, silently reading straight across into sim/**. This is
-    the same CLASS (a search that spans both sides of the wall), just the
-    explicit-repo-root-base half of it -- so it is closed here as a class,
-    not as the one instance.
+    _has_explicit_scope(). A first sibling-pass then closed the
+    explicit-repo-root-base case for a `.`- or `**`-leading target. But that
+    enumerated two SPELLINGS of the span rather than the invariant, and a
+    THIRD spelling still slipped through: an explicit repo-root base with a
+    pattern whose FIRST segment is any OTHER glob wildcard --
+    'pattern="*/forward_curve.py"' (single star), 'pattern="*/*.py"', or a
+    brace 'pattern="{company,sim}/**/*.py"'. Each combined to a normalized
+    target like '*/forward_curve.py' / '{company,sim}/**/*.py' whose first
+    segment is neither a concrete directory nor a leading '**', so the
+    old `== "." or startswith("**")` check missed it. Demonstrated live
+    under SE_LANE=supplier: all three returned rc=0, reading straight
+    across into sim/. Closed here as the actual CLASS.
 
-    Anchored recursive searches stay allowed: 'company/**/*.py' has a
-    concrete first segment ('company') and is confined to the allowed side.
-    Only a target that is the repo root itself ('.') or leads with a
-    recursive wildcard ('**...') spans everything."""
-    return normalized == "." or normalized.startswith("**")
+    The invariant: the target's FIRST path segment is the top-level
+    directory selector. If it is a concrete name ('company', 'sim') the
+    search is anchored to exactly that top-level directory -- the
+    _LANE_DENIES regex then adjudicates it correctly. If instead the first
+    segment is '.' (the repo root) OR contains a glob metacharacter
+    ('*', '?', '[', ']', '{', '}'), it selects an UNKNOWN set of top-level
+    directories that can include the denied side, and no concrete-anchored
+    deny pattern can catch it -- so it spans. Anchored recursive searches
+    stay allowed: 'company/**/*.py' has a concrete first segment
+    ('company') and is confined to the allowed side."""
+    if normalized == ".":
+        return True
+    first_segment = normalized.split("/", 1)[0]
+    return any(ch in _GLOB_METACHARS for ch in first_segment)
 
 
 # REGULATION_COMMONS_DOCTRINE.md (2026-07-12): "the TEXT is a commons" --
@@ -275,7 +288,7 @@ def main() -> int:
             _log_denial(lane, tool_name, raw_path)
             sys.stderr.write(
                 "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
-                "recurses from the repo root across the WHOLE tree, including the "
+                "selects an unknown set of top-level directories that can include the "
                 "other side of the wall (its normalized target {!r} anchors on "
                 "neither side). Scope it to a concrete directory on your own lane's "
                 "side of the wall.\n".format(lane, tool_name, raw_path, normalized)

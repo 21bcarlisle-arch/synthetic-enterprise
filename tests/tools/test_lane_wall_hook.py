@@ -382,7 +382,7 @@ class TestHardenPassFixes:
             env={"SE_LANE": "supplier"},
         )
         assert result.returncode == 2, "repo-root-based recursive Glob spans both sides of the wall"
-        assert "whole tree" in result.stderr.lower()
+        assert "anchors on neither side" in result.stderr.lower()
 
     def test_grep_rooted_at_repo_root_now_denied(self):
         # Same class, Grep half: an explicit `path` at the repo root recurses
@@ -392,7 +392,7 @@ class TestHardenPassFixes:
             env={"SE_LANE": "supplier"},
         )
         assert result.returncode == 2
-        assert "whole tree" in result.stderr.lower()
+        assert "anchors on neither side" in result.stderr.lower()
 
     def test_glob_rooted_at_repo_root_denied_from_sim_lane_too(self):
         # Spans-both-sides denies regardless of active lane -- a repo-root
@@ -414,6 +414,48 @@ class TestHardenPassFixes:
         assert entry["lane"] == "supplier"
         assert entry["tool_name"] == "Glob"
 
+    def test_glob_repo_root_single_star_first_segment_denied(self):
+        # 2026-07-27 sibling-half-of-the-sibling red-team: the first span fix
+        # only caught a '.'- or '**'-LEADING target. A repo-root base with a
+        # pattern whose first segment is a SINGLE '*' ('*/forward_curve.py')
+        # selects every top-level dir including sim/ -- it anchors on neither
+        # deny pattern and does not lead with '**'. Demonstrated live rc=0
+        # (straight across into sim/forward_curve.py) before this fix.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": str(REPO_ROOT), "pattern": "*/forward_curve.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2, "single-star first segment from repo root reaches sim/"
+        assert "anchors on neither side" in result.stderr.lower()
+
+    def test_glob_repo_root_star_py_first_segment_denied(self):
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": str(REPO_ROOT), "pattern": "*/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_glob_repo_root_brace_expansion_reaching_sim_denied(self):
+        # A brace whose alternatives can include the denied side, anchored at
+        # the repo root, cannot be safely reasoned about member-by-member --
+        # its first segment '{company,sim}' contains a metacharacter, so it
+        # spans and must be denied (scope to a concrete own-side dir instead).
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": str(REPO_ROOT), "pattern": "{company,sim}/**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_glob_no_path_wildcard_first_segment_pattern_denied(self):
+        # Same class with no `path` key at all -- the pattern itself leads
+        # with a single-star segment. _has_explicit_scope lets it through the
+        # first gate (it isn't '**'-leading), so _spans_whole_tree must catch it.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "*/renewals.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
     def test_anchored_allowed_side_recursive_glob_still_passes(self):
         # Non-regression / false-positive guard: an anchored recursive glob
         # on the caller's OWN side of the wall ("company/**/*.py") is confined
@@ -428,6 +470,17 @@ class TestHardenPassFixes:
     def test_anchored_allowed_side_recursive_grep_still_passes(self):
         result = _run(
             {"tool_name": "Grep", "tool_input": {"pattern": "def foo", "path": "company/pricing"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_own_side_wildcard_in_later_segment_still_passes(self):
+        # False-positive guard: only the FIRST segment is the top-level
+        # selector. A concrete own-side first segment ('company') with a
+        # brace/star in a LATER segment is confined to the allowed side and
+        # must still pass -- the metachar check must not over-deny it.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": "company", "pattern": "{pricing,billing}/*.py"}},
             env={"SE_LANE": "supplier"},
         )
         assert result.returncode == 0
