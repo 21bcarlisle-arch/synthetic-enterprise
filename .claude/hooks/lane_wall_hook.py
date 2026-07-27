@@ -104,6 +104,100 @@ def _normalize_path(path_str: str) -> str | None:
 
 _GLOB_METACHARS = frozenset("*?[]{}")
 
+# 2026-07-28 HARDEN pass (fresh red-team of the AT-target atom, Rule-0
+# self-refill dial=1 yielded -- no below-target work). A NEW fail-open
+# class, distinct from every prior finding (absolute-path, traversal,
+# unscoped-recursion, whole-tree-span, bare-directory): the previous fixes
+# all leaned on _normalize_path()'s Path.resolve() to collapse `..` back to
+# its true target so the deny regex could catch the landing directory. But
+# pathlib does NOT expand brace alternations `{a,b}`, while the glob engine
+# behind the real Glob tool (minimatch / node-glob family) DOES -- and a
+# brace alternative can carry a `../` that escapes a concrete allowed first
+# segment into the denied side. Glob(pattern="company/{compliance,../sim}/*.py")
+# normalizes (pathlib) to a benign 'company/{compliance,../sim}/*.py' -- first
+# segment the concrete 'company', so _spans_whole_tree passes it and the deny
+# regex misses it -- yet the glob engine expands the second alternative to
+# 'company/../sim/*.py' == sim/*.py, reading straight across the wall. The
+# hook allowed it (rc=0) while the plain, brace-free 'company/../sim/...' form
+# was correctly denied: the hook's SAFETY depended on the glob engine NOT
+# supporting a standard feature. Closed as a CLASS by expanding braces here
+# to the SAME path set the glob engine sees, then normalizing+checking EACH
+# expansion -- one crossing alternative denies the whole call. A pure
+# allowed-side brace ('company/{crm,compliance}/*.py') expands to allowed
+# paths only and still passes (false-positive-guarded).
+_MAX_BRACE_EXPANSIONS = 256
+
+
+def _expand_braces(s: str) -> list[str]:
+    """Expand shell-style brace alternations `{a,b,c}` into the full list of
+    literal strings, cartesian-product across multiple/nested groups --
+    mirroring what the real Glob engine does BEFORE it walks the filesystem,
+    which pathlib's resolve() does not. A group with no top-level comma
+    (e.g. a literal '{1}' or an empty '{}') is treated as literal text, not
+    an alternation, so it is not mangled. Bails to the raw string on
+    unbalanced braces. Capped at _MAX_BRACE_EXPANSIONS: a target that
+    expands past the cap selects an unknown, unbounded set of paths -- the
+    caller returns a sentinel so main() denies it as a span rather than
+    silently checking a truncated subset (fail-CLOSED on explosion)."""
+    open_i = s.find("{")
+    if open_i == -1:
+        return [s]
+    depth = 0
+    close_i = None
+    for k in range(open_i, len(s)):
+        if s[k] == "{":
+            depth += 1
+        elif s[k] == "}":
+            depth -= 1
+            if depth == 0:
+                close_i = k
+                break
+    if close_i is None:
+        return [s]  # unbalanced -- treat literally, don't guess
+    pre, body, post = s[:open_i], s[open_i + 1 : close_i], s[close_i + 1 :]
+    # Split body on TOP-LEVEL commas only (a nested {..} comma is not a
+    # separator for this group).
+    parts: list[str] = []
+    depth = 0
+    cur = ""
+    for ch in body:
+        if ch == "{":
+            depth += 1
+            cur += ch
+        elif ch == "}":
+            depth -= 1
+            cur += ch
+        elif ch == "," and depth == 0:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    parts.append(cur)
+    post_expansions = _expand_braces(post)
+    if post_expansions == [_BRACE_EXPLOSION]:
+        return [_BRACE_EXPLOSION]  # propagate the sentinel up, don't mangle it
+    if len(parts) == 1:
+        # No alternation -- keep the braces as literal text.
+        return [pre + "{" + body + "}" + tail for tail in post_expansions]
+    results: list[str] = []
+    for part in parts:
+        part_expansions = _expand_braces(part)
+        if part_expansions == [_BRACE_EXPLOSION]:
+            return [_BRACE_EXPLOSION]
+        for exp_part in part_expansions:
+            for tail in post_expansions:
+                results.append(pre + exp_part + tail)
+                if len(results) > _MAX_BRACE_EXPANSIONS:
+                    return [_BRACE_EXPLOSION]
+    return results
+
+
+# Sentinel returned by _expand_braces on a target whose brace expansion
+# exceeds the cap: main() maps it to a whole-tree-span denial (an unbounded
+# path set is exactly the "unknown set of directories" _spans_whole_tree
+# already denies).
+_BRACE_EXPLOSION = "\x00brace-explosion\x00"
+
 
 def _spans_whole_tree(normalized: str) -> bool:
     """A search whose normalized target reaches BOTH sides of the wall
@@ -296,31 +390,43 @@ def main() -> int:
         )
         return 2
 
-    for raw_path in _target_paths(tool_name, tool_input):
-        normalized = _normalize_path(raw_path)
-        if normalized is None:
-            continue  # outside the repo entirely -- not this hook's concern
-        if _spans_whole_tree(normalized):
-            _log_denial(lane, tool_name, raw_path)
-            sys.stderr.write(
-                "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
-                "selects an unknown set of top-level directories that can include the "
-                "other side of the wall (its normalized target {!r} anchors on "
-                "neither side). Scope it to a concrete directory on your own lane's "
-                "side of the wall.\n".format(lane, tool_name, raw_path, normalized)
-            )
-            return 2
-        if _LANE_DENIES[lane].match(normalized):
-            _log_denial(lane, tool_name, raw_path)
-            other_side = "sim/simulation" if lane == "supplier" else "company/saas"
-            sys.stderr.write(
-                "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
-                "crosses into {} territory, denied by the development-time wall pilot "
-                "(GOVERNED_COMPANY_AND_THREE_LANES.md Part 2). If this lane genuinely "
-                "needs cross-wall data, it should arrive through a typed interface "
-                "contract, not a direct read.\n".format(lane, tool_name, raw_path, other_side)
-            )
-            return 2
+    for raw_target in _target_paths(tool_name, tool_input):
+        # Expand brace alternations to the SAME path set the real Glob engine
+        # sees (pathlib does not) -- one crossing alternative denies the call.
+        for raw_path in _expand_braces(raw_target):
+            if raw_path == _BRACE_EXPLOSION:
+                _log_denial(lane, tool_name, raw_target)
+                sys.stderr.write(
+                    "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
+                    "expands to an unbounded set of paths (brace explosion) that cannot "
+                    "be shown to stay on your side of the wall. Scope it to a concrete "
+                    "directory.\n".format(lane, tool_name, raw_target)
+                )
+                return 2
+            normalized = _normalize_path(raw_path)
+            if normalized is None:
+                continue  # outside the repo entirely -- not this hook's concern
+            if _spans_whole_tree(normalized):
+                _log_denial(lane, tool_name, raw_path)
+                sys.stderr.write(
+                    "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
+                    "selects an unknown set of top-level directories that can include the "
+                    "other side of the wall (its normalized target {!r} anchors on "
+                    "neither side). Scope it to a concrete directory on your own lane's "
+                    "side of the wall.\n".format(lane, tool_name, raw_path, normalized)
+                )
+                return 2
+            if _LANE_DENIES[lane].match(normalized):
+                _log_denial(lane, tool_name, raw_path)
+                other_side = "sim/simulation" if lane == "supplier" else "company/saas"
+                sys.stderr.write(
+                    "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
+                    "crosses into {} territory, denied by the development-time wall pilot "
+                    "(GOVERNED_COMPANY_AND_THREE_LANES.md Part 2). If this lane genuinely "
+                    "needs cross-wall data, it should arrive through a typed interface "
+                    "contract, not a direct read.\n".format(lane, tool_name, raw_path, other_side)
+                )
+                return 2
 
     return 0
 

@@ -568,3 +568,89 @@ class TestHardenPassFixes:
             assert "WARNING" in result.stderr
         finally:
             marker.chmod(0o644)  # restore so tmp_path cleanup can remove it
+
+    # ------------------------------------------------------------------
+    # 2026-07-28 HARDEN pass: brace-alternation traversal escape.
+    # pathlib's resolve() (which every prior normalization fix leaned on to
+    # collapse `..`) does NOT expand `{a,b}` -- but the real Glob engine
+    # does. A brace alternative carrying a `../` therefore escapes a concrete
+    # allowed first segment into the denied side while the hook saw a benign
+    # 'company/{...}' first segment. Closed by expanding braces in-hook to
+    # the same path set the engine sees, then checking each expansion.
+    # ------------------------------------------------------------------
+    def test_brace_alternative_traversal_into_sim_denied(self):
+        # The finding: a `../sim` alternative inside a brace, behind a
+        # concrete 'company' first segment, read straight across the wall.
+        result = _run(
+            {"tool_name": "Glob",
+             "tool_input": {"pattern": "company/{compliance,../sim}/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_brace_alternative_traversal_into_company_denied_from_sim_lane(self):
+        # Sibling half, sim lane: '../company' hidden in a brace behind 'sim'.
+        result = _run(
+            {"tool_name": "Glob",
+             "tool_input": {"pattern": "sim/{cache_store.py,../company/pricing/tariff_engine.py}"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_brace_first_segment_including_denied_side_denied(self):
+        # A brace in the FIRST segment that includes the denied side expands
+        # to a concrete denied path -- must deny (one crossing alt denies).
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "{sim,company}/**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_pure_own_side_brace_still_allowed(self):
+        # False-positive guard: a brace whose every alternative stays on the
+        # caller's own side must still pass -- the fix is precise, not a
+        # blanket brace-deny.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "company/{crm,compliance}/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_literal_single_alternative_brace_not_mangled(self):
+        # False-positive guard: a `{x}` with no top-level comma is literal
+        # text (not an alternation) and must not be dropped/mangled into a
+        # spurious cross-wall or empty target -- an allowed-side path stays
+        # allowed.
+        result = _run(
+            {"tool_name": "Glob",
+             "tool_input": {"pattern": "company/compliance/{board}_meeting_register.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_brace_explosion_fails_closed(self):
+        # A target whose brace expansion blows past the cap selects an
+        # unbounded, unverifiable path set -> deny (fail-CLOSED), never
+        # silently check a truncated subset.
+        huge = "company/" + "/".join("{a,b}" for _ in range(12)) + "/*.py"
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": huge}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_expand_braces_unit_semantics(self):
+        # Direct unit check of the expansion helper (imported from the hook
+        # module) -- the correctness the subprocess tests rely on.
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("lane_wall_hook", LANE_WALL_HOOK)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        assert sorted(mod._expand_braces("a/{x,y}/c")) == ["a/x/c", "a/y/c"]
+        assert mod._expand_braces("a/{x}/c") == ["a/{x}/c"]  # no comma -> literal
+        assert mod._expand_braces("plain/path.py") == ["plain/path.py"]
+        assert mod._expand_braces("a/{x,{y,z}}/c") == ["a/x/c", "a/y/c", "a/z/c"]
+        # Explosion returns the sentinel, not a truncated list.
+        exploded = mod._expand_braces("/".join("{a,b}" for _ in range(12)))
+        assert exploded == [mod._BRACE_EXPLOSION]
