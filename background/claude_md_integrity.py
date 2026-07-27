@@ -46,10 +46,22 @@ MAX_LINES = 200
 
 # Matches a concrete harness artefact reference: a skill's SKILL.md or a
 # path-scoped rule .md file. Bare-directory mentions (".claude/rules/") are
-# intentionally NOT matched — there is no single intended file to resolve.
+# intentionally NOT matched here — there is no single intended file to resolve
+# for `dangling_pointers`. The bare-directory CLAIM is instead covered by
+# `inert_rules` below (see its docstring for why that blind spot mattered).
 _HARNESS_REF = re.compile(
     r"\.claude/(?:skills/[A-Za-z0-9_.-]+/SKILL\.md|rules/[A-Za-z0-9_.-]+\.md)"
 )
+
+# A bare mention of the path-scoped rules directory. CLAUDE.md references its
+# rules ONLY this way ("...fire automatically from `.claude/rules/`..."), never
+# by concrete filename — so `dangling_pointers` (concrete-path only) never
+# covered them, a fail-open blind spot on exactly the moved-out procedure H7
+# built. `inert_rules` closes it.
+_RULES_DIR_REF = re.compile(r"\.claude/rules/")
+
+# Frontmatter block at the very top of a rule file: `---\n...\n---`.
+_FRONTMATTER = re.compile(r"\A---\n(.*?)\n---", re.DOTALL)
 
 
 def size_violations(text: str) -> list[str]:
@@ -83,6 +95,65 @@ def dangling_pointers(text: str, root: Path = PROJECT_DIR) -> list[str]:
     return [p for p in referenced_harness_paths(text) if not (root / p).is_file()]
 
 
+def _rule_fires(rule_text: str) -> bool:
+    """True iff a path-scoped rule file would actually FIRE: it has a top-of-file
+    frontmatter block declaring at least one non-empty `paths:` glob. A rule that
+    lost (or never had) its `paths:` frontmatter is INERT — present on disk, firing
+    on nothing. That is the FAIL-SILENT decay this atom exists to kill, and it
+    survives every naive `is_file()` existence check.
+    """
+    m = _FRONTMATTER.match(rule_text)
+    if not m:
+        return False
+    in_paths = False
+    for line in m.group(1).splitlines():
+        stripped = line.strip()
+        if stripped.startswith("paths:"):
+            in_paths = True
+            inline = stripped[len("paths:"):].strip()  # inline form: paths: ["a", "b"]
+            if inline and inline not in ("[]", "[ ]"):
+                return True
+            continue
+        if in_paths:
+            if stripped.startswith("-"):
+                glob = stripped[1:].strip().strip("'\"")
+                if glob:
+                    return True
+            elif stripped and not stripped.startswith("#"):
+                in_paths = False  # a new top-level key ended the paths: block
+    return False
+
+
+def inert_rules(text: str, root: Path = PROJECT_DIR) -> list[str]:
+    """Verify the bare-directory rules CLAIM in CLAUDE.md is actually LIVE.
+
+    When CLAUDE.md asserts path-scoped rules "fire automatically from
+    `.claude/rules/`", that claim is unbacked unless the directory exists, holds
+    at least one rule file, and each rule file actually fires (has firing
+    `paths:` frontmatter). Concrete-path discovery (`dangling_pointers`) can't
+    cover this — CLAUDE.md never names the rule files — so without this check a
+    deleted, emptied, or de-frontmattered rules directory passes silently while
+    the claim in CLAUDE.md becomes a lie. Empty list ⇒ the claim holds (or
+    CLAUDE.md makes no such claim, in which case there is nothing to verify).
+    """
+    if not _RULES_DIR_REF.search(text):
+        return []
+    rules_dir = root / ".claude" / "rules"
+    if not rules_dir.is_dir():
+        return ["CLAUDE.md claims path-scoped rules fire from .claude/rules/ but the directory is missing"]
+    md_files = sorted(rules_dir.glob("*.md"))
+    if not md_files:
+        return ["CLAUDE.md claims path-scoped rules fire from .claude/rules/ but it contains no rule files"]
+    problems: list[str] = []
+    for f in md_files:
+        if not _rule_fires(f.read_text(encoding="utf-8")):
+            problems.append(
+                f".claude/rules/{f.name} is present but INERT (no firing `paths:` frontmatter) — "
+                "it fires on nothing, silently losing its path-scoped procedure"
+            )
+    return problems
+
+
 def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
     """Full integrity check. Empty list ⇒ healthy; else the violations."""
     if text is None:
@@ -94,6 +165,7 @@ def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
             "CLAUDE.md references harness artefacts that do not exist: "
             + ", ".join(missing)
         )
+    problems += inert_rules(text, root)
     return problems
 
 

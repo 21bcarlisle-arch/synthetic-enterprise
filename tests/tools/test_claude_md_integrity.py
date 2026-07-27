@@ -106,3 +106,87 @@ def test_bare_directory_reference_is_not_treated_as_a_file(tmp_path):
     text = "Path-scoped rules fire automatically from `.claude/rules/`."
     assert integ.referenced_harness_paths(text) == []
     assert integ.dangling_pointers(text, tmp_path) == []
+
+
+# --- inert_rules: close the rules blind spot dangling_pointers can't cover ----
+# (2026-07-27 HARDEN red-team: CLAUDE.md references its path-scoped rules ONLY
+# as a bare `.claude/rules/` directory, so deleting/emptying/de-frontmattering
+# them was invisible to check() — a fail-open on the atom's own moved-out
+# procedure. These are the R15 both-ways controls for the new inert_rules check.)
+
+_RULE_CLAIM = "Path-scoped rules fire automatically from `.claude/rules/`."
+
+
+def _write_rule(dirpath: Path, name: str, body: str):
+    dirpath.mkdir(parents=True, exist_ok=True)
+    (dirpath / name).write_text(body, encoding="utf-8")
+
+
+def test_real_claude_md_rules_all_fire():
+    """LIVE control: every rule file in the real repo actually fires (has firing
+    `paths:` frontmatter) and the real CLAUDE.md's rules claim is backed."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    assert integ.inert_rules(text, REPO_ROOT) == []
+
+
+def test_inert_rules_silent_when_claude_md_makes_no_rules_claim(tmp_path):
+    """No false positive: a doc that never mentions `.claude/rules/` triggers no
+    rules check, even if the directory is absent."""
+    assert integ.inert_rules("No mention of the rules directory here.", tmp_path) == []
+
+
+def test_inert_rules_fires_when_rules_dir_missing(tmp_path):
+    assert integ.inert_rules(_RULE_CLAIM, tmp_path) != []
+    assert any("missing" in v for v in integ.inert_rules(_RULE_CLAIM, tmp_path))
+
+
+def test_inert_rules_fires_when_rules_dir_empty(tmp_path):
+    (tmp_path / ".claude" / "rules").mkdir(parents=True)
+    problems = integ.inert_rules(_RULE_CLAIM, tmp_path)
+    assert any("no rule files" in v for v in problems)
+
+
+def test_inert_rules_fires_on_rule_with_no_frontmatter(tmp_path):
+    """FAIL-SILENT mutation: a rule file present but with NO frontmatter is inert
+    — it fires on nothing yet passes every existence check."""
+    _write_rule(tmp_path / ".claude" / "rules", "wall.md", "# A rule with no frontmatter\nbody")
+    problems = integ.inert_rules(_RULE_CLAIM, tmp_path)
+    assert any("INERT" in v and "wall.md" in v for v in problems)
+
+
+def test_inert_rules_fires_on_rule_with_empty_paths(tmp_path):
+    """FAIL-SILENT mutation: frontmatter present but `paths:` has no globs — the
+    rule matches no path and never fires."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        "---\npaths:\n---\n\n# Body\n",
+    )
+    assert any("INERT" in v for v in integ.inert_rules(_RULE_CLAIM, tmp_path))
+
+
+def test_inert_rules_passes_on_valid_firing_rule(tmp_path):
+    """A rule with a real `paths:` glob fires — no violation (list form)."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "company/**/*.py"\n---\n\n# Body\n',
+    )
+    assert integ.inert_rules(_RULE_CLAIM, tmp_path) == []
+
+
+def test_inert_rules_passes_on_inline_paths_form(tmp_path):
+    """Inline `paths: ["a", "b"]` frontmatter also counts as firing."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths: ["sim/**/*.py"]\n---\n\n# Body\n',
+    )
+    assert integ.inert_rules(_RULE_CLAIM, tmp_path) == []
+
+
+def test_full_check_fires_on_inert_rule(tmp_path):
+    """End-to-end: check() surfaces an inert rule, not just the sub-function."""
+    (tmp_path / "CLAUDE.md").write_text(_RULE_CLAIM, encoding="utf-8")
+    _write_rule(tmp_path / ".claude" / "rules", "wall.md", "# no frontmatter\n")
+    assert any("INERT" in p for p in integ.check(root=tmp_path))
