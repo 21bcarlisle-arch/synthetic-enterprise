@@ -82,3 +82,21 @@ Acceptance: today's exact state (twelve HARDEN re-verifies, one unconsumed rulin
 **Risk & proportionality:** touches draw ordering, the planner's mint sources, the publish gate and the site's rendering path — failing tests first, own commits, shadow rails on scanner changes. §6 is the largest and may be proposed in stages; propose before building if it needs to be phased. Tag: **proceed; §2 retrospective mints first — they unblock product today.**
 
 — Advisor bridge, carrying the director's ruling — and recording the advisor's own share of the definition failure. 2026-07-27.
+
+---
+
+## AMENDMENT (same day) — §1 and §5 restated as PROBLEMS, not prescriptions
+
+The director's challenge, verbatim: *"Should we have given it the problem to solve rather than tell it what to do?"* Yes. Two clauses above were written prescriptively while reacting to a stall, and the advisor's own pre-stage checklist names urgency as the violation trigger. They are restated. Where an amendment conflicts with the original text, **the amendment governs.**
+
+**§1 RESTATED — the problem, not the interval.** The advisor's *"rate-limited to ~1 per hour"* is an invented number with no evidence behind it; **disregard it.** The requirement is: **HARDEN re-verification of at-target atoms must never outrank real work, and must never be able to fill an idle period in place of it** — while remaining available, because today it found four genuine defects (a NaN/Inf fail-open in the structural bill controls, Bacs rails counting calendar rather than working days, an LPCDA s.5A fidelity defect, and a latent fail-silent in weather normalisation). That is valuable work in the wrong queue position, not busywork.
+
+Non-negotiables: it sits below the planner-mint rung; it never counts as work for the deadman clock, utilisation, or the product/machinery split; and with any below-target atom or unminted ruling present, a HARDEN draw must fail the §1 test. **The selection mechanism is yours** — dependency-change triggering, defect-yield-weighted scheduling, budgeted share of ticks, or something better. State your reasoning and the evidence for whatever you choose.
+
+**§5 RESTATED — the requirement, not the artifact.** Ignore the prescribed surface shape. The requirement: **everything named-and-not-done must be *enumerable and checkable*, so that "no below-target work anywhere" can be verified against reality rather than asserted.** Whether that is a published surface, a live query, an assertion in the daily note, or a gate check is yours to design — with one wall: per LAW C it must derive from **primary state**, never from the tick's own enumeration.
+
+**§4 also binds this document.** Its "WORK THIS CREATES" block stands, with items 1 and 5 now reading as the restated problems above.
+
+**Standing correction to the advisor's practice (record it):** decisions transmit as decisions; implementations arrive as problems. The test before writing any mechanism into a ruling — *would someone who knows this system better reach a different and better answer?* If yes: state the problem, state the non-negotiables, and stop.
+
+— Amendment by advisor bridge, on the director's ruling, 2026-07-27.
