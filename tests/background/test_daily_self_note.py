@@ -265,6 +265,32 @@ def test_r17_status_line_included(monkeypatch, tmp_path):
     # real supervisor import in the test env -> the live status line; fail-closed otherwise.
     assert (line and "always-drawable lane" in line) or err
 
+def test_named_and_not_done_line_in_note_and_flags_residue(monkeypatch, tmp_path):
+    """§5 (WORK_DEFINITION ruling 2026-07-27): the daily note carries the named-but-unminted
+    enumeration as a real consumer — 🔴 when a ruling names unminted work, ✅ when residue empty."""
+    _isolate(monkeypatch, tmp_path)
+    note = sm1.render_note(NOW.isoformat(), _runner=FakeGit([], fail=False))
+    assert "§5 named-but-unminted" in note  # wired into the note (real repo -> ✅ or 🔴)
+
+    root, ip, done = tmp_path / "r", tmp_path / "ip", tmp_path / "dn"
+    root.mkdir()
+    (root / "DIRECTOR_RULING_T_2026-07-27.md").write_text(
+        "# [DIRECTOR-RULING] — t\n\n## WORK THIS CREATES\n\n1. Unminted named work\n", encoding="utf-8")
+    line = sm1.named_and_not_done_line(root, ip, done)
+    assert "🔴" in line and "1 deliverable" in line and "Unminted named work" in line
+    # Empty primary state -> ✅ CHECKED, never a flattering silence.
+    assert "✅" in sm1.named_and_not_done_line(tmp_path / "empty1", tmp_path / "empty2", tmp_path / "empty3")
+
+
+def test_named_and_not_done_line_fails_closed_red(monkeypatch, tmp_path):
+    """R15: an unavailable primary-state read is a RED, never a silent green."""
+    def boom(*a, **k):
+        raise RuntimeError("disk gone")
+    monkeypatch.setattr("background.primary_state_scan.named_but_unminted", boom)
+    line = sm1.named_and_not_done_line()
+    assert "🔴 RED" in line and "unavailable" in line
+
+
 def test_resource_sensor_absent_is_soft_not_red(monkeypatch, tmp_path):
     _isolate(monkeypatch, tmp_path)  # sensor path points at a nonexistent tmp file
     res, err = sm1.resource_inputs()

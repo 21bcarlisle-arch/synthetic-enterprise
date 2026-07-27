@@ -1,3 +1,24 @@
+<!-- MINT-BUILT BANNER (worker tick 2026-07-27) — BUILT + LANDED. Design choice (LAW A reasoning):
+option (a) — a derivation function over primary state, NO new published surface (cheapest, least
+maintenance; a site backlog panel (b) can follow if the director wants the window). DELIVERED:
+  • background/primary_state_scan.py::named_but_unminted() — reads ONLY primary state (rulings'/steers'
+    WORK THIS CREATES blocks in staging root + in_progress/, diffed against coverage) and emits the
+    named-but-unminted RESIDUE. Coverage = (1) a PLANNER_MINTED doc's `Source: <ruling>, deliverable N`
+    line (root+in_progress+done) OR (2) the ruling's own machine-authored MINT COVERAGE MAP banner
+    marking index N LANDED/MINTED/COVERED (the landed-as-code-without-a-mint-doc case, e.g. §2).
+  • Housed in the EXISTING LAW-C independent reader (imports NOTHING from supervisor; the §4 parser is
+    a DELIBERATE re-implementation, drift-guarded by a test that imports both). Takes NO tick/idle
+    argument — structurally cannot be a restatement of the tick's own belief (LAW C wall).
+  • Wired to a real consumer: daily_self_note.render_note now carries the enumeration line
+    (named_and_not_done_line) — 🔴 when a ruling names unminted work, ✅ CHECKED when residue empty.
+  • R15 BOTH WAYS + LAW-C independence + drift-guard: tests/background/test_named_but_unminted.py (10)
+    + 2 consumer tests in test_daily_self_note.py. Exit-crit 2 verified: over the REAL repo the
+    WORK_DEFINITION ruling's six deliverables are all covered → residue EMPTY (items 1(banner)/2(banner)
+    +1(mint)/3/4/5/6 minted). Live render quoted in the tick.
+NOT built (deferred, honest): option (b) published site backlog panel; the age/status columns from the
+prescribed surface shape (the amendment freed the shape — (a) satisfies "enumerable AND checkable").
+Mint-source obligation DISCHARGED → moved to done/. -->
+
 <!-- SUPERVISOR_DRAW: self-drawable -->
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — "Named-and-not-done" must be enumerable and checkable from primary state (§5) (2026-07-27)
 

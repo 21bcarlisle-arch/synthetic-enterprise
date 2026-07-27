@@ -32,6 +32,11 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+STAGING_DIR = PROJECT_DIR / "docs" / "staging"
+IN_PROGRESS_DIR = STAGING_DIR / "in_progress"
+DONE_DIR = STAGING_DIR / "done"
+
 # The marker a planner mint carries when it is drawable-now (vs blocked). Same string the
 # supervisor draw and the deadman's blocked-mint reader key on -- kept in sync by being the
 # ONE documented convention (project_r17_tick_never_rests): a parked mint MUST carry
@@ -73,3 +78,170 @@ def drawable_undrawn_mints(in_progress_dir: Path) -> list[tuple[str, str]]:
         if _SELF_DRAWABLE_RE.search(body[:_HEAD_BYTES]):
             out.append((f.name, _title(body, f.name)))
     return out
+
+
+# =============================================================================
+# §5 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27, as RESTATED by the
+# amendment): "everything named-and-not-done must be ENUMERABLE and CHECKABLE, so
+# that 'no below-target work anywhere' can be verified against reality rather than
+# asserted." One wall (LAW C): derive from PRIMARY state -- the rulings/steers
+# themselves and the staging tree -- NEVER from the tick's own enumeration.
+#
+# The §0 root cause this closes: the tick asserted "no below-target work anywhere"
+# while THREE named items (merit-order reconstruction, the DD seasonal cash-flow
+# FRAME, the site evidence pages) sat in ratified rulings, NEVER minted into an atom.
+# `drawable_undrawn_mints` above cannot see them -- it scans EXISTING mint docs; a
+# deliverable that was never minted has no mint doc to scan. This derivation reads
+# the rulings' WORK THIS CREATES blocks directly and diffs them against the mints
+# that cover them, so the never-minted residue becomes visible.
+#
+# INDEPENDENCE (the module invariant, R15): NO import from supervisor.py. The
+# WORK-THIS-CREATES parser below is a DELIBERATE re-implementation of supervisor's
+# `work_this_creates_deliverables` (§4) -- importing it would execute supervisor's
+# draw logic and break the "second, independent source" guarantee this whole file
+# exists to provide. A drift-guard test asserts the two parsers agree on fixtures so
+# they cannot silently diverge (test imports both; this module imports neither).
+# =============================================================================
+
+# Mirrors supervisor._WORK_THIS_CREATES_RE / _DELIVERABLE_LINE_RE exactly (drift-guarded).
+_WORK_THIS_CREATES_RE = re.compile(
+    r"^#{1,6}\s*WORK\s+THIS\s+CREATES\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
+    re.IGNORECASE | re.DOTALL | re.MULTILINE,
+)
+_DELIVERABLE_LINE_RE = re.compile(r"^\s*(?:\d+[.)]|[-*])\s+(.+?)\s*$", re.MULTILINE)
+# Mirrors supervisor._DIRECTOR_RULING_STEER_HEADER_RE + the filename-prefix convention.
+_RULING_STEER_HEADER_RE = re.compile(r"\[[A-Z0-9 _-]*(?:RULING|STEER)\]", re.IGNORECASE)
+_RULING_STEER_PREFIXES = ("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_")
+
+# COVERAGE SIGNAL 1 -- a PLANNER_MINTED doc's `Source: <ruling>.md, deliverable N` line.
+_SOURCE_DELIVERABLE_RE = re.compile(r"deliverable\s*\*{0,2}\s*(\d+)", re.IGNORECASE)
+# COVERAGE SIGNAL 2 -- the machine-authored MINT COVERAGE MAP banner in a ruling's
+# leading HTML comment: `[N] ... (MINTED:|LANDED|ALREADY COVERED|COVERED|DONE)`.
+_COVERAGE_MAP_ENTRY_RE = re.compile(r"\[(\d+)\]\s*(.*?)(?=\n\s*\[\d+\]|\Z)", re.DOTALL)
+_COVERAGE_KEYWORDS = ("MINTED", "LANDED", "COVERED", "DONE", "DISCHARGED")
+_LEADING_COMMENT_RE = re.compile(r"<!--(.*?)-->", re.DOTALL)
+
+
+def _work_this_creates_deliverables(text: str) -> list[str]:
+    """Independent re-implementation of supervisor.work_this_creates_deliverables (§4). [] means
+    NO block (the §4 defect signal, never fabricated). Drift-guarded against the original by test."""
+    m = _WORK_THIS_CREATES_RE.search(text or "")
+    if not m:
+        return []
+    out: list[str] = []
+    for dm in _DELIVERABLE_LINE_RE.finditer(m.group(1)):
+        s = re.sub(r"[*`]", "", dm.group(1)).strip()
+        if s:
+            out.append((s[:200] + "…") if len(s) > 201 else s)
+    return out
+
+
+def _is_ruling_or_steer(name: str, head: str) -> bool:
+    """A [DIRECTOR-RULING]/[STEER] doc, by filename prefix OR content header (R7: content primary)."""
+    return name.startswith(_RULING_STEER_PREFIXES) or bool(_RULING_STEER_HEADER_RE.search(head))
+
+
+def _covered_indices_from_body(text: str) -> set[int]:
+    """Deliverable indices a ruling's OWN machine-authored MINT COVERAGE MAP banner marks covered
+    (LANDED/MINTED/COVERED/DONE) -- the case of a deliverable finished as landed code with no mint
+    doc of its own (e.g. §2 of the WORK_DEFINITION ruling). Scoped to the leading HTML comment so a
+    stray `[N]` in prose can't trigger it. SCOPE HONESTY (R9): this trusts the machine-authored
+    banner; a LYING banner is out of scope here (that is the banner's own control, not this scan).
+    The §0 failure class is caught regardless -- a never-minted item has NEITHER a mint doc NOR a
+    coverage-map entry, so signal-1 AND signal-2 both stay silent and it lands in the residue."""
+    m = _LEADING_COMMENT_RE.search(text or "")
+    if not m:
+        return set()
+    covered: set[int] = set()
+    for em in _COVERAGE_MAP_ENTRY_RE.finditer(m.group(1)):
+        entry = em.group(2).upper()
+        if any(k in entry for k in _COVERAGE_KEYWORDS):
+            covered.add(int(em.group(1)))
+    return covered
+
+
+def _iter_docs(*dirs: Path):
+    """(name, body) for every readable *.md directly in each dir. Fail-safe: unreadable skipped."""
+    for d in dirs:
+        try:
+            files = sorted(Path(d).glob("*.md"))
+        except OSError:
+            continue
+        for p in files:
+            try:
+                yield p.name, p.read_text(encoding="utf-8")
+            except OSError:
+                continue
+
+
+def _minted_deliverables(ruling_names: set[str], *mint_dirs: Path) -> set[tuple[str, int]]:
+    """COVERAGE SIGNAL 1: (ruling_name, deliverable_index) pairs claimed by a PLANNER_MINTED doc's
+    `Source:` line. A mint doc references exactly one ruling + one deliverable; we key off its
+    Source line only (not prose) so a deliverable number mentioned elsewhere can't over-cover."""
+    covered: set[tuple[str, int]] = set()
+    for name, body in _iter_docs(*mint_dirs):
+        if not name.startswith(_MINT_GLOB.split("*")[0]):
+            continue
+        for line in body.splitlines():
+            if "source:" not in line.lower():
+                continue
+            dm = _SOURCE_DELIVERABLE_RE.search(line)
+            if not dm:
+                continue
+            idx = int(dm.group(1))
+            for rn in ruling_names:
+                if rn in line:
+                    covered.add((rn, idx))
+    return covered
+
+
+def named_but_unminted(
+    staging_dir: Path | None = None,
+    in_progress_dir: Path | None = None,
+    done_dir: Path | None = None,
+) -> list[dict]:
+    """§5's FIRST OUTPUT (RESTATED): the current NAMED-BUT-UNMINTED set, derived from PRIMARY state.
+
+    For every staged/in_progress [DIRECTOR-RULING]/[STEER] carrying a WORK THIS CREATES block, each
+    named deliverable is either COVERED or it is RESIDUE (named, not done). A deliverable is COVERED
+    when EITHER (signal 1) a PLANNER_MINTED_* doc -- in the staging root, in_progress/, or done/ --
+    names the ruling + that deliverable index on its `Source:` line, OR (signal 2) the ruling's own
+    machine-authored MINT COVERAGE MAP banner marks that index LANDED/MINTED/COVERED/DONE (the
+    landed-as-code-without-a-mint-doc case). The residue is everything neither signal covers -- the
+    §0 failure class, where a ruling names work that was never minted into an atom AND never landed.
+
+    Returns a list of {ruling, index, deliverable} dicts, sorted (ruling, index). Empty list == the
+    checkable proof that no named deliverable sits unminted. LAW C: reads ONLY the rulings and the
+    staging tree (primary state); it takes NO tick/enumeration/idle argument, so it cannot be a
+    restatement of the tick's own belief. FAIL-SAFE: an unreadable dir yields no residue from it (it
+    can never FABRICATE unminted work), matching this module's positive-detection contract.
+
+    Rulings in done/ are EXCLUDED as sources: a ruling archived to done/ is fully discharged, so its
+    deliverables are no longer 'not done'. done/ IS still scanned as a mint-COVERAGE source (a mint
+    that landed and was archived still counts as coverage)."""
+    sroot = staging_dir or STAGING_DIR
+    sip = in_progress_dir or IN_PROGRESS_DIR
+    sdone = done_dir or DONE_DIR
+
+    # 1. Gather ruling/steer SOURCES from the root + in_progress (NOT done -- discharged there).
+    rulings: dict[str, str] = {}  # name -> body
+    for name, body in _iter_docs(sroot, sip):
+        if _is_ruling_or_steer(name, body[:600]):
+            rulings[name] = body
+    if not rulings:
+        return []
+
+    # 2. COVERAGE SIGNAL 1: mint-doc Source references, scanning root + in_progress + done.
+    minted = _minted_deliverables(set(rulings), sroot, sip, sdone)
+
+    # 3. Diff each ruling's deliverables against coverage; emit the residue.
+    residue: list[dict] = []
+    for name in sorted(rulings):
+        body = rulings[name]
+        deliverables = _work_this_creates_deliverables(body)
+        body_covered = _covered_indices_from_body(body)  # SIGNAL 2
+        for i, text in enumerate(deliverables, start=1):
+            if (name, i) in minted or i in body_covered:
+                continue
+            residue.append({"ruling": name, "index": i, "deliverable": text})
+    return residue

@@ -238,6 +238,37 @@ def r17_effect_crosscheck(in_progress_dir: Path | None = None, _status_fn=r17_st
             "independent primary-state read AGREES with the tick's enumeration (no false-empty).")
 
 
+def named_and_not_done_line(
+    staging_dir: Path | None = None,
+    in_progress_dir: Path | None = None,
+    done_dir: Path | None = None,
+) -> str:
+    """§5 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27, RESTATED): make
+    "no below-target work anywhere" CHECKABLE, not merely asserted. Renders the current
+    NAMED-BUT-UNMINTED enumeration — deliverables named in a ruling/steer's WORK THIS
+    CREATES block that no mint doc (or the ruling's own coverage banner) covers.
+
+    Derived by `primary_state_scan.named_but_unminted`, which reads ONLY primary state
+    (the rulings + the staging tree) and imports nothing from the tick's draw — so this
+    line is the SECOND source that can contradict a false "idle" claim (LAW C). §2-severed:
+    a READ only, never a number that feeds the draw. Fail-closed to a RED, never a
+    flattering ✅ (an unreadable primary state is a FAILED check, R15)."""
+    from background.primary_state_scan import named_but_unminted
+    try:
+        residue = named_but_unminted(staging_dir, in_progress_dir, done_dir)
+    except Exception as e:  # noqa: BLE001 — an unavailable independent read is a RED, never a silent green
+        return _red(f"§5 named-but-unminted enumeration unavailable: {e}")
+    if not residue:
+        return ("✅ §5 named-but-unminted: EMPTY — every deliverable named in a ruling/steer's "
+                "WORK THIS CREATES block is covered by a mint or a landed-coverage marker "
+                "(so 'no below-target work' is CHECKED against primary state, not asserted).")
+    items = "; ".join(f"{r['ruling'].replace('.md','')}#{r['index']} \"{r['deliverable'][:60]}\""
+                      for r in residue[:6]) + ("…" if len(residue) > 6 else "")
+    return (f"🔴 §5 named-but-unminted: **{len(residue)} deliverable(s)** named in a ruling but NOT "
+            f"minted into an atom — 'no below-target work' is FALSE while these stand: {items}. "
+            "Mint one atom per residue item (source → lane → target level → exit criteria).")
+
+
 def resource_inputs() -> tuple[str | None, str | None]:
     """SM2 rate_limits token-headroom sensor (optional). Absent → an honest 'not built' line,
     NOT a hard red (design §4: SM1 fail-closed WITHOUT it). A present-but-stale sensor IS a red."""
@@ -313,6 +344,10 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     # is visible from the second source. (Full dead-hours-with-work time-series is a named LAW-C
     # follow-on; this lands the independence cross-check + the current-snapshot effect.)
     lines.append(f"- {r17_effect_crosscheck()}")
+    # §5 (WORK_DEFINITION ruling 2026-07-27, RESTATED): the named-but-unminted enumeration makes
+    # "no below-target work" a CHECKABLE claim against primary state — the exact §0 failure (the tick
+    # asserted "no below-target work anywhere" while three named items sat unminted) is now caught.
+    lines.append(f"- {named_and_not_done_line()}")
 
     # DIRECTOR_AXES twin pre-score gap (read-only; §2-severed — a diagnostic the
     # note reads, never a number that feeds the draw). Fail-closed on import/read.
