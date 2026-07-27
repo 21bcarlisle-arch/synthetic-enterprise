@@ -58,7 +58,21 @@ def validate_suppression_register(register: dict[str, Any] | None = None,
       - declare a valid `failure_direction` and `remediation`, AND
       - if it fails toward SILENCE, either be `status: compliant` OR name a
         remediation that is not `none` (a silent-biased mechanism with no
-        remediation and no compliant status is exactly the defect this law forbids).
+        remediation and no compliant status is exactly the defect this law forbids), AND
+      - if it fails toward SILENCE, DECLARE ITS RE-ARM (LAW A, 2026-07-27):
+        "every suppression, throttle, fold or gate is time-bounded and re-arms,
+        regardless of any self-declaration. No component may indefinitely silence an
+        independent check." The R10-sweep remedy is literally *"a time-bound (Law A)
+        or an independent counterpart (Law C)"* -- so a silent-biased entry must carry
+        EITHER a numeric `max_age_seconds` (> 0; the time-bound that voids it) OR a
+        non-empty `rearm_trigger` (the independent condition that re-arms it). A silent
+        suppression declaring NEITHER can silence a check forever -- exactly what LAW A
+        forbids -- so this gate reports it (fail-closed). The requirement holds
+        `regardless of any self-declaration`: a `status: compliant` claim does NOT exempt
+        a silent mechanism from naming HOW it re-arms. Remediation-specific: a token of
+        `law_a` REQUIRES the `max_age_seconds` time-bound; a token of `law_c` REQUIRES the
+        `rearm_trigger` independent counterpart (the register cannot claim a remedy it
+        does not encode).
     """
     reg = register if register is not None else load_register(path)
     entries = reg.get("entries", [])
@@ -87,6 +101,31 @@ def validate_suppression_register(register: dict[str, Any] | None = None,
                 f"{eid}: silent-biased with remediation 'none' and status != 'compliant' -- "
                 f"a silence-failing suppression must be either remediated (law_a/b/c) or proven compliant."
             )
+        # LAW A -- the RE-ARM requirement. A silent-biased suppression must declare HOW it
+        # re-arms: either a numeric time-bound that voids it (max_age_seconds) or an independent
+        # counterpart that fires regardless of it (rearm_trigger). Applies to `silent` entries
+        # regardless of any self-declared `status: compliant` (LAW A: "regardless of any
+        # self-declaration"). `noisy` mechanisms already fail toward a page -- they are exempt.
+        if fd == "silent":
+            mas = e.get("max_age_seconds")
+            has_time_bound = isinstance(mas, (int, float)) and not isinstance(mas, bool) and mas > 0
+            has_independent = bool((e.get("rearm_trigger") or "").strip())
+            if not (has_time_bound or has_independent):
+                violations.append(
+                    f"{eid}: silent-biased but declares NO re-arm -- LAW A forbids a suppression "
+                    f"that can indefinitely silence a check. Declare a numeric `max_age_seconds` "
+                    f"(time-bound / Law A) or a non-empty `rearm_trigger` (independent counterpart / Law C)."
+                )
+            if "law_a" in rem_tokens and not has_time_bound:
+                violations.append(
+                    f"{eid}: remediation names `law_a` but carries no numeric `max_age_seconds` "
+                    f"time-bound -- law_a IS the time-bound; the register cannot claim a remedy it does not encode."
+                )
+            if "law_c" in rem_tokens and not has_independent:
+                violations.append(
+                    f"{eid}: remediation names `law_c` but carries no `rearm_trigger` naming the "
+                    f"independent counterpart -- law_c IS that counterpart; the register cannot claim a remedy it does not encode."
+                )
     return violations
 
 

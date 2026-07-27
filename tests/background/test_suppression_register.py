@@ -83,6 +83,116 @@ def test_silent_unremediated_reds():
     )
 
 
+def test_every_silent_entry_declares_a_rearm():
+    """LAW A structural: every SILENT-biased live entry names its re-arm -- a numeric
+    max_age_seconds (time-bound) and/or a non-empty rearm_trigger (independent counterpart)."""
+    reg = _live_register()
+    for e in reg["entries"]:
+        if e.get("failure_direction") != "silent":
+            continue
+        mas = e.get("max_age_seconds")
+        has_time_bound = isinstance(mas, (int, float)) and not isinstance(mas, bool) and mas > 0
+        has_independent = bool((e.get("rearm_trigger") or "").strip())
+        assert has_time_bound or has_independent, (
+            f"{e.get('id')}: silent-biased but declares no re-arm (LAW A)"
+        )
+
+
+def test_silent_no_rearm_reds():
+    """MUTATION (LAW A): a silent suppression with NEITHER a time-bound NOR an independent
+    counterpart can silence a check forever -- the exact defect LAW A forbids -> must be flagged."""
+    reg = copy.deepcopy(_live_register())
+    reg["entries"].append({
+        "id": "mutant_no_rearm",
+        "mechanism": "a fold with no expiry and no independent counterpart",
+        "failure_direction": "silent",
+        "remediation": "law_b",          # remediated (so the older gate would pass it)...
+        "status": "open",
+        "what_still_pages": "a sibling lane, allegedly",   # ...and names a pager...
+        # ...but declares NO max_age_seconds and NO rearm_trigger.
+    })
+    violations = sr.validate_suppression_register(reg)
+    assert any("mutant_no_rearm" in v and "re-arm" in v for v in violations), (
+        "gate must red on a silent suppression that declares no re-arm -- else LAW A is theatre"
+    )
+
+
+def test_law_a_token_without_time_bound_reds():
+    """MUTATION: claiming remediation `law_a` while carrying no numeric max_age_seconds is
+    claiming a remedy the register does not encode -> must be flagged."""
+    reg = copy.deepcopy(_live_register())
+    reg["entries"].append({
+        "id": "mutant_law_a_no_bound",
+        "mechanism": "claims a time-bound it does not encode",
+        "failure_direction": "silent",
+        "remediation": "law_a",
+        "status": "landed",
+        "what_still_pages": "a deadman cap, supposedly",
+        "rearm_trigger": "some independent check",   # has an independent trigger...
+        # ...but NO max_age_seconds, so the law_a time-bound claim is unbacked.
+    })
+    violations = sr.validate_suppression_register(reg)
+    assert any("mutant_law_a_no_bound" in v and "law_a" in v for v in violations), (
+        "a `law_a` remediation with no max_age_seconds must be flagged"
+    )
+
+
+def test_law_c_token_without_trigger_reds():
+    """MUTATION: claiming remediation `law_c` while carrying no rearm_trigger is claiming an
+    independent counterpart the register does not encode -> must be flagged."""
+    reg = copy.deepcopy(_live_register())
+    reg["entries"].append({
+        "id": "mutant_law_c_no_trigger",
+        "mechanism": "claims an independent counterpart it does not name",
+        "failure_direction": "silent",
+        "remediation": "law_c",
+        "status": "landed",
+        "what_still_pages": "an independent read, supposedly",
+        "max_age_seconds": 3600,   # has a time-bound...
+        # ...but NO rearm_trigger, so the law_c independent-counterpart claim is unbacked.
+    })
+    violations = sr.validate_suppression_register(reg)
+    assert any("mutant_law_c_no_trigger" in v and "law_c" in v for v in violations), (
+        "a `law_c` remediation with no rearm_trigger must be flagged"
+    )
+
+
+def test_compliant_does_not_exempt_silent_from_rearm():
+    """LAW A "regardless of any self-declaration": a silent mechanism claiming status:compliant
+    is STILL required to name its re-arm -- a compliant claim is not a re-arm."""
+    reg = copy.deepcopy(_live_register())
+    reg["entries"].append({
+        "id": "mutant_compliant_no_rearm",
+        "mechanism": "silent + self-declared compliant, but names no re-arm",
+        "failure_direction": "silent",
+        "remediation": "none",
+        "status": "compliant",
+        "what_still_pages": "trust me",
+    })
+    violations = sr.validate_suppression_register(reg)
+    assert any("mutant_compliant_no_rearm" in v and "re-arm" in v for v in violations), (
+        "status:compliant must NOT exempt a silent suppression from declaring its re-arm (LAW A)"
+    )
+
+
+def test_noisy_entry_needs_no_rearm():
+    """A NOISY mechanism already fails toward a page -- it is exempt from the re-arm requirement
+    (the gate must not false-positive on a legitimate noisy suppression)."""
+    reg = copy.deepcopy(_live_register())
+    reg["entries"].append({
+        "id": "mutant_noisy_ok",
+        "mechanism": "a throttle that re-attempts unless origin==HEAD -- fails toward noise",
+        "failure_direction": "noisy",
+        "remediation": "none",
+        "status": "compliant",
+        "what_still_pages": "it releases and re-attempts; never a silent success claim",
+    })
+    violations = sr.validate_suppression_register(reg)
+    assert not any("mutant_noisy_ok" in v for v in violations), (
+        f"a noisy suppression needs no re-arm; gate false-positived: {violations}"
+    )
+
+
 def test_missing_register_raises(tmp_path):
     """An UNAVAILABLE gate is a FAILED gate -- must raise, never silently pass."""
     missing = tmp_path / "does_not_exist.json"

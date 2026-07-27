@@ -12,7 +12,9 @@
    "named_failure": "ruling failure #2 (global mint block) + the 42h EIGHTH-CLASS stall",
    "remediation": "law_a + law_b",
    "status": "landed_partial",
-   "what_still_pages": "deadman OPEN-MINT [ACT] escalation (_check_open_mint_escalation) fires on any mint open >2h while resting; the 2h rest-proof age cap (supervisor.py:2538) voids the batch-rest and forces planner re-examination. LAW B mint hardens the still-global scope to per-cluster."
+   "what_still_pages": "deadman OPEN-MINT [ACT] escalation (_check_open_mint_escalation) fires on any mint open >2h while resting; the 2h rest-proof age cap (supervisor.py:2538) voids the batch-rest and forces planner re-examination. LAW B mint hardens the still-global scope to per-cluster.",
+   "max_age_seconds": 7200,
+   "rearm_trigger": "2h rest-proof age cap (supervisor.py:2538) voids the batch-rest and forces planner re-examination; deadman OPEN-MINT >2h + 6h HARD_REST_CAP are un-suppressible."
   },
   {
    "id": "deadman_proven_rest_fold",
@@ -23,7 +25,9 @@
    "named_failure": "ruling failure #4 (watched component silenced its own supervisor; the 42h stall)",
    "remediation": "law_a + law_c",
    "status": "landed",
-   "what_still_pages": "HARD_REST_CAP_SECONDS (6h) [ACT] and OPEN-MINT escalation (deadmans_switch.py:301 _check_open_mint_escalation) are BOTH un-suppressible by the proven-rest fold -- 42h of quiet rest is itself the [ACT]."
+   "what_still_pages": "HARD_REST_CAP_SECONDS (6h) [ACT] and OPEN-MINT escalation (deadmans_switch.py:301 _check_open_mint_escalation) are BOTH un-suppressible by the proven-rest fold -- 42h of quiet rest is itself the [ACT].",
+   "max_age_seconds": 7200,
+   "rearm_trigger": "HARD_REST_CAP 6h + OPEN-MINT 2h escalation are both un-suppressible by the fold; LAW C primary_state_scan independent disk read pages regardless of the enumeration."
   },
   {
    "id": "drained_and_gated_quiet_wait",
@@ -34,7 +38,9 @@
    "named_failure": "ruling failure #1 (Rule-0 fallback exhausted HARDEN, nowhere else to go)",
    "remediation": "law_a",
    "status": "open",
-   "what_still_pages": "deadman 6h HARD_REST_CAP fires regardless; forward-discovery lane (R17) remains always-drawable ABOVE rest so the tick draws rather than quiet-waits. The quiet-wait itself has no own re-arm -- LAW A mint assigns it an explicit time-bound."
+   "what_still_pages": "deadman 6h HARD_REST_CAP fires regardless; forward-discovery lane (R17) remains always-drawable ABOVE rest so the tick draws rather than quiet-waits. The quiet-wait itself has no own re-arm -- LAW A mint assigns it an explicit time-bound.",
+   "max_age_seconds": 21600,
+   "rearm_trigger": "deadman 6h HARD_REST_CAP fires regardless; the R17 forward-discovery lane is always-drawable ABOVE rest so the tick draws rather than quiet-waits."
   },
   {
    "id": "harden_cooldown_rotation",
@@ -45,7 +51,9 @@
    "named_failure": "none (compliant example -- suppresses a re-draw, not a page)",
    "remediation": "none",
    "status": "compliant",
-   "what_still_pages": "cooldown re-arms after 6h OR on any content-sha change (_harden_in_cooldown, supervisor.py:1493); other Rule-0 rungs still draw; deadman fires if the loop actually rests. Already LAW A-shaped: bounded + re-arming."
+   "what_still_pages": "cooldown re-arms after 6h OR on any content-sha change (_harden_in_cooldown, supervisor.py:1493); other Rule-0 rungs still draw; deadman fires if the loop actually rests. Already LAW A-shaped: bounded + re-arming.",
+   "max_age_seconds": 21600,
+   "rearm_trigger": "cooldown re-arms after 6h OR on any content-sha change (_harden_in_cooldown, supervisor.py:1493); other Rule-0 rungs still draw."
   },
   {
    "id": "build_planner_rest_with_proof",
@@ -56,7 +64,9 @@
    "named_failure": "contributed to the 42h stall (proof-of-rest over an all-blocked batch)",
    "remediation": "law_a",
    "status": "landed",
-   "what_still_pages": "2h rest-proof age cap voids a stale proof and re-examines (supervisor.py:2486); deadman OPEN-MINT / 6h hard-cap escalation are un-suppressible."
+   "what_still_pages": "2h rest-proof age cap voids a stale proof and re-examines (supervisor.py:2486); deadman OPEN-MINT / 6h hard-cap escalation are un-suppressible.",
+   "max_age_seconds": 7200,
+   "rearm_trigger": "2h rest-proof age cap voids a stale proof and re-examines (supervisor.py:2537); deadman OPEN-MINT / 6h hard-cap escalation are un-suppressible."
   },
   {
    "id": "authorized_set_enumeration",
@@ -67,7 +77,8 @@
    "named_failure": "ruling failure #3 (published 'whole authorized set empty' while open mints existed in in_progress/)",
    "remediation": "law_c",
    "status": "landed_partial",
-   "what_still_pages": "LAW C LANDED (2026-07-27, background/primary_state_scan.py): the deadman now reads in_progress/ DIRECTLY (drawable_undrawn_mints, no supervisor import) -- a self-drawable mint undrawn pages [ACT] at 2h and VETOES the proven-rest [STALL] fold, both independent of this enumeration (test_deadmans_switch.py LAW-C block, R15 both ways). PARTIAL: independence over the OTHER primary sources (open campaign items, defect-ledger rows, drawable maturity atoms) is still read only through the supervisor's drained check -- a named LAW-C follow-on."
+   "what_still_pages": "LAW C LANDED (2026-07-27, background/primary_state_scan.py): the deadman now reads in_progress/ DIRECTLY (drawable_undrawn_mints, no supervisor import) -- a self-drawable mint undrawn pages [ACT] at 2h and VETOES the proven-rest [STALL] fold, both independent of this enumeration (test_deadmans_switch.py LAW-C block, R15 both ways). PARTIAL: independence over the OTHER primary sources (open campaign items, defect-ledger rows, drawable maturity atoms) is still read only through the supervisor's drained check -- a named LAW-C follow-on.",
+   "rearm_trigger": "LAW C (primary_state_scan.drawable_undrawn_mints, 2026-07-27) reads in_progress/ DIRECTLY, no supervisor import -- a self-drawable mint undrawn >2h pages [ACT] regardless of the enumeration."
   },
   {
    "id": "daily_note_r17_status",
@@ -78,7 +89,8 @@
    "named_failure": "ruling failure #5 (reported 'lane WIRED' -- status -- over a window with 18 dead hours; never reported the EFFECT)",
    "remediation": "law_c",
    "status": "landed_partial",
-   "what_still_pages": "LAW C LANDED (2026-07-27, daily_self_note.r17_effect_crosscheck): the note now CROSS-CHECKS the tick's enumeration against an INDEPENDENT read of in_progress/ and renders a CONTRADICTION when the enumeration claims REST-LEGITIMATE while a self-drawable mint sits undrawn (test_daily_self_note.py LAW-C block, R15 both ways). PARTIAL: the full dead-hours-with-work time-series metric remains a named LAW-C follow-on; the snapshot effect + independence cross-check landed."
+   "what_still_pages": "LAW C LANDED (2026-07-27, daily_self_note.r17_effect_crosscheck): the note now CROSS-CHECKS the tick's enumeration against an INDEPENDENT read of in_progress/ and renders a CONTRADICTION when the enumeration claims REST-LEGITIMATE while a self-drawable mint sits undrawn (test_daily_self_note.py LAW-C block, R15 both ways). PARTIAL: the full dead-hours-with-work time-series metric remains a named LAW-C follow-on; the snapshot effect + independence cross-check landed.",
+   "rearm_trigger": "LAW C (daily_self_note.r17_effect_crosscheck) renders CONTRADICTION from an INDEPENDENT read of in_progress/ when the enumeration claims REST-LEGITIMATE while a mint sits undrawn."
   },
   {
    "id": "self_verifying_push_throttle",
@@ -100,7 +112,8 @@
    "named_failure": "none directly, but narrowing what blocks publish is silence-shaped",
    "remediation": "law_c",
    "status": "compliant",
-   "what_still_pages": "H23 operational-layer INDEPENDENT green signal (2ddf71272) + reconcile-before-test (abeb41555); a content regression outside the partition still reds the full suite and the next digest. Has a Law-C independent counterpart already."
+   "what_still_pages": "H23 operational-layer INDEPENDENT green signal (2ddf71272) + reconcile-before-test (abeb41555); a content regression outside the partition still reds the full suite and the next digest. Has a Law-C independent counterpart already.",
+   "rearm_trigger": "H23 operational-layer INDEPENDENT green signal (2ddf71272) + reconcile-before-test (abeb41555); a content regression OUTSIDE the partition still reds the full suite."
   },
   {
    "id": "external_blocked_exclusion",
@@ -111,7 +124,8 @@
    "named_failure": "class-adjacent to failure #2 (a block removing work from the feasible set)",
    "remediation": "law_b",
    "status": "open_partial",
-   "what_still_pages": "sibling lanes (site / discovery / forward-discovery / HARDEN) remain drawable, so excluding one blocked atom does not zero the tick; deadman OPEN-MINT escalates any blocked atom left un-worked. LAW B mint hardens per-cluster isolation so an exclusion can never leak across lanes."
+   "what_still_pages": "sibling lanes (site / discovery / forward-discovery / HARDEN) remain drawable, so excluding one blocked atom does not zero the tick; deadman OPEN-MINT escalates any blocked atom left un-worked. LAW B mint hardens per-cluster isolation so an exclusion can never leak across lanes.",
+   "rearm_trigger": "sibling lanes (site / discovery / forward-discovery / HARDEN) remain drawable, so excluding one blocked atom never zeros the tick; deadman OPEN-MINT escalation fires on the excluded atom if it stays open >2h."
   },
   {
    "id": "build_in_progress_guard",
@@ -133,7 +147,9 @@
    "named_failure": "none (has an independent re-exec counterpart)",
    "remediation": "law_c",
    "status": "compliant",
-   "what_still_pages": "self-staleness re-exec guard (af8863f47) re-evaluates from disk on the next tick; other draw rungs are unaffected; deadman fires on rest. Independent counterpart already present."
+   "what_still_pages": "self-staleness re-exec guard (af8863f47) re-evaluates from disk on the next tick; other draw rungs are unaffected; deadman fires on rest. Independent counterpart already present.",
+   "rearm_trigger": "the self-staleness re-exec guard (af8863f47) re-evaluates from disk on the next tick; other draw rungs are unaffected; deadman fires on rest -- an independent counterpart, not a self-declaration."
   }
- ]
+ ],
+ "law_a_gate": "LAW A landed 2026-07-27: every `silent`-biased entry now declares its RE-ARM -- a numeric `max_age_seconds` (time-bound / Law A) and/or a `rearm_trigger` (independent counterpart / Law C). background/suppression_register.py::validate_suppression_register FAILS if a silent suppression declares neither (it could then indefinitely silence a check -- the defect LAW A forbids), or if a `law_a` token lacks the time-bound / a `law_c` token lacks the trigger. R15 both-ways in tests/background/test_suppression_register.py."
 }
