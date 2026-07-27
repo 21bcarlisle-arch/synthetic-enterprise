@@ -5,6 +5,11 @@ Covered:
   * ENVELOPE GATE (both directions) -- the healthy calibrated engine reaches the
     real worst winter week; a SMOOTHED engine (no stressed regime, no
     autocorrelation) collapses below it and `assert_tail_not_smoothed` FIRES.
+  * DIRECT TEMPORAL AUTOCORRELATION (both directions) -- the deseasonalised
+    synthetic series reproduces the real day-to-day persistence (the headline
+    "cold spells and still spells LAST" DoD, in its own units, not only via the
+    tail proxy); a phi->0 engine collapses below the persistence floor and the
+    control FIRES.
   * JOINT not MARGINAL -- a cold-but-windy or still-but-mild week scores ~0; only
     co-occurring cold AND still scores > 0 (the product metric is the point).
   * WINTER-ONLY -- a non-winter cold-and-still window does not count.
@@ -20,7 +25,12 @@ from datetime import datetime, timedelta
 import numpy as np
 import pytest
 
-from sim.weather_engine import fit_national_macro_model
+from sim.weather_engine import (
+    MACRO_VARS,
+    fit_national_macro_model,
+    seasonal_value,
+    simulate_national_macro,
+)
 from sim.weather_tail_demonstration import (
     TailAnchorMissingError,
     TailDemonstration,
@@ -104,6 +114,98 @@ def test_autocorrelation_alone_is_load_bearing(real_data):
     assert demo.envelope_reaches_real is False
     with pytest.raises(TailSmoothedError):
         assert_tail_not_smoothed(demo)
+
+
+# --------------------------------------------------------------------------
+# DIRECT temporal-autocorrelation fidelity (the HEADLINE DoD, measured directly)
+# --------------------------------------------------------------------------
+#
+# The tests above prove persistence is load-bearing INDIRECTLY -- by killing it
+# and watching the joint-tail severity envelope collapse. That is the right gate
+# for "SHOW the tail", but it never asserts the atom's OWN headline claim in its
+# own units: "temporal autocorrelation is physics not noise -- cold spells and
+# still spells LAST". A tail envelope could in principle be reached by a
+# non-persistent mechanism (e.g. a very fat innovation covariance) while the
+# synthetic series has NO day-to-day persistence at all -- so persistence needs a
+# direct, independent measurement, not only the tail proxy.
+#
+# These controls measure the lag-1 autocorrelation of the DESEASONALISED
+# simulated series (the engine models each var as resid_t = phi*resid_{t-1} +
+# innovation on top of the seasonal mean; subtracting the same fitted seasonal
+# recovers the AR1 residual) and assert (a) it REPRODUCES the real series'
+# persistence within tolerance, and (b) it sits above a persistence FLOOR ("spells
+# last"). The anchor is the REAL series' own directly-measured autocorrelation
+# (recomputed here, NOT read from params["phi"]), so the check is an end-to-end
+# fidelity comparison of the whole pipeline (seasonal fit -> AR1 sim -> clipping),
+# not a tautological read-back of the fitted coefficient.
+
+_AC_REPRODUCTION_TOL = 0.12   # simulated lag-1 autocorr must match real within this
+_PERSISTENCE_FLOOR = 0.30     # below this, day-to-day weather does not "last"
+# Temperature = "cold spells last"; wind = "still spells last" (the DoD's two
+# named persistence variables). Both are strongly persistent in the real GB
+# record (temp lag-1 ~0.78, wind ~0.58); a phi->0 engine collapses both to ~0.
+_HEADLINE_PERSISTENCE_VARS = ("temperature_mean_c", "wind_speed_mean_ms")
+
+
+def _deseasonalised_lag1_autocorr(series, seasonal_coeffs, day_of_year, var):
+    """Lag-1 autocorrelation of the deseasonalised series for one macro var --
+    the AR1 persistence the engine models, isolated from the annual cycle."""
+    resid = series[var] - seasonal_value(seasonal_coeffs[var], day_of_year)
+    return float(np.corrcoef(resid[:-1], resid[1:])[0, 1])
+
+
+def test_simulated_series_reproduces_real_temporal_autocorrelation(real_data):
+    """R15 direct fidelity control for the headline DoD: the synthetic national
+    series must carry real-like day-to-day PERSISTENCE (cold/still spells last),
+    measured directly on the series rather than only through the joint-tail proxy."""
+    nat, doy, dates = real_data
+    params = fit_national_macro_model(nat, doy)
+    rng = np.random.default_rng(42)
+    sim = simulate_national_macro(params, doy, rng)
+
+    for var in _HEADLINE_PERSISTENCE_VARS:
+        real_ac = _deseasonalised_lag1_autocorr(nat, params["seasonal"], doy, var)
+        sim_ac = _deseasonalised_lag1_autocorr(sim, params["seasonal"], doy, var)
+        # (a) real GB weather genuinely persists (sanity on the anchor).
+        assert real_ac > _PERSISTENCE_FLOOR, f"{var}: real anchor not persistent"
+        # (b) the synthetic series reproduces that persistence...
+        assert abs(sim_ac - real_ac) <= _AC_REPRODUCTION_TOL, (
+            f"{var}: simulated lag-1 autocorr {sim_ac:.3f} does not reproduce the "
+            f"real {real_ac:.3f} (tol {_AC_REPRODUCTION_TOL})"
+        )
+        # (c) ...and clears the "spells last" floor in its own units.
+        assert sim_ac > _PERSISTENCE_FLOOR, (
+            f"{var}: simulated persistence {sim_ac:.3f} below floor "
+            f"{_PERSISTENCE_FLOOR} -- day-to-day weather does not last"
+        )
+
+
+def test_autocorrelation_control_FIRES_when_persistence_is_killed(real_data):
+    """R15 mutation (the other direction): the direct persistence control above
+    must FAIL on its own named defect. Kill autocorrelation (phi -> 0) and the
+    deseasonalised simulated series collapses to ~zero persistence -- so it both
+    (i) falls below the floor and (ii) can no longer reproduce the real anchor.
+    A control that stays green here would be theatre (R15 fail-open)."""
+    nat, doy, dates = real_data
+    params = fit_national_macro_model(nat, doy)
+    killed = copy.deepcopy(params)
+    for v in killed["phi"]:
+        killed["phi"][v] = 0.0  # ISOLATED defect: no temporal autocorrelation
+    rng = np.random.default_rng(42)
+    sim0 = simulate_national_macro(killed, doy, rng)
+
+    for var in _HEADLINE_PERSISTENCE_VARS:
+        real_ac = _deseasonalised_lag1_autocorr(nat, params["seasonal"], doy, var)
+        sim0_ac = _deseasonalised_lag1_autocorr(sim0, params["seasonal"], doy, var)
+        # The mutation collapses persistence to ~0: BOTH arms of the control fire.
+        assert sim0_ac < _PERSISTENCE_FLOOR, (
+            f"{var}: phi=0 series still shows persistence {sim0_ac:.3f} "
+            f">= floor {_PERSISTENCE_FLOOR} -- the floor arm cannot fail"
+        )
+        assert abs(sim0_ac - real_ac) > _AC_REPRODUCTION_TOL, (
+            f"{var}: phi=0 series still 'reproduces' the real anchor "
+            f"({sim0_ac:.3f} vs {real_ac:.3f}) -- the reproduction arm cannot fail"
+        )
 
 
 # --------------------------------------------------------------------------
