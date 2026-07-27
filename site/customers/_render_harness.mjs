@@ -42,7 +42,7 @@ sandbox.renderCustomerState(company);
 sandbox.renderCustomerCarbon(company);
 
 const ids = [
-  "cust-stamp", "cust-intro", "cust-who", "cust-money", "cust-arrears", "cust-money-basis", "cust-carbon",
+  "cust-stamp", "cust-intro", "cust-who", "cust-money", "cust-dd-cycle", "cust-arrears", "cust-money-basis", "cust-carbon",
 ];
 const out = {};
 for (const id of ids) {

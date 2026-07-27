@@ -152,6 +152,8 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     <div id="cust-arrears" style="margin-top:6px"></div>
     <p class="kpi-sub" id="cust-money-basis" style="margin-top:10px"></p>
   </div>
+  <div class="sec-title">Direct Debit &mdash; the seasonal credit cycle</div>
+  <div class="card" id="cust-dd-cycle"><div class="muted">Loading...</div></div>
   <div class="sec-title">Carbon &mdash; the mission's unit of account</div>
   <div class="card" id="cust-carbon"><div class="muted">Loading...</div></div>
   <div style="text-align:center;margin:6px 0 8px"><a href="./?acc=C1" id="cust-drill" class="blue" style="font-size:12px;text-decoration:none">Open the full drill-down for this household (bills, statements, timeline, risk) &rarr;</a></div>
@@ -207,13 +209,30 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     el("cust-money").innerHTML=[
       tile("Billed (lifetime)", gbp(h.billed_gbp), "billed clock · "+(h.invoice_count!=null?h.invoice_count+" invoices":""), ""),
       tile("Collected", gbp(h.banked_gbp), "banked clock", ""),
-      tile("Balance", gbp(h.balance_gbp), (bal<0?"in credit":"outstanding")+" · billed − banked", (bal<0?"green":(bal>0?"amber":""))),
+      tile("Balance", gbp(h.balance_gbp), (bal<0?"in credit · your money, held by us":"outstanding")+" · billed − banked", (bal<0?"green":(bal>0?"amber":""))),
       tile("Lifetime net", gbp(h.lifetime_net_gbp), "settled clock · after cost-to-serve", (Number(h.lifetime_net_gbp)<0?"red":"green")),
       tile("Cost to serve", gbp(h.cost_to_serve_gbp), "settled clock", ""),
       tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns", (Number(h.failed_payment_count)>0?"amber":"")),
       tile("Churn risk", pct(h.latest_churn_probability), "company estimate", ""),
       tile("Satisfaction", (h.latest_satisfaction&&h.latest_satisfaction.satisfaction_score!=null?(Number(h.latest_satisfaction.satisfaction_score)*100).toFixed(0)+"%":"--"), (h.latest_satisfaction&&h.latest_satisfaction.year?"as of "+h.latest_satisfaction.year:""), "")
     ].join("");
+
+    // Direct Debit -- the seasonal credit cycle (DD_seasonal_cashflow_physics, SITE slice;
+    // customer-side mirror of the company-door held-credit-liability tile, DD5).
+    // HONESTY WALL (same discipline as the carbon panel below + the company-door DD5 tile):
+    // today's billing engine is Variable DD, so any credit shown is OVERPAYMENT credit, NOT a
+    // level-DD seasonal accumulation. The full per-customer level-DD cycle (summer-credit /
+    // winter-drawdown trajectory, DD1-DD4) and the annual-DD-review event are DESIGNED, NOT
+    // INSTRUMENTED. NEVER render a fabricated per-month balance trajectory here.
+    var ddPos=(bal<0)
+      ? "You are currently <strong>"+gbp(Math.abs(bal))+" in credit</strong> &mdash; that is <strong>your money, held by us</strong>. On our balance sheet it is a liability, not our profit; a supplier holding customer credit can look cash-rich and still be insolvent."
+      : (bal>0
+          ? "Your account is currently <strong>"+gbp(bal)+" outstanding</strong> &mdash; you have consumed more than you have paid so far."
+          : "Your account is currently square &mdash; paid up to date.");
+    el("cust-dd-cycle").innerHTML=
+      '<p class="kpi-sub" style="margin:0 0 8px">'+ddPos+'</p>'+
+      '<p class="kpi-sub" style="margin:0 0 8px">Under a conventional UK <strong>level Direct Debit</strong> you pay the same amount every month &mdash; your estimated annual cost split into twelve &mdash; against energy use that is heavily seasonal. Through <strong>summer</strong> you use little and your balance builds <strong>credit</strong>; through <strong>winter</strong> you use far more than you pay and that credit is <strong>drawn back down</strong>. Once a year the <strong>annual DD review</strong> checks the estimate against reality and resets your monthly amount &mdash; where a bad forecast becomes a bill shock.</p>'+
+      '<p class="kpi-sub muted" style="margin:0">Honesty note: this account is on the current <strong>Variable DD</strong> engine, so the balance above is overpayment credit, not a modelled level-DD seasonal accumulation. The full per-customer level-DD cycle (summer-credit / winter-drawdown trajectory) and the annual-review event are <strong>DESIGNED, NOT INSTRUMENTED</strong> &mdash; stated here, never fabricated.</p>';
 
     // Arrears -- the real collections journey if any
     var cases=h.arrears_cases||[];

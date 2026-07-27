@@ -107,6 +107,50 @@ def test_arrears_journey_renders_live_stages():
         assert "No arrears" in arr
 
 
+def test_dd_cycle_reframes_credit_as_customer_liability():
+    # R11: when the account is in credit, the DD panel must render the actual balance
+    # value AND frame it as the customer's money held by the supplier (a liability, not
+    # profit) -- the customer-side mirror of the company-door DD5 held-credit tile.
+    d = _live()
+    h = d["household"]
+    assert float(h["balance_gbp"]) < 0, "fixture expects C1 in credit"
+    out = _render(d)
+    dd = out["cust-dd-cycle"]["innerHTML"]
+    assert f"{abs(float(h['balance_gbp'])):,.2f}" in dd, dd
+    low = dd.lower()
+    assert "your money, held by us" in low, dd
+    assert "liability" in low, dd
+
+
+def test_dd_cycle_credit_framing_follows_balance_sign():
+    # R15 independence: flip the balance to OUTSTANDING; the held-credit/liability
+    # framing must disappear (the control is not a tautology hard-coded to always show it).
+    d = _live()
+    d["household"]["balance_gbp"] = 123.45
+    out = _render(d)
+    low = out["cust-dd-cycle"]["innerHTML"].lower()
+    assert "outstanding" in low, low
+    assert "your money, held by us" not in low, low
+
+
+def test_dd_cycle_is_honest_about_uninstrumented_physics():
+    # HONESTY WALL (load-bearing, same discipline as the carbon panel): the full
+    # level-DD seasonal cycle is DESIGNED, NOT INSTRUMENTED. The panel must SAY so,
+    # must name the current Variable-DD engine, and must NOT fabricate a per-month
+    # seasonal balance series.
+    d = _live()
+    out = _render(d)
+    dd = out["cust-dd-cycle"]["innerHTML"]
+    low = dd.lower()
+    assert "designed, not instrumented" in low, dd
+    assert "variable dd" in low, dd
+    # No fabricated monthly trajectory: reject a rendered run of month labels each
+    # carrying a currency figure (the shape a fabricated series would take).
+    import re
+    months = re.findall(r"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*[^<]{0,12}£", low)
+    assert len(months) == 0, f"fabricated seasonal series: {months}"
+
+
 def test_carbon_is_honest_placeholder_not_a_number():
     # HONESTY (load-bearing): CO2 trajectory is designed, not instrumented. The
     # panel must SAY so and must NOT fabricate a tonnage. A fabricated E5 number
