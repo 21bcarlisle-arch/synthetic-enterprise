@@ -22,7 +22,10 @@ import pytest
 
 from sim.weather_engine import fit_national_macro_model
 from sim.weather_tail_demonstration import (
+    TailAnchorMissingError,
+    TailDemonstration,
     TailSmoothedError,
+    WorstWeek,
     assert_tail_not_smoothed,
     demonstrate_tail,
     derive_thresholds,
@@ -146,6 +149,23 @@ def test_real_worst_week_is_a_cold_still_winter_week(real_data):
     assert w.mean_temperature_c <= temp_thr
     assert w.mean_wind_ms <= wind_thr
     assert w.severity > 0.0
+
+
+def test_zero_real_anchor_fails_loud_not_open():
+    # R15 FAIL-OPEN guard: a degenerate demonstration where the REAL series has no
+    # cold-and-still tail (severity 0) and a fully-smoothed synthetic tail (also 0)
+    # would satisfy `envelope_max >= real_worst.severity` trivially. The gate must
+    # REFUSE to certify it, not pass silently.
+    zero_anchor = TailDemonstration(
+        temp_threshold_c=2.0, wind_threshold_ms=2.5, tail_percentile=15.0,
+        real_worst=WorstWeek("2020-01-01", "2020-01-07", 0.0, 5.0, 6.0),
+        synthetic_worst_severities=(0.0, 0.0, 0.0), synthetic_worst_median=0.0,
+        synthetic_worst_max=0.0, reach_fraction=1.0,
+        envelope_reaches_real=True, passes=True, n_sims=3, seed=1,
+        simplification_id="x",
+    )
+    with pytest.raises(TailAnchorMissingError):
+        assert_tail_not_smoothed(zero_anchor)
 
 
 def test_no_winter_windows_raises():

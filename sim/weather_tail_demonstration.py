@@ -286,12 +286,36 @@ class TailSmoothedError(AssertionError):
     every hedge looks fine' failure the DoD exists to catch."""
 
 
+class TailAnchorMissingError(AssertionError):
+    """Raised when the REAL series carries no joint cold-and-still winter tail to
+    reach (`real_worst.severity <= 0`). Without a positive real anchor the
+    envelope check `envelope_max >= real_worst.severity` is trivially satisfied by
+    ANY engine (severities are non-negative products of clips) -- so a "pass"
+    would be meaningless and a fully-smoothed engine would slip through. R15
+    FAIL-OPEN guard: an anchorless gate is worse than none, so it fails LOUD
+    rather than passing silently. (Real GB winter data always carries a positive
+    tail, so this fires only on a broken/degenerate anchor, never in the shipped
+    demonstration.)"""
+
+
 def assert_tail_not_smoothed(demo: TailDemonstration) -> None:
     """FAIL-LOUD DoD gate (the director's literal "not milder than reality"): the
     engine's synthetic tail ENVELOPE must reach the real worst winter week
     (`max(synthetic_worst) >= real_worst`). Gates on capability, not the
     `reach_fraction` frequency (R12: a diagnostic envelope, never a tuning
-    target; R9: n=1 real cannot support a frequency claim)."""
+    target; R9: n=1 real cannot support a frequency claim).
+
+    R15 FAIL-OPEN guard: requires a POSITIVE real anchor first -- a zero
+    `real_worst.severity` makes the envelope comparison trivially true for any
+    engine, so it is rejected LOUD (`TailAnchorMissingError`) rather than counted
+    as a pass."""
+    if demo.real_worst.severity <= 0.0:
+        raise TailAnchorMissingError(
+            f"no real joint cold-and-still tail to reach (real worst "
+            f"{demo.real_worst.start_date}..{demo.real_worst.end_date} severity "
+            f"{demo.real_worst.severity:.2f} <= 0) -- the envelope gate would pass "
+            f"trivially for any engine; refusing to certify an anchorless demonstration"
+        )
     if not demo.passes:
         raise TailSmoothedError(
             f"joint cold-and-still tail SMOOTHED: over {demo.n_sims} sims the engine's "
