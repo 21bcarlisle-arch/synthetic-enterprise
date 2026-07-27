@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- draw-visibility marker (2026-07-24, ELEVENTH tick): the board-surface RENDER — the last non-walled company-side step — is now SHIPPED (commit 4f9122457). Every remaining step is walled or automatic: (a) live CDN pixel awaits the next AUTO-publish (not a worker action); (b) WVC_R world-half is director/twin-gated; (c) MC-2 death-test difficulty is director curriculum. Flipped self-drawable→blocked so the next tick neither over-mints nor redraws a walled item. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- draw-visibility marker RE-FLIPPED blocked→self-drawable (2026-07-27, RUNG-7 planner tick): the ELEVENTH-tick block below has gone STALE — the DIRECTOR_RULING MC-2 (commit 2c233c6ff, 2026-07-25) landed AFTER it and RESOLVED all three cited blockers, so drawable BUILD work is now hidden here (an R17 hazard). (a) live-CDN pixel: RESOLVED — trading_book / wholesale_credit_exposure / margin_call_book are now PRESENT in docs/reports/run_output_latest.json (auto-published). (b) WVC_R world-half: the ruling §5 authorizes it "under the standing twin authorization at L1/L2 ... on the mechanism only" — no longer director-reserved; only a named curriculum SCENARIO value returns to him. (c) MC-2 death-test: the ruling SETTLES the difficulty question — "no difficulty knob; the 2021–22 replay IS the test" (price-move-alone cash call; death-by-collateral while P&L survives), the 0.8/1.0/1.2/1.5× breaking-strain sweep is a MEASUREMENT (not a curriculum world) writing liquidity_minimum/cover_minimum/outcome+cause to the run-ledger, and §3 facility sizing already LANDED (commit 578b62f77). So the MC-2 death-test mechanism + sweep are SELF-DRAWABLE BUILD under the ruling's "proceed; no difficulty knob may be created". NO curriculum value may be created (R12/R13 — the ruling's own guard). Twelfth-tick note at doc end. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death-test (2026-07-24)
 
@@ -302,3 +302,47 @@ the render was the genuine drawable step — company-side, reversible, PRODUCT-F
 > the publish landing the organs). Correct draw = advance it, NOT mint a 7th batch (over-production the director
 > waived). Shipped the render as real code + R11/R15 tests, caught (and worked around) the auto-process site-sweep
 > race. Marker flipped self-drawable→blocked: no non-walled company-side step remains. No mint: premise false.
+
+---
+
+## STALE-BLOCK CAUGHT + RE-OPENED — 2026-07-27 RUNG-7 planner tick (twelfth touch)
+
+**This tick was a RUNG-7 PLANNER self-refill** (agenda+staging-root empty → mint-from-ratified-goals or
+rest-with-proof). The honest survey found the ratified set is NOT drained: every axis / fidelity-ledger row
+/ campaign follow-on is DONE, minted-and-blocked, or director-walled — **except this mint's own remaining
+work, which was hidden behind a `blocked` marker the director's own ruling had since made stale.**
+
+**The finding (the ruling-check the `planner_mints_need_ruling_check` lesson exists for).** The ELEVENTH-tick
+block (2026-07-24, commit `e86fb9013`) parked this mint `blocked` on three walls. `DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY_2026-07-25` (commit `2c233c6ff`) landed the NEXT day and dissolved all three:
+
+| ELEVENTH-tick wall | State on 2026-07-27 | Evidence |
+|---|---|---|
+| (a) live-CDN pixel awaits next auto-publish | **RESOLVED** — organs published | `trading_book` / `wholesale_credit_exposure` / `margin_call_book` all PRESENT in `docs/reports/run_output_latest.json` (verified this tick) |
+| (b) WVC_R world-half is director/twin-gated | **AUTHORIZED on the mechanism** | Ruling §5: "proceeds under the standing twin authorization at L1/L2, ledger-backed, on the mechanism only"; only a named curriculum *scenario value* returns to the director |
+| (c) MC-2 death-test difficulty = director curriculum | **SETTLED — no knob; real 2021–22 replay IS the test** | Ruling §1–§4: price-move-alone cash call + death-by-collateral-while-P&L-survives; the 0.8/1.0/1.2/1.5× sweep is a MEASUREMENT (not a curriculum world) → run-ledger `liquidity_minimum`/`cover_minimum`/outcome+cause; §3 facility defect already LANDED (`578b62f77`) |
+
+**Disposition: marker RE-FLIPPED `blocked` → `self-drawable`. No mint, no rest-proof.**
+- **No rest-with-proof:** the premise "no un-minted, non-walled ratified-goal next-step exists" is **FALSE** —
+  the MC-2 collateral death-test (against the real 2021–22 replay) + the breaking-strain sweep + run-ledger
+  wiring are drawable BUILD now, and the WVC_R world-half mechanism is twin-authorized. Writing a rest-proof
+  would have falsely asserted the authorized set drained.
+- **No mint:** minting a fresh doc for this work would DUPLICATE this mint (the exact over-production the
+  `DIRECTOR_RULING_PLANNER_MINT_WAIVED` + `planner_mints_need_ruling_check` lessons forbid). The work already
+  lives here; it only needed the stale block cleared so the next BUILD tick can draw it.
+
+**Next drawable BUILD step (for the tick that draws this self-drawable mint):** the MC-2 collateral
+death-test — a 2021–22 replay in which a *price move alone* produces a margin/cash call and at least one path
+reaches death-by-collateral while the P&L still survives (the ruling's verbatim, unrelaxed acceptance bar),
+plus the 0.8/1.0/1.2/1.5× breaking-strain sweep recording the dose at which death arrives into the named
+run-ledger fields. **R12/R13 GUARD (the ruling's own):** if the company survives the whole sweep, DIAGNOSE
+the mechanism (R4) — do NOT raise severity or shrink the facility to force a death; a company that cannot die
+to collateral is a fail-open believability control whose fix is mechanism, never difficulty. No curriculum
+value may be created. WVC_R world-half proceeds separately under the twin L1/L2 mechanism authorization.
+
+> **Tick note (2026-07-27, RUNG-7 doorbell, TWELFTH touch):** doorbell said "agenda+staging empty → MINT from
+> ratified goals". Ran the bounded planning survey (DIRECTOR_AXES v1, fidelity ledger, CAMPAIGN_REGISTER,
+> recent 2026-07-25 rulings). Result: the ratified set is covered/walled EXCEPT this mint's MC-2 work, which
+> was hidden behind a `blocked` marker the MC-2 ruling had since made stale. Cleared the stale block (evidence
+> table above) rather than mint a duplicate or rest on a false premise. Zero new company code this tick (a
+> marker + note edit only); the BUILD itself is the next draw. No mint, no rest-proof: premise judgment-false
+> in the OTHER direction — work exists, it was just invisible.
