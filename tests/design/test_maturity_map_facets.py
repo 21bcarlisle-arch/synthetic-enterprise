@@ -91,6 +91,17 @@ REVIEWED_CLOSE_TO_LEARN = {
     # harness's own evidence inspectable (belief-vs-truth / does-the-claim-hold), same close_to_learn
     # class as SITE1_expert_doors and the G-fidelity atoms, not a revenue-flow movement.
     "SITE_evidence_pages_behind_nodes",
+    # 2026-07-27 minted from DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED: the harness
+    # exit-criterion counter / stall-set coverage / counter-published atoms -- they MEASURE the
+    # harness's own stall behaviour (belief-vs-truth about whether the machine actually stalled),
+    # the same close_to_learn class as the H1..H27 harness siblings, not a revenue-flow movement.
+    "HX1_exit_criterion_counter_mechanise", "HX2_stall_set_coverage_verdict",
+    "HX3_counter_published_and_derivable",
+    # 2026-07-27 minted from DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED (WORK THIS CREATES item 3):
+    # marks volume-dependent segmentation capabilities untestable-at-current-book in the FIDELITY
+    # ledger -- a belief-vs-truth / claim-status honesty atom, sibling to G2_fidelity_evidence_ledger,
+    # close_to_learn is its TRUE stream (it measures what can and cannot yet be validated, not revenue).
+    "CA3_segmentation_untestable_ledger_marking",
     "W4_1_typed_adapters", "W4_2_verifier_timing_extension", "W4_3_external_truth_wall",
 }
 

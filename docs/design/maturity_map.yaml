@@ -2479,3 +2479,71 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a covenant-status line in the board pack that is computed from the compliance test rather than typed by management -- so no one can write 'in compliance' by hand while the underlying test says otherwise"
   depends_on: [HX1_exit_criterion_counter_mechanise, HX2_stall_set_coverage_verdict]
+- id: CA4_cohort_activation_sequencing_verdict
+  name: "Activation-sequencing verdict on cohort assignment: either PROCEED with the activation (default, ruling tag proceed) OR an EVIDENCED counter-proposal that activating now corrupts a baseline / invalidates a comparison / collides with in-flight work -- a written go/no-go before the live flip"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 1
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md']
+  file_scope: [docs/design, docs/market_research]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27 (WORK THIS CREATES item 4; ruling section 3 "you are invited to disagree with the activation itself"). LANE W2_customer_generator = SIM_ACTORS front (OPEN, opened_by director console ts=1784351583) -> drawable now; doc-only decision, DISCOVER/FRAME never gated. DELIVERABLE: a written verdict, evidence-first (R9), on whether cohort activation should proceed NOW. Default is PROCEED (ruling tag proceed). A counter-proposal is legitimate ONLY with evidence that activation (a) corrupts a baseline a later comparison depends on, (b) invalidates an in-flight comparison, or (c) collides with in-flight work -- e.g. the population-existence wiring (PLANNER_MINTED_generator_draw_wiring_2026-07-24, in_progress) or any unresolved N/lambda escalation on the pool draw. This verdict soft-GATES CA1 (stated in prose, NOT a machine depends_on -- CA4 target L1 would target-level-deadlock CA1; CA1 scope step 1 reads this verdict). EXIT CRITERIA: (1) verdict written naming each of the three counter-proposal triggers checked with evidence; (2) if PROCEED -> CA1 is authorized to wire; if COUNTER-PROPOSE -> the preferred sequencing is stated with evidence and NTFY-escalated to the director (curriculum re-sequencing is director-owned, R13). R12: the verdict must not be tuned to any company-P&L outcome. Level move blocked_on director_level_up (R16).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a change-advisory pre-check asking whether flipping a config now would invalidate an in-flight baseline before flipping it"
+  depends_on: []
+- id: CA1_cohort_assignment_live
+  name: "Cohort assignment ACTIVATED in the live pool draw at ratified values: flip assign_cohorts on so drawn households carry the tenure-tilted joint (accommodation/cars/nssec) + region-pinned heating + curriculum-drawn green_stance/price_sensitivity/channel_pref, with the closed-symbol seam scan RE-PROVEN to fire post-activation"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md', 'simulation/population_draw.py']
+  file_scope: [simulation/population_draw.py, simulation/live_population.py, tests/simulation/test_population_draw.py, tests/simulation/test_live_population_seam.py]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27 (WORK THIS CREATES item 1). LANE W2_customer_generator = SIM_ACTORS front (OPEN, opened_by director console ts=1784351583) -> BUILD-drawable now. The R13 curriculum gate (values_decisions: the curriculum is director-authored) is CLEARED FOR THIS ACT by the ruling itself (committed [DIRECTOR-RULING][ADVISOR-STAGED] e685eb76d, tag proceed) -- the director authored the activation. DISTINCT FROM the population-existence wiring: PLANNER_MINTED_generator_draw_wiring_2026-07-24 (in_progress) wires draw_population/SE_DRAW_POPULATION (whether synthetic SYN-* households EXIST); THIS atom flips assign_cohorts=True (the cohort VARIETY the 2026-07-25 population activation omitted, ruling section 0) so those households are DIFFERENTIATED. The assign_cohort mechanism + named substream (W2_2_cohort_draw) + live curriculum read + tenure-refinement round-trip are already BUILT default-off under W2_2_population_draw (2026-07-21 note). DELIVERABLE: wire assign_cohorts=True into the pool-draw path the live run consumes at the ratified segmentation_curriculum_v1.json values (NO marginal/strength/gating tuning -- R13-reserved; R12 no goal-seek). SEQUENCING: CA4 sequencing verdict should clear PROCEED first (soft pre-check, ruling section 3 counter-proposal path); substrate = W2_2_population_draw (L2 built) + the pool draw active per the 2026-07-25 population activation. EXIT CRITERIA (R11+R15): (1) a real run draws a population whose realised cohort fields are non-degenerate (multiple accommodation/tenure/heating/attitude values present), R11-verified against the run published artifact not the code; (2) the closed-symbol seam scan (tools/epistemic_verifier _scan_seam_files_for_forbidden_symbols, W2_2 step 5) is RE-PROVEN to fire post-activation -- MUTATION plants a green_stance/price_sensitivity/cohort_label leak across the seam and the scan FIRES, passes clean on the shipped seam (R15 both-ways, confirming activation did not weaken the elicitation wall the ruling section 1 requires held); (3) byte-identical regression: the existing default-off proof (test_cohort_draw_default_off_is_byte_identical) still green for non-opted-in callers (ruling section 4). Determinism/named-substream/replay + the >=3-per-protected-cell tail floor with over-sampling factors recorded all apply (ruling section 4). Company-side segmentation stays UNTESTABLE at a 14-customer book -- see CA3; activation must NOT be read as testability (ruling section 2). Level moves blocked_on director_level_up (R16, no self-bump).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose book is genuinely varied across accommodation/tenure/heating-fuel/attitude, not a single undifferentiated household type repeated N times"
+  depends_on: []
+- id: CA2_coverage_report_realised_cohort
+  name: "Coverage report extended to make the realised cohort structure LEGIBLE at N=200: which cells fill and which stay thin per dimension AND jointly where it matters (the first real test of the ~12-cell value knee), thin cells named as FINDINGS not smoothed -- format/aggregation/which-joints/thinness-judgement the agent's per ruling section 3"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md', 'simulation/population_coverage.py', 'docs/market_research/population_coverage/nested_design.json']
+  file_scope: [simulation/population_coverage.py, tests/simulation/test_population_coverage.py, docs/market_research/population_coverage]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27 (WORK THIS CREATES item 2 + requirement section 3). LANE W2_customer_generator = SIM_ACTORS front (OPEN) -> BUILD-drawable now. EXISTING SUBSTRATE (reuse, do NOT accrete): simulation/population_coverage.py already builds a PER-AXIS realised-cell report + thin-cell flag + coverage_gate_ok (built for the 2026-07-25 population activation, condition 3). WHAT THIS ATOM ADDS: extend that per-axis report to make the realised JOINT cohort structure legible -- report realised cell counts for the joints worth reporting (the ~12-cell value knee derived analytically in docs/market_research/population_coverage/learning_value_frontier.json), name which joint cells fill and which stay thin at N=200 as FINDINGS (thin = a finding about the knee surviving a real draw, ruling section 3, never a defect to smooth). Format/aggregation/which-joints/how-thinness-is-judged are the agents call (ruling section 3 delegates this explicitly) -- if a more diagnostic view than realised cell counts exists, propose it with reasoning. EXIT CRITERIA (R11+R15): (1) a run realised cohort distribution (per-dimension AND the reported joints) is inspectable from a PUBLISHED artifact, R11-verified to the published value; the thin cells at N=200 are NAMED (ruling Acceptance line); (2) R15 both-ways -- a thin joint cell is reported as thin/finding and is NEVER silently smoothed or averaged (mutation: plant a thin joint cell -> it surfaces as a named finding, fail-closed), and a genuinely-full draw does not false-flag (both directions); (3) no cohort-derived financial figure leads any surface from this report (RC7 stands, ruling section 4). R12: cell counts are a DIAGNOSTIC, thinness is a finding never a target to tune the draw toward. Depends in prose on CA1 (activation) producing a cohorts-on run to realise structure -- buildable now against a draw_population(assign_cohorts=True) test run; NOT a machine depends_on (avoids CA1 target-level deadlock). Level moves blocked_on director_level_up (R16).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a portfolio-composition report that shows which customer segments the book actually contains and flags the empty corners, rather than a single headcount"
+  depends_on: []
+- id: CA3_segmentation_untestable_ledger_marking
+  name: "Fidelity-ledger entries for volume-dependent segmentation capabilities explicitly marked UNTESTABLE-at-current-book (14 customers cannot populate ~12 segments), each with the named UNLOCK condition (acquisition becomes a decision variable at the director growth session) -- pool-vs-book honesty, activation is NOT testability"
+  lane: G_data_learning
+  value_stream: close_to_learn
+  provenance: proposal
+  epoch: 2
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  blocked_on: null
+  dial_inherited: 3
+  evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md', 'docs/observability/fidelity_evidence_ledger.json']
+  file_scope: [background/live_fidelity_evidence.py, docs/observability/fidelity_evidence_ledger.json, tests]
+  simplifications: ['2026-07-27 MINTED as a DRAWABLE ATOM from DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27 (WORK THIS CREATES item 3 + section 2 the pool-vs-book distinction). LANE G_data_learning = EPOCH2_CAMPAIGN front (OPEN, opened_by director console ts=1784462364) -> BUILD-drawable now; sibling to G2_fidelity_evidence_ledger. DELIVERABLE: for each volume-dependent segmentation capability (any belief-vs-truth score that needs a populated book to move -- e.g. the couple_cohort per-(axis,tenure-cell) belief_gap, which needs support>=N_MIN per cell), mark it UNTESTABLE-AT-CURRENT-BOOK in the fidelity ledger rather than scored as working, with the UNLOCK condition NAMED (acquisition becomes a decision variable at the director growth session, ruling section 2). This is the pool-vs-book wall: turning cohorts on gives the WORLD variety, NOT the COMPANY a book -- 14 customers cannot populate ~12 segments, so activation must NOT be read as segmentation becoming testable (a surface implying it is a claim-status defect under the derivation rule, ruling section 2). EXIT CRITERIA (R11+R15): (1) each volume-dependent segmentation ledger row carries an explicit untestable-at-current-book status + its named unlock condition, R11-verified to the published ledger/surface value; (2) R15 -- MUTATION: a surface (site/report/proof) that scores a volume-dependent segmentation capability as WORKING while the book is below the volume floor FAILS the coherence/claim-status gate (proves untestable-marking is load-bearing, not decorative); passes when the row honestly reads untestable (both-ways); (3) the marking is DERIVED from the book size / cell support, not hand-typed, so it auto-flips to testable when acquisition unlocks (no orphan transition, R11). R12: an untestable score must never be tuned to look testable. Depends in prose on the coverage machinery (CA2) for cell support; NOT a machine depends_on. Level moves blocked_on director_level_up (R16).']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a model-validation register that marks a segment-level risk model as NOT-YET-VALIDATABLE because the book is too small to populate its cells, naming what volume would unlock validation -- rather than reporting a spurious green"
+  depends_on: []
