@@ -1,0 +1,139 @@
+{
+  "_doc": "R10 SUPPRESSION SWEEP register (DIRECTOR_RULING_FAILURE_BIAS_LAWS 2026-07-27). Every gate/throttle/suppression/fold introduced in the trailing 14 days (git --since=2026-07-13 over background/**), classified by FAILURE DIRECTION (noisy|silent) and assigned a remediation (law_a time-bound+re-arm | law_c independent-counterpart | law_b lane-isolation | none). STANDING CONSEQUENCE (director): no suppression lands without a non-empty `what_still_pages` -- the independent check that fires if the underlying condition is real. Enforced by background/suppression_register.py::validate_suppression_register (R15 both-ways in tests/background/test_suppression_register.py). Human table: docs/observability/suppression_audit_2026-07-27.md.",
+  "swept_at": "2026-07-27",
+  "window_since": "2026-07-13",
+  "entries": [
+    {
+      "id": "pending_batch_gate",
+      "mechanism": "Pending-batch mint gate (rest-with-proof over an all-blocked in_progress batch)",
+      "commit": "1a46bd447 (mechanise), b55981046 (age-cap fix)",
+      "purpose": "Stop RUNG-7 planner mint-spam when the pending in_progress batch is all-blocked.",
+      "failure_direction": "silent",
+      "named_failure": "ruling failure #2 (global mint block) + the 42h EIGHTH-CLASS stall",
+      "remediation": "law_a + law_b",
+      "status": "landed_partial",
+      "what_still_pages": "deadman OPEN-MINT [ACT] escalation (_check_open_mint_escalation) fires on any mint open >2h while resting; the 2h rest-proof age cap (supervisor.py:2538) voids the batch-rest and forces planner re-examination. LAW B mint hardens the still-global scope to per-cluster."
+    },
+    {
+      "id": "deadman_proven_rest_fold",
+      "mechanism": "Deadman proven-rest fold (suppress [STALL] page when the tick self-declares legitimate rest)",
+      "commit": "predates window; un-suppressible escalation added b55981046",
+      "purpose": "Silence false STALL alarms during genuinely-empty authorized-set rest.",
+      "failure_direction": "silent",
+      "named_failure": "ruling failure #4 (watched component silenced its own supervisor; the 42h stall)",
+      "remediation": "law_a + law_c",
+      "status": "landed",
+      "what_still_pages": "HARD_REST_CAP_SECONDS (6h) [ACT] and OPEN-MINT escalation (deadmans_switch.py:301 _check_open_mint_escalation) are BOTH un-suppressible by the proven-rest fold -- 42h of quiet rest is itself the [ACT]."
+    },
+    {
+      "id": "drained_and_gated_quiet_wait",
+      "mechanism": "Drained-and-gated quiet wait (stop at-target HARDEN self-refill treadmill while blocked on a director act)",
+      "commit": "f9b57a209",
+      "purpose": "Stop the at-target HARDEN treadmill from re-drawing forever while the map is blocked on a director decision.",
+      "failure_direction": "silent",
+      "named_failure": "ruling failure #1 (Rule-0 fallback exhausted HARDEN, nowhere else to go)",
+      "remediation": "law_a",
+      "status": "open",
+      "what_still_pages": "deadman 6h HARD_REST_CAP fires regardless; forward-discovery lane (R17) remains always-drawable ABOVE rest so the tick draws rather than quiet-waits. The quiet-wait itself has no own re-arm -- LAW A mint assigns it an explicit time-bound."
+    },
+    {
+      "id": "harden_cooldown_rotation",
+      "mechanism": "HARDEN cooldown / rotation memory (.harden_cooldown.json)",
+      "commit": "7582b9ed1",
+      "purpose": "Rotate the at-target Rule-0 HARDEN draw PAST a just-hardened atom so it does not re-draw the same target every cycle.",
+      "failure_direction": "silent",
+      "named_failure": "none (compliant example -- suppresses a re-draw, not a page)",
+      "remediation": "none",
+      "status": "compliant",
+      "what_still_pages": "cooldown re-arms after 6h OR on any content-sha change (_harden_in_cooldown, supervisor.py:1493); other Rule-0 rungs still draw; deadman fires if the loop actually rests. Already LAW A-shaped: bounded + re-arming."
+    },
+    {
+      "id": "build_planner_rest_with_proof",
+      "mechanism": "BUILD planner REST-WITH-PROOF marker (close the second RUNG-7 treadmill)",
+      "commit": "14ea5514a",
+      "purpose": "Close the RUNG-7 planner treadmill via a proof-of-rest marker over the mint batch.",
+      "failure_direction": "silent",
+      "named_failure": "contributed to the 42h stall (proof-of-rest over an all-blocked batch)",
+      "remediation": "law_a",
+      "status": "landed",
+      "what_still_pages": "2h rest-proof age cap voids a stale proof and re-examines (supervisor.py:2486); deadman OPEN-MINT / 6h hard-cap escalation are un-suppressible."
+    },
+    {
+      "id": "authorized_set_enumeration",
+      "mechanism": "Authorized-set enumeration (tick self-publishes 'authorized set empty / MUST-DRAW' verdict)",
+      "commit": "eaffdb81e (R17 enumeration) + subsequent",
+      "purpose": "Publish the tick's own drawability verdict for the daily note and drained check to consume.",
+      "failure_direction": "silent",
+      "named_failure": "ruling failure #3 (published 'whole authorized set empty' while open mints existed in in_progress/)",
+      "remediation": "law_c",
+      "status": "open",
+      "what_still_pages": "LAW C mint: the deadman and daily note must derive their verdict from PRIMARY state (in_progress/ contents, registers, defect ledger) not this enumeration. Until landed, the deadman commit-clock STALL (90m) and OPEN-MINT escalation are the independent pagers that do not read this enumeration."
+    },
+    {
+      "id": "daily_note_r17_status",
+      "mechanism": "Daily self-note R17 status line (reports the rule's STATUS every morning)",
+      "commit": "eaffdb81e-era daily_self_note.py r17_status()",
+      "purpose": "Report the R17 always-drawable-law status to the director every morning (his standing ask).",
+      "failure_direction": "silent",
+      "named_failure": "ruling failure #5 (reported 'lane WIRED' -- status -- over a window with 18 dead hours; never reported the EFFECT)",
+      "remediation": "law_c",
+      "status": "open",
+      "what_still_pages": "LAW C mint: the note must compute the EFFECT metric (atoms drawn / dead-hours-with-work-present over the window) from run_history + primary state, not the enumeration. The deadman escalations page regardless of what the note says."
+    },
+    {
+      "id": "self_verifying_push_throttle",
+      "mechanism": "Self-verifying push throttle (only mark the publish throttle satisfied on a VERIFIED origin advance)",
+      "commit": "de8e5fa2d",
+      "purpose": "Prevent a bare `git push` rc=0 that did not advance origin from satisfying the publish throttle.",
+      "failure_direction": "noisy",
+      "named_failure": "none (compliant example -- a throttle that fails TOWARD action)",
+      "remediation": "none",
+      "status": "compliant",
+      "what_still_pages": "the throttle releases (re-pushes) unless ls-remote confirms origin==HEAD -- it fails toward re-attempt, never toward a silent 'pushed' claim. Model example of a noise-biased throttle."
+    },
+    {
+      "id": "publish_gate_surgical_scope",
+      "mechanism": "Publish-gate surgical scope partition (@pytest.mark.operational -- scope blocking tests to the publish surface)",
+      "commit": "6667672ae, d1458f8dc, 2ddf71272, 1cd2cc3ab",
+      "purpose": "Stop unrelated test failures from wedging the publish pipeline overnight (R10 close the overnight-wedge class).",
+      "failure_direction": "silent",
+      "named_failure": "none directly, but narrowing what blocks publish is silence-shaped",
+      "remediation": "law_c",
+      "status": "compliant",
+      "what_still_pages": "H23 operational-layer INDEPENDENT green signal (2ddf71272) + reconcile-before-test (abeb41555); a content regression outside the partition still reds the full suite and the next digest. Has a Law-C independent counterpart already."
+    },
+    {
+      "id": "external_blocked_exclusion",
+      "mechanism": "External-blocked atom exclusion (the draw excludes atoms carrying blocked_on)",
+      "commit": "6effd0343, 15414e6c4, c874a5711",
+      "purpose": "Stop the loop thrashing on an atom that is genuinely blocked on an external/director act.",
+      "failure_direction": "silent",
+      "named_failure": "class-adjacent to failure #2 (a block removing work from the feasible set)",
+      "remediation": "law_b",
+      "status": "open_partial",
+      "what_still_pages": "sibling lanes (site / discovery / forward-discovery / HARDEN) remain drawable, so excluding one blocked atom does not zero the tick; deadman OPEN-MINT escalates any blocked atom left un-worked. LAW B mint hardens per-cluster isolation so an exclusion can never leak across lanes."
+    },
+    {
+      "id": "build_in_progress_guard",
+      "mechanism": "BUILD-IN-PROGRESS guard (don't re-offer an atom a live fork already owns)",
+      "commit": "aee1e9853, 65d0803e5",
+      "purpose": "Stop the self-drawing loop re-offering an atom a live focused fork is already building.",
+      "failure_direction": "noisy",
+      "named_failure": "none (compliant example -- fail-open toward re-offer)",
+      "remediation": "none",
+      "status": "compliant",
+      "what_still_pages": "fail-open on a stale/missing/malformed marker -> re-offers the atom (biases to work, not silence); deadman fires if the loop rests. R15-proven fail-open."
+    },
+    {
+      "id": "frame_saturation_draw_guard",
+      "mechanism": "Frame-saturation draw guard (idle DISCOVER/FRAME stops re-handing FRAME-saturated BUILD-gated atoms)",
+      "commit": "d2f1b420a, af8863f47",
+      "purpose": "End the stale-draw treadmill where an idle tick re-hands an atom whose FRAME work is already saturated.",
+      "failure_direction": "silent",
+      "named_failure": "none (has an independent re-exec counterpart)",
+      "remediation": "law_c",
+      "status": "compliant",
+      "what_still_pages": "self-staleness re-exec guard (af8863f47) re-evaluates from disk on the next tick; other draw rungs are unaffected; deadman fires on rest. Independent counterpart already present."
+    }
+  ]
+}
