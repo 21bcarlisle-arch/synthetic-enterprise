@@ -1,4 +1,4 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — LAW B: lane isolation — gates are per-cluster, never global (2026-07-27)
 
 **Provenance:** RUNG-7 planner refill (director ruling `WORK_IS_THE_DEFAULT_2026-07-23`). Minted from `docs/staging/in_progress/DIRECTOR_RULING_FAILURE_BIAS_LAWS_2026-07-27.md`, which names LAW B but leaves it un-drawn.
@@ -31,3 +31,33 @@ Director-ruled mechanism; no propose window. Drawable now. Disjoint file_scope f
      tick to BUILD. LAW C landed this tick (sibling mint); LAW A/B remain drawable BUILD, deferred
      under bounded-tick discipline (one verified sub-step). SUPERVISOR_DRAW marker above keeps them
      in the draw. -->
+
+<!-- LANDED (2026-07-27 later worker tick): marker flipped to `blocked` (nothing left drawable).
+     SCOPE HONESTY (R9 / consumed-not-absorbed): what the ruling's LAW B forbids -- a gate that
+     evaluates over the GLOBAL set so one held lane zeros its siblings -- was found to ALREADY be
+     absent from the draw code. `_self_refill_draw` and `_is_drained_and_gated` are per-cluster BY
+     CONSTRUCTION: a strict sequential fall-through where a blocked/empty lane falls to the NEXT and
+     never zeros a sibling, and the RUNG-7 planner rests only after proving no un-minted non-walled
+     step exists across ALL clusters (a single held cluster cannot suppress minting for the others).
+     Scope item 2 ("re-scope to per-cluster") therefore had NOTHING to re-scope -- the earlier
+     EIGHTH-CLASS + LAW-C fixes already removed the specific global-suppression bugs. What was NOT
+     yet present, and IS the LAW B deliverable, is a REGRESSION GUARD: the ruling's failure #2 (a
+     global gate reintroduced to patch some future symptom) could silently zero the feasible set
+     again with no test to catch it. So LAW B is landed as a MUTATION-PROVEN invariant that locks
+     the isolation in (MAKE_IT_STICK: policy -> enforced mechanism the pre-commit gate runs):
+
+       tests/background/test_supervisor.py :: LAW B lane-isolation block (4 tests, R15 both ways):
+         - held BUILD lane leaves SITE+DISCOVERY drawable (draw not None, sibling ids present);
+         - held SITE lane leaves BUILD+DISCOVERY drawable (symmetric direction);
+         - a held lane does NOT ground `_is_drained_and_gated` rest while a sibling has work, and
+           DOES return rest only when every lane is genuinely empty (independence, not a constant);
+         - a blocked cluster does NOT suppress the RUNG-7 planner minting for other ratified
+           clusters (mint side), and the planner DOES rest when axes are truly empty (independence).
+       R15 MUTATION proven BOTH ways: (a) a permanent in-test `_global_gated_draw()` models failure
+       #2 and returns a false global rest under a held lead lane, discriminating the guard from a
+       tautology; (b) a LIVE source mutation this tick -- inserting `if not build_atoms: return None`
+       into the real `_self_refill_draw` -- RED the held-BUILD guard (assert None is not None), then
+       reverted (git diff clean; full supervisor suite 173 passed). The named defect fires the guard.
+
+     DEFERRED / not claimed: no code re-scope was needed or done (there was no global gate to
+     re-scope). If a future accretion ever DOES add a global gate, this guard reds the build. -->

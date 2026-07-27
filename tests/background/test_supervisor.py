@@ -2388,3 +2388,99 @@ def test_real_staged_instructions_self_recovers_misparked_in_progress(tmp_path, 
     got = supervisor._real_staged_instructions()
     assert "in_progress/MISPARK.md" in got      # FIRES: self-recovery draws it
     assert "in_progress/BLOCKED.md" not in got   # QUIET: genuinely blocked stays parked
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# LAW B -- LANE ISOLATION (DIRECTOR_RULING_FAILURE_BIAS_LAWS 2026-07-27)
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# The director's law B, verbatim: "A block in one lane may never suppress drawing or minting in
+# another. Gates are per-cluster, never global." The diagnosis it fixes: a single director-held
+# decision (population lambda vs N) stopped work in the site, merit-order, premise-demand and
+# DD-cashflow lanes -- failure #2 was "the pending-batch gate blocked minting GLOBALLY when the
+# pending batch was all-blocked, instead of per-lane."
+#
+# The draw ladder (_self_refill_draw) and the rest predicate (_is_drained_and_gated) are ALREADY
+# per-cluster BY CONSTRUCTION: a sequential fall-through where a blocked/empty lane falls to the
+# NEXT lane and never zeros its siblings; the planner (RUNG 7) rests only after PROVING no
+# un-minted non-walled step exists across ALL clusters, so a single held cluster cannot suppress
+# minting for the others. LAW B's contribution is to LOCK THAT ISOLATION IN as a mutation-proven
+# regression guard, so a FUTURE accretion that adds a global gate (the exact class the ruling
+# forbids) reds immediately instead of silently zeroing the feasible set again. This converts the
+# policy "gates are per-cluster" into an enforced mechanism (MAKE_IT_STICK: prose decays, a gate
+# holds). R15 both ways -- the real draw stays isolated; the modelled global-gate MUTATION reds
+# the same assertion, proving the guard discriminates rather than being a tautology.
+
+
+def _global_gated_draw():
+    """MUTATION MODEL of the ruling's failure #2 -- a GLOBAL gate that decides the WHOLE draw off
+    the LEAD (BUILD) lane, zeroing every sibling lane when BUILD is blocked/empty instead of
+    falling through to SITE/DISCOVERY. If this variant and the real `_self_refill_draw` returned
+    the SAME answer under a held lead lane, the isolation assertion would be a tautology; proving
+    THIS returns None (a false global rest) while the real draw returns sibling work is the R15
+    discriminator that makes the guard real."""
+    if not supervisor._maturity_map_draw_concurrent(exclude_stalled=True):
+        return None
+    return supervisor._self_refill_draw()
+
+
+def test_lawb_held_build_lane_leaves_siblings_drawable(monkeypatch):
+    """Hold the BUILD cluster (all-blocked -> the lane draws empty) but leave SITE+DISCOVERY work:
+    the real draw returns the sibling work, NOT rest -- a block in one lane never suppresses the
+    others. R15 MUTATION (failure #2): the global-gate variant that reads the lead lane to decide
+    the whole draw returns None (the false global rest the ruling forbids), proving the isolation
+    the real draw provides is genuine and not incidental."""
+    _stub_lanes(monkeypatch, 0, 2, 3)               # BUILD held empty; siblings have work
+    draw = supervisor._self_refill_draw()
+    assert draw is not None                          # a held lead lane does NOT zero the draw
+    assert "S0" in draw and "D0" in draw             # SITE + DISCOVERY drawn despite the BUILD block
+    assert _global_gated_draw() is None              # ...but the GLOBAL-gate mutation falsely rests
+
+
+def test_lawb_held_site_lane_leaves_siblings_drawable(monkeypatch):
+    """Symmetric direction: a held SITE cluster leaves BUILD+DISCOVERY fully drawable -- isolation
+    holds whichever single lane is the one blocked, not just the lead lane."""
+    _stub_lanes(monkeypatch, 2, 0, 3)               # SITE held empty; siblings have work
+    draw = supervisor._self_refill_draw()
+    assert draw is not None
+    assert "B0" in draw and "D0" in draw             # BUILD + DISCOVERY drawn despite the SITE block
+
+
+def test_lawb_held_lane_does_not_ground_rest(monkeypatch):
+    """The rest predicate must AGREE with the draw: `_is_drained_and_gated` is False while ANY
+    sibling lane has work, so a single held cluster can never make the WHOLE set read drained (the
+    false-rest a global gate would produce). Mutation: with EVERY lane empty it returns to a rest
+    verdict -- proving the predicate reads the real per-lane emptiness, not a constant."""
+    _stub_lanes(monkeypatch, 0, 2, 0)               # BUILD held; SITE has work
+    assert supervisor._is_drained_and_gated() is False
+    _stub_lanes(monkeypatch, 0, 0, 0)               # now truly drain every lane (mutation)
+    monkeypatch.setattr(supervisor, "_actionable_backlog_item", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_open_campaign_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_declared_defect_backlog_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_propose_half_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_forward_discovery_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_planner_rung_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_blocked_mints_open", lambda *a, **k: False)
+    monkeypatch.setattr(supervisor, "_rule0_harden_draw", lambda *a, **k: {"id": "AT_TARGET"})
+    assert supervisor._is_drained_and_gated() is True   # genuinely empty -> rest is legitimate
+
+
+def test_lawb_blocked_cluster_does_not_suppress_planner_mint(tmp_path, monkeypatch):
+    """LAW B on the MINT side (the ruling's failure #2): a blocked cluster must NOT globally
+    suppress the planner minting for OTHER ratified clusters. Rungs 1-6 empty (the held cluster) +
+    ratified axes present + no pending batch + no fresh rest-proof -> the planner MINTS, never a
+    global rest. R15 MUTATION (independence): empty the ratified axes and the planner returns None
+    -- proving the mint fires on real ratified content across clusters, not unconditionally."""
+    _stub_lanes(monkeypatch, 0, 0, 0)               # the held cluster: nothing to build/site/discover
+    monkeypatch.setattr(supervisor, "_actionable_backlog_item", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_open_campaign_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_declared_defect_backlog_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_propose_half_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "_forward_discovery_draw", lambda *a, **k: None)
+    monkeypatch.setattr(supervisor, "PLANNER_RUNG_DISABLED_FLAG", tmp_path / ".no_disable_flag")
+    axes = tmp_path / "DIRECTOR_AXES.md"
+    axes.write_text("## v1 axes\n\n### 1. Website\n- an operational window.\n")
+    monkeypatch.setattr(supervisor, "DIRECTOR_AXES_PATH", axes)
+    msg = supervisor._planner_rung_draw()
+    assert msg is not None and "RUNG 7 PLANNER" in msg and "MINT" in msg   # mints for other clusters
+    axes.write_text("## v1 axes\n\n(no ratified axes yet)\n")               # R15 mutation: no axes
+    assert supervisor._planner_rung_draw() is None                          # -> genuinely exhausted
