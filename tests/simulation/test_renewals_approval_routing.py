@@ -103,6 +103,51 @@ def test_outcome_neutral_tariff_identical_with_and_without_approval_wiring(monke
     assert increase > NON_ROUTINE_RATE_INCREASE_THRESHOLD
 
 
+def test_applied_fixed_rate_is_exactly_the_priced_rate_approval_cannot_alter_it(monkeypatch):
+    """FAIL-CLOSED neutrality guard (R15 HARDEN, 2026-07-27).
+
+    The byte-identical test above only no-ops the two approval CALLS
+    (request_governance_approval / record_governance_decision), so it cannot
+    catch an outcome-AFFECTING regression that alters the APPLIED rate OUTSIDE
+    those two functions -- e.g. a call-site "cap the rate while awaiting
+    approval" change. Both its with/without builds run that same altered path,
+    so the comparison stays green on a genuine margin move (proven: a mutation
+    capping a priced +500% non-routine move to +50% passed all prior tests).
+    That is R15 killer pattern 2 (FAIL-OPEN): the control passes when the defect
+    lives outside the neutralised surface.
+
+    This guard closes the hole INDEPENDENTLY: every fixed term's applied
+    unit_rate MUST equal, to the value, the rate the pricing organ
+    (price_fixed_tariff) actually returned for it -- proving no approval-layer
+    logic (cap, delay, block, revert) sits between pricing and application. Any
+    such alteration diverges applied-vs-priced and fires here.
+    """
+    records = _spiked_records()
+    priced: list[float] = []
+    real_price = renewals.price_fixed_tariff
+
+    def _spy(*a, **k):
+        rate = real_price(*a, **k)
+        priced.append(rate)
+        return rate
+
+    monkeypatch.setattr(renewals, "price_fixed_tariff", _spy)
+    schedule = build_renewal_schedule("C_PRICED", "2016-01-01", "2017-06-30", records, 2800)
+
+    applied = [
+        t["unit_rate_gbp_per_mwh"]
+        for t in schedule
+        if t["unit_rate_gbp_per_mwh"] is not None
+    ]
+    # Every fixed term applied EXACTLY the priced rate, one-for-one, in order.
+    assert applied == priced
+    # Guard against a vacuous pass: the fixture MUST contain a non-routine move
+    # (the only case where the approval workflow runs at all) -- else there is
+    # nothing for the neutrality guarantee to be about.
+    assert len(applied) >= 2
+    assert (applied[1] - applied[0]) / applied[0] > NON_ROUTINE_RATE_INCREASE_THRESHOLD
+
+
 # ── A genuine LIVE caller: a non-routine move is routed through submit->resolve ──
 
 
