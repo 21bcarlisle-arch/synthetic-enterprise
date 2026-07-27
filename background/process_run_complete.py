@@ -1706,6 +1706,7 @@ def _process(marker_path_str):
         from background.tree_lock import tree_lock as _tree_lock
         from tools import merge_atom_status as _mas
         with _tree_lock():
+            # suppression-lint: not-a-suppression _folded -- functional reduce (atom_status inbox reconciliation), not a page/alarm suppression
             _folded = _mas.merge()
         if _folded:
             log("Pre-gate fold: reconciled {} pending atom_status inbox(es) into the map: {}".format(

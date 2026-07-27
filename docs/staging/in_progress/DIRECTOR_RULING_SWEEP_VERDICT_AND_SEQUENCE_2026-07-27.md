@@ -1,3 +1,31 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+> **PARKED IN in_progress/ — partially actioned (worker tick 2026-07-27).**
+> **§1 (registration-hole lint) LANDED this tick:** `background/suppression_lint.py` + R15
+> both-ways `tests/background/test_suppression_lint.py` (8 tests) — scans `background/**` for
+> suppression-shaped identifier tokens (director's marker vocabulary), fails when a site is
+> neither in the register's new `code_markers` nor carries a reasoned
+> `# suppression-lint: not-a-suppression <token> -- <reason>` waiver. Fail-closed / noisy by
+> design (LAW A: false positives are correct, register don't tune quiet). The live-tree-passes
+> test IS the gate (same wiring as the register module). Surfaced + registered two previously-
+> unregistered throttles (`publish_gate_alert_throttle`, `flood_alert_cooldown`); waived the
+> genuine false-positives (functional `fold` reduce, `contextlib.suppress`, the `silence` var
+> that RAISES T8). Live lint clean (0 violations).
+>
+> **STILL OPEN (the blocking sub-items — drawn in the director's stated order):**
+> - **§2 LAW C (rows 6,7):** landed_partial — `background/primary_state_scan.py` derives the
+>   drawable-mint verdict from PRIMARY disk state (live). Named follow-on: extend the
+>   independent read to the OTHER primary sources (open campaign items, defect-ledger rows,
+>   drawable maturity atoms), currently still via the supervisor's drained check.
+> - **§2 LAW B (rows 1,10) — NEXT MACHINERY DRAW:** harden the still-global pending-batch mint
+>   gate to PER-CLUSTER, and close the blocked-exclusion cross-lane leak.
+> - **§2 LAW A (row 3):** give `drained_and_gated_quiet_wait` its explicit re-arm (has the 6h
+>   deadman hard cap as an independent backstop — least exposed, do last).
+> - **§3 merit-order / gas-first reconstruction — NEXT PRODUCT DRAW** once the law-mints land:
+>   the SSP-baseline unblock condition, Board Spec 004 reconstructibility, R12 no-tuning.
+>   (Design corpus already exists: BOARD_SPEC_004_RECONCILIATION.md, WHOLESALE_VALUE_CHAIN_FRAME.md.)
+>
+> Do NOT re-file the remediated sweep rows (2,4,5,8,9,11,12); rows 8+11 are the reference templates.
+
 # [DIRECTOR-RULING] — Suppression sweep accepted. Close the registration hole; Law C first; merit-order is the next product draw. (2026-07-27)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Verdict on `docs/observability/suppression_audit_2026-07-27.md`.

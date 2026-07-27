@@ -646,6 +646,7 @@ def detect_t8(state: dict) -> list[Trigger]:
     if last_commit is None:
         return []
     now = state.get("now") or time.time()
+    # suppression-lint: not-a-suppression silence -- measures silence duration to RAISE T8_expected_output_absent, the opposite of suppressing a page
     silence = now - float(last_commit)
     if silence < EXPECTED_OUTPUT_CADENCE_SECONDS:
         return []

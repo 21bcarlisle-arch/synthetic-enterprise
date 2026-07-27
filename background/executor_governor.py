@@ -256,6 +256,9 @@ def _alert_wall(result: Any, *, kind: str = "wall_escalated") -> None:
         build_executor.log(f"_alert_wall failed ({kind}): {exc}")
 
 
+# suppression-lint: not-a-suppression _default_fold -- functional reduce (MAP_TRUTH_RECONCILIATION level-write), not a page/alarm suppression
+# suppression-lint: not-a-suppression fold_fn -- functional reduce injected into run_loop for map reconciliation, not a page/alarm suppression
+# suppression-lint: not-a-suppression final_folded -- result of the functional reconciliation fold on stop, not a suppression
 def _default_fold() -> list[str]:
     """Loop-side fold (MAP_TRUTH_RECONCILIATION.md F1, the atomic level-write's second
     half). A fork writes its level into a narrow `docs/design/atom_status/<id>.yaml` inbox

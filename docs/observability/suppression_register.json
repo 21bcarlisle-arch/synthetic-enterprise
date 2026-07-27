@@ -18,6 +18,7 @@
   },
   {
    "id": "deadman_proven_rest_fold",
+   "code_markers": ["proven_rest"],
    "mechanism": "Deadman proven-rest fold (suppress [STALL] page when the tick self-declares legitimate rest)",
    "commit": "predates window; un-suppressible escalation added b55981046",
    "purpose": "Silence false STALL alarms during genuinely-empty authorized-set rest.",
@@ -44,6 +45,7 @@
   },
   {
    "id": "harden_cooldown_rotation",
+   "code_markers": ["HARDEN_COOLDOWN_PATH", "HARDEN_COOLDOWN_HOURS", "_load_harden_cooldown", "_harden_in_cooldown", "cooldown"],
    "mechanism": "HARDEN cooldown / rotation memory (.harden_cooldown.json)",
    "commit": "7582b9ed1",
    "purpose": "Rotate the at-target Rule-0 HARDEN draw PAST a just-hardened atom so it does not re-draw the same target every cycle.",
@@ -94,6 +96,7 @@
   },
   {
    "id": "self_verifying_push_throttle",
+   "code_markers": ["PUSH_THROTTLE_SECONDS"],
    "mechanism": "Self-verifying push throttle (only mark the publish throttle satisfied on a VERIFIED origin advance)",
    "commit": "de8e5fa2d",
    "purpose": "Prevent a bare `git push` rc=0 that did not advance origin from satisfying the publish throttle.",
@@ -149,6 +152,34 @@
    "status": "compliant",
    "what_still_pages": "self-staleness re-exec guard (af8863f47) re-evaluates from disk on the next tick; other draw rungs are unaffected; deadman fires on rest. Independent counterpart already present.",
    "rearm_trigger": "the self-staleness re-exec guard (af8863f47) re-evaluates from disk on the next tick; other draw rungs are unaffected; deadman fires on rest -- an independent counterpart, not a self-declaration."
+  },
+  {
+   "id": "publish_gate_alert_throttle",
+   "code_markers": ["PUBLISH_GATE_COOLDOWN_SECONDS"],
+   "mechanism": "Publish-gate wedge-alert cooldown (at most one wedge NTFY per hour while the gate stays wedged, process_run_complete.py)",
+   "commit": "predates the 14-day sweep window; surfaced + registered by the registration-hole lint (DIRECTOR_RULING_SWEEP_VERDICT 2026-07-27 s1)",
+   "purpose": "Rate-limit the repeated 'publish gate wedged' NTFY to one per hour so a persistent wedge does not spam the director; the block itself is never rate-limited.",
+   "failure_direction": "silent",
+   "named_failure": "none directly -- rate-limiting a repeat alert is silence-shaped, so it is held to the LAW A re-arm requirement",
+   "remediation": "law_a",
+   "status": "compliant",
+   "what_still_pages": "the publish gate stays BLOCKED (publish_gate_surgical_scope) while wedged -- publishing does not resume silently; the deadman commit-cadence tier fires INDEPENDENTLY of this throttle. The cooldown only rate-limits the DUPLICATE wedge NTFY and re-arms after PUBLISH_GATE_COOLDOWN_SECONDS (1h).",
+   "max_age_seconds": 3600,
+   "rearm_trigger": "cooldown re-arms after PUBLISH_GATE_COOLDOWN_SECONDS (3600s); the wedge block itself is un-throttled and the deadman commit-cadence tier is an independent counterpart."
+  },
+  {
+   "id": "flood_alert_cooldown",
+   "code_markers": ["FLOOD_ALERT_COOLDOWN_SECONDS"],
+   "mechanism": "Inbound-NTFY flood-guard alert cooldown (at most one [FLOOD GUARD] NTFY per window while a flood persists, ntfy_responder.py)",
+   "commit": "predates the 14-day sweep window; surfaced + registered by the registration-hole lint (DIRECTOR_RULING_SWEEP_VERDICT 2026-07-27 s1)",
+   "purpose": "Rate-limit the [FLOOD GUARD] NTFY while an inbound-NTFY flood persists so the flood alert itself does not become the flood; message quarantine is never rate-limited.",
+   "failure_direction": "silent",
+   "named_failure": "none directly -- rate-limiting a repeat alert is silence-shaped, so it is held to the LAW A re-arm requirement",
+   "remediation": "law_a",
+   "status": "compliant",
+   "what_still_pages": "every flooded message is STILL quarantined to docs/staging/quarantine/ regardless of the alert throttle (the underlying condition is preserved on disk, not silenced); the cooldown only rate-limits the repeat [FLOOD GUARD] NTFY and re-arms after FLOOD_ALERT_COOLDOWN_SECONDS (3600s).",
+   "max_age_seconds": 3600,
+   "rearm_trigger": "cooldown re-arms after FLOOD_ALERT_COOLDOWN_SECONDS (3600s); message quarantine to docs/staging/quarantine/ is un-throttled and independent of the alert cooldown."
   }
  ],
  "law_a_gate": "LAW A landed 2026-07-27: every `silent`-biased entry now declares its RE-ARM -- a numeric `max_age_seconds` (time-bound / Law A) and/or a `rearm_trigger` (independent counterpart / Law C). background/suppression_register.py::validate_suppression_register FAILS if a silent suppression declares neither (it could then indefinitely silence a check -- the defect LAW A forbids), or if a `law_a` token lacks the time-bound / a `law_c` token lacks the trigger. R15 both-ways in tests/background/test_suppression_register.py."

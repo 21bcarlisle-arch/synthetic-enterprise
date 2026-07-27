@@ -337,6 +337,7 @@ def run_tick() -> TickDecision:
             except Exception as e:
                 rc = f"wait-error {e!r}"
             finally:
+                # suppression-lint: not-a-suppression suppress -- contextlib exception context manager on lockfile cleanup, not a page/alarm suppression
                 with contextlib.suppress(Exception):
                     LOCK_FILE.unlink()
             _log(f"invocation pid={proc.pid} exited (rc={rc})")
