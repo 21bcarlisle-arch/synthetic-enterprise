@@ -353,6 +353,29 @@ def test_epistemic_verifier_fires_on_forbidden_sim_import():
         assert len(ev._scan_file(bad)) == 1  # FIRES
 
 
+def test_epistemic_verifier_fires_on_aliased_dynamic_sim_import():
+    """R15 fail-open fix (sibling of the internal-seam alias fix): a forbidden
+    SIM import smuggled through an ALIASED dynamic import on a file that PARSES
+    -- `import importlib as il; il.import_module("simulation.x")` -- must still
+    FIRE. Before the alias-resolution fix `_scan_source` returned [] (the regex
+    belt only runs on the SyntaxError fallback), so a one-line rename evaded the
+    Tier-1 SIM/company wall entirely."""
+    src_attr = (
+        "import importlib as il\n"
+        "m = il.import_module('simulation.population_draw')\n"
+    )
+    src_name = (
+        "from importlib import import_module as imp\n"
+        "m = imp('simulation.weather_engine')\n"
+    )
+    for src in (src_attr, src_name):
+        with tempfile.TemporaryDirectory() as d:
+            bad = os.path.join(d, "bad.py")
+            with open(bad, "w") as fh:
+                fh.write(src)
+            assert len(ev._scan_file(bad)) == 1, src  # FIRES
+
+
 def test_epistemic_verifier_clean_on_approved_seam_import():
     with tempfile.TemporaryDirectory() as d:
         good = os.path.join(d, "good.py")

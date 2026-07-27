@@ -258,17 +258,58 @@ def _violation(path: str, lineno: int, code: str, stripped: str, dynamic: bool =
 # heuristic limit (KL-2b scope), not a silent false-clear: it simply cannot be
 # resolved without real data-flow analysis, which this tool deliberately does
 # not attempt (see module docstring's Tier-1 scope note).
-def _dynamic_import_target(node: "ast.Call") -> str | None:
+def _collect_importlib_aliases(tree: "ast.AST") -> "tuple[set[str], set[str]]":
+    """Resolve the local names bound to ``importlib`` and to
+    ``importlib.import_module`` in one module (see the identical helper in
+    ``tools/internal_seam_verifier.py``).
+
+    WHY (R15 fail-open fix, sibling of the internal-seam fix): the AST dynamic
+    detector below matched only the LITERAL spellings ``importlib.import_module``
+    / ``import_module``. A one-line alias -- ``import importlib as il;
+    il.import_module("simulation.x")`` or ``from importlib import import_module
+    as imp; imp("simulation.x")`` -- renamed the call and it was no longer
+    recognised as a dynamic import, so a forbidden SIM crossing went INVISIBLE on
+    any file that PARSES (the regex belt only runs on the SyntaxError fallback).
+    That re-opens the exact "evade via the dynamic form" hole KL-2b closed, by a
+    trivial rename -- worse than no check. Resolving the aliases restores it."""
+    importlib_names: set[str] = {"importlib"}
+    import_module_names: set[str] = {"import_module"}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == "importlib":
+                    importlib_names.add(alias.asname or "importlib")
+        elif isinstance(node, ast.ImportFrom):
+            if node.level == 0 and node.module == "importlib":
+                for alias in node.names:
+                    if alias.name == "import_module":
+                        import_module_names.add(alias.asname or "import_module")
+    return importlib_names, import_module_names
+
+
+def _dynamic_import_target(
+    node: "ast.Call",
+    importlib_names: "set[str] | None" = None,
+    import_module_names: "set[str] | None" = None,
+) -> str | None:
     """Return the literal module name targeted by a dynamic-import call, or
     None if this call is not a dynamic import or its target is not a literal
-    string constant."""
+    string constant.
+
+    ``importlib_names`` / ``import_module_names`` are the per-module alias sets
+    from ``_collect_importlib_aliases``; without them they default to the literal
+    names, preserving the original recognise-the-standard-spelling behaviour."""
+    if importlib_names is None:
+        importlib_names = {"importlib"}
+    if import_module_names is None:
+        import_module_names = {"import_module"}
     func = node.func
     is_import_module = (
         isinstance(func, ast.Attribute)
         and func.attr == "import_module"
         and isinstance(func.value, ast.Name)
-        and func.value.id == "importlib"
-    ) or (isinstance(func, ast.Name) and func.id == "import_module")
+        and func.value.id in importlib_names
+    ) or (isinstance(func, ast.Name) and func.id in import_module_names)
     is_dunder_import = isinstance(func, ast.Name) and func.id == "__import__"
     if not (is_import_module or is_dunder_import):
         return None
@@ -323,6 +364,7 @@ def _scan_source(source: str, path: str) -> list[dict] | None:
         return None
     violations: list[dict] = []
     lines = source.splitlines()
+    importlib_names, import_module_names = _collect_importlib_aliases(tree)
     for node in ast.walk(tree):
         modules: list[str] = []
         dynamic = False
@@ -332,7 +374,9 @@ def _scan_source(source: str, path: str) -> list[dict] | None:
             # level>0 is a relative import (e.g. `from . import x`) -- never SIM.
             modules = [node.module] if node.level == 0 else []
         elif isinstance(node, ast.Call):
-            target = _dynamic_import_target(node)
+            target = _dynamic_import_target(
+                node, importlib_names, import_module_names
+            )
             modules = [target] if target else []
             dynamic = True
         else:

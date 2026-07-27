@@ -179,6 +179,103 @@ def test_dynamic_import_non_literal_target_is_a_declared_limit():
     assert violations == [], [str(v) for v in violations]
 
 
+# --------------------------------------------------------------------------
+# R15 MUTATION: a LOCALLY-ALIASED dynamic import is still a dynamic import. The
+# check previously matched only the literal names `importlib.import_module` and
+# `import_module`, so a one-line rename -- `import importlib as il;
+# il.import_module("company.billing.x")` or `from importlib import import_module
+# as imp; imp("company.billing.x")` -- changed the call's func name and the
+# crossing went INVISIBLE, re-opening the exact "evade the ENTIRE seam via the
+# dynamic form" hole the dynamic-import check exists to close. It must be caught.
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "import_line, expected_module, expected_domain",
+    [
+        # `import importlib as il` then `il.import_module(...)`.
+        (
+            "import importlib as il\n"
+            "m = il.import_module('company.billing.payments')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # `from importlib import import_module as imp` then `imp(...)`.
+        (
+            "from importlib import import_module as imp\n"
+            "m = imp('company.billing.payments')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # aliased importlib reaching the SPECIFIC collections domain.
+        (
+            "import importlib as _il\n"
+            "m = _il.import_module('company.billing.collections')",
+            "company.billing.collections",
+            "collections",
+        ),
+    ],
+)
+def test_mutation_aliased_dynamic_cross_domain_import_is_flagged(
+    import_line, expected_module, expected_domain
+):
+    """A pricing file reaching into billing/collections via an ALIASED dynamic
+    import MUST be flagged, identically to the un-aliased form. Returned []
+    before the alias-resolution fix -- this would have RED then."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_alias_probe.py"
+    planted.write_text(import_line + "  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == expected_domain
+    assert v.imported_module == expected_module
+
+
+def test_aliased_dynamic_import_non_literal_target_is_a_declared_limit():
+    """Boundary of the alias fix: an aliased importlib with a NON-literal
+    (variable) target is still the documented heuristic limit -- unresolved, no
+    crash, no false positive -- exactly as for the un-aliased form."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_aliasvar_probe.py"
+    planted.write_text(
+        "import importlib as il\n"
+        "name = 'company.billing.payments'\n"
+        "m = il.import_module(name)  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert violations == [], [str(v) for v in violations]
+
+
+def test_collect_importlib_aliases_unit():
+    """Unit guard for the alias resolver: literal names are always present, and
+    each real alias is added; an unrelated `import importlib.util` does not add a
+    spurious import_module name."""
+    import ast as _ast
+
+    il_names, im_names = verifier._collect_importlib_aliases(
+        _ast.parse(
+            "import importlib as il\n"
+            "from importlib import import_module as imp\n"
+            "import importlib.util\n"
+        )
+    )
+    assert "importlib" in il_names and "il" in il_names
+    assert "import_module" in im_names and "imp" in im_names
+    # No alias declared -> only the literal defaults.
+    il2, im2 = verifier._collect_importlib_aliases(_ast.parse("x = 1\n"))
+    assert il2 == {"importlib"} and im2 == {"import_module"}
+    # A non-importlib module aliased `il` must NOT be treated as importlib.
+    il3, _ = verifier._collect_importlib_aliases(
+        _ast.parse("import os as il\n")
+    )
+    assert "il" not in il3
+
+
 def test_dynamic_import_target_helper_unit():
     """Unit guard for the dynamic-import target extractor."""
     import ast as _ast

@@ -25,6 +25,10 @@ Design stance (R15 -- this control must be able to FAIL):
     plus dynamic ``importlib.import_module("...")`` / ``__import__("...")`` with
     a literal target (a domain must not evade the seam by switching one static
     cross-domain import to its dynamic form -- KL-2b class, R15 fail-open fix).
+    LOCALLY-ALIASED dynamic forms are covered too -- ``import importlib as il;
+    il.import_module("...")`` and ``from importlib import import_module as imp;
+    imp("...")`` -- so a one-line rename cannot dodge the dynamic-import check
+    (a sibling R15 fail-open fix; see ``_collect_importlib_aliases``).
 The mutation test in tests/tools/test_internal_seam_verifier.py plants a fresh
 cross-domain import (static and dynamic forms) and asserts this verifier flags it.
 """
@@ -101,7 +105,49 @@ def _resolve_relative(
     return ".".join(anchor) if anchor else None
 
 
-def _dynamic_import_target(node: ast.Call) -> str | None:
+def _collect_importlib_aliases(tree: ast.AST) -> tuple[set[str], set[str]]:
+    """Resolve the local names bound to ``importlib`` and to
+    ``importlib.import_module`` inside one module.
+
+    Returns ``(importlib_names, import_module_names)``:
+      * ``importlib_names`` -- names the ``importlib`` MODULE is reachable as,
+        seeded with the literal ``"importlib"`` and extended by every
+        ``import importlib as X`` alias.
+      * ``import_module_names`` -- names the ``import_module`` FUNCTION is
+        reachable as, seeded with the literal ``"import_module"`` and extended
+        by every ``from importlib import import_module as Y`` alias.
+
+    WHY this exists (R15 fail-open fix -- sibling of the dynamic-import fix
+    below): ``_dynamic_import_target`` previously matched only the LITERAL names
+    ``importlib.import_module(...)`` and ``import_module(...)``. A one-line
+    alias -- ``import importlib as il; il.import_module("company.billing.x")`` or
+    ``from importlib import import_module as imp; imp("company.billing.x")`` --
+    changed ``func.value.id`` / ``func.id`` to the alias and the call was NO
+    LONGER recognised as a dynamic import, so the crossing went INVISIBLE. That
+    is precisely the hole the dynamic-import check exists to close (a domain
+    evading the ENTIRE seam by swapping a static cross-domain import for its
+    dynamic form) re-opened by a trivial rename -- worse than no check. Resolving
+    the aliases restores the guarantee."""
+    importlib_names: set[str] = {"importlib"}
+    import_module_names: set[str] = {"import_module"}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name == "importlib":
+                    importlib_names.add(alias.asname or "importlib")
+        elif isinstance(node, ast.ImportFrom):
+            if node.level == 0 and node.module == "importlib":
+                for alias in node.names:
+                    if alias.name == "import_module":
+                        import_module_names.add(alias.asname or "import_module")
+    return importlib_names, import_module_names
+
+
+def _dynamic_import_target(
+    node: ast.Call,
+    importlib_names: set[str] | None = None,
+    import_module_names: set[str] | None = None,
+) -> str | None:
     """Return the literal module name a dynamic-import CALL targets, or None.
 
     Detects the two standard dynamic-import forms with a LITERAL string target:
@@ -109,6 +155,13 @@ def _dynamic_import_target(node: ast.Call) -> str | None:
         and the bare ``import_module("...")`` name form (``from importlib import
         import_module``);
       * the builtin ``__import__("company.billing.invoice")``.
+
+    ``importlib_names`` / ``import_module_names`` are the per-module alias sets
+    from ``_collect_importlib_aliases`` -- so ``import importlib as il`` makes
+    ``il.import_module(...)`` recognisable, and ``from importlib import
+    import_module as imp`` makes ``imp(...)`` recognisable. When called without
+    them (e.g. the unit helper), they default to just the literal names, which
+    preserves the original recognise-the-standard-spelling behaviour.
 
     WHY this exists (R15 fail-open fix; sibling of the same fix already shipped
     in ``tools/epistemic_verifier`` for the SIM/company wall, KL-2b): the AST
@@ -119,13 +172,17 @@ def _dynamic_import_target(node: ast.Call) -> str | None:
     check. Only a literal string first argument is statically resolvable; a
     variable/f-string/concatenation target is a documented heuristic limit (the
     same scope the epistemic verifier declares), not a silent false-clear."""
+    if importlib_names is None:
+        importlib_names = {"importlib"}
+    if import_module_names is None:
+        import_module_names = {"import_module"}
     func = node.func
     is_import_module = (
         isinstance(func, ast.Attribute)
         and func.attr == "import_module"
         and isinstance(func.value, ast.Name)
-        and func.value.id == "importlib"
-    ) or (isinstance(func, ast.Name) and func.id == "import_module")
+        and func.value.id in importlib_names
+    ) or (isinstance(func, ast.Name) and func.id in import_module_names)
     is_dunder_import = isinstance(func, ast.Name) and func.id == "__import__"
     if not (is_import_module or is_dunder_import):
         return None
@@ -157,7 +214,11 @@ def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
     with a literal string target are also emitted -- a dynamic cross-domain
     import crosses a boundary just like a static one (R15 fail-open fix, sibling
     of the epistemic verifier's KL-2b fix; see ``_dynamic_import_target``).
+    Local ``importlib`` / ``import_module`` aliases are resolved first so an
+    ``import importlib as il; il.import_module("...")`` rename cannot dodge the
+    check (see ``_collect_importlib_aliases``).
     """
+    importlib_names, import_module_names = _collect_importlib_aliases(tree)
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -177,7 +238,9 @@ def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
                     candidates.append(f"{base}.{alias.name}")
             yield tuple(candidates), node.lineno
         elif isinstance(node, ast.Call):
-            target = _dynamic_import_target(node)
+            target = _dynamic_import_target(
+                node, importlib_names, import_module_names
+            )
             if target:
                 yield (target,), node.lineno
 
