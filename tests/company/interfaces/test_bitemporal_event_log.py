@@ -202,3 +202,94 @@ class TestAppendOnlyImmutability:
         hist[0].value["rate"] = 999
         again = log.history_as_known_at(_dt(2020, 6, 3), "elec_spot", "quote")
         assert again[0].value == {"rate": 100}
+
+
+class TestOutOfOrderArrivalInvariance:
+    """2026-07-27 HARDEN (W1_reveal_over_time, dial-yielded self-refill): the
+    reveal-over-time answer must depend ONLY on (transaction_time,
+    decision_time), NEVER on the order records happened to be INSERTED. This
+    is the project's C-S1 constraint (no company-side logic may assume events
+    arrive in order -- must behave correctly if they arrive singly, late, or
+    out of order) and its C-S2 sibling (deterministic replay) applied to the
+    settlement-restatement spine: real Elexon settlement runs (Initial / II /
+    IF / SF) are loaded from files/feeds that can be ingested in any order,
+    and a late-arriving OLDER run must never displace a newer one that a
+    decision could already have known.
+
+    Previously only the IN-ORDER restatement path was covered
+    (test_restatement_visible_only_after_its_own_transaction_time). Nothing
+    pinned that the *reverse* insertion order gives the identical answer -- so
+    a plausible refactor to `last-inserted-wins` (dropping the transaction_time
+    key from the max) would pass every existing test yet silently corrupt the
+    blindfold under out-of-order loads.
+    """
+
+    def _both_orders(self):
+        """(ordered, reversed) logs holding the SAME two settlement runs for
+        one valid_time -- II figure knowable day2, SF restatement knowable
+        day40 -- inserted chronologically vs. reversed (SF arrives first)."""
+        vt = dt.date(2020, 6, 1)
+        ii = ("meter_1", "consumption_kwh", vt, _dt(2020, 6, 2), 100.0, "II")
+        sf = ("meter_1", "consumption_kwh", vt, _dt(2020, 7, 10), 97.5, "SF")
+        ordered = BitemporalEventLog()
+        ordered.record(*ii[:5], superseded_by_run=ii[5])
+        ordered.record(*sf[:5], superseded_by_run=sf[5])
+        reverse = BitemporalEventLog()
+        reverse.record(*sf[:5], superseded_by_run=sf[5])  # late-arriving OLDER run inserted first
+        reverse.record(*ii[:5], superseded_by_run=ii[5])
+        return ordered, reverse
+
+    def test_as_known_at_identical_regardless_of_insertion_order(self):
+        ordered, reverse = self._both_orders()
+        for decision in (_dt(2020, 6, 10), _dt(2020, 8, 1)):
+            a = ordered.as_known_at(decision, "meter_1", "consumption_kwh", dt.date(2020, 6, 1))
+            b = reverse.as_known_at(decision, "meter_1", "consumption_kwh", dt.date(2020, 6, 1))
+            assert a.value == b.value
+        # And the answer is the *correct* one, not just self-consistent:
+        early = reverse.as_known_at(_dt(2020, 6, 10), "meter_1", "consumption_kwh", dt.date(2020, 6, 1))
+        late = reverse.as_known_at(_dt(2020, 8, 1), "meter_1", "consumption_kwh", dt.date(2020, 6, 1))
+        assert (early.value, late.value) == (100.0, 97.5)
+
+    def test_history_as_known_at_identical_regardless_of_insertion_order(self):
+        ordered, reverse = self._both_orders()
+        for decision in (_dt(2020, 6, 10), _dt(2020, 8, 1)):
+            a = [(r.valid_time, r.value) for r in
+                 ordered.history_as_known_at(decision, "meter_1", "consumption_kwh")]
+            b = [(r.valid_time, r.value) for r in
+                 reverse.history_as_known_at(decision, "meter_1", "consumption_kwh")]
+            assert a == b
+
+    def test_MUTATION_last_inserted_wins_would_leak_under_out_of_order(self):
+        """R15 mutation-proof: the load-bearing control is that as_known_at()
+        selects the candidate with the greatest TRANSACTION_TIME (record_id is
+        only a same-instant tiebreak). Reconstruct the plausible mutant --
+        `last-inserted-wins`, i.e. pick the candidate with the greatest
+        record_id alone -- and show it returns the WRONG figure once runs are
+        loaded out of order, which is exactly the corruption C-S1 forbids. The
+        live control, given the identical out-of-order log, must return the SF
+        restatement. If a future edit dropped the transaction_time key, the
+        live control would collapse onto the mutant and the invariance tests
+        above would go red -- so this pins that their pass is caused by the
+        control, not an accident of insertion order."""
+        _, reverse = self._both_orders()  # SF (day40) inserted first, II (day2) inserted second
+        decision = _dt(2020, 8, 1)  # both runs knowable; SF is the truth
+
+        # MUTANT: last-inserted-wins (ignore transaction_time, use record_id only).
+        candidates = [
+            r for r in reverse.all_records()
+            if r.entity_id == "meter_1" and r.fact_type == "consumption_kwh"
+            and r.transaction_time <= decision and r.valid_time == dt.date(2020, 6, 1)
+        ]
+        mutant_pick = max(candidates, key=lambda r: r.record_id)
+        assert mutant_pick.value == 100.0, (
+            "mutation-proof invalid: last-inserted-wins did NOT reproduce the "
+            "leak, so the invariance tests prove nothing"
+        )  # II arrived last -> mutant wrongly resurrects the superseded figure
+
+        # LIVE CONTROL: must return the SF restatement despite II arriving last.
+        live = reverse.as_known_at(decision, "meter_1", "consumption_kwh", dt.date(2020, 6, 1))
+        assert live.value == 97.5, (
+            "as_known_at selected by insertion order, not transaction_time -- "
+            "an out-of-order settlement load leaks a superseded figure (C-S1 breach)"
+        )
+        assert mutant_pick.value != live.value
