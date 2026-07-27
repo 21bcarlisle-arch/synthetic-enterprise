@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-27T12:18:06.658513+00:00",
+  "last_updated": "2026-07-27T12:35:12.050238+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T12:18:06.658513+00:00",
-      "last_action": "Heartbeat \u2014 1 files tracked",
-      "last_action_ts": "2026-07-27T12:18:06.658513+00:00",
+      "last_heartbeat": "2026-07-27T12:35:12.050238+00:00",
+      "last_action": "Heartbeat \u2014 2 files tracked",
+      "last_action_ts": "2026-07-27T12:35:12.050238+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T12:16:43.769793+00:00",
-      "last_action": "Waiting for next cycle (1h 0m remaining)",
-      "last_action_ts": "2026-07-27T12:16:43.769793+00:00",
+      "last_heartbeat": "2026-07-27T12:31:43.771740+00:00",
+      "last_action": "Waiting for next cycle (0h 45m remaining)",
+      "last_action_ts": "2026-07-27T12:31:43.771740+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T12:11:19.389329+00:00",
-      "last_action": "Run complete in 504s \u2014 3783 KB (run_output_249fd5e6e_20260727T120255Z.json)",
-      "last_action_ts": "2026-07-27T12:11:19.389329+00:00",
+      "last_heartbeat": "2026-07-27T12:28:38.682632+00:00",
+      "last_action": "Run complete in 523s \u2014 3783 KB (run_output_9e395a334_20260727T121955Z.json)",
+      "last_action_ts": "2026-07-27T12:28:38.682632+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T12:16:51.207978+00:00",
+      "last_heartbeat": "2026-07-27T12:33:17.028957+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
