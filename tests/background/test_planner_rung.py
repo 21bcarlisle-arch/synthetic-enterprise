@@ -317,6 +317,91 @@ def test_rest_with_proof_MINTS_on_malformed_marker(tmp_path, monkeypatch):
     assert sup._planner_rung_draw() is not None
 
 
+# ───────────── EIGHTH CLASS: the pending-batch deadlock (2026-07-27, DIRECTOR_RULING) ─────────────
+#
+# The 42h stall: six mints parked-blocked in in_progress/, a rest-proof whose date/axes/blocked-set
+# all still matched -> the planner rested-with-proof for a whole working day, `authorized_set_
+# enumeration` published planner=. as "whole authorized set empty", and the deadman's proven-rest
+# fold trusted it. Two class fixes proven here: (H1) a blocked-batch rest-proof ages out after 2h so
+# the planner RE-EXAMINES; (honesty) a `blocked_mints` level so the enumeration can never again
+# publish "empty" beside open mints. R15 both ways.
+
+from datetime import datetime, timezone, timedelta  # noqa: E402
+
+_WEEKEND_SLUGS = [
+    "dd_seasonal_cashflow_physics_2026-07-25", "generator_draw_wiring_2026-07-24",
+    "merit_order_reconstruction_discover_2026-07-25", "ssp_negative_lift_cells_2026-07-24",
+    "stratified_run_rotation_mechanism_2026-07-25", "value_chain_observation_window_cap_2026-07-24",
+]
+
+
+def test_rest_proof_ages_out_on_blocked_batch_past_max_age(tmp_path, monkeypatch):
+    """H1 FIX, the exact weekend state: six mints parked-blocked, a proof whose date+axes+blocked-set
+    ALL still match (the pre-fix code rested all 42h on it). Within the 2h cap it still rests (correct,
+    no per-tick treadmill); past the cap it ages out -> the planner RE-EXAMINES instead of resting."""
+    d, proof = _fresh_rest_proof(tmp_path, monkeypatch, _POPULATED_AXES, _WEEKEND_SLUGS)
+    # Baseline (just written, <2h): still fresh -> rests-with-proof. The mechanism is NOT removed.
+    assert sup._planner_rest_proof_fresh() is True
+    assert sup._planner_rung_draw() is None
+    # Age written_at to 42h ago (the weekend). date/axes/blocked-set field are ALL unchanged.
+    marker = json.loads(proof.read_text())
+    marker["written_at"] = (datetime.now(timezone.utc) - timedelta(hours=42)).isoformat()
+    proof.write_text(json.dumps(marker))
+    assert sup._planner_rest_proof_fresh() is False   # aged out -> not a valid rest
+    assert sup._planner_rung_draw() is not None        # re-plans (mint-around / escalate)
+
+
+def test_rest_proof_max_age_does_not_apply_without_blocked_mints(tmp_path, monkeypatch):
+    """MUTATION guard (both-ways): a genuinely-exhausted rest (NO blocked mints) still rests the full
+    UTC day -- the 2h cap must fire ONLY on an open blocked batch, never shorten a legitimate rest
+    below rung 7. An old written_at with an empty blocked set stays fresh (date/axes bound it)."""
+    _axes(tmp_path, monkeypatch, _POPULATED_AXES)
+    _no_disable_flag(tmp_path, monkeypatch)
+    d = _empty_staging(tmp_path, monkeypatch)  # NO in_progress mints at all
+    proof = tmp_path / ".planner_rest_with_proof.json"
+    monkeypatch.setattr(sup, "PLANNER_REST_PROOF_PATH", proof)
+    sup.write_planner_rest_proof([], "no blocked mints; genuinely exhausted below rung 7")
+    marker = json.loads(proof.read_text())
+    marker["written_at"] = (datetime.now(timezone.utc) - timedelta(hours=42)).isoformat()
+    proof.write_text(json.dumps(marker))
+    assert sup._planner_rest_proof_fresh() is True  # empty blocked set -> age cap N/A -> still fresh
+
+
+def test_blocked_mints_level_forbids_rest_and_is_named(tmp_path, monkeypatch):
+    """ENUMERATION HONESTY FIX, the exact breach: mints parked-blocked while every other lane empty
+    and the planner silent (axes absent) -> pre-fix the line read 'REST-LEGITIMATE (whole authorized
+    set empty)'. Now blocked_mints=Y, verdict MUST-DRAW, each mint NAMED with its reason, and
+    _is_drained_and_gated refuses rest (so the deadman's proven-rest fold can't suppress beside it)."""
+    _gate_rungs_1_to_6(monkeypatch, tmp_path)   # empties lanes + isolates STAGING_DIR to tmp
+    _axes(tmp_path, monkeypatch, None)           # planner silent -> the "whole set empty" illusion
+    d = sup.STAGING_DIR
+    ip = d / "in_progress"
+    ip.mkdir(exist_ok=True)
+    (ip / "PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md").write_text(
+        "<!-- SUPERVISOR_DRAW: blocked -->\nUNBLOCKS ON: the merit-order / gas-first reconstruction has landed\n")
+    (ip / "PLANNER_MINTED_generator_draw_wiring_2026-07-24.md").write_text(
+        "<!-- SUPERVISOR_DRAW: blocked -->\nblocked_on: director-reserved SE_DRAW population activation\n")
+    e = sup.authorized_set_enumeration()
+    assert e["blocked_mints"] is True and e["planner"] is False
+    line = sup.authorized_set_enumeration_line()
+    assert "blocked_mints=Y" in line and "MUST-DRAW" in line
+    assert "REST-LEGITIMATE" not in line
+    assert "OPEN MINTS (2)" in line and "merit-order" in line and "population activation" in line
+    assert sup._is_drained_and_gated() is False
+
+
+def test_blocked_mints_level_empty_when_no_mints(tmp_path, monkeypatch):
+    """MUTATION both-ways: with NO in_progress mints, blocked_mints=. and the verdict is
+    REST-LEGITIMATE (a constant-True level would RED this)."""
+    _gate_rungs_1_to_6(monkeypatch, tmp_path)
+    _axes(tmp_path, monkeypatch, None)
+    monkeypatch.setattr(sup, "_rule0_harden_draw", lambda *a, **k: {"id": "AT_TARGET"})
+    e = sup.authorized_set_enumeration()
+    assert e["blocked_mints"] is False
+    assert "blocked_mints=." in sup.authorized_set_enumeration_line()
+    assert sup.open_mint_blockers() == []
+
+
 def test_in_progress_slug_partition_fail_closed_on_unmarked(tmp_path, monkeypatch):
     """An UNMARKED in_progress mint fails closed to 'blocked' (invisible to the draw, per 04fe15d69)
     -- never fabricates phantom self-drawable work that would wrongly re-plan."""

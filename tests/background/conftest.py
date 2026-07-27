@@ -43,3 +43,12 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     monkeypatch.setattr(
         supervisor, "DIRECTOR_AXES_PATH", tmp_path / "DIRECTOR_AXES_absent.md", raising=False
     )
+    # EIGHTH CLASS (2026-07-27, DIRECTOR_RULING_EIGHTH_CLASS): the `blocked_mints` level (wired into
+    # authorized_set_enumeration + _is_drained_and_gated) reads the REAL docs/staging/in_progress/
+    # for parked PLANNER_MINTED_* mints -- the live tree routinely holds a blocked batch, which would
+    # flip every "map empty -> rest" assertion in this dir (the exact fixture-isolation class this
+    # conftest already fixes for the wedge state + axes). Default STAGING_DIR to a clean empty tmp so
+    # no blocked mints leak in; the EIGHTH-CLASS tests write mints into their own tmp staging body.
+    _staging = tmp_path / "staging_isolated"
+    (_staging / "in_progress").mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(supervisor, "STAGING_DIR", _staging, raising=False)

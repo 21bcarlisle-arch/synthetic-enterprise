@@ -57,6 +57,7 @@ silent forever either).
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -77,6 +78,13 @@ POLL_INTERVAL_SECONDS = 300       # 5 minutes -- a safety net, not a turn-grante
 BLOCKED_THRESHOLD_SECONDS = 45 * 60   # 45 min of no commit + queued work = BLOCKED
 SILENT_STALL_THRESHOLD_SECONDS = 90 * 60  # 90 min of no commit at all = STALL (backstop)
 RE_ESCALATE_SECONDS = 60 * 60         # re-alert hourly while still stuck
+# EIGHTH CLASS escalation duty (2026-07-27, DIRECTOR_RULING): rest exceeding 2h while any mint is
+# open, or exceeding 6h in any circumstance, MUST raise an [ACT] -- neither suppressed by the
+# proven-rest fold (that fold silenced the 42h stall). "A machine that rests for 42 hours must be
+# shouting, not resting quietly. Silence for a working day is itself the defect."
+OPEN_MINT_REST_THRESHOLD_SECONDS = 2 * 60 * 60   # any blocked mint open + rest > 2h -> [ACT]
+HARD_REST_CAP_SECONDS = 6 * 60 * 60              # rest > 6h regardless of mints/proven-rest -> [ACT]
+_PLANNER_MINTED_PREFIX = "PLANNER_MINTED_"
 
 USAGE_PAUSE_FILENAME = ".usage_pause.json"  # a declared known-quiet window
 
@@ -87,10 +95,30 @@ _IGNORED_STAGING_NAMES = {".gitkeep"}
 # so they must NOT count as liveness (the 2026-07-14 fail-open defect).
 _AUTO_PROCESS_SUBJECT_PREFIX = "Auto-process run complete"
 
+# EIGHTH CLASS (2026-07-27, DIRECTOR_RULING_EIGHTH_CLASS): auto-process was not the only no-op
+# commit refreshing the liveness clock. Two more classes of NON-WORK commit land in a resting
+# window and equally falsely reset "time since last commit":
+#   * `chore(liveness): publish heartbeat ...` -- the 2026-07-25 liveness-on-SKIP fix commits these
+#     roughly every ~30min so published liveness survives a content-unchanged run. A deadman keyed
+#     on "any non-auto-process commit" sees them as forward work and reads healthy forever.
+#   * `planner RUNG-7: rest-with-proof ...` -- the planner's OWN rest declaration. On 2026-07-27 the
+#     single most-recent non-auto-process commit WAS this bookkeeping commit; the deadman treated the
+#     machine's "I am resting" note as evidence the machine was working. A watchdog whose liveness
+#     signal is refreshed by the very act of declaring rest can never fire (the R15 fail-open lesson,
+#     third occurrence). The fix: the commit clock counts WORK commits only -- chore/* and the
+#     planner's rest-proof are excluded, so a window of nothing-but-those looks as stale as it is.
+_NON_PROGRESS_SUBJECT_PREFIXES = (
+    _AUTO_PROCESS_SUBJECT_PREFIX,
+    "chore(",                    # chore(liveness), chore(*) -- housekeeping, never forward work
+    "planner RUNG",              # the planner's own rest-with-proof / mint bookkeeping commit
+)
+
 # Transition-only + hourly re-escalate is now delegated to the ONE notification contract
 # (background.notify), keyed per alarm class so they never mask each other (OPS1 sub-step 6). The
 # former module-global _last_*_ts timers are gone -- notify() owns the transition state.
 _COMMIT_KEY = "deadman_commit"        # BLOCKED / STALL (shared timer, tier-agnostic state)
+_OPEN_MINT_KEY = "deadman_open_mint"          # EIGHTH CLASS: blocked mints open while resting
+_HARD_REST_CAP_KEY = "deadman_hard_rest_cap"  # EIGHTH CLASS: rest > 6h in any circumstance
 _LOOP_BROKEN_KEY = "deadman_loop_broken"
 _GATE_VIOLATION_KEY = "deadman_gate_violation"
 _FORK_ORPHAN_KEY = "deadman_fork_orphan"
@@ -140,14 +168,25 @@ def _is_auto_process_commit(subject: str) -> bool:
     return subject.strip().startswith(_AUTO_PROCESS_SUBJECT_PREFIX)
 
 
+def _is_non_progress_commit(subject: str) -> bool:
+    """A NON-WORK commit that must not refresh the liveness clock: an auto-process run-complete,
+    a chore/* housekeeping commit (incl. chore(liveness) heartbeat publishes), or the planner's own
+    rest-with-proof/mint bookkeeping commit. EIGHTH CLASS (2026-07-27): only a commit outside ALL of
+    these classes counts as forward progress. Case-sensitive prefix match on the trimmed subject."""
+    s = subject.strip()
+    return any(s.startswith(pfx) for pfx in _NON_PROGRESS_SUBJECT_PREFIXES)
+
+
 def _last_meaningful_commit_epoch() -> float:
     """Timestamp of the most recent commit that represents MEANINGFUL PROGRESS,
-    not a flat auto-process no-op.
+    not a flat no-op.
 
-    Meaningful = a commit whose message is NOT an auto-process run-complete. (A
-    genuine maturity_map.yaml level_current change is by construction never an
-    auto-process commit -- those touch only report/LATEST.md/site/ -- so its
-    subject already passes this filter; the two conditions coincide.)
+    Meaningful = a commit that is NOT in any non-progress class (`_is_non_progress_commit`):
+    not an auto-process run-complete, not a chore/* housekeeping / liveness-heartbeat commit,
+    and not the planner's own rest-with-proof bookkeeping commit (EIGHTH CLASS, 2026-07-27). (A
+    genuine maturity_map.yaml level_current change is by construction never any of these -- those
+    touch only report/LATEST.md/site/ or observability markers -- so its subject already passes
+    this filter.)
 
     Fails toward 0.0 ("looks stale") when git is unreadable OR when the window
     contains nothing but auto-process commits -- in the latter case the last
@@ -155,7 +194,7 @@ def _last_meaningful_commit_epoch() -> float:
     honest answer and the alarm should fire. No daemon's logging, and no no-op
     publish loop, can move this signal; only real work does."""
     for epoch, subject in _recent_commits():
-        if not _is_auto_process_commit(subject):
+        if not _is_non_progress_commit(subject):
             return epoch
     return 0.0
 
@@ -223,6 +262,83 @@ def _misparked_actionable_in_progress() -> list[str]:
         return ["in_progress/" + n for n in misparked_actionable_in_progress(_IN_PROGRESS_DIR)]
     except Exception:
         return []
+
+
+def _open_blocked_mints() -> list[tuple[str, str]]:
+    """(filename, blocking-reason) for every BLOCKED PLANNER_MINTED_* mint parked in in_progress/.
+    Read DIRECTLY off disk here (the deadman's whole ethos: trust objective disk/git state, never a
+    live heartbeat or another daemon's verdict -- so it stays independent of the supervisor's own
+    rest logic, the thing that mis-declared rest legitimate). A `SUPERVISOR_DRAW: self-drawable`
+    mint is EXCLUDED (drawable, surfaced by the tick's draw, not a blocker). Reason parsed from the
+    mint's own UNBLOCKS/blocked_on line, else a generic. Never raises (must not crash the cycle).
+    Reads `STAGING_DIR / in_progress` LIVE (not the frozen `_IN_PROGRESS_DIR`) so the test fixture's
+    STAGING_DIR patch isolates it -- the same live-read discipline `_unprocessed_staging_files` uses."""
+    ip = STAGING_DIR / "in_progress"
+    out: list[tuple[str, str]] = []
+    try:
+        files = sorted(ip.glob(_PLANNER_MINTED_PREFIX + "*.md"))
+    except OSError:
+        return []
+    for f in files:
+        try:
+            body = f.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if re.search(r"SUPERVISOR_DRAW:\s*self-drawable", body[:600]):
+            continue
+        reason = "blocked (reason unstated in the mint doc)"
+        for pat in (r"UNBLOCKS?(?:\s+ON)?:\s*([^\n]+)", r"blocked_on:\s*([^\n]+)"):
+            m = re.search(pat, body, re.IGNORECASE)
+            if m:
+                s = re.sub(r"[*`>~]", "", m.group(1)).strip()
+                if s:
+                    reason = (s[:160] + "…") if len(s) > 161 else s
+                    break
+        out.append((f.name, reason))
+    return out
+
+
+def _check_open_mint_escalation(since_commit: float) -> None:
+    """EIGHTH CLASS escalation duty (2026-07-27, director ruling). Two independent [ACT] triggers,
+    NEITHER suppressed by the proven-rest fold (which is exactly what silenced the 42h stall):
+      * OPEN-MINT: any BLOCKED mint open AND rest (since the last WORK commit) >= 2h -> [ACT] naming
+        each blocked mint and what it is blocked on, so the director can unblock / re-scope / wall it.
+      * HARD CAP: rest >= 6h in ANY circumstance (even with no mint open) -> [ACT] backstop.
+    Both are transition-only + hourly re-escalate via notify() (OPEN-MINT keyed on the blocked-set
+    signature so a changed set re-alerts immediately; the CAP on a constant flag), so a stable state
+    pages once then hourly, never every 5-min cycle. `since_commit` is on the WORK-only clock (the
+    H2 fix), so a window of nothing-but-liveness/chore/rest-proof commits still trips these."""
+    blockers = _open_blocked_mints()
+    if blockers and since_commit >= OPEN_MINT_REST_THRESHOLD_SECONDS:
+        detail = "; ".join(f"{n} -> {r}" for n, r in blockers)
+        notify(
+            f"[ACT] {len(blockers)} minted work item(s) BLOCKED and un-worked for "
+            f"{since_commit / 3600:.1f}h (no forward-work commit) -- the machine is resting beside "
+            f"open mints, not working them. Escalate each (unblock / re-scope / wall): {detail}. "
+            f"A blocked batch is a reason to plan more or escalate, never a licence to rest "
+            f"(R17, EIGHTH CLASS 2026-07-27).",
+            kind="real_alarm", transition_key=_OPEN_MINT_KEY,
+            state="mints:" + ",".join(sorted(n for n, _ in blockers)),
+            re_escalate_after=RE_ESCALATE_SECONDS,
+        )
+        log(f"OPEN-MINT escalation checked (notify-gated) -- {len(blockers)} blocked, "
+            f"{since_commit / 3600:.1f}h since a work commit")
+    else:
+        clear_transition(_OPEN_MINT_KEY)
+
+    if since_commit >= HARD_REST_CAP_SECONDS:
+        notify(
+            f"[ACT] Dead-man HARD REST CAP: {since_commit / 3600:.1f}h with no forward-WORK commit "
+            f"(liveness / chore / planner-rest-proof commits excluded). Rest exceeding 6h must raise "
+            f"an [ACT] in ANY circumstance -- proven-rest or not; 42h of quiet rest is itself the "
+            f"defect. Check the tick: is the authorized set genuinely empty at every level, or is a "
+            f"gate / mint batch deadlocked (EIGHTH CLASS 2026-07-27)?",
+            kind="real_alarm", transition_key=_HARD_REST_CAP_KEY, state="CAP",
+            re_escalate_after=RE_ESCALATE_SECONDS,
+        )
+        log(f"HARD REST CAP escalation checked (notify-gated) -- {since_commit / 3600:.1f}h since a work commit")
+    else:
+        clear_transition(_HARD_REST_CAP_KEY)
 
 
 def _reping_open_action_needed_items() -> None:
@@ -482,7 +598,17 @@ def run_cycle() -> None:
         return
 
     now = time.time()
-    since_commit = now - last_activity_epoch()
+    activity_epoch = last_activity_epoch()
+    since_commit = now - activity_epoch
+    # EIGHTH CLASS escalation duty (2026-07-27): raise an [ACT] on open blocked mints (rest > 2h) and
+    # on any rest > 6h, BEFORE and INDEPENDENT of the proven-rest fold below -- the fold silenced the
+    # 42h stall, so these two triggers must not pass through it. Evaluated every cycle; notify() owns
+    # transition-dedup so a stable state pages once then hourly. Guarded on a REAL, readable commit
+    # clock (activity_epoch > 0): the git-unreadable sentinel (0.0 -> since_commit ~= now) is the
+    # [BLOCKED]/[STALL] tier's territory (it already fails-closed toward alarm there), not a genuine
+    # 6h rest window, so we don't double-page it here.
+    if activity_epoch > 0:
+        _check_open_mint_escalation(since_commit)
     # Queued work = top-level staging PLUS actionable work a worker mis-parked into in_progress/
     # (2026-07-20 class fix): the latter is invisible to the draw AND was invisible to this alarm, the
     # exact 3-hour silent stall. Including it means mis-parked actionable work pages within

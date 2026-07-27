@@ -2080,6 +2080,11 @@ def authorized_set_enumeration() -> dict:
         # enumeration was the 13:06Z breach -- "whole authorized set empty" published while ratified
         # goals had un-minted next steps. planner=Y => rest illegitimate (mint, don't rest).
         ("planner", _planner_rung_draw),
+        # EIGHTH CLASS (director ruling 2026-07-27): a BLOCKED in_progress mint batch forbids rest.
+        # Its ABSENCE from this enumeration was the 42h-stall breach -- "whole authorized set empty"
+        # published with planner=. while 6 minted docs sat blocked in in_progress/. blocked_mints=Y
+        # => rest illegitimate (escalate the blockers + mint around them, never rest quietly).
+        ("blocked_mints", _blocked_mints_open),
     ]
     return {name: _safe(fn) for name, fn in levels}
 
@@ -2092,7 +2097,15 @@ def authorized_set_enumeration_line() -> str:
     drawable = [k for k, v in e.items() if v]
     parts = " ".join(f"{k}={'Y' if v else '.'}" for k, v in e.items())
     verdict = "REST-LEGITIMATE (whole authorized set empty)" if not drawable else f"MUST-DRAW: {','.join(drawable)}"
-    return f"AUTHORIZED-SET enumeration [{parts}] -> {verdict}"
+    line = f"AUTHORIZED-SET enumeration [{parts}] -> {verdict}"
+    # EIGHTH CLASS enumeration-honesty (2026-07-27): whenever open mints exist, NAME each with its
+    # blocking reason ON THE SAME LINE -- an enumeration that cannot see open mints is not an
+    # enumeration. Never publish a bare "empty"/"drawable" verdict while items sit in in_progress/.
+    blockers = open_mint_blockers()
+    if blockers:
+        detail = "; ".join(f"{n} -> {r}" for n, r in blockers)
+        line += f" | OPEN MINTS ({len(blockers)}): {detail}"
+    return line
 
 
 def _first_graduation_line(body: str) -> str:
@@ -2342,6 +2355,18 @@ PLANNER_MINTED_PREFIX = "PLANNER_MINTED_"
 # mint flipped blocked -> self-drawable. Any of those change -> the marker is stale -> re-plan.
 PLANNER_REST_PROOF_PATH = PROJECT_DIR / "docs" / "observability" / ".planner_rest_with_proof.json"
 
+# EIGHTH CLASS -- the pending-batch deadlock (2026-07-27, DIRECTOR_RULING_EIGHTH_CLASS_...).
+# A rest-with-proof over an ALL-BLOCKED in_progress batch grounded a 42-hour silent rest: the proof
+# stayed "fresh" for the WHOLE UTC day (the date/axes/blocked-set all unchanged), so the planner
+# never re-examined whether a ratified goal had become mintable-around, and the tick rested. The
+# director's ruling: "A blocked batch is a reason to plan MORE, never a licence to rest." So while
+# ANY blocked mint is open, a rest-proof is fresh for at most this bounded window from `written_at`;
+# past it the proof goes stale and the planner RE-EXAMINES (mints around remaining ratified goals,
+# or re-proves). This bounds re-planning to ~once per window (one bounded worker, NOT a per-tick
+# treadmill) instead of once-per-day, so a genuinely-mintable goal can never sit unminted for 42h.
+# Matched to the deadman's own 2h open-mint escalation threshold so the two clocks agree.
+PLANNER_REST_PROOF_MAX_AGE_SECONDS = 2 * 60 * 60
+
 
 def _director_axes_present(axes_path: Path | None = None) -> bool:
     """True if DIRECTOR_AXES has at least one RATIFIED axis (a '### <n>. <name>' heading under
@@ -2417,6 +2442,52 @@ def _in_progress_minted_slugs(staging_dir: Path | None = None) -> dict[str, list
     return {"blocked": sorted(blocked), "self_drawable": sorted(drawable)}
 
 
+def _extract_blocking_reason(body: str) -> str:
+    """Pull the one-line blocking reason from a parked PLANNER_MINTED_* doc. Prefers an explicit
+    'UNBLOCKS ON:' / 'UNBLOCKS:' clause (the convention every mint carries), then a 'BLOCKING
+    SUB-ITEM' heading, else a short generic. Markdown emphasis stripped, truncated. Used only for
+    the enumeration/[ACT] payload (director-facing honesty), never for a draw decision."""
+    for pat in (
+        r"UNBLOCKS?(?:\s+ON)?:\s*([^\n]+)",
+        r"BLOCKING SUB-ITEM[^\n]*:\s*\*?\*?([^\n]+)",
+        r"blocked_on:\s*([^\n]+)",
+    ):
+        m = re.search(pat, body, re.IGNORECASE)
+        if m:
+            s = re.sub(r"[*`>~]", "", m.group(1)).strip()
+            if s:
+                return (s[:200] + "…") if len(s) > 201 else s
+    return "blocked (reason unstated in the mint doc)"
+
+
+def open_mint_blockers(staging_dir: Path | None = None) -> list[tuple[str, str]]:
+    """(filename, blocking-reason) for every BLOCKED PLANNER_MINTED_* mint parked in in_progress/.
+    EIGHTH CLASS enumeration-honesty (2026-07-27, DIRECTOR_RULING): 'Any lane reporting empty while
+    items exist in in_progress/ must instead report them WITH their blocking reason. An enumeration
+    that cannot see open mints is not an enumeration.' Reads the SAME blocked set the rest-proof uses
+    (`_in_progress_minted_slugs`), so the enumeration and the draw can never disagree. Self-drawable
+    mints are EXCLUDED (they are surfaced by the RUNG-1 selfdrawable path, not a blocker)."""
+    d = staging_dir or STAGING_DIR
+    ip = Path(d) / "in_progress"
+    out: list[tuple[str, str]] = []
+    for name in _in_progress_minted_slugs(d)["blocked"]:
+        try:
+            body = (ip / name).read_text(encoding="utf-8")
+        except OSError:
+            body = ""
+        out.append((name, _extract_blocking_reason(body)))
+    return out
+
+
+def _blocked_mints_open(staging_dir: Path | None = None) -> bool:
+    """True iff any BLOCKED PLANNER_MINTED_* mint is open in in_progress/. Director ruling EIGHTH
+    CLASS: 'A blocked batch is a reason to plan more, never a licence to rest' -- so this level
+    FORBIDS rest (wired into `authorized_set_enumeration` and `_is_drained_and_gated`), while the
+    2h rest-proof age cap bounds how often the planner actually re-examines. FAIL-SAFE TOWARD WORK:
+    keyed on the real in_progress blocked set, never a constant."""
+    return bool(_in_progress_minted_slugs(staging_dir)["blocked"])
+
+
 def _planner_rest_proof_fresh(
     axes_path: Path | None = None,
     staging_dir: Path | None = None,
@@ -2450,6 +2521,21 @@ def _planner_rest_proof_fresh(
         return False  # a parked mint newly drawable -> real RUNG-1 work exists -> re-plan
     if sorted(marker.get("minted_blocked_slugs") or []) != cur["blocked"]:
         return False  # the blocked set changed (mint consumed / new wall) -> re-plan
+    # EIGHTH CLASS (2026-07-27): a proof over an ALL-BLOCKED batch may ground rest for at most
+    # PLANNER_REST_PROOF_MAX_AGE_SECONDS from `written_at` -- past that the planner MUST re-examine
+    # (mint around remaining ratified goals, or re-prove), never rest a whole working day on it. When
+    # NO mint is blocked (cur["blocked"] empty) the age cap does not apply -- a genuinely-exhausted
+    # rest below rung 7 is still legitimate for the full UTC day (the axes/day checks bound it).
+    if cur["blocked"]:
+        try:
+            written = datetime.fromisoformat(marker.get("written_at", ""))
+            if written.tzinfo is None:
+                written = written.replace(tzinfo=timezone.utc)
+            age = (datetime.now(timezone.utc) - written).total_seconds()
+        except (TypeError, ValueError):
+            return False  # a proof with no/garbled written_at cannot age-gate -> fail-closed -> re-plan
+        if age >= PLANNER_REST_PROOF_MAX_AGE_SECONDS:
+            return False  # blocked-batch proof aged out -> re-examine, don't rest (the 42h-stall fix)
     return True
 
 
@@ -2884,6 +2970,15 @@ def _is_drained_and_gated() -> bool:
         # propose nothing within ratified scope (axes absent). Pre-go-live that is structurally
         # unreachable, which is the point.
         if _planner_rung_draw():
+            return False
+        # EIGHTH CLASS (director ruling 2026-07-27): rest is illegitimate while a BLOCKED in_progress
+        # mint batch is open -- "a blocked batch is a reason to plan more, never a licence to rest".
+        # Mirror of the enumeration `blocked_mints` level; without it, `_is_drained_and_gated` would
+        # green-light the exact 42h rest, and the deadman's proven-rest fold (which trusts THIS
+        # predicate) would keep suppressing the [STALL] alarm beside 6 blocked mints. The 2h rest-proof
+        # age cap bounds how often the planner re-examines; this bounds the tick from resting AT ALL
+        # while mints sit blocked (it does at-target HARDEN + the deadman escalates the blockers).
+        if _blocked_mints_open():
             return False
         # All real lanes + backlog + forward-discovery + planner empty. It is a RESTING state only if
         # at-target HARDEN atoms exist; otherwise a genuinely-empty map = a WALL (map_exhausted).

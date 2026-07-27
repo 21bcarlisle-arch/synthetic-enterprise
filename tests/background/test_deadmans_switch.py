@@ -612,3 +612,88 @@ def test_misparked_actionable_in_progress_detected_but_not_legit_blocked(tmp_pat
     # QUIET on both legitimate parks (mutation guard: remove the marker -> not flagged)
     assert "in_progress/LEGIT_BLOCKED.md" not in got
     assert "in_progress/DIRECTOR_PARKED.md" not in got
+
+
+# ───────────── EIGHTH CLASS: pending-batch deadlock + escalation duty (2026-07-27, DIRECTOR_RULING) ─────────────
+#
+# The 42h silent stall had TWO independent silencers, both fixed here:
+#   H2  -- the liveness clock was refreshed by NON-WORK commits: `chore(liveness)` heartbeats (~30min)
+#          and the planner's OWN `planner RUNG-7: rest-with-proof` bookkeeping commit. The clock must
+#          count WORK commits only, so a window of nothing-but-those looks as stale as it is.
+#   duty -- rest > 2h with any mint open, or rest > 6h in ANY circumstance, must raise an [ACT];
+#          NEITHER may pass through the proven-rest fold (that fold is what silenced the [STALL]).
+
+
+def test_liveness_and_rest_proof_commits_are_not_meaningful_progress(monkeypatch):
+    """H2 FIX, the exact 07-27 clock: the most-recent non-auto-process commit was the planner's own
+    rest-with-proof bookkeeping commit, and chore(liveness) heartbeats land ~every 30min. The clock
+    must SKIP both classes and return the last REAL work commit (42h back), not be refreshed by them."""
+    now = time.time()
+    commits = [
+        (now - 1 * 3600, "planner RUNG-7: rest-with-proof 2026-07-27 (premise FALSE -- all 6 mints blocked)"),
+        (now - 2 * 3600, "chore(liveness): publish heartbeat while sim output unchanged (git=de9ab1fcc)"),
+        (now - 3 * 3600, "Auto-process run complete: report + LATEST.md + site/ (net=£1,521,070)"),
+        (now - 42 * 3600, "feat(pricing): merit-order reconstruction landed"),
+    ]
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
+    assert dms._last_meaningful_commit_epoch() == now - 42 * 3600
+    # The predicate directly (independence, R15): each non-work class excluded, real work not.
+    assert dms._is_non_progress_commit("chore(liveness): x") is True
+    assert dms._is_non_progress_commit("planner RUNG-7: rest-with-proof") is True
+    assert dms._is_non_progress_commit("Auto-process run complete: y") is True
+    assert dms._is_non_progress_commit("feat(pricing): real work") is False
+
+
+def _write_blocked_mint(slug: str, reason_line: str = "UNBLOCKS ON: director act") -> None:
+    ip = dms.STAGING_DIR / "in_progress"
+    ip.mkdir(parents=True, exist_ok=True)
+    (ip / f"PLANNER_MINTED_{slug}.md").write_text(f"<!-- SUPERVISOR_DRAW: blocked -->\n{reason_line}\n")
+
+
+def test_open_mint_escalation_fires_after_2h_even_on_proven_rest(monkeypatch):
+    """ESCALATION DUTY, the weekend: mints parked-blocked, no WORK commit for 3h, and rest 'proven
+    legitimate' (the fold that silenced [STALL]) -> an [ACT] naming each blocked mint STILL fires."""
+    _write_blocked_mint("ssp_negative_lift_cells_2026-07-24", "UNBLOCKS ON: merit-order reconstruction landed")
+    _write_blocked_mint("value_chain_observation_window_cap_2026-07-24", "blocked_on: WVC_R twin-gated")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 3 * 3600)
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)  # would suppress [STALL]
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    act = [c for c in calls if "minted work item" in c and "BLOCKED" in c]
+    assert len(act) == 1
+    assert "ssp_negative_lift_cells" in act[0] and "merit-order" in act[0]
+    assert "value_chain" in act[0]
+
+
+def test_open_mint_escalation_silent_within_2h(monkeypatch):
+    """MUTATION both-ways: the SAME blocked mint but only 1h since the last work commit -> NO [ACT]
+    (the 2h threshold is real state, not a constant-fire)."""
+    _write_blocked_mint("value_chain_observation_window_cap_2026-07-24")
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 1 * 3600)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert [c for c in calls if "minted work item" in c] == []
+
+
+def test_hard_rest_cap_fires_after_6h_even_on_proven_rest(monkeypatch):
+    """ESCALATION DUTY: rest > 6h must page in ANY circumstance -- even a proven-legitimate rest with
+    NO mints open. This is the un-suppressible backstop the proven-rest-folded [STALL] tier lacked."""
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 7 * 3600)
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert [c for c in calls if "HARD REST CAP" in c]
+
+
+def test_hard_rest_cap_silent_within_6h(monkeypatch):
+    """MUTATION both-ways: 5h since the last work commit, proven rest -> the 6h cap is SILENT (a
+    constant-fire cap would RED this)."""
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 5 * 3600)
+    monkeypatch.setattr(dms, "_rest_is_proven_legitimate", lambda: True)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert [c for c in calls if "HARD REST CAP" in c] == []
