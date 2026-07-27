@@ -95,3 +95,66 @@ def test_cumulative_tests_executed_skips_malformed_lines(tmp_path):
     result = cumulative_tests_executed(log_path=log_path)
     assert result["cumulative_total"] == 5
     assert result["session_count"] == 1
+
+
+# --- R15 hardening (2026-07-27, G1_test_progression_metrics HARDEN): the
+# cumulative-EXECUTED total IS the atom's monotonic, non-saturating
+# guarantee. The log is a shared, appended-to on-disk surface, so a single
+# corrupted/hand-fudged record must not be able to make the metric decrease
+# (FAIL-OPEN) or crash the phases.json publish (TypeError on `total += tc`).
+# Each test asserts BOTH that the malformed record is neutralised AND that a
+# genuine adjacent record still lands -- so the guard can be proven to fire
+# on its own named defect, never a blanket zero. ---
+
+def test_cumulative_negative_test_count_cannot_make_metric_decrease(tmp_path):
+    """FAIL-OPEN, R15 killer pattern 2: a negative test_count would drop the
+    running total below a prior value -- the one thing a MONOTONIC metric may
+    never do. Before the guard this returned 100; it must stay >= 1000."""
+    log_path = tmp_path / "log.jsonl"
+    log_path.write_text(
+        json.dumps({"timestamp": "2026-07-10T10:00:00+00:00", "test_count": 1000}) + "\n"
+        + json.dumps({"timestamp": "2026-07-11T10:00:00+00:00", "test_count": -900}) + "\n"
+    )
+    result = cumulative_tests_executed(log_path=log_path)
+    assert result["cumulative_total"] == 1000, "negative record must contribute nothing, not subtract"
+    assert result["session_count"] == 1, "the malformed record is skipped entirely, like a bad line"
+
+
+def test_cumulative_non_int_test_count_does_not_crash_the_publish(tmp_path):
+    """FAIL-CRASH: a string/null test_count would raise TypeError on
+    `total += tc`, propagating up through generate_phases_json.generate() and
+    wedging the whole site publish. It must be skipped, and a real adjacent
+    record must still be counted."""
+    log_path = tmp_path / "log.jsonl"
+    log_path.write_text(
+        json.dumps({"timestamp": "2026-07-10T10:00:00+00:00", "test_count": "5"}) + "\n"
+        + json.dumps({"timestamp": "2026-07-11T10:00:00+00:00", "test_count": None}) + "\n"
+        + json.dumps({"timestamp": "2026-07-12T10:00:00+00:00", "test_count": 7}) + "\n"
+    )
+    result = cumulative_tests_executed(log_path=log_path)
+    assert result["cumulative_total"] == 7
+    assert result["session_count"] == 1
+
+
+def test_cumulative_bool_test_count_is_not_treated_as_a_count(tmp_path):
+    """bool is a subclass of int in Python -- a stray `true` must NOT silently
+    add 1 to the executed-tests total."""
+    log_path = tmp_path / "log.jsonl"
+    log_path.write_text(
+        json.dumps({"timestamp": "2026-07-10T10:00:00+00:00", "test_count": True}) + "\n"
+        + json.dumps({"timestamp": "2026-07-11T10:00:00+00:00", "test_count": 4}) + "\n"
+    )
+    result = cumulative_tests_executed(log_path=log_path)
+    assert result["cumulative_total"] == 4
+    assert result["session_count"] == 1
+
+
+def test_cumulative_valid_records_still_land_after_guard(tmp_path):
+    """The guard is not a blanket lockout: a run of ordinary valid records is
+    summed exactly as before (regression pin for the un-mutated path)."""
+    log_path = tmp_path / "log.jsonl"
+    record_execution({"passed": [1, 2, 3]}, log_path=log_path)
+    record_execution({"passed": [1, 2]}, log_path=log_path)
+    result = cumulative_tests_executed(log_path=log_path)
+    assert result["cumulative_total"] == 5
+    assert result["session_count"] == 2

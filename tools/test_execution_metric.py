@@ -67,7 +67,25 @@ def cumulative_tests_executed(log_path: Path | None = None) -> dict:
                 rec = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            total += rec.get("test_count", 0)
+            tc = rec.get("test_count", 0)
+            # The cumulative-EXECUTED total is this atom's own
+            # (G1_test_progression_metrics) MONOTONIC, non-saturating
+            # guarantee -- it must never decrease and must never crash the
+            # phases.json generation that publishes it to the live Project
+            # tab. The log is a shared, appended-to on-disk surface
+            # (concurrent writers, per CLAUDE.md), so a single corrupted or
+            # hand-fudged line can carry a negative, string, or null
+            # test_count. Unguarded, a negative would make the running total
+            # go DOWN (FAIL-OPEN, R15 killer pattern 2) and a non-int would
+            # raise a TypeError on `total += tc` that wedges the whole site
+            # publish. Treat any non-int (bool is not a count) or negative
+            # value as malformed and skip the record entirely -- exactly as a
+            # malformed LINE is skipped above -- contributing nothing rather
+            # than a monotonicity-breaking or fabricated number
+            # (Anchored-noise/no-fabrication rule).
+            if not isinstance(tc, int) or isinstance(tc, bool) or tc < 0:
+                continue
+            total += tc
             session_count += 1
             ts = rec.get("timestamp")
             if ts and (since is None or ts < since):
