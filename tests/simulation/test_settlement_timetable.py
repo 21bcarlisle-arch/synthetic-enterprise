@@ -108,6 +108,53 @@ class TestEmitSettlementTimetable:
         rf = next(e for e in events if e.run == "RF")
         assert rf.value == pytest.approx(1030.0)
 
+    # --- R15 fail-open / NaN-blind guard (red-team, 2026-07-27) --------------
+    # The variance-band plausibility check is a bare magnitude comparison
+    # (abs(gap) > band). abs(nan) > band and abs(inf) > inf are both False, so
+    # without an explicit non-finite reject a NaN/inf input sails through the
+    # control and the function emits all-NaN/inf settlement revisions silently
+    # (the "initial" record stays valid; every revision and every bitemporal
+    # query after R1 returns NaN). These assert the guard fires on that defect.
+
+    @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+    def test_non_finite_initial_value_raises(self, bad):
+        with pytest.raises(ValueError, match="not finite"):
+            self._emit(initial=bad, true_final=1004.0)
+
+    @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+    def test_non_finite_true_final_value_raises(self, bad):
+        with pytest.raises(ValueError, match="not finite"):
+            self._emit(initial=1000.0, true_final=bad)
+
+    @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+    def test_non_finite_rejected_even_with_out_of_band_override(self, bad):
+        # allow_out_of_band bypasses the band check but must NOT bypass the
+        # non-finite reject -- an infinite/NaN figure is never a valid stress
+        # case, only a bug.
+        with pytest.raises(ValueError, match="not finite"):
+            self._emit(initial=1000.0, true_final=bad, allow_out_of_band=True)
+
+    def test_non_finite_never_reaches_the_log(self):
+        # Belt-and-braces: nothing gets persisted when the input is non-finite.
+        import math
+
+        from company.interfaces.bitemporal_event_log import BitemporalEventLog
+        log = BitemporalEventLog()
+        with pytest.raises(ValueError):
+            st.emit_settlement_timetable(
+                log,
+                entity_id="cust_1",
+                fact_type="settlement_value_gbp",
+                delivery_date=dt.date(2020, 6, 15),
+                initial_value=1000.0,
+                true_final_value=math.nan,
+                meter_type="HH",
+            )
+        rec = log.as_known_at(
+            _dt(dt.date(2099, 1, 1)), "cust_1", "settlement_value_gbp", dt.date(2020, 6, 15)
+        )
+        assert rec is None
+
 
 class TestRevealOverTimeProperty:
     """The core point-in-time guarantee this atom exists to prove: a

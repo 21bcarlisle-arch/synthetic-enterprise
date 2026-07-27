@@ -48,6 +48,7 @@ sets never drift apart.
 from __future__ import annotations
 
 import datetime as dt
+import math
 from dataclasses import dataclass
 from typing import List, Literal
 
@@ -147,6 +148,23 @@ def emit_settlement_timetable(
     R2, R3, RF) for convenience/assertions -- `log` is the durable record;
     the return value is not itself persisted state.
     """
+    # Reject non-finite inputs FIRST (R15 fail-open / NaN-blind pattern): the
+    # variance-band magnitude guard below is `abs(gap) > band`, and abs(nan) >
+    # band is False, so a NaN initial_value/true_final_value would sail
+    # straight through the plausibility check and emit all-NaN revised figures
+    # silently -- worse than a rejected input, because the "initial" record
+    # stays a valid number while every revision (and any bitemporal query
+    # after R1) returns NaN. abs(+-inf) > (inf*share) is likewise False, so
+    # inf fails open the same way. Reject both here, up front.
+    for _name, _v in (("initial_value", initial_value), ("true_final_value", true_final_value)):
+        if not math.isfinite(_v):
+            raise ValueError(
+                f"{_name}={_v!r} is not finite; a settlement figure must be a "
+                f"real number. A non-finite value would defeat the variance-band "
+                f"plausibility check (abs(nan)>band and abs(inf)>inf are both "
+                f"False) and emit NaN/inf settlement revisions silently."
+            )
+
     gap = true_final_value - initial_value
     reference = abs(initial_value) if initial_value else abs(true_final_value)
     if reference:
