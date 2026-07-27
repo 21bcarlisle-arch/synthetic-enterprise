@@ -1,6 +1,24 @@
-<!-- CONTINUATION BANNER (worker tick 2026-07-27) — this ruling is PARTIALLY ABSORBED; it stays in
-staging ROOT (genuine open work) so the tick keeps drawing it, and its own §1+§3 mechanism now keeps
-the RULE-0 HARDEN treadmill SUPPRESSED while it is unconsumed (so no busywork masks the remaining work).
+<!-- MINT-CONSUMED BANNER (worker tick 2026-07-27) — this ruling's WORK THIS CREATES block has now
+been FULLY MINTED (the §2+§4 mechanism's own instruction: "mint one atom per named deliverable; state
+which are already covered"). Every deliverable is now either LANDED or a drawable PLANNER_MINTED atom,
+so the ruling's mint-source obligation is DISCHARGED and it moves to in_progress/ (no longer re-granting
+a mint turn every tick / no longer re-issuing an already-satisfied mint instruction). HARDEN stays
+suppressed while the mints are pending: they are rung-1 below-target work drawn before the HARDEN tier,
+and _pending_planner_mints keeps the planner quiet (no re-mint on top). MINT COVERAGE MAP:
+  [1] HARDEN demotion — SPLIT. Draw-ordering half LANDED+R15 (item 1 below). Accounting-exclusion half
+      (amendment §1: never counts as work for deadman/utilisation/product-machinery split) was NOT
+      mechanised → MINTED: PLANNER_MINTED_harden_excluded_from_work_accounting_2026-07-27.md.
+  [2] Rung-7 mint-source extension + retro mints — ALREADY COVERED (LANDED 6f2be1d41: parser +
+      ruling_mint_instruction; retro mints merit-order/dd/site-evidence reconciled). NOT re-minted.
+  [3] Rung-1 ordering test (§3) — MINTED: PLANNER_MINTED_rung1_ruling_beats_harden_ordering_test_2026-07-27.md.
+  [4] WORK THIS CREATES parser + missing-block defect report (§4) — parser LANDED (item 2); the
+      missing-block DEFECT SURFACE (detector wired to nothing) → MINTED:
+      PLANNER_MINTED_ruling_missing_work_block_defect_surface_2026-07-27.md.
+  [5] Backlog surface (§5, restated: enumerable+checkable from primary state, LAW C) — MINTED:
+      PLANNER_MINTED_named_and_not_done_backlog_surface_2026-07-27.md.
+  [6] Coherence by derivation (§6, largest, propose phasing) — MINTED:
+      PLANNER_MINTED_coherence_by_derivation_2026-07-27.md.
+Prior progress detail retained below for the record.
 WORK THIS CREATES — progress:
   [DONE] Item 1 — §1 HARDEN demotion + §3 rung-order: RULE-0 HARDEN tier SUPPRESSED while an
          unconsumed staged [DIRECTOR-RULING]/[STEER] is present (background/supervisor.py::
