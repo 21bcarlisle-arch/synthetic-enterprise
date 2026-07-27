@@ -485,6 +485,73 @@ class TestHardenPassFixes:
         )
         assert result.returncode == 0
 
+    def test_grep_bare_denied_directory_now_denied(self):
+        # 2026-07-27 fresh red-team of the AT-target atom (Rule-0 self-refill,
+        # dial=1 yielded): the deny anchors required a trailing SLASH, but
+        # _normalize_path() strips it off a directory target, so a target that
+        # IS the denied top-level directory itself ('sim') never matched.
+        # Grep(pattern="X", path="sim") -- the idiomatic way to search the sim
+        # tree -- read straight across the wall (demonstrated live rc=0). This
+        # is FAIL-OPEN on the exact directory the wall protects, distinct from
+        # the whole-tree-span class (wildcard/'.' first segments).
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "hedge", "path": "sim"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2, "Grep on the bare denied dir 'sim' reads across the wall"
+
+    def test_grep_bare_denied_directory_trailing_slash_denied(self):
+        # Same target with a trailing slash ('sim/') -- normalizes identically
+        # to 'sim' and must be denied identically (the fix anchors on a segment
+        # boundary, not a literal slash).
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "hedge", "path": "sim/"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_grep_bare_simulation_directory_denied(self):
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "hedge", "path": "simulation"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_grep_bare_company_directory_denied_from_sim_lane(self):
+        # Sibling half, sim lane: a bare 'company' target was equally open.
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "tariff", "path": "company"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_read_bare_denied_directory_denied(self):
+        # Read of the denied directory root itself (path form) is caught too.
+        result = _run(
+            {"tool_name": "Read", "tool_input": {"file_path": "sim"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_bare_own_side_directory_still_passes(self):
+        # False-positive guard: the caller's OWN denied-of-the-other-lane dir
+        # is allowed to it. A supplier-lane bare Grep on 'company' stays open.
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "tariff", "path": "company"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_sibling_prefix_directory_not_over_denied(self):
+        # False-positive guard: the segment-boundary anchor '($|/)' must not
+        # fire on a top-level name that merely STARTS with 'sim' (e.g. a
+        # hypothetical 'simple/' dir) -- 'sim' must be followed by end or '/'.
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "x", "path": "simple/foo.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
     def test_unreadable_marker_file_still_fails_open_but_now_warns(self, tmp_path):
         # Finding 7: still fails open (this is a soft dev-time pilot, not
         # the runtime wall) but now logs a visible warning rather than

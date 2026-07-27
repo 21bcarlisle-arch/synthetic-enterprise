@@ -63,9 +63,25 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 # barely-touched string instead of a properly RESOLVED, repo-root-relative,
 # case-normalized path. Fixed by _normalize_path() below; deny patterns are
 # now matched against that, never the raw caller-supplied string.
+# 2026-07-27 HARDEN pass (fresh red-team of the AT-target atom, Rule-0
+# self-refill dial=1 yielded): the anchors required a trailing SLASH
+# (`^(sim|simulation)/`), but _normalize_path() resolves through Path.resolve()
+# + relative_to().as_posix(), which STRIPS the trailing slash off a directory
+# target -- so a target that IS the denied top-level directory itself
+# ('sim', 'sim/', 'simulation', 'sim/.') all normalize to bare 'sim' and the
+# slash-requiring anchor never matched. Grep(pattern="hedge", path="sim") --
+# the single most idiomatic way to search the sim tree -- therefore read
+# straight across the wall (demonstrated live rc=0 under SE_LANE=supplier).
+# A FAIL-OPEN (R15 pattern 2) on the exact directory the wall exists to
+# protect, distinct from the whole-tree-SPAN class (that is wildcard/`.`
+# first segments; this is the concrete denied dir named exactly). Closed by
+# anchoring on a segment boundary `($|/)` instead of a literal `/`: the bare
+# directory and everything beneath it both match, while a sibling like
+# 'simple/' or 'companyx/' still does not (the `(sim)` alternative must be
+# followed by end-of-string or a slash, never more name characters).
 _LANE_DENIES = {
-    "supplier": re.compile(r"^(sim|simulation)/"),
-    "sim": re.compile(r"^(company|saas)/"),
+    "supplier": re.compile(r"^(sim|simulation)($|/)"),
+    "sim": re.compile(r"^(company|saas)($|/)"),
 }
 
 
