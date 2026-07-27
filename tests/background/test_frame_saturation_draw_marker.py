@@ -630,6 +630,65 @@ def test_regression_bool_only_gate_would_have_starved_string_override(_isolate_m
         assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
 
 
+# ── 2026-07-27 HARDEN red-team #3: the cooldown scope_sha signal was DEAD for H23 ──
+# Sibling class to the OVERRIDE-parse (#2) and _atom_has_frame_doc (#1, 07-25) passes:
+# THIS one is the OTHER half of H23's rotation KEY -- the `scope_sha` re-verify signal
+# the 2026-07-27 H1 red-team (commit 2caa174e5) added to _harden_in_cooldown so a commit
+# hardening a SIBLING atom on shared code (H1/H19/OPS1 all share supervisor.py) re-offers
+# this atom. That signal is computed by _file_scope_sha, which read_bytes() each scope
+# entry -- and a DIRECTORY entry raises OSError -> `continue` -> contributes NOTHING. H23's
+# file_scope was 4 directories, so _file_scope_sha(H23) == '' and the scope_sha half of its
+# cooldown key was silently DEAD (R15 FAIL-SILENT: a check that always yields the empty/
+# no-op signal is worse than none). 45 live map atoms share a directory file_scope entry.
+
+
+def test_file_scope_sha_fail_silent_on_directory_scope(tmp_path):
+    """R15 BOTH-ways for the scope_sha FAIL-SILENT this pass closes.
+
+    DEAD side (the defect): a directory-only file_scope yields '' -- no signal.
+    LIVE side (the fix path): a real FILE yields a non-empty content-derived sha
+    that MOVES when the file's bytes change (re-verify fires on sibling edits).
+    MIXED-scope trap: appending a directory entry does NOT change the sha (the dir
+    is silently dropped) -- partial coverage that reads as complete."""
+    (tmp_path / "background").mkdir()
+    f = tmp_path / "background" / "supervisor.py"
+    f.write_text("x = 1\n")
+
+    # DEAD side: directory-only scope -> '' (the exact H23 pre-fix state).
+    assert supervisor._file_scope_sha({"file_scope": ["background"]}, root=tmp_path) == ""
+
+    # LIVE side: a real controlled file -> non-empty, content-derived.
+    sha1 = supervisor._file_scope_sha({"file_scope": ["background/supervisor.py"]}, root=tmp_path)
+    assert sha1 != ""
+    f.write_text("x = 2\n")
+    sha2 = supervisor._file_scope_sha({"file_scope": ["background/supervisor.py"]}, root=tmp_path)
+    assert sha2 != sha1, "scope_sha did not move on a controlled-file edit -> re-verify blind"
+
+    # MIXED-scope fail-silent: the directory entry contributes nothing, so the
+    # sha is identical to the file-only scope -> a change UNDER that dir is invisible.
+    sha_mixed = supervisor._file_scope_sha(
+        {"file_scope": ["background/supervisor.py", "background"]}, root=tmp_path)
+    assert sha_mixed == sha2
+
+
+def test_h23_file_scope_is_narrowed_to_real_files_so_scope_sha_is_live():
+    """H23's own rotation-memory invariant (reds if H23 is re-broadened to a
+    directory file_scope, which would silently re-kill its scope_sha signal).
+    Reads the LIVE map by a __file__-derived repo path, independent of the
+    autouse map-isolation fixture."""
+    import pathlib
+    import yaml
+    repo = pathlib.Path(__file__).resolve().parents[2]
+    atoms = yaml.safe_load((repo / "docs/design/maturity_map.yaml").read_text(encoding="utf-8"))
+    h23 = next(a for a in atoms if a.get("id") == "H23_frame_saturation_draw_marker")
+    assert h23["file_scope"], "H23 file_scope empty"
+    for rel in h23["file_scope"]:
+        assert (repo / rel).is_file(), \
+            f"H23 file_scope entry is a directory, not a file (dead scope_sha): {rel}"
+    assert supervisor._file_scope_sha(h23, root=repo) != "", \
+        "H23 scope_sha is dead ('') -- the sibling-change re-verify signal is absent"
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
