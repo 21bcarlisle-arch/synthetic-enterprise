@@ -85,6 +85,35 @@ def _normalize_path(path_str: str) -> str | None:
         return None
     return rel.as_posix().lower()
 
+
+def _spans_whole_tree(normalized: str) -> bool:
+    """A search whose normalized target recurses from the repo ROOT across
+    arbitrary depth reaches BOTH sides of the wall, so it reaches the denied
+    side regardless of which lane is active -- yet it matches neither
+    _LANE_DENIES pattern (those anchor on a concrete first segment like
+    `^(sim|simulation)/`).
+
+    2026-07-27 HARDEN pass (sibling-half red-team of the already-fixed
+    Finding 3): Finding 3 closed the UNSCOPED case -- a Glob/Grep with no
+    `path`/pattern (or `path="."`) that recurses from cwd -- via
+    _has_explicit_scope(). But an EXPLICIT `path` set to the repo root
+    itself (e.g. Glob path='/abs/repo/root' pattern='**/*.py', or Grep
+    path='/abs/repo/root') defeats both gates: _has_explicit_scope() sees a
+    non-'.' path and calls it scoped, and the combined target normalizes to
+    a bare '**/*.py' / '.' that anchors on neither side, so the deny regex
+    misses it. Demonstrated live: such a Glob under SE_LANE=supplier
+    returned rc=0, silently reading straight across into sim/**. This is
+    the same CLASS (a search that spans both sides of the wall), just the
+    explicit-repo-root-base half of it -- so it is closed here as a class,
+    not as the one instance.
+
+    Anchored recursive searches stay allowed: 'company/**/*.py' has a
+    concrete first segment ('company') and is confined to the allowed side.
+    Only a target that is the repo root itself ('.') or leads with a
+    recursive wildcard ('**...') spans everything."""
+    return normalized == "." or normalized.startswith("**")
+
+
 # REGULATION_COMMONS_DOCTRINE.md (2026-07-12): "the TEXT is a commons" --
 # regulatory rule digests (the fidelity oracle and successors) live in
 # docs/domain_artefact_library/, provenance-tagged, readable by ALL lanes,
@@ -242,6 +271,16 @@ def main() -> int:
         normalized = _normalize_path(raw_path)
         if normalized is None:
             continue  # outside the repo entirely -- not this hook's concern
+        if _spans_whole_tree(normalized):
+            _log_denial(lane, tool_name, raw_path)
+            sys.stderr.write(
+                "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
+                "recurses from the repo root across the WHOLE tree, including the "
+                "other side of the wall (its normalized target {!r} anchors on "
+                "neither side). Scope it to a concrete directory on your own lane's "
+                "side of the wall.\n".format(lane, tool_name, raw_path, normalized)
+            )
+            return 2
         if _LANE_DENIES[lane].match(normalized):
             _log_denial(lane, tool_name, raw_path)
             other_side = "sim/simulation" if lane == "supplier" else "company/saas"

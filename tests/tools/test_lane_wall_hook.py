@@ -369,6 +369,69 @@ class TestHardenPassFixes:
         )
         assert result.returncode == 2
 
+    def test_glob_rooted_at_repo_root_with_recursive_pattern_now_denied(self):
+        # 2026-07-27 sibling-half red-team of Finding 3: Finding 3 closed the
+        # UNSCOPED case (no path / path="." / bare "**" pattern with no path).
+        # But an EXPLICIT `path` set to the repo root itself defeated both
+        # gates -- _has_explicit_scope() saw a non-"." path and called it
+        # scoped, and the combined target normalized to a bare "**/*.py" that
+        # anchored on neither side, so the deny regex missed it. Demonstrated
+        # live returning rc=0 (straight across the wall into sim/**).
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": str(REPO_ROOT), "pattern": "**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2, "repo-root-based recursive Glob spans both sides of the wall"
+        assert "whole tree" in result.stderr.lower()
+
+    def test_grep_rooted_at_repo_root_now_denied(self):
+        # Same class, Grep half: an explicit `path` at the repo root recurses
+        # through both sides (Grep has no non-recursive mode over a directory).
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "forward_curve", "path": str(REPO_ROOT)}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+        assert "whole tree" in result.stderr.lower()
+
+    def test_glob_rooted_at_repo_root_denied_from_sim_lane_too(self):
+        # Spans-both-sides denies regardless of active lane -- a repo-root
+        # recursive search reaches the denied side whichever lane it is.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": str(REPO_ROOT), "pattern": "**/*.py"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_span_denial_is_logged(self):
+        assert not DENIAL_LOG.exists()
+        _run(
+            {"tool_name": "Glob", "tool_input": {"path": str(REPO_ROOT), "pattern": "**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert DENIAL_LOG.exists()
+        entry = json.loads(DENIAL_LOG.read_text().strip().splitlines()[-1])
+        assert entry["lane"] == "supplier"
+        assert entry["tool_name"] == "Glob"
+
+    def test_anchored_allowed_side_recursive_glob_still_passes(self):
+        # Non-regression / false-positive guard: an anchored recursive glob
+        # on the caller's OWN side of the wall ("company/**/*.py") is confined
+        # to the allowed side and must still pass -- only ROOT-spanning
+        # searches ("." or leading "**") are the class being closed.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"path": "company", "pattern": "**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_anchored_allowed_side_recursive_grep_still_passes(self):
+        result = _run(
+            {"tool_name": "Grep", "tool_input": {"pattern": "def foo", "path": "company/pricing"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
     def test_unreadable_marker_file_still_fails_open_but_now_warns(self, tmp_path):
         # Finding 7: still fails open (this is a soft dev-time pilot, not
         # the runtime wall) but now logs a visible warning rather than
