@@ -33,10 +33,27 @@ two exclusions are declared EXPLICITLY with reasons (no silent cap — see
 EXCLUDED_SUBPATHS); a test asserts what was skipped so the exclusion can never
 degrade into a silent blind spot.
 
-R15 compliance: this control can FAIL — test_control_fires_on_stripped_disclosure
-mutates a real surface (strips its disclosure tokens) and proves the check flags
-it, and test_control_does_not_fail_open proves a missing/empty surface is treated
-as a violation (an unavailable check is a FAILED check), not silently passed.
+R15 compliance: this control can FAIL —
+  * test_control_fires_on_stripped_disclosure mutates a real surface (strips its
+    disclosure tokens) and proves the check flags it;
+  * test_control_does_not_fail_open_on_new_undisclosed_surface proves a NEW live
+    net-margin surface with no disclosure is caught by auto-discovery;
+  * test_control_does_not_fail_open_on_missing_expected_surface proves the exact
+    fail-silent hole R15 pattern 3 names — an EXPECTED net-margin surface that
+    goes missing/empty/loses its net-margin figure (a truncated or broken deploy)
+    is treated as a VIOLATION, not silently passed. Auto-discovery alone cannot
+    catch this: a surface that renders nothing is invisible to a content glob, so
+    the core control now carries an explicit expected-surface registry
+    (EXPECTED_NET_MARGIN_SURFACES) whose absence fails the check. An unavailable
+    check is a FAILED check.
+
+Red-team note (2026-07-27, HARDEN self-refill draw): before this pass the module
+docstring CLAIMED a `test_control_does_not_fail_open` proved missing/empty = a
+violation, but no such test existed and net_margin_surfaces_missing_disclosure
+did the opposite — it `continue`d past an empty file (skip = pass). An emptied
+company/index.html produced zero violations while a headline reporting surface
+was blank. That advertised-but-unimplemented guarantee (R15 theatre) is now real
+code + a mutation test, not prose.
 """
 import re
 from pathlib import Path
@@ -75,19 +92,36 @@ EXCLUDED_SUBPATHS = {
                 "linked from any live nav; not a user-facing reporting surface",
 }
 
+# Live surfaces that MUST render a net-margin figure. Auto-discovery (a content
+# glob) cannot notice a surface that has gone blank — an emptied/truncated deploy
+# renders no net-margin token and simply drops out of the discovered set, passing
+# the disclosure scan silently. So the core control also asserts these surfaces
+# are PRESENT, non-empty and still rendering their figure; an unavailable expected
+# surface is a VIOLATION (R15 fail-silent doctrine — an unavailable check has
+# FAILED, not succeeded). Kept in lockstep with the must_include set below.
+EXPECTED_NET_MARGIN_SURFACES = (
+    "project/index.html",
+    "customers/index.html",
+    "company/index.html",   # the nav-linked surface the four-item hand-registry missed
+)
+
 
 def _is_excluded(path: Path) -> bool:
     p = "/" + path.as_posix()
     return any(sub in p for sub in EXCLUDED_SUBPATHS)
 
 
-def net_margin_surfaces_missing_disclosure(site_root: Path):
+def net_margin_surfaces_missing_disclosure(site_root: Path, expected=()):
     """Return a list of (path, reason) for every LIVE reporting surface that
     renders a net-margin figure without a clock/basis disclosure.
 
-    A surface that cannot be read (missing / empty) is a VIOLATION, not a pass —
-    a control that cannot inspect its subject has FAILED, it has not succeeded
-    (R15 fail-silent doctrine).
+    ``expected`` is a tuple of site-relative paths that MUST render a net-margin
+    figure. Each is checked for presence / non-emptiness / a net-margin token; an
+    expected surface that cannot be inspected (missing, empty, or no longer a
+    net-margin surface) is a VIOLATION, not a pass — a control that cannot inspect
+    its subject has FAILED, it has not succeeded (R15 fail-silent doctrine). A
+    content glob alone cannot catch this: a blank surface renders no token and
+    silently drops out of discovery, which is exactly the hole this closes.
     """
     violations = []
     for path in sorted(site_root.rglob("*.html")):
@@ -99,10 +133,27 @@ def net_margin_surfaces_missing_disclosure(site_root: Path):
             violations.append((path, "unreadable"))
             continue
         if not text.strip():
-            # An empty live surface that is meant to render is a failed check.
+            # An empty file carries no net-margin token, so the disclosure scan
+            # cannot judge it. Emptiness of an EXPECTED surface is caught below
+            # (fail-closed); a non-expected empty page is legitimately skipped.
             continue
         if NET_MARGIN_KEY.search(text) and not DISCLOSURE.search(text):
             violations.append((path, "renders a net-margin figure with no clock/basis disclosure"))
+
+    # Fail-silent guard: every expected surface must be present, non-empty and
+    # still rendering its net-margin figure. This is the check auto-discovery
+    # cannot perform (a blank surface is invisible to a content glob).
+    for rel in expected:
+        p = site_root / rel
+        try:
+            text = p.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            violations.append((p, "expected net-margin surface missing/unreadable — fail-silent guard"))
+            continue
+        if not text.strip():
+            violations.append((p, "expected net-margin surface is empty — fail-silent guard"))
+        elif not NET_MARGIN_KEY.search(text):
+            violations.append((p, "expected net-margin surface no longer renders its net-margin figure — fail-silent guard"))
     return violations
 
 
@@ -125,7 +176,7 @@ def test_all_live_net_margin_surfaces_carry_a_clock_disclosure():
     """E2 core invariant, mechanised: EVERY live reporting surface rendering a
     net-margin figure carries its R14 clock/basis disclosure."""
     assert SITE.is_dir(), f"site root not found: {SITE}"
-    violations = net_margin_surfaces_missing_disclosure(SITE)
+    violations = net_margin_surfaces_missing_disclosure(SITE, expected=EXPECTED_NET_MARGIN_SURFACES)
     assert not violations, (
         "E2 revenue-reconciliation invariant violated — net-margin figure(s) "
         "rendered without a clock/basis disclosure:\n"
@@ -198,6 +249,53 @@ def test_control_does_not_fail_open_on_new_undisclosed_surface(tmp_path):
     assert any("newpage" in p.as_posix() for p, _ in violations), (
         "fail-open: an undisclosed new net-margin surface slipped the control"
     )
+
+
+def test_control_does_not_fail_open_on_missing_expected_surface(tmp_path):
+    """R15 fail-silent (pattern 3): an EXPECTED net-margin surface that goes
+    missing / empty / loses its net-margin figure — a truncated or broken deploy
+    that renders a blank page — is invisible to a content glob, so it must be
+    caught by the expected-surface registry, not silently passed.
+
+    Both directions proven: a present, compliant surface yields NO violation; the
+    same surface emptied yields a violation naming it.
+    """
+    fake_site = tmp_path / "site"
+    (fake_site / "company").mkdir(parents=True)
+    good = fake_site / "company" / "index.html"
+    good.write_text(
+        "<html><body>net_margin_gbp <span class='basisNote'>settled clock</span></body></html>",
+        encoding="utf-8",
+    )
+    expected = ("company/index.html",)
+    assert net_margin_surfaces_missing_disclosure(fake_site, expected=expected) == [], (
+        "precondition: a present compliant expected surface must not be flagged"
+    )
+
+    # MUTATION: emptied deploy — the net-margin figure is gone, the file is blank.
+    good.write_text("", encoding="utf-8")
+    violations = net_margin_surfaces_missing_disclosure(fake_site, expected=expected)
+    assert any("company/index.html" in p.as_posix() and "fail-silent" in why
+               for p, why in violations), (
+        "R15 fail-silent: an emptied expected net-margin surface slipped the control"
+    )
+
+    # MUTATION: removed entirely — missing file is also a failed check.
+    good.unlink()
+    violations = net_margin_surfaces_missing_disclosure(fake_site, expected=expected)
+    assert any("company/index.html" in p.as_posix() for p, _ in violations), (
+        "R15 fail-silent: a missing expected net-margin surface slipped the control"
+    )
+
+
+def test_expected_surfaces_track_the_discovery_registry():
+    """The fail-silent registry (EXPECTED_NET_MARGIN_SURFACES) and the discovery
+    must_include set are the SAME real live surfaces; keep them in lockstep so a
+    surface can never be dropped from one without the other noticing."""
+    discovered = {p.relative_to(SITE).as_posix() for p in _discovered_live_surfaces(SITE)}
+    for rel in EXPECTED_NET_MARGIN_SURFACES:
+        assert (SITE / rel).is_file(), f"expected net-margin surface absent from live site: {rel}"
+        assert rel in discovered, f"expected surface not discovered as a net-margin surface: {rel}"
 
 
 def test_excluded_debug_surface_is_not_falsely_flagged(tmp_path):
