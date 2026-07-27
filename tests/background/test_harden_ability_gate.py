@@ -34,6 +34,23 @@ def test_has_harden_surface_predicate():
     assert S._has_harden_surface(_atom("d", 3, 3, evidence=["saas/x.py", "tests/test_x.py"])) is True
     # a test_*.py anywhere also counts
     assert S._has_harden_surface(_atom("e", 3, 3, evidence=["tools/test_thing.py"])) is True
+    # `*_test.py` suffix convention also counts
+    assert S._has_harden_surface(_atom("f", 3, 3, evidence=["saas/pricing_test.py"])) is True
+
+
+def test_has_harden_surface_rejects_substring_test_false_positives():
+    """R15 word-boundary red-team (2026-07-27, H1 self-HARDEN): a non-test .py file
+    whose NAME merely CONTAINS the letters "test" (latest/contest/protest/greatest)
+    must NOT qualify as a harden-able surface. The old `"test" in s.lower()` substring
+    check false-qualified all of these (proven: it returned True). The mutation that
+    reverts the guard to the loose substring reds THIS test and nothing else."""
+    for name in ["background/generate_latest.py", "saas/contest_pricing.py",
+                 "company/protest_handler.py", "tools/greatest_hits.py",
+                 "detestable_config.py"]:
+        assert S._has_harden_surface(_atom("x", 3, 3, evidence=[name])) is False, name
+    # ...while genuine test files (both naming conventions, at any depth) still qualify
+    for name in ["test_x.py", "a/b/test_deep.py", "a/foo_test.py"]:
+        assert S._has_harden_surface(_atom("x", 3, 3, evidence=[name])) is True, name
 
 
 def test_criticality_weight_structural_only():

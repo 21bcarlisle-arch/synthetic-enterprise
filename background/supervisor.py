@@ -1503,7 +1503,14 @@ def _has_harden_surface(a: dict) -> bool:
         s = str(e)
         if s.startswith("tests/") or "/tests/" in s:
             return True
-        if "test" in s.lower() and s.endswith(".py"):
+        # A test FILE: a WORD-BOUNDARIED `test`/`tests` token (delimited by start,
+        # `/` or `_`) in a `.py` path -- NOT a loose `"test" in s` substring, which
+        # false-qualifies non-test .py files whose NAME merely contains the letters
+        # (`latest.py`, `contest_pricing.py`, `protest_handler.py` all matched the old
+        # check) -- the same word-boundary false-positive class as the 2026-07-27
+        # E2E->E2 commit-parser fix. Safe-side either way (this is a SOFT preference,
+        # never a gate), but a tighter predicate spends idle HARDEN effort truer.
+        if s.endswith(".py") and re.search(r"(?:^|[/_])tests?(?:[_./]|$)", s.lower()):
             return True
     return False
 
