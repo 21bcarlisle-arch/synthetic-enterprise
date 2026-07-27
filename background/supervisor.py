@@ -1607,6 +1607,47 @@ def record_harden_pass(atom_id: str, path: Path | None = None,
     return Path(p)
 
 
+# A staged [DIRECTOR-RULING] / [STEER] header, in ANY bracketed tag that ENDS in RULING or STEER
+# (matches [DIRECTOR-RULING], [STEER], [ADVISOR-STEER], [DIRECTOR-STEER]). Content detection is the
+# R7-correct primary signal (act on real content, not a filename a daemon could spoof).
+_DIRECTOR_RULING_STEER_HEADER_RE = re.compile(r"\[[A-Z0-9 _-]*(?:RULING|STEER)\]", re.IGNORECASE)
+
+
+def _unconsumed_director_ruling_or_steer(staging_dir: Path | None = None) -> bool:
+    """True iff an UNCONSUMED staged [DIRECTOR-RULING] or [STEER] sits directly in docs/staging/
+    ROOT (NOT done/, in_progress/, fyi/, drafts/ -- those are consumed/parked).
+
+    DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27 §1+§3: a staged ruling/steer is RUNG 1
+    and must draw within ONE tick (§3); re-verifying at-target atoms (the RULE-0 HARDEN treadmill)
+    while a ruling NAMES undone work is the exact busywork-bias the ruling forbids (§1: 'with ... an
+    unminted ruling present, a HARDEN re-verify draw must FAIL'). So the HARDEN tier of
+    `_self_refill_draw()` is SUPPRESSED while such a ruling is unconsumed -- the ruling (already the
+    `find_work()` `primary` doorbell) then draws ALONE, never appended-to as
+    'ALSO -- RULE 0 self-refill ... HARDEN'. This reproduces + fixes the 2026-07-27 08:23-10:25 state
+    (twelve HARDEN re-verifies while one director ruling sat unconsumed for 55 minutes).
+
+    Detection is by CONTENT header first (R7: real content, a daemon-marker filename cannot spoof a
+    ruling), with a filename-convention fallback for the naming every ruling/steer uses. Daemon
+    markers (run_complete_*.md etc.) are excluded via `_is_daemon_marker`. FAIL-SAFE toward the map,
+    not the ruling: an unreadable/absent staging dir returns False (HARDEN stays available -- the
+    anti-idleness direction), matching every other draw helper's fail-safe here."""
+    d = staging_dir or STAGING_DIR
+    try:
+        files = [p for p in Path(d).glob("*.md") if not _is_daemon_marker(p.name)]
+    except OSError:
+        return False
+    for p in files:
+        if p.name.startswith(("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_")):
+            return True
+        try:
+            head = p.read_text(encoding="utf-8")[:600]
+        except OSError:
+            continue
+        if _DIRECTOR_RULING_STEER_HEADER_RE.search(head):
+            return True
+    return False
+
+
 def _rule0_harden_draw(rng: Any = None) -> dict | None:
     """RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): the default state of
     the company is WORKING; an empty feasible set is a DEFECT IN THE DIALS, not a
@@ -2928,6 +2969,22 @@ def _self_refill_draw() -> str | None:
             "(director ruling WORK_IS_THE_DEFAULT 2026-07-23)")
         return planner_item
 
+    # §1+§3 SUPPRESSION (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27): before the
+    # RULE-0 HARDEN floor, check for an unconsumed staged [DIRECTOR-RULING]/[STEER]. If one is
+    # present it is RUNG 1 (`find_work`'s `primary`) and MUST draw within one tick (§3); re-verifying
+    # at-target atoms while a ruling names undone work is the busywork-bias the ruling forbids (§1).
+    # Return None so the ruling draws ALONE -- never appended to as 'ALSO -- RULE 0 self-refill ...
+    # HARDEN'. Placed HERE (the caller), not in `_rule0_harden_draw`, so the pure draw stays testable
+    # without STAGING_DIR isolation (test_harden_ability_gate reads the real docs/staging/): the
+    # suppression is a CALLER-level rung-order rule, not a property of the at-target pick itself.
+    # R15 reproduces the 2026-07-27 08:23-10:25 state (HARDEN candidate + unconsumed ruling -> None).
+    if _unconsumed_director_ruling_or_steer():
+        log(
+            "RULE 0 HARDEN tier SUPPRESSED: an unconsumed staged [DIRECTOR-RULING]/[STEER] is RUNG 1 "
+            "and must draw first -- re-verifying at-target atoms while a ruling names undone work is "
+            "the busywork-bias DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27 §1+§3 forbids"
+        )
+        return None
     # RULE 0 (2026-07-14, director, THE PRIME DIRECTIVE): an empty feasible set
     # is a DEFECT IN THE DIALS, not a reason to hold. Every below-target lane and
     # the backlog are empty -> yield the below-target dial and draw HARDEN/red-

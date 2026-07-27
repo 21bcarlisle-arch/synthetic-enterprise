@@ -2236,6 +2236,68 @@ def test_self_refill_none_only_on_genuinely_empty_map(tmp_path):
     assert supervisor._self_refill_draw() is None
 
 
+# ── §1+§3 HARDEN tier SUPPRESSED while a staged [DIRECTOR-RULING]/[STEER] is unconsumed ─────────
+# DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27: reproduce the 08:23-10:25 state -- a
+# HARDEN candidate (an at-target atom) AND an unconsumed staged director ruling BOTH present. The
+# ruling is RUNG 1 (find_work's `primary`) and must draw within one tick (§3); re-verifying at-target
+# atoms while a ruling names undone work is the busywork-bias the ruling forbids (§1: 'with ... an
+# unminted ruling present, a HARDEN re-verify draw must FAIL'). Mutation-proven BOTH ways: ruling
+# present -> _self_refill_draw returns None (the ruling draws alone as find_work's primary); ruling
+# removed -> the HARDEN floor draws again (the floor is not broken, only correctly gated).
+_ONE_AT_TARGET_HARDEN_MAP = (
+    "- id: A_done\n  level_current: 3\n  level_target: 3\n  loop_stage: build\n"
+    "  dial_inherited: 3\n  file_scope: [company/x.py]\n"
+)
+
+
+def test_harden_suppressed_while_staged_director_ruling_unconsumed(tmp_path):
+    """R15 (reproduces 2026-07-27 08:23-10:25): an at-target HARDEN candidate + an unconsumed staged
+    [DIRECTOR-RULING] both present -> _self_refill_draw() must NOT return a HARDEN doorbell. The
+    ruling is RUNG 1; appending HARDEN as 'ALSO' is the exact busywork-bias the ruling forbids."""
+    _write_map(tmp_path, _ONE_AT_TARGET_HARDEN_MAP)
+    # both-ways teeth: with NO staged ruling the HARDEN floor DOES fire (the control can fire).
+    assert "HARDEN" in (supervisor._self_refill_draw() or "")
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_SOMETHING_2026-07-27.md").write_text(
+        "# [DIRECTOR-RULING] -- names undone work\nbody"
+    )
+    assert supervisor._self_refill_draw() is None
+    assert supervisor._unconsumed_director_ruling_or_steer() is True
+
+
+def test_harden_suppression_is_content_driven_not_only_filename(tmp_path):
+    """R7/content-driven: a file NOT named DIRECTOR_RULING_* but carrying a [STEER]/[DIRECTOR-RULING]
+    header still suppresses HARDEN; a plain staged doc with no tag does NOT (the floor still fires)."""
+    _write_map(tmp_path, _ONE_AT_TARGET_HARDEN_MAP)
+    (supervisor.STAGING_DIR / "misc_note.md").write_text("just an ordinary note, no tag at all")
+    assert "HARDEN" in (supervisor._self_refill_draw() or "")   # ordinary doc -> HARDEN still draws
+    (supervisor.STAGING_DIR / "some_advisor_input.md").write_text(
+        "# [ADVISOR-STEER] carrying the director's steer\nnames work"
+    )
+    assert supervisor._self_refill_draw() is None               # header alone suppresses
+
+
+def test_harden_suppression_ignores_parked_and_archived_rulings(tmp_path):
+    """A ruling PARKED in in_progress/ or archived to done/ is consumed -> it does NOT suppress
+    HARDEN (only staging ROOT counts). Prevents a stale archived ruling silencing the floor forever
+    -- the fail-safe direction is toward WORK, so a consumed ruling must not gate the treadmill."""
+    _write_map(tmp_path, _ONE_AT_TARGET_HARDEN_MAP)
+    for sub in ("in_progress", "done"):
+        d = supervisor.STAGING_DIR / sub
+        d.mkdir()
+        (d / "DIRECTOR_RULING_OLD_2026-07-01.md").write_text("# [DIRECTOR-RULING] old\nx")
+    assert supervisor._unconsumed_director_ruling_or_steer() is False
+    assert "HARDEN" in (supervisor._self_refill_draw() or "")
+
+
+def test_harden_suppression_ignores_daemon_markers(tmp_path):
+    """A run_complete_*.md daemon marker in staging root is NOT a ruling -> it must not suppress the
+    HARDEN floor (that marker self-processes on the daemon's own cadence, it names no undone work)."""
+    _write_map(tmp_path, _ONE_AT_TARGET_HARDEN_MAP)
+    (supervisor.STAGING_DIR / "run_complete_20260727T120000Z.md").write_text("routine run marker")
+    assert supervisor._unconsumed_director_ruling_or_steer() is False
+    assert "HARDEN" in (supervisor._self_refill_draw() or "")
+
+
 # ── DRAINED-AND-GATED quiet wait (ADVISOR_STEER_IDLE_TREADMILL..._2026-07-18, item 1) ──────────
 # The mechanism: when the map is DRAINED of below-target work and the remainder is blocked on a
 # director act, find_work returns a THIRD state (None, map_exhausted=False) -- a quiet wait -- so

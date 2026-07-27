@@ -1,3 +1,33 @@
+<!-- CONTINUATION BANNER (worker tick 2026-07-27) — this ruling is PARTIALLY ABSORBED; it stays in
+staging ROOT (genuine open work) so the tick keeps drawing it, and its own §1+§3 mechanism now keeps
+the RULE-0 HARDEN treadmill SUPPRESSED while it is unconsumed (so no busywork masks the remaining work).
+WORK THIS CREATES — progress:
+  [DONE] Item 1 — §1 HARDEN demotion + §3 rung-order: RULE-0 HARDEN tier SUPPRESSED while an
+         unconsumed staged [DIRECTOR-RULING]/[STEER] is present (background/supervisor.py::
+         _unconsumed_director_ruling_or_steer + the guard in _self_refill_draw). R15 mutation-proven
+         BOTH ways (test_supervisor.py: test_harden_suppressed_while_staged_director_ruling_unconsumed,
+         _is_content_driven_not_only_filename, _ignores_parked_and_archived_rulings, _ignores_daemon_
+         markers). Reproduces the exact 2026-07-27 08:23-10:25 state as a failing test. 211 supervisor/
+         harden/planner tests green.
+  [OPEN] Item 2 — §2 rung-7 mint-source extension to rulings/steers + the retrospective mints
+         (merit-order/gas-first price reconstruction = the SSP-hold unblock + Board Spec 004
+         reconstructibility; DD seasonal cash-flow FRAME; site evidence-pages-behind-diagram). Lane:
+         harness (mint source) + product (the retrospective atoms). Director tag: DO THIS FIRST of the
+         remainder — unblocks product today.
+  [OPEN] Item 3 — §3 rung-1 ordering test at find_work level (a HARDEN candidate + an unconsumed
+         staged ruling -> the ruling's `primary` wins and no HARDEN is appended as 'ALSO'). Partially
+         covered by item 1's suppression; add the find_work-level assertion to close it explicitly.
+  [OPEN] Item 4 — §4 "WORK THIS CREATES" parser + the missing-block defect report (binds the advisor:
+         a ruling arriving without the block is a defect — say so and request it). Lane: harness.
+  [OPEN] Item 5 — §5 one BACKLOG surface of named-and-not-done (source/atom-or-"unminted"/lane/status/
+         age), published with observability, read by the daily note; first output = the current
+         named-but-unminted enumeration. Lane: harness/observability.
+  [OPEN] Item 6 — §6 COHERENCE BY DERIVATION (THE_MODEL_ON_A_PAGE = truth; node stage COMPUTED from
+         atom levels; site renders from the derivation; publish fails on model/diagram/site/map
+         disagreement). LARGEST — the ruling authorizes PHASING; propose the phase plan before building.
+Each remaining item: failing test FIRST, own commit, shadow rail on any scanner/publish-gate change.
+-->
+
 # [DIRECTOR-RULING] — Work definition and coherence: rulings must create atoms; model, diagram, site and map must DERIVE from one truth (2026-07-27)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Six parts. Addresses today's HARDEN treadmill and its cause.
