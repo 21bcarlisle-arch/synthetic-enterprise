@@ -88,5 +88,22 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # excluded by `to_customer_dict()` (wall). Still behind the default-OFF flag:
     # this only prepares the tested seam; flipping the flag remains the held,
     # director-reserved release rung.
-    drawn = [sc.to_customer_dict() for sc in draw_population(seed, draw_region=True)]
+    #
+    # assign_cohorts=True (CA1, DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED §1,
+    # curriculum act committed e685eb76d, tag proceed; go/no-go on record in
+    # docs/design/CA4_COHORT_ACTIVATION_SEQUENCING_VERDICT.md): each drawn
+    # household carries its SIM-truth cohort (tenure-tilted accommodation/cars/
+    # nssec joint + region-pinned heating + curriculum-drawn green_stance/
+    # price_sensitivity/channel_pref at RATIFIED values — no tuning, R13). This
+    # rides on the HIDDEN `SyntheticCustomer.cohort`; `to_customer_dict()` still
+    # omits it, so the saas-shaped OBSERVABLE stream stays byte-identical to the
+    # no-cohort case (§2 elicitation wall — the company discovers, never reads,
+    # cohort structure). `assign_cohort()` draws from its OWN named substream so
+    # this cannot perturb the acquisition draw (C-S2). The wall is RE-PROVEN to
+    # fire post-activation in test_wall_drawn_book_never_exposes_ground_truth_
+    # cohort, which now asserts cohorts ARE assigned yet NEVER surface.
+    drawn = [
+        sc.to_customer_dict()
+        for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
+    ]
     return list(CUSTOMERS) + drawn

@@ -85,6 +85,81 @@ def test_wall_drawn_book_never_exposes_ground_truth_cohort(monkeypatch):
         assert "cohort" not in c
 
 
+def test_seam_requests_cohorts_load_bearing(monkeypatch):
+    """CA1 LOAD-BEARING (R15 both-ways): the wall makes the flip UNOBSERVABLE in
+    the returned dicts by construction, so the wall test alone cannot prove the
+    seam actually activated cohorts. Spy on the draw the seam performs and assert
+    it passes `assign_cohorts=True`. MUTATION: revert the flip (or its value) and
+    this fires — the assertion is not derivable from the seam's output.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+
+    import simulation.population_draw as pdmod
+
+    captured = {}
+    real_draw = pdmod.draw_population
+
+    def _spy(seed, **kwargs):
+        captured.update(kwargs)
+        return real_draw(seed, **kwargs)
+
+    # The seam imports draw_population LOCALLY from this module, so patch the name
+    # at its source (simulation.population_draw) where the local import resolves it.
+    monkeypatch.setattr(pdmod, "draw_population", _spy)
+
+    lp.live_population()
+
+    assert captured.get("assign_cohorts") is True, (
+        "the live seam must draw with assign_cohorts=True (CA1 activation); "
+        f"observed kwargs={captured}"
+    )
+    # The region activation (prior rung) is undisturbed by CA1.
+    assert captured.get("draw_region") is True
+
+
+def test_wall_re_proven_post_cohort_activation(monkeypatch):
+    """CA1 (DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED §1): after the live seam
+    activates `assign_cohorts=True`, the wall must be RE-PROVEN to fire — i.e. the
+    'no cohort in any dict' guarantee must hold precisely BECAUSE cohorts are now
+    assigned, not because there is nothing to leak (that would be a tautological,
+    R15-pattern-1 fail-open control).
+
+    Both halves, tied to the SAME seed the seam uses:
+      1. LOAD-BEARING: the underlying SIM-truth draw the seam consumes DOES carry
+         a non-None cohort on every SYN customer (activation is live).
+      2. WALL: none of those cohorts reaches any dict the seam returns.
+    """
+    from simulation.population_draw import draw_population
+
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+
+    # (1) The SIM-truth objects behind the seam, drawn with the seam's own seed +
+    #     flags, all carry a cohort — so the wall has something real to hide.
+    sim_truth = draw_population(
+        lp._DEFAULT_BASE_SEED, draw_region=True, assign_cohorts=True
+    )
+    assert sim_truth, "activation must draw at least one synthetic customer"
+    assert all(sc.cohort is not None for sc in sim_truth), (
+        "post-activation every drawn SyntheticCustomer must carry a ground-truth "
+        "cohort — otherwise the wall test below is vacuous"
+    )
+
+    # (2) The observable book the seam returns: the SYN-* dicts correspond 1:1 to
+    #     those cohort-bearing objects, yet NONE exposes the cohort (nor any of its
+    #     hidden fields). The company sees only saas-shaped observables.
+    book = lp.live_population()
+    syn = [c for c in book if c["customer_id"].startswith("SYN-")]
+    assert len(syn) == len(sim_truth), (
+        "the observable SYN-* stream must be 1:1 with the cohort-bearing draw"
+    )
+    hidden_fields = {"cohort", "green_stance", "price_sensitivity", "channel_pref",
+                     "tenure", "accommodation", "cars", "nssec"}
+    for c in syn:
+        assert not (hidden_fields & c.keys()), (
+            f"wall breach: {hidden_fields & c.keys()} leaked into an observable dict"
+        )
+
+
 def test_seam_module_does_not_import_company():
     """Wall hygiene: the seam bridges sim<->saas only; it must not import any
     company logic (that would be a discovery-side read of a supply-side book)."""

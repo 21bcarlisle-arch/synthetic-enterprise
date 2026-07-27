@@ -1,0 +1,52 @@
+{
+  "_doc": "CA3 — fidelity ledger of volume-dependent SEGMENTATION capabilities, each explicitly marked UNTESTABLE-at-current-book with its named unlock. Source: DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27 §2 (world-side variety activated, company-side segmentation stays untestable) + DIRECTOR_RULING_POOL_VS_BOOK_LAMBDA_STANDS_2026-07-27 (an untestable organ must be RECORDED untestable, not scored as working). Activation of pool variety (CA1) is NOT testability of the book — this ledger holds that line. Gate + R15 both-ways: background/segmentation_testability_ledger.py.",
+  "min_book_note": "min_book_for_testability is the NECESSARY floor: the ~12-cell price_sensitivity×tenure value knee (simulation/population_coverage.py) at the director's >=3-households-per-protected-cell tail floor => 12 * 3 = 36. Necessary, not sufficient (uneven marginals need more). A capability marked testable at a book below its floor is a claim-status defect; the gate reds on it. The book cannot cross this floor until acquisition is a decision variable, so the mechanical floor and the human unlock below coincide.",
+  "current_book_size_source": "saas.customers.CUSTOMERS (static book). The gate is called WITH the book size, never reads it, so it stays a pure function (independence, R15 pattern-1).",
+  "capabilities": [
+    {
+      "id": "segment_cell_coverage_book",
+      "name": "~12-cell value-knee coverage of the actual BOOK",
+      "description": "The company's real customer book populates the price_sensitivity x tenure ~12-cell value knee densely enough that per-cell statistics are meaningful. Distinct from the POOL coverage report (CA2), which draws N=200 world-side — this is the book the company actually serves.",
+      "testable_at_current_book": false,
+      "min_book_for_testability": 36,
+      "reason": "18-customer book cannot populate 12 cells at the >=3-per-cell floor; most cells are empty or singletons, so any per-cell segmentation statistic is noise.",
+      "unlock": "acquisition becomes a decision variable — director growth/leverage session, registered as that session's FIRST item (DIRECTOR_RULING_POOL_VS_BOOK_LAMBDA_STANDS_2026-07-27). Do NOT build the acquisition organ ahead of that session."
+    },
+    {
+      "id": "per_segment_clv",
+      "name": "Per-segment customer lifetime value",
+      "description": "Stable CLV / cohort-economics estimates per segment cell (mean margin, retention-weighted value) that could drive segment-level investment or pricing.",
+      "testable_at_current_book": false,
+      "min_book_for_testability": 36,
+      "reason": "A per-segment CLV mean over 0-2 customers/cell has no sampling stability; the estimate is dominated by individual idiosyncrasy, not segment structure.",
+      "unlock": "acquisition becomes a decision variable — director growth/leverage session (first item)."
+    },
+    {
+      "id": "per_segment_churn_rate",
+      "name": "Per-segment churn / retention rate",
+      "description": "Segment-level churn or retention rates measured against SIM ground truth (belief-vs-truth gap per segment).",
+      "testable_at_current_book": false,
+      "min_book_for_testability": 36,
+      "reason": "Churn is a rare per-customer event; per-segment rates over singleton cells cannot distinguish signal from a single departure. The gap metric would score noise.",
+      "unlock": "acquisition becomes a decision variable — director growth/leverage session (first item)."
+    },
+    {
+      "id": "per_segment_cost_to_serve",
+      "name": "Per-segment activity-based cost-to-serve",
+      "description": "Cost-to-serve differentiation by segment (activity-based pricing lens: flat margin makes some customers net-negative — CLAUDE.md). Requires enough per-cell customers to separate segment effect from individual cost variance.",
+      "testable_at_current_book": false,
+      "min_book_for_testability": 36,
+      "reason": "18 customers cannot separate a segment-level cost-to-serve effect from per-customer variance; the differentiation would be fitted to individuals, not segments.",
+      "unlock": "acquisition becomes a decision variable — director growth/leverage session (first item)."
+    },
+    {
+      "id": "segment_pricing_differentiation",
+      "name": "Segment-differentiated pricing validated against outcomes",
+      "description": "Pricing decisions differentiated by segment and validated against realised segment outcomes (switching, margin, satisfaction).",
+      "testable_at_current_book": false,
+      "min_book_for_testability": 36,
+      "reason": "Outcome validation per segment needs a populated book; at 18 customers a segment-differentiated price cannot be A/B-evaluated against a segment cohort that does not exist.",
+      "unlock": "acquisition becomes a decision variable — director growth/leverage session (first item)."
+    }
+  ]
+}
