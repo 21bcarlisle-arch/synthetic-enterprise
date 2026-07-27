@@ -70,6 +70,42 @@ def test_smoothed_engine_fires_the_gate(real_data):
         assert_tail_not_smoothed(demo)
 
 
+def test_autocorrelation_alone_is_load_bearing(real_data):
+    """W1_3 headline invariant, ISOLATED (R15 independence): the atom's DoD is
+    'temporal autocorrelation is physics not noise -- cold spells and still spells
+    LAST'. `test_smoothed_engine_fires_the_gate` mutes phi COMPOUNDED with the
+    stressed covariance and the regime transition, so it cannot prove the AR1
+    persistence control fires on its OWN named defect (a compound mutation can pass
+    on any one lever collapsing -- the killer pattern R15 exists to forbid).
+
+    Here ONLY the autocorrelation is killed (phi -> 0 for every macro var) while
+    the stressed season covariance AND regime are left fully intact. A joint
+    cold-and-still WEEK requires the residuals to persist across the window; strip
+    the persistence and the worst synthetic winter week collapses to ~0 even with
+    the coupling untouched -- the envelope can no longer reach the real tail and
+    the gate FIRES. This isolates persistence from cross-sectional coupling: both
+    are independently necessary, neither is decorative."""
+    nat, doy, dates = real_data
+    params = fit_national_macro_model(nat, doy)
+
+    # Sanity: the healthy engine (all controls live) reaches the real tail.
+    healthy = demonstrate_tail(nat, doy, dates, n_sims=25, seed=42, macro_params=params)
+    assert healthy.envelope_reaches_real is True
+
+    no_persistence = copy.deepcopy(params)
+    for v in no_persistence["phi"]:
+        no_persistence["phi"][v] = 0.0  # ISOLATED: kill autocorrelation ONLY
+    # covariance + regime deliberately untouched -- the coupling is still there.
+    assert np.array_equal(
+        no_persistence["cov"]["stressed"], params["cov"]["stressed"]
+    )
+
+    demo = demonstrate_tail(nat, doy, dates, n_sims=25, seed=42, macro_params=no_persistence)
+    assert demo.envelope_reaches_real is False
+    with pytest.raises(TailSmoothedError):
+        assert_tail_not_smoothed(demo)
+
+
 # --------------------------------------------------------------------------
 # JOINT, not two marginals -- the product metric
 # --------------------------------------------------------------------------
