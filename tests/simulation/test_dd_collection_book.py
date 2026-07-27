@@ -367,3 +367,64 @@ class TestOutcomeSequenceMatchesGroundTruth:
         dd_outcomes = [a.outcome for a in book.attempts_for_customer("C1")]
         assert len(dd_outcomes) == 12
         assert all(o in ("collected", "failed") for o in dd_outcomes)
+
+
+class TestNoRenderedRailsDateEverLandsOnAWeekend:
+    """Population-level red-team (2026-07-27, HARDEN W5_1_banking_payment_
+    rails): the working-day cycle is unit-tested in test_bacs_rails.py, but
+    that proves only the helper -- not that the LIVE rendered book (the one
+    extract_dd_rails serves to the DD-rails business surface) never emits a
+    weekend rails date once every code path (mandate setup, collection,
+    ARUDD-lagged failure, amendment) has run over a real bill sweep. This is
+    the class-level guard (R10): a future change that lets ANY rendered rails
+    date land on a Saturday/Sunday fails here automatically, not only when a
+    hand-picked fixture happens to cross a weekend."""
+
+    def _sweep_dates(self, monkeypatch, seed):
+        import simulation.dd_collection_book as mod
+        monkeypatch.setattr(mod, "payment_method", lambda *a, **k: "direct_debit")
+        # 28 consecutive period-end days -> due dates (period_end + 14 days)
+        # and staggered collection days span every weekday, so every branch of
+        # _add_working_days is exercised on the real surface. HIGH stress so
+        # the ARUDD-lagged failure path (the extra working-day hop) is hit too.
+        # Distinct customer per bill so each also drives a mandate SETUP.
+        bills, behavioral = [], {}
+        for i in range(28):
+            cid = f"C{i:02d}"
+            period_end = (date(2020, 3, 1) + timedelta(days=i)).isoformat()
+            bills.append(_resi_bill(cid, period_end))
+            behavioral[cid] = {"income_stress_trajectory": [{"year": 2020, "stress": "HIGH"}]}
+        book = build_dd_collection_book(bills, behavioral, seed=seed)
+
+        rendered = []  # (label, iso_date) for every rails date on the surface
+        for m in book.all_mandates():
+            if m.setup_confirmed_date:
+                rendered.append(("setup_confirmed", m.setup_confirmed_date))
+            if m.last_amendment_confirmed_date:
+                rendered.append(("amendment_confirmed", m.last_amendment_confirmed_date))
+        for a in book.all_attempts():
+            rendered.append((f"attempt:{a.outcome}", a.attempt_date))
+        return rendered
+
+    def test_every_rendered_rails_date_is_a_working_day(self, monkeypatch):
+        # Sweep several seeds so the full success/failure mix (and thus the
+        # ARUDD lag branch) is covered, not just one RNG draw.
+        saw_setup = saw_attempt = saw_failed = False
+        for seed in range(8):
+            rendered = self._sweep_dates(monkeypatch, seed)
+            assert rendered, f"seed {seed}: book rendered no rails dates (fail-open guard)"
+            for label, iso in rendered:
+                wd = date.fromisoformat(iso).weekday()
+                assert wd < 5, f"seed {seed}: {label} rails date {iso} is a weekend (weekday {wd})"
+                if label == "setup_confirmed":
+                    saw_setup = True
+                if label.startswith("attempt:"):
+                    saw_attempt = True
+                if label == "attempt:failed":
+                    saw_failed = True
+        # Non-vacuity: prove the sweep actually exercised the paths it claims
+        # to guard, so a future refactor that silently stops rendering these
+        # can't leave this test green-yet-empty.
+        assert saw_setup, "sweep never rendered a mandate setup_confirmed date"
+        assert saw_attempt, "sweep never rendered a collection attempt date"
+        assert saw_failed, "sweep never exercised the ARUDD-lagged failure path"
