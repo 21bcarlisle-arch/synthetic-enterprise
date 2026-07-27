@@ -30,6 +30,22 @@ def _ar1(n, mean, sd, phi, seed, tdf=None):
     return x + mean
 
 
+def _ar1_skewed(n, sd, phi, seed, direction):
+    """A heavy-tailed AR(1) with a ONE-SIDED spike tail: direction=+1 gives up-spikes
+    (right-skewed, like real UK energy scarcity), direction=-1 gives down-spikes
+    (left-skewed, like a negative-price-dominated crash regime). Same magnitude tail
+    either way -- only the SIDE differs -- so tail_ratio cannot tell them apart."""
+    rng = np.random.default_rng(seed)
+    t = rng.standard_t(df=3, size=n)
+    t = np.abs(t) * direction * 0.7 + rng.normal(0, 1, size=n) * 0.3  # asymmetric heavy tail
+    t = t / np.std(t)
+    x = np.zeros(n)
+    innov_sd = np.sqrt(1 - phi**2)
+    for i in range(1, n):
+        x[i] = phi * x[i - 1] + t[i] * innov_sd
+    return x / np.std(x, ddof=1) * sd
+
+
 def test_matching_generator_passes():
     """A generated series drawn from the SAME process as the reference agrees on
     every moment -> passes."""
@@ -91,6 +107,37 @@ def test_matching_heavy_tailed_generator_passes():
     heavy-tailed process as the reference agrees on tail_ratio too -> passes."""
     ref = _ar1(4000, mean=0.0, sd=1.0, phi=0.6, seed=1, tdf=3)
     gen = _ar1(2000, mean=0.0, sd=1.0, phi=0.6, seed=5, tdf=3)
+    v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
+    assert v.passed, v.diverging()
+
+
+def test_wrong_tail_direction_generator_fires():
+    """R15 (2026-07-27 HARDEN red-team): a generator that matches mean, volatility,
+    lag-1 persistence AND spike-tail MAGNITUDE (tail_ratio) but puts its heavy tail on
+    the WRONG SIDE -- down-spikes (negative-price-dominated) where the reference spikes
+    UP (scarcity) -- must FAIL on tail_skew. Before tail_skew was added this mirror-
+    imaged generator PASSED every check, because tail_ratio takes |deviation| and is
+    blind to direction. Direction is the risk-relevant axis: this atom's two named
+    stress features point opposite ways, so inverting them mis-states the risk."""
+    ref = _ar1_skewed(4000, sd=1.0, phi=0.6, seed=1, direction=+1)   # right-skewed (up spikes)
+    gen = _ar1_skewed(2000, sd=1.0, phi=0.6, seed=2, direction=-1)   # left-skewed (down spikes)
+    # match mean AND std to the reference by construction so ONLY the tail SIDE can differ
+    gen = (gen - gen.mean()) / np.std(gen, ddof=1) * np.std(ref, ddof=1) + ref.mean()
+    v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
+    assert not v.passed, v.diverging()
+    assert "tail_skew" in v.diverging()
+    # the blind-spot proof: mean, std AND tail_ratio all AGREE by construction (same
+    # magnitude tail) -- only the directional moment catches the inverted tail
+    assert "mean" not in v.diverging()
+    assert "std" not in v.diverging()
+    assert "tail_ratio" not in v.diverging()
+
+
+def test_matching_skew_direction_generator_passes():
+    """The directional moment must not false-fire: a generator drawn from the SAME
+    one-sided-tail process as the reference agrees on tail_skew too -> passes."""
+    ref = _ar1_skewed(4000, sd=1.0, phi=0.6, seed=1, direction=+1)
+    gen = _ar1_skewed(2000, sd=1.0, phi=0.6, seed=5, direction=+1)
     v = F.check_scenario_fidelity(gen, ref, n_boot=500, seed=7)
     assert v.passed, v.diverging()
 

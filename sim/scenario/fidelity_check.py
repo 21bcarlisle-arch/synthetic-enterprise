@@ -4,9 +4,12 @@ WHAT. A fidelity SANITY CHECK for the synthetic-futures generator: on the scenar
 where the generated distribution is *expected to agree* with real history (the
 `baseline_2025`-style preset), the generated return series must not statistically
 diverge from real 2016-2025 returns on shared distributional moments (mean,
-volatility, lag-1 autocorrelation, and spike-tail heaviness -- see `_tail_ratio`,
+volatility, lag-1 autocorrelation, spike-tail heaviness -- see `_tail_ratio`,
 added 2026-07-24 after a HARDEN red-team found the mean/std/autocorr set PASSES a
-Gaussian generator whose spike tail is grossly flat vs a heavy-tailed reference).
+Gaussian generator whose spike tail is grossly flat vs a heavy-tailed reference --
+and spike-tail DIRECTION -- see `_tail_skew`, added 2026-07-27 after a further
+red-team found the |deviation| tail_ratio PASSES a mirror-imaged tail of the same
+magnitude sitting on the wrong side).
 Design: SYNTHETIC_FUTURES_GENERATION_FRAME.md
 S3/S8 -- "reconcile to real distributional moments", using a BLOCK BOOTSTRAP of the
 real returns as the *reference*, not as a second generator to maintain.
@@ -89,11 +92,35 @@ def _tail_ratio(v: np.ndarray) -> float:
     return float(np.quantile(np.abs(v - np.mean(v)), 0.99) / s)
 
 
+def _tail_skew(v: np.ndarray) -> float:
+    """Spike DIRECTION: the signed tail asymmetry (99th-pct up-move + 1st-pct down-move)
+    in std units. `_tail_ratio` takes the ABSOLUTE deviation, so it is STRUCTURALLY BLIND
+    to which side the heavy tail sits on: a generator can match mean, volatility, lag-1
+    persistence AND tail_ratio magnitude yet put its extreme mass on the WRONG side
+    (mostly negative-price crashes where real UK energy returns spike UPWARD on scarcity,
+    or vice versa) and pass every other check -- the 2026-07-24 tail_ratio fix caught a
+    flattened tail but a mirror-imaged tail of the same magnitude still slips through.
+    Direction is risk-relevant precisely because this atom's two named stress features
+    point OPPOSITE ways (Dunkelflaute scarcity = up-spikes, negative-price days = down),
+    so a generator that inverts them mis-states the risk while matching every magnitude.
+    Dimensionless, sign-carrying: >0 right-skewed (up-spike dominated, like real energy),
+    <0 left-skewed, ~0 symmetric. High-quantile based for the same block-bootstrap
+    robustness rationale as tail_ratio (not raw 3rd-moment skewness, whose CIs are wide)."""
+    s = float(np.std(v, ddof=1))
+    if s == 0:
+        raise DegenerateSeriesError("zero std -- tail skew undefined")
+    dev = v - np.mean(v)
+    up = float(np.quantile(dev, 0.99))     # worst 1% up-move (positive)
+    down = float(np.quantile(dev, 0.01))   # worst 1% down-move (negative)
+    return (up + down) / s                 # cancels to ~0 if the two tails mirror
+
+
 MOMENTS: Dict[str, Callable[[np.ndarray], float]] = {
     "mean": _mean,
     "std": _std,
     "lag1_autocorr": _lag1_autocorr,
     "tail_ratio": _tail_ratio,
+    "tail_skew": _tail_skew,
 }
 
 
