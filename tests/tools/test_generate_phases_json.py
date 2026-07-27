@@ -138,6 +138,33 @@ def test_monotonic_test_progression_a_real_valid_later_higher_count_still_lands(
     assert result == [["2026-07-09", 16358], ["2026-07-11", 16500]]
 
 
+def test_monotonic_test_progression_stays_monotonic_when_input_out_of_date_order():
+    """R15 (2026-07-27, G1 HARDEN): the published series must be monotonic BY
+    DATE even when the caller passes entries out of chronological order --
+    `chronological` is reversed FILE order of the hand-maintained, concurrently
+    edited PROJECT_OVERVIEW.md, so a single out-of-newest-first entry is a real
+    hazard, not a hypothetical.
+
+    Here the later date (07-11) is iterated BEFORE the earlier date (07-10)
+    which carries a higher count. Applying the running max in iteration order
+    (the pre-hardening behaviour) retained BOTH -- yielding a date-sorted
+    output that DROPS from 200 on 07-10 to 100 on 07-11, i.e. the single-day
+    crash this function exists to prevent, re-entering FAIL-OPEN. The guard
+    must instead operate in date order: the lower later-date value is refused.
+    """
+    chrono = [
+        _entry("A", "2026-07-11", 100),  # later date, but listed first
+        _entry("B", "2026-07-10", 200),  # earlier date, higher count
+    ]
+    result = _monotonic_test_progression(chrono)
+    # Never decreasing between adjacent published dates.
+    counts = [c for _d, c in result]
+    assert counts == sorted(counts), f"published series must be non-decreasing by date, got {result}"
+    # Concretely: 07-10 anchors the running max at 200; the lower 07-11 value
+    # (100) is refused rather than published as a drop.
+    assert result == [["2026-07-10", 200]]
+
+
 def test_total_commits_returns_positive_int_from_real_repo():
     count = _total_commits()
     assert isinstance(count, int)

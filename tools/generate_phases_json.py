@@ -182,8 +182,9 @@ def _parse_build_history(text):
 
 
 def _monotonic_test_progression(chronological):
-    """Build [date, test_count] pairs from oldest-first (phase_id, date, tc, ...)
-    entries, refusing any candidate below the running max seen so far.
+    """Build [date, test_count] pairs, refusing any candidate below the running
+    max seen so far -- enforced in DATE order so the published series is
+    monotonic no matter what order the caller passes entries in.
 
     Not every phase entry restates the true running full-suite total -- some
     (this session's own segmented-financials entry, e.g.) report a partial,
@@ -197,14 +198,38 @@ def _monotonic_test_progression(chronological):
     max (rather than trying to solve "which phrasing is authoritative") fixes
     this class of bug directly, matching the same cumulative-running-max
     principle already applied to phase_dates on the client side.
+
+    R15 hardening (2026-07-27, G1 HARDEN sibling-half red-team): the running
+    max used to be applied in the CALLER'S iteration order (`chronological` =
+    reversed file order of PROJECT_OVERVIEW.md), and the result then re-sorted
+    by date for publishing. That made the monotonic-BY-DATE guarantee depend
+    on an unenforced precondition -- that the hand-maintained, concurrently
+    edited PROJECT_OVERVIEW.md Section 4 is in strict newest-first order. A
+    single out-of-order entry (an inserted or restated phase) let an earlier
+    date retain a HIGHER value than a later date, so the date-sorted output
+    DECREASED between adjacent dates -- FAIL-OPEN (R15 killer pattern 2),
+    silently re-opening the very single-day-drop regression this function
+    exists to block. We now collapse each date to its highest reported count
+    and apply the running max strictly in date order, so monotonicity is a
+    property of the output itself, not of how the caller happened to order
+    its input.
     """
-    tp_by_date = {}
-    running_max_tc = 0
+    # Highest count reported for any given date (a later scoped/partial count
+    # for a date never lowers an authoritative full-suite figure for it).
+    max_by_date = {}
     for _phase_id, date, tc, _title, _body in chronological:
-        if tc is not None and tc >= running_max_tc:
-            tp_by_date[date] = tc
+        if tc is None:
+            continue
+        if date not in max_by_date or tc > max_by_date[date]:
+            max_by_date[date] = tc
+    progression = []
+    running_max_tc = 0
+    for date in sorted(max_by_date):
+        tc = max_by_date[date]
+        if tc >= running_max_tc:
+            progression.append([date, tc])
             running_max_tc = tc
-    return [[d, tp_by_date[d]] for d in sorted(tp_by_date)]
+    return progression
 
 
 _EPOCH_RE = re.compile(r"[Ee]poch[\s-]?(\d+)")
