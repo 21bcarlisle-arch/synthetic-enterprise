@@ -139,6 +139,45 @@ def test_hit_limit_requires_an_interruption_not_building_limit_handling():
     assert classify_commit(_c("Paused: usage limit reached, auto-resume"))[0] == HIT_LIMIT
 
 
+# --- 2026-07-27 HARDEN red-team: an OPEN, BUILD-gated fail-open, pinned executably ---
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "OPEN fail-open (2026-07-27 HARDEN red-team, G11 BUILD-gated). '_PRODUCT_RE' "
+        "matches 'harden' and fires at step 8 -- BEFORE any file-domain split -- so a "
+        "HARDEN commit touching ONLY harness/infra files (background/, tools/, .claude/, "
+        "docs/observability/) is billed PRODUCTIVE/product, not WASTE/self-repair. The "
+        "'fix' keyword already gets a product-vs-plumbing domain split (fix_of_product / "
+        "fix_of_plumbing); 'harden' does NOT, so the Rule-0 self-refill's own "
+        "harness-hardening treadmill reads as PRODUCT. Live evidence: 23 such commits "
+        "(many are '.harden_cooldown.json' stamps + background/ tooling hardens); the "
+        "corrected domain-split moves productive-time -0.4pp and RAISES self-repair +4.9h "
+        "-- i.e. the current rule is SELF-FLATTERING and specifically HIDES harness-"
+        "treadmill work from cost-of-self-maintenance (the metric the atom says 'must "
+        "trend DOWN or the harness is a treadmill'). This CONTRADICTS the H17 review's "
+        "'no rule flatters its own productive-%' / 'errs conservative' verdict. CLASS-FIX "
+        "(R10, at G11 BUILD, director/twin-gated): give 'harden' the SAME product-vs-"
+        "plumbing domain split as 'fix'. When that lands this xfail flips to XPASS "
+        "(strict) and forces the maturity-map note + this pin to be retired."
+    ),
+)
+def test_REDTEAM_harden_of_harness_is_self_maintenance_not_product():
+    # A HARDEN commit whose changed files are ALL harness/infra plumbing is the machine
+    # maintaining ITSELF -- it must classify as WASTE/self-repair, exactly as the sibling
+    # 'fix' rule already does for a plumbing fix. It currently returns PRODUCTIVE/product.
+    harness_harden = _c(
+        "HARDEN H10_worktree_isolation (Rule-0 dial yielded): pin fail-open probe",
+        files=["background/supervisor.py", "tools/activity_cost.py"],
+    )
+    assert classify_commit(harness_harden)[0] == SELF_REPAIR
+    # A HARDEN of PRODUCT files stays product (the split must not over-correct) --
+    # asserted here too so the eventual BUILD fix is proven to preserve this side.
+    product_harden = _c(
+        "HARDEN billing invariant: pin rounding edge", files=["saas/billing.py"],
+    )
+    assert classify_commit(product_harden)[0] == PRODUCT
+
+
 def test_classify_product_keyword():
     assert classify_commit(_c("Auto-process run complete: report + site/"))[0] == PRODUCT
     assert classify_commit(_c("[build] hedge desk VaR"))[0] == PRODUCT
