@@ -221,9 +221,10 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     // customer-side mirror of the company-door held-credit-liability tile, DD5).
     // HONESTY WALL (same discipline as the carbon panel below + the company-door DD5 tile):
     // today's billing engine is Variable DD, so any credit shown is OVERPAYMENT credit, NOT a
-    // level-DD seasonal accumulation. The full per-customer level-DD cycle (summer-credit /
-    // winter-drawdown trajectory, DD1-DD4) and the annual-DD-review event are DESIGNED, NOT
-    // INSTRUMENTED. NEVER render a fabricated per-month balance trajectory here.
+    // level-DD seasonal accumulation. The per-customer level-DD balance cycle (summer-credit /
+    // winter-drawdown trajectory, DD2-DD4) and the annual-DD-review event are DESIGNED, NOT
+    // INSTRUMENTED (the DD1 staggered-payment-day mechanic itself landed 2026-07-27, stated
+    // below as instrumented). NEVER render a fabricated per-month balance trajectory here.
     var ddPos=(bal<0)
       ? "You are currently <strong>"+gbp(Math.abs(bal))+" in credit</strong> &mdash; that is <strong>your money, held by us</strong>. On our balance sheet it is a liability, not our profit; a supplier holding customer credit can look cash-rich and still be insolvent."
       : (bal>0
@@ -232,7 +233,8 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     el("cust-dd-cycle").innerHTML=
       '<p class="kpi-sub" style="margin:0 0 8px">'+ddPos+'</p>'+
       '<p class="kpi-sub" style="margin:0 0 8px">Under a conventional UK <strong>level Direct Debit</strong> you pay the same amount every month &mdash; your estimated annual cost split into twelve &mdash; against energy use that is heavily seasonal. Through <strong>summer</strong> you use little and your balance builds <strong>credit</strong>; through <strong>winter</strong> you use far more than you pay and that credit is <strong>drawn back down</strong>. Once a year the <strong>annual DD review</strong> checks the estimate against reality and resets your monthly amount &mdash; where a bad forecast becomes a bill shock.</p>'+
-      '<p class="kpi-sub muted" style="margin:0">Honesty note: this account is on the current <strong>Variable DD</strong> engine, so the balance above is overpayment credit, not a modelled level-DD seasonal accumulation. The full per-customer level-DD cycle (summer-credit / winter-drawdown trajectory) and the annual-review event are <strong>DESIGNED, NOT INSTRUMENTED</strong> &mdash; stated here, never fabricated.</p>';
+      '<p class="kpi-sub" style="margin:0 0 8px">Your Direct Debit collects on a <strong>fixed day of the month</strong>, and across our customers those collection days are <strong>staggered</strong> &mdash; each on their own day (1&ndash;28) &mdash; so the book spreads through the month rather than every account landing on the same date. That staggering is instrumented (DD1).</p>'+
+      '<p class="kpi-sub muted" style="margin:0">Honesty note: this account is on the current <strong>Variable DD</strong> engine, so the balance above is overpayment credit, not a modelled level-DD seasonal accumulation. The per-customer level-DD balance cycle (summer-credit / winter-drawdown trajectory) and the annual-review event are <strong>DESIGNED, NOT INSTRUMENTED</strong> &mdash; stated here, never fabricated.</p>';
 
     // Arrears -- the real collections journey if any
     var cases=h.arrears_cases||[];

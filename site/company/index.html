@@ -264,7 +264,8 @@ function pct(v){ return v==null?"--":Number(v).toFixed(2)+"%"; }
 // the sum of in-credit (negative billed-minus-banked) balances in the drawn arrears sample.
 // This is a FLOOR: it is a drawn sample, AND it is today's Variable-DD overpayment credit --
 // NOT the full level-DD seasonal cycle (summer-credit / winter-drawdown against a fixed
-// monthly payment), whose physics (DD1-DD4) is DESIGNED, not yet instrumented. Never a
+// monthly payment), whose balance-trajectory physics (DD2-DD4) is DESIGNED, not yet
+// instrumented (the DD1 staggered-payment-day mechanic itself landed 2026-07-27). Never a
 // fabricated figure -- if the arrears sample is unavailable this returns null and the tile
 // degrades to "--" with an honest basis.
 function heldCredit(d){
@@ -543,9 +544,10 @@ function renderFinance(d){
 
   // DD5 (DIRECTOR_STEER_DD_SEASONAL_CASHFLOW 2026-07-25): the seasonal level-DD credit
   // cycle and the cash-rich-but-insolvent tell -- director domain content. Shown HONESTLY:
-  // what is instrumented today (the held-credit floor from the arrears ledger) is separated
-  // from what is DESIGNED-not-instrumented (the full summer-credit / winter-drawdown physics,
-  // DD1-DD4). Same honesty discipline as the carbon panel -- never a fabricated number.
+  // what is instrumented today (the held-credit floor from the arrears ledger, plus the DD1
+  // staggered-payment-day mechanic landed 2026-07-27) is separated from what is
+  // DESIGNED-not-instrumented (the summer-credit / winter-drawdown balance trajectory and the
+  // annual DD review, DD2-DD4). Same honesty discipline as the carbon panel -- never a fabricated number.
   var hcC=heldCredit(d);
   el("credit-cycle").innerHTML=
     "<b>Customer credit held &mdash; a liability, not spare cash "+
@@ -566,11 +568,14 @@ function renderFinance(d){
         "</b> accounts. It is booked beside treasury cash so a cash figure never stands alone."
       : "<br><br><b>What is instrumented today:</b> the held-credit floor is unavailable for this run's "+
         "sample, so the tile degrades to &lsquo;--&rsquo; rather than showing a fabricated figure.")+
+    " Collections now land on each customer's own <b>staggered payment day</b> &mdash; a fixed day of the "+
+    "month (1&ndash;28), deterministic per customer, so the collection book spreads across the month "+
+    "instead of every mandate bunching on one relative date (<b>DD1</b>, instrumented 2026-07-27)."+
     " <span class=\"muted\">What is <b>not</b> yet instrumented: today's billing engine is <b>Variable "+
     "DD</b> (it collects the exact bill), so the figure above is <b>overpayment credit</b>, not the full "+
-    "<b>level-DD seasonal cycle</b> &mdash; staggered payment anniversaries, a fixed monthly payment that "+
+    "<b>level-DD seasonal cycle</b> &mdash; a fixed monthly payment that "+
     "builds summer credit and draws down in winter, and the annual DD review where the estimate meets "+
-    "reality (DD1&ndash;DD4). Until that physics lands, this panel states the mechanism and the real floor "+
+    "reality (DD2&ndash;DD4). Until that physics lands, this panel states the mechanism and the real floor "+
     "honestly rather than modelling a seasonal balance that does not yet exist.</span>";
 
   var r=f.reconciliation||{};

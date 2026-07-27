@@ -481,9 +481,26 @@ def test_credit_held_fail_closed_when_unavailable_r15():
 def test_credit_cycle_states_level_dd_not_yet_instrumented():
     # The honesty wall (same discipline as the carbon panel): the panel must NOT
     # claim the full level-DD seasonal cycle is modelled -- it must carry the
-    # DESIGNED/INSTRUMENTING status and name what is not yet built (DD1-DD4).
+    # DESIGNED/INSTRUMENTING status and name what remains not yet built (DD2-DD4:
+    # the summer-credit/winter-drawdown balance trajectory and the annual review).
     panel = _render(_live())["credit-cycle"]["innerHTML"]
     assert "INSTRUMENTING" in panel, panel
     assert "yet instrumented" in panel.lower(), panel
     assert "variable dd" in panel.lower(), panel  # today's engine, honestly named
-    assert "DD1" in panel and "DD4" in panel, panel  # what fills it
+    assert "DD1" in panel and "DD4" in panel, panel  # both the landed + the pending part named
+
+
+def test_credit_cycle_split_puts_dd1_staggering_on_the_instrumented_side():
+    # R15 teeth: DD1 (staggered payment day) landed 2026-07-27, so the honest
+    # instrumented/uninstrumented split MUST place the staggered payment day on the
+    # INSTRUMENTED side, NOT in the "not yet instrumented" clause. A regression that
+    # re-lists staggering as uninstrumented (the pre-DD1 false claim) fails here.
+    panel = _render(_live())["credit-cycle"]["innerHTML"]
+    low = panel.lower()
+    assert "staggered payment day" in low, panel  # the DD1 mechanic is surfaced
+    # the "not yet instrumented" clause is everything after the muted span opens
+    not_yet = low.split('class="muted">what is <b>not</b> yet instrumented', 1)
+    assert len(not_yet) == 2, panel  # the clause structure is present
+    assert "staggered" not in not_yet[1], (
+        "staggering must not sit in the not-yet-instrumented clause post-DD1: " + panel
+    )

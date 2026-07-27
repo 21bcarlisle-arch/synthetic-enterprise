@@ -151,6 +151,19 @@ def test_dd_cycle_is_honest_about_uninstrumented_physics():
     assert len(months) == 0, f"fabricated seasonal series: {months}"
 
 
+def test_dd_cycle_surfaces_dd1_staggered_payment_day_as_instrumented():
+    # DD1 (landed 2026-07-27) instrumented the per-customer staggered payment day;
+    # the panel must surface it as a real mechanic (not a fabricated per-customer
+    # value) WITHOUT displacing the honest note that the balance trajectory itself
+    # remains uninstrumented. R15 mirror of the company-door split.
+    out = _render(_live())
+    low = out["cust-dd-cycle"]["innerHTML"].lower()
+    assert "staggered" in low and "fixed day of the month" in low, low
+    assert "instrumented (dd1)" in low, low
+    # still honest about the part that has NOT landed
+    assert "designed, not instrumented" in low, low
+
+
 def test_carbon_is_honest_placeholder_not_a_number():
     # HONESTY (load-bearing): CO2 trajectory is designed, not instrumented. The
     # panel must SAY so and must NOT fabricate a tonnage. A fabricated E5 number
