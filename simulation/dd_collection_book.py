@@ -146,7 +146,12 @@ import random
 import statistics
 from datetime import date, timedelta
 
-from company.billing.direct_debit import DirectDebitBook, DDPaymentAttempt
+from company.billing.direct_debit import (
+    DirectDebitBook,
+    DDPaymentAttempt,
+    next_collection_on_day,
+    staggered_payment_day,
+)
 from simulation.arrears_engine import (
     PAYMENT_TERMS_DAYS, payment_method, payment_outcome, stress_for_year,
     _fuel_poor_for_bill, _tone_for_bill,
@@ -249,6 +254,11 @@ def build_dd_collection_book(
                 setup_date=due_date.isoformat(),
                 setup_rails_reference=setup_ref,
                 setup_confirmed_date=setup_resolved.expected_outcome_date.isoformat(),
+                # DD1 (2026-07-27): the customer's own staggered collection day
+                # (1-28), deterministic per-customer so replay is identical and
+                # no shared RNG stream moves. Spreads the book's collections
+                # across the month onto real anniversaries.
+                payment_day=staggered_payment_day(cid),
             )
             # FIXED (2026-07-12, third pass): a real Bacs integration cannot
             # submit a collection against an unconfirmed mandate -- this
@@ -291,8 +301,20 @@ def build_dd_collection_book(
 
         customer_bill_history.setdefault(cid, []).append(amount)
 
+        # DD1 (2026-07-27): the actual collection lands on the customer's own
+        # staggered day-of-month (on-or-after the rails-confirmed due date),
+        # not the raw bill due date -- so the observed attempt dates spread
+        # across the month rather than bunching on one relative offset. Safe
+        # by construction: payment_outcome()'s success/fail decision is already
+        # fixed (date-independent), rails reason-code draws depend on outcome
+        # not date, and this book reaches only the DD-rails business surface
+        # (extract_dd_rails), never the ledger/cash-timing pipeline -- so no
+        # existing financial figure moves, only the observed collection date.
+        collection_date = date.fromisoformat(
+            next_collection_on_day(due_date.isoformat(), mandate.payment_day)
+        )
         reference = f"{mandate.mandate_reference}-{period_end}"
-        submission = submit_collection(reference, cid, amount, due_date)
+        submission = submit_collection(reference, cid, amount, collection_date)
         decided = "success" if outcome == "success" else "failed"
         resolved = resolve_submission(submission, decided, rng=rails_rng)
 

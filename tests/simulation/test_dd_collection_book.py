@@ -138,10 +138,22 @@ class TestMandateSetupWiredThroughRails:
         gated_due_date = max(naive_due_date, mandate_confirmed)
         assert gated_due_date == mandate_confirmed  # the gate actually bites for a new mandate
 
+        # DD1 (2026-07-27): the collection is submitted on the customer's own
+        # staggered payment day, on-or-after the gated due date -- so the
+        # independent baseline must snap the same way the code does, else it
+        # would be replaying a submission date the code never uses.
+        from company.billing.direct_debit import (
+            next_collection_on_day, staggered_payment_day,
+        )
+        collection_date = date.fromisoformat(
+            next_collection_on_day(gated_due_date.isoformat(), staggered_payment_day("C1"))
+        )
+        assert collection_date >= gated_due_date  # snap never pulls collection earlier than the gate
+
         mandate_ref = "DD-C1-20200214"  # matches DirectDebitBook.create_mandate()'s own ref format
         reference = f"{mandate_ref}-2020-01-31"
         rails_rng = random.Random(43)  # seed+1
-        baseline_submission = submit_collection(reference, "C1", 100.0, gated_due_date)
+        baseline_submission = submit_collection(reference, "C1", 100.0, collection_date)
         baseline_resolved = resolve_submission(baseline_submission, "success", rng=rails_rng)
 
         assert attempts[0].attempt_date == baseline_resolved.expected_outcome_date.isoformat()

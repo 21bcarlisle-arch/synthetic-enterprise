@@ -10,12 +10,55 @@ Failed DDs trigger debt escalation after 2 missed payments.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Literal
 
 
 _DD_SCHEDULE_DAYS = 28  # standard BACS cycle
+_MIN_PAYMENT_DAY = 1
+_MAX_PAYMENT_DAY = 28  # UK convention: DD payment days are capped at 28 so every
+# month has the date (avoids the 29/30/31 short-month problem).
+
+
+def staggered_payment_day(customer_id: str) -> int:
+    """The fixed day-of-month (1-28) a customer's level DD collects on.
+
+    DD1 (2026-07-27, DD_seasonal_cashflow_physics): real households pick (or
+    are assigned) a collection day, and across a supplier's book those days
+    are spread through the month -- so collections STAGGER rather than every
+    mandate landing on the same relative offset from its bill date. This is a
+    company-observable (the supplier knows its own customers' chosen DD days),
+    not a SIM internal.
+
+    Derived DETERMINISTICALLY from the customer id via a stable digest -- no
+    RNG draw is consumed, so this can never shift another subsystem's random
+    stream (C-S2: deterministic, idempotent replay; a pure per-customer
+    function is the strongest form of the named-substream discipline -- it
+    draws from nothing shared at all). Same customer id -> same day, every
+    replay.
+    """
+    digest = hashlib.sha256(customer_id.encode("utf-8")).hexdigest()
+    span = _MAX_PAYMENT_DAY - _MIN_PAYMENT_DAY + 1
+    return _MIN_PAYMENT_DAY + (int(digest[:8], 16) % span)
+
+
+def next_collection_on_day(from_date_str: str, payment_day: int) -> str:
+    """The first date on-or-after `from_date_str` whose day-of-month is
+    `payment_day` (1-28) -- i.e. snap a bill's due date forward onto the
+    customer's own staggered DD anniversary. Because payment_day is capped at
+    28, the target day exists in every month, so no short-month clamping is
+    needed. Collecting on-or-after (never before) the due date is the
+    conservative choice: it never pulls a household's cash in earlier than the
+    bill is actually due."""
+    d = date.fromisoformat(from_date_str)
+    if d.day <= payment_day:
+        return d.replace(day=payment_day).isoformat()
+    # Due date is already past this month's collection day -> roll to next month.
+    if d.month == 12:
+        return d.replace(year=d.year + 1, month=1, day=payment_day).isoformat()
+    return d.replace(month=d.month + 1, day=payment_day).isoformat()
 
 
 @dataclass
@@ -25,6 +68,13 @@ class DirectDebitMandate:
     bank_sort_code: str  # masked, e.g. "12-34-**"
     bank_account_last4: str
     monthly_amount_gbp: float
+    # DD1 (2026-07-27, DD_seasonal_cashflow_physics): the customer's fixed
+    # day-of-month (1-28) on which their level DD collects -- the staggered
+    # "anniversary" that spreads a real supplier's collection book across the
+    # whole month rather than bunching every household onto one relative
+    # offset. 0 == "not a staggered mandate" (legacy behaviour: a rolling
+    # 28-day cycle from setup), kept so every existing caller is byte-identical.
+    payment_day: int = 0
     status: Literal["active", "cancelled", "suspended"] = "active"
     setup_date: str = ""
     next_collection_date: str = ""
@@ -83,19 +133,33 @@ class DirectDebitBook:
         setup_date: str,
         setup_rails_reference: str = "",
         setup_confirmed_date: str = "",
+        payment_day: int = 0,
     ) -> DirectDebitMandate:
         """Register a new DD mandate and return it. `setup_rails_reference`/
         `setup_confirmed_date` are optional Bacs-rails observability fields
         (simulation/dd_collection_book.py -- AUDDIS confirmation timing);
-        omit for a mandate created outside that wiring."""
+        omit for a mandate created outside that wiring.
+
+        `payment_day` (DD1, 2026-07-27): the customer's fixed day-of-month
+        (1-28) the level DD collects on. When >0, next_collection_date snaps
+        onto that staggered anniversary; 0 (the default) keeps the legacy
+        rolling 28-day cycle so every existing caller is byte-identical."""
+        if payment_day and not (_MIN_PAYMENT_DAY <= payment_day <= _MAX_PAYMENT_DAY):
+            raise ValueError(
+                f"payment_day must be {_MIN_PAYMENT_DAY}-{_MAX_PAYMENT_DAY}; got {payment_day}"
+            )
         ref = f"DD-{customer_id}-{setup_date.replace('-', '')}"
-        next_collect = _add_days(setup_date, _DD_SCHEDULE_DAYS)
+        if payment_day:
+            next_collect = next_collection_on_day(setup_date, payment_day)
+        else:
+            next_collect = _add_days(setup_date, _DD_SCHEDULE_DAYS)
         m = DirectDebitMandate(
             customer_id=customer_id,
             mandate_reference=ref,
             bank_sort_code=sort_code,
             bank_account_last4=account_last4,
             monthly_amount_gbp=monthly_amount_gbp,
+            payment_day=payment_day,
             setup_date=setup_date,
             next_collection_date=next_collect,
             setup_rails_reference=setup_rails_reference,
@@ -151,7 +215,15 @@ class DirectDebitBook:
             return
         if attempt.outcome == "collected":
             m.failed_attempts = 0
-            m.next_collection_date = _add_days(attempt.attempt_date, _DD_SCHEDULE_DAYS)
+            if m.payment_day:
+                # Next collection lands on the same staggered anniversary in
+                # the following month (a real monthly level-DD cadence), not a
+                # drifting +28 days that walks around the calendar.
+                m.next_collection_date = next_collection_on_day(
+                    _add_days(attempt.attempt_date, 1), m.payment_day
+                )
+            else:
+                m.next_collection_date = _add_days(attempt.attempt_date, _DD_SCHEDULE_DAYS)
         elif attempt.outcome == "failed":
             m.failed_attempts += 1
             if m.failed_attempts >= 2:
