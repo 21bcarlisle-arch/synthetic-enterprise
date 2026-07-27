@@ -89,6 +89,12 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
     ],
     OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM: [
         r"\bpress release\b", r"\bannounce(ment)? (externally|publicly)\b",
+        # "publish" is deliberately broad, but it has a MACHINERY sense (the publish
+        # PIPELINE / gate / cache / loop) that is reversible engineering, not a public
+        # claim. That word-sense collision false-fired -- see the _PUBLISH_MACHINERY_
+        # carveout below and decision_log 2026-07-18 (a BUILD-open sequencing question
+        # mentioning the "publish pipeline" was mis-routed to the director). Same shape
+        # as the epoch-adjective tighten (test_open_build_in_the_open_epoch_is_not_a_door).
         r"\bpublish\b(?!.*\bprovisional\b)",
     ],
     OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS: [
@@ -129,6 +135,32 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
 }
 
 _PROVISIONAL_CARVEOUT = re.compile(r"\bprovisional\b", re.IGNORECASE)
+
+# The MACHINERY sense of "publish": the publish PIPELINE / gate / cache / loop /
+# workflow -- reversible engineering, not an irretractable public claim. Registered
+# false-fire (decision_log 2026-07-18): the bare `\bpublish\b` pattern matched a
+# BUILD-open SEQUENCING question that merely mentioned the "publish pipeline" and
+# mis-routed it to the director (the INVERSE of R15 fail-open -- a control that
+# FALSE-FIRES, spending the one scarce resource on noise). Tightens the pattern to
+# the CLAIM sense: a "publish" match is carved out ONLY when a machinery term is
+# present AND no genuine public-claim OBJECT is (so "publish the report figure via
+# the publish pipeline" still fires -- the carveout errs toward the door).
+_PUBLISH_MACHINERY_CARVEOUT = re.compile(
+    r"\b(pipeline|gate|cache|loop|workflow|hook|daemon|scheduler|cron|"
+    r"health\s*check|site\s*build|rebuild|re-?sync|deploy(ment)?|refresh)\b",
+    re.IGNORECASE,
+)
+# A genuine irretractable-public-claim OBJECT: a figure/number/report/result/claim/
+# statement (or an outward-facing surface/audience). Its presence DEFEATS the
+# machinery carveout so a real claim that happens to mention the pipeline still
+# escalates. Kept over-inclusive on purpose -- a false door here costs one
+# escalation, a false PROCEED publishes an unretractable claim.
+_PUBLIC_CLAIM_OBJECT = re.compile(
+    r"\b(figure|number|report|result|claim|statement|margin|profit|revenue|"
+    r"earnings|forecast|headline|annual report|press|externally|publicly|"
+    r"public site|to the public|announce)\b",
+    re.IGNORECASE,
+)
 
 
 def classify_action(
@@ -180,8 +212,16 @@ def classify_action(
     for category, patterns in _CATEGORY_PATTERNS.items():
         for pattern in patterns:
             if re.search(pattern, lowered):
-                if category == OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM and _PROVISIONAL_CARVEOUT.search(lowered):
-                    continue
+                if category == OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM:
+                    if _PROVISIONAL_CARVEOUT.search(lowered):
+                        continue
+                    # Machinery sense of "publish" (pipeline/gate/cache/loop) with no
+                    # genuine public-claim object -> reversible engineering, not a door.
+                    if (
+                        _PUBLISH_MACHINERY_CARVEOUT.search(lowered)
+                        and not _PUBLIC_CLAIM_OBJECT.search(lowered)
+                    ):
+                        continue
                 return OneWayDoorVerdict(
                     is_one_way_door=True,
                     category=category,

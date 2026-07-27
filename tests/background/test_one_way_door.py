@@ -177,6 +177,38 @@ def test_open_build_in_the_open_epoch_is_not_a_door():
         assert classify_action(text).is_one_way_door is False, f"false-positive door on: {text}"
 
 
+def test_publish_pipeline_machinery_is_not_a_public_claim_door():
+    """Registered false-fire (decision_log 2026-07-18): the bare `\\bpublish\\b`
+    pattern matched a BUILD-open SEQUENCING question that merely mentioned the
+    "publish pipeline" and mis-routed it to the director (the INVERSE of R15
+    fail-open -- a control that FALSE-FIRES, spending the one scarce resource on
+    noise). The MACHINERY sense (publish pipeline/gate/cache/loop) is reversible
+    engineering, not an irretractable public claim. Mutation intent: revert to the
+    bare `\\bpublish\\b` match and these go red."""
+    for text in [
+        "Sequencing: should the publish pipeline run before or after the site build this epoch?",
+        "BUILD-open: wire the publish gate health check into the pull loop",
+        "refresh and publish the dashboard cache after the run completes",
+        "restart the publish loop daemon and re-sync the deploy workflow",
+    ]:
+        assert classify_action(text).is_one_way_door is False, f"false-positive door on: {text}"
+
+
+def test_genuine_public_claim_still_escalates_even_alongside_machinery_words():
+    """The genuine irretractable-claim door still fires (R15 both-ways): a real
+    public claim escalates even when the sentence also names the pipeline -- the
+    claim OBJECT (figure/report/result/public site) defeats the machinery carveout.
+    Proves the tighten did not disarm the wall."""
+    for text in [
+        "publish the annual report net-margin figure to the public site",
+        "publish the final result figure externally via the publish pipeline",
+        "publish a press release announcing the quarterly numbers",
+    ]:
+        v = classify_action(text)
+        assert v.is_one_way_door is True, f"missed genuine public-claim door: {text}"
+        assert v.category == OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM
+
+
 def test_opening_a_new_epoch_is_a_values_door():
     """The genuine curriculum door still fires: actually OPENING a new/next epoch is
     the director's category-6 call (R13/LAW A)."""
