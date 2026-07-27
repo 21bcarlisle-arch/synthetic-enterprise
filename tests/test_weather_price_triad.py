@@ -103,6 +103,35 @@ def test_r15_gap_mutation_cutting_belief_coupling_worsens_the_gap(measurement):
     assert cut_gap > real_gap          # cutting the coupling worsens the gap
 
 
+def test_score_cell_below_min_samples_fails_loud(monkeypatch):
+    # R15 anti-FAIL-SILENT (killer pattern #3): if the designated score cell
+    # (cold_still_tail) drops below the min sample count, measure() must RAISE --
+    # NOT silently drop the tail and score a comfortable middle cell, quietly
+    # under-reporting the very fidelity gap the atom exists to measure. Force the
+    # tail mask to < _MIN_CELL_N True entries and assert the guard fires.
+    real_mask = wpt.cold_still_tail_mask
+
+    def _tiny_tail(rec, *a, **k):
+        m = real_mask(rec, *a, **k)
+        idx = np.flatnonzero(m)
+        shrunk = np.zeros_like(m)
+        shrunk[idx[: wpt._MIN_CELL_N - 5]] = True   # 5 < _MIN_CELL_N -> below the guard
+        return shrunk
+
+    monkeypatch.setattr(wpt, "cold_still_tail_mask", _tiny_tail)
+    with pytest.raises(wpt.ScoreCellUnavailableError):
+        wpt.measure()
+
+
+def test_score_cell_present_on_the_real_record(measurement):
+    # The OTHER half of the mutation proof: on the real record the guard does NOT
+    # fire (the tail cell is present and IS the score), so the control has teeth
+    # without being a tautology that always passes.
+    assert wpt._SCORE_CELL in measurement["per_cell"]
+    assert measurement["per_cell"][wpt._SCORE_CELL]["n"] >= wpt._MIN_CELL_N
+    assert measurement["worst_cell"] == wpt._SCORE_CELL
+
+
 def test_ledger_roundtrip_and_reader_sees_numeric_gap(measurement, tmp_path):
     result = wpt.build_gap_result(measurement)
     ledger = wpt.write_gap_entry(

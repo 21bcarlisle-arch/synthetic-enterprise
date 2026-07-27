@@ -59,6 +59,23 @@ TWIN_ATOM_ID = "C13_weather_normalisation"
 # only -- never a computed input to the fit (matches fidelity_emitter's convention).
 _CRISIS_YEARS = ("2021", "2022")
 
+# Minimum samples for a cell to be scored (small-sample guard for the INCIDENTAL
+# regime cells). The DESIGNATED score cell is exempt from being silently dropped
+# by it -- see `_SCORE_CELL` / `ScoreCellUnavailableError` below.
+_MIN_CELL_N = 10
+# The cell this atom EXISTS to demonstrate: the cold-and-still tail where the
+# company's linear belief fails and the score is meant to bite.
+_SCORE_CELL = "cold_still_tail"
+
+
+class ScoreCellUnavailableError(ValueError):
+    """FAIL-LOUD (R15 anti-fail-silent, killer pattern #3): the designated score
+    cell (the cold-and-still tail) fell below `_MIN_CELL_N` samples, so the
+    small-sample guard would SILENTLY drop it and the worst-cell score would be
+    computed over the comfortable middle -- quietly under-reporting the very
+    fidelity gap this atom exists to measure. An unavailable score cell is a
+    FAILED measurement, never a passing one on the wrong cell."""
+
 
 def _cells(out: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
     """The scoring grid (campaign requirement 1: span the range of NEED / stress,
@@ -106,7 +123,7 @@ def measure() -> Dict[str, object]:
     cells = _cells(out)
     per_cell: Dict[str, Dict[str, float]] = {}
     for name, mask in cells.items():
-        if int(mask.sum()) < 10:
+        if int(mask.sum()) < _MIN_CELL_N:
             continue
         # Each cell is normalised to ITS OWN climatological-mean no-skill baseline
         # (predict this cell's mean) -- so a cell's gap says "vs a blind guess
@@ -117,6 +134,16 @@ def measure() -> Dict[str, object]:
             "mae_noskill": g.components["mae_noskill"],
             "bias_model": g.components["bias_model"], "n": int(mask.sum()),
         }
+
+    # FAIL-LOUD, not FAIL-SILENT (R15): the designated score cell MUST survive the
+    # small-sample guard, else `worst_cell` below would silently be picked from the
+    # comfortable middle with the cold-and-still tail excluded -- a measurement that
+    # passes precisely when the cell it exists to measure is unavailable.
+    if _SCORE_CELL not in per_cell:
+        raise ScoreCellUnavailableError(
+            f"score cell {_SCORE_CELL!r} has < {_MIN_CELL_N} samples "
+            f"(n={int(cells[_SCORE_CELL].sum())}); refusing to report a worst-cell "
+            "score that silently excludes the cold-and-still tail")
 
     # The SCORE = the worst-explained cell (campaign requirement 1), not the mean.
     worst_cell = max(per_cell, key=lambda c: (per_cell[c]["gap"] if per_cell[c]["gap"] is not None else -1))
