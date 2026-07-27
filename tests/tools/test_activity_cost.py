@@ -178,6 +178,52 @@ def test_REDTEAM_harden_of_harness_is_self_maintenance_not_product():
     assert classify_commit(product_harden)[0] == PRODUCT
 
 
+# --- 2026-07-27 HARDEN red-team #3: a SECOND, EARLIER self-flattering fail-open ---
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "OPEN fail-open (2026-07-27 HARDEN red-team #3, G11 BUILD-gated) -- DISTINCT from "
+        "and EARLIER than the #2 harden-keyword hole. '_ARROW_RE' (r'->\\s*L\\d+') matches "
+        "the SAME-LEVEL HOLD pattern 'Lx->Lx held' -- e.g. '(L2->L2 held)', '(L3->L3 "
+        "at-target)' -- and fires at STEP 3 (level_transition -> PRODUCTIVE/product) BEFORE "
+        "the fix/harden/file-domain steps. But 'Lx->Lx held' is EXPLICITLY NOT a level bump "
+        "(the level did NOT change); the rule's own comment says 'a landed level BUMP is "
+        "product output'. Because step 3 short-circuits, the #2 harden-domain-split fix (at "
+        "step 8) can NEVER reach these -- so this is an INDEPENDENT hole, not a duplicate. "
+        "Live evidence: 31 held-non-bump commits are billed level_transition/PRODUCT, 25 of "
+        "them touching ONLY infra/mixed files (the Rule-0 HARDEN treadmill's own "
+        "'chore(harden): ... (Lx->Lx held)' cooldown stamps). Isolated correction (treat a "
+        "same-level arrow as NOT a transition, let it fall through the ruleset) moves "
+        "productive-time -0.1pp and RAISES self-repair +0.9h -- same SELF-FLATTERING "
+        "direction as #2, and STACKS on top of it (combined delta is larger). Like #2 this "
+        "HIDES harness-treadmill work from cost-of-self-maintenance, the metric the atom "
+        "declares 'must trend DOWN or the harness is a treadmill'. CLASS-FIX (R10, at G11 "
+        "BUILD, director/twin-gated per loop_stage idle): the level_transition rule must "
+        "match a GENUINE bump only (target level > source level), never a same-level hold; "
+        "a held commit falls through to the fix/harden/domain ruleset. When that lands this "
+        "xfail flips to XPASS(strict) and forces the map note + this pin to be retired "
+        "(W2_5 / #2 precedent). QUEUED, deliberately NOT fixed on sight (SELF_INTERRUPT)."
+    ),
+)
+def test_REDTEAM_held_same_level_arrow_is_not_a_transition():
+    # A HARDEN/chore commit that merely re-verifies an atom and HOLDS its level
+    # ('L2->L2 held') is NOT a level bump. With infra-only files and no other product
+    # signal, the ONLY thing pushing it to PRODUCT is the same-level arrow -- proving this
+    # hole is independent of the #2 harden-keyword hole (there is no 'harden' word here to
+    # trigger step 8). It must classify as WASTE/self-repair (infra self-maintenance).
+    held_hold = _c(
+        "chore: RULE-0 dial yield re-verify W3_2 (L2->L2 held)",
+        files=["background/supervisor.py", "docs/observability/.harden_cooldown.json"],
+    )
+    assert classify_commit(held_hold)[0] == SELF_REPAIR
+    # The fix must NOT over-correct: a GENUINE bump stays product...
+    assert classify_commit(_c("W1_2 forward curve -> L3", files=["saas/b.py"]))[0] == PRODUCT
+    # ...and a held HARDEN of PRODUCT files stays product (domain, not the arrow, decides).
+    assert classify_commit(
+        _c("re-verify billing invariant (L3->L3 held)", files=["saas/billing.py"])
+    )[0] == PRODUCT
+
+
 def test_classify_product_keyword():
     assert classify_commit(_c("Auto-process run complete: report + site/"))[0] == PRODUCT
     assert classify_commit(_c("[build] hedge desk VaR"))[0] == PRODUCT
