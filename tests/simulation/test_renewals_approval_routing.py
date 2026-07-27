@@ -241,6 +241,42 @@ def test_replaying_a_non_routine_build_is_idempotent_on_the_shared_log():
     assert len(decided) >= 1
 
 
+def test_every_governance_decision_is_transacted_strictly_before_it_takes_effect():
+    """R15 HARDEN (2026-07-27): the outcome-neutrality PRECONDITION as a
+    structural invariant, not a fixture coincidence.
+
+    Neutrality rests on the approval being resolved STRICTLY INSIDE the 42-day
+    notice window -- 'granted before the rate takes effect at term start'. But
+    the code applies the priced rate whatever the resolve TIMING, so if
+    APPROVAL_LATENCY_DAYS were ever widened past NOTICE_DAYS the approval would
+    resolve at/after term_start (in reality: the price change is unapproved when
+    it is due -- a genuine margin event, no longer neutral) and BOTH neutrality
+    guards would stay green, because neither looks at resolve time versus term
+    start. This closes that hole: EVERY logged governance decision -- routine or
+    the non-routine resolved event alike -- must have transaction_time strictly
+    before the valid_time (term) it governs. Derived from the LIVE pipeline's
+    own events (independent of the constants), so a latency regression that
+    pushes any resolve to/after term start fires here.
+    """
+    # The structural precondition that keeps every non-routine approval inside
+    # the window -- independent constants (statutory notice vs approval SLA),
+    # not a tautology. Widening APPROVAL_LATENCY_DAYS to >= NOTICE_DAYS fires.
+    assert APPROVAL_LATENCY_DAYS < renewals.NOTICE_DAYS
+
+    records = _spiked_records()
+    build_renewal_schedule("C_WINDOW", "2016-01-01", "2017-06-30", records, 2800)
+    events = _pricing_move_events("C_WINDOW")
+    # Non-vacuous: the fixture must actually route a non-routine move (a
+    # pending->resolved pair), else there is no resolve-timing to be neutral about.
+    assert any(e.status == "pending" for e in events)
+    for ev in events:
+        assert ev.transaction_time.date() < ev.valid_time, (
+            f"governance decision for term {ev.valid_time} transacted at "
+            f"{ev.transaction_time.date()} -- not strictly before it takes "
+            "effect; outcome-neutrality precondition violated"
+        )
+
+
 def test_non_routine_threshold_reuses_the_bill_shock_definition():
     """The 'non-routine' magnitude is the company's own existing bill-shock
     threshold, not an invented number -- one observable, not two."""
