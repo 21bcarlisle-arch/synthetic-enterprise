@@ -267,3 +267,74 @@ class TestResidualReconciliationControl:
             assert abs(b.residual_gbp) < 0.01
             assert residual_is_material(b) is False
             assert residual_breaks_reconciliation(b) is False
+
+
+def _series_dict(**kw):
+    """A serialised margin-bridge row exactly as `margin_bridge_series` carries it
+    into the report renderer (which reconstructs each via `type("B", (), d)()`)."""
+    d = dict(year_from=2020, year_to=2021, net_delta_gbp=0.0,
+             gross_delta_gbp=0.0, bad_debt_delta_gbp=0.0, capital_delta_gbp=0.0,
+             policy_cost_delta_gbp=0.0, network_cost_delta_gbp=0.0,
+             residual_gbp=0.0, portfolio_change=0, direction="FLAT")
+    d.update(kw)
+    return d
+
+
+def _driver_cell(rendered: str) -> str:
+    """Extract the Driver-column cell of the single 2020->2021 data row from the
+    rendered Net Margin Bridge section. Asserting on the ROW (not a substring of
+    the whole section) is essential: the static explanatory note below the table
+    itself contains the words 'unreconciled' and 'other (unexplained)', so a bare
+    `'unreconciled' in rendered` would be true even for a perfectly reconciled
+    bridge (verified: it is)."""
+    for line in rendered.splitlines():
+        # A data row: starts with the year label, ends with the RAG cell. The
+        # note/header lines never start "| 2020".
+        if line.startswith("| 2020→") or line.startswith("| 2020-"):
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            # ... | Driver | RAG |  -> Driver is the penultimate cell.
+            return cells[-2]
+    raise AssertionError(f"no data row found in:\n{rendered}")
+
+
+class TestNetMarginBridgeRendersReconciliationBreak:
+    """R11 no-orphan / R15 fail-silent guard on the CONSUMER layer. The control
+    primitives above are unit-tested, but the release effect the atom's harden
+    notes claim -- the report actually RENDERING a 'RECONCILIATION BREAK' banner
+    and a per-row 'unreconciled' tag -- had no regression test. A refactor could
+    drop the banner/tag branch in _section_net_margin_bridge while every control
+    unit test stayed green and the visible warning silently vanished. These tests
+    fail if that render effect regresses (mutation-proven)."""
+
+    def _render(self, *rows):
+        # Imported lazily: annual_report pulls a heavy dependency graph.
+        from saas.reporting.annual_report import _section_net_margin_bridge
+        return _section_net_margin_bridge({"margin_bridge_series": list(rows)})
+
+    def test_clean_bridge_renders_no_break_banner_or_tag(self):
+        clean = _series_dict(net_delta_gbp=100_000, gross_delta_gbp=100_000,
+                             residual_gbp=0.0, direction="IMPROVEMENT")
+        out = self._render(clean)
+        assert "RECONCILIATION BREAK" not in out          # no banner
+        assert "⚠ unreconciled" not in _driver_cell(out)   # no per-row tag
+        assert _driver_cell(out) == "gross margin"
+
+    def test_masked_break_renders_banner_and_per_row_tag(self):
+        # The FAIL-OPEN case: a -£500k dropped cost line masked by a larger +£600k
+        # legitimate gross swing. dominant_driver still names 'gross margin' (the
+        # residual does not dominate), so the ONLY way the break becomes visible is
+        # the reconciliation banner + the per-row 'unreconciled' tag.
+        masked = _series_dict(net_delta_gbp=100_000, gross_delta_gbp=600_000,
+                              residual_gbp=-500_000)
+        out = self._render(masked)
+        assert "RECONCILIATION BREAK" in out              # banner rendered
+        assert _driver_cell(out) == "gross margin ⚠ unreconciled"
+
+    def test_dominant_residual_renders_banner_and_unexplained_driver(self):
+        # Residual dominates every named driver -> Driver reads 'other
+        # (unexplained)' (no separate tag needed) AND the banner still fires.
+        dom = _series_dict(net_delta_gbp=501_000, gross_delta_gbp=1_000,
+                           residual_gbp=500_000)
+        out = self._render(dom)
+        assert "RECONCILIATION BREAK" in out
+        assert _driver_cell(out) == "other (unexplained)"
