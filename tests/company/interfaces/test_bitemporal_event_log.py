@@ -293,3 +293,130 @@ class TestOutOfOrderArrivalInvariance:
             "an out-of-order settlement load leaks a superseded figure (C-S1 breach)"
         )
         assert mutant_pick.value != live.value
+
+
+class TestDeepCopyNestedPayloads:
+    """2026-07-27 HARDEN (G2_event_log_shared_with_spine, dial-yielded
+    self-refill): G2's whole reason to exist is that ONE append-only log is
+    SHARED across the sim reveal spine and the company's own reads. What makes
+    that sharing safe -- what lets two consumers hold the same log without one
+    silently rewriting the other's 'past' -- is the copy-on-write + copy-on-read
+    decoupling in `_decouple`/`record`, and that decoupling is `copy.deepcopy`.
+
+    TestAppendOnlyImmutability already pins decoupling, but ONLY with FLAT,
+    single-level payloads (`{"rate": 100}`). The module docstring is explicit
+    that real payloads are NESTED -- 'a `DecisionEvent` whose own
+    request/context/decision fields are dicts'. A flat-only proof is a hole:
+    the single most plausible 'optimisation' refactor -- swapping the deepcopy
+    for a shallow `copy.copy`/`dict(value)` -- passes EVERY flat test (ints are
+    immutable, so a shallow-copied outer dict is enough) yet shares the INNER
+    dict by reference, so mutating a nested field corrupts the stored 'immutable'
+    record and aliases every other consumer of that entity's history. Under
+    G2's shared-log premise that is a cross-consumer blindfold breach, not a
+    style nit. These tests pin the deep (not shallow) guarantee on every one of
+    the four decoupling surfaces, and mutation-prove that shallow copy leaks.
+    """
+
+    @staticmethod
+    def _nested():
+        return {"terms": {"rate": 100}, "tags": ["a"]}
+
+    def test_mutating_nested_caller_field_after_record_does_not_change_store(self):
+        """Write side, nested: a caller mutating a DEEP field of its own dict
+        after record() must not rewrite the stored record."""
+        log = BitemporalEventLog()
+        payload = self._nested()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), payload)
+        payload["terms"]["rate"] = 999
+        payload["tags"].append("b")
+        rec = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert rec.value == {"terms": {"rate": 100}, "tags": ["a"]}
+
+    def test_mutating_nested_as_known_at_return_does_not_corrupt_store(self):
+        """Read side, nested: mutating a DEEP field of a returned payload must
+        not corrupt the store."""
+        log = BitemporalEventLog()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), self._nested())
+        first = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        first.value["terms"]["rate"] = 999
+        first.value["tags"].append("b")
+        second = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert second.value == {"terms": {"rate": 100}, "tags": ["a"]}
+
+    def test_two_reads_do_not_alias_each_other_nested(self):
+        """Two reads of a nested payload must be decoupled at DEPTH from each
+        other, not just at the outer dict."""
+        log = BitemporalEventLog()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), self._nested())
+        a = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        b = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert a.value["terms"] is not b.value["terms"]
+        a.value["terms"]["rate"] = 999
+        assert b.value["terms"] == {"rate": 100}
+
+    def test_record_return_is_decoupled_from_store_nested(self):
+        log = BitemporalEventLog()
+        returned = log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), self._nested())
+        returned.value["terms"]["rate"] = 999
+        rec = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert rec.value["terms"] == {"rate": 100}
+
+    def test_history_as_known_at_returns_deeply_decoupled_payloads(self):
+        log = BitemporalEventLog()
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), self._nested())
+        hist = log.history_as_known_at(_dt(2020, 6, 3), "elec_spot", "quote")
+        hist[0].value["terms"]["rate"] = 999
+        again = log.history_as_known_at(_dt(2020, 6, 3), "elec_spot", "quote")
+        assert again[0].value["terms"] == {"rate": 100}
+
+    def test_MUTATION_shallow_copy_leaks_nested_but_passes_flat(self):
+        """R15 mutation-proof: the load-bearing decoupling is `copy.deepcopy`.
+        Reconstruct the single most plausible mutant -- a shallow `copy.copy`
+        -- and show it (a) is INDISTINGUISHABLE from the live control on the
+        FLAT payload the rest of the suite uses, yet (b) LEAKS a nested-field
+        mutation into a 'stored' record. That gap is why a flat-only immutability
+        proof does not, on its own, cause the deep guarantee -- and why the
+        nested tests above are needed. The LIVE control, given the identical
+        nested scenario, must NOT leak.
+        """
+        import copy
+
+        def shallow_store_and_read(value):
+            """Emulate the store's decouple-on-write then decouple-on-read
+            round-trip under a SHALLOW-copy mutant."""
+            stored = copy.copy(value)          # mutant write-side decouple
+            returned = copy.copy(stored)       # mutant read-side decouple
+            return stored, returned
+
+        # (a) FLAT payload: shallow copy is indistinguishable -- ints are
+        # immutable, so mutating the caller's flat dict cannot reach `stored`.
+        flat = {"rate": 100}
+        stored_flat, returned_flat = shallow_store_and_read(flat)
+        flat["rate"] = 999
+        assert stored_flat == {"rate": 100}, (
+            "mutation-proof invalid: shallow copy already leaked on a FLAT "
+            "payload, so it wouldn't be indistinguishable from the live control"
+        )
+
+        # (b) NESTED payload: the SAME shallow mutant now LEAKS -- the inner
+        # dict is shared by reference, so a caller mutation rewrites `stored`.
+        nested = {"terms": {"rate": 100}}
+        stored_nested, returned_nested = shallow_store_and_read(nested)
+        nested["terms"]["rate"] = 999
+        assert stored_nested["terms"]["rate"] == 999, (
+            "mutation-proof invalid: shallow copy did NOT leak on a nested "
+            "payload, so the deep tests above would prove nothing"
+        )
+
+        # LIVE CONTROL: the real deepcopy-backed store, identical nested
+        # scenario, must NOT leak on the write side.
+        log = BitemporalEventLog()
+        payload = {"terms": {"rate": 100}}
+        log.record("elec_spot", "quote", dt.date(2020, 6, 1), _dt(2020, 6, 2), payload)
+        payload["terms"]["rate"] = 999
+        live = log.as_known_at(_dt(2020, 6, 3), "elec_spot", "quote", dt.date(2020, 6, 1))
+        assert live.value["terms"]["rate"] == 100, (
+            "live store leaked a nested caller mutation -- the copy-on-write "
+            "decouple is shallow, not deep; a shared-log consumer can rewrite "
+            "another consumer's 'immutable' past record"
+        )
