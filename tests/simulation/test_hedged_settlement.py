@@ -336,6 +336,35 @@ def test_deemed_gas_commodity_uses_gas_cap_not_electricity_cap():
     assert r["cap_bound"] is True
 
 
+def test_deemed_cap_year_tracks_settlement_date_not_term_start_across_year_boundary():
+    """A deemed term spanning a calendar-year boundary must clamp each period
+    against the cap for THAT settlement date's year, not the term-start year.
+    2021 elec cap = 183.0, 2022 elec cap = 305.0 (company/pricing/ofgem_price_cap.py).
+    Guards the Expert-Hour-claimed per-day `current_date.year` lookup against a
+    silent regression to `start.year` (R15: the control must fire on its own
+    named defect -- every other cap test is single-day/single-year, so this
+    cross-year case is the only one that would catch that mutation)."""
+    result = run_deemed_term(
+        customer_id="C_xyear",
+        term_start_date="2021-12-31",
+        term_end_date="2022-01-02",
+        deemed_premium=0.10,
+        consumption_shape=_shape_fn(1.0),
+        # spot high enough that the uncapped rate (1000*1.10=1100) exceeds BOTH
+        # years' caps, so the cap binds on every period and the only variable is
+        # WHICH year's cap is selected.
+        system_price_records=_prices(["2021-12-31", "2022-01-01"], price=1000.0),
+        segment="resi",
+        commodity="electricity",
+    )
+    dec_2021 = [r for r in result if r["settlement_date"] == "2021-12-31"]
+    jan_2022 = [r for r in result if r["settlement_date"] == "2022-01-01"]
+    assert dec_2021 and jan_2022
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(183.0) for r in dec_2021)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(305.0) for r in jan_2022)
+    assert all(r["cap_bound"] is True for r in result)
+
+
 def test_deemed_default_commodity_is_electricity_backward_compatible():
     """commodity defaults to 'electricity' -- every pre-existing caller/test
     that never passed it keeps its exact prior behaviour."""
