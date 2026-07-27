@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-27T17:16:31.604494+00:00",
+  "last_updated": "2026-07-27T17:50:40.836524+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T17:16:19.611085+00:00",
-      "last_action": "Heartbeat \u2014 2 files tracked",
-      "last_action_ts": "2026-07-27T17:16:19.611085+00:00",
+      "last_heartbeat": "2026-07-27T17:50:24.223170+00:00",
+      "last_action": "Heartbeat \u2014 1 files tracked",
+      "last_action_ts": "2026-07-27T17:50:24.223170+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T17:12:40.542178+00:00",
-      "last_action": "Waiting for next cycle (2h 5m remaining)",
-      "last_action_ts": "2026-07-27T17:12:40.542178+00:00",
+      "last_heartbeat": "2026-07-27T17:47:40.546591+00:00",
+      "last_action": "Waiting for next cycle (1h 30m remaining)",
+      "last_action_ts": "2026-07-27T17:47:40.546591+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T17:12:51.978486+00:00",
-      "last_action": "Run complete in 506s \u2014 3783 KB (run_output_37fdd4ce0_20260727T170425Z.json)",
-      "last_action_ts": "2026-07-27T17:12:51.978486+00:00",
+      "last_heartbeat": "2026-07-27T17:47:02.330697+00:00",
+      "last_action": "Run complete in 512s \u2014 3783 KB (run_output_57e1cc090_20260727T173830Z.json)",
+      "last_action_ts": "2026-07-27T17:47:02.330697+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T17:13:14.066545+00:00",
-      "last_action": "Peak hours pause \u2014 17:13 UTC",
-      "last_action_ts": "2026-07-27T17:13:14.066545+00:00",
+      "last_heartbeat": "2026-07-27T17:43:14.072509+00:00",
+      "last_action": "Peak hours pause \u2014 17:43 UTC",
+      "last_action_ts": "2026-07-27T17:43:14.072509+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T17:16:07.807631+00:00",
+      "last_heartbeat": "2026-07-27T17:48:54.000599+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-27T17:10:16.083785+00:00",
+      "last_heartbeat": "2026-07-27T17:40:23.493204+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-27T17:10:16.083785+00:00",
+      "last_action_ts": "2026-07-27T17:40:23.493204+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
