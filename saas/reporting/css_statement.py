@@ -301,7 +301,8 @@ def verify_css_reconciliation(
 
     # Control B — aggregate == sum of segments (persisted-artifact integrity).
     for k in ("revenue_gbp", "fuel_gbp", "gross_margin_gbp", "contribution_gbp",
-              "transportation_gbp", "environmental_gbp", "volume_mwh"):
+              "transportation_gbp", "environmental_gbp", "other_direct_gbp",
+              "non_commodity_gbp", "volume_mwh"):
         # FAIL-OPEN guard on the SEGMENT values, not just the aggregate: a single
         # non-finite segment figure makes `seg_sum` NaN, and `NaN > tol` silently
         # evaluates False — so the aggregate tie would pass on malformed input. The
@@ -309,6 +310,14 @@ def verify_css_reconciliation(
         # 'gross_margin_gbp' and 'volume_mwh' are referenced ONLY here and would
         # otherwise fail OPEN (a non-finite value renders as 'nan' in the audited
         # WACOE / gross-margin lines while this control stays silent). Guard them.
+        # 'other_direct_gbp' + 'non_commodity_gbp' added 2026-07-27 (red-team): the
+        # aggregate other_direct_gbp is a RENDERED audited line ('Other direct costs')
+        # and both build the aggregate column's own waterfall — yet neither was tied to
+        # sum-of-segments here, and Control A checks only the per-segment waterfall, so a
+        # post-construction transform/serialisation corruption of the aggregate figure
+        # (proven: +£5m on agg.other_direct) rendered a broken audited line AND a
+        # non-reconciling aggregate waterfall while every control stayed silent. Tying
+        # both to sum-of-segments closes the aggregate-waterfall hole by transitivity.
         bad = [s for s in CSS_SEGMENTS if not _finite_num((segs.get(s) or {}).get(k))]
         if bad:
             for s in bad:

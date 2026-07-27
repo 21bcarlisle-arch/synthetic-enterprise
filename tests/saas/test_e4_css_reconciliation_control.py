@@ -101,6 +101,33 @@ def test_mutation_aggregate_sum_fires(css, data):
     assert _has(out, "aggregate 'revenue_gbp'"), out
 
 
+def test_mutation_aggregate_other_direct_fires(css, data):
+    """DEFECT (was FAIL-OPEN, 2026-07-27 red-team): the aggregate `other_direct_gbp` is a
+    RENDERED audited line ('Other direct costs (capital/collateral charges)') and part of
+    the aggregate column's own waterfall, yet was ABSENT from Control B's aggregate tie —
+    and Control A checks only the per-segment waterfall, never the aggregate column's. A
+    post-construction transform/serialisation corruption of the aggregate figure therefore
+    rendered a broken audited line AND a non-reconciling aggregate waterfall while every
+    control stayed silent. Must now fire the aggregate==sum-of-segments tie."""
+    m = copy.deepcopy(css)
+    seg_sum = sum(m["segments"][s]["other_direct_gbp"] for s in CSS_SEGMENTS)
+    m["aggregate"]["other_direct_gbp"] = seg_sum + 5_000_000.0
+    out = verify_css_reconciliation(m, data)
+    assert _has(out, "aggregate 'other_direct_gbp'"), out
+    # clean still passes (control is not stuck-on)
+    assert verify_css_reconciliation(css, data) == []
+
+
+def test_mutation_aggregate_non_commodity_fires(css, data):
+    """DEFECT (was FAIL-OPEN, same class): the aggregate `non_commodity_gbp` feeds the
+    settlement→statutory reconciliation table (`css_settlement_non_commodity_gbp`) yet was
+    also absent from Control B's tie — a corrupted aggregate figure passed silently."""
+    m = copy.deepcopy(css)
+    m["aggregate"]["non_commodity_gbp"] += 5_000_000.0
+    out = verify_css_reconciliation(m, data)
+    assert _has(out, "aggregate 'non_commodity_gbp'"), out
+
+
 # --- Control B': INDEPENDENT tie (escapes the aggregate==sum tautology) --------------
 
 def test_mutation_independent_topline_fires(data, css):
