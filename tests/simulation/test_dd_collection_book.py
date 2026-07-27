@@ -4,6 +4,7 @@ from datetime import date, timedelta
 
 from company.billing.direct_debit import DirectDebitBook
 from simulation.arrears_engine import compute_emergent_bad_debt, payment_outcome, stress_for_year
+from simulation.bacs_rails import _add_working_days
 from simulation.dd_collection_book import build_dd_collection_book
 
 
@@ -102,7 +103,10 @@ class TestMandateSetupWiredThroughRails:
         mandate = book.get_mandate("C1")
         due_date = date(2020, 1, 31) + timedelta(days=14)
         confirmed = date.fromisoformat(mandate.setup_confirmed_date)
-        assert confirmed == due_date + timedelta(days=2)  # AUDDIS_CONFIRMATION_DAYS
+        # AUDDIS confirms 2 WORKING days after submission (2020-02-14 is a
+        # Friday, so the window skips the weekend to 2020-02-18, not the
+        # Sunday a calendar +2 would give).
+        assert confirmed == _add_working_days(due_date, 2)
 
     def test_first_collection_is_genuinely_gated_on_mandate_confirmation(self, monkeypatch):
         """FIXED (2026-07-12, third pass, closing the last named L3 blocker):
@@ -129,7 +133,8 @@ class TestMandateSetupWiredThroughRails:
         assert len(attempts) == 1
 
         naive_due_date = date(2020, 1, 31) + timedelta(days=14)
-        mandate_confirmed = naive_due_date + timedelta(days=AUDDIS_CONFIRMATION_DAYS)
+        # AUDDIS confirmation is 2 WORKING days out (skips the weekend).
+        mandate_confirmed = _add_working_days(naive_due_date, AUDDIS_CONFIRMATION_DAYS)
         gated_due_date = max(naive_due_date, mandate_confirmed)
         assert gated_due_date == mandate_confirmed  # the gate actually bites for a new mandate
 

@@ -46,9 +46,29 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Literal, Optional
 
-BACS_PROCESSING_DAYS = 3          # submission -> collection day
-ARUDD_NOTIFICATION_LAG_DAYS = 2   # collection day -> failure known, at most
-AUDDIS_CONFIRMATION_DAYS = 2      # mandate submission -> setup confirmed/rejected
+BACS_PROCESSING_DAYS = 3          # submission -> collection day (WORKING days)
+ARUDD_NOTIFICATION_LAG_DAYS = 2   # collection day -> failure known, at most (WORKING days)
+AUDDIS_CONFIRMATION_DAYS = 2      # mandate submission -> setup confirmed/rejected (WORKING days)
+
+# The Bacs cycle is measured in WORKING days, never calendar days: a
+# collection submitted on a Friday settles the following Wednesday (Mon/Tue/
+# Wed), not the following Monday, because Bacs does not process on weekends
+# (Pay.UK's own "Bacs System Principles": the 3-day cycle is three PROCESSING
+# days). An earlier version of this module used plain calendar timedelta
+# arithmetic -- an unregistered simplification (R10) that contradicted this
+# module's own docstring; corrected 2026-07-27 (HARDEN, W5_1_banking_payment_
+# rails) via _add_working_days() below.
+#
+# REGISTERED SIMPLIFICATION (R10, honest rather than fabricated): UK BANK
+# HOLIDAYS are not modelled -- Bacs also skips them, but no UK bank-holiday
+# calendar exists anywhere in this codebase to anchor to, and inventing one
+# would be false precision (R13: never fabricate a distribution/calendar that
+# can't be sourced). The weekend skip captures the large majority of the real
+# working-day effect (~104 weekend days/year vs ~8 bank holidays); the
+# residual bank-holiday gap is named here, not silently omitted. Business-
+# surface-only in any case -- these dates feed only the rendered DD-rails
+# surface (tools/generate_dashboard_data.py::extract_dd_rails), never any
+# financial/cash-timing figure (verified across four Expert Hour passes).
 
 SubmissionType = Literal["mandate_setup", "collection", "amendment"]
 SubmissionStatus = Literal["pending", "success", "failed"]
@@ -92,16 +112,34 @@ class BacsSubmission:
     reason_code: Optional[int] = None
 
 
+def _add_working_days(start: date, n: int) -> date:
+    """Advance `n` UK working days (Mon-Fri) from `start`, skipping weekends
+    -- the real Bacs cycle counts PROCESSING days, not calendar days. Bank
+    holidays are deliberately NOT skipped (see the module-level registered
+    simplification: no sourced UK bank-holiday calendar exists here to anchor
+    to). n=0 returns `start` unchanged. A weekend `start` is handled
+    naturally -- the first increment lands on the next working day -- so a
+    caller passing a Saturday due_date still gets a working-day outcome."""
+    d = start
+    remaining = n
+    while remaining > 0:
+        d = d + timedelta(days=1)
+        if d.weekday() < 5:  # Mon=0 .. Fri=4; 5/6 are Sat/Sun
+            remaining -= 1
+    return d
+
+
 def _outcome_date(submission_type: SubmissionType, submission_date: date) -> date:
     if submission_type == "mandate_setup":
-        return submission_date + timedelta(days=AUDDIS_CONFIRMATION_DAYS)
+        return _add_working_days(submission_date, AUDDIS_CONFIRMATION_DAYS)
     if submission_type == "amendment":
-        return submission_date + timedelta(days=AUDDIS_CONFIRMATION_DAYS)
-    # collection: money moves on Day 3; a FAILURE isn't known until up to
-    # ARUDD_NOTIFICATION_LAG_DAYS after that -- resolve_due_submissions()
-    # applies the extra lag only when the underlying outcome is a failure,
-    # since a successful collection is confirmed on collection day itself.
-    return submission_date + timedelta(days=BACS_PROCESSING_DAYS)
+        return _add_working_days(submission_date, AUDDIS_CONFIRMATION_DAYS)
+    # collection: money moves on Day 3 (three WORKING days); a FAILURE isn't
+    # known until up to ARUDD_NOTIFICATION_LAG_DAYS working days after that --
+    # resolve_due_submissions() applies the extra lag only when the underlying
+    # outcome is a failure, since a successful collection is confirmed on
+    # collection day itself.
+    return _add_working_days(submission_date, BACS_PROCESSING_DAYS)
 
 
 def submit_mandate_setup(reference: str, customer_id: str, submission_date: date) -> BacsSubmission:
@@ -162,7 +200,10 @@ def resolve_submission(submission: BacsSubmission, decided_outcome: Literal["suc
     outcome_date = submission.expected_outcome_date
     if submission.submission_type == "collection":
         lag_days = rng.randint(0, ARUDD_NOTIFICATION_LAG_DAYS) if rng is not None else ARUDD_NOTIFICATION_LAG_DAYS
-        outcome_date = outcome_date + timedelta(days=lag_days)
+        # ARUDD reports a failed collection up to 2 WORKING days after
+        # collection day -- never on a weekend (collection_day is itself a
+        # working day, so the lagged date stays a working day too).
+        outcome_date = _add_working_days(outcome_date, lag_days)
 
     return BacsSubmission(
         reference=submission.reference, submission_type=submission.submission_type,

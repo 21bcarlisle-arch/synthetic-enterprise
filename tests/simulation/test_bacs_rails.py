@@ -9,7 +9,7 @@ from simulation.bacs_rails import (
     BACS_PROCESSING_DAYS, ARUDD_NOTIFICATION_LAG_DAYS, AUDDIS_CONFIRMATION_DAYS,
     ARUDD_REASON_CODES, AUDDIS_REASON_CODES,
     submit_mandate_setup, submit_amendment, submit_collection,
-    resolve_submission, resolve_due_submissions,
+    resolve_submission, resolve_due_submissions, _add_working_days,
 )
 
 
@@ -79,15 +79,21 @@ class TestResolveFailureCollection:
     def test_failed_collection_lag_bounded_by_real_window(self):
         sub = submit_collection("REF1", "C1", 50.0, date(2020, 6, 1))
         resolved = resolve_submission(sub, "failed")
-        max_date = sub.expected_outcome_date + __import__("datetime").timedelta(days=ARUDD_NOTIFICATION_LAG_DAYS)
+        # The lag is measured in WORKING days -- the real ARUDD window.
+        max_date = _add_working_days(sub.expected_outcome_date, ARUDD_NOTIFICATION_LAG_DAYS)
         assert sub.expected_outcome_date <= resolved.expected_outcome_date <= max_date
 
     def test_rng_picks_a_valid_lag_within_the_real_window(self):
         rng = random.Random(42)
         sub = submit_collection("REF1", "C1", 50.0, date(2020, 6, 1))
         resolved = resolve_submission(sub, "failed", rng=rng)
-        lag = (resolved.expected_outcome_date - sub.expected_outcome_date).days
-        assert 0 <= lag <= ARUDD_NOTIFICATION_LAG_DAYS
+        # Lag is 0..ARUDD_NOTIFICATION_LAG_DAYS WORKING days -- reconstruct
+        # the working-day count rather than a raw calendar delta (which would
+        # over-count any weekend the lag crosses).
+        assert sub.expected_outcome_date <= resolved.expected_outcome_date
+        assert resolved.expected_outcome_date <= _add_working_days(
+            sub.expected_outcome_date, ARUDD_NOTIFICATION_LAG_DAYS)
+        assert resolved.expected_outcome_date.weekday() < 5  # never a weekend
 
     def test_reason_code_stays_dominant_even_with_rng_supplied(self):
         """rng only ever affects the lag, never the reason-code choice --
@@ -110,6 +116,55 @@ class TestResolveFailureMandateSetup:
         sub = submit_mandate_setup("REF2", "C1", date(2020, 6, 1))
         resolved = resolve_submission(sub, "failed")
         assert resolved.expected_outcome_date == sub.expected_outcome_date
+
+
+class TestWorkingDayCycle:
+    """The Bacs cycle counts WORKING days, never calendar days. These are the
+    mutation-kill tests for that control: reverting _outcome_date/
+    resolve_submission to plain `timedelta(days=...)` calendar arithmetic
+    (the prior, R10-defective behaviour) fails every weekend-crossing case
+    below, while the pre-existing Monday-fixture tests would still pass."""
+
+    def test_friday_collection_settles_the_following_wednesday(self):
+        # 2020-06-05 is a Friday; 3 working days = Mon/Tue/Wed = 2020-06-10,
+        # NOT the following Monday (2020-06-08) a calendar +3 would give.
+        assert date(2020, 6, 5).weekday() == 4  # Friday
+        sub = submit_collection("REF1", "C1", 50.0, date(2020, 6, 5))
+        assert sub.expected_outcome_date == date(2020, 6, 10)
+
+    def test_thursday_mandate_setup_skips_the_weekend(self):
+        # 2020-06-04 is a Thursday; 2 working days = Fri/Mon = 2020-06-08,
+        # NOT 2020-06-06 (a Saturday) a calendar +2 would give.
+        assert date(2020, 6, 4).weekday() == 3  # Thursday
+        sub = submit_mandate_setup("REF2", "C1", date(2020, 6, 4))
+        assert sub.expected_outcome_date == date(2020, 6, 8)
+        assert sub.expected_outcome_date.weekday() < 5
+
+    def test_collection_outcome_date_is_never_a_weekend(self):
+        # Sweep every submission day in a fortnight -- no rails outcome date
+        # may ever land on a Saturday or Sunday.
+        for offset in range(14):
+            d = date(2020, 6, 1) + __import__("datetime").timedelta(days=offset)
+            sub = submit_collection("R", "C", 10.0, d)
+            assert sub.expected_outcome_date.weekday() < 5, d
+
+    def test_failed_collection_notification_never_lands_on_a_weekend(self):
+        for offset in range(14):
+            d = date(2020, 6, 1) + __import__("datetime").timedelta(days=offset)
+            sub = submit_collection("R", "C", 10.0, d)
+            resolved = resolve_submission(sub, "failed")
+            assert resolved.expected_outcome_date.weekday() < 5, d
+
+    def test_add_working_days_helper_skips_weekends_and_never_returns_one(self):
+        # Friday + 1 working day = Monday.
+        assert _add_working_days(date(2020, 6, 5), 1) == date(2020, 6, 8)
+        # n=0 is identity.
+        assert _add_working_days(date(2020, 6, 5), 0) == date(2020, 6, 5)
+        # No positive advance ever lands on a weekend.
+        for start_off in range(9):
+            start = date(2020, 6, 1) + __import__("datetime").timedelta(days=start_off)
+            for n in range(1, 6):
+                assert _add_working_days(start, n).weekday() < 5
 
 
 class TestResolveDueSubmissions:
