@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from background import action_needed as action_needed_module
 from background import agenda as agenda_module
 from background import fronts_reconciler
 from background import supervisor
@@ -120,6 +121,14 @@ def _isolate(tmp_path, monkeypatch):
     # The fronts filter itself is covered independently in test_fronts_draw_filter.py.
     monkeypatch.setattr(fronts_reconciler, "FRONTS_ENFORCEMENT_FLAG", tmp_path / ".fronts_enforcement_enabled")
     monkeypatch.setattr(agenda_module, "AGENDA_FILE", tmp_path / ".open_agenda.json")
+    # §4 missing-WORK-THIS-CREATES-block surface (2026-07-27): run_cycle now calls
+    # surface_missing_work_block_defects(), which reads/writes the action_needed register. Isolate
+    # BOTH the register and its site mirror to tmp so run_cycle tests never read or mutate the REAL
+    # docs/observability/action_needed_register.json or site/data/director_reserved.json
+    # (feedback_new_draw_rung_needs_fixture_isolation: every new state path a cycle touches must be
+    # isolated here). The surface itself is proven both ways in test_missing_work_block_surface.py.
+    monkeypatch.setattr(action_needed_module, "REGISTER_PATH", tmp_path / "action_needed_register.json")
+    monkeypatch.setattr(action_needed_module, "SITE_RESERVED_PATH", tmp_path / "director_reserved.json")
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
     yield
@@ -2368,6 +2377,37 @@ def test_find_work_ruling_doorbell_carries_the_mint_instruction(tmp_path):
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("ordinary staged content")
     reason2, _ = supervisor.find_work(resumed_from_pause=False)
     assert "unprocessed staging" in reason2 and "MINT one atom per named deliverable" not in reason2
+
+
+# ── §3 RUNG-1 ORDERING at the find_work() boundary (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE) ──
+# Item 1 (landed) proves the DRAW HELPER (`_unconsumed_director_ruling_or_steer` suppresses the HARDEN
+# tier of `_self_refill_draw`). §3's requirement is stated one level UP, at `find_work()` itself: "with
+# a HARDEN candidate and an unconsumed staged ruling both available, the ruling must draw first" and no
+# HARDEN is appended as an ALSO. This drives the REAL `find_work()` (the primary the drawn turn actually
+# receives), reproducing the 2026-07-27 08:23-10:25 state at the level the user experiences it.
+def test_find_work_staged_ruling_draws_before_harden_with_no_also_tail(tmp_path, monkeypatch):
+    """§3 verbatim ("Rung 1 means rung 1"): given a live at-target HARDEN candidate AND an unconsumed
+    staged [DIRECTOR-RULING] both present, find_work() returns the ruling's mint instruction as the
+    SOLE primary -- never with an 'ALSO -- RULE 0 self-refill ... HARDEN' tail. R15 both ways: inverting
+    the rung order (the item-1 suppression removed, as if reverted) makes the HARDEN ALSO tail reappear,
+    so the ordering assertions have teeth. The mutation targets the ORDERING at the find_work boundary,
+    NOT the helper item 1's own tests already cover."""
+    _write_map(tmp_path, _ONE_AT_TARGET_HARDEN_MAP)   # one at-target atom => a live HARDEN candidate
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_ORDER_2026-07-27.md").write_text(_RULING_WITH_BLOCK)
+    reason, map_exhausted = supervisor.find_work(resumed_from_pause=False)
+    # (a) the ruling's mint instruction IS the returned primary
+    assert reason is not None and map_exhausted is False
+    assert "unprocessed staging" in reason and "DIRECTOR_RULING_ORDER_2026-07-27.md" in reason
+    assert "MINT one atom per named deliverable" in reason
+    # (b) NO HARDEN ALSO tail -- the ruling draws ALONE (the exact 08:23-10:25 anti-pattern forbidden)
+    assert "ALSO" not in reason
+    assert "HARDEN" not in reason
+    assert "RULE 0 self-refill" not in reason
+    # R15: invert the rung order (suppression off) -> the HARDEN floor is no longer gated and find_work
+    # appends it as 'ALSO -- ... HARDEN' -> assertions (b) above would FAIL. The defect is catchable.
+    monkeypatch.setattr(supervisor, "_unconsumed_director_ruling_or_steer", lambda *a, **k: False)
+    mutated, _ = supervisor.find_work(resumed_from_pause=False)
+    assert "ALSO" in mutated and "HARDEN" in mutated
 
 
 # ── DRAINED-AND-GATED quiet wait (ADVISOR_STEER_IDLE_TREADMILL..._2026-07-18, item 1) ──────────
