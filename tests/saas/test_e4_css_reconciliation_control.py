@@ -222,3 +222,31 @@ def test_annual_report_wrapper_surfaces_errors_loudly(monkeypatch):
     out = ar._section_consolidated_segmental_statement({})
     assert "CSS SECTION ERROR" in out
     assert out != ""
+
+
+# --- FAIL-SILENT sibling: the board KPI block must fail the SAME way as the CSS half --
+
+def test_board_kpi_wrapper_surfaces_errors_loudly(monkeypatch):
+    """SIBLING-HALF DEFECT (was FAIL-SILENT): _section_board_kpi_block previously
+    swallowed ANY exception to '', so a malformed data structure could vanish the entire
+    board KPI block from the annual report with no trace — while its already-hardened
+    sibling (_section_consolidated_segmental_statement) stayed loud. The two halves of
+    atom E4 must fail identically. Assert the board block now surfaces the error loudly."""
+    import saas.reporting.annual_report as ar
+    import saas.reporting.css_statement as cs
+
+    def _boom(_data):
+        raise RuntimeError("synthetic kpi failure")
+
+    monkeypatch.setattr(cs, "render_board_kpis", _boom)
+    out = ar._section_board_kpi_block({})
+    assert "BOARD KPI SECTION ERROR" in out
+    assert out != ""
+
+
+def test_board_kpi_wrapper_stays_silent_on_no_book():
+    """The legitimate silent case (no years / pre-segment fixture) must STAY silent —
+    the loud banner fires only on an UNEXPECTED error, not on a clean empty render."""
+    import saas.reporting.annual_report as ar
+    assert ar._section_board_kpi_block({}) == ""
+    assert "BOARD KPI SECTION ERROR" not in ar._section_board_kpi_block({})

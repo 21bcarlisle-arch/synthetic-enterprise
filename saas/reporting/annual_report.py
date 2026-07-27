@@ -9019,12 +9019,24 @@ def _section_consolidated_segmental_statement(data: dict) -> str:
 
 
 def _section_board_kpi_block(data: dict) -> str:
-    """Atom E4: board-grade KPI block beside the CSS financials."""
+    """Atom E4: board-grade KPI block beside the CSS financials.
+
+    Genuinely silent ONLY on pre-segment / no-book fixtures (render_board_kpis returns
+    "" when there are no years). An UNEXPECTED error is surfaced LOUDLY, never swallowed
+    to "" — R15: a check that silently disappears is a failed check. This closes the
+    FAIL-SILENT sibling hole to _section_consolidated_segmental_statement: the two halves
+    of atom E4 (CSS backbone + board KPI block) must fail the SAME way, or the KPI block
+    could vanish from the report without a trace while its sibling stayed loud."""
+    from saas.reporting.css_statement import render_board_kpis
     try:
-        from saas.reporting.css_statement import render_board_kpis
         return render_board_kpis(data)
-    except Exception:
-        return ""
+    except Exception as e:  # noqa: BLE001 — surfaced, not swallowed
+        return (
+            "\n## Board KPI Block\n\n"
+            f"> **⚠ BOARD KPI SECTION ERROR** — the board KPI block could not be rendered: "
+            f"`{type(e).__name__}: {e}`. This marker is intentionally LOUD (R15: an "
+            "unavailable check is a failed check); the section is not silently omitted.\n"
+        )
 
 
 def generate_annual_report(data: dict) -> str:
