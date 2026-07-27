@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -177,6 +178,103 @@ def test_pytest_subprocess_gets_gitless_env(monkeypatch):
                         lambda cmd, *a, **k: (captured.__setitem__("env", k.get("env")), _R())[1])
     assert gate.main() == 0
     assert [k for k in captured["env"] if k.startswith("GIT_")] == []
+
+
+# --- R15 mutation proof: the scrub is LOAD-BEARING against real corruption, not just a filter ---
+# The two tests above only assert the STRING-FILTERING property (GIT_* keys removed). Per R15
+# (CONTROLS_THAT_CANNOT_FAIL) a control is proven only when it is measured against its NAMED
+# DEFECT -- here, actual repo corruption. This gap matters MORE on the site lane than on the
+# tests/ gate: L2 SITE work commits from LINKED WORKTREES (.claude/worktrees/*, THREE_LANES), so
+# the GIT_COMMON_DIR shared-main-repo corruption vector -- the likeliest source of the incident's
+# repeated core.bare=true -- is MOST likely to fire through THIS gate. The higher-risk path had
+# the weaker proof; this closes that sibling gap (feedback_audit_sibling_half_for_hardened_class).
+def _run_git(args, cwd, env):
+    return subprocess.run(["git", *args], cwd=cwd, env=env, capture_output=True, text=True)
+
+
+def _repo_core_bare(repo, clean_env):
+    return _run_git(["config", "--get", "core.bare"], cwd=repo, env=clean_env).stdout.strip()
+
+
+def _make_isolated_repo(clean_env):
+    """A throwaway repo in its own tempdir -- NEVER the real .git -- with one commit and
+    core.bare confirmed false."""
+    repo = tempfile.mkdtemp(prefix="sitelane_isolated_repo_")
+    _run_git(["init", "-q"], cwd=repo, env=clean_env)
+    _run_git(["config", "user.email", "sitelane-test@example.invalid"], cwd=repo, env=clean_env)
+    _run_git(["config", "user.name", "Site Lane Mutation Test"], cwd=repo, env=clean_env)
+    (Path(repo) / "seed.txt").write_text("seed\n")
+    _run_git(["add", "seed.txt"], cwd=repo, env=clean_env)
+    _run_git(["commit", "-q", "-m", "initial"], cwd=repo, env=clean_env)
+    assert _repo_core_bare(repo, clean_env) == "false", "isolated repo fixture must start non-bare"
+    return repo
+
+
+def _make_isolated_repo_with_worktree(clean_env):
+    """A throwaway MAIN repo plus a linked worktree -- NEVER the real .git. Returns
+    (main_repo, worktree_gitdir, common_dir): the worktree's gitdir lives under
+    main/.git/worktrees/<name> and shares main/.git as GIT_COMMON_DIR, exactly the layout the
+    site lane's own .claude/worktrees/* commits run under."""
+    main_repo = _make_isolated_repo(clean_env)
+    wt_path = tempfile.mkdtemp(prefix="sitelane_linked_wt_")
+    linked = str(Path(wt_path) / "wt")
+    add = _run_git(["worktree", "add", "-q", linked, "-b", "sitelanewtbranch"],
+                   cwd=main_repo, env=clean_env)
+    assert add.returncode == 0, f"worktree add must succeed to set up the fixture: {add.stderr}"
+    worktree_gitdir = str(Path(main_repo) / ".git" / "worktrees" / "wt")
+    common_dir = str(Path(main_repo) / ".git")
+    assert Path(worktree_gitdir).is_dir(), "linked worktree gitdir must exist under main/.git/worktrees"
+    return main_repo, worktree_gitdir, common_dir
+
+
+def test_r15_scrub_prevents_leaked_worktree_common_dir_corruption__mutation_proof():
+    """R15 mutation proof (CONTROLS_THAT_CANNOT_FAIL) for the site lane's own _gitless_env, in BOTH
+    directions, against a throwaway repo -- never the real worktree.
+
+    Named defect (H24/H26): during a `git commit` inside a LINKED worktree git sets GIT_COMMON_DIR
+    at the MAIN repo's shared .git; an unscrubbed subprocess env lets a stray `git config` write
+    land on the SHARED common config (flipping core.bare on the main repo) even though GIT_DIR
+    points at the worktree's own private gitdir. Because the site lane commits from linked worktrees,
+    this is the vector most likely to fire HERE. The scrub must strip GIT_COMMON_DIR and prevent it.
+    """
+    clean_env = gate._gitless_env(dict(os.environ))  # our own test process must not leak either
+    main_repo, worktree_gitdir, common_dir = _make_isolated_repo_with_worktree(clean_env)
+    assert _repo_core_bare(main_repo, clean_env) == "false", "fixture main repo must start non-bare"
+
+    # A neutral cwd that is NOT a git repo -- so the only way `git config` can reach the shared
+    # common config is by obeying the leaked worktree-commit env (GIT_DIR + GIT_COMMON_DIR).
+    neutral_cwd = tempfile.mkdtemp(prefix="sitelane_wt_neutral_cwd_")
+
+    leaked_env = dict(clean_env)
+    leaked_env["GIT_DIR"] = worktree_gitdir            # the worktree's PRIVATE gitdir
+    leaked_env["GIT_COMMON_DIR"] = common_dir          # the SHARED main .git (worktree-only var)
+    leaked_env["GIT_INDEX_FILE"] = str(Path(worktree_gitdir) / "index")
+
+    # --- WITH the shipped scrub (the real code path) --- must FAIL, shared config untouched ---
+    scrubbed_env = gate._gitless_env(leaked_env)
+    assert [k for k in scrubbed_env if k.startswith("GIT_")] == [], (
+        "the scrub must strip GIT_COMMON_DIR too -- it is a GIT_* var like any other"
+    )
+    with_scrub = _run_git(["config", "core.bare", "true"], cwd=neutral_cwd, env=scrubbed_env)
+    assert with_scrub.returncode != 0, (
+        "with GIT_* scrubbed and a non-repo cwd, `git config` must FAIL -- if it succeeds, the "
+        "leaked worktree common-dir is still reaching the shared config"
+    )
+    assert _repo_core_bare(main_repo, clean_env) == "false", (
+        "the scrub must leave the shared main config untouched"
+    )
+
+    # --- WITHOUT the scrub (the mutation: leaked worktree env passed straight through) --- must
+    # REPRODUCE the corruption on the SHARED common config, proving the vector is real. ---
+    without_scrub = _run_git(["config", "core.bare", "true"], cwd=neutral_cwd, env=leaked_env)
+    assert without_scrub.returncode == 0, (
+        "expected the unscrubbed leaked worktree env to let `git config` succeed against the shared "
+        "common dir -- if it didn't, this test can't demonstrate the defect"
+    )
+    assert _repo_core_bare(main_repo, clean_env) == "true", (
+        "the unscrubbed leaked GIT_COMMON_DIR must flip core.bare on the SHARED main config -- "
+        "proving the site-lane worktree corruption vector is real and the scrub is what prevents it"
+    )
 
 
 # --- reconstruct-from-repo: the committed hook actually invokes the gate -----------------------
