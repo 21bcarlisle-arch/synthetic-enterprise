@@ -136,10 +136,13 @@ def _find_short_code_occurrences(
     message: str, short_codes: list[str]
 ) -> list[tuple[int, int, str]]:
     """[(start, end, short_code), ...] sorted by position in `message`. A
-    short code must not be immediately preceded/followed by an alnum char
-    (word-ish boundary) and must not be immediately followed by a digit
-    (prevents "H1" false-matching inside "H10"); an underscore or letter
-    immediately after IS allowed (e.g. "F6_rebuild" for atom "F6...")."""
+    short code must be word-bounded on BOTH sides: not immediately preceded or
+    followed by an ALNUM char (a digit prevents "H1" false-matching inside
+    "H10"; a letter prevents "E2" false-matching inside "E2E" -- an
+    end-to-end-test mention -- which would inject a phantom transition into the
+    observed cost distribution). An underscore immediately after IS still
+    allowed (the repo's real convention, e.g. "F6_rebuild" for atom "F6...":
+    "_" is not alnum)."""
     occurrences = []
     for code in short_codes:
         for m in re.finditer(re.escape(code), message):
@@ -148,7 +151,7 @@ def _find_short_code_occurrences(
             after = message[end] if end < len(message) else ""
             if before.isalnum():
                 continue
-            if after.isdigit():
+            if after.isalnum():
                 continue
             occurrences.append((start, end, code))
     occurrences.sort(key=lambda t: t[0])

@@ -90,6 +90,21 @@ def test_parse_does_not_confuse_h1_with_h10():
     assert result == [("H10", 3)]
 
 
+def test_parse_does_not_false_match_code_glued_to_a_trailing_letter():
+    # A short code must be word-bounded on BOTH sides. The original guard
+    # rejected a following DIGIT ("H1" inside "H10") but let a following
+    # LETTER through -- so "E2E" (an end-to-end-test mention) would be read as
+    # a phantom transition for the real atom "E2", polluting the observed cost
+    # distribution. R15 should-FAIL mutation: revert the guard to
+    # `after.isdigit()` and this first assert regresses.
+    assert parse_transitions_from_message("E2E harness rebuilt -> L3", ["E2"]) == []
+    # ...while the repo's real conventions (underscore/space after) still match.
+    assert parse_transitions_from_message(
+        "E2_revenue_reconciliation -> L3", ["E2"]
+    ) == [("E2", 3)]
+    assert parse_transitions_from_message("E2 -> L3", ["E2"]) == [("E2", 3)]
+
+
 def test_parse_handles_prose_between_code_and_arrow():
     result = parse_transitions_from_message(
         "W2_10 DD-attribution-confound -> L2 (L3 gated on C12)", ["W2_10", "C12"]
