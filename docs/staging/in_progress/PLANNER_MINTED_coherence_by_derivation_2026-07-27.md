@@ -1,3 +1,4 @@
+<!-- STATUS 2026-07-27: Phase A (node→atom mapping + bidirectional coherence check) LANDED, R15 both ways, live gate green. OPEN: Phase B (computed stage from mapped atom levels), Phase C (site renders from the derivation), Phase D (publish-gate disagreement check). B unblocks NOW — the mapping shape has landed; twin §3a can BUILD-open within the SUPPLIER front (site/). Parked in in_progress/ so it stays drawable without re-granting empty supervisor turns. -->
 <!-- SUPERVISOR_DRAW: self-drawable -->
 # [PLANNER-MINTED / PROPOSE-THEN-PROCEED] — Coherence by derivation: model → diagram → site → map derive from one truth (§6) (2026-07-27)
 

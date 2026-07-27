@@ -1,0 +1,101 @@
+{
+  "_doc": "CANONICAL node->atom mapping (Coherence-by-derivation SS6, Phase A, 2026-07-27). The single place that ties each front-door MODEL-ON-A-PAGE diagram node (site/index.html .node) to the named maturity-map atom(s) whose completion its stage claim rests on. Everything downstream (Phase B computed stage, Phase C site render, Phase D publish-gate disagreement check) derives from THIS file -- it is never hand-synced. Source of truth for what exists: docs/design/THE_MODEL_ON_A_PAGE.md. Atom ids reference docs/design/maturity_map.yaml (READ-ONLY here -- that path is a schema_sim_structure gate; this file never edits it).",
+  "_derivation_rule": "A node's stage is a pure function of its mapped atoms' levels (docs/design/maturity_map.yaml level_current vs level_target): LIVE = every mapped atom at target; BUILDING = at least one below target; PLANNED = none started (all at level 0). Phase A does NOT compute stage -- it fixes the mapping and proves it coheres (every node has atoms, every atom ref is live, diagram and mapping agree on the node set). 'declared_stage' records the stage the live site currently HAND-SETS, so Phase D can flag drift between it and the computed stage.",
+  "_mapping_discipline": "A node maps to the atoms that EMBODY its CURRENT (Timeframe-1) claim -- the set that must all be at target for that claim to hold -- NOT every atom in the topical vicinity. Timeframe-2 deepening atoms (registered-but-not-yet-true) are excluded by design; they belong to the evolution, not the live claim. This keeps the mapping honest in both directions: it neither cherry-picks to force green nor dumps unrelated atoms to force red.",
+  "nodes": [
+    {
+      "id": "governance_method",
+      "name": "Governance & method",
+      "look_href": "./proof/#method-anchor",
+      "declared_stage": "Live",
+      "atoms": [
+        "A1_learn_loop_chair",
+        "A2_decision_rights_register",
+        "A3_approval_interface",
+        "F1_epistemic_verifier",
+        "F2_sanity_daemon",
+        "F3_obligations_register",
+        "H1_supervisor_turn_granting",
+        "H5_security_profiles",
+        "H7_skills_and_rules",
+        "H12_mutation_test_controls",
+        "G2_fidelity_evidence_ledger"
+      ]
+    },
+    {
+      "id": "the_world",
+      "name": "The world",
+      "look_href": "./world/#causal-chain",
+      "declared_stage": "Live",
+      "atoms": [
+        "W1_3_national_weather_signal",
+        "W1_4_regional_weather_field",
+        "W1_5_premise_demand_shape",
+        "W1_6_physics_price_signal",
+        "W1_reveal_over_time",
+        "W3_1_price_cap_binding",
+        "W3_2_settlement_timetable"
+      ]
+    },
+    {
+      "id": "the_households",
+      "name": "The households",
+      "look_href": "./customers/#cust-who",
+      "declared_stage": "Live",
+      "atoms": [
+        "W2_1_archetype_layers",
+        "W2_2_population_draw",
+        "W2_4_household_budget",
+        "W2_5_life_event_stream",
+        "W2_6_sme_distress_twin",
+        "W2_7_willingness_classification",
+        "W2_8_self_rationing"
+      ]
+    },
+    {
+      "id": "the_wall",
+      "name": "The wall",
+      "look_href": "./world/#crossings",
+      "declared_stage": "Live",
+      "atoms": [
+        "W4_1_typed_adapters",
+        "W4_3_external_truth_wall",
+        "W4_4_payment_observable_seam",
+        "C2_discovery_through_interfaces"
+      ]
+    },
+    {
+      "id": "the_company",
+      "name": "The company",
+      "look_href": "./company/#state-decisions",
+      "declared_stage": "Building",
+      "atoms": [
+        "C1_segment_layers",
+        "C2_discovery_through_interfaces",
+        "C9_cantpay_wontpay_classifier",
+        "D1_bill_correctness",
+        "D2_three_clocks",
+        "D3_catchup_rebilling",
+        "E1_ledger_double_entry",
+        "E2_revenue_reconciliation",
+        "B1_margin_bridge",
+        "B2_opex_cost_to_serve",
+        "B3_hedge_tariff_alignment",
+        "B4_competitor_field"
+      ]
+    },
+    {
+      "id": "the_score",
+      "name": "The score",
+      "look_href": "./proof/#not-proven",
+      "declared_stage": "Building",
+      "atoms": [
+        "A5_tournament_fitness_mortality",
+        "A6_coupled_triad_gap_metric",
+        "A_scope_of_need_scoring_frame",
+        "E5_carbon_three_ledger",
+        "G1_fidelity_grid_scorer"
+      ]
+    }
+  ]
+}
