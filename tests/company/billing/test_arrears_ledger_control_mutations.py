@@ -29,6 +29,7 @@ from company.billing.arrears_engine import (
     AgeingPartitionError,
     DunningPathError,
     DunningStep,
+    FixedCompensationError,
     StatutoryInterestScopeError,
     WriteOffAuditError,
     age_bucket,
@@ -36,8 +37,10 @@ from company.billing.arrears_engine import (
     assert_age_buckets_partition,
     assert_ageing_conserves_value,
     assert_dunning_path_valid,
+    assert_fixed_compensation_once,
     assert_interest_is_b2b_only,
     assert_write_off_audited,
+    build_interest_event,
     build_write_off_event,
     current_dunning_step,
     statutory_interest_gbp,
@@ -330,3 +333,57 @@ def test_write_off_audited_FIRES_on_wrong_event_type():
                            dt.date(2024, 6, 1), TT, reason="goodwill")
     with pytest.raises(WriteOffAuditError):
         assert_write_off_audited(not_a_wo)
+
+
+# ===========================================================================
+# CONTROL 7 — assert_fixed_compensation_once: the LPCDA 1998 s.5A fixed sum is a
+# ONE-OFF per qualifying debt, not per accrual period. Named defect: a recurring
+# interest accrual that re-charges the £40/£70/£100 fixed sum every period.
+# ===========================================================================
+
+def _accrue(as_of_day, include_fixed):
+    # One B2B interest accrual on the SAME debt (INV1) at a later as_of date.
+    return build_interest_event(
+        "A", Segment.IC, 5000.0, days_late=30, boe_base_rate=0.05,
+        as_of=dt.date(2024, 3, as_of_day), transaction_time=TT,
+        invoice_ref="INV1", include_fixed_compensation=include_fixed,
+    )
+
+
+def test_fixed_comp_once_passes_when_only_first_accrual_carries_it():
+    # CORRECT recurring accrual: fixed sum on the first period only, interest-only
+    # thereafter — the one-off is charged exactly once across the debt's events.
+    events = [_accrue(1, include_fixed=True), _accrue(15, include_fixed=False)]
+    assert all(e is not None for e in events)
+    assert_fixed_compensation_once(events)            # clean: does not raise
+    # ...and a single accrual with the fixed sum is obviously fine too.
+    assert_fixed_compensation_once([_accrue(1, include_fixed=True)])
+
+
+def test_fixed_comp_once_FIRES_when_recharged_every_period():
+    # MUTATION: the caller forgot to suppress the fixed sum on the re-accrual, so
+    # the statutory one-off is charged twice on one debt.
+    events = [_accrue(1, include_fixed=True), _accrue(15, include_fixed=True)]
+    with pytest.raises(FixedCompensationError):
+        assert_fixed_compensation_once(events)
+
+
+def test_fixed_comp_once_is_fail_closed_on_wrong_event_type():
+    # FAIL-CLOSED probe: a non-interest event in the set is a mis-scoped input and
+    # must RAISE, not pass by silently ignoring it.
+    good = _accrue(1, include_fixed=True)
+    stray = LedgerEvent("WO-x", "A", LedgerEventType.WRITE_OFF_CREDIT, 100.0,
+                        dt.date(2024, 3, 20), TT, reason="insolvency")
+    with pytest.raises(FixedCompensationError):
+        assert_fixed_compensation_once([good, stray])
+
+
+def test_fixed_comp_suppressed_accrual_omits_the_statutory_sum():
+    # The re-accrual's amount is pro-rata interest ONLY (no £70 band added) and its
+    # reason does NOT carry the fixed-sum marker — proving the flag actually works.
+    with_fixed = _accrue(1, include_fixed=True)
+    interest_only = _accrue(15, include_fixed=False)
+    delta = round(with_fixed.amount_gbp - interest_only.amount_gbp, 2)
+    assert delta == 70.0                              # £5,000 debt -> £70 band
+    assert "fixed compensation" in with_fixed.reason
+    assert "fixed compensation" not in interest_only.reason

@@ -14,7 +14,10 @@ models:
   3. STATUTORY LATE-PAYMENT INTEREST — B2B ONLY, under the Late Payment of
      Commercial Debts (Interest) Act 1998: 8 percentage points above the Bank of
      England base rate, plus fixed compensation (£40/£70/£100 by debt size).
-     Residential debt accrues NO statutory interest. Anchors:
+     Residential debt accrues NO statutory interest. The s.5A fixed sum is a
+     ONE-OFF per qualifying debt, NOT charged again per accrual period — recurring
+     interest accrual passes include_fixed_compensation=False after the first
+     accrual (guarded by assert_fixed_compensation_once). Anchors:
      docs/market_research/account_hierarchy_payment_allocation.md.
   4. WRITE-OFFS — dated, reasoned, P&L-visible ledger events (WRITE_OFF_CREDIT),
      never a silent status flip.
@@ -352,6 +355,34 @@ def assert_interest_is_b2b_only(segment: Segment, interest_gbp: float) -> None:
         )
 
 
+def assert_fixed_compensation_once(interest_events) -> None:
+    """R15 CONTROL — the LPCDA 1998 s.5A fixed statutory sum is recoverable ONCE per
+    qualifying debt, never per accrual period. Given the INTEREST_DEBIT events for a
+    SINGLE debt, fires if more than one carries the fixed sum.
+
+    Independent: it inspects the EMITTED events' reason markers (what actually
+    posted to the ledger), not the include_fixed_compensation flag the producer was
+    handed — so a caller that forgets to suppress the fixed sum on a re-accrual is
+    caught from the ledger side. FAIL-CLOSED: a non-INTEREST_DEBIT event in the set
+    RAISES (a mis-scoped input is a failed check, not a silent pass). Mutation
+    defect: a recurring accrual that re-charges the £40/£70/£100 fixed sum every
+    period (multiplying a statutory one-off)."""
+    charged = 0
+    for e in interest_events:
+        if e.event_type != LedgerEventType.INTEREST_DEBIT:
+            raise FixedCompensationError(
+                f"event {e.event_id} is {e.event_type.value}, not an interest accrual "
+                f"— assert_fixed_compensation_once needs one debt's interest events"
+            )
+        if _FIXED_COMP_MARKER in (e.reason or ""):
+            charged += 1
+    if charged > 1:
+        raise FixedCompensationError(
+            f"s.5A fixed compensation charged {charged} times on one debt "
+            f"(LPCDA 1998 allows the fixed sum once per qualifying debt)"
+        )
+
+
 def assert_write_off_audited(event: LedgerEvent) -> None:
     """R15 CONTROL — a write-off must be a dated, reasoned, P&L-visible credit event,
     never a silent status flip. Fires on the wrong type, a missing/blank reason, a
@@ -378,6 +409,17 @@ def assert_write_off_audited(event: LedgerEvent) -> None:
 # ---------------------------------------------------------------------------
 
 LPCDA_MARGIN = 0.08  # 8 percentage points above BoE base rate
+
+# Stable marker written into an interest event's reason WHENEVER the s.5A fixed
+# sum is included — used by assert_fixed_compensation_once to detect a debt whose
+# one-off statutory sum has been charged more than once. Kept as one constant so
+# the producer (build_interest_event) and the control cannot drift apart.
+_FIXED_COMP_MARKER = "s.5A fixed compensation"
+
+
+class FixedCompensationError(Exception):
+    """Raised when the LPCDA 1998 s.5A fixed statutory sum — recoverable ONCE per
+    qualifying debt — is charged on more than one of a debt's interest accruals."""
 
 
 def lpcda_fixed_compensation_gbp(debt_gbp: float) -> float:
@@ -421,10 +463,20 @@ def build_interest_event(
     transaction_time: dt.datetime,
     invoice_ref: Optional[str] = None,
     event_id: Optional[str] = None,
+    include_fixed_compensation: bool = True,
 ) -> Optional[LedgerEvent]:
     """Produce an INTEREST_DEBIT LedgerEvent for B2B late interest, or None if not
-    applicable (residential, or nothing due). The event feeds the SAME ledger."""
-    amount = statutory_interest_gbp(segment, principal_gbp, days_late, boe_base_rate)
+    applicable (residential, or nothing due). The event feeds the SAME ledger.
+
+    The s.5A fixed statutory sum (£40/£70/£100) is recoverable ONCE per qualifying
+    debt, not per accrual period. A caller that accrues interest across multiple
+    as_of dates for the SAME debt must pass include_fixed_compensation=False on
+    every accrual after the first, or it re-charges the one-off sum each period
+    (assert_fixed_compensation_once catches that across the debt's events)."""
+    amount = statutory_interest_gbp(
+        segment, principal_gbp, days_late, boe_base_rate,
+        include_fixed_compensation=include_fixed_compensation,
+    )
     # R15 WIRING — the scope control now RUNS on every live interest calculation:
     # a positive figure on a non-business segment RAISES here (fail-closed), rather
     # than the invariant only being checkable on demand. Independent of the
@@ -433,6 +485,17 @@ def build_interest_event(
     if amount <= 0:
         return None
     eid = event_id or f"INT-{account_id}-{invoice_ref or 'BAL'}-{as_of.isoformat()}"
+    rate_pct = (boe_base_rate + LPCDA_MARGIN) * 100
+    if include_fixed_compensation:
+        reason = (
+            f"LPCDA 1998 statutory interest: {days_late}d @ {rate_pct:.2f}% + "
+            f"{_FIXED_COMP_MARKER} £{lpcda_fixed_compensation_gbp(principal_gbp):.2f}"
+        )
+    else:
+        reason = (
+            f"LPCDA 1998 statutory interest: {days_late}d @ {rate_pct:.2f}% "
+            f"(interest only — s.5A fixed sum already charged on this debt)"
+        )
     return LedgerEvent(
         event_id=eid,
         account_id=account_id,
@@ -441,10 +504,7 @@ def build_interest_event(
         valid_time=as_of,
         transaction_time=transaction_time,
         invoice_ref=invoice_ref,
-        reason=(
-            f"LPCDA 1998 statutory interest: {days_late}d @ "
-            f"{(boe_base_rate + LPCDA_MARGIN) * 100:.2f}% + fixed compensation"
-        ),
+        reason=reason,
     )
 
 
