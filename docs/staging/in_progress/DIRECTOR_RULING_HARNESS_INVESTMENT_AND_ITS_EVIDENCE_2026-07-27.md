@@ -1,3 +1,26 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DISPOSITION 2026-07-27 (actioned this tick, commit follows):
+  PROBLEM ONE (mint §2 content as DRAWABLE ATOMS with exit criteria) -- DONE. Three atoms folded into
+    docs/design/maturity_map.yaml (they existed only as PLANNER_MINTED_*.md staging docs = the grep-gap):
+      - W1_6b_merit_order_reconstruction (wholesale_to_price, SIM_ACTORS front): DISCOVER/FRAME discharged;
+        BUILD honestly HELD by the propose-then-proceed window until 2026-07-28, drawable then. Exit: ordinary-
+        day reconstructibility test + UNMOVED W1_6 lift table (right-not-tuned) + R15 merit-order mutation.
+      - DD_seasonal_cashflow_physics (meter_to_cash, SUPPLIER front): window CLOSED 2026-07-27 -> DRAWABLE NOW
+        (blocked_on: null, verified a live BUILD candidate). Exit: DD1-DD5 + DD-H each with its own acceptance.
+        THIS is the atom that satisfies the ruling's Acceptance -- find_work now surfaces real content work, so
+        a draw can no longer honestly report "no un-minted work" and fall to HARDEN.
+      - SITE_evidence_pages_behind_nodes (close_to_learn, H_harness): honestly OFF-front -> blocked_on names the
+        needed director FRONT_OPEN/BUILD_OPEN for the H-lane. Exit: no dangling node anchor + primary-state
+        evidence pages (R11) + publish gate FIRES on a node claiming an unsupported stage (R15).
+    facets/level-gate/fronts-reconciler/moap-coherence all green over the new atoms.
+  PROBLEM TWO (propose the harness exit criterion) -- PROPOSED: docs/design/HARNESS_EXIT_CRITERION_PROPOSAL_2026-07-27.md
+    (evidence-based not time-based; ungameable content definition via the product/machinery split; stall-vs-decision
+    split; falsifiable + R15-mechanisable). Returned to the director as ONE [ACT] for ratification.
+  BLOCKING SUB-ITEM (why in_progress/, not done/): awaiting the DIRECTOR'S RATIFICATION of the exit criterion
+    (Problem Two is the only director-reserved item; "N=3" and the stall-set are dials he sets). UNBLOCKS: a
+    director console/NTFY ratification (or a revision) of the criterion -> then mechanise it (R15 both-ways) and
+    move to done/. The mint obligation (Problem One) is DISCHARGED; this file no longer re-grants a mint turn. -->
+
 # [DIRECTOR-RULING] — Harness investment CONTINUES; it must terminate on evidence. Two problems to solve, mechanisms yours. (2026-07-27)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Written as problems, not prescriptions — you are closer to the detail and hold more information than the advisor does. Where this document names a mechanism, treat it as a candidate to beat, not a specification.

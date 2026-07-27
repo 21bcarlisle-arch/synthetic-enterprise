@@ -86,6 +86,11 @@ REVIEWED_CLOSE_TO_LEARN = {
     "OPS1_tmux_target_qualification", "OPS1_governance_refusal_mutation_test",
     "OPS1_transport_failure_must_be_loud",
     "SITE1_expert_doors",
+    # 2026-07-27 minted from DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE (Problem One):
+    # the site evidence pages behind the model-on-a-page nodes -- a method/site atom that makes the
+    # harness's own evidence inspectable (belief-vs-truth / does-the-claim-hold), same close_to_learn
+    # class as SITE1_expert_doors and the G-fidelity atoms, not a revenue-flow movement.
+    "SITE_evidence_pages_behind_nodes",
     "W4_1_typed_adapters", "W4_2_verifier_timing_extension", "W4_3_external_truth_wall",
 }
 

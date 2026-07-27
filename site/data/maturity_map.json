@@ -2742,6 +2742,67 @@
       "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "W1_6b_merit_order_reconstruction",
+      "name": "Merit-order / gas-first price-engine reconstruction: ordinary-day SSP substantially reconstructible from gas + carbon + demand + wind, scarcity earns its keep only in tight hours (the SSP-hold unblock + Board Spec 004 reconstructibility test)",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_6_physics_price_signal"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "DD_seasonal_cashflow_physics",
+      "name": "Per-customer level-DD seasonal cash-flow physics: summer-credit / winter-drawdown balances, held customer credit booked as a LIABILITY, annual DD review as a first-class event, and the cash-rich-but-insolvent tell made visible (DD1-DD5 + DD-H)",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_12_change_of_tenancy_debt_physics"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SITE_evidence_pages_behind_nodes",
+      "name": "Site evidence pages behind the diagram nodes: each model-on-a-page node links to a page showing the primary-state evidence (numbers, tests, provenance) that substantiates its claimed stage -- the harness's content, made inspectable",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -2824,7 +2885,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 135,
+  "total_atoms": 138,
   "epoch2_movements": [
     {
       "id": "M1",
