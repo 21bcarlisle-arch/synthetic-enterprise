@@ -220,6 +220,17 @@ def _monotonic_test_progression(chronological):
     for _phase_id, date, tc, _title, _body in chronological:
         if tc is None:
             continue
+        # A dateless Section-4 header (no date parenthetical -> date is None)
+        # can still carry a test count in its body, so _iter_phase_entries
+        # yields (None, tc). It cannot be placed on a date-ordered timeline,
+        # and left in `max_by_date` it makes `sorted(max_by_date)` below raise
+        # TypeError ('<' not supported between NoneType and str), propagating
+        # up through generate() and wedging the whole site publish -- the same
+        # FAIL-CRASH-on-malformed-record class the sibling half
+        # (cumulative_tests_executed) was hardened against. Skip it, exactly
+        # as a None test_count is skipped above.
+        if date is None:
+            continue
         if date not in max_by_date or tc > max_by_date[date]:
             max_by_date[date] = tc
     progression = []

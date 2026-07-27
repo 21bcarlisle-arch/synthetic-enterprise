@@ -165,6 +165,24 @@ def test_monotonic_test_progression_stays_monotonic_when_input_out_of_date_order
     assert result == [["2026-07-10", 200]]
 
 
+def test_monotonic_test_progression_dateless_entry_with_count_does_not_crash_publish():
+    """R15 (2026-07-27, G1 HARDEN sibling-half red-team): a Section-4 header
+    with NO date parenthetical yields date=None from _iter_phase_entries, yet
+    its body can still carry a test count -> entry (None, tc). Left in
+    max_by_date, `sorted(max_by_date)` raises TypeError ('<' not supported
+    between NoneType and str), propagating up through generate() and wedging
+    the whole site publish -- the same FAIL-CRASH-on-malformed-record class the
+    sibling half (cumulative_tests_executed non-int guard) was hardened
+    against. Before the `date is None: continue` guard this raised; it must now
+    skip the dateless entry AND still publish the genuine dated one."""
+    chrono = [
+        _entry("A", "2026-07-10", 16000),
+        _entry("H7", None, 16358),  # dateless header carrying a real count
+    ]
+    result = _monotonic_test_progression(chrono)
+    assert result == [["2026-07-10", 16000]], "dateless entry skipped, dated entry still lands"
+
+
 def test_total_commits_returns_positive_int_from_real_repo():
     count = _total_commits()
     assert isinstance(count, int)
