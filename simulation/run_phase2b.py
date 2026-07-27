@@ -615,6 +615,121 @@ def _compute_company_divergence(
     }
 
 
+def _mc2_collateral_death_test(
+    trading_book,
+    commodity_by_cid: dict,
+    price_at,
+    effective_end: str,
+    *,
+    peak_sample_date: "str | None" = None,
+    available_cash_gbp: float = 0.0,
+):
+    """MC-2 collateral death-test: the breaking-strain sweep against a REAL 2021-22 replay.
+
+    DIRECTOR_RULING_MC2_REAL_HISTORY_NOT_DIFFICULTY §2: the 1.0x point IS real history; the
+    sweep scales the observed price MOVE (0.8/1.0/1.2/1.5x) and records the dose at which
+    death-by-collateral arrives. NO difficulty knob (§1/§2) — the sweep is a MEASUREMENT, not a
+    curriculum world. §3: the facility is book-derived at ORIGINATION and held fixed across the
+    sweep (breaking_strain_sweep facility_gbp=None). R12: the stressed date is anchored to the
+    REAL 2021-22 crisis, NEVER chosen to force a death.
+
+    The SAME live book (calendar-live as-of the stressed date) is marked at two OBSERVABLE
+    point-in-time forward prices: a calm ORIGINATION mark (when the positions were struck ->
+    near-strike -> ~zero MtM baseline) and the STRESSED 2021-22 mark. Marking one fixed book at
+    two prices isolates the pure price move, exactly what MC-2 measures. Wall-clean: own book
+    term windows + own observable forwards; no simulation internal, no future leak.
+
+    ``price_at(fuel, date) -> float | None`` is the point-in-time forward-price resolver — in the
+    live run a closure over ``CompanyTariffEngine.get_forward_price`` (which itself reads only
+    spot history BEFORE the mark date); injected in tests. Returns the summary dict, or ``None``
+    if no real 2021-22 stress window / live book exists in this run (a short/fast run).
+    """
+    from company.risk.collateral_death_test import breaking_strain_sweep, to_run_outcome_fields
+
+    # Stressed date = the real 2021-22 gas crisis. Prefer the run's own observed peak-exposure
+    # sample if it falls in 2021-22 (the worst mid-run point during the shock); else the crisis
+    # anchor 2021-12-31. Both are REAL history — neither is chosen to make death arrive (R12).
+    if peak_sample_date and "2021" <= peak_sample_date[:4] <= "2022":
+        stressed_date = peak_sample_date
+    else:
+        stressed_date = "2021-12-31"
+    if stressed_date >= effective_end:
+        return None  # this run does not reach the real 2021-22 stress window
+    live = trading_book.live_contracts_as_of(stressed_date)
+    if not live:
+        return None  # no positions calendar-live during the stress -> nothing to test
+
+    # Origination mark = when these positions were struck (earliest live term_start): a calm,
+    # pre-crisis observable forward. Marking the book there is ~its strike -> near-zero baseline.
+    origination_date = min(c.term_start for c in live)
+    orig_fwd: dict = {}
+    stress_fwd: dict = {}
+    for fuel in {commodity_by_cid.get(c.customer_id) for c in live}:
+        if fuel is None:
+            continue
+        o = price_at(fuel, origination_date)
+        s = price_at(fuel, stressed_date)
+        if o is not None:
+            orig_fwd[fuel] = o
+        if s is not None:
+            stress_fwd[fuel] = s
+    orig_prices = {
+        c.customer_id: orig_fwd[commodity_by_cid[c.customer_id]]
+        for c in live
+        if commodity_by_cid.get(c.customer_id) in orig_fwd
+    }
+    stress_prices = {
+        c.customer_id: stress_fwd[commodity_by_cid[c.customer_id]]
+        for c in live
+        if commodity_by_cid.get(c.customer_id) in stress_fwd
+    }
+    origination_exposure = trading_book.exposure_by_counterparty_as_of(orig_prices, stressed_date)
+    stressed_exposure = trading_book.exposure_by_counterparty_as_of(stress_prices, stressed_date)
+    if not origination_exposure and not stressed_exposure:
+        return None  # no marks could be formed from observable history at these dates
+
+    result = breaking_strain_sweep(
+        origination_exposure,
+        stressed_exposure,
+        available_cash_gbp=available_cash_gbp,  # facility-only lower bound (see summary note)
+        as_of_date=stressed_date,
+        settlement_deadline=stressed_date,
+    )
+    return {
+        "stressed_date": stressed_date,
+        "origination_date": origination_date,
+        "n_live_contracts": len(live),
+        "available_cash_gbp": available_cash_gbp,
+        **to_run_outcome_fields(result),  # survived / death_cause / liquidity_headroom_min_gbp / collateral_cover_min (§2 run-ledger fields)
+        # --- §4 R4 diagnosis signals (data-driven; NEVER a tuning cue, R12) ---
+        "death_dose": result.death_dose,
+        "death_while_pnl_survives": result.death_while_pnl_survives,
+        "facility_gbp": result.facility_gbp,
+        "price_move_alone": result.price_move_alone,
+        "any_name_posted_margin": result.any_name_posted_margin,
+        "peak_margin_call_gbp": result.peak_margin_call_gbp,
+        "doses": [
+            {
+                "dose": d.dose,
+                "total_margin_call_gbp": d.total_margin_call_gbp,
+                "net_liquidity_gbp": d.net_liquidity_gbp,
+                "cover_ratio": d.cover_ratio,
+                "book_pnl_gbp": d.book_pnl_gbp,
+                "is_dead_by_collateral": d.is_dead_by_collateral,
+                "death_while_pnl_survives": d.death_while_pnl_survives,
+            }
+            for d in result.doses
+        ],
+        # available_cash_gbp=0.0 is the CONSERVATIVE facility-only liquidity lower bound: treasury
+        # at a PAST point-in-time is not reconstructable in this feed. NOT a tuning cue (R12) — it
+        # is the module default and a named R10 simplification; wiring point-in-time treasury cash
+        # is a follow-on refinement.
+        "_scope": (
+            "MC-2 §2 breaking-strain MEASUREMENT surfaced to run output. NOT a run_ledger.jsonl "
+            "row (§3 per-run RunManifest emission is unwired and semantically distinct from this "
+            "collateral verdict) and NOT a §6 survival SCORE / capital organ (director-session gated)."
+        ),
+    }
 
 
 def _derive_eac_from_settlement(cid: str, all_records: list[dict]) -> float:
@@ -2424,6 +2539,38 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         print(f"WARNING [value-chain credit/margin feed] failed: {_feed_exc}")
         _feed_tb.print_exc()
 
+    # --- MC-2 collateral death-test (2026-07-27, DIRECTOR_RULING_MC2 §2): run the breaking-
+    # strain sweep against a REAL 2021-22 price replay. Independent try/except so a failure in
+    # the feed block above (or here) never kills the run. Wall-clean: same live book marked at
+    # two observable point-in-time forwards; §3 facility fixed at origination; §2 sweep is a
+    # measurement, not a curriculum world; R12 — the stressed date is real history, never tuned.
+    _mc2_death_test_summary = None
+    try:
+        _mc2_engine = CompanyTariffEngine()
+        _mc2_commodity_by_cid = {c["customer_id"]: c["commodity"] for c in _ALL_KNOWN_CUSTOMERS}
+        _mc2_recs_by_fuel = {"electricity": elec_records, "gas": gas_records}
+
+        def _mc2_price_at(_fuel, _date):
+            _recs = _mc2_recs_by_fuel.get(_fuel)
+            if _recs is None:
+                return None
+            try:
+                return _mc2_engine.get_forward_price(_fuel, _date, _recs)
+            except ValueError:
+                return None  # insufficient observable history before the mark date -> unmarked
+
+        _mc2_death_test_summary = _mc2_collateral_death_test(
+            trading_book,
+            _mc2_commodity_by_cid,
+            _mc2_price_at,
+            effective_end,
+            peak_sample_date=(_wholesale_credit_summary or {}).get("peak_sample_date"),
+        )
+    except Exception as _mc2_exc:  # pragma: no cover - defensive, run must not die
+        import traceback as _mc2_tb
+        print(f"WARNING [MC-2 collateral death-test] failed: {_mc2_exc}")
+        _mc2_tb.print_exc()
+
     return {
         "all_records": all_records,
         "administration_event": administration_event,
@@ -2486,6 +2633,9 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         # mark could not be formed from observable history).
         "wholesale_credit_exposure": _wholesale_credit_summary,
         "margin_call_book": _margin_call_summary,
+        # MC-2 collateral death-test (2026-07-27): breaking-strain sweep against the real 2021-22
+        # replay (DIRECTOR_RULING_MC2 §2). None if the run does not reach the 2021-22 window.
+        "mc2_collateral_death_test": _mc2_death_test_summary,
         # Phase AF: DSR/Capacity Market flexibility revenue
         "flexibility_revenue_summary": flexibility_revenue_summary,
         "flexibility_revenue_by_year": _flex_by_year,

@@ -1,4 +1,6 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- marker FLIPPED self-drawable→blocked (2026-07-27, FOURTEENTH touch): the MC-2 death-test's last non-walled company-side worker-tick step — wiring the breaking_strain_sweep into a real 2021-22 replay in run_phase2b + surfacing its §2 fields to the run output — is now SHIPPED (commit below). No non-walled, non-automatic company-side BUILD step remains. The three follow-ons are each walled or automatic: (a) LIVE-PIXEL: the `mc2_collateral_death_test` key appears in run_output_latest.json only on the next AUTO-PROCESSED sim run (not a worker-tick action); once it lands, the SITE RENDER of the death-test figures becomes drawable (same pattern as the eleventh-tick credit-organ render). (b) PER-RUN run_ledger.jsonl EMISSION (append_to_ledger from the run loop): couples to the §3 run-manifest ACTIVATION CORE, which RUN_LEDGER_AND_SCORES_BUILD_2026-07-25 lists as the HELD/gated core (flag-flip + ~19 entrypoint hardening) and requires a whole-run survival manifest semantically DISTINCT from this collateral verdict — director/§3-gated, NOT a clean worker-tick step. (c) §6 survival SCORE / capital organ: director-session gated (RUN_LEDGER §6). (d) WVC_R world-half: twin-gated coupled atom (ruling §5). UNBLOCK TRIGGERS (verify on next draw per planner_mints_need_ruling_check): next auto-publish lands the mc2 key → site render self-drawable; director opens §3 run-ledger activation or §6; twin opens WVC_R. R12/R13 walls intact — no difficulty knob, no curriculum value created. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- superseded self-drawable marker (2026-07-27, TWELFTH touch): the ELEVENTH-tick block had gone STALE — the DIRECTOR_RULING MC-2 (commit 2c233c6ff, 2026-07-25) resolved all three cited blockers, so drawable BUILD work was hidden here. That work (MC-2 mechanism → run-loop wiring) is now discharged; see the THIRTEENTH + FOURTEENTH touch notes at doc end. -->
 <!-- draw-visibility marker RE-FLIPPED blocked→self-drawable (2026-07-27, RUNG-7 planner tick): the ELEVENTH-tick block below has gone STALE — the DIRECTOR_RULING MC-2 (commit 2c233c6ff, 2026-07-25) landed AFTER it and RESOLVED all three cited blockers, so drawable BUILD work is now hidden here (an R17 hazard). (a) live-CDN pixel: RESOLVED — trading_book / wholesale_credit_exposure / margin_call_book are now PRESENT in docs/reports/run_output_latest.json (auto-published). (b) WVC_R world-half: the ruling §5 authorizes it "under the standing twin authorization at L1/L2 ... on the mechanism only" — no longer director-reserved; only a named curriculum SCENARIO value returns to him. (c) MC-2 death-test: the ruling SETTLES the difficulty question — "no difficulty knob; the 2021–22 replay IS the test" (price-move-alone cash call; death-by-collateral while P&L survives), the 0.8/1.0/1.2/1.5× breaking-strain sweep is a MEASUREMENT (not a curriculum world) writing liquidity_minimum/cover_minimum/outcome+cause to the run-ledger, and §3 facility sizing already LANDED (commit 578b62f77). So the MC-2 death-test mechanism + sweep are SELF-DRAWABLE BUILD under the ruling's "proceed; no difficulty knob may be created". NO curriculum value may be created (R12/R13 — the ruling's own guard). Twelfth-tick note at doc end. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death-test (2026-07-24)
@@ -410,3 +412,71 @@ proceeds separately under the twin L1/L2 mechanism authorisation.
 > ADVANCE it, not mint a duplicate (over-production `DIRECTOR_RULING_PLANNER_MINT_WAIVED` forbids) and not
 > rest (premise false — work existed). Shipped the MC-2 mechanism + R15 both-ways as real code, caught the
 > decisive sign/shape epistemic finding, held the §6 scope line. No mint, no rest-proof.
+
+---
+
+## MC-2 DEATH-TEST WIRED INTO THE REAL 2021–22 REPLAY (run_phase2b) — SHIPPED (DONE, 2026-07-27 fourteenth touch)
+
+The thirteenth touch shipped the pure MC-2 breaking-strain MECHANISM and named the next drawable
+BUILD verbatim: *"Wire the sweep into a real 2021–22 replay inside `simulation/run_phase2b` …
+run `breaking_strain_sweep`, and merge `to_run_outcome_fields(...)` into … the run-ledger fields."*
+This tick drew it and shipped the WIRING — real code + R15 both-ways.
+
+### Scope-line finding (verified on disk, before writing) — where the authorized line falls
+Grep confirmed **nothing in the live pipeline calls `append_to_ledger` / `build_manifest` — no
+`run_ledger.jsonl` is emitted per run at all.** The `RunManifest`/`RunOutcomes` machinery exists
+(`RUN_LEDGER_AND_SCORES_BUILD_2026-07-25`) but its per-run EMISSION is part of the §3 ACTIVATION
+CORE that doc lists as **HELD/gated** (flag-flip + ~19-entrypoint hardening), and a full manifest
+row asserts a **whole-run** `survived`/`world_scenario` semantically DISTINCT from MC-2's
+collateral-only verdict. So "merge into a run-ledger row via append_to_ledger" as literally
+written would cross into the held §3 core. **MC-2 §2's authorized substance** — *"a price move
+alone produces a cash call; the sweep records the dose at which death arrives; it writes the
+run-ledger FIELDS (liquidity_minimum, cover_minimum, outcome+cause)"* — is delivered by running
+the sweep against real history and surfacing those exact fields to the board-readable **run
+output**, WITHOUT building the §3-held per-run manifest organ or a §6 score. That is the line held.
+
+### What shipped (`simulation/run_phase2b.py` + `tests/simulation/test_mc2_collateral_death_test_wiring.py`)
+- **`_mc2_collateral_death_test(trading_book, commodity_by_cid, price_at, effective_end, …)`** — a
+  module-level helper (testable via an injected `price_at` resolver; the live call wraps
+  `CompanyTariffEngine.get_forward_price`). Selects the stressed date = the run's own observed
+  peak-exposure sample if it falls in 2021–22, else the crisis anchor **2021-12-31** (both REAL
+  history — R12: never chosen to force a death); marks the SAME live-as-of-stressed book at a **calm
+  origination forward** (earliest live `term_start` → ~strike → near-zero baseline) and the
+  **stressed 2021–22 forward**; forms both exposures via `exposure_by_counterparty_as_of`; runs
+  `breaking_strain_sweep` (**facility book-derived at origination, §3**); returns the §2 run-ledger
+  fields + the §4 R4 diagnosis signals + per-dose detail.
+- **Wired into the VALUE_CHAIN feed block** as its own defensive try/except (run must not die), and
+  added to the run-output return dict as **`mc2_collateral_death_test`** — the board-readable
+  surface, alongside the existing `wholesale_credit_exposure` / `margin_call_book` keys.
+- **`available_cash_gbp=0.0`** (facility-only liquidity lower bound): point-in-time treasury at a
+  PAST date is not reconstructable in this feed → the CONSERVATIVE assumption, a named R10
+  simplification, **not** a tuning cue (R12); wiring point-in-time treasury cash is a follow-on.
+- **R15 both-ways PROVEN this tick (7 tests):** TEETH — a big long name + a moderate SHORT name
+  struck at the calm origination price survive 0.8× and **die at the real 1.0× while the P&L
+  survives** (`collateral_while_solvent`, `death_dose=1.0`, facility floored at £250k because
+  origination nets ~0); **pure long book CANNOT die** → `any_name_posted_margin=False` reported as
+  the §4 "hedge cover masking exposure" diagnosis (never tuned into a death); short-run-before-2021
+  → `None`; no-live-contracts → `None`; deterministic replay (C-S2); peak-in-window anchor used.
+  **Mutations verified to red the teeth test:** (a) revert stressed-date selection to
+  `effective_end` (near-empty end-of-run book) → death vanishes; (b) mark origination at the
+  stressed price (drop the price MOVE) → facility scales up with the book → survives. Clean
+  restore green.
+- **Verification:** `tools.epistemic_verifier` **PASS** (527 files; own book + observable forwards
+  only, no sim internal). 1352 existing trading/finance/risk/run_phase2b tests + 7 new = green.
+
+### HONEST remaining (verified) — all walled or automatic (marker flipped → blocked)
+- **LIVE-PIXEL / R11 PENDING the next auto-publish:** the `mc2_collateral_death_test` key reaches
+  `run_output_latest.json` only when `process_run_complete` regenerates it from a full sim run — I
+  did NOT run a full sim in this bounded tick (same discipline as the eighth touch). "Done" here =
+  the wiring shipped + unit-proven, NOT yet the live JSON. Once it lands, the **site render** of the
+  death-test figures becomes the next drawable step (eleventh-tick render precedent).
+- **Per-run `run_ledger.jsonl` emission** — §3-held activation core, director/§3-gated (above).
+- **§6 survival SCORE / capital organ** — director-session gated. **WVC_R world-half** — twin-gated.
+
+> **Tick note (2026-07-27, RUNG-7 doorbell, FOURTEENTH touch):** doorbell said "unprocessed staging
+> + RUNG-7 mint from ratified goals". Disk: the self-drawable MC-2 mint had a genuine drawable BUILD
+> step (the run-loop wiring named by the thirteenth touch), so the correct draw was to ADVANCE it —
+> NOT mint a duplicate (over-production `DIRECTOR_RULING_PLANNER_MINT_WAIVED` forbids) and NOT rest
+> (premise false — work existed). Shipped the wiring + R15 both-ways as real code; caught the §3/§6
+> scope line (no ledger-row organ, no score) on verified disk state; flipped the marker to blocked
+> with named unblock triggers now that no non-walled worker-tick step remains. No mint, no rest-proof.
