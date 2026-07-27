@@ -30,6 +30,49 @@ def test_build_index_footer_has_freshness_stamp():
     assert "Phase QF" in html
 
 
+# --- DD5 (SITE lane): the shadow-rail treasury figure must never stand alone
+# either -- held customer credit sits beside it as a LIABILITY, or degrades to an
+# honest "not instrumented" (never a fabricated number). Full-key-set closure of
+# the cash-rich-but-insolvent tell across ALL rendered treasury surfaces. ---
+
+
+def test_build_index_pairs_held_credit_liability_beside_treasury():
+    hc = {"held_gbp": 2975.67, "in_credit": 3, "sample_n": 19}
+    html = build_index(_dash(), "ts", hc)
+    # the treasury headline KPI and the held-credit liability KPI both present
+    assert "Treasury End" in html
+    assert "Customer Credit Held" in html
+    assert "liability" in html
+    # the actual floor figure is rendered (R11: to the value), with its basis
+    assert "&pound;2,976" in html or "2,975" in html or "2,976" in html
+    assert "3 in credit of N=19" in html
+    # and the standalone-cash tell is stated
+    assert "insolvent" in html
+
+
+def test_build_index_held_credit_degrades_honestly_when_absent():
+    # No held_credit -> the KPI must NOT fabricate a number; it says "not instrumented"
+    html = build_index(_dash(), "ts")
+    assert "Customer Credit Held" in html
+    assert "not instrumented" in html
+    # no fabricated pounds value smuggled into the held-credit label
+    assert "&#8212;" in html
+
+
+def test_held_credit_floor_mirrors_company_door_computation():
+    from tools.generate_shadow_html import _held_credit_floor
+    # sum of the NEGATIVE (in-credit) billed-minus-banked balances only
+    arr = {"available": True, "n": 19, "values_gbp": [-1681.05, -1223.24, -71.38, 0.0, 5.0, 200.0]}
+    hc = _held_credit_floor(arr)
+    assert hc["in_credit"] == 3
+    assert hc["sample_n"] == 19
+    assert abs(hc["held_gbp"] - 2975.67) < 0.01
+    # unavailable / empty -> None (honest degrade, not a zero that reads as "no liability")
+    assert _held_credit_floor({"available": False, "values_gbp": [-1.0]}) is None
+    assert _held_credit_floor({"available": True, "values_gbp": []}) is None
+    assert _held_credit_floor(None) is None
+
+
 # --- DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md (2026-07-12): copyright footer ---
 
 

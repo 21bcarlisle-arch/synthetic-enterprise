@@ -192,7 +192,28 @@ def _table(headers, rows_html):
 
 
 
-def build_index(dash, ts):
+def _held_credit_floor(arrears):
+    """Held customer credit as a LIABILITY floor, mirroring the company door's
+    heldCredit() EXACTLY (sum of in-credit == negative billed-minus-banked balances
+    in the drawn arrears sample). A FLOOR: a drawn sample AND today's Variable-DD
+    overpayment credit, NOT the full level-DD seasonal cycle (DD1-DD4, designed not
+    instrumented). Returns None if the sample is unavailable so the KPI degrades to
+    an honest "not instrumented" -- never a fabricated figure. (DD5, SITE lane:
+    a treasury figure must never stand alone -- cash-rich-but-insolvent.)"""
+    arr = arrears or {}
+    vals = arr.get("values_gbp")
+    if not arr.get("available") or not vals:
+        return None
+    held = 0.0
+    n = 0
+    for v in vals:
+        if float(v) < 0:
+            held += -float(v)
+            n += 1
+    return {"held_gbp": held, "in_credit": n, "sample_n": arr.get("n")}
+
+
+def build_index(dash, ts, held_credit=None):
     p = dash["portfolio"]
     ins = dash.get("insights", {})
     build = dash.get("build", {})
@@ -240,6 +261,19 @@ def build_index(dash, ts):
         return ('<div class="kpi-card"><span class="kpi-value ' + cls + '">' + value
                 + '</span><span class="kpi-label">' + label + "</span></div>")
 
+    # DD5 (SITE lane): the held-customer-credit LIABILITY sits BESIDE the treasury
+    # figure so a cash figure never stands alone on this rail too -- part of the
+    # treasury is money owed back (cash-rich-but-insolvent). Same floor as the
+    # company door; degrades to "not instrumented" (never fabricated) if unavailable.
+    if held_credit:
+        _hc_val = _gbp(held_credit["held_gbp"])
+        _hc_label = ("Customer Credit Held (liability &middot; owed back &middot; floor, "
+                     + str(held_credit["in_credit"]) + " in credit of N="
+                     + str(held_credit["sample_n"]) + ")")
+    else:
+        _hc_val = "&#8212;"
+        _hc_label = "Customer Credit Held (liability &middot; not instrumented)"
+
     kpi_grid = (
         '<div class="kpi-grid">'
         + _kpi("Net Margin", _gbp(net), _cls(net))
@@ -247,12 +281,19 @@ def build_index(dash, ts):
         + _kpi("Enterprise Value", _gbp(ev))
         + _kpi("Treasury Start", _gbp(t_start))
         + _kpi("Treasury End", _gbp(t_end))
+        + _kpi(_hc_label, _hc_val)
         + _kpi("Bills Issued", str(bills))
         + _kpi("Churn Events", str(churns))
         + _kpi("Retention Offers", str(ret_off) + " (retained " + str(ret_ret) + ")")
         + _kpi("Cost to Serve", _gbp(cts))
         + "</div>"
     )
+    hc_note = ('<p class="meta">Treasury includes <b>customer credit held</b> &#8212; '
+               "money owed back, a liability, not spare cash; a supplier holding customer "
+               "credit can look cash-rich and still be insolvent. Floor from the company's "
+               "own billed-minus-banked ledger (Variable-DD overpayment credit today; the "
+               "full level-DD summer-credit / winter-drawdown cycle is designed, not yet "
+               "instrumented).</p>") if held_credit else ""
 
     body = (
         "<h1>Synthetic Enterprise &#8212; Portfolio Overview</h1>"
@@ -260,6 +301,7 @@ def build_index(dash, ts):
         + " | " + str(tests) + " tests | " + str(modules) + " modules</div>"
         + "<h2>10-Year Totals</h2>"
         + kpi_grid
+        + hc_note
         + _table(["Year", "Gross", "Net", "Treasury", "Bills", "Avg Shock"], ann_rows)
         + "<h2>Executive Summary</h2><pre>" + summary + "</pre>"
         + _table(["Area", "Headline", "Narrative (excerpt)"], insight_rows)
@@ -1609,6 +1651,16 @@ def generate(run_json_path=None):
     _population_anchoring = json.loads(pa_path.read_text()) if pa_path.exists() else {}
     latest_md = LATEST_MD.read_text() if LATEST_MD.exists() else ""
 
+    # DD5 (SITE lane): held-customer-credit liability floor, from the company's OWN
+    # ledger (site/data/company.json arrears), so the shadow-rail treasury figure never
+    # stands alone either. Fail-safe: missing/malformed -> None -> "not instrumented".
+    company_path = DATA / "company.json"
+    try:
+        _company = json.loads(company_path.read_text()) if company_path.exists() else {}
+    except (ValueError, OSError):
+        _company = {}
+    _held_credit = _held_credit_floor(_company.get("arrears"))
+
     _git_commit = dash.get("meta", {}).get("git_commit", "?")
     _phase = dash.get("build", {}).get("current_phase", "?")
     _financial_annual = dash.get("financial", {}).get("annual", [])
@@ -1618,7 +1670,7 @@ def generate(run_json_path=None):
     _retention_deferral = dash.get("customers", {}).get("retention_deferral", [])
     _acquisition_funnel_log = dash.get("customers", {}).get("acquisition_funnel_log", [])
     pages = {
-        SHADOW / "index.html": build_index(dash, ts),
+        SHADOW / "index.html": build_index(dash, ts, _held_credit),
         SHADOW / "customers" / "index.html": build_customers(dash, sample, ts, billing_ledger, _journey_log),
         SHADOW / "supplier" / "index.html": build_supplier(dash, ts, billing_ledger, _journey_log),
         SHADOW / "sim" / "index.html": build_sim(sim_data, ts, _git_commit, _phase, sample, billing_ledger, _financial_annual, _churn_events, _churn_perf, _journey_log, _retention_deferral, _population_anchoring, _acquisition_funnel_log),
