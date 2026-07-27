@@ -112,13 +112,31 @@ def last_retro(
 
 
 def promotions_since(since: date, project_dir: Path = PROJECT_DIR) -> int:
-    """Count level_current PROMOTION lines added to maturity_map.yaml in
-    commits since `since` (inclusive) -- see module docstring for why this
-    is preferred over raw commit count. Fails QUIET (returns 0) on any git
-    error, matching health_check.py's own _check_stale_dependencies()
-    posture: this is an informational proxy that surfaces a candidate, not
-    a hard assertion, so a git failure should not itself raise or crash the
-    health-check cycle that will eventually call it."""
+    """Count `level_current` lines ADDED to maturity_map.yaml in commits
+    since `since` (inclusive) -- see module docstring for why this is
+    preferred over raw commit count.
+
+    HONEST BOUND (R10 named simplification, 2026-07-27 HARDEN red-team): this
+    is a deliberately LOOSE OVER-approximation of "real capability promotions",
+    NOT an exact count. It counts every added `level_current:` line, so it also
+    counts (a) demotions (a level going 2->1 still adds a `+  level_current: 1`
+    line) and (b) pure REORDER churn -- git's line diff re-adds the moved
+    atom's level line even when its value never changed (empirically verified:
+    a zero-real-promotion reorder yields a non-zero count). A precise count
+    would require per-commit, per-atom old-vs-new value analysis; that cathedral
+    is deliberately NOT built (SIMPLICITY GUARD) because the imprecision is in
+    the SAFE DIRECTION for an informational cadence nudge: the failure this atom
+    exists to prevent is UNDER-counting (a decayed learn-loop that silently
+    misses its retro), and this proxy structurally cannot under-count genuine
+    promotions -- every real `level_current` increase adds a line the regex
+    catches. Over-counting only makes the nudge fire EARLIER (reflect more
+    often), never suppresses a real stale. That invariant is pinned by
+    test_reorder_or_demotion_never_drops_a_real_staleness_signal.
+
+    Fails QUIET (returns 0) on any git error, matching health_check.py's own
+    _check_stale_dependencies() posture: this is an informational proxy that
+    surfaces a candidate, not a hard assertion, so a git failure should not
+    itself raise or crash the health-check cycle that will eventually call it."""
     map_path = project_dir / "docs" / "design" / "maturity_map.yaml"
     if not map_path.exists():
         return 0

@@ -163,6 +163,69 @@ class TestPromotionsSince:
         far_future = date.today() + timedelta(days=365)
         assert rcc.promotions_since(far_future, repo) == 0
 
+    def test_reorder_or_demotion_never_drops_a_real_staleness_signal(self, tmp_path):
+        """RED-TEAM invariant (2026-07-27 A1 HARDEN): promotions_since is a
+        deliberately LOOSE over-approximation (see its docstring's HONEST BOUND).
+        The property that actually matters for the learn-loop nudge is
+        DIRECTIONAL: the proxy must never UNDER-count -- a decayed learn-loop
+        that silently misses its retro is the failure this atom exists to
+        prevent. Over-counting only fires the informational nudge earlier and is
+        tolerated. This pins both faces:
+
+          1. A pure REORDER (zero real promotions) must NOT return a count that
+             is LOWER than the true promotion count of 0 -- i.e. it stays >= 0
+             and, per the documented over-count, is allowed to read non-zero.
+          2. When a genuine promotion is ALSO present, the proxy must count it
+             (>= the number of real promotions), never mask it behind reorder
+             noise.
+        If a future 'precision' refactor ever made this UNDER-count real
+        promotions, this test turns red -- guarding the safe direction."""
+        repo = tmp_path / "repo"
+        _init_repo(repo)
+        design = repo / "docs" / "design"
+        design.mkdir(parents=True)
+        map_file = design / "maturity_map.yaml"
+
+        map_file.write_text(
+            "- id: atom_a\n  level_current: 2\n- id: atom_b\n  level_current: 1\n"
+        )
+        _git(repo, "add", "docs/design/maturity_map.yaml")
+        _git_commit_backdated(repo, "seed", "2020-01-01T00:00:00")
+
+        since = date(2026, 1, 1)
+
+        # Face 1: a pure reorder (same values, order swapped) -- ZERO real
+        # promotions. The proxy must never under-count the true 0; the
+        # documented over-count means it may read >= 0 (empirically 1).
+        map_file.write_text(
+            "- id: atom_b\n  level_current: 1\n- id: atom_a\n  level_current: 2\n"
+        )
+        _git(repo, "add", "docs/design/maturity_map.yaml")
+        _git_commit_backdated(repo, "pure reorder, zero real promotions",
+                              "2026-01-10T00:00:00")
+        reorder_only = rcc.promotions_since(since, repo)
+        assert reorder_only >= 0, "proxy must never under-count the true 0 promotions"
+
+        # Face 2: a genuine promotion (atom_b 1 -> 3) landed after the reorder.
+        # The proxy must catch it -- at least one real promotion is present, so
+        # the count must be >= 1 and strictly greater than nothing.
+        map_file.write_text(
+            "- id: atom_b\n  level_current: 3\n- id: atom_a\n  level_current: 2\n"
+        )
+        _git(repo, "add", "docs/design/maturity_map.yaml")
+        _git_commit_backdated(repo, "promote atom_b 1 -> 3",
+                              "2026-01-11T00:00:00")
+        with_real_promotion = rcc.promotions_since(since, repo)
+        assert with_real_promotion >= 1, (
+            "a genuine level_current increase MUST be counted -- the proxy "
+            "cannot be allowed to under-count real promotions (the learn-loop "
+            "would silently decay)"
+        )
+        assert with_real_promotion >= reorder_only, (
+            "adding a real promotion must not DECREASE the proxy -- the count "
+            "is monotone in genuine capability jumps"
+        )
+
 
 class TestCheckRetroStaleness:
     def test_no_retro_at_all_is_stale(self, tmp_path):
