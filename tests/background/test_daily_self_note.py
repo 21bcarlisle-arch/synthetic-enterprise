@@ -23,9 +23,11 @@ class FakeGit:
             return None, "git rc=128: fatal: not a git repository"
         if args[0] == "log":
             fmt = args[-1]
-            if "%H\t%s" in fmt:
+            if "%ct" in fmt and "%s" in fmt:  # longest_stall: %ct\t%H\t%s (checked first — it
+                return "\n".join(f"{c[2]}\t{c[0]}\t{c[1]}" for c in self.commits), None  # contains %H\t%s too
+            if "%H\t%s" in fmt:               # verified_work: %H\t%s
                 return "\n".join(f"{c[0]}\t{c[1]}" for c in self.commits), None
-            if "%ct\t%H" in fmt:
+            if "%ct\t%H" in fmt:              # legacy %ct\t%H
                 return "\n".join(f"{c[2]}\t{c[0]}" for c in self.commits), None
         if args[0] == "show":
             sha = args[-1]
@@ -88,6 +90,81 @@ def test_empty_diff_counts_as_republish_not_substantive():
     fake = FakeGit([("ccc", "Merge branch", 1000, [])])
     vw, _ = sm1.verified_work(_runner=fake)
     assert vw["substantive_count"] == 0 and vw["republish_count"] == 1
+
+
+# --------------------------------------------------------------------------- #
+# WORK_DEFINITION §1 (2026-07-27) — a HARDEN re-verify NEVER counts as work
+# --------------------------------------------------------------------------- #
+
+def test_harden_reverify_excluded_from_substantive_and_split():
+    """R15 MUTATION TEST (§1): a HARDEN re-verify commit that touches real code/tests (would
+    otherwise class as MACHINERY, or even PRODUCT) is excluded from the substantive count AND the
+    product/machinery split. Mutation proof: drop the `is_harden_commit` guard in verified_work and
+    the `[HARDEN ...]` commit below (touching company/ = product) inflates product_count to 1 and
+    substantive_count to 1 — these assertions go green->red."""
+    fake = FakeGit([
+        # HARDEN pass touching a PRODUCT path (company/) — the adversarial case: without the
+        # exclusion it would count as a PRODUCT commit and read as forward progress.
+        ("aaa", "[HARDEN B1_margin_bridge] Rule-0 dial-yield: re-verify + new R15 control",
+         3000, ["company/billing/margin.py", "tests/company/test_margin.py"]),
+        # HARDEN pass touching MACHINERY, cooldown-stamp form.
+        ("bbb", "chore(harden): stamp C13_weather_normalisation cooldown", 2000,
+         ["background/supervisor.py"]),
+    ])
+    vw, err = sm1.verified_work(_runner=fake)
+    assert err is None
+    assert vw["harden_count"] == 2
+    assert vw["substantive_count"] == 0
+    assert vw["product_count"] == 0 and vw["machinery_count"] == 0
+
+
+def test_harden_exclusion_does_not_swallow_real_work():
+    """R15 fail-open direction (§1): the exclusion must NOT over-reach. A genuine BUILD commit in
+    the same window as HARDEN churn still counts as substantive PRODUCT — only the HARDEN commit is
+    excluded, and the counts still partition the substantive set exactly."""
+    fake = FakeGit([
+        ("aaa", "[HARDEN A1_learn_loop_chair] re-verify exit tests", 3000,
+         ["company/strategy/learn_loop.py"]),
+        ("bbb", "[build] W2_2 segmentation taxonomy landed", 2000,
+         ["saas/segmentation.py", "tests/saas/test_segmentation.py"]),
+        ("ccc", "Auto-process run complete", 1000, ["docs/status/LATEST.md"]),
+    ])
+    vw, err = sm1.verified_work(_runner=fake)
+    assert err is None
+    assert vw["harden_count"] == 1
+    assert vw["republish_count"] == 1
+    assert vw["substantive_count"] == 1
+    assert vw["substantive_subjects"] == ["[build] W2_2 segmentation taxonomy landed"]
+    assert vw["product_count"] == 1 and vw["machinery_count"] == 0
+    assert vw["product_count"] + vw["machinery_count"] == vw["substantive_count"]
+
+
+def test_longest_stall_treats_harden_as_a_gap_not_a_commit():
+    """§1 coherence: longest_stall IS the deadman meaningful-commit clock (reused), so a HARDEN
+    re-verify must not close a stall either. Two real BUILD commits 120min apart with a HARDEN
+    re-verify landing between them → the measured gap is the full 120min (the HARDEN commit does
+    NOT split it). Mutation proof: stop excluding HARDEN and the gap collapses to 60min."""
+    # times in seconds; newest-first like git log
+    fake = FakeGit([
+        ("aaa", "[build] later real work", 12000, ["company/a.py"]),
+        ("hhh", "[HARDEN X] re-verify", 12000 - 60 * 60, ["company/b.py"]),  # 60min after 'bbb'
+        ("bbb", "[build] earlier real work", 12000 - 120 * 60, ["company/c.py"]),
+    ])
+    st, err = sm1.longest_stall(_runner=fake)
+    assert err is None
+    assert st["substantive_commits"] == 2
+    assert st["gap_minutes"] == 120.0
+
+
+def test_render_note_reports_harden_exclusion(monkeypatch, tmp_path):
+    _isolate(monkeypatch, tmp_path)
+    fake = FakeGit([
+        ("aaa", "[HARDEN A1_learn_loop_chair] re-verify", 3000, ["company/strategy/learn_loop.py"]),
+    ])
+    note = sm1.render_note(NOW.isoformat(), _runner=fake)
+    assert "1 HARDEN re-verify(s) excluded" in note
+    # a HARDEN-only window shows ZERO substantive progress (not masked as work)
+    assert "ZERO verified product progress" in note
 
 
 # --------------------------------------------------------------------------- #

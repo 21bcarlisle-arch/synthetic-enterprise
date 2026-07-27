@@ -29,6 +29,8 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background.harden_commit import is_harden_commit
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 NOTE_LOG = PROJECT_DIR / "docs" / "observability" / "daily-self-note.md"
 LAST_DATE_STAMP = PROJECT_DIR / "docs" / "observability" / ".daily_self_note_last_date"
@@ -123,9 +125,18 @@ def verified_work(window_hours: int = 24, _runner=_run_git) -> tuple[dict | None
     substantive: list[str] = []
     product: list[str] = []
     machinery: list[str] = []
+    harden: list[str] = []
     republish = 0
     for ln in lines:
         sha, _, subject = ln.partition("\t")
+        subj = subject.strip()
+        # WORK_DEFINITION §1 (2026-07-27): a HARDEN re-verify NEVER counts as work — excluded from
+        # the substantive count AND the product/machinery split before any file classification, so a
+        # HARDEN-only window reads 0 product / 0 machinery no matter what code/tests it touched. Keyed
+        # on the ACTUAL subject (R15 independence), a sibling class to the §1 republish exclusion.
+        if is_harden_commit(subj):
+            harden.append(subj)
+            continue
         files_out, ferr = _runner("show", "--name-only", "--pretty=format:", sha)
         if ferr is not None:
             return None, f"git show failed on {sha[:9]}: {ferr}"
@@ -133,27 +144,33 @@ def verified_work(window_hours: int = 24, _runner=_run_git) -> tuple[dict | None
         if _is_mechanical_republish(files):
             republish += 1
         else:
-            subj = subject.strip()
             substantive.append(subj)
             (product if _commit_class(files) == "product" else machinery).append(subj)
     return {"substantive_count": len(substantive), "republish_count": republish,
             "substantive_subjects": substantive,
             "product_count": len(product), "product_subjects": product,
-            "machinery_count": len(machinery), "machinery_subjects": machinery}, None
+            "machinery_count": len(machinery), "machinery_subjects": machinery,
+            "harden_count": len(harden), "harden_subjects": harden}, None
 
 
 def longest_stall(window_hours: int = 24, _runner=_run_git) -> tuple[dict | None, str | None]:
     """Longest gap (minutes) between SUBSTANTIVE commits in the window — the deadman's
     MEANINGFUL-commit clock (reused, not re-implemented as a parallel timer). Returns
     ({gap_minutes, ...}, None) or (None, reason). Fail-closed."""
-    out, err = _runner("log", f"--since={window_hours} hours ago", "--pretty=format:%ct\t%H")
+    out, err = _runner("log", f"--since={window_hours} hours ago", "--pretty=format:%ct\t%H\t%s")
     if err is not None:
         return None, err
     stamps: list[int] = []
     for ln in out.splitlines():
         if not ln.strip():
             continue
-        ct, _, sha = ln.partition("\t")
+        parts = ln.split("\t", 2)
+        ct, sha, subject = parts[0], parts[1], (parts[2] if len(parts) > 2 else "")
+        # WORK_DEFINITION §1: this IS the deadman meaningful-commit clock (reused) — so a HARDEN
+        # re-verify must not close a stall here either, exactly as it no longer refreshes the
+        # deadman liveness clock. A HARDEN-only window therefore reads as one long stall.
+        if is_harden_commit(subject):
+            continue
         files_out, ferr = _runner("show", "--name-only", "--pretty=format:", sha)
         if ferr is not None:
             return None, f"git show failed: {ferr}"
@@ -256,7 +273,8 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
         lines.append(f"- {_red(vw_err)}")
     else:
         lines.append(f"- {vw['substantive_count']} substantive commit(s); "
-                     f"{vw['republish_count']} mechanical republish(es) excluded.")
+                     f"{vw['republish_count']} mechanical republish(es) excluded; "
+                     f"{vw['harden_count']} HARDEN re-verify(s) excluded (§1 — never counts as work).")
         for s in vw["substantive_subjects"][:8]:
             lines.append(f"    - {s}")
         if vw["substantive_count"] == 0:

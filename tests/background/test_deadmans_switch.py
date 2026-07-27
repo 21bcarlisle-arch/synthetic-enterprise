@@ -287,6 +287,51 @@ def test_all_auto_process_window_looks_stale(monkeypatch):
     assert dms._last_meaningful_commit_epoch() == 0.0
 
 
+def test_is_non_progress_commit_excludes_harden_reverify():
+    """WORK_DEFINITION §1 (2026-07-27): a HARDEN re-verify never refreshes the liveness clock.
+    The `chore(harden` form already matched the broader `chore(` prefix; the genuinely-new
+    coverage is the `[HARDEN <atom>]` form, which touches real code/tests and so previously
+    counted as forward work. A genuine BUILD commit is still forward progress (no over-exclusion)."""
+    assert dms._is_non_progress_commit("[HARDEN D5_account_hierarchy_payments] Rule-0 dial-yield ...")
+    assert dms._is_non_progress_commit("chore(harden): re-verify B1_margin_bridge after sibling scope-change")
+    assert dms._is_non_progress_commit("chore(harden-cooldown): stamp ARCH1_internal_seams pass")
+    # No over-exclusion: real forward work is NOT a HARDEN commit.
+    assert not dms._is_non_progress_commit("[build] real forward progress landed here")
+    assert not dms._is_non_progress_commit("Wave-1 integration: bank F7->L2")
+
+
+def test_harden_only_window_looks_stale(monkeypatch):
+    """R15 MUTATION TEST (WORK_DEFINITION §1): a window whose ONLY commits are `[HARDEN ...]`
+    re-verifications has NO meaningful commit -- the last real commit is older than the whole
+    window, so the honest answer is 0.0 ('very stale'), tripping the alarm rather than letting
+    re-verification churn mask an idle window. Mutation proof: drop the `is_harden_commit` call
+    from `_is_non_progress_commit` and the newest `[HARDEN ...]` commit's epoch is returned instead
+    (window looks FRESH) -- this assertion goes green->red."""
+    now = time.time()
+    commits = [
+        (now - i * 60, f"[HARDEN A{i}_some_atom] Rule-0 dial-yield re-verify -- no defect")
+        for i in range(1, 30)
+    ]
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
+    assert dms._last_meaningful_commit_epoch() == 0.0
+
+
+def test_harden_window_with_real_build_commit_is_not_over_excluded(monkeypatch):
+    """R15 fail-open direction (WORK_DEFINITION §1): the exclusion must NOT swallow real work.
+    A genuine BUILD commit surrounded by HARDEN re-verifies is still the meaningful commit --
+    its epoch is returned, so the window reads as live off the real work, not the HARDEN churn."""
+    now = time.time()
+    build_epoch = now - 10 * 60
+    commits = [
+        (now - 2 * 60, "[HARDEN A1_learn_loop_chair] Rule-0 dial-yield re-verify"),
+        (now - 5 * 60, "chore(harden): stamp cooldown"),
+        (build_epoch, "[build] W2_2 segmentation taxonomy landed"),
+        (now - 20 * 60, "[HARDEN A3_approval_interface] re-verify"),
+    ]
+    monkeypatch.setattr(dms, "_recent_commits", lambda n=200: commits)
+    assert dms._last_meaningful_commit_epoch() == build_epoch
+
+
 def test_daemon_log_writes_do_not_mask_a_stale_commit(monkeypatch):
     """MUTATION/REGRESSION GUARD for the 2026-07-14 fail-silent outage (R15 --
     the control must fire on its own named defect): the OLD deadman used the

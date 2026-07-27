@@ -69,6 +69,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background.notify import notify, clear_transition  # noqa: E402
 from background import action_needed  # noqa: E402
+from background.harden_commit import is_harden_commit  # noqa: E402
 from background.primary_state_scan import drawable_undrawn_mints  # noqa: E402  (LAW C independent read)
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "deadmans-switch-log.md"
@@ -172,11 +173,17 @@ def _is_auto_process_commit(subject: str) -> bool:
 
 def _is_non_progress_commit(subject: str) -> bool:
     """A NON-WORK commit that must not refresh the liveness clock: an auto-process run-complete,
-    a chore/* housekeeping commit (incl. chore(liveness) heartbeat publishes), or the planner's own
-    rest-with-proof/mint bookkeeping commit. EIGHTH CLASS (2026-07-27): only a commit outside ALL of
-    these classes counts as forward progress. Case-sensitive prefix match on the trimmed subject."""
+    a chore/* housekeeping commit (incl. chore(liveness) heartbeat publishes), the planner's own
+    rest-with-proof/mint bookkeeping commit, or a HARDEN re-verification pass. EIGHTH CLASS
+    (2026-07-27): only a commit outside ALL of these classes counts as forward progress.
+
+    HARDEN exclusion (2026-07-27, WORK_DEFINITION §1 amendment, via `is_harden_commit`): a HARDEN
+    re-verify "never counts as work for the deadman clock". The `chore(harden` form already matched
+    the `chore(` prefix above; the new coverage is the `[HARDEN <atom>]` form, which touches real
+    code/tests and so previously refreshed liveness as a "work commit" — so a HARDEN-only window now
+    ages toward the rest cap exactly as a genuinely idle window does. Case-sensitive."""
     s = subject.strip()
-    return any(s.startswith(pfx) for pfx in _NON_PROGRESS_SUBJECT_PREFIXES)
+    return is_harden_commit(s) or any(s.startswith(pfx) for pfx in _NON_PROGRESS_SUBJECT_PREFIXES)
 
 
 def _last_meaningful_commit_epoch() -> float:
