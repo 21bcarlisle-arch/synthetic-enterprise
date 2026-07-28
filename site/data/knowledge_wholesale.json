@@ -589,6 +589,38 @@
             "v": 69.4
           }
         ]
+      },
+      "merit_order": {
+        "year": 2024,
+        "unit": "GBP/MWh",
+        "x_label": "Cumulative dispatchable capacity (GW), cheapest-first",
+        "gas_price_gbp_per_mwh": 29.1,
+        "source": "Typed SRMC dispatch stack from sim/merit_order_reconstruction.build_merit_stack(): CCGT/OCGT short-run marginal cost grounded in DUKES 5.10.C thermal efficiencies, DUKES 5.14 emission factors and Carbon Price Support ~GBP18/tCO2; gas input is the real NBP 2024 annual-mean from sim/gas_prices_history (FRED). Pipeline-computed, never hand-drawn.",
+        "as_of": "2025-06-07",
+        "caption": "The 2024 GB merit order: plants dispatch cheapest-first (renewables and nuclear at near-zero cost), and the LAST plant needed to meet demand sets the price for everyone. On an ordinary day that marginal plant is gas — so the whole market clears near the gas-fired SRMC.",
+        "marginal_note": "At 2024 gas (GBP29.1/MWh) the marginal (price-setting) plant is a gas CCGT clearing around GBP94.9/MWh at the top of demand.",
+        "plants": [
+          {
+            "label": "Renewables + nuclear (must-run)",
+            "srmc": 0.0,
+            "cap_gw": 8.0
+          },
+          {
+            "label": "CCGT — best vintage",
+            "srmc": 66.0,
+            "cap_gw": 15.0
+          },
+          {
+            "label": "CCGT — worst vintage",
+            "srmc": 77.7,
+            "cap_gw": 15.0
+          },
+          {
+            "label": "OCGT peaker / reserve",
+            "srmc": 94.9,
+            "cap_gw": 7.0
+          }
+        ]
       }
     },
     "residuals": {

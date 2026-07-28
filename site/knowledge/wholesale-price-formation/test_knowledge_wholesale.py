@@ -266,3 +266,62 @@ def test_price_series_chart_is_data_driven_not_constant():
     ma = copy.deepcopy(d)
     ma["rungs"]["live_evidence"]["price_series"]["points"].append({"t": "2099-01", "v": 50.0})
     assert _path_vertices(_rlive_html(ma)) == _path_vertices(base) + 1
+
+
+# ------------------------------------------------- R11 merit-order chart (deliverable 4, chart 2)
+# The merit-order supply curve renders from the pipeline SRMC stack
+# (sim/merit_order_reconstruction.build_merit_stack) -- never a static image. R11: assert the
+# LIVE rendered SVG bars, not the source. R15: data-driven, so a changed/added plant changes the
+# rendered pixel; and the plant SRMCs are merit-ordered (ascending), the property the chart claims.
+
+def _mbars(html: str) -> int:
+    import re
+    return len(re.findall(r'class="mbar"', html))
+
+
+def test_merit_order_present_and_pipeline_sourced():
+    """The live_evidence rung carries a real merit-order stack with provenance + its clock (R14)."""
+    mo = _live()["rungs"]["live_evidence"]["merit_order"]
+    assert mo["plants"], "merit order must have plants"
+    assert mo["unit"] == "GBP/MWh"
+    # pipeline-sourced, not static: cites the reconstruction engine and disavows hand-drawing
+    assert "merit_order_reconstruction" in mo["source"] and "never hand-drawn" in mo["source"]
+    assert mo["as_of"], "R14: a published figure carries its clock"
+    # the stack is a real merit order: SRMC ascending, cheapest-first
+    srmcs = [p["srmc"] for p in mo["plants"]]
+    assert srmcs == sorted(srmcs), "merit order must be SRMC-ascending"
+    for p in mo["plants"]:
+        assert isinstance(p["srmc"], (int, float)) and isinstance(p["cap_gw"], (int, float))
+        assert p["label"]
+
+
+def test_merit_order_chart_renders_to_svg_from_data():
+    """R11: the merit curve renders as inline SVG bars, one per pipeline plant, marginal annotated."""
+    d = _live()
+    html = _rlive_html(d)
+    mo = d["rungs"]["live_evidence"]["merit_order"]
+    n = len(mo["plants"])
+    assert _mbars(html) == n, "rendered merit bars are not one per pipeline plant"
+    # the marginal (price-setting) plant's SRMC renders as the annotation
+    marginal = round(max(p["srmc"] for p in mo["plants"]))
+    assert "marginal " + str(marginal) in html
+    # caption + provenance + clock render onto the pixel
+    assert _esc(mo["caption"]) in html
+    assert _esc(mo["as_of"]) in html and "GBP/MWh" in html
+
+
+def test_merit_order_chart_is_data_driven_not_constant():
+    """R15 mutation both ways: the render reads the data (a changed/added plant changes the pixel)."""
+    d = _live()
+    base = _rlive_html(d)
+    base_bars = _mbars(base)
+    # (a) change a plant's SRMC -> the rendered bars change
+    mv = copy.deepcopy(d)
+    mv["rungs"]["live_evidence"]["merit_order"]["plants"][-1]["srmc"] = 9999.9
+    assert _rlive_html(mv) != base, "changing a plant SRMC did not change the rendered chart (constant?)"
+    # (b) add a plant -> one more bar (cardinality is data-driven)
+    ma = copy.deepcopy(d)
+    ma["rungs"]["live_evidence"]["merit_order"]["plants"].append(
+        {"label": "extra peaker", "srmc": 12000.0, "cap_gw": 1.0}
+    )
+    assert _mbars(_rlive_html(ma)) == base_bars + 1

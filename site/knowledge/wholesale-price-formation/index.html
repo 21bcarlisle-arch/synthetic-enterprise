@@ -58,6 +58,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .chart-cap { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
 .pchart { display: block; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
 .chart-src { font-size: 10px; color: var(--muted); margin-top: 6px; }
+.mlegrow { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; }
+.mleg { font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -188,6 +190,41 @@ function priceSeriesSvg(ps){
     '</svg>';
 }
 
+// Inline merit-order supply curve, rendered from the pipeline SRMC stack (never static).
+// A staircase of dispatchable plants, cheapest-first (x = cumulative capacity, y = SRMC);
+// the LAST plant needed to meet demand sets the price -- annotated as the marginal plant.
+function meritOrderSvg(mo){
+  var ps=mo.plants, n=ps.length;
+  if(!n) return "";
+  var W=680, H=210, PADL=40, PADR=12, PADT=14, PADB=30;
+  var totGw=ps.reduce(function(a,p){return a+p.cap_gw;},0)||1;
+  var hi=Math.max.apply(null, ps.map(function(p){return p.srmc;}));
+  var yhi=Math.ceil(hi/50)*50||50, ylo=0;
+  function x(gw){ return PADL + (W-PADL-PADR)*(gw/totGw); }
+  function y(v){ return PADT + (H-PADT-PADB)*(1-(v-ylo)/(yhi-ylo)); }
+  var ticks=[ylo, yhi/2, yhi], grid="";
+  ticks.forEach(function(t){
+    var yy=y(t).toFixed(1);
+    grid+='<line x1="'+PADL+'" y1="'+yy+'" x2="'+(W-PADR)+'" y2="'+yy+'" stroke="var(--border)" stroke-width="1"/>'+
+      '<text x="'+(PADL-6)+'" y="'+(y(t)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+Math.round(t)+'</text>';
+  });
+  var fills=["var(--green)","var(--teal)","var(--blue)","var(--amber)"];
+  var bars="", cum=0, base=y(0);
+  ps.forEach(function(p,i){
+    var x0=x(cum), x1=x(cum+p.cap_gw); cum+=p.cap_gw;
+    var yy=y(p.srmc), h=Math.max(0, base-yy), c=fills[i%fills.length];
+    bars+='<rect class="mbar" x="'+x0.toFixed(1)+'" y="'+yy.toFixed(1)+'" width="'+Math.max(0,x1-x0).toFixed(1)+
+      '" height="'+h.toFixed(1)+'" fill="'+c+'" fill-opacity="0.45" stroke="'+c+'" stroke-width="1"/>';
+  });
+  var marg=ps[n-1], mx=x(totGw-marg.cap_gw/2), my=y(marg.srmc);
+  var ann='<circle cx="'+mx.toFixed(1)+'" cy="'+my.toFixed(1)+'" r="3" fill="var(--amber)"/>'+
+    '<text x="'+mx.toFixed(1)+'" y="'+(my-6).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--amber)">marginal '+Math.round(marg.srmc)+'</text>';
+  var xlab='<text x="'+((PADL+W-PADR)/2).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="var(--muted)">'+esc(mo.x_label)+'</text>';
+  return '<svg class="pchart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" '+
+    'aria-label="GB merit-order supply curve '+esc(String(mo.year))+', GBP per MWh by cumulative capacity">'+
+    grid+bars+ann+xlab+'</svg>';
+}
+
 function renderLive(d){
   var r=d.rungs.live_evidence;
   document.getElementById("s-live-h").textContent=r.heading;
@@ -198,7 +235,18 @@ function renderLive(d){
       priceSeriesSvg(ps)+
       '<div class="chart-src">'+esc(ps.unit)+' &middot; source: '+esc(ps.source)+' &middot; as of '+esc(ps.as_of)+'</div></div>';
   }
-  set("r-live", "<p>"+esc(r.intro)+"</p>"+chart+
+  var mo=r.merit_order, mchart="";
+  if(mo && mo.plants && mo.plants.length){
+    var leg=mo.plants.map(function(p){
+      return '<span class="mleg">'+esc(p.label)+' &middot; GBP'+esc(String(p.srmc))+'/MWh</span>';
+    }).join("");
+    mchart='<div class="chartwrap"><div class="chart-cap">'+esc(mo.caption)+'</div>'+
+      meritOrderSvg(mo)+
+      '<div class="mlegrow">'+leg+'</div>'+
+      '<div class="chart-src">'+esc(mo.unit)+' &middot; '+esc(mo.marginal_note)+
+      ' &middot; source: '+esc(mo.source)+' &middot; as of '+esc(mo.as_of)+'</div></div>';
+  }
+  set("r-live", "<p>"+esc(r.intro)+"</p>"+chart+mchart+
     '<p><a class="evlink" href="'+esc(r.chart_link.href)+'">'+esc(r.chart_link.label)+'</a></p>'+
     '<p class="muted">'+esc(r.note)+"</p>");
 }
