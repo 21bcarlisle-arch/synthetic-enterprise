@@ -77,6 +77,24 @@ PASS. **Still to wire (report-lookup generators, byte-identical while off, drawa
 `generate_customer_sample` / `generate_dashboard_data`'s `CUSTOMERS`-keyed lookup dicts + the
 `run_phase*` settlement entrypoints (SYN-safe per the blast-radius map above).
 
+**LANDED 2026-07-28 (later tick) — report-lookup generator #1, `generate_customer_sample` wired through the seam:**
+`tools/generate_customer_sample.generate()` now resolves its `_customer_by_id` lookup book from
+`live_population()` (via a new module-level `_resolve_book()` helper) instead of importing the static
+`CUSTOMERS` literal directly. **Byte-identical while off** (the seam returns `list(CUSTOMERS)`; the 11
+existing static-lookup regressions — home_type→urban_flat, dual_fuel, engagement — stay green, proving
+the report path is unperturbed). **HONEST scope (asserted, not over-claimed):** this is a REPORT-LOOKUP
+generator — it only enriches customers already in the run's `per_customer_lifetime`, and its read fields
+are `commodity`/`home_type`/`smart_meter`. A SYN dict carries `commodity` but NOT the property fields
+(those are the property-model/HH generator's job, wired separately), and SYN customers do not enter a run
+until the held flip wires the entrypoints — so the flag-on effect HERE is book MEMBERSHIP (uniformity:
+one seam, no lingering direct `CUSTOMERS` import before the flip), NOT a changed published figure. R15
+BOTH WAYS proven at the book-resolution seam: `tests/tools/test_generate_customer_sample_population_seam.py`
+(4 green) — MUT (revert `_resolve_book()` to `list(CUSTOMERS)`) fails `test_resolve_book_flag_on_
+additively_carries_syn_cohort` on its named assertion while the byte-identical-off test still passes.
+`epistemic_verifier` (527 files) PASS. **Still to wire:** `generate_dashboard_data` (entangled — many
+scattered `CUSTOMERS`/`get_customer` reads across extract_* functions, a larger dedicated wire) + the
+`run_phase*` settlement entrypoints.
+
 **REMAINING (drawable dedicated build, authorised — NOT walled):**
 1. ~~SYN property model (central path)~~ — LANDED above; residual = `run_phase3a.py` diagnostic (QUEUED).
 2. Wire the generators to consume `live_population()` (byte-identical while off) — CENTRAL generator

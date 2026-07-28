@@ -37,6 +37,21 @@ def _per_year(run, cid):
     return out
 
 
+def _resolve_book():
+    """Resolve the customer book through the single ``live_population()`` seam.
+
+    Generator draw-wiring (PRODUCT-FIRST item 2, report-lookup generator):
+    BYTE-IDENTICAL to the static ``CUSTOMERS`` literal while the
+    director-reserved ``SE_DRAW_POPULATION`` flag is off (the seam returns
+    ``list(CUSTOMERS)``); additively carries the SYN acquisition cohort when
+    the flag is on. Extracted so the wiring is R15-testable both ways
+    (tests/tools/test_generate_customer_sample_population_seam.py). The seam
+    omits the hidden ground-truth ``cohort`` by construction (epistemic wall).
+    """
+    from simulation.live_population import live_population
+    return live_population()
+
+
 def generate(run_json_path=None, out_path=None, state_path=None):
     import re
     from datetime import datetime, timezone
@@ -128,11 +143,18 @@ def generate(run_json_path=None, out_path=None, state_path=None):
 
     # Layer 2 "model-complexity flavour" evidence (2026-07-10, director page
     # comment on /sim/: "No info on smart meters. Duel fuel. House type.
-    # Business type consumption"). saas/customers.py is SIM-side generation
-    # data (not company/), same basis as the household_segments archetypes
-    # below -- shown here for the SIM tab's own evidence-surface purpose
-    # only, MUST NEVER be read by company/** code.
-    from saas.customers import CUSTOMERS as _RAW_CUSTOMERS
+    # Business type consumption"). The book is resolved through the SINGLE
+    # `live_population()` seam (generator draw-wiring, PRODUCT-FIRST item 2,
+    # report-lookup generator) rather than importing the static CUSTOMERS
+    # literal directly: BYTE-IDENTICAL while `SE_DRAW_POPULATION` is off, and
+    # when the director-reserved flag is on the lookup ADDITIVELY carries the
+    # SYN acquisition cohort, so a SYN customer appearing in the run's
+    # per_customer_lifetime resolves its saas-shaped observables (segment/
+    # commodity) here instead of the `{}`-default. This is SIM-side generation
+    # data (same basis as the household_segments archetypes below), MUST NEVER
+    # be read by company/** code; the seam omits the hidden ground-truth
+    # `cohort` by construction (epistemic wall).
+    _RAW_CUSTOMERS = _resolve_book()
     _customer_by_id = {c["customer_id"]: c for c in _RAW_CUSTOMERS}
     _bases_with_leg = defaultdict(set)
     for _cid in pcl.keys():
