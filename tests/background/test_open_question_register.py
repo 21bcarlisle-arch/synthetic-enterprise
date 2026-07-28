@@ -140,14 +140,28 @@ def test_law_c_independence_no_supervisor_import():
 # --------------------------------------------------------------------------- #
 # LIVE: the real seeded register + the real ruling cohere as designed.
 # --------------------------------------------------------------------------- #
-def test_live_no_question_ruling_five_carried_one_answered():
-    """The real repo state after this build: NO_QUESTION carries 6 questions, Q3 (cohort) answered,
-    the other five carried — so 5 block its archival and 0 are silent."""
-    rows = oqr.all_tracked_questions()
-    nq = [r for r in rows if "NO_QUESTION_LEFT_UNANSWERED" in r["ruling"]]
-    assert len(nq) == 6, [r["question"][:40] for r in nq]
-    answered = [r for r in nq if r["status"] == "answered"]
-    assert len(answered) == 1 and "Cohort" in answered[0]["question"], answered
-    blocking = [r for r in nq if r["blocks_archive"]]
-    assert len(blocking) == 5, blocking
-    assert sum(1 for r in nq if r["silent"]) == 0, "no seeded question may be silent (deliverable 2)"
+def test_live_no_question_ruling_all_six_answered_and_archived():
+    """The real repo state after deliverable 4 (commit 155251dad): all six §3 questions carry an
+    ANSWERED disposition, so the archive gate permitted the ruling into done/. Terminal state —
+    supersedes the intermediate 'five carried, one answered' snapshot.
+
+    Two invariants, on primary state (R9):
+      (1) the ruling is DISCHARGED — no NO_QUESTION row survives in the ACTIVE staging scan
+          (all_tracked_questions() excludes done/), so nothing still blocks;
+      (2) read directly from the archived body, its six questions are ALL answered, 0 silent, and
+          blocking_questions_for_ruling() == 0 — i.e. the archive gate WOULD permit this move
+          (the ruling's own acceptance test, satisfied by mechanism not banner)."""
+    # (1) discharged out of the active scan
+    active_nq = [r for r in oqr.all_tracked_questions() if "NO_QUESTION_LEFT_UNANSWERED" in r["ruling"]]
+    assert active_nq == [], [r["question"][:40] for r in active_nq]
+
+    # (2) the archived body itself: six questions, all closed, gate would permit
+    done_ruling = oqr.STAGING_DIR / "done" / "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md"
+    assert done_ruling.exists(), f"archived ruling missing: {done_ruling}"
+    body = done_ruling.read_text(encoding="utf-8")
+    dispositions = oqr.load_dispositions()
+    rows = [oqr._row(done_ruling.name, q, dispositions) for q in oqr.extract_questions(body)]
+    assert len(rows) == 6, [r["question"][:40] for r in rows]
+    assert all(r["status"] == "answered" for r in rows), [(r["question"][:40], r["status"]) for r in rows]
+    assert sum(1 for r in rows if r["silent"]) == 0, "no seeded question may be silent (deliverable 2)"
+    assert oqr.blocking_questions_for_ruling(done_ruling.name, body) == [], "archive gate must permit a fully-answered ruling"
