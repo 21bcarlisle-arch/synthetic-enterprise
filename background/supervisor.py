@@ -336,6 +336,7 @@ def _real_staged_instructions() -> list[str]:
             misparked_actionable_in_progress,
             misparked_open_campaign_in_progress,
             selfdrawable_mint_in_progress,
+            unreleased_ledger_directive_in_staging,
         )
         real.extend("in_progress/" + n for n in misparked_actionable_in_progress(STAGING_DIR / "in_progress"))
         # SECOND net (2026-07-23 NIGHT_ENFORCEMENT addendum, the 20:00Z bug): a director-authored
@@ -353,6 +354,17 @@ def _real_staged_instructions() -> list[str]:
         for n in selfdrawable_mint_in_progress(STAGING_DIR / "in_progress", CAMPAIGN_REGISTER_PATH):
             if "in_progress/" + n not in real:
                 real.append("in_progress/" + n)
+        # FOURTH net (2026-07-28, atom ruling_consumption_ledger_release): a ruling carrying a
+        # `LEDGER: <ACTION> <target>` directive whose authenticated ledger entry does NOT yet exist
+        # is a DECLARED-but-UNRELEASED block -- it must surface as open work (needs a director act),
+        # never be silently consumed. Reads root + in_progress; READ-ONLY on authority (never writes
+        # a ledger entry -- R16). Returns [] while every directive is authenticated (no false churn).
+        for n in unreleased_ledger_directive_in_staging(
+            [STAGING_DIR, STAGING_DIR / "in_progress"]
+        ):
+            key = ("in_progress/" + n) if (STAGING_DIR / "in_progress" / n).exists() else n
+            if key not in real and n not in real:
+                real.append(key)
     except Exception:  # a detection error must never break the draw
         pass
     return real

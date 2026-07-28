@@ -31,6 +31,7 @@ provenance field records the trace for the prevention pass to verify.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -441,6 +442,125 @@ def read_ledger(path: Path | None = None) -> list:
     except Exception:
         return []
     return out
+
+
+# ── ruling-consumption → block-release REPORTING (atom `ruling_consumption_ledger_release`) ─
+# DIRECTOR_RULING_BLOCKED_MINT_BATCH §0 + WORK-THIS-CREATES d1: "Ruling-consumption creates the
+# ledger entry that releases a block -- or a plain statement of what can, if it cannot." DISCOVER
+# verdict (docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md): hybrid A/B. The AUTHORITY-
+# WRITING code already exists and is fail-closed (record_gate_opening = console; record_director_
+# ntfy_ruling = HMAC-signed phone, key out-of-tree/worker-unreadable). The MISSING piece is purely
+# a READ-ONLY reporting/confirmation step in the consumption path: nothing (a) detects a ruling
+# INTENDS to open a build, (b) CONFIRMS an authenticated ledger entry exists for it, (c) reports
+# the block UNRELEASED (never silently "done") when it does not. That silent gap is why three
+# BUILD-opening rulings sat blocked 3+h. These functions supply (a)+(b)+(c). CRITICAL R16 SAFETY:
+# they NEVER write authority -- they only read the ledger and report; a bare staged doc carrying a
+# directive line therefore authorizes NOTHING here (inference never releases). The director's own
+# console/phone act (record_gate_opening / record_director_ntfy_ruling) remains the sole writer.
+LEDGER_DIRECTIVE_ACTIONS = ("BUILD_OPEN", "FRONT_OPEN", "LEVEL_UP_PROPOSED")
+# Canonical machine-parseable directive line a ruling carries to declare its intended release
+# (DISCOVER §5): `LEDGER: <ACTION> <target> [level]`. Parsed strictly (R3: no free-form prose
+# parsing that a quote of some other atom's `blocked_on:` could false-trip) -- the literal `LEDGER:`
+# prefix + a canonical action token + a non-empty target are all required.
+_LEDGER_DIRECTIVE_RE = re.compile(
+    r"^\s*LEDGER:\s+(?P<action>[A-Z_]+)\s+(?P<target>[^\s]+)(?:\s+(?P<level>\d+))?\s*$"
+)
+
+
+def parse_ledger_directives(text: str) -> list:
+    """Parse the canonical `LEDGER: <ACTION> <target> [level]` directive lines out of a ruling doc.
+    Returns a list of {action, target, level?} dicts, one per WELL-FORMED canonical line, in order.
+    FAIL-CLOSED: a line whose action is not in LEDGER_DIRECTIVE_ACTIONS, or that is malformed, is
+    SKIPPED (never a silent partial match) -- so an unparseable/ambiguous line yields no directive
+    and therefore no release. Never raises."""
+    out: list = []
+    if not isinstance(text, str):
+        return out
+    for line in text.splitlines():
+        m = _LEDGER_DIRECTIVE_RE.match(line)
+        if not m:
+            continue
+        action = m.group("action")
+        if action not in LEDGER_DIRECTIVE_ACTIONS:
+            continue
+        target = (m.group("target") or "").strip()
+        if not target:
+            continue
+        d = {"action": action, "target": target}
+        if m.group("level") is not None:
+            d["level"] = int(m.group("level"))
+        out.append(d)
+    return out
+
+
+def confirm_authenticated_release(directive: dict, ledger: list) -> bool:
+    """Does an AUTHENTICATED ledger entry exist that grants the release this directive declares?
+    Routes each action through the SAME validity predicate the blocker gate reads, so authority is
+    confirmed in exactly the form `authorized_atoms` / `is_valid_front_open` / `is_valid_level_up`
+    consume -- and ONLY a console or (out-of-tree-HMAC) phone entry passes those. A directive is a
+    mere declaration of intent; it is NEVER itself evidence of authority (R16). Returns False on any
+    missing/unauthenticated grant (fail-closed). Never raises."""
+    try:
+        action = directive.get("action")
+        target = directive.get("target")
+        if not target:
+            return False
+        if action == "BUILD_OPEN":
+            return target in authorized_atoms(ledger)
+        if action == "FRONT_OPEN":
+            return any(is_valid_front_open(e) and e.get("front") == target for e in ledger)
+        if action == "LEVEL_UP_PROPOSED":
+            want = directive.get("level")
+            for e in ledger:
+                if not (is_valid_level_up(e) and e.get("atom") == target):
+                    continue
+                lvl = e.get("level")
+                # A level-bounded directive is confirmed only by an entry for that exact level
+                # (or an unbounded entry, which authorizes any increase). Fail-closed otherwise.
+                if want is None or lvl is None or lvl == want:
+                    return True
+            return False
+    except Exception:
+        return False
+    return False
+
+
+def report_ruling_release(ruling_text: str, *, ledger: list | None = None,
+                          ledger_path: Path | None = None, reader=None) -> dict:
+    """The consumption-path REPORT (DISCOVER §2 (c)): given a consumed ruling's text, classify each
+    of its `LEDGER:` directives as RELEASED (an authenticated ledger entry exists) or UNRELEASED (a
+    release was declared but NO authenticated entry backs it -- the block STAYS; a director act is
+    required). Returns {directives, released, unreleased, ledger_available}. NEVER writes to the
+    ledger (read-only; R16 preserved by construction). FAIL-SILENT guard: if the ledger cannot be
+    read, ledger_available=False and EVERY directive is reported UNRELEASED -- an unavailable check
+    is a FAILED check, never a silent pass (R15). `reader` (defaults to read_ledger) is injectable so
+    the unavailable-ledger branch is exercisable. Never raises."""
+    directives = parse_ledger_directives(ruling_text)
+    if ledger is None:
+        _reader = reader or read_ledger
+        try:
+            ledger = _reader(ledger_path)
+            available = ledger is not None
+        except Exception:
+            ledger, available = [], False
+    else:
+        available = True
+    if ledger is None:
+        ledger, available = [], False
+    released: list = []
+    unreleased: list = []
+    for d in directives:
+        target = d.get("target")
+        confirmed = available and confirm_authenticated_release(d, ledger)
+        (released if confirmed else unreleased).append({
+            "action": d.get("action"), "target": target, **({"level": d["level"]} if "level" in d else {}),
+        })
+    return {
+        "directives": len(directives),
+        "released": released,
+        "unreleased": unreleased,
+        "ledger_available": available,
+    }
 
 
 def record_gate_opening(atoms, provenance: str, *, ts: float | None = None,

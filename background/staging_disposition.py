@@ -352,3 +352,60 @@ def mint_block_hygiene_violations(
                 "why the block exists (§3: a block without a recorded reason cannot be judged)."
             )
     return violations
+
+
+# ---------------------------------------------------------------------------
+# RULING-CONSUMPTION → BLOCK-RELEASE surfacing (2026-07-28, atom
+# `ruling_consumption_ledger_release`, DISCOVER §2 (c) + §6). The gap the atom closes: a ruling that
+# DECLARES a build-release (via the canonical `LEDGER: <ACTION> <target>` directive line) but whose
+# authenticated ledger entry does NOT yet exist must be SURFACED as still-open work, never silently
+# archived as consumed -- that silent gap is why three BUILD-opening rulings sat blocked 3+h. This
+# detector reads each staged doc, parses its LEDGER directives, and confirms each against the ledger
+# via gate_authorization.report_ruling_release (READ-ONLY -- it NEVER writes authority; R16 holds by
+# construction). A doc with >=1 UNRELEASED directive is surfaced by basename so the tick draws it
+# and either the director acts or the doc states plainly it is unreleased. A doc whose every
+# directive is authenticated (or that carries no directive) is NOT surfaced -- no false churn. Fail-
+# closed toward surfacing on any read/parse error (an undetectable release is treated as unreleased);
+# report-only, NEVER raises (a detection must not crash the draw or the deadman).
+def unreleased_ledger_directive_in_staging(
+    staging_dirs, ledger_path: Path | None = None
+) -> list[str]:
+    """Basenames of staged docs carrying a `LEDGER: <ACTION> <target>` directive whose declared
+    release is NOT backed by an authenticated ledger entry (block stays -- needs a director act).
+    `staging_dirs` is one Path or an iterable of Paths (e.g. staging root + in_progress). De-duped,
+    sorted. Never raises."""
+    try:
+        from background.gate_authorization import parse_ledger_directives, report_ruling_release
+    except Exception:
+        return []
+    if isinstance(staging_dirs, (str, Path)):
+        staging_dirs = [Path(staging_dirs)]
+    seen: set[str] = set()
+    out: list[str] = []
+    for d in staging_dirs:
+        try:
+            d = Path(d)
+            if not d.is_dir():
+                continue
+            candidates = sorted(d.glob("*.md"))
+        except OSError:
+            continue
+        for p in candidates:
+            if p.name in seen:
+                continue
+            try:
+                text = p.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            try:
+                if not parse_ledger_directives(text):
+                    continue  # no directive at all -> nothing to surface (no false churn)
+                report = report_ruling_release(text, ledger_path=ledger_path)
+                unreleased = report.get("unreleased") or []
+            except Exception:
+                # fail-closed toward surfacing: an undetectable release is treated as unreleased
+                unreleased = [{"target": "?"}]
+            if unreleased:
+                seen.add(p.name)
+                out.append(p.name)
+    return sorted(out)

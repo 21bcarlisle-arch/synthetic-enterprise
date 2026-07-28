@@ -1,8 +1,27 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- BUILD half (b)(c) DONE + R15-both-ways-proven (14 tests, tests/background/test_ruling_consumption_ledger_release.py); only the level_current 0->3 move remains, director-reserved (R16 -- the agent proposes level, never moves the cell). -->
 <!-- RELEASED 2026-07-28: director console signoff (ruling_consumption_authority_seam_signoff) — items 1+2 ARE this atom's named blocker (director_authority_seam_signoff). BUILD half (ruling-consumption writes/parses the ledger entry that releases a block) now authorised; BUILD_OPEN recorded in docs/observability/gate_authorizations.jsonl (channel=console). Level move stays director_level_up (R16). -->
 # [PLANNER-MINTED] — Ruling-consumption must PRODUCE the ledger entry that releases a block — or name what can (§0 + WORK-THIS-CREATES deliverable 1) (2026-07-28)
 
-> **[IN-PROGRESS DISPOSITION 2026-07-28] — DISCOVER DONE, BUILD blocked (director seam).**
+> **[IN-PROGRESS DISPOSITION 2026-07-28 worker tick] — BUILD HALF DONE; only the director LEVEL move remains.**
+> Built + R15-both-ways-proven at build-quality, landing `blocked_on: director_level_up` (R16):
+> - **`background/gate_authorization.py`** — `parse_ledger_directives` (strict canonical `LEDGER: <ACTION>
+>   <target> [level]` parse; R3, no prose false-trip), `confirm_authenticated_release` (routes each action
+>   through the SAME validity predicate the blocker gate reads — `authorized_atoms`/`is_valid_front_open`/
+>   `is_valid_level_up`), `report_ruling_release` (classifies each directive RELEASED vs UNRELEASED).
+>   **READ-ONLY on authority — NEVER writes a ledger entry (R16 by construction):** a bare staged doc's
+>   directive line authorises NOTHING; only the director's own console/phone act writes the entry.
+> - **`background/staging_disposition.py::unreleased_ledger_directive_in_staging`** — the load-bearing wire
+>   (FOURTH net in `supervisor.py`): surfaces any staged ruling whose declared `LEDGER:` release is NOT
+>   authenticated, so a BUILD-opening ruling can never be *silently consumed* (the 3+h-blocked-ruling gap).
+>   Returns `[]` on live state (no ruling uses the convention yet → zero false churn).
+> - **R15 both-ways (14 tests green):** MUTATION (neutered confirm would release an unbacked atom; the real
+>   control reports UNRELEASED), FAIL-CLOSED (no entry / spoofable bare-doc author / malformed → NO release,
+>   ledger byte-identical), FAIL-SILENT (unavailable reader → UNRELEASED, never a silent pass). Gates:
+>   epistemic PASS (527 files); `test_gate_authorization.py`+`test_staging_disposition.py` (51) green; live
+>   `_self_refill_draw()` runs clean with the new net.
+>
+> **[PRIOR DISPOSITION 2026-07-28] — DISCOVER DONE, BUILD was blocked (director seam, since signed off).**
 > The DISCOVER/design half is EXECUTED → `docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md`.
 > **Verdict: hybrid A/B — and the transcription mechanism ALREADY EXISTS.** `record_director_ntfy_ruling`
 > is the only worker-reachable ledger-write path and is structurally fail-closed (the worker cannot read
