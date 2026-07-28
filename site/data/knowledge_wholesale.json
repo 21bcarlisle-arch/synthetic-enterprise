@@ -6,9 +6,19 @@
     "one_line": "At every moment, GB's wholesale electricity price is set by the running cost of the most expensive power station needed to meet demand -- so the price follows gas and carbon, not the average of the whole fleet.",
     "wall_placement": "Public-reality commons only. Every figure below is a published external fact or an already-published gap statement. No simulation-internal generator value appears on this page.",
     "rate_of_change_class": "slow",
-    "data_freshness": {"as_of": "2026-07", "cadence": "monthly", "note": "Data re-renders monthly; the underlying claims are reviewed on their rate-of-change class."},
-    "claim_freshness": {"last_verified": "2026-07-25", "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER"},
-    "derivation": {"assembled_pct": 82, "note": "Share of this page assembled or derived from material already in the repository (sourced benchmarks, the price-engine reconstruction, the published fidelity gaps and the recorded belief revision) versus written fresh. Reported as an honest measurement, not a target."}
+    "data_freshness": {
+      "as_of": "2026-07",
+      "cadence": "monthly",
+      "note": "Data re-renders monthly; the underlying claims are reviewed on their rate-of-change class."
+    },
+    "claim_freshness": {
+      "last_verified": "2026-07-25",
+      "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER"
+    },
+    "derivation": {
+      "assembled_pct": 82,
+      "note": "Share of this page assembled or derived from material already in the repository (sourced benchmarks, the price-engine reconstruction, the published fidelity gaps and the recorded belief revision) versus written fresh. Reported as an honest measurement, not a target."
+    }
   },
   "rungs": {
     "headline": {
@@ -27,11 +37,46 @@
       "heading": "How it works",
       "intro": "Formally, each plant offers at roughly its short-run marginal cost (SRMC): the cost of producing one more MWh. For a thermal plant that is fuel cost divided by efficiency, plus the carbon cost of its emissions, plus a small variable running cost. The market clears where the rising SRMC stack meets demand.",
       "figures": [
-        {"id": "ccgt_eff", "label": "CCGT fleet-average thermal efficiency", "value": "~49%", "unit": "gross CV basis, 2016-2024", "class": "Fact", "citation": "DUKES Table 5.10.C (DESNZ)"},
-        {"id": "gas_ef", "label": "Natural-gas emission factor", "value": "0.183", "unit": "tCO2 per MWh of fuel input", "class": "Fact", "citation": "DESNZ GHG conversion factors 2024, gross CV"},
-        {"id": "carbon_support", "label": "UK Carbon Price Support (the fixed carbon top-up)", "value": "~£18", "unit": "per tCO2, frozen 1 Apr 2016 -> 31 Mar 2028", "class": "Fact", "citation": "HMRC Climate Change Levy rates"},
-        {"id": "marginal_tech", "label": "Reference marginal technology", "value": "CCGT gas", "unit": "confirmed via Capacity Market Net-CONE", "class": "Fact", "citation": "GB scarcity-constants benchmark pass"},
-        {"id": "gas_exposure", "label": "GB supply still exposed to gas-set prices", "value": "~30%", "unit": "of generation (a generation share, NOT a marginal-hours figure)", "class": "Fact", "citation": "DESNZ, 'Decisive action to break influence of gas on electricity prices'"}
+        {
+          "id": "ccgt_eff",
+          "label": "CCGT fleet-average thermal efficiency",
+          "value": "~49%",
+          "unit": "gross CV basis, 2016-2024",
+          "class": "Fact",
+          "citation": "DUKES Table 5.10.C (DESNZ)"
+        },
+        {
+          "id": "gas_ef",
+          "label": "Natural-gas emission factor",
+          "value": "0.183",
+          "unit": "tCO2 per MWh of fuel input",
+          "class": "Fact",
+          "citation": "DESNZ GHG conversion factors 2024, gross CV"
+        },
+        {
+          "id": "carbon_support",
+          "label": "UK Carbon Price Support (the fixed carbon top-up)",
+          "value": "~£18",
+          "unit": "per tCO2, frozen 1 Apr 2016 -> 31 Mar 2028",
+          "class": "Fact",
+          "citation": "HMRC Climate Change Levy rates"
+        },
+        {
+          "id": "marginal_tech",
+          "label": "Reference marginal technology",
+          "value": "CCGT gas",
+          "unit": "confirmed via Capacity Market Net-CONE",
+          "class": "Fact",
+          "citation": "GB scarcity-constants benchmark pass"
+        },
+        {
+          "id": "gas_exposure",
+          "label": "GB supply still exposed to gas-set prices",
+          "value": "~30%",
+          "unit": "of generation (a generation share, NOT a marginal-hours figure)",
+          "class": "Fact",
+          "citation": "DESNZ, 'Decisive action to break influence of gas on electricity prices'"
+        }
       ],
       "worked": "Worked example: a gas plant that turns 49% of its fuel into electricity, paying a gas price of P per MWh of fuel and ~£18/tCO2 of carbon on 0.183 tCO2 per MWh of fuel, has an SRMC of roughly P/0.49 + 18*0.183/0.49 + a few pounds of running cost. Notice the price is far more sensitive to the gas price than to anything the electricity market itself does -- which is exactly why a gas shock passes straight through to bills."
     },
@@ -39,26 +84,537 @@
       "heading": "What the data should look like",
       "intro": "A page is only honest if it says, in advance and falsifiably, what the real data characteristically does. If live data ever crosses one of these shapes, that is not a routine data update -- it is a signal to investigate, and either the model or this understanding is wrong.",
       "bands": [
-        {"id": "baseload", "label": "Ordinary baseload price", "shape": "typically £40-90/MWh across 2016-2021, before the gas crisis", "class": "Fact"},
-        {"id": "crisis_tail", "label": "Crisis-year spike tails", "shape": "day-ahead peaks reaching several hundred £/MWh in 2021-2022, with imbalance prices reaching into the thousands", "class": "Fact"},
-        {"id": "cashout_ceiling", "label": "Regulatory cash-out ceiling", "shape": "imbalance price capped at £6,000/MWh -- a hard wall, prices approach but do not exceed it", "class": "Fact", "citation": "GB scarcity-constants benchmark (VoLL / cash-out ceiling)"},
-        {"id": "negative", "label": "Negative prices", "shape": "occur in a small share of periods in high-renewables years, when must-run output exceeds demand", "class": "Fact"}
+        {
+          "id": "baseload",
+          "label": "Ordinary baseload price",
+          "shape": "typically £40-90/MWh across 2016-2021, before the gas crisis",
+          "class": "Fact"
+        },
+        {
+          "id": "crisis_tail",
+          "label": "Crisis-year spike tails",
+          "shape": "day-ahead peaks reaching several hundred £/MWh in 2021-2022, with imbalance prices reaching into the thousands",
+          "class": "Fact"
+        },
+        {
+          "id": "cashout_ceiling",
+          "label": "Regulatory cash-out ceiling",
+          "shape": "imbalance price capped at £6,000/MWh -- a hard wall, prices approach but do not exceed it",
+          "class": "Fact",
+          "citation": "GB scarcity-constants benchmark (VoLL / cash-out ceiling)"
+        },
+        {
+          "id": "negative",
+          "label": "Negative prices",
+          "shape": "occur in a small share of periods in high-renewables years, when must-run output exceeds demand",
+          "class": "Fact"
+        }
       ]
     },
     "live_evidence": {
       "heading": "Live evidence",
       "intro": "The charts on this site render from the same market and simulation feeds the company itself runs on -- never hand-drawn. Follow the price history on the market surface and read it against the expected shapes above: baseload band, the 2021-2022 crisis tail, the cash-out ceiling it never crosses.",
-      "chart_link": {"label": "See the live price history ->", "href": "/world/"},
-      "note": "Numbers here are queries, not prose: this block links to the pipeline-rendered surface rather than restating figures, so it can never drift from what the data actually shows."
+      "chart_link": {
+        "label": "See the live price history ->",
+        "href": "/world/"
+      },
+      "note": "Numbers here are queries, not prose: this block links to the pipeline-rendered surface rather than restating figures, so it can never drift from what the data actually shows.",
+      "price_series": {
+        "unit": "GBP/MWh",
+        "source": "Real Elexon System Sell Price (SSP), daily-mean of settlement periods 1-48, aggregated to monthly means. Pipeline data (sim/scenario/data/real_ssp_daily_mean.json <- sim/cache/elexon_ssp_full.json), never hand-drawn.",
+        "as_of": "2025-06-07",
+        "span": "2015-11 to 2025-05",
+        "min": 24.0,
+        "max": 343.1,
+        "caption": "Monthly-mean GB wholesale price, real Elexon SSP. The flat 2016-2020 baseload band, the 2021-2022 crisis tail (peaking Aug 2022), and the settle back toward baseload -- the three shapes the section above predicts.",
+        "points": [
+          {
+            "t": "2015-11",
+            "v": 44.1
+          },
+          {
+            "t": "2015-12",
+            "v": 34.8
+          },
+          {
+            "t": "2016-01",
+            "v": 39.0
+          },
+          {
+            "t": "2016-02",
+            "v": 35.4
+          },
+          {
+            "t": "2016-03",
+            "v": 35.5
+          },
+          {
+            "t": "2016-04",
+            "v": 35.8
+          },
+          {
+            "t": "2016-05",
+            "v": 29.9
+          },
+          {
+            "t": "2016-06",
+            "v": 38.2
+          },
+          {
+            "t": "2016-07",
+            "v": 35.0
+          },
+          {
+            "t": "2016-08",
+            "v": 32.1
+          },
+          {
+            "t": "2016-09",
+            "v": 37.9
+          },
+          {
+            "t": "2016-10",
+            "v": 43.3
+          },
+          {
+            "t": "2016-11",
+            "v": 65.8
+          },
+          {
+            "t": "2016-12",
+            "v": 45.2
+          },
+          {
+            "t": "2017-01",
+            "v": 54.3
+          },
+          {
+            "t": "2017-02",
+            "v": 46.0
+          },
+          {
+            "t": "2017-03",
+            "v": 38.7
+          },
+          {
+            "t": "2017-04",
+            "v": 37.1
+          },
+          {
+            "t": "2017-05",
+            "v": 49.0
+          },
+          {
+            "t": "2017-06",
+            "v": 35.0
+          },
+          {
+            "t": "2017-07",
+            "v": 37.2
+          },
+          {
+            "t": "2017-08",
+            "v": 39.9
+          },
+          {
+            "t": "2017-09",
+            "v": 45.9
+          },
+          {
+            "t": "2017-10",
+            "v": 42.9
+          },
+          {
+            "t": "2017-11",
+            "v": 48.5
+          },
+          {
+            "t": "2017-12",
+            "v": 56.8
+          },
+          {
+            "t": "2018-01",
+            "v": 50.5
+          },
+          {
+            "t": "2018-02",
+            "v": 52.6
+          },
+          {
+            "t": "2018-03",
+            "v": 68.7
+          },
+          {
+            "t": "2018-04",
+            "v": 50.4
+          },
+          {
+            "t": "2018-05",
+            "v": 49.3
+          },
+          {
+            "t": "2018-06",
+            "v": 51.9
+          },
+          {
+            "t": "2018-07",
+            "v": 57.2
+          },
+          {
+            "t": "2018-08",
+            "v": 57.8
+          },
+          {
+            "t": "2018-09",
+            "v": 62.5
+          },
+          {
+            "t": "2018-10",
+            "v": 63.3
+          },
+          {
+            "t": "2018-11",
+            "v": 62.5
+          },
+          {
+            "t": "2018-12",
+            "v": 60.9
+          },
+          {
+            "t": "2019-01",
+            "v": 60.0
+          },
+          {
+            "t": "2019-02",
+            "v": 48.5
+          },
+          {
+            "t": "2019-03",
+            "v": 43.1
+          },
+          {
+            "t": "2019-04",
+            "v": 42.7
+          },
+          {
+            "t": "2019-05",
+            "v": 39.5
+          },
+          {
+            "t": "2019-06",
+            "v": 41.6
+          },
+          {
+            "t": "2019-07",
+            "v": 40.0
+          },
+          {
+            "t": "2019-08",
+            "v": 37.0
+          },
+          {
+            "t": "2019-09",
+            "v": 32.1
+          },
+          {
+            "t": "2019-10",
+            "v": 37.1
+          },
+          {
+            "t": "2019-11",
+            "v": 44.1
+          },
+          {
+            "t": "2019-12",
+            "v": 38.5
+          },
+          {
+            "t": "2020-01",
+            "v": 35.2
+          },
+          {
+            "t": "2020-02",
+            "v": 32.5
+          },
+          {
+            "t": "2020-03",
+            "v": 29.2
+          },
+          {
+            "t": "2020-04",
+            "v": 24.0
+          },
+          {
+            "t": "2020-05",
+            "v": 24.0
+          },
+          {
+            "t": "2020-06",
+            "v": 26.3
+          },
+          {
+            "t": "2020-07",
+            "v": 27.9
+          },
+          {
+            "t": "2020-08",
+            "v": 35.7
+          },
+          {
+            "t": "2020-09",
+            "v": 43.2
+          },
+          {
+            "t": "2020-10",
+            "v": 43.1
+          },
+          {
+            "t": "2020-11",
+            "v": 40.0
+          },
+          {
+            "t": "2020-12",
+            "v": 59.2
+          },
+          {
+            "t": "2021-01",
+            "v": 77.7
+          },
+          {
+            "t": "2021-02",
+            "v": 52.5
+          },
+          {
+            "t": "2021-03",
+            "v": 54.7
+          },
+          {
+            "t": "2021-04",
+            "v": 71.8
+          },
+          {
+            "t": "2021-05",
+            "v": 76.2
+          },
+          {
+            "t": "2021-06",
+            "v": 76.5
+          },
+          {
+            "t": "2021-07",
+            "v": 95.1
+          },
+          {
+            "t": "2021-08",
+            "v": 107.6
+          },
+          {
+            "t": "2021-09",
+            "v": 177.5
+          },
+          {
+            "t": "2021-10",
+            "v": 158.6
+          },
+          {
+            "t": "2021-11",
+            "v": 186.2
+          },
+          {
+            "t": "2021-12",
+            "v": 221.1
+          },
+          {
+            "t": "2022-01",
+            "v": 198.7
+          },
+          {
+            "t": "2022-02",
+            "v": 156.2
+          },
+          {
+            "t": "2022-03",
+            "v": 234.0
+          },
+          {
+            "t": "2022-04",
+            "v": 172.1
+          },
+          {
+            "t": "2022-05",
+            "v": 123.2
+          },
+          {
+            "t": "2022-06",
+            "v": 162.5
+          },
+          {
+            "t": "2022-07",
+            "v": 233.0
+          },
+          {
+            "t": "2022-08",
+            "v": 343.1
+          },
+          {
+            "t": "2022-09",
+            "v": 252.3
+          },
+          {
+            "t": "2022-10",
+            "v": 121.1
+          },
+          {
+            "t": "2022-11",
+            "v": 133.0
+          },
+          {
+            "t": "2022-12",
+            "v": 264.6
+          },
+          {
+            "t": "2023-01",
+            "v": 135.0
+          },
+          {
+            "t": "2023-02",
+            "v": 135.9
+          },
+          {
+            "t": "2023-03",
+            "v": 127.1
+          },
+          {
+            "t": "2023-04",
+            "v": 98.0
+          },
+          {
+            "t": "2023-05",
+            "v": 74.6
+          },
+          {
+            "t": "2023-06",
+            "v": 90.5
+          },
+          {
+            "t": "2023-07",
+            "v": 68.1
+          },
+          {
+            "t": "2023-08",
+            "v": 78.6
+          },
+          {
+            "t": "2023-09",
+            "v": 80.0
+          },
+          {
+            "t": "2023-10",
+            "v": 91.3
+          },
+          {
+            "t": "2023-11",
+            "v": 90.0
+          },
+          {
+            "t": "2023-12",
+            "v": 69.0
+          },
+          {
+            "t": "2024-01",
+            "v": 73.6
+          },
+          {
+            "t": "2024-02",
+            "v": 57.6
+          },
+          {
+            "t": "2024-03",
+            "v": 64.3
+          },
+          {
+            "t": "2024-04",
+            "v": 49.0
+          },
+          {
+            "t": "2024-05",
+            "v": 72.0
+          },
+          {
+            "t": "2024-06",
+            "v": 69.5
+          },
+          {
+            "t": "2024-07",
+            "v": 71.6
+          },
+          {
+            "t": "2024-08",
+            "v": 56.6
+          },
+          {
+            "t": "2024-09",
+            "v": 77.4
+          },
+          {
+            "t": "2024-10",
+            "v": 81.7
+          },
+          {
+            "t": "2024-11",
+            "v": 93.7
+          },
+          {
+            "t": "2024-12",
+            "v": 86.3
+          },
+          {
+            "t": "2025-01",
+            "v": 123.9
+          },
+          {
+            "t": "2025-02",
+            "v": 100.7
+          },
+          {
+            "t": "2025-03",
+            "v": 87.7
+          },
+          {
+            "t": "2025-04",
+            "v": 74.9
+          },
+          {
+            "t": "2025-05",
+            "v": 69.4
+          }
+        ]
+      }
     },
     "residuals": {
       "heading": "Where our picture is still weak",
       "intro": "The honest part. These are the known gaps between how prices really form and how our model of them currently works -- each one a piece of published or recorded evidence, not an opinion.",
       "items": [
-        {"id": "reduced_form", "text": "Our price engine has run a reduced form -- a single reference gas plant plus a scarcity multiplier -- rather than the full plant-by-plant merit-order stack. The multi-plant reconstruction is the current piece of work.", "class": "Choice"},
-        {"id": "ets_gap", "text": "The traded carbon price (EU ETS to 2020, UK ETS after) has no clean published 2016-2024 annual series we have found; only the fixed Carbon Price Support component is nailed down. So the carbon term is partly grounded, partly a named gap.", "class": "Fact"},
-        {"id": "marginal_hours_gap", "text": "No published figure exists for the exact percentage of half-hours in which gas is the price-setting plant. Falling gas load factors (from ~50% in 2016 to ~28% in 2024) are the best available proxy, not a direct measurement.", "class": "Fact"},
-        {"id": "coal_om_gap", "text": "Coal variable operating cost for the back half of the 2010s was not found in a primary source; coal's role in the stack is inferred from its load-factor behaviour.", "class": "Fact"}
+        {
+          "id": "reduced_form",
+          "text": "Our price engine has run a reduced form -- a single reference gas plant plus a scarcity multiplier -- rather than the full plant-by-plant merit-order stack. The multi-plant reconstruction is the current piece of work.",
+          "class": "Choice"
+        },
+        {
+          "id": "ets_gap",
+          "text": "The traded carbon price (EU ETS to 2020, UK ETS after) has no clean published 2016-2024 annual series we have found; only the fixed Carbon Price Support component is nailed down. So the carbon term is partly grounded, partly a named gap.",
+          "class": "Fact"
+        },
+        {
+          "id": "marginal_hours_gap",
+          "text": "No published figure exists for the exact percentage of half-hours in which gas is the price-setting plant. Falling gas load factors (from ~50% in 2016 to ~28% in 2024) are the best available proxy, not a direct measurement.",
+          "class": "Fact"
+        },
+        {
+          "id": "coal_om_gap",
+          "text": "Coal variable operating cost for the back half of the 2010s was not found in a primary source; coal's role in the stack is inferred from its load-factor behaviour.",
+          "class": "Fact"
+        }
       ]
     }
   },
@@ -73,22 +629,97 @@
     "evidence_href": "/proof/"
   },
   "topics": [
-    {"id": "wholesale-price-formation", "title": "Wholesale price formation", "kind": "page", "blurb": "This page: how the GB wholesale electricity price is set at the margin."},
-    {"id": "gb-electricity-market", "title": "The GB electricity market", "kind": "stub", "class": "settled", "blurb": "The half-hourly settled market these prices live in."},
-    {"id": "merit-order-residual-demand", "title": "Merit order & residual demand", "kind": "stub", "class": "slow", "blurb": "The cheapest-first dispatch queue and the demand left after renewables."},
-    {"id": "gas-price", "title": "The gas price", "kind": "stub", "class": "fast", "blurb": "The fuel cost that sets the marginal plant's bid for most hours."},
-    {"id": "carbon-price", "title": "The carbon price", "kind": "stub", "class": "slow", "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned."},
-    {"id": "imbalance-cashout-settlement", "title": "Imbalance & cash-out", "kind": "stub", "class": "slow", "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling."},
-    {"id": "hedging-forward-market", "title": "Hedging & the forward market", "kind": "stub", "class": "slow", "blurb": "How a supplier buys ahead to blunt the price it would otherwise face."},
-    {"id": "price-cap", "title": "The retail price cap", "kind": "stub", "class": "slow", "blurb": "How the wholesale price reaches the household through Ofgem's cap."}
+    {
+      "id": "wholesale-price-formation",
+      "title": "Wholesale price formation",
+      "kind": "page",
+      "blurb": "This page: how the GB wholesale electricity price is set at the margin."
+    },
+    {
+      "id": "gb-electricity-market",
+      "title": "The GB electricity market",
+      "kind": "stub",
+      "class": "settled",
+      "blurb": "The half-hourly settled market these prices live in."
+    },
+    {
+      "id": "merit-order-residual-demand",
+      "title": "Merit order & residual demand",
+      "kind": "stub",
+      "class": "slow",
+      "blurb": "The cheapest-first dispatch queue and the demand left after renewables."
+    },
+    {
+      "id": "gas-price",
+      "title": "The gas price",
+      "kind": "stub",
+      "class": "fast",
+      "blurb": "The fuel cost that sets the marginal plant's bid for most hours."
+    },
+    {
+      "id": "carbon-price",
+      "title": "The carbon price",
+      "kind": "stub",
+      "class": "slow",
+      "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned."
+    },
+    {
+      "id": "imbalance-cashout-settlement",
+      "title": "Imbalance & cash-out",
+      "kind": "stub",
+      "class": "slow",
+      "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling."
+    },
+    {
+      "id": "hedging-forward-market",
+      "title": "Hedging & the forward market",
+      "kind": "stub",
+      "class": "slow",
+      "blurb": "How a supplier buys ahead to blunt the price it would otherwise face."
+    },
+    {
+      "id": "price-cap",
+      "title": "The retail price cap",
+      "kind": "stub",
+      "class": "slow",
+      "blurb": "How the wholesale price reaches the household through Ofgem's cap."
+    }
   ],
   "edges": [
-    {"from": "wholesale-price-formation", "type": "part-of", "to": "gb-electricity-market"},
-    {"from": "merit-order-residual-demand", "type": "mechanism-of", "to": "wholesale-price-formation"},
-    {"from": "gas-price", "type": "drives", "to": "wholesale-price-formation"},
-    {"from": "carbon-price", "type": "drives", "to": "wholesale-price-formation"},
-    {"from": "imbalance-cashout-settlement", "type": "mechanism-of", "to": "wholesale-price-formation"},
-    {"from": "wholesale-price-formation", "type": "prerequisite-for", "to": "hedging-forward-market"},
-    {"from": "wholesale-price-formation", "type": "governed-by", "to": "price-cap"}
+    {
+      "from": "wholesale-price-formation",
+      "type": "part-of",
+      "to": "gb-electricity-market"
+    },
+    {
+      "from": "merit-order-residual-demand",
+      "type": "mechanism-of",
+      "to": "wholesale-price-formation"
+    },
+    {
+      "from": "gas-price",
+      "type": "drives",
+      "to": "wholesale-price-formation"
+    },
+    {
+      "from": "carbon-price",
+      "type": "drives",
+      "to": "wholesale-price-formation"
+    },
+    {
+      "from": "imbalance-cashout-settlement",
+      "type": "mechanism-of",
+      "to": "wholesale-price-formation"
+    },
+    {
+      "from": "wholesale-price-formation",
+      "type": "prerequisite-for",
+      "to": "hedging-forward-market"
+    },
+    {
+      "from": "wholesale-price-formation",
+      "type": "governed-by",
+      "to": "price-cap"
+    }
   ]
 }

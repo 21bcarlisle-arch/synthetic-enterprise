@@ -210,3 +210,59 @@ def test_edge_types_in_declared_vocabulary():
              "modelled-by", "touched-by"}
     for e in d["edges"]:
         assert e["type"] in vocab, f"undeclared edge type {e['type']}"
+
+
+# ------------------------------------------------- R11 price-series chart (deliverable 4, chart 1)
+# The rung-5 chart set renders from the pipeline (real Elexon SSP history), never a static image.
+# R11: assert the LIVE rendered SVG, not the source. R15: data-driven, so a changed datum changes
+# the rendered pixel -- the chart cannot be a hard-coded constant.
+
+def _rlive_html(d: dict) -> str:
+    return _render(d)["r-live"]["innerHTML"]
+
+
+def _path_vertices(html: str) -> int:
+    import re
+    m = re.search(r'<path d="([^"]+)"', html)
+    return len(re.findall(r"[ML]", m.group(1))) if m else 0
+
+
+def test_price_series_present_and_pipeline_sourced():
+    """The live_evidence rung carries a real price series with provenance + its clock (R14)."""
+    ps = _live()["rungs"]["live_evidence"]["price_series"]
+    assert ps["points"], "price series must have data points"
+    assert ps["unit"] == "GBP/MWh"
+    assert "Elexon" in ps["source"] and "hand-drawn" in ps["source"]  # pipeline-sourced, not static
+    assert ps["as_of"], "R14: a published figure carries its clock"
+    # every point is a real (label, value) pair
+    for p in ps["points"]:
+        assert isinstance(p["v"], (int, float)) and p["t"]
+
+
+def test_price_series_chart_renders_to_svg_from_data():
+    """R11: the chart renders as an inline SVG whose vertex count == the pipeline point count."""
+    d = _live()
+    html = _rlive_html(d)
+    assert 'class="pchart"' in html, "no inline SVG chart rendered on the price-formation page"
+    n = len(d["rungs"]["live_evidence"]["price_series"]["points"])
+    assert _path_vertices(html) == n, "rendered path is not one vertex per pipeline datum"
+    # the crisis peak value renders as an annotation (the shape the section above predicts)
+    peak = round(max(p["v"] for p in d["rungs"]["live_evidence"]["price_series"]["points"]))
+    assert str(peak) in html
+    # provenance + clock render onto the pixel
+    ps = d["rungs"]["live_evidence"]["price_series"]
+    assert _esc(ps["as_of"]) in html and "GBP/MWh" in html
+
+
+def test_price_series_chart_is_data_driven_not_constant():
+    """R15 mutation both ways: the render reads the data (a changed/added datum changes the pixel)."""
+    d = _live()
+    base = _rlive_html(d)
+    # (a) change a value -> the rendered path changes
+    mv = copy.deepcopy(d)
+    mv["rungs"]["live_evidence"]["price_series"]["points"][0]["v"] = 9999.9
+    assert _rlive_html(mv) != base, "changing a datum did not change the rendered chart (constant?)"
+    # (b) add a point -> the vertex count grows by one (cardinality is data-driven)
+    ma = copy.deepcopy(d)
+    ma["rungs"]["live_evidence"]["price_series"]["points"].append({"t": "2099-01", "v": 50.0})
+    assert _path_vertices(_rlive_html(ma)) == _path_vertices(base) + 1

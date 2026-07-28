@@ -54,6 +54,10 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .edgetype { font-size: 10px; color: var(--teal); font-family: ui-monospace, monospace; }
 .fic { font-size: 11px; color: var(--muted); margin-top: 28px; border-top: 1px solid var(--border); padding-top: 12px; }
 .deriv { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.chartwrap { margin: 8px 0 14px; }
+.chart-cap { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.pchart { display: block; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+.chart-src { font-size: 10px; color: var(--muted); margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -149,10 +153,52 @@ function renderExpected(d){
   set("r-expected", "<p>"+esc(r.intro)+"</p>"+bands);
 }
 
+// Inline price-series chart, rendered from the pipeline data (never a static image).
+// SVG polyline over the real Elexon SSP monthly series; y-axis in GBP/MWh.
+function priceSeriesSvg(ps){
+  var pts=ps.points, n=pts.length;
+  if(!n) return "";
+  var W=680, H=200, PADL=40, PADR=12, PADT=12, PADB=24;
+  var lo=Math.min.apply(null, pts.map(function(p){return p.v;}));
+  var hi=Math.max.apply(null, pts.map(function(p){return p.v;}));
+  var yhi=Math.ceil(hi/50)*50, ylo=0;
+  function x(i){ return PADL + (W-PADL-PADR) * (n<=1?0:(i/(n-1))); }
+  function y(v){ return PADT + (H-PADT-PADB) * (1 - (v-ylo)/(yhi-ylo)); }
+  var line=pts.map(function(p,i){ return (i?"L":"M")+x(i).toFixed(1)+" "+y(p.v).toFixed(1); }).join(" ");
+  // y gridlines/labels at 0, mid, top
+  var ticks=[ylo, yhi/2, yhi], grid="";
+  ticks.forEach(function(t){
+    var yy=y(t).toFixed(1);
+    grid+='<line x1="'+PADL+'" y1="'+yy+'" x2="'+(W-PADR)+'" y2="'+yy+'" stroke="var(--border)" stroke-width="1"/>'+
+      '<text x="'+(PADL-6)+'" y="'+(y(t)+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="var(--muted)">'+Math.round(t)+'</text>';
+  });
+  // x labels: first, peak, last
+  var peakI=0; pts.forEach(function(p,i){ if(p.v===hi) peakI=i; });
+  var xl="";
+  [[0,pts[0].t],[peakI,pts[peakI].t],[n-1,pts[n-1].t]].forEach(function(a){
+    xl+='<text x="'+x(a[0]).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="var(--muted)">'+esc(a[1])+'</text>';
+  });
+  return '<svg class="pchart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" '+
+    'aria-label="Monthly-mean GB wholesale price, GBP per MWh, '+esc(ps.span)+'">'+
+    grid+
+    '<circle cx="'+x(peakI).toFixed(1)+'" cy="'+y(hi).toFixed(1)+'" r="3" fill="var(--amber)"/>'+
+    '<text x="'+x(peakI).toFixed(1)+'" y="'+(y(hi)-6).toFixed(1)+'" text-anchor="middle" font-size="9" fill="var(--amber)">'+Math.round(hi)+'</text>'+
+    '<path d="'+line+'" fill="none" stroke="var(--teal)" stroke-width="1.5"/>'+
+    xl+
+    '</svg>';
+}
+
 function renderLive(d){
   var r=d.rungs.live_evidence;
   document.getElementById("s-live-h").textContent=r.heading;
-  set("r-live", "<p>"+esc(r.intro)+"</p>"+
+  var ps=r.price_series;
+  var chart="";
+  if(ps && ps.points && ps.points.length){
+    chart='<div class="chartwrap"><div class="chart-cap">'+esc(ps.caption)+'</div>'+
+      priceSeriesSvg(ps)+
+      '<div class="chart-src">'+esc(ps.unit)+' &middot; source: '+esc(ps.source)+' &middot; as of '+esc(ps.as_of)+'</div></div>';
+  }
+  set("r-live", "<p>"+esc(r.intro)+"</p>"+chart+
     '<p><a class="evlink" href="'+esc(r.chart_link.href)+'">'+esc(r.chart_link.label)+'</a></p>'+
     '<p class="muted">'+esc(r.note)+"</p>");
 }
