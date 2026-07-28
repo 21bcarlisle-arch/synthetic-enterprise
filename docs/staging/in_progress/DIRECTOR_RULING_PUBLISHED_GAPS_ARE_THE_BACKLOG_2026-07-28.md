@@ -1,3 +1,13 @@
+<!--
+MINT COVERAGE MAP (machine-authored, worker tick 2026-07-28) — DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG.
+Parked in in_progress/ (multi-part; deliverables 1–3 MINTED, not yet BUILT). Blocking sub-item: the
+minted GAP1/2/3 docs are RUNG-1 staged work; GAP1's BUILD half additionally needs a director BUILD_OPEN
+(harness-lane demotion). Nothing here proceeds past a reserved wall.
+[1] gap registers wired as planner mint sources + enumeration reporting them — MINTED: PLANNER_MINTED_gap_registers_as_mint_sources_2026-07-28.md (H_harness, 0→3; DISCOVER/design half drawable now, BUILD half blocked_on director BUILD_OPEN).
+[2] proposed triage & ranking method — MINTED: PLANNER_MINTED_gap_triage_ranking_method_2026-07-28.md (DISCOVER doc-only, drawable now, returns for ratification).
+[3] first ranked gap list marking deliberate-and-staying — MINTED: PLANNER_MINTED_first_ranked_gap_list_2026-07-28.md (DISCOVER doc-only, blocked_on GAP2 ratification).
+[4] cohort-activation status + exit-criterion counter reading + last reset cause — COVERED by pre-existing atoms + status DISCHARGED (see §4 STATUS DISCHARGE below). NOT re-minted.
+-->
 # [DIRECTOR-RULING] — The published gaps ARE the backlog. Saturation was a bookkeeping artifact. (2026-07-28)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Written as a decision plus a problem; the triage is yours.
@@ -62,3 +72,39 @@ Acceptance: a saturation claim is impossible while any published register holds 
 **Risk & proportionality:** widens the drawable set from existing published artifacts; no new scope, no curriculum change; triage returns for ratification where it implies judgement. Tag: **proceed.**
 
 — Advisor bridge, carrying the director's correction, 2026-07-28.
+
+---
+
+## §4 STATUS DISCHARGE (machine-authored, worker tick 2026-07-28)
+
+Deliverable 4 asked for status, not a build — both open items are already carried by existing map
+atoms, so nothing is re-minted. Reported here from primary state (git + the map), per §4.
+
+**(a) Cohort assignment — BUILT, awaiting director level ratification (NOT "no work landed").**
+Argue-back with evidence (§2/§4 invite the correction): the advisor states *"no cohort or
+coverage-report work has landed since 2026-07-27."* That is factually wrong. It landed on 2026-07-27:
+- `ead9035b3` — *[BUILD CA1+CA3+CA4 cohort-activation] flip assign_cohorts live at the seam,
+  untestable-at-book ledger, PROCEED verdict* — `simulation/population_draw.py`,
+  `simulation/live_population.py`, seam tests.
+- `84b4614bb` — *[BUILD CA2_coverage_report_realised_cohort] realised JOINT cohort coverage — the
+  ~12-cell value knee, thin cells NAMED as findings.*
+Map state now: `CA1_cohort_assignment_live`, `CA2_coverage_report_realised_cohort`,
+`CA3_segmentation_untestable_ledger_marking`, `CA4_cohort_activation_sequencing_verdict` — all
+`loop_stage: build`, code landed at build quality, `level_current: 0`, `blocked_on:
+director_level_up`. **Status: DONE-pending-level-ratification** (R16 — the agent does not self-bump the
+level; the level move is the director's). No further cohort *build* work is drawable; the open item is
+a director level-up on ratified code, not un-started work.
+
+**(b) Exit-criterion counter — NOT yet wired to primary state; it is not yet a control.**
+Honest reading, exactly as §4(b) anticipates (*"a criterion that cannot observe last night is not yet a
+control"*): the counter is **not instantiated**. `grep` finds no live counter file in `background/` or
+`docs/observability/`. The mechanising atoms exist but are unbuilt: `HX1_exit_criterion_counter_mechanise`,
+`HX2_stall_set_coverage_verdict`, `HX3_counter_published_and_derivable` are all `level_current: 0`,
+`loop_stage: build`, `blocked_on:` the harness-BUILD demotion (H-lane off every open product front,
+fronts enforcement ON → excluded from the BUILD draw; the executing BUILD_OPEN is director-console-only,
+R16). **Current reading: NONE — the counter reads nothing and could not have observed last night.**
+**Last reset cause: N/A — it was never instantiated.** This is disclosed plainly, not fixed in this
+bounded planner tick (it is director-BUILD_OPEN-blocked, the same wall as GAP1's build half). Wiring it
+to primary state IS the HX1 work; a director BUILD_OPEN / H-lane FRONT_OPEN unblocks HX1 and GAP1
+together.
+
