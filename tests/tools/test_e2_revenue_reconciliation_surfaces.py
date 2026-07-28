@@ -103,6 +103,16 @@ EXPECTED_NET_MARGIN_SURFACES = (
     "project/index.html",
     "customers/index.html",
     "company/index.html",   # the nav-linked surface the four-item hand-registry missed
+    # (2026-07-28 HARDEN red-team) two further LIVE nav-linked doors were found
+    # rendering the net_margin_gbp figure yet sitting OUTSIDE this fail-silent
+    # registry -- an emptied deploy of either would have passed the control green.
+    # site/index.html links "./proof/" as a top-level door and "./now/" as "the
+    # business right now". They are load-bearing public reporting surfaces, so an
+    # emptied/vanished deploy of either is a fail-silent VIOLATION, not a pass.
+    # test_no_live_net_margin_surface_escapes_expected_registry now forbids this
+    # registry from ever going stale again (discovered subset of EXPECTED).
+    "now/index.html",
+    "proof/index.html",
 )
 
 
@@ -296,6 +306,27 @@ def test_expected_surfaces_track_the_discovery_registry():
     for rel in EXPECTED_NET_MARGIN_SURFACES:
         assert (SITE / rel).is_file(), f"expected net-margin surface absent from live site: {rel}"
         assert rel in discovered, f"expected surface not discovered as a net-margin surface: {rel}"
+
+
+def test_no_live_net_margin_surface_escapes_expected_registry():
+    """R15 fail-silent, CLASS closure (2026-07-28 HARDEN red-team): the OTHER
+    direction of the lockstep. The hand-maintained EXPECTED registry stays hand-
+    maintained (never derived from discovery -- that would be a tautology, R15
+    pattern 1), but EVERY live surface that renders a net-margin figure MUST appear
+    in it. Without this, a newly-added live net-margin door (this is exactly how
+    now/ and proof/ slipped out) escapes the fail-silent guard: discovery checks
+    its disclosure while present, but an emptied deploy renders no token, drops out
+    of discovery, and passes green. This test forbids the registry from ever going
+    stale again -- discovered subset of EXPECTED, enforced, not conventional."""
+    discovered = {p.relative_to(SITE).as_posix() for p in _discovered_live_surfaces(SITE)}
+    escaped = discovered - set(EXPECTED_NET_MARGIN_SURFACES)
+    assert not escaped, (
+        "fail-silent hole: live net-margin surface(s) render a net_margin figure but "
+        "are NOT in the EXPECTED_NET_MARGIN_SURFACES fail-silent registry, so an "
+        f"emptied deploy of them would pass green: {sorted(escaped)}. Add them to "
+        "EXPECTED_NET_MARGIN_SURFACES (or, if a deliberate design change removed the "
+        "figure, drop the surface and note why -- as the root index.html note shows)."
+    )
 
 
 def test_excluded_debug_surface_is_not_falsely_flagged(tmp_path):
