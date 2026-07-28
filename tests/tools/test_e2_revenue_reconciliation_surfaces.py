@@ -298,6 +298,47 @@ def test_control_does_not_fail_open_on_missing_expected_surface(tmp_path):
     )
 
 
+def test_control_fires_on_expected_surface_that_kept_content_but_lost_its_figure(tmp_path):
+    """R15 independent-coverage (2026-07-28 HARDEN rest-with-proof draw): isolate
+    the no-figure branch of the expected-surface fail-silent guard.
+
+    The two sub-checks in the expected loop — the empty-guard (``not text.strip()``)
+    and the no-figure-guard (``not NET_MARGIN_KEY.search(text)``) — were only ever
+    exercised JOINTLY by test_control_does_not_fail_open_on_missing_expected_surface,
+    which empties the file. An empty file trips BOTH guards, and that test only
+    asserts ``"fail-silent" in why`` (a string BOTH messages carry), so neutering
+    EITHER guard alone still leaves all prior tests green — neither half was
+    independently mutation-detectable (same subset-coverage class as the A3
+    links-not-prose fail-open, [[feedback_audit_sibling_half_for_hardened_class]]).
+
+    The no-figure-guard has a domain the empty-guard cannot reach: a PRESENT,
+    non-empty expected surface whose net-margin figure was silently dropped (a
+    redesign that keeps the page but removes the headline figure — exactly what the
+    root index.html did). That is a real fail-silent deploy and must be a VIOLATION.
+    This test feeds that exact input; it reds precisely when the no-figure-guard is
+    neutered and nothing else. No source guard is added — the control is unchanged;
+    this only makes the EXISTING guard fireable (not Nth-guard accretion)."""
+    fake_site = tmp_path / "site"
+    (fake_site / "company").mkdir(parents=True)
+    good = fake_site / "company" / "index.html"
+    # Present, non-empty, but the net-margin figure is gone (a real page redesign
+    # could do this while keeping plenty of other content, so the empty-guard does
+    # NOT fire — only the no-figure-guard can catch it).
+    good.write_text(
+        "<html><body><h1>The Company</h1><p>Lots of prose, KPIs, charts — but the "
+        "headline net-margin figure was removed in a redesign.</p></body></html>",
+        encoding="utf-8",
+    )
+    assert good.read_text(encoding="utf-8").strip(), "precondition: surface is non-empty"
+    expected = ("company/index.html",)
+    violations = net_margin_surfaces_missing_disclosure(fake_site, expected=expected)
+    assert any("company/index.html" in p.as_posix() and "fail-silent" in why
+               and "no longer renders" in why for p, why in violations), (
+        "R15 fail-silent: a present-but-figure-gone expected surface slipped the "
+        "no-figure-guard — the guard was not independently mutation-detectable"
+    )
+
+
 def test_expected_surfaces_track_the_discovery_registry():
     """The fail-silent registry (EXPECTED_NET_MARGIN_SURFACES) and the discovery
     must_include set are the SAME real live surfaces; keep them in lockstep so a
