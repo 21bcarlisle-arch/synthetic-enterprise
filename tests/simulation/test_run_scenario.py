@@ -331,6 +331,27 @@ def test_validate_fires_on_declared_length_mismatch():
         _validate_real_reference(data)
 
 
+def test_validate_fires_on_truncation_with_n_days_dropped():
+    """Guard (1) FAIL-OPEN close (R15 killer pattern 2, passes-on-MISSING): the cross-check was
+    `if declared is not None` -- SKIPPED when n_days is absent. A corruption that truncates the series
+    AND drops the self-declared n_days evaded guard (1) entirely; the truncated real head keeps its
+    median IN-BAND (below), so guard (2) could NOT catch it either -- the corrupt reference would have
+    anchored the whole tautology check. An intact real reference declares its own length, so a missing
+    n_days is itself corruption. This case reds on the pre-fix `is not None` guard, passes after."""
+    import numpy as np
+    from simulation.run_scenario import (
+        MIN_REAL_SSP_DAILY_MEAN_MEDIAN as _MIN,
+        MAX_REAL_SSP_DAILY_MEAN_MEDIAN as _MAX,
+    )
+    data = _real_fixture_dict()
+    data["daily_mean_ssp"] = data["daily_mean_ssp"][:100]   # truncate...
+    del data["n_days"]                                       # ...and drop the integrity field
+    # the truncated head is a real UK price head -> in-band, so ONLY the required-n_days guard can fire
+    assert _MIN <= float(np.median(data["daily_mean_ssp"])) <= _MAX
+    with pytest.raises(CorruptReferenceError, match="n_days"):
+        _validate_real_reference(data)
+
+
 def test_validate_fires_on_wrong_unit_reference():
     """Guard (2) external plausibility: a p/kWh mis-unit (levels ~1/10 of GBP/MWh) drops the
     median below the plausible UK band -- not real price LEVELS, the wrong-anchor case guard (1)

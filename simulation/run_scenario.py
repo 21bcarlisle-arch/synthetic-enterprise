@@ -68,7 +68,21 @@ def _validate_real_reference(data: dict) -> "list":
     if not isinstance(series, list) or len(series) == 0:
         raise CorruptReferenceError(f"'daily_mean_ssp' is empty/not a list ({type(series).__name__})")
     declared = data.get("n_days")
-    if declared is not None and declared != len(series):
+    if declared is None:
+        # FAIL-OPEN close (R15 killer pattern 2, passes-on-MISSING, added 2026-07-28 HARDEN red-team):
+        # the cross-check was `if declared is not None` -- an OPTIONAL integrity field is silently
+        # SKIPPED when absent, so a corruption that truncates the series AND drops n_days evaded
+        # guard (1) entirely; a truncated real head keeps its median in-band (37.56 for [:100]), so
+        # guard (2) passed too and the corrupt reference anchored the whole tautology check. An intact
+        # real reference self-declares its own length -- a missing n_days IS a corruption, not a licence
+        # to skip the guard (the real committed fixture always carries it: n_days == len == 3501).
+        raise CorruptReferenceError(
+            "reference fixture missing self-declared 'n_days' -- an intact real reference declares "
+            "its own length; a missing integrity field is itself corruption, not a reason to skip "
+            "guard (1) (a truncation that also drops n_days would otherwise evade it and, staying "
+            "in-band, guard (2) too)"
+        )
+    if declared != len(series):
         raise CorruptReferenceError(
             f"fixture self-declares n_days={declared} but daily_mean_ssp has {len(series)} values "
             "-- truncated/corrupt reference, not the intact real series"
