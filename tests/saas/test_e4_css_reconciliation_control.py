@@ -161,6 +161,27 @@ def test_independent_tie_not_tautological(css, data):
     assert _has(out, "independent tie"), out
 
 
+def test_fail_open_nan_topline_year_revenue_fires(css, data):
+    """DEFECT (R15 killer pattern 2, NaN-blind comparison on Control B''s independent leg):
+    a non-finite years[*].revenue_gbp makes `topline` NaN, so `abs(agg - NaN) > tol`
+    evaluates silently False and the ONE genuinely-independent tie is disabled while every
+    finite segment/aggregate figure stays clean — so NO other control fires. This is a
+    DIFFERENT data path (the top-line source) from Control B's segment values guarded on
+    2026-07-25/07-27. The finite guard must fire on it, not pass silently."""
+    md = copy.deepcopy(data)
+    y0 = next(iter(md["years"]))
+    md["years"][y0]["revenue_gbp"] = float("nan")
+    m = build_css(md)
+    # sanity: the corruption leaves aggregate + all segments finite (so ONLY the guard catches it)
+    assert all(
+        isinstance(m["segments"][s]["revenue_gbp"], float)
+        and m["segments"][s]["revenue_gbp"] == m["segments"][s]["revenue_gbp"]
+        for s in CSS_SEGMENTS
+    )
+    out = verify_css_reconciliation(m, md)
+    assert _has(out, "independent tie: fail-open guard"), out
+
+
 # --- FAIL-OPEN killer: non-finite / missing figures must NOT pass silently -----------
 
 def test_fail_open_nan_fires(css, data):

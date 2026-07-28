@@ -332,12 +332,28 @@ def verify_css_reconciliation(
     # segment_split key that failed to classify and was silently dropped.
     if data is not None:
         yrs = data.get("years") or {}
-        topline = sum(y.get("revenue_gbp", 0.0) for y in yrs.values())
-        if topline and abs(agg.get("revenue_gbp", 0.0) - topline) > max(tol, abs(topline) * 1e-6):
+        year_revs = [y.get("revenue_gbp", 0.0) for y in yrs.values()]
+        # FAIL-OPEN guard (R15 killer pattern 2, NaN-blind comparison). A non-finite
+        # top-line year revenue makes `topline` NaN, and `abs(agg - NaN) > tol` silently
+        # evaluates False — disabling the ONE genuinely-independent (non-tautological) leg
+        # while every finite segment/aggregate figure stays clean, so NO other control
+        # fires (proven 2026-07-28: a NaN in years[*].revenue_gbp passed silently). This is
+        # the SAME class closed on Control B's SEGMENT values (2026-07-25 volume/gross_margin,
+        # 2026-07-27 other_direct/non_commodity) — here on Control B''s top-line source, a
+        # DIFFERENT data path that was never finite-guarded. Reject non-finite FIRST.
+        bad_years = [r for r in year_revs if not _finite_num(r)]
+        if bad_years or not _finite_num(agg.get("revenue_gbp")):
             v.append(
-                f"independent tie: aggregate revenue {agg.get('revenue_gbp', 0.0):,.2f} != "
-                f"top-line settlement {topline:,.2f} (an unclassified segment_split key was dropped)"
+                f"independent tie: fail-open guard — non-finite top-line/aggregate revenue "
+                f"(aggregate {agg.get('revenue_gbp')!r}, non-finite year revenues {bad_years!r})"
             )
+        else:
+            topline = sum(year_revs)
+            if topline and abs(agg["revenue_gbp"] - topline) > max(tol, abs(topline) * 1e-6):
+                v.append(
+                    f"independent tie: aggregate revenue {agg['revenue_gbp']:,.2f} != "
+                    f"top-line settlement {topline:,.2f} (an unclassified segment_split key was dropped)"
+                )
 
     # Control C — settlement→billed bridge (presentation integrity of the reconciling triple).
     rec = css.get("reconciliation") or {}
