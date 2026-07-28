@@ -325,3 +325,155 @@ def test_merit_order_chart_is_data_driven_not_constant():
         {"label": "extra peaker", "srmc": 12000.0, "cap_gw": 1.0}
     )
     assert _mbars(_rlive_html(ma)) == base_bars + 1
+
+
+# ------------------------------------------------- R11 seasonal-shape chart (deliverable 4, chart 3)
+# The seasonal shape renders from the pipeline (real Elexon SSP averaged by calendar month) -- never
+# a static image. R11: assert the LIVE rendered SVG columns, not the source. R15: data-driven, so a
+# changed/added month changes the rendered pixel.
+
+def _sbars(html: str) -> int:
+    import re
+    return len(re.findall(r'class="sbar"', html))
+
+
+def test_seasonal_present_and_pipeline_sourced():
+    """The live_evidence rung carries a real month-of-year price profile with provenance + clock."""
+    se = _live()["rungs"]["live_evidence"]["seasonal"]
+    assert se["months"], "seasonal shape must have monthly points"
+    assert len(se["months"]) == 12, "a seasonal shape is the twelve calendar months"
+    assert se["unit"] == "GBP/MWh"
+    assert "Elexon" in se["source"] and "never hand-drawn" in se["source"]  # pipeline-sourced
+    assert se["as_of"], "R14: a published figure carries its clock"
+    for m in se["months"]:
+        assert isinstance(m["v"], (int, float)) and m["m"]
+
+
+def test_seasonal_chart_renders_to_svg_from_data():
+    """R11: the seasonal curve renders as inline SVG columns, one per calendar month, peak annotated."""
+    d = _live()
+    html = _rlive_html(d)
+    se = d["rungs"]["live_evidence"]["seasonal"]
+    assert _sbars(html) == len(se["months"]) == 12, "rendered seasonal bars are not one per month"
+    peak = round(max(m["v"] for m in se["months"]))
+    assert str(peak) in html, "the seasonal peak month value must render as an annotation"
+    assert _esc(se["caption"]) in html
+    assert _esc(se["as_of"]) in html and "GBP/MWh" in html
+
+
+def test_seasonal_chart_is_data_driven_not_constant():
+    """R15 mutation both ways: a changed/added month changes the rendered pixel."""
+    d = _live()
+    base = _rlive_html(d)
+    base_bars = _sbars(base)
+    mv = copy.deepcopy(d)
+    mv["rungs"]["live_evidence"]["seasonal"]["months"][0]["v"] = 9999.9
+    assert _rlive_html(mv) != base, "changing a month did not change the rendered chart (constant?)"
+    ma = copy.deepcopy(d)
+    ma["rungs"]["live_evidence"]["seasonal"]["months"].append({"m": "Xtra", "v": 10.0})
+    assert _sbars(_rlive_html(ma)) == base_bars + 1
+
+
+# ------------------------------------------- R11 negative-price-frequency chart (deliverable 4, chart 4)
+# The negative-price frequency renders from the pipeline (share of half-hourly SSP periods below zero,
+# per year) -- never a static image. R11: assert the LIVE rendered SVG columns. R15: data-driven.
+
+def _nbars(html: str) -> int:
+    import re
+    return len(re.findall(r'class="nbar"', html))
+
+
+def test_negative_prices_present_and_pipeline_sourced():
+    """The live_evidence rung carries a real negative-price-frequency series with provenance + clock."""
+    np_ = _live()["rungs"]["live_evidence"]["negative_prices"]
+    assert np_["years"], "negative-price frequency must have yearly points"
+    assert np_["unit"] == "% of settlement periods"
+    assert "Elexon" in np_["source"] and "never hand-drawn" in np_["source"]  # pipeline-sourced
+    assert np_["as_of"], "R14: a published figure carries its clock"
+    for a in np_["years"]:
+        assert isinstance(a["pct"], (int, float)) and a["y"]
+        assert 0 <= a["pct"] <= 100
+
+
+def test_negative_prices_chart_renders_to_svg_from_data():
+    """R11: the frequency chart renders as inline SVG columns, one per year, peak annotated."""
+    d = _live()
+    html = _rlive_html(d)
+    np_ = d["rungs"]["live_evidence"]["negative_prices"]
+    assert _nbars(html) == len(np_["years"]), "rendered bars are not one per pipeline year"
+    peak = max(a["pct"] for a in np_["years"])
+    assert "{:.1f}%".format(peak) in html, "the peak-year frequency must render as an annotation"
+    assert _esc(np_["caption"]) in html
+    assert _esc(np_["as_of"]) in html
+
+
+def test_negative_prices_chart_is_data_driven_not_constant():
+    """R15 mutation both ways: a changed/added year changes the rendered pixel."""
+    d = _live()
+    base = _rlive_html(d)
+    base_bars = _nbars(base)
+    mv = copy.deepcopy(d)
+    mv["rungs"]["live_evidence"]["negative_prices"]["years"][-1]["pct"] = 99.9
+    assert _rlive_html(mv) != base, "changing a year did not change the rendered chart (constant?)"
+    ma = copy.deepcopy(d)
+    ma["rungs"]["live_evidence"]["negative_prices"]["years"].append({"y": "2099", "pct": 3.0})
+    assert _nbars(_rlive_html(ma)) == base_bars + 1
+
+
+# ---------------------------------------------------------- DoD gate (deliverable 4): chartless cannot ship
+# The ruling's single job for this page: "an explanation of price formation without a price series, a
+# merit-order stack, a seasonal shape and a negative-price frequency is not an explanation." So the
+# definition-of-done gate requires ALL FOUR rung-5 charts to actually RENDER (R11: rendered pixels,
+# not source data). A chartless (or partly-charted) page must NOT ship. This test lives under site/,
+# so the site-lane pre-commit gate (tools/site_lane_gate.py) runs it on any change to this page's
+# {index.html, data, test} -- it gates the COMMIT, and is isolated from the publish pipeline
+# (tests/ only), so it can never wedge publishing on a legitimately-empty page elsewhere.
+
+# The chart kinds the ruling requires, and the rendered marker each leaves in the live section.
+_REQUIRED_CHART_MARKERS = {
+    "price_series": r'<path d="',   # the price line
+    "merit_order": r'class="mbar"',  # the merit-order staircase
+    "seasonal": r'class="sbar"',     # the seasonal columns
+    "negative_prices": r'class="nbar"',  # the negative-frequency columns
+}
+
+
+def _rung5_charts_missing(d: dict) -> list:
+    """DoD checker: the rung-5 chart kinds that do NOT render on the page. Empty == the page ships."""
+    import re
+    html = _rlive_html(d)
+    missing = []
+    for kind, marker in _REQUIRED_CHART_MARKERS.items():
+        if not re.search(marker, html):
+            missing.append(kind)
+    return missing
+
+
+def test_dod_gate_all_four_rung5_charts_render():
+    """DoD green on the real page: all four required rung-5 charts render (no missing kind)."""
+    d = _live()
+    assert _rung5_charts_missing(d) == [], "the price-formation page is missing a required rung-5 chart"
+    # and at least four inline charts are actually on the pixel
+    import re
+    assert len(re.findall(r'class="pchart"', _rlive_html(d))) >= 4
+
+
+def test_dod_gate_fires_on_chartless_page():
+    """R15 (fires): strip the live-evidence chart data -> zero charts render -> the DoD gate reds."""
+    d = _live()
+    mut = copy.deepcopy(d)
+    for kind in _REQUIRED_CHART_MARKERS:
+        mut["rungs"]["live_evidence"].pop(kind, None)
+    missing = _rung5_charts_missing(mut)
+    assert set(missing) == set(_REQUIRED_CHART_MARKERS), "a chartless page must red every required chart"
+    import re
+    assert not re.findall(r'class="pchart"', _rlive_html(mut)), "chartless mutant still rendered a chart"
+
+
+def test_dod_gate_fires_on_partly_charted_page():
+    """R15 (fires, stricter): dropping ONE required chart still reds the gate -- all four are required."""
+    d = _live()
+    for kind in _REQUIRED_CHART_MARKERS:
+        mut = copy.deepcopy(d)
+        mut["rungs"]["live_evidence"].pop(kind, None)
+        assert kind in _rung5_charts_missing(mut), f"dropping {kind} did not red the DoD gate"
