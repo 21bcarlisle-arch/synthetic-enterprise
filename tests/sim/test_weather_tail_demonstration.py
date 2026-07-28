@@ -117,6 +117,90 @@ def test_autocorrelation_alone_is_load_bearing(real_data):
 
 
 # --------------------------------------------------------------------------
+# TEMP/WIND COUPLING is load-bearing -- the director's central thesis (R15)
+# --------------------------------------------------------------------------
+#
+# The atom's headline physics (WEATHER_PHYSICS_HIERARCHY.md, director verbatim):
+# "Cold-and-still is THE single most important GB power correlation -- draw
+# temperature and wind INDEPENDENTLY and the supplier-killing winter tail never
+# occurs and every hedge looks fine (a lie)." The engine produces the joint tail
+# by drawing the (temp, wind, cloud) innovations from a Cholesky of a covariance
+# whose OFF-DIAGONAL carries the winter temp/wind coupling (+0.53 in the stressed
+# cold-season cov). Every prior control kills PERSISTENCE (phi->0) or COMPOUNDS
+# all three levers (regime + cov + phi); NONE isolate the cross-correlation, so
+# nothing had mutation-proven that decoupling temp and wind -- the exact "draw
+# them independently" the director names -- actually smooths the joint tail away
+# (R15 killer pattern 1: the most load-bearing invariant left with no control
+# that fires on its OWN named defect).
+#
+# The isolating mutation zeroes ONLY the covariance off-diagonals (temp and wind
+# innovations become independent) while keeping the DIAGONAL variances, phi, and
+# the regime fully intact -- so the marginals and the persistence are unchanged
+# by construction; ONLY the joint dependence is removed. The signal is NOT the
+# binary envelope gate (a rare single real worst week can still be reached by
+# luck across n_sims even decoupled -- measured: env_max ~4.7 still clears the
+# 1.45 real worst), but the TYPICAL (median) worst winter week's severity, which
+# collapses by ~90-99% without the coupling. The check is RELATIVE (coupled vs
+# decoupled, computed identically) -- never an absolute tuned target (R12 / R13:
+# the baseline faces reality, never a benchmark).
+
+
+def _decouple_innovations(params):
+    """Zero the temp/wind/cloud cross-covariance (draw each var's innovation
+    independently) while preserving the diagonal variances -- the director's
+    'draw them independently' mutation, isolated from persistence and regime."""
+    decoupled = copy.deepcopy(params)
+    for label in ("standard", "stressed"):
+        cov = np.asarray(decoupled["cov"][label], dtype=float)
+        decoupled["cov"][label] = np.diag(np.diag(cov))  # keep variances, drop coupling
+    return decoupled
+
+
+def test_temp_wind_coupling_is_load_bearing(real_data):
+    """R15 both-ways: the temp/wind innovation COUPLING must be load-bearing for
+    the joint cold-and-still tail (the atom's central thesis). The healthy
+    coupled engine produces a genuine TYPICAL joint tail; decoupling temp and
+    wind -- the exact 'draw them independently' failure the director names --
+    collapses the median worst winter week to a small fraction of it, even with
+    persistence and the regime left fully intact. Isolates the cross-correlation
+    lever from the phi lever the other controls already own."""
+    nat, doy, dates = real_data
+    params = fit_national_macro_model(nat, doy)
+
+    coupled = demonstrate_tail(nat, doy, dates, n_sims=25, seed=42, macro_params=params)
+    decoupled_params = _decouple_innovations(params)
+    decoupled = demonstrate_tail(
+        nat, doy, dates, n_sims=25, seed=42, macro_params=decoupled_params
+    )
+
+    # The mutation changes ONLY the joint dependence: the diagonal variances (and
+    # thus each var's marginal spread) and phi are preserved by construction.
+    for label in ("standard", "stressed"):
+        assert np.allclose(
+            np.diag(np.asarray(params["cov"][label])),
+            np.diag(np.asarray(decoupled_params["cov"][label])),
+        ), f"{label}: decoupling must preserve the diagonal variances (marginals)"
+    assert decoupled_params["phi"] == params["phi"]  # persistence untouched
+
+    # (a) the healthy coupled engine produces a genuine TYPICAL joint tail (a real
+    #     co-occurring cold-and-still week, not measurement noise).
+    assert coupled.synthetic_worst_median > 0.3, (
+        f"coupled engine's typical worst week {coupled.synthetic_worst_median:.3f} "
+        f"is not a genuine joint tail -- nothing for the coupling to be load-bearing over"
+    )
+    # (b) THE THESIS: decoupling temp and wind smooths the typical joint tail away
+    #     -- the median collapses to well under half the coupled engine's (observed
+    #     ~2-11%; the 0.5 bound is deliberately conservative, an R15 gate not a
+    #     tuned target). "Draw them independently and the winter tail never occurs."
+    assert decoupled.synthetic_worst_median < 0.5 * coupled.synthetic_worst_median, (
+        f"decoupling temp/wind did NOT smooth the joint tail: decoupled median "
+        f"{decoupled.synthetic_worst_median:.3f} vs coupled "
+        f"{coupled.synthetic_worst_median:.3f} -- the coupling is not load-bearing, "
+        f"so the joint cold-and-still tail is not actually joint (director's thesis violated)"
+    )
+
+
+# --------------------------------------------------------------------------
 # DIRECT temporal-autocorrelation fidelity (the HEADLINE DoD, measured directly)
 # --------------------------------------------------------------------------
 #
