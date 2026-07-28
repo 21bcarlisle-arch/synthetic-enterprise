@@ -1,0 +1,50 @@
+# [DIRECTOR-RULING] — No question left unanswered. A question is a first-class open item. (2026-07-28)
+
+**Type:** [DIRECTOR-RULING] via advisor bridge. Director's instruction, verbatim: *"Let's never leave questions unanswered please."*
+
+## 0. The bug, named
+
+When a ruling is consumed, its **work items** are minted and tracked. Its **questions evaporate** — nothing treats a question as an item that must be closed. Consequence: at least six questions posed in director rulings over the last two days appear to be outstanding, each absorbed without an answer ever returning.
+
+This is the same class as the backlog finding — named-and-not-done that nothing enumerates — applied to questions instead of work.
+
+## 1. DECISION
+
+**A question posed in a director ruling or steer is a first-class open item.** It must be enumerable, tracked, and answered. Consequences:
+
+- **A ruling is not fully consumed while any of its questions is unanswered.** Consumption today means "work items minted, doc archived"; that is now insufficient. Archiving a ruling with open questions is a claim-status defect.
+- **Unanswered questions are named-and-not-done** and therefore belong in the backlog surface established by the coherence ruling §5, subject to the same requirement: enumerable and checkable from primary state, never asserted.
+- **An answer may be "I don't know", "not yet measurable", or "the question is wrong, because…"** — all three close a question. What may not happen is silence.
+- **This binds the advisor equally.** Before staging any ruling, the advisor checks the open-question register — to avoid re-asking what has been answered, and to chase what has not been. An advisor who forgets his own questions has no standing to demand answers.
+
+## 2. PROBLEM — the mechanism is yours
+
+How questions are extracted from rulings (an explicit block? a parser? a convention?), where they are tracked, how they are aged and escalated, and how they surface in the daily note — **your design.** You know the consumption path and the observability surfaces.
+
+One non-negotiable: it must be **impossible to archive a ruling as consumed while it carries an unanswered question**, and that must be enforced mechanically rather than by discipline — the lesson of every rule this project has: exhortations decay, mechanisms hold.
+
+If you judge some questions genuinely rhetorical or answered-in-passing, propose how the mechanism distinguishes those rather than treating every sentence with a question mark as an obligation.
+
+## 3. Seed the register with these — outstanding as far as the advisor can see
+
+If any of these was in fact answered, **say where** and close it; the advisor may have missed it in the mirror.
+
+1. **Why was `merit_order` drawable only from 2026-07-28?** (from `d81197736` §5.) Epoch gate, dependency, or scheduling artifact — and *is it drawing now*, since that date is today?
+2. **What does the harness exit-criterion counter currently read, and what caused the last reset?** (from `d81197736`, repeated in `1494d6160` §4b.) A night of HARDEN-while-content-unminted should have been resetting it; if it is not yet wired to primary state, say so — a criterion that cannot observe last night is not yet a control.
+3. **Cohort assignment status** (from `e685eb76d`, repeated in `1494d6160` §4a): done, in flight, blocked, or counter-proposed? No cohort or coverage-report work has appeared since the ruling.
+4. **Stall-set coverage verdict** on the four named events — console rescue, publish-gate wedge over an hour, origin freeze over thirty minutes, advisor restart-ruling (from `d81197736` §3). Detected, detector added, or argued out?
+5. **Staleness disposition** in the gap taxonomy (from `27271871e` §3a).
+6. **Blast radius as positive value versus risk** (from `27271871e` §3b).
+
+## WORK THIS CREATES
+
+1. A question-tracking mechanism of your design, with the archive-block enforced mechanically.
+2. The register seeded and published, with the six above either answered or carried with a reason.
+3. Questions surfaced in the daily note alongside the other open items.
+4. Answers to the six — batched, not one at a time.
+
+Acceptance: no ruling can be archived carrying an unanswered question, and the current open-question set is inspectable from published artifacts without asking the machine.
+
+**Risk & proportionality:** adds a tracked item class and one archive-gate condition; mechanism is the machine's. Tag: **proceed.**
+
+— Advisor bridge, carrying the director's instruction — and recording that the six outstanding questions are the advisor's to have chased. 2026-07-28.
