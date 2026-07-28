@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-28T10:33:30.830709+00:00",
+  "last_updated": "2026-07-28T11:06:56.121975+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:33:01.106564+00:00",
-      "last_action": "Heartbeat \u2014 12 files tracked",
-      "last_action_ts": "2026-07-28T10:33:01.106564+00:00",
+      "last_heartbeat": "2026-07-28T11:06:35.239102+00:00",
+      "last_action": "Heartbeat \u2014 13 files tracked",
+      "last_action_ts": "2026-07-28T11:06:35.239102+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:30:14.896524+00:00",
-      "last_action": "Waiting for next cycle (2h 50m remaining)",
-      "last_action_ts": "2026-07-28T10:30:14.896524+00:00",
+      "last_heartbeat": "2026-07-28T11:05:14.901549+00:00",
+      "last_action": "Waiting for next cycle (2h 15m remaining)",
+      "last_action_ts": "2026-07-28T11:05:14.901549+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:33:22.862665+00:00",
-      "last_action": "Run complete in 465s \u2014 3784 KB (run_output_fe8babb77_20260728T102537Z.json)",
-      "last_action_ts": "2026-07-28T10:33:22.862665+00:00",
+      "last_heartbeat": "2026-07-28T11:02:29.794858+00:00",
+      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260728T110229Z.json)",
+      "last_action_ts": "2026-07-28T11:02:29.794858+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:01:29.666772+00:00",
+      "last_heartbeat": "2026-07-28T11:02:12.588915+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-28T10:01:29.666772+00:00",
+      "last_action_ts": "2026-07-28T11:02:12.588915+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:01:44.015885+00:00",
+      "last_heartbeat": "2026-07-28T11:02:28.920912+00:00",
       "last_action": "Acked message: 'identical machine cadence body repeated over and over again'",
-      "last_action_ts": "2026-07-28T10:01:44.015885+00:00",
+      "last_action_ts": "2026-07-28T11:02:28.920912+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:31:32.418996+00:00",
+      "last_heartbeat": "2026-07-28T11:06:32.295102+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T10:16:17.766362+00:00",
+      "last_heartbeat": "2026-07-28T10:46:20.615247+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-28T10:16:17.766362+00:00",
+      "last_action_ts": "2026-07-28T10:46:20.615247+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
