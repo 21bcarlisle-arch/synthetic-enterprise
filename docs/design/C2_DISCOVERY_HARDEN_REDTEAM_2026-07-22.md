@@ -175,3 +175,38 @@ C2 atom is missing (coverage undefined) or its file_scope is empty (vacuous pass
 (observed-with-evidence): a scratch map-mutant adding a sixth file yields a 6-file scan set (drift
 caught) while missing-atom / empty-scope both raise `ValueError`. 3 new tests (8→11), full C2 backing
 suite 67 green. Test-only change; no production code, no map edit, no level move (C2 stays L2→L2, idle).
+
+---
+
+## 6. 2026-07-28 re-verify HARDEN pass (self-refill draw, dial=3 yielded — at-target, no below-target work) — SATURATED, rest-with-proof
+
+Scheduled-tick RULE-0 self-refill on the at-target atom (level 2→2, loop_stage idle). Doc-only;
+**no production code changed**, one scratch mutation applied to a real `file_scope` file and reverted
+byte-identical (`git status` clean, verified).
+
+**Exit tests re-verified (observed-with-evidence):** the full C2 backing suite is green —
+`test_c2_discovery_wired.py`, `test_property_discovery.py`, `test_home_registry.py`,
+`test_property_model.py`, `test_c2_wall_read_enforcement.py` → **95 passed**.
+
+**R15 mutation re-proof — the LIVE class guard fires (rotated to the live-file scan, not the
+in-suite snippet pin):** injected a real `from saas.property_model import build_properties` at
+`company/crm/home_registry.py:9` (a true `file_scope` construction-point module — the exact 2026-07-22
+§2 defect, now applied on-disk to the LIVE file rather than a captured string). The parametrized
+`test_belief_layer_file_never_reads_ground_truth_property_record[company/crm/home_registry.py]` went
+RED with the precise breach message; restored via `git checkout` and re-ran — byte-identical, 24 C2
+tests green. This proves the guard's coverage over the real files (the snippet pin `test_guard_fires_
+on_injected_ground_truth_read` only proves the detector function; this proves it is actually wired to
+scan the on-disk belief-layer modules).
+
+**Red-team re-confirm of the residual (accessor-not-read gap still LATENT — unchanged, NOT expanded):**
+grep of all five belief-layer `file_scope` modules for `saas.property_model`/`saas.customers`/
+`build_properties` → **NONE**; the wall is clean inside file_scope. The known LATENT gap is unchanged:
+`company/portal/app.py:52` still does `from saas.customers import CUSTOMERS` (the roster carries seeded
+true epc/bedrooms), but the portal is **out of C2's file_scope** and does not read through the belief
+layer — the belief-layer island stays clean. This remains a separate, queued, accessor-enforcement
+concern (the `epistemic_verifier` treats `saas/` as company-side), not a C2 file_scope breach.
+
+**Conclusion: SATURATED.** Three HARDEN passes (07-22 opened the FAIL-SILENT gap → absorbed;
+07-27 closed the file_scope-drift residual in the guard itself; 07-28 re-verified + live-file R15
+re-proof). No new defect inside scope, no Nth guard accreted (rest-with-proof). C2 holds L2→L2, idle.
+`record_harden_pass` stamped.
