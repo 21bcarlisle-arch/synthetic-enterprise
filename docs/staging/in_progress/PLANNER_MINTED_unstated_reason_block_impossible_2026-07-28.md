@@ -1,6 +1,17 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
 # [PLANNER-MINTED] — An unstated-reason block cannot be written: every `blocked_on` carries its reason + release condition (§3 + WORK-THIS-CREATES deliverable 4b) (2026-07-28)
 
+> **[IN-PROGRESS DISPOSITION 2026-07-28] — DISCOVER DONE; BUILD self-drawable NEXT (workable now).**
+> The DISCOVER/design half is EXECUTED → `docs/design/UNSTATED_REASON_BLOCK_IMPOSSIBLE_DISCOVER.md`.
+> Canonical fields decided: **`block_reason`** (non-empty free text) + **`blocked_on`** (must resolve to a
+> known releaser or an existing atom id). Validator home = `check_block_hygiene()` in
+> `tests/design/test_maturity_map_facets.py` (mirrors `check_value_stream_hygiene`), sibling parser check in
+> `staging_disposition.py`. **BUILD is self-drawable** (harness validator on an owned surface, no director
+> open) — marker stays self-drawable. **⚠ BUILD precondition:** backfill `block_reason` + a resolvable
+> `blocked_on` onto every existing blocked map atom / mint marker IN THE SAME increment as the validator, and
+> prove the live map green, BEFORE wiring the check into the commit/facets gate — else the gate wedges
+> publishing. Lands `blocked_on: director_level_up` (R16).
+
 **Source:** `DIRECTOR_RULING_BLOCKED_MINT_BATCH_2026-07-28.md`, **§3 (Reason-unstated blocks are a
 DEFECT)** and the mechanism half of its **WORK THIS CREATES deliverable 4**: *"Reasons stated for the
 four §3 blocks, AND unstated-reason blocks made impossible."* §3 verbatim: *"Every block carries its

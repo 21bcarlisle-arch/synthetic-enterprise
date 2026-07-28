@@ -1,5 +1,16 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
 # [PLANNER-MINTED] — Ruling-consumption must PRODUCE the ledger entry that releases a block — or name what can (§0 + WORK-THIS-CREATES deliverable 1) (2026-07-28)
+
+> **[IN-PROGRESS DISPOSITION 2026-07-28] — DISCOVER DONE, BUILD blocked (director seam).**
+> The DISCOVER/design half is EXECUTED → `docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md`.
+> **Verdict: hybrid A/B — and the transcription mechanism ALREADY EXISTS.** `record_director_ntfy_ruling`
+> is the only worker-reachable ledger-write path and is structurally fail-closed (the worker cannot read
+> the out-of-tree HMAC key, so it cannot forge a `BUILD_OPEN`). The three blocked rulings hit a **wiring**
+> gap (consumed from bare staged docs = case B → no entry written), not a missing-authority gap.
+> **BUILD half is BLOCKED** on `director_authority_seam_signoff` — adopting the `LEDGER: BUILD_OPEN <atom>`
+> directive-line convention is a category-5/8 authority-seam decision (R16), NOT self-enactable. Registered
+> as batched `[ACT]` `ruling_consumption_authority_seam_signoff` in the action_needed register. Marker flipped
+> self-drawable → blocked (next step is director-gated).
 
 **Source:** `DIRECTOR_RULING_BLOCKED_MINT_BATCH_2026-07-28.md`, **§0 (the mechanism fault)** and its
 **WORK THIS CREATES deliverable 1**: *"Ruling-consumption creates the ledger entry that releases a

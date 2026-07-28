@@ -124,6 +124,16 @@
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
   },
+  "ruling_consumption_authority_seam_signoff": {
+    "first_asked_at": "2026-07-28T15:48:04.246400+00:00",
+    "how": "Confirm (console or phone-signed) the transcription convention: a ruling that opens a BUILD carries a machine-parseable line LEDGER: BUILD_OPEN <atom_id> (or FRONT_OPEN <front> / LEVEL_UP_PROPOSED <atom> <level>), and the RELEASE is written ONLY via an authenticated channel the worker cannot forge -- a console record_gate_opening, or a phone-signed RULING:BUILD_OPEN:<atom> (record_director_ntfy_ruling, already fail-closed via the out-of-tree HMAC key). A bare staged .md doc authorizes NOTHING (case B). Then the three currently-blocked rulings (0ac3e1b5e generator, e685eb76d cohorts, 27271871e GAP1) can be released by that one act each.",
+    "item_id": "ruling_consumption_authority_seam_signoff",
+    "last_pinged_at": "2026-07-28T15:48:04.246400+00:00",
+    "last_sent_at": null,
+    "resolved": false,
+    "what": "Ratify the authority seam by which consuming a director ruling RELEASES a blocked atom, so ruled BUILDs stop sitting blocked (DISCOVER: docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md).",
+    "why": "R16 WALL / category 5/8: flipping HOW authority becomes a ledger entry is a safety/authority-seam change -- director-reserved, never self-enacted. The mechanism already EXISTS and is fail-closed; only the convention + your sign-off are missing, which is why three ruled BUILDs sat blocked 3+h."
+  },
   "walled-interfaces-priority-rank": {
     "first_asked_at": "2026-07-11T05:21:26.663659+00:00",
     "how": "Per P-1 (PRIORITISATION_RULES.md), just tell me where it should sit relative to current P1 work (top/after-X/backlog) and I'll place it in PRIORITIES.md -- decomposition is already sketched at docs/design/WALLED_INTERFACES_SKETCH.md (5 candidate flows + a 6th already-typed reference example, tools/market_data_port.py::MarketDataPort).",
