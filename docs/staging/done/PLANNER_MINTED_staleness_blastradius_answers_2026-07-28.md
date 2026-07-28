@@ -1,4 +1,9 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+> **EXECUTED + COMPLETE 2026-07-28** (planner tick) → `docs/design/GAP_TRIAGE_STALENESS_AND_BLASTRADIUS.md`.
+> Both answers landed **AUTONOMOUS** (no return-for-ratification): (a) staleness = a read-time filter in
+> GAP1's reader, NOT a fifth taxonomy bucket (evidence-gated E1/E2/E3, burden-of-proof on `stale`); (b)
+> blast-radius risk = deliberately FOLDED, left as-is, with a named un-fold trigger at go-live. No blocked
+> residue, no director action pending → this mint is DONE (archived to docs/staging/done/).
 # [PLANNER-MINTED] — GAP-Q: answer the director's two triage questions (staleness disposition; blast-radius as risk) in one report (2026-07-28)
 
 **Source:** `DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28.md`, **deliverable 4** ("Answers to (a)

@@ -1,6 +1,14 @@
 # [PLANNER-MINTED] — GAP3: the first ranked gap list, marking which are deliberate-and-staying (2026-07-28)
 
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+> **EXECUTED 2026-07-28** (planner tick) → `docs/design/FIRST_RANKED_GAP_LIST.md`. The ratified GAP2
+> method was applied to the live 8-register enumeration. Marker flipped self-drawable→blocked: the
+> `mint` classifications were autonomous (§2) — this tick minted the two net-new non-duplicate top rows
+> (`PLANNER_MINTED_gap1_reader_contract_failopen_fix`, `PLANNER_MINTED_privacy_policy_page`); the
+> **`deliberate-and-staying` PROPOSALS now RETURN FOR DIRECTOR RATIFICATION** (batched via GAP-M2).
+> **blocked_on: director ratification of the proposed deliberate-and-staying set** (+ front/epoch opens
+> for the ranked-but-gated product atoms P1/P4–P6, R16). Enumeration also surfaced two GAP1 reader
+> fail-opens (register-1 `measured_bound` field absent; register-6 keyed on wrong prefix) — see §0.
 
 **Source:** DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28.md, deliverable 3 — **and now
 `DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28.md` deliverable 1** ("Apply the ratified taxonomy;

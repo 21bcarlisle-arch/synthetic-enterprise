@@ -1,6 +1,8 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-> **DISCOVER/design half is self-drawable NOW** (doc-only, THREE_LANES L3): specify the batched
-> inbound-ratification contract (exit criterion (a)). **The BUILD half (b)/(c) is blocked_on:
+<!-- SUPERVISOR_DRAW: blocked -->
+> **DISCOVER/design half EXECUTED 2026-07-28** (planner tick) → `docs/design/INBOUND_RATIFICATION_BATCH_PATH_CONTRACT.md`
+> (the batched inbound-ratification contract, exit criterion (a)). Marker flipped self-drawable→blocked:
+> the only remaining work is **the BUILD half (b)/(c), blocked_on: director_build_open_ledger_entry**.
+> **The BUILD half (b)/(c) is blocked_on:
 > director_build_open_ledger_entry** — an `H_harness` `BUILD_OPEN`/`FRONT_OPEN` in
 > `gate_authorizations.jsonl` (R16: ledger is authority; the agent cannot self-authorize a BUILD_OPEN).
 > Note §4's build-open in the sibling ruling names the GAP1 *reader* contract specifically — it does
