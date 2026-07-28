@@ -2490,6 +2490,25 @@
       "stall_consecutive_unchanged": 16
     },
     {
+      "id": "H28_precommit_gate_ambient_cwd_git_discovery",
+      "name": "Pre-commit gate ambient-cwd git-discovery residual (scoped from H24): the GIT_* scrub closes the leaked-env vector but a gate-run test shelling git from cwd=ROOT still discovers the real .git by upward directory-walk -- GIT_* absence does not make it location-blind. LATENT not active (every H24 control test uses an explicit tmp-repo cwd, so none exercises this path). Scoped fix (e.g. GIT_CEILING_DIRECTORIES) needs a which-tests analysis first because some control tests legitimately read the real repo, so closing it blindly risks regressing them.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13
+    },
+    {
       "id": "H27_phone_act_channel",
       "name": "Phone-answerable [ACT] channel: director resolves authority-requiring decisions from his phone in seconds (forge-proof, no SSH/console paste) -- Tailscale-identity-gated + pre-framed tap/single-word answers, provenance-logged like a console act, console as fail-closed fallback",
       "lane": "H_harness",
@@ -3023,7 +3042,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 145,
+  "total_atoms": 146,
   "epoch2_movements": [
     {
       "id": "M1",
