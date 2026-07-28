@@ -189,6 +189,37 @@ def test_sla_breach_flag_trips_when_pending_beyond_register_sla():
     assert queue[0].recommendation.startswith("LOWER hedge floor 0.85->0.80")
 
 
+def test_no_sla_class_never_shows_a_breach_however_long_it_waits():
+    """Pins the `sla_seconds > 0` conjunct of the breach flag INDEPENDENTLY of
+    the `pending > sla` one. A class with no registered SLA (PRICING_MOVE,
+    sla_hours=0.0 -> sla_seconds=0, and it is wired=True) has no wait to
+    breach, so its flag must stay False no matter how long it is pending.
+    Without the `sla_seconds > 0` guard, `pending_seconds > 0` would make EVERY
+    pending routine pricing move read as SLA-breached on Door 7 -- a spurious
+    red flag. The HEDGE breach tests use sla_seconds=24h>0, so they cannot prove
+    this half fires: neutering the `sla_seconds > 0` conjunct alone leaves the
+    suite green (R15 fail-open), so this sub-check earns its own pin."""
+    vt = dt.date(2020, 3, 1)
+    submitted_at = dt.datetime(2020, 3, 1, 9, tzinfo=dt.timezone.utc)
+    request_governance_approval(
+        DecisionClass.PRICING_MOVE,
+        entity_id="tariff-renewal-1",
+        request={"proposed_rate": 0.28},
+        context_pack=ContextPack(
+            links=(ContextLink("Pricing panel", "site://director/door7/pricing/t1"),),
+            recommendation="renew at standard variable +2%",
+        ),
+        valid_time=vt,
+        submitted_at=submitted_at,
+    )
+    # Days later -- pending_seconds is huge, but sla_seconds is 0.
+    much_later = dt.datetime(2020, 3, 8, 9, tzinfo=dt.timezone.utc)  # 7 days
+    (row,) = approval_queue_as_of(much_later, decision_class=DecisionClass.PRICING_MOVE)
+    assert row.pending_seconds == 7 * 24 * 3600
+    assert row.sla_seconds == 0
+    assert row.sla_breached is False
+
+
 # ── idempotency / bitemporal determinism of the surface view ──
 
 
