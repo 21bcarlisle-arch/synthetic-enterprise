@@ -208,8 +208,125 @@ class TestBuildPriceBitemporalLog:
         recs = log.all_records()
         assert recs[0].transaction_time == dt.datetime(2020, 6, 2, 0, 0)
 
+    def test_negative_hh_price_drop_biases_daily_mean_UPWARD_worked_example(self):
+        """RED-TEAM WORKED EXAMPLE (2026-07-28 HARDEN, dial-4 yielded) --
+        quantifies the negative-price-drop fidelity gap FILED but never
+        measured on 2026-07-27 (maturity_map.yaml::W1_reveal_over_time),
+        following this atom's own asserted->measured pattern (the same-day
+        leak went asserted -> analytically-bounded -> synthetic-worked-
+        example -> fixed).
 
-class TestGetPriceHistoryAsOf:
+        build_price_bitemporal_log() filters each half-hourly SSP record
+        with `if d and p and p > 0` BEFORE the daily-mean aggregation. The
+        `.get(..., 0.0)` default means that filter was clearly meant to drop
+        the missing-data sentinel, but it ALSO silently drops legitimately-
+        NEGATIVE UK System Sell prices -- a real recurring phenomenon under
+        the single-price EBS during oversupply (high wind / low demand).
+        Dropping the negative half-hours can only RAISE the surviving mean,
+        so on exactly the high-volatility oversupply days the emitted daily
+        mean is biased UPWARD -- understating the very volatility this atom's
+        consumer (estimate_price_volatility) measures.
+
+        This test runs the LIVE production function (no shipped-basis change)
+        and asserts the direction + magnitude of the bias against the true
+        (negatives-kept) mean computed by hand. It is a regression witness
+        for the QUEUED M-lane fix, not the fix itself."""
+        # One oversupply day: a real cold-morning peak, then deeply-negative
+        # midday half-hours as wind floods a low-demand system (plausible
+        # single-price EBS values, not extreme).
+        hh_prices = [
+            85.0, 80.0, 70.0,          # early peak
+            10.0, -15.0, -40.0, -22.0, # midday oversupply, negative SSP
+            30.0, 55.0, 75.0,          # evening ramp
+        ]
+        elec = [
+            {"settlementDate": "2020-06-14", "systemSellPrice": p}
+            for p in hh_prices
+        ]
+        log = build_price_bitemporal_log(elec, [])
+        view = PointInTimeView(dt.datetime(2020, 7, 1), bitemporal_log=log)
+        history = view.get_price_history_as_of("electricity")
+        assert len(history) == 1
+        emitted_mean = history[0]["systemSellPrice"]
+
+        # Truth: the mean a fidelity-correct aggregation would report keeps
+        # the real negatives (only the missing-data sentinel should drop).
+        true_mean = sum(hh_prices) / len(hh_prices)
+        kept = [p for p in hh_prices if p > 0]
+        drop_negatives_mean = sum(kept) / len(kept)
+
+        # The live function reproduces the positives-only mean, NOT the truth.
+        assert emitted_mean == pytest.approx(drop_negatives_mean)
+        # ... and that mean is biased strictly UPWARD versus the true mean.
+        assert emitted_mean > true_mean
+        # Magnitude on this plausible day is material, not a rounding nit:
+        # emitted ~ 57.9 vs true ~ 32.8 GBP/MWh, a ~+76% upward bias.
+        bias_pct = (emitted_mean - true_mean) / abs(true_mean)
+        assert bias_pct > 0.5
+
+    def test_negative_drop_understates_downstream_volatility_worked_example(self):
+        """Companion to the daily-mean bias worked example: propagates the
+        negative-price drop THROUGH the real estimate_price_volatility()
+        pathway to show the fidelity gap reaches the actual live consumer
+        (hedge_decision.estimate_price_volatility, wired live via
+        CURRENT_POLICY.use_var_hedge_decision=True), not just the aggregate.
+
+        Two 90-day daily series, identical except that the 'oversupply'
+        series has periodic deeply-negative half-hours the live build drops.
+        The negatives are the largest single-day price MOVES; dropping them
+        flattens the day-to-day daily-mean path, so the vol estimate the
+        company acts on is LOWER than a negatives-kept aggregation would
+        produce. NB estimate_price_volatility ALSO carries its own `p > 0`
+        filter AND a daily-mean log-return positivity guard, so the correct
+        fix is a genuine multi-site BUILD change (why it is QUEUED, not
+        fixed on sight in a bounded HARDEN tick)."""
+        from company.trading.hedge_decision import estimate_price_volatility
+
+        def build_day(day_idx, oversupply):
+            date = (dt.date(2020, 1, 1) + dt.timedelta(days=day_idx)).isoformat()
+            # Flat positive base: with negatives dropped, every daily mean is
+            # 60.0, so the day-to-day path is flat and the vol estimate floors
+            # at MIN_VOL_ANNUAL -- isolating the drop as the sole difference.
+            recs = [{"settlementDate": date, "systemSellPrice": 60.0}
+                    for _ in range(10)]
+            if oversupply and day_idx % 6 == 0:
+                # one modest negative half-hour on every sixth day (kept in
+                # the fidelity-correct aggregation, dropped by the live one);
+                # magnitudes chosen so neither vol saturates the 2.5 cap.
+                recs.append({"settlementDate": date, "systemSellPrice": -5.0})
+            return recs
+
+        calm = [r for i in range(90) for r in build_day(i, oversupply=False)]
+        spiky = [r for i in range(90) for r in build_day(i, oversupply=True)]
+
+        calm_hist = PointInTimeView(
+            dt.datetime(2020, 7, 1),
+            bitemporal_log=build_price_bitemporal_log(calm, []),
+        ).get_price_history_as_of("electricity")
+        spiky_hist = PointInTimeView(
+            dt.datetime(2020, 7, 1),
+            bitemporal_log=build_price_bitemporal_log(spiky, []),
+        ).get_price_history_as_of("electricity")
+
+        vol_dropped = estimate_price_volatility(spiky_hist)
+
+        # Truth-side proxy: rebuild the oversupply series' daily means WITH
+        # the negatives kept (the fidelity-correct aggregation), then feed
+        # positive daily means so the downstream p>0 log-return guard is not
+        # what drives the difference -- isolating the drop's effect.
+        daily_true: dict[str, list[float]] = {}
+        for r in spiky:
+            daily_true.setdefault(r["settlementDate"], []).append(r["systemSellPrice"])
+        true_hist = [
+            {"settlementDate": d, "systemSellPrice": sum(v) / len(v)}
+            for d, v in sorted(daily_true.items())
+        ]
+        assert all(x["systemSellPrice"] > 0 for x in true_hist)  # means stay positive
+        vol_true = estimate_price_volatility(true_hist)
+
+        # The live (negatives-dropped) path understates realised volatility
+        # versus the fidelity-correct (negatives-kept) aggregation.
+        assert vol_true > vol_dropped
     def test_raises_without_bitemporal_log(self):
         port = _FakeMarketPort()
         view = PointInTimeView(dt.datetime(2020, 6, 15), port)
