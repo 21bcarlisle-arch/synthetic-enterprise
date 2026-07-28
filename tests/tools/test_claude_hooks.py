@@ -270,6 +270,66 @@ class TestBlockPointInTimeRead:
         })
         assert result.returncode == 0
 
+    # --- 2026-07-28 HARDEN (Rule-0 dial=4, W1_reveal_over_time) regression ---
+    # The Edit/Write harness passes an ABSOLUTE file_path; the pre-fix
+    # `^(company|saas)/` gate matched only the bare-relative form these tests
+    # used and FAILED OPEN (exit 0, inert) on every real invocation. These
+    # lock the normalized-path behaviour so the fail-open cannot silently
+    # return -- they FAIL against the un-normalized hook.
+    def test_flags_absolute_company_path(self):
+        abs_path = str(REPO_ROOT / "company" / "finance" / "example.py")
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": abs_path,
+                "content": "def compute(all_records):\n    return sum(r['x'] for r in all_records)\n",
+            },
+        })
+        assert result.returncode == 2, "absolute company/ path must still flag"
+
+    def test_flags_absolute_saas_edit(self):
+        abs_path = str(REPO_ROOT / "saas" / "reporting" / "example.py")
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Edit",
+            "tool_input": {
+                "file_path": abs_path,
+                "old_string": "pass",
+                "new_string": "records = run_settlement(start, end)\n",
+            },
+        })
+        assert result.returncode == 2, "absolute saas/ path must still flag"
+
+    def test_flags_dot_slash_prefixed_company_path(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "./company/finance/example.py",
+                "content": "x = all_records\n",
+            },
+        })
+        assert result.returncode == 2, "./-prefixed company/ path must still flag"
+
+    def test_absolute_sim_file_still_ignored(self):
+        abs_path = str(REPO_ROOT / "simulation" / "run_phase2b.py")
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": abs_path,
+                "content": "x = all_records\n",
+            },
+        })
+        assert result.returncode == 0, "absolute sim/ path must not flag (no false positive)"
+
+    def test_path_outside_repo_ignored(self):
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": "/tmp/company/x.py",
+                "content": "x = all_records\n",
+            },
+        })
+        assert result.returncode == 0, "a company/-named path outside the repo is not a target"
+
     def test_ignores_malformed_json(self):
         result = subprocess.run(
             [sys.executable, str(BLOCK_PIT_READ)],

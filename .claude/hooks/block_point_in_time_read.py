@@ -32,10 +32,38 @@ from __future__ import annotations
 import json
 import re
 import sys
+from pathlib import Path
 
 _DANGEROUS_PATTERN = re.compile(r"\brun_settlement\s*\(|\ball_records\b")
 _BOUNDING_EVIDENCE = re.compile(r"as_of|bisect")
 _COMPANY_SAAS_PATH = re.compile(r"^(company|saas)/.*\.py$")
+
+# .claude/hooks/block_point_in_time_read.py -> repo root is parents[2].
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _normalize_path(path_str: str) -> str | None:
+    """Resolve `path_str` (absolute, `./`-prefixed, or bare-relative) against
+    the repo root and return its POSIX-style path relative to the repo root.
+
+    The Edit/Write harness passes an ABSOLUTE file_path, so the raw
+    `^(company|saas)/` gate matched only the bare-relative form the unit
+    tests use and FAILED OPEN (returned exit 0, inert) on every real
+    invocation -- the exact fail-open class closed for the sibling
+    lane_wall_hook.py's `_normalize_path`, mirrored here (2026-07-28 HARDEN
+    W1_reveal_over_time, Rule-0 dial=4). Returns None if the path resolves
+    outside the repo (genuinely not a company/saas file) or is unresolvable.
+    """
+    if not path_str:
+        return None
+    try:
+        p = Path(path_str)
+        if not p.is_absolute():
+            p = REPO_ROOT / p
+        rel = p.resolve().relative_to(REPO_ROOT)
+    except (ValueError, OSError):
+        return None
+    return rel.as_posix()
 
 
 def _new_content(payload: dict) -> str | None:
@@ -58,7 +86,8 @@ def main() -> int:
         return 0
 
     file_path = (payload.get("tool_input") or {}).get("file_path", "")
-    if not _COMPANY_SAAS_PATH.match(file_path):
+    normalized = _normalize_path(file_path)
+    if normalized is None or not _COMPANY_SAAS_PATH.match(normalized):
         return 0
 
     content = _new_content(payload)
