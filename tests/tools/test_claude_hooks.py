@@ -330,6 +330,76 @@ class TestBlockPointInTimeRead:
         })
         assert result.returncode == 0, "a company/-named path outside the repo is not a target"
 
+    # --- 2026-07-28 HARDEN (Rule-0 dial=4, W1_reveal_over_time) red-team of the
+    # SIBLING half of the abs-path fix: the isolated worker seat runs in a git
+    # worktree (.claude/worktrees/<name>/), and after abs-path normalization a
+    # worktree company/ edit lands as `.claude/worktrees/<name>/company/...py`,
+    # which the `^(company|saas)/` gate does NOT match -- so the blindfold hook
+    # FAILED OPEN on every worktree-authored company change. These FAIL against
+    # the pre-fix hook (which returns exit 0 for the worktree company/saas
+    # cases) and pass once the worktree prefix is stripped.
+    def test_flags_worktree_company_path(self):
+        wt_path = str(
+            REPO_ROOT / ".claude" / "worktrees" / "agent-x"
+            / "company" / "finance" / "example.py"
+        )
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": wt_path,
+                "content": "def compute(all_records):\n    return sum(r['x'] for r in all_records)\n",
+            },
+        })
+        assert result.returncode == 2, "worktree-authored company/ edit must flag like a main-tree edit"
+
+    def test_flags_worktree_saas_edit(self):
+        wt_path = str(
+            REPO_ROOT / ".claude" / "worktrees" / "agent-x"
+            / "saas" / "reporting" / "example.py"
+        )
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Edit",
+            "tool_input": {
+                "file_path": wt_path,
+                "old_string": "pass",
+                "new_string": "records = run_settlement(start, end)\n",
+            },
+        })
+        assert result.returncode == 2, "worktree-authored saas/ edit must flag like a main-tree edit"
+
+    def test_worktree_company_edit_with_as_of_still_allowed(self):
+        # The strip must not become a fail-CLOSED: a correctly-bounded worktree
+        # edit is still allowed, proving the flag is attributable to the
+        # dangerous pattern, not merely to the worktree path.
+        wt_path = str(
+            REPO_ROOT / ".claude" / "worktrees" / "agent-x"
+            / "company" / "finance" / "example.py"
+        )
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": wt_path,
+                "content": "bounded = bisect_slice(all_records, as_of_date)\n",
+            },
+        })
+        assert result.returncode == 0, "a bounded worktree company/ edit must not flag"
+
+    def test_worktree_sim_file_still_ignored(self):
+        # No false positive: a sim/ file inside a worktree stays un-gated, same
+        # as a main-tree sim/ file.
+        wt_path = str(
+            REPO_ROOT / ".claude" / "worktrees" / "agent-x"
+            / "simulation" / "run_phase2b.py"
+        )
+        result = _run(BLOCK_PIT_READ, {
+            "tool_name": "Write",
+            "tool_input": {
+                "file_path": wt_path,
+                "content": "x = all_records\n",
+            },
+        })
+        assert result.returncode == 0, "worktree sim/ path must not flag (no false positive)"
+
     def test_ignores_malformed_json(self):
         result = subprocess.run(
             [sys.executable, str(BLOCK_PIT_READ)],

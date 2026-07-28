@@ -63,6 +63,19 @@ def _normalize_path(path_str: str) -> str | None:
         rel = p.resolve().relative_to(REPO_ROOT)
     except (ValueError, OSError):
         return None
+    parts = rel.parts
+    # The isolated worker seat runs in a git worktree under
+    # .claude/worktrees/<name>/ (reference_worktree_main_daemon_split), whose
+    # company/saas edits are REAL authorship that merges back to main. After
+    # the absolute-path normalization above, such an edit lands as
+    # `.claude/worktrees/<name>/company/...py`, which the `^(company|saas)/`
+    # gate does NOT match -- so the blindfold hook FAILED OPEN on every
+    # worktree-authored company change (a sibling of the 2026-07-28 abs-path
+    # fail-open, found by red-teaming the same hook, Rule-0 dial=4). Strip the
+    # worktree prefix so the inner company/saas path re-surfaces and is gated
+    # identically to a main-tree edit.
+    if len(parts) > 3 and parts[0] == ".claude" and parts[1] == "worktrees":
+        rel = Path(*parts[3:])
     return rel.as_posix()
 
 
