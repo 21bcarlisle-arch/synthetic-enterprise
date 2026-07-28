@@ -59,9 +59,28 @@ property consumers (64 tests) + `epistemic_verifier` PASS. **Still QUEUED (off p
 SELF_INTERRUPT_DISCIPLINE):** `simulation/run_phase3a.py`'s `c["home_type"]` diagnostic reads
 (lines 52/75) KeyError on a SYN dict — a diagnostic, not a published generator; harden at the flip.
 
+**LANDED 2026-07-28 (later tick) — REMAINING #2 (central generator), the HH-data generator wired through the seam:**
+`tools/generate_hh_data.main()` now draws its book from `live_population()` (generator draw-wiring
+step #2) instead of importing the static `CUSTOMERS` literal directly. **Byte-identical while off** (the
+seam returns `list(CUSTOMERS)`; `test_flag_off_book_is_byte_identical_to_static_customers`). **Flag-on:**
+`build_properties(live_population())` additively builds property records for the SYN cohort (SYN-2021-001,
+SYN-2025-001) with NO KeyError — the integration point that the landed SYN property model (remaining #1)
+de-risked; proven end-to-end here. **HONEST seam property (asserted, not hidden):** SYN dicts carry no
+`metering` field, so `is_hh_customer` selects none of them — the additive cohort reaches the
+`book`/`properties` but NOT the written HH files; giving SYN customers HH metering + consumption files is
+a downstream activation-time follow-on, QUEUED not fixed-on-sight. R15 BOTH WAYS proven:
+`tests/tools/test_generate_hh_data_population_seam.py` (4 green) — MUT (revert `book = live_population()`
+to the static literal) fails `test_flag_on_book_additively_carries_syn_cohort` on its named assertion
+("flag-on must additively include the SYN acquisition cohort") while the byte-identical-off test still
+passes (the wire is load-bearing ONLY flag-on). 41 downstream HH tests + `epistemic_verifier` (527 files)
+PASS. **Still to wire (report-lookup generators, byte-identical while off, drawable):**
+`generate_customer_sample` / `generate_dashboard_data`'s `CUSTOMERS`-keyed lookup dicts + the
+`run_phase*` settlement entrypoints (SYN-safe per the blast-radius map above).
+
 **REMAINING (drawable dedicated build, authorised — NOT walled):**
 1. ~~SYN property model (central path)~~ — LANDED above; residual = `run_phase3a.py` diagnostic (QUEUED).
-2. Wire the generators to consume `live_population()` (byte-identical while off).
+2. Wire the generators to consume `live_population()` (byte-identical while off) — CENTRAL generator
+   (`generate_hh_data`) LANDED above; report-lookup generators + `run_phase*` entrypoints remain.
 3. Flip `SE_DRAW_POPULATION=1` + downstream re-baseline (fidelity cells / financials / site panels),
    coverage-gate now enforcing #3; historical straddling comparisons MARKED not silently continued.
    The flip is a director-authored curriculum act, now BUILD_OPEN — run as a dedicated build, not a

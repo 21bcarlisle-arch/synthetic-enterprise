@@ -25,7 +25,6 @@ import csv
 import os
 from datetime import date, timedelta
 
-from saas.customers import CUSTOMERS
 from saas.property_model import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -35,6 +34,7 @@ from saas.property_model import (
 from sim.profile_class_1 import load_pc1_shape
 from simulation.demand_model import build_demand_shape
 from simulation.hh_consumption import HH_DATA_DIR, is_hh_customer
+from simulation.live_population import live_population
 from simulation.weather_inputs import weather_means_for_customer
 
 # Matches simulation.run_phase2b.REPORT_START/REPORT_END (and
@@ -84,11 +84,31 @@ def generate_for_customer(customer: dict, properties: dict) -> None:
     print(f"Wrote {path}")
 
 
-def main():
-    hh_customers = [c for c in CUSTOMERS if is_hh_customer(c)]
-    properties = build_properties(CUSTOMERS)
+def main(population=None):
+    """Generate HH consumption files for the run's book.
+
+    The book is drawn through the `live_population()` seam (generator
+    draw-wiring, PRODUCT-FIRST item 2, remaining step #2), NOT the static
+    `CUSTOMERS` literal directly. Default-OFF this is BYTE-IDENTICAL — the seam
+    returns `list(CUSTOMERS)` unchanged. When the director-reserved
+    `SE_DRAW_POPULATION=1` flag is on, `build_properties(book)` additively
+    builds property records for the SYN acquisition cohort too (relying on the
+    landed SYN property derivation, `saas.property_model`), without KeyError.
+
+    HONEST SEAM PROPERTY (not a bug): the SYN dicts carry no `metering` field,
+    so `is_hh_customer` selects none of them — the additive cohort reaches the
+    `book`/`properties` here but NOT the written HH files. Giving SYN customers
+    HH metering + consumption files is a downstream activation-time follow-on,
+    not this wiring's job. Returns the resolved book/selection for testability.
+
+    `population` (test seam only) overrides the drawn book.
+    """
+    book = live_population() if population is None else population
+    hh_customers = [c for c in book if is_hh_customer(c)]
+    properties = build_properties(book)
     for c in hh_customers:
         generate_for_customer(c, properties)
+    return {"book": book, "hh_customers": hh_customers, "properties": properties}
 
 
 if __name__ == "__main__":
