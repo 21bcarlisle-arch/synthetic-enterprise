@@ -528,3 +528,60 @@ def test_scrub_does_NOT_close_ambient_cwd_upward_walk__known_residual_boundary()
     )
     at_root_bare = _run_git(["rev-parse", "--is-bare-repository"], cwd=str(ROOT), env=scrubbed_env)
     assert at_root_bare.stdout.strip() == "false", "sanity: the real worktree must never read as bare"
+
+
+import re
+
+
+def _hook_gate_modules() -> list[Path]:
+    """Every `python3 tools/<name>.py` gate the committed pre-commit hook chains, in order.
+
+    Reconstruct-from-repo: derived from the hook TEXT, so a future gate added to the chain is
+    picked up automatically -- the whole point of a class guard.
+    """
+    hook = (ROOT / "tools" / "git-hooks" / "pre-commit").read_text()
+    rels = re.findall(r"python3\s+(tools/\w+\.py)", hook)
+    return [ROOT / r for r in dict.fromkeys(rels)]  # dedupe, preserve order
+
+
+def test_every_hook_gate_that_spawns_pytest_scrubs_GIT_star__class_guard():
+    """R10/H24 CLASS closure (audit-the-sibling-half): the H24 root cause was a commit-time hook
+    step spawning a git-touching pytest subprocess under the inherited GIT_INDEX_FILE/GIT_DIR/
+    GIT_WORK_TREE, corrupting the SHARED .git. Fixed instance-by-instance in pre_commit_test_gate.py
+    AND its sibling site_lane_gate.py. This guards the CLASS instead of the two instances: EVERY
+    gate the committed hook chains that spawns a `pytest` subprocess MUST scrub GIT_* from that
+    subprocess's env. A future 7th gate that runs tests without scrubbing reds THIS test at write
+    time -- the class fails automatically, per R10 (a class defect is closed by an invariant, not an
+    instance fix), rather than waiting to re-corrupt the repo like H24/H26 did.
+
+    The read-only gates (level_promotion, moap_coherence, ruling_archive_question) run only their
+    OWN `git show`/`git diff --cached` -- read-only, cannot corrupt -- and deliberately KEEP
+    GIT_INDEX_FILE so `git show :<path>` inspects the in-progress commit's staged blob. They are
+    correctly out of scope here; the invariant targets ONLY gates that spawn arbitrary subprocesses.
+    """
+    gates = _hook_gate_modules()
+    assert gates, "parsed ZERO gates from the hook -- the regex/hook drifted (fail-closed, not open)"
+
+    checked_spawners: list[str] = []
+    for path in gates:
+        assert path.exists(), f"hook references a non-existent gate: {path}"
+        src = path.read_text()
+        spawns_pytest = '"pytest"' in src        # pytest as a subprocess argv literal (not a docstring)
+        if not spawns_pytest:
+            continue
+        checked_spawners.append(path.name)
+        scrubs_git = 'startswith("GIT_")' in src
+        assert scrubs_git, (
+            f"{path.name} spawns a pytest subprocess but does NOT scrub GIT_* from its env -- this is "
+            f"the exact H24 corruption class (a git-touching test inherits the commit's GIT_INDEX_FILE/"
+            f"GIT_DIR and writes the SHARED .git). Filter os.environ through a `_gitless_env` that drops "
+            f"every key starting 'GIT_' and pass it as subprocess env=."
+        )
+
+    # R15 -- this guard must be able to FAIL, so it must actually EXERCISE the known spawners rather
+    # than silently pass by matching none. If the two known pytest gates aren't both seen, the
+    # detector (or the hook chain) has drifted and the class is no longer being guarded.
+    assert {"pre_commit_test_gate.py", "site_lane_gate.py"}.issubset(set(checked_spawners)), (
+        f"expected both known pytest-spawning gates to be checked; saw {checked_spawners}. The "
+        f"detector or the hook chain drifted -- the class guard is not covering what it claims."
+    )
