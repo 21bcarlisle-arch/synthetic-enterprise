@@ -44,8 +44,23 @@ False — "a thin draw stops the number reaching a surface" (ruling §3), thin c
 Tests: `tests/background/test_cohort_coverage_publish_gate.py` (5, green) + explicit no-gate mutation
 proof (a mutant that always permits leaks a thin draw). Existing publish-gate suites still green (26).
 
+**LANDED 2026-07-28 (later tick) — REMAINING build #1, the SYN property model (central path):**
+`saas/property_model.build_properties()` now derives `property_type`/`epc_rating`/`bedrooms` for a
+SYN-shaped dict (lacking `home_type`) from the OBSERVABLE `consumption_band` via
+`_derive_syn_property_fields()` — a genuine derivation (LOW→flat/2-bed, MEDIUM→semi/3-bed,
+HIGH→detached/4-bed; `epc_rating` → UK modal band "D", R10-labelled saas approximation, NOT ground
+truth), not a `.get()` patch. **Byte-identical for the static roster** (branch fires only when
+`home_type` is absent). This closes the real flag-on KeyError: end-to-end smoke under
+`SE_DRAW_POPULATION=1` now builds property records for the SYN cohort instead of raising
+(`build_properties(live_population())` → 9 resi-elec records incl. 2 SYN, no KeyError). R15 BOTH WAYS
+proven: `tests/saas/test_property_model.py` (+7 tests, 17 green) — MUT1 (revert to hard `c["home_type"]`)
+fails the SYN test, MUT2 (route static through the derivation) fails the byte-identical test. Downstream
+property consumers (64 tests) + `epistemic_verifier` PASS. **Still QUEUED (off published path,
+SELF_INTERRUPT_DISCIPLINE):** `simulation/run_phase3a.py`'s `c["home_type"]` diagnostic reads
+(lines 52/75) KeyError on a SYN dict — a diagnostic, not a published generator; harden at the flip.
+
 **REMAINING (drawable dedicated build, authorised — NOT walled):**
-1. SYN property/HH-shape model so the property/HH generators tolerate SYN dicts under flag-on.
+1. ~~SYN property model (central path)~~ — LANDED above; residual = `run_phase3a.py` diagnostic (QUEUED).
 2. Wire the generators to consume `live_population()` (byte-identical while off).
 3. Flip `SE_DRAW_POPULATION=1` + downstream re-baseline (fidelity cells / financials / site panels),
    coverage-gate now enforcing #3; historical straddling comparisons MARKED not silently continued.
