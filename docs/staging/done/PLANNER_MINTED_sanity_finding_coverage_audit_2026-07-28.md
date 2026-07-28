@@ -1,4 +1,4 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- DONE 2026-07-28 (worker tick): coverage audit executed → docs/design/SANITY_FINDING_COVERAGE_MAP.md (12 covered / 3 uncovered). Residue minted: supply_start_semantic_separation, payment_channel_dd_consistency_invariant, intra_year_price_cap_granularity. All exit criteria discharged; archived. -->
 # [PLANNER-MINTED] — P2: coverage audit of the 15 adjudicated-real sanity findings → mint the uncovered residue (2026-07-28)
 
 **Source:** `docs/design/FIRST_RANKED_GAP_LIST.md` §2 product-lane row **P2** and §4 ("the
