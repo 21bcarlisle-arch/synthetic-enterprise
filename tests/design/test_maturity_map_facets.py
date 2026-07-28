@@ -202,6 +202,86 @@ def check_coupling_topology(atoms: list) -> list:
     return check_coupling_symmetry(atoms) + check_orphaned_coupled_targets(atoms)
 
 
+# Canonical release-condition tokens a `blocked_on` may resolve to
+# (unstated_reason_block_impossible DISCOVER §3). A blocked_on RESOLVES iff it
+# names one of these (as a substring, so a long-form prose blocked_on that
+# carries its releaser still resolves) OR equals an existing atom id; anything
+# else is an UNRESOLVABLE release condition -> the block is invalid
+# (feedback_nonempty_config_referent_existence: a release condition that
+# resolves to nothing is a fail-open we must reject, not wave).
+KNOWN_RELEASER_TOKENS = (
+    "director_level_up",        # released by a director/twin LEVEL_UP ledger entry (R16)
+    "director_build_open",      # released by a director-console/phone BUILD_OPEN ledger entry
+    "build_open",               # ditto (ledger BUILD_OPEN action)
+    "front_open",               # released by a director FRONT_OPEN for the atom's lane
+    "director_live_run",        # released by the director-watched live run
+    "director_systemd_deploy",  # released by the director-triggered systemd deploy
+    "coupled_triad_measured",   # released when the named coupled-triad gap is measured
+    "watching_brief",           # a director-rejected item parked in the forward-discovery register
+    "forward_register",         # ditto -- released when the director re-opens it from the register
+)
+
+
+def _is_blocked(blocked_on) -> bool:
+    """A blocked_on is a real block unless it is null/None/empty/whitespace."""
+    if blocked_on is None:
+        return False
+    s = str(blocked_on).strip()
+    return bool(s) and s.lower() != "null"
+
+
+def _block_reason_missing(atom: dict) -> bool:
+    r = atom.get("block_reason")
+    return not (isinstance(r, str) and r.strip())
+
+
+def _blocked_on_resolves(blocked_on, known_ids: set) -> bool:
+    """RESOLVES iff blocked_on names a canonical releaser token (substring) or an existing atom id."""
+    s = str(blocked_on).strip()
+    low = s.lower()
+    if any(tok in low for tok in KNOWN_RELEASER_TOKENS):
+        return True
+    return s in known_ids
+
+
+def check_block_hygiene(atoms: list) -> list:
+    """Return violation strings (empty == pass): every atom carrying a `blocked_on` MUST also carry a
+    non-empty `block_reason` AND a `blocked_on` that resolves to a known releaser or an existing atom
+    id (unstated_reason_block_impossible §3 -- 'every block carries its reason and its release
+    condition, or it is not a valid block. ... A block without a recorded reason cannot be escalated,
+    unblocked or judged -- it is invisible work wearing a status'). This governs block HYGIENE only,
+    never block COUNT (R12: the number of blocked atoms is a diagnostic, never a target).
+
+    R15 posture: FAIL-CLOSED -- a missing/empty/whitespace `block_reason` is treated as NO reason
+    (rejected), never as satisfied (the classic fail-open); an unresolvable release condition is
+    rejected, not waved. FAIL-SILENT -- a non-dict/unparseable atom entry is itself a violation (an
+    unparseable map is a FAILED check, never a pass)."""
+    violations = []
+    known_ids = {a.get("id") for a in atoms if isinstance(a, dict) and a.get("id")}
+    for a in atoms:
+        if not isinstance(a, dict):
+            violations.append(
+                f"non-dict atom entry {a!r} -- map cannot be parsed for block hygiene (FAILED check)"
+            )
+            continue
+        bo = a.get("blocked_on")
+        if not _is_blocked(bo):
+            continue  # unblocked atom -> block hygiene does not apply
+        aid = a.get("id", "<no-id>")
+        if _block_reason_missing(a):
+            violations.append(
+                f"{aid}: blocked_on={str(bo)[:40]!r} but block_reason is missing/empty -- an "
+                "unstated-reason block is invisible work wearing a status (§3); state the reason."
+            )
+        if not _blocked_on_resolves(bo, known_ids):
+            violations.append(
+                f"{aid}: blocked_on={str(bo)[:60]!r} resolves to no known releaser "
+                f"{KNOWN_RELEASER_TOKENS} and no existing atom id -- an unresolvable release "
+                "condition cannot be unblocked or judged (§3)."
+            )
+    return violations
+
+
 def _load_live_atoms() -> list:
     return yaml.safe_load(MAP_PATH.read_text())
 
@@ -216,6 +296,11 @@ def test_live_map_value_stream_hygiene():
 def test_live_map_coupling_topology():
     violations = check_coupling_topology(_load_live_atoms())
     assert not violations, "coupling topology:\n  " + "\n  ".join(violations)
+
+
+def test_live_map_block_hygiene():
+    violations = check_block_hygiene(_load_live_atoms())
+    assert not violations, "block hygiene:\n  " + "\n  ".join(violations)
 
 
 def test_reviewed_list_has_no_stale_ids():
@@ -284,11 +369,64 @@ def test_coupling_check_ignores_solo_l3_atom():
     assert not check_orphaned_coupled_targets(solo)
 
 
+# ── R15 mutation tests: check_block_hygiene must FIRE on its named defects ────
+
+def test_block_hygiene_fires_on_reason_less_block():
+    # MUTATION: a blocked atom with NO block_reason -> must fire (reverting the check greens this)
+    bad = [{"id": "Z1_no_reason", "blocked_on": "director_level_up"}]
+    assert check_block_hygiene(bad), "must fire on a blocked atom with no block_reason"
+
+
+def test_block_hygiene_fires_on_unresolvable_release_condition():
+    # MUTATION: a blocked_on that resolves to no releaser and no atom id -> must fire
+    bad = [{"id": "Z2_unresolvable", "blocked_on": "someday_maybe", "block_reason": "we will see"}]
+    assert check_block_hygiene(bad), "must fire on an unresolvable release condition"
+
+
+def test_block_hygiene_fires_on_empty_reason_fail_closed():
+    # FAIL-CLOSED: missing / empty / whitespace-only reason is NO reason, never satisfied
+    for r in (None, "", "   "):
+        bad = [{"id": "Z3_empty", "blocked_on": "director_level_up", "block_reason": r}]
+        assert check_block_hygiene(bad), f"empty/whitespace reason {r!r} must be rejected (fail-closed)"
+
+
+def test_block_hygiene_fires_on_non_dict_atom_fail_silent():
+    # FAIL-SILENT: an unparseable atom entry is a FAILED check, never a silent pass
+    assert check_block_hygiene(["not-a-dict"]), "an unparseable atom entry must be a violation"
+
+
+def test_block_hygiene_passes_a_well_formed_block():
+    good = [{"id": "Z4_ok", "blocked_on": "director_level_up",
+             "block_reason": "build complete at build-quality; L3 awaits director ratification (R16)."}]
+    assert not check_block_hygiene(good), "a reason + resolvable releaser must pass"
+
+
+def test_block_hygiene_passes_an_atom_id_release_condition():
+    # a blocked_on naming an EXISTING atom id resolves (referent-existence satisfied)
+    good = [{"id": "A_waiter", "blocked_on": "B_dependency", "block_reason": "waits on B landing"},
+            {"id": "B_dependency"}]
+    assert not check_block_hygiene(good), "blocked_on naming an existing atom id must resolve"
+
+
+def test_block_hygiene_fires_on_atom_id_release_condition_referent_missing():
+    # the same, but the named atom does NOT exist -> unresolvable -> must fire
+    bad = [{"id": "A_waiter", "blocked_on": "B_ghost", "block_reason": "waits on a ghost"}]
+    assert check_block_hygiene(bad), "blocked_on naming a non-existent atom id must fire"
+
+
+def test_block_hygiene_ignores_unblocked_atoms():
+    # governs hygiene, not count: an unblocked atom is never a violation
+    assert not check_block_hygiene([{"id": "U", "blocked_on": None},
+                                    {"id": "V", "blocked_on": "null"},
+                                    {"id": "W", "blocked_on": "  "}])
+
+
 # ── phase-close CLI entry point ──────────────────────────────────────────────
 
 def _main() -> int:
     atoms = _load_live_atoms()
-    violations = check_value_stream_hygiene(atoms) + check_coupling_topology(atoms)
+    violations = (check_value_stream_hygiene(atoms) + check_coupling_topology(atoms)
+                  + check_block_hygiene(atoms))
     if violations:
         print("MATURITY-MAP FACET HYGIENE: FAIL")
         for v in violations:

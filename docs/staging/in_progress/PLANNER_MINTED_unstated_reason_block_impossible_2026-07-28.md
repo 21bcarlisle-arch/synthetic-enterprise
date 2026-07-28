@@ -1,16 +1,44 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
 # [PLANNER-MINTED] — An unstated-reason block cannot be written: every `blocked_on` carries its reason + release condition (§3 + WORK-THIS-CREATES deliverable 4b) (2026-07-28)
 
-> **[IN-PROGRESS DISPOSITION 2026-07-28] — DISCOVER DONE; BUILD self-drawable NEXT (workable now).**
+> **[IN-PROGRESS DISPOSITION 2026-07-28 (UPDATED) — PRIMARY (map-atom) SURFACE BUILT + LIVE-WIRED; SIBLING (mint-marker) surface is the remaining drawable sub-step → marker stays self-drawable.**
 > The DISCOVER/design half is EXECUTED → `docs/design/UNSTATED_REASON_BLOCK_IMPOSSIBLE_DISCOVER.md`.
 > Canonical fields decided: **`block_reason`** (non-empty free text) + **`blocked_on`** (must resolve to a
-> known releaser or an existing atom id). Validator home = `check_block_hygiene()` in
-> `tests/design/test_maturity_map_facets.py` (mirrors `check_value_stream_hygiene`), sibling parser check in
-> `staging_disposition.py`. **BUILD is self-drawable** (harness validator on an owned surface, no director
-> open) — marker stays self-drawable. **⚠ BUILD precondition:** backfill `block_reason` + a resolvable
-> `blocked_on` onto every existing blocked map atom / mint marker IN THE SAME increment as the validator, and
-> prove the live map green, BEFORE wiring the check into the commit/facets gate — else the gate wedges
-> publishing. Lands `blocked_on: director_level_up` (R16).
+> known releaser or an existing atom id).
+>
+> **BUILT THIS TICK (2026-07-28) — the load-bearing structured surface, done + proven + green:**
+> - `check_block_hygiene(atoms)` + `KNOWN_RELEASER_TOKENS` live in
+>   `tests/design/test_maturity_map_facets.py` (mirrors `check_value_stream_hygiene`): every atom with a
+>   non-null `blocked_on` MUST carry a non-empty `block_reason` AND a `blocked_on` resolving to a canonical
+>   releaser token or an existing atom id.
+> - **Backfill DONE FIRST (wedge precondition honoured):** `block_reason` added to ALL 21 live blocked map
+>   atoms (view-only field — the draw does not read it, so the backfill cannot alter the draw); no
+>   draw-read `blocked_on` value changed.
+> - **Live map GREEN then WIRED:** `test_live_map_block_hygiene()` passes over 146 atoms and
+>   `check_block_hygiene` is wired into the `_main()` phase-close/facets gate (`MATURITY-MAP FACET
+>   HYGIENE: PASS (146 atoms)`, rc=0) — so a reason-less/unresolvable block now CANNOT be committed.
+> - **R15 both-ways proven:** MUTATION (reason-less block, unresolvable release condition, missing-referent
+>   atom-id all FIRE) + FAIL-CLOSED (empty/whitespace reason rejected, never satisfied) + FAIL-SILENT
+>   (non-dict atom entry is a violation) + negative controls (well-formed block, atom-id releaser,
+>   unblocked atoms all pass). 19/19 in `test_maturity_map_facets.py`.
+>
+> **REMAINING drawable sub-step (why the marker STAYS self-drawable — park-honesty: a genuinely drawable
+> step remains, so NOT flipped to blocked):** the **sibling mint-marker check** in
+> `background/staging_disposition.py`, scoped to `PLANNER_MINTED_*.md` docs carrying
+> `<!-- supervisor_draw: blocked -->`, requiring a machine-legible `blocked_on:` line resolving to a
+> releaser (reuse `KNOWN_RELEASER_TOKENS`) + a non-empty reason — with its OWN R15 both-ways. **⚠ that
+> surface needs a structured-field backfill first:** ~5 live blocked `PLANNER_MINTED_*` docs state their
+> reason in PROSE but carry no machine-legible `blocked_on:` releaser line
+> (`board_spec_001_wholesale_reconciliation`, `first_ranked_gap_list`, `money_representation_evidence`,
+> `ssp_negative_lift_cells`, `value_chain_observation_window_cap` — two of them are §3's own four named
+> items); the scope must EXCLUDE director/advisor SOURCE docs that merely quote the marker (they are
+> inbound instructions, not blocks-wearing-a-status). Do the marker backfill FIRST, prove the live
+> in_progress scan green, THEN wire — same discipline as the map, to avoid a staging-surface wedge
+> (`[[feedback_control_false_positive_jams_pipeline]]`). Not rushed at tail-of-tick per
+> `[[SELF_INTERRUPT_DISCIPLINE]]`.
+>
+> When the sibling lands, flip this marker to blocked with `blocked_on: director_level_up` (R16, no
+> self-bump — the atom lands at build-quality; the L3 level move is the director's).
 
 **Source:** `DIRECTOR_RULING_BLOCKED_MINT_BATCH_2026-07-28.md`, **§3 (Reason-unstated blocks are a
 DEFECT)** and the mechanism half of its **WORK THIS CREATES deliverable 4**: *"Reasons stated for the
