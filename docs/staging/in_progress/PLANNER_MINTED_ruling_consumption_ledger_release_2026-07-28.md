@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- ruling-consumption ledger release; level move director-reserved (R16) -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-28: director console signoff (ruling_consumption_authority_seam_signoff) — items 1+2 ARE this atom's named blocker (director_authority_seam_signoff). BUILD half (ruling-consumption writes/parses the ledger entry that releases a block) now authorised; BUILD_OPEN recorded in docs/observability/gate_authorizations.jsonl (channel=console). Level move stays director_level_up (R16). -->
 # [PLANNER-MINTED] — Ruling-consumption must PRODUCE the ledger entry that releases a block — or name what can (§0 + WORK-THIS-CREATES deliverable 1) (2026-07-28)
 
 > **[IN-PROGRESS DISPOSITION 2026-07-28] — DISCOVER DONE, BUILD blocked (director seam).**

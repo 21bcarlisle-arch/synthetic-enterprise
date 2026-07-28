@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_level_up -- generator draw wiring; live activation needs a director word and the level move is director-reserved -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-28: director console BUILD_OPEN (ruling_consumption_authority_seam_signoff, terms unchanged from 0ac3e1b5e); recorded in docs/observability/gate_authorizations.jsonl (channel=console, authorized_by=director). The R13 ACTIVATION (SE_DRAW_POPULATION on + entrypoint wiring) is the director-authored curriculum act now authorised. The LEVEL move stays director-reserved: the build fork re-applies blocked_on/director_level_up on completion (R16). -->
 <!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] Ship the population-generator DRAW-WIRING (2026-07-24)

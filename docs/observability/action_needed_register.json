@@ -124,15 +124,35 @@
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
   },
+  "ruling-consumption-buildopen-residual-2026-07-28": {
+    "first_asked_at": "2026-07-28T18:47:42.005470+00:00",
+    "how": "(1) gap_registers_as_mint_sources -- block=director_build_open, a GENERIC 'executes on a BUILD_OPEN ledger entry' with no consumed ruling naming it; NOT covered by item 3's three names nor by the catch-all ('only block is a ruling already staged and consumed'). Needs an explicit `LEDGER: BUILD_OPEN gap_registers_as_mint_sources` if you want it built. (2) stop_control_gap_characterisation -- block=director_build_open AND it is ONE-WAY-DOOR #5 (safety-control), marked console-only/never-self-authored; I will NOT release it even under the catch-all. Needs its OWN explicit console `record_gate_opening('stop_control_gap_characterisation', ...)` or a phone-signed RULING if you want its BUILD opened. Reply with either BUILD_OPEN (per atom) or 'hold' and I release/leave accordingly.",
+    "item_id": "ruling-consumption-buildopen-residual-2026-07-28",
+    "last_pinged_at": "2026-07-28T18:47:42.005470+00:00",
+    "last_sent_at": null,
+    "resolved": false,
+    "what": "Two BUILD-blocked mints were NOT auto-released by the authority-seam signoff (ruling_consumption_authority_seam_signoff, 2026-07-28) because this ruling does not name or open them. Per the ratified item-2 convention I do not sit silent -- naming exactly what act each needs.",
+    "why": "Item 2 forbids silent blocking on a ruled or ruling-adjacent atom: consuming a ruling must release-if-authenticated OR raise ONE batched [ACT]. These two are the residue after releasing the 3 named + 3 signoff/catch-all atoms; enumerating them here is the 'never sit silent' half of the convention."
+  },
   "ruling_consumption_authority_seam_signoff": {
     "first_asked_at": "2026-07-28T15:48:04.246400+00:00",
     "how": "Confirm (console or phone-signed) the transcription convention: a ruling that opens a BUILD carries a machine-parseable line LEDGER: BUILD_OPEN <atom_id> (or FRONT_OPEN <front> / LEVEL_UP_PROPOSED <atom> <level>), and the RELEASE is written ONLY via an authenticated channel the worker cannot forge -- a console record_gate_opening, or a phone-signed RULING:BUILD_OPEN:<atom> (record_director_ntfy_ruling, already fail-closed via the out-of-tree HMAC key). A bare staged .md doc authorizes NOTHING (case B). Then the three currently-blocked rulings (0ac3e1b5e generator, e685eb76d cohorts, 27271871e GAP1) can be released by that one act each.",
     "item_id": "ruling_consumption_authority_seam_signoff",
     "last_pinged_at": "2026-07-28T15:48:04.246400+00:00",
-    "last_sent_at": null,
+    "last_sent_at": "2026-07-28T15:51:33.869506+00:00",
     "resolved": false,
     "what": "Ratify the authority seam by which consuming a director ruling RELEASES a blocked atom, so ruled BUILDs stop sitting blocked (DISCOVER: docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md).",
     "why": "R16 WALL / category 5/8: flipping HOW authority becomes a ledger entry is a safety/authority-seam change -- director-reserved, never self-enacted. The mechanism already EXISTS and is fail-closed; only the convention + your sign-off are missing, which is why three ruled BUILDs sat blocked 3+h."
+  },
+  "staged:DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md": {
+    "first_asked_at": "2026-07-28T18:45:00.850915+00:00",
+    "how": "Action it (staging = approval), then archive to done/.",
+    "item_id": "staged:DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md",
+    "last_pinged_at": "2026-07-28T18:45:00.850915+00:00",
+    "last_sent_at": "2026-07-28T18:45:04.458071+00:00",
+    "resolved": false,
+    "what": "New staged instruction: DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md",
+    "why": "A staged director/advisor instruction is awaiting processing."
   },
   "walled-interfaces-priority-rank": {
     "first_asked_at": "2026-07-11T05:21:26.663659+00:00",

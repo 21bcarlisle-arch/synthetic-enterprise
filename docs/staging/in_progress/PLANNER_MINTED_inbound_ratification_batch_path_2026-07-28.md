@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_build_open -- inbound-ratification batch path executes on a director BUILD_OPEN ledger entry -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-28: director console BUILD_OPEN (ruling_consumption_authority_seam_signoff) — implements the item-2 transcription convention (parse LEDGER: BUILD_OPEN/FRONT_OPEN/LEVEL_UP_PROPOSED → release-or-raise-ONE-[ACT], never sit silent) that this ruling RATIFIES; recorded in docs/observability/gate_authorizations.jsonl (channel=console). BUILD half now drawable. Level move stays director_level_up (R16). -->
 > **DISCOVER/design half EXECUTED 2026-07-28** (planner tick) → `docs/design/INBOUND_RATIFICATION_BATCH_PATH_CONTRACT.md`
 > (the batched inbound-ratification contract, exit criterion (a)). Marker flipped self-drawable→blocked:
 > the only remaining work is **the BUILD half (b)/(c), blocked_on: director_build_open_ledger_entry**.

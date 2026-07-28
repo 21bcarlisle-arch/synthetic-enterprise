@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: director_build_open -- GAP1 reader-contract fail-open fix; H-lane BUILD demotion needs a director BUILD_OPEN -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-28: director console BUILD_OPEN (ruling_consumption_authority_seam_signoff — item 3 catch-all: this IS the GAP1 reader BUILD, same consumed GAP_TRIAGE ruling 27271871e the director cited); recorded in docs/observability/gate_authorizations.jsonl (channel=console). BUILD half (b)(c) — background/gap_register_scan.py with the corrected keys + R15 both-ways — now drawable. Reader BUILD level stays director_level_up (R16). -->
 <!-- DISCOVER half (a) LANDED 2026-07-28; remaining work is BUILD half (b)(c), blocked_on director_build_open. -->
 # [PLANNER-MINTED] — GAP1 reader-contract FAIL-OPEN correction (register-1 field + register-6 prefix) (2026-07-28)
 
