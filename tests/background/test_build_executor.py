@@ -489,6 +489,19 @@ class TestPredicateGatedEscalation:
         # Nothing to classify -> never silently drop a possibly-genuine door.
         r = self._run_once_escalating(monkeypatch, door_reason="", action="")
         assert r.status == "escalated"
+        # LOAD-BEARING INVARIANT (H19 HARDEN 2026-07-28, red-team of the escalation-identity
+        # chain): even with door_reason AND action both empty, the escalated result MUST carry
+        # a NON-EMPTY atom_reason (falls back to the non-empty draw `reason`). This is the sole
+        # thing keeping the downstream per-wall identity control safe: executor_governor keys
+        # each escalation on sha1((atom_reason or '')...), so an EMPTY atom_reason would collapse
+        # two DISTINCT one-way doors onto the constant empty-string key sha1(b'')='da39a3ee...'
+        # -> the fire-once gate silently swallows the second door (the exact silent-drop the
+        # per-wall-identity fix closed for the constant-id case). Pinning it here makes that
+        # coupling explicit -- see test_executor_governor::test_empty_atom_reason_walls_collapse.
+        assert (r.atom_reason or "").strip(), (
+            "escalated result must carry a non-empty atom_reason even with empty door_reason/action "
+            "-- an empty reason re-opens the swallowed-second-door fail-open downstream"
+        )
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,

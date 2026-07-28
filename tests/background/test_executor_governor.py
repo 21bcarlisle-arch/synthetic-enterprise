@@ -6,6 +6,7 @@ flag on the real repo is ever created (the kill switch is redirected to a tmp fl
 """
 
 from dataclasses import dataclass
+import hashlib
 
 import pytest
 
@@ -277,6 +278,47 @@ def test_two_distinct_walls_each_get_their_own_escalation(monkeypatch, tmp_path)
     assert len(open_ids) == 2, f"each distinct wall must open its own item, got {open_ids}"
     pins = {an.pin_for(i) for i in open_ids}
     assert len(pins) == 2, "each distinct wall must have its own reply-PIN (no collision)"
+
+
+def test_empty_atom_reason_walls_collapse_documents_the_upstream_invariant(monkeypatch, tmp_path):
+    """R15 RED-TEAM (H19 HARDEN 2026-07-28): the per-wall escalation identity keys on
+    sha1((atom_reason or '')...). Two DISTINCT one-way doors that BOTH carry an EMPTY/None
+    atom_reason therefore collapse onto the constant empty-string key (sha1(b'')='da39a3ee...')
+    -> the fire-once gate silently swallows the SECOND door. This is the SAME silent-drop class
+    the per-wall-identity fix (test_two_distinct_walls_...) closed for the constant-id case,
+    re-opened as a fail-open on missing/empty (R15 pattern 2: passes on empty).
+
+    It is UNREACHABLE in production ONLY because run_once GUARANTEES a non-empty atom_reason on
+    every escalated result (reason = draw_fn() is non-empty; a None draw idles before it can
+    escalate) -- pinned upstream by test_build_executor::test_empty_door_reason_fails_safe...
+    This test is the DOWNSTREAM sentinel: it asserts the collapse EXISTS so the coupling is
+    explicit -- if that upstream guarantee ever regresses to an empty reason, the swallow is a
+    KNOWN, documented fail-open here, not a fresh silent-drop the director never hears."""
+    sent = []
+    import background.ntfy_utils as nu
+    # Send SUCCEEDS (truthy id) so mark_sent advances the clock -- otherwise a falsy send
+    # leaves the item due and retries (that path is test_alert_wall_failed_send_retries),
+    # masking the fire-once collapse this test exists to demonstrate.
+    monkeypatch.setattr(nu, "send_ntfy", lambda msg, *a, **k: sent.append(msg) or "mock-msg-id")
+    monkeypatch.setattr("background.action_needed.REGISTER_PATH", tmp_path / "an.json")
+    # Two GENUINELY distinct doors, but both with an empty/None reason (the guarded-against state).
+    executor_governor._alert_wall(_FakeResult("escalated", atom_reason=""), kind="wall_escalated")
+    executor_governor._alert_wall(_FakeResult("escalated", atom_reason=None), kind="wall_escalated")
+    import background.action_needed as an
+    open_ids = {e["item_id"] for e in an.open_items(tmp_path / "an.json")}
+    # Documented latent fail-open: empty/None reasons hash to ONE key -> ONE item, ONE NTFY.
+    # Contrast test_two_distinct_walls_...: non-empty distinct reasons correctly open TWO.
+    assert len(open_ids) == 1, (
+        f"empty-reason walls collapse to one item (documented fail-open, guarded upstream), got {open_ids}"
+    )
+    assert len(sent) == 1, (
+        f"the second empty-reason door is swallowed on the shared empty-string key, got {len(sent)}"
+    )
+    # And the collapsed key IS the empty-string sentinel -- proves the collapse is the
+    # (atom_reason or '') fallback, not some incidental coincidence.
+    assert next(iter(open_ids)).endswith(hashlib.sha1(b"").hexdigest()[:8]), (
+        "the collapse key must be sha1(b'') -- confirms the empty-reason fallback is the cause"
+    )
 
 
 def test_run_loop_alternating_distinct_walls_ntfy_each_then_back_off(tmp_path):
