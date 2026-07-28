@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-28T04:44:18.980195+00:00",
+  "last_updated": "2026-07-28T04:44:26.831238+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T04:43:50.403338+00:00",
+      "last_heartbeat": "2026-07-28T04:44:20.404013+00:00",
       "last_action": "Heartbeat \u2014 2 files tracked",
-      "last_action_ts": "2026-07-28T04:43:50.403338+00:00",
+      "last_action_ts": "2026-07-28T04:44:20.404013+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T04:39:26.830710+00:00",
-      "last_action": "Waiting for next cycle (2h 40m remaining)",
-      "last_action_ts": "2026-07-28T04:39:26.830710+00:00",
+      "last_heartbeat": "2026-07-28T04:44:26.831238+00:00",
+      "last_action": "Waiting for next cycle (2h 35m remaining)",
+      "last_action_ts": "2026-07-28T04:44:26.831238+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
