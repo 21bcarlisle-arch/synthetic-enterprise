@@ -621,6 +621,106 @@
             "cap_gw": 7.0
           }
         ]
+      },
+      "seasonal": {
+        "unit": "GBP/MWh",
+        "source": "Real Elexon System Sell Price (SSP), half-hourly settlement data (sim/cache/elexon_ssp_full.json), averaged by calendar month across all years 2016-2025. Pipeline data, never hand-drawn.",
+        "as_of": "2025-06-07",
+        "caption": "Mean GB wholesale price by calendar month (2016-2025 real Elexon SSP). Winter (Dec-Jan) sits above late spring (Apr-May) as heating demand lifts the marginal plant; the elevated Aug-Sep is the 2021-2023 gas crisis, whose sharpest peak fell in late summer, distorting the otherwise winter-high / summer-low seasonal signal.",
+        "months": [
+          {
+            "m": "Jan",
+            "v": 84.8
+          },
+          {
+            "m": "Feb",
+            "v": 71.5
+          },
+          {
+            "m": "Mar",
+            "v": 78.3
+          },
+          {
+            "m": "Apr",
+            "v": 65.6
+          },
+          {
+            "m": "May",
+            "v": 60.7
+          },
+          {
+            "m": "Jun",
+            "v": 65.6
+          },
+          {
+            "m": "Jul",
+            "v": 73.9
+          },
+          {
+            "m": "Aug",
+            "v": 87.6
+          },
+          {
+            "m": "Sep",
+            "v": 89.9
+          },
+          {
+            "m": "Oct",
+            "v": 75.8
+          },
+          {
+            "m": "Nov",
+            "v": 81.5
+          },
+          {
+            "m": "Dec",
+            "v": 93.6
+          }
+        ]
+      },
+      "negative_prices": {
+        "unit": "% of settlement periods",
+        "source": "Real Elexon SSP half-hourly settlement data (sim/cache/elexon_ssp_full.json): share of each year's ~17,520 half-hours that cleared below GBP0/MWh. Full calendar years only (2015 and 2025 are partial, omitted). Pipeline data, never hand-drawn.",
+        "as_of": "2025-06-07",
+        "caption": "How often the GB wholesale price went negative, by year. Near-zero through the 2010s (surplus was rare), then climbing sharply from 2023 as renewable output increasingly exceeds demand at times of low load -- prices below zero pay generators to stop. A structural feature of a decarbonising grid, read straight from settlement history.",
+        "years": [
+          {
+            "y": "2016",
+            "pct": 0.76
+          },
+          {
+            "y": "2017",
+            "pct": 0.39
+          },
+          {
+            "y": "2018",
+            "pct": 0.62
+          },
+          {
+            "y": "2019",
+            "pct": 0.79
+          },
+          {
+            "y": "2020",
+            "pct": 1.94
+          },
+          {
+            "y": "2021",
+            "pct": 0.85
+          },
+          {
+            "y": "2022",
+            "pct": 1.79
+          },
+          {
+            "y": "2023",
+            "pct": 4.85
+          },
+          {
+            "y": "2024",
+            "pct": 6.11
+          }
+        ]
       }
     },
     "residuals": {
