@@ -48,6 +48,7 @@ Calibration sources: docs/market_research/HUMAN_SIMULATION_RESEARCH.md
 from __future__ import annotations
 
 import hashlib
+import math
 import random
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -366,6 +367,20 @@ def generate_life_events(
             raw = adoption_eligibility_multiplier.get(asset, 1.0)
         else:
             raw = adoption_eligibility_multiplier
+        # Reject a non-finite (NaN / +-inf) caller value EXPLICITLY and fail
+        # CLOSED (0.0 = no adoption), independent of the min/max operand order
+        # below (R15 NaN-blind class, feedback_comparison_guards_are_nan_blind).
+        # A NaN sails through comparison guards -- NaN < x and NaN > x are BOTH
+        # False -- so the clamp `min(1.0, max(0.0, raw))` happens to map NaN to
+        # 0.0 only by the incidental order of its operands: flip it to the
+        # semantically-identical-for-finite-inputs `max(0.0, min(1.0, raw))` and
+        # NaN would clamp to 1.0 (fail-OPEN: a malformed multiplier manufactures
+        # FULL ungated adoption). This isfinite guard makes the docstring's
+        # "R15 fail-closed on a malformed caller value" true by construction,
+        # not by luck. isfinite(inf) is False too, so a runaway +inf also fails
+        # closed here rather than clamping to 1.0.
+        if not (isinstance(raw, (int, float)) and math.isfinite(raw)):
+            return 0.0
         return min(1.0, max(0.0, raw))
 
     _adopt_mult_solar = _gate_factor("solar_pv")

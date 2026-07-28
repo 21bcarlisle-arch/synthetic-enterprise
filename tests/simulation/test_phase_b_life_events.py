@@ -862,6 +862,39 @@ def test_multiplier_is_clamped_to_zero_one_range():
         assert negative == at_zero
 
 
+def test_non_finite_multiplier_fails_closed():
+    # R15 NaN-blind class (feedback_comparison_guards_are_nan_blind): a NaN
+    # multiplier sails through comparison guards (NaN < x and NaN > x are BOTH
+    # False), so the clamp min(1.0, max(0.0, raw)) maps NaN to 0.0 only by the
+    # incidental order of its operands. This locks the docstring's "R15
+    # fail-closed on a malformed caller value": a non-finite multiplier (NaN or
+    # +-inf), scalar OR per-asset, must ELIMINATE the gated adoption events
+    # (0.0), exactly like adoption_eligibility_multiplier=0.0 -- never leave them
+    # ungated (fail-OPEN).  R15 can-fail: with the isfinite guard removed and the
+    # clamp flipped to max(0.0, min(1.0, raw)), NaN clamps to 1.0 and this reds.
+    h = _semi()
+    nan, inf = float("nan"), float("inf")
+    for bad in (nan, inf, -inf, {"solar_pv": nan, "ev": inf, "heat_pump": -inf}):
+        seen = set()
+        for seed in range(200):
+            events = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=bad)
+            seen |= {e.event_type for e in events if e.event_type in _ADOPTION_EVENT_TYPES}
+        assert seen == set(), (
+            f"non-finite multiplier {bad!r} left adoption events ungated "
+            f"{sorted(seen)} -- R15 fail-OPEN on a malformed caller value"
+        )
+    # Belt-and-braces: a non-finite gate on ONE asset must not disturb the
+    # other two (per-asset independence, C-S2) -- zero-out solar via NaN, prove
+    # ev + heat_pump are byte-identical to the fully-default run.
+    per_asset = {"solar_pv": nan, "ev": 1.0, "heat_pump": 1.0}
+    for seed in range(200):
+        default = generate_life_events(h, 2016, 2025, seed=seed)
+        gated = generate_life_events(h, 2016, 2025, seed=seed, adoption_eligibility_multiplier=per_asset)
+        assert not [e for e in gated if e.event_type == "solar_install"]
+        assert ([e for e in default if e.event_type != "solar_install"]
+                == [e for e in gated if e.event_type != "solar_install"])
+
+
 # ---------------------------------------------------------------------------
 # FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON item 2: PER-ASSET dict form
 # (director CONFIRMED 2026-07-22). Each of the three gates uses its own asset's
