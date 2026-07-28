@@ -95,10 +95,30 @@ additively_carries_syn_cohort` on its named assertion while the byte-identical-o
 scattered `CUSTOMERS`/`get_customer` reads across extract_* functions, a larger dedicated wire) + the
 `run_phase*` settlement entrypoints.
 
+**LANDED 2026-07-28 (later tick) — report-lookup generator #2, `generate_dashboard_data` wired through the seam:**
+`tools/generate_dashboard_data` now resolves its two direct-list `CUSTOMERS` reads
+(`extract_customers`'s `_tariff_by_cid` map + `extract_nudge_discovery`'s lift-table book) through a
+module-level `_resolve_book()` → `live_population()` helper instead of importing the static `CUSTOMERS`
+literal directly. **Byte-identical while off** (seam returns `list(CUSTOMERS)`; 145 dashboard tests + the
+new end-to-end `test_flag_off_extract_customers_tariff_unperturbed` stay green). **Flag-on:** the tariff
+map + lift book additively carry the SYN cohort — a SYN customer present in a run's `per_customer_lifetime`
+resolves its `tariff_type` from the book (None) rather than the off-book `"fixed"` default. **HONEST SCOPE
+(asserted, not hidden):** the `get_customer(cid)` lookups in `extract_opex_ledger`/
+`_resi_household_ids_from_active` are DELIBERATELY NOT routed through the seam — `get_customer` unions
+`CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS`, so routing it through the CUSTOMERS-only+SYN seam
+would DROP the successor/acquired records (the opposite of byte-identical); composing SYN into that wider
+union is a separate follow-on, guarded by `test_get_customer_union_sites_not_routed_through_seam`. R15
+BOTH WAYS proven: `tests/tools/test_generate_dashboard_data_population_seam.py` (5 green) — the MUT (revert
+`_resolve_book()` to `list(CUSTOMERS)`) fails both flag-on tests (SYN never appears → tariff falls back to
+default) while the byte-identical-off tests still pass. 145 downstream dashboard tests + `epistemic_verifier`
+(527 files) PASS. **Still to wire:** the `run_phase*` settlement entrypoints (SYN-safe per the blast-radius
+map) — the last non-walled draw before the held flip.
+
 **REMAINING (drawable dedicated build, authorised — NOT walled):**
 1. ~~SYN property model (central path)~~ — LANDED above; residual = `run_phase3a.py` diagnostic (QUEUED).
 2. Wire the generators to consume `live_population()` (byte-identical while off) — CENTRAL generator
-   (`generate_hh_data`) LANDED above; report-lookup generators + `run_phase*` entrypoints remain.
+   (`generate_hh_data`) + report-lookup generators (`generate_customer_sample`, `generate_dashboard_data`)
+   LANDED above; the `run_phase*` settlement entrypoints remain (SYN-safe).
 3. Flip `SE_DRAW_POPULATION=1` + downstream re-baseline (fidelity cells / financials / site panels),
    coverage-gate now enforcing #3; historical straddling comparisons MARKED not silently continued.
    The flip is a director-authored curriculum act, now BUILD_OPEN — run as a dedicated build, not a

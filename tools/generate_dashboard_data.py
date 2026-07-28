@@ -32,6 +32,31 @@ _BUILD_PHASE = "OL"
 _BUILD_TEST_COUNT = 15148
 
 
+def _resolve_book():
+    """Resolve the customer book through the single ``live_population()`` seam.
+
+    Generator draw-wiring (PRODUCT-FIRST item 2, report-lookup generator #2):
+    BYTE-IDENTICAL to the static ``CUSTOMERS`` literal while the
+    director-reserved ``SE_DRAW_POPULATION`` flag is off (the seam returns
+    ``list(CUSTOMERS)``); additively carries the SYN acquisition cohort when
+    the flag is on. Extracted so the wiring is R15-testable both ways
+    (tests/tools/test_generate_dashboard_data_population_seam.py). The seam
+    omits the hidden ground-truth ``cohort`` by construction (epistemic wall).
+
+    HONEST SCOPE (asserted, not hidden): this replaces ONLY the two sites in
+    this module that read the ``CUSTOMERS`` acquisition literal directly as a
+    list (``extract_customers`` tariff map, ``extract_nudge_discovery`` lift
+    table). The ``get_customer(cid)`` lookups in ``extract_opex_ledger`` /
+    ``_resi_household_ids_from_active`` are deliberately NOT routed here: that
+    helper unions ``CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS``, so
+    routing it through ``live_population()`` (a CUSTOMERS-only + SYN book)
+    would DROP the successor/acquired records — the opposite of byte-identical.
+    Composing the SYN cohort into that wider union is a separate follow-on.
+    """
+    from simulation.live_population import live_population
+    return live_population()
+
+
 def count_company_modules():
     """Live count of company/*.py modules -- never manually maintained.
 
@@ -589,8 +614,12 @@ def extract_customers(data):
     )
     serial_savers = serial_saver_summary(data.get("retention_log", []))
 
-    # Lifetime per customer — pull tariff_type from CUSTOMERS master list
-    from saas.customers import CUSTOMERS as _CUSTS
+    # Lifetime per customer — pull tariff_type from the customer book, resolved
+    # through the single `live_population()` seam (generator draw-wiring,
+    # PRODUCT-FIRST item 2, report-lookup generator #2): BYTE-IDENTICAL while
+    # `SE_DRAW_POPULATION` is off, additively carrying the SYN acquisition
+    # cohort's tariff_type when the director-reserved flag is on.
+    _CUSTS = _resolve_book()
     _tariff_by_cid = {c["customer_id"]: c.get("tariff_type", "fixed") for c in _CUSTS}
 
     lifetime = {}
@@ -1393,8 +1422,12 @@ def extract_nudge_discovery(data):
     from company.analytics.nudge_discovery import (
         compute_framing_lift_by_segment, assess_framing_consumer_duty,
     )
-    from saas.customers import CUSTOMERS as _CUSTS
     from dataclasses import asdict
+    # Book resolved through the single `live_population()` seam (generator
+    # draw-wiring, PRODUCT-FIRST item 2, report-lookup generator #2):
+    # BYTE-IDENTICAL while `SE_DRAW_POPULATION` is off, additively carrying the
+    # SYN acquisition cohort into the lift table when the flag is on.
+    _CUSTS = _resolve_book()
 
     retention_log = data.get("retention_log", []) or []
     lift = compute_framing_lift_by_segment(retention_log, _CUSTS)
