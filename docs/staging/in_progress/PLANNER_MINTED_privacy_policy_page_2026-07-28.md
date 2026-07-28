@@ -1,4 +1,22 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+> **BUILT + R11-VERIFIED LIVE 2026-07-28** (worker tick, commit `a094c87b8`). `site/privacy/index.html`
+> is live at **https://poesys.net/privacy/** (HTTP 200; rendered content asserted on the deployed page:
+> simulation banner "no real customers and processes no real personal data", UK GDPR, Data Protection
+> Act 2018, PROVISIONAL label, Priority Services Register, ICO, `noindex`). A "Privacy" footer link is
+> live on both the home page (`href="./privacy/"`) and the customers page (`href="../privacy/"`) —
+> confirmed on the deployed surfaces. Site link-walk = 0 dead links; `pytest site/` = 348 passed.
+> Marker flipped self-drawable→blocked: the ONLY remaining sub-item is the **level claim**, which is
+> `blocked_on: director_level_up` (R16 — the agent proposes level, never moves the cell).
+>
+> **Sanity-finding disposition:** `coldwalk:no_privacy_policy_page` (register 6) is now genuinely
+> remediated. Per the RATIFIED answer `docs/design/GAP_TRIAGE_STALENESS_AND_BLASTRADIUS.md` §(a), a
+> remediated/stale row is dropped by the **read-time staleness filter in the GAP1 reader** (evidence:
+> the live page + this commit), **NOT** by mutating the ledger `state` (which honestly stays
+> `adjudicated-real` — it *was* real; and there is no `resolved` state in `_VALID_STATES`). That reader
+> is `PLANNER_MINTED_gap1_reader_contract_failopen_fix` BUILD half, blocked_on `director_build_open`.
+> The ledger is left untouched by design; the remediation evidence is recorded here for it and for any
+> re-adjudication cold-walk.
+
 # [PLANNER-MINTED] — Privacy-policy page (customer-facing legibility/credibility gap) (2026-07-28)
 
 **Source:** `PLANNER_MINTED_first_ranked_gap_list_2026-07-28` (GAP3) P3 + `DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28`
