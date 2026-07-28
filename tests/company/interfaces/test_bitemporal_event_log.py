@@ -295,6 +295,103 @@ class TestOutOfOrderArrivalInvariance:
         assert mutant_pick.value != live.value
 
 
+class TestFutureExclusionFilterMutationProof:
+    """2026-07-28 HARDEN (W1_reveal_over_time, Rule-0 dial=4 yielded self-
+    refill): R15 mutation-proof for the single most load-bearing line of the
+    whole reveal-over-time spine -- the `transaction_time <= decision_time`
+    future-exclusion filter carried IDENTICALLY by both as_known_at() and
+    history_as_known_at(). This is the literal 'a company decision cannot see
+    what was not yet knowable' control.
+
+    The gap this closes (found by red-teaming the existing coverage): the two
+    guard tests for this filter (test_none_when_decision_time_before_
+    transaction_time, test_excludes_facts_not_yet_knowable) are assert-CORRECT
+    only, and the one existing mutation test on this class
+    (test_MUTATION_last_inserted_wins_would_leak_under_out_of_order) targets a
+    DIFFERENT control -- the tie-break by transaction_time vs insertion order --
+    and in fact deliberately KEEPS this future-exclusion filter inside its
+    mutant. So nothing had ever reconstructed a future-LEAK mutant and proven
+    this specific filter fires on it. Per R15 doctrine (killer pattern 2,
+    FAIL-OPEN: a guard that only asserts correct behaviour is indistinguishable
+    from one that passes because the fixture happened to have no future record
+    to leak) and this atom's own established asserted->mutation-proven pattern
+    (the same-day-price leak, guard 2026-07-13 -> explicit mutation-proof
+    2026-07-24), reconstruct the mutant that DROPS the time filter, show the
+    not-yet-knowable record LEAKS, and show the live method EXCLUDES it -- the
+    ONLY difference between mutant and live is the filter, so the live pass is
+    attributable to the filter, not to the fixture.
+
+    Audit-the-sibling-half: both methods carry the same filter, so both are
+    mutation-proven here (a future refactor could weaken either independently).
+    """
+
+    def _log_with_a_future_only_fact(self):
+        """A fact whose valid_time is in the PAST relative to the decision but
+        whose transaction_time (when it became knowable) is in the FUTURE --
+        the exact real shape of a later settlement run / a same-day price not
+        yet published. Plus one genuinely-knowable fact so the log is not
+        empty and the mutant's leak is a real extra row, not the only row."""
+        log = BitemporalEventLog()
+        log.record("elec_spot", "price", dt.date(2020, 5, 1), _dt(2020, 5, 2), 40.0)   # knowable by decision
+        log.record("elec_spot", "price", dt.date(2020, 6, 1), _dt(2020, 6, 10), 99.0)  # NOT yet knowable at decision
+        return log
+
+    def test_MUTATION_as_known_at_future_filter_fires_on_leak(self):
+        log = self._log_with_a_future_only_fact()
+        decision = _dt(2020, 6, 5)  # after valid_time 6/1 but BEFORE its transaction_time 6/10
+        vt = dt.date(2020, 6, 1)
+
+        # MUTANT: the future-exclusion filter (transaction_time <= decision)
+        # DELIBERATELY OMITTED -- everything else identical to as_known_at().
+        candidates = [
+            r for r in log.all_records()
+            if r.entity_id == "elec_spot" and r.fact_type == "price"
+            and r.valid_time == vt
+        ]
+        mutant_pick = max(candidates, key=lambda r: (r.transaction_time, r.record_id))
+        assert mutant_pick.value == 99.0, (
+            "mutation-proof invalid: dropping the time filter did NOT surface a "
+            "not-yet-knowable record, so the guard proves nothing"
+        )
+
+        # LIVE CONTROL: must return None -- the fact was not knowable at decision.
+        live = log.as_known_at(decision, "elec_spot", "price", vt)
+        assert live is None, (
+            "as_known_at leaked a fact whose transaction_time is after the "
+            "decision -- the point-in-time blindfold is open"
+        )
+        assert mutant_pick.value != (live.value if live else None)
+
+    def test_MUTATION_history_as_known_at_future_filter_fires_on_leak(self):
+        log = self._log_with_a_future_only_fact()
+        decision = _dt(2020, 6, 5)
+        future_vt = dt.date(2020, 6, 1)
+
+        # MUTANT: replicate history_as_known_at's latest-per-valid_time logic
+        # with the `transaction_time > decision_time: continue` guard OMITTED.
+        latest = {}
+        for r in log.all_records():
+            if r.entity_id != "elec_spot" or r.fact_type != "price":
+                continue
+            existing = latest.get(r.valid_time)
+            if existing is None or (r.transaction_time, r.record_id) > (existing.transaction_time, existing.record_id):
+                latest[r.valid_time] = r
+        mutant_vts = sorted(latest)
+        assert future_vt in mutant_vts, (
+            "mutation-proof invalid: dropping the time filter did NOT admit the "
+            "not-yet-knowable valid_time into history"
+        )
+
+        # LIVE CONTROL: the not-yet-knowable valid_time must be absent.
+        live_vts = [r.valid_time for r in log.history_as_known_at(decision, "elec_spot", "price")]
+        assert future_vt not in live_vts, (
+            "history_as_known_at leaked a valid_time whose only record has a "
+            "transaction_time after the decision -- future-data leak"
+        )
+        assert live_vts == [dt.date(2020, 5, 1)]
+        assert mutant_vts != live_vts
+
+
 class TestDeepCopyNestedPayloads:
     """2026-07-27 HARDEN (G2_event_log_shared_with_spine, dial-yielded
     self-refill): G2's whole reason to exist is that ONE append-only log is
