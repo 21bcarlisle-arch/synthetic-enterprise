@@ -716,3 +716,50 @@ def test_baseline_entries_are_real_crossings():
         assert importing_domain is not None, file_rel
         assert imported_domain is not None, module_prefix
         assert importing_domain != imported_domain, (file_rel, module_prefix)
+
+
+def test_every_baseline_entry_suppresses_a_live_on_disk_crossing():
+    """R15 (fail-open on a stale referent, generalised to EVERY baseline entry).
+
+    ``test_baseline_entries_are_real_crossings`` above only checks the entry's
+    KEY strings classify to two different domains -- it never reads the importing
+    file, so it passes even if the grandfathered import was DELETED from disk
+    (the classic 'non-empty config != live referent' fail-open). A stale entry
+    left behind then silently widens the seam: a future re-introduction of that
+    exact crossing gets grandfathered again with no review.
+
+    This proves, end-to-end on real disk state, that every baseline entry is
+    both LIVE and removal-independent -- generalising the single-entry
+    ``test_mutation_removing_baseline_entry_reintroduces_violation`` to ALL
+    entries: remove the entry and the verifier MUST flag that exact crossing in
+    that exact file (so the import is genuinely present -- a deleted import would
+    make this fire 0 times and RED, catching the stale entry); restore it and the
+    file MUST be clean again (so the entry, not something else, is what suppresses
+    it). If either half fails the baseline is theatre, not a documented debt."""
+    for (file_rel, module_prefix) in list(seams.BASELINE_ALLOWLIST):
+        path = REPO_ROOT / file_rel
+        assert path.exists(), f"baseline entry names a missing file: {file_rel}"
+        saved = seams.BASELINE_ALLOWLIST.pop((file_rel, module_prefix))
+        try:
+            fired = [
+                v
+                for v in verifier.check_file(path)
+                if v.imported_module == module_prefix
+                or v.imported_module.startswith(module_prefix + ".")
+            ]
+            assert fired, (
+                f"baseline entry ({file_rel} -> {module_prefix}) is STALE: no "
+                f"live cross-domain import into {module_prefix} exists in "
+                f"{file_rel}, so the entry silently widens the seam. Remove it."
+            )
+        finally:
+            seams.BASELINE_ALLOWLIST[(file_rel, module_prefix)] = saved
+        # With the entry restored the crossing it grandfathers is suppressed
+        # again -- the entry is genuinely what silences it, not incidental.
+        residual = [
+            v
+            for v in verifier.check_file(path)
+            if v.imported_module == module_prefix
+            or v.imported_module.startswith(module_prefix + ".")
+        ]
+        assert residual == [], [str(v) for v in residual]
