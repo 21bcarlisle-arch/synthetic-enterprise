@@ -539,6 +539,36 @@ def test_run_loop_success_resets_the_failure_streak(tmp_path):
     assert summary.cycles == 6
 
 
+def test_escalation_does_not_disarm_the_repeated_failure_halt(tmp_path):
+    """R15 RED-TEAM (H19 HARDEN 2026-07-28, red-team of this atom's own core invariant
+    'a blocked atom blocks only itself / the loop keeps drawing').
+
+    An ESCALATION is a legitimate route-around, NOT successful progress — it must not
+    CLEAR the consecutive-failure streak the way a real `success` does. A wedged atom
+    whose turn ALTERNATES failed/escalated on the SAME wall pages the director exactly
+    once (fire-once gate); if the escalated branch also reset consecutive_failures, the
+    R3 repeated-failure HALT net would be silently DISARMED and the loop would burn real
+    per-cycle turn-spend forever on a broken atom — the silent-stall class this atom
+    exists to kill, relocated into a backoff loop.
+
+    MUTATION: restore `consecutive_failures = 0` in the escalated branch and this test
+    reds (stop_reason becomes 'max_cycles', never 'repeated_failure')."""
+    _enable(tmp_path)
+    # A single wedged atom whose turns alternate failing and hitting the SAME one-way door.
+    seq = iter(["failed", "escalated"] * 50)
+    alerts = []
+    summary = executor_governor.run_loop(
+        run_once_fn=lambda: _FakeResult(next(seq), atom_reason="THE wedged wall"),
+        max_cycles=100, max_consecutive_failures=2,
+        alert=lambda result, kind="": alerts.append(kind), sleep=lambda _s: None,
+    )
+    # Two failures with only a (non-progress) escalation between them = a wedged loop:
+    # the halt net MUST fire, not be masked by the escalation reset.
+    assert summary.stop_reason == "repeated_failure"
+    # And the director was paged for the wall exactly ONCE (fire-once), before the halt.
+    assert alerts == ["wall_escalated", "repeated_failure"]
+
+
 # ===========================================================================
 # The loop CONTINUES on success, and stops when the switch flips mid-run
 # ===========================================================================

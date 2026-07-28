@@ -439,7 +439,19 @@ def run_loop(
             # `break` here (halt); that reintroduced the human-at-a-terminal dependency
             # the whole autonomy stack exists to remove.
             reason = getattr(result, "atom_reason", None)
-            consecutive_failures = 0
+            # DO NOT reset consecutive_failures here (2026-07-28 HARDEN, red-team of this
+            # atom's own core invariant). An escalation is a legitimate route-around, NOT
+            # successful progress, so it must not CLEAR a failure streak — only a real
+            # `success` does (below). Resetting on escalation was a FAIL-OPEN of the R3
+            # repeated-failure HALT net: a wedged atom whose turn ALTERNATES failed/escalated
+            # on the SAME wall paged the director exactly ONCE (fire-once gate), then the reset
+            # kept consecutive_failures pinned below the threshold forever — the loop burned
+            # real per-cycle turn-spend on a broken atom with the wedged-detection safety net
+            # silently disarmed (reproduced empirically: 50 failures, 0 halts, 1 page). This is
+            # precisely the silent-stall class this atom exists to kill, relocated into a
+            # backoff loop. Leaving the counter untouched means escalations neither arm nor
+            # disarm R3 (a pure-escalation stream keeps cf=0 and never halts — correct), while
+            # genuine no-progress wedging still trips the halt.
             if reason not in escalated_reasons:
                 # A newly-seen distinct wall: NTFY its irreducible core ONCE (async), record
                 # it, and immediately keep drawing — a second distinct one-way door is NOT
