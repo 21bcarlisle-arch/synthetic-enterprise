@@ -33,7 +33,10 @@ Design stance (R15 -- this control must be able to FAIL):
     -- is resolved to its absolute runtime target against the ``package=``
     argument, so switching a static ``from ..billing import payments`` crossing to
     its relative-dynamic spelling cannot dodge the check either (see
-    ``_relative_dynamic_target``).
+    ``_relative_dynamic_target``). The module name may be passed by the ``name=``
+    KEYWORD rather than positionally -- ``import_module(name="company.billing.x")``
+    -- and is read from either position, so re-spelling the same call with a
+    keyword argument cannot dodge the check (a sibling R15 fail-open fix).
 The mutation test in tests/tools/test_internal_seam_verifier.py plants a fresh
 cross-domain import (static and dynamic forms) and asserts this verifier flags it.
 """
@@ -202,9 +205,24 @@ def _dynamic_import_target(
     is_dunder_import = isinstance(func, ast.Name) and func.id == "__import__"
     if not (is_import_module or is_dunder_import):
         return None
-    if not node.args:
+    # The module name is the FIRST parameter of both importlib.import_module and
+    # the builtin __import__ -- named ``name`` in each. It may be passed
+    # positionally OR by keyword (``import_module(name="company.billing.x")``),
+    # both legal Python. Reading only ``node.args[0]`` missed the keyword form,
+    # so a domain could evade the ENTIRE dynamic-import check -- which the
+    # positional form (2026-07-25) and the relative form (2026-07-28) already
+    # close -- simply by spelling the exact same call with ``name=`` (R15
+    # fail-open, sibling of those fixes). Read positional-first, else ``name=``.
+    first = None
+    if node.args:
+        first = node.args[0]
+    else:
+        for kw in node.keywords:
+            if kw.arg == "name":
+                first = kw.value
+                break
+    if first is None:
         return None
-    first = node.args[0]
     if not (isinstance(first, ast.Constant) and isinstance(first.value, str)):
         return None
     target = first.value

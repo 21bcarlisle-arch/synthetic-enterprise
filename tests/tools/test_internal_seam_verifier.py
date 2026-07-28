@@ -252,6 +252,93 @@ def test_aliased_dynamic_import_non_literal_target_is_a_declared_limit():
 
 
 # --------------------------------------------------------------------------
+# R15 MUTATION: the module name is the FIRST PARAMETER (`name`) of both
+# importlib.import_module and __import__ -- it may be passed positionally OR by
+# keyword. The check read only `node.args[0]`, so the keyword spelling
+# `import_module(name="company.billing.x")` -- legal Python, the exact same
+# call -- returned None and the crossing went INVISIBLE, re-opening the "evade
+# the ENTIRE seam via the dynamic form" hole the positional (2026-07-25) and
+# relative (2026-07-28) dynamic fixes exist to close, via a trivial re-spelling.
+# It must be flagged identically to the positional form.
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "import_line, expected_module, expected_domain",
+    [
+        # importlib.import_module(name=...) keyword form.
+        (
+            "import importlib\n"
+            "m = importlib.import_module(name='company.billing.payments')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # bare import_module(name=...) keyword form.
+        (
+            "from importlib import import_module\n"
+            "m = import_module(name='company.billing.payments')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # builtin __import__(name=...) keyword form.
+        (
+            "m = __import__(name='company.billing.invoice')",
+            "company.billing.invoice",
+            "billing",
+        ),
+        # keyword name= resolving to the SPECIFIC collections submodule.
+        (
+            "import importlib\n"
+            "m = importlib.import_module(name='company.billing.collections')",
+            "company.billing.collections",
+            "collections",
+        ),
+        # keyword name= composed with the RELATIVE-dynamic form (package=).
+        (
+            "import importlib\n"
+            "m = importlib.import_module(name='.payments', package='company.billing')",
+            "company.billing.payments",
+            "billing",
+        ),
+    ],
+)
+def test_mutation_keyword_name_dynamic_cross_domain_import_is_flagged(
+    import_line, expected_module, expected_domain
+):
+    """A pricing file reaching into billing/collections via a dynamic import
+    whose module name is passed by the `name=` KEYWORD MUST be flagged,
+    identically to its positional form. Returned [] before the keyword-arg
+    fix -- this would have RED then."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_kwname_probe.py"
+    planted.write_text(import_line + "  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == expected_domain
+    assert v.imported_module == expected_module
+
+
+def test_keyword_name_non_literal_target_is_a_declared_limit():
+    """Boundary of the keyword-arg fix: `import_module(name=variable)` is still
+    the documented heuristic limit -- unresolved, no crash, no false positive --
+    exactly as the positional non-literal target is."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_kwnamevar_probe.py"
+    planted.write_text(
+        "import importlib\n"
+        "name = 'company.billing.payments'\n"
+        "m = importlib.import_module(name=name)  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert violations == [], [str(v) for v in violations]
+
+
+# --------------------------------------------------------------------------
 # R15 MUTATION: a RELATIVE DYNAMIC import -- importlib.import_module(".mod",
 # package="pkg") -- resolves at RUNTIME to an absolute module and can cross a
 # domain boundary exactly like `from ..billing import payments`. The static
