@@ -654,3 +654,99 @@ class TestHardenPassFixes:
         # Explosion returns the sentinel, not a truncated list.
         exploded = mod._expand_braces("/".join("{a,b}" for _ in range(12)))
         assert exploded == [mod._BRACE_EXPLOSION]
+
+    # ------------------------------------------------------------------
+    # 2026-07-28 HARDEN pass #4: EXTGLOB-alternation escape -- the sibling
+    # of the brace finding. The real Glob engine (minimatch/node-glob family)
+    # expands @(a|b)/+(a|b)/?(a|b)/*(a|b)/!(a); pathlib does not, and the
+    # operator chars (@ + ! ( ) |) are absent from both _expand_braces and
+    # _spans_whole_tree's metachar set, so a crossing/traversing extglob
+    # alternative slipped every gate (all OBSERVED rc=0 at the hook; the
+    # end-to-end cross via the real Glob tool is INFERRED, R9). Closed by
+    # rewriting extglobs to the same brace form _expand_braces expands, with
+    # !() negation failing CLOSED as a span.
+    # ------------------------------------------------------------------
+    def test_extglob_first_segment_alternation_into_sim_denied(self):
+        # @(company|sim) matches the denied 'sim' top-level dir.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "@(company|sim)/**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_extglob_plus_alternation_into_sim_denied(self):
+        # +(sim|company): one-or-more, denied side is one of the alternatives.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "+(sim|company)/**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_extglob_deep_alternative_traversal_into_sim_denied(self):
+        # A `../sim` alternative inside an extglob, behind a concrete allowed
+        # 'company' first segment -- the exact sibling of the brace-traversal
+        # finding, in extglob syntax.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "company/@(crm|../sim)/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_extglob_deep_traversal_into_company_denied_from_sim_lane(self):
+        # Sibling half, sim lane: '../company' hidden in an extglob behind 'sim'.
+        result = _run(
+            {"tool_name": "Glob",
+             "tool_input": {"pattern": "sim/@(cache_store.py|../company/pricing/tariff_engine.py)"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 2
+
+    def test_extglob_negation_fails_closed(self):
+        # !(company|saas) matches an open-ended set that INCLUDES sim/simulation
+        # -- un-enumerable, so it must fail CLOSED (denied as a span), never
+        # silently pass as an unrecognised operator.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "!(company|saas)/**/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_pure_own_side_extglob_still_allowed(self):
+        # False-positive guard: an extglob whose every alternative stays on the
+        # caller's own side must still pass -- the fix is precise, not a blanket
+        # extglob-deny.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "company/@(crm|compliance)/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_own_side_star_extglob_with_empty_option_allowed(self):
+        # False-positive guard for the zero-or-more form: *(crm) expands to the
+        # alternative AND the empty string, both confined to the own side.
+        result = _run(
+            {"tool_name": "Glob", "tool_input": {"pattern": "company/*(crm)/*.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0
+
+    def test_extglobs_to_braces_unit_semantics(self):
+        # Direct unit check of the extglob->brace rewrite the subprocess tests
+        # rely on: @/+ -> {alts} (bare literal when single), ?/* -> {alts,}
+        # (empty option), !() -> explosion sentinel (fail CLOSED), literal
+        # operator chars untouched.
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("lane_wall_hook", LANE_WALL_HOOK)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        assert mod._extglobs_to_braces("@(a|b)/x") == "{a,b}/x"
+        assert mod._extglobs_to_braces("+(a|b)/x") == "{a,b}/x"
+        assert mod._extglobs_to_braces("?(a|b)/x") == "{a,b,}/x"
+        assert mod._extglobs_to_braces("*(a|b)/x") == "{a,b,}/x"
+        assert mod._extglobs_to_braces("@(only)/x") == "only/x"  # single -> bare
+        assert mod._extglobs_to_braces("!(a)/x") == mod._BRACE_EXPLOSION  # negation fails closed
+        assert mod._extglobs_to_braces("plain/foo@bar.py") == "plain/foo@bar.py"  # literal @ untouched
+        # Composes with the brace expander end to end: one crossing alternative
+        # surfaces in the expansion set.
+        assert "company/../sim/*.py" in mod._expand_globs("company/@(crm|../sim)/*.py")

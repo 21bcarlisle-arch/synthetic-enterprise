@@ -199,6 +199,123 @@ def _expand_braces(s: str) -> list[str]:
 _BRACE_EXPLOSION = "\x00brace-explosion\x00"
 
 
+# 2026-07-28 HARDEN pass #4 (fresh red-team of the AT-target atom, Rule-0
+# self-refill dial=1 yielded -- no below-target work). A NEW fail-open class,
+# the SIBLING of the same-day brace-expansion finding: the glob engine behind
+# the real Glob tool (minimatch / node-glob family) supports EXTGLOB
+# alternations -- @(a|b) (exactly one), +(a|b) (one or more), ?(a|b) (zero or
+# one), *(a|b) (zero or more), !(a) (anything but a) -- which pathlib does NOT
+# expand, and whose operator characters (@ + ! ( ) |) are ALL absent from both
+# _expand_braces (only {}) and _spans_whole_tree's metachar set (*?[]{}). So an
+# extglob alternative carrying a denied top-level dir, or a ../ traversal,
+# slips past every gate exactly as the brace form did:
+#   @(company|sim)/**/*.py     -> engine matches sim/ ; hook ALLOWED (rc=0)
+#   +(sim|company)/**/*.py     -> denied side is an alternative ; ALLOWED
+#   company/@(crm|../sim)/*.py -> ../sim escapes concrete 'company' ; ALLOWED
+#   !(company|saas)/**/*.py    -> negation selects sim/simulation ; ALLOWED
+# All four OBSERVED rc=0 at the hook under SE_LANE=supplier; the end-to-end
+# cross via the real Glob TOOL is INFERRED from standard extglob semantics
+# (R9 -- the Glob tool was unavailable this worker session to demo end-to-end),
+# not asserted as demonstrated. Closed as a CLASS by rewriting extglob
+# alternations into the SAME brace form the tested _expand_braces already
+# expands+caps -- @/+ -> {alts} (or the bare alternative when there is only
+# one, so it isn't mistaken for a literal single-element brace), ?/* -> {alts,}
+# (they also match the empty string) -- then checking every expansion. A !()
+# NEGATION matches an open-ended set that can include the denied side and
+# cannot be enumerated into a finite crossing set, so it fails CLOSED via the
+# explosion sentinel (denied as a span). A pure own-side extglob
+# (company/@(crm|compliance)/*.py) expands to allowed paths only and still
+# passes (false-positive-guarded).
+_EXTGLOB_OPS = "?*+@!"
+
+
+def _split_top_level_pipes(s: str) -> list[str]:
+    """Split `s` on `|` separators sitting at brace-depth 0 -- a `|` inside an
+    already-converted nested `{...}` group is that group's own content, not
+    this extglob's alternative separator."""
+    parts: list[str] = []
+    depth = 0
+    cur = ""
+    for ch in s:
+        if ch == "{":
+            depth += 1
+            cur += ch
+        elif ch == "}":
+            depth -= 1
+            cur += ch
+        elif ch == "|" and depth == 0:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    parts.append(cur)
+    return parts
+
+
+def _extglobs_to_braces(s: str) -> str:
+    """Rewrite shell/minimatch EXTGLOB alternations into the equivalent brace
+    alternation so the existing _expand_braces machinery expands them to the
+    same path set the real glob engine walks. @(a|b) / +(a|b) -> {a,b};
+    ?(a|b) / *(a|b) -> {a,b,} (they also match the empty string); a single
+    alternative under @/+ becomes the bare literal (not `{x}`, which
+    _expand_braces would keep as literal-text and _spans_whole_tree would then
+    deny as a metachar span -- a false positive). A !(...) NEGATION matches an
+    open-ended name set that can include the denied side and cannot be
+    enumerated, so it returns the explosion sentinel and is denied as a span
+    (fail CLOSED). Nested extglobs are converted recursively; an unbalanced
+    operator-paren is left literal (don't guess); an operator char NOT followed
+    by `(` (a literal `@`/`+`/`!` in a filename) is untouched."""
+    out: list[str] = []
+    i = 0
+    n = len(s)
+    while i < n:
+        ch = s[i]
+        if ch in _EXTGLOB_OPS and i + 1 < n and s[i + 1] == "(":
+            depth = 0
+            close = None
+            for j in range(i + 1, n):
+                if s[j] == "(":
+                    depth += 1
+                elif s[j] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        close = j
+                        break
+            if close is None:
+                out.append(ch)  # unbalanced -- literal, don't guess
+                i += 1
+                continue
+            if ch == "!":
+                return _BRACE_EXPLOSION  # negation: un-enumerable -> fail CLOSED
+            inner_converted = _extglobs_to_braces(s[i + 2 : close])
+            if inner_converted == _BRACE_EXPLOSION:
+                return _BRACE_EXPLOSION
+            alts = _split_top_level_pipes(inner_converted)
+            if ch in "?*":
+                out.append("{" + ",".join(alts) + ",}")  # zero-or-one/more: allow empty
+            elif len(alts) == 1:
+                out.append(alts[0])  # exactly-one/one-or-more, single alt: bare literal
+            else:
+                out.append("{" + ",".join(alts) + "}")
+            i = close + 1
+        else:
+            out.append(ch)
+            i += 1
+    return "".join(out)
+
+
+def _expand_globs(target: str) -> list[str]:
+    """Expand BOTH extglob alternations and brace alternations to the full
+    literal path set the real glob engine walks -- the single entry main() uses
+    so every expansion is normalized and wall-checked. Propagates the explosion
+    sentinel (brace cap exceeded, or a !() negation) unchanged so main() denies
+    it as a span."""
+    converted = _extglobs_to_braces(target)
+    if converted == _BRACE_EXPLOSION:
+        return [_BRACE_EXPLOSION]
+    return _expand_braces(converted)
+
+
 def _spans_whole_tree(normalized: str) -> bool:
     """A search whose normalized target reaches BOTH sides of the wall
     reaches the denied side regardless of which lane is active -- yet it
@@ -391,16 +508,17 @@ def main() -> int:
         return 2
 
     for raw_target in _target_paths(tool_name, tool_input):
-        # Expand brace alternations to the SAME path set the real Glob engine
-        # sees (pathlib does not) -- one crossing alternative denies the call.
-        for raw_path in _expand_braces(raw_target):
+        # Expand brace AND extglob alternations to the SAME path set the real
+        # Glob engine sees (pathlib does neither) -- one crossing alternative
+        # (or an un-enumerable negation) denies the call.
+        for raw_path in _expand_globs(raw_target):
             if raw_path == _BRACE_EXPLOSION:
                 _log_denial(lane, tool_name, raw_target)
                 sys.stderr.write(
                     "DENIED by lane_wall_hook.py: this session is lane={} -- {} on {!r} "
-                    "expands to an unbounded set of paths (brace explosion) that cannot "
-                    "be shown to stay on your side of the wall. Scope it to a concrete "
-                    "directory.\n".format(lane, tool_name, raw_target)
+                    "expands to an unbounded or un-enumerable set of paths (brace explosion "
+                    "or a !() negation) that cannot be shown to stay on your side of the "
+                    "wall. Scope it to a concrete directory.\n".format(lane, tool_name, raw_target)
                 )
                 return 2
             normalized = _normalize_path(raw_path)
