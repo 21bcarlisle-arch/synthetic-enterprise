@@ -1,4 +1,6 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+> **DISCOVER HALF DELIVERED (2026-07-28 tick):** the proposed method is written at `docs/design/GAP_TRIAGE_AND_RANKING.md` (taxonomy, ranking dimensions, mint threshold, deliberate-and-staying test, R12 guard, argue-back on the two source caveats). It RETURNS FOR RATIFICATION and is HELD — the taxonomy is NOT self-applied to any gap. **UNBLOCKS:** director ratification (or amendment) of the method via `[ACT]` — then GAP3 (apply to GAP1's live residue → ranked list) becomes drawable. Parked blocked on `director_ratification` until then.
+
 # [PLANNER-MINTED / PROPOSE-THEN-RETURN-FOR-RATIFICATION] — GAP2: propose the gap triage & ranking method (2026-07-28)
 
 **Source:** DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28.md, deliverable 2.

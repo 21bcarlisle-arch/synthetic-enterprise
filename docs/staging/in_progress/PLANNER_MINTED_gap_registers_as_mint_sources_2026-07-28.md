@@ -1,4 +1,6 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+> **DISCOVER HALF DELIVERED (2026-07-28 tick):** exit criterion (a) — the mint-source contract naming each register's primary-state path + OPEN-marking field — is written at `docs/design/GAP_REGISTER_MINT_SOURCE_CONTRACT.md`. **UNBLOCKS:** the BUILD half (b)/(c)/(d) needs a director `BUILD_OPEN` for `H_harness` (or an H-lane `FRONT_OPEN`) in `gate_authorizations.jsonl` — the standing harness-BUILD demotion (R16: ledger-only, the agent cannot self-authorize). Parked blocked on `director_build_open` until then.
+
 # [PLANNER-MINTED] — GAP1: wire the published gap registers as planner mint sources, with the whole-set enumeration reporting them (2026-07-28)
 
 **Source:** DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28.md, deliverable 1.
