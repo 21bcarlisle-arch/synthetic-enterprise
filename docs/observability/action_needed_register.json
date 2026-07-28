@@ -8,6 +8,16 @@
     "what": "Sign the harm:loss weighting ratio (R13 curriculum) that turns the belief-vs-truth gap into a score",
     "why": "The gap SCORE depends on these weights; the agent framed the decision (R~8:1, flip-point R*=1 at p=0.5) but must NEVER tune them toward a gap number (R13). Placeholders ship until you sign."
   },
+  "CA_cohort_promotion_batch": {
+    "first_asked_at": "2026-07-28T11:34:49.007208+00:00",
+    "how": "Four CA atoms are BUILT at L3-quality, level_current=0, awaiting your level ratification (R16 -- ledger is authority; agent proposes, director ratifies). CA1_cohort_assignment_live -> L3: assign_cohorts seam-flip, R15 both-ways proven, byte-identical regression green. CA2_coverage_report_realised_cohort -> L3: joint-coverage report, 12-cell knee survives the real draw (N_scored=198), R11-verified. CA3_segmentation_untestable_ledger_marking -> L3: untestable-at-current-book class mechanism, 23 tests green (publish-wiring is a named follow-on, consumed != absorbed). CA4_cohort_activation_sequencing_verdict -> L1: a written go/no-go verdict (PROCEED, all three counter-proposal triggers checked with disk/git evidence) -- the lightest of the four. CA4 is L1-eligible via the twin's standing L1/L2 authority, but is BATCHED here for a single dense touch (per this ruling's own 'fewer advisor interventions / prefer one dense [ACT]' guidance; and ratify_routine_level is ROUTINE-scoped, CA4 is a maturity-map atom). HONEST CAVEAT (ruling s2): CA1's flip is presently LATENT behind the still-director-reserved SE_DRAW_POPULATION (default off) -- it arms the release rung, changes nothing observable today; company-side segmentation stays UNTESTABLE at the current 14-customer book (CA3), NOT scored as working. Reply with the level ratifications (all/some) and I move level_current with the ledger reference.",
+    "item_id": "CA_cohort_promotion_batch",
+    "last_pinged_at": "2026-07-28T11:34:49.007208+00:00",
+    "last_sent_at": "2026-07-28T11:34:51.850735+00:00",
+    "resolved": false,
+    "what": "Ratify cohort-activation level moves (ONE dense batch): CA1/CA2/CA3 -> L3, CA4 -> L1.",
+    "why": "DIRECTOR_RULING_UNBLOCK_BATCH_2026-07-28 item 2: cohort assignment is BUILT, blocked on level_up; 'must not remain blocked-and-silent'. The ruled activation (e685eb76d) stands: ratified values, no tuning, elicitation wall re-proven. L3 is director-reserved (R16); CA4 L1 batched for a single dense touch."
+  },
   "W2_2_population_draw": {
     "answer": "Profile B \u2014 trickle continuation at ~1 synthetic customer/yr from 2021, matching the 2017-2020 acquisition pace (near-flat, steady-state supplier). Director-decided in-console 2026-07-14 (re-affirmed; first decided 2026-07-13, answer evaporated with no channel record).",
     "first_asked_at": "2026-07-13T11:08:04.111016+00:00",
@@ -94,15 +104,15 @@
     "why": "Honesty (R9/no-orphan): I paged you 'triad closed, ratify L3' -- that was premature and it wedged your window. The measurement is real + preserved; only its shared-ledger registration + the map coupling are outstanding. Correcting the pending decision so you don't ratify on a premature claim."
   },
   "publish_gate_wedged": {
-    "answer": "Auto-resolved: the publish gate recovered and a run published cleanly at 2026-07-18T21:26:07.197799+00:00.",
+    "answer": "Auto-resolved: the publish gate recovered and a run published cleanly at 2026-07-28T10:38:55.788670+00:00.",
     "first_asked_at": "2026-07-18T15:21:58.968619+00:00",
     "how": "Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run the fast suite locally to find the regression. The alarm clears automatically on the next clean publish.",
     "item_id": "publish_gate_wedged",
-    "last_pinged_at": "2026-07-18T20:22:20.317929+00:00",
-    "last_sent_at": "2026-07-18T20:24:08.285794+00:00",
+    "last_pinged_at": "2026-07-28T09:37:20.275568+00:00",
+    "last_sent_at": "2026-07-28T09:41:19.837664+00:00",
     "resolved": true,
-    "resolved_at": "2026-07-18T21:26:07.202490+00:00",
-    "what": "The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=c2493fec1).",
+    "resolved_at": "2026-07-28T10:38:55.793219+00:00",
+    "what": "The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=6c9fa672b).",
     "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15)."
   },
   "routines-cloud-environment-id": {
@@ -113,84 +123,6 @@
     "resolved": true,
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
-  },
-  "staged:ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md": {
-    "answer": "FILED per its own disposition (reference canon, not a work programme): moved to docs/design/. NOT decomposed/actioned (director: inspire-not-disturb).",
-    "first_asked_at": "2026-07-18T06:38:24.862432+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md",
-    "last_pinged_at": "2026-07-18T06:38:24.862432+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T06:47:10.176414+00:00",
-    "what": "New staged instruction: ADVISOR_IDEAS_CROSS_DISCIPLINE_2026-07-18.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
-  },
-  "staged:ADVISOR_STEER_PUBLISH_GATE_R3_ESCALATION_2026-07-18.md": {
-    "answer": "Advisor R3 escalation ACTIONED per its ask (determine deployed-vs-broken with evidence, do not patch a 7th time): determined NEITHER hypothesis -- both wedges self-inflicted, fixed at the class level. Full detail on the linked publish_gate_wedged item. Gate green.",
-    "first_asked_at": "2026-07-18T17:00:22.194857+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:ADVISOR_STEER_PUBLISH_GATE_R3_ESCALATION_2026-07-18.md",
-    "last_pinged_at": "2026-07-18T17:00:22.194857+00:00",
-    "last_sent_at": "2026-07-18T17:00:26.505972+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T19:11:46.000065+00:00",
-    "what": "New staged instruction: ADVISOR_STEER_PUBLISH_GATE_R3_ESCALATION_2026-07-18.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
-  },
-  "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md": {
-    "answer": "DONE: already in docs/staging/done/. Stale register entry closed.",
-    "first_asked_at": "2026-07-16T21:53:34.928472+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
-    "last_pinged_at": "2026-07-17T21:57:11.328207+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T06:47:10.175545+00:00",
-    "what": "New staged instruction: DIRECTOR_ANSWER_FINISH_NOT_OPEN.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
-  },
-  "staged:ESCALATION_IS_NTFY_NEVER_WINDOW.md": {
-    "answer": "DONE: codified as a P0 WALL in CLAUDE.md; already in done/. Stale register entry closed.",
-    "first_asked_at": "2026-07-16T21:53:37.738768+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:ESCALATION_IS_NTFY_NEVER_WINDOW.md",
-    "last_pinged_at": "2026-07-17T21:57:13.899329+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T06:47:10.175846+00:00",
-    "what": "New staged instruction: ESCALATION_IS_NTFY_NEVER_WINDOW.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
-  },
-  "staged:OPERATIONAL_COHERENCE_DESIGN_PASS.md": {
-    "answer": "DONE: design deliverable landed (docs/design/OPERATIONAL_LAYER_DESIGN.md); rebuild = atom OPS1 (live-migrated). Doc archived to done/. Triage-classified DONE.",
-    "first_asked_at": "2026-07-17T06:25:45.715473+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:OPERATIONAL_COHERENCE_DESIGN_PASS.md",
-    "last_pinged_at": "2026-07-18T06:26:31.089121+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T06:47:10.175274+00:00",
-    "what": "New staged instruction: OPERATIONAL_COHERENCE_DESIGN_PASS.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
-  },
-  "staged:PARALLEL_RUNG_HARNESS_PRUNING_EVALUATION.md": {
-    "answer": "PARKED/HELD (triage REAL): held until OPS1 sub-steps 5-7 land + serial autonomy boring; tracked in in_progress/. Not action-needed now; the re-ping was noise.",
-    "first_asked_at": "2026-07-17T13:41:52.134962+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:PARALLEL_RUNG_HARNESS_PRUNING_EVALUATION.md",
-    "last_pinged_at": "2026-07-17T13:41:52.134962+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T06:47:10.176243+00:00",
-    "what": "New staged instruction: PARALLEL_RUNG_HARNESS_PRUNING_EVALUATION.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
-  },
-  "staged:ROUTE_AROUND_BEFORE_STOPPING.md": {
-    "answer": "DONE: actioned; already in done/. Stale register entry closed.",
-    "first_asked_at": "2026-07-16T21:53:40.318566+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:ROUTE_AROUND_BEFORE_STOPPING.md",
-    "last_pinged_at": "2026-07-17T21:57:16.459772+00:00",
-    "resolved": true,
-    "resolved_at": "2026-07-18T06:47:10.176099+00:00",
-    "what": "New staged instruction: ROUTE_AROUND_BEFORE_STOPPING.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
   },
   "walled-interfaces-priority-rank": {
     "first_asked_at": "2026-07-11T05:21:26.663659+00:00",

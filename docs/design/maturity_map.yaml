@@ -2407,7 +2407,6 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  blocked_on: "propose-then-proceed BUILD window closes 2026-07-28 (R13 baseline discipline, no interim tuning); then director_level_up"
   dial_inherited: 3
   evidence: ['docs/staging/in_progress/PLANNER_MINTED_merit_order_reconstruction_discover_2026-07-25.md', 'docs/design/frame/W1_6_merit_order_reconstruction_FRAME.md', 'docs/market_research/ssp_multiplant_srmc_stack_heat_rates_2026-07-25.md', 'docs/staging/DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE_2026-07-27.md']
   file_scope: [sim, tests/sim]
