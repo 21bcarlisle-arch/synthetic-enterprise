@@ -1,13 +1,30 @@
-# [PLANNER-MINTED / DEP-BLOCKED] — GAP3: the first ranked gap list, marking which are deliberate-and-staying (2026-07-28)
+# [PLANNER-MINTED] — GAP3: the first ranked gap list, marking which are deliberate-and-staying (2026-07-28)
 
-<!-- SUPERVISOR_DRAW: blocked -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
 
-**Source:** DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28.md, deliverable 3.
+**Source:** DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28.md, deliverable 3 — **and now
+`DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28.md` deliverable 1** ("Apply the ratified taxonomy;
+GAP3's first ranked list, with buckets and rationale"), which UNBLOCKS this atom.
 
-**UNBLOCKS ON:** GAP2's triage-and-ranking method is director-**ratified** (the method must exist and
-be approved before a list can honestly apply it) AND GAP1's register enumeration is available (the
-residue to rank over). Both are minted this same tick; GAP3 is the third-in-sequence product and is
-parked BLOCKED until they land — surfaced here so the enumeration counts it, never drawn prematurely.
+**UNBLOCKED 2026-07-28 (ratification tick):** GAP2's triage-and-ranking method was **director-ratified**
+(`DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28.md` §1) and GAP1's register enumeration is available
+as the written mint-source contract (`docs/design/GAP_REGISTER_MINT_SOURCE_CONTRACT.md`, GAP1 DISCOVER
+half). Both preconditions now hold → **GAP3 is drawable NOW** (doc-only DISCOVER: apply the ratified
+method to the registers per the GAP1 contract; the reader-BUILD residue is not required — the method
+ranks over the enumerated registers directly).
+
+**APPLY THE §1 RATIFICATION AS-RATIFIED (not the raw proposal):** the ranked list must honour the
+ratified specifics — (i) the **asymmetric bound default**: below threshold *with* a measured bound →
+`not-worth-the-complexity`; below threshold *without* one → `mint` at low rank (measure the gap); (ii)
+the **faced-or-scheduled condition** on `deliberate-and-staying` (a simplification the harness has never
+been exposed to is an untested assumption, not a proven scope choice — route it to `mint`, not
+`deliberate-and-staying`); (iii) **board-battery weight = 3 mints regardless of composite**; (iv) both
+**argue-back filters as filters-within-sources** — held SSP-baseline cells route to `blocked-on-director`
+and are NEVER `mint` residue (reading them as mint re-opens a settled R12 goal-seek trap), standing
+sanity findings are filtered on adjudication verdict so only adjudicated-real rows are residue.
+**AMENDMENT §2 (binding on this list):** any row this list moves **INTO** `deliberate-and-staying`
+**returns for director ratification** (batched, via the deliverable-3 inbound path); moves toward `mint`
+are autonomous. So GAP3 PROPOSES the `deliberate-and-staying` set — it does not self-enact it.
 
 **Provenance:** RUNG-7 planner mint from the ruling's WORK THIS CREATES block. No existing atom/mint
 produces a ranked gap list. Distinct from GAP1 (enumerate) and GAP2 (method): GAP3 *applies* the
