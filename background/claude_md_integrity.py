@@ -220,6 +220,48 @@ def rules_targeting_missing_paths(text: str, root: Path = PROJECT_DIR) -> list[s
     return problems
 
 
+def rules_matching_no_files(text: str, root: Path = PROJECT_DIR) -> list[str]:
+    """A FIRING rule whose `paths:` glob's static prefix directory EXISTS but
+    whose full glob matches ZERO files is INERT one level deeper than
+    `rules_targeting_missing_paths` catches: its prefix resolves (so that check
+    passes) yet the leaf pattern matches nothing on disk, so the path-scoped
+    reminder never actually loads.
+
+    This closes a completeness gap in the *same invariant* the two checks above
+    assert — "the rule fires on nothing". `inert_rules` covers no/empty `paths:`;
+    `rules_targeting_missing_paths` covers a dead prefix directory; but a glob
+    like `company/**/*.py` after every matching file is moved/renamed out (the
+    portability doctrine permits reorganisation, not only top-level renames)
+    leaves the prefix dir intact while the reminder silently dies — proven
+    fail-open against both prior checks, 2026-07-28.
+
+    Independence (R15, anti-tautology): the checked value is the real filesystem
+    (does the glob match ≥1 file), the oracle is the glob string the rule itself
+    declares — two independent sources. A dead PREFIX is
+    `rules_targeting_missing_paths`' job: this check only judges globs whose
+    prefix resolves (no double-report). Empty list ⇒ every firing rule's glob
+    matches at least one real file.
+    """
+    if not _RULES_DIR_REF.search(text):
+        return []
+    rules_dir = root / ".claude" / "rules"
+    if not rules_dir.is_dir():
+        return []  # inert_rules already reports a missing rules directory
+    problems: list[str] = []
+    for f in sorted(rules_dir.glob("*.md")):
+        for glob in _rule_globs(f.read_text(encoding="utf-8")):
+            prefix = _glob_prefix_dir(glob)
+            if prefix and not (root / prefix).is_dir():
+                continue  # dead prefix => rules_targeting_missing_paths owns it
+            if next(iter(root.glob(glob)), None) is None:
+                problems.append(
+                    f".claude/rules/{f.name} declares `paths:` glob '{glob}' that matches "
+                    "ZERO files on disk — the rule fires on nothing (its target tree was "
+                    "reorganised/emptied while the directory itself survived)"
+                )
+    return problems
+
+
 def _skill_fires(skill_text: str) -> bool:
     """True iff a SKILL.md would actually register/route: it has a top-of-file
     frontmatter block declaring a non-empty `name:` AND a non-empty
@@ -281,6 +323,7 @@ def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
         )
     problems += inert_rules(text, root)
     problems += rules_targeting_missing_paths(text, root)
+    problems += rules_matching_no_files(text, root)
     problems += inert_skills(text, root)
     return problems
 

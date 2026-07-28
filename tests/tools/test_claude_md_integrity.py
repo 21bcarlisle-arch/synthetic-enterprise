@@ -276,6 +276,81 @@ def test_glob_prefix_dir_extraction():
     assert integ._glob_prefix_dir("sim/*.py") == "sim"
 
 
+# --- rules_matching_no_files: zero-match glob (one level below dead-prefix) ----
+# (2026-07-28 HARDEN red-team: rules_targeting_missing_paths checks the glob's
+# static PREFIX dir exists, but not that the glob matches ≥1 file. A rule glob
+# 'company/**/*.rs' (or 'company/**/*.py' after every .py is moved out) has a
+# live prefix yet matches zero files — fires on nothing while both prior checks
+# pass. Proven fail-open below; this closes the same "fires on nothing"
+# invariant those checks assert. R15 both-ways.)
+
+
+def test_real_claude_md_rule_globs_all_match_files():
+    """LIVE control: every firing rule's `paths:` glob in the real repo matches
+    at least one file on disk (company/ saas/ sim/ simulation/ are populated)."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    assert integ.rules_matching_no_files(text, REPO_ROOT) == []
+
+
+def test_zero_match_glob_fires(tmp_path):
+    """FAIL-SILENT mutation: a rule whose glob's prefix dir EXISTS but matches no
+    files fires on nothing — and BOTH prior checks are blind to it (the gap this
+    check closes)."""
+    (tmp_path / "company").mkdir()
+    (tmp_path / "company" / "x.py").write_text("pass")  # prefix populated, but not with .rs
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "company/**/*.rs"\n---\n\n# Body\n',
+    )
+    # Both prior checks are blind to it:
+    assert integ.inert_rules(_RULE_CLAIM, tmp_path) == []
+    assert integ.rules_targeting_missing_paths(_RULE_CLAIM, tmp_path) == []
+    problems = integ.rules_matching_no_files(_RULE_CLAIM, tmp_path)
+    assert any("company/**/*.rs" in p and "ZERO files" in p for p in problems)
+
+
+def test_zero_match_glob_passes_when_files_present(tmp_path):
+    """The restore direction: the same-shape rule passes once a matching file
+    exists under the prefix."""
+    (tmp_path / "company").mkdir()
+    (tmp_path / "company" / "x.py").write_text("pass")
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "company/**/*.py"\n---\n\n# Body\n',
+    )
+    assert integ.rules_matching_no_files(_RULE_CLAIM, tmp_path) == []
+
+
+def test_zero_match_check_does_not_double_report_dead_prefix(tmp_path):
+    """A rule whose PREFIX dir is missing is rules_targeting_missing_paths' job —
+    rules_matching_no_files stays silent so the two never double-count."""
+    _write_rule(
+        tmp_path / ".claude" / "rules",
+        "wall.md",
+        '---\npaths:\n  - "ghost/**/*.py"\n---\n\n# Body\n',
+    )
+    assert integ.rules_matching_no_files(_RULE_CLAIM, tmp_path) == []          # silent here
+    assert integ.rules_targeting_missing_paths(_RULE_CLAIM, tmp_path) != []    # owned there
+
+
+def test_zero_match_check_silent_when_no_rules_claim(tmp_path):
+    """No claim in CLAUDE.md ⇒ nothing to verify (even with a zero-match rule)."""
+    (tmp_path / "company").mkdir()
+    _write_rule(tmp_path / ".claude" / "rules", "wall.md", '---\npaths:\n  - "company/**/*.rs"\n---\n')
+    assert integ.rules_matching_no_files("no rules mention", tmp_path) == []
+
+
+def test_full_check_fires_on_zero_match_glob(tmp_path):
+    """End-to-end: check() surfaces a firing rule whose glob matches no files."""
+    (tmp_path / "CLAUDE.md").write_text(_RULE_CLAIM, encoding="utf-8")
+    (tmp_path / "company").mkdir()
+    (tmp_path / "company" / "x.py").write_text("pass")
+    _write_rule(tmp_path / ".claude" / "rules", "wall.md", '---\npaths:\n  - "company/**/*.rs"\n---\n')
+    assert any("ZERO files" in p for p in integ.check(root=tmp_path))
+
+
 # --- inert_skills: sibling-half of inert_rules on the SKILLS side -------------
 # (2026-07-27 HARDEN red-team, "audit sibling half for hardened class": the
 # 2026-07-27 pass closed present-but-INERT for RULES; dangling_pointers verifies
