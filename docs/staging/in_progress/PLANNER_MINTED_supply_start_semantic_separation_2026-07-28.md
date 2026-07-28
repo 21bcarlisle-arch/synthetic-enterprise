@@ -1,5 +1,15 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
 # [PLANNER-MINTED] — separate `supply_start` (real relationship start) from the term-schedule anchor (2026-07-28)
+
+> **CLOSED 2026-07-28 (DISCOVER done): enumeration published at `docs/design/SUPPLY_START_SEMANTIC_SEPARATION_DISCOVER.md`.**
+> Verdict **REAL and LIVE** (not merely latent): C1_2's real acquisition event is 2020-12-30 (`run_output_latest.json`),
+> yet its field reads `acquisition_date: 2016-01-01` — a ~4.99-year phantom rendered as "Customer since 2016" on the
+> live customer/company pages and bucketed into the 2016 cohort with ~9yr tenure. **11 wrong-meaning consumer sites**
+> (7 LIVE-wrong for C1_2 today + 4 latent), scoped to the **6 successors only** (base + fresh-market customers already
+> carry correct dates). The overload is THREE semantics: (A) term/billing anchor — keep; (B) supply-start; (C)
+> tenure/cohort — B+C share one fix. BUILD sketch + R10 class invariant (`supply_start >= first_observable_event`) +
+> two R15 mutation shapes specified. **BUILD blocked_on director_level_up (R16 — no self-bump); category: SUPPLIER
+> product front (`company/crm`).** No production code touched.
 
 **finding_key:** `coldwalk:c1_2_successor_acquisition_date_mismatch` (adjudicated-real, ledger 2026-07-12).
 

@@ -1,5 +1,17 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
 # [PLANNER-MINTED] — cross-generator invariant: payment_channel ⇔ dd_failed consistency (2026-07-28)
+
+> **CLOSED 2026-07-28 (DISCOVER done): enumeration published at `docs/design/PAYMENT_CHANNEL_DD_CONSISTENCY_DISCOVER.md`.**
+> Measured class size **5 customers / 12 arrears cases** (C1g, C4, C5, C6, C8) carrying a `DD_FAILED` event on a non-DD
+> method. **Mint premise CORRECTED (falsifiable):** it is NOT two generators disagreeing on the channel — both call the
+> same `payment_channel_for_customer()` and AGREE. The real defect is a **single-generator category error** in
+> `arrears_engine.payment_outcome()` (no non-DD branch — every non-corporate method runs the DD-failure model,
+> `arrears_stages()` hardcodes `"DD_FAILED"`). **Second defect surfaced:** SME case-sensitivity (`segment=="sme"` vs bills
+> storing `"SME"`) mis-routes C5/C6 into `standard_credit`+`DD_FAILED`. The proposed R10 class invariant catches both.
+> **Invariant is the correct FIRST BUILD** (a category-error wall that holds under static OR future time-varying channel);
+> the 2026-07-13 FRAME's time-varying "failing payers drop off DD" model is a SEPARATE, larger, director-gated build the
+> invariant guards, not competes with. R15 both-ways + C-S2 substream + R12 boundary specified. **BUILD blocked_on
+> director_level_up (R16 — no self-bump).** No production code touched.
 
 **finding_key:** `coldwalk:payment_channel_dd_fail_contradiction` (adjudicated-real, ledger 2026-07-12).
 

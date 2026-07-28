@@ -1,5 +1,19 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
 # [PLANNER-MINTED] — sub-annual (quarterly) Ofgem price-cap table granularity (2026-07-28)
+
+> **CLOSED 2026-07-28 (DISCOVER done): analysis published at `docs/design/INTRA_YEAR_PRICE_CAP_GRANULARITY_DISCOVER.md`.**
+> Gap confirmed in code: `simulation/hedged_settlement.py::run_deemed_term` clamps deemed/SVT against
+> `get_cap_unit_rate_gbp_per_mwh(commodity, current_date.year)` — year granularity. A Jan–Mar 2022 deemed customer
+> clamps against the full-year-2022 blend (elec 305 / gas 95 £/MWh) instead of the pre-Apr-2022 cap that actually
+> applied (elec ≈208, gas ≈41.7 £/MWh; Oct-2021 cap ran to 31 Mar 2022). **Sized bound: ~£343 over-stated dual-fuel
+> revenue per deemed customer for the crisis quarter** (elec ~£87 + gas ~£256); direction softens the very squeeze the
+> atom models. All Ofgem figures cited (HoC Library CBP-9714), none fabricated. **Two discoveries:** (1) a quarterly cap
+> table already exists (`company/regulatory/price_cap.py::_PRICE_CAP_QUARTERLY`) — most data-sourcing done; (2) BUT it
+> mis-places the Apr-2022 step at calendar-Q1 (labels `2022-Q1` at the post-step £1,971), so a naive calendar-quarter
+> re-thread still mis-clamps — BUILD must key on real cap-change windows (6-monthly Oct/Apr → quarterly from Oct-2022),
+> honour the EPG override (Oct-2022→Jun-2023, ceiling = min(cap, EPG)), and correct that row. **Recommendation: BUILD
+> the sub-annual cap-window table** (fallback: register the ~£343 bound as a declared+measured simplification in W3_1).
+> R15 shape + R13/R12 walls specified. **BUILD blocked_on director_level_up (R16 — no self-bump).** No production code touched.
 
 **finding_key:** `expert_hour:W3_1_price_cap_binding` (adjudicated-real, ledger 2026-07-11).
 
