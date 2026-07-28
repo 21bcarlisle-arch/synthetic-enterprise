@@ -206,3 +206,149 @@ def selfdrawable_mint_in_progress(
         if SELF_DRAWABLE_MARKER in text and BLOCKED_MARKER not in text:
             out.append(p.name)
     return out
+
+
+# ---------------------------------------------------------------------------
+# MINT-MARKER BLOCK HYGIENE (2026-07-28, atom `unstated_reason_block_impossible` §3 -- the SIBLING
+# of the maturity-map `check_block_hygiene`). DIRECTOR_RULING_BLOCKED_MINT_BATCH §3 verbatim: "Every
+# block carries its reason and its release condition, or it is not a valid block. ... A block without
+# a recorded reason cannot be escalated, unblocked or judged -- it is invisible work wearing a status.
+# Mechanise it so an unstated-reason block cannot be written."
+#
+# The map check enforces this on a bare YAML atom (which has no prose, so it needs an explicit
+# `block_reason` field). A PLANNER_MINTED_*.md is a whole document -- its REASON is structurally the
+# doc body (title + Serves + FRAME), always present, unlike a bare atom. The field genuinely AT RISK
+# of being missing/unresolvable on a mint is the machine-legible RELEASE CONDITION -- so this check
+# enforces a dedicated, non-fragile, STRUCTURED marker line (R3 -- no free-form prose parsing that a
+# quote of some OTHER atom's `blocked_on:` could false-trip):
+#
+#     <!-- BLOCK_RELEASE: <releaser> -- <reason> -->
+#
+# The releaser (before the em/en/`--` dash) MUST resolve to a canonical MINT_RELEASER_TOKEN (director
+# act / self-releasing window) OR an existing maturity-map atom id (an atom-landing releaser, e.g.
+# ssp -> W1_6b). The reason (after the dash) MUST be non-empty. FAIL-CLOSED on both axes: a missing
+# marker, an unresolvable releaser (the feedback_nonempty_config_referent_existence fail-open -- a
+# release condition that resolves to nothing), or an empty reason is a VIOLATION, never waved.
+# FAIL-SILENT: an unreadable/undecodable doc is itself a violation (an unparseable marker is a FAILED
+# check, never a pass).
+#
+# SCOPE = a PLANNER_MINTED_*.md parked in in_progress/ that the DRAW treats as blocked: it carries the
+# BLOCKED_MARKER, OR carries NEITHER draw marker (unmarked -> the draw fail-closes it to blocked, so
+# hygiene must too). A doc marked SELF_DRAWABLE (and not blocked) is NOT a block -> exempt. The
+# `PLANNER_MINTED_` prefix scope also excludes DIRECTOR_*/ADVISOR_* SOURCE docs that merely QUOTE a
+# marker in prose (they are inbound instructions, not blocks-wearing-a-status) -- the mint doc's own
+# named exclusion, achieved by the filename prefix rather than a fragile content sniff.
+import re as _re  # local alias -- a detection must never shadow a caller's `re`
+
+MINT_MARKED_PREFIX = "PLANNER_MINTED_"
+
+# Canonical release-condition tokens a mint block may resolve to. MIRRORS the maturity-map
+# KNOWN_RELEASER_TOKENS (tests/design/test_maturity_map_facets.py) -- pinned as a subset by
+# test_mint_releaser_tokens_superset_of_map -- PLUS two mint-specific releasers the map atoms do not
+# use: a self-releasing propose-then-proceed window, and a director ratification of a proposal (a
+# director decision beyond a level/build move, e.g. ratifying a ranked gap set or a money-type
+# migration). Matched as a lower-cased substring (a long-form releaser that carries its token still
+# resolves), so `director_build_open_ledger_entry` resolves via `director_build_open`.
+MINT_RELEASER_TOKENS = (
+    "director_level_up",
+    "director_build_open",
+    "build_open",
+    "front_open",
+    "director_live_run",
+    "director_systemd_deploy",
+    "coupled_triad_measured",
+    "watching_brief",
+    "forward_register",
+    "propose_then_proceed",
+    "propose-then-proceed",
+    "director_ratification",
+)
+
+_BLOCK_RELEASE_RE = _re.compile(
+    r"<!--\s*block_release:\s*(?P<body>.+?)\s*-->", _re.IGNORECASE | _re.DOTALL
+)
+# The releaser is the text before the FIRST dash separator (em/en/`--`); the reason is the rest.
+_RELEASE_SPLIT_RE = _re.compile(r"\s+(?:--|—|–)\s+")
+
+
+def _load_map_atom_ids() -> set[str]:
+    """Best-effort set of live maturity-map atom ids, for resolving an atom-landing releaser. Local
+    yaml import so a detection never hard-fails on an environment quirk. Fail-CLOSED semantics: a
+    read/parse error returns an EMPTY set, so an atom-id releaser then resolves to nothing and is
+    correctly flagged (never fabricates a phantom releaser)."""
+    try:
+        import yaml
+        from pathlib import Path as _P
+        map_path = _P(__file__).resolve().parent.parent / "docs" / "design" / "maturity_map.yaml"
+        atoms = yaml.safe_load(map_path.read_text(encoding="utf-8")) or []
+    except Exception:
+        return set()
+    return {a.get("id") for a in atoms if isinstance(a, dict) and a.get("id")}
+
+
+def _releaser_resolves(releaser: str, known_atom_ids: set[str]) -> bool:
+    low = releaser.strip().strip("`").lower()
+    if not low:
+        return False
+    if any(tok in low for tok in MINT_RELEASER_TOKENS):
+        return True
+    # an atom-id releaser (exact id, case-sensitive as ids are) -- allow it appearing as a substring
+    # so a `blocked_on: W1_6b_merit_order_reconstruction (its target)` form still resolves.
+    return any(aid and aid.lower() in low for aid in known_atom_ids)
+
+
+def mint_block_hygiene_violations(
+    in_progress_dir: Path, known_atom_ids: set[str] | None = None
+) -> list[str]:
+    """Return violation strings (empty == pass) for every PLANNER_MINTED_*.md parked in in_progress/
+    that the draw treats as BLOCKED (BLOCKED_MARKER present, or NO draw marker at all) but does not
+    carry a valid `<!-- BLOCK_RELEASE: <releaser> -- <reason> -->` marker: a missing marker, an
+    unresolvable releaser, or an empty reason each yield a violation. Self-drawable mints are exempt.
+    FAIL-CLOSED (missing/empty/unresolvable -> violation) and FAIL-SILENT (unreadable doc ->
+    violation) per §3. Report-only; NEVER raises (a detection must not crash the draw, the deadman,
+    or a commit gate)."""
+    try:
+        if not in_progress_dir.is_dir():
+            return []
+        candidates = sorted(in_progress_dir.glob(MINT_MARKED_PREFIX + "*.md"))
+    except OSError:
+        return []
+    if known_atom_ids is None:
+        known_atom_ids = _load_map_atom_ids()
+    violations: list[str] = []
+    for p in candidates:
+        try:
+            raw = p.read_text(encoding="utf-8", errors="strict")
+        except (OSError, ValueError, UnicodeDecodeError):
+            violations.append(
+                f"{p.name}: unreadable/undecodable -- an unparseable mint marker is a FAILED "
+                "check (FAIL-SILENT closed), never a pass."
+            )
+            continue
+        low = raw.lower()
+        # exempt: a genuinely self-drawable mint is not a block (blocked wins if both are present)
+        if SELF_DRAWABLE_MARKER in low and BLOCKED_MARKER not in low:
+            continue
+        m = _BLOCK_RELEASE_RE.search(raw)
+        if not m:
+            violations.append(
+                f"{p.name}: blocked mint carries no `<!-- BLOCK_RELEASE: <releaser> -- <reason> -->` "
+                "marker -- an unstated-reason/-release block is invisible work wearing a status (§3)."
+            )
+            continue
+        body = m.group("body").strip()
+        parts = _RELEASE_SPLIT_RE.split(body, maxsplit=1)
+        releaser = parts[0].strip()
+        reason = parts[1].strip() if len(parts) > 1 else ""
+        if not _releaser_resolves(releaser, known_atom_ids):
+            violations.append(
+                f"{p.name}: BLOCK_RELEASE releaser {releaser[:60]!r} resolves to no known releaser "
+                f"{MINT_RELEASER_TOKENS} and no existing atom id -- an unresolvable release condition "
+                "cannot be unblocked or judged (§3)."
+            )
+        if not reason:
+            violations.append(
+                f"{p.name}: BLOCK_RELEASE carries a releaser but no reason after the dash -- state "
+                "why the block exists (§3: a block without a recorded reason cannot be judged)."
+            )
+    return violations

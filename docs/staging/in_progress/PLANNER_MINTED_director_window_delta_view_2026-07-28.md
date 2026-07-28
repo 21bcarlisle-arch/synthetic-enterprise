@@ -1,6 +1,15 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- director-window delta view; level move director-reserved (R16, no self-bump) -->
 # [PLANNER-MINTED] — Director-window delta view (SPEC_005 §7.10 / Spec-005 §3) — SITE-lane (2026-07-28)
 
+> **BUILT 2026-07-28: "Since you last looked" delta panel LIVE on `site/director/index.html`.**
+> Client-only (localStorage `poesys_director_delta_v1` last-seen marker) over the already-published feeds
+> (`decisions.json`, `director_reserved.json`, `agent_status.json`) — N new decisions / M reserved-queue changes /
+> K daemons flipped STALE. NO new auth affordance (surface-5 ruling honoured). R11+R15 proven BOTH ways in
+> `site/director/test_director_door.py` (mutation neutering the persistence → test REDS; restored → GREEN;
+> honest-empty renders "nothing changed", not a fail-open blank). Full site suite green (357 passed, 7 skipped);
+> site-lane gate rc=0. Marker flipped self-drawable→blocked; **`blocked_on: director_level_up`** (R16 — no self-bump).
+>
 > **STATUS 2026-07-28 (RUNG-7 planner mint): self-drawable NOW — SITE lane (L3, parallel-drawable).**
 > Scope and build the "what changed since I last looked" delta view on the director window
 > (`site/director/index.html`), a feature CONSCIOUSLY DEFERRED at the surface-5 close (2026-07-23:

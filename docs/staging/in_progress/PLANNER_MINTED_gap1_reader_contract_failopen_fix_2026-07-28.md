@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_build_open -- GAP1 reader-contract fail-open fix; H-lane BUILD demotion needs a director BUILD_OPEN -->
 <!-- DISCOVER half (a) LANDED 2026-07-28; remaining work is BUILD half (b)(c), blocked_on director_build_open. -->
 # [PLANNER-MINTED] — GAP1 reader-contract FAIL-OPEN correction (register-1 field + register-6 prefix) (2026-07-28)
 

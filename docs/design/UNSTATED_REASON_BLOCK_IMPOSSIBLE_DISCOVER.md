@@ -82,3 +82,48 @@ fail is worse than none). No level self-bump (R16) — BUILD lands `blocked_on: 
 this gate improves block HYGIENE; the count of blocked atoms is a diagnostic, never a target.
 Distinct from done `ruling_missing_work_block_defect_surface` (that = a *ruling* lacking a
 WORK-THIS-CREATES block; this = a *map atom / mint marker* carrying a reason-less block).
+
+---
+
+## 8. SIBLING (mint-marker) surface — BUILT 2026-07-28
+
+The map-atom half (§5–§7 above) landed 2026-07-28 (commit c8f6ef52f). The mint-marker half — the
+remaining self-drawable sub-step — landed this tick.
+
+**Canonical marker (dedicated + structured, R3):** a `PLANNER_MINTED_*.md` parked in `in_progress/`
+that the draw treats as blocked carries
+`<!-- BLOCK_RELEASE: <releaser> -- <reason> -->`. Chosen over parsing the prose `blocked_on:` lines
+(which several docs QUOTE from *other* atoms — a free-form sniff would false-trip on the quote), it
+mirrors the existing `<!-- SUPERVISOR_DRAW: ... -->` convention the same worker already writes.
+
+**Why a marker, not a `block_reason` field like the map:** a bare YAML atom has no prose, so it needs
+an explicit reason field; a mint is a whole document whose reason is structurally present (title +
+Serves + FRAME). The field genuinely AT RISK on a mint is the machine-legible RESOLVABLE RELEASE
+CONDITION — so the marker carries both (releaser before the dash, reason after) and the check enforces
+resolvability of the releaser + non-emptiness of the reason.
+
+**Releaser vocabulary (`MINT_RELEASER_TOKENS`):** the map's `KNOWN_RELEASER_TOKENS` (pinned as a
+subset by `test_mint_releaser_tokens_superset_of_map`) PLUS two mint-specific releasers the map atoms
+do not use — `propose_then_proceed` (a self-releasing window) and `director_ratification` (a director
+decision beyond a level/build move, e.g. ratifying a ranked gap set or a money-type migration) — OR an
+existing maturity-map atom id (an atom-landing releaser, e.g. `ssp_negative_lift_cells` →
+`W1_6b_merit_order_reconstruction`).
+
+- **Detector:** `background/staging_disposition.mint_block_hygiene_violations()` — report-only, never
+  raises. FAIL-CLOSED (missing marker / unresolvable releaser / empty reason → violation); FAIL-SILENT
+  (an undecodable doc is a FAILED check). A self-drawable mint is exempt (it is not a block); an
+  UNMARKED mint is fail-closed to blocked (matching the draw) and must carry the release marker.
+- **Backfill DONE FIRST (wedge precondition honoured):** all 25 blocked/unmarked `PLANNER_MINTED_*`
+  docs live in `in_progress/` (incl. this atom's own doc, flipped self-drawable→blocked) were given a
+  resolvable releaser + reason; the live scan is GREEN.
+- **Wired into the commit gate:** `tools/pre_commit_test_gate.py` now runs the hygiene test whenever a
+  `docs/staging/in_progress/PLANNER_MINTED_*.md` is staged — so a reason-less/release-less mint marker
+  CANNOT be committed ("cannot be written", not "flagged after"), the sibling of the LEVEL_SURFACE
+  mechanism. End-to-end proven: staging a marker-less mint → gate rc=1; clean tree → rc=0.
+- **R15 both-ways:** `tests/background/test_staging_disposition.py` (13 mint tests) + the gate-trigger
+  tests in `tests/tools/test_pre_commit_test_gate.py`. Mutation: missing marker / unresolvable releaser
+  / empty reason / undecodable doc all FIRE; negative controls (well-formed block, atom-id releaser,
+  propose-then-proceed, self-drawable exempt) all pass; the map cannot be read → an atom-id releaser
+  resolves to nothing (fail-closed).
+
+Only the director L0→L3 level move (R16, no self-bump) remains on the atom.

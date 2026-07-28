@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- generator draw wiring; live activation needs a director word and the level move is director-reserved -->
 <!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] Ship the population-generator DRAW-WIRING (2026-07-24)

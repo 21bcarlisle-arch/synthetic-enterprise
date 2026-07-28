@@ -1,7 +1,20 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- both surfaces (map-atom facets gate + sibling mint-marker hygiene gate) BUILT + R15-proven + wired; the atom lands at build-quality, the level move is the director's (R16, no self-bump) -->
 # [PLANNER-MINTED] — An unstated-reason block cannot be written: every `blocked_on` carries its reason + release condition (§3 + WORK-THIS-CREATES deliverable 4b) (2026-07-28)
 
-> **[IN-PROGRESS DISPOSITION 2026-07-28 (UPDATED) — PRIMARY (map-atom) SURFACE BUILT + LIVE-WIRED; SIBLING (mint-marker) surface is the remaining drawable sub-step → marker stays self-drawable.**
+> **[IN-PROGRESS DISPOSITION 2026-07-28 (UPDATED-3) — BOTH SURFACES NOW BUILT. SIBLING (mint-marker) hygiene gate BUILT this tick → marker FLIPPED self-drawable→blocked; only the director level move remains (R16).**
+> **SIBLING BUILT (2026-07-28):** `background/staging_disposition.mint_block_hygiene_violations()` +
+> the `<!-- BLOCK_RELEASE: <releaser> -- <reason> -->` canonical marker (dedicated + non-fragile, R3 —
+> not a prose `blocked_on:` sniff a quote could false-trip). Every blocked/unmarked `PLANNER_MINTED_*`
+> parked in `in_progress/` was backfilled with a resolvable releaser + reason (25 docs incl. this one);
+> the live scan is GREEN. R15 both-ways in `tests/background/test_staging_disposition.py` (mutation:
+> missing marker / unresolvable releaser / empty reason all FIRE; fail-closed on missing/empty;
+> fail-silent on unreadable; negative controls pass; self-drawable exempt). WIRED into the commit gate
+> via `tools/pre_commit_test_gate.py` (a staged `docs/staging/in_progress/PLANNER_MINTED_*.md` now runs
+> the hygiene test) so a reason-less/release-less mint marker CANNOT be committed — "cannot be written",
+> not "flagged after". SUPERSEDES the sub-step note below.
+
+> **[SUPERSEDED — PRIOR DISPOSITION 2026-07-28 (UPDATED) — PRIMARY (map-atom) SURFACE BUILT + LIVE-WIRED; SIBLING (mint-marker) surface is the remaining drawable sub-step → marker stays self-drawable.**
 > The DISCOVER/design half is EXECUTED → `docs/design/UNSTATED_REASON_BLOCK_IMPOSSIBLE_DISCOVER.md`.
 > Canonical fields decided: **`block_reason`** (non-empty free text) + **`blocked_on`** (must resolve to a
 > known releaser or an existing atom id).

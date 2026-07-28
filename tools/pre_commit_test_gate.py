@@ -94,18 +94,36 @@ def tests_for(path: str) -> list[str]:
     return [str(c.relative_to(ROOT)) for c in ROOT.glob(f"tests/**/test_{p.stem}.py")]
 
 
+# THE MINT-MARKER SURFACE (2026-07-28, atom `unstated_reason_block_impossible` §3): a
+# PLANNER_MINTED_*.md parked in in_progress/ is pure DATA (not under CODE_PREFIXES), so a mint doc
+# committed with a reason-less/unresolvable block marker would slip the gate exactly as a bad map
+# level once did. Staging one now runs the mint-block-hygiene test (which scans the LIVE in_progress
+# set), so a `blocked` mint carrying no resolvable `<!-- BLOCK_RELEASE: <releaser> -- <reason> -->`
+# CANNOT be committed -- the sibling of the LEVEL_SURFACE mechanism, "cannot be written" not "flagged
+# after" (§3). Narrow trigger (only a staged mint doc), so unrelated docs/data commits stay fast.
+MINT_MARKER_PREFIX = "docs/staging/in_progress/PLANNER_MINTED_"
+MINT_HYGIENE_TESTS = [
+    "tests/background/test_staging_disposition.py",
+]
+
+
 def select_targets(files: list[str]) -> list[str]:
-    """The set of test files to run for this commit, or [] to skip (no code/config/level-surface
-    staged)."""
+    """The set of test files to run for this commit, or [] to skip (no code/config/level-surface/
+    mint-marker staged)."""
     code_changed = any(f.startswith(CODE_PREFIXES) for f in files)
     level_surface_changed = any(f in LEVEL_SURFACE_FILES for f in files)
-    if not code_changed and not level_surface_changed:
-        return []  # pure docs/data commit that touches no control and no level surface
+    mint_marker_changed = any(
+        f.startswith(MINT_MARKER_PREFIX) and f.endswith(".md") for f in files
+    )
+    if not code_changed and not level_surface_changed and not mint_marker_changed:
+        return []  # pure docs/data commit that touches no control, level surface, or mint marker
     targets: set[str] = set()
     if code_changed:
         targets.update(t for t in CONTROL_TESTS if (ROOT / t).exists())
     if level_surface_changed:
         targets.update(t for t in LEVEL_SENSITIVE_TESTS if (ROOT / t).exists())
+    if mint_marker_changed:
+        targets.update(t for t in MINT_HYGIENE_TESTS if (ROOT / t).exists())
     for f in files:
         targets.update(tests_for(f))
     return sorted(targets)

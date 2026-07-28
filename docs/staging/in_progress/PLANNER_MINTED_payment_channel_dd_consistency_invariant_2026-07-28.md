@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- payment-channel/DD consistency invariant; BUILD blocked on director_level_up (R16, no self-bump) -->
 # [PLANNER-MINTED] — cross-generator invariant: payment_channel ⇔ dd_failed consistency (2026-07-28)
 
 > **CLOSED 2026-07-28 (DISCOVER done): enumeration published at `docs/design/PAYMENT_CHANNEL_DD_CONSISTENCY_DISCOVER.md`.**

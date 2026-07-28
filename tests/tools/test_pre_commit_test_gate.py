@@ -93,6 +93,28 @@ def test_level_sensitive_test_files_all_exist():
         assert (ROOT / t).exists(), f"level-sensitive test missing: {t}"
 
 
+def test_staged_mint_marker_runs_the_hygiene_set():
+    # A PLANNER_MINTED_*.md parked in in_progress/ is pure DATA (not under CODE_PREFIXES); staging one
+    # must still run the mint-block-hygiene test so a reason-less/unresolvable block cannot be committed
+    # (unstated_reason_block_impossible §3 -- the sibling of the level-surface hole).
+    targets = gate.select_targets(
+        ["docs/staging/in_progress/PLANNER_MINTED_something_2026-07-28.md"]
+    )
+    assert targets != []                                          # NOT skipped as "pure data"
+    assert set(gate.MINT_HYGIENE_TESTS) <= set(targets)
+
+
+def test_non_mint_staging_doc_is_still_pure_data():
+    # a director/advisor SOURCE doc or a from_rich note in staging is NOT a mint marker -> stays fast
+    assert gate.select_targets(["docs/staging/in_progress/DIRECTOR_RULING_FOO.md"]) == []
+    assert gate.select_targets(["docs/staging/from_rich_123.md"]) == []
+
+
+def test_mint_hygiene_test_files_all_exist():
+    for t in gate.MINT_HYGIENE_TESTS:
+        assert (ROOT / t).exists(), f"mint-hygiene test missing: {t}"
+
+
 def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # H24 regression: during a `git commit` the hook inherits GIT_INDEX_FILE/GIT_DIR/GIT_WORK_TREE
     # pointing at the in-progress commit. If those leak into the pytest subprocess, git-touching

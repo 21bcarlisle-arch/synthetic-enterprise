@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- supply-start semantic separation; BUILD blocked on director_level_up (R16), DISCOVER/design self-drawable -->
 # [PLANNER-MINTED] — separate `supply_start` (real relationship start) from the term-schedule anchor (2026-07-28)
 
 > **CLOSED 2026-07-28 (DISCOVER done): enumeration published at `docs/design/SUPPLY_START_SEMANTIC_SEPARATION_DISCOVER.md`.**

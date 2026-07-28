@@ -1,6 +1,15 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_build_open -- stop-control gap; BUILD needs a director BUILD_OPEN (console-only, one-way door #5), never self-authored -->
 # [PLANNER-MINTED] — Stop-control gap characterisation (SPEC_005 §7.13 material-safety) — DISCOVER half (2026-07-28)
 
+> **CLOSED 2026-07-28 (DISCOVER done): inventory published at `docs/design/STOP_CONTROL_GAP.md`.**
+> Coverage verdict **PARTIAL** (evidence-backed): backend "stop starting more work" is substantial and tested
+> (`executor_governor.kill_switch_enabled`, `sim_runner._check_hold`, both with tested release transitions); the
+> TRUE RESIDUAL is a director-window-reachable, authenticated, single stop affordance able to halt an *in-flight*
+> turn/simulation — which exists nowhere. [ACT] standing: the BUILD is **category-5 safety-control** work
+> (`blocked_on: director_build_open`, console-only, one-way door #5) — never self-authorised. Marker flipped
+> self-drawable→blocked.
+>
 > **STATUS 2026-07-28 (RUNG-7 planner mint): DISCOVER half self-drawable NOW; BUILD half director-reserved.**
 > Produce `docs/design/STOP_CONTROL_GAP.md`: an inventory of the EXISTING run-hold / kill / governor
 > controls (`background/executor_governor.py`, `background/executor_daemon.py`, `background/sim_runner.py`,

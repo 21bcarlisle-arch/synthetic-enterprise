@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- working-day calculator primitive; BUILD lands at build-quality, level move director-reserved (R16) -->
 <!-- DISCOVER half CLOSED 2026-07-28: docs/design/WORKING_DAY_CALCULATOR_DISCOVER.md (22 callers found vs ~17 est; gov.uk/alphagov calendar source recommended, 2016-18 marked TO-BE-SOURCED not fabricated; AST guard designed). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Canonical working-day calculator with a dated UK bank-holiday calendar (class fix) (2026-07-28)
 

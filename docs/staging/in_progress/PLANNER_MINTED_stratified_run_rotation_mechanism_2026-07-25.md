@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- run-rotation mechanism BUILD held behind its propose-then-proceed window; the population-seed axis stays director-reserved -->
 <!-- DISPOSITION 2026-07-25: FRAME landed (scope item 1) →
      docs/design/frame/stratified_run_rotation_FRAME.md (grid axes + cell enumeration + deterministic
      IaC-committed-cursor selector + honest partial-coverage-until-activation + the coverage-of-worlds R15

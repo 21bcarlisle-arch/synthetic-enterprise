@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- seasonal-DD cashflow physics; BUILD lands at build-quality, the level move is the director's (R16) -->
 > **PARKED to in_progress/ 2026-07-25** — the FRAME + propose half is DONE (committed 422d41675); this doc IS the "then propose" artifact.
 > **BLOCKING SUB-ITEM:** propose-then-proceed window open **until 2026-07-27** (48h from mint). BUILD of DD1–DD5 + DD-H is deliberately held for director/advisor revision of the requirements or the RESERVED boundary during that window.
 > **UNBLOCKS:** a tick after 2026-07-27 with no director revision → flip this marker to `self-drawable` and register DD1–DD5 + DD-H to the maturity map at build-draw (level moves stay `blocked_on: director_level_up`). Growth analysis + the seasonal-DD product stay director-reserved regardless.

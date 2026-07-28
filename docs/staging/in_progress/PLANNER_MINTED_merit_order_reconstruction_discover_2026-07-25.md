@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- merit-order/gas-first engine reconstruction; BUILD held behind its propose-then-proceed window, then registers to the map at build-draw -->
 <!-- DISPOSITION 2026-07-25: FRAME landed (scope items 1 & 3) →
      docs/design/frame/W1_6_merit_order_reconstruction_FRAME.md (live-vs-target form + exact diff,
      evidence-cited to sim/price_engine.py + the W1_6 fidelity row; acceptance test + unmoved-baseline

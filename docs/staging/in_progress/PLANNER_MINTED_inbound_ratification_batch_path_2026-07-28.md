@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_build_open -- inbound-ratification batch path executes on a director BUILD_OPEN ledger entry -->
 > **DISCOVER/design half EXECUTED 2026-07-28** (planner tick) → `docs/design/INBOUND_RATIFICATION_BATCH_PATH_CONTRACT.md`
 > (the batched inbound-ratification contract, exit criterion (a)). Marker flipped self-drawable→blocked:
 > the only remaining work is **the BUILD half (b)/(c), blocked_on: director_build_open_ledger_entry**.

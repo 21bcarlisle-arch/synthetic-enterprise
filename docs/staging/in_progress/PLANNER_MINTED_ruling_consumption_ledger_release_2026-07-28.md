@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- ruling-consumption ledger release; level move director-reserved (R16) -->
 # [PLANNER-MINTED] — Ruling-consumption must PRODUCE the ledger entry that releases a block — or name what can (§0 + WORK-THIS-CREATES deliverable 1) (2026-07-28)
 
 > **[IN-PROGRESS DISPOSITION 2026-07-28] — DISCOVER DONE, BUILD blocked (director seam).**

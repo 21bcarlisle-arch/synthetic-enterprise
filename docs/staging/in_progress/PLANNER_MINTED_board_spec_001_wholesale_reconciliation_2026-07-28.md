@@ -1,6 +1,14 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- wholesale-reconciliation board spec held behind its propose-then-proceed window before BUILD -->
 # [PLANNER-MINTED] — BOARD_SPEC_001 (Wholesale & trading) line-by-line reconciliation (2026-07-28)
 
+> **CLOSED 2026-07-28 (DISCOVER done): reconciliation published at `docs/design/BOARD_SPEC_001_RECONCILIATION.md`.**
+> 39 rows (7 MET / 22 PARTIAL / 10 ABSENT / 0 N-A; battery §7: 5 MET / 5 PARTIAL / 2 ABSENT — diagnostic only, R12).
+> Findings F1–F5 return to the director as [ACT] (not self-enacted): **F1 gas-first** (retail gas spot pass-through
+> vs retail power's active hedge — a scope/sequencing question, the advisor's largest re-prioritisation); F2 collateral
+> desk-pack surfacing (the causal loop itself moved PARTIAL→MET, wired+mutation-proven 2026-07-25); F3 profitable-desk
+> alarm ABSENT as a control; F5 no fixed-book in/out-of-money churn trigger. Marker flipped self-drawable→blocked.
+>
 > **STATUS 2026-07-28 (RUNG-7 planner mint): self-drawable NOW — doc-only DISCOVER.**
 > Produce `docs/design/BOARD_SPEC_001_RECONCILIATION.md`: the blind practitioner board spec
 > (`docs/staging/in_progress/BOARD_SPEC_001_WHOLESALE_TRADING_2026-07-22.md`) reconciled line by line
