@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-28T13:23:29.441747+00:00",
+  "last_updated": "2026-07-28T13:32:00.208200+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T13:23:29.441747+00:00",
+      "last_heartbeat": "2026-07-28T13:32:00.208200+00:00",
       "last_action": "Heartbeat \u2014 14 files tracked",
-      "last_action_ts": "2026-07-28T13:23:29.441747+00:00",
+      "last_action_ts": "2026-07-28T13:32:00.208200+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T13:21:02.911034+00:00",
-      "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
-      "last_action_ts": "2026-07-28T13:21:02.911034+00:00",
+      "last_heartbeat": "2026-07-28T13:31:02.912299+00:00",
+      "last_action": "Waiting for next cycle (5h 50m remaining)",
+      "last_action_ts": "2026-07-28T13:31:02.912299+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-28T13:22:11.554157+00:00",
-      "last_action": "Sim started \u2014 git=e24b90fb3",
-      "last_action_ts": "2026-07-28T13:22:11.554157+00:00",
+      "last_heartbeat": "2026-07-28T13:31:14.676549+00:00",
+      "last_action": "Sim started \u2014 git=0d9427d25",
+      "last_action_ts": "2026-07-28T13:31:14.676549+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T13:22:36.229527+00:00",
+      "last_heartbeat": "2026-07-28T13:30:52.956124+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
