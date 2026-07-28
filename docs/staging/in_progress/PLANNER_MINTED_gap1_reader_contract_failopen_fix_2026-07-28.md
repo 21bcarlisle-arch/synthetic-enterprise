@@ -1,5 +1,18 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DISCOVER half (a) LANDED 2026-07-28; remaining work is BUILD half (b)(c), blocked_on director_build_open. -->
 # [PLANNER-MINTED] — GAP1 reader-contract FAIL-OPEN correction (register-1 field + register-6 prefix) (2026-07-28)
+
+> **STATUS 2026-07-28 (worker tick): DISCOVER half (a) DONE — self-drawable → blocked.**
+> Exit criterion (a) landed in `docs/design/GAP_REGISTER_MINT_SOURCE_CONTRACT.md`: both fail-open OPEN
+> rules corrected against **verified live data** (register 1 — `measured_bound` exists 0× across 621
+> free-text strings / 146 atoms → text heuristic + structured-field recommendation; register 6 — all 5
+> `audit:*` rows are false-positive/open, the 15 `adjudicated-real` findings live under
+> `coldwalk`/`harden_sweep`/`expert_hour`/`population`/`bill_to_ledger_linkage` → keyed on `state`,
+> prefix-agnostic, residue = 3 open + 15 real = 18). The two old-key mutations are now written into the
+> BUILD half's R15 spec (c). **BLOCKING SUB-ITEM:** BUILD half (b)(c) — the `background/gap_register_scan.py`
+> reader implementing the corrected keys — **UNBLOCKS ON:** `director_build_open` (H-lane BUILD demotion,
+> R16; the agent cannot self-authorize). Marker flipped to `blocked` so the rest-proof freshness check no
+> longer treats this atom as drawable.
 
 **Source:** `PLANNER_MINTED_first_ranked_gap_list_2026-07-28` (GAP3) §0 + `DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28`
 §1 (the registers ARE the backlog; a reader that cannot see open rows is not an enumeration). Net-new:
