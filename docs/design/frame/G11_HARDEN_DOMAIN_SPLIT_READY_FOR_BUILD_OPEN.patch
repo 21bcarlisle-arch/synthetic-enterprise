@@ -1,0 +1,126 @@
+diff --git a/tests/tools/test_activity_cost_accuracy.py b/tests/tools/test_activity_cost_accuracy.py
+index 71e555284..378f2703c 100644
+--- a/tests/tools/test_activity_cost_accuracy.py
++++ b/tests/tools/test_activity_cost_accuracy.py
+@@ -91,6 +91,11 @@ HAND_LABELS: dict[str, str] = {
+     "edcb914f169b": SELF_REPAIR, "82b116dd9e27": SELF_REPAIR, "bc1aca9a148b": SELF_REPAIR,
+     "6ad184ed4fad": SELF_REPAIR, "5a4f8c7db957": SELF_REPAIR, "06f72a31e247": SELF_REPAIR,
+     "dab0edccc7a0": SELF_REPAIR, "c02de3a93b2b": SELF_REPAIR, "7f05ba129117": SELF_REPAIR,
++    # -- HARDEN of the harness's OWN plumbing = self-repair, NEVER product. Covers
++    #    the self-flattering fail-open where the bare "harden" keyword billed
++    #    hundreds of infra-only harden commits as PRODUCTIVE/product (see the
++    #    regression test below). fork_reconciler.py is harness plumbing.
++    "1333c100d1e3": SELF_REPAIR,
+     # -- rework: genuine reverts / re-draws --
+     "2c5a654373e7": REWORK, "caab8d8c11a2": REWORK,
+     # -- unattributed: thin status/priority-doc updates with no clear activity signal --
+@@ -236,6 +241,49 @@ def test_mutation_corrupted_label_would_trip_the_gate():
+     assert coarse < COARSE_THRESHOLD
+ 
+ 
++# The commit that fixes a harness-plumbing control (fork_reconciler). Its subject
++# carries "harden" and its files are infra-only -> the taxonomy calls it self-repair.
++HARDEN_OF_PLUMBING_SHA = "1333c100d1e3"
++
++
++def test_harden_of_plumbing_is_self_repair_not_product():
++    """REGRESSION: a harden of the harness's OWN plumbing must read WASTE/self-repair.
++    The pre-fix classifier had "harden" as a blanket PRODUCT keyword that short-
++    circuited before file-domain resolution, billing ~140 infra-only harden commits
++    as product -- a self-FLATTERING fail-open that inflated productive-% and deflated
++    cost-of-self-maintenance (the two headline diagnostics G11 exists to report)."""
++    commits = _resolve_commits()  # fail-closed: the sha must be in live history
++    c = commits[HARDEN_OF_PLUMBING_SHA]
++    cls, rule = classify_commit(c)
++    assert cls == SELF_REPAIR, (
++        f"harden-of-plumbing misclassified as {cls} (rule={rule}) -- self-flattering "
++        f"fail-open regressed. Subject: {c.subject[:80]}"
++    )
++    assert rule == "harden_of_plumbing"
++
++
++def test_mutation_blanket_harden_keyword_would_trip_the_gate():
++    """R15 (the control MUST be able to fail): re-introducing the fail-open -- ANY
++    'harden' subject -> product, ignoring file domain -- makes this fixture commit
++    disagree with its self-repair ground truth on the COARSE (productive/waste) axis,
++    proving the fixture entry is load-bearing and a fail-open regression cannot pass
++    silently."""
++    import re as _re
++    commits = _resolve_commits()
++
++    def blanket_harden(commit):
++        if _re.search(r"\bharden", commit.subject, _re.IGNORECASE):
++            return (PRODUCT, "mutant_blanket_harden")
++        return classify_commit(commit)
++
++    pred, _ = blanket_harden(commits[HARDEN_OF_PLUMBING_SHA])
++    truth = HAND_LABELS[HARDEN_OF_PLUMBING_SHA]
++    assert _coarse(pred) != _coarse(truth), (
++        "the pre-fix blanket-harden mutant should DISAGREE with the self-repair "
++        "ground truth on the productive/waste axis -- the gate must discriminate"
++    )
++
++
+ def test_current_margins_are_reported(capsys):
+     """Not a gate -- prints the live margins so the control's headroom is visible
+     in test output (a DIAGNOSTIC, per the module guardrail)."""
+diff --git a/tools/activity_cost.py b/tools/activity_cost.py
+index d457be7a8..9147bb18f 100644
+--- a/tools/activity_cost.py
++++ b/tools/activity_cost.py
+@@ -175,9 +175,19 @@ _DISCOVERY_RE = re.compile(
+     r"research|charter|red[- ]team|survey|proposal|scope|decompose|meta-finding)\b",
+     re.IGNORECASE,
+ )
++# HARDEN is domain-dependent, NOT a blanket product signal. This repo emits
++# hundreds of "harden(...)"/"rest-with-proof re-verify" commits that maintain the
++# HARNESS's OWN plumbing (supervisor/reconciler/hooks) -- that is WASTE/self-repair,
++# not product. Billing them PRODUCTIVE/product was a self-FLATTERING fail-open that
++# inflated productive-% and DEFLATED cost-of-self-maintenance (the metric the design
++# requires be able to trend UP as a warning). So "harden" is resolved by file domain,
++# exactly like the fix-class rule: hardening product code -> product, hardening the
++# plumbing -> self-repair, hardening a design/framing doc -> discovery, mixed ->
++# unattributed. Removed from _PRODUCT_RE; handled by its own rule after fix.
++_HARDEN_RE = re.compile(r"\bharden(?:ing|ed|s)?\b", re.IGNORECASE)
+ _PRODUCT_RE = re.compile(
+     r"\b(build|migrate|wire|wave|fold|merge|auto-process|run complete|"
+-    r"harden|hardening|deploy|publish|generate|render|dashboard)\b",
++    r"deploy|publish|generate|render|dashboard)\b",
+     re.IGNORECASE,
+ )
+ 
+@@ -267,6 +277,14 @@ def classify_commit(commit: Commit) -> tuple[str, str]:
+       4. fix-class subject:
+            product-domain files     -> PRODUCTIVE/product   (fixed the product)
+            else                     -> WASTE/self-repair    (fixed the plumbing)
++      4b. harden-class subject (domain-resolved across ALL three domains, because
++           hardening the HARNESS's own plumbing is self-repair, NOT product -- a
++           self-flattering fail-open this repo's hundreds of harden commits would
++           otherwise cause):
++           product-domain files     -> PRODUCTIVE/product   (hardened the product)
++           discovery-domain files   -> PRODUCTIVE/discovery (hardened a framing doc)
++           infra-domain files       -> WASTE/self-repair    (hardened the plumbing)
++           mixed/unknown            -> unattributed
+       5. director-block (director word + block cue) -> WASTE/idle-waiting-on-director
+            (checked AFTER fix so a plumbing FIX that merely mentions the director
+             is self-repair, not a block; the honest metric source is the register)
+@@ -292,6 +310,19 @@ def classify_commit(commit: Commit) -> tuple[str, str]:
+         if dom == "product":
+             return PRODUCT, "fix_of_product"
+         return SELF_REPAIR, "fix_of_plumbing"
++    if _HARDEN_RE.search(s):
++        # Same domain-resolution shape as fix, but across ALL three domains so a
++        # harden of design/framing docs stays discovery (productive) rather than
++        # being forced to self-repair. A harden that landed a level bump was already
++        # caught by rule 3 above; a rework/revert of a harden by rule 1.
++        dom = _domain(commit.files)
++        if dom == "product":
++            return PRODUCT, "harden_of_product"
++        if dom == "discovery":
++            return DISCOVERY, "harden_of_discovery"
++        if dom == "infra":
++            return SELF_REPAIR, "harden_of_plumbing"
++        return UNATTRIBUTED, "harden_unknown_domain"
+     if _DIRECTOR_RE.search(s):
+         return IDLE_DIRECTOR, "director_block_keyword"
+     if _DISCOVERY_RE.search(s):
