@@ -66,6 +66,27 @@ def test_context_pack_rejects_prose_ref_not_a_locator():
         prose_link.validate()
 
 
+def test_locator_shaped_ref_carrying_whitespace_is_still_rejected():
+    """Pins the whitespace sub-check INDEPENDENTLY of the locator-shape one: a
+    ref that IS locator-shaped ('://' present) but embeds whitespace is prose-
+    contaminated and must be rejected. The signature prose test uses a string
+    caught by BOTH sub-checks, so it cannot prove this half fires -- neutering
+    the whitespace check alone would leave that test green (R15 fail-open)."""
+    link = ContextLink("summary", "site://a b/c")  # locator-shaped, has a space
+    with pytest.raises(ValueError, match="contains whitespace"):
+        link.validate()
+
+
+def test_whitespace_free_but_non_locator_ref_is_still_rejected():
+    """Pins the locator-shape sub-check INDEPENDENTLY of the whitespace one: a
+    ref with NO whitespace (so it passes the whitespace guard) that is not
+    locator-shaped is still prose and must be rejected. Neutering the locator-
+    shape check alone would otherwise leave the suite green (R15 fail-open)."""
+    link = ContextLink("summary", "raisethefloor")  # no whitespace, no locator
+    with pytest.raises(ValueError, match="not locator-shaped"):
+        link.validate()
+
+
 def test_context_pack_rejects_empty_links_and_empty_recommendation():
     with pytest.raises(ValueError, match="at least one link"):
         ContextPack(links=(), recommendation="do it").validate()
