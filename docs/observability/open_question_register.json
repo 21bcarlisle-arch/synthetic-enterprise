@@ -1,0 +1,48 @@
+{
+  "_doc": "Disposition store for the open-question register (DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED 2026-07-28, deliverables 1+2). The QUESTION SET is NOT stored here -- it is DERIVED from primary state (the ruling bodies) by background/open_question_register.py, so it can never silently omit a real question. This file holds ONLY the human judgement: for each question_key, its disposition. A question with NO entry here is 'open' (silent) and BLOCKS archival of its ruling. Statuses: answered|unknown|not_measurable|wrong CLOSE a question (unblock archival); 'carried' is NON-SILENT (has a reason) but UNANSWERED, so it still blocks. Keys are stable 12-char ids (see question_key()).",
+  "version": 1,
+  "dispositions": {
+    "89973bde7531": {
+      "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+      "question": "Why was merit_order drawable only from 2026-07-28 -- epoch gate/dep/scheduling artifact, and is it drawing now?",
+      "status": "carried",
+      "disposition": "CARRIED (2026-07-28): requires reading d81197736 section 5 (the atom's loop_stage/gate/drawable_from) + today's draw log. Minted as deliverable-4 DISCOVER atom (PLANNER_MINTED_answer_six_outstanding_questions) -- the batched investigation half. Not silence: this row exists and states what closes it.",
+      "recorded": "2026-07-28"
+    },
+    "757164967684": {
+      "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+      "question": "Harness exit-criterion counter current reading + cause of last reset; wired to primary state?",
+      "status": "carried",
+      "disposition": "CARRIED (2026-07-28): requires reading the exit-criterion mechanism + its counter state (d81197736, 1494d6160 section 4b). Minted as deliverable-4 DISCOVER. The likely answer 'not yet wired to primary state -- not yet a control' must be verified against the code, not asserted.",
+      "recorded": "2026-07-28"
+    },
+    "d60abd4780be": {
+      "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+      "question": "Cohort assignment status: done, in flight, blocked, or counter-proposed?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-07-28): BUILT, blocked on director_level_up. All four CA atoms are built (DIRECTOR_RULING cohort-activation): CA1 = assign_cohorts seam-flip, CA2 = coverage joint, CA3 = untestable-register + gate, CA4 = PROCEED. The level claim is blocked_on director_level_up (R16 -- the agent proposes levels, the director ratifies); that is why no further cohort work has appeared since the ruling (it is gated, not stalled).",
+      "recorded": "2026-07-28"
+    },
+    "58f8fa8364c2": {
+      "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+      "question": "Stall-set coverage verdict on the four events (console rescue, publish-gate wedge >1h, origin freeze >30m, advisor restart-ruling): detected / detector-added / argued-out?",
+      "status": "carried",
+      "disposition": "CARRIED (2026-07-28): requires a per-event cross-check of the deadman/liveness tiers vs the four named events (d81197736 section 3). Partial from primary state: origin-freeze >30m has a detector (feedback_self_verifying_push: verify ls-remote origin==HEAD); publish-gate wedge and the pending-batch deadlock class were fixed (eighth-class 2h age-cap). Full four-event verdict is minted as deliverable-4 DISCOVER, not asserted here.",
+      "recorded": "2026-07-28"
+    },
+    "a056615002f9": {
+      "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+      "question": "Staleness disposition in the gap taxonomy (27271871e section 3a).",
+      "status": "carried",
+      "disposition": "CARRIED (2026-07-28): requires reading 27271871e section 3a (the gap taxonomy) to state how staleness is dispositioned. Minted as deliverable-4 DISCOVER.",
+      "recorded": "2026-07-28"
+    },
+    "ded5e99d9b71": {
+      "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
+      "question": "Blast radius as positive value versus risk (27271871e section 3b).",
+      "status": "carried",
+      "disposition": "CARRIED (2026-07-28): requires reading 27271871e section 3b to frame blast-radius as value-vs-risk. Minted as deliverable-4 DISCOVER.",
+      "recorded": "2026-07-28"
+    }
+  }
+}

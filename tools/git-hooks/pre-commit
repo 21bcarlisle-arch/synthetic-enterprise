@@ -51,3 +51,12 @@ python3 tools/site_lane_gate.py || exit 1
 # tools/moap_coherence_gate.mode to de-fang a scanner false-positive without wedging publish.
 # R15-proven both ways in tests/tools/test_moap_coherence_gate.py.
 python3 tools/moap_coherence_gate.py || exit 1
+
+# ARCHIVE-QUESTION GATE (2026-07-28, DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED §2): a commit that
+# archives a [DIRECTOR-RULING]/[STEER] into docs/staging/done/ while it still carries an UNANSWERED
+# question (status open/carried in docs/observability/open_question_register.json) is STRUCTURALLY
+# REFUSED. "A ruling is not fully consumed while any of its questions is unanswered" — enforced
+# mechanically, not by discipline. Fail-closed: an unreadable archived-ruling blob or a corrupt
+# register refuses the archive (never silently unblocks). Reuses open_question_register's blocking
+# predicate (no re-implementation). R15-proven both ways in tests/tools/test_ruling_archive_question_gate.py.
+python3 tools/ruling_archive_question_gate.py || exit 1

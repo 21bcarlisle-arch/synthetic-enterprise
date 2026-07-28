@@ -269,6 +269,37 @@ def named_and_not_done_line(
             "Mint one atom per residue item (source → lane → target level → exit criteria).")
 
 
+def open_question_line(
+    staging_dir: Path | None = None,
+    in_progress_dir: Path | None = None,
+    register_path: Path | None = None,
+) -> str:
+    """DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED 2026-07-28, deliverable 3: surface the open
+    QUESTIONS alongside the named-but-unminted WORK, the exact sibling of `named_and_not_done_line`.
+
+    A question posed in a ruling is a first-class open item (ruling §1). This line reports the count
+    of BLOCKING questions (status open/carried) and the OLDEST one, derived by
+    `open_question_register.open_questions` from PRIMARY state (the ruling bodies + the disposition
+    register), importing nothing from the tick (LAW C). §2-severed: a READ only. Fail-closed to a
+    RED, never a flattering ✅ (an unavailable register is a FAILED check, R15)."""
+    from background.open_question_register import open_questions
+    try:
+        rows = open_questions(staging_dir, in_progress_dir, register_path)
+    except Exception as e:  # noqa: BLE001 — an unavailable independent read is a RED, never a silent green
+        return _red(f"open-question enumeration unavailable: {e}")
+    if not rows:
+        return ("✅ open questions: EMPTY — no active ruling carries an unanswered question "
+                "(every question posed in a ruling is answered / I-don't-know / not-measurable / "
+                "wrong; silence is eliminated — ruling §1, CHECKED against primary state).")
+    silent = sum(1 for r in rows if r["silent"])
+    oldest = min(rows, key=lambda r: (r["date"] or "9999-99-99", r["ruling"]))
+    who = oldest["ruling"].replace(".md", "")
+    return (f"🔴 open questions: **{len(rows)} unanswered** ({silent} SILENT with no disposition) "
+            f"across active rulings — oldest: {who} ({oldest['date'] or 'undated'}) "
+            f"\"{oldest['question'][:70]}\". A ruling is NOT consumed while any stands (ruling §1); "
+            "record a closing disposition in open_question_register.json to discharge each.")
+
+
 def resource_inputs() -> tuple[str | None, str | None]:
     """SM2 rate_limits token-headroom sensor (optional). Absent → an honest 'not built' line,
     NOT a hard red (design §4: SM1 fail-closed WITHOUT it). A present-but-stale sensor IS a red."""
@@ -348,6 +379,10 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     # "no below-target work" a CHECKABLE claim against primary state — the exact §0 failure (the tick
     # asserted "no below-target work anywhere" while three named items sat unminted) is now caught.
     lines.append(f"- {named_and_not_done_line()}")
+    # DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED 2026-07-28 §1+deliverable 3: an unanswered director
+    # question is named-and-not-done too — surfaced here alongside the unminted WORK, same primary-
+    # state derivation, so a question can no longer evaporate on consumption.
+    lines.append(f"- {open_question_line()}")
 
     # DIRECTOR_AXES twin pre-score gap (read-only; §2-severed — a diagnostic the
     # note reads, never a number that feeds the draw). Fail-closed on import/read.

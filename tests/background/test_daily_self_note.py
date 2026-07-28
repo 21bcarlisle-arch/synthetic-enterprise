@@ -291,6 +291,35 @@ def test_named_and_not_done_line_fails_closed_red(monkeypatch, tmp_path):
     assert "🔴 RED" in line and "unavailable" in line
 
 
+def test_open_question_line_in_note_red_when_open_check_when_none(monkeypatch, tmp_path):
+    """DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED 2026-07-28 deliverable 3: the daily note carries
+    the open-question enumeration as a real consumer — 🔴 with count+oldest when a ruling carries an
+    unanswered question, ✅ when none. R15 fail-open direction (missing register silently dropping
+    the line) covered: a missing register makes the question OPEN, so 🔴 renders, never ✅."""
+    _isolate(monkeypatch, tmp_path)
+    note = sm1.render_note(NOW.isoformat(), _runner=FakeGit([], fail=False))
+    assert "open questions" in note  # wired into the note (real repo -> ✅ or 🔴)
+
+    root, ip = tmp_path / "r", tmp_path / "ip"
+    root.mkdir()
+    (root / "DIRECTOR_RULING_Q_2026-07-28.md").write_text(
+        "# [DIRECTOR-RULING] — q\n\n## Questions\n\n1. Is the beta thing done?\n", encoding="utf-8")
+    # No register at that path -> the question is open (silent) -> 🔴 (fail-closed, not a dropped line).
+    line = sm1.open_question_line(root, ip, tmp_path / "no_register.json")
+    assert "🔴" in line and "1 unanswered" in line and "SILENT" in line, line
+    # Empty primary state -> ✅, never a flattering silence.
+    assert "✅" in sm1.open_question_line(tmp_path / "e1", tmp_path / "e2", tmp_path / "no_reg.json")
+
+
+def test_open_question_line_fails_closed_red(monkeypatch, tmp_path):
+    """R15: an unavailable open-question read is a RED, never a silent green."""
+    def boom(*a, **k):
+        raise RuntimeError("disk gone")
+    monkeypatch.setattr("background.open_question_register.open_questions", boom)
+    line = sm1.open_question_line()
+    assert "🔴 RED" in line and "unavailable" in line
+
+
 def test_resource_sensor_absent_is_soft_not_red(monkeypatch, tmp_path):
     _isolate(monkeypatch, tmp_path)  # sensor path points at a nonexistent tmp file
     res, err = sm1.resource_inputs()
