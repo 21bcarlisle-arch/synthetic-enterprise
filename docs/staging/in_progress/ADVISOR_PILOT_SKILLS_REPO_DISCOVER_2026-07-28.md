@@ -1,3 +1,12 @@
+<!-- PARKED IN in_progress/ 2026-07-28 (excluded from supervisor unprocessed-staging scan). -->
+<!-- OPEN SUB-ITEM: the actual DISCOVER audit of github.com/mattpocock/skills has NOT run. -->
+<!-- BLOCKING CONDITION (by the pilot's own design): "yielded slots only, preempted by any real -->
+<!-- below-target work without ceremony." It is an L3 doc-only DISCOVER with NO deadline and NO -->
+<!-- front. It runs ONLY in a slot where the draw yields nothing below-target; it does not compete -->
+<!-- with mints, builds, or ratified-goal planner work. UNBLOCKS: an idle/yielded slot. Resume or -->
+<!-- abandon costlessly. Deliverable when run: adopt/adapt/reject verdict per skill to the standing -->
+<!-- best-practice register; transition-only NTFY (R5). Nothing here authorizes any harness change. -->
+
 # ADVISOR PILOT — SKILLS REPO DISCOVER (2026-07-28)
 **[DISCOVER — YIELDED SLOTS ONLY]** · advisor-staged, director-confirmed 2026-07-28
 
