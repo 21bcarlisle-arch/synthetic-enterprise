@@ -1,3 +1,8 @@
+> **SUPERSEDED (2026-07-28):** the current PURPOSE canon is `PITCH_V7.md` (adopted verbatim,
+> supersedes the v4→v5→v6→v7 chain). This v4 text is retained as ratified history. Reconciliation
+> of v7 against primary state: `PITCH_V7_RECONCILIATION_2026-07-28.md`. *(Pointer only — the ratified
+> body below is unedited.)*
+
 # DIRECTOR-RATIFIED PURPOSE — Poesys Pitch v4 (board-approved, verbatim)
 
 **Status: RATIFIED AND BAKED. The document below is board-approved and director-ratified verbatim. Do NOT edit, improve, condense or "correct" its text. It supersedes v3.** File it as canon (placement your judgment) and treat it as the standing statement of what this company is for.
