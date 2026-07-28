@@ -287,14 +287,18 @@ class TailSmoothedError(AssertionError):
 
 
 class TailAnchorMissingError(AssertionError):
-    """Raised when the REAL series carries no joint cold-and-still winter tail to
-    reach (`real_worst.severity <= 0`). Without a positive real anchor the
-    envelope check `envelope_max >= real_worst.severity` is trivially satisfied by
-    ANY engine (severities are non-negative products of clips) -- so a "pass"
-    would be meaningless and a fully-smoothed engine would slip through. R15
-    FAIL-OPEN guard: an anchorless gate is worse than none, so it fails LOUD
-    rather than passing silently. (Real GB winter data always carries a positive
-    tail, so this fires only on a broken/degenerate anchor, never in the shipped
+    """Raised when the REAL series carries no usable joint cold-and-still winter
+    tail to reach -- either `real_worst.severity <= 0` OR a non-finite
+    (NaN/inf) anchor from a broken/degenerate loader. Without a POSITIVE FINITE
+    real anchor the envelope check `envelope_max >= real_worst.severity` is
+    meaningless: at zero it is trivially satisfied by ANY engine (severities are
+    non-negative products of clips), and at NaN the ordered comparison
+    `envelope_max >= NaN` is silently False so the guard's `severity <= 0` sibling
+    test (`NaN <= 0` is also False) sails straight through -- the NaN-blind
+    comparison-guard fail-open class. R15 FAIL-OPEN guard: an anchorless gate is
+    worse than none, so a missing/degenerate/non-finite anchor fails LOUD rather
+    than passing silently. (Real GB winter data always carries a positive finite
+    tail, so this fires only on a broken anchor, never in the shipped
     demonstration.)"""
 
 
@@ -305,16 +309,29 @@ def assert_tail_not_smoothed(demo: TailDemonstration) -> None:
     `reach_fraction` frequency (R12: a diagnostic envelope, never a tuning
     target; R9: n=1 real cannot support a frequency claim).
 
-    R15 FAIL-OPEN guard: requires a POSITIVE real anchor first -- a zero
-    `real_worst.severity` makes the envelope comparison trivially true for any
-    engine, so it is rejected LOUD (`TailAnchorMissingError`) rather than counted
-    as a pass."""
-    if demo.real_worst.severity <= 0.0:
+    R15 FAIL-OPEN guard: requires a POSITIVE FINITE real anchor AND a finite
+    synthetic envelope first. A zero `real_worst.severity` makes the envelope
+    comparison trivially true for any engine; a NON-FINITE (NaN/inf) anchor is
+    even worse -- the ordered comparisons (`severity <= 0`, `envelope_max >=
+    severity`) are ALL silently False on NaN, so a NaN anchor sails through the
+    zero-anchor guard's blind spot (the NaN-blind comparison-guard fail-open
+    class). Both are rejected LOUD rather than counted as a pass. Reject
+    non-finite FIRST, before any ordered comparison."""
+    if not np.isfinite(demo.real_worst.severity) or demo.real_worst.severity <= 0.0:
         raise TailAnchorMissingError(
-            f"no real joint cold-and-still tail to reach (real worst "
+            f"no usable real joint cold-and-still tail to reach (real worst "
             f"{demo.real_worst.start_date}..{demo.real_worst.end_date} severity "
-            f"{demo.real_worst.severity:.2f} <= 0) -- the envelope gate would pass "
-            f"trivially for any engine; refusing to certify an anchorless demonstration"
+            f"{demo.real_worst.severity} -- not a positive finite number) -- the "
+            f"envelope gate would pass trivially or NaN-blind for any engine; "
+            f"refusing to certify an anchorless demonstration"
+        )
+    if not np.isfinite(demo.synthetic_worst_max):
+        raise TailSmoothedError(
+            f"synthetic tail ENVELOPE is non-finite ({demo.synthetic_worst_max}) "
+            f"over {demo.n_sims} sims -- a degenerate/blown-up engine cannot be "
+            f"certified as reaching the real worst week "
+            f"({demo.real_worst.start_date}..{demo.real_worst.end_date}, "
+            f"severity {demo.real_worst.severity:.2f}); refusing a NaN-blind pass"
         )
     if not demo.passes:
         raise TailSmoothedError(

@@ -306,6 +306,54 @@ def test_zero_real_anchor_fails_loud_not_open():
         assert_tail_not_smoothed(zero_anchor)
 
 
+@pytest.mark.parametrize("bad_anchor", [float("nan"), float("inf"), float("-inf")])
+def test_nonfinite_real_anchor_fails_loud_not_open(bad_anchor):
+    # R15 FAIL-OPEN guard, sibling of the zero-anchor case (NaN-blind comparison
+    # class): a NON-FINITE real anchor from a broken/degenerate loader is EVEN MORE
+    # anchorless than a zero one, yet the ordered guards are all silently False on
+    # NaN (`NaN <= 0` is False, `envelope_max >= NaN` is False), so a fabricated
+    # passes=True demo would sail straight through. The gate must REFUSE it LOUD.
+    nan_anchor = TailDemonstration(
+        temp_threshold_c=2.0, wind_threshold_ms=2.5, tail_percentile=15.0,
+        real_worst=WorstWeek("2020-01-01", "2020-01-07", bad_anchor, 5.0, 6.0),
+        synthetic_worst_severities=(0.0, 0.0, 0.0), synthetic_worst_median=0.0,
+        synthetic_worst_max=0.0, reach_fraction=1.0,
+        envelope_reaches_real=True, passes=True, n_sims=3, seed=1,
+        simplification_id="x",
+    )
+    with pytest.raises(TailAnchorMissingError):
+        assert_tail_not_smoothed(nan_anchor)
+
+
+@pytest.mark.parametrize("bad_env", [float("nan"), float("inf")])
+def test_nonfinite_synthetic_envelope_fails_loud_not_open(bad_env):
+    # R15 FAIL-OPEN guard (other direction): a NON-FINITE synthetic envelope means
+    # a degenerate/blown-up engine; `envelope_max >= real_severity` is silently
+    # False on NaN, so a fabricated passes=True demo would be certified silently.
+    # With a genuinely POSITIVE FINITE real anchor present the anchor guard cannot
+    # catch it, so the envelope must be rejected on its own.
+    bad_envelope = TailDemonstration(
+        temp_threshold_c=2.0, wind_threshold_ms=2.5, tail_percentile=15.0,
+        real_worst=WorstWeek("2020-01-01", "2020-01-07", 10.0, 5.0, 6.0),
+        synthetic_worst_severities=(bad_env,), synthetic_worst_median=bad_env,
+        synthetic_worst_max=bad_env, reach_fraction=0.0,
+        envelope_reaches_real=True, passes=True, n_sims=1, seed=1,
+        simplification_id="x",
+    )
+    with pytest.raises(TailSmoothedError):
+        assert_tail_not_smoothed(bad_envelope)
+
+
+def test_finite_positive_anchor_still_certifies(real_data):
+    # The hardening must not break the healthy path: a real finite positive anchor
+    # with a reaching envelope still certifies (does not raise).
+    nat, doy, dates = real_data
+    demo = demonstrate_tail(nat, doy, dates, n_sims=25, seed=42)
+    assert np.isfinite(demo.real_worst.severity) and demo.real_worst.severity > 0.0
+    assert np.isfinite(demo.synthetic_worst_max)
+    assert_tail_not_smoothed(demo)  # does not raise
+
+
 def test_no_winter_windows_raises():
     start = datetime(2020, 7, 1)
     dates = [start + timedelta(days=i) for i in range(30)]
