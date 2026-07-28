@@ -1592,7 +1592,17 @@ def _harden_criticality_weight(a: dict) -> int:
 # can never silence a real HARDEN draw.
 # =============================================================================
 HARDEN_COOLDOWN_PATH = PROJECT_DIR / "docs" / "observability" / ".harden_cooldown.json"
-HARDEN_COOLDOWN_HOURS = 6
+# 6 -> 24 (2026-07-28): the 6h window re-verified an UNCHANGED at-target atom up to
+# 4x/day. With a 34-atom at-target pool and a dial*criticality-weighted pick, a
+# high-weight harness atom (H10_worktree_isolation) was re-offered on every ~6h
+# cooldown exit -- offered 5x in ~24h (08:17Z/15:37Z/21:38Z 07-27, 04:36Z/10:57Z
+# 07-28), each a PURE TIME re-offer of a saturated, byte-unchanged control (16/16
+# green, R15 both ways). That churn was flagged as a dial-tuning candidate in the
+# H10 HARDEN passes #3 and #4 but only ever in prose (evaporating -- MAKE_IT_STICK).
+# 24h caps redundant re-verification of a genuinely-unchanged control at once/day
+# while LOSING ZERO regression coverage: any file_scope code change re-offers the
+# atom INSTANTLY via `scope_sha`, independent of this time window (below).
+HARDEN_COOLDOWN_HOURS = 24
 
 
 def _atom_content_sha(a: dict) -> str:
