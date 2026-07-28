@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-28T20:16:33.374844+00:00",
+  "last_updated": "2026-07-28T20:25:04.641703+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T20:16:33.374844+00:00",
+      "last_heartbeat": "2026-07-28T20:25:04.641703+00:00",
       "last_action": "Heartbeat \u2014 16 files tracked",
-      "last_action_ts": "2026-07-28T20:16:33.374844+00:00",
+      "last_action_ts": "2026-07-28T20:25:04.641703+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,19 +25,19 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T20:12:41.414836+00:00",
-      "last_action": "Waiting for next cycle (5h 10m remaining)",
-      "last_action_ts": "2026-07-28T20:12:41.414836+00:00",
+      "last_heartbeat": "2026-07-28T20:22:41.416052+00:00",
+      "last_action": "Waiting for next cycle (5h 0m remaining)",
+      "last_action_ts": "2026-07-28T20:22:41.416052+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
     },
     {
       "name": "sim-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-07-28T20:10:01.353200+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260728T201001Z.json)",
-      "last_action_ts": "2026-07-28T20:10:01.353200+00:00",
+      "status": "running",
+      "last_heartbeat": "2026-07-28T20:18:00.777177+00:00",
+      "last_action": "Sim started \u2014 git=cab1b94dc",
+      "last_action_ts": "2026-07-28T20:18:00.777177+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T11:56:29.516822+00:00",
+      "last_heartbeat": "2026-07-28T20:23:11.856766+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-28T11:56:29.516822+00:00",
+      "last_action_ts": "2026-07-28T20:23:11.856766+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T20:16:27.372272+00:00",
+      "last_heartbeat": "2026-07-28T20:24:36.338304+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-28T19:48:41.352230+00:00",
+      "last_heartbeat": "2026-07-28T20:18:54.349146+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-28T19:48:41.352230+00:00",
+      "last_action_ts": "2026-07-28T20:18:54.349146+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
