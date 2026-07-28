@@ -79,6 +79,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     "H21_self_contained_escalation", "H22_scheduled_housekeeping",
     "H23_frame_saturation_draw_marker", "H23_publish_gate_scope_marker",
     "H24_precommit_gate_git_env_isolation", "H24_worktree_dir_autoreap",
+    "H28_precommit_gate_ambient_cwd_git_discovery",  # 2026-07-28 reviewed: scoped defense-in-depth residual of H24 (gate-run tests discover the real .git by upward-walk from cwd=ROOT) -- same commit/publish-chain-integrity close_to_learn class as H24/H26
     "H25_self_gov_detection_hardening", "H26_core_bare_corruption_guard",
     "H27_phone_act_channel",  # 2026-07-18 reviewed: governance/authority infra (director phone-[ACT] channel) -- shortens the director-decision feedback loop, the same close_to_learn class as its siblings H25/H26/G10/A3
     "H_draw_excludes_external_blocked_atoms",
