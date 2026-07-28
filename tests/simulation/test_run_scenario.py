@@ -362,6 +362,20 @@ def test_validate_fires_on_wrong_unit_reference():
         _validate_real_reference(data)
 
 
+def test_validate_fires_on_high_side_unit_error():
+    """Guard (2) UPPER bound (R15 killer pattern 2, the half-guard that never fired). The band
+    [MIN, MAX] is two-sided, but every OTHER band test pushes the median BELOW MIN (p/kWh mis-unit,
+    returns-as-levels ~0) -- so `median <= MAX` had ZERO firing test and, mutated away, the whole
+    suite stayed green: an upper-band guard indistinguishable from absent is fail-open. A high-side
+    unit error is a real, symmetric confusion -- GBP/kWh levels stored where GBP/MWh belong, or a
+    MWh->kWh scale slip (x1000) -- pushing the median to ~55,590 GBP/MWh, far above the plausible UK
+    band. This reds when the `median <= MAX` half is dropped, passes with it in place."""
+    data = _real_fixture_dict()
+    data["daily_mean_ssp"] = [x * 1000.0 for x in data["daily_mean_ssp"]]  # GBP/MWh stored as GBP/kWh scale
+    with pytest.raises(CorruptReferenceError, match="band"):
+        _validate_real_reference(data)
+
+
 def test_validate_fires_on_returns_stored_as_levels():
     """Guard (2): a reference where first-difference RETURNS were stored where price LEVELS belong
     has a median ~0 (real returns centre on zero), below the band -- a real confusion this fixture's

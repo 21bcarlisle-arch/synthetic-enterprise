@@ -58,9 +58,11 @@ def _validate_real_reference(data: dict) -> "list":
           a truncated / appended / partially-overwritten fixture (the most likely silent
           corruption of a committed data file). Independent of the values themselves.
       (2) external plausibility: the daily-mean LEVEL median must sit in a published-UK-market
-          band (MIN/MAX above). Catches a reference that is not real price levels at all --
-          a p/kWh unit error, returns accidentally stored where levels belong (median ~0),
-          fabricated flat/near-zero data -- exactly the wrong-anchor case (1) cannot see.
+          band (MIN/MAX above) -- a TWO-SIDED bound, both halves mutation-proven. Below MIN
+          catches a p/kWh unit error (~5.5), returns accidentally stored where levels belong
+          (median ~0), fabricated near-zero data; above MAX catches the symmetric high-side
+          scale slip (GBP/kWh stored as GBP/MWh, or MWh->kWh, ~x1000). Exactly the wrong-anchor
+          case (1) cannot see.
     """
     if "daily_mean_ssp" not in data:
         raise CorruptReferenceError("reference fixture missing 'daily_mean_ssp' -- not a real reference")
