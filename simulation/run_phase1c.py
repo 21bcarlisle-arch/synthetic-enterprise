@@ -6,11 +6,12 @@ from datetime import date, timedelta
 
 from saas.clv_seed import build_clv_seed
 from saas.customer_reaction import score_dissatisfaction
-from saas.customers import CUSTOMERS, customer_to_settlement_input
+from saas.customers import customer_to_settlement_input
 from saas.tariff_pricing import price_fixed_tariff
 from sim.forward_curve import generate_forward_price
 from sim.profile_class_1 import load_pc1_shape
 from sim.system_prices_history import get_system_prices_range
+from simulation.live_population import live_population
 from simulation.portfolio_pnl import build_portfolio_pnl
 from simulation.settlement import run_settlement
 
@@ -18,9 +19,21 @@ REPORT_START = "2016-01-01"
 REPORT_END = "2016-12-31"
 
 
+def _resolve_book() -> list[dict]:
+    """Resolve this run's customer book through the single population seam
+    (generator draw-wiring, PRODUCT-FIRST item 2 — the SYN-safe settlement
+    entrypoints). Byte-identical to the static ``CUSTOMERS`` literal while the
+    director-reserved ``SE_DRAW_POPULATION`` flag is off; additively carries the
+    synthetic SYN-* acquisition cohort when on. Settlement-SAFE: this entrypoint
+    reads only ``customer_id``/``acquisition_date`` via
+    ``customer_to_settlement_input`` — both fields the SYN shape carries (per the
+    blast-radius map), so the flip needs no property-model hardening here."""
+    return live_population()
+
+
 def build_priced_customers() -> list[dict]:
     customers = []
-    for customer in CUSTOMERS:
+    for customer in _resolve_book():
         settlement_input = customer_to_settlement_input(customer)
         acquisition_date = settlement_input["acquisition_date"]
         lookback_start = (date.fromisoformat(acquisition_date) - timedelta(days=90)).isoformat()

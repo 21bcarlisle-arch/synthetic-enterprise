@@ -114,11 +114,30 @@ default) while the byte-identical-off tests still pass. 145 downstream dashboard
 (527 files) PASS. **Still to wire:** the `run_phase*` settlement entrypoints (SYN-safe per the blast-radius
 map) — the last non-walled draw before the held flip.
 
+**LANDED 2026-07-28 (later tick) — the SYN-safe `run_phase*` settlement entrypoints wired through the seam (last non-walled draw):**
+The three PURE-settlement drivers — `run_phase0c`, `run_phase1c`, `run_phase1c_full_window` — now resolve
+their book from `live_population()` via a per-module `_resolve_book()` helper instead of importing the static
+`CUSTOMERS` literal directly. These are the entrypoints the blast-radius map names **SYN-SAFE**: each iterates
+its book ONLY through `customer_to_settlement_input(customer)`, which reads exactly `customer_id` +
+`acquisition_date` — both fields the SYN shape carries — so the flip needs **no property-model hardening
+here** (unlike the HH/dashboard generators). **Byte-identical while off** (`_resolve_book() == list(CUSTOMERS)`).
+**Flag-on:** each book additively carries the SYN cohort AND every SYN dict is proven settlement-safe
+(`customer_to_settlement_input` does not KeyError on it). R15 BOTH WAYS proven:
+`tests/simulation/test_run_phase_settlement_population_seam.py` (9 green, parametrised across all three drivers)
+— the MUT (revert `_resolve_book()` to `list(CUSTOMERS)`) fails both flag-on assertions (SYN never appears)
+while the byte-identical-off assertion still passes. `live_population` seam (10) + settlement (33 total)
+regressions + `epistemic_verifier` (527 files) PASS. **This closes the "wire the generators" remaining step:**
+CENTRAL (`generate_hh_data`) + report-lookup (`generate_customer_sample`, `generate_dashboard_data`) + the
+SYN-safe settlement drivers are now all seam-routed. The `run_phase2a`/`2b`/`3a` drivers read property/`eac_kwh`/
+`segment` fields (NOT pure-settlement) and are the property-model-dependent follow-on, QUEUED with the held flip.
+**Only the director-reserved flip (REMAINING #3) now stands between the seam and an active richer population.**
+
 **REMAINING (drawable dedicated build, authorised — NOT walled):**
 1. ~~SYN property model (central path)~~ — LANDED above; residual = `run_phase3a.py` diagnostic (QUEUED).
-2. Wire the generators to consume `live_population()` (byte-identical while off) — CENTRAL generator
-   (`generate_hh_data`) + report-lookup generators (`generate_customer_sample`, `generate_dashboard_data`)
-   LANDED above; the `run_phase*` settlement entrypoints remain (SYN-safe).
+2. ~~Wire the generators to consume `live_population()` (byte-identical while off)~~ — LANDED: CENTRAL generator
+   (`generate_hh_data`) + report-lookup generators (`generate_customer_sample`, `generate_dashboard_data`) +
+   the SYN-safe `run_phase*` settlement drivers (`run_phase0c`/`1c`/`1c_full_window`) are all seam-routed.
+   Residual = the property-dependent `run_phase2a`/`2b`/`3a` drivers, QUEUED with the held flip (not pure-settlement).
 3. Flip `SE_DRAW_POPULATION=1` + downstream re-baseline (fidelity cells / financials / site panels),
    coverage-gate now enforcing #3; historical straddling comparisons MARKED not silently continued.
    The flip is a director-authored curriculum act, now BUILD_OPEN — run as a dedicated build, not a
