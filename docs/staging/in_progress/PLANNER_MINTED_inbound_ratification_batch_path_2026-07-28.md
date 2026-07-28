@@ -1,4 +1,11 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_level_up -- BUILD half (b)/(c) is DONE and committed (background/inbound_ratification.py + 23-test R15-both-ways suite); the ONLY remaining work is the director's LEVEL move 0->3 (R16: the agent cannot self-bump; it lands at build-quality with blocked_on director_level_up). RELEASE CONDITION: a director/console LEVEL_UP for this atom, at which point it closes and archives to done/. -->
+<!-- BUILD HALF (b)/(c) DONE 2026-07-28 (worker tick, commit pending) — background/inbound_ratification.py
+     + tests/background/test_inbound_ratification.py (23 tests, R15 both-ways PROVEN: MUTATION neuters the
+     hold → into-move silently lands as deliberate-and-staying (test_held_into_move_does_not_silently_land
+     reds); PASS-THROUGH out-toward-mint autonomous, no escalation; FAIL-SAFE ambiguous→held). Marker
+     flipped self-drawable→blocked: the only remaining work is the R16 director LEVEL move (0→3).
+     UNBLOCKS ON: director_level_up. -->
 <!-- RELEASED 2026-07-28: director console BUILD_OPEN (ruling_consumption_authority_seam_signoff) — implements the item-2 transcription convention (parse LEDGER: BUILD_OPEN/FRONT_OPEN/LEVEL_UP_PROPOSED → release-or-raise-ONE-[ACT], never sit silent) that this ruling RATIFIES; recorded in docs/observability/gate_authorizations.jsonl (channel=console). BUILD half now drawable. Level move stays director_level_up (R16). -->
 > **DISCOVER/design half EXECUTED 2026-07-28** (planner tick) → `docs/design/INBOUND_RATIFICATION_BATCH_PATH_CONTRACT.md`
 > (the batched inbound-ratification contract, exit criterion (a)). Marker flipped self-drawable→blocked:
