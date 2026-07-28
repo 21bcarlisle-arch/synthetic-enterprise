@@ -2,17 +2,31 @@
   "date": "2026-07-28",
   "axes_sha": "6e8576269993868af95b46ca2391270e5ed401e22fabbfaaf7200d59d5a1deea",
   "minted_blocked_slugs": [
+    "PLANNER_MINTED_board_spec_001_wholesale_reconciliation_2026-07-28.md",
     "PLANNER_MINTED_dd_dependency_overblock_split_2026-07-28.md",
     "PLANNER_MINTED_dd_seasonal_cashflow_physics_2026-07-25.md",
+    "PLANNER_MINTED_director_window_delta_view_2026-07-28.md",
     "PLANNER_MINTED_first_ranked_gap_list_2026-07-28.md",
+    "PLANNER_MINTED_gap1_reader_contract_failopen_fix_2026-07-28.md",
     "PLANNER_MINTED_gap_registers_as_mint_sources_2026-07-28.md",
-    "PLANNER_MINTED_gap_triage_ranking_method_2026-07-28.md",
     "PLANNER_MINTED_generator_draw_wiring_2026-07-24.md",
+    "PLANNER_MINTED_inbound_ratification_batch_path_2026-07-28.md",
+    "PLANNER_MINTED_intra_year_price_cap_granularity_2026-07-28.md",
     "PLANNER_MINTED_merit_order_reconstruction_discover_2026-07-25.md",
+    "PLANNER_MINTED_money_representation_evidence_2026-07-28.md",
+    "PLANNER_MINTED_owned_quantity_registry_gate_2026-07-28.md",
+    "PLANNER_MINTED_payment_channel_dd_consistency_invariant_2026-07-28.md",
+    "PLANNER_MINTED_privacy_policy_page_2026-07-28.md",
+    "PLANNER_MINTED_rng_substream_primitive_2026-07-28.md",
+    "PLANNER_MINTED_shared_primitive_ensuring_activity_2026-07-28.md",
+    "PLANNER_MINTED_size_and_clone_ratchet_2026-07-28.md",
     "PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md",
+    "PLANNER_MINTED_stop_control_gap_characterisation_2026-07-28.md",
     "PLANNER_MINTED_stratified_run_rotation_mechanism_2026-07-25.md",
-    "PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md"
+    "PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md",
+    "PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md",
+    "PLANNER_MINTED_working_day_calculator_2026-07-28.md"
   ],
-  "proof_summary": "Post-work verdict (2026-07-28 tick): the two self-drawable DISCOVER halves of the PUBLISHED_GAPS ruling were EXECUTED this tick (GAP1 mint-source contract -> docs/design/GAP_REGISTER_MINT_SOURCE_CONTRACT.md; GAP2 triage/ranking method -> docs/design/GAP_TRIAGE_AND_RANKING.md, returns-for-ratification/HELD) and flipped self-drawable->blocked. No un-minted, non-walled ratified-goal next-step remains: DIRECTOR_AXES v1 (2026-07-22) unchanged; the freshest ruling PUBLISHED_GAPS deliverables 1-4 are all minted (GAP1 build-half blocked_on director_build_open [H-lane demotion, R16]; GAP2 blocked_on director_ratification; GAP3 blocked_on GAP2). All 10 in_progress PLANNER_MINTED mints are blocked on a director action (build_open / ratification / level_up) or a dated propose-window. Minting more would accrete duplicates onto a 10-deep director-blocked pile. Bounded, not forever: blocked-set non-empty -> 2h age-cap re-examine (EIGHTH CLASS); auto-invalidates on axes-sha change, UTC day-roll, or any mint unblocking.",
-  "written_at": "2026-07-28T05:04:45.866527+00:00"
+  "proof_summary": "RUNG-7 planner bounded turn 2026-07-28: premise FALSE. Sources scanned \u2014 DIRECTOR_AXES v1 (Website/Segmentation/Believability + director-reserved roadmap rotation), maturity_map epoch arc, fidelity_evidence_ledger (5 rows: W1_6 ssp calibration, bad_debt bridge, 3 payment-detection cells), CAMPAIGN_REGISTER (SITE_V5 CLOSED, no open campaign; _open_campaign_draw=None), and FIRST_RANKED_GAP_LIST.md. Every autonomous mint row is already minted-and-blocked: P2 sanity audited 12-covered/3-minted (d09e0d6c6/72f047e87), M2 stop-control / M5 board-spec-001 / M3 director-window-delta / privacy-policy / gap1-reader-contract all in the 24-slug blocked set. Walled (untouched): P1 E5-carbon, P4 eff-temp-demand, P5 gas-storage, P6 \u2014 all blocked-on-director (need a front/epoch open, R16 agent cannot self-open); deliberate-and-staying set HELD for director ratification (GAP-M2); SSP-baseline cells R13/R12-reserved; roadmap rotation director-owned. Fidelity-ledger rows covered by existing blocked atoms (ssp/merit-order, bad-debt bridge, payment triad). 0 self-drawable mints. Rest honestly; EIGHTH-CLASS age-cap re-examines within the cap.",
+  "written_at": "2026-07-28T09:35:09.044201+00:00"
 }
