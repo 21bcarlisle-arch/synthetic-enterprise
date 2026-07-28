@@ -1,14 +1,22 @@
-<!-- MINT COVERAGE MAP (worker tick 2026-07-28) — all 4 WORK-THIS-CREATES deliverables MINTED as
-self-drawable atoms (none pre-covered; grep-confirmed net-new). NOT archived to done/: this ruling
-carries 6 open questions (§3) and the archive-block mechanism (deliverable 1) is not yet built —
-by the ruling's own §1 it is NOT fully consumed while any question is unanswered. Parked in
-in_progress/. BLOCKING SUB-ITEMS: (1) mechanism+archive-block not built; (4) the six not yet answered.
-  [1] MINTED — PLANNER_MINTED_question_register_mechanism_2026-07-28.md (H_harness, BUILD authorized by this ruling, level blocked_on director_level_up)
-  [2] MINTED — PLANNER_MINTED_question_register_seed_publish_2026-07-28.md (H_harness, seed+publish the six)
-  [3] MINTED — PLANNER_MINTED_questions_in_daily_note_2026-07-28.md (H_harness, daily-note line)
-  [4] MINTED — PLANNER_MINTED_answer_six_outstanding_questions_2026-07-28.md (L3 DISCOVER, drawable now, doc-only)
-This ruling stays in in_progress/ until deliverable 1's archive-block is live AND the six §3 questions
-are answered/carried — at which point that very mechanism will permit its archival. -->
+<!-- MINT COVERAGE MAP (updated worker tick 2026-07-28, commit d05dd80af) — deliverables 1-3 BUILT,
+deliverable 4 in flight. NOT archived to done/: this ruling still carries UNANSWERED questions (§3),
+and by its own §1 it is NOT fully consumed while any is unanswered — now ENFORCED MECHANICALLY, not
+by this banner (tools/ruling_archive_question_gate.py refuses the archival commit; R15-proven both
+ways at the git boundary). Parked in in_progress/. REMAINING BLOCKING SUB-ITEM: (4) five of the six
+§3 questions are only CARRIED (non-silent, with a reason), not yet ANSWERED — the archive gate blocks
+until they close (answered / I-don't-know / not-measurable / wrong).
+  [1] LANDED — question-register mechanism + archive-block gate LIVE (background/open_question_register.py, tools/ruling_archive_question_gate.py, wired into pre-commit). Mint archived to done/. Level blocked_on director_level_up (R16).
+  [2] LANDED — register SEEDED + published, 0 silent (docs/observability/open_question_register.json: Q3 answered, five carried-with-reason). Mint archived to done/.
+  [3] LANDED — daily-note open-question line LIVE (background/daily_self_note.open_question_line; live render: 5 unanswered, 0 silent). Mint archived to done/.
+  [4] IN FLIGHT — PLANNER_MINTED_answer_six_outstanding_questions (in_progress/, L3 DISCOVER, self-drawable). Q3 (cohort) answered; Q1/Q2/Q4/Q5/Q6 carried pending the batched investigation.
+This ruling's OWN archive gate now governs its archival: it will permit done/ only once every §3
+question carries a CLOSING disposition (not merely 'carried'). The mechanism enforces the rule on
+itself — the acceptance test made real. -->
+<!--
+ORIGINAL BANNER (superseded 2026-07-28 by the above; retained for provenance):
+all 4 WORK-THIS-CREATES deliverables MINTED as self-drawable atoms; deliverable 1's archive-block
+was not yet built; BLOCKING SUB-ITEMS were (1) mechanism not built; (4) the six not yet answered.
+-->
 
 # [DIRECTOR-RULING] — No question left unanswered. A question is a first-class open item. (2026-07-28)
 
