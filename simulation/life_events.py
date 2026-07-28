@@ -589,7 +589,20 @@ def apply_events(household: Household, events: list[LifeEvent]) -> Household:
     Returns a new Household with all events applied (up to and including
     the last event in the list). Events should be filtered to the desired
     date range before calling this function.
+
+    ORDER-TOLERANCE (C-S1, event-arrival-tolerance): the canonical point-in-time
+    state is DATE-ordered by definition, so replay must be date-ordered
+    regardless of the caller's list order.  The income_stress state machine is
+    order-sensitive (the conditional LOW->MODERATE bumps for new_baby / divorce /
+    retirement, and the last-write-wins physical-adoption fields), so replaying a
+    caller's list in raw list order silently corrupts the reconstruction the
+    moment events arrive singly / late / out of order (C-S1 forbids assuming
+    batch completeness).  generate_life_events() already returns a date-sorted
+    list, so this stable sort is a no-op for the production path (household_demand
+    -> household_at_date) but makes the primitive self-defensive for any future
+    accumulating consumer.  Stable sort keeps generation order for same-date ties.
     """
+    events = sorted(events, key=lambda e: e.event_date)
     state = {
         "customer_id": household.customer_id,
         "property_type": household.property_type,

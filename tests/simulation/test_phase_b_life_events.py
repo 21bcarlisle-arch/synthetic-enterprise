@@ -696,6 +696,102 @@ def test_highgated_demographic_gate_holds_in_canonical_timeline():
 
 
 # ---------------------------------------------------------------------------
+# W2_5 HARDEN 2026-07-28 (Rule-0 self-refill, dial yielded -- no below-target
+# work; W2_5 at-target L3): apply_events ORDER-TOLERANCE (C-S1).
+#
+# A DISTINCT concern from the generator emission/reconstruction defect above --
+# that is about the GENERATOR's within-year gate ordering; this is the
+# RECONSTRUCTION primitive's OWN robustness. apply_events() rebuilds
+# point-in-time household state by replaying events, and the canonical
+# point-in-time state is DATE-ordered by definition. The income_stress state
+# machine is order-sensitive (the conditional LOW->MODERATE bumps for
+# new_baby/divorce/retirement, plus last-write-wins physical-adoption fields).
+# Before this pass apply_events replayed in raw LIST order with NO ordering
+# guard -- correct today ONLY because the sole production caller
+# (household_demand -> household_at_date, fed by generate_life_events which
+# returns a date-sorted list) happens to hand it sorted input.
+#
+# Under C-S1 (event-arrival-tolerance: logic must behave correctly if events
+# arrive singly / late / out of order, batch completeness may not be assumed)
+# that is a latent FAIL-OPEN: any future accumulating consumer passing an
+# out-of-order list got a SILENTLY WRONG reconstruction. Verified concretely:
+# a LOW-stress household with [income_recovery@2020-03, divorce@2020-06]
+# reconstructs to MODERATE (canonical), but the SAME two events reversed
+# reconstructs to LOW -- a corrupted income_stress with no error raised.
+#
+# FIX: apply_events now stable-sorts by event_date -- a byte-for-behaviour no-op
+# for the production (already-sorted) path, order-tolerant for everyone else.
+# The two controls below (a) assert the concrete invariant and (b) sweep many
+# random permutations of a generated stream, proving order-invariance is
+# non-trivial. R15 can-fail: proven to FIRE with the sort removed (all-perms
+# invariant fails; the concrete case returns LOW) and pass restored.
+# ---------------------------------------------------------------------------
+
+import random as _random
+
+
+def test_apply_events_income_stress_order_invariant_concrete():
+    # Concrete demonstration of the fail-open the sort closes: the reconstructed
+    # income_stress must be the DATE-ordered result regardless of list order.
+    hh = make_household({
+        "customer_id": "OI", "home_type": "suburban_semi",
+        "epc_rating": "D", "bedrooms": 3, "segment": "resi",
+    })
+    import dataclasses
+    hh = dataclasses.replace(hh, income_stress=IncomeStress.LOW)
+    recovery = LifeEvent(customer_id="OI", event_date="2020-03-01",
+                         event_type="income_recovery", payload={})
+    divorce = LifeEvent(customer_id="OI", event_date="2020-06-01",
+                        event_type="divorce", payload={})
+    # income_recovery(Mar) -> LOW, then divorce(Jun) -> MODERATE. The canonical
+    # (date-ordered) point-in-time state is MODERATE; both input orders must agree.
+    date_order = apply_events(hh, [recovery, divorce]).income_stress
+    reversed_order = apply_events(hh, [divorce, recovery]).income_stress
+    assert date_order == IncomeStress.MODERATE
+    assert reversed_order == date_order, (
+        "apply_events income_stress reconstruction is order-dependent -- an "
+        "out-of-order event list silently corrupts the point-in-time state "
+        "(C-S1 fail-open); the date-sort guard has regressed"
+    )
+
+
+def test_apply_events_permutation_invariant_full_state():
+    # Sweep: for real generated streams, apply_events must return an IDENTICAL
+    # Household for every permutation of the input list. This is FALSE without
+    # the date-sort (R15 can-fail: with the sort removed, permutations diverge
+    # for streams whose income_stress bumps are order-sensitive).
+    hh = Household(
+        customer_id="PM", property_type=PropertyType.SEMI_DETACHED,
+        build_era=BuildEra.POST_2000, epc_rating="C", bedrooms=3,
+        heating_system=HeatingSystem.GAS_BOILER_COMBI, boiler_age=BoilerAge.MID,
+        has_solar=False, solar_kwp=0.0, solar_install_year=None,
+        has_battery=False, battery_kwh=0.0, has_ev=False, ev_charger_kw=0.0,
+        has_smart_meter=False, smart_meter_install_year=None,
+        insulation=InsulationLevel.PARTIAL, has_driveway=True, roof_aspect="S",
+        income_stress=IncomeStress.HIGH,
+    )
+    rng = _random.Random(20260728)
+    checked = 0
+    for seed in range(200):
+        events = generate_life_events(hh, 2016, 2025, seed=seed)
+        if len(events) < 2:
+            continue
+        canonical = apply_events(hh, events)
+        for _ in range(5):
+            shuffled = list(events)
+            rng.shuffle(shuffled)
+            got = apply_events(hh, shuffled)
+            assert got == canonical, (
+                f"seed={seed}: apply_events is order-dependent -- shuffled "
+                f"input reconstructs a different Household than the date-ordered "
+                f"input (income_stress {got.income_stress} vs "
+                f"{canonical.income_stress}); C-S1 order-tolerance regressed"
+            )
+        checked += 1
+    assert checked > 0, "no multi-event streams generated -- control never exercised"
+
+
+# ---------------------------------------------------------------------------
 # SEGMENTATION_GENERATOR_BUILD_PLAN.md step 2: tenure->low-carbon-adoption
 # gating MECHANISM (`adoption_eligibility_multiplier`). Default OFF (1.0) so
 # every existing call site is byte-identical; the multiplier measurably
