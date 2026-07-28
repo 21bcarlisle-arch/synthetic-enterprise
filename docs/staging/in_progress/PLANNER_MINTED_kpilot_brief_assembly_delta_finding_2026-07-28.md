@@ -1,3 +1,5 @@
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: propose_then_proceed -- deliverable 5 (brief-vs-assembly delta) is the LAST deliverable; it consumes #4. RELEASE CONDITION: deliverable #4 (kpilot_rung5_charts_and_dod_gate, now self-drawable) lands the assembled page + charts, at which point the delta = scope-brief(#1) minus assembly is computed and PUBLISHED on the live page (R11 verify-to-pixel) under standing propose-then-proceed authority. Was UNMARKED (hygiene gate flagged it); now a stated, judgeable block. -->
 > **[PARKED in_progress 2026-07-28]** BLOCKING SUB-ITEM: this is the LAST deliverable and consumes #1-4. UNBLOCKS WHEN: #4 (charts) lands and the assembly against the scope brief is done, so the brief-vs-assembly DELTA can be computed and PUBLISHED on the live page (R11 verify-to-pixel). Inputs ready: #1 scope brief + #2 reconciliation punch-list (13 ABSENT-UNNAMED rows) both DONE.
 
 # [PLANNER-MINTED] K-pilot deliverable 5 — publish the brief-vs-assembly delta as the pilot's real finding (2026-07-28)

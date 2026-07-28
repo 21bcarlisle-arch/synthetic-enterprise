@@ -2495,6 +2495,12 @@ def authorized_set_enumeration() -> dict:
         # published with planner=. while 6 minted docs sat blocked in in_progress/. blocked_mints=Y
         # => rest illegitimate (escalate the blockers + mint around them, never rest quietly).
         ("blocked_mints", _blocked_mints_open),
+        # GAP1 (director ruling PUBLISHED_GAPS_ARE_THE_BACKLOG 2026-07-28, BUILD_OPEN
+        # `gap1_reader_contract_failopen_fix`): the published gap registers ARE the backlog, and
+        # nothing read them as work. This detector reads the OPEN residue across all eight registers
+        # from PRIMARY state (independent reader, invariant 1) so the whole-set rest proof includes
+        # them -- Y => rest illegitimate while any register holds an open, un-triaged row.
+        ("gap_register", _gap_register_open),
     ]
     return {name: _safe(fn) for name, fn in levels}
 
@@ -2756,6 +2762,11 @@ def _operational_red_persistent_draw(
 DIRECTOR_AXES_PATH = PROJECT_DIR / "docs" / "design" / "DIRECTOR_AXES.md"
 FIDELITY_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "fidelity_evidence_ledger.json"
 PLANNER_RUNG_DISABLED_FLAG = PROJECT_DIR / "docs" / "observability" / ".planner_rung_disabled"
+# GAP1 detector-level kill flag (2026-07-28, GAP_REGISTER_MINT_SOURCE_CONTRACT (b)): a shadow rail
+# for the `gap_register` enumeration level -- a `.gap_register_level_disabled` flag instantly reverts
+# the draw-core to its prior behaviour with no code change (a draw-core change must be killable, same
+# discipline as PLANNER_RUNG_DISABLED_FLAG). Absent -> level active.
+GAP_REGISTER_LEVEL_DISABLED_FLAG = PROJECT_DIR / "docs" / "observability" / ".gap_register_level_disabled"
 PLANNER_MINTED_PREFIX = "PLANNER_MINTED_"
 # REST-WITH-PROOF marker (2026-07-25, PLANNER_MINTED_planner_rest_with_proof_saturation):
 # when a planner turn concludes NO un-minted, non-walled ratified-goal next-step exists (every
@@ -2887,6 +2898,29 @@ def open_mint_blockers(staging_dir: Path | None = None) -> list[tuple[str, str]]
             body = ""
         out.append((name, _extract_blocking_reason(body)))
     return out
+
+
+def _gap_register_open(disabled_flag: Path | None = None) -> bool:
+    """GAP1 detector level (2026-07-28, GAP_REGISTER_MINT_SOURCE_CONTRACT (b), director BUILD_OPEN
+    `gap1_reader_contract_failopen_fix` in gate_authorizations.jsonl). True iff any published gap
+    register holds an OPEN row -- the ruling's acceptance turns on this: *a saturation/rest claim is
+    impossible while any published register holds an open, un-triaged item.* Reads the residue from
+    the INDEPENDENT `background/gap_register_scan` (imports nothing from this module -- invariant 1,
+    LAW-C: a reader restating the tick's own belief could not falsify a saturation claim). FAIL-SAFE
+    toward work: any read/import error -> True (forbid rest, the Rule-0 direction). SHADOW RAIL: a
+    `.gap_register_level_disabled` flag reverts to the prior behaviour with no code change."""
+    flag = disabled_flag or GAP_REGISTER_LEVEL_DISABLED_FLAG
+    try:
+        if Path(flag).exists():
+            return False  # shadow-disabled -> level contributes nothing
+    except OSError:
+        pass
+    try:
+        from background.gap_register_scan import gap_register_open
+
+        return bool(gap_register_open())
+    except Exception:  # noqa: BLE001 -- an unreadable register is a FAILED read -> forbid rest
+        return True
 
 
 def _blocked_mints_open(staging_dir: Path | None = None) -> bool:

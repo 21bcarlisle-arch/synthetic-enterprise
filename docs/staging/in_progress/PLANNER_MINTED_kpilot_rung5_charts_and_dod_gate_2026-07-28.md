@@ -1,3 +1,5 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- DISPOSITION 2026-07-28 (worker tick): the stated unblock condition -- deliverable #3 decomposition settled -- is MET (#1/#2/#3 DONE), so the SITE/BUILD next step (charts from the pipeline + the R15 DoD gate on `site/knowledge/wholesale-price-formation/**`) is DRAWABLE NOW by the SITE lane. Marker set self-drawable (was UNMARKED, which the hygiene gate correctly flagged as invisible work). Level moves stay blocked_on director_level_up (R16). -->
 > **[PARKED in_progress 2026-07-28]** BLOCKING SUB-ITEM: this is the SITE+BUILD half (rung-5 charts rendered from the pipeline + an R15 mutation-proven DoD gate). UNBLOCKS WHEN: the decomposition (#3, proposed in docs/design/KPILOT_PAGE_DECOMPOSITION_PROPOSAL.md) is settled so charts land on the decided pages, and the SITE/BUILD assembly is drawn. Deliverables #1/#2/#3 (scope brief, reconciliation, decomposition) are DONE (docs/design/KPILOT_*). Not a doc-only atom.
 
 # [PLANNER-MINTED] K-pilot deliverable 4 — the rung-5 chart set + a DoD gate so a chartless page cannot ship (2026-07-28)
