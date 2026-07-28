@@ -5,15 +5,15 @@
     "89973bde7531": {
       "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
       "question": "Why was merit_order drawable only from 2026-07-28 -- epoch gate/dep/scheduling artifact, and is it drawing now?",
-      "status": "carried",
-      "disposition": "CARRIED (2026-07-28): requires reading d81197736 section 5 (the atom's loop_stage/gate/drawable_from) + today's draw log. Minted as deliverable-4 DISCOVER atom (PLANNER_MINTED_answer_six_outstanding_questions) -- the batched investigation half. Not silence: this row exists and states what closes it.",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-07-28, evidence-cited): merit-order reconstruction was MINTED into maturity_map.yaml as atom W1_6b_merit_order_reconstruction on 2026-07-27 (DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE_2026-07-27 Problem One -- named in rulings + the 2026-07-25 mint-doc but existing as NO atom, a grep-confirmed gap). It is 'drawable only from 2026-07-28' because its BUILD half is held behind a propose-then-proceed window closing 2026-07-28 under R13 baseline discipline (no interim tuning while the structural work waits) -- a deliberate hold, not a defect; DISCOVER+FRAME are already discharged. Drawing now? NO: maturity_map.yaml:2400-2413 shows loop_stage=build, level_current=0, blocked_on='propose-then-proceed BUILD window closes 2026-07-28 ... then director_level_up'; run_history.json has 0 merit_order draws. A tick after the window (today) with no director revision draws the BUILD; the level move stays director-reserved (R16). Primary state: maturity_map.yaml:2400-2413, commit d81197736 section 5, run_history.json.",
       "recorded": "2026-07-28"
     },
     "757164967684": {
       "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
       "question": "Harness exit-criterion counter current reading + cause of last reset; wired to primary state?",
-      "status": "carried",
-      "disposition": "CARRIED (2026-07-28): requires reading the exit-criterion mechanism + its counter state (d81197736, 1494d6160 section 4b). Minted as deliverable-4 DISCOVER. The likely answer 'not yet wired to primary state -- not yet a control' must be verified against the code, not asserted.",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-07-28, verified against code -- not asserted): the counter is NOT YET BUILT. DIRECTOR_RULING_HARNESS_EXIT_CRITERION_RATIFIED_2026-07-27 (d81197736) ratifies the criterion (3 consecutive product-content advances, zero stall-class across the span) with WORK-THIS-CREATES item 1 'mechanise with R15 pair' and item 3 'counter + last-reset-cause published in the daily note'. Neither is built: grep of background/ finds no exit-criterion/stall-class counter; daily_self_note.py renders no such line; no surface publishes a value. Current reading: N/A -- no counter to read. Last-reset cause: N/A -- no counter. Wired to primary state? NO. So it is NOT yet a control: it cannot observe last night's HARDEN-while-unminted, and a 'harness done for now' claim is not presently gated on it (the ratified coherence-by-derivation requirement is unmet). Confirms the register's prior expectation, now code-verified.",
       "recorded": "2026-07-28"
     },
     "d60abd4780be": {
@@ -26,22 +26,22 @@
     "58f8fa8364c2": {
       "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
       "question": "Stall-set coverage verdict on the four events (console rescue, publish-gate wedge >1h, origin freeze >30m, advisor restart-ruling): detected / detector-added / argued-out?",
-      "status": "carried",
-      "disposition": "CARRIED (2026-07-28): requires a per-event cross-check of the deadman/liveness tiers vs the four named events (d81197736 section 3). Partial from primary state: origin-freeze >30m has a detector (feedback_self_verifying_push: verify ls-remote origin==HEAD); publish-gate wedge and the pending-batch deadlock class were fixed (eighth-class 2h age-cap). Full four-event verdict is minted as deliverable-4 DISCOVER, not asserted here.",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-07-28, per-event, evidence-cited): coverage is PARTIAL. (1) Console rescue -- NOT detected as an event; only its symptom is caught (deadmans_switch.py commit-cadence BLOCKED/STALL tiers fire when no meaningful commit lands within the window). The counter-reset it should trigger depends on the unbuilt exit-criterion counter (see Q2). (2) Publish-gate wedge >1h -- DETECTED: the wedge alert clears only on a successful publish (record_publish_gate_success) plus the eighth-class 2h age-cap on a blocked pending-batch. (3) Origin freeze >30m -- DETECTED (detector added after the incident): self-verifying push verifies ls-remote origin==HEAD; deadman keys on commits reaching origin. (4) Advisor restart-ruling -- NOT a machine detector by design: a policy reset condition (a staged doc doorbelling the machine awake resets the counter), enforced only by the unbuilt counter (Q2). Verdict: 2 of 4 have live detectors; the other 2 (console rescue, advisor-restart) are gated on building the exit-criterion counter. Primary state: background/deadmans_switch.py, d81197736 section 3.",
       "recorded": "2026-07-28"
     },
     "a056615002f9": {
       "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
       "question": "Staleness disposition in the gap taxonomy (27271871e section 3a).",
-      "status": "carried",
-      "disposition": "CARRIED (2026-07-28): requires reading 27271871e section 3a (the gap taxonomy) to state how staleness is dispositioned. Minted as deliverable-4 DISCOVER.",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-07-28 -- director-delegated 'your call', 27271871e section 3a): staleness is dispositioned as a READ-TIME FILTER in GAP1's reader contract, NOT a fifth bucket. Rationale: a stale row (superseded / already fixed / describes a removed component) is not a gap-category -- it is a data-quality condition on the row -- so a fifth bucket would break the four buckets' mutual-exclusion-over-LIVE-gaps and, under ambiguous-defaults-to-mint, manufacture work for a gap that no longer exists. The reader already verifies each row against primary state (LAW-C independent read); that is where staleness is detected. Evidence test: the row's primary-state referent no longer exists / is already closed -> the row is dropped before triage (not routed to a bucket). This is consistent with the fail-open fix already minted in PLANNER_MINTED_gap1_reader_contract_failopen_fix. Net: four buckets stay over live gaps; staleness is a pre-triage reader filter.",
       "recorded": "2026-07-28"
     },
     "ded5e99d9b71": {
       "ruling": "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md",
       "question": "Blast radius as positive value versus risk (27271871e section 3b).",
-      "status": "carried",
-      "disposition": "CARRIED (2026-07-28): requires reading 27271871e section 3b to frame blast-radius as value-vs-risk. Minted as deliverable-4 DISCOVER.",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-07-28 -- director-delegated, 27271871e section 3b): blast radius is DELIBERATELY FOLDED into value as a tie-breaker; risk is NOT scored separately. Honest basis (the ruling's own sanctioned disposition, 'if folded for simplicity, say so and leave it; not worth a mechanism'): for these gaps value and risk move together -- a gap touching many surfaces is both higher-value to fix and higher-risk to leave -- so a single blast-radius term serves both as the diagnostic tie-breaker. No separate risk axis exists in the ordering and none is warranted; left folded, no mechanism added. R12 respected: blast-radius is a tie-breaker diagnostic, never a target.",
       "recorded": "2026-07-28"
     }
   }
