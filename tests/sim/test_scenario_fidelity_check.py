@@ -265,3 +265,61 @@ def test_incidental_nonfinite_gap_still_tolerated():
     gen[17] = np.nan  # one stray value, 0.03% -- well under the 1% tolerance
     v = F.check_scenario_fidelity(gen, ref)  # must not raise
     assert isinstance(v.passed, bool)
+
+
+# ── FAIL-OPEN: non-finite MOMENT CI (2026-07-28 HARDEN red-team) ─────────────
+def test_overlap_is_nan_blind_hence_ci_must_be_validated():
+    """The raw `_overlap` helper is NaN-blind: `nan < x` is False both ways, so a non-finite
+    CI bound sails through it as within=True (statistically consistent). This is the recurring
+    "reject non-finite FIRST" comparison class -- and it is exactly WHY the bootstrap drops
+    non-finite moments and check_scenario_fidelity rejects non-finite CIs before _overlap ever
+    sees one. This test pins the fail-open the two guards below exist to prevent."""
+    nan = float("nan")
+    assert F._overlap((nan, nan), (2.0, 3.0)) is True   # disjoint yet "overlap" -> fail-open
+    assert F._overlap((0.0, 1.0), (2.0, 3.0)) is False  # sanity: genuine disjoint -> False
+
+
+def test_bootstrap_drops_nonfinite_moment_values():
+    """R15 ingress guard: np.corrcoef returns nan on a tiny-but-nonzero-variance resample the
+    exact-`std == 0` guards miss, so a moment can go non-finite on a numerically-degenerate
+    block. A single nan poisons np.quantile -> a non-finite CI -> the NaN-blind _overlap
+    silently marks the moment consistent. The bootstrap must DROP non-finite moment values at
+    the ingress (like a DegenerateSeriesError resample) so the CI is built from the finite
+    majority alone."""
+    ref = _ar1(500, 0.0, 1.0, 0.5, seed=1)
+    calls = {"n": 0}
+
+    def flaky(v):
+        calls["n"] += 1
+        return np.nan if calls["n"] % 3 == 0 else F._mean(v)  # ~1/3 of resamples non-finite
+
+    lo, hi = F.block_bootstrap_moment_ci(ref, flaky, n_boot=90, seed=5)
+    assert np.isfinite(lo) and np.isfinite(hi)  # CI not poisoned by the nan third
+
+
+def test_bootstrap_all_nonfinite_moment_raises():
+    """The extreme of the ingress guard: if EVERY resample's moment is non-finite there is no
+    defensible CI -- raise loud rather than return (nan, nan)."""
+    ref = _ar1(500, 0.0, 1.0, 0.5, seed=1)
+    with pytest.raises(F.DegenerateSeriesError):
+        F.block_bootstrap_moment_ci(ref, lambda v: np.nan, n_boot=50, seed=5)
+
+
+def test_nonfinite_ci_raises_not_overlap_failopen(monkeypatch):
+    """R15 belt-and-braces: even if a moment CI reaches check_scenario_fidelity non-finite (a
+    future moment regressing past the ingress drop), _overlap would return within=True and
+    silently pass a moment it never computed. The finiteness of CIs is an EMERGENT property of
+    upstream guards, not a local invariant of the comparison -- so check_scenario_fidelity
+    validates it and raises on any non-finite CI instead of fail-opening."""
+    ref = _ar1(600, 0.0, 1.0, 0.5, seed=1)
+    gen = _ar1(600, 0.0, 1.0, 0.5, seed=2)
+    real_ci = F.block_bootstrap_moment_ci
+
+    def poisoned(reference, moment_fn, **kw):
+        if moment_fn is F._tail_skew:               # one moment's CI comes back non-finite
+            return (float("nan"), float("nan"))
+        return real_ci(reference, moment_fn, **kw)
+
+    monkeypatch.setattr(F, "block_bootstrap_moment_ci", poisoned)
+    with pytest.raises(F.DegenerateSeriesError):
+        F.check_scenario_fidelity(gen, ref, n_boot=100)

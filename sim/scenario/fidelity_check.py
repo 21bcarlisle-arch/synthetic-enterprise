@@ -37,7 +37,12 @@ the reference must PASS. FAIL-OPEN: empty/constant/too-short input -- OR a serie
 a material fraction of non-finite values (a generator blow-up: inf/NaN, added 2026-07-28
 after a HARDEN red-team found `_clean` SILENTLY FILTERED non-finite values, so a
 generator emitting 40% inf/NaN passed the check on its surviving finite minority) --
-raises loud rather than returning a passing verdict.
+raises loud rather than returning a passing verdict. Also (added 2026-07-28, a further
+HARDEN red-team) a NON-FINITE MOMENT CI: np.corrcoef returns nan on a tiny-but-nonzero
+variance resample the exact-`std == 0` guards miss, and `_overlap` is NaN-blind, so a
+single such resample silently marked a moment consistent it never computed -- the
+bootstrap now drops non-finite moments at the ingress and check_scenario_fidelity
+rejects any non-finite CI loud rather than letting the NaN-blind overlap fail-open.
 """
 
 from __future__ import annotations
@@ -196,9 +201,20 @@ def block_bootstrap_moment_ci(
         starts = rng.integers(0, max_start + 1, size=n_blocks)
         idx = np.concatenate([np.arange(s, s + block_len) for s in starts])[:n]
         try:
-            vals.append(moment_fn(v[idx]))
+            m = moment_fn(v[idx])
         except DegenerateSeriesError:
             continue
+        # FAIL-OPEN loud (R15, the recurring "reject non-finite FIRST" comparison class):
+        # a moment can return non-finite on a NUMERICALLY-degenerate resample the exact-zero
+        # `std == 0` guards miss -- np.corrcoef returns nan on a tiny-BUT-NONZERO-variance
+        # window (a near-constant spell the moving block happens to land on), so lag1_autocorr /
+        # vol_clustering can yield nan even though their `sa == 0` guard passed. A single nan in
+        # `vals` makes np.quantile return a non-finite CI, and _overlap is NaN-blind (nan < x is
+        # False both ways) -> that moment silently marks within=True and the check FAIL-OPENS on
+        # a moment it never actually computed. A non-finite moment IS a degenerate resample --
+        # drop it exactly like DegenerateSeriesError rather than letting it poison the CI.
+        if np.isfinite(m):
+            vals.append(m)
     if not vals:
         raise DegenerateSeriesError("every bootstrap resample was degenerate -- CI undefined")
     return float(np.quantile(vals, alpha / 2.0)), float(np.quantile(vals, 1.0 - alpha / 2.0))
@@ -255,6 +271,17 @@ def check_scenario_fidelity(
         gen_ci = block_bootstrap_moment_ci(
             generated, fn, block_len=block_len, n_boot=n_boot, alpha=alpha, seed=seed + 1
         )
+        # FAIL-OPEN loud (R15, belt-and-braces to block_bootstrap_moment_ci's non-finite drop):
+        # _overlap is a bare comparison and is NaN-blind -- a non-finite CI bound would make it
+        # return True (statistically consistent) on a moment that could not be computed. The
+        # guarantee that CIs are finite is an EMERGENT property of upstream guards, not a local
+        # invariant of this comparison; enforce it HERE so the control cannot silently pass a
+        # moment on a malformed CI even if a future moment regresses past the ingress drop.
+        if not all(np.isfinite(x) for x in (*ref_ci, *gen_ci)):
+            raise DegenerateSeriesError(
+                f"non-finite CI for moment '{name}' (ref={ref_ci}, gen={gen_ci}) -- "
+                "moment uncomputable, no defensible consistency verdict"
+            )
         within = _overlap(ref_ci, gen_ci)
         all_within = all_within and within
         g = fn(_clean(generated, min_len=2))
