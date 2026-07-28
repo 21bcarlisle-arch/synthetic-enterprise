@@ -30,6 +30,62 @@ from sim.scenario.intraday_shape import shape_day
 # (sim/cache/elexon_ssp_full.json) into a compact committed fixture -- see reconcile_baseline_fidelity.
 REAL_SSP_DAILY_MEAN_FIXTURE = Path(__file__).resolve().parent.parent / "sim" / "scenario" / "data" / "real_ssp_daily_mean.json"
 
+# External plausibility band for the REAL reference's daily-mean SSP LEVEL (median), anchored to
+# published UK market knowledge (Ofgem/Elexon: SSP daily means sit in the tens-to-low-hundreds of
+# GBP/MWh, crisis-spiking to the £100s-£1000s per DAY but with a full-history median far below that).
+# Real committed fixture: median 55.59 GBP/MWh. NOT tuned to the fixture -- an EXTERNAL sanity band
+# whose only job is to fire on a reference that is not real UK price LEVELS at all (see below).
+MIN_REAL_SSP_DAILY_MEAN_MEDIAN = 10.0    # p/kWh mis-unit (~5.5) and returns-stored-as-levels (~0) fall below
+MAX_REAL_SSP_DAILY_MEAN_MEDIAN = 500.0   # generous upside even for a crisis-heavy real window
+
+
+class CorruptReferenceError(ValueError):
+    """FAIL-OPEN loud (R15 killer pattern 1, INDEPENDENCE): the whole fidelity check measures
+    agreement AGAINST this committed 'real' reference, so a silently corrupt / wrong-source /
+    wrong-unit fixture turns the check into a tautology (agreement against a fabricated anchor).
+    The fixture is in W1_2's own file_scope and editable, and the only prior guards (len>2000,
+    std>0) pass a truncated or unit-wrong series -- so validate the reference's OWN declared
+    integrity and its real-world plausibility before trusting it, raising loud rather than
+    reconciling against a bad anchor (an unavailable/untrustworthy reference is a FAILED check)."""
+
+
+def _validate_real_reference(data: dict) -> "list":
+    """Integrity-check the committed real-SSP reference before it anchors the fidelity check.
+
+    Two INDEPENDENT guards (R15 -- must fire on a corrupt reference, pass on the real one):
+      (1) internal consistency: the fixture SELF-DECLARES `n_days`; cross-check it against the
+          actual `daily_mean_ssp` length. Two separately-authored fields must agree -- catches
+          a truncated / appended / partially-overwritten fixture (the most likely silent
+          corruption of a committed data file). Independent of the values themselves.
+      (2) external plausibility: the daily-mean LEVEL median must sit in a published-UK-market
+          band (MIN/MAX above). Catches a reference that is not real price levels at all --
+          a p/kWh unit error, returns accidentally stored where levels belong (median ~0),
+          fabricated flat/near-zero data -- exactly the wrong-anchor case (1) cannot see.
+    """
+    if "daily_mean_ssp" not in data:
+        raise CorruptReferenceError("reference fixture missing 'daily_mean_ssp' -- not a real reference")
+    series = data["daily_mean_ssp"]
+    if not isinstance(series, list) or len(series) == 0:
+        raise CorruptReferenceError(f"'daily_mean_ssp' is empty/not a list ({type(series).__name__})")
+    declared = data.get("n_days")
+    if declared is not None and declared != len(series):
+        raise CorruptReferenceError(
+            f"fixture self-declares n_days={declared} but daily_mean_ssp has {len(series)} values "
+            "-- truncated/corrupt reference, not the intact real series"
+        )
+    import numpy as np
+    v = np.asarray(series, dtype=float)
+    if not np.all(np.isfinite(v)):
+        raise CorruptReferenceError("reference contains non-finite daily means -- corrupt")
+    median = float(np.median(v))
+    if not (MIN_REAL_SSP_DAILY_MEAN_MEDIAN <= median <= MAX_REAL_SSP_DAILY_MEAN_MEDIAN):
+        raise CorruptReferenceError(
+            f"daily-mean SSP median {median:.2f} GBP/MWh outside the plausible UK band "
+            f"[{MIN_REAL_SSP_DAILY_MEAN_MEDIAN}, {MAX_REAL_SSP_DAILY_MEAN_MEDIAN}] -- wrong unit, "
+            "returns-stored-as-levels, or fabricated reference, not real price levels"
+        )
+    return series
+
 
 def _expand_daily_to_hh(daily_records: list[dict], seed: str = "scenario") -> list[dict]:
     """Convert daily scenario price records to half-hourly format (48 periods per day).
@@ -138,7 +194,8 @@ def load_real_ssp_daily_returns(fixture_path: "str | Path | None" = None):
     """
     path = Path(fixture_path) if fixture_path is not None else REAL_SSP_DAILY_MEAN_FIXTURE
     data = json.loads(path.read_text())
-    return _daily_returns(data["daily_mean_ssp"])
+    series = _validate_real_reference(data)  # R15: reject a corrupt/wrong-anchor reference LOUD
+    return _daily_returns(series)
 
 
 def reconcile_baseline_fidelity(

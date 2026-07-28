@@ -298,3 +298,85 @@ def test_reconcile_fail_open_loud_on_degenerate_reference():
             generated_returns=load_real_ssp_daily_returns(),
             reference_returns=[3.0] * 500,      # constant -> no dispersion
         )
+
+
+# ── W1_2 HARDEN 2026-07-28: real-reference INTEGRITY guard (_validate_real_reference) ──────────
+# The whole fidelity check measures agreement AGAINST the committed real-SSP fixture, which lives in
+# W1_2's own file_scope (editable) and previously had only len>2000 / std>0 guards -- so a truncated
+# or wrong-unit / returns-confused fixture would pass and the check would become a TAUTOLOGY (agree
+# against a fabricated anchor, R15 killer pattern 1). Two INDEPENDENT guards, both mutation-proven.
+import json as _json
+
+from simulation.run_scenario import CorruptReferenceError, _validate_real_reference
+
+
+def _real_fixture_dict():
+    from simulation.run_scenario import REAL_SSP_DAILY_MEAN_FIXTURE
+    return _json.loads(REAL_SSP_DAILY_MEAN_FIXTURE.read_text())
+
+
+def test_validate_passes_on_the_real_committed_fixture():
+    """R15 the control CAN pass (not fail-closed): the real fixture is intact + plausible."""
+    data = _real_fixture_dict()
+    series = _validate_real_reference(data)          # does not raise
+    assert series is data["daily_mean_ssp"]
+
+
+def test_validate_fires_on_declared_length_mismatch():
+    """Guard (1) internal consistency: a fixture truncated so its array no longer matches its
+    self-declared n_days is corrupt -- the most likely silent corruption of a committed data file."""
+    data = _real_fixture_dict()
+    data["daily_mean_ssp"] = data["daily_mean_ssp"][:100]   # truncate, leave n_days as declared
+    with pytest.raises(CorruptReferenceError, match="n_days"):
+        _validate_real_reference(data)
+
+
+def test_validate_fires_on_wrong_unit_reference():
+    """Guard (2) external plausibility: a p/kWh mis-unit (levels ~1/10 of GBP/MWh) drops the
+    median below the plausible UK band -- not real price LEVELS, the wrong-anchor case guard (1)
+    (which only checks length) cannot see."""
+    data = _real_fixture_dict()
+    data["daily_mean_ssp"] = [x / 10.0 for x in data["daily_mean_ssp"]]  # GBP/MWh -> ~p/kWh
+    with pytest.raises(CorruptReferenceError, match="band"):
+        _validate_real_reference(data)
+
+
+def test_validate_fires_on_returns_stored_as_levels():
+    """Guard (2): a reference where first-difference RETURNS were stored where price LEVELS belong
+    has a median ~0 (real returns centre on zero), below the band -- a real confusion this fixture's
+    own loader guards against (the fidelity moments assume levels, then diff them)."""
+    import numpy as np
+    data = _real_fixture_dict()
+    levels = np.asarray(data["daily_mean_ssp"], float)
+    data["daily_mean_ssp"] = list(np.diff(levels))       # returns where levels belong
+    data["n_days"] = len(data["daily_mean_ssp"])         # self-consistent, so ONLY guard (2) can catch it
+    with pytest.raises(CorruptReferenceError, match="band"):
+        _validate_real_reference(data)
+
+
+def test_validate_fires_on_missing_key_and_empty():
+    """FAIL-OPEN loud on a structurally-broken fixture (missing/empty series)."""
+    with pytest.raises(CorruptReferenceError, match="daily_mean_ssp"):
+        _validate_real_reference({"n_days": 10})
+    with pytest.raises(CorruptReferenceError):
+        _validate_real_reference({"daily_mean_ssp": []})
+
+
+def test_validate_fires_on_non_finite_reference():
+    """FAIL-OPEN loud: a NaN/inf-poisoned reference is corrupt, rejected before it anchors anything."""
+    data = _real_fixture_dict()
+    data["daily_mean_ssp"] = list(data["daily_mean_ssp"])
+    data["daily_mean_ssp"][5] = float("nan")
+    with pytest.raises(CorruptReferenceError, match="non-finite"):
+        _validate_real_reference(data)
+
+
+def test_loader_rejects_corrupt_fixture_from_disk(tmp_path):
+    """End-to-end: load_real_ssp_daily_returns itself refuses a corrupt fixture on disk (the guard
+    is wired into the loader, not just the standalone validator)."""
+    data = _real_fixture_dict()
+    data["daily_mean_ssp"] = data["daily_mean_ssp"][:50]   # truncate vs declared n_days
+    bad = tmp_path / "corrupt_ssp.json"
+    bad.write_text(_json.dumps(data))
+    with pytest.raises(CorruptReferenceError):
+        load_real_ssp_daily_returns(fixture_path=bad)
