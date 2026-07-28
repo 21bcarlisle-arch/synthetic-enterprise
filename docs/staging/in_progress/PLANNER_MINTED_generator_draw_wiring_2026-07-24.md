@@ -1,11 +1,56 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
 <!-- RELEASED 2026-07-28: director console BUILD_OPEN (ruling_consumption_authority_seam_signoff, terms unchanged from 0ac3e1b5e); recorded in docs/observability/gate_authorizations.jsonl (channel=console, authorized_by=director). The R13 ACTIVATION (SE_DRAW_POPULATION on + entrypoint wiring) is the director-authored curriculum act now authorised. The LEVEL move stays director-reserved: the build fork re-applies blocked_on/director_level_up on completion (R16). -->
-<!-- draw-visibility marker (2026-07-24): next step is walled (director-reserved / CDN-or-deploy wait / roadmap-gated) — stays parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
+<!-- draw-visibility marker (2026-07-28 UPDATE): SELF-DRAWABLE stays — the ledger BUILD_OPENed this atom (gate_authorizations.jsonl, director console 2026-07-28) so the R13 activation is NO LONGER walled. Remaining next step is a NON-walled dedicated BUILD (SYN property modelling for the ~4 property/HH generators + the director-authorised flag flip & re-baseline), so it must be DRAWN, not parked. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 
 # [PLANNER-MINTED] Ship the population-generator DRAW-WIRING (2026-07-24)
 
 > **[IN-PROGRESS — 2026-07-24 worker tick]** Director-waived to proceed (`docs/staging/done/DIRECTOR_RULING_PLANNER_MINT_WAIVED_2026-07-24.md`, origin commit 4b31c60d6, PRODUCT-FIRST item 2). **Scope step 1 (FRAME) DONE — see the FRAME section below. Scope step 2 REVERSIBLE HALF (the default-OFF seam) + step 3 (R15 both-ways) DONE this tick — see "BUILD (reversible half)" below.**
 > **BLOCKING SUB-ITEM (open):** The R13 **ACTIVATION** — flipping `SE_DRAW_POPULATION=1` on AND wiring the ~19 `run_phase*` entrypoints to consume the seam — changes which world the company faces every run, reserved to the director (W2_2's own ruling + the 2026-07-24 waiver's "curriculum values remain director-reserved"). The reversible mechanism is now BUILT and tested default-OFF; **UNBLOCKS ON:** a director word authorising live activation. Escalated via NTFY (prior tick + this one). Per ESCALATION_IS_NTFY the reversible half shipped; only the irreducible activation core is held.
+
+---
+
+## BUILD-FRAME + coverage-gate landed — 2026-07-28 worker tick
+
+The 2026-07-28 director console **BUILD_OPEN** (`gate_authorizations.jsonl`, `authorized_by=director`)
+un-walled the R13 activation, and **POOL_VS_BOOK_LAMBDA_STANDS 2026-07-27** resolved the escalated
+N/λ call. This tick landed one verified sub-step and mapped the rest into tested ground truth.
+
+**λ RECONCILED (no contradiction):** `live_population()` appends `draw_population(...)` at the
+director-signed **λ=1.0 "Profile B trickle"** (Poisson(1.0)/yr × 2021-25 ≈ 5 SYN acquisitions) — the
+company's **earned** book, NOT the N=200 **pool** (a separate coverage-draw concept). Appending is
+therefore *consistent* with the 2026-07-27 ruling ("book is earned, never granted"); the earlier
+"activation grants a 200-book" worry was WRONG.
+
+**Blast radius — TESTED, not asserted (scopes down the doc's "~19 entrypoints" fog):**
+- **SYN-SAFE (needs nothing):** the settlement path — `customer_to_settlement_input` reads only
+  `customer_id`+`acquisition_date`, both present in `to_customer_dict()`. The primary published-figure
+  generators (`generate_customer_sample`, `generate_hh_data`, `generate_dashboard_data`) key mostly on
+  `customer_id`.
+- **NEEDS A SYN PROPERTY MODEL (the real remaining build):** `generate_hh_data` / `saas.property_model`
+  / `simulation.household_segments` helpers read static-only property fields (`home_type`, `bedrooms`,
+  `epc_rating`) that SYN dicts do NOT carry (SYN carries `consumption_band`/`eac_kwh`/`payment_method`/
+  region). A SYN cohort needs a property/HH-shape derivation before the flip — a genuine design+build,
+  not a `.get()` patch. `run_phase3a.py`'s `c["home_type"]` diagnostic also KeyErrors (off the
+  published path; QUEUED, not fixed-on-sight per SELF_INTERRUPT_DISCIPLINE).
+
+**LANDED THIS TICK — director condition #3 (coverage-report publish gate), R15-proven both ways:**
+`background/process_run_complete._cohort_coverage_gate_permits_publish()` gates `generate_dashboard_json`
+BEFORE any derived-figure generator. **Inert when `SE_DRAW_POPULATION` is off** (reads the env var
+directly → zero new import/exception surface → today's static-book publish is byte-identical and
+un-jammable). **When on:** (re)builds+writes the realised-cohort coverage report
+(`docs/observability/cohort_coverage_realised.json`) then BLOCKS publication if `coverage_gate_ok` is
+False — "a thin draw stops the number reaching a surface" (ruling §3), thin cells NAMED never smoothed
+(R12). **FAIL-CLOSED:** an unavailable coverage build is a FAILED gate (R15 fail-silent) → blocks.
+Tests: `tests/background/test_cohort_coverage_publish_gate.py` (5, green) + explicit no-gate mutation
+proof (a mutant that always permits leaks a thin draw). Existing publish-gate suites still green (26).
+
+**REMAINING (drawable dedicated build, authorised — NOT walled):**
+1. SYN property/HH-shape model so the property/HH generators tolerate SYN dicts under flag-on.
+2. Wire the generators to consume `live_population()` (byte-identical while off).
+3. Flip `SE_DRAW_POPULATION=1` + downstream re-baseline (fidelity cells / financials / site panels),
+   coverage-gate now enforcing #3; historical straddling comparisons MARKED not silently continued.
+   The flip is a director-authored curriculum act, now BUILD_OPEN — run as a dedicated build, not a
+   supervisor micro-turn. Level move stays `director_level_up` (R16).
 
 ---
 

@@ -628,6 +628,45 @@ def _fmt_gbp(v):
     return "\xa3{}{:,.0f}".format(sign, v)
 
 
+def _cohort_coverage_gate_permits_publish():
+    """Coverage-report PUBLISH GATE — director condition #3 of the generator
+    population activation (POPULATION_ACTIVATION_AND_RUN_LEDGER 2026-07-25 §1.3;
+    POOL_VS_BOOK_LAMBDA_STANDS 2026-07-27): when the R13 draw is ACTIVE
+    (``SE_DRAW_POPULATION=1``) no derived figure may reach a surface until the
+    realised-cohort coverage report is emitted and passes the redundancy floor —
+    "a thin draw stops the number reaching a surface" (ruling §3). Thin cells are
+    reported (in the written artifact + this log), never smoothed (R12).
+
+    Returns True (publish may proceed) / False (block, caller NTFYs on gate fail).
+
+    INERT WHEN OFF: reads the activation env var DIRECTLY (same signal
+    ``live_population.draw_population_enabled`` uses) and returns True with ZERO
+    new import/exception surface, so today's static-book publish path stays
+    byte-identical and this gate can never jam it (the control-false-positive
+    failure mode). FAIL-CLOSED WHEN ON: any exception building the report is a
+    FAILED gate (R15 fail-silent doctrine — an unavailable check is a failed
+    check), so it blocks rather than falling through to publication."""
+    import os
+    if os.environ.get("SE_DRAW_POPULATION", "") != "1":
+        return True  # R13 draw inactive -> static-book path, inert & byte-identical
+    try:
+        from tools.generate_cohort_coverage import build_artifact, write_artifact
+        artifact = build_artifact()
+        write_artifact(artifact)
+        gate_ok = bool(artifact.get("gate_ok"))
+    except Exception as exc:  # noqa: BLE001 - unavailable coverage build == FAILED gate
+        log("Coverage gate: realised-coverage report FAILED to build ({}); "
+            "blocking publish (fail-closed, R15)".format(exc))
+        return False
+    if not gate_ok:
+        cov = artifact.get("coverage", {}) or {}
+        log("Coverage gate BLOCKED publish: realised draw fails the redundancy "
+            "floor; thin cells NAMED = {}".format(cov.get("thin_cells", [])))
+        return False
+    log("Coverage gate PASSED: realised-cohort coverage meets floor; report written.")
+    return True
+
+
 def generate_dashboard_json(json_path, git_hash="unknown"):
     """Generate site/data/dashboard.json and every downstream site/state artifact.
 
@@ -642,6 +681,11 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     made all of the below dead code since Phase QF -- none of it had run on
     any auto-processed cycle since.)"""
     ok = True
+    # Coverage-report publish gate (director condition #3). MUST run before any
+    # derived-figure generator below so a thin R13 draw cannot reach a surface.
+    # Inert while SE_DRAW_POPULATION is off (byte-identical); fail-closed when on.
+    if not _cohort_coverage_gate_permits_publish():
+        return False
     try:
         # Must run before generate_dashboard_data (reads frozen_policy_baseline.json
         # if present). Weekly-gated (should_refresh_baseline) -- replays the full
