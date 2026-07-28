@@ -1,3 +1,14 @@
+> **PARKED in in_progress/ 2026-07-28 (planner tick).** The MINT deliverable is DONE — WORK-THIS-CREATES
+> parsed to 6 atoms: **2 newly minted** (`ruling_consumption_ledger_release` §0/d1;
+> `unstated_reason_block_impossible` §3/d4b), **4 already covered** by existing `PLANNER_MINTED_*` docs
+> (d2 five §1 items, d3 two level-ups, d4a four §3 blocks, d5 first_ranked_gap_list). Disposition table:
+> `PLANNER_MINT_COVERAGE_blocked_mint_batch_2026-07-28.md`.
+> **STILL OPEN (blocking sub-items, why this is parked not archived):** the five §1 BUILD draws remain
+> `blocked_on` a ledger `BUILD_OPEN` — released only once `ruling_consumption_ledger_release` lands (or
+> the director writes the entries); the ranked-gap-list `[ACT]` send (d5) awaits `first_ranked_gap_list`
+> producing the batched proposal. **Unblocks:** land the two new mints' DISCOVER halves (drawable now) →
+> the ledger-release path; then draw the five §1 BUILDs.
+
 # [DIRECTOR-RULING] — Blocked-mint batch release, and the ruling-vs-ledger mismatch (2026-07-28)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the [ACT] of 14:15Z/15:16Z: 24 minted items blocked and un-worked for 3+ hours.
