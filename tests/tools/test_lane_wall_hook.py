@@ -750,3 +750,55 @@ class TestHardenPassFixes:
         # Composes with the brace expander end to end: one crossing alternative
         # surfaces in the expansion set.
         assert "company/../sim/*.py" in mod._expand_globs("company/@(crm|../sim)/*.py")
+
+
+class TestKnownScopeBoundaryBashBypass:
+    """2026-07-28 fresh red-team of the AT-target atom (Rule-0 self-refill
+    dial=1 yielded, no below-target work). Every prior finding attacks the
+    Read/Glob/Grep PATH/PATTERN parser. This documents the largest residual
+    hole at the wall's PURPOSE level: the hook is registered only for the
+    structured Read/Glob/Grep tools, so a lane-scoped session that reaches
+    for Bash reads straight across the wall with zero signal. Demonstrated
+    live below (the identical read is DENIED via Read, ALLOWED via Bash).
+
+    This is NOT closed here -- it needs a `.claude/settings.json` matcher
+    change (outside this atom's file_scope) and can only ever be an advisory
+    tripwire, never a sound hard deny (arbitrary-shell parsing is
+    undecidable; a heuristic hard-deny would be R15 theatre). These tests
+    PIN the known contrast so the limitation is a visible, tested fact --
+    not folklore -- and so that wiring a future Bash tripwire will trip
+    these tests and force the docstring's KNOWN LIMITATION note to be
+    updated in the same change. Follow-up: H6b_lane_wall_bash_tripwire."""
+
+    def test_bash_read_of_other_side_is_not_hooked_documented_bypass(self):
+        # Bash is not in _SCOPED_TOOLS -- even if it WERE routed here it is a
+        # no-op, and in `.claude/settings.json` it is not routed here at all.
+        result = _run(
+            {"tool_name": "Bash",
+             "tool_input": {"command": "cat sim/forward_curve_builder.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 0  # ALLOWED -- the demonstrated bypass
+        assert not DENIAL_LOG.exists()  # and silent: nothing logged
+
+    def test_read_of_same_target_IS_denied_proving_the_contrast(self):
+        # The identical cross-wall read via the structured Read tool is denied
+        # -- so the Bash rc=0 above is a genuine bypass of an otherwise-live
+        # wall, not merely an inactive lane.
+        result = _run(
+            {"tool_name": "Read",
+             "tool_input": {"file_path": "sim/forward_curve_builder.py"}},
+            env={"SE_LANE": "supplier"},
+        )
+        assert result.returncode == 2
+
+    def test_bash_grep_of_other_side_from_sim_lane_also_not_hooked(self):
+        # Sibling half, sim lane: a shell grep across the company side also
+        # bypasses (the bypass is tool-shaped, not lane-specific).
+        result = _run(
+            {"tool_name": "Bash",
+             "tool_input": {"command": "grep -rn 'tariff' company/"}},
+            env={"SE_LANE": "sim"},
+        )
+        assert result.returncode == 0
+        assert not DENIAL_LOG.exists()

@@ -37,6 +37,28 @@ through subagent spawning at all. Env var still wins if both are present
 Denials are appended to docs/observability/lane_hook_denials.jsonl (one
 JSON object per line) -- "prove it on real M2 tasks; log denials" (the
 staged instruction's own DoD wording).
+
+KNOWN LIMITATION -- Bash-mediated reads bypass this wall (2026-07-28 fresh
+red-team of the AT-target atom, Rule-0 self-refill dial=1 yielded). This
+hook is registered ONLY for the structured Read/Glob/Grep tools
+(`.claude/settings.json` matcher "Read|Glob|Grep"), so a lane-scoped
+session that reaches for Bash instead reads straight across the wall with
+ZERO signal: under SE_LANE=supplier, `Read sim/forward_curve_builder.py`
+is DENIED (rc=2) but `Bash: cat sim/forward_curve_builder.py` is ALLOWED
+(rc=0, demonstrated live) -- as are `grep -rn ... sim/`, `python -c
+"open('sim/...')"`, `head`, `sed`, redirects, command substitution, etc.
+This is the single largest residual hole in the development-time wall and,
+unlike the glob-parsing findings above, is NOT closed here: (1) it needs a
+`.claude/settings.json` matcher change, which is OUTSIDE this atom's
+file_scope; and (2) soundly detecting cross-wall file access in an
+arbitrary shell command is impossible, so any Bash guard must be an
+ADVISORY tripwire (warn + log, do not block) proportionate to this dial=1
+soft pilot -- a hard Bash deny on a heuristic would be R15 theatre
+(false confidence, unable to reliably fire). Registered as follow-up
+`H6b_lane_wall_bash_tripwire` (director-facing: the advisory-vs-block call
+changes a whole tool class's behaviour in lane sessions). Pinned by
+TestKnownScopeBoundaryBashBypass so the contrast stays visible and cannot
+be silently misremembered as "the wall covers everything".
 """
 from __future__ import annotations
 
