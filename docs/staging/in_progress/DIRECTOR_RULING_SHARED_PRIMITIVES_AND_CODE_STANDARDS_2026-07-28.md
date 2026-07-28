@@ -1,3 +1,19 @@
+<!-- PARKED in_progress 2026-07-28 (RUNG-7 planner tick). -->
+<!-- §4-DEFECT (per DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE §4): this ruling arrived with NO
+     'WORK THIS CREATES' block. Handled per §4 = mint the work I can identify + request the block from
+     the author; NOT silently absorbed.
+   MINTED (docs/staging/, drawn next tick): the six Acceptance items —
+     1 working_day_calculator (§2.1)          2 rng_substream_primitive (§2.2)
+     3 size_and_clone_ratchet (§3)            4 owned_quantity_registry_gate (§4)
+     5 shared_primitive_ensuring_activity (§5.1–5.4, Acceptance 5&6)
+     7 money_representation_evidence (§6, Acceptance 7 — DISCOVER-only, decision director-reserved).
+   BLOCKING SUB-ITEMS (why parked, not done): (a) the WORK-THIS-CREATES block is requested from the author
+     via NTFY 2026-07-28; (b) §2/§3/§4 BUILD needs an open front / director BUILD_OPEN (each mint's DISCOVER
+     half is drawable now; its BUILD half is blocked_on director_build_open); (c) Acceptance item 7 stops at
+     the wall (money representation is director-reserved) — evidence-gathering queued, migration forbidden.
+   UNBLOCKS ON: author's WORK-THIS-CREATES block + a BUILD_OPEN/front for §2–§4 + the director's item-7
+     ruling. Archive only when Acceptance items 1–6 land and item 7's evidence is returned. -->
+
 # [DIRECTOR-RULING] — Shared primitives, code standards, and making "should this have been shared?" an ensuring activity (2026-07-28)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Written as decisions plus problems. Where this document names a mechanism, treat it as a candidate to beat, not a specification — you are closer to the detail.
