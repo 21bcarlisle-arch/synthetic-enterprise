@@ -62,3 +62,21 @@ Acceptance: a saturation claim is impossible while any published register holds 
 **Risk & proportionality:** widens the drawable set from existing published artifacts; no new scope, no curriculum change; triage returns for ratification where it implies judgement. Tag: **proceed.**
 
 — Advisor bridge, carrying the director's correction, 2026-07-28.
+
+---
+
+## AMENDMENT — coherence gaps the advisor left, closed; and §1's list demoted to candidates
+
+Self-audit at the director's prompting. Where this amendment conflicts with the text above, **the amendment governs.**
+
+**A. §1's eight sources are CANDIDATES, not the definition.** The decision is only this: **published self-reported gaps constitute real work, and a saturation claim is indefensible while they stand open.** *Which* artifacts genuinely constitute backlog is your judgement — the advisor listed what it could see from documents. Add sources it missed; discard ones that are stale, superseded or noisy, with evidence.
+
+**B. Gap-closure versus HARDEN — they are different classes.** Re-verifying an at-target atom is demoted under WORK_DEFINITION §1. **Closing a named gap with a measured bound is real advancement and is NOT demoted.** The distinction is evidential: gap-closure moves a published bound, a fidelity row, or a claim's status; HARDEN re-verification confirms an existing control still holds. **A HARDEN pass may not be relabelled as gap-closure to escape demotion** — that would be an R12 breach, and if the boundary is genuinely blurry in a given case, say so and propose where it should sit.
+
+**C. Gap work under PRODUCT-FIRST.** Gaps span both lanes. The existing order stands unchanged: **a machinery-lane gap may not outrank a product-lane atom.** Ranking within a lane is part of the triage you are proposing.
+
+**D. Gap-closure and the harness exit criterion.** The ratified criterion counts *product-content* atoms — product lane **and** a moved fidelity row, a spec-tied acceptance test, or an R11-verified live surface. Therefore: **a fidelity-cell or claim-status gap closure that meets that test counts; a harness-register simplification closure does not.** Do not let the widened backlog become a route to farming the counter — that is precisely the gaming vector the content definition was written to block. If a gap closure sits ambiguously across that line, it does **not** count and gets flagged for ratification.
+
+**E. Reserved collisions, named.** Some published ABSENT and PARTIAL rows are already under director rulings and must not be closed as ordinary gaps: the **SSP baseline recalibration is HELD** pending merit-order reconstruction (no interim tuning of any kind); **curriculum values, generator ground truth and scenario difficulty remain R13**; **company-side segmentation is recorded untestable at the current book**, not a gap to close by growing the book. Where a gap's closure would touch one of these, escalate it as a decision rather than working around it.
+
+— Amendment by advisor bridge, 2026-07-28.
