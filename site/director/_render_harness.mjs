@@ -4,9 +4,12 @@
 // JSON so a test can assert on the RENDERED pixels (R11), not the source string.
 //
 // Usage: node _render_harness.mjs <index.html>   (combined data JSON on stdin,
-//        shape {twin, plan, sys, reserved, health, now}). `now` (ISO string) is
-//        optional -- it pins the clock so time-relative renders (reserved item age,
-//        daemon-heartbeat staleness) are deterministic under test.
+//        shape {twin, plan, sys, reserved, health, decisions, now, lastSeenSnapshot}).
+//        `now` (ISO string) is optional -- it pins the clock so time-relative renders
+//        (reserved item age, daemon-heartbeat staleness, delta-view marker) are
+//        deterministic under test. `lastSeenSnapshot` (object or omitted) seeds the
+//        delta-view's localStorage marker as if a previous visit had stored it; the
+//        harness also reports what the render WROTE back, via out.__localStorage.
 import fs from "node:fs";
 import vm from "node:vm";
 
@@ -39,9 +42,15 @@ const document = {
 const inert = { then() { return inert; }, catch() { return inert; } };
 function fetch() { return inert; }
 const Promise_ = { all() { return inert; } };
-// Minimal window with an in-memory localStorage so the veil IIFE's PIN lookup
-// is inert under test (no PIN saved -> it wires no-op listeners).
-const window = { localStorage: { getItem() { return null; }, setItem() {} } };
+// Minimal window with an in-memory localStorage, seeded from data.lastSeenSnapshot
+// if provided (delta-view mutation tests), otherwise empty (first-visit case, and
+// also keeps the veil IIFE's PIN lookup inert -- no PIN saved -> no-op listeners).
+const __storageSets = [];
+let __storageValue = (data.lastSeenSnapshot != null) ? JSON.stringify(data.lastSeenSnapshot) : null;
+const window = { localStorage: {
+  getItem() { return __storageValue; },
+  setItem(_k, v) { __storageValue = v; __storageSets.push(v); }
+} };
 
 const sandbox = { document, window, fetch, console, Date, Number, String, Object, Math, JSON, Promise: Promise_ };
 vm.createContext(sandbox);
@@ -55,6 +64,7 @@ sandbox.renderAll(data, nowMs);
 const ids = [
   "reserved-hyp", "reserved-intro", "reserved-kpis", "reserved-body", "reserved-passport",
   "health-hyp", "health-intro", "health-kpis", "health-body", "health-passport",
+  "delta-hyp", "delta-intro", "delta-kpis", "delta-body", "delta-passport",
   "twin-intro", "twin-kpis", "twin-passport",
   "qa-intro", "qa-body",
   "plan-intro", "plan-kpis", "plan-body", "plan-passport",
@@ -65,4 +75,5 @@ for (const id of ids) {
   const e = elements[id];
   out[id] = e ? { innerHTML: e._inner, textContent: e._text } : null;
 }
+out.__localStorage = { finalValue: __storageValue, setCalls: __storageSets };
 process.stdout.write(JSON.stringify(out));

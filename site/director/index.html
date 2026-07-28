@@ -128,9 +128,11 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <b>reserved queue</b> &mdash; the decisions the machine has parked for your own
     hand and cannot take itself &mdash; and <b>machine health</b> &mdash; the live
     daemon set, honest about what is stale. Every figure is generated from repo data
-    only. Delta-view, the decision battery and the stop control are deliberately
-    deferred (Spec-005 §3); an ops pane that cannot act is honest, one that fakes a
-    write control would not be.
+    only. The decision battery and the stop control remain deliberately deferred
+    (Spec-005 §3) &mdash; an ops pane that cannot act is honest, one that fakes a
+    write control would not be. A third, read-only job is live below: a
+    <b>delta view</b> &mdash; what changed since your last visit, using a marker
+    saved in your own browser only, no server-side read receipt.
   </p>
 
   <div class="banner" id="access-banner">
@@ -169,6 +171,16 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     <div class="kpis" id="health-kpis"></div>
     <div id="health-body"><div class="muted">Loading...</div></div>
     <div class="muted" id="health-passport"></div>
+  </div>
+
+  <!-- 3. DELTA VIEW (what changed since your last visit) -->
+  <div class="sec sec-1">Since you last looked</div>
+  <div class="hyp" id="delta-hyp"></div>
+  <div class="card">
+    <p class="muted" id="delta-intro">Loading...</p>
+    <div class="kpis" id="delta-kpis"></div>
+    <div id="delta-body"><div class="muted">Loading...</div></div>
+    <div class="muted" id="delta-passport"></div>
   </div>
 
   <!-- DEEPER GOVERNANCE CONTEXT (read-only, below the MVP) -->
@@ -333,7 +345,97 @@ function renderHealth(d, now){
     "<a class=\"evlink\" href=\"../data/agent_status.json\">agent_status.json</a>.";
 }
 
-/* 3. TWIN FIDELITY (deeper context) --------------------------------------- */
+/* 3. DELTA VIEW: what changed since your last visit ----------------------- */
+// Client-side only -- a localStorage marker saved in THIS browser, never a
+// server-tracked read receipt. R12: these counts are a diagnostic, never a
+// headline metric or a target. No auth affordance is implied or added.
+var DELTA_KEY = "poesys_director_delta_v1";
+
+function staleDaemonNames(agents, now){
+  return (agents||[]).filter(function(a){
+    var st=String(a.status||"").toLowerCase();
+    if(st==="retired") return false;
+    var sec=ageFrom(a.last_heartbeat, now);
+    return sec==null || sec > HEALTH_STALE_HOURS*3600;
+  }).map(function(a){return a.name;});
+}
+
+function renderDelta(d, now){
+  var decisions=((d&&d.decisions)||{}).decisions||[];
+  var reservedIds=(((d&&d.reserved)||{}).items||[]).map(function(it){return it.item_id;});
+  var staleNames=staleDaemonNames(((d&&d.health)||{}).agents, now);
+
+  document.getElementById("delta-hyp").innerHTML=
+    "<b>Diagnostic, never a target (R12).</b> This panel compares the feeds above "+
+    "against a marker saved in THIS BROWSER the last time you opened this page. "+
+    "It is not a server-tracked read receipt &mdash; clearing browser storage, or "+
+    "opening on another device, resets it to a first visit. It can fail honestly: "+
+    "a genuinely quiet interval renders \"nothing changed\", not a blank or an error.";
+  document.getElementById("delta-intro").innerHTML=
+    "Compares decisions.json, director_reserved.json and agent_status.json against "+
+    "what this browser last saw, so you don't have to re-read everything above to "+
+    "know what moved.";
+
+  var raw=null;
+  try { raw = window.localStorage.getItem(DELTA_KEY); } catch(e) { raw=null; }
+  var prev=null;
+  if(raw){ try { prev = JSON.parse(raw); } catch(e) { prev=null; } }
+
+  var kpis=[], body;
+  if(!prev){
+    body='<div class="muted">First visit recorded on this browser &mdash; nothing to '+
+      'compare yet. Come back after the machine has moved and this panel will show '+
+      'what changed.</div>';
+  } else {
+    var prevLatestDecisionTs=prev.latest_decision_ts||null;
+    var newDecisions=decisions.filter(function(x){
+      return x.timestamp && (!prevLatestDecisionTs || x.timestamp > prevLatestDecisionTs);
+    }).length;
+    var prevReserved=prev.reserved_ids||[];
+    var addedReserved=reservedIds.filter(function(id){return prevReserved.indexOf(id)===-1;});
+    var removedReserved=prevReserved.filter(function(id){return reservedIds.indexOf(id)===-1;});
+    var reservedChanged=addedReserved.length+removedReserved.length;
+    var prevStale=prev.stale_daemons||[];
+    var newlyStale=staleNames.filter(function(n){return prevStale.indexOf(n)===-1;});
+    var recoveredStale=prevStale.filter(function(n){return staleNames.indexOf(n)===-1;});
+    var staleFlips=newlyStale.length+recoveredStale.length;
+    var anyChange=(newDecisions>0)||(reservedChanged>0)||(staleFlips>0);
+
+    kpis=[
+      {l:"New decisions",v:num(newDecisions),cls:(newDecisions>0?"warn":"good"),s:"logged since "+shortTime(prev.seen_at)},
+      {l:"Reserved-queue changed",v:num(reservedChanged),cls:(reservedChanged>0?"warn":"good"),s:addedReserved.length+" added, "+removedReserved.length+" cleared"},
+      {l:"Daemons flipped stale",v:num(staleFlips),cls:(newlyStale.length>0?"alarm":"good"),s:newlyStale.length+" newly stale, "+recoveredStale.length+" recovered"}
+    ];
+    if(anyChange){
+      body='<div class="muted">Since your last visit ('+esc(shortTime(prev.seen_at))+'): '+
+        '<b>'+num(newDecisions)+'</b> new decision(s), <b>'+num(reservedChanged)+'</b> '+
+        'reserved-queue item(s) changed, <b>'+num(staleFlips)+'</b> daemon(s) flipped stale.</div>';
+    } else {
+      body='<div class="muted">Nothing changed since your last visit ('+
+        esc(shortTime(prev.seen_at))+') &mdash; stated plainly, not left blank.</div>';
+    }
+  }
+  document.getElementById("delta-kpis").innerHTML=kpis.map(function(k){
+    return '<div class="kpi '+(k.cls||"")+'"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+esc(k.v)+
+      '</div>'+(k.s?'<div class="kpi-s">'+esc(k.s)+'</div>':'')+'</div>';
+  }).join("");
+  document.getElementById("delta-body").innerHTML=body;
+  document.getElementById("delta-passport").innerHTML=
+    "<b>Passport.</b> Compared against a client-local marker only; no server read-receipt "+
+    "exists. Sources: <a class=\"evlink\" href=\"../data/decisions.json\">decisions.json</a>, "+
+    "<a class=\"evlink\" href=\"../data/director_reserved.json\">director_reserved.json</a>, "+
+    "<a class=\"evlink\" href=\"../data/agent_status.json\">agent_status.json</a>.";
+
+  // Persist THIS render as the marker for the next visit. Latest-decision timestamp is
+  // the max seen (decisions.json is newest-first, but this stays correct if that changes).
+  var latestSeen=prev?prev.latest_decision_ts||null:null;
+  decisions.forEach(function(x){ if(x.timestamp && (!latestSeen || x.timestamp>latestSeen)) latestSeen=x.timestamp; });
+  var snapshot={seen_at:new Date(now).toISOString(),latest_decision_ts:latestSeen,
+    reserved_ids:reservedIds,stale_daemons:staleNames};
+  try { window.localStorage.setItem(DELTA_KEY, JSON.stringify(snapshot)); } catch(e) {}
+}
+
+/* 4. TWIN FIDELITY (deeper context) --------------------------------------- */
 function renderTwin(d){
   var t=(d&&d.twin)||{};
   var f=t.fidelity||{};
@@ -360,7 +462,7 @@ function renderTwin(d){
     "<b>Passport.</b> "+esc(t.note||"")+" Source: <a class=\"evlink\" href=\"../data/director_twin.json\">director_twin.json</a>.";
 }
 
-/* 4. TWIN Q&A HISTORY ----------------------------------------------------- */
+/* 5. TWIN Q&A HISTORY ----------------------------------------------------- */
 function renderQA(d){
   var t=(d&&d.twin)||{};
   var qa=t.recent_qa||[];
@@ -382,7 +484,7 @@ function renderQA(d){
   }).join("");
 }
 
-/* 5. PROVISIONAL PLAN ----------------------------------------------------- */
+/* 6. PROVISIONAL PLAN ----------------------------------------------------- */
 function renderPlan(d){
   var plan=(d&&d.plan)||{};
   var ect=plan.empirical_cycle_times||{};
@@ -409,7 +511,7 @@ function renderPlan(d){
     esc(plan.law_a||"")+' <a class="evlink" href="../data/provisional_plan.json">provisional_plan.json</a>';
 }
 
-/* 6. CURRICULUM RACK (reserved) ------------------------------------------- */
+/* 7. CURRICULUM RACK (reserved) ------------------------------------------- */
 function renderCurriculum(d){
   document.getElementById("curriculum-note").innerHTML=
     '<p class="muted">The curriculum (which worlds the company lives through) and the difficulty '+
@@ -425,6 +527,7 @@ function renderAll(d, nowMs){
   var now = nowMs || (d && d.now ? new Date(d.now).getTime() : Date.now());
   renderReserved(d, now);
   renderHealth(d, now);
+  renderDelta(d, now);
   renderTwin(d);
   renderQA(d);
   renderPlan(d);
@@ -436,9 +539,10 @@ Promise.all([
   fetch("../data/provisional_plan.json?t="+Date.now()).then(function(r){return r.json();}),
   fetch("../data/system_status.json?t="+Date.now()).then(function(r){return r.json();}),
   fetch("../data/director_reserved.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {items:[]};}),
-  fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {agents:[]};})
+  fetch("../data/agent_status.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {agents:[]};}),
+  fetch("../data/decisions.json?t="+Date.now()).then(function(r){return r.json();}).catch(function(){return {decisions:[]};})
 ]).then(function(res){
-  renderAll({twin:res[0],plan:res[1],sys:res[2],reserved:res[3],health:res[4]});
+  renderAll({twin:res[0],plan:res[1],sys:res[2],reserved:res[3],health:res[4],decisions:res[5]});
 }).catch(function(e){
   console.error("director window load error:",e);
   document.getElementById("reserved-intro").innerHTML='<span style="color:var(--red)">Could not load director data.</span>';

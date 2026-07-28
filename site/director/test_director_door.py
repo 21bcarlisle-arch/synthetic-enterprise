@@ -57,6 +57,7 @@ def _live() -> dict:
         "sys": json.loads((DATA / "system_status.json").read_text()),
         "reserved": json.loads((DATA / "director_reserved.json").read_text()),
         "health": json.loads((DATA / "agent_status.json").read_text()),
+        "decisions": json.loads((DATA / "decisions.json").read_text()),
         "now": NOW,
     }
 
@@ -301,3 +302,173 @@ def test_page_comment_write_channel_is_retired():
     src = INDEX.read_text()
     assert "director-comments.js" not in src, "retired widget must be removed from the pane"
     assert "retired" in src.lower()
+
+
+# --------------------------------------------------------------------------- #
+# DELTA VIEW: "what changed since I last looked" (backlog item, ranked back in
+# 2026-07-28). Client-side only -- a localStorage marker in the visitor's own
+# browser, compared against the SAME published feeds already on the page
+# (decisions.json, director_reserved.json, agent_status.json). No new
+# server/auth affordance: the harness seeds/observes localStorage directly
+# (see _render_harness.mjs's `lastSeenSnapshot` input and `__localStorage`
+# output) so both the R11 rendered-pixel claim and the R15 mutation/honesty
+# proof are against the REAL inline script, not a reimplementation.
+# --------------------------------------------------------------------------- #
+def _render_with_snapshot(data: dict, snapshot) -> dict:
+    data = dict(data)
+    data["lastSeenSnapshot"] = snapshot
+    return _render(data)
+
+
+def test_delta_first_visit_renders_honestly_not_a_fabricated_zero():
+    # No prior marker in this browser -> must say so plainly, not show 0/0/0 as if
+    # a real comparison happened (that would be a fabricated, misleadingly-precise
+    # delta -- the R15 fail-open shape this test guards against).
+    out = _render(_live())
+    body = out["delta-body"]["innerHTML"]
+    kpis = out["delta-kpis"]["innerHTML"]
+    assert "first visit" in body.lower(), body
+    assert "kpi-v" not in kpis, "a first visit must render no KPI numbers at all, not fabricated zeros"
+
+
+def test_delta_new_decision_flips_the_pixel():
+    # R11/R15 FIRES: a decision newer than the stored marker must move the rendered count.
+    d = _live()
+    d["decisions"] = {"decisions": [
+        {"timestamp": "2026-07-23T15:00:00+00:00", "what": "a fresh decision", "why": "x"},
+    ]}
+    d["reserved"] = {"generated_at": NOW, "open_count": 0, "items": []}
+    d["health"] = {"agents": [], "last_updated": NOW}
+    snapshot = {
+        "seen_at": "2026-07-20T00:00:00+00:00",
+        "latest_decision_ts": "2026-07-10T00:00:00+00:00",
+        "reserved_ids": [],
+        "stale_daemons": [],
+    }
+    out = _render_with_snapshot(d, snapshot)
+    kpis = out["delta-kpis"]["innerHTML"]
+    body = out["delta-body"]["innerHTML"]
+    assert '<div class="kpi-v">1</div>' in kpis, kpis
+    assert "warn" in kpis
+    assert "<b>1</b> new decision" in body, body
+
+
+def test_delta_reserved_change_flips_the_pixel():
+    d = _live()
+    d["decisions"] = {"decisions": []}
+    d["health"] = {"agents": [], "last_updated": NOW}
+    d["reserved"] = {"generated_at": NOW, "open_count": 1, "items": [
+        {"item_id": "new-ask", "what": "decide something", "how": "reply",
+         "why": "one-way door", "first_asked_at": NOW},
+    ]}
+    snapshot = {
+        "seen_at": "2026-07-20T00:00:00+00:00",
+        "latest_decision_ts": None,
+        "reserved_ids": [],
+        "stale_daemons": [],
+    }
+    out = _render_with_snapshot(d, snapshot)
+    kpis = out["delta-kpis"]["innerHTML"]
+    body = out["delta-body"]["innerHTML"]
+    assert "1 added, 0 cleared" in kpis, kpis
+    assert "warn" in kpis
+    assert "reserved-queue item(s) changed" in body
+
+
+def test_delta_daemon_stale_flip_alarms():
+    # Named defect: a daemon that WAS healthy at last-seen and has since died must
+    # alarm the delta panel, same class of failure as machine-health's own STALE proof.
+    d = _live()
+    d["decisions"] = {"decisions": []}
+    d["reserved"] = {"generated_at": NOW, "open_count": 0, "items": []}
+    d["health"] = {"agents": [
+        {"name": "zombie-daemon", "status": "idle",
+         "last_heartbeat": "2026-07-16T00:00:00+00:00", "anomaly": None},
+    ], "last_updated": NOW}
+    snapshot = {
+        "seen_at": "2026-07-20T00:00:00+00:00",
+        "latest_decision_ts": None,
+        "reserved_ids": [],
+        "stale_daemons": [],
+    }
+    out = _render_with_snapshot(d, snapshot)
+    kpis = out["delta-kpis"]["innerHTML"]
+    assert "1 newly stale" in kpis, kpis
+    assert "alarm" in kpis
+
+
+def test_delta_no_change_renders_honest_empty_not_blank():
+    # NEUTERED direction of the R15 proof: a genuinely quiet interval must render
+    # "nothing changed" with explicit zero KPIs -- never a blank/error that looks
+    # indistinguishable from a broken panel.
+    d = _live()
+    d["decisions"] = {"decisions": [
+        {"timestamp": "2026-07-10T00:00:00+00:00", "what": "old decision"},
+    ]}
+    d["reserved"] = {"generated_at": NOW, "open_count": 1, "items": [
+        {"item_id": "steady-ask", "what": "x", "how": "y", "why": "z", "first_asked_at": NOW},
+    ]}
+    d["health"] = {"agents": [
+        {"name": "steady-daemon", "status": "idle", "last_heartbeat": NOW, "anomaly": None},
+    ], "last_updated": NOW}
+    snapshot = {
+        "seen_at": "2026-07-22T00:00:00+00:00",
+        "latest_decision_ts": "2026-07-10T00:00:00+00:00",
+        "reserved_ids": ["steady-ask"],
+        "stale_daemons": [],
+    }
+    out = _render_with_snapshot(d, snapshot)
+    kpis = out["delta-kpis"]["innerHTML"]
+    body = out["delta-body"]["innerHTML"]
+    assert "nothing changed" in body.lower(), body
+    assert kpis.count('<div class="kpi-v">0</div>') == 3, kpis
+    assert "alarm" not in kpis
+    assert "warn" not in kpis
+
+
+def test_delta_persists_a_snapshot_for_the_next_visit():
+    # R15 fail-silent guard: if the render computed a delta but never wrote the new
+    # marker back, every FUTURE visit would silently show "first visit" forever.
+    d = _live()
+    d["decisions"] = {"decisions": [
+        {"timestamp": "2026-07-23T15:00:00+00:00", "what": "x"},
+    ]}
+    d["reserved"] = {"generated_at": NOW, "open_count": 1, "items": [
+        {"item_id": "ask-1", "what": "x", "how": "y", "why": "z", "first_asked_at": NOW},
+    ]}
+    d["health"] = {"agents": [
+        {"name": "steady", "status": "idle", "last_heartbeat": NOW, "anomaly": None},
+    ], "last_updated": NOW}
+    out = _render(d)
+    stored = out["__localStorage"]["setCalls"]
+    assert stored, "the render must persist a marker for the NEXT visit"
+    snapshot = json.loads(stored[-1])
+    assert snapshot["latest_decision_ts"] == "2026-07-23T15:00:00+00:00"
+    assert snapshot["reserved_ids"] == ["ask-1"]
+    assert snapshot["stale_daemons"] == []
+
+
+def test_delta_is_named_a_diagnostic_not_a_target():
+    # R12: delta counts are a diagnostic, never a headline/target.
+    out = _render(_live())
+    hyp = out["delta-hyp"]["innerHTML"]
+    assert "diagnostic" in hyp.lower() and "never a target" in hyp.lower()
+    passport = out["delta-passport"]["innerHTML"]
+    assert "client-local marker" in passport
+    assert "no server read-receipt" in passport
+
+
+def test_delta_view_adds_no_new_auth_affordance():
+    # A client-side gate here would be R15 theatre (per the atom brief) -- the delta
+    # panel must stay pure presentation over the existing open reads, same access
+    # model as the rest of the pane.
+    src = INDEX.read_text()
+    assert "poesys_director_delta_v1" in src
+    assert 'class="veil"' not in src and 'id="veil"' not in src
+    assert "ops-hidden" not in src
+
+
+def test_hero_text_states_delta_view_is_live_and_client_only():
+    src = INDEX.read_text()
+    assert "delta view" in src.lower()
+    assert "your own browser" in src.lower()
