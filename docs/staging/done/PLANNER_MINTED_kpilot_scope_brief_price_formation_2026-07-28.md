@@ -1,3 +1,5 @@
+> **[DONE 2026-07-28]** Deliverable #1 executed: scope brief written at `docs/design/KPILOT_SCOPE_BRIEF_PRICE_FORMATION.md` (blind-ish, anchored on Board Spec 004 + ruling §3; S1-S15 required sections; every §3 gap mapped). Doc-only exit criteria met. Unblocks #3 (done) and #5.
+
 # [PLANNER-MINTED] K-pilot deliverable 1 — scope brief for wholesale price formation, written BEFORE assembly (2026-07-28)
 
 **Source ruling:** DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md — deliverable 1 (WORK THIS CREATES).

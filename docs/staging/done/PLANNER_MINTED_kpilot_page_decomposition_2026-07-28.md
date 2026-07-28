@@ -1,3 +1,5 @@
+> **[DONE 2026-07-28]** Deliverable #3 executed: decomposition proposal at `docs/design/KPILOT_PAGE_DECOMPOSITION_PROPOSAL.md` (hub + 5 Tier-1 children + named stubs; S1-S15 all slotted, none orphaned; reconciled to the live single-page IA). FRAME doc-only. Tier-1/Tier-2 phasing flagged for director latitude. Blocks #4/#5.
+
 # [PLANNER-MINTED] K-pilot deliverable 3 — propose the page decomposition (hub / children / stubs) (2026-07-28)
 
 **Source ruling:** DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md — deliverable 3 (WORK THIS CREATES); ruling §4.

@@ -129,7 +129,7 @@
     "how": "(1) gap_registers_as_mint_sources -- block=director_build_open, a GENERIC 'executes on a BUILD_OPEN ledger entry' with no consumed ruling naming it; NOT covered by item 3's three names nor by the catch-all ('only block is a ruling already staged and consumed'). Needs an explicit `LEDGER: BUILD_OPEN gap_registers_as_mint_sources` if you want it built. (2) stop_control_gap_characterisation -- block=director_build_open AND it is ONE-WAY-DOOR #5 (safety-control), marked console-only/never-self-authored; I will NOT release it even under the catch-all. Needs its OWN explicit console `record_gate_opening('stop_control_gap_characterisation', ...)` or a phone-signed RULING if you want its BUILD opened. Reply with either BUILD_OPEN (per atom) or 'hold' and I release/leave accordingly.",
     "item_id": "ruling-consumption-buildopen-residual-2026-07-28",
     "last_pinged_at": "2026-07-28T18:47:42.005470+00:00",
-    "last_sent_at": null,
+    "last_sent_at": "2026-07-28T18:48:46.902423+00:00",
     "resolved": false,
     "what": "Two BUILD-blocked mints were NOT auto-released by the authority-seam signoff (ruling_consumption_authority_seam_signoff, 2026-07-28) because this ruling does not name or open them. Per the ratified item-2 convention I do not sit silent -- naming exactly what act each needs.",
     "why": "Item 2 forbids silent blocking on a ruled or ruling-adjacent atom: consuming a ruling must release-if-authenticated OR raise ONE batched [ACT]. These two are the residue after releasing the 3 named + 3 signoff/catch-all atoms; enumerating them here is the 'never sit silent' half of the convention."
@@ -143,16 +143,6 @@
     "resolved": false,
     "what": "Ratify the authority seam by which consuming a director ruling RELEASES a blocked atom, so ruled BUILDs stop sitting blocked (DISCOVER: docs/design/RULING_CONSUMPTION_LEDGER_RELEASE_DISCOVER.md).",
     "why": "R16 WALL / category 5/8: flipping HOW authority becomes a ledger entry is a safety/authority-seam change -- director-reserved, never self-enacted. The mechanism already EXISTS and is fail-closed; only the convention + your sign-off are missing, which is why three ruled BUILDs sat blocked 3+h."
-  },
-  "staged:DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md": {
-    "first_asked_at": "2026-07-28T18:45:00.850915+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md",
-    "last_pinged_at": "2026-07-28T18:45:00.850915+00:00",
-    "last_sent_at": "2026-07-28T18:45:04.458071+00:00",
-    "resolved": false,
-    "what": "New staged instruction: DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
   },
   "walled-interfaces-priority-rank": {
     "first_asked_at": "2026-07-11T05:21:26.663659+00:00",

@@ -1,3 +1,5 @@
+> **[PARKED in_progress 2026-07-28]** BLOCKING SUB-ITEM: this is the SITE+BUILD half (rung-5 charts rendered from the pipeline + an R15 mutation-proven DoD gate). UNBLOCKS WHEN: the decomposition (#3, proposed in docs/design/KPILOT_PAGE_DECOMPOSITION_PROPOSAL.md) is settled so charts land on the decided pages, and the SITE/BUILD assembly is drawn. Deliverables #1/#2/#3 (scope brief, reconciliation, decomposition) are DONE (docs/design/KPILOT_*). Not a doc-only atom.
+
 # [PLANNER-MINTED] K-pilot deliverable 4 — the rung-5 chart set + a DoD gate so a chartless page cannot ship (2026-07-28)
 
 **Source ruling:** DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md — deliverable 4 (WORK THIS CREATES); ruling §5.

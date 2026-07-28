@@ -1,3 +1,5 @@
+> **[PARKED in_progress 2026-07-28]** BLOCKING SUB-ITEM: this is the LAST deliverable and consumes #1-4. UNBLOCKS WHEN: #4 (charts) lands and the assembly against the scope brief is done, so the brief-vs-assembly DELTA can be computed and PUBLISHED on the live page (R11 verify-to-pixel). Inputs ready: #1 scope brief + #2 reconciliation punch-list (13 ABSENT-UNNAMED rows) both DONE.
+
 # [PLANNER-MINTED] K-pilot deliverable 5 — publish the brief-vs-assembly delta as the pilot's real finding (2026-07-28)
 
 **Source ruling:** DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md — deliverable 5 (WORK THIS CREATES); ruling §1.3.

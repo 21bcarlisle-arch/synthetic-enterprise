@@ -1,3 +1,5 @@
+> **[DONE 2026-07-28]** Deliverable #2 executed: page-vs-Spec-004 reconciliation at `docs/design/KPILOT_PAGE_VS_SPEC004_RECONCILIATION.md` (battery + §3 scored; 13 ABSENT-UNNAMED punch-list rows). Distinct from the machinery reconciliation. Live-pixel verify deferred to #5. Feeds #3 (done) and #5.
+
 # [PLANNER-MINTED] K-pilot deliverable 2 — reconcile the PAGE against Board Spec 004, name the gaps (2026-07-28)
 
 **Source ruling:** DIRECTOR_RULING_KPILOT_SCOPE_FIRST_2026-07-28.md — deliverable 2 (WORK THIS CREATES); ruling §2.
