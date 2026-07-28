@@ -52,14 +52,35 @@ from __future__ import annotations
 
 import datetime as dt
 from collections import defaultdict
-from typing import Callable
+from dataclasses import dataclass
 
 from company.interfaces.bitemporal_event_log import BitemporalEventLog
 from simulation.settlement_timetable import (
     MeterType,
     SettlementRunEvent,
     emit_settlement_timetable,
+    is_gap_out_of_band,
+    variance_band_limit,
 )
+
+
+@dataclass(frozen=True)
+class OutOfBandMonth:
+    """A per-month diagnostic: this (book, bill-month)'s REAL aggregated
+    estimated-vs-true revision gap exceeded the meter type's variance band.
+    Over real settled + meter-read aggregates this is a genuine observed
+    consequence (a small book, or one badly-estimated customer, legitimately
+    drifts out of band) -- a real settlement mechanism reconciles the month
+    regardless, so build_settlement_revision_log emits it and records this
+    flag rather than aborting. Surfacing it (never silently swallowing) is
+    what lets a downstream still distinguish a legitimate large gap from a
+    genuinely-broken meter-read feed."""
+    month: str
+    gap: float
+    band_limit: float
+    initial_value: float
+    true_final_value: float
+    meter_type: MeterType
 
 
 def _month_key(date_str: str) -> str:
@@ -89,8 +110,12 @@ def build_settlement_revision_log(
     consumption_field: str = "consumption_kwh",
     meter_type: MeterType = "non_HH",
     log: BitemporalEventLog | None = None,
-    allow_out_of_band: bool = False,
-) -> tuple[BitemporalEventLog, dict[str, list[SettlementRunEvent]]]:
+    strict_out_of_band: bool = False,
+) -> tuple[
+    BitemporalEventLog,
+    dict[str, list[SettlementRunEvent]],
+    dict[str, OutOfBandMonth],
+]:
     """Emit the real R1/R2/R3/RF revision sequence for a settled book, one
     timetable per bill-month, into a bitemporal log.
 
@@ -117,7 +142,28 @@ def build_settlement_revision_log(
     `emit_settlement_timetable` then produces the initial + R1/R2/R3/RF
     records; RF resolves EXACTLY to `true_final` (final-value-neutral).
 
-    Returns (log, {month_key: [SettlementRunEvent, ...]}).
+    OUT-OF-BAND MONTHS (2026-07-28, W3_2 HARDEN -- fidelity/robustness fix to
+    the whole-book abort registered by the 2026-07-27 red-team pass): the
+    +-0.5%/+-4% variance band is a sound plausibility guard on
+    emit_settlement_timetable's HAND-CHOSEN scenario inputs, but over REAL
+    settled + meter-read aggregates a gap larger than the band is a genuine
+    observed consequence, not an unrealistic scenario. Previously this method
+    passed the band as a HARD gate to every month, so a SINGLE out-of-band
+    book-month raised ValueError and aborted the ENTIRE multi-month book (all
+    sibling months lost) -- a fidelity gap, since a real settlement mechanism
+    reconciles every month regardless of gap size. This method now ALWAYS
+    emits every month's timetable (each month reconciles to its own true
+    final -- final-value-neutrality unaffected) and RECORDS any out-of-band
+    month in the returned `out_of_band` map rather than aborting -- flagged,
+    never silently swallowed, so a downstream can still tell a legitimate
+    large gap from a broken meter-read feed. Pass `strict_out_of_band=True`
+    to opt back into rejection, which then raises ONCE listing ALL offending
+    months (an aggregate diagnostic, not the old first-fail/nuke-the-rest
+    abort).
+
+    Returns (log, {month_key: [SettlementRunEvent, ...]},
+             {month_key: OutOfBandMonth}); the third map is empty when every
+    month's real gap is within band.
     """
     if log is None:
         log = BitemporalEventLog()
@@ -149,6 +195,7 @@ def build_settlement_revision_log(
             month_anchor[mkey] = sdate
 
     events_by_month: dict[str, list[SettlementRunEvent]] = {}
+    out_of_band: dict[str, OutOfBandMonth] = {}
     for mkey in sorted(month_value.keys()):
         true_final_value = month_value[mkey]
 
@@ -163,6 +210,22 @@ def build_settlement_revision_log(
         ratio = (book_est / book_true) if book_true else 1.0
         initial_value = true_final_value * ratio
 
+        # Real-data path: a gap wider than the band is a genuine observed
+        # consequence, not an unrealistic scenario -- reconcile the month
+        # regardless and FLAG it, never abort the book (the whole-book-abort
+        # fidelity gap this fix closes). The band decision is single-sourced
+        # from settlement_timetable.is_gap_out_of_band so it can never drift
+        # from emit's own input guard.
+        if is_gap_out_of_band(initial_value, true_final_value, meter_type):
+            out_of_band[mkey] = OutOfBandMonth(
+                month=mkey,
+                gap=true_final_value - initial_value,
+                band_limit=variance_band_limit(initial_value, true_final_value, meter_type),
+                initial_value=initial_value,
+                true_final_value=true_final_value,
+                meter_type=meter_type,
+            )
+
         delivery_date = dt.date.fromisoformat(month_anchor[mkey])
         events = emit_settlement_timetable(
             log,
@@ -172,11 +235,24 @@ def build_settlement_revision_log(
             initial_value=initial_value,
             true_final_value=true_final_value,
             meter_type=meter_type,
-            allow_out_of_band=allow_out_of_band,
+            # Always emit the month; band membership is diagnosed above, not
+            # gated here (emit's own finite-check still rejects NaN/inf).
+            allow_out_of_band=True,
         )
         events_by_month[mkey] = events
 
-    return log, events_by_month
+    if strict_out_of_band and out_of_band:
+        offenders = ", ".join(
+            f"{m} (gap {o.gap:.4f} vs +-{o.band_limit:.4f})"
+            for m, o in sorted(out_of_band.items())
+        )
+        raise ValueError(
+            f"{len(out_of_band)} book-month(s) exceed the {meter_type} settlement "
+            f"variance band under strict_out_of_band=True: {offenders}. Drop "
+            f"strict_out_of_band to emit these months flagged instead of raising."
+        )
+
+    return log, events_by_month, out_of_band
 
 
 def bills_from_settled_records(

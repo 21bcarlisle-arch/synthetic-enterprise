@@ -101,6 +101,41 @@ def variance_band(meter_type: MeterType) -> float:
     raise ValueError(f"unknown meter_type {meter_type!r} -- expected 'HH' or 'non_HH'")
 
 
+def variance_band_limit(
+    initial_value: float, true_final_value: float, meter_type: MeterType
+) -> float | None:
+    """The maximum absolute revision gap the meter type's variance band
+    permits for this figure, as an absolute number (band fraction * the
+    reference value). The reference is |initial| (falling back to |true_final|
+    when initial is 0), mirroring emit_settlement_timetable's own guard exactly.
+    Returns None when there is no positive reference to measure against (both
+    values 0) -- there is then no meaningful band and nothing is out of band."""
+    reference = abs(initial_value) if initial_value else abs(true_final_value)
+    if not reference:
+        return None
+    return reference * variance_band(meter_type)
+
+
+def is_gap_out_of_band(
+    initial_value: float, true_final_value: float, meter_type: MeterType
+) -> bool:
+    """True iff the revision gap (true_final - initial) exceeds the meter
+    type's variance band. This is the SINGLE source of the band decision,
+    shared by emit_settlement_timetable's input guard and the real-data
+    orchestration in settlement_run_series.py, so the two can never drift.
+
+    Non-finite inputs are NOT classified here (they return False): they are a
+    broken-input class, not a legitimately-large gap, and are rejected up front
+    by emit_settlement_timetable's own finite-check -- letting them fall through
+    to that rejection keeps the reject-broken-data path single-sourced too."""
+    if not (math.isfinite(initial_value) and math.isfinite(true_final_value)):
+        return False
+    limit = variance_band_limit(initial_value, true_final_value, meter_type)
+    if limit is None:
+        return False
+    return abs(true_final_value - initial_value) > limit + 1e-9
+
+
 @dataclass(frozen=True)
 class SettlementRunEvent:
     """One emitted revision of a settlement figure."""
@@ -166,17 +201,18 @@ def emit_settlement_timetable(
             )
 
     gap = true_final_value - initial_value
-    reference = abs(initial_value) if initial_value else abs(true_final_value)
-    if reference:
-        max_band = reference * variance_band(meter_type)
-        if not allow_out_of_band and abs(gap) > max_band + 1e-9:
-            raise ValueError(
-                f"requested revision gap {gap:.6f} exceeds the {meter_type} "
-                f"variance band (+-{variance_band(meter_type) * 100:.2f}% of "
-                f"{reference:.6f} = +-{max_band:.6f}); this settlement "
-                f"scenario is not realistic for a real meter of this type. "
-                f"Pass allow_out_of_band=True for a deliberate stress case."
-            )
+    if not allow_out_of_band and is_gap_out_of_band(
+        initial_value, true_final_value, meter_type
+    ):
+        reference = abs(initial_value) if initial_value else abs(true_final_value)
+        max_band = variance_band_limit(initial_value, true_final_value, meter_type)
+        raise ValueError(
+            f"requested revision gap {gap:.6f} exceeds the {meter_type} "
+            f"variance band (+-{variance_band(meter_type) * 100:.2f}% of "
+            f"{reference:.6f} = +-{max_band:.6f}); this settlement "
+            f"scenario is not realistic for a real meter of this type. "
+            f"Pass allow_out_of_band=True for a deliberate stress case."
+        )
 
     events: List[SettlementRunEvent] = []
 

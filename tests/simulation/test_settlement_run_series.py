@@ -23,6 +23,7 @@ from company.interfaces.bitemporal_event_log import BitemporalEventLog
 from simulation.meter_reads import generate_meter_read_log, meter_type_for_customer
 from simulation.settlement import run_settlement
 from simulation.settlement_run_series import (
+    OutOfBandMonth,
     bills_from_settled_records,
     build_settlement_revision_log,
 )
@@ -106,9 +107,8 @@ class TestFinalValueNeutrality:
         settled, meter_log = _build_real_book()
         expected = _true_value_by_month(settled, "revenue_gbp")
 
-        _, events_by_month = build_settlement_revision_log(
+        _, events_by_month, _ = build_settlement_revision_log(
             settled, meter_log, value_field="revenue_gbp",
-            allow_out_of_band=True,  # neutrality is band-independent; see class docstring
         )
 
         assert set(events_by_month) == set(expected)
@@ -120,8 +120,8 @@ class TestFinalValueNeutrality:
         settled, meter_log = _build_real_book()
         total_settled = sum(r["revenue_gbp"] for r in settled)
 
-        _, events_by_month = build_settlement_revision_log(
-            settled, meter_log, allow_out_of_band=True,
+        _, events_by_month, _ = build_settlement_revision_log(
+            settled, meter_log,
         )
         total_rf = sum(
             e.value for events in events_by_month.values() for e in events if e.run == "RF"
@@ -131,7 +131,7 @@ class TestFinalValueNeutrality:
     def test_settled_records_are_not_mutated(self):
         settled, meter_log = _build_real_book()
         before = copy.deepcopy(settled)
-        build_settlement_revision_log(settled, meter_log, allow_out_of_band=True)
+        build_settlement_revision_log(settled, meter_log)
         assert settled == before
 
     def test_a_real_estimation_gap_actually_occurs(self):
@@ -139,8 +139,8 @@ class TestFinalValueNeutrality:
         integration: with a varying shape and traditional meters, at least one
         month must carry a genuine revision (initial != RF)."""
         settled, meter_log = _build_real_book()
-        _, events_by_month = build_settlement_revision_log(
-            settled, meter_log, allow_out_of_band=True,
+        _, events_by_month, _ = build_settlement_revision_log(
+            settled, meter_log,
         )
         gaps = []
         for events in events_by_month.values():
@@ -168,7 +168,7 @@ class TestPointInTimeBlindfold:
              "status": "estimated", "estimated_consumption_kwh": 194.0,
              "true_consumption_kwh": 200.0},
         ]
-        log, events_by_month = build_settlement_revision_log(
+        log, events_by_month, _ = build_settlement_revision_log(
             settled, meter_log, value_field="revenue_gbp", meter_type="non_HH",
         )
         return log, events_by_month["2022-06"]
@@ -221,6 +221,111 @@ class TestPointInTimeBlindfold:
         assert rec.value == pytest.approx(1000.0)
 
 
+class TestOutOfBandIsPerMonthDiagnosticNotWholeBookAbort:
+    """W3_2 HARDEN 2026-07-28: the real-data path reconciles EVERY month and
+    flags out-of-band ones, rather than aborting the whole multi-month book
+    on the first month whose real aggregated gap exceeds the variance band
+    (the fidelity gap the 2026-07-27 red-team registered). R15 both-ways:
+    the mutation that reverts to the whole-book abort must red these.
+
+    Book: one customer, two months. 2022-06 estimate 3% low (in-band, non-HH
+    +-4%); 2022-07 estimate 20% low (well out of band). Both months settle a
+    true revenue of 1000.0."""
+
+    def _book(self):
+        settled = [
+            {"customer_id": "C1", "settlement_date": "2022-06-15",
+             "consumption_kwh": 100.0, "revenue_gbp": 600.0},
+            {"customer_id": "C1", "settlement_date": "2022-06-20",
+             "consumption_kwh": 100.0, "revenue_gbp": 400.0},
+            {"customer_id": "C1", "settlement_date": "2022-07-15",
+             "consumption_kwh": 100.0, "revenue_gbp": 500.0},
+            {"customer_id": "C1", "settlement_date": "2022-07-20",
+             "consumption_kwh": 100.0, "revenue_gbp": 500.0},
+        ]
+        meter_log = [
+            # June: true 200, estimate 194 (3% low) -> in band.
+            {"customer_id": "C1", "period_end": "2022-06-30", "meter_type": "traditional",
+             "status": "estimated", "estimated_consumption_kwh": 194.0,
+             "true_consumption_kwh": 200.0},
+            # July: true 200, estimate 160 (20% low) -> out of the +-4% band.
+            {"customer_id": "C1", "period_end": "2022-07-31", "meter_type": "traditional",
+             "status": "estimated", "estimated_consumption_kwh": 160.0,
+             "true_consumption_kwh": 200.0},
+        ]
+        return settled, meter_log
+
+    def test_out_of_band_month_is_flagged_not_fatal(self):
+        settled, meter_log = self._book()
+        _, events_by_month, out_of_band = build_settlement_revision_log(
+            settled, meter_log, value_field="revenue_gbp", meter_type="non_HH",
+        )
+        # Only the July month is out of band, and it is reported.
+        assert set(out_of_band) == {"2022-07"}
+        oob = out_of_band["2022-07"]
+        assert isinstance(oob, OutOfBandMonth)
+        assert oob.month == "2022-07"
+        # initial = 1000 * 160/200 = 800; gap = 1000 - 800 = 200.
+        assert oob.initial_value == pytest.approx(800.0)
+        assert oob.true_final_value == pytest.approx(1000.0)
+        assert oob.gap == pytest.approx(200.0)
+        # non-HH band = 4% of reference (|initial| = 800) = 32.
+        assert oob.band_limit == pytest.approx(32.0)
+        assert abs(oob.gap) > oob.band_limit
+
+    def test_out_of_band_does_not_abort_sibling_in_band_months(self):
+        # The all-or-nothing defect would have dropped EVERY month (including
+        # the in-band June one) the instant July raised. Both must be present.
+        settled, meter_log = self._book()
+        _, events_by_month, _ = build_settlement_revision_log(
+            settled, meter_log, value_field="revenue_gbp", meter_type="non_HH",
+        )
+        assert set(events_by_month) == {"2022-06", "2022-07"}
+
+    def test_out_of_band_month_still_reconciles_to_true_final(self):
+        # Final-value-neutrality holds even out of band: RF == untouched true.
+        settled, meter_log = self._book()
+        _, events_by_month, _ = build_settlement_revision_log(
+            settled, meter_log, value_field="revenue_gbp", meter_type="non_HH",
+        )
+        for mkey in ("2022-06", "2022-07"):
+            rf = next(e for e in events_by_month[mkey] if e.run == "RF")
+            assert rf.value == pytest.approx(1000.0), mkey
+
+    def test_all_in_band_book_reports_no_out_of_band_months(self):
+        settled, meter_log = self._book()
+        # Swap July's estimate to an in-band one (198 = 1% low).
+        meter_log[1]["estimated_consumption_kwh"] = 198.0
+        _, _, out_of_band = build_settlement_revision_log(
+            settled, meter_log, value_field="revenue_gbp", meter_type="non_HH",
+        )
+        assert out_of_band == {}
+
+    def test_strict_mode_raises_listing_all_offending_months(self):
+        settled, meter_log = self._book()
+        # Push June out of band too (25% low) so BOTH months offend.
+        meter_log[0]["estimated_consumption_kwh"] = 150.0
+        with pytest.raises(ValueError) as exc:
+            build_settlement_revision_log(
+                settled, meter_log, value_field="revenue_gbp",
+                meter_type="non_HH", strict_out_of_band=True,
+            )
+        msg = str(exc.value)
+        # Aggregate report (not first-fail): every offending month is named.
+        assert "2022-06" in msg and "2022-07" in msg
+
+    def test_strict_mode_does_not_raise_when_all_in_band(self):
+        settled, meter_log = self._book()
+        meter_log[1]["estimated_consumption_kwh"] = 198.0  # July now in band
+        # June already in band; strict mode must pass cleanly.
+        _, events_by_month, out_of_band = build_settlement_revision_log(
+            settled, meter_log, value_field="revenue_gbp",
+            meter_type="non_HH", strict_out_of_band=True,
+        )
+        assert out_of_band == {}
+        assert set(events_by_month) == {"2022-06", "2022-07"}
+
+
 class TestNoMeterEventDefaultsToNoRevision:
     def test_customer_month_without_a_read_settles_at_true(self):
         settled = [
@@ -228,7 +333,7 @@ class TestNoMeterEventDefaultsToNoRevision:
              "consumption_kwh": 100.0, "revenue_gbp": 500.0},
         ]
         # Empty meter log -> no estimate for C9 -> ratio 1.0 -> no revision.
-        log, events_by_month = build_settlement_revision_log(
+        log, events_by_month, _ = build_settlement_revision_log(
             settled, meter_read_log=[], value_field="revenue_gbp",
         )
         events = events_by_month["2022-06"]
