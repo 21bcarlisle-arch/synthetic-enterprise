@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "topic_id": "wholesale-price-formation",
+    "title": "How Great Britain's wholesale electricity price is formed",
+    "subtitle": "The single number that decides most of an energy bill -- where it comes from, what it characteristically does, and where our picture of it is still weak.",
+    "one_line": "At every moment, GB's wholesale electricity price is set by the running cost of the most expensive power station needed to meet demand -- so the price follows gas and carbon, not the average of the whole fleet.",
+    "wall_placement": "Public-reality commons only. Every figure below is a published external fact or an already-published gap statement. No simulation-internal generator value appears on this page.",
+    "rate_of_change_class": "slow",
+    "data_freshness": {"as_of": "2026-07", "cadence": "monthly", "note": "Data re-renders monthly; the underlying claims are reviewed on their rate-of-change class."},
+    "claim_freshness": {"last_verified": "2026-07-25", "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER"},
+    "derivation": {"assembled_pct": 82, "note": "Share of this page assembled or derived from material already in the repository (sourced benchmarks, the price-engine reconstruction, the published fidelity gaps and the recorded belief revision) versus written fresh. Reported as an honest measurement, not a target."}
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "The wholesale price is a marginal price. It is not the average cost of generating electricity in Britain; it is the running cost of the single most expensive plant that has to run to keep the lights on in that half-hour. Cheap wind and nuclear set the price only when nothing dearer is needed -- which is still the exception. For most half-hours a gas plant is the last one dispatched, so the price tracks the gas price and the cost of the carbon that burning it emits."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": [
+        "Imagine every power station in Britain lining up to offer its output, cheapest first. Wind and solar go first -- once built they cost almost nothing to run, so they bid near zero. Nuclear sits near the front too. Then come gas plants, which must pay for the gas they burn and the carbon they emit. Last of all are the peaking plants, small and thirsty, that only fire up when demand is very high.",
+        "The grid works down that queue, switching on the cheapest plants until supply meets demand. The price everyone gets paid is the running cost of the LAST plant switched on -- the marginal plant. So when demand is met by wind alone, the price is low. When a gas plant is the last one needed, the whole market clears at that gas plant's cost. This is the merit order, and it is why your bill can move sharply even though most of Britain's electricity was generated cheaply.",
+        "This single design choice explains most of what people find strange about energy prices: why prices spike when gas is expensive even on a windy day, why 'we have loads of cheap renewables' does not mean cheap bills yet, and why prices can very occasionally go negative when there is more must-run generation than demand."
+      ]
+    },
+    "theory": {
+      "heading": "How it works",
+      "intro": "Formally, each plant offers at roughly its short-run marginal cost (SRMC): the cost of producing one more MWh. For a thermal plant that is fuel cost divided by efficiency, plus the carbon cost of its emissions, plus a small variable running cost. The market clears where the rising SRMC stack meets demand.",
+      "figures": [
+        {"id": "ccgt_eff", "label": "CCGT fleet-average thermal efficiency", "value": "~49%", "unit": "gross CV basis, 2016-2024", "class": "Fact", "citation": "DUKES Table 5.10.C (DESNZ)"},
+        {"id": "gas_ef", "label": "Natural-gas emission factor", "value": "0.183", "unit": "tCO2 per MWh of fuel input", "class": "Fact", "citation": "DESNZ GHG conversion factors 2024, gross CV"},
+        {"id": "carbon_support", "label": "UK Carbon Price Support (the fixed carbon top-up)", "value": "~£18", "unit": "per tCO2, frozen 1 Apr 2016 -> 31 Mar 2028", "class": "Fact", "citation": "HMRC Climate Change Levy rates"},
+        {"id": "marginal_tech", "label": "Reference marginal technology", "value": "CCGT gas", "unit": "confirmed via Capacity Market Net-CONE", "class": "Fact", "citation": "GB scarcity-constants benchmark pass"},
+        {"id": "gas_exposure", "label": "GB supply still exposed to gas-set prices", "value": "~30%", "unit": "of generation (a generation share, NOT a marginal-hours figure)", "class": "Fact", "citation": "DESNZ, 'Decisive action to break influence of gas on electricity prices'"}
+      ],
+      "worked": "Worked example: a gas plant that turns 49% of its fuel into electricity, paying a gas price of P per MWh of fuel and ~£18/tCO2 of carbon on 0.183 tCO2 per MWh of fuel, has an SRMC of roughly P/0.49 + 18*0.183/0.49 + a few pounds of running cost. Notice the price is far more sensitive to the gas price than to anything the electricity market itself does -- which is exactly why a gas shock passes straight through to bills."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "intro": "A page is only honest if it says, in advance and falsifiably, what the real data characteristically does. If live data ever crosses one of these shapes, that is not a routine data update -- it is a signal to investigate, and either the model or this understanding is wrong.",
+      "bands": [
+        {"id": "baseload", "label": "Ordinary baseload price", "shape": "typically £40-90/MWh across 2016-2021, before the gas crisis", "class": "Fact"},
+        {"id": "crisis_tail", "label": "Crisis-year spike tails", "shape": "day-ahead peaks reaching several hundred £/MWh in 2021-2022, with imbalance prices reaching into the thousands", "class": "Fact"},
+        {"id": "cashout_ceiling", "label": "Regulatory cash-out ceiling", "shape": "imbalance price capped at £6,000/MWh -- a hard wall, prices approach but do not exceed it", "class": "Fact", "citation": "GB scarcity-constants benchmark (VoLL / cash-out ceiling)"},
+        {"id": "negative", "label": "Negative prices", "shape": "occur in a small share of periods in high-renewables years, when must-run output exceeds demand", "class": "Fact"}
+      ]
+    },
+    "live_evidence": {
+      "heading": "Live evidence",
+      "intro": "The charts on this site render from the same market and simulation feeds the company itself runs on -- never hand-drawn. Follow the price history on the market surface and read it against the expected shapes above: baseload band, the 2021-2022 crisis tail, the cash-out ceiling it never crosses.",
+      "chart_link": {"label": "See the live price history ->", "href": "/world/"},
+      "note": "Numbers here are queries, not prose: this block links to the pipeline-rendered surface rather than restating figures, so it can never drift from what the data actually shows."
+    },
+    "residuals": {
+      "heading": "Where our picture is still weak",
+      "intro": "The honest part. These are the known gaps between how prices really form and how our model of them currently works -- each one a piece of published or recorded evidence, not an opinion.",
+      "items": [
+        {"id": "reduced_form", "text": "Our price engine has run a reduced form -- a single reference gas plant plus a scarcity multiplier -- rather than the full plant-by-plant merit-order stack. The multi-plant reconstruction is the current piece of work.", "class": "Choice"},
+        {"id": "ets_gap", "text": "The traded carbon price (EU ETS to 2020, UK ETS after) has no clean published 2016-2024 annual series we have found; only the fixed Carbon Price Support component is nailed down. So the carbon term is partly grounded, partly a named gap.", "class": "Fact"},
+        {"id": "marginal_hours_gap", "text": "No published figure exists for the exact percentage of half-hours in which gas is the price-setting plant. Falling gas load factors (from ~50% in 2016 to ~28% in 2024) are the best available proxy, not a direct measurement.", "class": "Fact"},
+        {"id": "coal_om_gap", "text": "Coal variable operating cost for the back half of the 2010s was not found in a primary source; coal's role in the stack is inferred from its load-factor behaviour.", "class": "Fact"}
+      ]
+    }
+  },
+  "revision": {
+    "heading": "A claim we changed our mind about",
+    "intro": "Understanding is revised in the open, with both clocks shown: when the world was (valid time) and when we learned we were wrong (transaction time).",
+    "old_claim": "In calm, low-volatility years the modelled supplier ran close to unhedged, carrying its price risk almost naked.",
+    "new_claim": "The population stays hedged at roughly 0.80-0.90 throughout, including calm years.",
+    "valid_time": "calm-market periods, 2016-2019",
+    "transaction_time": "2026-07 (revision recorded)",
+    "reason": "The original near-naked-hedging reading traced to a point-in-time volatility-calculation that could see slightly ahead of itself; once that foresight leak was closed, the apparent behaviour disappeared. The claim was retracted, not tuned away.",
+    "evidence_href": "/proof/"
+  },
+  "topics": [
+    {"id": "wholesale-price-formation", "title": "Wholesale price formation", "kind": "page", "blurb": "This page: how the GB wholesale electricity price is set at the margin."},
+    {"id": "gb-electricity-market", "title": "The GB electricity market", "kind": "stub", "class": "settled", "blurb": "The half-hourly settled market these prices live in."},
+    {"id": "merit-order-residual-demand", "title": "Merit order & residual demand", "kind": "stub", "class": "slow", "blurb": "The cheapest-first dispatch queue and the demand left after renewables."},
+    {"id": "gas-price", "title": "The gas price", "kind": "stub", "class": "fast", "blurb": "The fuel cost that sets the marginal plant's bid for most hours."},
+    {"id": "carbon-price", "title": "The carbon price", "kind": "stub", "class": "slow", "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned."},
+    {"id": "imbalance-cashout-settlement", "title": "Imbalance & cash-out", "kind": "stub", "class": "slow", "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling."},
+    {"id": "hedging-forward-market", "title": "Hedging & the forward market", "kind": "stub", "class": "slow", "blurb": "How a supplier buys ahead to blunt the price it would otherwise face."},
+    {"id": "price-cap", "title": "The retail price cap", "kind": "stub", "class": "slow", "blurb": "How the wholesale price reaches the household through Ofgem's cap."}
+  ],
+  "edges": [
+    {"from": "wholesale-price-formation", "type": "part-of", "to": "gb-electricity-market"},
+    {"from": "merit-order-residual-demand", "type": "mechanism-of", "to": "wholesale-price-formation"},
+    {"from": "gas-price", "type": "drives", "to": "wholesale-price-formation"},
+    {"from": "carbon-price", "type": "drives", "to": "wholesale-price-formation"},
+    {"from": "imbalance-cashout-settlement", "type": "mechanism-of", "to": "wholesale-price-formation"},
+    {"from": "wholesale-price-formation", "type": "prerequisite-for", "to": "hedging-forward-market"},
+    {"from": "wholesale-price-formation", "type": "governed-by", "to": "price-cap"}
+  ]
+}
