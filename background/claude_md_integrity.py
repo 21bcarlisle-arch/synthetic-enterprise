@@ -310,6 +310,51 @@ def inert_skills(text: str, root: Path = PROJECT_DIR) -> list[str]:
     return problems
 
 
+def hollow_skills(text: str, root: Path = PROJECT_DIR) -> list[str]:
+    """A referenced SKILL.md whose frontmatter FIRES (valid name+description, so
+    `inert_skills` passes it) but whose BODY is empty/whitespace-only is INERT
+    one level deeper than `inert_skills` catches: the harness registers and
+    routes to it on its frontmatter, yet invoking it loads NO procedure — the
+    exact "fires on nothing" fail-open, on the skills half.
+
+    This closes a completeness gap in the *same invariant* the rules half now
+    asserts at three depths (`inert_rules` no/empty `paths:`,
+    `rules_targeting_missing_paths` dead prefix, `rules_matching_no_files` zero
+    match). The skills half stopped one depth shallower: a phase-close SKILL.md
+    truncated to just its frontmatter (a bad merge/edit emptying the moved-out
+    checklist while keeping the header) passes `_skill_fires` — proven fail-open
+    against `inert_skills`, 2026-07-28. Sibling-half red-team of the rules
+    zero-match hardening (audit the other half of a split mechanism for the same
+    class).
+
+    Independence (R15, anti-tautology): the checked value is the real file body
+    (does any non-whitespace procedure text exist after the frontmatter), the
+    oracle is the frontmatter-fires judgement `_skill_fires` makes from the
+    header — two independent regions of the file; an emptied body fires. A
+    missing skill is `dangling_pointers`', an unfired-frontmatter skill is
+    `inert_skills`' (no double-report). Empty list ⇒ every firing skill has body.
+    """
+    problems: list[str] = []
+    for p in referenced_harness_paths(text):
+        if "/skills/" not in p:
+            continue  # rules covered by inert_rules; skills only here
+        f = root / p
+        if not f.is_file():
+            continue  # missing => dangling_pointers reports it
+        content = f.read_text(encoding="utf-8")
+        if not _skill_fires(content):
+            continue  # unfired frontmatter => inert_skills owns it (no double-report)
+        m = _FRONTMATTER.match(content)
+        body = content[m.end():] if m else content
+        if not body.strip():
+            problems.append(
+                f"{p} has firing frontmatter but an EMPTY body — the harness registers "
+                "and routes to it yet invoking it loads no procedure (fires on nothing; "
+                "its moved-out checklist was truncated/emptied while the header survived)"
+            )
+    return problems
+
+
 def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
     """Full integrity check. Empty list ⇒ healthy; else the violations."""
     if text is None:
@@ -325,6 +370,7 @@ def check(text: str | None = None, root: Path = PROJECT_DIR) -> list[str]:
     problems += rules_targeting_missing_paths(text, root)
     problems += rules_matching_no_files(text, root)
     problems += inert_skills(text, root)
+    problems += hollow_skills(text, root)
     return problems
 
 

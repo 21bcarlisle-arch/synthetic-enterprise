@@ -421,3 +421,63 @@ def test_full_check_fires_on_inert_skill(tmp_path):
     problems = integ.check(root=tmp_path)
     assert any("INERT" in p for p in problems)
     assert not any("do not exist" in p for p in problems)  # not a dangling report
+
+
+# --- hollow_skills: sibling-half red-team of the RULES zero-match hardening ----
+# (2026-07-28 HARDEN: the rules half now catches "fires on nothing" at three
+# depths — no/empty paths, dead prefix, zero-match glob. The skills half stopped
+# one depth shallower: inert_skills only checks the frontmatter fires, so a
+# SKILL.md truncated to JUST its frontmatter (valid name+description, empty body)
+# passed check() while the moved-out checklist was gone. Proven fail-open against
+# inert_skills before the fix. R15 both-ways below.)
+
+
+def test_real_claude_md_skills_all_have_body():
+    """LIVE control: every referenced SKILL.md has non-empty procedure body."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    assert integ.hollow_skills(text, REPO_ROOT) == []
+
+
+def test_hollow_skills_silent_when_no_skill_referenced(tmp_path):
+    assert integ.hollow_skills("Path-scoped rules fire from `.claude/rules/`.", tmp_path) == []
+
+
+def test_hollow_skills_fires_on_frontmatter_only_body(tmp_path):
+    """FAIL-OPEN mutation: valid frontmatter but empty body passes inert_skills
+    yet loads no procedure — hollow_skills must fire where inert_skills is blind."""
+    _write_skill(tmp_path, "phase-close", "---\nname: phase-close\ndescription: the checklist\n---\n\n")
+    assert integ.inert_skills(_SKILL_CLAIM, tmp_path) == []            # blind here (frontmatter fires)
+    problems = integ.hollow_skills(_SKILL_CLAIM, tmp_path)             # owned here
+    assert any("EMPTY body" in v and "phase-close" in v for v in problems)
+
+
+def test_hollow_skills_passes_on_skill_with_body(tmp_path):
+    _write_skill(
+        tmp_path, "phase-close",
+        "---\nname: phase-close\ndescription: the phase-close checklist procedure\n---\n\n# Body\n1. step\n",
+    )
+    assert integ.hollow_skills(_SKILL_CLAIM, tmp_path) == []
+
+
+def test_hollow_skills_does_not_double_report_inert_skill(tmp_path):
+    """No frontmatter => inert_skills owns it; hollow_skills stays silent so the
+    two never double-count the same file."""
+    _write_skill(tmp_path, "phase-close", "# body only, no frontmatter\n")
+    assert any("INERT" in v for v in integ.inert_skills(_SKILL_CLAIM, tmp_path))  # owned there
+    assert integ.hollow_skills(_SKILL_CLAIM, tmp_path) == []                       # silent here
+
+
+def test_hollow_skills_does_not_double_report_missing_skill(tmp_path):
+    assert integ.hollow_skills(_SKILL_CLAIM, tmp_path) == []          # file absent => silent here
+    assert integ.dangling_pointers(_SKILL_CLAIM, tmp_path)            # dangling reports it
+
+
+def test_full_check_fires_on_hollow_skill(tmp_path):
+    """End-to-end: check() surfaces a frontmatter-only (hollow) skill without
+    double-reporting it as inert or dangling."""
+    (tmp_path / "CLAUDE.md").write_text(_SKILL_CLAIM, encoding="utf-8")
+    _write_skill(tmp_path, "phase-close", "---\nname: phase-close\ndescription: the checklist\n---\n")
+    problems = integ.check(root=tmp_path)
+    assert any("EMPTY body" in p for p in problems)
+    assert not any("INERT" in p for p in problems)        # not double-reported as inert
+    assert not any("do not exist" in p for p in problems)  # not a dangling report
