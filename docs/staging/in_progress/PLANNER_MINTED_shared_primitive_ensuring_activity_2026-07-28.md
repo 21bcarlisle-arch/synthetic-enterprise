@@ -1,4 +1,5 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DESIGN half CLOSED 2026-07-28: docs/design/SHARED_PRIMITIVE_ENSURING_ACTIVITY_DISCOVER.md (5.1 plugs in as register #9 of the GAP1 mint-source contract, ranked by GAP2 method not special-cased; 5.2 exact phase-close item 0d specified; 5.3/5.4 ride existing retro cadence + phase-close-evaluator; R15 fail-closed). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Shared-primitive ensuring activity: census-as-gap-register + phase-close question + standing structural review (2026-07-28)
 
 **Source:** `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` §5 (5.1–5.4) + Acceptance

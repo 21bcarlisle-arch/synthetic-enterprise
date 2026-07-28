@@ -1,4 +1,5 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DISCOVER CLOSED 2026-07-28: docs/design/MONEY_REPRESENTATION_EVIDENCE.md. Evidence gathered (NO money type migrated — director-reserved wall held): 0 Decimal usage (money is float end-to-end incl SQLite REAL at rest); worst single-bill drift £0.02, aggregate -£0.22 over 1,441 bills (shadow-Decimal cross-check vs 1,588 real bills, basis 2026-07-28T08:30:04Z billed); MATERIAL finding = 37.0% of bills' rounded line items don't sum to the printed total. Recommendation returned as [ACT]: boundary-reconciliation fix first (narrow blast radius, closes the 37%); full float->Decimal core migration reserved as a separate director decision before real customer money. -->
 # [PLANNER-MINTED] — Money-representation evidence for the director (float vs Decimal) — DISCOVER ONLY (2026-07-28)
 
 **Source:** `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` §6 + Acceptance item 7

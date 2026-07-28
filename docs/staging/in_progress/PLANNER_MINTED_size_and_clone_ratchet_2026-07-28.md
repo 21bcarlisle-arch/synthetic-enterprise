@@ -1,4 +1,5 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DESIGN half CLOSED 2026-07-28: docs/design/SIZE_AND_CLONE_RATCHET_DISCOVER.md (live census 789 files/169,852 lines corroborates ruling's 788; no existing clone tool — minimal AST detector designed; warn-then-gate + logged override + R15 both-ways designed; ceiling 223). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Size + clone ratchet (debt drains by side-effect, never by remediation sprint) (2026-07-28)
 
 **Source:** `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` §3 + Acceptance item 3

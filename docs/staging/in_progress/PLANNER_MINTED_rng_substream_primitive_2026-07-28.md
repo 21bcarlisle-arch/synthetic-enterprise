@@ -1,4 +1,5 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- DISCOVER half CLOSED 2026-07-28: docs/design/RNG_SUBSTREAM_PRIMITIVE_DISCOVER.md (16 derivations found vs ~8 est, 5 distinct formulas, concrete Formula-A namespace-collision risk; canonical namespaced primitive + R15 both-ways designed; W1_6 sequencing citation corrected). BUILD half remains blocked_on director_build_open. -->
 # [PLANNER-MINTED] — Canonical RNG substream primitive (unify 8 copies of `_substream`) (2026-07-28)
 
 **Source:** `DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md` §2.2 + Acceptance item 2
