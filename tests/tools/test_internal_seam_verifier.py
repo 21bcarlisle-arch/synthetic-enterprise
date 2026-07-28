@@ -251,6 +251,141 @@ def test_aliased_dynamic_import_non_literal_target_is_a_declared_limit():
     assert violations == [], [str(v) for v in violations]
 
 
+# --------------------------------------------------------------------------
+# R15 MUTATION: a RELATIVE DYNAMIC import -- importlib.import_module(".mod",
+# package="pkg") -- resolves at RUNTIME to an absolute module and can cross a
+# domain boundary exactly like `from ..billing import payments`. The static
+# relative form is already resolved (_resolve_relative); the dynamic relative
+# form was NOT, so a domain could evade the ENTIRE seam by switching one static
+# cross-domain import to importlib.import_module(".x", package="other.domain")
+# and the crossing went INVISIBLE (returned []) -- the same fail-open the
+# relative-static and aliased-dynamic fixes exist to close, re-opened via the
+# relative dynamic spelling. It must be flagged.
+# --------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "import_line, expected_module, expected_domain",
+    [
+        # package= keyword form.
+        (
+            "import importlib\n"
+            "m = importlib.import_module('.payments', package='company.billing')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # package as the 2nd POSITIONAL argument.
+        (
+            "import importlib\n"
+            "m = importlib.import_module('.payments', 'company.billing')",
+            "company.billing.payments",
+            "billing",
+        ),
+        # resolves to the SPECIFIC domain when the relative target lands in a
+        # submodule living in a different domain (collections inside billing/).
+        (
+            "import importlib\n"
+            "m = importlib.import_module('.collections', package='company.billing')",
+            "company.billing.collections",
+            "collections",
+        ),
+        # aliased importlib + relative target: both fixes compose.
+        (
+            "import importlib as il\n"
+            "m = il.import_module('.payments', package='company.billing')",
+            "company.billing.payments",
+            "billing",
+        ),
+    ],
+)
+def test_mutation_relative_dynamic_cross_domain_import_is_flagged(
+    import_line, expected_module, expected_domain
+):
+    """A pricing file reaching into billing/collections via a RELATIVE dynamic
+    import MUST be flagged, identically to its static-relative and absolute-
+    dynamic forms. Returned [] before the relative-dynamic resolution fix."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_reldyn_probe.py"
+    planted.write_text(import_line + "  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert len(violations) == 1, [str(v) for v in violations]
+    v = violations[0]
+    assert v.importing_domain == "pricing"
+    assert v.imported_domain == expected_domain
+    assert v.imported_module == expected_module
+
+
+def test_relative_dynamic_same_domain_is_silent():
+    """The fix must not over-fire: a relative dynamic import resolving BACK INTO
+    the importing file's own domain (import_module('.price_cap',
+    package='company.pricing') from a pricing file) is intra-domain and stays
+    silent -- exactly as the static-relative same-domain case does."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_reldyn_same_probe.py"
+    planted.write_text(
+        "import importlib\n"
+        "m = importlib.import_module('.price_cap', package='company.pricing')  # noqa\n",
+        encoding="utf-8",
+    )
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert violations == [], [str(v) for v in violations]
+
+
+@pytest.mark.parametrize(
+    "import_line",
+    [
+        # No package= at all: unresolvable (a runtime ImportError anyway).
+        "import importlib\n"
+        "m = importlib.import_module('.payments')",
+        # Non-literal package=: the documented heuristic limit, not a crash and
+        # not a false positive.
+        "import importlib\n"
+        "p = 'company.billing'\n"
+        "m = importlib.import_module('.payments', package=p)",
+    ],
+)
+def test_relative_dynamic_unresolvable_package_is_a_declared_limit(import_line):
+    """Boundary of the relative-dynamic fix: a leading-dot target whose package
+    is absent or non-literal is unresolvable -- no crash, no false positive --
+    the same declared heuristic limit as a non-literal target."""
+    planted = REPO_ROOT / "company" / "pricing" / "_seam_reldyn_lim_probe.py"
+    planted.write_text(import_line + "  # noqa\n", encoding="utf-8")
+    try:
+        violations = verifier.check_file(planted)
+    finally:
+        planted.unlink()
+    assert violations == [], [str(v) for v in violations]
+
+
+def test_relative_dynamic_target_helper_unit():
+    """Unit guard for the relative-dynamic resolver via _dynamic_import_target:
+    the absolute target is computed from the package= argument; missing/variable
+    package resolves to None."""
+    import ast as _ast
+
+    def target(src):
+        call = _ast.parse(src, mode="eval").body
+        return verifier._dynamic_import_target(call)
+
+    assert target(
+        "importlib.import_module('.payments', package='company.billing')"
+    ) == "company.billing.payments"
+    assert target(
+        "importlib.import_module('.payments', 'company.billing')"
+    ) == "company.billing.payments"
+    # Parent-level relative resolves like importlib (rsplit on the package).
+    assert target(
+        "importlib.import_module('..x', package='company.billing.sub')"
+    ) == "company.billing.x"
+    # No package / variable package -> unresolvable.
+    assert target("importlib.import_module('.payments')") is None
+    assert target("importlib.import_module('.payments', package=p)") is None
+    # A leading-dot __import__ has no package= resolution -> declared limit.
+    assert target("__import__('.payments')") is None
+
+
 def test_collect_importlib_aliases_unit():
     """Unit guard for the alias resolver: literal names are always present, and
     each real alias is added; an unrelated `import importlib.util` does not add a

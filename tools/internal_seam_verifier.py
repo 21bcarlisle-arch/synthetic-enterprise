@@ -28,7 +28,12 @@ Design stance (R15 -- this control must be able to FAIL):
     LOCALLY-ALIASED dynamic forms are covered too -- ``import importlib as il;
     il.import_module("...")`` and ``from importlib import import_module as imp;
     imp("...")`` -- so a one-line rename cannot dodge the dynamic-import check
-    (a sibling R15 fail-open fix; see ``_collect_importlib_aliases``).
+    (a sibling R15 fail-open fix; see ``_collect_importlib_aliases``). The
+    RELATIVE dynamic form -- ``import_module(".payments", package="company.billing")``
+    -- is resolved to its absolute runtime target against the ``package=``
+    argument, so switching a static ``from ..billing import payments`` crossing to
+    its relative-dynamic spelling cannot dodge the check either (see
+    ``_relative_dynamic_target``).
 The mutation test in tests/tools/test_internal_seam_verifier.py plants a fresh
 cross-domain import (static and dynamic forms) and asserts this verifier flags it.
 """
@@ -163,6 +168,17 @@ def _dynamic_import_target(
     them (e.g. the unit helper), they default to just the literal names, which
     preserves the original recognise-the-standard-spelling behaviour.
 
+    RELATIVE dynamic form: ``import_module(".payments", package="company.billing")``
+    (a leading-dot name resolved against the ``package=`` argument) resolves at
+    RUNTIME to ``company.billing.payments`` -- a cross-domain crossing exactly
+    like its static ``from ..billing import payments`` form. It is resolved to the
+    absolute target here using the same relative->absolute rule as static relative
+    imports (``_resolve_relative``), reading the ``package=`` value from the 2nd
+    positional or ``package`` keyword argument. A leading-dot name whose package
+    is absent or non-literal is unresolvable (a runtime ImportError without a
+    package anyway) and returns None -- the same documented heuristic limit as a
+    non-literal target, NOT a silent false-clear. (See ``_relative_dynamic_target``.)
+
     WHY this exists (R15 fail-open fix; sibling of the same fix already shipped
     in ``tools/epistemic_verifier`` for the SIM/company wall, KL-2b): the AST
     walk only visits ``ast.Import``/``ast.ImportFrom`` nodes, so a domain could
@@ -189,9 +205,50 @@ def _dynamic_import_target(
     if not node.args:
         return None
     first = node.args[0]
-    if isinstance(first, ast.Constant) and isinstance(first.value, str):
-        return first.value
-    return None
+    if not (isinstance(first, ast.Constant) and isinstance(first.value, str)):
+        return None
+    target = first.value
+    if target.startswith("."):
+        # Relative dynamic form. __import__ has no comparable package= resolution
+        # (its relative form uses an int `level` arg and is not used in practice
+        # to reach another package by name) -- treat a leading-dot __import__ as
+        # the declared heuristic limit. importlib.import_module resolves against
+        # its package= argument.
+        if not is_import_module:
+            return None
+        return _relative_dynamic_target(target, node)
+    return target
+
+
+def _relative_dynamic_target(name: str, node: ast.Call) -> str | None:
+    """Resolve a relative ``import_module(".mod", package="pkg")`` call to its
+    absolute dotted target, or None if the ``package=`` argument is missing or
+    non-literal (unresolvable -- a runtime ImportError without a package anyway,
+    and a documented heuristic limit, never a silent false-clear).
+
+    Mirrors ``importlib.import_module`` semantics: the leading-dot count is the
+    relative level and the ``package`` value is the anchor package -- resolved with
+    the same ``_resolve_relative`` rule static relative imports use, so the two
+    forms of the SAME crossing resolve identically. ``package`` is read from the
+    2nd positional argument or the ``package`` keyword (whichever is present)."""
+    level = len(name) - len(name.lstrip("."))
+    rest = name[level:]
+    package_node = None
+    if len(node.args) >= 2:
+        package_node = node.args[1]
+    else:
+        for kw in node.keywords:
+            if kw.arg == "package":
+                package_node = kw.value
+                break
+    if not (
+        isinstance(package_node, ast.Constant)
+        and isinstance(package_node.value, str)
+        and package_node.value
+    ):
+        return None
+    pkg_parts = tuple(package_node.value.split("."))
+    return _resolve_relative(pkg_parts, level, rest or None)
 
 
 def _iter_import_statements(tree: ast.AST, pkg_parts: tuple[str, ...]):
