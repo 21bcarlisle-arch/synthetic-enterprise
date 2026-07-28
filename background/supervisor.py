@@ -762,6 +762,43 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     return selected
 
 
+def _normalize_evidence_list(value: Any) -> list:
+    """Coerce an atom's `evidence` field to a list of entries, tolerating the
+    scalar-string hand-edit form (`evidence: docs/design/frame/X_FRAME.md`
+    instead of a one-item list).
+
+    WHY THIS EXISTS (2026-07-28 HARDEN red-team, R15 FAIL-SILENT -- the SAME
+    hand-edit-typo class the 07-27 override-parse pass reasoned about, reaching a
+    DIFFERENT consumer). `_atom_has_frame_doc` iterated `atom.get("evidence") or
+    []` directly: a LIST iterates entries, but a scalar STRING iterates its
+    CHARACTERS ('d','o','c',...), none of which start with `docs/design/`, so the
+    function silently returned False -- reading an atom that carries a real,
+    complete FRAME doc (pointed at by a mistyped scalar) as UN-saturated and
+    RE-HANDING it to the idle draw every cycle: the exact treadmill (this atom's
+    own DIAL defect, occurrences 1-5) it exists to stop, reached through a scalar
+    typo. A scalar evidence pointer is semantically identical to a one-item list,
+    so normalising it is strictly correct (no starve risk: a scalar pointing at a
+    NON-FRAME path still reads un-saturated -> offered, unchanged). A genuinely
+    unexpected type (dict/int/...) is LOGGED (surfaced, never swallowed) and read
+    as no-evidence -- fail-loud on garbage, matching `_coerce_frame_saturated_
+    override`. Sibling `_has_test_evidence` (line ~1499) already rejects a
+    non-list evidence via `isinstance(ev, list)`; this normaliser is the
+    fix-not-just-reject form, so the valid scalar-pointer case is handled rather
+    than merely tolerated. R15 mutation-tested both directions."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        return [value]
+    log(
+        "H23 _atom_has_frame_doc: `evidence` is neither a list nor a string "
+        f"({value!r}) -- treating as no evidence. A mistyped evidence field must "
+        "not silently vanish (R15 FAIL-SILENT); fix the map value."
+    )
+    return []
+
+
 def _atom_has_frame_doc(atom: dict) -> bool:
     """True iff the atom already carries its OWN complete FRAME doc on disk:
     an `evidence` entry anywhere under `docs/design/` whose FILENAME contains
@@ -799,7 +836,7 @@ def _atom_has_frame_doc(atom: dict) -> bool:
     remains the intended escape."""
     if not isinstance(atom, dict):
         return False
-    for e in atom.get("evidence") or []:
+    for e in _normalize_evidence_list(atom.get("evidence")):
         s = str(e)
         if not s.startswith("docs/design/"):
             continue

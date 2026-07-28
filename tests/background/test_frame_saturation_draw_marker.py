@@ -689,6 +689,112 @@ def test_h23_file_scope_is_narrowed_to_real_files_so_scope_sha_is_live():
         "H23 scope_sha is dead ('') -- the sibling-change re-verify signal is absent"
 
 
+# ── SCALAR-string evidence FALSE-NEGATIVE fix (2026-07-28 HARDEN red-team, R15
+#    FAIL-SILENT): `_atom_has_frame_doc` iterated `atom.get("evidence") or []`
+#    directly. A LIST iterates entries, but a scalar STRING (`evidence:
+#    docs/design/frame/X_FRAME.md` -- the natural YAML hand-edit typo, a one-item
+#    list written without the `- `) iterates its CHARACTERS, none of which start
+#    with `docs/design/`, so an atom carrying a REAL complete FRAME doc pointed at
+#    by a scalar read as UN-saturated and was RE-HANDED every idle cycle: the exact
+#    treadmill (this atom's DIAL defect, occurrences 1-5) it exists to stop, reached
+#    through a scalar typo. SIBLING of the 07-27 override-parse (`"false"`/`0`) and
+#    _atom_has_frame_doc substring/stub passes -- the same hand-edit-typo class
+#    reaching a different consumer. Fix: `_normalize_evidence_list` coerces a scalar
+#    string to a one-item list and fail-loud-logs a genuinely unexpected type. R15
+#    both directions. ──────────────────────────────────────────────────────────────
+
+
+def test_scalar_string_evidence_pointing_at_frame_doc_reads_saturated(_isolate_map_and_root):
+    # FIXES the false-negative: an atom whose `evidence` is a SCALAR STRING (not a
+    # list) pointing at a real complete FRAME doc must read as SATURATED -> skipped,
+    # not char-iterated to False -> re-handed (the treadmill).
+    root = _isolate_map_and_root
+    rel = _write_frame_doc(root, "SCALAR_SAT")
+    atom = {"id": "SCALAR_SAT", "lane": "H_harness", "level_current": 0,
+            "level_target": 2, "loop_stage": "idle", "dial_inherited": 2,
+            "evidence": rel}                      # scalar string, NOT a list
+    assert supervisor._atom_has_frame_doc(atom) is True
+    assert supervisor._is_frame_saturated(atom) is True
+
+
+def test_scalar_string_evidence_non_frame_path_stays_unsaturated(_isolate_map_and_root):
+    # NO starve introduced: a scalar string pointing at a NON-FRAME path (a
+    # DISCOVER doc) still reads un-saturated -> the atom stays OFFERED, unchanged.
+    root = _isolate_map_and_root
+    rel = "docs/design/SCALAR_DISCOVER.md"
+    (root / rel).write_text("# discover\n")
+    atom = {"id": "SCALAR_DISC", "lane": "H_harness", "level_current": 0,
+            "level_target": 2, "loop_stage": "idle", "dial_inherited": 2,
+            "evidence": rel}                      # scalar string, non-FRAME
+    assert supervisor._atom_has_frame_doc(atom) is False
+    assert supervisor._is_frame_saturated(atom) is False
+
+
+def test_normalize_evidence_list_forms(_isolate_map_and_root, monkeypatch):
+    # Unit: None/list pass through; a scalar string becomes a one-item list; a
+    # genuinely unexpected type (dict/int) LOGS (fail-loud) and reads as empty.
+    assert supervisor._normalize_evidence_list(None) == []
+    assert supervisor._normalize_evidence_list(["a", "b"]) == ["a", "b"]
+    assert supervisor._normalize_evidence_list("docs/design/frame/X_FRAME.md") == \
+        ["docs/design/frame/X_FRAME.md"]
+    logged = []
+    monkeypatch.setattr(supervisor, "log", lambda m: logged.append(m))
+    for bad in ({"x": 1}, 7, 3.5):
+        assert supervisor._normalize_evidence_list(bad) == []
+    assert logged and all("FAIL-SILENT" in m for m in logged), \
+        "unexpected evidence type must be logged, not swallowed"
+
+
+@pytest.mark.parametrize("draw", ["single", "concurrent"])
+def test_fires_scalar_saturated_atom_is_skipped(_isolate_map_and_root, draw):
+    # Integration, both entry points: an atom saturated ONLY via a scalar-string
+    # FRAME-doc evidence is never re-handed, while a genuinely-unframed atom beside
+    # it is the one handed. Encodes the exact live-draw membership under the typo.
+    root = _isolate_map_and_root
+    sat = _write_frame_doc(root, "SCALAR_ONLY")
+    atoms = [
+        {"id": "SCALAR_ONLY", "lane": "H_harness", "level_current": 0,
+         "level_target": 2, "loop_stage": "idle", "dial_inherited": 2,
+         "evidence": sat},                        # saturated (scalar)
+        _idle_atom("FRESH2", evidence=[]),        # un-saturated: real FRAME work
+    ]
+    _write_map(root, atoms)
+    rng = random.Random(818)
+    for _ in range(50):
+        if draw == "single":
+            picked = supervisor._idle_discover_frame_draw(rng=rng)
+            ids = {picked["id"]} if picked else set()
+        else:
+            picked = supervisor._idle_discover_frame_draw_concurrent(rng=rng, width=3)
+            ids = {a["id"] for a in picked}
+        assert ids == {"FRESH2"}, f"scalar-saturated atom re-handed / fresh starved: {ids}"
+
+
+def test_regression_char_iteration_would_have_re_handed_scalar_atom(_isolate_map_and_root):
+    # Guard-mutation control for THIS fix (R15): restore the pre-fix direct
+    # `evidence or []` char-iteration via monkeypatch and assert a scalar-only
+    # saturated atom is then (wrongly) read un-saturated and RE-HANDED -> the draw
+    # returns it. Proves this test fails if the normaliser is reverted.
+    import unittest.mock as mock
+    root = _isolate_map_and_root
+    sat = _write_frame_doc(root, "SCALAR_REG")
+    atom = {"id": "SCALAR_REG", "lane": "H_harness", "level_current": 0,
+            "level_target": 2, "loop_stage": "idle", "dial_inherited": 2,
+            "evidence": sat}
+    _write_map(root, [atom])
+    # Normaliser live: scalar recognised -> saturated -> empty draw.
+    assert supervisor._idle_discover_frame_draw(rng=random.Random(0)) is None
+
+    def _char_iter_pre_fix(value):
+        # The reverted behaviour: `evidence or []` -- a scalar str is returned
+        # as-is and later char-iterated by the caller.
+        return value or []
+
+    with mock.patch.object(supervisor, "_normalize_evidence_list", side_effect=_char_iter_pre_fix):
+        picked = supervisor._idle_discover_frame_draw(rng=random.Random(0))
+        assert picked is not None and picked["id"] == "SCALAR_REG"
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live
