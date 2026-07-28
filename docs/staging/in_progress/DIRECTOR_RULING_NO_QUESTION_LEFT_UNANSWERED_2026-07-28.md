@@ -1,3 +1,15 @@
+<!-- MINT COVERAGE MAP (worker tick 2026-07-28) — all 4 WORK-THIS-CREATES deliverables MINTED as
+self-drawable atoms (none pre-covered; grep-confirmed net-new). NOT archived to done/: this ruling
+carries 6 open questions (§3) and the archive-block mechanism (deliverable 1) is not yet built —
+by the ruling's own §1 it is NOT fully consumed while any question is unanswered. Parked in
+in_progress/. BLOCKING SUB-ITEMS: (1) mechanism+archive-block not built; (4) the six not yet answered.
+  [1] MINTED — PLANNER_MINTED_question_register_mechanism_2026-07-28.md (H_harness, BUILD authorized by this ruling, level blocked_on director_level_up)
+  [2] MINTED — PLANNER_MINTED_question_register_seed_publish_2026-07-28.md (H_harness, seed+publish the six)
+  [3] MINTED — PLANNER_MINTED_questions_in_daily_note_2026-07-28.md (H_harness, daily-note line)
+  [4] MINTED — PLANNER_MINTED_answer_six_outstanding_questions_2026-07-28.md (L3 DISCOVER, drawable now, doc-only)
+This ruling stays in in_progress/ until deliverable 1's archive-block is live AND the six §3 questions
+are answered/carried — at which point that very mechanism will permit its archival. -->
+
 # [DIRECTOR-RULING] — No question left unanswered. A question is a first-class open item. (2026-07-28)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Director's instruction, verbatim: *"Let's never leave questions unanswered please."*
