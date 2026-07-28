@@ -209,6 +209,52 @@ def test_guard_catches_reexport_symbol_bypass_that_line_scan_misses():
     assert any("build_properties" in v for v in violations)
 
 
+def test_guard_fires_on_plain_import_of_ground_truth_module():
+    """R15 subset-coverage pin: the ``ast.Import`` branch fires independently.
+
+    The 2026-07-22 both-ways pin exercises only the ``from X import Y`` form
+    (ast.ImportFrom) and the bare-call form (ast.Name). The plain
+    ``import saas.property_model`` form is handled by a SEPARATE branch
+    (_forbidden_reads_in_source's ``ast.Import`` handler), but was never
+    exercised firing -- neutering that branch alone left the whole suite green
+    (the A3/E2 subset-coverage FAIL-SILENT class: a source guard whose own half
+    is not independently mutation-detectable is not evidence for the wall).
+
+    This input is caught ONLY by the ast.Import branch: it never bare-calls or
+    attribute-accesses ``build_properties``, so if that one branch is neutered
+    this test reds and nothing else does.
+    """
+    mutant = (
+        "import saas.property_model\n"
+        "X = saas.property_model\n"  # attr 'property_model' is not a forbidden NAME
+    )
+    violations = _forbidden_reads_in_source(mutant, "home_registry.py[PLAIN-IMPORT-MUTANT]")
+    assert any("import saas.property_model" in v for v in violations), violations
+
+
+def test_guard_fires_on_aliased_attribute_access_bypass():
+    """R15 subset-coverage pin: the ``ast.Attribute`` branch fires independently.
+
+    ``from saas import property_model as pm`` does NOT trip the import checks --
+    the module string is ``saas``, which is deliberately NOT a forbidden prefix
+    (the belief layer legitimately shares saas enums). The ONLY thing standing
+    between that alias and a ground-truth read is the ``ast.Attribute`` branch
+    catching ``pm.build_properties(...)``. The module docstring explicitly
+    ADVERTISES this bypass as caught ("...reached via an aliased or indirect
+    import (e.g. ``from saas import property_model as pm; pm.build_properties``)"),
+    yet neutering that branch alone left the whole suite green -- the advertised
+    capability was unproven. This pins it: reds exactly the ast.Attribute
+    mutation and nothing else.
+    """
+    bypass = (
+        "from saas import property_model as pm\n"
+        "def open_belief(cust):\n"
+        "    return pm.build_properties(cust)\n"
+    )
+    violations = _forbidden_reads_in_source(bypass, "home_registry.py[ALIAS-ATTR-MUTANT]")
+    assert any("build_properties" in v for v in violations), violations
+
+
 def test_coverage_set_is_sourced_from_the_live_map_not_a_hardcoded_copy():
     """R15 anti-drift pin: the scanned set == C2's live file_scope in the map.
 
