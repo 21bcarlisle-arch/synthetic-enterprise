@@ -173,6 +173,51 @@ def test_check_conserved_counts_unallocated_credit():
 
 
 # ===========================================================================
+# CONTROL 1b/2b — NON-FINITE FAIL-OPEN (R15 killer pattern 2, the E4-sibling
+# class the CSS reconciliation control closed 2026-07-25). A tolerance control
+# `abs(a - b) > tol` is silently False when a or b is NaN/inf, so a corrupt
+# figure sails through clean. Proven live before the fix: a NaN-corrupted bill
+# event made balance_gbp=nan yet reconcile() returned clean against the true
+# control total. Fixed at BOTH entry points: the LedgerEvent magnitude guard
+# (a NaN can't enter the ledger) and each control's own non-finite rejection
+# (a NaN in an EXTERNAL control total, which construction cannot catch).
+# ===========================================================================
+
+def test_magnitude_guard_rejects_nonfinite_amount():
+    # ROOT-CAUSE entry point: `NaN < 0` is silently False, so the old `< 0`-only
+    # magnitude guard let a non-finite amount into the ledger. A magnitude that is
+    # not a finite number is corrupt, not a value.
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError):
+            _bill("bx", "A", bad, 1)
+    _bill("bok", "A", 0.0, 1)          # a finite zero magnitude is still fine
+
+
+def test_reconcile_FIRES_on_nonfinite_external_total():
+    # FAIL-OPEN probe on the EXTERNAL side (construction cannot catch this): a
+    # NaN/inf control total makes abs(actual - NaN) > tol silently False.
+    led = AccountLedger("A")
+    led.post(_bill("b1", "A", 100.0, 1))
+    with pytest.raises(LedgerReconciliationError):
+        led.reconcile(expected_debits_gbp=float("nan"), expected_credits_gbp=0.0)
+    with pytest.raises(LedgerReconciliationError):
+        led.reconcile(expected_debits_gbp=100.0, expected_credits_gbp=float("inf"))
+    led.reconcile(expected_debits_gbp=100.0, expected_credits_gbp=0.0)   # finite: fine
+
+
+def test_check_conserved_FIRES_on_nonfinite_cash_total():
+    # FAIL-OPEN probe: a NaN cash-received total (from a corrupt upstream transform)
+    # must RAISE, not pass on abs(accounted - NaN) > tol == False.
+    led = AccountLedger("A")
+    led.post(_bill("b1", "A", 100.0, 1, ref="INV1"))
+    led.post(_pay("p1", "A", 40.0, 5))
+    res = led.allocate()
+    with pytest.raises(AllocationInvariantError):
+        res.check_conserved(total_payments_gbp=float("nan"))
+    res.check_conserved(total_payments_gbp=40.0)                          # finite: fine
+
+
+# ===========================================================================
 # CONTROL 3 — assert_age_buckets_partition: 30/60/90+ buckets partition
 # days-overdue with no gap/overlap. Named defect: a bucket fn with a gap or an
 # overlap (non-monotonic severity).

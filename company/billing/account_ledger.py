@@ -52,6 +52,7 @@ seam-crossing atom, never papered over):
 from __future__ import annotations
 
 import datetime as dt
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -90,6 +91,16 @@ class LedgerEvent:
     reason: str = ""                   # required for write-offs/adjustments (audit + P&L)
 
     def __post_init__(self) -> None:
+        # A magnitude that is not a FINITE number is corrupt, not a value: reject
+        # non-finite FIRST (R15 FAIL-OPEN class). `NaN < 0` is silently False, so a
+        # NaN/inf amount slips the `< 0` guard and then sails through every downstream
+        # `abs(a-b) > tol` reconcile control (abs(x - NaN) > tol is also False) —
+        # proven live: a NaN-corrupted bill event made balance_gbp=nan yet reconcile()
+        # returned clean against the true control total. Close the entry point too.
+        if not math.isfinite(self.amount_gbp):
+            raise ValueError(
+                f"amount_gbp must be a finite number, got {self.amount_gbp!r}"
+            )
         if self.amount_gbp < 0:
             raise ValueError("amount_gbp is a magnitude; must be >= 0")
 
@@ -176,6 +187,10 @@ class AllocationResult:
         allocated_total = round(sum(a[2] for a in self.allocations), 2)
         accounted = round(allocated_total + self.unallocated_credit_gbp, 2)
         external = round(total_payments_gbp, 2)
+        # Non-finite FIRST — abs(accounted - NaN) > tol is silently False (R15).
+        problems += _nonfinite_problems(
+            allocated_total=allocated_total, accounted=accounted, external=external,
+        )
         if abs(accounted - external) > _ALLOC_TOLERANCE_GBP:
             problems.append(
                 f"cash not conserved: allocated {allocated_total} + unallocated "
@@ -206,6 +221,25 @@ def _sort_key(e: LedgerEvent) -> Tuple[dt.date, str]:
 
 _RECON_TOLERANCE_GBP = 0.005
 _ALLOC_TOLERANCE_GBP = 0.005
+
+
+def _nonfinite_problems(**named_values: float) -> List[str]:
+    """R15 FAIL-OPEN guard for the tolerance-comparison controls below.
+
+    A control of the shape `abs(a - b) > tol` is silently False whenever `a` or `b`
+    is NaN/inf, so a non-finite figure sails through EVERY such control clean — the
+    dropped/tampered-event detector fails on the exact 'corrupted figure' shape it
+    exists to catch (proven live: a NaN-corrupted bill made balance_gbp=nan yet
+    reconcile() returned clean against the true control total). Reject non-finite
+    FIRST: a reconciled money total that is not a finite number is corrupt, not
+    conserved. Returns one problem string per non-finite value (empty when all
+    finite); each caller folds these into its own `problems` list so it raises its
+    OWN control error. Same class the E4 CSS reconciliation control closed 2026-07-25."""
+    return [
+        f"{name} is non-finite ({val!r}) — corrupt figure, cannot reconcile"
+        for name, val in named_values.items()
+        if not math.isfinite(val)
+    ]
 
 
 class LedgerReconciliationError(Exception):
@@ -312,7 +346,12 @@ class AccountLedger:
         bal = self.balance(as_of)
         exp_debits = round(expected_debits_gbp, 2)
         exp_credits = round(expected_credits_gbp, 2)
-        problems: List[str] = []
+        # Reject non-finite FIRST — a NaN/inf on either side makes every abs()>tol
+        # below silently False (R15 FAIL-OPEN), passing a corrupt audited figure.
+        problems: List[str] = _nonfinite_problems(
+            actual_debits=actual_debits, actual_credits=actual_credits, balance=bal,
+            expected_debits=exp_debits, expected_credits=exp_credits,
+        )
         if abs(actual_debits - exp_debits) > _RECON_TOLERANCE_GBP:
             problems.append(
                 f"debit total {actual_debits} != control {exp_debits}"
@@ -402,7 +441,13 @@ class AccountLedger:
             if e.event_type == LedgerEventType.PAYMENT_CREDIT
             and (as_of is None or e.valid_time <= as_of)
         ), 2)
-        problems: List[str] = []
+        # Non-finite FIRST — a NaN/inf in a ledger movement or an external control
+        # total makes the abs()>tol tie silently pass (R15 FAIL-OPEN).
+        problems: List[str] = _nonfinite_problems(
+            actual_bill_debits=actual_bill_debits, actual_payments=actual_payments,
+            expected_debits=round(expected_debits, 2),
+            expected_credits=round(expected_credits, 2),
+        )
         if abs(actual_bill_debits - round(expected_debits, 2)) > _RECON_TOLERANCE_GBP:
             problems.append(
                 f"billed total {actual_bill_debits} != invoicing register {round(expected_debits, 2)}"
