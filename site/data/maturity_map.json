@@ -3021,6 +3021,25 @@
       "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "H29_import_time_env_capture_test_isolation",
+      "name": "Test-isolation defect: background/ntfy_utils.py captures WAKE_HMAC_KEY = os.environ.get('SE_WAKE_HMAC_KEY') at MODULE-IMPORT time (line 45), so the value is frozen by whichever test imports the module first. Four wake-signing tests pass in isolation and FAIL in any full-suite run.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 45
     }
   ],
   "lanes": {
@@ -3103,7 +3122,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 149,
+  "total_atoms": 150,
   "epoch2_movements": [
     {
       "id": "M1",

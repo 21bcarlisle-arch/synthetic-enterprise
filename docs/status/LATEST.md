@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T17:33Z
+Last updated: 2026-07-29T16:37:34Z
 
 **BUILT (2026-07-29, `90cd95039`) — the rotation↔curriculum BINDING: the missing join.**
 SPINE_1 landed the scenario substrate and the stratified run-rotation landed the grid+cursor+selector;
