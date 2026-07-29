@@ -1,3 +1,14 @@
+<!-- PLANNER-PROCESSED 2026-07-29: minted 3 atoms from the WORK-THIS-CREATES block. Parked here
+(not done/) because the minted atoms are OPEN and §4 is a STANDING binding on the advisor.
+COVERAGE:
+  #1 reclassify blocked set  -> PLANNER_MINTED_reversibility_reclassify_blocked_set_2026-07-29.md (NEW)
+  #2 action proceed-at-risk  -> PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md (NEW; folds #3 batched [ACT]; deps #1)
+  #3 batched [ACT]           -> folded into #2 as its output artifact (not separately minted)
+  #4 standing draw default   -> PLANNER_MINTED_reversible_draws_dont_queue_for_permission_2026-07-29.md (NEW; mechanism + R15)
+NOT re-mints: literal_act_ledger (groups by channel, assumes director-blocked) and self_authority_release_sweep
+  (narrow pre-ruling scope) are from the LITERAL_ACTS/PHONE_SIGNER rulings; #1 tests-whether, #2 widens the class.
+OPEN sub-item: all three minted atoms are self-drawable and un-executed; §4 binding is live doctrine. -->
+
 # [DIRECTOR-RULING] — WORK AT RISK is the default. Re-scope the reserved set by reversibility, not by category. (2026-07-29)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority alongside the literal-act list; this is what makes that list short.
