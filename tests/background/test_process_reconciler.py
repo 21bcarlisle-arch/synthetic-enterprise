@@ -80,10 +80,19 @@ def test_migrated_daemon_leaves_startlist_but_generate_units_still_has_it():
 
 
 def test_systemd_owned_sessions_are_only_the_migrated_ones():
-    """Only launched_by==systemd daemons are `systemctl show`-queried; un-migrated ones are seen
-    via tmux/ps instead (so an un-migrated tmux daemon never reads MISSING). The autonomy layer is
-    fully migrated: worker-seat-manager + supervisor + deadmans-switch."""
-    assert set(R._systemd_owned_sessions()) == {"worker-seat-manager", "supervisor", "deadmans-switch"}
+    """`_systemd_owned_sessions` names the daemons whose lifecycle has ACTUALLY been cut over
+    (owner==systemd AND launched_by==systemd). The autonomy layer — worker-seat-manager +
+    supervisor + deadmans-switch — plus staging-watcher and ntfy-responder, whose cutovers were
+    COMPLETED 2026-07-29 (their units were already installed+enabled+active, but the
+    `launched_by` flip had never been made, so start_worker.sh tmux-launched a SECOND copy and
+    one director message was queued twice).
+
+    NOTE this is no longer the set `_live_unit_states` queries: that reads EVERY owner==systemd
+    unit, so a half-migrated daemon's active unit is visible to DOUBLE_LAUNCH detection."""
+    assert set(R._systemd_owned_sessions()) == {
+        "worker-seat-manager", "supervisor", "deadmans-switch",
+        "staging-watcher", "ntfy-responder",
+    }
 
 
 def test_health_checked_includes_all_migrated_autonomy_daemons():
@@ -259,3 +268,126 @@ def test_no_reaper_or_interactive_claude_kill_path_exists_anywhere():
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# --- DOUBLE_LAUNCH: R10 class fix (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING) ---
+# One director NTFY became TWO queued instructions because ntfy-responder had TWO launchers:
+# an installed+enabled+ACTIVE systemd unit AND start_worker.sh's tmux launch (the cutover
+# installed the unit but never flipped `launched_by: systemd`). staging-watcher was the same
+# defect, and produced the doubled staged-file doorbell the director also reported.
+
+def test_double_launch_alarms_when_both_launchers_run(map_manifest):
+    """R15 MUTATION-CATCH half: a daemon up on BOTH systemd and tmux is a DOUBLE_LAUNCH alarm.
+    Delete the `unit_active and tmux_present` branch in reconcile() and this reds -- the entry
+    falls through to plain OK, which is exactly what the reconciler reported for hours while
+    two responders each staged the director's message."""
+    both = R.reconcile(unit_states={"en": {"active": True}}, seat_active=False,
+                       tmux_running={"en"}, path=map_manifest)
+    assert _status(both, "en")["status"] == "DOUBLE_LAUNCH"
+    assert _status(both, "en")["alarm"] is True
+    assert "DOUBLE_LAUNCH" in R.ALARM_STATUSES
+
+
+def test_single_launcher_by_either_route_is_ok_not_double(map_manifest):
+    """R15 FIRES-ON-DEFECT-ONLY half: ONE launcher is healthy by either route. The
+    transition-tolerant `or` must survive -- a migrated systemd-only daemon and an
+    un-migrated tmux-only daemon are both plain OK, never a false DOUBLE_LAUNCH.
+    Weaken the branch to `unit_active or tmux_present` and this reds."""
+    systemd_only = R.reconcile(unit_states={"en": {"active": True}}, seat_active=False,
+                               tmux_running=set(), path=map_manifest)
+    assert _status(systemd_only, "en")["status"] == "OK"
+    tmux_only = R.reconcile(unit_states={}, seat_active=False,
+                            tmux_running={"en"}, path=map_manifest)
+    assert _status(tmux_only, "en")["status"] == "OK"
+
+
+def test_double_launch_never_flags_the_interactive_seat(map_manifest):
+    """The seat is decided by _seat_active alone, never by unit+tmux -- the director's console
+    must never be alarmed as a duplicate daemon."""
+    res = R.reconcile(unit_states={s: {"active": True} for s in ("en", "hl", "dk", "rt")},
+                      seat_active=True, tmux_running={"en", "hl", "dk", "rt"}, path=map_manifest)
+    assert all(r["session"] != R.SEAT_MATCH for r in res)
+
+
+def test_live_readers_cannot_exclude_a_migrated_daemon_from_double_detection():
+    """FAIL-OPEN GUARD: both live readers must cover EVERY declared daemon. The original code
+    scoped the unit read to `launched_by==systemd` and the tmux scan to `launched_by!=systemd`,
+    so a half-migrated daemon was invisible to one reader and a migrated daemon invisible to the
+    other -- meaning this very fix would fail open the moment the manifest entry was flipped.
+    Restore either filter and this reds."""
+    import inspect
+    unit_src = inspect.getsource(R._live_unit_states)
+    assert 'e.get("owner") == "systemd"' in unit_src
+    assert "_systemd_owned_sessions(path)" not in unit_src
+    tmux_src = inspect.getsource(R._live_tmux_running)
+    # Match the FILTER EXPRESSION, not prose -- the comment above it names `launched_by` while
+    # explaining why it must not be filtered on.
+    assert 'e.get("launched_by", "tmux") != "systemd"' not in tmux_src, \
+        "tmux scan must not filter migrated daemons back out"
+
+
+def test_no_declared_daemon_has_two_launchers_in_the_committed_manifest():
+    """R10 CLASS INVARIANT on the committed declaration: a daemon flipped to
+    `launched_by: systemd` must NOT also be in start_worker.sh's tmux launch set. This is the
+    declaration-level half -- the live half is the DOUBLE_LAUNCH alarm above."""
+    startlist = {s for s, _ in R.startlist()}
+    migrated = {e["session"] for e in R.load_manifest()
+                if e.get("launched_by", "tmux") == "systemd"}
+    both = sorted(startlist & migrated)
+    assert both == [], f"declared with TWO launchers (systemd unit + tmux): {both}"
+
+
+def _fake_proc(stdout: str, rc: int = 0):
+    class P:
+        pass
+    p = P()
+    p.stdout = stdout
+    p.returncode = rc
+    return p
+
+
+def _fake_subprocess(monkeypatch, ps_lines: str, main_pids: dict[str, int], tmux: str = ""):
+    """Stand in for the three shell reads _live_tmux_running makes."""
+    def run(cmd, *a, **k):
+        if cmd[0] == "tmux":
+            return _fake_proc(tmux)
+        if cmd[0] == "ps":
+            return _fake_proc(ps_lines)
+        if cmd[0] == "systemctl" and "MainPID" in cmd:
+            session = cmd[3].removesuffix(".service")
+            return _fake_proc(f"MainPID={main_pids.get(session, 0)}\n")
+        return _fake_proc("")
+    monkeypatch.setattr(R.subprocess, "run", run)
+
+
+def test_a_daemons_own_systemd_process_is_not_counted_as_a_second_launcher(map_manifest, monkeypatch):
+    """REGRESSION (2026-07-29, caught on the LIVE box, not by the suite): _live_tmux_running used
+    `match in ps_out`, a substring scan over ALL of ps. A systemd-launched daemon's OWN command
+    line matches its own `match`, so every migrated daemon reported itself as a second launcher
+    and DOUBLE_LAUNCH false-positived on all five healthy daemons. A control that fires on
+    healthy input is worse than none -- it trains you to ignore it.
+
+    Drop the `pid != own` exclusion and this reds."""
+    _fake_subprocess(monkeypatch,
+                     ps_lines="1234 /usr/bin/python3 background/en.py\n",
+                     main_pids={"en": 1234})
+    assert R._live_tmux_running(path=map_manifest) == set()
+
+
+def test_a_stray_non_systemd_copy_IS_counted_as_a_second_launcher(map_manifest, monkeypatch):
+    """The other half: a process running the daemon that systemd did NOT start is exactly the
+    duplicate we hunt. Here PID 1234 is the unit's own; 5678 is a stray tmux/hand launch."""
+    _fake_subprocess(monkeypatch,
+                     ps_lines="1234 /usr/bin/python3 background/en.py\n"
+                              "5678 python3 background/en.py\n",
+                     main_pids={"en": 1234})
+    assert R._live_tmux_running(path=map_manifest) == {"en"}
+
+
+def test_unmigrated_daemon_with_no_unit_still_detected_by_ps(map_manifest, monkeypatch):
+    """MainPID=0 (no unit / inactive) must not swallow a real tmux-launched daemon -- an
+    un-migrated daemon has to keep reading as running, or it would alarm MISSING."""
+    _fake_subprocess(monkeypatch,
+                     ps_lines="4321 python3 background/dk.py\n",
+                     main_pids={})
+    assert "dk" in R._live_tmux_running(path=map_manifest)

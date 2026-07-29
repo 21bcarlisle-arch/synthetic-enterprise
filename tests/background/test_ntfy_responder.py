@@ -480,3 +480,142 @@ def test_maybe_ledger_director_ruling_ignores_ordinary_message(tmp_path, monkeyp
     # An ordinary human message is not a signed RULING → nothing ledgered, no crash.
     assert responder._maybe_ledger_director_ruling("hey can you check the dashboard") is None
     assert G.read_ledger(led) == []
+
+
+# --- At-most-once EXECUTION (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING) ---
+# CAUSE, observed with evidence: two live ntfy_responder.py processes (PIDs
+# 266098 and 419021). The responder log shows the SAME ntfy message id acked
+# twice -- 'AK0UhbkAV2Ko' at 17:37:31 and again at 17:37:42, each staged as its
+# own from_rich_*.md. Both pre-existing guards (`since`, `seen_hashes`) are
+# per-process in-memory state, so neither could ever see a sibling consumer.
+
+_DIRECTOR_MSG = (
+    "Your backlog is in a document but the thing that picks your next job reads the map."
+)
+
+
+def _consumer_env(tmp_path, monkeypatch):
+    """Wire one responder 'consumer' against the tmp project dir, capturing the
+    replies it sends. Each check_once() call here stands for one process: it is
+    handed a FRESH empty seen_hashes and a stale watermark, which is precisely
+    the cross-process blindness that let the duplicate through."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+    sent = []
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
+    return sent
+
+
+def test_same_message_delivered_twice_executes_exactly_once(tmp_path, monkeypatch):
+    """R15 MUTATION-CATCH half: ONE director message read by TWO consumers must
+    execute ONCE. Neuter the claim (drop the `if not claim_message(...)` guard in
+    check_once) and this reds -- the message is staged twice and acked twice,
+    reproducing the 2026-07-29 incident exactly."""
+    sent = _consumer_env(tmp_path, monkeypatch)
+    _feed(monkeypatch, "AK0UhbkAV2Ko", 700_000, _DIRECTOR_MSG)
+
+    responder.check_once(0, [])  # consumer A
+    responder.check_once(0, [])  # consumer B: same stale watermark, same message
+
+    staged = list((tmp_path / "docs" / "staging").glob("from_rich_*.md"))
+    assert len(staged) == 1, f"one message must stage once, got {[p.name for p in staged]}"
+    assert len([m for m in sent if "[instruction]" in m]) == 1
+
+
+def test_two_distinct_messages_with_identical_text_both_execute(tmp_path, monkeypatch):
+    """R15 FIRES-ON-DEFECT-ONLY half: the guard must key on the ntfy message ID,
+    not the body. Two genuinely different messages that happen to read the same
+    (the director repeating himself deliberately) must BOTH execute. Swap
+    _message_identity to a body hash and this reds -- the second is swallowed."""
+    sent = _consumer_env(tmp_path, monkeypatch)
+
+    _feed(monkeypatch, "msg-id-one", 700_000, _DIRECTOR_MSG)
+    responder.check_once(0, [])
+    _feed(monkeypatch, "msg-id-two", 700_001, _DIRECTOR_MSG)
+    responder.check_once(0, [])
+
+    staged = list((tmp_path / "docs" / "staging").glob("from_rich_*.md"))
+    assert len(staged) == 2, f"two distinct messages must both stage, got {[p.name for p in staged]}"
+    assert len([m for m in sent if "[instruction]" in m]) == 2
+
+
+def test_claim_message_is_atomic_test_and_set(tmp_path, monkeypatch):
+    """The primitive itself: exactly one caller wins a given identity."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    assert responder.claim_message("abc123") is True
+    assert responder.claim_message("abc123") is False
+    assert responder.claim_message("abc124") is True
+
+
+def test_claim_message_fails_closed_when_ledger_unavailable(tmp_path, monkeypatch):
+    """FAIL-CLOSED (R15): if the claim ledger cannot be written we CANNOT prove we
+    won the claim, so we must NOT execute. A fail-OPEN here would restore
+    double-execution the moment the disk misbehaves."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+
+    def _boom(*a, **k):
+        raise OSError("read-only filesystem")
+
+    monkeypatch.setattr(responder.os, "open", _boom)
+    assert responder.claim_message("whatever") is False
+
+
+def test_message_identity_prefers_ntfy_id_and_is_filesystem_safe():
+    assert responder._message_identity({"id": "AK0UhbkAV2Ko"}) == "AK0UhbkAV2Ko"
+    # Distinct ids stay distinct even with an identical body.
+    a = responder._message_identity({"id": "one", "message": "same"})
+    b = responder._message_identity({"id": "two", "message": "same"})
+    assert a != b
+    # Path traversal in a hostile id can never escape the claims dir.
+    assert "/" not in responder._message_identity({"id": "../../etc/passwd"})
+    # No id -> deterministic body+time fallback, still distinguishing by time.
+    c = responder._message_identity({"message": "same", "time": 1})
+    d = responder._message_identity({"message": "same", "time": 2})
+    assert c.startswith("h_") and c != d
+
+
+def test_singleton_lock_admits_one_responder_only(tmp_path, monkeypatch):
+    """R15: the ROOT cause was a second live daemon. The second acquirer must be
+    refused. Delete the flock call and this reds."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    (tmp_path / "background").mkdir(parents=True, exist_ok=True)
+
+    first = responder.acquire_singleton_lock()
+    assert first is not None, "the first responder must get the lock"
+    try:
+        assert responder.acquire_singleton_lock() is None, "a second responder must be refused"
+    finally:
+        first.close()
+    # Released on exit (the kernel drops flock when the holder dies) -> reusable.
+    third = responder.acquire_singleton_lock()
+    assert third is not None
+    third.close()
+
+
+def test_app_selftest_costs_nothing_at_all(tmp_path, monkeypatch):
+    """The director's 'while you are in there': an ntfy-app self-test must be
+    acknowledged-and-discarded without spawning anything -- no staging, no reply,
+    and no claim-ledger entry. Move the guard back below the ledger/notify calls
+    and the reply assertion reds."""
+    sent = _consumer_env(tmp_path, monkeypatch)
+    _feed(monkeypatch, "selftest-99", 700_000, _ANDROID_SELFTEST)
+    responder.check_once(0, [])
+
+    assert list((tmp_path / "docs" / "staging").glob("from_rich_*.md")) == []
+    assert sent == [], f"a self-test must not even cost a reply, sent={sent}"
+    assert not responder._claims_dir().exists() or list(responder._claims_dir().iterdir()) == []
+
+
+def test_distinct_messages_in_the_same_second_do_not_overwrite(tmp_path, monkeypatch):
+    """Dedup must never become message LOSS: two distinct instructions written in
+    the same wall-clock second must both survive. Drop the collision uniquifier in
+    _write_to_staging and this reds -- the second silently overwrites the first."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    first = responder._write_to_staging("First distinct director instruction, please act on it.")
+    second = responder._write_to_staging("Second distinct director instruction, also act on it.")
+    assert first != second
+    assert first.exists() and second.exists()
+    assert len(list((tmp_path / "docs" / "staging").glob("from_rich_*.md"))) == 2

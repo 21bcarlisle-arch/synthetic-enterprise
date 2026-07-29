@@ -98,6 +98,10 @@ processes:
     match: staging_watcher.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED 2026-07-29 → out of start_worker's tmux set. The unit
+                           # was installed+enabled+ACTIVE while this flip was never made, so BOTH
+                           # launchers ran it (tmux 419018 + systemd 3081438) and one staged-file
+                           # doorbell fired twice. Sibling half of the ntfy-responder defect below.
     purpose: "NTFY on new docs/staging/ files"
 
   - session: ntfy-responder
@@ -105,6 +109,10 @@ processes:
     match: ntfy_responder.py
     owner: systemd
     state: enabled
+    launched_by: systemd   # CUTOVER COMPLETED 2026-07-29 → out of start_worker's tmux set. Half-done
+                           # cutover (unit installed+enabled+ACTIVE, this flip never made) left TWO
+                           # launchers -- systemd PID 266098 + tmux PID 419021 -- so ONE director NTFY
+                           # became TWO queued instructions (DIRECTOR_RULING_FIX_DOUBLE_MESSAGING).
     purpose: "Acks inbound NTFY, writes to staging/"
 
   - session: dispatcher

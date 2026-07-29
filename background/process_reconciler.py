@@ -46,7 +46,7 @@ SEAT_MATCH = "__worker_seat__"
 
 VALID_STATES = {"enabled", "held", "dark", "retired"}
 ALARM_STATUSES = {"MISSING", "HELD_VIOLATED", "RETIRED_RUNNING",
-                  "UNIT_FAILED", "UNIT_CRASHLOOPING"}
+                  "UNIT_FAILED", "UNIT_CRASHLOOPING", "DOUBLE_LAUNCH"}
 
 
 class ManifestError(ValueError):
@@ -153,15 +153,28 @@ def reconcile(unit_states: dict[str, dict] | None = None,
         st = e["state"]
         us = unit_states.get(session, {})
         substate = str(us.get("substate", ""))
+        unit_active = bool(us.get("active"))
+        tmux_present = session in tmux_running
         if e["match"] == SEAT_MATCH:
             running = bool(seat_active)
         else:
-            running = bool(us.get("active")) or session in tmux_running
+            running = unit_active or tmux_present
         # G-L3: SubState failure states are alarms regardless of the declared state.
         if substate == "failed":
             status = "UNIT_FAILED"
         elif substate == "auto-restart":
             status = "UNIT_CRASHLOOPING"
+        elif e["match"] != SEAT_MATCH and unit_active and tmux_present:
+            # DOUBLE_LAUNCH (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING, R10 CLASS FIX).
+            # The transition-tolerant `or` above answers "is it up?" and is RIGHT for that --
+            # but it is blind to HOW MANY launchers are up: one and two read identically as
+            # running=True/OK. That blindness is why ntfy-responder ran twice (systemd unit
+            # active AND start_worker.sh's tmux launch) for hours while the reconciler said OK,
+            # and one director NTFY became two queued instructions. Counting launchers is a
+            # DIFFERENT question from liveness, so it gets its own status. This fires for the
+            # WHOLE class -- any daemon whose cutover installed+enabled a unit but never flipped
+            # `launched_by: systemd`, so both launchers own it.
+            status = "DOUBLE_LAUNCH"
         else:
             status = _classify_by_state(st, running)
         results.append({
@@ -177,8 +190,9 @@ def drift(results: list[dict]) -> list[dict]:
 
 
 def format_report(results: list[dict]) -> str:
-    order = {"UNIT_FAILED": 0, "UNIT_CRASHLOOPING": 1, "MISSING": 2, "HELD_VIOLATED": 3,
-             "RETIRED_RUNNING": 4, "DARK_ACTIVE": 5, "HELD": 6, "DARK": 7, "OK": 8}
+    order = {"UNIT_FAILED": 0, "UNIT_CRASHLOOPING": 1, "DOUBLE_LAUNCH": 2, "MISSING": 3,
+             "HELD_VIOLATED": 4, "RETIRED_RUNNING": 5, "DARK_ACTIVE": 6, "HELD": 7,
+             "DARK": 8, "OK": 9}
     lines = []
     for r in sorted(results, key=lambda r: (order.get(r["status"], 9), r["session"])):
         mark = "✗" if r["alarm"] else ("•" if r["status"] not in ("OK",) else "✓")
@@ -225,7 +239,12 @@ def _live_unit_states(samples: int = 2, interval: float = 2.0,
     UNIT_CRASHLOOPING requires `auto-restart` seen across BOTH reads (SUBSTEP4 §5) -- a single
     legitimate restart flashes `auto-restart` once and must NOT alarm; a real crash-loop shows it
     every read. The last read wins for every other field."""
-    sessions = _systemd_owned_sessions(path)
+    # DOUBLE_LAUNCH visibility (2026-07-29): read the unit of EVERY systemd-owned entry, not
+    # just the migrated ones. Restricting this to `launched_by==systemd` meant a half-migrated
+    # daemon -- unit installed, enabled and ACTIVE, but still in start_worker.sh's tmux set --
+    # had its live unit never queried at all, so the second launcher was invisible by
+    # construction. An unread source cannot alarm.
+    sessions = [e["session"] for e in load_manifest(path) if e.get("owner") == "systemd"]
     states = {s: _unit_snapshot(s) for s in sessions}
     auto_seen = {s: st["substate"] == "auto-restart" for s, st in states.items()}
     for _ in range(max(0, samples - 1)):
@@ -250,20 +269,56 @@ def _seat_active() -> bool:
                           capture_output=True).returncode == 0
 
 
+def _unit_main_pid(session: str) -> int:
+    """PID systemd itself started for `session`, or 0 if the unit is unknown/inactive. Used to
+    tell a daemon's OWN systemd process apart from a second, non-systemd copy of it."""
+    r = subprocess.run(
+        ["systemctl", "--user", "show", f"{session}.service", "-p", "MainPID"],
+        capture_output=True, text=True,
+    )
+    if getattr(r, "returncode", 1) != 0:
+        return 0
+    for line in (r.stdout or "").splitlines():
+        if line.startswith("MainPID="):
+            try:
+                return int(line.split("=", 1)[1].strip())
+            except ValueError:
+                return 0
+    return 0
+
+
 def _live_tmux_running(path: Path | None = None) -> set[str]:
     """Declared sessions currently present as a tmux session OR a matching `ps` process -- the
     not-yet-migrated (`launched_by`!=systemd) daemons that start_worker.sh still tmux-launches.
     The seat (`claude`) is handled separately via `_seat_active`, so it is excluded here."""
-    entries = [e for e in load_manifest(path)
-               if e["match"] != SEAT_MATCH and e.get("launched_by", "tmux") != "systemd"]
+    # DOUBLE_LAUNCH visibility (2026-07-29): scan EVERY non-seat entry, including ones already
+    # flipped to `launched_by: systemd`. Excluding migrated daemons made a stray tmux copy of a
+    # systemd-owned daemon undetectable -- which is precisely the duplicate we are hunting, and
+    # would have made this very fix fail-open the moment the manifest entry was flipped.
+    entries = [e for e in load_manifest(path) if e["match"] != SEAT_MATCH]
     running: set[str] = set()
     r = subprocess.run(["tmux", "list-sessions", "-F", "#{session_name}"],
                        capture_output=True, text=True)
     sessions = set((r.stdout or "").split()) if getattr(r, "returncode", 1) == 0 else set()
-    ps = subprocess.run(["ps", "-eo", "args"], capture_output=True, text=True)
-    ps_out = ps.stdout if getattr(ps, "returncode", 1) == 0 else ""
+    # PID-AWARE (2026-07-29): the old test was `e["match"] in ps_out` -- a substring scan over
+    # ALL of ps. A systemd-launched daemon's OWN command line matches its own `match`, so once
+    # the launched_by filter was lifted every migrated daemon reported itself as a second
+    # launcher and DOUBLE_LAUNCH false-positived on all five (caught on the LIVE box, not by the
+    # tests, which inject tmux_running directly). Exclude the unit's own MainPID: what remains is
+    # a process running this daemon that systemd did NOT start -- the real stray.
+    ps = subprocess.run(["ps", "-eo", "pid=,args="], capture_output=True, text=True)
+    rows: list[tuple[int, str]] = []
+    if getattr(ps, "returncode", 1) == 0:
+        for line in (ps.stdout or "").splitlines():
+            pid_s, _, args = line.strip().partition(" ")
+            try:
+                rows.append((int(pid_s), args))
+            except ValueError:
+                continue
     for e in entries:
-        if e["session"] in sessions or e["match"] in ps_out:
+        own = _unit_main_pid(e["session"]) if e.get("owner") == "systemd" else 0
+        stray = any(e["match"] in args and pid != own for pid, args in rows)
+        if e["session"] in sessions or stray:
             running.add(e["session"])
     return running
 

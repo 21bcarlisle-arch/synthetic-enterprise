@@ -45,3 +45,9 @@ docs/observability/worker-tick-log.md
 
 # playwright/npm deps for pixel-verification harness (restored 2026-07-25)
 node_modules/
+
+# Runtime state for at-most-once NTFY execution (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING).
+# The singleton lock is per-boot and the claim ledger is a local, self-pruning at-most-once
+# record -- neither is behaviour-determining declaration, so neither belongs in the repo.
+background/.ntfy_responder.lock
+background/.ntfy_claimed_ids/

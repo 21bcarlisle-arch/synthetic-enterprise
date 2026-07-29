@@ -27,8 +27,10 @@ Logs to docs/observability/ntfy-responder-log.md.
 Persists its watermark to background/.ntfy_responder_since.json.
 """
 
+import fcntl
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -111,6 +113,122 @@ def _save_since(since: float) -> None:
 
 def _content_hash(message: str) -> str:
     return hashlib.md5(message.encode()).hexdigest()
+
+
+# --- At-most-once EXECUTION (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING) ---
+# CAUSE (observed, not inferred): TWO ntfy_responder.py processes were live at
+# once (PIDs 266098 from 13:26 and 419021 from 18:20). The responder log records
+# the SAME ntfy message id acked twice seconds apart -- e.g. 'AK0UhbkAV2Ko' at
+# 17:37:31 and 17:37:42, staged as two different from_rich_*.md. A shared message
+# ID proves this is neither double delivery by ntfy nor a retry path: it is one
+# message read by two consumers.
+#
+# Why the pre-existing guards could not stop it: BOTH the `since` watermark and
+# the `seen_hashes` replay-dedup are loaded ONCE at main() startup and held in
+# process memory, then written back last-writer-wins. A sibling process's writes
+# are never re-read, so neither guard can see a concurrent consumer -- they are
+# structurally per-process and therefore blind by construction.
+#
+# The fix is two independent layers, because either alone leaves a hole:
+#   1. SINGLETON LOCK -- only one responder may run. Fixes the actual root cause
+#      (the second daemon) and REPORTS it, rather than hiding it behind a filter.
+#   2. CLAIM LEDGER -- at-most-once execution regardless of how many consumers
+#      exist. At-least-once *delivery* is fine; at-least-once *execution* is not.
+# Layer 2 is what makes the guarantee hold even if layer 1 is ever bypassed
+# (a manual run, a stale lock on a different mount) -- defence that does not
+# depend on the daemon supervisor being correct.
+CLAIMS_DIRNAME = ".ntfy_claimed_ids"
+MAX_CLAIM_FILES = 2000
+SINGLETON_LOCK_NAME = ".ntfy_responder.lock"
+
+
+def _claims_dir() -> Path:
+    """Directory of claimed message identities. Derived from PROJECT_DIR at CALL
+    time (never a module constant) so the suite's autouse tmp_path isolation
+    applies automatically -- a real-disk claim ledger leaking into tests is the
+    SCHEDULED_FLAG class of defect."""
+    return PROJECT_DIR / "background" / CLAIMS_DIRNAME
+
+
+def _message_identity(record: dict) -> str:
+    """Stable identity for one inbound message.
+
+    ntfy's own message id is the identity when present: it is stable across
+    re-delivery AND distinct between two genuinely different messages that
+    happen to share a body. That distinction is the whole point -- the old
+    content-hash dedup would have wrongly swallowed a director who sent 'yes'
+    twice on purpose. Falls back to a body+time hash only when ntfy sends no id.
+    """
+    mid = str(record.get("id") or "").strip()
+    if mid:
+        # Filesystem-safe: the identity becomes a filename.
+        return re.sub(r"[^A-Za-z0-9_.-]", "_", mid)[:64]
+    body = record.get("message", "")
+    return "h_" + hashlib.md5(f"{body}|{record.get('time', '')}".encode()).hexdigest()
+
+
+def _prune_claims(directory: Path) -> None:
+    """Keep the claim ledger bounded. Oldest-first, best-effort -- pruning must
+    never break inbound processing."""
+    try:
+        entries = sorted(directory.iterdir(), key=lambda p: p.stat().st_mtime)
+    except OSError:
+        return
+    for stale in entries[:-MAX_CLAIM_FILES]:
+        try:
+            stale.unlink()
+        except OSError:
+            pass
+
+
+def claim_message(identity: str) -> bool:
+    """Atomically claim `identity` for execution. True iff THIS caller won it.
+
+    O_CREAT|O_EXCL is an atomic test-and-set on a local filesystem, so two
+    concurrent responders racing the same message can never both win -- exactly
+    one gets True, the loser acknowledges and drops. This is the at-most-once
+    EXECUTION guarantee, and it needs no lock and no coordination.
+
+    Fail-CLOSED on an unexpected OS error: if we cannot prove we won the claim,
+    we do not execute. A missed director message is recoverable (he resends and
+    sees no ack); a double-executed act may not be.
+    """
+    directory = _claims_dir()
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        fd = os.open(directory / identity, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+    except FileExistsError:
+        return False
+    except OSError as exc:
+        log(f"Claim ledger unavailable for {identity!r} ({exc}) -- NOT executing (fail-closed)")
+        return False
+    try:
+        os.write(fd, f"{time.time()}\n{os.getpid()}\n".encode())
+    finally:
+        os.close(fd)
+    _prune_claims(directory)
+    return True
+
+
+def acquire_singleton_lock():
+    """Take the exclusive responder lock. Returns the held file object (which the
+    caller MUST keep referenced for the process lifetime -- closing it releases
+    the lock), or None if another responder already holds it.
+
+    flock is released automatically by the kernel when the holder dies, so a
+    crashed responder never wedges its successor -- no stale-lock reaping needed.
+    """
+    path = PROJECT_DIR / "background" / SINGLETON_LOCK_NAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(path, "w")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return None
+    handle.write(f"{os.getpid()}\n")
+    handle.flush()
+    return handle
 
 
 def _load_seen_hashes() -> list[str]:
@@ -261,6 +379,12 @@ def _write_to_staging(message: str) -> Path | None:
     staging_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     path = staging_dir / f"from_rich_{ts}.md"
+    # Collision guard (2026-07-29): the name is second-granular, so two GENUINELY
+    # DIFFERENT director messages arriving in the same second would have silently
+    # overwritten each other -- losing one real instruction. De-duplicating
+    # delivery must never become dropping a distinct message, so uniquify.
+    if path.exists():
+        path = staging_dir / f"from_rich_{ts}_{uuid.uuid4().hex[:6]}.md"
     path.write_text(f"# Inbound NTFY message from Rich\n\n{message}\n")
     return path
 
@@ -420,6 +544,27 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
         if not message:
             continue
 
+        # UNTRUSTED-NOISE DROP (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING):
+        # the ntfy app's own self-test is machine text with zero authority. Drop it
+        # HERE -- before the mirror, the input log, the ruling ledger, the claim
+        # ledger and the status reply -- so it costs nothing at all. It was already
+        # barred from staging; dropping it this early also stops it consuming a
+        # model load or emitting a reply that can feed an echo loop. Narrow by
+        # design (see _APP_SELFTEST_RE): a real steer mentioning "test" passes.
+        if _is_app_selftest(message):
+            log(f"Dropped ntfy-app self-test {record.get('id')!r} (no reply, no staging, no model)")
+            continue
+
+        # AT-MOST-ONCE EXECUTION: claim this message's stable identity BEFORE any
+        # side effect. Placed ahead of the flood guard deliberately -- a duplicate
+        # delivery must not even be COUNTED as inbound rate, or two consumers would
+        # inflate each other into a phantom flood (the observed rate file held every
+        # event twice, with identical timestamps and hashes, for exactly that reason).
+        identity = _message_identity(record)
+        if not claim_message(identity):
+            log(f"Duplicate delivery ignored (already executed, identity={identity}): {message[:60]!r}")
+            continue
+
         h = _content_hash(message)
 
         # Flood guard (2026-07-15): register every inbound arrival and detect a
@@ -496,6 +641,16 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
 
 
 def main() -> None:
+    # SINGLETON (2026-07-29): a second live responder is the ROOT CAUSE of the
+    # double-messaging, not a nuisance -- refuse to become one, and say so out
+    # loud rather than deduping quietly and leaving the extra daemon in place.
+    # The handle is bound to a local so the lock is held for the process lifetime.
+    lock = acquire_singleton_lock()
+    if lock is None:
+        log("NTFY responder ALREADY RUNNING (singleton lock held) -- this instance is exiting. "
+            "A second responder is what caused one director message to be queued twice.")
+        return
+
     since = _load_since()
     seen_hashes = _load_seen_hashes()
     log("NTFY responder started")
