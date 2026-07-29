@@ -1,0 +1,63 @@
+{
+  "purpose": "Durable, machine-readable record of BUILD forks dispatched but not yet merged. Written because the 2026-07-30 tick found the draw is BLIND TO WORK IN FLIGHT (registered on H10): it dispatched a SITE_EH2 fork while an uncommitted SITE_EH2 build already sat in a prior tick's worktree. Any tick MUST read this before dispatching, and must not re-dispatch an atom listed here as in_flight.",
+  "written_by_tick": "2026-07-30T00:0xZ worker tick",
+  "caveat": "This file is a RECORD, not a mechanism. Nothing enforces that it is read or kept current -- it is prose-in-JSON and will decay exactly like the doorbell's fork-lifecycle rule unless the reaper/draw-guard is actually built (H10 BUILD candidate). Do not mistake its presence for a working control.",
+  "in_flight": [
+    {
+      "atom": "SITE_EH1_segment_disclosure",
+      "level": "0->1",
+      "worktree": ".claude/worktrees/agent-abdcad5f797657eb3",
+      "branch": "worktree-agent-abdcad5f797657eb3",
+      "file_scope": [
+        "site/company/",
+        "site/index.html",
+        "tools/generate_dashboard_data.py",
+        "tools/generate_company_data.py",
+        "tools/generate_world_data.py"
+      ],
+      "status": "dispatched_awaiting_return"
+    },
+    {
+      "atom": "SITE_EH2_predictions_ledger_can_fail",
+      "level": "0->1",
+      "worktree": ".claude/worktrees/agent-aebe35df16c7670fd",
+      "branch": "worktree-agent-aebe35df16c7670fd",
+      "file_scope": [
+        "site/proof/",
+        "tools/generate_proof_data.py"
+      ],
+      "status": "dispatched_awaiting_return",
+      "note": "A RIVAL uncommitted implementation of this SAME atom was rescued to d7b3db614 on worktree-agent-a6ad9f2b324019a71. Reconcile the two on the R15 requirement; do not assume either is correct."
+    }
+  ],
+  "rescued_awaiting_merge": [
+    {
+      "branch": "worktree-agent-a7f7adeb627f11410",
+      "sha": "8a7a90f660d45ab4339fda0ddada44d1d0824b69",
+      "atom": "SITE_EH3_figure_reconciliation_and_periods",
+      "lines": 772,
+      "gated": false,
+      "committed_with": "--no-verify",
+      "blocker": "collides with SITE_EH1 fork scope; and the site/company render half is a SILENT NO-OP without its generator half -- land both halves together or neither"
+    },
+    {
+      "branch": "worktree-agent-a6ad9f2b324019a71",
+      "sha": "d7b3db614dfc9e3faf8c3df8c0ac1cf672d46305",
+      "atom": "SITE_EH2_predictions_ledger_can_fail",
+      "lines": 809,
+      "gated": false,
+      "committed_with": "--no-verify",
+      "blocker": "collides with the in-flight SITE_EH2 fork; two rival implementations must be reconciled"
+    }
+  ],
+  "deferred_this_tick": [
+    {
+      "atom": "SITE1_expert_doors",
+      "reason": "file_scope is all of `site`, so it overlaps BOTH its own remediation children (EH1, EH2). Not provably disjoint -- cannot be a concurrent fork. Also: polishing the parent before its own Expert-Hour findings land is backwards."
+    },
+    {
+      "atom": "SITE_EH3_figure_reconciliation_and_periods",
+      "reason": "file_scope overlaps SITE_EH1 (site/company/, generate_dashboard_data.py, generate_world_data.py). Work already exists rescued at 8a7a90f66."
+    }
+  ]
+}
