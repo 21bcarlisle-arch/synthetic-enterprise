@@ -46,10 +46,18 @@ not a pass/fail verdict on the company.
 """
 import json
 import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
+# Run directly (`python3 tools/generate_world_data.py`) sys.path[0] is tools/, not the
+# project root, so the sibling `tools.generate_company_data` import the population gate
+# needs would fail -- and a FAILED import silently degrades every whole-book row to
+# UNSTATED. Making the import work in BOTH invocation modes keeps the fail-closed path
+# reserved for real failures rather than a path accident (R15 fail-silent).
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 SIM_DATA_PATH = PROJECT / "site" / "data" / "sim_data.json"
 ANCHORING_PATH = PROJECT / "site" / "state" / "population_anchoring.json"
@@ -296,20 +304,236 @@ def _crossing_blindfold(dashboard, sim):
 
 
 # ---------------------------------------------------------------------------
+# THE POPULATION AXIS -- the R10 class fix for BENCHMARK SHOPPING.
+# (SITE_EH1_segment_disclosure, 2026-07-30, scope item 3)
+#
+# THE DEFECT, verbatim from the atom: "/data/world.json rates a 2.5x churn miss
+# (sim 5.5% vs Ofgem 13.6%, ratio 0.4) GREEN via the note 'SIM portfolio is
+# predominantly I&C' -- so the one disclosure of the book's true composition
+# exists ONLY where it excuses a failed benchmark, and nowhere it would change
+# how a reader reads the money."
+#
+# A note that explains away a miss is not a control; it is benchmark shopping.
+# The instance fix (re-word that note) is FORBIDDEN by R10 -- an absurdity-class
+# defect may only be closed by making the whole CLASS fail automatically. So the
+# POPULATION becomes an explicit FIELD of every anchors row, and the rule is:
+#
+#   A row whose benchmark population does not match its measured population
+#   CANNOT BE GRADED GREEN. Ever. Whatever its note says.
+#
+# Any future anchors card added without declaring its population lands in
+# _ANCHOR_POPULATIONS-absent territory and is therefore UNSTATED -> not gradeable
+# green. The class fails by default; a new card cannot slip through by silence.
+#
+# INDEPENDENCE (R15 anti-tautology). Three separate sources, so the check can
+# genuinely disagree with the thing it checks:
+#   * the RAG being gated comes from site/state/population_anchoring.json;
+#   * the BENCHMARK's population is declared below, keyed to the benchmark's own
+#     cited source string in that file's `meta` (Ofgem Retail Market Indicators
+#     switching data is a DOMESTIC series; DESNZ business energy debt is a
+#     NON-DOMESTIC series) -- an editorial choice already implicit in picking
+#     that benchmark, now written down where it can be checked;
+#   * the MEASURED population, for any row measured over the whole book, is
+#     DERIVED at run time from dashboard.financial.segment_annual -- a different
+#     file entirely. So if the book ever really did become domestic, the churn
+#     row would legitimately grade again. Nothing here is hard-coded to today's
+#     verdict.
+#
+# WHAT THIS IS NOT: it is not a re-rating of the sim, and it does not touch the
+# measured divergence. `rag_measured` keeps the original RAG verbatim (R12: a
+# diagnostic is never destroyed to make a page look better). Only the PUBLISHED
+# grade is gated, and only in the GREEN direction -- an AMBER/RED row keeps its
+# magnitude, because a bad grade was never the thing being laundered.
+# ---------------------------------------------------------------------------
+
+# Population classes. A benchmark measured over one class may not grade a figure
+# measured over another -- households are not a business book.
+_POP_DOMESTIC = "domestic"
+_POP_NON_DOMESTIC = "non_domestic"
+_POP_MIXED = "mixed"
+_POP_UNSTATED = "unstated"
+
+# Per-metric population declarations. `benchmark_class` is the population the
+# EXTERNAL benchmark measures; `measured_scope` says how to obtain the population
+# the SIM figure is measured over: "whole_book" derives it from the run's actual
+# revenue mix, anything else names a fixed class directly.
+_ANCHOR_POPULATIONS = {
+    "churn_long_run": dict(
+        benchmark_class=_POP_DOMESTIC,
+        benchmark_label=(
+            "GB DOMESTIC (household) supply market -- Ofgem Retail Market Indicators "
+            "switching data is a domestic series"
+        ),
+        measured_scope="whole_book",
+        measured_label="the company's whole book (all segments, every renewal)",
+    ),
+    "bad_debt": dict(
+        benchmark_class=_POP_MIXED,
+        benchmark_label=(
+            "all GB suppliers, all segments -- an industry-wide bad-debt-to-revenue range "
+            "(Ofgem/EUA), dominated in reality by domestic supply"
+        ),
+        measured_scope="whole_book",
+        measured_label="the company's whole book (bad debt as a share of all revenue)",
+    ),
+    "complaints": dict(
+        benchmark_class=_POP_NON_DOMESTIC,
+        benchmark_label=(
+            "non-domestic (I&C) complaint rates -- the Ofgem QoS survey band explicitly "
+            "I&C-adjusted in this project's own benchmark note"
+        ),
+        measured_scope="whole_book",
+        measured_label="the company's whole book (complaints per active account)",
+    ),
+    "arrears": dict(
+        benchmark_class=_POP_NON_DOMESTIC,
+        benchmark_label="GB NON-DOMESTIC (business) energy debt -- DESNZ business energy debt series",
+        measured_scope=_POP_NON_DOMESTIC,
+        measured_label="the company's I&C accounts only (ic_aggregate_rate_pct)",
+    ),
+}
+
+
+def _book_population_class(dashboard):
+    """The population class the company's WHOLE BOOK actually belongs to this run,
+    derived from the run's own revenue mix -- NOT declared, so a real change in the
+    book changes the verdict. Reuses the one canonical mix helper rather than
+    re-deriving a second segment taxonomy (SIMPLICITY GUARD).
+
+    FAIL-CLOSED: an unreadable/unavailable mix returns UNSTATED, which makes every
+    whole-book row non-gradeable. An unavailable check is a FAILED check (R15).
+    """
+    try:
+        from tools.generate_company_data import segment_revenue_mix
+    except Exception:
+        return _POP_UNSTATED, "the segment-mix helper could not be imported"
+    mix = segment_revenue_mix(((dashboard or {}).get("financial") or {}).get("segment_annual"))
+    if not mix.get("available"):
+        return _POP_UNSTATED, "the book's revenue mix is unavailable (" + str(mix.get("reason")) + ")"
+    cls = mix.get("composition_class")
+    if cls not in (_POP_DOMESTIC, _POP_NON_DOMESTIC, _POP_MIXED):
+        return _POP_UNSTATED, "the book's composition class could not be determined"
+    detail = "{:.2f}% of revenue non-domestic, {:.2f}% domestic".format(
+        mix.get("non_domestic_revenue_share_pct") or 0.0,
+        mix.get("domestic_revenue_share_pct") or 0.0,
+    )
+    return cls, detail
+
+
+def _population_gate(metric_key, rag, dashboard):
+    """THE CONTROL. Returns the population fields plus the GATED rag for one row.
+
+    Three outcomes, and the GREEN direction is the only one gated:
+      UNSTATED  -- either side undeclared/unknown  -> not gradeable (fail-closed)
+      MISMATCH  -- benchmark population != measured -> not gradeable
+      MATCHED   -- same population                  -> gradeable, rag untouched
+
+    A non-gradeable row publishes rag=None (the world door's own ragBadge renders
+    that as a muted UNKNOWN badge) and keeps the measured RAG in `rag_measured`.
+    """
+    decl = _ANCHOR_POPULATIONS.get(metric_key)
+    if not decl:
+        return dict(
+            benchmark_population=_POP_UNSTATED,
+            benchmark_population_label=None,
+            measured_population=_POP_UNSTATED,
+            measured_population_label=None,
+            population_status="UNSTATED",
+            gradeable=False,
+            population_reason=(
+                "NOT GRADEABLE: this benchmark does not declare which population it "
+                "measures, so nothing can be said about whether it applies to the book "
+                "it is being compared against. A benchmark without a population cannot "
+                "clear anything."
+            ),
+            rag=None,
+            rag_measured=rag,
+        )
+
+    bench = decl["benchmark_class"]
+    bench_label = decl["benchmark_label"]
+    if decl["measured_scope"] == "whole_book":
+        measured, detail = _book_population_class(dashboard)
+        measured_label = decl["measured_label"] + " -- " + detail
+    else:
+        measured, measured_label = decl["measured_scope"], decl["measured_label"]
+
+    if bench == _POP_UNSTATED or measured == _POP_UNSTATED:
+        status, gradeable = "UNSTATED", False
+        reason = (
+            "NOT GRADEABLE: the population on one side is unstated (benchmark=" + str(bench)
+            + ", measured=" + str(measured) + "), so this comparison cannot be graded."
+        )
+    elif bench != measured:
+        status, gradeable = "MISMATCH", False
+        reason = (
+            "NOT GRADEABLE -- POPULATION MISMATCH: the benchmark measures " + bench
+            + " (" + bench_label + ") and the sim figure is measured over " + measured
+            + " (" + measured_label + "). A benchmark for one population cannot grade a "
+            "figure measured over another, and a note explaining the difference does not "
+            "convert a miss into a pass. This is the benchmark-shopping class, closed by "
+            "rule rather than by re-wording."
+        )
+    else:
+        status, gradeable = "MATCHED", True
+        reason = (
+            "Populations agree (" + bench + "): benchmark = " + bench_label
+            + "; measured over " + measured_label + ". Gradeable."
+        )
+
+    return dict(
+        benchmark_population=bench,
+        benchmark_population_label=bench_label,
+        measured_population=measured,
+        measured_population_label=measured_label,
+        population_status=status,
+        gradeable=gradeable,
+        population_reason=reason,
+        rag=(rag if gradeable else None),
+        rag_measured=rag,
+    )
+
+
+def _anchor_card(metric_key, metric, sim_value, benchmark_value, ratio, rag, note, dashboard):
+    """Build one anchors row with its population axis attached. The population
+    statement is PREPENDED to the rendered note, so the disclosure lands on the
+    live page today rather than waiting for a renderer to learn a new field."""
+    gate = _population_gate(metric_key, rag, dashboard)
+    parts = [gate["population_reason"]]
+    if note:
+        parts.append("Measured note (kept verbatim): " + str(note))
+    if not gate["gradeable"] and rag:
+        parts.append("Measured RAG was " + str(rag) + "; it is NOT published as a grade here.")
+    card = dict(
+        metric_key=metric_key,
+        metric=metric,
+        sim_value=sim_value,
+        benchmark_value=benchmark_value,
+        ratio=ratio,
+        note=" ".join(parts),
+    )
+    card.update(gate)
+    return card
+
+
+# ---------------------------------------------------------------------------
 # The anchors register.
 # ---------------------------------------------------------------------------
-def _anchors_runtime(anchoring):
-    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept."""
+def _anchors_runtime(anchoring, dashboard=None):
+    """Runtime calibration: sim outcomes vs external benchmarks. The measured RAG is
+    kept verbatim in `rag_measured`; the PUBLISHED `rag` is population-gated (a
+    benchmark may not grade a population it does not measure -- see above)."""
     if not isinstance(anchoring, dict):
         return dict(available=False)
     lrc = anchoring.get("long_run_comparison", {}) or {}
     cards = []
     if lrc:
-        cards.append(dict(
-            metric="Churn rate (long-run)",
-            sim_value=(str(lrc.get("sim_avg_pct")) + "%" if lrc.get("sim_avg_pct") is not None else None),
-            benchmark_value=(str(lrc.get("ofgem_avg_pct")) + "% (Ofgem)" if lrc.get("ofgem_avg_pct") is not None else None),
-            ratio=lrc.get("ratio"), rag=lrc.get("rag"), note=lrc.get("note"),
+        cards.append(_anchor_card(
+            "churn_long_run",
+            "Churn rate (long-run)",
+            (str(lrc.get("sim_avg_pct")) + "%" if lrc.get("sim_avg_pct") is not None else None),
+            (str(lrc.get("ofgem_avg_pct")) + "% (Ofgem)" if lrc.get("ofgem_avg_pct") is not None else None),
+            lrc.get("ratio"), lrc.get("rag"), lrc.get("note"), dashboard,
         ))
 
     def _latest(lst, val_key, lo_key=None, hi_key=None, unit="%"):
@@ -319,34 +543,77 @@ def _anchors_runtime(anchoring):
     bd = (anchoring.get("bad_debt_vs_benchmark") or [])
     if bd:
         r = bd[-1]
-        cards.append(dict(
-            metric="Bad debt rate (" + str(r.get("year")) + ")",
-            sim_value=(str(r.get("bad_debt_rate")) + "%" if r.get("bad_debt_rate") is not None else None),
-            benchmark_value=(str(r.get("benchmark_low_pct")) + "-" + str(r.get("benchmark_high_pct")) + "% (Ofgem/EUA)"),
-            ratio=None, rag=r.get("rag"), note="of revenue",
+        cards.append(_anchor_card(
+            "bad_debt",
+            "Bad debt rate (" + str(r.get("year")) + ")",
+            (str(r.get("bad_debt_rate")) + "%" if r.get("bad_debt_rate") is not None else None),
+            (str(r.get("benchmark_low_pct")) + "-" + str(r.get("benchmark_high_pct")) + "% (Ofgem/EUA)"),
+            None, r.get("rag"), "of revenue", dashboard,
         ))
     cp = (anchoring.get("complaints_vs_benchmark") or [])
     if cp:
         r = cp[-1]
-        cards.append(dict(
-            metric="Complaint rate (" + str(r.get("year")) + ")",
-            sim_value=(str(r.get("complaint_rate_pct")) + "%" if r.get("complaint_rate_pct") is not None else None),
-            benchmark_value=(str(r.get("benchmark_lo")) + "-" + str(r.get("benchmark_green_hi")) + "% (Ofgem QoS)"),
-            ratio=None, rag=r.get("rag"), note=("crisis year" if r.get("is_crisis_year") else "normal year"),
+        cards.append(_anchor_card(
+            "complaints",
+            "Complaint rate (" + str(r.get("year")) + ")",
+            (str(r.get("complaint_rate_pct")) + "%" if r.get("complaint_rate_pct") is not None else None),
+            (str(r.get("benchmark_lo")) + "-" + str(r.get("benchmark_green_hi")) + "% (Ofgem QoS)"),
+            None, r.get("rag"), ("crisis year" if r.get("is_crisis_year") else "normal year"), dashboard,
         ))
     ar = (anchoring.get("arrears_vs_benchmark") or [])
     if ar:
         r = ar[-1]
-        cards.append(dict(
-            metric="Arrears rate (" + str(r.get("year")) + ")",
-            sim_value=(str(r.get("ic_aggregate_rate_pct")) + "% (I&C agg.)" if r.get("ic_aggregate_rate_pct") is not None else None),
-            benchmark_value="I&C <8% normal / <12% crisis (DESNZ)",
-            ratio=None, rag=r.get("rag"), note=None,
+        cards.append(_anchor_card(
+            "arrears",
+            "Arrears rate (" + str(r.get("year")) + ")",
+            (str(r.get("ic_aggregate_rate_pct")) + "% (I&C agg.)" if r.get("ic_aggregate_rate_pct") is not None else None),
+            "I&C <8% normal / <12% crisis (DESNZ)",
+            None, r.get("rag"), r.get("portfolio_type_note"), dashboard,
         ))
+
+    # Row-level gating is not enough on its own: a GREEN *overall* verdict standing over
+    # non-gradeable rows would re-open the same hole one level up (R10 -- close the class,
+    # not the instance). Same rule, same direction: only GREEN is gated, the measured
+    # value is preserved.
+    ungradeable = [c["metric"] for c in cards if not c.get("gradeable")]
+    overall_measured = anchoring.get("overall_rag")
+    overall_published = overall_measured
+    overall_reason = None
+    if ungradeable and str(overall_measured).upper() == "GREEN":
+        overall_published = None
+        overall_reason = (
+            "NOT GRADEABLE: the overall calibration cannot be GREEN while "
+            + str(len(ungradeable)) + " benchmark(s) are not gradeable against the "
+            "population they are measured over -- " + "; ".join(ungradeable) + "."
+        )
+
     return dict(
         available=True,
-        overall_rag=anchoring.get("overall_rag"),
+        overall_rag=overall_published,
+        overall_rag_measured=overall_measured,
+        overall_rag_reason=overall_reason,
         cards=cards,
+        # The gate's own report, so a reader (and a future renderer) can see how many
+        # benchmarks are actually comparable to the book they grade.
+        population_gate=dict(
+            rule=(
+                "A benchmark may only grade a figure measured over the SAME population. "
+                "A population mismatch, or an undeclared population on either side, is "
+                "NOT GRADEABLE -- and specifically can never be GREEN. Notes explaining a "
+                "difference away carry no grading power (R10 class fix for benchmark shopping; "
+                "R15: this control fires on its own named defect, see "
+                "site/company/test_segment_disclosure.py)."
+            ),
+            total=len(cards),
+            matched=len([c for c in cards if c.get("population_status") == "MATCHED"]),
+            mismatched=len([c for c in cards if c.get("population_status") == "MISMATCH"]),
+            unstated=len([c for c in cards if c.get("population_status") == "UNSTATED"]),
+            green_blocked=[
+                c["metric"] for c in cards
+                if not c.get("gradeable") and str(c.get("rag_measured")).upper() == "GREEN"
+            ],
+            not_gradeable=ungradeable,
+        ),
         meta=anchoring.get("meta", {}),
         evidence="site/state/population_anchoring.json",
         evidence_url="../state/population_anchoring.json",
@@ -474,8 +741,11 @@ def generate():
                   "benchmarks and keeps the RAG rating as measured; the assumption library is the "
                   "human-readable provenance trail, each row a sim value against an industry "
                   "benchmark with its source and a checked status. Where a status is a warning or "
-                  "an open refresh, it is shown, not smoothed.",
-            runtime=_anchors_runtime(anchoring),
+                  "an open refresh, it is shown, not smoothed. Every runtime row also states "
+                  "WHICH POPULATION its benchmark measures and which population the sim figure "
+                  "is measured over: a benchmark may only grade the population it measures, so a "
+                  "mismatch is NOT GRADEABLE rather than green-with-an-excuse.",
+            runtime=_anchors_runtime(anchoring, dashboard),
             library=_anchors_library(md_text),
         ),
     )
