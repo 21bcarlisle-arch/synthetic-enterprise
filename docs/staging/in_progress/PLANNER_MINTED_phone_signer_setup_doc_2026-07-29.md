@@ -1,4 +1,12 @@
 <!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BUILT 2026-07-29 (scheduled tick): docs/design/PHONE_SIGNER_SETUP.md written against the existing
+     R15-proven mechanism — every step's expected result quotes the real function (sign_wake_message /
+     verify_wake_message / _bound_signed_text / record_director_ntfy_ruling / _maybe_ledger_director_ruling).
+     Includes a self-contained offline WebCrypto signer page (byte-for-byte match to sign_wake_message)
+     and an honest irreducible-acts table (only A2 key-onto-phone is device-bound; no terminal step).
+     NOT YET DONE: exit-gated on the sibling terminal-audit atom (phone_signer_terminal_audit, #3) — it
+     must run against the written doc before #1 closes. Kept OPEN in in_progress/ until that audit passes.
+     Reversible: git revert removes the doc; no secret handled by the agent. -->
 
 # [PLANNER-MINTED] PHONE_SIGNER_SETUP.md — the phone-only, one-action-per-step signer walkthrough (2026-07-29)
 
