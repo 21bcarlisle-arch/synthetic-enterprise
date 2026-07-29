@@ -1,3 +1,36 @@
+<!-- SUPERVISOR_DRAW: parked -- one genuinely-open sub-item, named below. -->
+> **PARKED IN `in_progress/` 2026-07-29 (worker tick). Not absorbed silently — here is the split.**
+>
+> **ANSWERED, landed:** the account of why + the class named + the root cause + a sweep that found a
+> previously-unknown fourth instance are all written at
+> `docs/retrospectives/2026-07-29-three-silent-drawability-blind-spots.md` (commit `745c83fa3`),
+> under R9 claim discipline (every claim labelled `observed-with-evidence` or `inferred`).
+>
+> **THE DIRECTOR'S PROPOSED DEFENCE IS RIGHT, AND IS NOW BUILT TWICE — this is the substantive news.**
+> His suggestion was: *"count what exists independently of the mechanism that decides what is drawable,
+> and require the two to agree."* Two independent readers of exactly that shape are now live:
+> * `background/gap_register_scan.py` (atom `GAP1_gap_registers_as_mint_sources`, self-certified L3
+>   2026-07-29) — reads the 8 published gap registers from PRIMARY state and imports **nothing** from
+>   `supervisor`, so it cannot restate the tick's own belief. Live right now: 8 open residue rows, i.e.
+>   it is actively forbidding an illegitimate rest.
+> * `background/deadmans_switch.py::_check_open_mint_escalation` — reads `in_progress/*.md` off disk
+>   *before and independent of* the proven-rest fold whose falsely-empty verdict it exists to catch.
+>
+> **STILL OPEN — the one blocking sub-item:** the director asked for the account **"published where a
+> reader can follow it ... a good subject for showing your working."** A retrospective in
+> `docs/retrospectives/` is an internal artefact, not a published surface. The remaining deliverable is
+> a reader-facing page (the `/proof` or `/method` door, per SITE_CONSTITUTION) carrying the failure and
+> its reasoning, pixel-verified live per R11. **Unblocks:** a SITE-lane draw — no permission needed, it
+> is Lane-2 work on `site/**`, disjoint from BUILD.
+>
+> **ALSO OPEN (non-blocking, smaller):** an explicit point-by-point verdict on the advisor's 5-point
+> hypothesis. Provisional reading, to be written up on that page: points 1, 2 and 4 **confirmed**
+> (nothing tested that things APPEAR; the faults were silent by construction; nobody wrote *"if
+> unfinished work exists, something must be drawable"*). Point 3 **partially refuted** — the tests were
+> not merely written by the same reasoning as the fault; several were genuinely mutation-proven and
+> *still* passed, because they proved the rule FIRED, never that the rule was the right rule. That
+> distinction matters more than the agreement does, and it is the sharper version of his own point.
+
 # [DIRECTOR-QUESTION] — How did 31 pieces of work stay invisible through all of it? (2026-07-29)
 
 **Type:** [DIRECTOR-QUESTION]. Not a work order. The director wants the *understanding*, and he wants it published as one of the things you show your working on.

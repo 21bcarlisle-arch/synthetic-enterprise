@@ -1,3 +1,41 @@
+<!-- SUPERVISOR_DRAW: done -->
+> **CLOSED 2026-07-29 (worker tick). All six items actioned; the Sweep report is below.**
+>
+> | # | Item | Disposition |
+> |---|---|---|
+> | 1 | `director_build_open` abolished as a block type | **DONE** `2b095998f` — all instances cleared; **mechanised** `69bbf00b7` |
+> | 2 | `director_level_up` abolished; levels recorded not gated | **DONE** `2b095998f` — `record_level_up_self_certified` is the replacement authority |
+> | 3 | BUILD_OPEN / LEVEL_UP_PROPOSED / ledger-release convention deleted | **DONE** `69bbf00b7` — see Sweep |
+> | 4 | PIN + min-length/format check on inbound messages deleted | **DONE** `ae0f67079` |
+> | 5 | One-way-door tags re-scoped to reality | **DONE** `dbb16e8ab` — reserved set is now exactly the four real-world consequences |
+> | 6 | `gap_registers_as_mint_sources`: build it | **DONE** — build had landed `2454e70`; only the level cell remained, held by the block type item 2 abolishes. Registered as map atom `GAP1_gap_registers_as_mint_sources`, L3 self-certified |
+>
+> **SWEEP — what was removed (the ruling asked for this report):**
+> * **13 atoms released.** Every `blocked_on: director_build_open` / `director_level_up` in
+>   `docs/design/maturity_map.yaml` → `null`. Zero permission blocks survive.
+> * **The stage-advance / BUILD-open alarm** in `fronts_reconciler.py` (§10.2) → `BUILD_UNGATED`,
+>   informational only. That path existed *solely* to decide whether the director had permitted a BUILD.
+> * **`docs/observability/.fronts_enforcement_enabled` deleted** and must stay deleted — the draw-filter
+>   prevention layer is retired to its pre-2026-07-18 dormant default.
+> * **The abolition is now a MECHANISM, not a data edit** (`_is_externally_blocked`): a `blocked_on`
+>   naming any deleted permission convention no longer suppresses a draw, no matter who writes it or
+>   when, and each ignored block is logged loudly. Clearing the 13 values was a one-time edit, and an
+>   edit is an exhortation — this exact block type is what made 31 atoms yield zero drawable work.
+>
+> **WHAT I KEPT, each named with the real-world consequence it prevents (per your instruction):**
+> * **The four reserved consequences** — real money, real people, a public claim in Poesys's name, a
+>   real person's safety. A `blocked_on` describing one of these still blocks even if it also cites a
+>   permission token; the judgement is delegated to `one_way_door.classify_action`, not forked.
+> * **The level *record*** (R16 ledger-backed) — now self-certifiable, so it informs an auditable trail
+>   and no longer waits on a human. Consequence prevented: a level move with no trace at all.
+> * **Genuine non-permission blocks** — upstream dependencies, coupled-triad walls, named R10 data gaps.
+>   One survives on the live map: `H27_payment_belief_gap` (`blocked_on: coupled_triad_measured`).
+>   Consequence prevented: drawing an atom whose work genuinely does not exist yet.
+>
+> **DEFECT IN THIS RULING (§4, `DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27`):** it carries
+> no **WORK THIS CREATES** block. I minted from the body rather than absorb it silently, and have asked
+> the advisor bridge for the block. Flagged, not held — the work is done.
+
 # [DIRECTOR-RULING] — Rip out the permission machinery. Tonight. (2026-07-29)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Do this now, before more work; it is cheap and it is blocking everything else.

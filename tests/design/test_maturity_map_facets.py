@@ -60,6 +60,15 @@ REVIEWED_CLOSE_TO_LEARN = {
     # integrity, i.e. whether the machine that runs the company can be trusted to run each daemon
     # exactly once. Same close_to_learn class as its OPS1/H_harness siblings.
     "OPS1_launcher_cutover_completion",
+    # 2026-07-29 reviewed (worker tick, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 6).
+    # Classified on its merits, not to clear the gate: GAP1 is a DRAW-COMPLETENESS / work-accounting
+    # atom -- an independent reader that makes the machine's own published gap registers drawable, so
+    # a saturation claim is impossible while any register holds an open item. It moves no money and
+    # touches no revenue flow; what it measures is whether the machine's account of its own remaining
+    # work can be TRUSTED. That is the same close_to_learn class as H_forward_discovery_draw (the
+    # sibling drawability-mechanism atom) and all 52 H_harness siblings, and it is GAP1's TRUE stream,
+    # not a dumping-ground default.
+    "GAP1_gap_registers_as_mint_sources",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",
