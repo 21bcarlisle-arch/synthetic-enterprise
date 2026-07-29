@@ -108,6 +108,109 @@ def _previously_published(path=None):
     return prev if isinstance(prev, dict) else {}
 
 
+_COUNT, _SERIES, _ROWS = "count", "series", "rows"
+
+# Every MONOTONIC growth metric published in phases.json, and how to measure
+# its size. This registry is the class-level closure of the retention rule
+# below (R10: an absurdity-class defect may not be closed with an instance
+# fix). A metric added to `generate()`'s payload without an entry here is
+# simply unguarded -- so the registry is asserted against the real published
+# keyset by test_every_published_growth_metric_is_registered, which fails when
+# a future metric is added and left out.
+#
+# `companions` are non-metric fields derived from the SAME source read: when
+# the metric is retained they must be retained with it, or the payload
+# self-contradicts (e.g. total_phases held at 519 next to start_date: null).
+_GROWTH_METRICS = (
+    ("total_phases", _COUNT, ("start_date",)),
+    ("cumulative_tests_executed", _COUNT, ("cumulative_tests_executed_since",)),
+    ("test_progression", _SERIES, ()),
+    ("phase_dates", _SERIES, ()),
+    ("timeline", _ROWS, ()),
+)
+
+
+def _growth_magnitude(value, kind):
+    """Comparable size of a published growth metric, or None if it is absent,
+    malformed or empty. One definition of "how big is this metric" shared by
+    the commits pair and the payload-wide sweep, so a metric cannot be guarded
+    by one and missed by the other."""
+    if kind == _COUNT:
+        # Zero is treated as unmeasurable, not as a measurement of nothing --
+        # consistent with the empty list below, and true of every metric in
+        # the registry: the generator only runs at all once the project has
+        # phases, commits and executed tests, so a published 0 is always the
+        # collapsed-source failure mode, never a real state. Without this a
+        # first-ever-run collapse publishes 0 labelled "measured" (fail-silent).
+        return value if _valid_commit_total(value) and value > 0 else None
+    if kind == _SERIES:
+        return _series_last_value(value)
+    if not isinstance(value, list) or not value:
+        return None
+    return len(value)
+
+
+# What to publish when a metric is unmeasurable AND there is no prior to
+# retain: honest emptiness, never the raw malformed measurement.
+_EMPTY = {_COUNT: None, _SERIES: [], _ROWS: []}
+
+
+def _retained_value(measured, previous, kind):
+    """(value, retained) -- hold `previous` when the fresh measurement is
+    missing/malformed or has gone BACKWARDS. The single retention primitive
+    for this file's monotonic metrics."""
+    measured_size = _growth_magnitude(measured, kind)
+    previous_size = _growth_magnitude(previous, kind)
+    if measured_size is None or (previous_size is not None and measured_size < previous_size):
+        if previous_size is not None:
+            return previous, True
+        return (measured if measured_size is not None else _EMPTY[kind]), True
+    return measured, False
+
+
+def _retain_growth_metrics(data, previous):
+    """Apply the retention rule to EVERY registered growth metric in a freshly
+    built payload, returning {key: 'measured'|'retained_previous'|'unavailable'}.
+
+    R15 hardening (2026-07-29, G1 HARDEN -- the CLASS audit of the guard added
+    to the commits pair earlier the same day). That guard was correct and
+    tested, but it was keyed to two of the six monotonic metrics `generate()`
+    publishes. `generate()` swallows the PROJECT_OVERVIEW.md read exception and
+    falls back to `text = ""` -- so one unreadable or mid-write-truncated
+    source file (CLAUDE.md documents concurrent writers on this tree) publishes
+    total_phases 519 -> 0, test_progression 17,214 -> [], phase_dates 468 -> 0
+    and timeline -> [], while `commits_source` still reads "measured" and the
+    publish reports success. Observed directly, not inferred: driving the real
+    generate() with a non-existent PROJECT_OVERVIEW produced exactly that
+    payload.
+
+    That is the SAME two killer patterns the commits half was hardened for --
+    FAIL-SILENT (an unavailable source reported as a clean publish) and
+    FAIL-OPEN (empty passing straight through metrics whose entire declared
+    property is monotonic growth) -- reached through a different source, on
+    four MORE metrics, one of which (test_progression) is the very series whose
+    16,358 -> 221 collapse the director reported. Guarding the class rather
+    than the next instance is what makes this closure rather than a treadmill.
+    """
+    sources = {}
+    for key, kind, companions in _GROWTH_METRICS:
+        value, retained = _retained_value(data.get(key), previous.get(key), kind)
+        data[key] = value
+        if not retained:
+            sources[key] = "measured"
+            continue
+        # Retained-with-nothing-to-retain is an unavailable metric, not a
+        # successful publish of zero -- label it so no surface can read it
+        # as fresh (the honesty half of the same rule).
+        sources[key] = (
+            "retained_previous" if _growth_magnitude(value, kind) is not None else "unavailable"
+        )
+        for companion in companions:
+            if companion in previous:
+                data[companion] = previous[companion]
+    return sources
+
+
 def _retained_commit_metrics(measured_total, measured_series, previous):
     """Hold the cumulative-commits metrics at their last published value when
     a fresh measurement is missing or has gone BACKWARDS. Returns
@@ -138,26 +241,20 @@ def _retained_commit_metrics(measured_total, measured_series, previous):
     so no surface can present it as fresh. With no previous publish to fall
     back on we report 'unavailable' and publish nothing, rather than invent
     a number.
+
+    2026-07-29 (class audit): the per-key comparison is now the shared
+    `_retained_value` primitive, so the commits pair and every other monotonic
+    metric in the payload are guarded by ONE mechanism rather than two that can
+    drift apart. This function survives only to carry the commits pair's own
+    three-state `commits_source` label, which predates the sweep and is read by
+    the site.
     """
-    prev_total = previous.get("total_commits")
-    prev_total = prev_total if _valid_commit_total(prev_total) else None
-    prev_series = previous.get("commits_by_day")
-    prev_last = _series_last_value(prev_series)
+    total, total_retained = _retained_value(
+        measured_total, previous.get("total_commits"), _COUNT)
+    series, series_retained = _retained_value(
+        measured_series, previous.get("commits_by_day"), _SERIES)
 
-    total, series, retained = measured_total, measured_series, False
-
-    if not _valid_commit_total(measured_total) or (
-        prev_total is not None and measured_total < prev_total
-    ):
-        retained = True
-        total = prev_total
-
-    measured_last = _series_last_value(measured_series)
-    if measured_last is None or (prev_last is not None and measured_last < prev_last):
-        retained = True
-        series = prev_series if prev_last is not None else measured_series
-
-    if not retained:
+    if not (total_retained or series_retained):
         return total, series, "measured"
     if total is None and _series_last_value(series) is None:
         return total, series, "unavailable"
@@ -465,13 +562,14 @@ def generate():
     from tools.test_execution_metric import cumulative_tests_executed
     test_executions = cumulative_tests_executed()
 
-    # Read the previous publish BEFORE overwriting it -- a git failure must
-    # not be able to collapse these cumulative metrics to null/[] on the live
-    # Project page (see _retained_commit_metrics).
+    # Read the previous publish BEFORE overwriting it -- neither a git failure
+    # nor an unreadable PROJECT_OVERVIEW.md may collapse these cumulative
+    # metrics to null/[]/0 on the live Project page (see _retain_growth_metrics).
+    previous = _previously_published()
     total_commits, commits_by_day, commits_source = _retained_commit_metrics(
         _total_commits(),
         cumulative_commits_by_day(_commits_per_day_lines()),
-        _previously_published(),
+        previous,
     )
 
     data = dict(
@@ -487,6 +585,13 @@ def generate():
         cumulative_tests_executed=test_executions["cumulative_total"],
         cumulative_tests_executed_since=test_executions["since"],
     )
+    # Class guard: hold every registered monotonic metric at its last published
+    # value rather than publish a collapse, and label what is fresh vs retained.
+    metrics_source = _retain_growth_metrics(data, previous)
+    metrics_source["total_commits"] = commits_source
+    metrics_source["commits_by_day"] = commits_source
+    data["metrics_source"] = metrics_source
+
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
     print("Written: %s (total_phases=%s, latest_phase=%s, dated_entries=%s, timeline_rows=%s)" % (

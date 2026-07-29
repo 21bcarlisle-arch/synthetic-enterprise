@@ -502,6 +502,125 @@ def test_generate_end_to_end_retains_commits_when_git_fails(tmp_path, monkeypatc
     assert written["commits_source"] == "retained_previous"
 
 
+# --- R15 hardening (2026-07-29, G1_test_progression_metrics HARDEN, CLASS
+# audit): the guard above was correct but keyed to 2 of the 6 monotonic metrics
+# generate() publishes. generate() swallows the PROJECT_OVERVIEW.md read
+# exception (text = ""), so one unreadable/mid-write-truncated source publishes
+# total_phases 519->0, test_progression 17,214->[], phase_dates 468->0,
+# timeline->[] -- while commits_source still reads "measured". Same FAIL-SILENT
+# + FAIL-OPEN pair, different source, four more metrics, one of them the very
+# series whose 16,358->221 collapse the director reported. ---
+
+def _prev_payload():
+    return {
+        "total_phases": 519, "start_date": "2025-11-02",
+        "test_progression": [["2026-07-01", 16358], ["2026-07-12", 17214]],
+        "phase_dates": [["2026-07-01", 0], ["2026-07-12", 467]],
+        "timeline": [{"date": "2026-07-01"}, {"date": "2026-07-12"}],
+        "cumulative_tests_executed": 953265,
+        "cumulative_tests_executed_since": "2026-07-10T00:00:00+00:00",
+    }
+
+
+def test_unreadable_overview_must_not_zero_the_growth_metrics(tmp_path, monkeypatch):
+    """The named defect, end-to-end through the real generate() (R11-shaped):
+    PROJECT_OVERVIEW.md unreadable -> every parsed metric collapses to 0/[]."""
+    import json as _json
+    from tools import generate_phases_json as g
+    out = tmp_path / "phases.json"
+    prev = _prev_payload()
+    prev.update(_prev())
+    out.write_text(_json.dumps(prev))
+    monkeypatch.setattr(g, "OUT_PATH", out)
+    monkeypatch.setattr(g, "PROJECT_OVERVIEW", tmp_path / "gone.md")
+    g.generate()
+    written = _json.loads(out.read_text())
+
+    assert written["total_phases"] == 519, "publish collapsed a monotonic metric to 0"
+    assert written["test_progression"][-1][1] == 17214, "the director-reported collapse class"
+    assert len(written["phase_dates"]) == 2
+    assert written["timeline"], "timeline collapsed to empty"
+    assert written["start_date"] == "2025-11-02", "companion must be retained with its metric"
+    src = written["metrics_source"]
+    assert src["total_phases"] == "retained_previous", "retained must never be labelled fresh"
+    assert src["test_progression"] == "retained_previous"
+
+
+def test_growth_sweep_is_not_a_freeze_real_advances_publish_verbatim():
+    """The guard must fire on the defect WITHOUT pinning honest growth."""
+    from tools.generate_phases_json import _retain_growth_metrics
+    data = {
+        "total_phases": 520, "start_date": "2025-11-02",
+        "test_progression": [["2026-07-13", 17300]],
+        "phase_dates": [["2026-07-01", 0], ["2026-07-12", 467], ["2026-07-13", 468]],
+        "timeline": [{"d": 1}, {"d": 2}, {"d": 3}],
+        "cumulative_tests_executed": 953999, "cumulative_tests_executed_since": "x",
+    }
+    sources = _retain_growth_metrics(data, _prev_payload())
+    assert data["total_phases"] == 520 and data["cumulative_tests_executed"] == 953999
+    assert data["test_progression"][-1][1] == 17300
+    assert set(sources.values()) == {"measured"}, "honest growth must publish verbatim"
+
+
+def test_cumulative_tests_executed_cannot_go_backwards():
+    """The execution log is a shared append-only file; if it is truncated or
+    unreadable cumulative_tests_executed() returns 0 -- a monotonic lifetime
+    counter publishing zero."""
+    from tools.generate_phases_json import _retain_growth_metrics
+    data = {"cumulative_tests_executed": 0, "cumulative_tests_executed_since": None}
+    sources = _retain_growth_metrics(data, _prev_payload())
+    assert data["cumulative_tests_executed"] == 953265
+    assert data["cumulative_tests_executed_since"] == "2026-07-10T00:00:00+00:00"
+    assert sources["cumulative_tests_executed"] == "retained_previous"
+
+
+def test_nan_or_bool_prior_cannot_disarm_the_sweep():
+    """Same fail-open as the commits half: NaN loses every `<` comparison and
+    bool is an int subclass, so an unvalidated prior would silently no-op."""
+    from tools.generate_phases_json import _retain_growth_metrics
+    data = {"total_phases": 3}
+    sources = _retain_growth_metrics(data, {"total_phases": float("nan")})
+    assert data["total_phases"] == 3 and sources["total_phases"] == "measured"
+    data = {"total_phases": 0}
+    sources = _retain_growth_metrics(data, {"total_phases": True})
+    assert sources["total_phases"] == "unavailable", "bool is not a phase count"
+
+
+def test_no_prior_reports_unavailable_and_never_fabricates():
+    """Nothing to retain: publish honest emptiness and SAY it is unavailable --
+    a fail-silent zero is exactly what this guard exists to stop."""
+    from tools.generate_phases_json import _retain_growth_metrics
+    data = {"total_phases": 0, "test_progression": [], "timeline": [],
+            "phase_dates": [], "cumulative_tests_executed": 0}
+    sources = _retain_growth_metrics(data, {})
+    assert data["total_phases"] is None, "an unmeasurable count must not publish as 0"
+    assert data["test_progression"] == []
+    assert set(sources.values()) == {"unavailable"}
+
+
+def test_every_published_growth_metric_is_registered(tmp_path, monkeypatch):
+    """CLASS closure (R10): the reason this HARDEN is not another instance fix.
+    A cumulative metric added to generate()'s payload later and left out of
+    _GROWTH_METRICS is silently unguarded -- so the registry is asserted
+    against the REAL published keyset, and this fails the day that happens."""
+    import json as _json
+    from tools import generate_phases_json as g
+    out = tmp_path / "phases.json"
+    monkeypatch.setattr(g, "OUT_PATH", out)
+    g.generate()
+    published = set(_json.loads(out.read_text()))
+
+    guarded = {k for k, _kind, _c in g._GROWTH_METRICS}
+    guarded |= {c for _k, _kind, cs in g._GROWTH_METRICS for c in cs}
+    guarded |= {"total_commits", "commits_by_day", "commits_source", "metrics_source"}
+    # Scalars that are NOT growth metrics: a label, not a count.
+    non_growth = {"latest_phase"}
+    unguarded = published - guarded - non_growth
+    assert not unguarded, (
+        "unguarded published metric(s) %s -- add to _GROWTH_METRICS (guarded) or "
+        "non_growth (not a monotonic metric)" % sorted(unguarded))
+
+
 def test_cumulative_commits_by_day_drops_non_date_lines():
     """A stray non-date token becomes its own bucket and publishes a garbage
     x-axis point; real dates must still land."""
