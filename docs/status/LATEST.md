@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T18:07:23Z
+Last updated: 2026-07-29T18:08:52Z
 
 **FIXED (2026-07-29, `67a2e3ee6` + `42cff58b6`) — one director message became two queued acts. Cause named,
 not filtered.** The director's ntfy arrived twice, eight seconds apart, and each copy was separately acked and
