@@ -59,6 +59,11 @@ REVIEWED_CLOSE_TO_LEARN = {
     "E1_ledger_double_entry", "E2_revenue_reconciliation", "E3_accrual_restatement",
     "E4_supplier_reporting_standard",
     "E5_carbon_three_ledger",  # 2026-07-20 v4 mission carbon-ledger candidate (diagnostic, CARBON_NOT_A_TARGET)
+    # 2026-07-29 reviewed (BACKLOG Wave-B wiring): the treasury/liquidity leg of the Wave-B coupled pair --
+    # a hedge book posting variation margin whose crisis mortality is measured as the accounting-P&L-looks-fine
+    # vs cash-is-dying GAP (belief-vs-truth survival learning), NOT a revenue-flow movement. Same close_to_learn
+    # class as its E-lane siblings E1-E5; close_to_learn is its TRUE stream, not a dumping-ground default.
+    "B6_collateral_cash_death_loop",
     "F1_epistemic_verifier", "F2_sanity_daemon", "F3_obligations_register",
     "F4_company_internal_authz", "F5_ofgem_licence_readiness",
     "F5_vat_control_independent_signal", "F6_bill_integrity_structural",

@@ -2612,3 +2612,41 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a risk desk's scenario library: a small set of named, human-curated pathway worlds (the NESO Future Energy Scenarios pattern) sampled tail-heavy against their true probabilities, that the trading book is stress-run through -- the desk knows which world it is stress-testing; the front office does not get to see the future it is being tested against"
   evidence: [docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md, docs/market_research/scenario_spine_and_friction_anchors_2026-07-23.md, docs/design/BACKLOG.md]
+- id: SPINE_3_gas_storage_crisis_regime
+  name: "Gas storage stock-and-flow that can ENDOGENOUSLY produce a 2022-shape inversion: a European storage stock variable that fills and draws, driving wholesale gas so a defined supply-shock scenario reproduces the winter-2021/22 seasonal-spread inversion within a stated tolerance, rather than the inversion being scripted. The load-bearing Spec-004 gap; registered as a scenario within SPINE_1's spine. BACKLOG.md B2 (Wave B, coupled with B6)."
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle   # DISCOVER/FRAME partial (FRAME section C names this sibling; storage stock-and-flow FRAME not yet complete). BUILD director-gated + depends_on SPINE_1 landing.
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [sim/market/gas_storage.py, sim/scenario, tests/sim/test_gas_storage_regime.py]
+  depends_on: [SPINE_1_scenario_world_state]
+  blocked_on: director_build_open
+  block_reason: "Candidate atom just authored (provenance: proposal) from BACKLOG B2 + FRAME section C sibling SPINE_3_gas_storage_crisis_regime. BUILD is EPOCH-gated and also depends_on SPINE_1 landing (the spine is the registry this scenario is selected within) -- it opens only on a director/twin BUILD-open of a W1/wholesale front AFTER SPINE_1 builds. The shock magnitude and which 2021/22 shape is the calibration target are R13 director-authored curriculum, not agent-set. No agent BUILD or level move until then (R16, no self-bump)."
+  simplifications:
+  - '2026-07-29 REGISTERED into the map (worker tick, sole map writer per THREE_LANES) from docs/design/BACKLOG.md item B2 (Wave B) + docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md section C sibling SPINE_3_gas_storage_crisis_regime. AUTHORING ONLY (EPOCH_GATING: agent may author candidate atoms, provenance: proposal, never BUILD until opened). SEQUENCING RECONCILIATION: the FRAME (2026-07-23) held SPINE_3-5 "named-not-registered until SPINE_1 lands"; docs/design/THE_STANDARD.md (2026-07-29, governing) SS7.3 directs turning the Wave-B backlog into real candidate atoms now -- registration is not build, and depends_on: [SPINE_1_scenario_world_state] encodes the landing prerequisite so nothing can build out of order. This is the WORLD half of the Wave-B coupled pair; COUPLED-TRIAD law binds it to B6_collateral_cash_death_loop (the company capability this world exists to defeat) -- neither reaches L3 without the other. R13 SPLIT: the storage stock-and-flow MECHANISM is agent-buildable; the shock magnitude + the target 2021/22 inversion shape/tolerance are director-authored CURRICULUM, decided blind to company P&L (R13). DoD (BACKLOG B2): a storage state variable drives wholesale gas such that a defined shock scenario reproduces an inversion of the observed 2021-22 shape within a stated tolerance, verified blind to company P&L, registered as a scenario in SPINE_1s spine. No BUILD code, no engine touched, level_current 0 (R16: no self-bump).'
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a gas trading desk's fundamentals model: European storage fill/draw as a physical stock whose seasonal trajectory and shock response drive the seasonal spread -- a low-storage cold winter endogenously inverts summer-winter, exactly the 2021/22 mechanism, rather than the crisis being hand-scripted into the curve"
+  evidence: [docs/design/BACKLOG.md, docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md, docs/market_research/scenario_spine_and_friction_anchors_2026-07-23.md]
+- id: B6_collateral_cash_death_loop
+  name: "Collateral -> cash death loop: a hedge book that posts variation margin against a moving forward, so a 2021/22-shape crisis can kill the company BY CASH (margin calls draining liquidity faster than the P&L looks bad) while accounting P&L survives on paper. Mortality-by-collateral recorded by the survival score. BACKLOG.md B6 (Wave B, coupled with SPINE_3)."
+  lane: E_finance_treasury
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle   # DISCOVER-workable now (treasury liquidity / variation-margin mechanics); BUILD director-gated + depends_on SPINE_3 (needs a world that can defeat it, coupled-triad).
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [saas/treasury, tests/saas/test_collateral_death_loop.py]
+  depends_on: [SPINE_3_gas_storage_crisis_regime]
+  blocked_on: director_build_open
+  block_reason: "Candidate atom just authored (provenance: proposal) from BACKLOG B6. COUPLED-TRIAD: the death loop needs a world that can defeat it (SPINE_3s inversion) -- neither reaches L3 without the other, so depends_on SPINE_3 and cannot BUILD before it. BUILD is EPOCH-gated: opens only on a director/twin BUILD-open of an E/treasury front. No agent BUILD or level move until then (R16, no self-bump)."
+  simplifications:
+  - '2026-07-29 REGISTERED into the map (worker tick, sole map writer per THREE_LANES) from docs/design/BACKLOG.md item B6 (Wave B). AUTHORING ONLY (EPOCH_GATING: agent may author candidate atoms, provenance: proposal, never BUILD until opened). This is the COMPANY half of the Wave-B coupled pair; COUPLED-TRIAD law binds it to SPINE_3_gas_storage_crisis_regime -- the world exists to defeat this capability, and neither reaches L3 until the company has faced the world and the belief-vs-truth (here: P&L-looks-fine vs cash-is-dying) gap is measured per digest. C-S3 discipline: a margin call is an asynchronous wall event (request/response separate in time), never same-step resolution. DoD (BACKLOG B6): a hedge book posts variation margin against a moving forward; a defined crisis scenario produces a cash-exhaustion mortality event while accounting P&L stays positive; the mortality is recorded by the survival score; a test proves it can BOTH kill AND be survived. No BUILD code, no engine touched, level_current 0 (R16: no self-bump; BUILD-open + any level move is director/twin per blocked_on).'
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier treasury in winter 2021/22: hedges are in the money on paper but exchange/counterparty variation-margin calls demand cash today against a forward that has moved -- the accounting P&L is positive while the liquidity runs out, the mechanism that actually killed several real GB suppliers (the mark-to-market P&L survived; the cash did not)"
+  evidence: [docs/design/BACKLOG.md, docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md]

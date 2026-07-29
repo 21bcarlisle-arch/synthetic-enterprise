@@ -73,6 +73,10 @@ produces the winter-2022 price inversion rather than it being scripted.
 **Definition of done:** a storage state variable drives wholesale gas such that a defined shock
 scenario reproduces an inversion of the observed 2021–22 shape within a stated tolerance, verified
 blind to company P&L (R13); registered as a scenario in B1's spine.
+**Wiring status (2026-07-29):** REGISTERED into `maturity_map.yaml` as `SPINE_3_gas_storage_crisis_regime`
+(`provenance: proposal`, `loop_stage: idle`, `level_current: 0`, `depends_on: [SPINE_1_scenario_world_state]`,
+`blocked_on: director_build_open`) — the world half of the Wave-B coupled pair. Shock magnitude + target
+inversion shape are R13 director curriculum, not agent-set.
 
 ### B3 — Forecast layer at multiple horizons, error shrinking to delivery (World→Company, Wave B)
 **Plain:** the company should receive *published forecasts with realistic error* at several horizons,
@@ -89,6 +93,10 @@ reaches L3 without the other (coupled-triad law).
 **Definition of done:** a hedge book posts variation margin against a moving forward; a defined
 crisis scenario produces a cash-exhaustion mortality event while accounting P&L stays positive;
 the mortality is recorded by the survival score; a test proves it can both kill and be survived.
+**Wiring status (2026-07-29):** REGISTERED into `maturity_map.yaml` as `B6_collateral_cash_death_loop`
+(`provenance: proposal`, `loop_stage: idle`, `level_current: 0`, `depends_on: [SPINE_3_gas_storage_crisis_regime]`,
+`blocked_on: director_build_open`) — the company half of the Wave-B coupled pair (coupled-triad: neither
+it nor SPINE_3 reaches L3 without the other).
 
 ### B4 — Traded product ladder with moving contango/backwardation (Market; Wave C)
 **Plain:** seasons/quarters/months/day-ahead as real tradable products with a moving term structure,
