@@ -72,6 +72,13 @@ REVIEWED_CLOSE_TO_LEARN = {
     # vs cash-is-dying GAP (belief-vs-truth survival learning), NOT a revenue-flow movement. Same close_to_learn
     # class as its E-lane siblings E1-E5; close_to_learn is its TRUE stream, not a dumping-ground default.
     "B6_collateral_cash_death_loop",
+    # 2026-07-29 reviewed (BACKLOG->map wiring, director from_rich_20260729_173731 "put all eleven
+    # backlog items into the map as real unfinished work items"): the tournament HARNESS -- it reruns a
+    # company configuration across the scenario set, scores, ranks and removes, i.e. it MEASURES which
+    # configuration survives (belief-vs-truth about the company itself). No revenue-flow movement, so
+    # close_to_learn is its TRUE stream, the same class as its A5/A8/H-harness siblings. The fitness
+    # function and mortality rules it reads are A5's and stay director-reserved values (category 6).
+    "B11_evolutionary_tournament_harness",
     "F1_epistemic_verifier", "F2_sanity_daemon", "F3_obligations_register",
     "F4_company_internal_authz", "F5_ofgem_licence_readiness",
     "F5_vat_control_independent_signal", "F6_bill_integrity_structural",

@@ -185,6 +185,73 @@ on Survive/Earn/Abate, and ranks; mortality removes configurations; results publ
 
 ---
 
+## WIRED INTO THE MAP — all eleven, 2026-07-29 (director instruction, verbatim)
+
+> "Your backlog is in a document but the thing that picks your next job reads the map. That's why you
+> keep saying there's no work. Put all eleven backlog items into the map as real unfinished work items
+> now, so you can never again say 'nothing below target' while your own list has months on it."
+> — `docs/staging/from_rich_20260729_173731.md`
+
+**He was right, and here is the measurement, not the assurance.** Before this pass, the picker's
+DISCOVER/FRAME pool (`supervisor._idle_discover_frame_draw`) was **empty**: 31 idle atoms with a real
+level gap → 6 externally blocked, 29 FRAME-saturated, **0 drawable**. The backlog contributed
+**nothing**, for three separate reasons, all of them the same shape (real work wearing a status that
+hides it):
+
+1. **`blocked_on` hides an atom from EVERY lane, not just BUILD.** B1/B2/B6 were registered earlier
+   the same day with `blocked_on: director_build_open`, intending only to hold BUILD.
+   `supervisor._is_externally_blocked` drops a blocked atom from the idle DISCOVER/FRAME draw too — so
+   "BUILD is director-gated" silently became "this atom does not exist". **CLEARED** on all three; the
+   BUILD wall is now held by the *correct* mechanism (`loop_stage: idle` + the `fronts.yaml`
+   `stage_advance` gate: idle→build is a director console act), which gates BUILD *without* gating
+   thought, exactly as CLAUDE.md's "Epoch gating gates BUILD, never thought" intends.
+2. **A sibling's FRAME doc silently saturates a brand-new atom.** `_atom_has_frame_doc` marks an atom
+   FRAME-saturated on *any* `evidence` entry under `docs/design/` with `FRAME` in its filename, and H23
+   then **hard-skips** it. Citing `SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md` /
+   `COMPETITOR_FIELD_FRAME.md` / `A5_TOURNAMENT_FITNESS_MORTALITY_FRAME.md` as background on six atoms
+   therefore made six *unframed* atoms read as fully framed and vanish from the draw. Fail-**silent**:
+   nothing errored, the atoms just weren't there. The mechanism's own docstring names the assumption
+   that broke — *"every non-canonical `*_FRAME.md` is owned by exactly ONE atom"*. Fixed by keeping
+   those references in prose and out of `evidence`. **Standing rule: `evidence` lists THIS atom's own
+   artefacts; a sibling's FRAME doc goes in the prose.**
+3. **B9 was in the map and still invisible** — `E5_carbon_three_ledger` carried
+   `frame_saturated: true`, honest for the scope framed on 2026-07-20 but not for the scope B9 widened
+   it to. Re-opened with the two genuinely-unframed parts named (trajectory-from-observables; the
+   site £/tCO₂e figure's clock/basis).
+
+**Result, measured after the change — 11/11 registered, 10/11 drawable:**
+
+| # | Map atom | State |
+|---|---|---|
+| B1 | `SPINE_1_scenario_world_state` | held — FRAME complete + mechanism BUILT; next step is **BUILD** (wire into price formation), needs the idle→build stage advance |
+| B2 | `SPINE_3_gas_storage_crisis_regime` | DRAWABLE |
+| B3 | `B3_published_forecast_error_horizons` | DRAWABLE (new) |
+| B4 | `B4_traded_product_ladder` | DRAWABLE (new) |
+| B5 | `B5_shaped_cost_benchmark_value_add` | DRAWABLE (new) |
+| B6 | `B6_collateral_cash_death_loop` | DRAWABLE |
+| B7 | `B7_customer_state_layer_moves_and_shocks` | DRAWABLE (new) |
+| B8 | `B8_discovered_price_sensitivity_holdout` | DRAWABLE (new) |
+| B9 | `E5_carbon_three_ledger` | DRAWABLE (re-opened, **not** duplicated) |
+| B10 | `B10_competitor_switching_response` | DRAWABLE (new) |
+| B11 | `B11_evolutionary_tournament_harness` | DRAWABLE (new) |
+
+**Four of the eleven were NOT minted as new atoms** — they were reconciled to work already in the map,
+because a duplicate row is worse than no row: **B9** = `E5_carbon_three_ledger` (as this doc already
+said). **B7** is scoped to the *remainder* of the customer state layer — house moves (credit exit + two
+deemed entries) and income shocks — because `W2_5_life_event_stream` already emits job loss / illness /
+divorce / retirement / new child and is at target. **B8** registers only the **company** half
+(discovered price-sensitivity + holdout uplift); the world half is the existing
+`W2_14_continuous_behavioural_engagement_model`. **B10** registers only the missing **switching
+response**; `W2_3_competitor_field` (at target) and `B4_competitor_field` already exist and were left
+untouched — levels are proposals, not mine to move (R16).
+
+**What is still director-reserved, unchanged by this pass** (registering work is not authorising it):
+the idle→build stage advance on any of these; B1's named-world VALUES and their true probabilities, B2's
+shock magnitude and target inversion shape, B10's price-war aggressiveness (all R13 curriculum); B9's
+emissions-factor set and counterfactual method (category 6, carbon is the mission); B11's fitness
+function and mortality rules (`A5_tournament_fitness_mortality`, the `values_decisions` gate). Every
+level here stays at 0 — built things get proposed, never self-promoted.
+
 ## Keeping it stocked (the amendment's standing duty)
 This list is not a one-off. As items land, pull their carry-overs up, and mine the gap/simplification
 registers (`coupled_gap_ledger.json`, the simplification register) for the next candidates **before**
