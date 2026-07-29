@@ -365,7 +365,12 @@ def test_main_skips_when_lock_already_held(tmp_path, monkeypatch):
     with prc._run_lock():
         rc = prc.main(str(marker))
 
-    assert rc == 0
+    # EXIT_LOCK_SKIPPED, NOT 0 (fail-open closed 2026-07-29): returning the
+    # success code here made background_worker's sweep record a publish-gate
+    # SUCCESS for a marker nobody published, clearing the H15 wedge streak and
+    # auto-resolving the open [ACTION NEEDED] item mid-wedge.
+    assert rc == prc.EXIT_LOCK_SKIPPED
+    assert rc != 0, "a lock-skip must never be indistinguishable from a real publish"
     assert called == []  # _process must never run while another instance holds the lock
     assert marker.exists()  # left in place for the lock-holder to archive
 

@@ -4,8 +4,9 @@ a run_complete_*.md marker background/sim_runner.py itself skipped.
 
 2026-07-13, director-flagged: sim_runner.py only ever calls
 process_run_complete.py with the ONE marker it just wrote each cycle, and
-that script's own lock-skip path returns exit code 0 -- indistinguishable
-from a genuine success -- so a marker left behind because another instance
+that script's own lock-skip path leaves the marker untouched (and, until
+2026-07-29, returned exit code 0 -- indistinguishable from a genuine
+success), so a marker left behind because another instance
 held the lock is NEVER retried by sim_runner.py itself. This test suite
 asserts the one real property that makes the whole coupling safe:
 process_leftover_run_markers() unconditionally re-globs every
@@ -154,6 +155,118 @@ def test_publish_gate_recording_failure_never_breaks_the_sweep(monkeypatch):
     monkeypatch.setattr(prc, "record_publish_gate_failure",
                         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
     background_worker.process_leftover_run_markers()  # must not raise
+
+
+# ── Lock-skip is NOT a publish (fail-open closed 2026-07-29) ───────────────────
+# A lock-skip means another instance held the run lock and this sweep left the
+# marker untouched. It used to exit 0, so the sweep logged "Processed" and fed
+# record_publish_gate_success() -- clearing the H15 wedge streak, re-arming the
+# alarm and auto-resolving the open [ACTION NEEDED] item for a marker nobody
+# published. Observed 2026-07-29 16:53Z on two backed-up markers, one minute
+# before the lock holder itself failed the gate.
+
+def _lock_skipped(*args, **kwargs):
+    return MagicMock(returncode=background_worker.EXIT_LOCK_SKIPPED)
+
+
+def test_worker_lock_skip_code_matches_the_processors(monkeypatch):
+    """Drift guard: background_worker mirrors the constant as a literal (it
+    must not import the publish pipeline at module scope). If the two ever
+    diverge, a real skip silently becomes 'a failure' or -- worse, the old
+    bug -- 'a success' again."""
+    import background.process_run_complete as prc
+    assert background_worker.EXIT_LOCK_SKIPPED == prc.EXIT_LOCK_SKIPPED
+
+
+def test_lock_skip_records_neither_success_nor_failure(monkeypatch):
+    marker = background_worker.STAGING_DIR / "run_complete_20260729T162844Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker.subprocess, "run", _lock_skipped)
+
+    import background.process_run_complete as prc
+    recorded = []
+    monkeypatch.setattr(prc, "record_publish_gate_success",
+                        lambda *a, **k: recorded.append("success"))
+    monkeypatch.setattr(prc, "record_publish_gate_failure",
+                        lambda *a, **k: recorded.append("failure"))
+
+    background_worker.process_leftover_run_markers()
+
+    assert recorded == [], (
+        "a lock-skip is evidence of NOTHING about the publish gate's health -- "
+        "it must record neither outcome, got {}".format(recorded))
+
+
+def test_lock_skip_does_not_clear_an_accumulated_wedge_streak(monkeypatch):
+    """The harm the fail-open actually did: a skip wiped the failure streak
+    that was about to raise the [ACTION NEEDED] alert, so a genuinely wedged
+    pipeline could never reach the threshold."""
+    import background.process_run_complete as prc
+    prc._write_publish_gate_state({
+        "failures": [{"ts": 1_000_000.0, "reason": "rc=1", "rc": 1, "kind": "test_failure",
+                      "git_hash": "abc"},
+                     {"ts": 1_000_100.0, "reason": "rc=1", "rc": 1, "kind": "test_failure",
+                      "git_hash": "abc"}],
+        "alerted_at": None,
+        "wedge_since": 1_000_000.0,
+    })
+    marker = background_worker.STAGING_DIR / "run_complete_20260729T163802Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker.subprocess, "run", _lock_skipped)
+
+    background_worker.process_leftover_run_markers()
+
+    after = prc._read_publish_gate_state()
+    assert len(after.get("failures", [])) == 2, (
+        "the streak must survive a lock-skip untouched")
+    assert after.get("wedge_since") == 1_000_000.0, (
+        "wedge age must keep measuring from the real start of the streak")
+
+
+def test_lock_skip_is_not_logged_as_processed(monkeypatch):
+    """The worker log is the first thing read when diagnosing a marker
+    backlog; 'Processed X' for an untouched marker is a false claim."""
+    marker = background_worker.STAGING_DIR / "run_complete_20260729T162844Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker.subprocess, "run", _lock_skipped)
+
+    background_worker.process_leftover_run_markers()
+
+    written = background_worker.LOG_FILE.read_text()
+    assert "Lock-skipped run_complete_20260729T162844Z.md" in written
+    assert "Processed run_complete_20260729T162844Z.md" not in written
+
+
+def test_a_real_success_still_clears_the_streak(monkeypatch):
+    """Both ways (R15): the skip carve-out must not disarm real recovery."""
+    import background.process_run_complete as prc
+    prc._write_publish_gate_state({
+        "failures": [{"ts": 1_000_000.0, "reason": "rc=1", "rc": 1, "kind": "test_failure",
+                      "git_hash": "abc"}],
+        "alerted_at": None,
+        "wedge_since": 1_000_000.0,
+    })
+    marker = background_worker.STAGING_DIR / "run_complete_20260729T164000Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker.subprocess, "run", _fake_success)
+
+    background_worker.process_leftover_run_markers()
+
+    assert prc._read_publish_gate_state().get("failures") == []
+
+
+def test_a_real_failure_is_still_recorded(monkeypatch):
+    """Both ways (R15): rc=1 must still accumulate toward the alert."""
+    import background.process_run_complete as prc
+    marker = background_worker.STAGING_DIR / "run_complete_20260729T164100Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=1))
+
+    background_worker.process_leftover_run_markers()
+
+    failures = prc._read_publish_gate_state().get("failures", [])
+    assert len(failures) == 1 and failures[0]["rc"] == 1
 
 
 def test_processing_order_is_deterministic_sorted(monkeypatch):

@@ -19,6 +19,12 @@ PEAK_START = 16  # 4pm GMT
 PEAK_END = 19    # 7pm GMT
 CHECK_INTERVAL_MINUTES = 30
 TASKS_FILE = Path("docs/instructions/background-tasks.md")
+# Mirrors background.process_run_complete.EXIT_LOCK_SKIPPED. Duplicated as a
+# literal (rather than imported at module scope) because importing the
+# publish pipeline at worker import time drags in the whole reporting stack;
+# tests/background/test_background_worker.py pins the two values equal so the
+# mirror can never silently drift back into "a skip looks like a success".
+EXIT_LOCK_SKIPPED = 75
 LOG_FILE = Path("docs/observability/background-worker-log.md")
 OLLAMA_MODEL = "qwen3:14b"
 
@@ -58,8 +64,8 @@ def process_leftover_run_markers():
     function is the ENTIRE real safety net for a marker that
     `background/sim_runner.py` itself skipped -- sim_runner.py only ever
     passes process_run_complete.py the ONE marker it just wrote each
-    iteration, and process_run_complete.py's own lock-skip path returns 0
-    (indistinguishable from a genuine success to that caller), so a marker
+    iteration, and process_run_complete.py's own lock-skip path returns
+    EXIT_LOCK_SKIPPED (75) without touching the marker, so a marker
     left behind because another instance was already running is NEVER
     retried by sim_runner.py itself. This function's own unconditional glob
     of every `run_complete_*.md` still in staging/ -- called at the TOP of
@@ -83,7 +89,14 @@ def process_leftover_run_markers():
             cwd=str(Path(__file__).resolve().parent.parent),
             timeout=900,
         )
-        if result.returncode == 0:
+        if result.returncode == EXIT_LOCK_SKIPPED:
+            # NOT processed -- another instance holds the run lock and the
+            # marker is untouched. Saying "Processed" here was a false claim in
+            # the worker log (it is what a reader sees first when diagnosing a
+            # backlog) as well as a false success to the wedge detector.
+            log(f"Lock-skipped {marker.name} (another instance holds the run "
+                f"lock) — still pending, will retry next cycle")
+        elif result.returncode == 0:
             log(f"Processed {marker.name}")
         else:
             log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle")
@@ -100,9 +113,23 @@ def _record_publish_gate_outcome(marker, rc):
     """H15: route a run-complete processing return code into the publish-gate
     failure detector (background/process_run_complete.py). Defensive by
     construction -- a monitoring failure must never break the marker sweep or
-    the loop that calls it."""
+    the loop that calls it.
+
+    THREE outcomes, not two (fail-open closed 2026-07-29). A lock-skip
+    (EXIT_LOCK_SKIPPED) means this sweep did NOT publish the marker -- it is
+    evidence of NOTHING about the gate's health, so it records NEITHER a
+    success NOR a failure and leaves the streak exactly as it found it.
+    Recording it as a success (the old behaviour, when the skip path returned
+    0) actively DISARMED the detector: `record_publish_gate_success` clears the
+    failure list, re-arms the alarm, and auto-resolves the open [ACTION NEEDED]
+    item with "a run published cleanly" -- for a marker nobody published.
+    Observed 2026-07-29 16:53Z: both backed-up markers recorded successes one
+    minute before the lock holder itself failed the gate at 16:54Z, wiping the
+    streak that was supposed to raise the alert."""
     try:
         from background import process_run_complete as prc
+        if rc == EXIT_LOCK_SKIPPED:
+            return
         if rc == 0:
             prc.record_publish_gate_success()
         else:

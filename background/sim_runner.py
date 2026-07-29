@@ -133,11 +133,12 @@ def run_simulation() -> bool:
     # this call passes ONLY the marker just written above -- this loop never
     # re-scans staging/ for a DIFFERENT, earlier marker this exact process
     # may have skipped on a prior iteration. process_run_complete.py's own
-    # `main()` returns 0 (the SAME "success" code checked below) both when
-    # it genuinely processes a marker AND when its own lock is already held
-    # by a concurrent instance and it silently skips -- rc==0 here does NOT
-    # distinguish "processed" from "someone else was already running, this
-    # marker was left untouched." There is no retry of a skipped marker
+    # `main()` used to return 0 both when it genuinely processed a marker AND
+    # when its own lock was already held by a concurrent instance -- so rc==0
+    # did NOT distinguish "processed" from "someone else was already running,
+    # this marker was left untouched." Since 2026-07-29 a lock-skip returns
+    # EXIT_LOCK_SKIPPED (75) and is logged as such below, but that only makes
+    # the skip VISIBLE here: there is still no retry of a skipped marker
     # anywhere in this file. The real safety net is entirely external:
     # background/background_worker.py::process_leftover_run_markers()
     # unconditionally re-globs every run_complete_*.md in staging/ at the
@@ -150,9 +151,11 @@ def run_simulation() -> bool:
             cwd=str(PROJECT_DIR),
             timeout=1200,  # process_run_complete has a 600s test timeout internally; give it room
         )
-        if proc_result.returncode == 0:
-            log('Auto-processed run complete marker (or it was lock-skipped -- '
-                'rc==0 either way; background_worker.py catches a real skip)')
+        if proc_result.returncode == 75:  # process_run_complete.EXIT_LOCK_SKIPPED
+            log('Auto-process lock-skipped the marker (another instance holds '
+                'the run lock) -- marker untouched, left for background_worker')
+        elif proc_result.returncode == 0:
+            log('Auto-processed run complete marker')
         else:
             log('Auto-process failed (rc={}) -- marker left for background_worker'.format(proc_result.returncode))
     except subprocess.TimeoutExpired:

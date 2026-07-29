@@ -18,6 +18,15 @@ LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
 LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
 RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.lock"
+# EX_TEMPFAIL. A lock-skip ("another instance already holds the run lock") is
+# NEITHER a success NOR a processing failure -- the marker was left untouched.
+# It used to return 0, indistinguishable from a real publish, which meant
+# background_worker's sweep recorded a publish-gate SUCCESS for a marker it had
+# not published -- clearing the H15 wedge streak and auto-resolving the open
+# [ACTION NEEDED] item while the pipeline was still wedged (observed
+# 2026-07-29 16:53Z: two markers logged "Processed", both untouched, one minute
+# before the lock holder itself failed the gate). See _record_publish_gate_outcome.
+EXIT_LOCK_SKIPPED = 75
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
 # H11_naive_organ (L2): the deliberately-amnesiac question organ's log + the
@@ -1593,13 +1602,16 @@ def maybe_ntfy(data, net_margin, insights=None):
 
 
 def main(marker_path_str):
-    """UNDOCUMENTED COUPLING, now documented (2026-07-13, director-flagged):
-    a lock-skip below returns 0 -- the SAME exit code as a genuine success
-    -- because `main()`'s only two outcomes from its caller's point of view
-    are "ran to completion" (0) or "a real processing error" (return 1,
-    inside `_process()`). `background/sim_runner.py`'s own caller
-    (`subprocess.run([...processor..., marker], ...)`) cannot tell a
-    lock-skip apart from a real success by exit code alone, and it only
+    """COUPLING (2026-07-13, director-flagged; the exit-code half FIXED
+    2026-07-29): a lock-skip below returns EXIT_LOCK_SKIPPED (75), a THIRD
+    outcome distinct from both "ran to completion" (0) and "a real processing
+    error" (1, inside `_process()`). It used to return 0, so no caller could
+    tell a skip from a real publish -- and `background_worker`'s sweep
+    therefore fed rc==0 into `record_publish_gate_success()`, wiping the H15
+    wedge streak for a marker it had never published (fail-open: the detector
+    disarmed by its own input). Callers must now treat 75 as "still pending,
+    nobody published it": no success, no failure. `background/sim_runner.py`
+    only
     ever calls this with the ONE marker it just created THIS cycle -- it
     never re-scans staging/ for a marker it was told (by this exact log
     line) would be "picked up next cycle if still present." That promise
@@ -1618,7 +1630,7 @@ def main(marker_path_str):
                 "process_leftover_run_markers() sweep, not by sim_runner.py "
                 "itself retrying)".format(
                     Path(marker_path_str).name))
-            return 0
+            return EXIT_LOCK_SKIPPED
         return _process(marker_path_str)
 
 
