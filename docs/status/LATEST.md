@@ -1,5 +1,36 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T18:00:13Z
+Last updated: 2026-07-29T18:07:23Z
+
+**FIXED (2026-07-29, `67a2e3ee6` + `42cff58b6`) — one director message became two queued acts. Cause named,
+not filtered.** The director's ntfy arrived twice, eight seconds apart, and each copy was separately acked and
+queued as an instruction. Of his four hypotheses the answer is the third: **two consumers**. `ntfy-responder`
+*and* `staging-watcher` were each running twice — an installed, enabled, **active** systemd unit **and** a
+`start_worker.sh` tmux launch, because the cutover installed the unit but never flipped `launched_by: systemd`.
+Evidence, `observed-with-evidence`: the responder log acked the **same ntfy message id** (`AK0UhbkAV2Ko`) at
+17:32:19 and 17:32:27, staged as two different `from_rich_*.md`, and the rate file held every event twice with
+identical timestamp and hash. A shared message **id** rules out both double delivery and a retry path. Neither
+existing guard could ever have caught it: the `since` watermark and the `seen_hashes` dedup are both
+**per-process in-memory** state, structurally blind to a sibling consumer. **Fixed by construction, no dedup
+filter added before the cause was known:** every inbound message is claimed by its ntfy id via `O_CREAT|O_EXCL`
+(an atomic cross-process test-and-set) **before any side effect**, fail-**closed** if the ledger is unwritable;
+a second responder now refuses to start (`flock`) and says why; ntfy-app self-tests are dropped at the top of
+the path so one costs **no model load, no reply, no ledger entry**; and the `from_rich_<ts>.md` filename
+collision is uniquified, because de-duplicating delivery must never become **losing** a distinct message.
+**R15 both ways, 9 mutations, all fired:** the same message delivered twice executes once, and two genuinely
+different messages with identical text both execute — the guard keys on the **id**, not the body, so a director
+deliberately repeating himself is not swallowed. **The class alarms (R10):** `reconcile()` computed
+`running = unit_active or tmux_present`, which answers *"is it up?"* and is blind to *how many* launchers are
+up — one and two read identically as `OK` — while one live reader queried only migrated units and the other
+scanned only un-migrated ones, so a half-migrated daemon was invisible to both. New `DOUBLE_LAUNCH` status,
+both readers widened, PID-aware against the unit's `MainPID` after it false-positived on all five healthy
+daemons on the live box (the tests did not catch that — they inject `tmux_running` directly). Verified now:
+`ps` shows exactly one responder and one watcher; live reconcile **0 drift alarms, 16 OK**; responder +
+reconciler suites **64 passed**. **Registered, not silently absorbed (`c94cbcecd`):**
+`OPS1_launcher_cutover_completion` — **seven** daemons carry the identical half-done cutover and will each
+**double at the next boot**, single-launcher today only because their units happen to be inactive; queued one
+cutover at a time per the 2026-07-17 ruling rather than mega-flipped. The ruling itself arrived with **no
+"WORK THIS CREATES" block**, a §4 defect, so the work identifiable from its body was minted and the block
+requested from its author.
 
 **WIRED (2026-07-29, `eccaa9e2f`) — the backlog became real work: drawable pool 0 → 10.**
 Director, verbatim: *"Your backlog is in a document but the thing that picks your next job reads the map.
@@ -501,7 +532,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (497s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (495s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -609,6 +640,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~589.0h across 47 sized atom(s) (9 of 56 below-target atoms still unsized).
+- Remaining effort: ~605.4h across 48 sized atom(s) (9 of 57 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
