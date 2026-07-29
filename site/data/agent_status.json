@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-29T03:17:44.754759+00:00",
+  "last_updated": "2026-07-29T03:26:45.910011+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T03:17:44.754759+00:00",
+      "last_heartbeat": "2026-07-29T03:26:45.910011+00:00",
       "last_action": "Heartbeat \u2014 16 files tracked",
-      "last_action_ts": "2026-07-29T03:17:44.754759+00:00",
+      "last_action_ts": "2026-07-29T03:26:45.910011+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,9 +25,9 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T03:13:44.763698+00:00",
-      "last_action": "Waiting for next cycle (4h 10m remaining)",
-      "last_action_ts": "2026-07-29T03:13:44.763698+00:00",
+      "last_heartbeat": "2026-07-29T03:23:44.765352+00:00",
+      "last_action": "Waiting for next cycle (4h 0m remaining)",
+      "last_action_ts": "2026-07-29T03:23:44.765352+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-29T03:15:47.092126+00:00",
-      "last_action": "Sim started \u2014 git=e9d57ba9b",
-      "last_action_ts": "2026-07-29T03:15:47.092126+00:00",
+      "last_heartbeat": "2026-07-29T03:25:47.485526+00:00",
+      "last_action": "Sim started \u2014 git=d45d33e7e",
+      "last_action_ts": "2026-07-29T03:25:47.485526+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T03:16:39.851308+00:00",
+      "last_heartbeat": "2026-07-29T03:24:52.740697+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T02:51:13.169747+00:00",
+      "last_heartbeat": "2026-07-29T03:21:25.982342+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-29T02:51:13.169747+00:00",
+      "last_action_ts": "2026-07-29T03:21:25.982342+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
