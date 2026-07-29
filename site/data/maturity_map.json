@@ -1600,7 +1600,10 @@
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
-      "depends_on": [],
+      "depends_on": [
+        "W2_9_segment_debt_tnc",
+        "A6_coupled_triad_gap_metric"
+      ],
       "couples_with": [
         "W2_9_segment_debt_tnc"
       ],
@@ -2392,7 +2395,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 33
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "H24_worktree_dir_autoreap",
@@ -2998,8 +3001,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "B6_collateral_cash_death_loop",
@@ -3019,8 +3022,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
     },
     {
       "id": "H29_import_time_env_capture_test_isolation",
@@ -3040,6 +3043,164 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 45
+    },
+    {
+      "id": "B3_published_forecast_error_horizons",
+      "name": "Published forecast feed at multiple horizons with realistic, delivery-converging error: the company receives forecasts (demand/wind/price) at >=2 horizons whose error is non-zero and shrinks by a calibrated schedule as delivery approaches, so its own naive 120-day belief can be measured against a real wall on the future. BACKLOG.md B3 (Wave B).",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 64
+    },
+    {
+      "id": "B4_traded_product_ladder",
+      "name": "Traded product ladder with a moving term structure: seasons/quarters/months/day-ahead as distinct tradable tenors whose curve can invert between contango and backwardation across scenarios, replacing the single synthetic forward curve. The company hedges in NAMED products, not in an abstraction. BACKLOG.md B4 (Wave C, with B5).",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 59
+    },
+    {
+      "id": "B5_shaped_cost_benchmark_value_add",
+      "name": "Shaped annual cost as the honest trading benchmark + a trading value-add ledger reported NET of day-one friction: the answer to 'did trading add value?' measured against what the book would have cost bought shaped, with modelled friction subtracted. A diagnostic, never a target (R12). BACKLOG.md B5 (Wave C, with B4).",
+      "lane": "B_commercial",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "B4_traded_product_ladder"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 59
+    },
+    {
+      "id": "B7_customer_state_layer_moves_and_shocks",
+      "name": "The customer state layer: house moves (a credit exit plus two deemed entries), income shocks and household composition change as first-class state transitions on named RNG substreams, driving switching, arrears and consumption -- the half of customer state that the existing life-event stream (job loss/illness/divorce/retirement/new child) does not emit. BACKLOG.md B7 (Wave D).",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 37
+    },
+    {
+      "id": "B8_discovered_price_sensitivity_holdout",
+      "name": "Price-sensitivity and attitudes DISCOVERED from observed responses to conversations and offers -- never read from a tag -- with a holdout group so 'this segment justifies its treatment' is proven by measured uplift rather than asserted, and misclassification cost is modelled. The company half of the continuous-engagement pair. BACKLOG.md B8 (Wave D).",
+      "lane": "B_commercial",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15
+    },
+    {
+      "id": "B10_competitor_switching_response",
+      "name": "Competitor pricing the population can actually switch to, with switching responding to RELATIVE price and the company''s win/loss observable only through its own acquisition and churn -- so pricing meets opposition instead of pricing into a void. BACKLOG.md B10 (Wave C).",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 48
+    },
+    {
+      "id": "B11_evolutionary_tournament_harness",
+      "name": "The evolutionary tournament HARNESS: rerun a company configuration across the scenario set to death or endpoint, score each run on Survive/Earn/Abate, rank them, and publish the result as a finding -- mortality removes configurations. The mechanism only; the fitness function and mortality rules themselves are director-reserved values. BACKLOG.md B11 (Wave E, endgame).",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 4,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "SPINE_1_scenario_world_state"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 26
+    },
+    {
+      "id": "OPS1_launcher_cutover_completion",
+      "name": "SEVEN daemons still have a systemd unit installed+enabled AND remain in start_worker.sh's tmux launch set (background-worker, dispatcher, discovery-daemon, sim-runner, sanity-daemon, naive-organ, token-proxy). They are single-launcher today only because those units happen to be inactive -- each DOUBLES at the next boot, which is exactly the defect that made one director NTFY become two queued instructions on 2026-07-29. Complete each cutover (one at a time, per the 2026-07-17 one-at-a-time ruling) so DOUBLE_LAUNCH cannot recur.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 5,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS1_operational_layer_rebuild"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 49
     }
   ],
   "lanes": {
@@ -3122,7 +3283,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 150,
+  "total_atoms": 158,
   "epoch2_movements": [
     {
       "id": "M1",
