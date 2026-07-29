@@ -2795,7 +2795,9 @@
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
-      "depends_on": [],
+      "depends_on": [
+        "W2_12_change_of_tenancy_debt_physics"
+      ],
       "couples_with": [],
       "chain": null,
       "at_target": false,
