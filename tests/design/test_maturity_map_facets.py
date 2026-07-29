@@ -46,6 +46,14 @@ REVIEWED_CLOSE_TO_LEARN = {
     # -- same close_to_learn class as their G-fidelity siblings (measure belief-vs-truth, not revenue).
     "A_scope_of_need_scoring_frame", "D_cascade_correlation_estimation",
     "H_forward_discovery_draw",  # 2026-07-19 forward-discovery mechanism atom (harness/close_to_learn)
+    # 2026-07-29 reviewed (worker tick, H29 DISCOVER+FRAME): registered in 90cd95039 with
+    # value_stream='harness_integrity', a stream that has never been in VALID_STREAMS -- so that
+    # commit left this test RED at HEAD and blocked every subsequent commit until now. Classified
+    # here on its merits, not to clear the gate: H29 is a test-isolation/harness-integrity atom
+    # (a stale module-level secret capture that makes the suite lie about wake-signing), which
+    # measures whether the harness can be TRUSTED -- no revenue movement -- putting it in exactly
+    # the same close_to_learn class as all 52 of its H_harness siblings.
+    "H29_import_time_env_capture_test_isolation",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",
