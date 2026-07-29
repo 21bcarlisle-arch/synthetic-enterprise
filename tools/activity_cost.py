@@ -542,19 +542,39 @@ def director_idle(path: Path = ACTION_NEEDED, now: Optional[int] = None) -> dict
 # ---------------------------------------------------------------------------
 # The five headline metrics
 # ---------------------------------------------------------------------------
-def self_maintenance_trend(commits: list[Commit], windows=(30, 14, 7)) -> dict:
+def self_maintenance_trend(commits: list[Commit], windows=(30, 14, 7), now=None) -> dict:
     """Cost-of-self-maintenance made TRENDABLE: WASTE/self-repair share of
     attributed WORK-time within each trailing window (git commit clock). The
     design requires this be trendable DOWN (or the harness is a treadmill) --
     so it is reported per window, newest windows last, never as one static
-    number. DIAGNOSTIC only."""
+    number. DIAGNOSTIC only.
+
+    THE TRAILING WINDOWS ARE ANCHORED ON THE WALL CLOCK, NOT ON THE LAST COMMIT
+    (R15 HARDEN 2026-07-29, sibling of the fix landed in
+    generate_wip_flow_data.py::_throughput under G7 -- registered against this
+    atom in 6f7bc3d32 and fixed here on G11's next open). The original anchor was
+    `ordered[-1].timestamp`, which made a trailing window measure "the N days
+    BEFORE the last commit" rather than the last N days: once commits stopped,
+    the self-repair share FROZE at its final value and could never decay. A
+    metric whose whole stated purpose is being TRENDABLE DOWN cannot demonstrate
+    that from a window that cannot empty. Proven pre-fix: 12 commits dated 200
+    days back still reported a full "trailing 7 days: 50.0%, 11.0 attributed
+    hours".
+
+    `now` (epoch seconds) is injectable so tests can pin the clock; it defaults
+    to real wall-clock time. Commit timestamps AHEAD of `now` (clock skew, a
+    backdated rebase) would otherwise be silently dropped out of every window,
+    so the anchor is `max(now, ordered[-1].timestamp)` -- skew degrades to the
+    old behaviour for those commits rather than under-reporting real work."""
     ordered = sorted(commits, key=lambda c: c.timestamp)
     if len(ordered) < 2:
         return {"status": "insufficient_data", "windows": []}
-    now = ordered[-1].timestamp
+    now = int(datetime.now(timezone.utc).timestamp()) if now is None else int(now)
+    hours_since_last = round(max(0, now - ordered[-1].timestamp) / 3600.0, 2)
+    anchor = max(now, ordered[-1].timestamp)
     out = []
     for days in sorted(windows, reverse=True):
-        cutoff = now - days * 86400
+        cutoff = anchor - days * 86400
         window_commits = [c for c in ordered if c.timestamp >= cutoff]
         t = attribute_time(window_commits)
         if t.get("status") != "ok" or not t["attributed_seconds"]:
@@ -568,7 +588,16 @@ def self_maintenance_trend(commits: list[Commit], windows=(30, 14, 7)) -> dict:
             "self_repair_hours": round(sr / 3600.0, 1),
             "attributed_hours": round(t["attributed_seconds"] / 3600.0, 1),
         })
-    return {"status": "ok", "windows": out}
+    return {
+        "status": "ok",
+        # The ABSENCE of work must be visible, never read as a benign value:
+        # a reader seeing "insufficient_data" in trailing-7 needs to tell a
+        # young repo apart from a stalled one, and this is what distinguishes
+        # them. Same honest-signal law as G7's hours_since_last_transition.
+        "hours_since_last_commit": hours_since_last,
+        "window_basis": "trailing_windows_anchored_on_wall_clock_at_generation",
+        "windows": out,
+    }
 
 
 def compute_metrics(time_attr: dict, count_attr: dict, token_attr: dict,

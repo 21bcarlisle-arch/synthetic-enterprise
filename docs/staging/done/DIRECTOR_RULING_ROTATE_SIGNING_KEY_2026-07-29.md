@@ -1,3 +1,4 @@
+<!-- DROPPED 2026-07-29 by director ntfy: "The authority seam approval is withdrawn -- we removed signatures entirely. Drop it and carry on." The signature/phone-signer workflow is CLOSED, not parked. Disposition: docs/staging/done/RESPONSE_AUTHORITY_SEAM_WITHDRAWN_2026-07-29.md. Archived, not deleted -- git history restores it if a reserved act ever needs the channel. -->
 <!-- PROCESSED 2026-07-29 (scheduled tick) → PLANNER_MINTED_signing_key_rotation_deliverables_2026-07-29.md.
      5 WORK-THIS-CREATES deliverables minted/covered: #1 rotation-handover + #2 E2E-proof (unpark
      signing_key_provision_act, realigned to ROTATE); #3 blocked-item batch (already minted, done/); #4 A1

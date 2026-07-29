@@ -1,3 +1,4 @@
+<!-- DROPPED 2026-07-29 by director ntfy: "The authority seam approval is withdrawn -- we removed signatures entirely. Drop it and carry on." The signature/phone-signer workflow is CLOSED, not parked. Disposition: docs/staging/done/RESPONSE_AUTHORITY_SEAM_WITHDRAWN_2026-07-29.md. Archived, not deleted -- git history restores it if a reserved act ever needs the channel. -->
 <!-- PARKED in_progress 2026-07-29: consumed as a MINT SOURCE (§2+§4 WORK_DEFINITION). All three
 WORK-THIS-CREATES deliverables are minted as self-drawable atoms (do NOT re-mint):
   #1 PHONE_SIGNER_SETUP.md            -> PLANNER_MINTED_phone_signer_setup_doc_2026-07-29.md

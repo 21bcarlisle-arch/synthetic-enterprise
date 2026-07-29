@@ -375,9 +375,76 @@ def test_self_maintenance_trend_windows_present():
         _c("[build] x", ts=now - 3 * 86400 + 600, files=["saas/a.py"]),
         _c("[build] y", ts=now, files=["saas/b.py"]),
     ]
-    tr = self_maintenance_trend(commits, windows=(30, 7))
+    # Clock pinned: without this the fixture's 1970-era timestamps fall outside
+    # every wall-clock-anchored window and the assertion below goes vacuous.
+    tr = self_maintenance_trend(commits, windows=(30, 7), now=now)
     assert tr["status"] == "ok"
     assert {w["window_days"] for w in tr["windows"]} == {30, 7}
+    assert all(w["status"] == "ok" for w in tr["windows"])
+
+
+# ---------------------------------------------------------------------------
+# R15 mutation-proven: the trailing windows are anchored on the WALL CLOCK, not
+# on the last commit. Registered against G11 in 6f7bc3d32 (sibling of the G7 fix
+# in generate_wip_flow_data.py::_throughput); fixed 2026-07-29.
+#
+# THE NAMED DEFECT: with `anchor = ordered[-1].timestamp`, a trailing window
+# measures "the N days BEFORE the last commit" instead of the last N days, so a
+# stalled repo reports its final healthy self-repair share forever. Mutating the
+# anchor back to `ordered[-1].timestamp` MUST make test_..._decays_when_stalled
+# fail -- that is what makes this control one that CAN fail.
+# ---------------------------------------------------------------------------
+def _trend_fixture(base_ts, n=12):
+    """n commits one hour apart from base_ts, alternating self-repair/product."""
+    return [
+        _c(
+            "Fix daemon" if i % 2 else "[build] customer billing",
+            ts=base_ts + i * 3600,
+            files=["background/x.py"] if i % 2 else ["saas/a.py"],
+            sha=f"sha{i}",
+        )
+        for i in range(n)
+    ]
+
+
+def test_self_maintenance_trend_decays_when_stalled():
+    """The defect, stated as a test: 200-day-stale commits must NOT keep
+    reporting a full trailing-7d figure. Pre-fix this returned
+    'trailing 7 days: 50.0%, 11.0 attributed hours' with no commit in 200 days."""
+    now = 300 * 86400
+    tr = self_maintenance_trend(_trend_fixture(now - 200 * 86400), windows=(30, 7), now=now)
+    assert tr["status"] == "ok"
+    assert all(w["status"] == "insufficient_data" for w in tr["windows"])
+    # The absence of work is VISIBLE, not silently read as a benign value.
+    assert tr["hours_since_last_commit"] > 4700
+
+
+def test_self_maintenance_trend_still_reports_when_fresh():
+    """Control for the above: the decay must come from staleness, not from the
+    fix having simply broken the windows."""
+    now = 300 * 86400
+    tr = self_maintenance_trend(_trend_fixture(now - 11 * 3600), windows=(30, 7), now=now)
+    assert all(w["status"] == "ok" for w in tr["windows"])
+    assert tr["hours_since_last_commit"] == 0.0
+
+
+def test_self_maintenance_trend_survives_clock_skew():
+    """Commits timestamped AHEAD of now (skew, a backdated rebase) must not be
+    silently dropped out of every window and under-report real work."""
+    now = 300 * 86400
+    tr = self_maintenance_trend(_trend_fixture(now + 5 * 86400), windows=(30, 7), now=now)
+    assert all(w["status"] == "ok" for w in tr["windows"])
+    assert tr["hours_since_last_commit"] == 0.0
+
+
+def test_self_maintenance_trend_defaults_to_real_wall_clock():
+    """`now=None` must mean real generation time -- not the last commit. Without
+    this, the production call path could keep the defect while the pinned-clock
+    tests above all pass."""
+    import time
+
+    tr = self_maintenance_trend(_trend_fixture(int(time.time()) - 200 * 86400), windows=(30, 7))
+    assert all(w["status"] == "insufficient_data" for w in tr["windows"])
 
 
 def test_compute_metrics_shape_and_fail_honest():
