@@ -2592,3 +2592,23 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a model-validation register that marks a segment-level risk model as NOT-YET-VALIDATABLE because the book is too small to populate its cells, naming what volume would unlock validation -- rather than reporting a spurious green"
   depends_on: []
+- id: SPINE_1_scenario_world_state
+  name: "Scenario spine: the ScenarioSpine world-state object + director-authored named-world curriculum registry + the epistemic wall (company cannot read which scenario it lives in) + a byte-identical baseline guarantee. The exogenous world the WVC benchmark/formation is computed against; sampled tail-heavy with each world's true-probability tag. BACKLOG.md B1."
+  lane: W1_market_weather
+  value_stream: wholesale_to_price
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle   # DISCOVER/FRAME-complete (FRAME below), BUILD director-gated: the world-selection MECHANISM is the agent's, but the named worlds + their probabilities are R13 CURRICULUM (director-authored values, SPINE_2). BUILD-open needs a director front (blocked_on).
+  frame_saturated: true   # 2026-07-23 DISCOVER->FRAME complete in SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md (section A: object, internal representation, wall, consumption seam, byte-identical baseline, launch-world proposal, tail-heavy sampling). Spine BUILD deliberately deferred.
+  dial_inherited: 4
+  provenance: proposal
+  file_scope: [sim/scenario, tests/sim/test_scenario_spine.py]
+  depends_on: []
+  blocked_on: director_build_open
+  block_reason: "Candidate atom just authored (provenance: proposal) from the FRAME + BACKLOG B1; DISCOVER->FRAME is complete but BUILD is EPOCH-gated -- it opens only on a director/twin BUILD-open of a W1/wholesale front, and the named-world VALUES it selects among are R13 director-authored curriculum (SPINE_2). No agent BUILD or level move until then (R16, no self-bump)."
+  simplifications:
+  - '2026-07-29 REGISTERED into the map (worker tick, sole map writer per THREE_LANES) from docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md section C (candidate atom SPINE_1_scenario_world_state, "named not registered -- orchestrator writes the map") and docs/design/BACKLOG.md item B1 (Wave A, compounding substrate). AUTHORING ONLY (EPOCH_GATING: the agent may author candidate atoms, provenance: proposal, never BUILD until opened). The scenario spine is the substrate the forecast layer (B3), collateral death loop (B6) and endgame tournament (B11) all rerun over -- highest compounding return, wired first per BACKLOG ordering. WALL = import-direction (company/** and saas/** may NOT import sim.scenario.spine; no ScenarioSpine field crosses sim_interface.py), enforced by the FRAME W1 mutation-testable epistemic check when SPINE_1 builds. R13 SPLIT: the world-SELECTION mechanism (spine object + registry + wall + byte-identical baseline) is agent-buildable; the named worlds and their true-probability tags are director-authored CURRICULUM (SPINE_2_launch_worlds, director-ratified values, R13), never agent-set. DoD (BACKLOG B1): >=3 named scenario worlds selectable by a committed director-facing config, each carrying a true-probability tag, a run launchable against any of them with the manifest recording which, and a test asserting scenario choice changes the world the company sees WITHOUT touching baseline ground truth (byte-identical baseline guarantee, R15 obligation W2 golden-hash). Follow-on siblings named in FRAME section C (SPINE_2 launch worlds / SPINE_3 gas-storage-crisis regime / SPINE_4 living curve+spread surface / SPINE_5 tail machinery) stay named-not-registered until this lands. No BUILD code, no engine touched, level_current 0 (R16: no self-bump; BUILD-open + any level move is director/twin per blocked_on).'
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a risk desk's scenario library: a small set of named, human-curated pathway worlds (the NESO Future Energy Scenarios pattern) sampled tail-heavy against their true probabilities, that the trading book is stress-run through -- the desk knows which world it is stress-testing; the front office does not get to see the future it is being tested against"
+  evidence: [docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md, docs/market_research/scenario_spine_and_friction_anchors_2026-07-23.md, docs/design/BACKLOG.md]

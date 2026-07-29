@@ -62,6 +62,10 @@ see [[project_scenario_spine_frame]], wall = import-direction).
 (R13 curriculum: named + versioned, never silent drift); each carries a true-probability tag; a run
 can be launched against any of them and the manifest records which; a test asserts scenario choice
 changes the world the company sees without touching baseline ground truth.
+**Wiring status (2026-07-29):** REGISTERED into `maturity_map.yaml` as `SPINE_1_scenario_world_state`
+(`provenance: proposal`, `loop_stage: idle`, `level_current: 0`, `blocked_on: director_build_open`) —
+the world-selection MECHANISM half of B1. The named-world VALUES half is the FRAME's `SPINE_2_launch_worlds`
+(director-ratified R13 curriculum), still named-not-registered per FRAME section C, as are SPINE_3–SPINE_5.
 
 ### B2 — Gas storage stock-and-flow that can *produce* a 2022 inversion (World; Wave B, coupled w/ B6)
 **Plain:** model gas storage as a stock that fills and draws, so a supply shock endogenously
@@ -126,6 +130,14 @@ feeds cannot judge anything. High compounding + §4 (the primary visible output)
 per-customer tCO₂e trajectories produced from observables; a £/tCO₂e figure derived and shown on the
 site with its clock/basis (R14) and a plain-language explanation of the working (§4); the "not yet
 instrumented" disclaimer removed only when the live rendered figure is asserted (R11).
+**Reconciliation (2026-07-29): B9 IS the existing map atom `E5_carbon_three_ledger`, NOT a new atom.**
+E5 already exists (`provenance: proposal`, `loop_stage: idle`, rung-1 DATA MODEL + CARBON_NOT_A_TARGET
+grep-guard BUILT, `level_current: 0`). B9's definition of done above is precisely E5's remaining
+L1→L3 work: the live SAVED feed (per-household cost-and-carbon trajectory, unbuilt), NESO intensity ×
+HH read wiring, and the on-site £/tCO₂e figure. E5 is BUILD-blocked on two director VALUES-calls
+(emissions-factor set + counterfactual method, carbon = the mission = cat-6) plus the trajectory build —
+so "carbon instrumented" advances by unblocking E5, NOT by authoring a duplicate. B9 here is the
+site-facing framing of that same work; do not register a second atom.
 
 ### B10 — Competitors (Market; Wave C)
 **Plain:** other suppliers, so the company's pricing meets opposition instead of pricing into a void.
