@@ -1,6 +1,6 @@
 {
   "meta": {
-    "topic_id": "wholesale-price-formation",
+    "topic_id": "electricity-wholesale",
     "title": "How Great Britain's wholesale electricity price is formed",
     "subtitle": "The single number that decides most of an energy bill -- where it comes from, what it characteristically does, and where our picture of it is still weak.",
     "one_line": "At every moment, GB's wholesale electricity price is set by the running cost of the most expensive power station needed to meet demand -- so the price follows gas and carbon, not the average of the whole fleet.",
@@ -842,8 +842,8 @@
   },
   "topics": [
     {
-      "id": "wholesale-price-formation",
-      "title": "Wholesale price formation",
+      "id": "electricity-wholesale",
+      "title": "GB electricity wholesale",
       "kind": "page",
       "blurb": "This page: how the GB wholesale electricity price is set at the margin."
     },
@@ -899,37 +899,37 @@
   ],
   "edges": [
     {
-      "from": "wholesale-price-formation",
+      "from": "electricity-wholesale",
       "type": "part-of",
       "to": "gb-electricity-market"
     },
     {
       "from": "merit-order-residual-demand",
       "type": "mechanism-of",
-      "to": "wholesale-price-formation"
+      "to": "electricity-wholesale"
     },
     {
       "from": "gas-price",
       "type": "drives",
-      "to": "wholesale-price-formation"
+      "to": "electricity-wholesale"
     },
     {
       "from": "carbon-price",
       "type": "drives",
-      "to": "wholesale-price-formation"
+      "to": "electricity-wholesale"
     },
     {
       "from": "imbalance-cashout-settlement",
       "type": "mechanism-of",
-      "to": "wholesale-price-formation"
+      "to": "electricity-wholesale"
     },
     {
-      "from": "wholesale-price-formation",
+      "from": "electricity-wholesale",
       "type": "prerequisite-for",
       "to": "hedging-forward-market"
     },
     {
-      "from": "wholesale-price-formation",
+      "from": "electricity-wholesale",
       "type": "governed-by",
       "to": "price-cap"
     }

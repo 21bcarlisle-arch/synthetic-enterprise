@@ -1,4 +1,4 @@
-// Render harness for the wholesale-price-formation knowledge page.
+// Render harness for the electricity-wholesale knowledge page.
 // Extracts the inline <script>, runs it against a minimal DOM + inert fetch stub,
 // invokes the page's own renderKnowledge() against the supplied JSON, and prints
 // every captured element's contents as JSON so a test can assert on the RENDERED

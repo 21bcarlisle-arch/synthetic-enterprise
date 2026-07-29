@@ -1,4 +1,4 @@
-"""Render-side + coherence tests for the wholesale-price-formation knowledge page.
+"""Render-side + coherence tests for the electricity-wholesale knowledge page.
 
 R11 (verify to the rendered value): these execute the page's ACTUAL inline
 JavaScript (via a Node/vm harness) against the REAL published
@@ -54,7 +54,7 @@ def _esc(s: str) -> str:
 
 def test_data_wellformed():
     d = _live()
-    assert d["meta"]["topic_id"] == "wholesale-price-formation"
+    assert d["meta"]["topic_id"] == "electricity-wholesale"
     # the six explanatory rungs are all present and non-empty
     for k in ("headline", "plain", "theory", "expected_shape", "live_evidence", "residuals"):
         assert d["rungs"].get(k), f"missing rung {k}"
@@ -218,7 +218,7 @@ def test_exactly_one_canonical_page():
     assert len(pages) == 1, "exactly one canonical page per topic"
     # mutation: a duplicate canonical page must red this check
     mut = copy.deepcopy(d)
-    mut["topics"].append({"id": "wholesale-price-formation", "title": "dup", "kind": "page"})
+    mut["topics"].append({"id": "electricity-wholesale", "title": "dup", "kind": "page"})
     dup_pages = [t for t in mut["topics"] if t.get("kind") == "page"]
     assert len(dup_pages) != 1
 
@@ -231,7 +231,7 @@ def test_no_orphan_edge_targets():
         assert e["to"] in ids, f"orphan edge target {e['to']}"
     # mutation: an edge to a non-existent topic must red this check
     mut = copy.deepcopy(d)
-    mut["edges"].append({"from": "wholesale-price-formation", "type": "drives", "to": "ghost-topic"})
+    mut["edges"].append({"from": "electricity-wholesale", "type": "drives", "to": "ghost-topic"})
     orphaned = any(e["to"] not in ids for e in mut["edges"])
     assert orphaned
 
@@ -241,7 +241,7 @@ def test_prerequisite_edges_acyclic():
     assert not _prereq_has_cycle(d["edges"]), "prerequisite-for chain must be acyclic"
     # mutation: an injected cycle must be detected
     mut_edges = copy.deepcopy(d["edges"]) + [
-        {"from": "hedging-forward-market", "type": "prerequisite-for", "to": "wholesale-price-formation"}
+        {"from": "hedging-forward-market", "type": "prerequisite-for", "to": "electricity-wholesale"}
     ]
     assert _prereq_has_cycle(mut_edges)
 
