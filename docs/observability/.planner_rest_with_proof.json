@@ -13,20 +13,23 @@
     "PLANNER_MINTED_one_node_to_depth_with_charts_2026-07-28.md",
     "PLANNER_MINTED_owned_quantity_registry_gate_2026-07-28.md",
     "PLANNER_MINTED_payment_channel_dd_consistency_invariant_2026-07-28.md",
+    "PLANNER_MINTED_phone_signer_a1_correction_2026-07-29.md",
     "PLANNER_MINTED_privacy_policy_page_2026-07-28.md",
     "PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md",
     "PLANNER_MINTED_reversible_draws_dont_queue_for_permission_2026-07-29.md",
     "PLANNER_MINTED_rng_substream_primitive_2026-07-28.md",
     "PLANNER_MINTED_ruling_consumption_ledger_release_2026-07-28.md",
     "PLANNER_MINTED_shared_primitive_ensuring_activity_2026-07-28.md",
+    "PLANNER_MINTED_signing_key_provision_act_2026-07-29.md",
     "PLANNER_MINTED_size_and_clone_ratchet_2026-07-28.md",
     "PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md",
     "PLANNER_MINTED_stop_control_gap_characterisation_2026-07-28.md",
     "PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md",
     "PLANNER_MINTED_unstated_reason_block_impossible_2026-07-28.md",
     "PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md",
+    "PLANNER_MINTED_wake_hmac_key_loader_2026-07-29.md",
     "PLANNER_MINTED_working_day_calculator_2026-07-28.md"
   ],
-  "proof_summary": "RUNG-7 re-examination (2026-07-29, ~10:55Z tick): premise STILL FALSE, no un-minted non-walled ratified-goal next-step exists. This tick fired ONLY because the EIGHTH-CLASS 2h rest-proof age-cap expired (prior proof written 08:51Z, age ~7.4ks > 7200s) -- the mechanism forcing an honest re-check, not new work. Re-verified all 5 sources against the 08:51Z proof and found them byte-identical: (1) staging root holds only routine run_complete_* (no new director input); (2) no in_progress file modified after 08:51Z (find -newermt empty); the 4 freshest rulings (07-29 LITERAL_ACTS, LITERAL_ACT_LIST, PHONE_SIGNER_NO_CONSOLE, WORK_AT_RISK_DEFAULT) all already CONSUMED into named atoms; (3) CAMPAIGN_REGISTER.yaml -> only SITE_V5, closed, no follow-on; (4) fidelity_evidence_ledger.json -> same 5 evidence rows: W1_6 SSP calm-cell lift<=0 is R13 baseline-reserved + ruled-red (director 2026-07-19), bad_debt_provision (aging_matrix/stage_recovery unwired) covered by the PARKED dunning steer + minted step-1 bridge, and the 3 live_payment_detection_gap cells (W2_11) are COUPLED-TRIAD recorded simplifications (the gap IS the score) -- none a self-closable non-walled step; (5) DIRECTOR_AXES unchanged (axes_sha match). Authoritative oracle _in_progress_minted_slugs(): self_drawable=0, blocked=24 -- no fired-window mint re-opened; every ratified next-step is minted-and-blocked on a director wall (director_level_up/R16, director_build_open, one-way-door #5) or R13 curriculum/generator ground truth. Walls untouched. REST-WITH-PROOF (age-cap reset), NOT a duplicate mint -- re-minting the 24 parked-blocked atoms would be pure accretion.",
-  "written_at": "2026-07-29T10:55:51.382433+00:00"
+  "proof_summary": "RUNG-7 planning turn 2026-07-29: checked all four ratified sources. DIRECTOR_AXES v1 (Website/Segmentation/Believability) + roadmap rotation (Billing/CRM, advice) is director-reserved (walled). CAMPAIGN_REGISTER: only SITE_V5, status=closed, all 5 surfaces landed -- no open follow-ons. fidelity_evidence_ledger rows are measured-evidence records (W1_6 ssp, bad_debt, live_payment A1_G1/G2) whose atoms are already minted (ssp_negative_lift_cells, payment_channel_dd, dunning). maturity_map epoch arc: next-steps across the three axes are already represented by the 27 PLANNER_MINTED_* docs parked BLOCKED in in_progress/ (build_open / director-ratification / escalation-gated). 0 self-drawable mints. No un-minted, non-walled ratified-goal next-step remains -> premise FALSE -> rest-with-proof (2h age-cap re-examines; a day-roll, axes change, or any unblock re-plans).",
+  "written_at": "2026-07-29T11:24:02.417539+00:00"
 }
