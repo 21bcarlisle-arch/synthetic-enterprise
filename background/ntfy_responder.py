@@ -220,12 +220,18 @@ def acquire_singleton_lock():
     """
     path = PROJECT_DIR / "background" / SINGLETON_LOCK_NAME
     path.parent.mkdir(parents=True, exist_ok=True)
-    handle = open(path, "w")
+    # "a+" never truncates: opening "w" would have WIPED the holder's PID record before we
+    # even attempted the lock, so a refused second instance left the file empty and the one
+    # artefact a human reads to ask "who holds it?" answered nothing. Truncate only once we
+    # have actually won.
+    handle = open(path, "a+")
     try:
         fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
         handle.close()
         return None
+    handle.seek(0)
+    handle.truncate()
     handle.write(f"{os.getpid()}\n")
     handle.flush()
     return handle

@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 import pytest
@@ -619,3 +620,19 @@ def test_distinct_messages_in_the_same_second_do_not_overwrite(tmp_path, monkeyp
     assert first != second
     assert first.exists() and second.exists()
     assert len(list((tmp_path / "docs" / "staging").glob("from_rich_*.md"))) == 2
+
+
+def test_refused_instance_does_not_wipe_the_holders_pid_record(tmp_path, monkeypatch):
+    """The lock file is the one artefact a human reads to ask WHO holds it. Opening it "w"
+    truncated the holder's PID before the flock was even attempted, so a refused second
+    instance left it empty -- the diagnostic lied. Restore `open(path, "w")` and this reds."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    (tmp_path / "background").mkdir(parents=True, exist_ok=True)
+    holder = responder.acquire_singleton_lock()
+    try:
+        lock_file = tmp_path / "background" / responder.SINGLETON_LOCK_NAME
+        assert lock_file.read_text().strip() == str(os.getpid())
+        assert responder.acquire_singleton_lock() is None      # refused
+        assert lock_file.read_text().strip() == str(os.getpid())  # record survived
+    finally:
+        holder.close()
