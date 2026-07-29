@@ -16,17 +16,52 @@ COMPANY's internal decision rights, behind the epistemic wall). Do not
 conflate the two: this module never touches simulation/company code, and
 nothing in the simulated company's governance calls into it.
 
-PROCEED_BY_DEFAULT.md's seven categories, verbatim:
-1. Spending real money.
-2. Real-world commitments: legal, regulatory, contractual; anything binding
-   outside the repo.
-3. Public claims that cannot be retracted (a PROVISIONAL-labelled figure IS
-   retractable — does not count).
-4. Irrecoverable data loss (canonical state with no backup).
-5. Security posture / secrets exposure / safety-control changes.
-6. Values decisions defining what the company is FOR (e.g. the Epoch-4
-   fitness function).
-7. Anything touching a real customer or a real market (none exist yet).
+RE-SCOPE TO REALITY (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY
+item 5, confirmed directly by the director on the NTFY channel the same evening,
+`docs/staging/done/from_rich_20260729_192946.md`, verbatim: *"'safety control'
+means protecting a real person, real money, or a public claim in the company's
+name. A control that stops a simulation is not one — re-tag those and release
+them. This message is the authorisation; ntfy is me."*):
+
+**A category only RESERVES an action if its consequence lands OUTSIDE the
+simulation.** The reserved set is now exactly four real-world consequences —
+real money, real people (contacting them / their safety), a public claim in
+Poesys's name, and a live credential that grants a stranger real capability
+under the director's real identity. Every other category still CLASSIFIES (it
+informs, and the classification is logged), but it no longer GATES: a verdict on
+a released category returns `is_one_way_door=False` with `advisory_category`
+set. The ruling's own test for a retention is "name the real-world consequence
+it prevents — and if the consequence is internal to a simulation, that is not a
+reason", so each entry below carries its consequence or its release reason.
+
+RESERVED — gates, every time:
+1. REAL_MONEY — money leaves a real account (now also billing plans and model
+   entitlements: changing the plan spends real money).
+2. REAL_WORLD_COMMITMENT — binds a real person or organisation outside the repo
+   (a signed contract, a regulatory filing).
+3. IRRETRACTABLE_PUBLIC_CLAIM — a claim in the company's name that cannot be
+   withdrawn (a PROVISIONAL-labelled figure IS retractable — does not count).
+4. REAL_CUSTOMER_OR_MARKET — touches a real person or a live market.
+5. LIVE_CREDENTIAL_EXPOSURE — a real key/token/secret. Retained with its
+   real-world consequence named: a leaked live credential lets someone who is
+   not the director act, and spend, as him. That consequence is not internal to
+   any simulation. (Split out of the old PLATFORM_ADMINISTRATION, whose
+   remaining members are settings, not credentials.)
+
+RELEASED — classifies and informs, never gates:
+- IRRECOVERABLE_DATA_LOSS — the loss is repo/simulation state, recoverable from
+  origin and history. No real person, no real money.
+- SECURITY_SAFETY_CONTROL — these are the HARNESS's own controls (the verifier,
+  the hooks, the staging flow, skip-permissions). Disarming one stops a
+  simulation; it protects nobody real. This is the exact category the director
+  re-tagged by name.
+- VALUES_DECISION — the curriculum and the fitness function. R13 and LAW A still
+  govern as canon (a curriculum change is a named, versioned, director-authored
+  artefact, never silent parameter drift), but canon is now enforced by that
+  artefact discipline, NOT by a permission gate on this predicate.
+- PLATFORM_ADMINISTRATION — repo settings, visibility, branch protection,
+  connectors. The director may still prefer to make these himself; a preference
+  is a DIAL, and a dial informs, it does not block.
 
 Everything else: PROCEED — this module is a gate for the rare case, not a
 permission check for routine work. Absence of a match means "not a one-way
@@ -59,6 +94,14 @@ class OneWayDoorCategory(Enum):
     # never the agent's autonomous choice, regardless of reversibility.
     PLATFORM_ADMINISTRATION = "platform_administration"
     REAL_CUSTOMER_OR_MARKET = "real_customer_or_market"
+    # 2026-07-29 (DIRECTOR_RULING item 5 re-scope): split OUT of
+    # PLATFORM_ADMINISTRATION, which is otherwise released. Retained as a wall
+    # with its real-world consequence named, exactly as the ruling requires:
+    # a live key/token/secret lets someone who is NOT the director act, and
+    # spend, as him. That consequence lands outside every simulation, so it is
+    # the "real money / real people" wall wearing a technical hat -- not a
+    # control that merely stops a sim. Settings are a dial; credentials are not.
+    LIVE_CREDENTIAL_EXPOSURE = "live_credential_exposure"
 
 
 @dataclass(frozen=True)
@@ -71,6 +114,12 @@ class OneWayDoorVerdict:
     # call must be RECORDED so it is auditable. This flag lets decision_log/action_needed
     # mark it as an ambiguous-reversible proceed rather than a plainly-clear one.
     ambiguous_reversible_proceed: bool = False
+    # 2026-07-29 DIRECTOR_RULING item 5: released categories are now informational only.
+    # A verdict on a released category returns `is_one_way_door=False` with `advisory_category`
+    # set, so callers can log the classification even though it does not gate. This preserves
+    # the audit trail and lets a dialed preference (e.g. "director prefers to do this") stay
+    # visible to readers, while accepting that "released" means "no gate."
+    advisory_category: OneWayDoorCategory | None = None
 
 
 # Keyword signals per category — deliberately broad/over-inclusive (a false
@@ -96,6 +145,10 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
         r"\bapprove\b[^.]{0,40}\bspend(ing)?\b",
         r"\b(paid|billable) subscription\b", r"\bcredit card\b",
         r"\bout of pocket\b", r"\btop ?up (the )?(account|balance|credit)\b",
+        # 2026-07-29 re-scope: moved here from PLATFORM_ADMINISTRATION (now released).
+        # Changing a billing plan or a model entitlement SPENDS REAL MONEY -- it is a
+        # money wall, not a settings preference, and must not be released with settings.
+        r"\bbilling\b", r"\b(plan|model) entitlement",
     ],
     OneWayDoorCategory.REAL_WORLD_COMMITMENT: [
         r"\bsign(ed|ing)? (a |the )?contract\b", r"\blegal(ly)? bind", r"\bregulatory filing\b",
@@ -140,13 +193,36 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
     ],
     OneWayDoorCategory.PLATFORM_ADMINISTRATION: [
         r"repo(sitory)? (settings|visibility)", r"branch protection", r"github (settings|controls|repo)",
+        r"account settings", r"\bconnector",
+        r"change what.*(allowed|permitted) to do", r"grant.*(broader|new|additional) (access|permission)",
+    ],
+    # RESERVED. Credentials moved here verbatim out of PLATFORM_ADMINISTRATION so the
+    # released-settings half cannot take the credential half down with it.
+    OneWayDoorCategory.LIVE_CREDENTIAL_EXPOSURE: [
         r"\b(api )?keys?\b.*(creat|rotat|generat|revoke)", r"(creat|rotat|generat|revoke)\w*.*\b(api )?keys?\b",
         r"\btokens?\b.*(creat|rotat|generat|revoke)", r"(creat|rotat|generat|revoke)\w*.*\btokens?\b",
         r"\bcredential", r"\bsecrets?\b.*(creat|rotat|generat|expose)", r"(creat|rotat|generat|expose)\w*.*\bsecrets?\b",
-        r"account settings", r"\bconnector", r"\bbilling\b", r"\b(plan|model) entitlement",
-        r"change what.*(allowed|permitted) to do", r"grant.*(broader|new|additional) (access|permission)",
     ],
 }
+
+# 2026-07-29 DIRECTOR_RULING item 5: released categories (advisory only, no gate).
+# These classify and inform, but is_one_way_door is False; the verdict's
+# `advisory_category` is set instead, so callers can log the classification.
+# Each is released because its real-world consequence (if any) is internal
+# to the simulation: stopping a simulation protects no one real.
+_RELEASED_CATEGORIES = frozenset({
+    OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS,
+    OneWayDoorCategory.SECURITY_SAFETY_CONTROL,
+    OneWayDoorCategory.VALUES_DECISION,
+    OneWayDoorCategory.PLATFORM_ADMINISTRATION,
+})
+
+# The four real-world consequences, derived as the COMPLEMENT of the released set so the
+# two can never silently disagree (a new enum member defaults to RESERVED -- fail-closed
+# on the walls, which is the safe direction for the half that protects real people).
+RESERVED_CATEGORIES = frozenset(
+    c for c in OneWayDoorCategory if c not in _RELEASED_CATEGORIES
+)
 
 _PROVISIONAL_CARVEOUT = re.compile(r"\bprovisional\b", re.IGNORECASE)
 
@@ -216,6 +292,20 @@ def classify_action(
     uncertainty behaviour, per the director's calibration.
     """
     if explicit_category is not None:
+        # A caller naming a RELEASED category no longer gates either -- otherwise
+        # explicit_category would be a back door around the 2026-07-29 re-scope, and
+        # the permission machinery would survive in its most-used call path.
+        if explicit_category in _RELEASED_CATEGORIES:
+            return OneWayDoorVerdict(
+                is_one_way_door=False,
+                category=None,
+                reason=(
+                    f"explicitly categorised as {explicit_category.value}, which is RELEASED "
+                    "(2026-07-29 ruling item 5: its consequence is internal to the simulation) "
+                    "-- classified and logged, not gated"
+                ),
+                advisory_category=explicit_category,
+            )
         return OneWayDoorVerdict(
             is_one_way_door=True,
             category=explicit_category,
@@ -223,6 +313,12 @@ def classify_action(
         )
 
     lowered = description.lower()
+    # A released match must NEVER short-circuit the scan: "disable the verifier so we can
+    # spend real money on the feed" matches SECURITY_SAFETY_CONTROL (released) before
+    # REAL_MONEY (reserved) in dict order, and returning on the first match would read
+    # PROCEED on a real-money action. So: remember the first released match, keep scanning,
+    # and only fall back to it once every reserved category has been ruled out.
+    first_released: tuple[OneWayDoorCategory, str] | None = None
     for category, patterns in _CATEGORY_PATTERNS.items():
         for pattern in patterns:
             if re.search(pattern, lowered):
@@ -236,11 +332,28 @@ def classify_action(
                         and not _PUBLIC_CLAIM_OBJECT.search(lowered)
                     ):
                         continue
+                if category in _RELEASED_CATEGORIES:
+                    if first_released is None:
+                        first_released = (category, pattern)
+                    break  # this category is decided; keep scanning the reserved ones
                 return OneWayDoorVerdict(
                     is_one_way_door=True,
                     category=category,
                     reason=f"matched pattern {pattern!r} for {category.value}",
                 )
+
+    if first_released is not None:
+        released_category, released_pattern = first_released
+        return OneWayDoorVerdict(
+            is_one_way_door=False,
+            category=None,
+            reason=(
+                f"matched pattern {released_pattern!r} for {released_category.value}, a RELEASED "
+                "category (2026-07-29 ruling item 5: a control that stops a SIMULATION is not a "
+                "safety control) -- PROCEED, record the undo, say what you did"
+            ),
+            advisory_category=released_category,
+        )
 
     # PROVABLE irreversibility (caller-asserted, keyword-missed): the only non-keyword
     # path to escalation now that the burden of proof has inverted.

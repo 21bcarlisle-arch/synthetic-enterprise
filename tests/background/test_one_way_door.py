@@ -5,7 +5,12 @@ on "it's a door" -- reversibility is the default verdict, ambiguity proceeds-
 and-logs, only PROVABLE doors escalate; the door LIST and hard walls are
 unchanged.
 """
-from background.one_way_door import OneWayDoorCategory, classify_action
+from background.one_way_door import (
+    RESERVED_CATEGORIES,
+    OneWayDoorCategory,
+    _RELEASED_CATEGORIES,
+    classify_action,
+)
 
 
 def test_ordinary_reversible_work_proceeds():
@@ -14,18 +19,20 @@ def test_ordinary_reversible_work_proceeds():
     assert verdict.category is None
 
 
-def test_values_question_escalates():
-    """The director's own named test case: a values decision must always
-    escalate, never be answered by the agent."""
+def test_values_question_is_released_but_still_classified():
+    """RE-SCOPED 2026-07-29 (ruling item 5 + the director's own NTFY confirmation): a
+    values/curriculum decision's consequence is internal to the simulation, so it no
+    longer GATES. It must still CLASSIFY -- released means un-gated, not invisible."""
     verdict = classify_action("choose the tournament fitness function for A5_tournament_fitness_mortality")
-    assert verdict.is_one_way_door is True
-    assert verdict.category == OneWayDoorCategory.VALUES_DECISION
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.VALUES_DECISION
+    assert verdict.category is None
 
 
-def test_optimise_for_enterprise_value_is_a_values_decision():
+def test_optimise_for_enterprise_value_is_released_advisory():
     verdict = classify_action("should the fitness function optimise purely for enterprise value?")
-    assert verdict.is_one_way_door is True
-    assert verdict.category == OneWayDoorCategory.VALUES_DECISION
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.VALUES_DECISION
 
 
 def test_real_money_escalates():
@@ -33,16 +40,20 @@ def test_real_money_escalates():
     assert verdict.is_one_way_door is True
 
 
-def test_irrecoverable_data_loss_escalates():
+def test_irrecoverable_data_loss_is_released_but_still_classified():
+    """Released: the loss is repo/simulation state, recoverable from origin and history.
+    No real person, no real money -- the ruling's own test for a retention."""
     verdict = classify_action("run git push --force to origin main to fix the history")
-    assert verdict.is_one_way_door is True
-    assert verdict.category == OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS
 
 
-def test_security_control_escalates():
+def test_security_control_is_released_but_still_classified():
+    """The category the director re-tagged BY NAME: these are the harness's own controls,
+    and disarming one stops a simulation rather than protecting anybody real."""
     verdict = classify_action("update the security profile to grant broader tool access")
-    assert verdict.is_one_way_door is True
-    assert verdict.category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
 
 
 def test_provisional_publish_does_not_count_as_irretractable():
@@ -109,11 +120,26 @@ def test_explicit_category_is_trusted_directly():
     assert verdict.category == OneWayDoorCategory.REAL_CUSTOMER_OR_MARKET
 
 
-def test_explicit_category_wins_even_over_uncertain_false():
+def test_explicit_category_is_not_a_back_door_around_the_release():
+    """explicit_category is the most-used call path, so if it still gated a RELEASED
+    category the re-scope would be cosmetic and the permission machinery would survive
+    exactly where it is invoked most. Mutation intent: drop the released check in
+    classify_action's explicit_category branch and this goes red."""
     verdict = classify_action(
         "sounds fine", explicit_category=OneWayDoorCategory.VALUES_DECISION, uncertain=False
     )
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.VALUES_DECISION
+
+
+def test_explicit_category_still_gates_a_reserved_category():
+    """R15 the other way: the release must not disarm the four real-world walls on the
+    same call path."""
+    verdict = classify_action(
+        "sounds fine", explicit_category=OneWayDoorCategory.REAL_MONEY, uncertain=False
+    )
     assert verdict.is_one_way_door is True
+    assert verdict.category == OneWayDoorCategory.REAL_MONEY
 
 
 def test_real_world_legal_commitment_escalates():
@@ -122,33 +148,93 @@ def test_real_world_legal_commitment_escalates():
     assert verdict.category == OneWayDoorCategory.REAL_WORLD_COMMITMENT
 
 
-def test_repository_settings_escalate_as_platform_administration():
-    """ADVISOR_STEER_TWIN_READONLY.md (2026-07-12): repo settings/visibility/
-    branch protection are the director's hands only."""
+def test_repository_settings_are_released_as_advisory():
+    """RE-SCOPED: repo settings/visibility/branch protection change what the machine may
+    do INSIDE its own repo. The director may still prefer to make them himself -- and a
+    preference is a DIAL, which informs; it does not block (Rule 0)."""
     verdict = classify_action("change the repository visibility settings on GitHub")
-    assert verdict.is_one_way_door is True
-    assert verdict.category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
 
 
-def test_key_rotation_escalates_as_platform_administration():
-    verdict = classify_action("rotate the API key for the market data provider")
-    assert verdict.is_one_way_door is True
-    assert verdict.category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
-
-
-def test_billing_and_connectors_escalate_as_platform_administration():
-    for text in ["update the account billing plan", "add a new connector to the routine"]:
+def test_key_rotation_is_RESERVED_as_live_credential_exposure():
+    """The retention the ruling explicitly invited, with its real-world consequence named:
+    a live key lets someone who is not the director act, and spend, AS HIM. That lands
+    outside every simulation. Mutation intent: fold LIVE_CREDENTIAL_EXPOSURE back into the
+    released PLATFORM_ADMINISTRATION and this goes red."""
+    for text in [
+        "rotate the API key for the market data provider",
+        "generate a new token for the ops repo",
+        "expose the secrets file to the worker",
+        "store the credential in the working tree",
+    ]:
         verdict = classify_action(text)
-        assert verdict.is_one_way_door is True, f"should escalate: {text}"
-        assert verdict.category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
+        assert verdict.is_one_way_door is True, f"credential wall must hold: {text}"
+        assert verdict.category == OneWayDoorCategory.LIVE_CREDENTIAL_EXPOSURE
+
+
+def test_billing_is_RESERVED_as_real_money_but_connectors_are_released():
+    """The split that matters: changing a billing plan SPENDS REAL MONEY (wall), while
+    adding a connector is a settings preference (released). Both used to be one category."""
+    billing = classify_action("update the account billing plan")
+    assert billing.is_one_way_door is True
+    assert billing.category == OneWayDoorCategory.REAL_MONEY
+
+    connector = classify_action("add a new connector to the routine")
+    assert connector.is_one_way_door is False
+    assert connector.advisory_category == OneWayDoorCategory.PLATFORM_ADMINISTRATION
 
 
 def test_security_profile_still_classifies_as_security_not_platform_admin():
-    """Security profiles are reaffirmed as SECURITY_SAFETY_CONTROL, not
-    folded into the new PLATFORM_ADMINISTRATION category -- the two are
-    related but distinct per the doc's own framing."""
+    """Security profiles still CLASSIFY as SECURITY_SAFETY_CONTROL (distinct from
+    PLATFORM_ADMINISTRATION), they simply no longer gate."""
     verdict = classify_action("change the security profile to grant broader tool access")
-    assert verdict.category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+    assert verdict.advisory_category == OneWayDoorCategory.SECURITY_SAFETY_CONTROL
+
+
+def test_a_released_match_never_masks_a_reserved_one():
+    """THE FAIL-OPEN THIS RE-SCOPE COULD HAVE INTRODUCED (R15). Released categories are
+    scanned BEFORE reserved ones in dict order, so returning on the first match would read
+    PROCEED on a sentence that also spends real money. The scan must keep going.
+    Mutation intent: return immediately on the released match and these go red."""
+    for text in [
+        "disable the verifier hook so we can spend real money on the data feed",
+        "git reset --hard, then sign the contract with the vendor",
+        "change the security profile and rotate the production API key",
+    ]:
+        verdict = classify_action(text)
+        assert verdict.is_one_way_door is True, f"reserved wall masked by a released match: {text}"
+        assert verdict.category in RESERVED_CATEGORIES
+
+
+def test_released_categories_are_exactly_the_simulation_internal_ones():
+    """The released set is the ruling's own list, pinned so a later edit cannot quietly
+    release a real-world wall (or re-gate a released one) without this test noticing."""
+    assert _RELEASED_CATEGORIES == frozenset({
+        OneWayDoorCategory.IRRECOVERABLE_DATA_LOSS,
+        OneWayDoorCategory.SECURITY_SAFETY_CONTROL,
+        OneWayDoorCategory.VALUES_DECISION,
+        OneWayDoorCategory.PLATFORM_ADMINISTRATION,
+    })
+    # The four real-world consequences the director reserved, and nothing else.
+    assert RESERVED_CATEGORIES == frozenset({
+        OneWayDoorCategory.REAL_MONEY,
+        OneWayDoorCategory.REAL_WORLD_COMMITMENT,
+        OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM,
+        OneWayDoorCategory.REAL_CUSTOMER_OR_MARKET,
+        OneWayDoorCategory.LIVE_CREDENTIAL_EXPOSURE,
+    })
+    assert not (RESERVED_CATEGORIES & _RELEASED_CATEGORIES)
+
+
+def test_a_released_verdict_is_never_silently_blank():
+    """FAIL-SILENT guard (R15): "released" must mean classified-and-logged, not dropped.
+    A released verdict that came back with no advisory_category would be indistinguishable
+    from "nothing matched" -- the audit trail the ruling explicitly kept would vanish."""
+    verdict = classify_action("disable the epistemic verifier gate for this run")
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category is not None
+    assert "released" in verdict.reason.lower()
 
 
 def test_reversible_code_change_never_matches_any_category():
@@ -209,14 +295,17 @@ def test_genuine_public_claim_still_escalates_even_alongside_machinery_words():
         assert v.category == OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM
 
 
-def test_opening_a_new_epoch_is_a_values_door():
-    """The genuine curriculum door still fires: actually OPENING a new/next epoch is
-    the director's category-6 call (R13/LAW A)."""
+def test_opening_a_new_epoch_is_classified_but_no_longer_gated():
+    """RE-SCOPED: opening a new epoch is still recognised as a curriculum act and still
+    classified as such -- but its consequence is which worlds a SIMULATION runs through,
+    which the director's own test puts outside the reserved set. R13/LAW A still govern
+    it as canon (named, versioned, director-authored artefact; never silent drift); that
+    canon is now carried by the artefact discipline, not by a permission gate here."""
     for text in [
         "open Epoch 4 for the B4 competitor field",
         "opening a new epoch (weather physics)",
         "open the next epoch now",
     ]:
         v = classify_action(text)
-        assert v.is_one_way_door is True, f"missed genuine epoch-open door: {text}"
-        assert v.category == OneWayDoorCategory.VALUES_DECISION
+        assert v.is_one_way_door is False, f"epoch-open should no longer gate: {text}"
+        assert v.advisory_category == OneWayDoorCategory.VALUES_DECISION

@@ -40,6 +40,22 @@ restatement, not a repeal — resolved as follows so no wall silently disappears
 Net effect on behaviour: the door list is unchanged; what changed is that
 everything *outside* it must now arrive as a decision already taken.
 
+**SUPERSEDED same evening by `DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md`
+item 5** (confirmed directly on NTFY, `docs/staging/done/from_rich_20260729_192946.md`:
+*"'safety control' means protecting a real person, real money, or a public claim in the
+company's name. A control that stops a simulation is not one — re-tag those and release
+them."*). The row above reading `SECURITY_SAFETY_CONTROL`/`PLATFORM_ADMINISTRATION` as
+"unchanged... a safety control by any reading" is now WRONG and kept here only as the
+historical record of what this doc believed a few hours earlier. The reserved set actually
+enforced in `background/one_way_door.py` (as of commit landing this note) is: `REAL_MONEY`,
+`REAL_WORLD_COMMITMENT`, `IRRETRACTABLE_PUBLIC_CLAIM`, `REAL_CUSTOMER_OR_MARKET`, and the new
+`LIVE_CREDENTIAL_EXPOSURE` (split out of `PLATFORM_ADMINISTRATION` with its real-world
+consequence named: a leaked live credential lets someone who is not the director act, and
+spend, as him). `SECURITY_SAFETY_CONTROL`, `VALUES_DECISION`, `IRRECOVERABLE_DATA_LOSS`, and
+the settings-half of `PLATFORM_ADMINISTRATION` are now RELEASED — still classified (a verdict
+carries `advisory_category`), never gated. See `one_way_door.py`'s own module docstring for
+the live, authoritative statement; this file is not it.
+
 ## The mechanism (MAKE_IT_STICK)
 
 Prose-only rules here have a perfect record of decaying. `background/recommendation_guard.py`

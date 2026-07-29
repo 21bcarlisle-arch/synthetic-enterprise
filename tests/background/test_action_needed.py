@@ -222,12 +222,29 @@ def test_escalate_if_one_way_door_uncertain_provable_wall_still_escalates(path):
 
 
 def test_escalate_if_one_way_door_why_names_the_real_category(path):
+    """Category swapped 2026-07-29: "disable the epistemic verifier hook" was
+    SECURITY_SAFETY_CONTROL, which the ruling RELEASED (it stops a simulation; it
+    protects nobody real), so it no longer escalates and there is no message to
+    inspect. A still-reserved real-world category exercises the same naming path."""
     sent = []
     action_needed.escalate_if_one_way_door(
+        "credential-1", "rotate the token for the ops repo",
+        "n/a", path=path, send_ntfy_fn=lambda msg: sent.append(msg),
+    )
+    assert "live_credential_exposure" in sent[0]
+
+
+def test_escalate_if_one_way_door_stays_silent_on_a_released_category(path):
+    """The release, proven at the escalation seam itself: a harness-internal control
+    change must no longer reach the director's phone at all. Mutation intent: re-gate
+    SECURITY_SAFETY_CONTROL and this goes red (a message appears)."""
+    sent = []
+    verdict = action_needed.escalate_if_one_way_door(
         "security-1", "disable the epistemic verifier hook",
         "n/a", path=path, send_ntfy_fn=lambda msg: sent.append(msg),
     )
-    assert "security_safety_control" in sent[0]
+    assert verdict.is_one_way_door is False
+    assert sent == []
 
 
 def test_escalate_if_one_way_door_failed_send_leaves_item_due_then_success_settles(path):

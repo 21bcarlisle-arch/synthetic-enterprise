@@ -41,7 +41,12 @@ def test_ordinary_question_answered_in_seconds_and_logged():
     assert entries[0]["canon_version"] == 1
 
 
-def test_values_question_routes_to_director_never_calls_invoke():
+def test_real_world_question_routes_to_director_never_calls_invoke():
+    """RE-SCOPED 2026-07-29 (ruling item 5): the routed case is now a REAL-WORLD one.
+    A values/curriculum question is no longer a door, so the twin answers it from the
+    director's own canon (see the test below) instead of bouncing it to his phone --
+    that bounce was exactly the permission machinery the ruling removed. What still
+    routes is the four real-world consequences."""
     calls = []
 
     def _tracking_invoke(prompt):
@@ -49,7 +54,7 @@ def test_values_question_routes_to_director_never_calls_invoke():
         return "should never be called"
 
     answer = director_twin.ask_twin(
-        "which fitness function should the tournament use?",
+        "should we spend real money on the production data feed?",
         invoke_fn=_tracking_invoke,
     )
     assert answer.routed_to_director is True
@@ -59,7 +64,21 @@ def test_values_question_routes_to_director_never_calls_invoke():
     entries = director_twin._read_jsonl(director_twin.TWIN_LOG_PATH)
     assert len(entries) == 1
     assert entries[0]["routed_to_director"] is True
-    assert entries[0]["category"] == "values_decision"
+    assert entries[0]["category"] == "real_money"
+
+
+def test_values_question_is_now_answered_from_canon_not_bounced_to_the_director():
+    """The released half, at the twin seam (2026-07-29 ruling item 5). A curriculum /
+    fitness-function question is the director's canon speaking, and the twin IS that
+    canon's voice -- bouncing it to his phone was the permission machinery, not a safety
+    control (nobody real is protected by stopping a simulation). The twin still only
+    ANSWERS, never ACTS (Law B, twin-is-a-voice-not-a-hand, untouched).
+    Mutation intent: re-gate VALUES_DECISION and this goes red."""
+    answer = director_twin.ask_twin(
+        "which fitness function should the tournament use?", invoke_fn=_fake_invoke
+    )
+    assert answer.routed_to_director is False
+    assert answer.answer is not None
 
 
 def test_uncertain_reversible_is_answered_by_twin_not_routed_to_director():
@@ -104,7 +123,9 @@ def test_overturn_bumps_canon_version_and_appends_changelog():
 def test_fidelity_metric_reflects_overturns():
     a1 = director_twin.ask_twin("q1", invoke_fn=_fake_invoke)
     director_twin.ask_twin("q2", invoke_fn=_fake_invoke)
-    director_twin.ask_twin("which fitness function", invoke_fn=_fake_invoke)  # routed, not answered
+    # Routed case updated 2026-07-29: "which fitness function" is RELEASED and now gets
+    # answered, so the routed leg of this metric needs a still-reserved real-world question.
+    director_twin.ask_twin("spend real money on the feed", invoke_fn=_fake_invoke)
 
     metric_before = director_twin.fidelity_metric()
     assert metric_before["answered"] == 2

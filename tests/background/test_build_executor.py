@@ -476,10 +476,14 @@ class TestPredicateGatedEscalation:
         )
         assert r.status == "idle"  # downgraded — NOT a director alert
 
-    def test_genuine_epoch_curriculum_door_escalates(self, monkeypatch):
+    def test_epoch_curriculum_door_no_longer_escalates(self, monkeypatch):
+        """RE-SCOPED 2026-07-29 (ruling item 5): VALUES_DECISION (curriculum/epoch-open)
+        was RELEASED -- its consequence is which worlds a SIMULATION runs through, which
+        the director's own test excludes from the reserved set. This case now DOWNGRADES,
+        same as the SECURITY_SAFETY_CONTROL downgrade path this DOWNGRADED log line already
+        exists for."""
         r = self._run_once_escalating(monkeypatch, door_reason="open Epoch 4 for the B4 competitor field")
-        assert r.status == "escalated"
-        assert "Epoch 4" in (r.atom_reason or "")  # self-contained door_reason carried for the NTFY
+        assert r.status == "idle"
 
     def test_genuine_real_money_door_escalates(self, monkeypatch):
         r = self._run_once_escalating(monkeypatch, door_reason="spend real money on a production API key")

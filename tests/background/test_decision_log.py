@@ -27,14 +27,33 @@ def test_decide_on_reversible_action_logs_automatically():
 
 def test_decide_on_one_way_door_does_not_log():
     """A one-way door must NOT be silently logged as a proceed-decision --
-    the caller is expected to escalate, not act."""
+    the caller is expected to escalate, not act. (Category updated 2026-07-29:
+    VALUES_DECISION was RELEASED by the ruling's item-5 re-scope, so the door
+    case is now exercised with a still-reserved real-world category.)"""
+    verdict = decision_log.decide(
+        "approve the vendor invoice",
+        why="need the data feed",
+        explicit_category=OneWayDoorCategory.REAL_MONEY,
+    )
+    assert verdict.is_one_way_door is True
+    assert decision_log.read_decision_log() == []
+
+
+def test_decide_on_a_released_category_proceeds_and_IS_logged():
+    """The other half of the 2026-07-29 re-scope: a released category is no longer a
+    door, so `decide` must PROCEED -- and must still RECORD it, because "released"
+    means un-gated, not unlogged. Mutation intent: re-gate VALUES_DECISION and this
+    goes red (the entry disappears)."""
     verdict = decision_log.decide(
         "choose the tournament fitness function",
         why="need to unblock A5",
         explicit_category=OneWayDoorCategory.VALUES_DECISION,
     )
-    assert verdict.is_one_way_door is True
-    assert decision_log.read_decision_log() == []
+    assert verdict.is_one_way_door is False
+    assert verdict.advisory_category == OneWayDoorCategory.VALUES_DECISION
+    entries = decision_log.read_decision_log()
+    assert len(entries) == 1
+    assert entries[0]["reversible"] is True
 
 
 def test_decide_uncertain_reversible_proceeds_and_logs():
