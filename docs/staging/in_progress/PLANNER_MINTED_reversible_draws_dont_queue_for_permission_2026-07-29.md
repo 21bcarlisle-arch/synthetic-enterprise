@@ -1,4 +1,14 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: blocked -->
+<!-- BLOCK_RELEASE: director_ratification -- §4 gate BUILT+R15 this tick (report-only); the remaining half (§1: does the live draw need a change, or is the existing exclusion of build-done director_level_up atoms sufficient?) is a design adjudication with R16 wedge risk, plus the report-to-block promotion decision for the §4 gate. Release = that §1 adjudication answered. -->
+<!-- blocked_on: main-session/director design adjudication of exit-criterion §1 (does the live
+     draw need any change, or is the existing exclusion of build-done `director_level_up` atoms
+     sufficient?) AND the report->block promotion decision for the §4 gate. §4 itself is BUILT
+     (report-only) + R15-proven this tick. Flipped self-drawable->blocked 2026-07-29 to stop the
+     planner rest-proof churning on a mint whose remaining half is a design call, not a bounded
+     BUILD. See "## Build progress (2026-07-29)" below. -->
+<!-- Ledger untouched: this atom does NOT modify gate_authorization.is_valid_level_up or the R16
+     ledger; the §4 half is a report-only staging-doc scanner. -->
+
 
 # [PLANNER-MINTED] Standing draw default: reversible work proceeds with a recorded undo, it does not queue for permission (mechanism + R15) (2026-07-29)
 
@@ -42,6 +52,49 @@ not queuing for the director at all (removing false blocks). Different actor, di
 - §4 binding wired: a staged clause claiming "returns for ratification" that cannot name its
   irreversibility is rejected by the mechanism, not silently obeyed.
 
+## Build progress (2026-07-29, bounded worker tick)
+
+Purpose/guarantee/why stated first (OPERATIONAL_COHERENCE). Criterion-by-criterion status:
+
+- **§2 (auto-record undo) — ALREADY SATISFIED.** `background/decision_log.decide()` classifies an
+  action and, when it is NOT a one-way door, logs it with `how_to_reverse` automatically. Recording
+  (not asking) is the reversibility guarantee. No new work.
+- **§1 (a category alone does not wall the draw) — LARGELY ALREADY SATISFIED; residual is an
+  adjudication, not a build.** The draw walls an atom via `_is_externally_blocked` (`supervisor.py`
+  ~L677) when it carries `blocked_on`. But a `blocked_on: director_level_up` atom is **build-complete**
+  — only level *ratification* remains (memory `levels_are_proposals`); the draw excludes it precisely
+  so it is not re-handed as done work (the L676 comment). So "un-walling" that class would re-hand
+  done work (thrash), NOT release reversible build. **Open question for the director/main-session:**
+  is there any atom the draw walls *purely by category* that still has *remaining reversible build*?
+  If not, §1 is met by existing behaviour and needs no live-draw change. This is a design call with
+  real wedge risk (a wrong draw change re-drawing level-gated done atoms → self-promotion past the
+  R16 gate → the "unbacked bump wedged publishing 3h" failure), so it is **not** a bounded-tick build.
+- **§4 (reject an unjustified reserved clause) — BUILT this tick, report-only + R15-proven.**
+  `background/reserved_clause_gate.py` + `tests/background/test_reserved_clause_gate.py` (11 tests,
+  both-ways R15). A staged reserved clause ("returns for ratification", "queues for permission",
+  "director-reserved", …) is a violation UNLESS its paragraph carries a §2 justification — the
+  machine-readable `[§2: <reason>]` tag or a recognised irreversibility phrase. Report-only (a
+  `__main__`/`scan_staging` consumer), so it CANNOT jam the publishing pipeline.
+- **§3 (R15 both-ways) — provided for the §4 half.** The §1 both-ways (a reversible act is not walled;
+  a genuine door still is) is the existing `one_way_door` suite; the report→block promotion of §4
+  would get its own both-ways at promotion time.
+
+**Two findings that make this NOT a naive build (why the residual is a design phase):**
+1. `classify_action` cannot serve as the §2 oracle over prose — its door LIST is narrow keyword
+   matching; "changing the egress allowlist requires director approval" and "editing a safety
+   control returns to the director" both classify NOT-a-door (verified 2026-07-29). Using it as the
+   justification oracle would falsely reject legitimate reserved clauses. Hence the §4 gate uses an
+   author-written machine-readable justification, not inference over prose.
+2. Phrase-triggers over-fire on negation/discussion (the atom's own doc says work "does **not** queue
+   for permission"). A local negation guard kills the obvious false positives, but full
+   context-awareness (or an author-tagging convention for clauses themselves) is the proper-design
+   follow-on — another reason report-only, never auto-block, until designed.
+
+**blocked_on:** main-session/director adjudication of §1 (live-draw change needed, or not?) + the
+report→block promotion decision for the §4 gate. Kept OUT of the self-drawable draw so the planner
+rest-proof does not churn on a half that is a design call rather than a bounded BUILD.
+
 ## Reverse / undo
 git revert the supervisor/one_way_door change; the pre-existing category-block behaviour returns. No
-external state touched.
+external state touched. The §4 gate (`reserved_clause_gate.py`) is report-only and additive — reverting
+it removes the scanner and its test; nothing else depends on it.
