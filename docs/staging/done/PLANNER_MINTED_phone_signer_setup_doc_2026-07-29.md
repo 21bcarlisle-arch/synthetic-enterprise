@@ -7,6 +7,10 @@
      NOT YET DONE: exit-gated on the sibling terminal-audit atom (phone_signer_terminal_audit, #3) — it
      must run against the written doc before #1 closes. Kept OPEN in in_progress/ until that audit passes.
      Reversible: git revert removes the doc; no secret handled by the agent. -->
+<!-- CLOSED 2026-07-29 (scheduled tick): exit gate satisfied — the sibling terminal-audit atom
+     (phone_signer_terminal_audit, #3) ran against docs/design/PHONE_SIGNER_SETUP.md and returned PASS
+     (docs/design/PHONE_SIGNER_TERMINAL_AUDIT.md): no director-phone terminal step; only A2 one-time
+     daemon-side key surfacing, which the ruling allows as device-bound. #1 now closes. -->
 
 # [PLANNER-MINTED] PHONE_SIGNER_SETUP.md — the phone-only, one-action-per-step signer walkthrough (2026-07-29)
 

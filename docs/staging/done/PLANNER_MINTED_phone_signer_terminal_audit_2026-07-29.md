@@ -1,3 +1,10 @@
+<!-- DONE 2026-07-29 (scheduled tick): audit performed against the real mechanism (secrets_location.py,
+     ntfy_utils.sign_wake_message, director_authority_channels ROUTINE_ACTIONS/_bound_signed_text,
+     ntfy_responder/_maybe_ledger_director_ruling, gate_authorization.record_director_ntfy_ruling).
+     Result committed at docs/design/PHONE_SIGNER_TERMINAL_AUDIT.md: PASS — no director-phone terminal
+     step; the one non-chat act is A2 one-time daemon-side key surfacing, the ruling's device-bound
+     carve-out. Audit shown able to FAIL (names A2 + the symmetric-key fact as the trip). This is #1's
+     exit gate → #1 (phone_signer_setup_doc) now closes too. Reversible: git revert removes the doc. -->
 <!-- SUPERVISOR_DRAW: self-drawable -->
 
 # [PLANNER-MINTED] Terminal-audit of §1 — confirm no step needs a terminal, or name precisely which does and why (2026-07-29)
