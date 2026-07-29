@@ -688,7 +688,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "W2_14_continuous_behavioural_engagement_model",
@@ -708,8 +708,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 50
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36
+      "stall_consecutive_unchanged": 12
     },
     {
       "id": "H10_worktree_isolation",
@@ -1828,7 +1828,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -2692,7 +2692,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "F1a_sim_customer_response",
@@ -2715,7 +2715,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 31
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "F1b_company_comms",
@@ -2738,7 +2738,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 8
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2784,7 +2784,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 80
+      "stall_consecutive_unchanged": 3
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2823,8 +2823,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2863,8 +2863,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null
+      "stalled": true,
+      "stall_consecutive_unchanged": 2
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3158,7 +3158,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 136
+      "stall_consecutive_unchanged": 137
     },
     {
       "id": "B11_evolutionary_tournament_harness",
@@ -3179,7 +3179,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 80
+      "stall_consecutive_unchanged": 117
     },
     {
       "id": "OPS1_launcher_cutover_completion",
