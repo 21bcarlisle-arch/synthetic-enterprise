@@ -20,7 +20,7 @@ Everything here is a RENDERING of data this project already keeps honestly
 No number appears without its evidence link (SITE_CONSTITUTION binding rule 1).
 """
 import json
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -505,12 +505,100 @@ def _control_killlist():
     )
 
 
+# ---------------------------------------------------------------------------
+# MAJOR-3 fix (2026-07-29 cold-eyes Expert Hour, SITE_EH2_predictions_ledger_can_fail):
+# the raw scorecard's "inconclusive"/"ungraded" states carry no stated horizon, so
+# the SAME flag re-logged on consecutive days pads the headline (4 identical C9
+# renewal rows, 25 identical INCREASE hedge rows) while never being reachable as a
+# miss. This does NOT change the grading logic in generate_track_record_scorecard.py
+# (out of this atom's file_scope) -- it renders the honest, bounded state of what
+# that logic has actually produced: (1) collapse a RUN of consecutive identical
+# predictions to one row + a re-logged count, so 26 copies of "INCREASE" reads as
+# ONE distinct stance re-asserted 26 times, never 26 predictions; (2) after
+# PORTFOLIO_STALE_HORIZON_DAYS past the flagged renewal date with no portfolio
+# movement, an "inconclusive" renewal is honestly declared UNGRADEABLE (a named
+# terminal state, not silently re-parked forever); (3) the scorecard's own
+# hedge "graded_count" conflates a real hit/miss verdict with
+# "gradeable_but_no_grading_logic_yet" (market data moved, but no comparator
+# exists) -- these are distinguished so the headline never implies a track record
+# that does not exist.
+PORTFOLIO_STALE_HORIZON_DAYS = 90
+
+_HEDGE_NON_VERDICT_OUTCOMES = {
+    "gradeable_but_no_grading_logic_yet",
+    "ungraded -- market data has not advanced",
+}
+
+
+def _dedupe_consecutive(entries, key_fields):
+    """Collapse a RUN of consecutive identical predictions (same key_fields,
+    adjacent in the date-ordered log) into one row carrying re_logged_count +
+    first/last_logged dates. Only ADJACENT repeats collapse -- a prediction that
+    changes and later reverts is a new, distinct entry, never folded into an
+    earlier run (MAJOR-3 item 2: de-duplicate a repeated prediction to one row
+    with a re-log count)."""
+    out = []
+    for e in entries:
+        key = tuple(e.get(k) for k in key_fields)
+        if out and out[-1]["_key"] == key:
+            out[-1]["re_logged_count"] += 1
+            ran_at = e.get("decision_run_at")
+            if ran_at:
+                out[-1]["last_logged"] = ran_at
+        else:
+            row = dict(e)
+            row["_key"] = key
+            row["re_logged_count"] = 1
+            row["first_logged"] = e.get("decision_run_at")
+            row["last_logged"] = e.get("decision_run_at")
+            out.append(row)
+    for row in out:
+        row.pop("_key", None)
+    return out
+
+
+def _bound_inconclusive(entries, wall_clock_today, horizon_days):
+    """Apply the staleness horizon (MAJOR-3 item 3): a renewal flag still
+    "inconclusive" more than horizon_days past its flagged renewal date is
+    relabelled UNGRADEABLE with its exact staleness age, instead of sitting in
+    the same unbounded "not counted as a miss" state forever."""
+    try:
+        today = date.fromisoformat(wall_clock_today) if wall_clock_today else None
+    except ValueError:
+        today = None
+    out = []
+    for e in entries:
+        e = dict(e)
+        days_stale = None
+        if today is not None and e.get("renewal_date"):
+            try:
+                rdate = date.fromisoformat(e["renewal_date"])
+                days_stale = (today - rdate).days
+            except ValueError:
+                days_stale = None
+        e["days_since_renewal_date"] = days_stale
+        if days_stale is not None and days_stale > horizon_days:
+            e["bounded_state"] = "ungradeable"
+            e["display_outcome"] = (
+                "ungradeable -- portfolio snapshot {}d stale past the flagged "
+                "renewal date (horizon {}d)".format(days_stale, horizon_days)
+            )
+        else:
+            e["bounded_state"] = "inconclusive_within_horizon"
+            e["display_outcome"] = e.get("outcome")
+        out.append(e)
+    return out
+
+
 def _predictions_ledger():
     """The centrepiece: the REAL shadow-live pre-registered decision log
     (site/state/track_record_scorecard.json). A real source exists, so it is
-    surfaced verbatim -- misses/ungraded/inconclusive included -- NOT a
+    surfaced honestly -- misses/ungraded/inconclusive included -- NOT a
     placeholder. Honesty over completeness: a mostly-ungraded early state is
-    the honest story, not a hidden one."""
+    the honest story, not a hidden one. See PORTFOLIO_STALE_HORIZON_DAYS /
+    _dedupe_consecutive / _bound_inconclusive above for the MAJOR-3 fix: a
+    de-duplicated, horizon-bounded rendering of the same underlying data,
+    never an author of new grading logic."""
     try:
         sc = json.loads(SCORECARD_PATH.read_text())
     except Exception:
@@ -519,25 +607,83 @@ def _predictions_ledger():
     rg = sc.get("renewal_grading") or {}
     hg = sc.get("hedge_grading") or {}
     rev = sc.get("retention_ev_log") or {}
+    wall_clock_today = sc.get("wall_clock_today")
+
+    inconclusive_deduped = _dedupe_consecutive(
+        rg.get("inconclusive", []), ("cid", "renewal_date", "outcome"))
+    inconclusive_bounded = _bound_inconclusive(
+        inconclusive_deduped, wall_clock_today, PORTFOLIO_STALE_HORIZON_DAYS)
+    ungradeable_count = sum(
+        1 for e in inconclusive_bounded if e["bounded_state"] == "ungradeable")
+
+    graded_deduped = _dedupe_consecutive(
+        rg.get("graded", []), ("cid", "renewal_date", "outcome"))
+
+    hedge_entries_raw = hg.get("entries", [])
+    hedge_deduped = _dedupe_consecutive(
+        hedge_entries_raw, ("hedge_recommendation", "outcome"))
+    # Distinguish a genuine hit/miss verdict from the two known non-verdict
+    # placeholder outcomes -- forward-compatible: any future real outcome
+    # string (once real hedge-grading logic lands upstream) is counted as a
+    # verdict automatically, without needing to name it here.
+    hedge_real_verdicts = sum(
+        1 for e in hedge_entries_raw if e.get("outcome") not in _HEDGE_NON_VERDICT_OUTCOMES)
+    hedge_stub_gradeable = sum(
+        1 for e in hedge_entries_raw if e.get("outcome") == "gradeable_but_no_grading_logic_yet")
+    hedge_stale = sum(
+        1 for e in hedge_entries_raw if e.get("outcome") == "ungraded -- market data has not advanced")
+
+    distinct_renewal_predictions = len(inconclusive_deduped) + len(graded_deduped)
+    distinct_hedge_predictions = len(hedge_deduped)
+
+    headline = (
+        "{graded} of {rtotal} distinct renewal predictions genuinely graded "
+        "({on} on-target / {off} off-target/missed); {ungrad} declared "
+        "ungradeable (portfolio snapshot stale >{horizon}d past the renewal "
+        "date); {hverdict} of {htotal} distinct hedge recommendations have a "
+        "real hit/miss verdict -- hedge-grading logic is not built yet, so the "
+        "{hstub} that COULD be graded (market data has moved) and the {hstale} "
+        "still blocked on stale market data are both shown as pending, never "
+        "counted as a pass."
+    ).format(
+        graded=rg.get("graded_count") or 0,
+        rtotal=distinct_renewal_predictions,
+        on=rg.get("on_target_count") or 0,
+        off=rg.get("off_target_count") or 0,
+        ungrad=ungradeable_count,
+        horizon=PORTFOLIO_STALE_HORIZON_DAYS,
+        hverdict=hedge_real_verdicts,
+        htotal=distinct_hedge_predictions,
+        hstub=hedge_stub_gradeable,
+        hstale=hedge_stale,
+    )
+
     return dict(
         available=True,
         source="site/state/track_record_scorecard.json",
         clock_started=sc.get("clock_started"),
-        wall_clock_today=sc.get("wall_clock_today"),
+        wall_clock_today=wall_clock_today,
         log_entry_count=sc.get("log_entry_count"),
+        distinct_renewal_predictions=distinct_renewal_predictions,
+        distinct_hedge_predictions=distinct_hedge_predictions,
         renewal_tolerance_pct=sc.get("renewal_tolerance_pct"),
+        headline=headline,
         renewal=dict(
             graded=rg.get("graded_count"), pending=rg.get("pending_count"),
-            inconclusive=rg.get("inconclusive_count"),
+            inconclusive=len(inconclusive_deduped),
+            ungradeable=ungradeable_count,
             on_target=rg.get("on_target_count"), off_target=rg.get("off_target_count"),
             churned=rg.get("churned_count"),
-            inconclusive_entries=rg.get("inconclusive", []),
-            graded_entries=rg.get("graded", []),
+            inconclusive_entries=inconclusive_bounded,
+            graded_entries=graded_deduped,
         ),
         hedge=dict(
             graded=hg.get("graded_count"), ungraded=hg.get("ungraded_count"),
+            real_verdicts=hedge_real_verdicts,
+            gradeable_pending_logic=hedge_stub_gradeable,
+            stale_blocked=hedge_stale,
             current_market_data_stale_days=hg.get("current_market_data_stale_days"),
-            entries=hg.get("entries", []),
+            entries=hedge_deduped,
         ),
         retention=dict(
             logged=rev.get("logged_count"), graded=rev.get("graded_count"),

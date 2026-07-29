@@ -29,6 +29,12 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .kpi-v { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
 .evlink { font-size: 10px; color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .evlink:hover { border-bottom-color: var(--blue); }
+/* MAJOR-7 fix (2026-07-29 cold-eyes Expert Hour): a citation to a repo-internal
+   path that is not web-servable renders as a clearly NON-LINK provenance tag --
+   never a fake <a href="#"> dressed in the .evlink class of a real link. */
+.evsrc { font-size: 10px; color: var(--muted); border-bottom: 1px dotted var(--border); cursor: help; }
+.evsrc-tag { font-size: 8px; color: var(--muted); border: 1px solid var(--border); border-radius: 3px;
+  padding: 0 4px; margin-left: 4px; vertical-align: middle; text-transform: uppercase; letter-spacing: .03em; }
 .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 1px 5px; vertical-align: middle; }
 .badge.provisional { color: var(--amber); border: 1px solid var(--amber); }
 .badge.ok { color: var(--green); border: 1px solid var(--green); }
@@ -105,6 +111,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .o-off { color: var(--red); font-weight: 600; }
 .o-inconc { color: var(--muted); }
 .o-ungraded { color: var(--amber); }
+.o-stale { color: var(--red); font-weight: 600; }
 .held { padding: 10px 0; border-bottom: 1px solid var(--border); }
 .held:last-child { border-bottom: none; }
 .held-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
@@ -207,6 +214,23 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
     deleted; and anyone can challenge any number here. The Method (how this is built) and the full
     simplifications register fold in below.
   </p>
+
+  <!-- MINOR-9 fix (2026-07-29 cold-eyes Expert Hour): every section below is rendered
+       by client-side JS against the JSON endpoints listed here. A non-JS crawler (or
+       browser with scripting disabled) sees "Loading..." placeholders with no fallback
+       -- this block names the real, structured data directly so it is never indexed as
+       the content of this page. All endpoints below return 200 with real payloads. -->
+  <noscript>
+    <div class="card" style="border-left:3px solid var(--amber)">
+      <p><strong>JavaScript is required to render this page.</strong> Every figure above and below is
+      fetched live and rendered from real repo data -- nothing here is a mock. Fetch the source data
+      directly: <a href="../data/proof.json">/data/proof.json</a> (the predictions ledger, incident&rarr;rule
+      timeline, verification stack and open work), <a href="../data/fidelity.json">/data/fidelity.json</a>
+      (the fidelity instrument), <a href="../data/method.json">/data/method.json</a>,
+      <a href="../data/simplified.json">/data/simplified.json</a> and
+      <a href="../data/dashboard.json">/data/dashboard.json</a> (the cost-to-serve leg).</p>
+    </div>
+  </noscript>
 
   <!-- CLAIM-STATUS LEGEND (SITE_CONSTITUTION rule 6 vocabulary) + didactic hypothesis -->
   <div class="claim-legend" id="claim-legend">
@@ -425,6 +449,31 @@ function esc(s){return (s==null?"":String(s)).replace(/[&<>]/g,function(c){retur
 function num(n){return n==null?"--":Number(n).toLocaleString("en-GB");}
 function fmtBytes(n){if(n==null)return "--";if(n<1024)return n+" B";return (n/1024).toFixed(0)+" KB";}
 
+// MAJOR-7 fix (2026-07-29 cold-eyes Expert Hour, R15): a citation to a
+// repo-internal path (docs/design/*, docs/staging/*, docs/review_gates/*,
+// docs/observability/*, site/state/*.json, tools/*.py -- none of which are
+// web-servable at poesys.net) must render as a clearly NON-LINK, visually
+// distinct provenance tag -- never a fake <a href="#" onclick="return false">
+// dressed in the SAME .evlink class as a real, resolvable evidence link
+// (VERIFIED independently: 10 such fake anchors existed, one cited a path
+// that 404s live). Only an actual http(s) URL, or a docs/retrospectives/*.md
+// path (mirrored by RETRO_LINK_BASE, the same convention generate_proof_data.py
+// already uses for the timeline/retro-library links elsewhere on this page),
+// is rendered as a genuine clickable link -- everything else is an inert,
+// title-tooltipped "unpublished" tag, one shared function so the CLASS is
+// fixed, not ten separate instances.
+var RETRO_LINK_BASE="https://21bcarlisle-arch.github.io/synthetic-enterprise/retrospectives/";
+function srcCite(source,label){
+  if(!source) return "";
+  label = (label==null || label==="") ? source : label;
+  var href=null;
+  if(/^https?:\/\//.test(source)) href=source;
+  else if(source.indexOf("docs/retrospectives/")===0) href=RETRO_LINK_BASE+source.slice("docs/retrospectives/".length);
+  if(href) return '<a class="evlink" href="'+esc(href)+'" target="_blank" rel="noopener">'+esc(label)+'</a>';
+  return '<span class="evsrc" title="repo-internal path, not published on the web: '+esc(source)+
+    '">'+esc(label)+'<span class="evsrc-tag">unpublished</span></span>';
+}
+
 function renderTimeline(d){
   var tl=d.timeline||[];
   document.getElementById("timeline-intro").textContent=
@@ -435,12 +484,19 @@ function renderTimeline(d){
     var links=(r.retro_links||[]).map(function(l){
       return '<a class="evlink" href="'+esc(l.link)+'" target="_blank" rel="noopener">retro: '+esc(l.filename)+' &rarr;</a>';
     }).join(" ");
-    var src=r.source?'<a class="evlink" href="#" onclick="return false" title="'+esc(r.source)+'">source: '+esc(r.source)+'</a>':"";
+    // MAJOR-7 fix: the "source:" citation now goes through srcCite (was dead
+    // code before -- the fallback below duplicated a raw esc(r.source) without
+    // ever using this computed value), so a non-retro repo path (R10-R15's
+    // docs/staging/*.md sources) renders as the visually-inert "unpublished"
+    // tag, and both the retro links AND the source citation are shown when
+    // both exist, rather than the source only appearing when links are absent.
+    var src=r.source?srcCite(r.source,"source: "+r.source):"";
+    var tlParts=[links,src].filter(Boolean);
     return '<div class="tl-row"><span class="tl-date">'+esc(r.date)+'</span>'+
       '<div><span class="tl-rule-id">'+esc(r.id)+'</span><span class="tl-rule-name">'+esc(r.name)+'</span></div>'+
       '<div class="tl-rule-text">'+esc(r.rule)+'</div>'+
       '<div class="tl-incident"><span class="tl-incident-label">The incident that forged it</span>'+esc(r.incident)+'</div>'+
-      '<div class="tl-links">'+(links||'<span class="muted">source: '+esc(r.source)+'</span>')+'</div></div>';
+      '<div class="tl-links">'+(tlParts.length?tlParts.join(" &middot; "):'<span class="muted">No source recorded.</span>')+'</div></div>';
   }).join("")||'<div class="muted">No timeline data.</div>';
 }
 
@@ -459,7 +515,7 @@ function renderVerification(d){
   var lb=v.levels_banked||{};
   var lbStr=Object.keys(lb).map(function(k){return lb[k]+" at L"+k;}).join(", ");
   document.getElementById("banked-note").innerHTML="Levels banked (honest, not rounded up): "+esc(lbStr)+
-    '. Evidence: <a class="evlink" href="#" onclick="return false" title="docs/design/maturity_map.yaml">docs/design/maturity_map.yaml</a>.';
+    '. Evidence: '+srcCite("docs/design/maturity_map.yaml")+'.';
 
   var reviews=v.reviews||[];
   document.getElementById("reviews").innerHTML=reviews.map(function(r){
@@ -500,8 +556,17 @@ function outcomeClass(o){
   o=(o||"").toLowerCase();
   if(o.indexOf("on_target")>=0||o==="on target")return "o-target";
   if(o.indexOf("off_target")>=0)return "o-off";
+  // MAJOR-3 fix: an ungradeable (stale-horizon) row is a distinct, still-negative
+  // terminal state -- checked BEFORE the generic "ungraded" substring test below,
+  // since "ungradeable" does not itself contain the substring "ungraded".
+  if(o.indexOf("ungradeable")>=0)return "o-stale";
   if(o.indexOf("ungraded")>=0||o.indexOf("no_grading")>=0)return "o-ungraded";
   return "o-inconc";
+}
+function relogTag(e){
+  if(!e || !(e.re_logged_count>1)) return "";
+  return ' <span class="muted" style="font-size:10px">(re-logged '+e.re_logged_count+'x, '+
+    esc(e.first_logged||"")+'&rarr;'+esc(e.last_logged||"")+')</span>';
 }
 function renderPredictions(d){
   var p=d.predictions||{};
@@ -511,19 +576,27 @@ function renderPredictions(d){
     document.getElementById("pred-body").innerHTML="";
     return;
   }
+  // MAJOR-3 fix (R15: a control must be able to fail): the intro now leads with
+  // the HEADLINE the data actually supports (distinct predictions graded/ungradeable,
+  // the stale-horizon reason named) rather than a raw count that implies a track
+  // record no data yet supports.
   intro.innerHTML="The real shadow-live decision log: hedge stance, renewal-price flags and retention EVs are "+
     "pre-registered <em>before</em> the outcome is known, then graded against what actually happened. "+
-    "Clock started "+esc(p.clock_started)+". Source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a>. '+
-    "The mostly-ungraded state below is the honest early picture -- kept, not hidden.";
+    "Clock started "+esc(p.clock_started)+". Source: "+srcCite(p.source)+". "+
+    "<strong>"+esc(p.headline||"")+"</strong> The mostly-ungraded state below is the honest early picture -- "+
+    "kept, not hidden.";
   var r=p.renewal||{},h=p.hedge||{},rt=p.retention||{};
   var kpis=[
-    {l:"Log entries",v:num(p.log_entry_count)},
-    {l:"Renewals graded",v:num(r.graded)},
-    {l:"Renewals inconclusive",v:num(r.inconclusive)},
-    {l:"Hedge graded",v:num(h.graded)},
-    {l:"Hedge ungraded",v:num(h.ungraded)},
-    {l:"Retention EVs graded",v:num(rt.graded)}
+    {l:"Distinct renewal predictions",v:num(p.distinct_renewal_predictions)},
+    {l:"Renewals on-target",v:num(r.on_target)},
+    {l:"Renewals off-target (missed)",v:num(r.off_target)},
+    {l:"Renewals ungradeable (stale)",v:num(r.ungradeable)},
+    {l:"Distinct hedge predictions",v:num(p.distinct_hedge_predictions)},
+    {l:"Hedge real verdicts",v:num(h.real_verdicts)},
+    {l:"Hedge pending (data moved)",v:num(h.gradeable_pending_logic)},
+    {l:"Hedge blocked (stale market)",v:num(h.stale_blocked)},
+    {l:"Retention EVs graded",v:num(rt.graded)},
+    {l:"Log entries (raw)",v:num(p.log_entry_count)}
   ];
   document.getElementById("pred-kpis").innerHTML=kpis.map(function(k){
     return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
@@ -534,9 +607,11 @@ function renderPredictions(d){
   var rrows=(r.graded_entries||[]).concat(r.inconclusive_entries||[]);
   if(rrows.length){
     html+=rrows.map(function(e){
+      var shown=e.display_outcome||e.outcome||"";
       return '<div class="lg-row"><span>'+esc(e.cid||"")+' &middot; renewal '+esc(e.renewal_date||"--")+
-        ' &middot; proposed '+esc(e.proposed_rate_gbp_per_mwh!=null?e.proposed_rate_gbp_per_mwh:"--")+' &pound;/MWh</span>'+
-        '<span class="'+outcomeClass(e.outcome)+'">'+esc(e.outcome||"")+'</span></div>';
+        ' &middot; proposed '+esc(e.proposed_rate_gbp_per_mwh!=null?e.proposed_rate_gbp_per_mwh:"--")+' &pound;/MWh'+
+        relogTag(e)+'</span>'+
+        '<span class="'+outcomeClass(shown)+'">'+esc(shown)+'</span></div>';
     }).join("");
   } else { html+='<div class="muted">No renewal-price flags logged yet.</div>'; }
 
@@ -544,7 +619,8 @@ function renderPredictions(d){
   var hrows=h.entries||[];
   if(hrows.length){
     html+=hrows.map(function(e){
-      return '<div class="lg-row"><span>'+esc(e.decision_run_at||"")+' &middot; '+esc(e.hedge_recommendation||"")+'</span>'+
+      return '<div class="lg-row"><span>'+esc(e.first_logged||e.decision_run_at||"")+' &middot; '+
+        esc(e.hedge_recommendation||"")+relogTag(e)+'</span>'+
         '<span class="'+outcomeClass(e.outcome)+'">'+esc(e.outcome||"")+'</span></div>';
     }).join("");
   } else { html+='<div class="muted">No hedge recommendations logged yet.</div>'; }
@@ -573,7 +649,7 @@ function renderPrinciples(d){
       '<p style="margin:0 0 8px">'+esc(p.claim)+'</p>'+
       '<p class="muted" style="margin:0 0 8px"><em>'+esc(p.why)+'</em></p>'+
       '<div class="muted" style="font-size:11px">Basis: '+esc(p.basis)+
-        ' &middot; <a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a></div>'+
+        ' &middot; '+srcCite(p.source)+'</div>'+
       '</div>';
   }).join(""):'<div class="card muted">No numbered findings recorded yet.</div>';
 }
@@ -617,8 +693,7 @@ function renderCoupledGaps(d){
     "with it <em>through the wall only</em>, and is allowed to be wrong; the harness — the one layer "+
     "that holds both the hidden truth and the company's observable-only belief — measures the gap. "+
     "<strong>The gap is the score.</strong> 1 = no better than a blind prior; 0 = a wall leak (a defect, "+
-    "not a triumph); between is honest, partial learning. Source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(cg.source)+'">'+esc(cg.source)+'</a>.';
+    "not a triumph); between is honest, partial learning. Source: "+srcCite(cg.source)+'.';
 
   var kpis=[
     {l:"Coupled pairs",v:num(cg.pair_count)},
@@ -725,8 +800,8 @@ function renderKilllist(d){
     "(passes on missing/empty/malformed), <strong>FAIL-SILENT</strong> (passes when the checker itself is "+
     "unavailable) &mdash; are what turns a control into theatre. THEATRE rows are proven NOT to fire and are "+
     "sorted to the top, in red. Source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(ck.source||"")+'">'+esc(ck.source||"control registry")+'</a>'+
-    (ck.doctrine?' &middot; <a class="evlink" href="#" onclick="return false" title="'+esc(ck.doctrine)+'">'+esc(ck.doctrine)+'</a>':'')+'.';
+    srcCite(ck.source||"", ck.source||"control registry")+
+    (ck.doctrine?' &middot; '+srcCite(ck.doctrine):'')+'.';
 
   var theatreAlarm = (ck.theatre_remaining!=null && ck.theatre_remaining>0);
   var kpis=[
@@ -802,8 +877,8 @@ function renderFidelity(d){
   }
   intro.innerHTML="Atom <span class=\"aid\">"+esc(d.atom_id||"")+"</span> &middot; measured "+
     esc(String(d.measured_at||"").slice(0,10))+" &middot; source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(d.source_ledger||"")+'">'+esc(d.source_ledger||"")+'</a>'+
-    (d.steer_doc?' &middot; steer: <a class="evlink" href="#" onclick="return false" title="'+esc(d.steer_doc)+'">'+esc(d.steer_doc)+'</a>':'')+
+    srcCite(d.source_ledger||"")+
+    (d.steer_doc?' &middot; steer: '+srcCite(d.steer_doc):'')+
     '. <strong>The average is a trap</strong> &mdash; this instrument leads with the exposure-tail and worst-cell CVaR, never the calm-year MAE.';
 
   var et=d.exposure_tail||{};
@@ -896,7 +971,7 @@ function renderCorrections(d){
     return;
   }
   body.innerHTML=cors.map(function(c){
-    var src=c.source?'<a class="evlink" href="#" onclick="return false" title="'+esc(c.source)+'">'+esc(c.source)+' &rarr;</a>':'';
+    var src=c.source?srcCite(c.source)+' &rarr;':'';
     return '<div class="cor"><div class="cor-head"><span class="badge red">'+esc(c.status||"RETRACTED")+'</span>'+
       '<span class="cor-id">'+esc(c.id||"")+'</span><span class="cor-date">'+esc(c.date||"")+'</span></div>'+
       '<div class="cor-claim">'+esc(c.claim)+'</div>'+
