@@ -93,9 +93,26 @@ COMPANY_PATHS = ["company/", "saas/"]
 SEAM_FILES = ["company/interfaces/sim_interface.py"]
 
 FORBIDDEN_SEAM_SYMBOLS = {
+    # Attitudinal / behavioural cohort truths.
     "green_stance", "price_sensitivity", "channel_pref",
     "cohort_label", "true_cohort", "segment_label",
     "assign_cohort", "Cohort", "nudge_susceptibility", "co2_salience",
+    # Demographic segment labels (Cohort dataclass fields). These are SIM-truth
+    # census/dwelling latents the company must DISCOVER from EPC/census priors,
+    # never read across the seam -- equally "segment labels" under the §0 bright
+    # line as the attitudes above. Omitting them was a SUBSET-COVERAGE fail-open:
+    # a leaked SIM-true `nssec`/`accommodation`/`cars`/`heating_fuel` passed the
+    # scan clean (CA1_cohort_assignment_live red-team, 2026-07-29).
+    "nssec", "accommodation", "cars", "heating_fuel",
+    # `tenure` and `region` are DELIBERATELY NOT here: `region` is an OBSERVABLE
+    # (it is carried in the saas customer dict); `tenure` collides with the
+    # legitimate contract `tenure_years` the churn seam legitimately exposes
+    # (the two-tenures reconciliation, population_draw.py line ~418). The runtime
+    # wall test asserts neither housing-tenure nor region-as-cohort-truth leaks
+    # the OBSERVABLE dict; the static scan cannot disambiguate the tenure
+    # homonym without false-flagging contract tenure, so it excludes it by name.
+    # The class-closure meta-test (test_control_mutation.py) keeps this set in
+    # lockstep with the Cohort field set so a NEW field cannot slip in unguarded.
 }
 
 

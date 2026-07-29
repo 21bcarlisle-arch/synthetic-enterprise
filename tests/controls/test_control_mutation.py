@@ -448,6 +448,53 @@ def test_epistemic_verifier_seam_guard_fires_on_planted_price_sensitivity_leak()
         assert violations, "seam guard failed to fire on a planted price_sensitivity leak"
 
 
+@pytest.mark.parametrize("symbol", ["nssec", "accommodation", "cars", "heating_fuel"])
+def test_epistemic_verifier_seam_guard_fires_on_planted_demographic_leak(symbol):
+    # R15 both-ways (CA1_cohort_assignment_live red-team, 2026-07-29): the
+    # demographic Cohort labels are SIM-truth census/dwelling latents the company
+    # must DISCOVER, not read across the seam. Before this fix the forbidden set
+    # only listed the attitudinal fields (green_stance/price_sensitivity/
+    # channel_pref) -- a SUBSET of the segment-label class -- so a leaked SIM-true
+    # `nssec`/`accommodation`/`cars`/`heating_fuel` passed the scan CLEAN. This
+    # asserts the scan now FIRES on each demographic label as an identifier and as
+    # a dict-key literal.
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "sim_interface.py")
+        with open(bad, "w") as fh:
+            fh.write(
+                f"def get_true_cohort(account_id):\n"
+                f"    return {{'{symbol}': 'X'}}\n"
+            )
+        violations = ev._scan_seam_files_for_forbidden_symbols([bad])
+        assert violations, f"seam guard failed to fire on a planted {symbol} leak"
+        assert any(symbol in v["description"] for v in violations)
+
+
+def test_seam_forbidden_symbols_cover_all_cohort_demographic_fields():
+    # CLASS-CLOSURE (R10): the forbidden-symbol set must stay in lockstep with the
+    # Cohort dataclass so a NEW demographic field cannot be added without either
+    # being guarded or being an explicit, justified observable/ambiguous
+    # exclusion. This meta-test fails the instant `Cohort` grows a field that is
+    # neither forbidden nor allow-listed -- closing the class, not the instance.
+    import dataclasses
+    from simulation.population_draw import Cohort
+    # DELIBERATE exclusions, each with a stated reason:
+    #   customer_id -- the account key, observable by construction.
+    #   region      -- an OBSERVABLE carried in the saas customer dict.
+    #   tenure      -- collides with contract `tenure_years` (two-tenures homonym);
+    #                  the static scan cannot disambiguate, so it is excluded by
+    #                  name and guarded at runtime by the wall test instead.
+    OBSERVABLE_OR_AMBIGUOUS = {"customer_id", "region", "tenure"}
+    cohort_fields = {f.name for f in dataclasses.fields(Cohort)}
+    unclassified = cohort_fields - ev.FORBIDDEN_SEAM_SYMBOLS - OBSERVABLE_OR_AMBIGUOUS
+    assert not unclassified, (
+        "Cohort field(s) neither forbidden at the seam nor explicitly "
+        f"allow-listed as observable/ambiguous: {sorted(unclassified)}. Classify "
+        "each: add to FORBIDDEN_SEAM_SYMBOLS (SIM-truth segment label) or to the "
+        "OBSERVABLE_OR_AMBIGUOUS exclusion with a stated reason."
+    )
+
+
 def test_epistemic_verifier_seam_guard_missing_file_is_not_a_violation():
     # A seam file that doesn't exist yet (e.g. scanning a not-yet-created
     # path) has nothing to violate -- not the same as an unavailable READ of
