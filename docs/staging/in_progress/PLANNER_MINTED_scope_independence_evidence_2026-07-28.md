@@ -15,7 +15,7 @@
 - The joint test (ruling §3) is applied to at least the gas-vs-electricity split using independent-domain evidence for products, mechanisms and drivers (not the director's three bullets restated).
 - R9 discipline: every claim labelled `observed-with-evidence` (fetched source) or `inferred`; no fabricated citations (a confabulated benchmark is worse than a named gap).
 
-**Deps:** informs / co-produced with #1 (topic map) — the independence evidence IS the scope-paragraph content for #1's nodes; can run in parallel with #1. Does not block #3/#4.
+**Deps:** informs / co-produced with #1 (topic map) — the independence evidence IS the scope-paragraph content for #1's nodes; can run in parallel with #1. Does not block #3/#4. **UPDATE 2026-07-29:** #1 is DONE (`docs/design/KPILOT_WHOLESALE_DOMAIN_TOPIC_MAP.md`) — its §3 per-node scope paragraphs + §6 explicitly hand off to this deliverable: sharpen each with cited practitioner/market-structure material beyond director-list + repo, with the per-item provenance ledger. The frame now exists; this deliverable fills it.
 **Coverage note:** the scope-first ruling's deliverable #1 (`docs/design/KPILOT_SCOPE_BRIEF_PRICE_FORMATION.md`, DONE) was "blind-ish" but ANCHORED ON Board Spec 004 — a repo-supplied instrument. That satisfied the first ruling's bar but NOT this one's sharpened §2 bar ("material neither director nor repo supplied"). This deliverable is the new independence requirement; NOT re-minted, but the existing brief is the baseline the independent material must exceed.
 **Propose-then-proceed window:** proceed by default (ruling tagged **proceed**; doc-only research, reversible). Walls untouched. Network probe (curl) before declaring drained-pending-network.
 

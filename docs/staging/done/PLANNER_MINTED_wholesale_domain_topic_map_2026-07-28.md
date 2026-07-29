@@ -1,4 +1,14 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- PROCESSED 2026-07-29 (bounded worker tick): DELIVERABLE #1 DONE. Artefact produced:
+     docs/design/KPILOT_WHOLESALE_DOMAIN_TOPIC_MAP.md — nodes + typed edges + per-node scope
+     paragraphs, gas-wholesale and electricity-wholesale as SEPARATE top-level topics joined by a
+     single `gas-wholesale --drives--> electricity-wholesale` edge (ruling §3). Joint test stated
+     and applied to the gas/electricity pair AND independently to carbon-price. All 8 live-graph
+     entries reconciled to a destination (§4 table) — nothing orphaned; the one structural change
+     is gas-price stub -> gas-wholesale top-level topic. Machine-readable target graph embedded (§5)
+     for #4 to reconcile the live JSON to. Doc-only / FRAME-DISCOVER, live site UNCHANGED (page
+     rewrite is #3/#4). No wall touched (proceed-by-default per ruling tag). Recommended deep node
+     for #3 = electricity-wholesale (argued §3.2). Archived to done/. #2/#3/#4 remain self-drawable. -->
+<!-- SUPERVISOR_DRAW: done -->
 
 # [PLANNER-MINTED] Wholesale-domain topic map — nodes, typed edges, per-node scope paragraphs (gas ≠ electricity) (2026-07-28)
 

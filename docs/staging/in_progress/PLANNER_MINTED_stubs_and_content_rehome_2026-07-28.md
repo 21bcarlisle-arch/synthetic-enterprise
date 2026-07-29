@@ -2,7 +2,7 @@
 
 # [PLANNER-MINTED] The rest as honest stubs; existing page content re-homed (2026-07-28)
 
-**⚠ SEQUENCING (dial, not wall):** #1 (`PLANNER_MINTED_wholesale_domain_topic_map`) decides which nodes exist. Draw #1 FIRST; if drawn before #1 is committed, do #1 first. Left self-drawable (not hard-blocked) because #1 is trivially drawable now (Rule-0: dials order work, never zero it).
+**✅ SEQUENCING UNBLOCKED (2026-07-29):** #1 (`PLANNER_MINTED_wholesale_domain_topic_map`) is DONE — `docs/design/KPILOT_WHOLESALE_DOMAIN_TOPIC_MAP.md`. The nodes/stubs to create and the re-home mapping for every current live-graph entry are in its §4 table; the §5 machine-readable block is the target to reconcile `site/data/knowledge_wholesale.json` to. The one node that is NOT a stub (deliverable #3) = `electricity-wholesale` (recommended). Coordinate file_scope with #3 (it owns the deep node's dir; this owns the rest + the hub re-home).
 
 **Source ruling:** `DIRECTOR_RULING_KPILOT_DECOMPOSITION_2026-07-28.md` — deliverable #4 (WORK THIS CREATES); ruling §1, §5.3, §5.4.
 **Serves:** DIRECTOR_AXES Axis 1 (Website) + Axis 3 (Believability). Campaign: SITE_MODEL_SPINE knowledge lane.

@@ -2,7 +2,7 @@
 
 # [PLANNER-MINTED] One node filled to full depth, with charts (ruling's pilot output) (2026-07-28)
 
-**⚠ SEQUENCING (dial, not wall):** #1 (`PLANNER_MINTED_wholesale_domain_topic_map`) decides which nodes exist and their scope. Draw #1 FIRST; if drawn before #1 is committed, do #1 first (cheap FRAME work) — do NOT fill a node into a graph that does not yet exist. Left self-drawable (not hard-blocked) because #1 is trivially drawable now and this is a sequencing preference, not an irreducible block (Rule-0: dials order work, never zero it).
+**✅ SEQUENCING UNBLOCKED (2026-07-29):** #1 (`PLANNER_MINTED_wholesale_domain_topic_map`) is DONE — the graph now exists at `docs/design/KPILOT_WHOLESALE_DOMAIN_TOPIC_MAP.md`. It RECOMMENDS `electricity-wholesale` as the deep node for this deliverable (argued §3.2: the price-formation charts + SRMC reconstruction already sit there, and the director's product-structure steer lands squarely on it). If a different node is chosen, engage that steer per the exit criteria. The graph's §5 machine-readable block is the target #4 reconciles the live JSON to.
 
 **Source ruling:** `DIRECTOR_RULING_KPILOT_DECOMPOSITION_2026-07-28.md` — deliverable #3 (WORK THIS CREATES); ruling §5.2, §5.5.
 **Serves:** DIRECTOR_AXES Axis 1 (Website — the director is a visual reader) + Axis 3 (Believability — charts rendered from the live pipeline, never static). Campaign: SITE_MODEL_SPINE knowledge lane. Fidelity-ledger row: whichever node is chosen (candidate: the electricity price-formation node, on the built W1_6 chain).
