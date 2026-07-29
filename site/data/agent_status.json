@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-29T17:35:01.911344+00:00",
+  "last_updated": "2026-07-29T17:44:08.970402+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T17:35:01.911344+00:00",
-      "last_action": "Heartbeat \u2014 8 files tracked",
-      "last_action_ts": "2026-07-29T17:35:01.618680+00:00",
+      "last_heartbeat": "2026-07-29T17:44:08.970402+00:00",
+      "last_action": "Heartbeat \u2014 11 files tracked",
+      "last_action_ts": "2026-07-29T17:44:06.438726+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T17:31:36.236566+00:00",
+      "last_heartbeat": "2026-07-29T17:41:36.237825+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-07-29T17:21:36.235442+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-29T17:29:45.353854+00:00",
-      "last_action": "Sim started \u2014 git=f67b16446",
-      "last_action_ts": "2026-07-29T17:29:45.353854+00:00",
+      "last_heartbeat": "2026-07-29T17:38:37.236428+00:00",
+      "last_action": "Sim started \u2014 git=6ea364adf",
+      "last_action_ts": "2026-07-29T17:38:37.236428+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T17:32:33.360245+00:00",
-      "last_action": "Classified from_rich_20260729_173231.md as NORMAL",
-      "last_action_ts": "2026-07-29T17:32:33.360245+00:00",
+      "last_heartbeat": "2026-07-29T17:37:57.913221+00:00",
+      "last_action": "Classified from_rich_20260729_173742.md as URGENT",
+      "last_action_ts": "2026-07-29T17:37:57.913221+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T17:32:34.459854+00:00",
-      "last_action": "Acked message: \"Opus 5 doesn't exist on this plan \u2014 my error. Check what model you are actually \"",
-      "last_action_ts": "2026-07-29T17:32:34.459854+00:00",
+      "last_heartbeat": "2026-07-29T17:37:45.544290+00:00",
+      "last_action": "Acked message: 'Your backlog is in a document but the thing that picks your next job reads the m'",
+      "last_action_ts": "2026-07-29T17:37:45.544290+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T16:13:46.589671+00:00",
-      "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-07-29T16:13:46.589671+00:00",
+      "last_heartbeat": "2026-07-29T17:37:16.055262+00:00",
+      "last_action": "Scanned 3 files (tools/generate_phases_json.py, its test, G1 atom_status yaml) - PASS, no SIM/company barrier violations; harness-layer build-history metrics only",
+      "last_action_ts": "2026-07-29T17:37:16.055262+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T17:34:39.413803+00:00",
+      "last_heartbeat": "2026-07-29T17:42:52.317504+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -135,9 +135,9 @@
     {
       "name": "build-executor",
       "status": "working",
-      "last_heartbeat": "2026-07-29T17:30:49.937507+00:00",
-      "last_action": "Dispatching claude-opus-5 turn for draw: RULE 0 self-refill (dial yielded -- no below-target work anywhere; the to-do lis",
-      "last_action_ts": "2026-07-29T17:30:49.937507+00:00",
+      "last_heartbeat": "2026-07-29T17:42:01.647842+00:00",
+      "last_action": "Dispatching claude-opus-5 turn for draw: RUNG 7 PLANNER self-refill (director ruling WORK_IS_THE_DEFAULT 2026-07-23): run",
+      "last_action_ts": "2026-07-29T17:42:01.647842+00:00",
       "anomaly": null,
       "role": "Governed headless-turn executor: consumes the Rule-0 self-refill draw and lands one gated unit of build work per cycle (SAFE-DARK foundation).",
       "produces": "write-landed build turns (origin-verified commit SHAs)"

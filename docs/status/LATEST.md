@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T17:35:01Z
+Last updated: 2026-07-29T17:44:33Z
 
 **HARDENED (2026-07-29, `03c2e7ffd` + `6f7bc3d32`) — a throughput signal that could not fall.**
 Rule-0 yielded the dial (nothing below target anywhere) onto the at-target atom `G5_effort_sizing_discipline`.
@@ -472,7 +472,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (483s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
