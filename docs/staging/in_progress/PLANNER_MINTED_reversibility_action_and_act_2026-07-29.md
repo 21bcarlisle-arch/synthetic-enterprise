@@ -1,4 +1,18 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- PARTIALLY ACTIONED 2026-07-29 (planner tick):
+  #3 (batched [ACT]) DELIVERED -> docs/observability/work_at_risk_batched_act_2026-07-29.md (committed).
+  #2 (release the proceed-at-risk set) is BLOCKED, not self-actionable: the reclassification's 15
+  reversible level moves are mechanism-held on atom #4 (reversible_draws_dont_queue_for_permission),
+  whose CORE relaxes the R16 pre-commit level gate = an authority/safety-control change the agent may
+  NEVER self-authorize on an advisor-bridge ruling (authentication convention; one-way-door cat 5/8).
+  Per this atom's own decompose-and-escalate note: reversible parts done, irreducible core ESCALATED
+  via NTFY. Left in in_progress/ (open sub-item = the director act ACT-1/ACT-2 in the batched [ACT]).
+  Self-authority release sweep already found 0/21 self-releasable; nothing crossed the R16 wall; no
+  --no-verify (R16). R12 held: count stays 21 by honest classification, not re-scoped to zero. -->
+<!-- SUPERVISOR_DRAW: blocked-on-director -->
+<!-- BLOCK_RELEASE: director_level_up — #3 delivered; #2 releases the 15 director_level_up items via
+     the director act ACT-1 in docs/observability/work_at_risk_batched_act_2026-07-29.md (phone-sign
+     the LEVEL_UP batch, OR console-authorize atom #4's R16 gate relaxation). Agent cannot self-cross
+     the R16 wall. -->
 
 # [PLANNER-MINTED] Action the proceed-at-risk class with recorded undos, and send ONE batched [ACT] (2026-07-29)
 
