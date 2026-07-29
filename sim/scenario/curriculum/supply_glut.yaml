@@ -1,0 +1,29 @@
+# PROPOSAL world (FRAME §A.6.iii) — an oversupply world, the mirror of the crisis.
+# Low gas trend, high renewables surplus, demand slack, negative-price frequency up. Where carry
+# (paying early risk premium) is punished and a hyperactive hedger destroys value — tests that the
+# org does NOT over-insure in calm (the calm-years near-naked-hedging failure mode, guarded).
+#
+# STATUS: provenance=proposal, ratified=false, in_rotation=false. Values transcribed from the
+# director's FRAME §A.6.iii (self-computed from Elexon primary data). Cannot enter rotation until
+# director-ratified (R13).
+world_id: supply_glut
+version: "0.1.0-proposal"
+provenance: proposal
+ratified: false
+in_rotation: false
+true_probability: null   # director-owned (R13); unset until ratified
+sampling_weight: null
+description: >
+  Oversupply world (spring-2020 COVID-collapse analogue). Renewables surplus + demand slack push
+  negative-price frequency up. Punishes carry and over-insurance — the mirror of crisis_2021_22.
+source_citations:
+  - "Elexon primary data (spring 2020): SSP -£60 to -£66/MWh; 37.5-43.75% of half-hours negative (13 Apr / 24 May 2020)"
+  - "INDO/ITSDO: demand -23.7% vs baseline (exceeds the commonly-cited ~20%)"
+paths:
+  gas_trend:              # p/therm — depressed (spring-2020 analogue), FRAME §A.6.iii
+    "2020-01-01": 40.0
+    "2020-04-01": 20.0
+    "2020-07-01": 28.0
+  renewables_buildout:    # GW wind+solar surplus relative to slack demand (FRAME §A.6.iii qualitative)
+    "2020-01-01": 47.0
+    "2020-04-01": 47.0

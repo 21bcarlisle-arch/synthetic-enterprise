@@ -67,6 +67,23 @@ changes the world the company sees without touching baseline ground truth.
 the world-selection MECHANISM half of B1. The named-world VALUES half is the FRAME's `SPINE_2_launch_worlds`
 (director-ratified R13 curriculum), still named-not-registered per FRAME section C, as are SPINE_3–SPINE_5.
 
+**MECHANISM BUILT (2026-07-29, on the director's "start the hardest item, not a frame" warning
+`DIRECTOR_WARNING_QUIET_BUSYWORK_2026-07-29.md`, which overrides the `director_build_open` gate — "no
+one-way doors"):** `sim/scenario/spine.py` — the immutable, version-pinned `ScenarioSpine` value object +
+curriculum registry (`sim/scenario/curriculum/*.yaml`) + Blindfold-clean `paths_as_of(t)` accessor + the
+R13 ratification gate. The `history_replay` default selects NO overrides (byte-identical/dormant, FRAME
+§A.5). The three FRAME-proposed worlds (`neso_central`, `crisis_2021_22`, `supply_glut`) are committed as
+`ratified: false, in_rotation: false` PROPOSAL artefacts — the mechanism sees them, but none can enter
+rotation until the director ratifies (R13 wall held; `rotation_set()` is empty today). 15 exit tests green
+(`tests/sim/test_scenario_spine.py`), incl. the FRAME §R15 failable controls: **W1** the epistemic wall
+(no `company/**`/`saas/**` import — mutation-proven both ways), **W2** baseline dormancy, **W3** the
+fail-closed ratification guard (`ratified:true` without a record is REJECTED). **Level stays a proposal
+(`level_current: 0`) — I built it, I do not self-promote it (levels are proposals; the director moves them).**
+**Still open (honest):** SPINE_1 is not yet WIRED INTO price formation / the runner (the integration that
+makes a chosen world change what the company sees — the next real increment); the launch-world VALUES await
+director R13 ratification (`SPINE_2`); a site page showing this working is a follow-on (claim-status: the
+spine is Timeframe-2 machinery, dormant, NOT a present-tense capability).
+
 ### B2 — Gas storage stock-and-flow that can *produce* a 2022 inversion (World; Wave B, coupled w/ B6)
 **Plain:** model gas storage as a stock that fills and draws, so a supply shock endogenously
 produces the winter-2022 price inversion rather than it being scripted.

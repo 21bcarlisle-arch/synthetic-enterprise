@@ -1,0 +1,31 @@
+# PROPOSAL world (FRAME §A.6.i) — NESO FES 2025 'Holistic Transition'-anchored central path.
+# The "expected future" the desk plans against, where good forecasting looks boring and cheap.
+#
+# STATUS: provenance=proposal, ratified=false, in_rotation=false. The MECHANISM (SPINE_1) is the
+# agent's to build; the VALUES and which worlds enter rotation are the DIRECTOR'S (R13). These
+# anchors are transcribed verbatim from the director's own FRAME §A.6.i (sourced), NOT agent-set
+# difficulty — this world cannot enter rotation until the director ratifies it (adds a
+# `ratification:` block + flips ratified/in_rotation).
+world_id: neso_central
+version: "0.1.0-proposal"
+provenance: proposal
+ratified: false
+in_rotation: false
+true_probability: null   # director-owned (R13); unset until ratified
+sampling_weight: null
+description: >
+  NESO FES 2025 central pathway. Capacity growth outpaces demand to 2030 (the mechanistic
+  driver of rising negative-price frequency). Purpose: the expected future the desk plans
+  against — good forecasting looks boring and cheap.
+source_citations:
+  - "NESO FES 2025 'Pathways to Net Zero' (Nov 2025): wind+solar 49 GW (2024) -> 113-124 GW (2030) -> 227-256 GW (2050); demand 57.5 GW/287 TWh (2024) -> 62-65 GW/335-345 TWh (2030)"
+  - "DESNZ Fossil Fuel Price Assumptions 2025, Assumption B: gas 84 p/therm (2024) -> 71 (2030) -> 66 (2050 plateau)"
+paths:
+  gas_trend:              # p/therm annual anchors (DESNZ Assumption B, FRAME §A.6.i)
+    "2024-01-01": 84.0
+    "2030-01-01": 71.0
+    "2050-01-01": 66.0
+  renewables_buildout:    # GW wind+solar, band midpoints (NESO FES 2025, FRAME §A.6.i)
+    "2024-01-01": 49.0
+    "2030-01-01": 118.5
+    "2050-01-01": 241.5

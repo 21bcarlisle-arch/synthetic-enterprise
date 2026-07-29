@@ -1,0 +1,32 @@
+# PROPOSAL world (FRAME §A.6.ii) — the 2021->22 crisis-replay world that killed real suppliers.
+# Gas trend spiking, EU storage-fill panic driving the winter/summer spread INVERSION,
+# price-volume covariance biting, SSP spike tail live. The world that broke hedged suppliers on
+# CASH, not P&L — tests survival, collateral, and whether the desk pre-empted the residual tail.
+#
+# STATUS: provenance=proposal, ratified=false, in_rotation=false. Values transcribed from the
+# director's FRAME §A.6.ii (sourced/API-confirmed). Cannot enter rotation until director-ratified (R13).
+world_id: crisis_2021_22
+version: "0.1.0-proposal"
+provenance: proposal
+ratified: false
+in_rotation: false
+true_probability: null   # director-owned (R13); unset until ratified — coupled to B6 collateral death loop
+sampling_weight: null
+description: >
+  2021-22 gas crisis replay. Storage-fill panic inverts the winter/summer spread; the
+  collateral/cash shock (margin calls draining cash faster than the P&L looks bad) is where a
+  hedged supplier dies on cash. The world the collateral death loop (B6) must be able to lose in.
+source_citations:
+  - "DESNZ Fossil Fuel Price Assumptions 2025, Assumption B: gas 226 p/therm (2022 annual avg)"
+  - "Advisor decade review: winter/summer spread -£29.7 (2022, inverted)"
+  - "Elexon Insights API: SSP real max £4,000.00/MWh, 8 Jan 2021 SP39 (~1% of sim claim)"
+  - "Ofgem 26 Aug 2022 cap letter: wholesale-cost component £1,077 -> £2,491/yr in one quarter; total cap £1,971 -> £3,549 (+80%)"
+paths:
+  gas_trend:              # p/therm — the 2022 spike (DESNZ Assumption B annual avg, FRAME §A.6.ii)
+    "2021-01-01": 84.0
+    "2022-01-01": 226.0
+    "2023-01-01": 130.0
+  storage_capacity:       # relative EU storage-fill index (1.0 = normal); fill-mandate panic draws it down
+    "2021-06-01": 1.0
+    "2021-10-01": 0.75
+    "2022-03-01": 0.35

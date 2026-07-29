@@ -1,0 +1,16 @@
+# The DEFAULT/baseline world (FRAME docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md §A.5).
+# The real 2016-25 GB record. Selects NO exogenous overrides: paths_as_of returns
+# NO_OVERRIDE for every field, so every run is byte-identical to pre-spine (additive/dormant).
+# This is the R13 BASELINE (ground truth), not a curriculum-difficulty world — it may change
+# only for fidelity-to-reality reasons, decided blind to company P&L (R13).
+world_id: history_replay
+version: "1.0.0"
+provenance: baseline
+ratified: true          # the baseline default is always available (not a rotation member)
+in_rotation: false      # NOT part of the tail-heavy rotation set (FRAME §A.6)
+true_probability: null  # the baseline is the reference measure, not a sampled tail
+sampling_weight: null
+description: >
+  The real 2016-2025 GB half-hourly settlement record. No exogenous overrides — the spine
+  is dormant here and every existing run reproduces byte-for-byte (FRAME §A.5 guarantee).
+paths: {}               # empty => baseline, no overrides on any field
