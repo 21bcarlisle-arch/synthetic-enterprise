@@ -1,5 +1,27 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T16:37:34Z
+Last updated: 2026-07-29T17:35:01Z
+
+**HARDENED (2026-07-29, `03c2e7ffd` + `6f7bc3d32`) — a throughput signal that could not fall.**
+Rule-0 yielded the dial (nothing below target anywhere) onto the at-target atom `G5_effort_sizing_discipline`.
+Its own controls are fully mutation-rotated, so this pass ran the **class audit** rather than adding an Nth
+guard: G5's class is *a flow/effort signal must stay honest — the absence of work must be visible*. Auditing
+every consumer of G5's git-mined transitions found one outside its file_scope —
+`tools/generate_wip_flow_data.py::_throughput` anchored its trailing 7/14/30-day windows on `ts[-1]`, **the
+last transition's own timestamp**, so a window measured "the N days *before* the last transition", never the
+last N days. Once transitions stopped, published throughput **froze at its final healthy value and could
+never decay**: a build stalled for a month read identical to one at full velocity. Proven before the fix —
+19 transitions dated 60 days back still reported 2.71/day. Fixed under `G7_wip_cycle_time_dashboard` (the
+atom that owns the code): wall-clock anchor with `max(now, ts[-1])` so clock-skewed commits are not dropped
+instead, plus `hours_since_last_transition` + `window_basis` published (R14) and rendered (R11).
+**R15 mutation-proven** — restoring `anchor = ts[-1]` reds `test_trailing_windows_decay_to_zero_when_transitions_stop`
+(19 ≠ 0) while the independence test (a live build must NOT read 0) and the skew test stay green.
+15 door tests, 399 site tests, G5's exit suites re-verified unchanged (52 pass).
+**Two honesty corrections, both filed in the map trail:** (1) the first note called `site/wip-flow/` a *live
+published surface* — it is **not**. `site/_redirects` 301s `/wip-flow*` to `/proof/` under the RC7 idea-first
+ruling; the page is noindex and canonically unreachable, and no reachable page consumes `wip_flow.json`. Real
+mechanism defect, **internal-register reach, not a public claim**. (2) the identical anchor defect in
+`tools/activity_cost.py::self_maintenance_trend` is **registered under G11 and queued**, not fixed on sight
+(SELF-INTERRUPT DISCIPLINE). No level moved; both atoms stay at target.
 
 **BUILT (2026-07-29, `90cd95039`) — the rotation↔curriculum BINDING: the missing join.**
 SPINE_1 landed the scenario substrate and the stratified run-rotation landed the grid+cursor+selector;
@@ -450,7 +472,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (483s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -558,6 +580,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~514.5h across 41 sized atom(s) (7 of 48 below-target atoms still unsized).
+- Remaining effort: ~530.9h across 42 sized atom(s) (7 of 49 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
