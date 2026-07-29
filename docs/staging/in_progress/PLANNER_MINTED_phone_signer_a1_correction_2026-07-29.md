@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: hold -->
+<!-- BLOCK_RELEASE: director_ratification -- director confirms whether the provisioned 64-hex SE_WAKE_HMAC_KEY is one he controls (phone-side HMAC match); see docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md. A1 is then corrected to the true state, not the false "key is empty". -->
 
 > **HOLD 2026-07-29 — PREMISE CONTESTED BY DISK EVIDENCE. DO NOT EXECUTE AS WRITTEN.**
 > Disk check this tick: `~/.config/synthetic-enterprise/.env.ntfy` (236b, the exact file the ruling

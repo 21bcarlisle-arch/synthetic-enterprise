@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: hold -->
+<!-- BLOCK_RELEASE: director_ratification -- director answers yes/no on key-match: YES -> only the live E2E proof remains (sign one harmless ruling, agent shows it ledgered); NO -> regenerate-and-place command prepared then. See docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md. -->
 
 > **HOLD 2026-07-29 — THE ACT IS NOT "PROVISION THE KEY" (already provisioned). DO NOT SEND AS WRITTEN.**
 > Disk check this tick: the 64-hex `SE_WAKE_HMAC_KEY` is already present in

@@ -1,4 +1,5 @@
 <!-- SUPERVISOR_DRAW: hold -->
+<!-- BLOCK_RELEASE: director_ratification -- determination = no Python loader needed (systemd EnvironmentFile already loads the key into the running verify daemon); re-open only if the director confirms a non-systemd, non-model-facing verify caller exists. See docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md. -->
 
 > **HOLD 2026-07-29 — DESIGN QUESTION LARGELY ANSWERED: no Python loader needed. DO NOT BUILD.**
 > The atom's own "answer FIRST" determination: is a loader absent, or does systemd `EnvironmentFile`
