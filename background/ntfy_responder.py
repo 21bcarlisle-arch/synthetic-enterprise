@@ -342,8 +342,10 @@ def _is_app_selftest(message: str) -> bool:
 def _write_to_staging(message: str) -> Path | None:
     """Write an inbound NTFY message to docs/staging/ so the Claude Code session
     picks it up on its next staging-directory poll. Returns the path written, or
-    None if the message is too short to warrant staging (plain status pings), or
-    if it is a machine-generated ntfy-app self-test (never a director instruction)."""
+    None if the message is a machine-generated ntfy-app self-test (never a
+    director instruction) or is a reply-PIN closing an already-open escalation.
+
+    Message LENGTH is never a reason to drop -- see the ruling note below."""
     # Inbound-as-instruction guard: an ntfy-app self-test is untrusted machine text
     # with zero authority -- never stage it (staging = a supervisor turn = a model
     # load). Matched narrowly so a real steer is never caught. See _is_app_selftest.
@@ -367,20 +369,28 @@ def _write_to_staging(message: str) -> Path | None:
                 return None
     except Exception as exc:  # never let correlation crash the responder
         log(f"answer-correlation skipped (non-fatal): {exc}")
-    if len(message) < 25:
-        # A short message is normally a status ping to ignore -- UNLESS a
-        # director question is open, in which case a terse "B" / "yes" is the
-        # EXPECTED shape of the answer, not noise. Silently dropping it is
-        # exactly what let the W2_2 curriculum answer evaporate (2026-07-14
-        # retro): A/B/C/D answers are inherently under 25 chars. When anything
-        # is awaiting the director, stage the short reply; only drop it when
-        # nothing is open (a genuine status ping).
-        try:
-            from background.action_needed import open_items
-            if not open_items():
-                return None
-        except Exception:
-            return None  # can't confirm an open item -> keep the old safe default
+    # NO MINIMUM-LENGTH OR FORMAT CHECK ON DIRECTOR MESSAGES (2026-07-29,
+    # DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY §4, authorised directly:
+    # "Any minimum-length or format check on inbound director messages is
+    # deleted -- 'yes', 'go' and 'PIN 07C3 PROCEED' must all work.").
+    #
+    # What used to be here: a `len(message) < 25` gate that dropped short
+    # messages unless action_needed.open_items() was non-empty. It was already
+    # known to lose real instructions (the 2026-07-14 W2_2 retro, where an
+    # A/B/C/D curriculum answer evaporated) and was patched with the
+    # open-items carve-out rather than removed. The carve-out FAILED OPEN in
+    # the wrong direction twice over: it dropped the message when open_items()
+    # raised, and -- the live case -- it dropped any terse unprompted steer
+    # ("go", "yes", "ship it") whenever nothing happened to be formally open,
+    # which is precisely when a short instruction is a NEW instruction rather
+    # than an answer.
+    #
+    # The director is not a format to be validated. Length carries no signal
+    # about authority, so gating on it can only ever lose real instructions;
+    # the cost of staging a stray status ping is one supervisor turn, and the
+    # cost of dropping a real steer is unbounded. The _is_app_selftest guard
+    # above stays -- that discriminates MACHINE text from director text (R7/R8),
+    # which is a different question from how long the director's sentence is.
     staging_dir = PROJECT_DIR / "docs" / "staging"
     staging_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")

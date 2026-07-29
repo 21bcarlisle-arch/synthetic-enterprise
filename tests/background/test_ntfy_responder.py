@@ -90,6 +90,11 @@ def test_check_once_acks_messages_not_sent_by_us(tmp_path, monkeypatch):
     monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
     monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
     monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    # PROJECT_DIR pin (2026-07-29): once the <25-char drop was deleted, a SHORT
+    # inbound stages like any other -- without this pin this test would write a
+    # real from_rich_*.md into the live docs/staging/ and grant a supervisor
+    # turn off a fixture. Same test-isolation-leak class as the tmux retro.
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
 
     sent = []
     monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
@@ -102,9 +107,13 @@ def test_check_once_acks_messages_not_sent_by_us(tmp_path, monkeypatch):
     new_since, _ = responder.check_once(500, [])
     assert new_since == 1000
     assert len(sent) == 1
-    # Short message ("Hello Rich" < 25 chars) → [status ping] classification, no staging file
-    assert "status ping" in sent[0].lower()
     assert "Sim:" in sent[0]
+    # A short message is now an INSTRUCTION like any other: length is not a
+    # classifier (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY §4). This
+    # previously asserted "status ping" + no staging file.
+    assert "status ping" not in sent[0].lower()
+    staged = list((tmp_path / "docs" / "staging").glob("from_rich_*.md"))
+    assert len(staged) == 1 and "Hello Rich" in staged[0].read_text()
 
 
 def test_check_once_stages_substantive_messages(tmp_path, monkeypatch):
@@ -191,11 +200,43 @@ def test_write_to_staging_creates_file(tmp_path, monkeypatch):
     assert "Hello from Rich" in path.read_text()
 
 
-def test_write_to_staging_rejects_short_message_when_nothing_is_open(tmp_path, monkeypatch):
+def test_write_to_staging_keeps_short_message_even_when_nothing_is_open(tmp_path, monkeypatch):
+    """A terse UNPROMPTED steer must stage (DIRECTOR_RULING_RIP_OUT_PERMISSION_
+    MACHINERY §4, 2026-07-29: "'yes', 'go' and 'PIN 07C3 PROCEED' must all work").
+
+    This test previously asserted the OPPOSITE -- that a <25-char message with
+    nothing formally open was dropped. That was the defect: "go" is a complete
+    instruction, and nothing being open is exactly when a short message is a NEW
+    instruction rather than an answer. Length carries no signal about authority.
+
+    MUTATION: restore the `len(message) < 25` gate in _write_to_staging and this
+    fails."""
     monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
     import background.action_needed as an
     monkeypatch.setattr(an, "open_items", lambda *a, **k: [])
-    assert responder._write_to_staging("Hi") is None
+    for terse in ("go", "yes", "Hi", "ship it"):
+        path = responder._write_to_staging(terse)
+        assert path is not None and path.exists(), \
+            f"terse director steer {terse!r} must reach staging, not be dropped on length"
+        assert terse in path.read_text()
+
+
+def test_write_to_staging_keeps_short_message_when_open_items_raises(tmp_path, monkeypatch):
+    """Fail-OPEN on the director's side: if the open-items lookup blows up, a
+    short message must still be staged. The old code returned None here -- an
+    unavailable check silently ate a real instruction (R15 fail-silent).
+
+    MUTATION: restore the `except Exception: return None` path and this fails."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    import background.action_needed as an
+
+    def boom(*a, **k):
+        raise RuntimeError("register unavailable")
+
+    monkeypatch.setattr(an, "open_items", boom)
+    path = responder._write_to_staging("go")
+    assert path is not None and path.exists(), \
+        "a broken open-items lookup must never be a reason to drop a director message"
 
 
 def test_write_to_staging_keeps_short_reply_when_a_director_question_is_open(tmp_path, monkeypatch):
