@@ -1,4 +1,15 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: hold -->
+
+> **HOLD 2026-07-29 — DESIGN QUESTION LARGELY ANSWERED: no Python loader needed. DO NOT BUILD.**
+> The atom's own "answer FIRST" determination: is a loader absent, or does systemd `EnvironmentFile`
+> suffice for every verify caller? Disk check this tick — the running verify daemon `ntfy_responder.py`
+> (PID 114246) **already has `SE_WAKE_HMAC_KEY` loaded in its live env** via
+> `EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy` (`generate_units.py:49`). No
+> verify-path caller was found that runs outside systemd AND is not model-facing (a model-facing caller
+> MUST NOT have the key — scrubbed by design). So the honest output is **"no code change required, the
+> EnvironmentFile path suffices."** **Unblocks when:** director confirms the key-match question (see
+> `docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md`) — if a
+> non-systemd, non-model-facing verify caller is later identified, re-open then. Escalated via NTFY.
 
 # [PLANNER-MINTED] Key-loading code for SE_WAKE_HMAC_KEY if absent, with model-facing scrubbing preserved (2026-07-29)
 

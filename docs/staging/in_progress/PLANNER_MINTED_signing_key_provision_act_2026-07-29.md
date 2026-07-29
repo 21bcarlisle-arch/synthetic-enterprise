@@ -1,4 +1,15 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: hold -->
+
+> **HOLD 2026-07-29 — THE ACT IS NOT "PROVISION THE KEY" (already provisioned). DO NOT SEND AS WRITTEN.**
+> Disk check this tick: the 64-hex `SE_WAKE_HMAC_KEY` is already present in
+> `~/.config/synthetic-enterprise/.env.ntfy` and loaded in the running verify daemon. The Seed's premise
+> ("empty `SE_WAKE_HMAC_KEY=` line, fill it") is FALSE. The batched [ACT], if any, is at most
+> "confirm-or-regenerate to a key the director controls + one live E2E proof (sign a harmless ruling →
+> ledger row)". **Blocker:** whether the present key is the director's (phone-side match) is
+> director-reserved and open. **Unblocks when:** director answers yes/no (see
+> `docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md`). If YES → only
+> the E2E proof remains (ready to hand over). If NO → the regenerate-and-place command is prepared then.
+> Escalated via NTFY 2026-07-29.
 
 # [PLANNER-MINTED] One batched [ACT] to provision the signing key: verbatim short command, file format, restart, success test, safe proof (2026-07-29)
 

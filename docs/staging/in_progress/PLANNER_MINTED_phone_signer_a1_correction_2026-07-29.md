@@ -1,4 +1,14 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- SUPERVISOR_DRAW: hold -->
+
+> **HOLD 2026-07-29 — PREMISE CONTESTED BY DISK EVIDENCE. DO NOT EXECUTE AS WRITTEN.**
+> Disk check this tick: `~/.config/synthetic-enterprise/.env.ntfy` (236b, the exact file the ruling
+> cites) contains a **real, full-entropy 64-hex `SE_WAKE_HMAC_KEY`**, and the running `ntfy_responder`
+> daemon has it **loaded in its live env**. The key is NOT empty/unprovisioned. Correcting A1 to "key
+> line is empty / director must provision" would write a NEW falsehood. **Blocker:** the true A1 text
+> depends on whether the provisioned key is one the director controls (phone-side match) — an open,
+> director-reserved question. **Unblocks when:** the director confirms yes/no (see
+> `docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md`); then A1 is
+> corrected to whichever truth. Escalated via NTFY 2026-07-29.
 
 # [PLANNER-MINTED] Correct PHONE_SIGNER_SETUP.md step A1 (key was never provisioned) + sweep siblings asserting runtime state from source (2026-07-29)
 
