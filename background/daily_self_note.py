@@ -393,6 +393,16 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated gap
         lines.append(f"- {_red(f'twin pre-score gap unavailable: {e}')}")
 
+    # DD-H solvency belief-vs-truth gap (read-only; §2-severed — the company's
+    # believed equity vs the truth net of held customer credit owed back. R12: a
+    # diagnostic the note reads, never a number that feeds the draw). Fail-closed.
+    lines += ["", "**Solvency belief-vs-truth gap** _(DD-H — believed equity vs equity net of held customer credit owed back)_"]
+    try:
+        from background.dd_h_solvency_gap import retro_gap_line as _dd_h_gap_line
+        lines.append(f"- {_dd_h_gap_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a fabricated gap
+        lines.append(f"- {_red(f'solvency belief-vs-truth gap unavailable: {e}')}")
+
     lines += ["", "**Resource inputs**"]
     lines.append(f"- {res if res else _red(res_err)}")
 
@@ -444,6 +454,17 @@ def run(force: bool = False, now: datetime | None = None, *, send=None,
         return "already_ran_today"
     note = render_note(now.isoformat(timespec="minutes"), _runner=_runner)
     publish(note, now, send=send)
+    # DD-H: append a dated solvency belief-vs-truth gap row to the history ledger
+    # (per-digest gap over time). Determinism (C-S2): the clock is passed IN, never
+    # called inside the organ. Fail-closed — a ledger write failure must never crash
+    # the digest (the note is already published; the RED line is in it regardless).
+    try:
+        from background.dd_h_solvency_gap import record_gap
+        sha, _ = _runner("rev-parse", "HEAD")
+        record_gap(measured_at=now.isoformat(timespec="minutes"),
+                   run_git_commit=(sha or "").strip() or None)
+    except Exception:  # noqa: BLE001 — the ledger is history, never a gate on publishing
+        pass
     return "published"
 
 
