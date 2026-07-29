@@ -622,6 +622,132 @@ def _build_in_progress_ids() -> set:
         return set()
 
 
+def _unmerged_work_paths(root: Path | None = None) -> frozenset:
+    """File paths carrying UNMERGED work anywhere in this checkout -- read from GIT REALITY
+    (worktrees, unmerged branch tips, uncommitted worktree edits), never from a marker some
+    dispatcher had to remember to write.
+
+    WHY (2026-07-30, H10, the third consecutive blind dispatch): the sibling guard
+    `_build_in_progress_ids` excludes atoms a live fork owns, but only if the orchestrator
+    WROTE `.build_in_progress.json` at dispatch. On 2026-07-30 that file was `{}` while five
+    forks held 4,270 uncommitted lines, so the draw re-offered SITE_EH1 twice and produced two
+    rival implementations of one atom; a JSON record written to fix the same bug (`.forks_in_
+    flight.json`) went unread by the very next tick and predicted its own decay. Both failed for
+    ONE reason: they must be VOLUNTARILY MAINTAINED. Git cannot be forgotten -- a branch with
+    commits not in main, or a dirty worktree, is a FACT of the repo. This guard reads that fact.
+
+    GUARANTEE: an atom whose declared `file_scope` overlaps a path with unmerged work is not
+    offered as fresh BUILD work while a non-collliding candidate exists, so the draw cannot mint
+    a rival implementation of work already in flight.
+
+    NOT A WALL (Rule 0): the caller applies this as a SOFT deprioritise -- if every candidate
+    collides, the full set is restored rather than reporting false exhaustion. FAIL-OPEN by
+    construction: any git failure/timeout returns an EMPTY set (no exclusion), because a broken
+    guard must never stall the loop. An empty return is therefore indistinguishable from "no
+    unmerged work" -- that is deliberate and is why this deprioritises rather than gates.
+    """
+    import subprocess
+    base = Path(root) if root is not None else PROJECT_DIR
+    paths: set = set()
+
+    def _git(args: list, cwd: Path) -> str:
+        try:
+            r = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True,
+                               text=True, timeout=20)
+            return r.stdout if r.returncode == 0 else ""
+        except Exception:
+            return ""
+
+    # (a) Committed work on any local branch not contained in main -- `main...b` diffs from the
+    #     merge base, i.e. exactly what that branch CHANGED (not what main moved on past).
+    #     Resolve the trunk rather than hardcoding "main": on a checkout without it, every
+    #     `main..branch` would error and the guard would fail-open COMPLETELY and silently
+    #     (an unavailable check is a FAILED check -- R15 fail-silent). Fall back to HEAD.
+    default_ref = "main"
+    if not _git(["rev-parse", "--verify", "--quiet", default_ref], base).strip():
+        default_ref = _git(["symbolic-ref", "--short", "HEAD"], base).strip() or "HEAD"
+    for line in _git(["for-each-ref", "--format=%(refname:short)", "refs/heads/"], base).splitlines():
+        branch = line.strip()
+        if not branch or branch == default_ref:
+            continue
+        ahead = _git(["rev-list", "--count", f"{default_ref}..{branch}"], base).strip()
+        if not ahead.isdigit() or int(ahead) == 0:
+            continue
+        for p in _git(["diff", "--name-only", f"{default_ref}...{branch}"], base).splitlines():
+            if p.strip():
+                paths.add(p.strip())
+
+    # (b) UNCOMMITTED edits in every linked worktree -- the state that nearly lost 4,270 lines.
+    #     A dirty worktree is in-flight work even with zero commits on its branch.
+    for line in _git(["worktree", "list", "--porcelain"], base).splitlines():
+        if not line.startswith("worktree "):
+            continue
+        wt = line.split(" ", 1)[1].strip()
+        if not wt or Path(wt) == base:
+            continue
+        for st in _git(["status", "--porcelain"], Path(wt)).splitlines():
+            p = st[3:].strip() if len(st) > 3 else ""
+            if " -> " in p:                      # renames: "old -> new"
+                p = p.split(" -> ", 1)[1].strip()
+            if p:
+                paths.add(p)
+    return frozenset(paths)
+
+
+def _atom_collides_with_unmerged(atom: dict, unmerged: frozenset) -> bool:
+    """True when this atom's declared file_scope overlaps a path carrying unmerged work.
+
+    Directory-aware in BOTH directions, because file_scope mixes granularities: a scope entry
+    may be a directory (`site`, `sim`, `site/company/`) containing a changed file, or a file
+    (`site/index.html`) that IS the changed path. Undeclared scope (None) returns False -- this
+    guard NEVER newly excludes an atom the existing disjointness rule already fails closed on
+    (`_atom_file_scope` -> None is ineligible for a CONCURRENT grant anyway), so it cannot make
+    the single-atom draw stricter than it was."""
+    scope = _atom_file_scope(atom)
+    if not scope or not unmerged:
+        return False
+    for entry in scope:
+        e = str(entry).strip().rstrip("/")
+        if not e:
+            continue
+        for changed in unmerged:
+            if changed == e or changed.startswith(e + "/") or e.startswith(changed + "/"):
+                return True
+    return False
+
+
+def _prefer_unmerged_free(candidates: list, lane: str = "BUILD") -> list:
+    """Apply the unmerged-work guard as a SOFT preference to a candidate list.
+
+    Shared by the two CODE-WRITING draws (BUILD and SITE) -- both mint rival implementations if
+    they re-offer in-flight work, and the 2026-07-30 double-dispatch spanned both (SITE_EH1 has
+    non-site scope entries so it draws in BUILD; SITE1_expert_doors is scope `['site']` so it
+    draws in the SITE lane). The DISCOVER/FRAME lane is deliberately NOT filtered: it produces
+    docs/thinking, where a second pass on the same atom is not a rival build.
+
+    Rule 0 is structural here, not a comment: an all-colliding set is returned UNCHANGED, so this
+    can never zero the feasible set. Fail-open on any error (git unavailable -> no exclusion)."""
+    if not candidates:
+        return candidates
+    try:
+        unmerged = _unmerged_work_paths()
+        if not unmerged:
+            return candidates
+        free = [a for a in candidates if not _atom_collides_with_unmerged(a, unmerged)]
+        if not free:
+            log(f"UNMERGED-WORK guard ({lane}): every candidate overlaps unmerged work -- keeping "
+                "full set (Rule 0: a guard never zeroes the feasible set)")
+            return candidates
+        if len(free) != len(candidates):
+            dropped = [a.get("id") for a in candidates if a not in free]
+            log(f"UNMERGED-WORK guard ({lane}): deprioritising {dropped} -- file_scope overlaps "
+                "unmerged branch/worktree work (a fresh fork would mint a rival implementation)")
+        return free
+    except Exception as err:  # pragma: no cover - fail-open safety
+        log(f"UNMERGED-WORK guard ({lane}) skipped (fail-open, never stalls the draw): {err}")
+        return candidates
+
+
 def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False) -> list[dict]:
     """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted, completes R3
     "be wider" as a property of the granting model, not a standing
@@ -769,6 +895,15 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
             else:
                 _kept.append(_a)
         candidates = _kept
+    # UNMERGED-WORK guard (2026-07-30, H10 -- the fix the `.forks_in_flight.json` record itself
+    # named after predicting its own decay). Prefer candidates whose file_scope does NOT overlap
+    # work already sitting unmerged in a branch/worktree, so the draw cannot hand out an atom a
+    # prior fork already built and thereby mint a RIVAL implementation (it did exactly that twice
+    # for SITE_EH1 inside one hour). Backstops `_build_in_progress_ids` above, which fail-opens
+    # whenever the dispatcher never wrote its marker -- the exact state that let this happen.
+    # SOFT, per Rule 0: if EVERY candidate collides the full set is kept rather than reporting
+    # false exhaustion. Mirrors `exclude_stalled`'s own prefer-then-fall-back shape.
+    candidates = _prefer_unmerged_free(candidates, lane="BUILD")
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
@@ -1303,6 +1438,11 @@ def _site_lane_draw_concurrent(
     _bip_site = _build_in_progress_ids()
     if _bip_site:
         candidates = [a for a in candidates if a.get("id") not in _bip_site]
+    # UNMERGED-WORK guard on the SITE lane (2026-07-30, H10): same reason as the BUILD lane above --
+    # the marker guard fail-opens when the dispatcher never wrote it, and SITE1_expert_doors (scope
+    # ['site']) was re-drawn on this lane while two rival SITE_EH1 builds already sat unmerged in
+    # worktrees touching site/. Soft preference; an all-colliding set is kept intact (Rule 0).
+    candidates = _prefer_unmerged_free(candidates, lane="SITE")
     if exclude_stalled and candidates:
         stall_state = _load_atom_stall_state()
         non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
