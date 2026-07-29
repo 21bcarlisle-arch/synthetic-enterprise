@@ -1313,7 +1313,7 @@ Annual risk committee wake-ups (triggered when portfolio VaR exceeds threshold).
 
 | Year | Wake-ups | Customer Adjustments | Avg Customers/Event | Max VaR Stressed £ |
 |------|----------|---------------------|--------------------|--------------------|
-| 2016 | 13 | 13 | 1.0 | £9 |
+| 2016 | 13 | 12 | 0.9 | £9 |
 | 2017 | 12 | 33 | 2.8 | £401 |
 | 2022 | 9 | 59 | 6.6 | £20,532 |
 | 2023 | 4 | 28 | 7.0 | £48,869 |
@@ -1507,15 +1507,15 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 5.91% | 6% | OK | 23.1% | 8% | ! |
-| 2017 | 5.75% | 6% | OK | 0.0% | 8% | OK |
-| 2018 | 6.43% | 6% | ~ | 20.0% | 8% | ! |
-| 2019 | 5.65% | 6% | OK | 41.2% | 8% | ! |
-| 2020 | 5.45% | 6% | OK | 21.1% | 8% | ! |
+| 2016 | 5.91% | 6% | OK | 15.4% | 8% | ! |
+| 2017 | 5.75% | 6% | OK | 35.7% | 8% | ! |
+| 2018 | 6.43% | 6% | ~ | 13.3% | 8% | ~ |
+| 2019 | 5.65% | 6% | OK | 47.1% | 8% | ! |
+| 2020 | 5.45% | 6% | OK | 0.0% | 8% | OK |
 | 2021 | 5.18% | 8% | OK | 7.1% | 12% | OK |
-| 2022 | 6.45% | 8% | OK | 21.4% | 12% | ! |
-| 2023 | 6.25% | 8% | OK | 14.3% | 12% | ~ |
-| 2024 | 5.51% | 6% | OK | 14.3% | 8% | ~ |
+| 2022 | 6.45% | 8% | OK | 35.7% | 12% | ! |
+| 2023 | 6.25% | 8% | OK | 28.6% | 12% | ! |
+| 2024 | 5.51% | 6% | OK | 21.4% | 8% | ! |
 | 2025 | 5.99% | 6% | OK | 18.2% | 8% | ! |
 
 **Complaints:** 9 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
@@ -1683,7 +1683,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-07-29T17:26:57Z
+Generated: 2026-07-29T17:44:22Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2180,7 +2180,7 @@ Committee wake-up sessions: triggered when VaR stress ratio exceeds mandate thre
 Peak VaR observed: 2023 at £128,151 | Unique accounts ever adjusted: 11
 
 **Most frequently adjusted accounts:**
-- C1: 22 sessions
+- C1: 21 sessions
 - C7: 16 sessions
 - C5: 12 sessions
 - C6: 12 sessions
@@ -2734,7 +2734,7 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
   - 2016-06-29: treasury £2,466,709.30, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-07-29: treasury £2,466,720.45, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-08-28: treasury £2,466,731.08, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
-  - 2016-09-27: treasury £2,466,742.26, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
+  - 2016-09-27: treasury £2,466,742.26, (none), VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-10-27: treasury £2,466,753.97, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-11-26: treasury £2,466,766.42, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
   - 2016-12-26: treasury £2,466,778.78, C1->1.00, VaR (current £27.73 / stressed £8.52) ratio 3.25
