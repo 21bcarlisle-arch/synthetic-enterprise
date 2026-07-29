@@ -735,6 +735,7 @@ def extract_report_data(run_output: dict) -> dict:
         # closed this atom's decisive "zero live pipeline callers" gap.
         "dd_collection_book": run_output.get("dd_collection_book", {}),
         "annual_dd_review": run_output.get("annual_dd_review", {}),
+        "dd_balance_book": run_output.get("dd_balance_book", {}),
         # Phase 3 (CORE_FIDELITY_PHASES.md): unhappy-path physics evidence logs
         "meter_read_log": run_output.get("meter_read_log", []),
         "credit_refund_log": run_output.get("credit_refund_log", []),

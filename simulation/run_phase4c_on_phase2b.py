@@ -40,6 +40,7 @@ from pathlib import Path
 
 import saas.payment_behaviour as payment_behaviour_module
 from simulation.dd_collection_book import build_dd_collection_book
+from simulation.dd_balance_book import build_dd_balance_book
 from company.billing.dd_review_runner import run_annual_reviews
 from company.billing.account_adjustment_register import (
     AccountAdjustmentRecord,
@@ -561,6 +562,18 @@ def main(report_end: str | None = None, policy=None):
     # ground-truth churn and needs population-level verification).
     annual_dd_review = run_annual_reviews(bills)
 
+    # DD2 (atom DD_seasonal_cashflow_physics): the per-customer level-DD seasonal
+    # credit/debit balance carried tick-by-tick, and the portfolio HELD-CREDIT
+    # LIABILITY it aggregates to (summer credit builds, winter draws it down; the
+    # positive balance is money owed back -- the "cash-rich but insolvent" tell).
+    # Purely additive and read-only, EXACTLY like build_dd_collection_book and
+    # run_annual_reviews above: reads only the company's own issued `bills`
+    # (company-observable), draws no RNG, mutates nothing, and changes no existing
+    # financial figure. It emits the held-credit-liability figure DD3 will book
+    # into the double-entry chart and DD-H will weigh against believed solvency
+    # (both the registered next gated steps, deliberately not wired here).
+    dd_balance_book = build_dd_balance_book(bills)
+
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
     # layer only, does not alter settlement-based revenue recognition above.
@@ -741,6 +754,7 @@ def main(report_end: str | None = None, policy=None):
         "bills": bills,
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
         "annual_dd_review": annual_dd_review.serialise(),
+        "dd_balance_book": dd_balance_book.serialise(),
         "meter_read_log": meter_read_log,
         "credit_refund_log": credit_refund_log,
         "contact_centre_log": contact_centre_log,
