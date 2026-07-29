@@ -33,6 +33,7 @@ its reason is archaeology; IaC). An empty manifest is a hard error (fail-closed)
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -269,6 +270,27 @@ def _seat_active() -> bool:
                           capture_output=True).returncode == 0
 
 
+def _runs_daemon(args: str, match: str) -> bool:
+    """True iff `args` is a process actually RUNNING this daemon, not merely MENTIONING it.
+
+    The naive `match in args` substring test counts any command line containing the name --
+    `grep ntfy_responder`, an editor, a deploy script, or the very diagnostic shell command
+    used to investigate a duplicate. That false-positived DOUBLE_LAUNCH on a healthy
+    single-launcher daemon within minutes of the control going live (2026-07-29). A control
+    that cries wolf on healthy input gets ignored, which is worse than no control.
+
+    So: the executable must be a python interpreter, and some ARGUMENT's basename must equal
+    the match exactly. `python3 background/ntfy_responder.py` runs it; `grep ntfy_responder.py`
+    and `pytest tests/.../test_ntfy_responder.py` do not.
+    """
+    tokens = args.split()
+    if not tokens:
+        return False
+    if not os.path.basename(tokens[0]).startswith("python"):
+        return False
+    return any(os.path.basename(t) == match for t in tokens[1:])
+
+
 def _unit_main_pid(session: str) -> int:
     """PID systemd itself started for `session`, or 0 if the unit is unknown/inactive. Used to
     tell a daemon's OWN systemd process apart from a second, non-systemd copy of it."""
@@ -317,7 +339,7 @@ def _live_tmux_running(path: Path | None = None) -> set[str]:
                 continue
     for e in entries:
         own = _unit_main_pid(e["session"]) if e.get("owner") == "systemd" else 0
-        stray = any(e["match"] in args and pid != own for pid, args in rows)
+        stray = any(_runs_daemon(args, e["match"]) and pid != own for pid, args in rows)
         if e["session"] in sessions or stray:
             running.add(e["session"])
     return running

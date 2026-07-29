@@ -133,3 +133,20 @@ tmux launch set: `background-worker`, `dispatcher`, `discovery-daemon`, `sim-run
 `sanity-daemon`, `naive-organ`, `token-proxy`. They are single-launcher today only because those
 units happen to be inactive — **each will double at the next boot**. The new `DOUBLE_LAUNCH`
 alarm makes that loud rather than silent. Also registered: the wake-key test-isolation leak above.
+
+## Second honesty correction (same class, caught by the same habit)
+
+The PID-aware stray scan above still used `match in args` -- a substring test over the whole
+command line. So any process merely *mentioning* the daemon counted as a second launcher: a
+`grep ntfy_responder`, an editor, a deploy script -- including **the very diagnostic shell
+command I was using to verify the fix**. DOUBLE_LAUNCH fired on the healthy single-launcher
+responder minutes after the control shipped. Again the suite passed and the live check caught it.
+
+Now `_runs_daemon()`: the executable must be a python interpreter AND some argument's basename
+must equal the match exactly. `python3 background/ntfy_responder.py` runs it; `grep
+ntfy_responder.py` and `pytest test_ntfy_responder.py` do not. Mutation-tested, plus a live
+re-run of the exact command shape that triggered it -- `DOUBLE_LAUNCH: none, alarms: none`.
+
+Twice now the tests were green while the live box disagreed, because the tests inject
+`tmux_running` directly and never exercise the shell readers. That is the honest weak spot in
+this control: **its detection half is verified live, not by the suite.**

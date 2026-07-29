@@ -391,3 +391,32 @@ def test_unmigrated_daemon_with_no_unit_still_detected_by_ps(map_manifest, monke
                      ps_lines="4321 python3 background/dk.py\n",
                      main_pids={})
     assert "dk" in R._live_tmux_running(path=map_manifest)
+
+
+def test_a_process_merely_mentioning_the_daemon_is_not_a_second_launcher(map_manifest, monkeypatch):
+    """REGRESSION (2026-07-29, caught LIVE minutes after the control shipped): the stray scan
+    used `match in args`, a substring test, so ANY command line containing the daemon's name
+    counted as a second launcher -- `grep en.py`, an editor, a deploy script, or the very
+    diagnostic shell command used to investigate the duplicate. DOUBLE_LAUNCH fired on a
+    healthy single-launcher daemon. A control that cries wolf on healthy input gets ignored.
+
+    Replace `_runs_daemon(...)` with `e["match"] in args` and this reds."""
+    _fake_subprocess(monkeypatch,
+                     ps_lines="1234 /usr/bin/python3 background/en.py\n"
+                              "9001 grep --color=auto en.py\n"
+                              "9002 /bin/bash -c ps -eo args | grep en.py\n"
+                              "9003 /usr/bin/python3 -m pytest tests/background/test_en.py\n"
+                              "9004 vim background/en.py\n",
+                     main_pids={"en": 1234})
+    assert R._live_tmux_running(path=map_manifest) == set()
+
+
+def test_runs_daemon_distinguishes_running_from_mentioning():
+    """The predicate itself, both directions."""
+    assert R._runs_daemon("/usr/bin/python3 background/en.py", "en.py") is True
+    assert R._runs_daemon("python3 background/en.py", "en.py") is True
+    assert R._runs_daemon("grep en.py", "en.py") is False
+    assert R._runs_daemon("/bin/bash -c ps | grep en.py", "en.py") is False
+    assert R._runs_daemon("python3 -m pytest tests/background/test_en.py", "en.py") is False
+    assert R._runs_daemon("vim background/en.py", "en.py") is False
+    assert R._runs_daemon("", "en.py") is False
