@@ -60,3 +60,21 @@ A queue drains, and a drained queue leaves only polishing — which is what has 
 **Risk:** widens autonomous action across everything reversible; every action carries a recorded undo. Tag: **proceed immediately.**
 
 — Advisor bridge, carrying the director's own words. 2026-07-29.
+
+---
+
+## AMENDMENT — YOU OWN THE BACKLOG (director, same day)
+
+Director's words: *"It can create its own recommended backlogs and queues and tell us. If we don't disagree, assume we agree."*
+
+**You set your own agenda.** Do not wait to be given work, and do not treat §7.3's Timeframe-2 list as the limit — it is a starting point, not the scope.
+
+- **Propose your own backlog and your own ordering.** What should the company be able to do next, and in what sequence? That judgement is yours: you can see the code, the gaps, the fidelity ledger and the blast radii. The director cannot.
+- **Publish it**, in plain language on the website, alongside the reasoning for the ordering — this is part of showing the working.
+- **Notify once, then begin.** No approval step. If the director disagrees he will say so and you re-order; **silence is agreement.**
+- **Keep it stocked.** The backlog running low is your problem to solve before it becomes empty, not a condition to report and rest on. Add to it as a matter of course.
+- **The director's input is direction and taste** — new ideas, corrections, changes of emphasis, vision. Treat those as high-priority inputs to *your* backlog, not as the only source of it.
+
+**Test of compliance:** if the machine is ever idle for want of work, the failure is not that nobody supplied any — it is that it did not create any.
+
+— Amendment, 2026-07-29.
