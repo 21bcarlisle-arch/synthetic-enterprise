@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T11:01:17Z
+Last updated: 2026-07-29T12:55:54Z
 
 **PRODUCT LANDED (2026-07-24) — RC7 iteration 1: cohort-derived headline financials pulled off the lead surfaces (director ruling IDEA_FIRST_EXTERNAL_REGISTER).**
 Director's correction: *"£80k makes no sense either. Why is that the lead number... what matters more is the idea."* £80,056/customer (and its £1.5M/£3.8M aggregates) fails the veteran sniff test by ~3 orders of magnitude and read as a simulation artefact. Iteration 1 (this pass, gate-on-green): (1) **front door** (`site/index.html`) — the cohort-financial pulse strip (net margin / treasury / EV / bills) **removed**; the front now leads with the idea (hero + cost-to-serve thesis) and the honest build state (the model-on-a-page diagram, promoted to element 2, each node framed for its build stage — live / partly built / planned); `renderPulseStrip` + render harness + tests updated. (2) **/proof** — the *"Investor summary"* genre **retired**; §4b renamed *"The teaching cohort — simulated unit economics, not company economics"*, `renderInvestor` reframed to the required framing (**"Teaching cohort, N=19 — not scaled company economics… a real UK supplier earns tens of £/customer/yr"**), green "on-track" endorsement stripped, "transfers between books" claim removed (id `project-anchor` kept so canonical links resolve). (3) **R10 class guard** added (`test_no_cohort_financials_lead_the_front_door`) — reds if ANY cohort aggregate financial is re-rendered on the front door, not just the instance caught. **Full site suite green (282 passed, 6 skipped).** Render-verified: front door carries no cohort £; /proof note leads with the teaching-cohort framing. **Iterations 2–3 OPEN** (per-node stage-views with one-click "look at this" views; site-wide external-register sweep) — the ruling stays drawable as the top product item.
@@ -423,7 +423,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (464s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (495s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -531,6 +531,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~484.1h across 41 sized atom(s) (8 of 49 below-target atoms still unsized).
+- Remaining effort: ~476.2h across 38 sized atom(s) (7 of 45 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
