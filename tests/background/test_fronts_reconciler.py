@@ -1,10 +1,21 @@
 """Self-Governance Scope Model — the reconciler that catches the autonomous loop crossing a gate
 it does not own (SELF_GOVERNANCE_SCOPE_MODEL.md §5, sub-steps 1-5).
 
-R15 mutation coverage (a control that cannot FIRE is theatre — worse than none). M1-M7 each prove
-the alarm fires on its OWN named defect and stays quiet on the authorized case; the *_independence
-tests neuter the predicate to always-pass and assert the finding DISAPPEARS (so the alarm is not
-vacuous). Both fronts are HELD throughout — the mechanism is proven while it authorizes NOTHING.
+R15 mutation coverage (a control that cannot FIRE is theatre — worse than none). M1/M3/M4/M6 prove
+the STATIC-gate and LEVEL-gate alarms fire on their OWN named defect and stay quiet on the authorized
+case; the *_independence tests neuter the predicate to always-pass and assert the finding DISAPPEARS
+(so the alarm is not vacuous). Both fronts are HELD throughout — the mechanism is proven while it
+authorizes NOTHING.
+
+RESCOPED 2026-07-29 (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 1: "there is no such thing as
+needing a build opened"): the STAGE-ADVANCE / BUILD-OPEN / FRONT-OPEN alarm class (formerly
+DRAW_OFF_FRONT / a stage-advance flavour of GATE_CROSSED, exercised by the old M2/M5/M7 alarm tests)
+is RETIRED -- a bare stage-advance is now `BUILD_UNGATED`, informational only, never paged. Those
+tests are repurposed to assert the new informational status rather than deleted outright, so the
+mechanism's SHAPE (what `classify_atom` does with a stage-advance) stays covered even though it no
+longer alarms. M2's/M4's/M7's remaining tests continue to prove the DORMANT prevention path
+(`is_build_authorized` / `filter_build_candidates`, gated behind the now-permanently-deleted
+`.fronts_enforcement_enabled` flag) and `open_front_ids`' independence, both still load-bearing.
 """
 from __future__ import annotations
 
@@ -142,12 +153,15 @@ def test_M1_independence_neuter_gate_predicate_makes_finding_DISAPPEAR(monkeypat
     assert r["status"] == "ON_FRONT" and r["alarm"] is False
 
 
-# ── M2: atom in no open front promoted -> DRAW_OFF_FRONT ────────────────────────────────────
-def test_M2_promotion_off_every_front_ALARMS():
+# ── M2: atom in no open front promoted -> BUILD_UNGATED (informational, retired 2026-07-29) ────
+def test_M2_promotion_off_every_front_is_informational_only():
+    # RETIRED 2026-07-29 (ruling item 1: "there is no such thing as needing a build opened"): a bare
+    # stage-advance with no open front and no BUILD_OPEN used to alarm as DRAW_OFF_FRONT; it is now
+    # informational only (BUILD_UNGATED, alarm False) -- the same non-issue as M2_..._is_QUIET below.
     atom = _atom("Z9_rogue", "Z_unknown_lane", epoch=2, loop_stage="build", level=1)
     fronts = [_front("SIM_ACTORS", "held", ["W1_market_weather"])]
     r = _classify(atom, fronts=fronts, ledger=[])
-    assert r["status"] == "DRAW_OFF_FRONT" and r["alarm"] is True
+    assert r["status"] == "BUILD_UNGATED" and r["alarm"] is False
 
 
 def test_M2_off_front_atom_with_per_atom_BUILD_OPEN_is_QUIET():
@@ -167,10 +181,14 @@ def test_M3_in_open_front_nongated_is_QUIET():
 
 def test_M3_open_front_needs_BOTH_yaml_state_and_ledger_act():
     atom = _atom("W1_3_national_weather_signal", "W1_market_weather", epoch=3, loop_stage="build", level=1)
-    # yaml says open, but NO FRONT_OPEN in the ledger -> the front is NOT open (independence).
+    # yaml says open, but NO FRONT_OPEN in the ledger -> open_front_ids still correctly reports the
+    # front NOT open (independence -- the invariant that matters for is_build_authorized/filter_build_
+    # candidates, the dormant prevention path exercised in M7). The ALARM for a bare stage-advance is
+    # retired 2026-07-29 (ruling item 1): the classification is now informational (BUILD_UNGATED).
     fronts = [_front("SIM_ACTORS", "open", ["W1_market_weather"])]
+    assert FR.open_front_ids(fronts, []) == set()
     r = _classify(atom, fronts=fronts, ledger=[])
-    assert r["status"] == "GATE_CROSSED" and r["alarm"] is True  # advanced a not-actually-open front
+    assert r["status"] == "BUILD_UNGATED" and r["alarm"] is False
 
 
 # ── M4: forged authorization does NOT clear the gate ───────────────────────────────────────
@@ -182,27 +200,32 @@ def test_M4_forged_gate_clear_does_NOT_silence():
 
 
 def test_M4_forged_front_open_does_NOT_open_the_front():
-    atom = _atom("W1_3_national_weather_signal", "W1_market_weather", epoch=3, loop_stage="build", level=1)
+    # open_front_ids still requires REAL validity -- this remains load-bearing for
+    # is_build_authorized/filter_build_candidates (the dormant prevention path, M7), independent of
+    # the stage-advance ALARM being retired 2026-07-29 (ruling item 1).
     fronts = [_front("SIM_ACTORS", "open", ["W1_market_weather"])]
-    r = _classify(atom, fronts=fronts, ledger=[_forged(_front_open("SIM_ACTORS"))])
-    assert r["alarm"] is True   # self-declared console channel is not authorization
+    assert FR.open_front_ids(fronts, [_forged(_front_open("SIM_ACTORS"))]) == set()
 
 
-def test_M4_forged_build_open_does_NOT_silence_off_front():
+def test_M4_forged_build_open_is_moot_off_front_now_informational():
+    # RETIRED 2026-07-29 (ruling item 1): a forged BUILD_OPEN never silenced the old DRAW_OFF_FRONT
+    # alarm -- now there is nothing to silence, since a bare off-front stage-advance is informational
+    # regardless of any ledger entry (forged or genuine).
     atom = _atom("Z9_rogue", "Z_unknown_lane", epoch=2, loop_stage="build", level=1)
     fronts = [_front("SIM_ACTORS", "held", ["W1_market_weather"])]
     r = _classify(atom, fronts=fronts, ledger=[_forged(_build_open("Z9_rogue"))])
-    assert r["status"] == "DRAW_OFF_FRONT" and r["alarm"] is True
+    assert r["status"] == "BUILD_UNGATED" and r["alarm"] is False
 
 
-# ── M5: replay the real incident — a self-advance of a held/gated atom fires ────────────────
-def test_M5_self_advance_of_held_front_atom_ALARMS():
+# ── M5: replay the real incident — a self-advance of a held/gated atom ──────────────────────
+def test_M5_self_advance_of_held_front_atom_is_now_informational_only():
     # The 2026-07-18 incident: the orchestrator self-advanced W1 (DISCOVER) -> BUILD, no console act.
+    # RETIRED as an alarm 2026-07-29 (ruling item 1: "there is no such thing as needing a build
+    # opened") -- the SAME stage-advance is now BUILD_UNGATED (informational), not GATE_CROSSED.
     atom = _atom("W1_6_physics_price_signal", "W1_market_weather", epoch=3, loop_stage="build", level=0)
     fronts = [_front("SIM_ACTORS", "held", ["W1_market_weather"])]
     r = _classify(atom, fronts=fronts, ledger=[], from_stage="idle")
-    assert r["status"] == "GATE_CROSSED" and r["alarm"] is True
-    assert "self-advance" in r["detail"]
+    assert r["status"] == "BUILD_UNGATED" and r["alarm"] is False
 
 
 def test_M5_same_atom_with_BUILD_OPEN_is_QUIET():
@@ -275,22 +298,15 @@ def test_M7_filter_drops_held_front_build_candidates():
     assert FR.filter_build_candidates(cands, fronts_decl=decl, ledger=[]) == []
 
 
-def test_M7_synthetic_self_advance_to_build_no_console_ALARMS():
+def test_M7_synthetic_self_advance_to_build_no_console_is_now_informational_only():
+    # RETIRED as an alarm 2026-07-29 (ruling item 1) -- see M5. The independence proof for THIS class
+    # is retired with it (below): there is no longer a stage-advance alarm to prove non-vacuous. The
+    # invariant that remains load-bearing is the dormant prevention path (is_build_authorized /
+    # filter_build_candidates, M7's other two tests) and open_front_ids' independence (M4).
     atom = _atom("W1_10_ev_heatpump_geography", "W1_market_weather", epoch=3, loop_stage="build", level=0)
     fronts = [_front("SIM_ACTORS", "held", ["W1_market_weather"])]
     r = _classify(atom, fronts=fronts, ledger=[], from_stage="idle")
-    assert r["status"] == "GATE_CROSSED" and r["alarm"] is True
-
-
-def test_M7_independence_neuter_makes_stage_finding_DISAPPEAR(monkeypatch):
-    atom = _atom("W1_10_ev_heatpump_geography", "W1_market_weather", epoch=3, loop_stage="build", level=0)
-    fronts = [_front("SIM_ACTORS", "held", ["W1_market_weather"])]
-    assert _classify(atom, fronts=fronts, ledger=[])["status"] == "GATE_CROSSED"
-    # MUTATION: treat the atom as if the front were OPEN (membership always authorizes) — the
-    # stage-advance finding must vanish. We neuter open_front_ids to include the front.
-    monkeypatch.setattr(FR, "open_front_ids", lambda fronts, ledger: {"SIM_ACTORS"})
-    r = _classify(atom, fronts=fronts, ledger=[])
-    assert r["status"] != "GATE_CROSSED" and r["alarm"] is False
+    assert r["status"] == "BUILD_UNGATED" and r["alarm"] is False
 
 
 # ── sub-step 1: fronts.yaml loader ─────────────────────────────────────────────────────────
@@ -359,14 +375,17 @@ def test_console_writers_roundtrip(tmp_path):
 
 
 def test_FRONT_CLOSE_refreezes_the_region_R11(tmp_path):
-    # open then later close -> open_front_ids reports the front NOT open (the release has a real effect)
+    # open then later close -> open_front_ids reports the front NOT open (the release has a real
+    # effect on front MEMBERSHIP, still load-bearing for is_build_authorized/filter_build_candidates,
+    # the dormant prevention path). The stage-advance ALARM this used to also prove is retired
+    # 2026-07-29 (ruling item 1) -- an in-region atom advancing after the close is now BUILD_UNGATED
+    # (informational), not an alarm; FRONT_CLOSE's real effect is asserted on membership, not paging.
     ledger = [dict(_front_open("SIM_ACTORS"), ts=1), _front_close("SIM_ACTORS", ts=2)]
     fronts = [_front("SIM_ACTORS", "open", ["W1_market_weather"])]
     assert FR.open_front_ids(fronts, ledger) == set()
-    # and an in-region atom advancing after the close alarms again
     atom = _atom("W1_3_national_weather_signal", "W1_market_weather", 3, "build", 1)
     r = _classify(atom, fronts=fronts, ledger=ledger)
-    assert r["alarm"] is True
+    assert r["status"] == "BUILD_UNGATED" and r["alarm"] is False
 
 
 # ── sub-step 4: transition-only typed real-alarm wiring (R5) ───────────────────────────────

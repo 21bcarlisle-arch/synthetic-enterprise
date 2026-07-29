@@ -270,22 +270,75 @@ def is_valid_twin_level_up(entry) -> bool:
     return isinstance(lvl, int) and 1 <= lvl <= TWIN_LEVEL_CAP
 
 
+# SELF-CERTIFICATION (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2): "director_level_up
+# is abolished as a block. Levels are proposed and recorded (ledger-backed per R16), never gated --
+# recording satisfies R16's real requirement, self-certification does not need a separate permission gate
+# on top." R16's real requirement was always that a level move be LEDGER-BACKED (an auditable record, not
+# a bare commit message) -- NOT that the record be director-authored. This is the replacement authority:
+# the agent may certify its own level move, at ANY level (no twin-style cap -- the BLOCK is abolished
+# outright, not merely widened), provided it is HONESTLY stamped (authorized_by=='agent_self_certified',
+# channel=='self' -- it never masquerades as a console/twin/phone act) and carries non-empty `provenance`
+# stating the evidence the move rests on. The recording requirement is what remains load-bearing; the
+# director-permission requirement is what is deleted.
+def is_valid_self_certified_level_up(entry) -> bool:
+    """A SELF-CERTIFIED level ratification: the agent records its own level move with evidence, no
+    director/twin act required. Requires a non-empty `atom` and non-empty `provenance` (the evidence),
+    honestly stamped `authorized_by=='agent_self_certified'`, `channel=='self'`. An optional integer
+    `level` bounds the certification to a specific target exactly like the console form."""
+    return (
+        isinstance(entry, dict)
+        and entry.get("action") == "LEVEL_UP_SELF_CERTIFIED"
+        and entry.get("authorized_by") == "agent_self_certified"
+        and entry.get("channel") == "self"
+        and bool(str(entry.get("atom") or "").strip())
+        and bool(str(entry.get("provenance") or "").strip())
+    )
+
+
 def is_valid_level_up(entry) -> bool:
-    """Does this ledger entry authorize an atom's level_current move? Two valid authorities:
+    """Does this ledger entry authorize an atom's level_current move? THREE valid authorities:
       1. A DIRECTOR-CONSOLE LEVEL_UP_PROPOSED (any level, incl. L3+) — the director+advisor act.
       2. A DIRECTOR_TWIN LEVEL_UP_TWIN (routine L1/L2 ONLY, per is_valid_twin_level_up) — the
          standing approver so routine levels stop queuing on the director; L3+ stays director-reserved.
+      3. A SELF-CERTIFIED LEVEL_UP_SELF_CERTIFIED (any level, per is_valid_self_certified_level_up) —
+         2026-07-29 ruling item 2: recording (evidence + an honest, non-forged stamp) satisfies R16;
+         no director permission is required on top of it.
 
     Requires a non-empty `atom`. For the console act an optional integer `level` bounds the
     authorization to a specific target (absent => any increase). A worker-forged entry self-declaring
     channel==console is the known residual (sub-step 7 prevention); a twin entry is honestly stamped
-    and structurally capped at L2 so it can never over-reach into the director's L3+ reservation."""
+    and structurally capped at L2 so it can never over-reach into the director's L3+ reservation; a
+    self-certified entry is honestly stamped too (channel=='self', never 'console') so it is always
+    visible in the ledger for exactly what it is -- an agent's own record, not a director act."""
     if is_valid_twin_level_up(entry):
+        return True
+    if is_valid_self_certified_level_up(entry):
         return True
     if not (_valid_director_act(entry, "LEVEL_UP_PROPOSED") and bool(str(entry.get("atom") or "").strip())):
         return False
     lvl = entry.get("level")
     return lvl is None or isinstance(lvl, int)
+
+
+def record_level_up_self_certified(atom: str, level: int | None, provenance: str, *, ts: float | None = None,
+                                   path: Path | None = None) -> None:
+    """Append a SELF-CERTIFIED level ratification (2026-07-29 ruling item 2). Honestly stamped
+    `authorized_by=='agent_self_certified'`, `channel=='self'` — it NEVER masquerades as a console/twin/
+    phone act, so the ledger always shows exactly who certified a move. `provenance` is REQUIRED and must
+    state the evidence the move rests on (tests green, R15 mutation proof, fetched artifact, etc.) — an
+    unattributed/unevidenced self-certification is exactly the self-ratification-without-a-trace defect
+    R16 forbids; recording (not director permission) is what makes this valid."""
+    if not isinstance(provenance, str) or not provenance.strip():
+        raise ValueError(
+            "record_level_up_self_certified requires non-empty provenance (the evidence the move rests "
+            "on) -- R16: the ledger is authority, an unevidenced self-certification is not a record."
+        )
+    if not isinstance(atom, str) or not atom.strip():
+        raise ValueError("record_level_up_self_certified requires a non-empty atom id.")
+    fields = {"atom": atom, "action": "LEVEL_UP_SELF_CERTIFIED"}
+    if level is not None:
+        fields["level"] = level
+    _append_envelope(fields, provenance, "agent_self_certified", "self", ts=ts, path=path)
 
 
 def record_front_open(front: str, provenance: str, *, ts: float | None = None,

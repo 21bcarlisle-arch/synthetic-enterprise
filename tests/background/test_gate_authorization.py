@@ -259,6 +259,72 @@ def test_record_twin_level_up_writes_honest_envelope_and_refuses_l3(tmp_path):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════════
+# SELF-CERTIFICATION (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 2): "director_
+# level_up is abolished as a block ... recording satisfies R16's real requirement, self-certification
+# does not need a separate permission gate on top." R15 both ways: an honest self-cert entry clears
+# the level gate at ANY level (no twin-style cap -- the block is abolished, not merely widened); a
+# forged/dishonest one (missing evidence, wrong channel/authorized_by) does not.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+def _self_cert_entry(atom="A", level=None, provenance="tests green: 12/12, R15 mutation both-ways"):
+    e = {"atom": atom, "action": "LEVEL_UP_SELF_CERTIFIED",
+         "authorized_by": "agent_self_certified", "channel": "self", "provenance": provenance}
+    if level is not None:
+        e["level"] = level
+    return e
+
+
+def test_self_certified_level_up_valid_at_any_level():
+    # Unlike the twin (capped at L2), self-certification has NO level cap -- the block is abolished.
+    assert G.is_valid_self_certified_level_up(_self_cert_entry(level=1)) is True
+    assert G.is_valid_self_certified_level_up(_self_cert_entry(level=3)) is True
+    assert G.is_valid_self_certified_level_up(_self_cert_entry(level=99)) is True
+    assert G.is_valid_level_up(_self_cert_entry(level=3)) is True
+
+
+def test_self_certified_needs_atom_and_nonempty_provenance():
+    assert G.is_valid_self_certified_level_up(_self_cert_entry(provenance="")) is False
+    assert G.is_valid_self_certified_level_up({**_self_cert_entry(), "atom": ""}) is False
+
+
+def test_self_certified_does_not_masquerade_as_console_or_twin():
+    e = _self_cert_entry(level=2)
+    assert G._is_valid_authorization(e) is False       # not a BUILD_OPEN authorization
+    assert G.is_valid_twin_level_up(e) is False         # honestly not a twin act either
+    assert G.authorized_atoms([e]) == set()
+
+
+def test_R15_self_certification_clears_the_level_gate_via_reconciler_and_pre_commit_gate():
+    from background.fronts_reconciler import _level_cleared
+    ledger = [_self_cert_entry(atom="A", level=3)]
+    assert _level_cleared("A", 3, ledger) is True
+    # a forged entry (wrong authorized_by/channel, self-declaring the honest labels) does NOT clear
+    forged = {**_self_cert_entry(atom="A", level=3), "authorized_by": "worker", "channel": "agent"}
+    assert G.is_valid_self_certified_level_up(forged) is False
+    assert _level_cleared("A", 3, [forged]) is False
+    # an unevidenced self-certification (empty provenance) does NOT clear either
+    unevidenced = {**_self_cert_entry(atom="A", level=3), "provenance": ""}
+    assert _level_cleared("A", 3, [unevidenced]) is False
+
+
+def test_record_level_up_self_certified_writes_honest_envelope_and_requires_evidence(tmp_path):
+    led = tmp_path / "ledger.jsonl"
+    G.record_level_up_self_certified("gap_registers_as_mint_sources", 3,
+                                     "reader background/gap_register_scan.py + gap_register level "
+                                     "wired + 12 R15 mutation tests green", path=led)
+    entries = G.read_ledger(led)
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["authorized_by"] == "agent_self_certified" and e["channel"] == "self"
+    assert e["action"] == "LEVEL_UP_SELF_CERTIFIED" and e["level"] == 3
+    assert G.is_valid_level_up(e) is True
+    with pytest.raises(ValueError):
+        G.record_level_up_self_certified("A", 1, "", path=led)          # no evidence -> refused
+    with pytest.raises(ValueError):
+        G.record_level_up_self_certified("", 1, "evidence", path=led)   # no atom -> refused
+    assert len(G.read_ledger(led)) == 1  # only the valid entry was ever written
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
 # PHONE-NATIVE AUTHORITY WIRING (director console ratification 2026-07-22).
 # R15 both ways THROUGH the gate predicates (not just the pure dac module): a genuine phone ruling
 # authorizes a live promotion; a forged/reserved/repurposed/keyless one does NOT clear the wall.

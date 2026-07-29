@@ -5,25 +5,39 @@ docs/design/SELF_GOVERNANCE_SCOPE_MODEL.md (§2 reconcile, §4 composition, §5 
 addendum: the LEVEL gate + loop_stage-respect). Sub-steps 2 (predicates + classifier), 4 (wired
 report / transition-only alarm), 5 (draw-filter helper).
 
+RESCOPED 2026-07-29 (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY, items 1-3): "director_build_open
+is abolished as a block type ... there is no such thing as needing a build opened." The stage-advance
+/ BUILD-open gate (§10.2 below) this module used to ALARM on is exactly a path that existed solely to
+decide whether the director had permitted a BUILD promotion -- so a bare idle->build stage advance,
+with no OTHER gate crossed, is now INFORMATIONAL ONLY (status `BUILD_UNGATED`, never an alarm); see
+`classify_atom`. `FRONTS_ENFORCEMENT_FLAG`'s production file is deleted and MUST STAY deleted --
+prevention (the draw filter) is retired to its pre-2026-07-18 dormant default alongside the alarm.
+What is NOT retired (these remain genuine, unrelated walls, never director-permission theatre):
+  * the STATIC gates below (one-way-door / epoch-boundary / values-decision / schema_sim_structure)
+    -- real reserved lines, not "needing a build opened";
+  * the LEVEL gate (§10.1) -- level moves still require a RECORD (R16: the ledger is authority), but
+    that record may now be an honest SELF-CERTIFICATION (`gate_authorization.record_level_up_self_
+    certified`), not only a director/twin act (ruling item 2: "recording satisfies R16's real
+    requirement, self-certification does not need a separate permission gate on top").
+
 WHAT THIS GENERALISES (it does NOT fork a parallel mechanism):
   background/gate_authorization.py caught ONE thing — a loop_stage idle->build promotion of ONE
-  named atom with no director-console BUILD_OPEN. This lifts that to a declared REGION ("fronts")
-  minus declared boundaries ("gates"), and adds two gate classes the single-atom wall never had:
-    * the LEVEL gate (§10.1): any level_current increase vs the committed baseline with no
-      director+advisor LEVEL_UP_PROPOSED is a LEVEL_SELF_PROMOTION — the agent proposes, never
-      moves a cell (MATURITY_MAP.md §0).
-    * loop_stage-respect / stage-advance (§10.2): advancing an atom's canonical stage (idle->build)
-      is the reserved BUILD-open gate; a DISCOVER-stage (loop_stage: idle) atom is DISCOVER/FRAME-
-      only, never BUILD.
+  named atom with no director-console BUILD_OPEN (now retired, see above). This lifts that to a
+  declared REGION ("fronts") minus declared boundaries ("gates"), and adds two gate classes the
+  single-atom wall never had:
+    * the LEVEL gate (§10.1): any level_current increase vs the committed baseline with no RECORDED
+      LEVEL_UP (director/twin/self-certified, per `gate_authorization.is_valid_level_up`) is a
+      LEVEL_SELF_PROMOTION — an unevidenced/unrecorded level move, not merely an un-ratified one.
+    * loop_stage-respect / stage-advance (§10.2, RETIRED as an alarm 2026-07-29): advancing an
+      atom's canonical stage (idle->build) is recorded for observability only.
   It REUSES gate_authorization's promotions_since_baseline / authorized_atoms / _is_valid_* and
   one_way_door.classify_action verbatim — the wrappers wrap, they do not replace.
 
 INDEPENDENCE (R15 anti-tautology): the thing CHECKED (the map — loop_stage/level_current, written
 by the loop) and the AUTHORITY it is checked against (the console ledger — valid entries written
-only by the console orchestrator on a director act) have DIFFERENT WRITERS. A loop that promotes
-an atom cannot also mint the console entry that authorizes it (that is the prevention layer). A
-forged entry self-declaring channel==console is the known residual (sub-step 7); detection is
-honest and LOUD now.
+only by the console orchestrator on a director act, OR an honestly-stamped self-certification) have
+DIFFERENT WRITERS from the map-writing loop for the director/twin/phone forms. A forged entry
+self-declaring channel==console is the known residual (sub-step 7); detection is honest and LOUD now.
 
 NO WRITE PATH TO THE MAP by construction (like process_reconciler.py — reaping/writing by inference
 caused the blackout). This module detects and reports; it never "fixes".
@@ -51,12 +65,17 @@ LEVEL_BASELINE_REF = "2e95ffacc754de9bbbf2739ac8905d3cf993e73c"
 
 # Draw-filter enforcement flag (sub-step 5) — DARK by default (the .build_executor_enabled precedent).
 # ABSENT => the supervisor BUILD draw is byte-for-byte UNCHANGED (detection alone; prevention off).
-# Only a future director act creates this, AFTER the fronts are opened (sub-step 6). This is what
-# keeps sub-step 5 DORMANT/safe on the live loop: the mechanism is built and tested while inert.
+# RETIRED PERMANENTLY 2026-07-29 (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY item 1: "there is no
+# such thing as needing a build opened") -- the production flag file is DELETED and must never be
+# recreated; the function/tests below stay intact only so the (now-dormant) mechanism remains
+# testable, not because it is expected to re-arm.
 FRONTS_ENFORCEMENT_FLAG = PROJECT_DIR / "docs" / "observability" / ".fronts_enforcement_enabled"
 
-# Only these three statuses PAGE (real-alarms, §2 table). Everything else is informational/quiet.
-ALARM_STATUSES = {"DRAW_OFF_FRONT", "GATE_CROSSED", "LEVEL_SELF_PROMOTION"}
+# Only these statuses PAGE (real-alarms, §2 table). Everything else is informational/quiet.
+# DRAW_OFF_FRONT retired 2026-07-29 (ruling item 1) -- a bare stage-advance is no longer an alarm
+# class; see BUILD_UNGATED in classify_atom. GATE_CROSSED remains for the STATIC gates only
+# (one-way-door / epoch / values / schema) -- genuine reserved walls, not permission theatre.
+ALARM_STATUSES = {"GATE_CROSSED", "LEVEL_SELF_PROMOTION"}
 
 VALID_FRONT_STATES = {"open", "held"}
 
@@ -276,9 +295,11 @@ def open_front_ids(fronts: list, ledger: list) -> set:
 def classify_atom(atom: dict, *, from_stage, to_stage, from_level, to_level, fronts: list,
                   open_ids: set, gate_index: dict, ledger: list, action_desc: str = "") -> dict:
     """Classify ONE atom's promotion (vs its stage+level baselines) into the §2 status table.
-    ALARM statuses (page): DRAW_OFF_FRONT, GATE_CROSSED, LEVEL_SELF_PROMOTION.
-    Quiet statuses: ON_FRONT (authorized), FRONT_HELD (frozen, not promoted), GATE_HELD (at a gate,
-    not promoted), QUIET (no change). Gate check is FIRST (G-1: a front never dissolves a gate)."""
+    ALARM statuses (page): GATE_CROSSED (static reserved-wall crossing only), LEVEL_SELF_PROMOTION.
+    Quiet/informational statuses: ON_FRONT (authorized), FRONT_HELD (frozen, not promoted), GATE_HELD
+    (at a gate, not promoted), BUILD_UNGATED (a bare stage-advance -- informational only, 2026-07-29
+    ruling item 1 retired this as an alarm class), QUIET (no change). Gate check is FIRST (G-1: a
+    front never dissolves a gate)."""
     aid = atom.get("id")
     front = _front_for(atom, fronts)
     fid = front.get("id") if front else None
@@ -307,17 +328,21 @@ def classify_atom(atom: dict, *, from_stage, to_stage, from_level, to_level, fro
             return R("GATE_CROSSED", f"crosses gate {static_gate!r} with no clearing console act")
         return R("GATE_HELD", f"at gate {static_gate!r}, correctly held (not promoted)")
 
-    # ── stage advance (idle->build == the reserved BUILD-open / stage gate, §10.2) ──
+    # ── stage advance (idle->build) — BUILD-OPEN/FRONT-OPEN gating on stage-advance is ABOLISHED
+    # (2026-07-29 ruling item 1: "there is no such thing as needing a build opened"). A bare stage
+    # advance that does not ALSO cross a genuine reserved wall (handled in the static-gate branch
+    # above) is INFORMATIONAL ONLY -- never an alarm. Front membership is retained in `detail` for
+    # observability; the per-atom BUILD_OPEN / open-front paths stay named for continuity (backward
+    # compatible with any existing ledger entry), they are simply no longer the ONLY quiet outcome.
     if stage_advanced:
         if front_open:
             return R("ON_FRONT", f"in OPEN front {fid}, non-gated BUILD")
         if aid in _gw.authorized_atoms(ledger):
-            return R("ON_FRONT", "per-atom BUILD_OPEN (backward compatible)")
-        if fid is not None:  # member of a HELD front but it ADVANCED — crossed the BUILD-open gate (M7)
-            return R("GATE_CROSSED",
-                     f"stage idle->{to_stage} in HELD front {fid} with no console act (self-advance)")
-        return R("DRAW_OFF_FRONT",
-                 f"stage idle->{to_stage} in NO open front, no BUILD_OPEN (drew off-front)")
+            return R("ON_FRONT", "per-atom BUILD_OPEN (backward compatible, no longer required)")
+        return R("BUILD_UNGATED",
+                 f"stage idle->{to_stage}"
+                 + (f" in front {fid} (not open/authorized)" if fid is not None else " (no front)")
+                 + " -- BUILD-open/front-open gating retired 2026-07-29 (ruling item 1), informational only")
 
     # ── a level bump that WAS authorized, no stage advance -> quiet ──
     if level_bumped:

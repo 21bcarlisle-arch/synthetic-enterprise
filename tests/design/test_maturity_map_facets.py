@@ -235,11 +235,16 @@ def check_coupling_topology(atoms: list) -> list:
 # else is an UNRESOLVABLE release condition -> the block is invalid
 # (feedback_nonempty_config_referent_existence: a release condition that
 # resolves to nothing is a fail-open we must reject, not wave).
+#
+# "director_level_up" / "director_build_open" / "build_open" / "front_open" REMOVED 2026-07-29
+# (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY items 1-3): these named the exact permission-gate
+# convention the ruling abolishes -- "there is no such thing as needing a build opened", and levels
+# are recorded (self-certification suffices, R16), never gated. No atom should be able to declare a
+# `blocked_on` that resolves via one of these tokens any more; removing them from the KNOWN vocabulary
+# makes check_block_hygiene FLAG (not silently wave) any future attempt to re-introduce this exact
+# gate shape -- mechanism, not prose (MAKE_IT_STICK). An atom with real BUILD/level work remaining
+# now carries no `blocked_on` at all (drawable) rather than parking on one of these tokens.
 KNOWN_RELEASER_TOKENS = (
-    "director_level_up",        # released by a director/twin LEVEL_UP ledger entry (R16)
-    "director_build_open",      # released by a director-console/phone BUILD_OPEN ledger entry
-    "build_open",               # ditto (ledger BUILD_OPEN action)
-    "front_open",               # released by a director FRONT_OPEN for the atom's lane
     "director_live_run",        # released by the director-watched live run
     "director_systemd_deploy",  # released by the director-triggered systemd deploy
     "coupled_triad_measured",   # released when the named coupled-triad gap is measured
@@ -399,7 +404,7 @@ def test_coupling_check_ignores_solo_l3_atom():
 
 def test_block_hygiene_fires_on_reason_less_block():
     # MUTATION: a blocked atom with NO block_reason -> must fire (reverting the check greens this)
-    bad = [{"id": "Z1_no_reason", "blocked_on": "director_level_up"}]
+    bad = [{"id": "Z1_no_reason", "blocked_on": "coupled_triad_measured"}]
     assert check_block_hygiene(bad), "must fire on a blocked atom with no block_reason"
 
 
@@ -412,7 +417,7 @@ def test_block_hygiene_fires_on_unresolvable_release_condition():
 def test_block_hygiene_fires_on_empty_reason_fail_closed():
     # FAIL-CLOSED: missing / empty / whitespace-only reason is NO reason, never satisfied
     for r in (None, "", "   "):
-        bad = [{"id": "Z3_empty", "blocked_on": "director_level_up", "block_reason": r}]
+        bad = [{"id": "Z3_empty", "blocked_on": "coupled_triad_measured", "block_reason": r}]
         assert check_block_hygiene(bad), f"empty/whitespace reason {r!r} must be rejected (fail-closed)"
 
 
@@ -422,8 +427,8 @@ def test_block_hygiene_fires_on_non_dict_atom_fail_silent():
 
 
 def test_block_hygiene_passes_a_well_formed_block():
-    good = [{"id": "Z4_ok", "blocked_on": "director_level_up",
-             "block_reason": "build complete at build-quality; L3 awaits director ratification (R16)."}]
+    good = [{"id": "Z4_ok", "blocked_on": "coupled_triad_measured",
+             "block_reason": "build complete; the coupled-triad gap is not yet measured against its twin."}]
     assert not check_block_hygiene(good), "a reason + resolvable releaser must pass"
 
 

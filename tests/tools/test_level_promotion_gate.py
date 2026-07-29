@@ -56,7 +56,7 @@ def test_unauthorized_increase_is_REJECTED():
     assert result["status"] == "REJECT"
     assert any(u["atom"] == "E4_supplier_reporting_standard" and u["from"] == 2 and u["to"] == 3
                for u in result["unauthorized"])
-    assert "no director LEVEL_UP authorization" in result["message"]
+    assert "no recorded LEVEL_UP" in result["message"]
     # And the pure predicate the neuter would break:
     incs = gate.level_increases(gate.atom_levels(_map(2)), gate.atom_levels(_map(3)))
     assert gate.unauthorized_level_increases(incs, ledger=[]) != []
@@ -84,6 +84,30 @@ def test_forged_ledger_entry_does_NOT_authorize():
 
 
 # ── boundary / no-false-positive coverage ──────────────────────────────────────────────────────
+# ── self-certification (2026-07-29 ruling item 2): recording, not director permission, is required ──
+SELF_CERTIFIED_LEVEL_UP = {
+    "atom": "E4_supplier_reporting_standard", "action": "LEVEL_UP_SELF_CERTIFIED", "level": 3,
+    "authorized_by": "agent_self_certified", "channel": "self",
+    "provenance": "tests green 12/12, R15 mutation both-ways proven",
+}
+
+
+def test_self_certified_increase_is_ALLOWED():
+    """A self-certified entry (no director act) now clears the gate -- recording, not permission,
+    is what R16 requires (2026-07-29 ruling item 2)."""
+    result = gate.evaluate(old_text=_map(2), new_text=_map(3), ledger=[SELF_CERTIFIED_LEVEL_UP])
+    assert result["status"] == "CLEAN"
+    assert result["unauthorized"] == []
+
+
+def test_self_certified_with_no_evidence_does_NOT_clear():
+    """A self-cert entry missing its provenance (no evidence) is dishonest bookkeeping, not a record
+    -- is_valid_self_certified_level_up rejects it, so the gate still refuses."""
+    unevidenced = {**SELF_CERTIFIED_LEVEL_UP, "provenance": ""}
+    result = gate.evaluate(old_text=_map(2), new_text=_map(3), ledger=[unevidenced])
+    assert result["status"] == "REJECT"
+
+
 def test_authorization_below_new_level_does_NOT_clear():
     """A LEVEL_UP bounded to level 2 does not authorize a 2->3 move (to_level > authorized level)."""
     low = dict(VALID_LEVEL_UP, level=2)
