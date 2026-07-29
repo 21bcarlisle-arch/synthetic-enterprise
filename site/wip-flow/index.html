@@ -222,13 +222,15 @@ function renderWip(d){
   document.getElementById("throughput-summary").innerHTML=[
     {l:"Transitions total",v:num(tp.total_transitions)},
     {l:"Span (days)",v:num(tp.span_days)},
-    {l:"Per day (all-time)",v:num(tp.per_day_all_time)}
+    {l:"Per day (all-time)",v:num(tp.per_day_all_time)},
+    {l:"Since last transition",v:(tp.hours_since_last_transition==null?"—":hrs(tp.hours_since_last_transition))}
   ].map(function(k){return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';}).join("");
   var win=tp.windows||[];
-  document.getElementById("throughput-windows").innerHTML=win.length?win.map(function(x){
+  document.getElementById("throughput-windows").innerHTML=(win.length?win.map(function(x){
     return '<div class="ct-row"><span class="ct-lane">Trailing '+num(x.days)+' days</span>'+
       '<span class="ct-nums"><b>'+num(x.transitions)+'</b> transitions · '+num(x.per_day)+'/day</span></div>';
-  }).join(""):'';
+  }).join(""):'')+
+    '<p class="basis" style="margin-top:12px">Trailing windows are counted back from the moment this page&rsquo;s data was generated, not from the last transition &mdash; so a stalled build decays to 0/day here rather than freezing at its last healthy rate.</p>';
 
   var p=d.wip_cap_principle||{};
   document.getElementById("principle-headline").textContent=p.headline||"";

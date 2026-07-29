@@ -148,3 +148,96 @@ def test_page_is_theme_aware():
     assert 'prefers-color-scheme: dark' in text
     assert ':root[data-theme="dark"]' in text
     assert ':root[data-theme="light"]' in text
+
+
+# ---------------------------------------------------------------------------
+# R15: the throughput signal must be ABLE TO FALL
+#
+# Class audit of G5_effort_sizing_discipline's honest-signal law, landed on the
+# atom that owns the code (G7). The trailing windows were anchored on the LAST
+# TRANSITION's timestamp, so once level transitions stopped, "Trailing 7 days"
+# froze at its final healthy value forever -- a stalled build published the same
+# throughput as a running one. These tests fail against that mutant.
+# ---------------------------------------------------------------------------
+def _synthetic_transitions(last_ts, n=19, spacing_hours=1):
+    from tools.effort_calibration import LevelTransition
+    return [
+        LevelTransition(
+            atom_id=f"SYNTH{i}",
+            lane="H_harness",
+            size=None,
+            to_level=2,
+            commit_sha=f"sha{i}",
+            timestamp=last_ts - i * spacing_hours * 3600,
+            message="synthetic",
+        )
+        for i in range(n)
+    ]
+
+
+def test_trailing_windows_decay_to_zero_when_transitions_stop():
+    """MUTATION TARGET: restore `anchor = ts[-1]` in _throughput and this fails.
+    19 transitions that all landed 60 days ago must report 0 in every trailing
+    window -- under the old anchor they reported 19 transitions at 2.71/day."""
+    sys.path.insert(0, str(PROJECT))
+    from tools.generate_wip_flow_data import _throughput
+
+    now = 1_800_000_000
+    out = _throughput(_synthetic_transitions(now - 60 * 86400), now=now)
+
+    assert out["total_transitions"] == 19, "all-time history is unaffected"
+    for w in out["windows"]:
+        assert w["transitions"] == 0, (
+            f"trailing-{w['days']}d reported {w['transitions']} transitions for a build "
+            "that has banked none for 60 days -- the window is anchored on the last "
+            "transition, not the clock"
+        )
+        assert w["per_day"] == 0
+    assert out["hours_since_last_transition"] == pytest.approx(60 * 24)
+
+
+def test_trailing_windows_still_count_genuinely_recent_work():
+    """Independence: the same function must NOT zero a live build -- otherwise
+    the test above would pass on a function that always returns 0."""
+    sys.path.insert(0, str(PROJECT))
+    from tools.generate_wip_flow_data import _throughput
+
+    now = 1_800_000_000
+    out = _throughput(_synthetic_transitions(now - 3600), now=now)
+    win7 = next(w for w in out["windows"] if w["days"] == 7)
+    assert win7["transitions"] == 19, "19 transitions in the last 19h must be inside trailing-7d"
+    assert out["hours_since_last_transition"] == pytest.approx(1.0)
+
+
+def test_future_dated_commits_are_not_dropped_from_windows():
+    """Clock-skew guard: commit timestamps AHEAD of `now` (backdated rebase,
+    skewed clock) must still land inside the trailing windows, not vanish."""
+    sys.path.insert(0, str(PROJECT))
+    from tools.generate_wip_flow_data import _throughput
+
+    now = 1_800_000_000
+    out = _throughput(_synthetic_transitions(now + 2 * 86400), now=now)
+    win7 = next(w for w in out["windows"] if w["days"] == 7)
+    assert win7["transitions"] == 19
+    assert out["hours_since_last_transition"] == 0.0
+
+
+def test_window_basis_is_published_and_rendered():
+    """R14: the windows carry their own clock, and the page states it."""
+    d = _live()
+    assert d["throughput"]["window_basis"] == (
+        "trailing_windows_anchored_on_wall_clock_at_generation"
+    )
+    assert "hours_since_last_transition" in d["throughput"]
+    assert "not from the last transition" in INDEX.read_text()
+
+
+@pytest.mark.skipif(NODE is None, reason="node not available")
+def test_staleness_renders_on_the_page():
+    """R11: verify to the rendered value -- staleness must reach the pixel."""
+    d = _live()
+    d["throughput"]["hours_since_last_transition"] = 1234.5
+    out = _render(d)
+    assert "1,234.5h" in out["throughput-summary"]["innerHTML"], (
+        out["throughput-summary"]["innerHTML"]
+    )

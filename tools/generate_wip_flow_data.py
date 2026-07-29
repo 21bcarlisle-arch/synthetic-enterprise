@@ -107,6 +107,10 @@ DIAL_NOT_TARGET = (
 
 # R14: the clock every cycle-time / throughput figure is measured on.
 CYCLE_TIME_BASIS = "git_commit_time_between_level_transitions"
+# R14: the trailing windows carry their OWN clock, distinct from the cycle-time
+# clock above -- they are counted backwards from wall-clock generation time, so
+# a stalled build decays to 0/day instead of freezing at its last healthy rate.
+WINDOW_BASIS = "trailing_windows_anchored_on_wall_clock_at_generation"
 
 
 def _load_atoms():
@@ -169,24 +173,46 @@ def _wip(atoms):
     )
 
 
-def _throughput(transitions):
+def _throughput(transitions, now=None):
     """Level transitions per period, from effort_calibration's parsed git
     history. Whole-history rate spans the first->last transition commit;
     trailing windows count transitions in the last N days. Timestamps are git
-    commit time (%ct) -- the same clock cycle-time is measured on."""
+    commit time (%ct) -- the same clock cycle-time is measured on.
+
+    THE TRAILING WINDOWS ARE ANCHORED ON THE WALL CLOCK AT GENERATION, NOT ON
+    THE LAST TRANSITION (R15 HARDEN 2026-07-29, class audit of
+    G5_effort_sizing_discipline's honest-signal law -- see the module docstring's
+    DIAL, NOT TARGET note). The original anchor was `ts[-1]`, which made a
+    trailing window measure "the N days BEFORE the last transition" rather than
+    the last N days: once transitions stopped, the published "Trailing 7 days"
+    figure FROZE at its final healthy value and never decayed. A build stalled
+    for a month rendered pixel-identical to one running at full velocity --
+    a flow signal that cannot fall is not a flow signal. Proven live: 19
+    transitions dated 60 days ago still reported "2.71/day" for trailing-7.
+
+    `now` (epoch seconds) is injectable so tests can pin the clock; it defaults
+    to real generation time. Commit timestamps AHEAD of `now` (clock skew, a
+    backdated rebase) would otherwise be silently dropped out of every window,
+    so the anchor is `max(now, ts[-1])` -- skew degrades to the old behaviour
+    for those commits rather than under-reporting real work."""
     ts = sorted(t.timestamp for t in transitions)
     total = len(ts)
-    if total < 2:
-        return dict(total_transitions=total, span_days=None, per_day_all_time=None, windows=[])
+    now = int(datetime.now(timezone.utc).timestamp()) if now is None else int(now)
+    if total < 1:
+        return dict(
+            total_transitions=0,
+            span_days=None,
+            per_day_all_time=None,
+            hours_since_last_transition=None,
+            window_basis=WINDOW_BASIS,
+            windows=[],
+        )
 
-    span_seconds = ts[-1] - ts[0]
-    span_days = span_seconds / 86400.0
-    per_day = round(total / span_days, 2) if span_days > 0 else None
-
-    now = ts[-1]
+    hours_since_last = round(max(0, now - ts[-1]) / 3600.0, 2)
+    anchor = max(now, ts[-1])
     windows = []
     for days in (7, 14, 30):
-        cutoff = now - days * 86400
+        cutoff = anchor - days * 86400
         n = sum(1 for t in ts if t >= cutoff)
         windows.append(dict(
             days=days,
@@ -194,10 +220,16 @@ def _throughput(transitions):
             per_day=round(n / days, 2),
         ))
 
+    span_seconds = ts[-1] - ts[0]
+    span_days = span_seconds / 86400.0
+    per_day = round(total / span_days, 2) if total > 1 and span_days > 0 else None
+
     return dict(
         total_transitions=total,
-        span_days=round(span_days, 2),
+        span_days=round(span_days, 2) if total > 1 else None,
         per_day_all_time=per_day,
+        hours_since_last_transition=hours_since_last,
+        window_basis=WINDOW_BASIS,
         first_transition=datetime.fromtimestamp(ts[0], tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         last_transition=datetime.fromtimestamp(ts[-1], tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         windows=windows,
