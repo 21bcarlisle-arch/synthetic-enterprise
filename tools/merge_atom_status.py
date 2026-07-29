@@ -171,6 +171,143 @@ def _dump_flow_list(items: list) -> str:
     ).strip()
 
 
+def _split_flow_list(rest: str):
+    """Split `rest` (everything after `field:`) into (flow_list_text, trailing).
+
+    Returns (None, None) when `rest` does not open a flow list. The scan is
+    bracket-depth and quote aware: a regex like `\\[.*\\]` is greedy and would
+    swallow a `]` appearing inside a TRAILING COMMENT, and the map really does
+    carry commented flow lists (`evidence: [x]  # why ...`) -- six atoms had one
+    at the 2026-07-29 wedge, each an invisible fold failure because neither the
+    flow regex nor the block regex matched the line at all."""
+    s = rest.lstrip()
+    if not s.startswith("["):
+        return None, None
+    depth = 0
+    quote = None
+    i = 0
+    while i < len(s):
+        ch = s[i]
+        if quote == '"':
+            # YAML double-quoted style honours backslash escapes; missing this
+            # closed the string early on `\"` and left the scanner desynchronised
+            # (one real atom, W2_2_population_draw, hit exactly that).
+            if ch == "\\":
+                i += 2
+                continue
+            if ch == '"':
+                quote = None
+        elif quote == "'":
+            # YAML single-quoted style escapes a quote by DOUBLING it, not with a
+            # backslash -- the map's prose is full of `it''s`.
+            if ch == "'":
+                if i + 1 < len(s) and s[i + 1] == "'":
+                    i += 2
+                    continue
+                quote = None
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "[{":
+            depth += 1
+        elif ch in "]}":
+            depth -= 1
+            if depth == 0:
+                return s[: i + 1], s[i + 1:].rstrip("\n")
+        i += 1
+    return None, None
+
+
+def _dump_block_item(item) -> str:
+    """Serialise ONE list element as the scalar half of a `- <scalar>` block-list
+    entry, on a single physical line (width=10**9 defeats yaml's line wrapping, so
+    a folded entry never spills into continuation lines we would then have to
+    re-indent).
+
+    Dumped as a ONE-ELEMENT FLOW LIST with the brackets stripped, NOT as a bare
+    scalar: `safe_dump("x")` emits a `...` document-end marker on its own line,
+    which a `.strip()` leaves attached and which corrupts the map. Flow-context
+    quoting is a superset of what a block entry needs, so the result is always
+    valid where it lands."""
+    dumped = yaml.safe_dump(
+        [item], default_flow_style=True, allow_unicode=True, width=10**9
+    ).strip()
+    if not (dumped.startswith("[") and dumped.endswith("]")):
+        raise MergeError(f"could not serialise list item for a block fold: {item!r}")
+    return dumped[1:-1].strip()
+
+
+def _block_list_bounds(block: list[str], key_idx: int, key_indent: str):
+    """For a block-style `key:` at `block[key_idx]`, return (item_indent, end_idx)
+    where `end_idx` is the index one past the list's last line.
+
+    A line belongs to the list if it is a `- ` item at the item indent, a deeper-
+    indented continuation of one (yaml wraps long scalars), or blank. The list ends
+    at the first line indented at-or-shallower than the key that is not an item.
+    Returns (None, key_idx + 1) when the key has no items at all (an empty list),
+    in which case the caller supplies the indent."""
+    item_indent = None
+    end = key_idx + 1
+    for j in range(key_idx + 1, len(block)):
+        ln = block[j]
+        if not ln.strip():
+            end = j + 1
+            continue
+        stripped = ln.lstrip(" ")
+        indent = ln[: len(ln) - len(stripped)]
+        if stripped.startswith("- ") and (item_indent is None or indent == item_indent):
+            if item_indent is None:
+                # First item fixes the list's indentation; it must be at least as
+                # deep as the key, else `key:` had no items and we are looking at
+                # a sibling list.
+                if len(indent) < len(key_indent):
+                    break
+                item_indent = indent
+            end = j + 1
+            continue
+        if item_indent is not None and len(indent) > len(item_indent):
+            end = j + 1  # continuation line of the previous wrapped item
+            continue
+        break
+    return item_indent, end
+
+
+def _block_declares_field(block: list[str], map_field: str) -> bool:
+    """INDEPENDENT re-ask of "does this atom already declare `map_field`?".
+
+    Deliberately uses a DIFFERENT mechanism from the line-at-a-time scanner in
+    `_apply_inbox_to_lines`: it hands the atom block to pyyaml and inspects the
+    parsed mapping's keys. That independence is the entire point -- the create
+    path must never fire on the strength of the same reasoning that just failed
+    to find the field, because writing a second `field:` key silently loses the
+    original value (pyyaml keeps the last) while still round-tripping.
+
+    FAIL-CLOSED (R15 fail-silent doctrine: an unavailable check is a FAILED
+    check). Anything that leaves absence UNPROVEN -- a block that does not parse,
+    or that parses to an unexpected shape -- returns True ("treat as present"),
+    which makes the caller abort loudly rather than create a duplicate key.
+    Absence is asserted only when pyyaml successfully parses the block into
+    exactly one mapping and that mapping has no such key.
+    """
+    try:
+        parsed = yaml.safe_load("".join(block))
+    except yaml.YAMLError:
+        return True
+    if isinstance(parsed, list) and len(parsed) == 1 and isinstance(parsed[0], dict):
+        return map_field in parsed[0]
+    return True
+
+
+def _atom_field_indent(block: list[str], atom_id: str) -> str:
+    """The indentation of the atom's own top-level fields, read from the block
+    itself rather than assumed, so a re-indented map cannot silently mis-nest a
+    created field."""
+    for ln in block[1:]:
+        m = re.match(r"^(\s+)[A-Za-z_][A-Za-z0-9_]*:", ln)
+        if m:
+            return m.group(1)
+    raise MergeError(f"atom '{atom_id}' has no field lines to take indentation from")
+
+
 def _atom_block_bounds(lines: list[str], atom_id: str) -> tuple[int, int]:
     """[start, end) line indices of the atom whose `- id:` is `atom_id`.
     A block ends at the next top-level list item (`- ` at column 0) or EOF."""
@@ -215,21 +352,64 @@ def _apply_inbox_to_lines(lines: list[str], inbox: dict) -> list[str]:
         if not isinstance(additions, list):
             raise MergeError(f"{inbox_key} in inbox '{atom_id}' must be a list")
         for k, ln in enumerate(block):
-            m = re.match(rf"^(\s*){map_field}:\s*(\[.*\])\s*$", ln)
-            if m:
-                current = yaml.safe_load(m.group(2))
+            m = re.match(rf"^(\s*){map_field}:(.*)$", ln, re.DOTALL)
+            if not m:
+                continue
+            flow, trailing = _split_flow_list(m.group(2))
+            if flow is not None:
+                # (a) single-line flow list: rewrite the one line in place,
+                # PRESERVING any trailing comment (hand-authored rationale).
+                current = yaml.safe_load(flow)
                 if not isinstance(current, list):
                     raise MergeError(
                         f"'{map_field}' on atom '{atom_id}' is not a flow list"
                     )
                 current.extend(additions)
-                block[k] = f"{m.group(1)}{map_field}: {_dump_flow_list(current)}\n"
+                block[k] = (
+                    f"{m.group(1)}{map_field}: {_dump_flow_list(current)}{trailing}\n"
+                )
                 break
+            if m.group(2).strip():
+                continue  # a scalar or something else -- not a list we can append to
+            # (b) block-style list: append `- item` lines after the last existing
+            # entry. The map is hand-authored in BOTH styles (30 block-style
+            # `simplifications:` at the 2026-07-29 fold that exposed this), so
+            # aborting on style -- as this did until then -- left the inbox
+            # permanently unfoldable, and an unfoldable inbox never clears, which
+            # fail-closes the publish gate forever.
+            key_indent = m.group(1)
+            item_indent, insert_at = _block_list_bounds(block, k, key_indent)
+            if item_indent is None:
+                item_indent = key_indent  # empty list: match the map's own style
+            block[insert_at:insert_at] = [
+                f"{item_indent}- {_dump_block_item(a)}\n" for a in additions
+            ]
+            break
         else:
-            raise MergeError(
-                f"atom '{atom_id}' has no single-line flow '{map_field}:' field "
-                f"to append to (block-style lists are not supported by the inbox merge)"
-            )
+            # (c) the field is ABSENT: create it in block style at the end of the
+            # atom. A freshly minted atom legitimately has no `evidence:` yet (six
+            # did on 2026-07-29, including two in that night's own draw) -- raising
+            # here would make the FIRST fork to report on a new atom wedge the
+            # publish gate, which is the very fault this function is being fixed for.
+            # INDEPENDENT ABSENCE CHECK before creating. The loop above concluded
+            # "no such field" from its own parsing; if that parsing has a gap, path
+            # (c) writes a SECOND `field:` key and pyyaml silently keeps the last --
+            # a corrupted map that still round-trips. Never create on the strength
+            # of the same reasoning that failed to find it: re-ask the question a
+            # different way, and abort loudly if the two disagree.
+            if _block_declares_field(block, map_field):
+                raise MergeError(
+                    f"atom '{atom_id}' HAS a '{map_field}:' line that the fold could "
+                    "not parse -- refusing to create a duplicate key. Fix the parse, "
+                    "do not paper over it"
+                )
+            field_indent = _atom_field_indent(block, atom_id)
+            insert_at = len(block)
+            while insert_at > 0 and not block[insert_at - 1].strip():
+                insert_at -= 1  # keep any trailing blank separator line last
+            block[insert_at:insert_at] = [f"{field_indent}{map_field}:\n"] + [
+                f"{field_indent}- {_dump_block_item(a)}\n" for a in additions
+            ]
 
     return lines[:start] + block + lines[end:]
 
