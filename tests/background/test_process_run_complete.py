@@ -843,3 +843,107 @@ class TestFrozenBaselineOutOfBandTrigger:
         monkeypatch.setattr(prc.subprocess, "Popen", fail_popen)
         # returns without spawning
         prc._trigger_frozen_baseline_refresh_out_of_band("abc123")
+
+
+# ── Publish-gate red output is CAPTURED and LOGGED (R5/R9) ───────────────────
+# Regression cover for the 2026-07-29 ~67-min publish wedge whose entire
+# recorded diagnosis was the string "Tests FAILED - not committing": the gate
+# ran pytest without capturing it, so WHICH test blocked publishing was
+# unknowable from the log, and by the time anyone looked the site data had been
+# regenerated and the red was no longer reproducible. R15: each test below is
+# written so that reverting the fix (dropping capture_output, or not calling
+# _log_gate_failure_payload) makes it FAIL.
+
+class _FakeCompleted:
+    def __init__(self, returncode, stdout="", stderr=""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+def _gate_log_text(monkeypatch, tmp_path, result):
+    """Run run_fast_tests against a faked pytest `result` and return the log."""
+    log_path = tmp_path / "gate-log.md"
+    monkeypatch.setattr(prc, "LOG_FILE", log_path)
+    monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
+
+    captured_kwargs = {}
+
+    def fake_run(argv, **kwargs):
+        captured_kwargs.update(kwargs)
+        return result
+
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    passed, timed_out = prc.run_fast_tests("deadbeef")
+    text = log_path.read_text() if log_path.exists() else ""
+    return passed, timed_out, text, captured_kwargs
+
+
+def test_red_publish_gate_logs_the_blocking_test_node_ids(monkeypatch, tmp_path):
+    """A red gate must name the tests that blocked publishing.
+
+    MUTATION: delete the `_log_gate_failure_payload(result)` call in
+    run_fast_tests and this fails -- the log again says only "Tests FAILED"."""
+    out = (
+        "some pytest chatter\n"
+        "FAILED tests/tools/test_site_freshness.py::test_dashboard_is_current - AssertionError\n"
+        "ERROR tests/background/test_thing.py::test_other\n"
+        "1 failed, 2 passed\n"
+    )
+    passed, timed_out, text, _ = _gate_log_text(
+        monkeypatch, tmp_path, _FakeCompleted(1, stdout=out))
+
+    assert passed is False and timed_out is False
+    assert "test_site_freshness.py::test_dashboard_is_current" in text, (
+        "the failing node ID must reach the log -- otherwise a wedge is "
+        "undiagnosable after the site data is regenerated")
+    assert "test_thing.py::test_other" in text, "ERROR lines count as blocking too"
+
+
+def test_red_publish_gate_captures_output_rather_than_discarding_it(monkeypatch, tmp_path):
+    """The gate must actually CAPTURE pytest's output.
+
+    MUTATION: drop `capture_output=True` from the subprocess.run call and this
+    fails -- stdout/stderr go to the daemon's console and are lost."""
+    _, _, _, kwargs = _gate_log_text(
+        monkeypatch, tmp_path, _FakeCompleted(1, stdout="FAILED tests/a.py::t\n"))
+    assert kwargs.get("capture_output") is True, \
+        "publish-gate pytest output must be captured, not discarded"
+    assert kwargs.get("text") is True, "captured output must be decoded to str"
+
+
+def test_red_publish_gate_logs_a_tail_even_with_no_summary_line(monkeypatch, tmp_path):
+    """Fail-open guard: a red with no FAILED/ERROR summary (collection error,
+    internal pytest crash) must STILL log evidence, never a silent red.
+
+    MUTATION: make _log_gate_failure_payload return early when node_ids is
+    empty and this fails."""
+    _, _, text, _ = _gate_log_text(
+        monkeypatch, tmp_path,
+        _FakeCompleted(2, stderr="INTERNALERROR> Traceback: conftest import blew up"))
+    assert "no FAILED/ERROR summary line found" in text
+    assert "conftest import blew up" in text, \
+        "a red with no summary line must still carry its output tail"
+
+
+def test_green_publish_gate_logs_no_failure_payload(monkeypatch, tmp_path):
+    """Independence: the payload logger fires ONLY on red (R15 -- a control
+    that fires on every run carries no signal).
+
+    MUTATION: call _log_gate_failure_payload unconditionally and this fails."""
+    passed, _, text, _ = _gate_log_text(
+        monkeypatch, tmp_path, _FakeCompleted(0, stdout="100 passed\n"))
+    assert passed is True
+    assert "Publish gate RED" not in text
+    assert (tmp_path / ".last_tested_hash").read_text().strip() == "deadbeef"
+
+
+def test_gate_failure_log_tail_is_bounded(monkeypatch, tmp_path):
+    """A pathological suite must not balloon the shared log file.
+
+    MUTATION: remove the [-GATE_FAILURE_TAIL_CHARS:] slice and this fails."""
+    huge = "x" * 200_000 + "\nFAILED tests/a.py::t\n"
+    _, _, text, _ = _gate_log_text(monkeypatch, tmp_path, _FakeCompleted(1, stdout=huge))
+    assert len(text) < prc.GATE_FAILURE_TAIL_CHARS * 3, \
+        "the red-gate tail must be bounded, not the whole suite output"
+    assert "FAILED tests/a.py::t" in text, "the summary line must survive the bound"

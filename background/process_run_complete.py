@@ -611,19 +611,57 @@ def run_fast_tests(git_hash: str):
     try:
         # Blocking scope = publish-SURFACE tests only (see publish_gate_pytest_argv:
         # heavy ignores for speed, operational ignores for R10 class closure).
+        #
+        # R5/R9 (2026-07-29, a ~67-min publish wedge whose ONLY record was the
+        # string "Tests FAILED - not committing"): the gate's own output was
+        # discarded, so the blocking test was unknowable from the log and the
+        # failure could not be diagnosed after the fact -- the site data has
+        # since been regenerated, so the red is not reproducible later. An
+        # alarm must carry its diagnostic payload, so capture the run and log
+        # the failing node IDs. Capture is bounded (tail only) so a pathological
+        # suite can never balloon the log.
         result = subprocess.run(
             publish_gate_pytest_argv("tests/"),
             cwd=str(PROJECT_DIR),
             env=full_env,
             timeout=600,
+            capture_output=True,
+            text=True,
+            errors="replace",
         )
         if result.returncode == 0:
             LAST_TESTED_HASH_FILE.write_text(git_hash)
+        else:
+            _log_gate_failure_payload(result)
         return result.returncode == 0, False
     except subprocess.TimeoutExpired:
         # Timeout is a resource constraint, not a test failure — warn but don't block commit
         log("Fast test suite timed out (>600s) — committing anyway with warning")
         return True, True
+
+
+# Bound on how much of a red gate's output reaches the log (chars).
+GATE_FAILURE_TAIL_CHARS = 4000
+
+
+def _log_gate_failure_payload(result):
+    """Log WHICH tests blocked the publish, not just THAT they did.
+
+    Called only on a red gate. Emits the failing node IDs (pytest's own
+    ``FAILED <nodeid>`` / ``ERROR <nodeid>`` short-summary lines) plus a bounded
+    tail of the combined output, so a wedge is diagnosable from the log alone
+    after the underlying site data has been regenerated away."""
+    out = "{}\n{}".format(result.stdout or "", result.stderr or "")
+    node_ids = [ln.strip() for ln in out.splitlines()
+                if ln.startswith(("FAILED ", "ERROR "))]
+    if node_ids:
+        log("Publish gate RED -- blocking test(s): {}".format("; ".join(node_ids[:20])))
+    else:
+        log("Publish gate RED (rc={}) -- no FAILED/ERROR summary line found".format(
+            result.returncode))
+    tail = out.strip()[-GATE_FAILURE_TAIL_CHARS:]
+    if tail:
+        log("Publish gate RED output tail:\n{}".format(tail))
 
 
 def _run_weather_data(git_hash="unknown"):
