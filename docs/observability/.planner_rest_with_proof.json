@@ -2,9 +2,6 @@
   "date": "2026-07-29",
   "axes_sha": "6e8576269993868af95b46ca2391270e5ed401e22fabbfaaf7200d59d5a1deea",
   "minted_blocked_slugs": [
-    "PLANNER_MINTED_board_spec_001_wholesale_reconciliation_2026-07-28.md",
-    "PLANNER_MINTED_dd_dependency_overblock_split_2026-07-28.md",
-    "PLANNER_MINTED_dd_seasonal_cashflow_physics_2026-07-25.md",
     "PLANNER_MINTED_director_window_delta_view_2026-07-28.md",
     "PLANNER_MINTED_first_ranked_gap_list_2026-07-28.md",
     "PLANNER_MINTED_gap1_reader_contract_failopen_fix_2026-07-28.md",
@@ -12,8 +9,6 @@
     "PLANNER_MINTED_generator_draw_wiring_2026-07-24.md",
     "PLANNER_MINTED_inbound_ratification_batch_path_2026-07-28.md",
     "PLANNER_MINTED_intra_year_price_cap_granularity_2026-07-28.md",
-    "PLANNER_MINTED_kpilot_brief_assembly_delta_finding_2026-07-28.md",
-    "PLANNER_MINTED_merit_order_reconstruction_discover_2026-07-25.md",
     "PLANNER_MINTED_money_representation_evidence_2026-07-28.md",
     "PLANNER_MINTED_owned_quantity_registry_gate_2026-07-28.md",
     "PLANNER_MINTED_payment_channel_dd_consistency_invariant_2026-07-28.md",
@@ -24,12 +19,11 @@
     "PLANNER_MINTED_size_and_clone_ratchet_2026-07-28.md",
     "PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md",
     "PLANNER_MINTED_stop_control_gap_characterisation_2026-07-28.md",
-    "PLANNER_MINTED_stratified_run_rotation_mechanism_2026-07-25.md",
     "PLANNER_MINTED_supply_start_semantic_separation_2026-07-28.md",
     "PLANNER_MINTED_unstated_reason_block_impossible_2026-07-28.md",
     "PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md",
     "PLANNER_MINTED_working_day_calculator_2026-07-28.md"
   ],
-  "proof_summary": "RUNG-7 planner DAILY RE-CHECK (day rolled 07-28 -> 07-29, ~00:05Z): premise still FALSE -- no un-minted, non-walled ratified-goal next-step exists. The 07-28T22:14Z premise-FALSE proof aged via the daily date-gate (working-as-designed, not a stall). Genuinely re-examined all four planner inputs on real disk: (1) DIRECTOR_AXES axes_sha BYTE-UNCHANGED (6e857626..., last edit 07-22) -- no new axis/ruling; (2) CAMPAIGN_REGISTER.yaml unchanged since 07-23; (3) fidelity_evidence_ledger.json git-clean (00:04Z mtime was an identical daemon regenerate, no diff, no new gap row); (4) FIRST_RANKED_GAP_LIST.md unchanged since 07-28 08:30 -- its disposition of every register row still holds. No new staged ruling/from_rich (staging root holds only run_complete_* daemon markers, correctly excluded from find_work). The REAL _self_refill_draw enumeration confirms BUILD=0 SITE=0 DISCOVERY=0, forward-discovery F1-F5 complete, propose-half NONE, idle 24 atoms FRAME-saturated -- the only MUST-DRAW is planner/blocked_mints/gap_register (the RUNG-7 turn itself). All 27 in_progress mints remain BLOCKED and byte-identical to the prior proof set (self_drawable==[]), each on a director-reserved wall: director_level_up (R16 self-bump ban), director_build_open (one-way door #5, console-only), R13 curriculum values (SSP cells, launch-world), or generator ground-truth activation (SE_DRAW_POPULATION flip). gap_register open==True is EXPECTED per the ranked list (residue stays open by design, mapped to blocked/walled). Nothing agent-openable. REST-WITH-PROOF re-stamped for 07-29; EIGHTH-CLASS 2h age-cap keeps the planner re-examining, never a day-long stall.",
-  "written_at": "2026-07-29T00:06:13.652841+00:00"
+  "proof_summary": "RUNG-7 planner re-examination (~05:36Z 07-29). Prior premise-FALSE proof (00:06Z, 27-blocked) aged not by new work but by CONSUMPTION: 6 mints were BUILT and archived to done/ during the day (board_spec_001_wholesale_reconciliation, dd_dependency_overblock_split, dd_seasonal_cashflow_physics, kpilot_brief_assembly_delta_finding, merit_order_reconstruction_discover, stratified_run_rotation_mechanism), shrinking the in_progress blocked set 27 -> 21 and correctly staling the day-old proof. Nothing was ADDED. Independently re-verified all four planner inputs on real disk: (1) DIRECTOR_AXES axes_sha BYTE-UNCHANGED (6e857626..., last edit 07-22) -- no new axis/ruling; (2) CAMPAIGN_REGISTER.yaml SITE_V5 closed, no open campaign; (3) fidelity_evidence_ledger.json git-clean, no new gap row; (4) no new staged ruling/from_rich (staging root holds only run_complete_* daemon markers, excluded from find_work). The REAL _self_refill_draw enumeration confirms BUILD=0 SITE=0 DISCOVERY=0, forward-discovery F1-F5 complete, propose-half NONE, 24 idle atoms FRAME-saturated -- the only MUST-DRAW is planner/blocked_mints/gap_register (the RUNG-7 turn itself). All 21 in_progress mints remain BLOCKED (self_drawable==[]), each on a director-reserved wall: director_level_up (R16 self-bump ban), director_build_open (one-way door #5, console-only), director_ratification (money_representation float->Decimal), live-activation word (generator_draw_wiring), or R13/R12 curriculum values (ssp_negative_lift, value_chain, intra_year cap). FIRED-WINDOW CHECK done: the two mints advertising \"DISCOVER self-drawable now\" (intra_year_price_cap_granularity, supply_start_semantic_separation) both have their DISCOVER half explicitly CLOSED 2026-07-28 with published design docs (INTRA_YEAR_PRICE_CAP_GRANULARITY_DISCOVER.md, SUPPLY_START_SEMANTIC_SEPARATION_DISCOVER.md); only the BUILD half remains and it is walled on director_level_up -- correctly marked blocked, no open non-walled work. Consuming merit_order_reconstruction_discover did NOT fully fire ssp_negative_lift release (still needs value_chain + Spec-004 landing, both blocked). Nothing agent-openable. Premise FALSE: no un-minted, non-walled ratified-goal next-step exists -- minting would duplicate the already-blocked/already-built set (the SELF-INTERRUPT/MAKE_IT_STICK treadmill). REST-WITH-PROOF re-stamped for 07-29 over the current 21-blocked set; EIGHTH-CLASS 2h age-cap keeps the planner re-examining, never a day-long stall.",
+  "written_at": "2026-07-29T05:38:03.904152+00:00"
 }
