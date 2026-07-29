@@ -44,6 +44,7 @@ carbon trajectory (unbuilt) and is a later rung.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Mapping, Tuple
 
@@ -86,7 +87,26 @@ class CarbonEvent:
             raise CarbonEventMalformed("event_id must be non-empty")
         if self.ledger not in _LEDGERS:
             raise CarbonEventMalformed(f"ledger must be one of {_LEDGERS}, got {self.ledger!r}")
-        if not isinstance(self.tco2e, (int, float)) or self.tco2e < 0:
+        # NON-FINITE FIRST (2026-07-29, E5 FRAME finding; same class already hardened on the
+        # D5 billing ledger). A comparison guard is NaN-BLIND: `nan < 0` is False and `nan` IS
+        # a float, so NaN and inf both walked straight through the check below. The consequence
+        # was not local -- NaN propagates through saved()/spent() into net(), and `nan <= 0` is
+        # ALSO False, so cost_per_tonne_abated's fail-loud door at :148 was BYPASSED and the
+        # mission metric RETURNED nan instead of raising. That is precisely the "must never read
+        # as free/great" fail-open this module's own docstring (c) forbids, reached through the
+        # one comparison that cannot be written as a comparison. Reject non-finite BEFORE any
+        # ordering test; bool is excluded because `isinstance(True, int)` is True and a boolean
+        # tonnage is a malformed event, not 1 tCO2e.
+        if isinstance(self.tco2e, bool) or not isinstance(self.tco2e, (int, float)):
+            raise CarbonEventMalformed(
+                f"tco2e must be a non-negative magnitude (sign lives in the ledger), got {self.tco2e!r}"
+            )
+        if not math.isfinite(self.tco2e):
+            raise CarbonEventMalformed(
+                f"tco2e must be FINITE -- a non-finite tonnage silently defeats every downstream "
+                f"comparison guard (nan < 0 and nan <= 0 are both False), got {self.tco2e!r}"
+            )
+        if self.tco2e < 0:
             raise CarbonEventMalformed(
                 f"tco2e must be a non-negative magnitude (sign lives in the ledger), got {self.tco2e!r}"
             )
@@ -145,6 +165,15 @@ class CarbonLedger:
         constraint forbids. This method is measurement ONLY; nothing in the
         machine may call it to steer a decision (CARBON_NOT_A_TARGET)."""
         net = self.net()
+        # Defence in depth (2026-07-29): the event guard should make a non-finite net
+        # unreachable, but this door is the one the constraint actually rests on, so it does
+        # not delegate its own safety to a guard in another class. `nan <= 0` is False, so
+        # without this the fail-loud door opens for the single worst input.
+        if not math.isfinite(net):
+            raise CarbonAbatementUnavailable(
+                f"no defensible £/tCO2e: net abatement is non-finite ({net!r}) -- a non-finite "
+                "net defeats the <= 0 door below and would return nan/inf as if it were a rate"
+            )
         if net <= 0:
             raise CarbonAbatementUnavailable(
                 f"no defensible £/tCO2e: net abatement is {net:.6g} tCO2e (<= 0) -- "
