@@ -1,3 +1,11 @@
+<!-- PROCESSED 2026-07-29 (scheduled tick) → PLANNER_MINTED_signing_key_rotation_deliverables_2026-07-29.md.
+     5 WORK-THIS-CREATES deliverables minted/covered: #1 rotation-handover + #2 E2E-proof (unpark
+     signing_key_provision_act, realigned to ROTATE); #3 blocked-item batch (already minted, done/); #4 A1
+     sweep (done/ + unpark a1_correction) + record correction (done this tick); #5 inbound-instruction guard
+     (NEW atom, folded into responder). OPEN SUB-ITEM (director-reserved, why in_progress/ not done/): the
+     KEY GENERATION itself — director generates+places+signs; agent never sees it (cat 5/8). Acceptance =
+     phone-signed ruling verifies+releases its atom next tick. -->
+
 # [DIRECTOR-RULING] — Answer: NO, regenerate. Premise correction accepted; the escalation was right. (2026-07-29)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Answers the ONE open question in `RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md` (`d6b3be3bc`).

@@ -1,16 +1,15 @@
-<!-- SUPERVISOR_DRAW: hold -->
-<!-- BLOCK_RELEASE: director_ratification -- director answers yes/no on key-match: YES -> only the live E2E proof remains (sign one harmless ruling, agent shows it ledgered); NO -> regenerate-and-place command prepared then. See docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md. -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK RELEASED 2026-07-29 by DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md: director answered NO — REGENERATE. The yes/no this atom was parked on is answered. Agent's reversible part (prepare the ROTATE handover: short command, file format, restart+R2, success test) is now drawable; the key-generation itself stays director-reserved (cat 5/8). See PLANNER_MINTED_signing_key_rotation_deliverables_2026-07-29.md. -->
 
-> **HOLD 2026-07-29 — THE ACT IS NOT "PROVISION THE KEY" (already provisioned). DO NOT SEND AS WRITTEN.**
-> Disk check this tick: the 64-hex `SE_WAKE_HMAC_KEY` is already present in
-> `~/.config/synthetic-enterprise/.env.ntfy` and loaded in the running verify daemon. The Seed's premise
-> ("empty `SE_WAKE_HMAC_KEY=` line, fill it") is FALSE. The batched [ACT], if any, is at most
-> "confirm-or-regenerate to a key the director controls + one live E2E proof (sign a harmless ruling →
-> ledger row)". **Blocker:** whether the present key is the director's (phone-side match) is
-> director-reserved and open. **Unblocks when:** director answers yes/no (see
-> `docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md`). If YES → only
-> the E2E proof remains (ready to hand over). If NO → the regenerate-and-place command is prepared then.
-> Escalated via NTFY 2026-07-29.
+> **DRAWABLE 2026-07-29 — RESOLVED TO ROTATE.** The director ruled NO — regenerate
+> (`DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md`): the present key is dated 2026-07-11, coincides
+> with agent-authored NTFY build-out, and an agent-minted key lacks the one property the channel exists
+> for (unforgeable-by-the-agent) however well fenced afterwards. **This atom's act is now the ROTATE
+> handover** — the short phone-terminal-safe command (must not line-wrap), the `.env.ntfy` file/line
+> format, the restart-with-R2-check, and the observable success test — for the DIRECTOR to run.
+> **The agent never reads/echoes/logs/stores the new key** (ruling §1). The live E2E proof
+> (sign one harmless ruling → ledger row → releases its atom next tick) is the acceptance test and is
+> **director-gated** (he must generate+sign first). No agent-side one-way door remains.
 
 # [PLANNER-MINTED] One batched [ACT] to provision the signing key: verbatim short command, file format, restart, success test, safe proof (2026-07-29)
 

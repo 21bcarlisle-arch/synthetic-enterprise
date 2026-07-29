@@ -1,15 +1,13 @@
-<!-- SUPERVISOR_DRAW: hold -->
-<!-- BLOCK_RELEASE: director_ratification -- director confirms whether the provisioned 64-hex SE_WAKE_HMAC_KEY is one he controls (phone-side HMAC match); see docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md. A1 is then corrected to the true state, not the false "key is empty". -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- BLOCK RELEASED 2026-07-29 by DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md §3: "the A1 finding stands separately and is still valid" — the doc-asserting-runtime-state-from-source class is swept regardless of whether the assertion was true. The true A1 text is now known. Drawable. See PLANNER_MINTED_signing_key_rotation_deliverables_2026-07-29.md. -->
 
-> **HOLD 2026-07-29 — PREMISE CONTESTED BY DISK EVIDENCE. DO NOT EXECUTE AS WRITTEN.**
-> Disk check this tick: `~/.config/synthetic-enterprise/.env.ntfy` (236b, the exact file the ruling
-> cites) contains a **real, full-entropy 64-hex `SE_WAKE_HMAC_KEY`**, and the running `ntfy_responder`
-> daemon has it **loaded in its live env**. The key is NOT empty/unprovisioned. Correcting A1 to "key
-> line is empty / director must provision" would write a NEW falsehood. **Blocker:** the true A1 text
-> depends on whether the provisioned key is one the director controls (phone-side match) — an open,
-> director-reserved question. **Unblocks when:** the director confirms yes/no (see
-> `docs/staging/done/RESPONSE_DIRECTOR_RULING_SIGNING_KEY_NEVER_PROVISIONED_2026-07-29.md`); then A1 is
-> corrected to whichever truth. Escalated via NTFY 2026-07-29.
+> **DRAWABLE 2026-07-29 — TRUE A1 TEXT NOW KNOWN.** The director ruled (§3) the A1 finding **stands and
+> is still valid** as a *class* sweep — documentation reporting the code as the state of the box — even
+> though the specific assertion happened to be true. Correct A1 to the TRUE state: `SE_WAKE_HMAC_KEY`
+> is/was present + daemon-loaded (not "empty/unprovisioned"), and per
+> `DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md` is being **rotated** (regenerated to a
+> director-controlled key). Then sweep siblings asserting runtime state from source. No director-reserved
+> blocker on the agent's part (a docs correction + sweep); reversible by git revert.
 
 # [PLANNER-MINTED] Correct PHONE_SIGNER_SETUP.md step A1 (key was never provisioned) + sweep siblings asserting runtime state from source (2026-07-29)
 
