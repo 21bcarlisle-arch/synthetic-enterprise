@@ -665,7 +665,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "W2_13_occupancy_consumption_volume_shape",
@@ -688,7 +688,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 5
     },
     {
       "id": "W2_14_continuous_behavioural_engagement_model",
@@ -709,7 +709,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 50
+      "stall_consecutive_unchanged": 60
     },
     {
       "id": "W3_1_price_cap_binding",
@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12
+      "stall_consecutive_unchanged": 57
     },
     {
       "id": "H10_worktree_isolation",
@@ -1784,7 +1784,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 22
+      "stall_consecutive_unchanged": 13
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -1828,7 +1828,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "W1_10_ev_heatpump_geography",
@@ -2596,6 +2596,25 @@
       "stall_consecutive_unchanged": 34
     },
     {
+      "id": "GAP1_gap_registers_as_mint_sources",
+      "name": "Gap registers as planner mint sources: an INDEPENDENT reader emits the open-item residue from all 8 published gap registers, and a `gap_register` level in authorized_set_enumeration() makes that residue drawable -- so a rest/saturation claim is impossible while any published register holds an open, un-triaged item.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
       "id": "G1_fidelity_grid_scorer",
       "name": "Fidelity grid-scorer: per-cell best-of-naive-family lift, worst-q% CVaR (q=0 recovers MAX), map-of-ignorance fail-open, CRN-gated ablation",
       "lane": "G_data_learning",
@@ -2692,7 +2711,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 14
     },
     {
       "id": "F1a_sim_customer_response",
@@ -2715,7 +2734,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 7
     },
     {
       "id": "F1b_company_comms",
@@ -2738,7 +2757,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 11
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2784,7 +2803,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3
+      "stall_consecutive_unchanged": 10
     },
     {
       "id": "DD_seasonal_cashflow_physics",
@@ -2824,7 +2843,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 13
+      "stall_consecutive_unchanged": 69
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2864,7 +2883,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2
+      "stall_consecutive_unchanged": 8
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3179,7 +3198,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 117
+      "stall_consecutive_unchanged": 207
     },
     {
       "id": "OPS1_launcher_cutover_completion",
@@ -3283,7 +3302,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 158,
+  "total_atoms": 159,
   "epoch2_movements": [
     {
       "id": "M1",

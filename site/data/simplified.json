@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T20:36:35Z",
+  "generated_at": "2026-07-29T21:03:13Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -849,6 +849,17 @@
           "notes": [
             "2026-07-16 AUTHORED AS PROPOSAL (G6 output, SRE lens). Strengthens G4_unified_failure_register: quantify TOIL (SELF_INTERRUPT_DISCIPLINE treadmill) + an error-budget view. DISCOVER/FRAME workable now; director ranks.",
             "2026-07-16 H17 Lane-3 FRAME L0->L1 (doc-only, BUILD-gated so no code). ERROR_BUDGET_AND_TOIL_TRACKING.md specifies a 7-class TOIL taxonomy grounded in real recurring treadmill toil (publish-gate wedges T1, stale-daemon-not-restarted/R2 T2, map-truth reconciliation T3, worktree-scan false-positives T4, staging re-archival T5, archived-doc resurrection T6, harness false-positive triage T7), sourced from the G4 unified failure register (reader-only, no duplication) plus retros and the existing anti-decay digest counters. Designs an SRE error-budget view where discretionary net-new feature work SOFT-yields (re-order the draw, never hold) to toil-paydown when the self-caught-failure budget is burned, using the already-live anti-decay proto-signals (turns-waiting-on-human, escalations-later-reversible, idle-turns-with-atoms). Guardrails stated prominently: budget/toil % are DIALS/diagnostics never targets (R12); the soft gate never zeroes the feasible set (Rule 0, toil-paydown is always drawable); and NO 0-toil target -- a zero-toil goal would incentivise HIDING self-caught failures (they are a health signal, not a defect count). R15 note: the failure-catching controls feeding the budget must themselves be mutation-testable (inheriting H18) or the budget is fail-silent theatre. Strengthens G4 (builds on the register). The background/tools budget-reader + digest-render block (folding with G4 + the effort_digest.py block-managed render pattern) + the draw-path soft-gate dial-yield are a NAMED later BUILD slice, not built here."
+          ]
+        },
+        {
+          "atom_id": "GAP1_gap_registers_as_mint_sources",
+          "atom_name": "Gap registers as planner mint sources: an INDEPENDENT reader emits the open-item residue from all 8 published gap registers, and a `gap_register` level in authorized_set_enumeration() makes that residue drawable -- so a rest/saturation claim is impossible while any published register holds an open, un-triaged item.",
+          "level_current": 3,
+          "level_target": 3,
+          "notes": [
+            "2026-07-28 REGISTERED RETROACTIVELY 2026-07-29 -- this atom was BUILT before it was ever a map cell, which is itself the finding. It existed only as docs/staging/in_progress/PLANNER_MINTED_gap_registers_as_mint_sources_2026-07-28.md, blocked_on: director_level_up, so the very mechanism it implements (published registers are drawable work) was itself invisible to the map that decides what is drawable. Serves DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG_2026-07-28 deliverables 1+2. Fidelity gained: none directly -- a draw-completeness / work-accounting fix closing the \"saturation was a bookkeeping artifact\" hole the director named.",
+            "2026-07-28 BUILD LANDED (commit 2454e70, exit criteria (a)-(d) all met). (a) DISCOVER/design: the mint-source contract naming each register's primary-state path + OPEN-marking field is at docs/design/GAP_REGISTER_MINT_SOURCE_CONTRACT.md. (b) BUILD: background/gap_register_scan.py emits the OPEN residue from PRIMARY state and imports NOTHING from supervisor (verified: only json/math/re/pathlib/typing) -- the LAW-C independent-reader pattern, so it cannot restate the tick's own belief; a `gap_register` level is wired into background/supervisor.py::authorized_set_enumeration (via _gap_register_open). LIVE at registration: gap_register_open() = True with 8 residue rows, i.e. it is actively forbidding an illegitimate rest right now. (c) R15 BOTH WAYS (10 tests): neuter all registers => reads closed while open items demonstrably exist (the control FIRES), restore => open; a single open row flips the level to Y; the supervisor level is present AND killable via the .gap_register_level_disabled flag; the two corrected non-fail-open register keys (register 1 text-heuristic, register 6 state-keyed prefix-agnostic) each beat their superseded key. (d) FAIL-SAFE TOWARD WORK (Rule-0 direction -- ambiguity forbids rest): an unreadable register, a missing file, a non-finite at-weight, and a reader-side exception ALL read DRAWABLE. DIVISION OF LABOUR (deliberate, \u00a73): GAP1 only ENUMERATES -- held SSP cells and un-triaged sanity rows appear in the residue and are never silently dropped; classification is GAP2's ratified taxonomy, GAP3 the ranked list. R12 non-negotiable: the count of open/closed gaps is a DIAGNOSTIC on this line, never a score or a headline.",
+            "2026-07-29 LEVEL 0->3 SELF-CERTIFIED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 2+6: \"levels are proposed and recorded, never gated\" and \"gap_registers_as_mint_sources: build it. No further asking.\"). The BUILD was complete on 2026-07-28; the ONLY thing outstanding was the level cell, held by blocked_on: director_level_up -- a block type this ruling abolishes. Recorded in docs/observability/gate_authorizations.jsonl as action LEVEL_UP_SELF_CERTIFIED, authorized_by agent_self_certified, channel self (honestly stamped -- it never masquerades as a console/twin/phone act), provenance naming the evidence above. R16 is satisfied by the RECORD being ledger-backed and auditable, which was always its real requirement; the director-permission half is what the ruling deleted. Reversal cost: one map edit + one ledger line."
           ]
         },
         {
@@ -2020,6 +2031,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 153,
-  "total_notes": 716
+  "total_atoms_with_notes": 154,
+  "total_notes": 719
 }
