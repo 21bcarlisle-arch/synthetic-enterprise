@@ -5,9 +5,10 @@
 // RENDERED pixels (R11), not the source string.
 //
 // Usage: node _render_harness.mjs <index.html>   (stdin: EITHER a bare company.json,
-//   back-compat, OR a wrapper {company, capabilities, coverage} to inject mutated
-//   capability/coverage payloads for R15 independence tests). When not injected,
-//   capabilities.json and saas_coverage.json are read from ../data/ on disk.
+//   back-compat, OR a wrapper {company, capabilities, coverage, world} to inject
+//   mutated capability/coverage/world payloads for R15 independence tests). When
+//   not injected, capabilities.json / saas_coverage.json / decisions.json /
+//   world.json are read from ../data/ on disk.
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
@@ -24,6 +25,7 @@ function loadDisk(name) { try { return JSON.parse(fs.readFileSync(path.join(data
 const caps = raw && raw.company && "capabilities" in raw ? raw.capabilities : loadDisk("capabilities.json");
 const cov = raw && raw.company && "coverage" in raw ? raw.coverage : loadDisk("saas_coverage.json");
 const decs = raw && raw.company && "decisions" in raw ? raw.decisions : loadDisk("decisions.json");
+const world = raw && raw.company && "world" in raw ? raw.world : loadDisk("world.json");
 
 const elements = {};
 function stub(id) {
@@ -49,7 +51,7 @@ sandbox.renderCapabilities(caps);
 sandbox.renderCoverage(cov);
 sandbox.renderDecisions(decs);
 sandbox.renderState(d);
-sandbox.renderFinance(d);
+sandbox.renderFinance(d, world);
 sandbox.renderTrading(d);
 sandbox.renderWholesale(d);
 sandbox.renderHousehold(d);

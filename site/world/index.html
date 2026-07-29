@@ -211,6 +211,7 @@ details > summary { cursor: pointer; font-size: 12px; color: var(--blue); margin
   <div class="card">
     <p class="muted" id="sim-intro">Loading...</p>
     <div id="sim-depth" style="margin-top:12px"></div>
+    <p class="muted" id="period-coverage" style="margin-top:8px"></p>
   </div>
 
   <!-- RELUCTANT HOMES (v4 pitch §8) -->
@@ -321,6 +322,25 @@ function renderSimDepth(d){
   '<div class="basis" style="margin-top:8px">Basis: '+esc(bf.basis||"")+'. Evidence: '+
     '<a class="evlink" href="'+esc(bf.evidence_url||"#")+'" target="_blank" rel="noopener">'+esc(bf.evidence||"")+'</a></div>';
   document.getElementById("sim-depth").innerHTML=html;
+
+  // SITE_EH3 MAJOR-6 (R10 class-closing invariant): the sim window renders
+  // above ("since <window>"), but no page previously stated that the MOST
+  // RECENT annual row is a PART YEAR -- computed here from dashboard.json's
+  // own period_coverage_fraction (site/data/dashboard.json financial.
+  // annual[]), never a hardcoded "this year is partial".
+  var pc=d.period_coverage||{};
+  var pcEl=document.getElementById("period-coverage");
+  if(pc.available&&pc.latest_partial_year!=null){
+    pcEl.innerHTML="<strong>Period coverage:</strong> the most recent published annual row ("+
+      esc(pc.latest_partial_year)+") is a <strong>PART YEAR</strong>, not a full 12 months"+
+      (pc.latest_partial_note?" -- "+esc(pc.latest_partial_note):"")+
+      " Evidence: "+
+      '<a class="evlink" href="'+esc(pc.evidence_url||"#")+'" target="_blank" rel="noopener">'+esc(pc.evidence||"")+'</a>.';
+  } else if(pc.available){
+    pcEl.textContent="Every published annual row currently covers a full calendar year.";
+  } else {
+    pcEl.textContent="";
+  }
 }
 
 function renderAnchorsRuntime(d){

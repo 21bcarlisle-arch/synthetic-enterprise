@@ -59,7 +59,7 @@ const ids = [
   "pd-stamp", "pd-intro", "pd-bar", "pd-table", "pd-basis",
   "state-stamp", "wstate-intro", "wstate-lag", "wstate-kpis", "wstate-intraday", "wstate-regime", "wstate-basis",
   "wall-intro", "wall-band", "crossings",
-  "sim-intro", "sim-depth",
+  "sim-intro", "sim-depth", "period-coverage",
   "anchors-intro", "anchor-kpis", "anchor-runtime",
   "lib-intro", "lib-kpis", "lib-body",
   "build-note",

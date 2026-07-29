@@ -422,7 +422,7 @@ function renderDecisions(dd){
     '<a class="evlink" href="../data/decisions.json" target="_blank" rel="noopener">decisions.json &rarr;</a></p>';
 }
 
-function renderFinance(d){
+function renderFinance(d, w){
   var f=d.finance||{};
   var b=f.settled_basis||{};
   var settledProv = !!b.provisional;
@@ -436,6 +436,20 @@ function renderFinance(d){
   // totals from a random sample of customers."
   var N=(d.stress_bands||{}).total;
   var yr=esc(f.latest_year);
+  // SITE_EH3 MAJOR-6 (R10 class-closing invariant): world.json's period_coverage
+  // (derived from dashboard.json's own period_coverage_fraction, itself computed
+  // from the real sim window -- never hardcoded) tells us whether THIS latest
+  // year is a part year, so a full-year label (e.g. "Corp. tax 2025") never
+  // renders unqualified on a 5.2-month stub.
+  var pc=(w&&w.period_coverage)||{};
+  var isPartialYear = pc.latest_partial_year!=null && String(pc.latest_partial_year)===String(f.latest_year);
+  var partialFracPct = (isPartialYear && pc.latest_partial_fraction!=null) ? Math.round(pc.latest_partial_fraction*1000)/10 : null;
+  var partialSuffix = isPartialYear ? " (part year)" : "";
+  var partialSubSuffix = isPartialYear ? (" · PART YEAR"+(partialFracPct!=null?" ("+partialFracPct+"% of "+yr+")":"")) : "";
+  var partialCaveat = isPartialYear
+    ? " <b>"+yr+" is a PART YEAR only</b>"+(partialFracPct!=null?" ("+partialFracPct+"% of the calendar year)":"")+
+      " -- every "+yr+"-labelled figure below is NOT a full annual figure, and is excluded from year-over-year trend comparisons."
+    : "";
   var drawLine = (N!=null)
     ? " <b>This run's book is a drawn sample of N="+N+" customers</b> (curriculum-weighted "+
       "historical replay, 2016&ndash;"+yr+"). The cumulative totals below are earned across that "+
@@ -446,13 +460,13 @@ function renderFinance(d){
     "The company keeps three clocks and they do not agree -- that is the point. The <b>settled</b> "+
     "clock is the settlement-derived P&amp;L; the <b>billed</b> clock is what customers were actually "+
     "invoiced; the <b>banked</b> clock is cash actually collected. A number without its clock is a "+
-    "defect here, not a rounding choice."+drawLine;
+    "defect here, not a rounding choice."+drawLine+partialCaveat;
   var netCls = (f.settled_net_margin_gbp>=0)?"pos":"neg";
   // Unit economics: latest-year total / N, denominator stated explicitly (same clock, same year).
   var hasN = (N!=null && Number(N)>0);
   var nmPer  = hasN ? f.latest_year_net_margin_gbp/N : null;
   var revPer = hasN ? f.latest_year_revenue_gbp/N    : null;
-  var perBasis = yr+" · billed · ÷ "+esc(N)+" sampled customers";
+  var perBasis = yr+" · billed · ÷ "+esc(N)+" sampled customers"+partialSubSuffix;
   var perCls = (nmPer==null)?"":(nmPer>=0?"pos":"neg");
   var kpis=[
     // --- UNIT ECONOMICS + RATES (book-size-honest, lead the panel) ---
@@ -467,7 +481,7 @@ function renderFinance(d){
     kpiTile("Treasury (end)", gbp(f.treasury_end_gbp), "banked clock · from "+gbp(f.treasury_start_gbp)),
     // DD5: held customer credit as a LIABILITY, beside treasury -- part of that cash is owed back.
     kpiTile("Customer credit held", (function(){var h=heldCredit(d);return h?gbp(h.held_gbp):"--";})(), "banked clock · liability, owed back · sample floor", "neu"),
-    kpiTile("Corp. tax "+yr, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts", "neg"),
+    kpiTile("Corp. tax "+yr+partialSuffix, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts"+partialSubSuffix, "neg"),
     kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
   ];
   el("finance-kpis").innerHTML=kpis.join("");
@@ -774,9 +788,13 @@ jget("../data/saas_coverage.json").then(renderCoverage).catch(function(){
 jget("../data/decisions.json").then(renderDecisions).catch(function(){
   el("state-decisions").innerHTML='<div class="muted">decisions.json unavailable at generation time</div>';
 });
-jget("../data/company.json").then(function(d){
+Promise.all([
+  jget("../data/company.json"),
+  jget("../data/world.json").catch(function(){return null;}) // period-coverage caveat only; company.json remains the source of record
+]).then(function(res){
+  var d=res[0], w=res[1];
   renderState(d);
-  renderFinance(d);
+  renderFinance(d, w);
   renderTrading(d);
   renderWholesale(d);
   renderHousehold(d);

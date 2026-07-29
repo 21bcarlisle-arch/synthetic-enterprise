@@ -45,6 +45,7 @@ whole point of the wall -- never a target to tune away; the "band" is magnitude,
 not a pass/fail verdict on the company.
 """
 import json
+import math
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -263,6 +264,15 @@ def _crossing_blindfold(dashboard, sim):
 # ---------------------------------------------------------------------------
 # The anchors register.
 # ---------------------------------------------------------------------------
+_RAG_ORDER = {"GREEN": 0, "AMBER": 1, "RED": 2}
+
+
+def _worse_rag(a, b):
+    """Worst-of two RAG ratings (RED > AMBER > GREEN > unknown). An unrated
+    input is never treated as better than a rated one."""
+    return a if _RAG_ORDER.get(a, 0) >= _RAG_ORDER.get(b, 0) else b
+
+
 def _anchors_runtime(anchoring):
     """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept."""
     if not isinstance(anchoring, dict):
@@ -284,11 +294,34 @@ def _anchors_runtime(anchoring):
     bd = (anchoring.get("bad_debt_vs_benchmark") or [])
     if bd:
         r = bd[-1]
+        rate = r.get("bad_debt_rate")
+        rag = r.get("rag")
+        note = "of revenue"
+        # SITE_EH3 MAJOR-4 (2026-07-29 cold-eyes Expert Hour): a non-positive
+        # bad-debt rate is a SIGN/MEASUREMENT ERROR (the annual write-off
+        # series can go negative -- see financial.bad_debt_reconciliation on
+        # dashboard.json), never a calibration nudge -- must be a hard RED
+        # with a named cause, never AMBER. R15: reject non-finite FIRST,
+        # before any <= comparison, so a malformed rate can't silently pass
+        # through whatever rag the upstream file happened to carry.
+        if rate is None or not isinstance(rate, (int, float)) or not math.isfinite(rate):
+            rag = "RED"
+            note = "of revenue -- rate missing/malformed: treated as a hard failure, never a silent pass"
+        elif rate <= 0:
+            rag = "RED"
+            note = (
+                "of revenue -- NON-POSITIVE bad-debt rate is a sign/measurement error "
+                "(the annual write-off series can go negative when a recovery/reversal "
+                "event outweighs that period's new write-offs; see "
+                "financial.bad_debt_reconciliation on dashboard.json for the two "
+                "divergent published bad-debt figures), never a calibration nudge -- "
+                "rated RED, not AMBER."
+            )
         cards.append(dict(
             metric="Bad debt rate (" + str(r.get("year")) + ")",
-            sim_value=(str(r.get("bad_debt_rate")) + "%" if r.get("bad_debt_rate") is not None else None),
+            sim_value=(str(rate) + "%" if rate is not None else None),
             benchmark_value=(str(r.get("benchmark_low_pct")) + "-" + str(r.get("benchmark_high_pct")) + "% (Ofgem/EUA)"),
-            ratio=None, rag=r.get("rag"), note="of revenue",
+            ratio=None, rag=rag, note=note,
         ))
     cp = (anchoring.get("complaints_vs_benchmark") or [])
     if cp:
@@ -308,14 +341,105 @@ def _anchors_runtime(anchoring):
             benchmark_value="I&C <8% normal / <12% crisis (DESNZ)",
             ratio=None, rag=r.get("rag"), note=None,
         ))
+    overall = anchoring.get("overall_rag") or "GREEN"
+    for c in cards:
+        overall = _worse_rag(overall, c.get("rag") or "GREEN")
     return dict(
         available=True,
-        overall_rag=anchoring.get("overall_rag"),
+        overall_rag=overall,
         cards=cards,
         meta=anchoring.get("meta", {}),
         evidence="site/state/population_anchoring.json",
         evidence_url="../state/population_anchoring.json",
     )
+
+
+# Margin plausibility bands (SITE_EH3 MAJOR-5, 2026-07-29 cold-eyes Expert
+# Hour): margin had NO anchor at all -- the one metric where R12's band
+# matters most. R12 BINDS HARD here: these bands are read from EXTERNAL
+# sources FIRST (never reverse-engineered from what the sim happens to
+# publish) and this function changes NOTHING about how margin is computed --
+# it only reads the already-published net_margin_pct figures and rates them.
+# Sources (read, cited honestly, not fabricated -- docs/market_research/
+# ASSUMPTIONS.md): "Ofgem price cap EBIT allowance" row (~1.9-2.6%, current
+# Direct-Debit/Standard-Credit/Prepayment cap components); "Net margin as %
+# of revenue" rows (2-5%, Ofgem Retail Market Report / Cornwall Insight);
+# "EBIT% -- dom electricity (CSS recovery/2024)" rows (real crisis-year
+# domestic losses of roughly -4% to -10%); "EBIT% -- non-dom electricity
+# (CSS 2023-2024)" row (1.7-4.5%, EDF/British Gas CSS filings -- I&C supply
+# runs THINNER than domestic). GREEN covers the real normal-year domestic/cap
+# band with headroom for a real crisis-year loss; AMBER doubles the
+# tolerance either side (matching this file's own long-run churn-ratio
+# convention below); anything further out is RED.
+_MARGIN_GREEN_LO_PCT = -10.0
+_MARGIN_GREEN_HI_PCT = 5.0
+_MARGIN_AMBER_LO_PCT = -20.0
+_MARGIN_AMBER_HI_PCT = 10.0
+_MARGIN_BENCHMARK_NOTE = (
+    "-10 to 5% (Ofgem cap EBIT allowance ~1.9-2.6%; real domestic net margin "
+    "2-5%, Ofgem Retail Market Report/Cornwall Insight; real crisis-year "
+    "domestic losses to -10%, EDF/BG CSS filings -- docs/market_research/"
+    "ASSUMPTIONS.md)"
+)
+
+
+def _margin_rag(pct):
+    """R15: reject non-finite/missing FIRST -- a margin figure that can't be
+    read is a hard failure, never a silent GREEN pass."""
+    if pct is None or not isinstance(pct, (int, float)) or not math.isfinite(pct):
+        return "RED"
+    if _MARGIN_GREEN_LO_PCT <= pct <= _MARGIN_GREEN_HI_PCT:
+        return "GREEN"
+    if _MARGIN_AMBER_LO_PCT <= pct <= _MARGIN_AMBER_HI_PCT:
+        return "AMBER"
+    return "RED"
+
+
+def _anchors_margin(financial):
+    """Builds the margin anchor card(s) MAJOR-5 says are missing. Reads
+    dashboard.json's financial.annual/segment_annual -- never re-derives or
+    adjusts a margin figure. Partial-year rows (MAJOR-6's period_partial
+    flag) are excluded, the same class-closing invariant as the period-
+    coverage fix: a part-year figure is not a fair annual reading to anchor."""
+    if not isinstance(financial, dict):
+        return []
+    cards = []
+    annual = financial.get("annual") or []
+    complete_annual = [r for r in annual if not r.get("period_partial")]
+    if complete_annual:
+        latest = complete_annual[-1]
+        pct = latest.get("net_margin_pct")
+        cards.append(dict(
+            metric="Net margin rate (portfolio, " + str(latest.get("year")) + ")",
+            sim_value=(str(pct) + "%" if pct is not None else None),
+            benchmark_value=_MARGIN_BENCHMARK_NOTE,
+            ratio=None, rag=_margin_rag(pct),
+            note=(
+                "R12: a plausibility anchor, never a tuning target -- no margin "
+                "calculation changes as a result of this row existing. Previously "
+                "the one metric where R12's band mattered most had no anchor at all "
+                "(2026-07-29 cold-eyes Expert Hour MAJOR-5)."
+            ),
+        ))
+    seg_annual = [r for r in (financial.get("segment_annual") or []) if not r.get("period_partial")]
+    ic_rows = [r for r in seg_annual if isinstance(r.get("i&c_electricity"), dict)]
+    if ic_rows:
+        seg_row = ic_rows[-1]
+        ic = seg_row["i&c_electricity"]
+        pct = ic.get("net_margin_pct")
+        cards.append(dict(
+            metric="Net margin rate (I&C electricity segment, " + str(seg_row.get("year")) + ")",
+            sim_value=(str(pct) + "%" if pct is not None else None),
+            benchmark_value="1.7-4.5% (EDF/British Gas CSS 2023-24, non-dom electricity -- "
+                             "docs/market_research/ASSUMPTIONS.md)",
+            ratio=None, rag=_margin_rag(pct),
+            note=(
+                "I&C supply runs THINNER than domestic in real CSS filings, not "
+                "richer -- this was the least believable ratio the 2026-07-29 "
+                "cold-eyes Expert Hour found on the site (MAJOR-5)."
+            ),
+        ))
+    return cards
 
 
 _STATUS_MAP = [
@@ -410,6 +534,36 @@ def generate():
         _crossing_blindfold(dashboard, sim),
     ]
 
+    financial = dashboard.get("financial") or {}
+    runtime = _anchors_runtime(anchoring)
+    margin_cards = _anchors_margin(financial)
+    if margin_cards:
+        runtime = dict(runtime)
+        runtime["cards"] = list(runtime.get("cards") or []) + margin_cards
+        overall = runtime.get("overall_rag") or "GREEN"
+        for c in margin_cards:
+            overall = _worse_rag(overall, c.get("rag") or "GREEN")
+        runtime["overall_rag"] = overall
+
+    # SITE_EH3 MAJOR-6 (R10 class-closing invariant, period coverage):
+    # summarise which published annual row (if any) is a PART YEAR, computed
+    # from dashboard.json's own period_coverage_fraction/period_partial
+    # fields (themselves derived from the real sim window, never hardcoded)
+    # -- so /world/ can state it plainly rather than let a partial row render
+    # as an undifferentiated annual figure (MAJOR-6: a 5.2-month 2025 stub
+    # read as a 57% YoY "collapse").
+    annual_rows = financial.get("annual") or []
+    partial_rows = [r for r in annual_rows if r.get("period_partial")]
+    latest_partial = partial_rows[-1] if partial_rows else None
+    period_coverage = dict(
+        available=bool(annual_rows),
+        latest_partial_year=(latest_partial.get("year") if latest_partial else None),
+        latest_partial_fraction=(latest_partial.get("period_coverage_fraction") if latest_partial else None),
+        latest_partial_note=(latest_partial.get("period_note") if latest_partial else None),
+        evidence="site/data/dashboard.json financial.annual[].period_coverage_fraction",
+        evidence_url="../data/dashboard.json",
+    )
+
     data = dict(
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         dashboard_generated_at=meta.get("generated_at"),
@@ -418,6 +572,7 @@ def generate():
         sim_window=(str(sim_meta.get("period_from")) + " to " + str(sim_meta.get("period_to"))
                     if sim_meta.get("period_from") else None),
         sim_total_records=sim_meta.get("total_records"),
+        period_coverage=period_coverage,
         wall=dict(
             intro="The company operates under the same information constraints as a real UK "
                   "energy supplier: it cannot see inside the simulation it runs in. It discovers "
@@ -440,7 +595,7 @@ def generate():
                   "human-readable provenance trail, each row a sim value against an industry "
                   "benchmark with its source and a checked status. Where a status is a warning or "
                   "an open refresh, it is shown, not smoothed.",
-            runtime=_anchors_runtime(anchoring),
+            runtime=runtime,
             library=_anchors_library(md_text),
         ),
     )
