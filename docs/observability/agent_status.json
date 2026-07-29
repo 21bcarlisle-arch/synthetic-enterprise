@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-29T07:17:05.474230+00:00",
+  "last_updated": "2026-07-29T07:52:55.637696+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T07:16:56.268159+00:00",
-      "last_action": "Heartbeat \u2014 23 files tracked",
-      "last_action_ts": "2026-07-29T07:16:56.268159+00:00",
+      "last_heartbeat": "2026-07-29T07:52:31.176978+00:00",
+      "last_action": "Heartbeat \u2014 19 files tracked",
+      "last_action_ts": "2026-07-29T07:52:31.176978+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,19 +25,19 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T07:13:44.823766+00:00",
-      "last_action": "Waiting for next cycle (0h 10m remaining)",
-      "last_action_ts": "2026-07-29T07:13:44.823766+00:00",
+      "last_heartbeat": "2026-07-29T07:49:44.462918+00:00",
+      "last_action": "Waiting for next cycle (5h 35m remaining)",
+      "last_action_ts": "2026-07-29T07:49:44.462918+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
     },
     {
       "name": "sim-runner",
-      "status": "running",
-      "last_heartbeat": "2026-07-29T07:12:22.021655+00:00",
-      "last_action": "Sim started \u2014 git=73d02bb46",
-      "last_action_ts": "2026-07-29T07:12:22.021655+00:00",
+      "status": "idle",
+      "last_heartbeat": "2026-07-29T07:47:59.638127+00:00",
+      "last_action": "Run complete in 504s \u2014 3968 KB (run_output_bc123799c_20260729T073936Z.json)",
+      "last_action_ts": "2026-07-29T07:47:59.638127+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T06:40:32.384596+00:00",
+      "last_heartbeat": "2026-07-29T07:43:44.757922+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-07-29T06:40:32.384596+00:00",
+      "last_action_ts": "2026-07-29T07:43:44.757922+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T06:40:48.681536+00:00",
+      "last_heartbeat": "2026-07-29T07:44:00.680967+00:00",
       "last_action": "Acked message: 'identical machine cadence body repeated over and over again'",
-      "last_action_ts": "2026-07-29T06:40:48.681536+00:00",
+      "last_action_ts": "2026-07-29T07:44:00.680967+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T04:23:50.014035+00:00",
+      "last_heartbeat": "2026-07-29T07:51:45.558277+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-07-29T04:23:50.014035+00:00",
+      "last_action_ts": "2026-07-29T07:51:45.558277+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -95,9 +95,9 @@
     {
       "name": "discovery-agent",
       "status": "idle",
-      "last_heartbeat": "2026-07-25T08:36:43.171427+00:00",
-      "last_action": "Multi-plant SRMC stack ground truth (W1_6 remaining gap): DUKES 5.10/5.14 heat rates+EF (H, confirms live EF_GAS=0.184), DESNZ gen-cost O&M bookends, CPS carbon frozen ~\u00a318/tCO2 2016-2028 (H); ETS market-price series + OCGT fleet-avg + %-hours-gas-marginal = NAMED GAPS (R10). docs/market_research/ssp_multiplant_srmc_stack_heat_rates_2026-07-25.md",
-      "last_action_ts": "2026-07-25T08:36:43.171427+00:00",
+      "last_heartbeat": "2026-07-29T07:33:44.031318+00:00",
+      "last_action": "K-PILOT scope_independence_evidence: wrote docs/market_research/wholesale_scope_independence_evidence_2026-07-29.md \u2014 EFA blocks/peak-only-WD3-5, GB excluded from SDAC implicit coupling, NBP no-penalty cash-out, Grain/South Hook LNG capacity shares, UK ETS \u00a322/t reserve + Dec-2021 CCM trigger \u00a352.88, CPS \u00a30.00331/kWh frozen to 2028 \u2014 all H/M confidence, cited. Appended corroborating row to ASSUMPTIONS.md line ~506.",
+      "last_action_ts": "2026-07-29T07:33:44.031318+00:00",
       "anomaly": null,
       "role": "Validates simulation assumptions against real UK market benchmarks",
       "produces": "docs/market_research/*.md, ASSUMPTIONS.md entries"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T07:16:54.049639+00:00",
+      "last_heartbeat": "2026-07-29T07:51:40.418906+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T06:52:03.545234+00:00",
+      "last_heartbeat": "2026-07-29T07:52:25.350226+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-29T06:52:03.545234+00:00",
+      "last_action_ts": "2026-07-29T07:52:25.350226+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
