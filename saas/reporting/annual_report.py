@@ -736,6 +736,14 @@ def extract_report_data(run_output: dict) -> dict:
         "dd_collection_book": run_output.get("dd_collection_book", {}),
         "annual_dd_review": run_output.get("annual_dd_review", {}),
         "dd_balance_book": run_output.get("dd_balance_book", {}),
+        # DD3 (atom DD_seasonal_cashflow_physics): held customer credit booked as
+        # a LIABILITY in the double-entry chart -- the closing balance sheet with
+        # DD2's held-credit reclassified from equity, exposing the cash-rich-but-
+        # insolvent tell. Additive and read-only; the naive balance sheet in
+        # management_accounts is untouched. DD-H / DD5 consume this view.
+        "dd3_held_credit_balance_sheet": _compute_dd3_held_credit_balance_sheet(
+            run_output, phase2b.get("starting_treasury", 0.0)
+        ),
         # Phase 3 (CORE_FIDELITY_PHASES.md): unhappy-path physics evidence logs
         "meter_read_log": run_output.get("meter_read_log", []),
         "credit_refund_log": run_output.get("credit_refund_log", []),
@@ -760,6 +768,52 @@ def _compute_management_accounts(run_output, opening_treasury=0.0):
         return None
     try:
         return _ma.annual_management_pack(events, opening_treasury)
+    except Exception:
+        return None
+
+
+def _compute_dd3_held_credit_balance_sheet(run_output, opening_treasury=0.0):
+    """DD3 (atom DD_seasonal_cashflow_physics): the balance sheet AS AT the
+    seasonal held-credit peak, with that held credit reclassified from equity to
+    a liability (account 2200) -- the cash-rich-but-insolvent tell made visible.
+
+    Why the PEAK, not the close: under level DD a household's credit builds
+    through summer and DRAWS DOWN through winter, so the portfolio's held credit
+    at the final billed month is typically near zero (this run: £0 close vs a
+    £1,949.51 autumn peak). Booking the closing figure would hide the very tell
+    the atom exists to surface. So this books the seasonal PEAK held credit
+    (``peak_held_credit_gbp``) against the balance sheet cumulative to the peak
+    month -- a point-in-time-consistent test of whether the supplier was
+    technically insolvent at the moment it was holding the most of other
+    people's money. The naive balance sheet in management_accounts is untouched;
+    this is a NEW additive view that DD-H / DD5 consume. Returns None if the run
+    carries no ledger events or no balance book (never fabricates the figure)."""
+    events = run_output.get("ledger_events", [])
+    bb = run_output.get("dd_balance_book", {}) or {}
+    summary = bb.get("summary", {}) if isinstance(bb, dict) else {}
+    if not events or not summary:
+        return None
+    peak_held = summary.get("peak_held_credit_gbp")
+    peak_month = summary.get("peak_month")  # 'YYYY-MM'
+    if peak_held is None or not peak_month:
+        return None
+    try:
+        from company.finance.double_entry import (
+            balance_sheet_with_held_credit,
+            build_journal,
+        )
+        journal = build_journal(events, opening_treasury)
+        # Cumulative to the peak month (ISO timestamps sort lexicographically;
+        # the opening entry's '0000-00-00' and any empty timestamp precede it).
+        as_at = [je for je in journal if str(je.get("timestamp", ""))[:7] <= peak_month]
+        bs = balance_sheet_with_held_credit(as_at, peak_held)
+        bs["as_at_month"] = peak_month
+        bs["peak_held_credit_gbp"] = round(float(peak_held), 2)
+        bs["peak_month"] = peak_month
+        # The closing held credit too, so the seasonal round-trip (build then
+        # full draw-down) is legible beside the peak.
+        bs["closing_held_credit_gbp"] = summary.get("portfolio_final_held_credit_gbp")
+        return bs
     except Exception:
         return None
 

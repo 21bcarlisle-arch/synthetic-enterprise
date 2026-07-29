@@ -20,6 +20,7 @@ ACCOUNTS: dict[str, dict[str, str]] = {
     "1001": {"name": "Cash and Treasury",                   "type": "asset"},
     "1100": {"name": "Trade Receivables",                   "type": "asset"},
     "2100": {"name": "VAT Payable",                         "type": "liability"},
+    "2200": {"name": "Customer Credit Balances Held",       "type": "liability"},
     "3001": {"name": "Opening Capital / Treasury",          "type": "equity"},
     "3900": {"name": "Retained Earnings",                   "type": "equity"},
     "4001": {"name": "Revenue — Energy Supply",             "type": "income"},
@@ -276,7 +277,15 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
     total_assets = cash + receivables
 
     vat_payable = net("2100")
-    total_liabilities = vat_payable
+    customer_credit_held = net("2200")
+    # Sum EVERY liability-type account, not just VAT Payable, so a new liability
+    # (DD3's customer-credit-held, account 2200) is reflected in the equation
+    # rather than silently omitted. Identical to the old `vat_payable` value for
+    # any journal that has never posted to another 2xxx account (the case for
+    # every pre-DD3 journal), so no existing published figure changes.
+    total_liabilities = sum(
+        net(code) for code, info in ACCOUNTS.items() if info["type"] == "liability"
+    )
 
     opening_capital = net("3001")
     retained = net("3900")
@@ -291,6 +300,7 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
         "trade_receivables_gbp": receivables,
         "total_assets_gbp": total_assets,
         "vat_payable_gbp": vat_payable,
+        "customer_credit_held_gbp": customer_credit_held,
         "total_liabilities_gbp": total_liabilities,
         "opening_capital_gbp": opening_capital,
         "retained_earnings_gbp": retained,
@@ -299,3 +309,118 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
         "total_liabilities_and_equity_gbp": total_liabilities + total_equity,
         "equation_holds": equation_holds,
     }
+
+
+# ---------------------------------------------------------------------------
+# DD3 (atom DD_seasonal_cashflow_physics) -- book held customer credit as a
+# LIABILITY in the double-entry chart.
+#
+# Under a level (fixed) direct debit a household pays the same amount every
+# month while consuming seasonally, so it builds a credit through summer and
+# draws it down through winter (instrumented as a portfolio series by DD2,
+# simulation/dd_balance_book.py). The positive balance the supplier holds is
+# money owed back -- a LIABILITY, not profit. Before this, the ONLY liability
+# in the chart was VAT Payable (2100); held customer credit sat implicitly
+# inside treasury cash and therefore inflated equity, so the balance sheet
+# looked healthier than it was. DD3 makes the reclassification explicit: the
+# held credit is moved out of retained earnings and into a customer-credit-held
+# liability (2200), leaving assets untouched and the accounting equation intact
+# but revealing the "cash-rich but balance-sheet-insolvent" tell.
+#
+# Wall-clean and dependency-free: these functions take the held-credit figure
+# as a plain float (the caller sources it from DD2's company-observable balance
+# book), so this company-side module imports no SIM code. Additive: the naive
+# balance_sheet() is untouched; balance_sheet_with_held_credit() is a NEW view
+# that DD-H (the belief-vs-truth solvency gap organ) and DD5 (the SITE surface)
+# consume. Level moves stay director-reserved (R16).
+# ---------------------------------------------------------------------------
+
+import math as _math
+
+
+def _validated_held_credit_gbp(held_credit_gbp: float) -> float:
+    """Validate a held-credit figure before it is booked as a liability.
+
+    Fail-CLOSED (R15 FAIL-OPEN guard): a non-finite or negative held credit is a
+    DEFECT, never silently coerced to £0. Held credit is a positive-balances-only
+    aggregate by construction (``simulation/dd_balance_book.py`` sums only the
+    customers whose balance is > 0), so a negative value means the caller passed
+    the wrong figure -- e.g. the NET portfolio balance, which can go negative in a
+    hard winter draw-down -- and booking that as a £0 liability would hide the
+    error and understate what is owed back. Reject it.
+    """
+    hc = float(held_credit_gbp)
+    if not _math.isfinite(hc):
+        raise ValueError(f"held_credit_gbp must be finite, got {held_credit_gbp!r}")
+    if hc < 0:
+        raise ValueError(
+            "held_credit_gbp must be >= 0 (held credit is a positive-balances-only "
+            f"liability); got {hc}. A negative net balance is not held credit."
+        )
+    return hc
+
+
+def held_credit_journal_entries(
+    held_credit_gbp: float,
+    timestamp: str = "9999-12-31",
+    event_id: str = "dd3-held-credit",
+) -> list[dict[str, Any]]:
+    """The DD3 journal entry that books held customer credit as a liability.
+
+    A single balanced reclassification: DR Retained Earnings (3900), CR Customer
+    Credit Balances Held (2200). The held credit already sits inside treasury
+    cash (an asset the company genuinely holds), so no asset moves; what changes
+    is that this slice of cash is recognised as owed-back rather than earned --
+    equity falls by the held credit and liabilities rise by the same amount, so
+    the accounting equation still holds.
+
+    Returns ``[]`` for zero held credit (nothing owed back, legitimately nothing
+    to book). Rejects a non-finite or negative figure (see
+    ``_validated_held_credit_gbp``).
+    """
+    hc = _validated_held_credit_gbp(held_credit_gbp)
+    if hc == 0.0:
+        return []
+    return [_entry(
+        event_id, timestamp, "3900", "2200", hc,
+        "Held customer credit reclassified to liability "
+        "(level-DD seasonal overpayment owed back to customers)",
+        "dd3_held_credit_reclassification",
+    )]
+
+
+def balance_sheet_with_held_credit(
+    journal: list[dict[str, Any]],
+    held_credit_gbp: float,
+    timestamp: str = "9999-12-31",
+) -> dict[str, Any]:
+    """The insolvency-aware balance sheet: the naive balance sheet with held
+    customer credit reclassified from equity to a liability (DD3).
+
+    Every field of the ordinary ``balance_sheet`` is present (computed from the
+    journal AUGMENTED with the DD3 reclassification entry, so ``total_liabilities``
+    now includes the held credit and ``total_equity`` is net of it), plus:
+
+    * ``customer_credit_held_gbp`` -- the held credit booked as a liability;
+    * ``naive_total_equity_gbp`` -- equity BEFORE the reclassification (what the
+      un-adjusted books show);
+    * ``true_total_equity_gbp`` -- equity AFTER (== naive - held credit);
+    * ``cash_rich_but_insolvent`` -- True iff the naive books show positive equity
+      while the held-credit-adjusted books show negative equity: the exact tell
+      this atom exists to make visible (a supplier sitting on a pile of cash that
+      is entirely other people's overpayments).
+
+    Assets are identical to the naive balance sheet; only the liability/equity
+    split moves, so ``equation_holds`` stays True.
+    """
+    hc = _validated_held_credit_gbp(held_credit_gbp)
+    naive = balance_sheet(journal)
+    augmented = list(journal) + held_credit_journal_entries(hc, timestamp)
+    bs = balance_sheet(augmented)
+    naive_equity = naive["total_equity_gbp"]
+    true_equity = bs["total_equity_gbp"]
+    bs["customer_credit_held_gbp"] = round(hc, 2)
+    bs["naive_total_equity_gbp"] = round(naive_equity, 2)
+    bs["true_total_equity_gbp"] = round(true_equity, 2)
+    bs["cash_rich_but_insolvent"] = (naive_equity > 0.0) and (true_equity < 0.0)
+    return bs
