@@ -9,12 +9,36 @@ activation reverts exactly to the static book (mutation both-ways), and that
 the epistemic wall holds (the drawn ground-truth `cohort` never surfaces).
 """
 
+import dataclasses
 import importlib
 
 import pytest
 
 from saas.customers import CUSTOMERS
 from simulation import live_population as lp
+from simulation.population_draw import Cohort
+
+# Cohort dataclass fields that are DELIBERATELY OBSERVABLE (carried in the saas
+# dict / public at enrolment): `region` is a public observable, `customer_id` is
+# the identity key. EVERY OTHER field on the Cohort dataclass is HIDDEN SIM truth
+# that must never reach an observable dict. Deriving the hidden set from the
+# dataclass (rather than hardcoding it) keeps it in LOCKSTEP with Cohort — a NEW
+# cohort field is hidden-by-default, so it cannot silently escape the wall test.
+# This is the RUNTIME sibling of the static-scan FORBIDDEN_SEAM_SYMBOLS class
+# closure (tools/epistemic_verifier.py): the static scan only scans SEAM files, so
+# a leak through `SyntheticCustomer.to_customer_dict()` (a SIM internal, not a seam
+# file) is invisible to it — the runtime wall test is the ONLY guard there, and its
+# hardcoded set previously omitted `heating_fuel` (subset-coverage fail-open, CA1
+# red-team 2026-07-29).
+_OBSERVABLE_COHORT_FIELDS = {"customer_id", "region"}
+
+
+def _hidden_cohort_field_names() -> set:
+    """The set of field NAMES that must never appear as a key in an observable
+    dict — derived from the Cohort dataclass so it stays total by construction."""
+    names = {f.name for f in dataclasses.fields(Cohort)} - _OBSERVABLE_COHORT_FIELDS
+    names.add("cohort")  # the container field on SyntheticCustomer itself
+    return names
 
 
 @pytest.fixture(autouse=True)
@@ -152,12 +176,62 @@ def test_wall_re_proven_post_cohort_activation(monkeypatch):
     assert len(syn) == len(sim_truth), (
         "the observable SYN-* stream must be 1:1 with the cohort-bearing draw"
     )
-    hidden_fields = {"cohort", "green_stance", "price_sensitivity", "channel_pref",
-                     "tenure", "accommodation", "cars", "nssec"}
+    hidden_fields = _hidden_cohort_field_names()
     for c in syn:
         assert not (hidden_fields & c.keys()), (
             f"wall breach: {hidden_fields & c.keys()} leaked into an observable dict"
         )
+
+
+def test_runtime_wall_covers_every_forbidden_cohort_field():
+    """CLASS-CLOSURE, sibling half (R15 subset-coverage, INDEPENDENT oracle).
+
+    The static seam scan (tools/epistemic_verifier.FORBIDDEN_SEAM_SYMBOLS) is the
+    canonical registry of cohort labels that must never cross the seam — but it
+    only scans SEAM files, so it cannot see a leak through
+    `SyntheticCustomer.to_customer_dict()`, which lives in the SIM-internal
+    population_draw.py. The runtime wall test is the ONLY guard there. This asserts
+    the runtime hidden-field set covers EVERY Cohort field the static scan forbids,
+    so the two halves cannot drift: a Cohort field forbidden at the seam but
+    unchecked at runtime (as `heating_fuel` was, CA1 red-team 2026-07-29) fails here.
+
+    Non-tautological: the hidden set is DERIVED from the Cohort dataclass, the
+    forbidden set is AUTHORED independently in the verifier. MUTATION: mark a genuine
+    hidden field (e.g. add `heating_fuel`) OBSERVABLE, or drop it from the verifier's
+    forbidden set, and the two lists diverge — this fires.
+    """
+    from tools.epistemic_verifier import FORBIDDEN_SEAM_SYMBOLS
+
+    cohort_field_names = {f.name for f in dataclasses.fields(Cohort)}
+    # Only Cohort-derived names (not the generic attitudinal tokens the scan also
+    # lists like "Cohort"/"assign_cohort" that are class/function names, not fields).
+    forbidden_cohort_fields = cohort_field_names & FORBIDDEN_SEAM_SYMBOLS
+    assert "heating_fuel" in forbidden_cohort_fields, (
+        "precondition: heating_fuel must be a Cohort field the static scan forbids"
+    )
+    missing = forbidden_cohort_fields - _hidden_cohort_field_names()
+    assert not missing, (
+        f"runtime wall omits Cohort fields the static scan canonically forbids: "
+        f"{missing} — subset-coverage fail-open (sibling half of the "
+        f"FORBIDDEN_SEAM_SYMBOLS class closure)"
+    )
+
+
+def test_to_customer_dict_never_emits_a_hidden_cohort_field():
+    """Direct guard on the actual leak SURFACE: `to_customer_dict()` is an allowlist,
+    so a NEW Cohort field is safe-by-construction — but if someone ever adds a
+    hidden-field key to that render, this fires regardless of the seam wrapper.
+    Checked against a real cohort-bearing draw so the render is exercised live."""
+    from simulation.population_draw import draw_population
+
+    hidden = _hidden_cohort_field_names()
+    drawn = draw_population(lp._DEFAULT_BASE_SEED, draw_region=True, assign_cohorts=True)
+    assert drawn and all(sc.cohort is not None for sc in drawn), (
+        "draw must yield cohort-bearing customers or this guard is vacuous"
+    )
+    for sc in drawn:
+        leaked = hidden & sc.to_customer_dict().keys()
+        assert not leaked, f"to_customer_dict leaked hidden cohort field(s): {leaked}"
 
 
 def test_seam_module_does_not_import_company():
