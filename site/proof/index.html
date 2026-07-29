@@ -105,6 +105,26 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .o-off { color: var(--red); font-weight: 600; }
 .o-inconc { color: var(--muted); }
 .o-ungraded { color: var(--amber); }
+/* Predictions-ledger verdicts (SITE_EH2: the ledger must be able to record a MISS).
+   A MISS and an UNGRADEABLE are both bad news and both read as bad news -- an
+   ungradeable entry is a FAILED check, not a neutral one. */
+.o-miss { color: var(--red); font-weight: 700; }
+.o-ungradeable { color: var(--red); font-weight: 600; }
+.o-awaiting { color: var(--amber); font-weight: 600; }
+.pred-head { border-left: 3px solid var(--amber); background: var(--surface2);
+  padding: 12px 14px; border-radius: 6px; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+.pred-fail { border-left: 3px solid var(--red); background: var(--surface2);
+  padding: 12px 14px; border-radius: 6px; font-size: 13px; line-height: 1.6;
+  color: var(--red); font-weight: 600; margin-bottom: 14px; }
+.lg-pred { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.lg-pred:last-child { border-bottom: none; }
+.lg-pred-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.lg-relog { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.lg-why { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 4px; }
+.lg-blocker { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 4px;
+  border-left: 2px solid var(--red); padding-left: 10px; }
+.lg-blocker-l { font-size: 9px; font-weight: 700; text-transform: uppercase;
+  color: var(--red); letter-spacing: .05em; display: block; margin-bottom: 2px; }
 .held { padding: 10px 0; border-bottom: 1px solid var(--border); }
 .held:last-child { border-bottom: none; }
 .held-id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--purple); }
@@ -496,62 +516,104 @@ function renderOpenWork(d){
   }).join("")||'<tr><td colspan="5" class="muted">No below-target atoms.</td></tr>';
 }
 
-function outcomeClass(o){
-  o=(o||"").toLowerCase();
-  if(o.indexOf("on_target")>=0||o==="on target")return "o-target";
-  if(o.indexOf("off_target")>=0)return "o-off";
-  if(o.indexOf("ungraded")>=0||o.indexOf("no_grading")>=0)return "o-ungraded";
-  return "o-inconc";
+// SITE_EH2: one closed verdict vocabulary. There is no "inconclusive" class and
+// no bare "ungraded" class -- those two strings WERE the escape hatch this panel
+// used to route every failure through.
+function verdictClass(v){
+  v=(v||"").toUpperCase();
+  if(v.indexOf("ON TARGET")>=0)return "o-target";
+  if(v.indexOf("MISS")>=0)return "o-miss";
+  if(v.indexOf("UNGRADEABLE")>=0)return "o-ungradeable";
+  if(v.indexOf("AWAITING")>=0)return "o-awaiting";
+  return "o-miss"; // an unrecognised verdict is a FAILED check, never a clean one
+}
+function predBlocker(b){
+  if(!b)return "";
+  var age=(b.age_days!=null)?(" &middot; "+esc(b.age_days)+" day(s) old"):"";
+  var stamp=b.stamp?(" &middot; stamped "+esc(b.stamp)):"";
+  return '<div class="lg-blocker"><span class="lg-blocker-l">Blocked on</span>'+
+    esc(b.source||"unnamed source")+stamp+age+'. '+esc(b.detail||"")+'</div>';
+}
+function predRow(main,row){
+  var relog=(row.relog_count>1)?('<span class="lg-relog">re-logged '+esc(row.relog_count)+
+    '&times; ('+esc(row.first_logged_at||"?")+' &rarr; '+esc(row.last_logged_at||"?")+
+    ') &mdash; counted once</span>'):
+    ('<span class="lg-relog">logged once ('+esc(row.first_logged_at||"?")+')</span>');
+  return '<div class="lg-pred"><div class="lg-pred-h"><span>'+main+'</span>'+
+    '<span class="'+verdictClass(row.verdict)+'">'+esc(row.verdict||"NO VERDICT")+'</span></div>'+
+    '<div class="lg-why">'+esc(row.verdict_reason||"")+'</div>'+
+    relog+predBlocker(row.blocker)+'</div>';
 }
 function renderPredictions(d){
   var p=d.predictions||{};
   var intro=document.getElementById("pred-intro");
+  var body=document.getElementById("pred-body");
   if(!p.available){
-    intro.textContent="Predictions ledger source not available at generation time.";
-    document.getElementById("pred-body").innerHTML="";
+    // R15 fail-silent guard: an unavailable ledger source is a FAILED check. Say so
+    // on the surface -- never render a blank panel that reads as a clean record.
+    intro.textContent=p.headline||"Predictions ledger source not available at generation time.";
+    body.innerHTML='<div class="pred-fail">'+esc(p.headline||
+      "LEDGER SOURCE UNAVAILABLE -- nothing on this door has been graded.")+'</div>';
     return;
   }
   intro.innerHTML="The real shadow-live decision log: hedge stance, renewal-price flags and retention EVs are "+
     "pre-registered <em>before</em> the outcome is known, then graded against what actually happened. "+
-    "Clock started "+esc(p.clock_started)+". Source: "+
-    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a>. '+
-    "The mostly-ungraded state below is the honest early picture -- kept, not hidden.";
+    "Clock started "+esc(p.clock_started)+". Predictions from "+
+    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.source)+'">'+esc(p.source)+'</a>'+
+    "; outcomes from the independent "+
+    '<a class="evlink" href="#" onclick="return false" title="'+esc(p.outcome_source)+'">'+esc(p.outcome_source)+'</a>'+
+    ". Every entry lands on one of "+esc((p.verdict_vocabulary||[]).join(" / "))+
+    " &mdash; there is no “inconclusive”, and nothing waits longer than "+
+    esc(p.horizon_days)+" days before it is declared UNGRADEABLE with its blocker named.";
   var r=p.renewal||{},h=p.hedge||{},rt=p.retention||{};
   var kpis=[
-    {l:"Log entries",v:num(p.log_entry_count)},
-    {l:"Renewals graded",v:num(r.graded)},
-    {l:"Renewals inconclusive",v:num(r.inconclusive)},
-    {l:"Hedge graded",v:num(h.graded)},
-    {l:"Hedge ungraded",v:num(h.ungraded)},
-    {l:"Retention EVs graded",v:num(rt.graded)}
+    {l:"Distinct predictions",v:num(p.distinct_predictions)},
+    {l:"Graded",v:num(p.graded)},
+    {l:"On target",v:num(p.on_target)},
+    {l:"Missed",v:num(p.missed),alarm:(p.missed>0)},
+    {l:"Awaiting outcome",v:num(p.awaiting)},
+    {l:"Ungradeable",v:num(p.ungradeable),alarm:(p.ungradeable>0)}
   ];
   document.getElementById("pred-kpis").innerHTML=kpis.map(function(k){
-    return '<div class="kpi"><div class="kpi-l">'+esc(k.l)+'</div><div class="kpi-v">'+k.v+'</div></div>';
+    return '<div class="kpi'+(k.alarm?" alarm":"")+'"><div class="kpi-l">'+esc(k.l)+
+      '</div><div class="kpi-v">'+k.v+'</div></div>';
   }).join("");
 
-  var html="";
-  html+='<div class="sec" style="margin-top:8px;font-size:10px">Renewal-price flags</div>';
-  var rrows=(r.graded_entries||[]).concat(r.inconclusive_entries||[]);
+  // The headline the data SUPPORTS -- never a log-line count dressed as a record.
+  var html='<div class="pred-head">'+esc(p.headline||"")+'</div>';
+  if(p.integrity&&p.integrity.ok===false){
+    html+='<div class="pred-fail">LEDGER INTEGRITY FAILURE &mdash; '+
+      esc((p.integrity.violations||[]).join(" | "))+'</div>';
+  }
+  if(p.reconciliation){ html+='<div class="lg-note">'+esc(p.reconciliation)+'</div>'; }
+
+  html+='<div class="sec" style="margin-top:16px;font-size:10px">Renewal-price flags &mdash; '+
+    esc(num(r.distinct))+' distinct from '+esc(num(r.log_lines))+' log line(s)</div>';
+  var rrows=r.rows||[];
   if(rrows.length){
     html+=rrows.map(function(e){
-      return '<div class="lg-row"><span>'+esc(e.cid||"")+' &middot; renewal '+esc(e.renewal_date||"--")+
-        ' &middot; proposed '+esc(e.proposed_rate_gbp_per_mwh!=null?e.proposed_rate_gbp_per_mwh:"--")+' &pound;/MWh</span>'+
-        '<span class="'+outcomeClass(e.outcome)+'">'+esc(e.outcome||"")+'</span></div>';
+      var main=esc(e.cid||"")+' &middot; renewal '+esc(e.renewal_date||"--")+
+        ' &middot; predicted '+esc(e.proposed_rate_gbp_per_mwh!=null?e.proposed_rate_gbp_per_mwh:"--")+' &pound;/MWh';
+      if(e.observed_rate_gbp_per_mwh!=null){
+        main+=' &middot; observed '+esc(e.observed_rate_gbp_per_mwh)+' &pound;/MWh';
+      }
+      return predRow(main,e);
     }).join("");
   } else { html+='<div class="muted">No renewal-price flags logged yet.</div>'; }
 
-  html+='<div class="sec" style="margin-top:16px;font-size:10px">Hedge recommendations</div>';
-  var hrows=h.entries||[];
+  html+='<div class="sec" style="margin-top:16px;font-size:10px">Hedge stances &mdash; '+
+    esc(num(h.distinct))+' distinct from '+esc(num(h.log_lines))+' log line(s)</div>';
+  var hrows=h.rows||[];
   if(hrows.length){
+    if(h.constant_warning){ html+='<div class="pred-fail">'+esc(h.constant_warning)+'</div>'; }
     html+=hrows.map(function(e){
-      return '<div class="lg-row"><span>'+esc(e.decision_run_at||"")+' &middot; '+esc(e.hedge_recommendation||"")+'</span>'+
-        '<span class="'+outcomeClass(e.outcome)+'">'+esc(e.outcome||"")+'</span></div>';
+      return predRow('Stance: '+esc(e.hedge_recommendation||"--"),e);
     }).join("");
-  } else { html+='<div class="muted">No hedge recommendations logged yet.</div>'; }
+  } else { html+='<div class="muted">No hedge stances logged yet.</div>'; }
 
   html+='<div class="sec" style="margin-top:16px;font-size:10px">Retention EVs</div>';
   html+='<div class="lg-note">'+esc(rt.logged||0)+' logged, '+esc(rt.graded||0)+' graded. '+esc(rt.note||"")+'</div>';
-  document.getElementById("pred-body").innerHTML=html;
+  body.innerHTML=html;
 }
 
 function renderRetros(d){
