@@ -62,6 +62,8 @@ matching this codebase's standing per-customer-deterministic convention.
 """
 from __future__ import annotations
 
+import hashlib
+import math
 import random
 from enum import Enum
 
@@ -92,6 +94,17 @@ _ACTIVE_RENEWAL_PROBABILITY_BY_ENGAGEMENT: dict[EngagementLevel, float] = {
 
 assert abs(sum(ENGAGEMENT_POPULATION_SHARE.values()) - 1.0) < 1e-9
 
+# Increasing-engagement order for the continuous-latent walk below (W2_14).
+# Derived from the enum, so a new level cannot be silently omitted from the
+# partition -- omission would make `engagement_level_from_propensity` reject
+# valid propensities rather than mis-classify them (fail-closed by design).
+_ENGAGEMENT_ASCENDING: tuple[EngagementLevel, ...] = (
+    EngagementLevel.DISENGAGED,
+    EngagementLevel.PASSIVE,
+    EngagementLevel.ACTIVE,
+)
+assert set(_ENGAGEMENT_ASCENDING) == set(ENGAGEMENT_POPULATION_SHARE) == set(EngagementLevel)
+
 
 def engagement_level_for_customer(customer_id: str) -> EngagementLevel:
     """Deterministic per-customer engagement archetype, stable for the
@@ -105,6 +118,134 @@ def engagement_level_for_customer(customer_id: str) -> EngagementLevel:
         if roll < cumulative:
             return level
     return EngagementLevel.DISENGAGED  # float-rounding fallback
+
+
+# ---------------------------------------------------------------------------
+# W2_14 items 1-2 (docs/design/W2_14_CONTINUOUS_BEHAVIOURAL_ENGAGEMENT_MODEL_
+# DISCOVER.md §4): the CONTINUOUS LATENT beneath the three discrete bins.
+#
+# Director's ask (maturity_map real_world_twin, verbatim): "the propensity is a
+# distribution across the population, not three discrete boxes". This delivers
+# the RE-REPRESENTATION half of that: `engagement_level_for_customer` above
+# becomes the PROJECTION of a continuous latent rather than the primitive that
+# defines it, with signature, behaviour and every consumer UNCHANGED.
+#
+# R13 PRESERVATION BY CONSTRUCTION, not by a tolerance test. The latent is
+# anchored ON the existing coarse draw and refined WITHIN its bin, so
+#     engagement_level_from_propensity(engagement_propensity_for_customer(cid))
+#         == engagement_level_for_customer(cid)      for EVERY cid, ALWAYS
+# is an identity, not a statistical near-match that could drift. This is this
+# codebase's own established precedent for exactly this problem --
+# population_draw.py:417-467 refines the 3-level tenure into 4 cohort levels
+# the same way (`collapse_cohort_tenure(cohort_tenure_for_customer(cid)) ==
+# tenure_for_customer(cid)`, always). The ratified shares are read from
+# ENGAGEMENT_POPULATION_SHARE above -- there is no second copy of 0.45/0.35/
+# 0.20 to drift, so the bin boundaries move if and only if the DIRECTOR moves
+# the shares (R13).
+#
+# ⚠ R10 -- WHAT IS ASSUMED, NOT ANCHORED (DISCOVER §3.2 item 1): the SHAPE of
+# the latent density WITHIN each ratified bin. No source gives a within-bin
+# density, so this assumes UNIFORM -- the maximum-entropy choice absent
+# evidence, stated as an assumption and NOT presented as anchored. The bin
+# BOUNDARIES are ratified; the density between them is not. A consequence worth
+# stating plainly: with uniform within-bin density the population-level latent
+# is exactly uniform[0,1), i.e. today the propensity reads as a household's
+# engagement PERCENTILE in the book, and carries no more information than the
+# bin it projects to. That is the honest level of this increment.
+# Also R10/open: whether the construct is truly continuous or a 2-3 component
+# mixture (§3.2 item 2) -- the Ofgem duration split is consistent with both.
+#
+# ⚠ NOT BUILT HERE, DELIBERATELY (DISCOVER §5): item 3, MOVABILITY -- the
+# `engagement_propensity_after(...)` shift function. It is blocked on an R13
+# question only the director can answer (is 0.45/0.35/0.20 an ENTRY or a
+# STEADY-STATE distribution? -- §3.3, recommended default STEADY-STATE with a
+# stationarity proof), and on genuinely unanchored magnitudes (post-shock
+# scarring, service-episode and life-event shifts, §3.2 items 3-5, 8). A
+# movement model built now would be sampling from invented distributions across
+# the atom's whole substance. Nothing here moves: the propensity is fixed for
+# the customer's tenure, exactly as the bin was.
+# ---------------------------------------------------------------------------
+_ENGAGEMENT_PROPENSITY_STREAM = "engagement_propensity_within_bin"
+
+
+def _engagement_propensity_substream(customer_id: str) -> random.Random:
+    """An ISOLATED `random.Random` for the WITHIN-BIN position of one
+    customer's engagement propensity, seeded from a stable sha256 of
+    (stream name, customer_id) -- C-S2 named-substream discipline. Keyed
+    per-customer and per-stream, so this new draw can never shift the
+    `engagement_{customer_id}` sequence that `engagement_level_for_customer`
+    (and therefore every existing consumer) depends on, nor any sibling
+    subsystem's."""
+    key = f"{_ENGAGEMENT_PROPENSITY_STREAM}::{customer_id}".encode("utf-8")
+    return random.Random(int.from_bytes(hashlib.sha256(key).digest()[:8], "big"))
+
+
+def engagement_propensity_bounds(
+    level: EngagementLevel,
+) -> tuple[float, float]:
+    """The [low, high) interval of the continuous engagement propensity that
+    projects to `level`, derived from the RATIFIED ENGAGEMENT_POPULATION_SHARE
+    by a cumulative walk in increasing-engagement order (DISENGAGED lowest,
+    ACTIVE highest -- so a higher propensity means a more engaged household).
+
+    Derived, never a second copy: change the ratified shares and these move
+    with them (R13 -- the shares are the director's, and there is exactly one
+    of them)."""
+    low = 0.0
+    last = _ENGAGEMENT_ASCENDING[-1]
+    for candidate in _ENGAGEMENT_ASCENDING:
+        # The top bin closes at exactly 1.0. A float cumulative walk over the
+        # ratified shares does NOT: 0.20 + 0.35 + 0.45 == 1.0000000000000002,
+        # which would put the most-engaged households above the valid range and
+        # break the refinement identity on real customer_ids (caught in test).
+        high = 1.0 if candidate is last else low + ENGAGEMENT_POPULATION_SHARE[candidate]
+        if candidate is level:
+            return (low, high)
+        low = high
+    raise ValueError(f"not an engagement level: {level!r}")
+
+
+def engagement_propensity_for_customer(customer_id: str) -> float:
+    """The latent continuous engagement propensity of `customer_id`, in
+    [0, 1) -- higher means more engaged. Deterministic and stable for the
+    customer's whole tenure (see the ⚠ note above: movability is NOT built).
+
+    A strict REFINEMENT of `engagement_level_for_customer`, never a second
+    independent draw: the bin comes from the existing coarse function and only
+    the position WITHIN that bin is drawn, from its own named substream. The
+    refinement identity therefore holds by construction for every customer_id
+    (see `engagement_level_from_propensity`)."""
+    level = engagement_level_for_customer(customer_id)
+    low, high = engagement_propensity_bounds(level)
+    position = _engagement_propensity_substream(customer_id).random()
+    return low + position * (high - low)
+
+
+def engagement_level_from_propensity(propensity: float) -> EngagementLevel:
+    """Project a continuous engagement propensity back onto the three ratified
+    bins -- the round-trip that PROVES the reconciliation.
+
+    Rejects a non-finite or out-of-range input rather than falling through to a
+    default: a NaN compares False against every boundary, so a fallback return
+    would silently classify a corrupt input as a real archetype (fail-open).
+    An unusable input is an ERROR, not a DISENGAGED household (R15)."""
+    if not isinstance(propensity, (int, float)) or isinstance(propensity, bool):
+        raise TypeError(f"propensity must be a real number, got {propensity!r}")
+    value = float(propensity)
+    if not math.isfinite(value):
+        raise ValueError(f"propensity must be finite, got {value!r}")
+    if not (0.0 <= value < 1.0):
+        raise ValueError(f"propensity must be in [0, 1), got {value!r}")
+    for level in _ENGAGEMENT_ASCENDING:
+        low, high = engagement_propensity_bounds(level)
+        if low <= value < high:
+            return level
+    # Unreachable while the shares sum to 1.0 (asserted at import) AND the
+    # input is in range -- both checked above. Never a silent default.
+    raise ValueError(
+        f"propensity {value!r} fell outside the ratified share partition "
+        f"{dict(ENGAGEMENT_POPULATION_SHARE)!r}"
+    )
 
 
 def active_renewal_probability(engagement_level: EngagementLevel) -> float:

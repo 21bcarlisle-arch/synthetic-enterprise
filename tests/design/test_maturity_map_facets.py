@@ -69,6 +69,19 @@ REVIEWED_CLOSE_TO_LEARN = {
     # sibling drawability-mechanism atom) and all 52 H_harness siblings, and it is GAP1's TRUE stream,
     # not a dumping-ground default.
     "GAP1_gap_registers_as_mint_sources",
+    # 2026-07-29 reviewed (worker tick): the three atoms minted from SITE1_expert_doors' cold-eyes
+    # Expert Hour (BLOCKER-1, MAJOR-3, MAJOR-4/5/6). They were minted with value_stream=
+    # 'evidence_surfaces', a stream that has never been in VALID_STREAMS -- so the mint left this
+    # test RED on the working tree. Classified on their merits, not to clear the gate: each one is
+    # about whether a PUBLISHED figure or claim can be trusted (a segment-mix disclosure behind a
+    # headline per-customer margin; a predictions ledger that must be able to record a MISS; one
+    # bad-debt series, a margin plausibility band, and part-periods labelled as such). None moves
+    # money or touches a revenue flow -- they measure belief-vs-truth on the evidence surfaces of
+    # the close, which is the same close_to_learn class as their own parent SITE1_expert_doors and
+    # as the G-fidelity/H_harness siblings.
+    "SITE_EH1_segment_disclosure",
+    "SITE_EH2_predictions_ledger_can_fail",
+    "SITE_EH3_figure_reconciliation_and_periods",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",
