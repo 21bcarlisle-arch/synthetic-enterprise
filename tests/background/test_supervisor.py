@@ -1113,15 +1113,19 @@ def test_site_lane_recognises_site_prefixed_paths():
 
 
 def test_site_lane_excludes_externally_blocked_atom():
-    """R15 (both directions): a site atom blocked_on a director act -- build
-    complete, ONLY ratification remains (e.g. SITE1/BRAND1 at
-    blocked_on: director_level_up) -- is NOT drawn, because a fork would find
-    nothing to build. Ungated means ignore loop_stage/epoch parking, NEVER
-    ignore blocked_on (matches every other lane). The paired UNBLOCKED site
-    atom with the same gap IS still drawn -- the fix does not over-exclude."""
+    """R15 (both directions): a site atom blocked on a GENUINE external act -- an upstream
+    real-world data gap, so a fork would find nothing to build -- is NOT drawn. Ungated means
+    ignore loop_stage/epoch parking, NEVER ignore blocked_on (matches every other lane). The
+    paired UNBLOCKED site atom with the same gap IS still drawn -- the fix does not over-exclude.
+
+    2026-07-29: the block reason here used to be `director_level_up`. That block type is ABOLISHED
+    (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY items 1-3, mechanised in `_is_externally_blocked`),
+    so it can no longer stand in for a genuine hold; the lane-respects-blocked_on rule under test is
+    unchanged and is now exercised with a reason that is actually still blocking."""
     supervisor.MATURITY_MAP_PATH.write_text(
         "- id: SITE_BLOCKED\n  lane: H\n  dial_inherited: 3\n  loop_stage: build\n"
-        "  level_current: 1\n  level_target: 3\n  blocked_on: director_level_up\n"
+        "  level_current: 1\n  level_target: 3\n"
+        "  blocked_on: \"awaiting a citable upstream data series (R10 data gap)\"\n"
         "  file_scope: [\"site\"]\n"
         "- id: SITE_OPEN\n  lane: H\n  dial_inherited: 3\n  loop_stage: build\n"
         "  level_current: 1\n  level_target: 3\n  blocked_on: null\n"

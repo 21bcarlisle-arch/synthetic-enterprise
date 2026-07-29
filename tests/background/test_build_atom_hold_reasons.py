@@ -41,6 +41,19 @@ _DIRECTOR_GATED = (
     "  level_current: 2\n  level_target: 3\n  loop_stage: build\n"
     "  blocked_on: director_level_up\n"
 )
+# A blocked_on that names a permission token AND a genuinely RESERVED real-world consequence
+# (ruling item 5's surviving set). The permission half is abolished; the reserved half is not.
+_RESERVED_BLOCK = (
+    "- id: RESERVED_BUILD\n  lane: H\n  dial_inherited: 100\n"
+    "  level_current: 2\n  level_target: 3\n  loop_stage: build\n"
+    "  blocked_on: \"needs a BUILD_OPEN because the step would spend real money on a paid data feed\"\n"
+)
+# A genuine non-permission external block -- an upstream real-world data gap, untouched by the ruling.
+_GENUINE_BLOCK = (
+    "- id: DATAGAP_BUILD\n  lane: H\n  dial_inherited: 100\n"
+    "  level_current: 2\n  level_target: 3\n  loop_stage: build\n"
+    "  blocked_on: \"awaiting a citable EU/UK-ETS annual carbon time-series (R10 data gap)\"\n"
+)
 _DEP = (
     "- id: UPSTREAM\n  lane: H\n  dial_inherited: 1\n"
     "  level_current: 0\n  level_target: 3\n  loop_stage: build\n"
@@ -67,9 +80,27 @@ def test_a_genuinely_drawable_atom_is_visible():
     assert _reasons(_DRAWABLE) == {"OPEN_BUILD": "DRAWABLE"}
 
 
-def test_director_gated_atom_is_named_not_reported_drawable():
+def test_abolished_permission_block_no_longer_holds_the_atom():
+    """2026-07-29 ruling items 1-3, INVERTED from its pre-ruling assertion: `director_level_up` is
+    abolished AS A BLOCK TYPE, so an atom still carrying the string is DRAWABLE. This is the
+    mechanism, not the one-time map edit -- re-adding the token tomorrow cannot re-hide the atom."""
     r = _reasons(_DIRECTOR_GATED)
-    assert r["GATED_BUILD"].startswith("director_gate: blocked_on=director_level_up")
+    assert r["GATED_BUILD"] == "DRAWABLE"
+
+
+def test_reserved_real_world_consequence_still_blocks_despite_permission_token():
+    """The one surviving exception (ruling item 5): real money is reserved. A reason naming BUILD_OPEN
+    *and* real money must still hold -- proving the release is scoped, not a blanket unblock."""
+    r = _reasons(_RESERVED_BLOCK)
+    assert r["RESERVED_BUILD"].startswith("director_gate: blocked_on=")
+    assert "DRAWABLE" not in r.values()
+
+
+def test_genuine_non_permission_block_is_untouched_by_the_ruling():
+    """Negative control: a real upstream data gap names no permission convention, so the predicate
+    must leave it blocked -- the ruling deleted permission theatre, not honest blocking."""
+    r = _reasons(_GENUINE_BLOCK)
+    assert r["DATAGAP_BUILD"].startswith("director_gate: blocked_on=")
     assert "DRAWABLE" not in r.values()
 
 
@@ -91,8 +122,11 @@ def test_world_atom_stepping_to_l3_without_a_twin_is_walled_not_drawable():
 def test_only_gated_atoms_means_no_drawable_and_a_correct_rest():
     """The whole incident in miniature: every build-stage atom is held, so the
     loop is CORRECTLY at rest -- the classifier yields zero DRAWABLE atoms, which
-    is the invariant a rested loop must satisfy."""
-    r = _reasons(_DIRECTOR_GATED + _WORLD_L3)
+    is the invariant a rested loop must satisfy.
+
+    Uses _GENUINE_BLOCK (a real upstream data gap), not _DIRECTOR_GATED: after the 2026-07-29
+    ruling a director-permission block is NOT a hold, so it can no longer stand in for one here."""
+    r = _reasons(_GENUINE_BLOCK + _WORLD_L3)
     drawable = [aid for aid, reason in r.items() if reason == "DRAWABLE"]
     assert drawable == []
 

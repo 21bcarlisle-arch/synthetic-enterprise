@@ -459,15 +459,65 @@ def _actionable_backlog_item() -> str | None:
     return None
 
 
+# ABOLISHED PERMISSION BLOCKS (2026-07-29, DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY items 1-3).
+# The ruling abolished `director_build_open` and `director_level_up` AS BLOCK TYPES, and deleted the
+# BUILD_OPEN / LEVEL_UP_PROPOSED / ledger-release convention along with "every path that enumerates
+# what a director must authorise". Clearing the 13 live instances in the map was a ONE-TIME DATA EDIT;
+# a data edit is an exhortation, not a mechanism (MAKE_IT_STICK: "convert policy to mechanism, or
+# accept it will evaporate"), and this exact block type is what made 31 atoms with a real level gap
+# yield ZERO drawable work -- SILENTLY, because "nothing available" is the correct output from
+# corrupted input. So the abolition lives HERE, in the predicate: a `blocked_on` that names a
+# director-permission convention no longer suppresses anything, no matter who writes it or when.
+_ABOLISHED_PERMISSION_BLOCK_TOKENS = (
+    "director_build_open", "director_level_up", "build_open", "level_up_proposed",
+    "front_open", "gate_clear", "ledger-release", "ledger_release",
+)
+
+
+def _names_abolished_permission_block(reason: Any) -> bool:
+    """True if a `blocked_on` reason is (or cites) one of the abolished director-permission
+    conventions. Substring/case-insensitive on purpose: the live instances ranged from the bare token
+    `director_level_up` to paragraphs of prose whose operative clause was "the executing act -- a
+    per-atom BUILD_OPEN in gate_authorizations.jsonl -- is director-console-only"."""
+    text = str(reason or "").lower()
+    return any(tok in text for tok in _ABOLISHED_PERMISSION_BLOCK_TOKENS)
+
+
 def _is_externally_blocked(a: dict) -> bool:
-    """True if an atom is blocked on an EXTERNAL act (a director trigger, an approval, an upstream
-    thing outside the worker's control) and therefore has NO drawable worker work right now --
-    honest: its gap to target is that external act, not remaining worker work. Such an atom is
-    excluded from EVERY draw (BUILD and idle-DISCOVER, including the all-stalled fallback), so the
-    loop never treadmills a worker-complete-but-director-gated atom -- when the only candidates are
-    externally-blocked, the draw returns empty (genuine idle) instead of re-handing done work
-    (H_draw_excludes_external_blocked_atoms). Cleared by removing the atom's `blocked_on` field."""
-    return bool(isinstance(a, dict) and a.get("blocked_on"))
+    """True if an atom is blocked on a GENUINE external act (an upstream dependency, a real reserved
+    wall) and therefore has NO drawable worker work right now -- honest: its gap to target is that
+    external act, not remaining worker work. Such an atom is excluded from EVERY draw (BUILD and
+    idle-DISCOVER, including the all-stalled fallback), so the loop never treadmills a
+    worker-complete-but-blocked atom (H_draw_excludes_external_blocked_atoms). Cleared by removing
+    the atom's `blocked_on` field.
+
+    2026-07-29 (ruling items 1-3): a `blocked_on` naming an ABOLISHED director-permission convention
+    does NOT block -- there is no such thing as needing a build opened, and levels are recorded, never
+    gated. The ONE exception is the re-scoped reserved set (ruling item 5): if the reason describes a
+    genuinely reserved real-world consequence -- real money, real people, a public claim in the
+    company's name, a real person's safety -- it still blocks, even when it also mentions a permission
+    token. That judgement is DELEGATED to `one_way_door.classify_action` (the sole enumeration) rather
+    than forked here, so the two can never drift apart."""
+    if not (isinstance(a, dict) and a.get("blocked_on")):
+        return False
+    reason = a.get("blocked_on")
+    if not _names_abolished_permission_block(reason):
+        return True  # a genuine upstream/dependency block -- untouched by the ruling
+    try:
+        from background import one_way_door as _owd
+        verdict = _owd.classify_action(str(reason))
+    except Exception as _owd_err:  # pragma: no cover - conservative on the SAFETY side only
+        # An unavailable check is a FAILED check (R15 fail-silent). This branch is reached only for a
+        # reason that already names a permission token, so erring toward "still blocked" costs one
+        # un-drawn atom and is LOUD, whereas erring toward "drawable" could draw past a real wall.
+        log(f"blocked_on reserved-check unavailable, holding {a.get('id')!r} (fail-loud): {_owd_err}")
+        return True
+    if verdict.is_one_way_door:
+        return True  # a reserved real-world consequence, not permission theatre -- still blocks
+    log(f"ABOLISHED PERMISSION BLOCK IGNORED (ruling 2026-07-29 items 1-3): atom {a.get('id')!r} "
+        f"carries blocked_on={str(reason)[:120]!r}, which names a deleted director-permission "
+        "convention and no longer suppresses any draw. Clear the field at next touch.")
+    return False
 
 
 def _maturity_map_draw(rng: Any = None) -> str | None:
