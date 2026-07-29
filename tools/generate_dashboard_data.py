@@ -7,6 +7,7 @@ Called by process_run_complete.py after every full sim run, or manually:
 import json
 import re
 import statistics
+import subprocess
 import sys
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -30,6 +31,17 @@ BUILD_INFO_PATH = PROJECT / "docs" / "observability" / "build_info.json"
 # never bakes in a stale phase/test-count label.
 _BUILD_PHASE = "OL"
 _BUILD_TEST_COUNT = 15148
+
+
+def _git_head():
+    """Real HEAD SHA, or None if git cannot answer. Returning None (never a
+    guess) is what lets the caller publish the honest string "unknown" instead of
+    a plausible-looking fake -- an unavailable provenance lookup is a FAILED
+    lookup, not a licence to invent one (R15 fail-silent)."""
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    except Exception:
+        return None
 
 
 def _resolve_book():
@@ -259,7 +271,14 @@ def extract_portfolio(data):
                 "clock": "settled",
                 "provisional": True,
                 "bridge_available": True,
-                "bridge_url": "./data/margin_bridge.json",
+                # Door pages live one level down (/company/, /proof/), so the
+                # bridge resolves as ../data/. "./data/..." resolved to
+                # /company/data/margin_bridge.json -> 404 (cold-eyes Expert Hour
+                # 2026-07-29). Latent when caught -- no site/ consumer reads this
+                # field yet -- but a broken evidence path shipped in published
+                # data is the constitution's rule-1 defect whether or not
+                # anything currently follows it.
+                "bridge_url": "../data/margin_bridge.json",
                 "note": (
                     "Settlement-derived (total_net_gbp). Diverges from the "
                     "bill-derived ledger view (financial.ledger.net_margin_gbp) "
@@ -1534,7 +1553,14 @@ def generate(run_json_path=None):
 
     # Extract meta
     cache_meta = data.get("_cache_meta", {})
-    git_commit = cache_meta.get("git_commit", run_json_path.stem.split("_")[2] if "_" in run_json_path.stem else "unknown")
+    # Provenance must name a commit or admit it cannot. The old fallback parsed
+    # the RUN FILENAME -- run_output_latest.json yielded the literal string
+    # "latest", which every published door then carried as its git_commit. That
+    # is the textbook fail-open: it satisfies any presence check forever and can
+    # never contradict a claim, breaking the audit chain at its root while
+    # looking populated (cold-eyes Expert Hour 2026-07-29). Real HEAD, or the
+    # honest string "unknown" -- never a filename fragment dressed as a SHA.
+    git_commit = cache_meta.get("git_commit") or _git_head() or "unknown"
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     build_phase, build_test_count, build_modules = _load_build_info()

@@ -218,7 +218,34 @@ def _crossing_meter_reads(dashboard):
 def _crossing_blindfold(dashboard, sim):
     annual = _get(sim, "annual", default=[]) or []
     crisis = [a for a in annual if a.get("is_crisis")]
-    pre = [a for a in annual if not a.get("is_crisis") and isinstance(a.get("mean"), (int, float))]
+
+    # PRE-crisis means BEFORE the crisis -- not "every year that isn't a crisis
+    # year". The old filter (`not a.get("is_crisis")`) swept in 2023/24/25, three
+    # years AFTER the crisis it is compared against, so the figure labelled
+    # "COMPANY knowable-at-T view" was computed with hindsight: £58.74 over eight
+    # non-crisis years instead of £43.60 over the five genuinely-prior ones, and
+    # the headline multiple read 2.66x instead of 3.58x (cold-eyes forensic audit
+    # 2026-07-29, arithmetic reproduced from the panel's own published series).
+    # This is the showcase panel for the Point-in-Time Blindfold, so a foresight
+    # leak here is the worst possible place for one: the surface whose entire job
+    # is to demonstrate the company cannot see the future was using the future.
+    # Deriving the boundary from the crisis years themselves (rather than a
+    # hardcoded 2021) keeps it correct if the curriculum window moves -- the
+    # boundary is a FACT about the data, never a tuned constant (R13).
+    def _yr(a):
+        try:
+            return int(a.get("year"))
+        except (TypeError, ValueError):
+            return None
+
+    crisis_years = [y for y in (_yr(a) for a in crisis) if y is not None]
+    first_crisis_year = min(crisis_years) if crisis_years else None
+    pre = [
+        a for a in annual
+        if not a.get("is_crisis")
+        and isinstance(a.get("mean"), (int, float))
+        and (first_crisis_year is None or (_yr(a) is not None and _yr(a) < first_crisis_year))
+    ]
     pre_mean = round(sum(a["mean"] for a in pre) / len(pre), 2) if pre else None
     crisis_peak = max((a.get("max") for a in crisis if isinstance(a.get("max"), (int, float))), default=None)
     crisis_mean = round(sum(a["mean"] for a in crisis) / len(crisis), 2) if crisis else None
@@ -238,7 +265,15 @@ def _crossing_blindfold(dashboard, sim):
         sim_truth_unit="£/MWh mean across crisis years 2021-22 (peak " + (str(crisis_peak) if crisis_peak is not None else "?") + " £/MWh)",
         company_view_label="COMPANY knowable-at-T view",
         company_view_value=(str(pre_mean) if pre_mean is not None else None),
-        company_view_unit="£/MWh mean, pre-crisis calm the company priced within",
+        # State the window on the figure itself -- a "pre-crisis" mean whose
+        # period is unstated is exactly how the hindsight above went unnoticed.
+        company_view_unit=(
+            "£/MWh mean over the "
+            + str(len(pre))
+            + " pre-crisis years"
+            + (" (to " + str(first_crisis_year - 1) + ")" if first_crisis_year else "")
+            + ", the calm the company priced within -- strictly pre-crisis, no hindsight"
+        ),
         divergence_label="Crisis vs pre-crisis mean price",
         divergence_value=(str(ratio) + "x" if ratio is not None else None),
         divergence_magnitude=(100 * (ratio - 1) if ratio is not None else None),
