@@ -82,6 +82,20 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
     OneWayDoorCategory.REAL_MONEY: [
         r"\breal money\b", r"\bpurchase\b", r"\bpayment to\b", r"\bcharge (the |a )?card\b",
         r"\bwire transfer\b", r"\bbuy\b.*\bwith (real|actual) (money|funds)\b",
+        # 2026-07-29: "Approve £4,000/month of real spend on the data feed" matched
+        # NOTHING above -- the commonest way a real purchase is actually phrased here
+        # (approve/spend/subscription) was absent, so the wall read PROCEED on real
+        # spending. Widening detection is safety-INCREASING, so it needs no director
+        # authorisation (the console convention governs safety-REDUCING changes).
+        # NOTE the deliberate omission: a bare currency-amount regex is NOT added.
+        # This project prints simulated £ figures on every surface (treasury, margin,
+        # VM outstanding), so `[£$]\d+` would fire constantly on the simulation's own
+        # output -- a control false-positive that jams the pipeline is its own defect.
+        # Every pattern below therefore pairs money with a REAL-WORLD spend context.
+        r"\breal spend(ing)?\b", r"\bspend(ing)? (real|actual)\b",
+        r"\bapprove\b[^.]{0,40}\bspend(ing)?\b",
+        r"\b(paid|billable) subscription\b", r"\bcredit card\b",
+        r"\bout of pocket\b", r"\btop ?up (the )?(account|balance|credit)\b",
     ],
     OneWayDoorCategory.REAL_WORLD_COMMITMENT: [
         r"\bsign(ed|ing)? (a |the )?contract\b", r"\blegal(ly)? bind", r"\bregulatory filing\b",
