@@ -27,6 +27,13 @@
     "finding_key": "audit:other:the total bill (gbp 72.07) is less than ",
     "state": "open"
   },
+  "audit:other:the total bill is negative, which is imp": {
+    "adjudicated_at": "2026-07-29T16:25:20.260002+00:00",
+    "adjudicated_by": "sanity-daemon (auto-registered)",
+    "evidence": "C2 (2018-10-31): The VAT amount appears inconsistent with the total charges, suggesting a possible error in calculation.; C1_2 (2022-06-30): The total bill is negative, which is implausible for a UK residential customer.",
+    "finding_key": "audit:other:the total bill is negative, which is imp",
+    "state": "open"
+  },
   "audit:vat-mismatch": {
     "adjudicated_at": "2026-07-11T05:02:08.839454+00:00",
     "adjudicated_by": "claude (sanity triage, 2026-07-11, director-ordered)",
@@ -75,6 +82,175 @@
     "evidence": "Investigation fork (2026-07-12) confirmed a genuine modelling bug, root-caused exactly. saas/cost_to_serve.py divided the SAME annual overhead by a single universal SETTLEMENT_PERIODS_PER_YEAR=17,520 (electricity half-hourly cadence) regardless of commodity, then applied that per-period rate once per settlement record. Gas settlement is DAILY (simulation/gas_settlement.py, ~365 records/yr), so a gas account only ever recovered 365/17,520 (~2.1%) of its intended annual overhead -- confirmed exactly: C1 (elec) recovered GBP54.99/yr (~full GBP55), C1g (gas, same household) recovered GBP1.146/yr, a 48.0x gap matching 17,520/365 to 3 significant figures precisely, no separate gas-cost driver anywhere in the module (FIXED_OVERHEAD_GBP_PER_YEAR is keyed by segment only, no fuel dimension). FIXED same session: cost_to_serve_for_period() now takes a commodity parameter and divides by the correct cadence per commodity (GAS_SETTLEMENT_PERIODS_PER_YEAR=365 for gas); both call sites (build_cost_to_serve, build_cost_to_serve_ledger_events) now read commodity from the settlement record, defaulting to electricity for backward compatibility with existing fixtures/call sites lacking the field. 6 new tests, all 38 cost-to-serve/bad-debt tests + 2,171 broader saas/tools/finance tests pass unchanged, epistemic verifier PASS.",
     "finding_key": "coldwalk:cost_to_serve_cross_fuel_mismatch_same_household",
     "state": "adjudicated-real"
+  },
+  "coldwalk:kpilot_carbon_price_caveat_detached_from_srmc_chart": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence, interpretation inferred. The SRMC build-up uses ONLY Carbon Price Support (~GBP18/tCO2) as the carbon term: 'SRMC of roughly P/0.49 + 18*0.183/0.49'. Real GB thermal generators pay CPS PLUS the traded UK ETS allowance price (order GBP35-45/tCO2 in 2024), so the page's carbon term is roughly a quarter to a third of the true carbon cost, understating CCGT SRMC by order GBP15-17/MWh. The page DOES disclose this honestly -- 'the traded carbon price ... has no clean published 2016-2024 annual series we have found; only the fixed Carbon Price Support component is nailed down' -- but that disclosure sits in 'Where our picture is still weak', several sections below the merit-order chart whose absolute GBP66/77.7/94.9 values it undermines, and the chart's own source line cites 'Carbon Price Support ~GBP18/tCO2' without flagging the omission. Correct-but-reads-as-complete: the numbers are presented as pipeline-computed fact at the point of display.",
+    "finding_key": "coldwalk:kpilot_carbon_price_caveat_detached_from_srmc_chart",
+    "fix": "Attach the carbon-gap caveat to the chart itself (source line or caption), so the figure carries its own limitation at the point of display rather than several screens later.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "DOUBT",
+    "state": "superseded",
+    "superseded_by": "coldwalk:kpilot_uk_ets_omission_understates_srmc_stack",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- How it works + merit-order chart"
+  },
+  "coldwalk:kpilot_false_positives_do_not_reraise": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "Recorded so these are not re-raised by future WebFetch-only reviewers. (1) 'The stub pages never name their topic / are topic-less in body' -- FALSE. Browser render shows correct topic H1s, subtitles and substantive 'what this page will cover' prose on all three stubs. The blindfolded reviewer saw an empty shell only because the content is JS-injected (see coldwalk:kpilot_knowledge_cluster_client_side_render_only). (2) '/knowledge/wholesale-price-formation/ is a hand-rolled dead-end interstitial requiring a click' -- FALSE. It is a correct 0-second <meta http-equiv=refresh> with <link rel=canonical href=../electricity-wholesale/> and <meta name=robots content=noindex>; a browser transits it transparently. Good practice, no defect. (3) 'The flagship page is empty / nine promises over nothing' -- TRUE ONLY for non-JS consumers; refuted for JS-enabled visitors by Playwright render (14029 chars, 4 charts, zero console errors). Filed in its accurate form as the client-side-render finding rather than as an empty-page defect.",
+    "finding_key": "coldwalk:kpilot_false_positives_do_not_reraise",
+    "fix": "None. Reference entry.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "INFO",
+    "state": "adjudicated-false-positive",
+    "surface": "https://poesys.net/knowledge/*"
+  },
+  "coldwalk:kpilot_knowledge_cluster_client_side_render_only": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence. Every knowledge page ships ZERO server-side body content. Raw HTML (curl, 21184 bytes for electricity-wholesale) contains only empty divs -- '<div id=\"r-plain\" class=\"card\"></div>' etc -- plus an inline <script> that does fetch('../../data/knowledge_wholesale.json?t='+Date.now()) and injects innerHTML. Tags-stripped raw HTML yields ONLY the nine section headings and nav, no prose. Confirmed via a real browser (Playwright chromium-headless-shell 151, networkidle): with JS the page renders 14029 chars of substantive text and 4 SVG charts, zero console errors -- so a JS-enabled human sees a genuinely good page. But every non-JS consumer -- search crawlers, social/link preview cards, and critically this project's OWN R11 verification path (curl / WebFetch) -- sees nine empty headings. A blindfolded cold-eyes reviewer (VC persona, WebFetch-only) independently reported the flagship page as 'nine promises over an empty body' and graded the whole cluster a shell. That is what the open internet sees.",
+    "finding_key": "coldwalk:kpilot_knowledge_cluster_client_side_render_only",
+    "fix": "Pre-render/inline the JSON content at build time (the data is already generated in-repo), or ship server-side HTML with the JS as progressive enhancement. Note the R11 implication: a curl-based 'live surface' assertion on these pages can pass while the visible content is absent -- R11 checks on JS-rendered surfaces must use a real browser.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/* (whole cluster)"
+  },
+  "coldwalk:kpilot_knowledge_index_404_and_nav_selfloop": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence. https://poesys.net/knowledge/ returns HTTP 404 ('Page not found', title '404 - Poesys') -- there is no cluster index. The 'Knowledge' nav item on every knowledge page points to ../electricity-wholesale/, so standing on that page the nav link is a self-loop. Independently flagged by the blindfolded VC persona: 'no hub, no listing, no entry point, no way to know how many pages exist or which are written.' Ten topic directories exist under /knowledge/ and none is reachable without being handed the URL.",
+    "finding_key": "coldwalk:kpilot_knowledge_index_404_and_nav_selfloop",
+    "fix": "Ship /knowledge/ as an index listing the topics with written/stub status, and point the nav there.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "MINOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/"
+  },
+  "coldwalk:kpilot_load_factor_proxy_for_price_setting_is_backwards": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence, domain judgement. The page says: 'No published figure exists for the exact percentage of half-hours in which gas is the price-setting plant. Falling gas load factors (from ~50% in 2016 to ~28% in 2024) are the best available proxy, not a direct measurement.' Load factor is a BACKWARDS proxy for marginal frequency: the marginal plant is by definition the one running part-time at the margin, so a falling load factor does not imply falling price-setting frequency. In GB, gas is widely understood to set the price in a large majority of half-hours (order 60-85%) while supplying only ~30% of generation -- the page's own '~30% of generation (a generation share, NOT a marginal-hours figure)' row shows the author already knows these are different quantities, then the proxy silently conflates them anyway. The honesty framing ('not a direct measurement') covers imprecision but not wrong direction.",
+    "finding_key": "coldwalk:kpilot_load_factor_proxy_for_price_setting_is_backwards",
+    "fix": "Withdraw the load-factor proxy or replace it with a directionally correct one; state the marginal-hours figure as a genuine unknown rather than implying ~28%.",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- Where our picture is still weak"
+  },
+  "coldwalk:kpilot_merit_order_marginal_plant_ccgt_vs_ocgt_mismatch": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence. Same-page reconciliation failure between the chart legend and the note directly beneath it. Legend (from live /data/knowledge_wholesale.json, rungs.live_evidence.merit_order.plants): [0] 'Renewables + nuclear (must-run)' srmc 0.0; [1] 'CCGT -- best vintage' srmc 66.0; [2] 'CCGT -- worst vintage' srmc 77.7; [3] 'OCGT peaker / reserve' srmc 94.9. marginal_note reads verbatim: 'At 2024 gas (GBP29.1/MWh) the marginal (price-setting) plant is a gas CCGT clearing around GBP94.9/MWh at the top of demand.' GBP94.9/MWh is the OCGT peaker in the page's own stack, NOT a CCGT -- the CCGT band is 66.0-77.7. The note mis-attributes the peaker's SRMC to a CCGT, on the single most load-bearing explanatory claim of the page. Arithmetic check confirms the stack is internally sound (P/eff + 18*0.183/eff: 29.1/0.49+6.7 = 66.1 matches plant[1]; 94.9 implies eff~0.34 = OCGT-class, not CCGT) -- so the numbers are right and the LABEL is wrong.",
+    "finding_key": "coldwalk:kpilot_merit_order_marginal_plant_ccgt_vs_ocgt_mismatch",
+    "fix": "Correct marginal_note to name the OCGT peaker, or restate the marginal plant as the CCGT at 66-77.7/MWh. Do not change the srmc values -- they reconcile.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- Live evidence, merit-order chart"
+  },
+  "coldwalk:kpilot_merit_stack_floor_cannot_produce_negative_prices": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence, structural. The 'In plain terms' section explains why GB prices go negative ('when there is more must-run generation than demand'), and chart 4 quantifies negative prices at 6.1% of periods in 2024. But the merit-order stack floors must-run generation at exactly GBP0/MWh (plants[0] 'Renewables + nuclear (must-run)' srmc 0.0), and a stack whose cheapest bid is zero can never clear below zero. The actual mechanism -- subsidised generation (ROC/CfD wind) bidding materially BELOW zero to keep running and retain subsidy -- is absent from the chart that is supposed to illustrate price formation. The page therefore explains negative prices in prose and then shows a model that structurally forbids them.",
+    "finding_key": "coldwalk:kpilot_merit_stack_floor_cannot_produce_negative_prices",
+    "fix": "Represent the sub-zero bidding of subsidised must-run in the stack, or add a note that the chart's zero floor is a simplification that cannot reproduce the negative-price behaviour shown in chart 4.",
+    "severity": "MINOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- In plain terms vs merit-order chart"
+  },
+  "coldwalk:kpilot_named_omissions_from_price_formation_account": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence, completeness judgement from the veteran persona. Absent from a page claiming to explain how the GB wholesale price is formed, and NOT among the gaps the page itself names (it names S2 product structure and S4 gas anchor): interconnectors and European market coupling (in a material share of 2024 hours the GB price is effectively set by continental markets, not by a GB plant); biomass (Drax-class SRMC order GBP70-100/MWh, frequently marginal, currently hidden inside the GBP0 'must-run' block); spark spread as a concept; plant start-up and cycling costs; and the distinction between Balancing Mechanism and day-ahead price formation. Separately, the gas input 'GBP29.1/MWh (2024 NBP annual mean)' is the one figure on the page carrying no published citation while every other figure has one. Scope calls are the author's to make -- filed as DOUBT, not defect -- but interconnectors and biomass are load-bearing for the page's central claim that a gas plant sets the price.",
+    "finding_key": "coldwalk:kpilot_named_omissions_from_price_formation_account",
+    "fix": "Either cover interconnectors/biomass or add them to the page's own named-gaps block so the omission is declared rather than silent. Cite the NBP gas figure.",
+    "severity": "DOUBT",
+    "state": "open-needs-judgement",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/"
+  },
+  "coldwalk:kpilot_net_cone_capacity_vs_energy_confusion": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence, domain judgement. The page states 'Reference marginal technology: CCGT gas' with provenance 'confirmed via Capacity Market Net-CONE'. Net-CONE (Net Cost of New Entry) is a CAPACITY-ADEQUACY parameter -- the fixed cost of a new entrant used to set Capacity Market demand curves -- and the GB CM reference technology for Net-CONE is an OCGT, not a CCGT. It says nothing about which plant is marginal in the ENERGY market, which is what this page's claim needs. Using a capacity-market fixed-cost parameter to 'confirm' an energy-market marginal technology is a capacity-vs-energy category error, and the veteran persona named it as the classic pattern-matching giveaway. The underlying claim (CCGT is usually the marginal plant) is correct -- the CITED EVIDENCE does not support it.",
+    "finding_key": "coldwalk:kpilot_net_cone_capacity_vs_energy_confusion",
+    "fix": "Drop the Net-CONE citation or replace it with a genuine energy-market source for marginal technology. An unsupported-but-true claim with a confident wrong citation is worse than an unsourced one.",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- How it works, figure row"
+  },
+  "coldwalk:kpilot_ordinary_day_vs_top_of_demand_conflation": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence. Caption: 'The 2024 GB merit order: ... On an ordinary day that marginal plant is gas -- so the whole market clears near the gas-fired SRMC.' The note beneath pins the marginal plant 'at the top of demand' -- i.e. demand sitting at the very top of the 45GW dispatchable stack, a scarcity/peak condition. These are two different system states presented as one. On an ordinary day GB demand does not sit at the top of the stack; the marginal plant is a mid-merit CCGT (66-77.7), not the peaker (94.9). Compounds the mislabel above: the page teaches the merit-order concept using the peak-demand case while calling it ordinary.",
+    "finding_key": "coldwalk:kpilot_ordinary_day_vs_top_of_demand_conflation",
+    "fix": "Either plot/annotate the marginal plant at a representative ordinary-day demand level, or relabel the annotation explicitly as the peak-demand / scarcity case and keep 'ordinary day' for the mid-merit CCGT.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- merit-order chart caption"
+  },
+  "coldwalk:kpilot_protocol_deviation_priors_before_pixels_broken": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "Recorded for honesty about how these findings were produced. The cold-eyes protocol requires priors-before-pixels (step 2) and a hard blindfold (step 1). Both were partially broken in this walk: (a) the domain persona stalled twice when asked to fetch, because the page is client-side rendered and WebFetch returns an empty shell -- so the orchestrator supplied the RENDERED page text, breaking the artefact-only blindfold; (b) that text arrived in the SAME message as the request for priors, so priors were not committed before exposure. The persona itself flagged this unprompted and asked that DOUBT-class findings be discounted accordingly. Mitigations actually applied: every load-bearing arithmetic claim (66.11 CPS-only derivation, implied efficiencies 49.08/41.69/34.13, VOM=0, ETS restatement) was INDEPENDENTLY re-verified by the orchestrator against the live JSON before filing, and the merit-order CCGT/OCGT mislabel was found by the orchestrator BEFORE the persona was prompted, so it is not an artefact of priming. The MAJOR findings rest on verified arithmetic and verbatim quotes, not on persona judgement alone. STRUCTURAL LESSON for the skill: a WebFetch-only blindfold silently fails on client-side-rendered surfaces -- the reviewer sees an empty shell and grades it as vacuous. The skill needs a browser-render step so future cold-eyes reviewers receive the artefact as a human sees it without the orchestrator narrating it.",
+    "finding_key": "coldwalk:kpilot_protocol_deviation_priors_before_pixels_broken",
+    "fix": "Amend .claude/skills/cold-eyes-walk/SKILL.md: reviewers must receive a browser-rendered capture (text + screenshot) of JS-rendered surfaces, delivered BEFORE any discussion and AFTER priors are committed in a separate prior turn.",
+    "severity": "INFO",
+    "state": "adjudicated-methodology-note",
+    "surface": "cold-eyes-walk protocol execution, 2026-07-29"
+  },
+  "coldwalk:kpilot_render_fetch_catch_is_fail_silent": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence. Verbatim from the live page: fetch('../../data/knowledge_wholesale.json?t=' + Date.now()).then(function(r){ return r.json(); }).then(function(d){ renderKnowledge(d); }).catch(function(e){ set('hero-h', 'Wholesale price formation'); }); -- on ANY failure (data file missing, malformed JSON, network error) the catch sets only the hero title and leaves all nine sections blank, with no error state, no stale banner, no diagnostic. The visitor sees a titled page with empty sections and cannot tell it is broken. This is textbook R15 FAIL-SILENT (passes/renders when the underlying source is unavailable) on a public surface -- the pattern the project bans in controls, here shipped in presentation. /data/knowledge_wholesale.json currently returns HTTP 200, 35042 bytes, valid JSON, so the failure path is latent, not firing.",
+    "finding_key": "coldwalk:kpilot_render_fetch_catch_is_fail_silent",
+    "fix": "Catch must render a visible failure state ('content could not be loaded') rather than a bare title. Add a mutation test that serves a 404/garbage JSON and asserts the page shows an explicit error, per R15.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- inline render script"
+  },
+  "coldwalk:kpilot_srmc_stack_internal_reconciliation_gaps": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence, arithmetic re-verified by orchestrator. Three same-page reconciliation failures in the SRMC block: (1) the method text promises '+ a few pounds of running cost' but the published bars solve with VOM = GBP0 exactly (66.0 - (29.1+18*0.183)/0.49 = -0.11, i.e. zero); (2) the bar labelled 'CCGT -- best vintage' is computed at implied efficiency 49.08%, which is the figure the page itself labels 'CCGT FLEET-AVERAGE thermal efficiency' -- a best-vintage GB CCGT is ~53-54%, so the label and the arithmetic disagree; (3) the implied efficiencies behind 'CCGT -- worst vintage' (41.7%) and 'OCGT peaker' (34.1%) are never stated anywhere, so the reader cannot check two of the four bars. Additionally the expected-shape band 'Ordinary baseload price: typically GBP40-90/MWh across 2016-2021' is in tension with the page's own chart 1, where late-2021 monthly means already exceed GBP200 -- the 'before the gas crisis' qualifier partly covers this but the stated range still includes 2021.",
+    "finding_key": "coldwalk:kpilot_srmc_stack_internal_reconciliation_gaps",
+    "fix": "State the efficiency behind every bar, make VOM explicit (or drop the 'few pounds' promise), and either relabel the 49% bar as fleet-average or recompute it at best-vintage efficiency.",
+    "severity": "MINOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- How it works + merit-order chart"
+  },
+  "coldwalk:kpilot_ssp_cashout_labelled_as_wholesale_price": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence. Chart 1 caption reads 'Monthly-mean GB wholesale price, real Elexon SSP' and its source line 'Real Elexon System Sell Price (SSP), daily-mean of settlement periods 1-48'. SSP is the IMBALANCE / cash-out price, a different instrument from the day-ahead wholesale price the page is about -- the page's whole subject is the wholesale price 'that decides most of an energy bill', which suppliers buy at day-ahead/forward, not at cash-out. Chart 4's headline '6.1% of settlement periods negative in 2024' is likewise a cash-out statistic; GB DAY-AHEAD negative price frequency in 2024 was materially lower (order 2-3% of hours). A reader checking the 6.1% against published day-ahead figures finds a large discrepancy with no explanation on the page. Veteran persona flagged this unprompted as instrument confusion; the SSP sourcing is verified verbatim from the live JSON.",
+    "finding_key": "coldwalk:kpilot_ssp_cashout_labelled_as_wholesale_price",
+    "fix": "Either relabel every SSP-derived chart as imbalance/cash-out prices and explain why cash-out is being shown on a wholesale-price page, or re-source the charts to a day-ahead series. R14-adjacent: the figure must carry its instrument, not just its clock.",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- charts 1 and 4"
+  },
+  "coldwalk:kpilot_stub_titles_topicless": {
+    "adjudicated_at": "2026-07-29T21:23:19.225591+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, K-PILOT knowledge cluster)",
+    "evidence": "observed-with-evidence. All three stub pages share the identical document title 'Poesys -- Knowledge (stub)'. Browser tabs, bookmarks, shared links and search results are mutually indistinguishable. The in-page H1s ARE correct and topic-specific ('GB gas wholesale', 'The retail price cap', 'The GB electricity market (structure & settlement)') -- the defect is confined to <title>, which is server-side static while the H1 is JS-injected.",
+    "finding_key": "coldwalk:kpilot_stub_titles_topicless",
+    "fix": "Emit a per-topic static <title>. Cheap, and it is the one piece of these pages a crawler can currently read.",
+    "method": "cold-eyes-walk skill: blindfolded personas (GB power veteran, energy-transition VC), priors-before-pixels, same-page reconciliation; findings verified against raw HTML, live JSON and a real browser render before filing",
+    "severity": "MINOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/{gas-wholesale,price-cap,gb-electricity-market}/"
+  },
+  "coldwalk:kpilot_uk_ets_omission_understates_srmc_stack": {
+    "adjudicated_at": "2026-07-29T21:26:00.661649+00:00",
+    "adjudicated_by": "claude (cold-eyes-walk, 2026-07-29, persona: Marianne Okoye / GB power veteran; arithmetic independently re-verified by orchestrator)",
+    "evidence": "observed-with-evidence, arithmetic re-verified by orchestrator. The carbon term uses ONLY Carbon Price Support (GBP18/tCO2), omitting the traded UK ETS allowance (~GBP36/tCO2 in 2024) that GB thermal generators also pay. Verified: 29.1/0.49 + 18*0.183/0.49 = 66.11, matching the published 'CCGT -- best vintage GBP66.0' to 2dp, confirming CPS-only. Restating with total carbon ~GBP54/tCO2 gives CCGT best 79.6, CCGT worst 93.5, OCGT 114.2 -- the published stack is understated by roughly 14-19 GBP/MWh, i.e. ~20-25% low on the page's central quantity. The page declares the ETS gap honestly in 'Where our picture is still weak', but the chart -- the quotable artefact -- carries no caveat. Note two errors partially offset (missing ETS pushes SRMC down; using fleet-average rather than best-vintage efficiency pushes it up), which is why GBP66 does not look absurd; that offset is coincidence, not validation. SUPERSEDES the softer DOUBT-class entry coldwalk:kpilot_carbon_price_caveat_detached_from_srmc_chart.",
+    "finding_key": "coldwalk:kpilot_uk_ets_omission_understates_srmc_stack",
+    "fix": "Add the ETS component (or an explicit ETS-excluded band) to the SRMC build-up, and attach the caveat to the chart itself.",
+    "severity": "MAJOR",
+    "state": "open-confirmed-defect",
+    "surface": "https://poesys.net/knowledge/electricity-wholesale/ -- How it works + merit-order chart"
   },
   "coldwalk:margin_reconciliation:portfolio_vs_ledger": {
     "adjudicated_at": "2026-07-12T12:56:55.074427+00:00",
