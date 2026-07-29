@@ -41,6 +41,7 @@ from pathlib import Path
 import saas.payment_behaviour as payment_behaviour_module
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_balance_book import build_dd_balance_book
+from simulation.dd_level_collection_book import build_dd_level_collection_book
 from company.billing.dd_review_runner import run_annual_reviews
 from company.billing.account_adjustment_register import (
     AccountAdjustmentRecord,
@@ -574,6 +575,15 @@ def main(report_end: str | None = None, policy=None):
     # (both the registered next gated steps, deliberately not wired here).
     dd_balance_book = build_dd_balance_book(bills)
 
+    # DD1 (atom DD_seasonal_cashflow_physics): the LEVEL (fixed) DD collection
+    # made first-class -- the standing monthly amount actually SIZES a collection
+    # record, landing on the customer's staggered payment day. Consumes DD2's
+    # balance book (so the standing-DD chain is IDENTICAL by construction, no
+    # drift), reads no other structure, draws no RNG, mutates nothing, and
+    # changes no existing figure. This is the Fixed-DD counterpart to
+    # build_dd_collection_book above (which is Variable DD: raw bill sizes it).
+    dd_level_collection_book = build_dd_level_collection_book(dd_balance_book)
+
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
     # layer only, does not alter settlement-based revenue recognition above.
@@ -755,6 +765,7 @@ def main(report_end: str | None = None, policy=None):
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
         "annual_dd_review": annual_dd_review.serialise(),
         "dd_balance_book": dd_balance_book.serialise(),
+        "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,
         "credit_refund_log": credit_refund_log,
         "contact_centre_log": contact_centre_log,
