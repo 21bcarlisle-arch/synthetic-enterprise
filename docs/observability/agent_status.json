@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-29T11:50:05.552490+00:00",
+  "last_updated": "2026-07-29T11:50:20.076561+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T11:49:49.684827+00:00",
+      "last_heartbeat": "2026-07-29T11:50:19.685819+00:00",
       "last_action": "Heartbeat \u2014 21 files tracked",
-      "last_action_ts": "2026-07-29T11:49:49.684827+00:00",
+      "last_action_ts": "2026-07-29T11:50:19.685819+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -34,10 +34,10 @@
     },
     {
       "name": "sim-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-07-29T11:29:19.748216+00:00",
-      "last_action": "Run complete in 515s \u2014 3968 KB (run_output_d6b3be3bc_20260729T112045Z.json)",
-      "last_action_ts": "2026-07-29T11:29:19.748216+00:00",
+      "status": "running",
+      "last_heartbeat": "2026-07-29T11:50:20.076561+00:00",
+      "last_action": "Sim started \u2014 git=3ae75c061",
+      "last_action_ts": "2026-07-29T11:50:20.076561+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
