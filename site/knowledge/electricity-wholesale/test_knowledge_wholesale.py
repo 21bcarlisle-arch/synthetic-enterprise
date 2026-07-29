@@ -249,7 +249,7 @@ def test_prerequisite_edges_acyclic():
 def test_edge_types_in_declared_vocabulary():
     d = _live()
     vocab = {"part-of", "mechanism-of", "drives", "governed-by", "prerequisite-for",
-             "modelled-by", "touched-by"}
+             "modelled-by", "touched-by", "bounded-by"}
     for e in d["edges"]:
         assert e["type"] in vocab, f"undeclared edge type {e['type']}"
 

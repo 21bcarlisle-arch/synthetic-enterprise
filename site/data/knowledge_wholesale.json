@@ -848,53 +848,60 @@
       "blurb": "This page: how the GB wholesale electricity price is set at the margin."
     },
     {
+      "id": "gas-wholesale",
+      "title": "GB gas wholesale",
+      "kind": "stub",
+      "class": "fast",
+      "blurb": "The GB gas market whose price sets the marginal plant's bid for most hours -- a market in its own right, not a driver-stub of electricity.",
+      "scope": "A complete treatment covers the GB gas market as a market in its own right: how the National Balancing Point price is set by the balance of supply (Norwegian pipeline imports, LNG send-out, UKCS production, storage withdrawal, interconnector flows) against demand (heat, power-station burn, industry); the contract curve from within-day through month and season to annual; the role of seasonal storage arbitrage and LNG-cargo optionality; and why GB, as a price-taker on a globally traded fuel, tracks TTF and Asian LNG rather than any domestic cost stack. It drives the electricity price because a gas plant is marginal for most GB hours -- that coupling is one typed edge, never a shared page."
+    },
+    {
       "id": "gb-electricity-market",
-      "title": "The GB electricity market",
+      "title": "The GB electricity market (structure & settlement)",
       "kind": "stub",
       "class": "settled",
-      "blurb": "The half-hourly settled market these prices live in."
+      "blurb": "The half-hourly settled market these prices live in.",
+      "scope": "A complete treatment covers the market these prices live in: half-hourly settlement periods; the roles of generators, suppliers, the ESO and Elexon; the trading timeline from forward contracting to gate closure to imbalance; and how BSC settlement reconciles metered volumes against contracted positions. It is the parent context node for the electricity price at the margin."
     },
     {
       "id": "merit-order-residual-demand",
       "title": "Merit order & residual demand",
       "kind": "stub",
       "class": "slow",
-      "blurb": "The cheapest-first dispatch queue and the demand left after renewables."
-    },
-    {
-      "id": "gas-price",
-      "title": "The gas price",
-      "kind": "stub",
-      "class": "fast",
-      "blurb": "The fuel cost that sets the marginal plant's bid for most hours."
+      "blurb": "The cheapest-first dispatch queue and the demand left after renewables.",
+      "scope": "A complete treatment covers the cheapest-first dispatch queue and residual demand (demand less wind, solar and must-run generation): how the intersection of residual demand with the stack picks the marginal unit whose short-run marginal cost becomes the price, and how a growing renewable fleet shifts the stack -- more hours on cheap or zero-marginal-cost plant, more negative-price hours, and sharper peaks when the wind drops. It is the central price-setting mechanism of electricity wholesale."
     },
     {
       "id": "carbon-price",
-      "title": "The carbon price",
+      "title": "The UK carbon price (UK ETS + CPS)",
       "kind": "stub",
       "class": "slow",
-      "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned."
+      "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned.",
+      "scope": "A complete treatment covers the price of emitting a tonne of CO2 in GB power: the traded UK ETS allowance price set by a capped auction market, plus the fixed Carbon Price Support top-up; how the cap trajectory, industrial demand and policy set the allowance price; and how that per-tonne cost enters every fossil plant's marginal bid and therefore the electricity price. Its market and drivers are distinct from both gas and electricity, so it is a separate topic joined by a drives edge."
     },
     {
       "id": "imbalance-cashout-settlement",
       "title": "Imbalance & cash-out",
       "kind": "stub",
       "class": "slow",
-      "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling."
+      "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling.",
+      "scope": "A complete treatment covers how being short or long against your contracted position is priced: the single imbalance price, the balancing actions that set it, and the cash-out ceiling (£6,000/MWh) that caps a shortfall; and why this is the price that ultimately disciplines a supplier's hedging. It is a settlement mechanism of electricity wholesale."
     },
     {
       "id": "hedging-forward-market",
       "title": "Hedging & the forward market",
       "kind": "stub",
       "class": "slow",
-      "blurb": "How a supplier buys ahead to blunt the price it would otherwise face."
+      "blurb": "How a supplier buys ahead to blunt the price it would otherwise face.",
+      "scope": "A complete treatment covers how a supplier buys ahead: the forward curve, the blocks and shapes it trades, and how a hedge programme blunts the delivered price it would otherwise face at spot. It is a product layer over both electricity and gas procurement, so it is a downstream cross-cutting node reached from each fuel's spot topic rather than buried inside either."
     },
     {
       "id": "price-cap",
       "title": "The retail price cap",
       "kind": "stub",
       "class": "slow",
-      "blurb": "How the wholesale price reaches the household through Ofgem's cap."
+      "blurb": "How the wholesale price reaches the household through Ofgem's cap -- a retail boundary of the wholesale domain.",
+      "scope": "A complete treatment covers how the wholesale price reaches a household: Ofgem's cap methodology, its wholesale-cost allowance, and the lag with which wholesale moves pass through to the capped tariff. This node is retail, not wholesale -- it sits at the domain boundary and is kept in the map to make the wholesale-to-retail seam visible and honest, not as a peer wholesale topic."
     }
   ],
   "edges": [
@@ -909,7 +916,7 @@
       "to": "electricity-wholesale"
     },
     {
-      "from": "gas-price",
+      "from": "gas-wholesale",
       "type": "drives",
       "to": "electricity-wholesale"
     },
@@ -929,8 +936,13 @@
       "to": "hedging-forward-market"
     },
     {
+      "from": "gas-wholesale",
+      "type": "prerequisite-for",
+      "to": "hedging-forward-market"
+    },
+    {
       "from": "electricity-wholesale",
-      "type": "governed-by",
+      "type": "bounded-by",
       "to": "price-cap"
     }
   ]
