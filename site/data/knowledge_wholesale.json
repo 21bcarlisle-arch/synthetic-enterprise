@@ -748,6 +748,86 @@
           "class": "Fact"
         }
       ]
+    },
+    "scope_delta": {
+      "heading": "What this page does not yet establish",
+      "intro": "Before writing this page we wrote a scope brief -- what a reader who knows nothing should be able to learn about how GB wholesale prices form. This block is the honest delta: the brief asked for the whole picture; the page so far establishes how the marginal plant sets the price, and names the rest as gaps rather than hiding them. Each gap below maps to the brief section that would close it, and each is a candidate piece of backlog. The delta is the pilot's real finding -- worth more than the page.",
+      "established": "Strong and evidenced on the marginal-price principle (S1), the merit-order / SRMC stack (S3), and carbon in the SRMC build-up (S5).",
+      "items": [
+        {
+          "ref": "S2",
+          "title": "The structure of wholesale prices",
+          "status": "Named gap",
+          "priority": "Highest -- the director's #1: \"possibly the most important thing we use\"",
+          "text": "The traded-product structure -- baseload/peak, seasons/quarters/months, day-ahead and within-day, and the shape of the forward curve -- appears nowhere on the page. It is the single largest scope hole."
+        },
+        {
+          "ref": "S4",
+          "title": "Gas as the global anchor",
+          "status": "Named gap",
+          "text": "The page says gas sets power, but not how gas itself is priced: NBP/TTF, the marginal LNG cargo, storage, and the global channel through which a European or Asian gas shock reaches a GB electricity bill."
+        },
+        {
+          "ref": "S6",
+          "title": "The joint driver, stated explicitly",
+          "status": "Named gap",
+          "text": "One weather draw moves demand up, wind down, gas-burn up and price up together. Gas-sets-price and renewables are each present, but the shared joint driver -- the disqualifier common to several of our board specs -- is never stated as one mechanism."
+        },
+        {
+          "ref": "S7",
+          "title": "Interconnectors, imports and outages",
+          "status": "Named gap",
+          "text": "No interconnectors, no import channel, no outage process, and nothing on the 2022 French-nuclear shock that moved GB prices through the Channel."
+        },
+        {
+          "ref": "S8",
+          "title": "CfDs and renewable support",
+          "status": "Named gap",
+          "text": "A ~30% gas-exposure figure is present, but the CfD mechanism -- and the split between its effect on the merit order and its effect on consumer cost -- is absent."
+        },
+        {
+          "ref": "S11",
+          "title": "Seasonality and storage",
+          "status": "Named gap",
+          "text": "No winter-summer spread, no seasonal shape, and no gas-storage injection/withdrawal logic -- the seasonality that shapes both gas and power across the year."
+        },
+        {
+          "ref": "S12",
+          "title": "Regimes and 2021-22",
+          "status": "Named gap",
+          "text": "The page cites the 2021-22 spike magnitudes but says nothing about reversion to a level that itself jumps, regime shifts, or the containability lesson of that crisis."
+        },
+        {
+          "ref": "S13",
+          "title": "Forwards and risk premia",
+          "status": "Named gap",
+          "text": "A forward price is not a forecast; it carries a risk premium and a term structure. The topic graph has a hedging/forward-market stub, but the price page never explains forward-not-equal-forecast."
+        },
+        {
+          "ref": "S14",
+          "title": "The structural transition",
+          "status": "Named gap",
+          "text": "Falling gas load factors are noted, but the bimodal transition they hint at -- growing zeros and spikes with a shrinking middle -- is not explained as a change in the shape of the price distribution."
+        },
+        {
+          "ref": "S10 / S13",
+          "title": "Non-Gaussian dynamics",
+          "status": "Named gap",
+          "text": "Price jumps, fat tails, volatility clustering and non-flat (seasonal, delivery-approaching) volatility are not addressed -- the page treats magnitude bands without the dynamics behind them."
+        },
+        {
+          "ref": "S9",
+          "title": "Negative-price frequency",
+          "status": "Partial",
+          "text": "Negative prices are described qualitatively (\"a small share of periods in high-renewables years\") but without the low-single-digit % frequency and trend the brief requires."
+        },
+        {
+          "ref": "S10",
+          "title": "The scarcity mechanism",
+          "status": "Partial",
+          "text": "The hockey-stick magnitude bands are present, but the mechanism behind them -- climbing the stack through peakers, imports and demand response; the convex price-versus-residual-demand surface -- is not shown."
+        }
+      ]
     }
   },
   "revision": {

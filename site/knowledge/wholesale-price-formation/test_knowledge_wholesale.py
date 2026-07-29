@@ -121,6 +121,48 @@ def test_revision_renders_both_clocks_and_struck_old_claim():
     assert _esc(d["revision"]["transaction_time"]) in html
 
 
+# ------------------------------------------------ scope-delta (deliverable #5)
+
+def test_scope_delta_present_and_maps_every_gap_to_a_brief_section():
+    """The brief-vs-assembly delta exists and every named gap carries the scope-
+    brief section that would close it -- the registration-by-reference that makes
+    each gap a candidate piece of backlog (DIRECTOR_RULING_PUBLISHED_GAPS_ARE_THE_BACKLOG)."""
+    d = _live()
+    s = d["rungs"].get("scope_delta")
+    assert s and s.get("items"), "the brief-vs-assembly delta must be published"
+    # the director's #1 (traded-product structure, S2) must be named and flagged highest
+    s2 = [it for it in s["items"] if it["ref"] == "S2"]
+    assert s2 and s2[0].get("priority"), "S2 (traded-product structure) must be named and prioritised"
+    for it in s["items"]:
+        assert it["ref"], "every gap maps to a scope-brief section (its backlog target)"
+        assert it["status"] in ("Named gap", "Partial"), it
+        assert it["text"]
+
+
+def test_scope_delta_renders_every_gap_to_pixel():
+    """R11: each named gap's text renders into the actual page HTML."""
+    d = _live()
+    out = _render(d)
+    html = out["r-delta"]["innerHTML"]
+    for it in d["rungs"]["scope_delta"]["items"]:
+        assert _esc(it["text"]) in html, it["ref"]
+        assert _esc(it["title"]) in html, it["ref"]
+
+
+def test_scope_delta_mutation_changes_rendered_pixel():
+    """R15: the delta render is data-driven -- a changed gap changes the pixel,
+    and a removed gap disappears from the page (a control that can fail)."""
+    d = _live()
+    base = _render(d)["r-delta"]["innerHTML"]
+    mut = copy.deepcopy(d)
+    mut["rungs"]["scope_delta"]["items"][0]["text"] = "MUTANT GAP TEXT"
+    after = _render(mut)["r-delta"]["innerHTML"]
+    assert base != after and "MUTANT GAP TEXT" in after
+    dropped = copy.deepcopy(d)
+    gone = dropped["rungs"]["scope_delta"]["items"].pop()["text"]
+    assert _esc(gone) not in _render(dropped)["r-delta"]["innerHTML"]
+
+
 # ---------------------------------------------------------------- R15 mutation
 
 def test_figure_mutation_changes_rendered_pixel():

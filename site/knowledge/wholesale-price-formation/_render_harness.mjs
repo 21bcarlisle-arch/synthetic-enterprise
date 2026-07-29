@@ -43,7 +43,7 @@ vm.runInContext(code, sandbox);
 sandbox.renderKnowledge(d);
 
 const ids = ["hero-h", "hero-sub", "hero-one", "stale", "r-plain", "r-theory",
-  "r-expected", "r-live", "r-residuals", "revision", "sidebar", "derivation", "wall-note"];
+  "r-expected", "r-live", "r-residuals", "r-delta", "s-delta-h", "revision", "sidebar", "derivation", "wall-note"];
 const out = {};
 for (const id of ids) {
   const e = elements[id];
