@@ -695,6 +695,33 @@ def _write_blocked_mint(slug: str, reason_line: str = "UNBLOCKS ON: director act
     (ip / f"PLANNER_MINTED_{slug}.md").write_text(f"<!-- SUPERVISOR_DRAW: blocked -->\n{reason_line}\n")
 
 
+def test_blocked_mint_reason_read_from_block_release_marker():
+    """R10 CLASS FIX (BLOCKED_ITEM_LITERAL_ACTS 2026-07-29): a mint whose reason lives ONLY in the
+    `<!-- BLOCK_RELEASE: <token> -- <reason> -->` marker (no prose blocked_on/UNBLOCKS line -- the
+    exact shape of the four items the director reported as "blocked, reason unstated") must surface
+    its stated reason, NOT the generic 'reason unstated' fallback.
+
+    MUTATION both-ways: this reds against the pre-fix parser (which read only the two prose patterns
+    and would return 'reason unstated' for a marker-only mint); a control mint that carries NO
+    reason at all still correctly falls back to 'reason unstated' (the fix did not make the fallback
+    unreachable)."""
+    ip = dms.STAGING_DIR / "in_progress"
+    ip.mkdir(parents=True, exist_ok=True)
+    (ip / "PLANNER_MINTED_marker_only_reason.md").write_text(
+        "<!-- SUPERVISOR_DRAW: blocked -->\n"
+        "<!-- BLOCK_RELEASE: director_level_up -- intra-year price-cap granularity, "
+        "pending sub-annual cap-window discovery -->\n# body with no prose blocked_on line\n")
+    (ip / "PLANNER_MINTED_genuinely_no_reason.md").write_text(
+        "<!-- SUPERVISOR_DRAW: blocked -->\n# body, no marker, no blocked_on\n")
+    got = dict(dms._open_blocked_mints())
+    reason = got["PLANNER_MINTED_marker_only_reason.md"]
+    assert "reason unstated" not in reason
+    assert "sub-annual cap-window" in reason           # the marker's reason surfaced
+    assert reason.rstrip().endswith("discovery")        # trailing ` --` stripped, not left dangling
+    # fallback still reachable for a mint that truly states nothing
+    assert "reason unstated" in got["PLANNER_MINTED_genuinely_no_reason.md"]
+
+
 def test_open_mint_escalation_fires_after_2h_even_on_proven_rest(monkeypatch):
     """ESCALATION DUTY, the weekend: mints parked-blocked, no WORK commit for 3h, and rest 'proven
     legitimate' (the fold that silenced [STALL]) -> an [ACT] naming each blocked mint STILL fires."""

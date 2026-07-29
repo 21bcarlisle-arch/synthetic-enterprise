@@ -296,10 +296,22 @@ def _open_blocked_mints() -> list[tuple[str, str]]:
         if re.search(r"SUPERVISOR_DRAW:\s*self-drawable", body[:600]):
             continue
         reason = "blocked (reason unstated in the mint doc)"
-        for pat in (r"UNBLOCKS?(?:\s+ON)?:\s*([^\n]+)", r"blocked_on:\s*([^\n]+)"):
+        for pat in (
+            r"UNBLOCKS?(?:\s+ON)?:\s*([^\n]+)",
+            r"blocked_on:\s*([^\n]+)",
+            # R10 CLASS FIX (2026-07-29, docs/design/BLOCKED_ITEM_LITERAL_ACTS.md): four blocked
+            # mints (intra_year_price_cap_granularity, money_representation_evidence,
+            # payment_channel_dd_consistency_invariant, supply_start_semantic_separation) carry
+            # their reason ONLY in the `<!-- BLOCK_RELEASE: <token> -- <reason> -->` marker, which
+            # the two prose patterns above do not read -- so they surfaced to the director as
+            # "reason unstated" when the reason WAS stated. The director's own complaint ("four
+            # items blocked, reason unstated") was this parser-format mismatch, not missing reasons.
+            # Read the marker as the final fallback so the false-"unstated" report cannot recur.
+            r"BLOCK_RELEASE:\s*([^\n>]+)",
+        ):
             m = re.search(pat, body, re.IGNORECASE)
             if m:
-                s = re.sub(r"[*`>~]", "", m.group(1)).strip()
+                s = re.sub(r"[*`>~]", "", m.group(1)).strip().rstrip("- ").strip()
                 if s:
                     reason = (s[:160] + "…") if len(s) > 161 else s
                     break
