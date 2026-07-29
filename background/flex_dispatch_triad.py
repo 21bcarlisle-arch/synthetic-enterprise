@@ -1,4 +1,4 @@
-"""COUPLED-TRIAD runner for the W1_9 DSR/flexibility markets atom (L1).
+"""COUPLED-TRIAD runner for the W1_9 DSR/flexibility markets atom (L1-L3).
 
 The third loop of the flex coupled triad (COUPLED_TRIAD: SIM adds depth ->
 COMPANY copes through the wall -> HARNESS measures the belief-vs-truth GAP;
@@ -37,25 +37,45 @@ R12/R13. Nothing here is tuned to a target gap. The scarcity percentile is a
 BASELINE structural choice (how often the world is tight), not fitted to any
 company outcome. `enrolled_mw`/`period_hours` are illustrative and the
 normalised gap is invariant to them, so no un-sourced £/MW figure moves the
-score -- this atom is L1 ONLY (every real £/kW/yr, availability price, and
-baseline-window figure remains BENCHMARK REQUIRED, source: NESO/Elexon).
+score. Every real £/kW/yr, availability price and baseline-window figure
+remains BENCHMARK REQUIRED (source: NESO/Elexon); the L3 default book
+therefore omits the Capacity Market venue entirely unless a sourced price is
+passed, and the L3 headline is measured in PHYSICAL MWh, which carries no
+price at all.
+
+LEVELS PRESENT HERE (registered, not implied):
+  * L1 `measure`      -- one venue, perfect delivery: the price-proxy gap.
+  * L2 `measure_l2`   -- stochastic delivery + baseline-methodology exposure.
+  * L3 `measure_l3`   -- N concurrent venues on ONE portfolio: the STACKING
+                         over-claim a contention-blind party books.
 """
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence
 
 import numpy as np
 
 from sim.flex_dispatch import (
+    DEFAULT_AVAILABILITY_CALL_PERCENTILE,
     DEFAULT_ENROLLED_MW,
     DEFAULT_PERIOD_HOURS,
+    TRUE_SCARCITY_PERCENTILE,
     DeliveryModel,
+    FlexPaymentBasis,
+    VenueSpec,
+    assert_mw_conservation,
     dispatch_and_settle,
+    dispatch_and_settle_stacked,
+    emit_dispatch_instructions_stacked,
     emit_settlement_lines,
+    emit_settlement_lines_stacked,
 )
+from interface.contracts.flex_observable_seam import FlexVenue
 from company.market.flex_participation import (
+    CompanyVenueOffer,
     form_participation_belief,
     form_participation_belief_l2,
+    form_stacked_belief,
 )
 from background.gap_metric import prediction_gap
 
@@ -245,5 +265,206 @@ def build_gap_summary_l2(measurement: Dict[str, object]) -> Dict[str, object]:
             "perfect-delivery belief) and estimates its counterfactual baseline "
             "with a methodology whose error is a clawback exposure it cannot see. "
             "Mean delivery ratio + CM availability venue stay benchmark/level-gated."
+        ),
+    }
+
+
+# ===========================================================================
+# L3 -- THE STACKING GAP (the third loop for the multi-venue world)
+#
+# WHY THIS EXISTS. The SIM now runs N concurrent venues against ONE physical
+# portfolio, where the same MW cannot be delivered twice. The company, on the
+# far side of the wall, cannot see the contention: it sees only its own
+# dispatch instructions and settlement lines. A party with no evidence of
+# contention books BOTH venues' MW and forecasts revenue it can never
+# physically deliver. That OVER-CLAIM is the measurement.
+#
+# WHY THE GAP IS NOT A TAUTOLOGY (R15 independence). The truth's contention is
+# resolved by declared venue PRIORITY against the true portfolio (SIM-internal
+# allocation); the company's estimate comes from `learn_contention_rate`, which
+# counts how often >= 2 venues appeared in the SAME window on its OWN
+# instruction feed. Those are different quantities computed from different
+# inputs -- an unobserved contention (a venue that would have called but was
+# never instructed because the portfolio was already exhausted) is INVISIBLE to
+# the company by construction, so the belief cannot recover the truth exactly.
+# If it did, the observables would have leaked the allocation.
+#
+# THE HEADLINE METRIC IS PHYSICAL MWh, carrying no GBP figure at all, so no
+# un-sourced availability price can move the score (the CM clearing price stays
+# BENCHMARK REQUIRED). The GBP over-claim is reported alongside, explicitly
+# labelled as moving with an un-sourced price.
+# ===========================================================================
+
+
+def measure_l3(
+    out: Optional[Dict[str, np.ndarray]] = None,
+    *,
+    venues: Optional[Sequence[VenueSpec]] = None,
+    portfolio_mw: float = 100.0,
+    period_hours: float = DEFAULT_PERIOD_HOURS,
+    delivery: Optional[DeliveryModel] = None,
+    availability_price_gbp_per_mw_hour: Optional[float] = None,
+) -> Dict[str, object]:
+    """Run the L3 coupled loop and score the STACKING over-claim.
+
+    Returns, as the headline, `overclaim_mwh_frac` -- how much more physical
+    delivery the company expects than the portfolio can actually produce,
+    as a fraction of the true delivered MWh. It is:
+      * 0.0 when the venues never contend (an uncontended book cannot be
+        over-claimed), so the metric is NOT fail-open -- it fires only on its
+        own named defect;
+      * > 0 for a contention-blind company in a contended book.
+
+    `contention_learning_gain` = overclaim(blind) - overclaim(learned): the
+    value the company gets from reading its OWN instruction feed. Positive
+    means observable-only learning genuinely narrowed the over-claim.
+
+    An AVAILABILITY venue requires a sourced price (`VenueSpec` enforces this);
+    when none is supplied the run is UTILISATION-ONLY, which is the honest
+    default rather than a fabricated GBP/kW figure.
+    """
+    if venues is None:
+        venues = _default_venues(
+            portfolio_mw=portfolio_mw,
+            availability_price_gbp_per_mw_hour=availability_price_gbp_per_mw_hour,
+        )
+
+    truth = dispatch_and_settle_stacked(
+        out, venues=venues, portfolio_mw=portfolio_mw,
+        period_hours=period_hours, delivery=delivery)
+    # The stacking law is enforced on every truth; re-assert here so the
+    # HARNESS independently confirms it rather than trusting the SIM's word.
+    worst_over_allocation_mw = assert_mw_conservation(truth)
+
+    # -- OBSERVABLES: what actually crossed the wall this run. --
+    instructions = [r.payload for r in emit_dispatch_instructions_stacked(truth)]
+    settlement = [r.payload for r in emit_settlement_lines_stacked(truth)]
+
+    offers = [
+        CompanyVenueOffer(
+            venue=str(getattr(v.venue, "value", v.venue)),
+            offered_mw=v.offered_mw,
+            priority=v.priority,
+            is_availability=(v.basis is FlexPaymentBasis.AVAILABILITY),
+            availability_price_gbp_per_mw_hour=v.availability_price_gbp_per_mw_hour,
+            nondelivery_clawback_multiple=v.nondelivery_clawback_multiple,
+        )
+        for v in truth.venues
+    ]
+
+    common = dict(offers=offers, portfolio_mw=portfolio_mw, period_hours=period_hours)
+
+    # -- COMPANY, two readings of the SAME observables. --
+    #    (a) contention-BLIND: the cold-start party that assumes no contention.
+    blind = form_stacked_belief(truth.outturn_price, contention_awareness=0.0, **common)
+    #    (b) LEARNED: infers a contention rate from its own instruction feed.
+    learned = form_stacked_belief(
+        truth.outturn_price, observed_instructions=instructions,
+        observed_settlement_lines=settlement, **common)
+
+    true_mwh = float(np.sum(truth.total_delivered_mwh))
+    blind_mwh = float(np.sum(blind.expected_delivered_mwh))
+    learned_mwh = float(np.sum(learned.expected_delivered_mwh))
+
+    def _overclaim(expected: float) -> float:
+        if true_mwh <= 0.0:
+            return 0.0
+        return (expected - true_mwh) / true_mwh
+
+    overclaim_blind = _overclaim(blind_mwh)
+    overclaim_learned = _overclaim(learned_mwh)
+
+    # Physical contention actually present in this world -- the harness's own
+    # reading of the truth, used to tell "no over-claim because the company is
+    # good" from "no over-claim because nothing contended".
+    binding_frac = float(np.mean(truth.binding_mask)) if truth.binding_mask.size else 0.0
+
+    gap = prediction_gap(truth.total_delivered_mwh, learned.expected_delivered_mwh)
+    gap_blind = prediction_gap(truth.total_delivered_mwh, blind.expected_delivered_mwh)
+
+    return {
+        "gap": gap.gap,
+        "gap_blind_belief": gap_blind.gap,
+        "overclaim_mwh_frac": overclaim_learned,
+        "overclaim_mwh_frac_blind": overclaim_blind,
+        "contention_learning_gain": float(overclaim_blind - overclaim_learned),
+        "true_contention_binding_frac": binding_frac,
+        "learned_contention_rate": learned.learned_contention_rate,
+        "true_delivered_mwh": true_mwh,
+        "expected_delivered_mwh": learned_mwh,
+        "expected_delivered_mwh_blind": blind_mwh,
+        "worst_over_allocation_mw": worst_over_allocation_mw,
+        "true_revenue_gbp": float(np.sum(truth.total_revenue_gbp)),
+        "expected_revenue_gbp": float(np.sum(learned.expected_revenue_gbp)),
+        "n_venues": len(truth.venues),
+        "n_periods": int(truth.total_delivered_mwh.size),
+        "gap_result": gap,
+        "truth": truth,
+        "belief": learned,
+        "belief_blind": blind,
+    }
+
+
+def _default_venues(
+    *, portfolio_mw: float, availability_price_gbp_per_mw_hour: Optional[float] = None,
+) -> Sequence[VenueSpec]:
+    """A deliberately CONTENDED default book: two venues each offering 60% of
+    the portfolio, so the physical ceiling binds whenever both call. An
+    uncontended default would make the headline metric vacuously 0."""
+    offered = 0.6 * float(portfolio_mw)
+    book = [
+        VenueSpec(venue=FlexVenue.BALANCING_MECHANISM,
+                  basis=FlexPaymentBasis.UTILISATION,
+                  offered_mw=offered, priority=1,
+                  call_pct=TRUE_SCARCITY_PERCENTILE),
+    ]
+    if availability_price_gbp_per_mw_hour is not None:
+        book.append(VenueSpec(
+            venue=FlexVenue.CAPACITY_MARKET,
+            basis=FlexPaymentBasis.AVAILABILITY,
+            offered_mw=offered, priority=2,
+            call_pct=DEFAULT_AVAILABILITY_CALL_PERCENTILE,
+            availability_price_gbp_per_mw_hour=availability_price_gbp_per_mw_hour))
+    else:
+        # No sourced CM price -> a SECOND utilisation venue (a DSO local
+        # constraint product) keeps the contention physics real without
+        # inventing a GBP/kW figure.
+        book.append(VenueSpec(
+            venue=FlexVenue.DSO_LOCAL_CONSTRAINT,
+            basis=FlexPaymentBasis.UTILISATION,
+            offered_mw=offered, priority=2,
+            call_pct=DEFAULT_AVAILABILITY_CALL_PERCENTILE))
+    return book
+
+
+def build_gap_summary_l3(measurement: Dict[str, object]) -> Dict[str, object]:
+    """Compact, quotable summary of the L3 stacking gap. Like L1/L2 it does NOT
+    write the shared coupled_gap_ledger (an un-wired entry reds its consumer's
+    tests); the gap is asserted by the triad test meanwhile."""
+    return {
+        "world_atom": WORLD_ATOM_ID,
+        "twin_atom": TWIN_ATOM_ID,
+        "level": "L3",
+        "metric": "stacking over-claim (physical delivered MWh, no GBP)",
+        "gap": measurement["gap"],
+        "gap_blind_belief": measurement["gap_blind_belief"],
+        "overclaim_mwh_frac": measurement["overclaim_mwh_frac"],
+        "overclaim_mwh_frac_blind": measurement["overclaim_mwh_frac_blind"],
+        "contention_learning_gain": measurement["contention_learning_gain"],
+        "true_contention_binding_frac": measurement["true_contention_binding_frac"],
+        "learned_contention_rate": measurement["learned_contention_rate"],
+        "true_delivered_mwh": measurement["true_delivered_mwh"],
+        "expected_delivered_mwh": measurement["expected_delivered_mwh"],
+        "worst_over_allocation_mw": measurement["worst_over_allocation_mw"],
+        "note": (
+            "L3: N concurrent venues share ONE physical portfolio and the same MW "
+            "cannot be delivered twice. The SIM resolves contention by declared "
+            "priority (internal); the company sees only its own instruction and "
+            "settlement feeds, so an unobserved contention is invisible to it by "
+            "construction. A contention-blind party books both venues' MW and "
+            "over-claims delivery it cannot physically produce -- the headline is "
+            "that over-claim in PHYSICAL MWh, which carries no price, so no "
+            "un-sourced GBP/kW figure can move the score. The CM availability "
+            "clearing price remains BENCHMARK REQUIRED (NESO / EMR Delivery Body)."
         ),
     }

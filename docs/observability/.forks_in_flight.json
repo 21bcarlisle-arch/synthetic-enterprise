@@ -1,35 +1,15 @@
 {
   "purpose": "Durable, machine-readable record of BUILD forks dispatched but not yet merged. Written because the 2026-07-30 tick found the draw is BLIND TO WORK IN FLIGHT (registered on H10): it dispatched a SITE_EH2 fork while an uncommitted SITE_EH2 build already sat in a prior tick's worktree. Any tick MUST read this before dispatching, and must not re-dispatch an atom listed here as in_flight.",
   "written_by_tick": "2026-07-30T00:0xZ worker tick",
+  "updated_by_tick": "2026-07-30T00:2xZ worker tick",
   "caveat": "This file is a RECORD, not a mechanism. Nothing enforces that it is read or kept current -- it is prose-in-JSON and will decay exactly like the doorbell's fork-lifecycle rule unless the reaper/draw-guard is actually built (H10 BUILD candidate). Do not mistake its presence for a working control.",
-  "in_flight": [
-    {
-      "atom": "SITE_EH1_segment_disclosure",
-      "level": "0->1",
-      "worktree": ".claude/worktrees/agent-abdcad5f797657eb3",
-      "branch": "worktree-agent-abdcad5f797657eb3",
-      "file_scope": [
-        "site/company/",
-        "site/index.html",
-        "tools/generate_dashboard_data.py",
-        "tools/generate_company_data.py",
-        "tools/generate_world_data.py"
-      ],
-      "status": "dispatched_awaiting_return"
-    },
-    {
-      "atom": "SITE_EH2_predictions_ledger_can_fail",
-      "level": "0->1",
-      "worktree": ".claude/worktrees/agent-aebe35df16c7670fd",
-      "branch": "worktree-agent-aebe35df16c7670fd",
-      "file_scope": [
-        "site/proof/",
-        "tools/generate_proof_data.py"
-      ],
-      "status": "dispatched_awaiting_return",
-      "note": "A RIVAL uncommitted implementation of this SAME atom was rescued to d7b3db614 on worktree-agent-a6ad9f2b324019a71. Reconcile the two on the R15 requirement; do not assume either is correct."
-    }
-  ],
+  "PREDICTION_CONFIRMED_THE_RECORD_DID_NOT_WORK": {
+    "what_happened": "The very next scheduled tick (00:2xZ) drew W1_9_dsr_flex_markets, SITE1_expert_doors and SITE_EH1_segment_disclosure -- ALL THREE already had work in flight or were explicitly deferred by this file one tick earlier. SITE_EH1 was listed here as 'dispatched_awaiting_return'; SITE1_expert_doors was listed here under deferred_this_tick as NOT provably disjoint. The draw read none of it.",
+    "worse": "SITE_EH1 had in fact been dispatched to TWO concurrent forks, not one -- a second, independent implementation (836 lines, population-declaration approach) was found in an unregistered worktree. Neither fork knew about the other. The double-dispatch pathology this file recorded for SITE_EH2 was already happening again, unrecorded, for SITE_EH1.",
+    "cost_if_unfixed": "Three dead forks held 2,689 uncommitted lines. Combined with the 1,581 lines rescued the previous tick, ~4,270 lines have now come within one `git worktree prune` of being lost.",
+    "conclusion": "A record that must be voluntarily read is not a control. The fix is the H10 draw-guard/reaper: the draw itself must exclude atoms with live or unmerged work, and dead worktrees must be reaped automatically rather than by whichever tick happens to look."
+  },
+  "in_flight": [],
   "rescued_awaiting_merge": [
     {
       "branch": "worktree-agent-a7f7adeb627f11410",
@@ -47,17 +27,57 @@
       "lines": 809,
       "gated": false,
       "committed_with": "--no-verify",
-      "blocker": "collides with the in-flight SITE_EH2 fork; two rival implementations must be reconciled"
-    }
-  ],
-  "deferred_this_tick": [
-    {
-      "atom": "SITE1_expert_doors",
-      "reason": "file_scope is all of `site`, so it overlaps BOTH its own remediation children (EH1, EH2). Not provably disjoint -- cannot be a concurrent fork. Also: polishing the parent before its own Expert-Hour findings land is backwards."
+      "blocker": "RIVAL to worktree-agent-aebe35df16c7670fd's implementation of the same atom; the two must be reconciled on the R15 requirement, not merged blind"
     },
     {
-      "atom": "SITE_EH3_figure_reconciliation_and_periods",
-      "reason": "file_scope overlaps SITE_EH1 (site/company/, generate_dashboard_data.py, generate_world_data.py). Work already exists rescued at 8a7a90f66."
+      "branch": "worktree-agent-aebe35df16c7670fd",
+      "sha": "336db0261",
+      "atom": "SITE_EH2_predictions_ledger_can_fail",
+      "gated": false,
+      "blocker": "RIVAL to d7b3db614 (above). Three commits incl. 'the section header promised grading that had never happened' and 'the predictions ledger can now record a MISS'."
+    },
+    {
+      "branch": "worktree-agent-abdcad5f797657eb3",
+      "sha": "3f79e7250",
+      "atom": "SITE_EH1_segment_disclosure",
+      "lines": 818,
+      "gated": false,
+      "committed_with": "--no-verify",
+      "rescued_by_tick": "2026-07-30T00:2xZ",
+      "blocker": "RIVAL to 464998e56 (below) -- same atom, two independent implementations. Also collides with the SITE_EH3 rescue on tools/generate_dashboard_data.py + tools/generate_world_data.py."
+    },
+    {
+      "branch": "worktree-agent-a416449f398f3b333",
+      "sha": "464998e56",
+      "atom": "SITE_EH1_segment_disclosure",
+      "lines": 836,
+      "gated": false,
+      "committed_with": "--no-verify",
+      "rescued_by_tick": "2026-07-30T00:2xZ",
+      "approach": "population-declaration on every runtime anchor row: UNDECLARED is rejected by the gate, MISMATCH is rendered visibly. Explicitly changes no RAG rating, benchmark or sim value (R12/R13).",
+      "blocker": "RIVAL to 3f79e7250 (above). Reconcile the two; do not assume either is correct."
+    }
+  ],
+  "merged_to_main": [
+    {
+      "atom": "W1_9_dsr_flex_markets",
+      "rescued_from": "worktree-agent-a4d7fb957f71f8125",
+      "rescue_sha": "18a0da8f0",
+      "lines_rescued": 1035,
+      "merged_by_tick": "2026-07-30T00:2xZ",
+      "how": "FILE-SCOPE cherry-pick, NOT a branch merge -- the branch was behind main and carried stale site/ and docs/ artifacts that would have REVERTED published data (the clobber harm recorded in cb1a00af2). Only sim/flex_dispatch.py, company/market/flex_participation.py, background/flex_dispatch_triad.py and the new tests were taken.",
+      "what_was_missing": "The rescued build had ZERO tests and its HARNESS half was never written -- the triad imported the stacked API but never called it. 54 tests + measure_l3/build_gap_summary_l3 were written this tick before the level moved.",
+      "level": "0->3 self-certified to gate_authorizations.jsonl (R16)"
+    }
+  ],
+  "deferred": [
+    {
+      "atom": "SITE1_expert_doors",
+      "reason": "file_scope is all of `site`, so it overlaps BOTH its own remediation children (EH1, EH2) AND the two unreconciled EH1 rivals. Not provably disjoint -- cannot be a concurrent fork. Also: polishing the parent before its own Expert-Hour findings land is backwards. Drawn again by the 00:2xZ tick despite being deferred here one tick earlier."
+    },
+    {
+      "atom": "SITE_EH1_segment_disclosure",
+      "reason": "TWO rival implementations now sit rescued (3f79e7250, 464998e56). The next tick's job on this atom is RECONCILIATION, not a third implementation. Dispatching a fresh fork would create one."
     }
   ]
 }
