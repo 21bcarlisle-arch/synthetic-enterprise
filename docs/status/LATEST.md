@@ -1,5 +1,32 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T16:03:42Z
+Last updated: 2026-07-29T17:33Z
+
+**BUILT (2026-07-29, `90cd95039`) — the rotation↔curriculum BINDING: the missing join.**
+SPINE_1 landed the scenario substrate and the stratified run-rotation landed the grid+cursor+selector;
+they were built independently and **nothing joined them**. The grid named its worlds
+`history-default / NESO-central / crisis-replay / glut`; the curriculum artefacts named the same four
+`history_replay / neso_central / crisis_2021_22 / supply_glut`. A rotation cell therefore could not be
+resolved to a world at all — `manifest_for_next_run` stamped ledger rows whose `world_scenario` no
+artefact could answer for and whose `true_probability` no ratified artefact backed, and **every §4
+verdict (ROBUSTNESS / COMMERCIAL EV / SURVIVAL) is computed from those rows**. Built: `grid_label` on
+each artefact (the director's verbatim ruling-§2 label it implements); `grid_label_index` /
+`resolve_grid_label` — **fail-CLOSED and deliberately not fail-open-to-baseline** (a baseline fallback
+would run real history while the row claimed `crisis-replay`); `bind_cell` / `BoundCell` /
+`_reconcile_true_probability` — fail-loud on grid-vs-artefact drift, and an **unratified artefact may
+never supply an EV weight (R13)**. **5 R15 mutations RUN** (not asserted — executed), each proven to
+red its named test: baseline-fallback, duplicate-label, drift-guard, unratified-weight,
+bind-call-removed. **Dormancy held** — all four worlds still carry `true_probability: null` and are not
+rotation-eligible, so COMMERCIAL EV keeps refusing to weight; this adds a guard, it does not smuggle a
+weight into a previously-unweighted ledger. Evidence: 10 new tests green, adjacent suites 44 green,
+epistemic verifier PASS (528 files), all 5 pre-commit gates dry-run green.
+**Director's call, reversible:** the label→artefact mapping is the agent's reading of two
+director-authored name sets — correct by editing `grid_label`, no code change.
+**STILL OPEN (level stays 0, no self-bump):** no SIM generator consumes `paths_as_of` yet, so no run
+actually LIVES through a non-baseline world — the spine is resolvable but **not yet consumed**; that is
+the next increment. SPINE_2 curriculum values + ratification stay director-reserved (R13).
+Registered not fixed-on-sight (SELF_INTERRUPT_DISCIPLINE): atom
+`H29_import_time_env_capture_test_isolation` — `ntfy_utils` captures the wake HMAC key at module-import
+time, so 4 signing tests pass alone and fail in any full-suite run (pre-existing, proven unrelated).
 
 **PRODUCT LANDED (2026-07-24) — RC7 iteration 1: cohort-derived headline financials pulled off the lead surfaces (director ruling IDEA_FIRST_EXTERNAL_REGISTER).**
 Director's correction: *"£80k makes no sense either. Why is that the lead number... what matters more is the idea."* £80,056/customer (and its £1.5M/£3.8M aggregates) fails the veteran sniff test by ~3 orders of magnitude and read as a simulation artefact. Iteration 1 (this pass, gate-on-green): (1) **front door** (`site/index.html`) — the cohort-financial pulse strip (net margin / treasury / EV / bills) **removed**; the front now leads with the idea (hero + cost-to-serve thesis) and the honest build state (the model-on-a-page diagram, promoted to element 2, each node framed for its build stage — live / partly built / planned); `renderPulseStrip` + render harness + tests updated. (2) **/proof** — the *"Investor summary"* genre **retired**; §4b renamed *"The teaching cohort — simulated unit economics, not company economics"*, `renderInvestor` reframed to the required framing (**"Teaching cohort, N=19 — not scaled company economics… a real UK supplier earns tens of £/customer/yr"**), green "on-track" endorsement stripped, "transfers between books" claim removed (id `project-anchor` kept so canonical links resolve). (3) **R10 class guard** added (`test_no_cohort_financials_lead_the_front_door`) — reds if ANY cohort aggregate financial is re-rendered on the front door, not just the instance caught. **Full site suite green (282 passed, 6 skipped).** Render-verified: front door carries no cohort £; /proof note leads with the teaching-cohort framing. **Iterations 2–3 OPEN** (per-node stage-views with one-click "look at this" views; site-wide external-register sweep) — the ruling stays drawable as the top product item.
@@ -423,7 +450,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (501s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (480s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
