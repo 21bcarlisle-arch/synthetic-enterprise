@@ -136,9 +136,14 @@ def _seam_symbol_violation(path: str, lineno: int, code: str, symbol: str) -> di
 
 def _scan_seam_files_for_forbidden_symbols(paths: list[str] | None = None) -> list[dict]:
     """Scan the approved seam file(s) for any `FORBIDDEN_SEAM_SYMBOLS` token,
-    as an identifier (a function/attribute/import name) or a string literal (a
-    dict/JSON key) -- either is a real way a segment label could cross the
-    seam. A missing seam file has nothing to violate (not an unavailable
+    as an identifier (a function/attribute/import name), a parameter or
+    keyword-argument NAME (`def emit(nssec):` / `make_dict(nssec=hh.raw)`), or
+    a string literal (a dict/JSON key) -- each is a real way a segment label
+    could cross the seam. The node-type coverage here is itself a control
+    surface: omitting `ast.arg`/`ast.keyword` was a SUBSET-COVERAGE fail-open
+    one level up from the symbol set (a label crossing purely as a kwarg name
+    passed clean; CA1 red-team round 2, 2026-07-29). A missing seam file has
+    nothing to violate (not an unavailable
     check -- `company/interfaces/sim_interface.py` not existing yet is not
     this scan's failure mode). An unreadable EXISTING file IS an unavailable
     check (R15 FAIL-SILENT)."""
@@ -174,6 +179,17 @@ def _scan_seam_files_for_forbidden_symbols(paths: list[str] | None = None) -> li
                     name = node.attr
                 elif isinstance(node, ast.alias):
                     name = node.name
+                elif isinstance(node, ast.arg):
+                    # A parameter named for a segment label (`def emit(nssec):`)
+                    # is a leak-shaped signature -- the seam is built to take that
+                    # field by name.
+                    name = node.arg
+                elif isinstance(node, ast.keyword):
+                    # A keyword-argument NAME (`make_dict(nssec=hh.raw)`) pushes a
+                    # segment label across even when the VALUE is an innocent
+                    # expression the Attribute/Name branches never see. `.arg` is
+                    # None for `**kwargs` splat -- guarded by the set membership.
+                    name = node.arg
                 elif isinstance(node, ast.Constant) and isinstance(node.value, str):
                     name = node.value
                 if name in FORBIDDEN_SEAM_SYMBOLS:

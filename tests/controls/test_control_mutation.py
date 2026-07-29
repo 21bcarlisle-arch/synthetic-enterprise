@@ -470,6 +470,60 @@ def test_epistemic_verifier_seam_guard_fires_on_planted_demographic_leak(symbol)
         assert any(symbol in v["description"] for v in violations)
 
 
+@pytest.mark.parametrize("symbol", ["nssec", "green_stance", "price_sensitivity"])
+def test_epistemic_verifier_seam_guard_fires_on_kwarg_name_leak(symbol):
+    # R15 both-ways (CA1 red-team round 2, 2026-07-29): the scan's AST NODE-TYPE
+    # coverage was itself a subset. A forbidden label crossing the seam purely as
+    # a keyword-argument NAME -- `make_dict(nssec=hh.raw_value)` -- carried the
+    # segment label across while the VALUE (`hh.raw_value`) is an innocent
+    # expression the Attribute/Name/Constant branches never see, so the leak
+    # passed the scan CLEAN. This asserts the scan now FIRES on the kwarg name.
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "sim_interface.py")
+        with open(bad, "w") as fh:
+            fh.write(
+                "def build_customer(hh):\n"
+                f"    return make_dict({symbol}=hh.raw_value)\n"
+            )
+        violations = ev._scan_seam_files_for_forbidden_symbols([bad])
+        assert violations, f"seam guard failed to fire on a {symbol} kwarg-name leak"
+        assert any(symbol in v["description"] for v in violations)
+
+
+@pytest.mark.parametrize("symbol", ["nssec", "channel_pref", "co2_salience"])
+def test_epistemic_verifier_seam_guard_fires_on_param_name_leak(symbol):
+    # R15 both-ways (CA1 red-team round 2, 2026-07-29): a seam function that takes
+    # a segment label as a NAMED PARAMETER -- `def emit(nssec):` -- is a
+    # leak-shaped signature the scan must catch. The parameter name lives in an
+    # `ast.arg` node, previously unscanned (subset node-type coverage). Asserts
+    # the scan now FIRES on the parameter name.
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "sim_interface.py")
+        with open(bad, "w") as fh:
+            fh.write(
+                f"def emit_observable({symbol}):\n"
+                "    return {'x': 1}\n"
+            )
+        violations = ev._scan_seam_files_for_forbidden_symbols([bad])
+        assert violations, f"seam guard failed to fire on a {symbol} param-name leak"
+        assert any(symbol in v["description"] for v in violations)
+
+
+def test_epistemic_verifier_seam_guard_clean_on_kwargs_splat():
+    # NO FALSE POSITIVE: `**kwargs` produces an `ast.keyword` with `arg=None`.
+    # None is never in FORBIDDEN_SEAM_SYMBOLS, so a legitimate splat must NOT
+    # trip the guard -- the new node-type coverage stays fail-CLOSED without
+    # over-firing on innocent forwarding.
+    with tempfile.TemporaryDirectory() as d:
+        ok = os.path.join(d, "sim_interface.py")
+        with open(ok, "w") as fh:
+            fh.write(
+                "def build_customer(base, **kwargs):\n"
+                "    return make_dict(**kwargs, account_id=base)\n"
+            )
+        assert ev._scan_seam_files_for_forbidden_symbols([ok]) == []
+
+
 def test_seam_forbidden_symbols_cover_all_cohort_demographic_fields():
     # CLASS-CLOSURE (R10): the forbidden-symbol set must stay in lockstep with the
     # Cohort dataclass so a NEW demographic field cannot be added without either
