@@ -7,6 +7,7 @@
 # director's FRAME §A.6.iii (self-computed from Elexon primary data). Cannot enter rotation until
 # director-ratified (R13).
 world_id: supply_glut
+grid_label: "glut"   # binds to the director's rotation-grid label (FRAME A.6.iii <-> ruling 2 oversupply world)
 version: "0.1.0-proposal"
 provenance: proposal
 ratified: false

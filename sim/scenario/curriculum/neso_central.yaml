@@ -7,6 +7,7 @@
 # difficulty — this world cannot enter rotation until the director ratifies it (adds a
 # `ratification:` block + flips ratified/in_rotation).
 world_id: neso_central
+grid_label: "NESO-central"   # binds to the director's rotation-grid label (FRAME A.6.i <-> ruling 2 central path)
 version: "0.1.0-proposal"
 provenance: proposal
 ratified: false

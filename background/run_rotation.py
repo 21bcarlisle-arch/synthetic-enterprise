@@ -55,6 +55,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from background.run_manifest import RunManifest, RunOutcomes, build_manifest
+from sim.scenario.spine import ScenarioSpine, resolve_grid_label
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 GRID_PATH = _REPO_ROOT / "docs" / "design" / "run_rotation_grid.json"
@@ -63,6 +64,17 @@ CURSOR_PATH = _REPO_ROOT / "docs" / "observability" / "run_rotation_cursor.json"
 
 class CoverageError(AssertionError):
     """Raised when a rotation period fails to cover every ratified world (R15)."""
+
+
+class CurriculumDriftError(ValueError):
+    """Raised when the rotation grid and the curriculum artefact disagree (R13).
+
+    Both the grid (``docs/design/run_rotation_grid.json``) and the curriculum artefacts
+    (``sim/scenario/curriculum/*.yaml``) are DIRECTOR-owned registries, so either may
+    legitimately carry a ``true_probability``. What is never legitimate is the two
+    DISAGREEING, or an UNRATIFIED artefact supplying a weight — either would let a
+    number the director never set flow into COMMERCIAL EV.
+    """
 
 
 # --------------------------------------------------------------------------- #
@@ -245,6 +257,61 @@ def assert_period_covers_all_worlds(
 # --------------------------------------------------------------------------- #
 # The rotation -> manifest emission SEAM (item 2)                             #
 # --------------------------------------------------------------------------- #
+@dataclass(frozen=True)
+class BoundCell:
+    """A rotation cell RESOLVED to the world it actually names.
+
+    Before this binding existed, a cell carried only a label string and nothing could
+    turn it into a world: the grid said ``NESO-central``, the curriculum said
+    ``neso_central``, and no code joined them. A ledger row's "which world did this run
+    live through?" was therefore unanswerable, and its probability weight unbacked.
+    """
+
+    cell: Cell
+    spine: ScenarioSpine
+    true_probability: Optional[float]
+
+    @property
+    def world_id(self) -> str:
+        return self.spine.world_id
+
+    @property
+    def rotation_eligible(self) -> bool:
+        """Has the director ratified this world INTO rotation? (baseline is not a member)"""
+        return self.spine.is_rotation_eligible
+
+
+def _reconcile_true_probability(cell: Cell, spine: ScenarioSpine) -> Optional[float]:
+    """Agree the run's true-measure weight across the two director-owned registries.
+
+    Fail-loud on drift; never silently prefer one side. Both-null (today's state) stays
+    None, so COMMERCIAL EV keeps refusing to weight the row — dormancy preserved.
+    """
+    grid_tp, art_tp = cell.true_probability, spine.true_probability
+    if art_tp is not None and not spine.ratified:
+        raise CurriculumDriftError(
+            f"world {spine.world_id!r} carries true_probability={art_tp} but is NOT ratified "
+            "— an unratified curriculum may not supply an EV weight (R13)"
+        )
+    if grid_tp is not None and art_tp is not None and grid_tp != art_tp:
+        raise CurriculumDriftError(
+            f"true_probability drift for world {spine.world_id!r}: rotation grid says "
+            f"{grid_tp}, curriculum artefact says {art_tp} — the two director-owned "
+            "registries disagree; refusing to pick one silently"
+        )
+    return art_tp if art_tp is not None else grid_tp
+
+
+def bind_cell(cell: Cell, *, curriculum_dir: Optional[Path] = None) -> BoundCell:
+    """Resolve a grid cell to its curriculum world, fail-closed (the missing join)."""
+    spine = resolve_grid_label(cell.world_scenario, curriculum_dir)
+    return BoundCell(
+        cell=cell,
+        spine=spine,
+        true_probability=_reconcile_true_probability(cell, spine),
+    )
+
+
 def manifest_for_next_run(
     outcomes: RunOutcomes,
     *,
@@ -252,6 +319,7 @@ def manifest_for_next_run(
     cursor_path: Optional[Path] = None,
     draw_population_enabled: bool = False,
     persist_cursor: bool = True,
+    curriculum_dir: Optional[Path] = None,
     code_sha: Optional[str] = None,
     curriculum_version: Optional[str] = None,
     generated_at: Optional[str] = None,
@@ -274,10 +342,13 @@ def manifest_for_next_run(
         draw_population_enabled=draw_population_enabled,
         persist=persist_cursor,
     )
+    # Resolve the label to a real curriculum world before stamping a row. A cell that
+    # names no committed world raises here rather than emitting an unresolvable row.
+    bound = bind_cell(cell, curriculum_dir=curriculum_dir)
     return build_manifest(
         cell.world_scenario,
         outcomes,
-        true_probability=cell.true_probability,
+        true_probability=bound.true_probability,
         population_seed=cell.population_seed,
         draw_population_enabled=draw_population_enabled,
         code_sha=code_sha,

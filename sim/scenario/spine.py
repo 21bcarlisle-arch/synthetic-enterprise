@@ -138,6 +138,9 @@ class ScenarioSpine:
     sampling_weight: Optional[float]
     description: str = ""
     source_citations: tuple = ()
+    # The director's verbatim rotation-grid label this artefact IMPLEMENTS (see
+    # `resolve_grid_label`). Empty => this world is not reachable from the rotation.
+    grid_label: str = ""
     # Each path: tuple of (date, value) sorted ascending; empty tuple => no override.
     _paths: Mapping[str, tuple] = field(default_factory=dict)
 
@@ -238,6 +241,7 @@ def load_world(world_id: str, curriculum_dir: Union[str, Path, None] = None) -> 
         sampling_weight=raw.get("sampling_weight"),
         description=str(raw.get("description", "")).strip(),
         source_citations=tuple(raw.get("source_citations", []) or []),
+        grid_label=str(raw.get("grid_label", "") or "").strip(),
         _paths=_parse_paths(raw.get("paths")),
     )
 
@@ -262,6 +266,57 @@ def rotation_set(curriculum_dir: Union[str, Path, None] = None) -> list:
         if load_world(wid, curriculum_dir).is_rotation_eligible:
             out.append(wid)
     return sorted(out)
+
+
+class ScenarioLabelUnbound(ScenarioError):
+    """Raised when a rotation-grid label resolves to no committed curriculum artefact."""
+
+
+def grid_label_index(curriculum_dir: Union[str, Path, None] = None) -> dict:
+    """Map each director rotation-grid label -> the world_id implementing it.
+
+    The rotation grid (``docs/design/run_rotation_grid.json``) and this curriculum are
+    TWO director-owned registries that named the same worlds with different identifiers
+    (``NESO-central`` vs ``neso_central``, ``glut`` vs ``supply_glut``). Nothing bound
+    them, so a rotation cell could not be resolved to the world it claimed. Each artefact
+    now declares the label it implements; this is the index.
+
+    Fail-closed on a DUPLICATE claim: two artefacts claiming one label makes "which world
+    did this run live through?" ambiguous, which is precisely the question the ledger row
+    exists to answer.
+    """
+    index: dict = {}
+    for wid in available_worlds(curriculum_dir):
+        label = load_world(wid, curriculum_dir).grid_label
+        if not label:
+            continue
+        if label in index:
+            raise ScenarioArtefactError(
+                f"rotation-grid label {label!r} is claimed by two curriculum artefacts "
+                f"({index[label]!r} and {wid!r}) — ambiguous world binding, rejected fail-closed"
+            )
+        index[label] = wid
+    return index
+
+
+def resolve_grid_label(label: str, curriculum_dir: Union[str, Path, None] = None) -> ScenarioSpine:
+    """Resolve a rotation-grid label to the world the run actually lives through.
+
+    FAIL-CLOSED, and deliberately NOT fail-open-to-baseline: an unknown label raises
+    rather than quietly returning ``history_replay``. A baseline fallback would run the
+    real-history world while the ledger row claims ``crisis-replay`` — a fail-silent
+    mislabel that would corrupt every downstream ROBUSTNESS/EV/SURVIVAL verdict computed
+    from those rows (R15 fail-open + fail-silent patterns).
+    """
+    index = grid_label_index(curriculum_dir)
+    wid = index.get(label)
+    if wid is None:
+        raise ScenarioLabelUnbound(
+            f"rotation-grid label {label!r} binds to no committed curriculum artefact "
+            f"(known labels: {sorted(index)}) — refusing to fall back to the baseline, "
+            "which would run history_replay while the ledger row claims another world"
+        )
+    return load_world(wid, curriculum_dir)
 
 
 def select_for_rotation(world_id: str, curriculum_dir: Union[str, Path, None] = None) -> ScenarioSpine:

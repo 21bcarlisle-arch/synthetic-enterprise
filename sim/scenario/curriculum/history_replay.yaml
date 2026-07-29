@@ -4,6 +4,7 @@
 # This is the R13 BASELINE (ground truth), not a curriculum-difficulty world — it may change
 # only for fidelity-to-reality reasons, decided blind to company P&L (R13).
 world_id: history_replay
+grid_label: "history-default"   # binds to the director's rotation-grid label (the baseline default cell)
 version: "1.0.0"
 provenance: baseline
 ratified: true          # the baseline default is always available (not a rotation member)
