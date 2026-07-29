@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: propose_then_proceed -- wholesale-reconciliation board spec held behind its propose-then-proceed window before BUILD -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-29T02:07Z (RUNG-7 planner tick): this doc's OWN Propose-then-proceed section says "PROCEED autonomously -- doc-only DISCOVER, reversible (one file, git-revertable), no wall touched" and instructs "on completion flip this marker self-drawable -> blocked" -- i.e. its INTENDED live state is self-drawable; the blocked marker (from the 07-28 hygiene backfill default) was mis-set and hid a proceed-by-default DISCOVER, causing the false RUNG-7 fall. Flipped to self-drawable so the DISCOVER lane surfaces it (no-orphan-transition, R11). Walls untouched: any build the reconciliation recommends is a FINDING returned to the director, never self-enacted (R16); R13/curriculum/generator ground truth not read or moved; R12 counts stay diagnostic. -->
 # [PLANNER-MINTED] — BOARD_SPEC_001 (Wholesale & trading) line-by-line reconciliation (2026-07-28)
 
 > **CLOSED 2026-07-28 (DISCOVER done): reconciliation published at `docs/design/BOARD_SPEC_001_RECONCILIATION.md`.**

@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: propose_then_proceed -- merit-order/gas-first engine reconstruction; BUILD held behind its propose-then-proceed window, then registers to the map at build-draw -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-29T02:07Z (RUNG-7 planner tick): propose-then-proceed window (open until 2026-07-28, 72h from mint) has ELAPSED with NO director revision (git log shows only the 07-28 mechanical block-hygiene backfill 65ad9d83c; DISCOVER half already discharged 07-25). Per the doc the BUILD sub-atoms now register to the maturity map at build-draw; genuine agent-drawable BUILD exists (SRMC/merit-order engine reconstruction + the reconstructibility acceptance test), R13 baseline-fidelity, NOT curriculum. Flipped blocked->self-drawable so the build-draw surfaces it (no-orphan-transition, R11). Level moves stay blocked_on director_level_up (R16); front/level gate is the backstop; curriculum values untouched. -->
 <!-- DISPOSITION 2026-07-25: FRAME landed (scope items 1 & 3) →
      docs/design/frame/W1_6_merit_order_reconstruction_FRAME.md (live-vs-target form + exact diff,
      evidence-cited to sim/price_engine.py + the W1_6 fidelity row; acceptance test + unmoved-baseline

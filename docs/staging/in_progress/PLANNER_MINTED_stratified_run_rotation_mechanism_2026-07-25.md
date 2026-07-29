@@ -1,5 +1,5 @@
-<!-- SUPERVISOR_DRAW: blocked -->
-<!-- BLOCK_RELEASE: propose_then_proceed -- run-rotation mechanism BUILD held behind its propose-then-proceed window; the population-seed axis stays director-reserved -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- RELEASED 2026-07-29T02:07Z (RUNG-7 planner tick): propose-then-proceed window (open until 2026-07-28, 72h from mint) has ELAPSED with NO director revision (git log shows only the 07-28 mechanical block-hygiene backfill 65ad9d83c). Per the doc the scenario-axis MECHANISM build is now buildable (deterministic next-cell selector + committed cursor, wire scenario-axis rotation into manifest emission, coverage-of-worlds R15 test). Flipped blocked->self-drawable so the build-draw surfaces it (no-orphan-transition, R11). WALLED and untouched: SE_DRAW_POPULATION seed-axis activation (director release rung -- seed axis stays a dormant no-op single cell), scenario values + true-probability tags (R13), level moves (director_level_up, R16). Only the mechanism draws; the gate is the backstop. -->
 <!-- DISPOSITION 2026-07-25: FRAME landed (scope item 1) →
      docs/design/frame/stratified_run_rotation_FRAME.md (grid axes + cell enumeration + deterministic
      IaC-committed-cursor selector + honest partial-coverage-until-activation + the coverage-of-worlds R15
