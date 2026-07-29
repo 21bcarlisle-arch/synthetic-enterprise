@@ -44,11 +44,31 @@ surface.** Two distinct harms, only the first of which bit us:
 
 1. **Reds on legitimate progress** (this outage) — when the generator carries an internal gate
    whose precondition the test's own call violates.
-2. **Clobbers a published surface mid-pipeline** — the test rewrites the artefact the pipeline
-   just published, from a source the pipeline did not publish. Here the RED aborted before
-   commit, so nothing wrong was published; had the gate passed, `dashboard.json` would have gone
-   live describing a different run than `LATEST.md` and `ANNUAL_REPORT.md`. That is an R14/R11
-   hazard sitting one coincidence away.
+2. **Clobbers a published surface mid-pipeline — and DID, five times today.** The gate runs
+   *after* the pipeline's own dashboard generation, so on every previously-successful publish the
+   test overwrote `site/data/dashboard.json` from `run_output_latest.json` and the commit then
+   swept the test's version live. Observed on the published artefact (`git log -- site/data/dashboard.json`):
+
+   | commit | `meta.generated_at` | `meta.git_commit` | `meta.source_file` |
+   |---|---|---|---|
+   | `8cc168cb4` (first publish AFTER this fix) | 22:24:32Z | `30a065f437cf` ✅ real SHA | `run_output_90a0617e5_20260729T193422Z.json` ✅ |
+   | `a567dcefe` | 21:02:43Z | `latest` ❌ | `run_output_latest.json` ❌ |
+   | `9fe52873f` | 20:36:06Z | `latest` ❌ | `run_output_latest.json` ❌ |
+   | `96141ca47` | 20:16:09Z | `latest` ❌ | `run_output_latest.json` ❌ |
+   | `07454e3cd` | 19:44:44Z | `latest` ❌ | `run_output_latest.json` ❌ |
+   | `a3b74eea0` | 19:34:15Z | `latest` ❌ | `run_output_latest.json` ❌ |
+
+   So the live dashboard was describing whichever run happened to be newest at *gate* time — not
+   the run `LATEST.md` and `ANNUAL_REPORT.md` described — and carried the literal string `latest`
+   as its provenance where a commit SHA belongs. That is the exact fail-open
+   `generate_dashboard_data.py` documents at its `git_commit` fallback ("`run_output_latest.json`
+   yielded the literal string `latest`, which every published door then carried as its
+   git_commit… satisfies any presence check forever and can never contradict a claim"): the
+   *generator* was hardened against it, but this test kept feeding it the one input that
+   reproduces it. An R14 (no figure without its clock) and R11 breach on a live surface.
+
+   Fixing the test closed this too — verified on the first post-fix publish, which carries a real
+   SHA and the marker's own run json (top row).
 
 This is the same shape as the already-named pattern *"live-snapshot gate reds INTERMEDIATE state
 on legit progress"* — third occurrence of the family, which is why it wants a mechanism.
