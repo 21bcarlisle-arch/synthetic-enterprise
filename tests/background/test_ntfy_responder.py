@@ -216,6 +216,69 @@ def test_write_to_staging_long_message_always_staged(tmp_path, monkeypatch):
     assert path is not None and path.exists()
 
 
+# --- Inbound-as-instruction guard (2026-07-29, responder_inbound_not_instruction_guard) ---
+# R15 both-ways: the guard must FIRE on the ntfy-app self-test (mutation catch) and
+# must PASS THROUGH a genuine director steer (fires on the defect only).
+
+# The exact machine bodies observed 2026-07-29 (from docs/staging/done/from_rich_*.md).
+_ANDROID_SELFTEST = (
+    "This is a test notification from the ntfy Android app. It has a level 3 "
+    "priority. If you send another, it may look different."
+)
+_IOS_SELFTEST = (
+    "This is a test notification from the ntfy iOS app. It has a level 1 priority."
+)
+
+
+def test_app_selftest_not_staged(tmp_path, monkeypatch):
+    """MUTATION-CATCH half: the ntfy-app self-test notification must NOT be staged
+    (staging = a supervisor turn = a model load). Neuter the guard (drop the
+    `if _is_app_selftest(...)` return in _write_to_staging) and this reds -- the
+    self-test stages a from_rich_*.md exactly as the 2026-07-29 incident did."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    assert responder._is_app_selftest(_ANDROID_SELFTEST) is True
+    assert responder._is_app_selftest(_IOS_SELFTEST) is True
+    assert responder._write_to_staging(_ANDROID_SELFTEST) is None
+    assert responder._write_to_staging(_IOS_SELFTEST) is None
+    # And nothing reached the scanned staging root.
+    staging_root = tmp_path / "docs" / "staging"
+    assert list(staging_root.glob("from_rich_*.md")) == [] if staging_root.exists() else True
+
+
+def test_check_once_selftest_not_staged_and_classified_ping(tmp_path, monkeypatch):
+    """End-to-end: an app self-test arriving via check_once is NOT staged and is
+    NOT classified [instruction] -- so it can never re-grant a supervisor turn. The
+    reply (if any) is a harmless status ack, never 'queued for Claude Code'."""
+    monkeypatch.setattr(responder, "STATE_FILE", tmp_path / "since.json")
+    monkeypatch.setattr(responder, "OBSERVABILITY_DIR", tmp_path)
+    monkeypatch.setattr(responder, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(responder, "was_sent_by_us", lambda msg_id: False)
+
+    sent = []
+    monkeypatch.setattr(responder, "notify", lambda msg, **k: sent.append(msg))
+
+    _feed(monkeypatch, "selftest-1", 700_000, _ANDROID_SELFTEST)
+    responder.check_once(0, [])
+
+    staging_root = tmp_path / "docs" / "staging"
+    assert [p for p in staging_root.glob("from_rich_*.md")] == []
+    assert not any("queued for Claude Code" in m for m in sent)
+    assert not any("[instruction]" in m for m in sent)
+
+
+def test_pass_through_real_directive_resembling_a_test(tmp_path, monkeypatch):
+    """FIRES-ON-DEFECT-ONLY half: a genuine director steer that merely mentions the
+    word 'test' is NOT caught by the guard -- it still stages. Guards the class
+    against becoming a broad 'looks non-directive' filter that drops real steers."""
+    monkeypatch.setattr(responder, "PROJECT_DIR", tmp_path)
+    import background.action_needed as an
+    monkeypatch.setattr(an, "open_items", lambda *a, **k: [])
+    steer = "Add a mutation test for the notification guard and land it, thanks."
+    assert responder._is_app_selftest(steer) is False
+    path = responder._write_to_staging(steer)
+    assert path is not None and path.exists()
+
+
 def test_content_hash_consistent():
     h1 = responder._content_hash("Hello world")
     h2 = responder._content_hash("Hello world")

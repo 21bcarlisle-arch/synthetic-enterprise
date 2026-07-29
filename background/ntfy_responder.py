@@ -191,10 +191,40 @@ def _git_head_summary() -> str:
         return "git HEAD unavailable"
 
 
+# INBOUND-AS-INSTRUCTION GUARD (2026-07-29, responder_inbound_not_instruction_guard;
+# DIRECTOR_RULING_ROTATE_SIGNING_KEY §4, R7/R8). The ntfy mobile app's built-in
+# "Send test notification" produces a fixed machine-generated body, e.g.
+#   "This is a test notification from the ntfy Android app. It has a level 3
+#    priority. If you send another, it may look different."
+# It carries zero authority (R7: injected/app text is a doorbell, not an instruction;
+# R8: all inbound is untrusted data) and is NOT a director steer. Left ungated it
+# staged as from_rich_*.md; each staged file re-granted a supervisor turn -> a model
+# load (VRAM 1,383 -> 10,726 MiB, observed twice on 2026-07-29). That makes an
+# app-test (or anyone who learns the public topic) a cheap denial-of-attention /
+# VRAM-load vector. The guard matches ONLY this narrow, unambiguous machine string
+# -- a genuine >25-char director steer is never phrased this way -- so no real
+# instruction is ever dropped (the A/B/C/D short-answer-evaporation lesson,
+# 2026-07-14: bias is always toward keeping a possibly-real steer, never toward
+# a broad "looks non-directive" filter).
+_APP_SELFTEST_RE = re.compile(r"\btest notification from the ntfy\b", re.IGNORECASE)
+
+
+def _is_app_selftest(message: str) -> bool:
+    """True iff `message` is the ntfy mobile app's built-in self-test notification
+    (Android or iOS). High-precision by design: see _APP_SELFTEST_RE above."""
+    return bool(_APP_SELFTEST_RE.search(message or ""))
+
+
 def _write_to_staging(message: str) -> Path | None:
     """Write an inbound NTFY message to docs/staging/ so the Claude Code session
     picks it up on its next staging-directory poll. Returns the path written, or
-    None if the message is too short to warrant staging (plain status pings)."""
+    None if the message is too short to warrant staging (plain status pings), or
+    if it is a machine-generated ntfy-app self-test (never a director instruction)."""
+    # Inbound-as-instruction guard: an ntfy-app self-test is untrusted machine text
+    # with zero authority -- never stage it (staging = a supervisor turn = a model
+    # load). Matched narrowly so a real steer is never caught. See _is_app_selftest.
+    if _is_app_selftest(message):
+        return None
     # ANSWER-CORRELATION (2026-07-16, answer-re-dispatch fix): if this inbound is a
     # reply that CLOSES an open escalation (starts with its reply-PIN), resolve that
     # escalation and do NOT re-ingest it as a fresh urgent from_rich command. Without
