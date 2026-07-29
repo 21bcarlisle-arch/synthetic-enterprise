@@ -47,6 +47,67 @@ OCCUPANCY_PATTERN_BY_CUSTOMER = {
 }
 DEFAULT_OCCUPANCY_PATTERN = "single"
 
+# --- W2_13: people-count and composition -----------------------------------
+# `occupancy_pattern` above is a 3-way CATEGORY. `simulation.demand_model`
+# (W2_13) now keys both its occupancy responses — volume and daytime shape —
+# on a PEOPLE COUNT, with the category kept only as the fallback for a
+# household whose headcount is unknown. So the property record carries one.
+#
+# For the seven authored static customers the headcount is set explicitly and
+# consistently with the authored `occupancy_pattern` (a "single" household of
+# four people would be incoherent). These are SEED ESTIMATES of exactly the
+# same status as the occupancy patterns beside them — no real data.
+PEOPLE_COUNT_BY_CUSTOMER = {
+    "C1": 1,  # single
+    "C2": 4,  # family
+    "C3": 2,  # elderly couple
+    "C4": 3,  # family
+    "C7": 1,  # single
+    "C8": 4,  # family
+    "C9": 1,  # elderly, living alone
+}
+
+# Every other customer (the acquired/SYN cohort) draws a headcount from the
+# real population distribution: ONS Census 2021 table TS017 "Household size",
+# England — 1p 30.1%, 2p 34.0%, 3p 16.0%, 4p 12.9%, 5+p 7.0% (mean 2.37
+# persons/household), the same anchor `simulation.household_segments.
+# OCCUPANCY_POPULATION_SHARE` and `simulation.demand_model.
+# HOUSEHOLD_SIZE_POPULATION_SHARE` use. Held as a literal here rather than
+# imported because this module sits on the saas side and must not import
+# `simulation.*` (the epistemic wall) — the shared value is the published ONS
+# statistic, and `tests/saas/test_property_model.py` asserts the two agree.
+HOUSEHOLD_SIZE_SHARE_ONS_TS017 = [(1, 0.301), (2, 0.340), (3, 0.160), (4, 0.129), (5, 0.070)]
+
+# R10 GAP (a) — the adults/children split. NEED's consumption gradient is
+# keyed on ADULTS ONLY and no located table cross-tabulates adults against
+# children, so there is no anchor for how many children a household of a given
+# size contains, nor for a child's marginal consumption. This module therefore
+# does NOT fabricate a children distribution: `children_count` defaults to 0
+# (an all-adult reading of the headcount, which is exactly the basis NEED
+# publishes on) and the aggregate stays where NEED puts it. The MECHANISM for
+# children exists and is exercised in `simulation.demand_model`
+# (`child_adult_equivalence`, sampled per household from a range, never a
+# point estimate) for callers that do know a composition — the gap is the
+# population-level split, not the response.
+DEFAULT_CHILDREN_COUNT = 0
+
+
+def _derive_people_count(customer_id: str) -> int:
+    """Deterministic per-customer household size for a customer with no
+    authored headcount, drawn from the ONS TS017 distribution above.
+
+    Same per-customer-deterministic convention as `get_smart_meter_status` and
+    `simulation.household_segments`' archetype draws, under its OWN named key
+    (`people_count_<id>`) so it cannot shift any other draw's sequence (C-S2).
+    """
+    roll = _random.Random(f"people_count_{customer_id}").random()
+    cumulative = 0.0
+    for size, share in HOUSEHOLD_SIZE_SHARE_ONS_TS017:
+        cumulative += share
+        if roll < cumulative:
+            return size
+    return HOUSEHOLD_SIZE_SHARE_ONS_TS017[-1][0]  # float-rounding fallback
+
 # Seed estimates — EV/solar/smart meter mix, chosen for asset-mix diversity
 # pending real archetype data (e.g. rural detached properties are more
 # likely to have driveway EV charging and roof space for solar).
@@ -115,7 +176,12 @@ def build_properties(customers: list[dict]) -> dict:
 
     Returns a dict keyed by `customer_id`, each value:
       {customer_id, property_type, epc_rating, bedrooms, occupancy_pattern,
-       heating_system, assets: {ev, solar, smart_meter}}
+       people_count, children_count, heating_system,
+       assets: {ev, solar, smart_meter}}
+
+    `people_count`/`children_count` (W2_13) are the primary key for
+    `simulation.demand_model`'s occupancy volume and daytime-shape responses;
+    `occupancy_pattern` is retained as the coarse shape fallback.
     """
     gas_customer_ids = {
         c["customer_id"][:-1]
@@ -146,6 +212,8 @@ def build_properties(customers: list[dict]) -> dict:
             "epc_rating": phys["epc_rating"],
             "bedrooms": phys["bedrooms"],
             "occupancy_pattern": OCCUPANCY_PATTERN_BY_CUSTOMER.get(cid, DEFAULT_OCCUPANCY_PATTERN),
+            "people_count": PEOPLE_COUNT_BY_CUSTOMER.get(cid) or _derive_people_count(cid),
+            "children_count": DEFAULT_CHILDREN_COUNT,
             "heating_system": GAS_HEATING_SYSTEM if cid in gas_customer_ids else DEFAULT_HEATING_SYSTEM,
             "assets": dict(ASSET_PROFILE_BY_CUSTOMER.get(cid, DEFAULT_ASSETS)),
         }
