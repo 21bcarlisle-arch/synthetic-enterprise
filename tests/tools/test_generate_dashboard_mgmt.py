@@ -131,16 +131,61 @@ def test_net_margin_positive_in_good_year():
     assert result["annual"][0]["net_margin_gbp"] > 0
 
 
-def test_mgmt_accounts_in_dashboard_json():
+def test_mgmt_accounts_in_dashboard_json(tmp_path, monkeypatch):
+    """generate() writes management_accounts into the dashboard payload.
+
+    HERMETIC (tmp OUTPUT_PATH), matching the sibling generate() tests in
+    test_website_integrity_fix.py / test_query_interface.py. It previously wrote
+    the REAL site/data/dashboard.json and asserted generate()'s return value,
+    which wedged the publish gate for ~5h on 2026-07-29:
+
+      - generate()'s return value is the CONSISTENCY-gate result, which compares
+        the loaded run against docs/observability/run_insights.json. The publish
+        pipeline writes run_insights.json from the QUEUED MARKER's run json,
+        while this test loaded docs/reports/run_output_latest.json -- which the
+        sim runner had already advanced to a NEWER run. A sim run completes
+        every ~462s but one processing cycle takes ~600s (the 391s gate
+        included), so the marker queue is always behind and the two files name
+        two different runs. Two runs disagree on every headline figure, so the
+        gate went RED every cycle and the queue grew without bound
+        (observed: net 1521069.65 from marker run 6b03593b3 vs 1501000.74 from
+        run_output_latest.json's run e2f892e4c -- staleness, not a regression).
+      - It also rewrote the live site/data/dashboard.json mid-pipeline from a
+        source the pipeline had not published.
+
+    Cross-surface consistency is NOT this test's claim and keeps its own
+    dedicated coverage (test_website_integrity_fix.py::test_check_consistency_
+    gate_result_propagates_from_generate), and the live pipeline still enforces
+    it via generate()'s return value in process_run_complete.generate_dashboard_
+    json -- so dropping the `ok` assert here opens no fail-open.
+    """
     rj = pathlib.Path("docs/reports/run_output_latest.json")
     if not rj.exists():
         pytest.skip("run_output_latest.json not present")
-    from tools.generate_dashboard_data import generate
-    ok = generate(rj)
-    assert ok
-    db = json.loads(pathlib.Path("site/data/dashboard.json").read_text())
+    import tools.generate_dashboard_data as gdd
+
+    out_path = tmp_path / "dashboard.json"
+    monkeypatch.setattr(gdd, "OUTPUT_PATH", out_path)
+    gdd.generate(rj)
+
+    db = json.loads(out_path.read_text())
     assert "management_accounts" in db
     assert len(db["management_accounts"]["annual"]) >= 1
+
+
+def test_mgmt_accounts_test_does_not_write_the_live_dashboard():
+    """R15 mutation-anchor for the wedge above: the live publish surface must
+    not be a test's output path. A publish-gate test that writes the artefact
+    the pipeline just published can red on legitimate progress (and can clobber
+    it), so pin the tmp-output contract rather than trusting the prose."""
+    src = pathlib.Path(__file__).read_text()
+    body = src.split("def test_mgmt_accounts_in_dashboard_json", 1)[1]
+    body = body.split("\ndef test_mgmt_accounts_test_does_not_write", 1)[0]
+    code = "\n".join(ln for ln in body.splitlines() if not ln.strip().startswith("-"))
+    assert 'monkeypatch.setattr(gdd, "OUTPUT_PATH"' in code, \
+        "the generate() test must redirect OUTPUT_PATH to tmp_path"
+    assert 'json.loads(pathlib.Path("site/data/dashboard.json")' not in code, \
+        "the generate() test must not read back the live site/data/dashboard.json"
 
 
 def test_extract_mgmt_accounts_single_year():
