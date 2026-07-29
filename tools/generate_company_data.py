@@ -25,6 +25,7 @@ R14 (SITE_CONSTITUTION binding rule 2): EVERY financial figure carries its clock
 explicit `//`-basis note. No number appears without its evidence source.
 """
 import json
+import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -554,6 +555,173 @@ def _stress_bands(sample):
     )
 
 
+# ---------------------------------------------------------------------------
+# SEGMENT DISCLOSURE (atom SITE_EH1_segment_disclosure, 2026-07-29)
+#
+# /company/ leads its finance panel with "Net margin / customer" and "Revenue /
+# customer" -- the latest-year management-accounts figure divided by
+# stress_bands.total sampled accounts. Correct arithmetic, correct clock (R14),
+# and until now WITHOUT its segment: the book's revenue is ~99% non-domestic,
+# so the blended figure is not a household figure and must never appear naked.
+#
+# This block is a RENDERING of the derived mix already computed in
+# generate_dashboard_data.extract_segment_mix (SITE_CONSTITUTION rule 3: the
+# site is a rendering, never an author) plus one thing only this file knows:
+# the composition of the denominator the PAGE actually divides by
+# (stress_bands, from customer_sample.json), which is a different source from
+# the lifetime table the mix counts. Both compositions are published so a
+# divergence between them is visible rather than silently averaged.
+#
+# DISCLOSURE ONLY (R13): nothing here changes the book, and no figure is
+# retuned (R12). The mix's clock is `settled`; the per-customer tiles are
+# `billed` -- both clocks are stated, and the mix is NOT presented as a
+# decomposition of the billed tiles.
+# ---------------------------------------------------------------------------
+def _segment_disclosure(dashboard, sample):
+    mix = dict(((dashboard or {}).get("financial") or {}).get("segment_mix") or {})
+    if not mix:
+        return dict(available=False,
+                    reason="dashboard.financial.segment_mix absent -- regenerate "
+                           "site/data/dashboard.json (segment axis is required)")
+
+    # The PAGE's own denominator, from the same sample the finance tiles use.
+    # I&C is identified by account id (the customer_sample convention), so this
+    # count is independent of the lifetime table's `segment` field above.
+    custs = ((sample or {}).get("customers")) or {}
+    page_total = len(custs)
+    page_ic = sum(1 for cid in custs if "IC" in str(cid))
+    page_other = page_total - page_ic
+    page_note = (
+        "÷ {} sampled customers ({} resi/SME + {} I&C)".format(page_total, page_other, page_ic)
+        if page_total else None)
+
+    lifetime_ic = int((mix.get("customer_composition") or {}).get("I&C") or 0)
+    mix.update(
+        available=True,
+        page_denominator=dict(total=page_total, ic=page_ic, resi_or_sme=page_other,
+                              source="site/data/customer_sample.json (customer ids)"),
+        page_denominator_note=page_note,
+        # Two independent counts of the same book. Equal today; if they diverge
+        # the page says so instead of quietly picking one.
+        denominator_agrees_with_lifetime=(page_total == int(mix.get("customer_total") or 0)
+                                          and page_ic == lifetime_ic),
+        clock_note=(
+            "The mix is the SETTLED clock (settlement-derived segment rows); the per-customer "
+            "tiles are the BILLED clock (management accounts). Different clocks -- the segment "
+            "split is the composition of the book, not a decomposition of the billed tiles."),
+        passport=dict(
+            sources=[
+                "site/data/dashboard.json -> financial.segment_mix (derived from segment_annual)",
+                "site/data/customer_sample.json (the finance tiles' own denominator)",
+            ],
+            rule="SITE_EH1_segment_disclosure -- no blended £/customer figure appears "
+                 "without its segment split or its denominator's composition. "
+                 "DISCLOSURE ONLY: composition is CURRICULUM (R13).",
+        ),
+    )
+    return mix
+
+
+def _check_company_segment_disclosure(data):
+    """R15 gate for the /company/ segment disclosure.
+
+    Named defect it must fire on: company.json shipping a per-customer money
+    figure with no segment axis, or with an axis that disagrees with the
+    denominator the page divides by.
+
+    Not a tautology: it re-derives the page denominator from customer_sample
+    account ids (already done above) and cross-checks the SHARES against
+    dashboard.financial.segment_annual arithmetic, not against the block it is
+    checking. Not fail-open: absent/empty/unavailable disclosure FAILS, a
+    per-customer figure present with no disclosure FAILS, and a clockless or
+    noteless disclosure FAILS. Not fail-silent: it asserts the recomputed share
+    value appears in the sentence, never that some string is present.
+    """
+    problems = []
+    sd = (data or {}).get("segment_disclosure")
+    fin = (data or {}).get("finance") or {}
+    has_per_customer = (fin.get("latest_year_net_margin_gbp") is not None
+                        or fin.get("latest_year_revenue_gbp") is not None)
+    if not isinstance(sd, dict) or not sd.get("available"):
+        if has_per_customer:
+            problems.append(
+                "finance publishes a latest-year figure that the page divides by the sampled "
+                "book, but segment_disclosure is absent/unavailable ({})".format(
+                    (sd or {}).get("reason") if isinstance(sd, dict) else type(sd).__name__))
+        return _company_segment_verdict(problems)
+
+    for field in ("clock", "clock_note", "denominator_note", "page_denominator_note",
+                  "disclosure_sentence"):
+        if not sd.get(field):
+            problems.append("segment_disclosure.{} missing/empty".format(field))
+
+    by_seg = sd.get("by_segment") or []
+    if not by_seg:
+        problems.append("segment_disclosure.by_segment is empty -- no split to render")
+
+    total_rev = float(sd.get("total_revenue_gbp") or 0.0)
+    if total_rev > 0:
+        # Independent arithmetic: shares must be the segment's own revenue over
+        # the published total, and the non-domestic share must be 100 minus the
+        # domestic share. A hand-set or stale share fails here.
+        summed = 0.0
+        for e in by_seg:
+            if not isinstance(e, dict):
+                problems.append("by_segment holds a non-dict row")
+                continue
+            want = round(100.0 * float(e.get("revenue_gbp") or 0.0) / total_rev, 2)
+            got = e.get("revenue_share_pct")
+            if got is None or abs(float(got) - want) > 0.01:
+                problems.append("segment {!r} revenue_share_pct={} but recomputes to {}".format(
+                    e.get("segment"), got, want))
+            summed += float(e.get("revenue_gbp") or 0.0)
+        if abs(summed - total_rev) > 0.05:
+            problems.append("by_segment revenue sums to {:.2f}, not total_revenue_gbp={:.2f}".format(
+                summed, total_rev))
+        dom = sum(float(e.get("revenue_gbp") or 0.0) for e in by_seg
+                  if isinstance(e, dict) and e.get("domestic"))
+        want_nd = round(100.0 * (total_rev - dom) / total_rev, 2)
+        got_nd = sd.get("non_domestic_revenue_share_pct")
+        if got_nd is None or abs(float(got_nd) - want_nd) > 0.01:
+            problems.append("non_domestic_revenue_share_pct={} but recomputes to {}".format(
+                got_nd, want_nd))
+        if "{:.2f}".format(want_nd) not in (sd.get("disclosure_sentence") or ""):
+            problems.append(
+                "disclosure_sentence does not state the recomputed non-domestic share "
+                "{:.2f}% -- {!r}".format(want_nd, sd.get("disclosure_sentence")))
+
+    pd = sd.get("page_denominator") or {}
+    if not pd.get("total"):
+        problems.append("page_denominator.total missing/zero -- the tile's denominator is unstated")
+    else:
+        for part in (str(pd.get("total")), str(pd.get("ic")), str(pd.get("resi_or_sme"))):
+            if part not in (sd.get("page_denominator_note") or ""):
+                problems.append(
+                    "page_denominator_note {!r} does not state its own composition "
+                    "({} total / {} I&C / {} resi+SME)".format(
+                        sd.get("page_denominator_note"), pd.get("total"), pd.get("ic"),
+                        pd.get("resi_or_sme")))
+                break
+    if sd.get("denominator_agrees_with_lifetime") is False:
+        problems.append(
+            "page denominator {} does not agree with the lifetime table's {} accounts -- "
+            "the split describes a different book from the one the tiles divide by".format(
+                pd.get("total"), sd.get("customer_total")))
+    return _company_segment_verdict(problems)
+
+
+def _company_segment_verdict(problems):
+    if problems:
+        print(
+            "COMPANY SEGMENT-DISCLOSURE GATE FAILED ({} problem(s)): {}\n"
+            "  Wherever money is divided by customers, the segment split must be published "
+            "(atom SITE_EH1_segment_disclosure). Fix the DISCLOSURE -- never the book (R13) "
+            "and never the figure (R12).".format(len(problems), "; ".join(problems)),
+            file=sys.stderr)
+        return False
+    return True
+
+
 def generate():
     dashboard = _load(DASHBOARD_PATH) or {}
     bridge = _load(BRIDGE_PATH) or {}
@@ -565,6 +733,9 @@ def generate():
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         dashboard_generated_at=meta.get("generated_at"),
         git_commit=meta.get("git_commit"),
+        # SITE_EH1: the segment axis leads the file, as it leads the page --
+        # the reader learns who the book is before any money is divided by it.
+        segment_disclosure=_segment_disclosure(dashboard, sample),
         finance=_three_clock_finance(dashboard, bridge, ledger),
         trading_risk=_trading_risk(dashboard),
         household=_household(sample, ledger),
@@ -573,6 +744,8 @@ def generate():
         stress_bands=_stress_bands(sample),
         compliance=_compliance(dashboard),
     )
+    if not _check_company_segment_disclosure(data):
+        raise SystemExit(1)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
     print("Written: " + str(OUT_PATH))

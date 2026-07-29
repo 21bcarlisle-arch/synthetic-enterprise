@@ -392,6 +392,192 @@ def extract_financial(data):
     }
 
 
+# ---------------------------------------------------------------------------
+# SEGMENT DISCLOSURE (atom SITE_EH1_segment_disclosure, 2026-07-29)
+#
+# The cold-eyes Expert Hour that FAILED SITE1_expert_doors found this as its
+# single most damaging defect: /company/ publishes "Net margin / customer" and
+# "Revenue / customer" -- correctly clock-labelled (R14) and honestly divided by
+# the 19 sampled accounts -- over a book whose revenue is ~99% NON-DOMESTIC
+# (I&C contracts), while the front door, the mission, the score and the
+# personalisation thesis are all residential. The clock was labelled on every
+# figure and the SEGMENT on none, so a blended £/customer read as a household
+# figure ~450-1000x real domestic net margin per customer.
+#
+# This block is the missing SEGMENT axis. Three properties, all binding:
+#   * DERIVED, never authored: every share is computed here from
+#     financial.segment_annual and every customer count from the per-customer
+#     `segment` field in customers.lifetime, so the disclosure stays true as
+#     the book changes. No share is ever hardcoded.
+#   * DISCLOSURE ONLY (R13): this changes what is SAID about the book, never
+#     the book. Composition/weighting is CURRICULUM -- the director's
+#     instrument -- and no figure here is retuned toward plausibility (R12).
+#   * CLOCK-CARRYING (R14): segment_annual reconciles to financial.annual and
+#     hence to portfolio.net_margin_gbp, i.e. it is the SETTLED clock. The
+#     per-customer tiles on /company/ are the BILLED clock (management
+#     accounts). Those are different clocks, so this block states its own
+#     clock explicitly and is NOT presented as a decomposition of the billed
+#     tiles -- adding the segment axis must not blur the clock axis.
+# ---------------------------------------------------------------------------
+
+# Canonical segment labels. `resi` is the only DOMESTIC segment; SME and I&C
+# are both non-domestic (business) supply, which is why the disclosure reports
+# a domestic/non-domestic split as well as the I&C share on its own.
+SEGMENT_MIX_CLOCK = "settled"
+DOMESTIC_SEGMENTS = ("resi",)
+_SEGMENT_CANON = {
+    "resi": "resi", "residential": "resi", "domestic": "resi",
+    "sme": "SME", "i&c": "I&C", "ic": "I&C", "i_and_c": "I&C",
+}
+
+
+def _canon_segment(label):
+    raw = str(label if label is not None else "").strip()
+    return _SEGMENT_CANON.get(raw.lower(), raw or "unknown")
+
+
+def _share_pct(part, whole):
+    return round(100.0 * part / whole, 2) if whole else None
+
+
+def extract_segment_mix(financial, customers):
+    """Emit ``financial.segment_mix`` -- the revenue/margin mix by segment plus
+    the composition of the per-customer denominator. See the block comment
+    above for why this exists and what it may not do."""
+    segment_annual = (financial or {}).get("segment_annual") or []
+    lifetime = (customers or {}).get("lifetime") or {}
+
+    rev_by_seg, net_by_seg = defaultdict(float), defaultdict(float)
+    rev_by_cell, net_by_cell = defaultdict(float), defaultdict(float)
+    latest_rev, latest_net = defaultdict(float), defaultdict(float)
+    latest_year = None
+    for row in segment_annual:
+        if not isinstance(row, dict):
+            continue
+        is_latest = row.get("year") is not None and (
+            latest_year is None or int(row["year"]) >= latest_year)
+        if is_latest:
+            latest_year = int(row["year"])
+            latest_rev, latest_net = defaultdict(float), defaultdict(float)
+        for key, cell in row.items():
+            if key == "year" or not isinstance(cell, dict):
+                continue
+            seg_raw, _, fuel = str(key).rpartition("_")
+            seg = _canon_segment(seg_raw)
+            rev = float(cell.get("revenue_gbp") or 0.0)
+            net = float(cell.get("net_gbp") or 0.0)
+            rev_by_seg[seg] += rev
+            net_by_seg[seg] += net
+            rev_by_cell[(seg, fuel)] += rev
+            net_by_cell[(seg, fuel)] += net
+            if is_latest:
+                latest_rev[seg] += rev
+                latest_net[seg] += net
+
+    total_rev = round(sum(rev_by_seg.values()), 2)
+    total_net = round(sum(net_by_seg.values()), 2)
+
+    counts = defaultdict(int)
+    for cust in lifetime.values():
+        if isinstance(cust, dict):
+            counts[_canon_segment(cust.get("segment"))] += 1
+    total_customers = sum(counts.values())
+
+    by_segment = []
+    for seg in sorted(rev_by_seg, key=lambda s: -rev_by_seg[s]):
+        n = counts.get(seg, 0)
+        by_segment.append({
+            "segment": seg,
+            "domestic": seg in DOMESTIC_SEGMENTS,
+            "revenue_gbp": round(rev_by_seg[seg], 2),
+            "revenue_share_pct": _share_pct(rev_by_seg[seg], total_rev),
+            "net_gbp": round(net_by_seg[seg], 2),
+            "net_share_pct": _share_pct(net_by_seg[seg], total_net),
+            "customer_count": n,
+            "customer_share_pct": _share_pct(n, total_customers),
+            # Latest-year unit economics AT THIS BLOCK'S OWN CLOCK (settled),
+            # with the segment's own denominator -- the figure the blended
+            # £/customer tile hid. None when the segment has no accounts in
+            # the drawn sample (never a silent divide-by-zero).
+            "latest_year_revenue_gbp": round(latest_rev.get(seg, 0.0), 2),
+            "latest_year_net_gbp": round(latest_net.get(seg, 0.0), 2),
+            "latest_year_revenue_per_customer_gbp": (
+                round(latest_rev.get(seg, 0.0) / n, 2) if n else None),
+            "latest_year_net_per_customer_gbp": (
+                round(latest_net.get(seg, 0.0) / n, 2) if n else None),
+        })
+
+    by_segment_fuel = []
+    for (seg, fuel) in sorted(rev_by_cell, key=lambda k: -rev_by_cell[k]):
+        by_segment_fuel.append({
+            "segment": seg,
+            "fuel": fuel,
+            "revenue_gbp": round(rev_by_cell[(seg, fuel)], 2),
+            "revenue_share_pct": _share_pct(rev_by_cell[(seg, fuel)], total_rev),
+            "net_gbp": round(net_by_cell[(seg, fuel)], 2),
+        })
+
+    domestic_rev = sum(v for s, v in rev_by_seg.items() if s in DOMESTIC_SEGMENTS)
+    non_domestic_rev = total_rev - domestic_rev
+    ic_share = _share_pct(rev_by_seg.get("I&C", 0.0), total_rev)
+    non_domestic_share = _share_pct(non_domestic_rev, total_rev)
+    domestic_share = _share_pct(domestic_rev, total_rev)
+    dominant = by_segment[0]["segment"] if by_segment else None
+    dominant_share = by_segment[0]["revenue_share_pct"] if by_segment else None
+
+    # The denominator's composition, in words -- what any blended £/customer
+    # figure is actually divided by. Ordered domestic-first so a reader sees
+    # how few of the accounts carry the revenue.
+    comp_parts = [
+        "{} {}".format(counts[s], s)
+        for s in sorted(counts, key=lambda s: (s not in DOMESTIC_SEGMENTS, s))
+    ]
+    denominator_note = (
+        "{} = {} sampled accounts".format(" + ".join(comp_parts), total_customers)
+        if comp_parts else None)
+
+    disclosure = None
+    if dominant is not None and non_domestic_share is not None:
+        disclosure = (
+            "{}% of revenue is non-domestic ({}% I&C contracts, {}% domestic households) "
+            "on the {} clock, earned by {} of {} sampled accounts. Any figure divided by the "
+            "whole book is a blend of both, not a household figure."
+        ).format(
+            non_domestic_share, ic_share, domestic_share, SEGMENT_MIX_CLOCK,
+            total_customers - counts.get("resi", 0), total_customers,
+        )
+
+    return {
+        "clock": SEGMENT_MIX_CLOCK,
+        "basis": (
+            "Revenue/net by segment summed across every year of "
+            "financial.segment_annual (settlement-derived; reconciles to "
+            "financial.annual and portfolio.net_margin_gbp). Customer counts from "
+            "customers.lifetime's own per-account `segment` field. Derived, never authored."
+        ),
+        "latest_year": latest_year,
+        "total_revenue_gbp": total_rev,
+        "total_net_gbp": total_net,
+        "by_segment": by_segment,
+        "by_segment_fuel": by_segment_fuel,
+        "dominant_segment": dominant,
+        "dominant_revenue_share_pct": dominant_share,
+        "ic_revenue_share_pct": ic_share,
+        "non_domestic_revenue_share_pct": non_domestic_share,
+        "domestic_revenue_share_pct": domestic_share,
+        "customer_composition": dict(counts),
+        "customer_total": total_customers,
+        "denominator_note": denominator_note,
+        "disclosure_sentence": disclosure,
+        "evidence": "site/data/dashboard.json -> financial.segment_annual; customers.lifetime",
+        "rule": (
+            "SITE_EH1_segment_disclosure -- wherever money is divided by customers the "
+            "segment split (or at minimum the denominator's composition) is stated. "
+            "DISCLOSURE ONLY: the book's composition is CURRICULUM (R13)."
+        ),
+    }
+
+
 def extract_flexibility(data):
     """Phase NY: Flexibility revenue summary for site/ dashboard tab."""
     flex = data.get("flexibility_revenue_summary", {})
@@ -1607,11 +1793,18 @@ def generate(run_json_path=None):
         },
     }
 
+    # SITE_EH1_segment_disclosure: the segment axis, attached after assembly
+    # because it joins two blocks (financial.segment_annual x customers.lifetime).
+    dashboard["financial"]["segment_mix"] = extract_segment_mix(
+        dashboard["financial"], dashboard["customers"])
+
     consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
     population_ok = _check_population_consistency(data, dashboard)
     basis_ok = _check_basis_labels_present(portfolio)
     bridge_ok = _check_bridge_reconciles()
-    consistency_ok = consistency_ok and population_ok and basis_ok and bridge_ok
+    segment_ok = _check_segment_disclosure(dashboard)
+    consistency_ok = (consistency_ok and population_ok and basis_ok
+                      and bridge_ok and segment_ok)
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1736,6 +1929,188 @@ def _check_basis_labels_present(portfolio):
             "BASIS-LABEL GATE FAILED: headline figure(s) missing a basis label -- {}".format(
                 ", ".join(missing)
             ),
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+# Tolerances for the segment-disclosure gate. Shares are emitted to 2dp, so a
+# half-of-last-digit slack is the only legitimate difference between the emitter
+# and the gate's own independent recomputation.
+_SEGMENT_SHARE_TOLERANCE_PCT = 0.01
+_SEGMENT_GBP_TOLERANCE = 0.05
+
+
+def _check_segment_disclosure(dashboard):
+    """SITE_EH1_segment_disclosure gate (R15).
+
+    The named defect this must fire on: a per-customer money figure published
+    over a book whose segment composition is undisclosed, or a segment
+    disclosure that has gone stale/wrong relative to the book it describes.
+
+    R15 doctrine, addressed explicitly:
+      * TAUTOLOGY -- this function does NOT call extract_segment_mix() or share
+        any helper with it. It re-derives every share and every customer count
+        from the raw published blocks (financial.segment_annual,
+        customers.lifetime) with its own arithmetic. The duplication is
+        deliberate and must not be refactored away: if the gate and the emitter
+        shared code, mutating the emitter would mutate the gate and the control
+        could not fail.
+      * FAIL-OPEN -- a missing, empty, non-dict or share-less segment_mix FAILS.
+        A clock-less block FAILS (R14 still binds on the new axis). A book with
+        revenue but no known customer composition FAILS, because a £/customer
+        figure cannot honestly be published over an unknown denominator.
+      * FAIL-SILENT -- the checks assert the REAL recomputed values, never mere
+        presence of a string. The disclosure sentence and the denominator note
+        must literally contain the recomputed share and the recomputed account
+        count, so a placeholder or a stale hardcoded number fails.
+    """
+    problems = []
+    financial = (dashboard or {}).get("financial")
+    if not isinstance(financial, dict):
+        problems.append("dashboard.financial missing or not a dict")
+        return _segment_gate_verdict(problems)
+
+    mix = financial.get("segment_mix")
+    if not isinstance(mix, dict) or not mix:
+        problems.append(
+            "financial.segment_mix missing/empty -- money is divided by customers on "
+            "/company/ with no segment axis published (the exact defect this gate exists for)")
+        return _segment_gate_verdict(problems)
+    if not mix.get("clock"):
+        problems.append("segment_mix carries no clock label (R14 binds on the segment axis too)")
+    if not mix.get("basis"):
+        problems.append("segment_mix carries no basis note")
+
+    # --- independent re-derivation (no shared helper with the emitter) --------
+    truth_rev = {}
+    truth_net = {}
+    rows = financial.get("segment_annual")
+    if not isinstance(rows, list):
+        problems.append("financial.segment_annual missing/not a list -- cannot verify the disclosure")
+        return _segment_gate_verdict(problems)
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for key, cell in row.items():
+            if key == "year" or not isinstance(cell, dict):
+                continue
+            name = str(key).rsplit("_", 1)[0].strip().lower()
+            seg = {"resi": "resi", "residential": "resi", "domestic": "resi",
+                   "sme": "SME", "ic": "I&C", "i&c": "I&C", "i_and_c": "I&C"}.get(name, name)
+            truth_rev[seg] = truth_rev.get(seg, 0.0) + float(cell.get("revenue_gbp") or 0.0)
+            truth_net[seg] = truth_net.get(seg, 0.0) + float(cell.get("net_gbp") or 0.0)
+    truth_total = sum(truth_rev.values())
+
+    truth_counts = {}
+    lifetime = ((dashboard.get("customers") or {}).get("lifetime")) or {}
+    if isinstance(lifetime, dict):
+        for cust in lifetime.values():
+            if not isinstance(cust, dict):
+                continue
+            name = str(cust.get("segment") or "").strip().lower()
+            seg = {"resi": "resi", "residential": "resi", "domestic": "resi",
+                   "sme": "SME", "ic": "I&C", "i&c": "I&C", "i_and_c": "I&C"}.get(name, name or "unknown")
+            truth_counts[seg] = truth_counts.get(seg, 0) + 1
+    truth_customers = sum(truth_counts.values())
+
+    if abs(float(mix.get("total_revenue_gbp") or 0.0) - truth_total) > _SEGMENT_GBP_TOLERANCE:
+        problems.append("total_revenue_gbp={} but segment_annual sums to {:.2f}".format(
+            mix.get("total_revenue_gbp"), truth_total))
+
+    if truth_total <= 0:
+        # No segment revenue at all: the disclosure must SAY so (empty split,
+        # zero total) rather than be absent. Share checks are meaningless here,
+        # but the block, its clock and its composition are still required above.
+        for entry in (mix.get("by_segment") or []):
+            if isinstance(entry, dict) and float(entry.get("revenue_gbp") or 0.0) != 0.0:
+                problems.append(
+                    "segment_mix claims revenue for {!r} over a book whose segment rows "
+                    "sum to zero".format(entry.get("segment")))
+        return _segment_gate_verdict(problems)
+
+    if truth_customers <= 0:
+        problems.append(
+            "book has revenue ({:.2f}) but customers.lifetime declares no segments -- a "
+            "£/customer figure cannot be published over an unknown denominator".format(truth_total))
+
+    published = {}
+    for entry in (mix.get("by_segment") or []):
+        if not isinstance(entry, dict) or not entry.get("segment"):
+            problems.append("by_segment contains a row with no segment label")
+            continue
+        published[entry["segment"]] = entry
+    if not published:
+        problems.append("segment_mix.by_segment is empty over a book with revenue")
+
+    for seg, rev in sorted(truth_rev.items()):
+        entry = published.get(seg)
+        if entry is None:
+            problems.append("segment {!r} ({:.2f} revenue) is absent from the published mix".format(seg, rev))
+            continue
+        want_share = round(100.0 * rev / truth_total, 2)
+        got_share = entry.get("revenue_share_pct")
+        if got_share is None or abs(float(got_share) - want_share) > _SEGMENT_SHARE_TOLERANCE_PCT:
+            problems.append("segment {!r} revenue_share_pct={} but recomputes to {}".format(
+                seg, got_share, want_share))
+        if abs(float(entry.get("revenue_gbp") or 0.0) - rev) > _SEGMENT_GBP_TOLERANCE:
+            problems.append("segment {!r} revenue_gbp={} but recomputes to {:.2f}".format(
+                seg, entry.get("revenue_gbp"), rev))
+        want_n = truth_counts.get(seg, 0)
+        if int(entry.get("customer_count") or 0) != want_n:
+            problems.append("segment {!r} customer_count={} but customers.lifetime holds {}".format(
+                seg, entry.get("customer_count"), want_n))
+
+    share_sum = sum(float(e.get("revenue_share_pct") or 0.0) for e in published.values())
+    if abs(share_sum - 100.0) > 0.5:
+        problems.append("published revenue shares sum to {:.2f}%, not 100%".format(share_sum))
+
+    truth_domestic = sum(v for s, v in truth_rev.items() if s in DOMESTIC_SEGMENTS)
+    want_non_dom = round(100.0 * (truth_total - truth_domestic) / truth_total, 2)
+    want_dom = round(100.0 * truth_domestic / truth_total, 2)
+    want_ic = round(100.0 * truth_rev.get("I&C", 0.0) / truth_total, 2)
+    for label, want, got in (
+        ("non_domestic_revenue_share_pct", want_non_dom, mix.get("non_domestic_revenue_share_pct")),
+        ("domestic_revenue_share_pct", want_dom, mix.get("domestic_revenue_share_pct")),
+        ("ic_revenue_share_pct", want_ic, mix.get("ic_revenue_share_pct")),
+    ):
+        if got is None or abs(float(got) - want) > _SEGMENT_SHARE_TOLERANCE_PCT:
+            problems.append("{}={} but recomputes to {}".format(label, got, want))
+
+    want_dominant = max(truth_rev, key=lambda s: truth_rev[s])
+    if mix.get("dominant_segment") != want_dominant:
+        problems.append("dominant_segment={!r} but the largest segment by revenue is {!r}".format(
+            mix.get("dominant_segment"), want_dominant))
+
+    if dict(mix.get("customer_composition") or {}) != truth_counts:
+        problems.append("customer_composition={} but customers.lifetime holds {}".format(
+            dict(mix.get("customer_composition") or {}), truth_counts))
+    if int(mix.get("customer_total") or 0) != truth_customers:
+        problems.append("customer_total={} but customers.lifetime holds {} accounts".format(
+            mix.get("customer_total"), truth_customers))
+
+    # The rendered strings must carry the RECOMPUTED values, not any string.
+    note = mix.get("denominator_note") or ""
+    if truth_customers and str(truth_customers) not in note:
+        problems.append("denominator_note {!r} does not state the real account count {}".format(
+            note, truth_customers))
+    sentence = mix.get("disclosure_sentence") or ""
+    if "{:.2f}".format(want_non_dom) not in sentence:
+        problems.append("disclosure_sentence {!r} does not state the real non-domestic share {:.2f}%".format(
+            sentence, want_non_dom))
+
+    return _segment_gate_verdict(problems)
+
+
+def _segment_gate_verdict(problems):
+    if problems:
+        print(
+            "SEGMENT-DISCLOSURE GATE FAILED ({} problem(s)): {}\n"
+            "  The book's segment composition must be disclosed wherever money is divided by "
+            "customers (atom SITE_EH1_segment_disclosure). Fix the DISCLOSURE -- never the "
+            "book's composition (R13, curriculum) and never a figure (R12, diagnostics).".format(
+                len(problems), "; ".join(problems)),
             file=sys.stderr,
         )
         return False

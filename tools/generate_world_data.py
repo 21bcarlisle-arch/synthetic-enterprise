@@ -298,19 +298,111 @@ def _crossing_blindfold(dashboard, sim):
 # ---------------------------------------------------------------------------
 # The anchors register.
 # ---------------------------------------------------------------------------
-def _anchors_runtime(anchoring):
-    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept."""
+#
+# BENCHMARKED POPULATION (atom SITE_EH1_segment_disclosure, 2026-07-29)
+#
+# BLOCKER-2 from the cold-eyes Expert Hour that failed SITE1_expert_doors:
+# /data/world.json rated a 2.5x churn miss (sim 5.5% vs Ofgem 13.6%, ratio 0.4)
+# GREEN via the free-text note "SIM portfolio is predominantly I&C (B2B contract
+# churn) vs Ofgem residential switching". That is benchmark-shopping: the book's
+# true composition was disclosed ONLY where it EXCUSED a failed benchmark, and
+# a residential benchmark was cleared by an I&C note.
+#
+# The fix is disclosure, not re-rating. Every runtime anchor row now declares,
+# as an explicit field AND in its rendered text, WHICH POPULATION the external
+# benchmark measures, read from the anchoring file's own source strings (never
+# invented -- a source that names no population yields UNDECLARED, which the
+# gate rejects rather than passes). Where the declared population does not match
+# the book's actual composition, the row says MISMATCH in the text a reader
+# sees, so the mismatch is VISIBLE instead of exculpatory.
+#
+# What this does NOT do (R12/R13 walls): it does not change any RAG rating, any
+# benchmark value, any sim value, or the book's composition. The rating is kept
+# exactly as measured; only the disclosure around it changes.
+_POP_DOMESTIC = "DOMESTIC households"
+_POP_IC = "I&C / business supply"
+_POP_ALL = "ALL-SUPPLY industry aggregate (no segment split in source)"
+_POP_UNDECLARED = "UNDECLARED"
+
+
+def _population_verdict(population, mix):
+    """Compare an external benchmark's population against the BOOK's actual
+    composition (derived, from dashboard.financial.segment_mix -- never a
+    literal). Returns (status, sentence). Status is one of MATCH / MISMATCH /
+    AGGREGATE / UNKNOWN; the sentence is rendered verbatim on the card."""
+    dominant = (mix or {}).get("dominant_segment")
+    share = (mix or {}).get("dominant_revenue_share_pct")
+    if not dominant or share is None:
+        return "UNKNOWN", (
+            "Book composition unavailable (dashboard.financial.segment_mix absent), so this "
+            "benchmark's population cannot be checked against the book it rates.")
+    book = "{}% of revenue is {}".format(share, dominant)
+    if population == _POP_UNDECLARED:
+        return "UNKNOWN", (
+            "This benchmark's source does not state which population it measures, so it cannot "
+            "be checked against the book (" + book + "). An undeclared population is a GAP, "
+            "not a pass.")
+    if population == _POP_ALL:
+        return "AGGREGATE", (
+            "Benchmarks an industry-wide aggregate with no segment split, so it makes no "
+            "population claim to match; the book is " + book + ".")
+    domestic_book = dominant == "resi"
+    if population == _POP_DOMESTIC and not domestic_book:
+        return "MISMATCH", (
+            "POPULATION MISMATCH -- this benchmark measures DOMESTIC households while " + book +
+            ". A residential benchmark is NOT cleared by an I&C note: the comparison is between "
+            "two different populations, and the sim's domestic-only equivalent is not measured "
+            "here. Read the rating as unverified against its own population, not as a pass.")
+    if population == _POP_IC and domestic_book:
+        return "MISMATCH", (
+            "POPULATION MISMATCH -- this benchmark measures I&C/business supply while " + book +
+            ". The comparison is between two different populations.")
+    return "MATCH", (
+        "Benchmark population matches the book: " + book + ".")
+
+
+def _pop_annotate(card, population, quote, mix):
+    """Fold the population into the card's own RENDERED fields as well as adding
+    machine-readable ones. The existing /world/ template renders `metric`,
+    `benchmark_value` and `note`, so folding here makes the disclosure visible
+    with no template change -- and the original note is PRESERVED after the
+    verdict rather than replaced (the excuse stays on the page, labelled)."""
+    status, sentence = _population_verdict(population, mix)
+    card["benchmarked_population"] = population
+    card["population_source_quote"] = quote
+    card["population_match"] = status
+    card["population_mismatch"] = (status == "MISMATCH")
+    card["population_note"] = sentence
+    bv = card.get("benchmark_value")
+    card["benchmark_value"] = (
+        "{} · benchmarks: {}".format(bv, population) if bv else
+        "benchmarks: {}".format(population))
+    original = card.get("note")
+    card["note"] = (sentence + " Source note: " + original) if original else sentence
+    return card
+
+
+def _anchors_runtime(anchoring, mix=None):
+    """Runtime calibration: sim outcomes vs external benchmarks, RAG as kept.
+
+    Every card also declares the POPULATION its benchmark measures (see the
+    block comment above): explicit field + rendered text, so a domestic
+    benchmark can never be quietly cleared by an I&C note."""
     if not isinstance(anchoring, dict):
         return dict(available=False)
+    meta = anchoring.get("meta", {}) or {}
     lrc = anchoring.get("long_run_comparison", {}) or {}
     cards = []
     if lrc:
-        cards.append(dict(
+        # Population read from the anchoring file's own words, not assumed: the
+        # churn note itself says "vs Ofgem residential switching".
+        churn_src = "{} | {}".format(meta.get("ofgem_benchmark_source") or "", lrc.get("note") or "")
+        cards.append(_pop_annotate(dict(
             metric="Churn rate (long-run)",
             sim_value=(str(lrc.get("sim_avg_pct")) + "%" if lrc.get("sim_avg_pct") is not None else None),
             benchmark_value=(str(lrc.get("ofgem_avg_pct")) + "% (Ofgem)" if lrc.get("ofgem_avg_pct") is not None else None),
             ratio=lrc.get("ratio"), rag=lrc.get("rag"), note=lrc.get("note"),
-        ))
+        ), _population_from_source(churn_src), churn_src.strip(" |"), mix))
 
     def _latest(lst, val_key, lo_key=None, hi_key=None, unit="%"):
         rows = [r for r in (lst or []) if isinstance(r, dict)]
@@ -319,38 +411,90 @@ def _anchors_runtime(anchoring):
     bd = (anchoring.get("bad_debt_vs_benchmark") or [])
     if bd:
         r = bd[-1]
-        cards.append(dict(
+        bd_src = meta.get("bad_debt_benchmark") or ""
+        cards.append(_pop_annotate(dict(
             metric="Bad debt rate (" + str(r.get("year")) + ")",
             sim_value=(str(r.get("bad_debt_rate")) + "%" if r.get("bad_debt_rate") is not None else None),
             benchmark_value=(str(r.get("benchmark_low_pct")) + "-" + str(r.get("benchmark_high_pct")) + "% (Ofgem/EUA)"),
             ratio=None, rag=r.get("rag"), note="of revenue",
-        ))
+        ), _population_from_source(bd_src), bd_src, mix))
     cp = (anchoring.get("complaints_vs_benchmark") or [])
     if cp:
         r = cp[-1]
-        cards.append(dict(
+        cp_src = meta.get("complaint_benchmark") or ""
+        cards.append(_pop_annotate(dict(
             metric="Complaint rate (" + str(r.get("year")) + ")",
             sim_value=(str(r.get("complaint_rate_pct")) + "%" if r.get("complaint_rate_pct") is not None else None),
             benchmark_value=(str(r.get("benchmark_lo")) + "-" + str(r.get("benchmark_green_hi")) + "% (Ofgem QoS)"),
             ratio=None, rag=r.get("rag"), note=("crisis year" if r.get("is_crisis_year") else "normal year"),
-        ))
+        ), _population_from_source(cp_src), cp_src, mix))
     ar = (anchoring.get("arrears_vs_benchmark") or [])
     if ar:
         r = ar[-1]
-        cards.append(dict(
+        ar_src = "{} | {}".format(meta.get("arrears_benchmark") or "",
+                                  r.get("portfolio_type_note") or "")
+        cards.append(_pop_annotate(dict(
             metric="Arrears rate (" + str(r.get("year")) + ")",
             sim_value=(str(r.get("ic_aggregate_rate_pct")) + "% (I&C agg.)" if r.get("ic_aggregate_rate_pct") is not None else None),
             benchmark_value="I&C <8% normal / <12% crisis (DESNZ)",
             ratio=None, rag=r.get("rag"), note=None,
-        ))
+        ), _population_from_source(ar_src), ar_src.strip(" |"), mix))
+    mismatches = [c["metric"] for c in cards if c.get("population_mismatch")]
+    undeclared = [c["metric"] for c in cards if c.get("benchmarked_population") == _POP_UNDECLARED]
     return dict(
         available=True,
         overall_rag=anchoring.get("overall_rag"),
         cards=cards,
+        # The book each benchmark is being compared against, stated ONCE at the
+        # register level too -- so the composition is disclosed where it does
+        # NOT excuse anything, not only where it does (BLOCKER-2).
+        book_composition=dict(
+            dominant_segment=(mix or {}).get("dominant_segment"),
+            dominant_revenue_share_pct=(mix or {}).get("dominant_revenue_share_pct"),
+            non_domestic_revenue_share_pct=(mix or {}).get("non_domestic_revenue_share_pct"),
+            sentence=(mix or {}).get("disclosure_sentence"),
+            evidence="site/data/dashboard.json -> financial.segment_mix",
+        ),
+        population_mismatch_count=len(mismatches),
+        population_mismatch_metrics=mismatches,
+        population_undeclared_metrics=undeclared,
+        population_rule=(
+            "Every row declares the POPULATION its external benchmark measures, in the text a "
+            "reader sees. A domestic benchmark is never cleared by an I&C note -- a population "
+            "mismatch is DISCLOSED, and the RAG rating is kept exactly as measured (R12: a "
+            "rating is a diagnostic, never a target; R13: composition is curriculum)."),
         meta=anchoring.get("meta", {}),
         evidence="site/state/population_anchoring.json",
         evidence_url="../state/population_anchoring.json",
     )
+
+
+# Population classification is a READ of the source's own words -- never an
+# assumption about what a benchmark "probably" covers. Ordered most-specific
+# first; a source naming no population yields UNDECLARED, which the gate treats
+# as a failure (an undeclared population is a GAP, not a pass).
+_POP_PATTERNS = (
+    (_POP_DOMESTIC, ("residential", "domestic household", "household switching")),
+    (_POP_IC, ("i&c", "business energy", "b2b", "commercial", "non-domestic", "sme")),
+    (_POP_ALL, ("industry range", "industry aggregate", "all-supply", "all supply",
+                "annual survey")),
+)
+
+
+def _population_from_source(text):
+    low = str(text or "").lower()
+    if not low.strip():
+        return _POP_UNDECLARED
+    # A source that contrasts the sim against the benchmark ("SIM portfolio is
+    # predominantly I&C ... vs Ofgem residential switching") names TWO
+    # populations. Only the text after the last "vs" describes the BENCHMARK --
+    # classify that first, so the sim's own segment can never be mistaken for
+    # the benchmark's population (that conflation is BLOCKER-2 itself).
+    for candidate in ([low.rsplit(" vs ", 1)[-1]] if " vs " in low else []) + [low]:
+        for population, needles in _POP_PATTERNS:
+            if any(n in candidate for n in needles):
+                return population
+    return _POP_UNDECLARED
 
 
 _STATUS_MAP = [
@@ -378,6 +522,7 @@ def _anchors_library(md_text):
         return dict(available=False, sections=[], counts={})
     sections = []
     counts = {}
+    pop_counts = {}
     current = None
     for line in md_text.splitlines():
         h = re.match(r"^##\s+(.*)$", line.strip())
@@ -405,11 +550,24 @@ def _anchors_library(md_text):
         if current is None:
             current = dict(section="(unsectioned)", rows=[])
             sections.append(current)
+        benchmark = _clean_cell(cells[2])
+        source = _clean_cell(cells[3])
+        # SITE_EH1: every library row states which population it benchmarks too,
+        # read from the row's OWN words (assumption/benchmark/source) -- and
+        # folded into the rendered Benchmark cell, so it is visible in the table
+        # without a template change. A row whose text names no population reads
+        # UNDECLARED on the page: an honest gap, shown rather than smoothed.
+        population = _population_from_source(
+            "{} {} {} {}".format(assumption, _clean_cell(cells[1]), benchmark, source))
+        pop_counts[population] = pop_counts.get(population, 0) + 1
         current["rows"].append(dict(
             assumption=assumption,
             sim_value=_clean_cell(cells[1]),
-            benchmark=_clean_cell(cells[2]),
-            source=_clean_cell(cells[3]),
+            benchmark="{} · population: {}".format(benchmark, population) if benchmark
+                      else "population: {}".format(population),
+            benchmark_value_raw=benchmark,
+            benchmarked_population=population,
+            source=source,
             last_checked=_clean_cell(cells[4]),
             status=status,
         ))
@@ -420,6 +578,11 @@ def _anchors_library(md_text):
         section_count=len(sections),
         row_count=total,
         counts=counts,
+        population_counts=pop_counts,
+        population_undeclared_count=pop_counts.get(_POP_UNDECLARED, 0),
+        population_rule=(
+            "Each row states the population its benchmark measures, rendered in the Benchmark "
+            "cell. UNDECLARED is an honest gap shown on the page, never a pass."),
         sections=sections,
         evidence="docs/market_research/ASSUMPTIONS.md",
         evidence_url=GH_PAGES + "market_research/ASSUMPTIONS.md",
@@ -437,6 +600,8 @@ def generate():
 
     meta = dashboard.get("meta", {}) or {}
     sim_meta = sim.get("metadata", {}) or {}
+    # SITE_EH1: the derived book composition every anchor is checked against.
+    segment_mix = (dashboard.get("financial") or {}).get("segment_mix") or {}
 
     crossings = [
         _crossing_forward_basis(dashboard),
@@ -475,14 +640,121 @@ def generate():
                   "human-readable provenance trail, each row a sim value against an industry "
                   "benchmark with its source and a checked status. Where a status is a warning or "
                   "an open refresh, it is shown, not smoothed.",
-            runtime=_anchors_runtime(anchoring),
+            runtime=_anchors_runtime(anchoring, segment_mix),
             library=_anchors_library(md_text),
         ),
     )
+    if not _check_anchor_populations(data):
+        raise SystemExit(1)
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(data, separators=(",", ":")))
     print("Written: " + str(OUT_PATH))
     return data
+
+
+def _check_anchor_populations(data):
+    """R15 gate for BLOCKER-2 (atom SITE_EH1_segment_disclosure).
+
+    Named defect it must fire on: an anchors-register row rating a sim outcome
+    against an external benchmark WITHOUT stating which population that
+    benchmark measures -- the condition under which a 2.5x domestic-churn miss
+    was cleared GREEN by an I&C note.
+
+    Not a tautology: the gate does not call ``_population_from_source`` or
+    ``_population_verdict``. It re-reads each card's own rendered strings and
+    the book composition, and independently re-decides whether a domestic
+    benchmark is being applied to a non-domestic book. Mutating the classifier
+    or the verdict text is therefore caught here.
+    Not fail-open: an absent register, an empty card list, a card with no
+    population field, an UNDECLARED population, or a mismatch that is not
+    stated in the RENDERED note all FAIL. (An undeclared population is a FAILED
+    check, not a skipped one.)
+    Not fail-silent: it asserts the population string is actually present in the
+    text the page renders, not merely that some field exists.
+    """
+    problems = []
+    runtime = (((data or {}).get("anchors") or {}).get("runtime")) or {}
+    if not runtime.get("available"):
+        # No runtime register at all -> nothing is being rated, which is allowed;
+        # but a register that claims availability with no cards is not.
+        return _anchor_pop_verdict(problems)
+    cards = runtime.get("cards") or []
+    if not cards:
+        problems.append("runtime register is available but publishes no anchor cards")
+
+    book = runtime.get("book_composition") or {}
+    dominant = book.get("dominant_segment")
+    share = book.get("dominant_revenue_share_pct")
+    if not dominant or share is None:
+        problems.append(
+            "runtime register does not disclose the book composition it benchmarks against "
+            "(book_composition.dominant_segment/share) -- composition must be published where "
+            "it does NOT excuse a rating, not only where it does")
+
+    for card in cards:
+        metric = (card or {}).get("metric") or "<unnamed>"
+        pop = (card or {}).get("benchmarked_population")
+        if not pop:
+            problems.append("{}: no benchmarked_population declared".format(metric))
+            continue
+        if pop == _POP_UNDECLARED:
+            problems.append(
+                "{}: benchmarked population is UNDECLARED -- the source ({!r}) names no "
+                "population, so this rating cannot be checked against its own population "
+                "(an undeclared population is a failed check, not a skipped one)".format(
+                    metric, card.get("population_source_quote")))
+        if pop not in (card.get("benchmark_value") or ""):
+            problems.append(
+                "{}: population {!r} is not in the RENDERED benchmark text {!r} -- a field "
+                "nobody sees is not a disclosure".format(metric, pop, card.get("benchmark_value")))
+        note = card.get("note") or ""
+        # Independent re-decision of the mismatch, from the card's own strings.
+        want_mismatch = (pop == _POP_DOMESTIC and dominant not in (None, "resi")) or (
+            pop == _POP_IC and dominant == "resi")
+        if want_mismatch:
+            if not card.get("population_mismatch"):
+                problems.append(
+                    "{}: benchmark measures {!r} while the book is {}% {} -- population_mismatch "
+                    "is not set".format(metric, pop, share, dominant))
+            if "MISMATCH" not in note.upper():
+                problems.append(
+                    "{}: population mismatch is not stated in the rendered note {!r} -- the "
+                    "mismatch must be VISIBLE, not only machine-readable".format(metric, note))
+        elif card.get("population_mismatch"):
+            problems.append(
+                "{}: population_mismatch is set but {!r} does not conflict with a {} book".format(
+                    metric, pop, dominant))
+        if not note.strip():
+            problems.append("{}: no rendered population note".format(metric))
+
+    library = (((data or {}).get("anchors") or {}).get("library")) or {}
+    if library.get("available"):
+        for section in (library.get("sections") or []):
+            for row in (section.get("rows") or []):
+                pop = row.get("benchmarked_population")
+                if not pop:
+                    problems.append("library row {!r} declares no benchmarked_population".format(
+                        row.get("assumption")))
+                    break
+                if pop not in (row.get("benchmark") or ""):
+                    problems.append(
+                        "library row {!r}: population {!r} is not in the rendered Benchmark "
+                        "cell {!r}".format(row.get("assumption"), pop, row.get("benchmark")))
+                    break
+    return _anchor_pop_verdict(problems)
+
+
+def _anchor_pop_verdict(problems):
+    if problems:
+        print(
+            "ANCHOR-POPULATION GATE FAILED ({} problem(s)): {}\n"
+            "  Every anchors-register row must state which population its benchmark measures "
+            "(atom SITE_EH1_segment_disclosure, BLOCKER-2). Fix the DISCLOSURE -- never the RAG "
+            "rating (R12) and never the book's composition (R13).".format(
+                len(problems), "; ".join(problems)),
+            file=sys.stderr)
+        return False
+    return True
 
 
 if __name__ == "__main__":
