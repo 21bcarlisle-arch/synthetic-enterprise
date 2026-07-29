@@ -133,6 +133,37 @@ def _debt_sale_proceeds(arrears_gbp: float) -> float:
     return round(arrears_gbp * DEBT_SALE_HAIRCUT_PCT, 2)
 
 
+# --- public surface for other SIM debt mechanisms to FOLD rather than duplicate
+# (W2_12 change-of-tenancy exit debt, simulation/final_bill_outcome.py). These
+# are thin, deliberately behaviour-free aliases: a second debt mechanism that
+# needs the same DCA/debt-sale cascade or the same stress ladder must reach for
+# these, never re-choose its own coefficients, so the two cannot drift apart.
+
+def dca_recovered_amount(arrears_gbp: float, archetype: str) -> float:
+    """DCA proceeds on `arrears_gbp` for `archetype`, net of commission."""
+    return _dca_recovered_amount(arrears_gbp, archetype)
+
+
+def debt_sale_proceeds(arrears_gbp: float) -> float:
+    """Proceeds from selling `arrears_gbp` of debt at the standing haircut."""
+    return _debt_sale_proceeds(arrears_gbp)
+
+
+def on_time_probability(stress: str) -> float:
+    """Population on-time payment probability at an income-stress level."""
+    return _ON_TIME_PROB.get((stress or "LOW").upper(), _ON_TIME_PROB["LOW"])
+
+
+def dd_failure_probability(stress: str) -> float:
+    """Population direct-debit failure probability at an income-stress level."""
+    return _DD_FAILURE_PROB.get((stress or "LOW").upper(), _DD_FAILURE_PROB["LOW"])
+
+
+def late_days_band(stress: str) -> tuple[int, int]:
+    """(min, max) days late for a late-but-paid bill at an income-stress level."""
+    return _LATE_DAYS.get((stress or "LOW").upper(), _LATE_DAYS["LOW"])
+
+
 def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: str) -> list[dict]:
     """Stages appended AFTER WRITTEN_OFF -- never changes the WRITTEN_OFF
     stage itself (date/position), only extends the cascade past it."""
