@@ -1,3 +1,9 @@
+<!-- CONSUMED 2026-07-29: minted into RUNG-1 staged atoms. Deliverables #1/#3/#4 →
+PLANNER_MINTED_blocked_item_literal_act_ledger_2026-07-29.md; deliverable #2 →
+PLANNER_MINTED_self_authority_release_sweep_2026-07-29.md. This ruling and its sibling
+(DIRECTOR_RULING_LITERAL_ACT_LIST) are one repeated ask, deduped into those two atoms. Parked in
+in_progress/ (open sub-item = both atoms unbuilt) to stay out of the unprocessed-staging re-scan. -->
+
 # [DIRECTOR-RULING] — Give me the literal acts. Stop describing blocks; emit executable text. (2026-07-29)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Priority: above all other work except a live gate wedge.
