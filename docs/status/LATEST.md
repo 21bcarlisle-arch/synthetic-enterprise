@@ -1,5 +1,34 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-07-29T17:44:33Z
+Last updated: 2026-07-29T18:00:13Z
+
+**WIRED (2026-07-29, `eccaa9e2f`) — the backlog became real work: drawable pool 0 → 10.**
+Director, verbatim: *"Your backlog is in a document but the thing that picks your next job reads the map.
+That's why you keep saying there's no work. Put all eleven backlog items into the map as real unfinished
+work items now."* **Premise measured, not assumed:** before this pass, 31 idle atoms carrying a real level
+gap yielded a **DISCOVER/FRAME pool of ZERO** — the backlog contributed nothing to the picker. **Three
+mechanisms were hiding real work behind a status,** each R15-proven by mutation (re-applying it removes
+exactly the named atoms from the pool): (1) **`blocked_on` is not BUILD-only** — `_is_externally_blocked`
+drops an atom from *every* lane including DISCOVER/FRAME, so B1/B2/B6, registered earlier the same day with
+`blocked_on: director_build_open` to hold only BUILD, read as *nonexistent*; cleared, with the BUILD wall now
+resting on `loop_stage: idle` + the `fronts.yaml` `stage_advance` gate, which gates BUILD **without** gating
+thought. (2) **A sibling's `*_FRAME.md` in `evidence` silently saturates a new atom** —
+`_atom_has_frame_doc` matches any FRAME-named doc under `docs/design/` without checking ownership, and H23
+then hard-skips it, so six genuinely-unframed atoms vanished; **fail-silent**, and it breaks the assumption
+the mechanism's own docstring states ("every non-canonical `*_FRAME.md` is owned by exactly ONE atom").
+(3) **B9/carbon was in the map and still invisible** — `E5_carbon_three_ledger` was `frame_saturated: true`,
+honest for the scope framed 2026-07-20 but not for the scope B9 widened it to. **7 minted, 4 reconciled** to
+existing atoms, because a duplicate row is worse than no row: B9 **is** E5 (the backlog says so); B7 scoped
+to the *remainder* (house moves + income shocks — `W2_5_life_event_stream` already emits job loss/illness/
+divorce/retirement/new child at target); B8 registers only the **company** half (world half = `W2_14`);
+B10 only the missing **switching response** (`W2_3_competitor_field` and `B4_competitor_field` untouched).
+**Every level stays at 0 — registering work is not authorising it, and nothing was self-promoted.**
+Still director-reserved and untouched: the idle→build stage advance; named-world VALUES + true probabilities
+(B1); shock magnitude + target inversion shape (B2); price-war aggressiveness (B10); emissions-factor set +
+counterfactual method (B9, category 6); fitness function + mortality rules (B11's harness carries an exit
+test proving it **refuses to run** without a ratified fitness definition). **B1 is the one item still not
+drawable** — its FRAME and mechanism are built, so its next step is BUILD (wiring a chosen world into price
+formation), which needs the director's stage advance; flagged to him by NTFY. Verified by re-fetching
+**origin's** copy of the map (11/11 present, pool 10). 232 + 90 tests green.
 
 **HARDENED (2026-07-29, `03c2e7ffd` + `6f7bc3d32`) — a throughput signal that could not fall.**
 Rule-0 yielded the dial (nothing below target anywhere) onto the at-target atom `G5_effort_sizing_discipline`.
@@ -472,7 +501,7 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (477s / 8 min):
+**Latest simulation results (2016–2025)** — auto-processed (497s / 8 min):
 - Net margin: £1,521,069.65 | Gross: £6,475,837.81 | Capital: £51,604
 - Treasury: £2,466,636 → £3,898,729 | 38 committee interventions | 1588 bills issued
 - Enterprise value: £7,803,339.73 | Net after CTS: £6,405,881
@@ -580,6 +609,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~530.9h across 42 sized atom(s) (7 of 49 below-target atoms still unsized).
+- Remaining effort: ~589.0h across 47 sized atom(s) (9 of 56 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 2.1h (-9.9h, overestimated); H_harness: est 9.2h vs actual 16.4h (+7.2h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->
