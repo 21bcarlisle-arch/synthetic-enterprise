@@ -1,0 +1,27 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+
+# [PLANNER-MINTED] One node filled to full depth, with charts (ruling's pilot output) (2026-07-28)
+
+**⚠ SEQUENCING (dial, not wall):** #1 (`PLANNER_MINTED_wholesale_domain_topic_map`) decides which nodes exist and their scope. Draw #1 FIRST; if drawn before #1 is committed, do #1 first (cheap FRAME work) — do NOT fill a node into a graph that does not yet exist. Left self-drawable (not hard-blocked) because #1 is trivially drawable now and this is a sequencing preference, not an irreducible block (Rule-0: dials order work, never zero it).
+
+**Source ruling:** `DIRECTOR_RULING_KPILOT_DECOMPOSITION_2026-07-28.md` — deliverable #3 (WORK THIS CREATES); ruling §5.2, §5.5.
+**Serves:** DIRECTOR_AXES Axis 1 (Website — the director is a visual reader) + Axis 3 (Believability — charts rendered from the live pipeline, never static). Campaign: SITE_MODEL_SPINE knowledge lane. Fidelity-ledger row: whichever node is chosen (candidate: the electricity price-formation node, on the built W1_6 chain).
+**Real-world fidelity gained:** exactly ONE node of the domain graph filled to full depth — a real explanation with charts — proving the graph structure carries depth, not just breadth. Ruling §5.2: fill one node to full depth, agent's choice with reasoning; the director's steer is that **product structure and shape is "possibly the most important thing we use."**
+
+**Lane:** SITE + BUILD (site page render on the chosen node + its chart set; disjoint `site/knowledge/<node>/**` file_scope). SITE lane is standing-open (THREE_LANES L2).
+**Target level:** SITE L2 (rendered, live-verified — R11 verify-to-pixel). Level move stays `blocked_on director_level_up` (R16 — agent builds L2-quality, no self-bump).
+
+**Exit criteria:**
+- Exactly ONE node is chosen and the choice is ARGUED (ruling §5.2: "your choice which, with your reasoning"). If the choice is NOT the traded-product-structure node, the argument must engage the director's steer that product structure/shape is possibly the most important thing.
+- That node's body EXPLAINS the phenomenon to a reader who needs to understand it — no gap list in the body (ruling §1 class rule + acceptance).
+- **Rung 5 binds (ruling §5.5): the deep node ships WITH its charts or it does not ship.** Charts render from the pipeline, never static images, R11 verified to the rendered pixel. (The four price-formation charts — SSP series, merit-order stack, seasonal shape, negative-price frequency — are ALREADY BUILT and R15-gated on `wholesale-price-formation` per scope-first deliverable #4, DONE; if the electricity price-formation node is chosen, this deliverable is largely re-homing those charts into the node's slot in the new graph + confirming depth, NOT rebuilding physics.)
+- The existing rung-5 DoD gate (chartless page cannot ship, R15-proven both ways) is confirmed to guard the chosen node's path after any re-home (no orphan control — R11).
+
+**Deps:** #1 (topic map — which nodes exist / which is "the node"). Data pipeline already exists (W1_6 L3, real SSP history) so no new sim build is required for the price-formation candidate — this is node-depth + chart re-home + gate, not physics.
+**Coverage note:** scope-first deliverable #4 (`PLANNER_MINTED_kpilot_rung5_charts_and_dod_gate`, DONE) built the four charts + DoD gate ON the current single page. This deliverable is PARTIALLY covered by that IF the chosen node is electricity-price-formation (then remaining work = re-home into the graph node + argue depth). NOT re-minted; the built charts are the input. If a DIFFERENT node is chosen for depth, its charts are net-new.
+**Propose-then-proceed window:** proceed by default (ruling tagged **proceed**; site content + re-home, reversible via git; machinery untouched — charts READ the pipeline). Walls untouched.
+
+## Deliverable (verbatim)
+> 3. One node filled to depth, with charts.
+
+Ruling §5.2/§5.5: *"Then fill exactly ONE node to full depth — your choice which, with your reasoning… Rung 5 still binds: the one deep node ships with its charts, or it does not ship."*
