@@ -1,3 +1,6 @@
+<!-- PARKED IN in_progress/ 2026-07-29 — audit STARTED at docs/design/MOTHBALL_2026-07-29.md
+     (verdicts recorded per component). OPEN: execute the MOTHBALL-verdict rows (disable + record),
+     do not re-scan as unprocessed. Reversible throughout. -->
 # [DIRECTOR-RULING] — Mothball the apparatus unless it earns its place (2026-07-29)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Companion to `THE_STANDARD`. Do this yourself; do not wait.

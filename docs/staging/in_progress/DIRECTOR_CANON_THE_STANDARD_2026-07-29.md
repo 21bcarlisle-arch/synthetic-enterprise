@@ -1,3 +1,9 @@
+<!-- PARKED IN in_progress/ 2026-07-29 — ADOPTED to docs/design/THE_STANDARD.md (governs).
+     DONE: adoption + first-pass mothball audit (docs/design/MOTHBALL_2026-07-29.md) + director NTFY.
+     OPEN (the program): §7.2 release the 27 director-blocked mints; execute the MOTHBALL rows
+     (level-gate/one_way_door narrowing, draw-order demotion); §7.3 wire THE_MODEL_ON_A_PAGE.md
+     Timeframe-2 into backlog atoms w/ definition-of-done; §7.4 publish "show the working" on the site.
+     Do not re-scan as unprocessed; continue the program. -->
 # [DIRECTOR-CANON] — THE STANDARD AND THE OPERATING MODEL (2026-07-29)
 
 **Type:** [DIRECTOR-CANON]. Adopt as `docs/design/THE_STANDARD.md`. This is the bar the director judges by and the way of working he wants. Where any prior ruling conflicts, **this governs**.
