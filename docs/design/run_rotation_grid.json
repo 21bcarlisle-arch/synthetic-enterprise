@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "purpose": "IaC stratified run-rotation grid (world-scenario x population-seed). The deterministic next-cell selector in background/run_rotation.py reads this file; no rotation state lives outside the readable tree (reconstruct-from-repo-alone).",
+    "authority": "DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25 §2 (and its authoritative twin §2); FRAME docs/design/frame/stratified_run_rotation_FRAME.md",
+    "wall_R13": "The four world LABELS below are transcribed verbatim from the director's ruling §2 (identifiers, not authored). The true_probability VALUES are R13 director-reserved and stay null until the director sets them; the mechanism carries whatever is here and COMMERCIAL EV refuses to weight a null (fail-loud). No scenario parameter or probability is authored here.",
+    "seed_axis": "population_seeds is DORMANT behind SE_DRAW_POPULATION. Designed-now, wired-but-dormant: until the director-reserved release rung flips, the selector rotates the world axis only and the seed axis is a single no-op cell (population_seed=null). Honest partial coverage, logged, not a silent gap.",
+    "version": 1
+  },
+  "world_scenarios": [
+    { "world": "history-default", "true_probability": null },
+    { "world": "NESO-central", "true_probability": null },
+    { "world": "crisis-replay", "true_probability": null },
+    { "world": "glut", "true_probability": null }
+  ],
+  "population_seeds": [0, 1, 2, 3]
+}

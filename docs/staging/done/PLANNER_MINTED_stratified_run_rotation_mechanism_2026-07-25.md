@@ -1,4 +1,16 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- DISPOSITION-BUILT 2026-07-29 (self-drawable BUILD executed): scope items 2+3 LANDED.
+     Mechanism = background/run_rotation.py — IaC-committed grid (docs/design/run_rotation_grid.json,
+     four ruling §2 worlds transcribed, all true_probability null=R13 director-reserved) + committed
+     cursor (docs/observability/run_rotation_cursor.json) + deterministic pure next-cell selector
+     (peek/select, C-S2 replay) + the rotation->manifest emission seam (manifest_for_next_run feeds
+     build_manifest world+true_prob from the cursor). Coverage R15 test tests/background/test_run_rotation.py
+     (13 pass; sibling run_manifest 16 pass): both R15 mutations proven both-ways — skipped-cell coverage
+     assert fires RED when neutered to pass (checked against the enumerated grid oracle, not the visited
+     set); untagged-EV keeps commercial_ev REFUSING a null-prob rotation row. Seed axis DORMANT behind
+     SE_DRAW_POPULATION (single no-op cell until draw_population_enabled; wired-but-dormant). NO run
+     entrypoint wired, NO flag flipped, NO scenario/probability authored — activation + level moves stay
+     director-reserved (blocked_on: director_level_up, R16). Archived to done/. -->
+<!-- SUPERVISOR_DRAW: consumed (BUILD executed 2026-07-29; no drawable-now work remains — activation is director-reserved) -->
 <!-- RELEASED 2026-07-29T02:07Z (RUNG-7 planner tick): propose-then-proceed window (open until 2026-07-28, 72h from mint) has ELAPSED with NO director revision (git log shows only the 07-28 mechanical block-hygiene backfill 65ad9d83c). Per the doc the scenario-axis MECHANISM build is now buildable (deterministic next-cell selector + committed cursor, wire scenario-axis rotation into manifest emission, coverage-of-worlds R15 test). Flipped blocked->self-drawable so the build-draw surfaces it (no-orphan-transition, R11). WALLED and untouched: SE_DRAW_POPULATION seed-axis activation (director release rung -- seed axis stays a dormant no-op single cell), scenario values + true-probability tags (R13), level moves (director_level_up, R16). Only the mechanism draws; the gate is the backstop. -->
 <!-- DISPOSITION 2026-07-25: FRAME landed (scope item 1) →
      docs/design/frame/stratified_run_rotation_FRAME.md (grid axes + cell enumeration + deterministic
