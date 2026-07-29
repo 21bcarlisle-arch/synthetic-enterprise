@@ -54,6 +54,12 @@ REVIEWED_CLOSE_TO_LEARN = {
     # measures whether the harness can be TRUSTED -- no revenue movement -- putting it in exactly
     # the same close_to_learn class as all 52 of its H_harness siblings.
     "H29_import_time_env_capture_test_isolation",
+    # 2026-07-29 reviewed (worker tick, minted from DIRECTOR_RULING_FIX_DOUBLE_MESSAGING): the
+    # residual half-done tmux->systemd cutover on seven daemons. Classified on its merits, not to
+    # clear the gate -- it moves no money and touches no revenue flow; it is process-lifecycle
+    # integrity, i.e. whether the machine that runs the company can be trusted to run each daemon
+    # exactly once. Same close_to_learn class as its OPS1/H_harness siblings.
+    "OPS1_launcher_cutover_completion",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
     "A7_harm_cost_weights_decision", "A8_experiment_loop_speed",
