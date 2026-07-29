@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-29T22:37:53.098135+00:00",
+  "last_updated": "2026-07-29T22:48:24.283568+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T22:37:53.098135+00:00",
+      "last_heartbeat": "2026-07-29T22:48:24.283568+00:00",
       "last_action": "Heartbeat \u2014 25 files tracked",
-      "last_action_ts": "2026-07-29T22:37:53.098135+00:00",
+      "last_action_ts": "2026-07-29T22:48:24.283568+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T22:36:36.305301+00:00",
+      "last_heartbeat": "2026-07-29T22:46:36.306914+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-07-29T17:21:36.235442+00:00",
       "anomaly": null,
@@ -34,10 +34,10 @@
     },
     {
       "name": "sim-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-07-29T22:34:16.029354+00:00",
-      "last_action": "Run complete in 0s \u2014 0 KB (run_output_abc1234_20260729T223416Z.json)",
-      "last_action_ts": "2026-07-29T22:34:16.029354+00:00",
+      "status": "running",
+      "last_heartbeat": "2026-07-29T22:41:24.851519+00:00",
+      "last_action": "Sim started \u2014 git=8cc168cb4",
+      "last_action_ts": "2026-07-29T22:41:24.851519+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T22:37:39.564783+00:00",
+      "last_heartbeat": "2026-07-29T22:47:57.601109+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
