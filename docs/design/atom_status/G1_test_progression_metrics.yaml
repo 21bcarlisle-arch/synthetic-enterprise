@@ -1,0 +1,35 @@
+id: G1_test_progression_metrics
+level_current: 2
+append_evidence:
+  - tests/tools/test_generate_phases_json.py
+append_simplification:
+  - "2026-07-29 HARDEN (R15, sibling-half red-team): the COMMITS half of this
+    atom's own guarantee had never been red-teamed -- the two test-count halves
+    were hardened 2026-07-27. `_total_commits()` and `_commits_per_day_lines()`
+    swallow EVERY exception and return None/[], and `generate()` runs inside the
+    publish path (background/process_run_complete.py:872), so one git timeout or
+    non-zero rc silently published `total_commits: null` / `commits_by_day: []`
+    to the live Project page, where renderBuildStats() gates on `if(commits)`
+    and the figure simply vanished -- FAIL-SILENT (an unavailable source
+    reported as a successful publish) plus FAIL-OPEN (empty passes straight
+    through a metric whose entire declared property is MONOTONIC growth), the
+    same single-day-collapse class the director reported on the test-count
+    series (16,358 -> 221), except all the way to zero. Closed by
+    `_retained_commit_metrics()`: hold the last PUBLISHED figure when a fresh
+    measurement is missing or has gone backwards, label it in a new
+    `commits_source` field (measured / retained_previous / unavailable) so no
+    surface can present a retained number as fresh, and publish nothing rather
+    than invent one when there is no prior. Prior values are shape-validated
+    (`_valid_commit_total`) because json.loads accepts a bare NaN literal and
+    bool is an int subclass -- either would lose every `<` comparison and
+    silently disarm the guard. `cumulative_commits_by_day` now counts only
+    well-formed YYYY-MM-DD lines (a stray token became its own sorted bucket =
+    a garbage x-axis point). Three mutation tests run and observed to FAIL on
+    their own named defect (guard disarmed -> 5 failures incl. the end-to-end
+    publish test; naive `is not None` -> NaN test fails; date filter dropped ->
+    filter test fails). Known follow-on: this note itself changes the atom's
+    content sha once merged, so the harden-cooldown stamp written this turn is
+    invalidated at merge and the atom may be offered once more -- a future draw
+    should read this note as proof of a completed pass and rest, not repeat it."
+written_by: build-executor/G1-harden-2026-07-29
+written_at: 2026-07-29T00:00:00Z

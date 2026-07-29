@@ -404,3 +404,106 @@ def test_cumulative_commits_by_day_sorted_by_date_not_input_order():
     lines = ["2026-07-03", "2026-07-01", "2026-07-02"]
     result = cumulative_commits_by_day(lines)
     assert [d for d, _ in result] == ["2026-07-01", "2026-07-02", "2026-07-03"]
+
+
+# --- R15 hardening (2026-07-29, G1_test_progression_metrics HARDEN): the
+# COMMITS half of this atom's guarantee. The two test-count halves were
+# hardened 2026-07-27; this half had never been red-teamed. `_total_commits()`
+# and `_commits_per_day_lines()` swallow every exception and return None/[],
+# and generate() runs inside the publish path -- so a git timeout or non-zero
+# rc silently publishes `total_commits: null` / `commits_by_day: []` to the
+# live Project page, where renderBuildStats() gates on `if(commits)` and the
+# figure vanishes. FAIL-SILENT + FAIL-OPEN on a metric whose entire declared
+# property is MONOTONIC growth. Every test below asserts BOTH that the defect
+# is neutralised AND that the honest path still measures normally, so the
+# guard is proven to fire on its own named defect rather than pinning a
+# blanket freeze. ---
+
+def _prev(total=6000, last_date="2026-07-28"):
+    return {"total_commits": total, "commits_by_day": [["2026-07-01", 10], [last_date, total]]}
+
+
+def test_git_unavailable_must_not_zero_the_published_commit_total():
+    """The named defect: git times out, _total_commits() returns None and
+    _commits_per_day_lines() returns [] -- unguarded that publishes null/[]
+    and the live "6,572 commits" stat disappears."""
+    from tools.generate_phases_json import _retained_commit_metrics
+    total, series, source = _retained_commit_metrics(None, [], _prev())
+    assert total == 6000, "an unavailable source must not zero a monotonic metric"
+    assert series == _prev()["commits_by_day"]
+    assert source == "retained_previous", "a retained figure must never be labelled fresh"
+
+
+def test_commit_total_going_backwards_is_refused():
+    """A rewritten/detached/behind HEAD (this repo runs worktrees) reports a
+    LOWER count -- the same single-day-collapse class the test-count series
+    was hardened against (16,358 -> 221)."""
+    from tools.generate_phases_json import _retained_commit_metrics
+    total, series, source = _retained_commit_metrics(
+        200, [["2026-07-29", 200]], _prev())
+    assert total == 6000, "a monotonic metric may never decrease"
+    assert series[-1][1] == 6000
+    assert source == "retained_previous"
+
+
+def test_genuine_growth_is_published_and_labelled_measured():
+    """The guard is not a freeze: a real advance publishes verbatim."""
+    from tools.generate_phases_json import _retained_commit_metrics
+    fresh = [["2026-07-01", 10], ["2026-07-29", 6600]]
+    total, series, source = _retained_commit_metrics(6600, fresh, _prev())
+    assert (total, series, source) == (6600, fresh, "measured")
+
+
+def test_no_previous_publish_reports_unavailable_never_fabricates():
+    """First-ever run with git broken: nothing to retain, so we publish
+    nothing and say so -- retaining is honest, inventing is not."""
+    from tools.generate_phases_json import _retained_commit_metrics
+    total, series, source = _retained_commit_metrics(None, [], {})
+    assert total is None and series == []
+    assert source == "unavailable"
+
+
+def test_nan_previous_total_cannot_disarm_the_monotonic_guard():
+    """json.loads accepts a bare NaN literal; every NaN comparison is False,
+    so an unvalidated prev_total would make `measured < prev` never fire."""
+    from tools.generate_phases_json import _retained_commit_metrics
+    total, _series, source = _retained_commit_metrics(
+        200, [["2026-07-29", 200]], {"total_commits": float("nan"), "commits_by_day": []})
+    assert total == 200 and source == "measured", "unusable prior is ignored, not trusted"
+    total, _series, source = _retained_commit_metrics(
+        None, [], {"total_commits": True, "commits_by_day": []})
+    assert total is None and source == "unavailable", "bool is not a commit count"
+
+
+def test_previously_published_tolerates_missing_and_corrupt_file(tmp_path):
+    from tools.generate_phases_json import _previously_published
+    assert _previously_published(tmp_path / "nope.json") == {}
+    bad = tmp_path / "bad.json"
+    bad.write_text("{not json")
+    assert _previously_published(bad) == {}
+    listy = tmp_path / "list.json"
+    listy.write_text("[1,2]")
+    assert _previously_published(listy) == {}, "a non-dict publish is not a usable prior"
+
+
+def test_generate_end_to_end_retains_commits_when_git_fails(tmp_path, monkeypatch):
+    """Consumer-level (R11-shaped): drive the real generate() with git broken
+    and assert the WRITTEN phases.json still carries the prior figure."""
+    import json as _json
+    from tools import generate_phases_json as g
+    out = tmp_path / "phases.json"
+    out.write_text(_json.dumps(_prev()))
+    monkeypatch.setattr(g, "OUT_PATH", out)
+    monkeypatch.setattr(g, "_total_commits", lambda: None)
+    monkeypatch.setattr(g, "_commits_per_day_lines", lambda: [])
+    g.generate()
+    written = _json.loads(out.read_text())
+    assert written["total_commits"] == 6000, "publish collapsed a monotonic metric to null"
+    assert written["commits_source"] == "retained_previous"
+
+
+def test_cumulative_commits_by_day_drops_non_date_lines():
+    """A stray non-date token becomes its own bucket and publishes a garbage
+    x-axis point; real dates must still land."""
+    lines = ["2026-07-01", "warning: something", "", "2026-07-02", "not-a-date"]
+    assert cumulative_commits_by_day(lines) == [["2026-07-01", 1], ["2026-07-02", 2]]

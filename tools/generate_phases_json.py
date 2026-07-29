@@ -40,6 +40,9 @@ def _total_commits():
     return None
 
 
+_LOG_DATE_RE = re.compile(r"^\d\d\d\d-\d\d-\d\d$")
+
+
 def cumulative_commits_by_day(log_lines):
     """[date, cumulative_count] pairs from `git log --format=%ad --date=short`
     output (one date per line, newest-first) -- a genuinely cumulative
@@ -51,15 +54,114 @@ def cumulative_commits_by_day(log_lines):
     stayed high and roughly constant across this project's whole history
     (60-400+ commits/day, every day) -- a running total of it climbs
     steadily with no flat stretches, because it counts ongoing WORK, not a
-    saturating total."""
+    saturating total.
+
+    Only well-formed YYYY-MM-DD lines are counted (2026-07-29 G1 HARDEN): any
+    other token reaching this function becomes its own bucket in `counts`,
+    where it sorts as a string alongside real dates and publishes a garbage
+    x-axis point on a chart whose entire claim is a clean cumulative curve.
+    A non-date contributes nothing rather than a fabricated date, exactly as
+    a malformed record is skipped in the sibling half
+    (test_execution_metric.cumulative_tests_executed).
+    """
     from collections import Counter
-    counts = Counter(line.strip() for line in log_lines if line.strip())
+    counts = Counter(
+        line.strip() for line in log_lines if _LOG_DATE_RE.match(line.strip())
+    )
     running = 0
     result = []
     for date in sorted(counts):
         running += counts[date]
         result.append([date, running])
     return result
+
+
+def _valid_commit_total(value):
+    """A published commit total is usable only if it is a real non-negative
+    int. `bool` is an int subclass and `json.loads` accepts a bare `NaN`
+    literal into a float -- both would sail through a naive `is not None`
+    check and then lose every `<` comparison below (NaN comparisons are all
+    False), turning the monotonic guard into a no-op (R15 fail-open)."""
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _series_last_value(series):
+    """Final cumulative value of a [[date, count], ...] series, or None if the
+    series is absent/empty/malformed. Shape is validated rather than assumed:
+    the previous series is read back off disk, where anything could be."""
+    if not isinstance(series, list) or not series:
+        return None
+    last = series[-1]
+    if not isinstance(last, (list, tuple)) or len(last) != 2:
+        return None
+    return last[1] if _valid_commit_total(last[1]) else None
+
+
+def _previously_published(path=None):
+    """The last successfully published phases.json, or {} if there isn't one
+    (first ever run) or it cannot be parsed."""
+    target = path or OUT_PATH
+    try:
+        prev = json.loads(target.read_text())
+    except Exception:
+        return {}
+    return prev if isinstance(prev, dict) else {}
+
+
+def _retained_commit_metrics(measured_total, measured_series, previous):
+    """Hold the cumulative-commits metrics at their last published value when
+    a fresh measurement is missing or has gone BACKWARDS. Returns
+    (total, series, source) where source is 'measured', 'retained_previous'
+    or 'unavailable'.
+
+    R15 hardening (2026-07-29, G1 HARDEN -- the commits half of this atom's
+    own guarantee, never previously red-teamed; the two test-count halves
+    were hardened 2026-07-27). `_total_commits()` and
+    `_commits_per_day_lines()` both swallow EVERY exception and fall back to
+    None/[] -- a git timeout (10s/15s caps on a repo with thousands of
+    commits, on a tree CLAUDE.md documents as having concurrent writers), a
+    non-zero return code, or a detached/rewritten HEAD therefore publishes
+    `total_commits: null` and `commits_by_day: []`. `generate()` runs inside
+    the publish path (background/process_run_complete.py), so that lands on
+    the live Project page, where `renderBuildStats()` gates on `if(commits)`
+    and the "N commits" figure simply DISAPPEARS.
+
+    That is both R15 killer patterns at once on the atom's named property:
+    FAIL-SILENT (the source being unavailable is reported as a successful
+    publish of nothing, not as a failure) and FAIL-OPEN (empty/None passes
+    straight through the monotonic metric to the surface). It is the same
+    single-day-collapse class the director reported on the test-count series
+    (16,358 -> 221), except the collapse is all the way to zero.
+
+    Retaining the previous PUBLISHED figure is not fabrication -- it is the
+    most recent real measurement, and `commits_source` labels it as retained
+    so no surface can present it as fresh. With no previous publish to fall
+    back on we report 'unavailable' and publish nothing, rather than invent
+    a number.
+    """
+    prev_total = previous.get("total_commits")
+    prev_total = prev_total if _valid_commit_total(prev_total) else None
+    prev_series = previous.get("commits_by_day")
+    prev_last = _series_last_value(prev_series)
+
+    total, series, retained = measured_total, measured_series, False
+
+    if not _valid_commit_total(measured_total) or (
+        prev_total is not None and measured_total < prev_total
+    ):
+        retained = True
+        total = prev_total
+
+    measured_last = _series_last_value(measured_series)
+    if measured_last is None or (prev_last is not None and measured_last < prev_last):
+        retained = True
+        series = prev_series if prev_last is not None else measured_series
+
+    if not retained:
+        return total, series, "measured"
+    if total is None and _series_last_value(series) is None:
+        return total, series, "unavailable"
+    return total, series, "retained_previous"
 
 
 def _commits_per_day_lines():
@@ -363,14 +465,24 @@ def generate():
     from tools.test_execution_metric import cumulative_tests_executed
     test_executions = cumulative_tests_executed()
 
+    # Read the previous publish BEFORE overwriting it -- a git failure must
+    # not be able to collapse these cumulative metrics to null/[] on the live
+    # Project page (see _retained_commit_metrics).
+    total_commits, commits_by_day, commits_source = _retained_commit_metrics(
+        _total_commits(),
+        cumulative_commits_by_day(_commits_per_day_lines()),
+        _previously_published(),
+    )
+
     data = dict(
         total_phases=total_phases,
         latest_phase=latest_phase,
         start_date=start_date,
         test_progression=test_progression,
         phase_dates=phase_dates,
-        total_commits=_total_commits(),
-        commits_by_day=cumulative_commits_by_day(_commits_per_day_lines()),
+        total_commits=total_commits,
+        commits_by_day=commits_by_day,
+        commits_source=commits_source,
         timeline=timeline,
         cumulative_tests_executed=test_executions["cumulative_total"],
         cumulative_tests_executed_since=test_executions["since"],
