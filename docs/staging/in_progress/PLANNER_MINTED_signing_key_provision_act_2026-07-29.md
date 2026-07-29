@@ -1,5 +1,6 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-<!-- BLOCK RELEASED 2026-07-29 by DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md: director answered NO — REGENERATE. The yes/no this atom was parked on is answered. Agent's reversible part (prepare the ROTATE handover: short command, file format, restart+R2, success test) is now drawable; the key-generation itself stays director-reserved (cat 5/8). See PLANNER_MINTED_signing_key_rotation_deliverables_2026-07-29.md. -->
+<!-- SUPERVISOR_DRAW: hold -->
+<!-- BLOCK_RELEASE: director_ratification -- phone-signer workflow PARKED by DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29.md (6abf25904): "park the phone-signer workflow; the key stays provisioned for the rare reserved acts, it is not part of routine authority." Plain ntfy is now full routine authority (no signature), so a phone signer is no longer the gate for any release. Un-parks ONLY if the director explicitly asks for the phone signer for a RESERVED act (real money / real people / irreversible public publish / real-people safety control). -->
+<!-- PARKED 2026-07-29: the signing-key ROTATE / phone-signer channel is SUPERSEDED. DO NOT draw the rotation handover. Parked, not deleted (reversible). -->
 
 > **DRAWABLE 2026-07-29 — RESOLVED TO ROTATE.** The director ruled NO — regenerate
 > (`DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md`): the present key is dated 2026-07-11, coincides

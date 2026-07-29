@@ -1,5 +1,6 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-<!-- BLOCK RELEASED 2026-07-29 by DIRECTOR_RULING_ROTATE_SIGNING_KEY_2026-07-29.md §3: "the A1 finding stands separately and is still valid" — the doc-asserting-runtime-state-from-source class is swept regardless of whether the assertion was true. The true A1 text is now known. Drawable. See PLANNER_MINTED_signing_key_rotation_deliverables_2026-07-29.md. -->
+<!-- SUPERVISOR_DRAW: hold -->
+<!-- BLOCK_RELEASE: director_ratification -- phone-signer workflow PARKED by DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29.md (6abf25904): "park the phone-signer workflow." PHONE_SIGNER_SETUP.md is now a parked-workflow doc, so correcting its A1 step is moot while the workflow is parked. Un-parks ONLY if the director asks for the phone signer, OR the general doc-hygiene class (docs asserting runtime state from source) is re-minted as a standalone sweep NOT tied to the signer — that sweep is drawable independently if wanted. -->
+<!-- PARKED 2026-07-29: not drawn under the parked phone-signer workflow. Reversible. -->
 
 > **DRAWABLE 2026-07-29 — TRUE A1 TEXT NOW KNOWN.** The director ruled (§3) the A1 finding **stands and
 > is still valid** as a *class* sweep — documentation reporting the code as the state of the box — even

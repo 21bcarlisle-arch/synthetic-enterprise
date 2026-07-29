@@ -1,5 +1,12 @@
-<!-- SUPERVISOR_DRAW: self-drawable -->
-<!-- UNBLOCKS ON: nothing external for the disposition + deliverable-#5 mint (drawable now). Deliverables #1/#2 hinge on the director generating the new key (director-reserved cat-5/8). -->
+<!-- SUPERVISOR_DRAW: hold -->
+<!-- SUPERSEDED/PARKED 2026-07-29 by DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR_2026-07-29.md (6abf25904): "park the phone-signer workflow; void the test signature. Plain ntfy = full authority, no signatures, no ceremony." Deliverables #1/#2 (rotation handover + phone-signed E2E proof) are PARKED — the phone signer is no longer the authority gate. #5 (inbound-instruction guard) STILL STANDS as a live harness item (R7/R8 VRAM-load vector, independent of the signer). See §SUPERSESSION below. -->
+
+> **SUPERSESSION 2026-07-29:** `DIRECTOR_RULING_NTFY_IS_THE_DIRECTOR` withdrew the signature/ceremony
+> requirement. The signing-key ROTATE workflow (#1 handover, #2 phone-signed E2E proof) is **PARKED**;
+> the **test signature is VOIDED** (the `test_signature_proof/GRADUATE` ledger entry graduates a
+> non-existent test atom — no effect, acknowledged void). Deliverable **#5 (inbound-instruction guard)
+> remains live** — it is a responder-hardening / attention-DoS fix, not a signer feature. #3 (blocked-item
+> batch) and the general doc-hygiene half of #4 stand on their own merits, not as signer work.
 
 # [PLANNER-MINTED / GOVERNANCE] — Signing-key ROTATE ruling: five deliverables minted/covered (2026-07-29)
 

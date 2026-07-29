@@ -2530,10 +2530,9 @@
   value_stream: meter_to_cash
   provenance: proposal
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 1
   loop_stage: build
-  blocked_on: director_level_up
   block_reason: "Cohort-activation atom built; the level move awaits director ratification (R16, no self-bump)."
   dial_inherited: 3
   evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md']
@@ -2548,10 +2547,9 @@
   value_stream: meter_to_cash
   provenance: proposal
   epoch: 2
-  level_current: 0
+  level_current: 3
   level_target: 3
   loop_stage: build
-  blocked_on: director_level_up
   block_reason: "Cohort-assignment seam built; the level move awaits director ratification (R16, no self-bump)."
   dial_inherited: 3
   evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md', 'simulation/population_draw.py', 'simulation/live_population.py', 'tests/simulation/test_live_population_seam.py']
@@ -2566,10 +2564,9 @@
   value_stream: meter_to_cash
   provenance: proposal
   epoch: 2
-  level_current: 0
+  level_current: 3
   level_target: 3
   loop_stage: build
-  blocked_on: director_level_up
   block_reason: "Realised-cohort coverage report built; the level move awaits director ratification (R16, no self-bump)."
   dial_inherited: 3
   evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md', 'simulation/population_coverage.py', 'tools/generate_cohort_coverage.py', 'docs/observability/cohort_coverage_realised.json', 'docs/market_research/population_coverage/nested_design.json']
@@ -2584,10 +2581,9 @@
   value_stream: close_to_learn
   provenance: proposal
   epoch: 2
-  level_current: 0
+  level_current: 3
   level_target: 3
   loop_stage: build
-  blocked_on: director_level_up
   block_reason: "Fidelity-ledger marking built; the level move awaits director ratification (R16, no self-bump)."
   dial_inherited: 3
   evidence: ['docs/staging/done/DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED_2026-07-27.md', 'docs/observability/segmentation_testability_ledger.json', 'background/segmentation_testability_ledger.py']

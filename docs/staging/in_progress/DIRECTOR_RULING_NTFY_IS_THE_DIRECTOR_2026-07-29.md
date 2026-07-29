@@ -1,3 +1,18 @@
+<!-- PROCESSED 2026-07-29 (scheduled worker tick). DO-NOW executed:
+     (1) RELEASED the CA promotion batch the director RATIFIED (a7a60536b): CA1/CA2/CA3 level_current 0->3,
+         CA4 0->1 — ledger-backed (advisor_ruling channel, is_valid_level_up-validated) + map bumped +
+         blocked_on cleared. See PLANNER_MINTED_ca_promotion_ratification_consumption_2026-07-29.md.
+     (2) PARKED the phone-signer workflow (provision_act + a1_correction atoms + rotation deliverables doc).
+     (3) VOIDED the test signature (RULING:GRADUATE:test_signature_proof — graduates a non-existent test
+         atom, no effect; acknowledged void).
+     NOT bulk-released: the 16 atoms carrying blocked_on: director_level_up are the AGENT'S OWN
+     self-promotions with NO director act attached — releasing them on my own reading would be marking my
+     own homework (the anti-self-ratification wall the ruling did NOT withdraw; it withdrew the SIGNATURE,
+     not the director's substantive say-so). A plain ntfy "yes to the pending level-ups" now releases them
+     with zero ceremony — reported to the director, not queued as a blocker.
+     Standing policy (plain ntfy = full routine authority) noted for absorption into the governance docs by
+     the main session — NOT a new check, an alignment of existing docs to this ruling. -->
+
 # [DIRECTOR-RULING] — NTFY IS THE DIRECTOR. No signatures. This is a simulation, not a nuclear facility. (2026-07-29)
 
 **Type:** [DIRECTOR-RULING] via advisor bridge. Supersedes the signature requirement in every prior ruling. Highest priority.
