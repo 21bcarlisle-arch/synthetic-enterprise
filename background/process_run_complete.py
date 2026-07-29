@@ -667,6 +667,32 @@ def _cohort_coverage_gate_permits_publish():
     return True
 
 
+def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
+    """Spawn the weekly frozen-policy baseline refresh as a DETACHED background
+    process when (and only when) it is stale -- never block the publish path.
+
+    The refresh itself (tools.run_frozen_baseline.generate) holds a non-blocking
+    single-writer lock, so spawning it every cycle a stale baseline is seen
+    cannot stack overlapping multi-minute decade replays: the second and later
+    spawns take the lock's absence and exit at once. Detached via
+    start_new_session so it outlives this publish process; its output is
+    discarded (it writes site/state/frozen_policy_baseline.json directly)."""
+    sys.path.insert(0, str(PROJECT_DIR))
+    from tools.run_frozen_baseline import should_refresh_baseline
+    if not should_refresh_baseline():
+        return
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "tools.run_frozen_baseline", "--if-stale"],
+        cwd=str(PROJECT_DIR),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    log("Frozen-policy baseline stale -> refresh spawned OUT OF BAND (PID {}); "
+        "publishing continues with the existing baseline (never blocks).".format(proc.pid))
+
+
 def generate_dashboard_json(json_path, git_hash="unknown"):
     """Generate site/data/dashboard.json and every downstream site/state artifact.
 
@@ -687,18 +713,23 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     if not _cohort_coverage_gate_permits_publish():
         return False
     try:
-        # Must run before generate_dashboard_data (reads frozen_policy_baseline.json
-        # if present). Weekly-gated (should_refresh_baseline) -- replays the full
-        # decade twice under CURRENT_POLICY vs NAIVE_POLICY, so this is deliberately
-        # NOT a per-cycle cost. FROZEN_POLICY_BASELINE_DESIGN.md / PRIORITIES.md P2.
-        sys.path.insert(0, str(PROJECT_DIR))
-        from tools.run_frozen_baseline import generate as gen_frozen_baseline
-        refreshed = gen_frozen_baseline()
-        if refreshed is not None:
-            log("Refreshed site/state/frozen_policy_baseline.json (delta-EV £{:,.0f})".format(
-                refreshed.get("delta_ev_gbp", 0.0)))
+        # Frozen-policy baseline (weekly, expensive): a full-decade replay x2
+        # under CURRENT_POLICY vs NAIVE_POLICY, each invoking the real risk
+        # committee (localhost Ollama LLM calls) -- MINUTES of wall-clock,
+        # longer than a whole publish cycle. It MUST NOT run synchronously here.
+        # PURPOSE/GUARANTEE (2026-07-29 wedge retro): the publish path is bounded
+        # and never blocks on this OPTIONAL weekly artifact. Running it inline
+        # wedged publishing -- 22 run_complete markers backed up, background_worker's
+        # 900s per-marker timeout killing the processor and re-attempting forever,
+        # the baseline 15 days stale so should_refresh_baseline() fired every cycle.
+        # When stale we spawn the refresh OUT OF BAND (detached, single-writer
+        # lock in run_frozen_baseline.generate) and continue immediately with the
+        # existing baseline; the fresh result is picked up next cycle.
+        # generate_dashboard_data below reads whatever frozen_policy_baseline.json
+        # is on disk, so a deferred refresh never blanks the surface.
+        _trigger_frozen_baseline_refresh_out_of_band(git_hash)
     except Exception as exc:
-        log("Frozen-policy baseline generation failed: {}".format(exc))
+        log("Frozen-policy baseline out-of-band trigger failed (non-fatal): {}".format(exc))
     try:
         # D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md real
         # finding): the settlement<->billed reconciliation bridge existed

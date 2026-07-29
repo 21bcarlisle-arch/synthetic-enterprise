@@ -97,6 +97,7 @@ def test_generate_skips_when_fresh(tmp_path, monkeypatch):
 
 def test_generate_writes_when_forced(tmp_path, monkeypatch):
     path = tmp_path / "baseline.json"
+    monkeypatch.setattr(rfb, "REFRESH_LOCK_PATH", tmp_path / ".refresh.lock")
 
     def fake_baseline(report_end=None):
         return {"generated_at": "2026-01-01T00:00:00Z", "delta_ev_gbp": 42.0}
@@ -105,3 +106,36 @@ def test_generate_writes_when_forced(tmp_path, monkeypatch):
     result = rfb.generate(path=path, force=True)
     assert result["delta_ev_gbp"] == 42.0
     assert json.loads(path.read_text())["delta_ev_gbp"] == 42.0
+
+
+def test_generate_skips_when_refresh_lock_already_held(tmp_path, monkeypatch):
+    """A second refresh must NOT stack a second multi-minute decade replay
+    behind an in-flight one -- it takes the held lock as 'already running' and
+    returns None without calling run_frozen_baseline. This is the single-writer
+    guarantee the out-of-band publish trigger relies on (2026-07-29 wedge)."""
+    import fcntl
+
+    lock_path = tmp_path / ".refresh.lock"
+    monkeypatch.setattr(rfb, "REFRESH_LOCK_PATH", lock_path)
+    path = tmp_path / "baseline.json"
+
+    def should_not_run(report_end=None):
+        raise AssertionError("run_frozen_baseline ran while the lock was held")
+
+    monkeypatch.setattr(rfb, "run_frozen_baseline", should_not_run)
+
+    # Hold the lock from an independent fd, exactly as an in-flight refresh would.
+    held = open(lock_path, "w")
+    fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        assert rfb.generate(path=path, force=True) is None
+        assert not path.exists()  # nothing written by the blocked second caller
+    finally:
+        fcntl.flock(held, fcntl.LOCK_UN)
+        held.close()
+
+    # Mutation check: with the lock released, the same call now runs and writes.
+    monkeypatch.setattr(rfb, "run_frozen_baseline",
+                        lambda report_end=None: {"generated_at": "2026-01-01T00:00:00Z",
+                                                 "delta_ev_gbp": 7.0})
+    assert rfb.generate(path=path, force=True)["delta_ev_gbp"] == 7.0

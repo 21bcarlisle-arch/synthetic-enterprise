@@ -794,3 +794,47 @@ class TestRefreshPublishedLivenessOnSkip:
         assert prc._refresh_published_liveness_on_skip("abc123") is False
         assert not any(c[:2] == ["git", "push"] for c in calls)
         assert recorded == []
+
+
+class TestFrozenBaselineOutOfBandTrigger:
+    """The weekly frozen-policy baseline refresh is a multi-minute decade replay
+    with live LLM calls. It MUST run out of band, never synchronously in the
+    publish path (2026-07-29 wedge: run inline it backed up 22 run markers and
+    the 900s sweep timeout re-attempted it forever)."""
+
+    def test_spawns_detached_when_stale_and_never_runs_inline(self, monkeypatch):
+        import tools.run_frozen_baseline as rfb
+        monkeypatch.setattr(rfb, "should_refresh_baseline", lambda *a, **k: True)
+
+        popen_calls = []
+
+        class _FakeProc:
+            pid = 4242
+
+        def fake_popen(argv, **kwargs):
+            popen_calls.append((argv, kwargs))
+            return _FakeProc()
+
+        # If anything tried to run the replay inline, this would fire.
+        monkeypatch.setattr(rfb, "run_frozen_baseline",
+                            lambda *a, **k: (_ for _ in ()).throw(
+                                AssertionError("replay ran inline in the publish path")))
+        monkeypatch.setattr(prc.subprocess, "Popen", fake_popen)
+
+        prc._trigger_frozen_baseline_refresh_out_of_band("abc123")
+
+        assert len(popen_calls) == 1, "stale baseline must spawn exactly one refresh"
+        argv, kwargs = popen_calls[0]
+        assert argv[1:] == ["-m", "tools.run_frozen_baseline", "--if-stale"]
+        assert kwargs.get("start_new_session") is True, "must be detached to outlive publish"
+
+    def test_does_not_spawn_when_fresh(self, monkeypatch):
+        import tools.run_frozen_baseline as rfb
+        monkeypatch.setattr(rfb, "should_refresh_baseline", lambda *a, **k: False)
+
+        def fail_popen(*a, **k):
+            raise AssertionError("no refresh must be spawned when the baseline is fresh")
+
+        monkeypatch.setattr(prc.subprocess, "Popen", fail_popen)
+        # returns without spawning
+        prc._trigger_frozen_baseline_refresh_out_of_band("abc123")

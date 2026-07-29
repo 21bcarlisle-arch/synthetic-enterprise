@@ -20,6 +20,7 @@ reference point, not something that needs to be live every run. Call
 uses).
 """
 
+import fcntl
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,6 +30,13 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_PATH = PROJECT_DIR / "site" / "state" / "frozen_policy_baseline.json"
+
+# Single-writer lock. The refresh is a multi-minute full-decade replay x2 with
+# real risk-committee LLM calls; the publish path spawns it out-of-band every
+# cycle it sees a stale baseline (see background/process_run_complete.py), so
+# without a non-blocking lock overlapping replays would stack. A second caller
+# takes the lock's absence as "a refresh is already running" and exits at once.
+REFRESH_LOCK_PATH = PROJECT_DIR / "docs" / "observability" / ".frozen_baseline_refresh.lock"
 
 # Refresh at most this often (seconds) -- a full decade replay runs the sim
 # entry point twice, so this is a periodic artifact, not a per-cycle one.
@@ -115,16 +123,37 @@ def should_refresh_baseline(path: Path = OUTPUT_PATH) -> bool:
 def generate(path: Path = OUTPUT_PATH, force: bool = False) -> dict | None:
     """Refresh site/state/frozen_policy_baseline.json if stale (or `force`).
 
-    Returns the baseline dict if regenerated, None if skipped as fresh.
+    Returns the baseline dict if regenerated, None if skipped as fresh OR if
+    another refresh already holds the single-writer lock (REFRESH_LOCK_PATH).
+    This is intended to be called OUT OF BAND (a detached subprocess) -- it must
+    never run inside the synchronous publish path, whose bound it would blow.
     """
     if not force and not should_refresh_baseline(path):
         return None
-    baseline = run_frozen_baseline()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(baseline, indent=2))
-    return baseline
+    REFRESH_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(REFRESH_LOCK_PATH, "w") as lock_fd:
+        try:
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            # Another refresh is already running -- do not stack a second
+            # decade replay behind it; the in-flight one will write the file.
+            return None
+        try:
+            baseline = run_frozen_baseline()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(baseline, indent=2))
+            return baseline
+        finally:
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
 
 
 if __name__ == "__main__":
-    result = generate(force=True)
-    print(json.dumps(result, indent=2))
+    import sys
+    # `--if-stale` respects the weekly staleness gate (the out-of-band publish
+    # trigger uses this); bare invocation forces a refresh (manual/CLI use).
+    force = "--if-stale" not in sys.argv
+    result = generate(force=force)
+    if result is None:
+        print(json.dumps({"skipped": True, "reason": "fresh-or-refresh-already-running"}))
+    else:
+        print(json.dumps(result, indent=2))
