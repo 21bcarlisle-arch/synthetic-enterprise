@@ -8,7 +8,7 @@ principal). The organ isolates a fresh Claude process so it can ONLY see the
 *raw observable state* and the *bare claim* — deliberately denied the codebase,
 CLAUDE.md, the map's prose rationales, the history, and every accumulated
 "that's just how it is here." Same process mechanism (`claude -p
---model claude-opus-4-8 --tools=`, scratch cwd, no permission bypass); the
+--model claude-opus-5 --tools=`, scratch cwd, no permission bypass); the
 prompt payload is opposite. The amnesia is enforced at the process boundary,
 not asked for in prose.
 
@@ -63,7 +63,7 @@ CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
 # JUDGMENT, the same class as the twin — a cheap model asks a bland question and
 # the organ is worthless). The DETECTORS are free Python; only the
 # question-formulation spends Opus.
-ORGAN_MODEL = "claude-opus-4-8"
+ORGAN_MODEL = "claude-opus-5"
 
 InvokeFn = Callable[[str], str]
 

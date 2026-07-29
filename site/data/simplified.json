@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T13:12:59Z",
+  "generated_at": "2026-07-29T15:53:30Z",
   "lanes": [
     {
       "lane": "A_strategy_governance",
@@ -389,6 +389,15 @@
       "lane": "E_finance_treasury",
       "lane_name": "E Finance & Treasury",
       "atoms": [
+        {
+          "atom_id": "B6_collateral_cash_death_loop",
+          "atom_name": "Collateral -> cash death loop: a hedge book that posts variation margin against a moving forward, so a 2021/22-shape crisis can kill the company BY CASH (margin calls draining liquidity faster than the P&L looks bad) while accounting P&L survives on paper. Mortality-by-collateral recorded by the survival score. BACKLOG.md B6 (Wave B, coupled with SPINE_3).",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-29 REGISTERED into the map (worker tick, sole map writer per THREE_LANES) from docs/design/BACKLOG.md item B6 (Wave B). AUTHORING ONLY (EPOCH_GATING: agent may author candidate atoms, provenance: proposal, never BUILD until opened). This is the COMPANY half of the Wave-B coupled pair; COUPLED-TRIAD law binds it to SPINE_3_gas_storage_crisis_regime -- the world exists to defeat this capability, and neither reaches L3 until the company has faced the world and the belief-vs-truth (here: P&L-looks-fine vs cash-is-dying) gap is measured per digest. C-S3 discipline: a margin call is an asynchronous wall event (request/response separate in time), never same-step resolution. DoD (BACKLOG B6): a hedge book posts variation margin against a moving forward; a defined crisis scenario produces a cash-exhaustion mortality event while accounting P&L stays positive; the mortality is recorded by the survival score; a test proves it can BOTH kill AND be survived. No BUILD code, no engine touched, level_current 0 (R16: no self-bump; BUILD-open + any level move is director/twin per blocked_on)."
+          ]
+        },
         {
           "atom_id": "E1_ledger_double_entry",
           "atom_name": "Double-entry ledger + management accounts (income statement)",
@@ -1332,6 +1341,24 @@
       "lane_name": "W1 Market & Weather",
       "atoms": [
         {
+          "atom_id": "SPINE_1_scenario_world_state",
+          "atom_name": "Scenario spine: the ScenarioSpine world-state object + director-authored named-world curriculum registry + the epistemic wall (company cannot read which scenario it lives in) + a byte-identical baseline guarantee. The exogenous world the WVC benchmark/formation is computed against; sampled tail-heavy with each world's true-probability tag. BACKLOG.md B1.",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-29 REGISTERED into the map (worker tick, sole map writer per THREE_LANES) from docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md section C (candidate atom SPINE_1_scenario_world_state, \"named not registered -- orchestrator writes the map\") and docs/design/BACKLOG.md item B1 (Wave A, compounding substrate). AUTHORING ONLY (EPOCH_GATING: the agent may author candidate atoms, provenance: proposal, never BUILD until opened). The scenario spine is the substrate the forecast layer (B3), collateral death loop (B6) and endgame tournament (B11) all rerun over -- highest compounding return, wired first per BACKLOG ordering. WALL = import-direction (company/** and saas/** may NOT import sim.scenario.spine; no ScenarioSpine field crosses sim_interface.py), enforced by the FRAME W1 mutation-testable epistemic check when SPINE_1 builds. R13 SPLIT: the world-SELECTION mechanism (spine object + registry + wall + byte-identical baseline) is agent-buildable; the named worlds and their true-probability tags are director-authored CURRICULUM (SPINE_2_launch_worlds, director-ratified values, R13), never agent-set. DoD (BACKLOG B1): >=3 named scenario worlds selectable by a committed director-facing config, each carrying a true-probability tag, a run launchable against any of them with the manifest recording which, and a test asserting scenario choice changes the world the company sees WITHOUT touching baseline ground truth (byte-identical baseline guarantee, R15 obligation W2 golden-hash). Follow-on siblings named in FRAME section C (SPINE_2 launch worlds / SPINE_3 gas-storage-crisis regime / SPINE_4 living curve+spread surface / SPINE_5 tail machinery) stay named-not-registered until this lands. No BUILD code, no engine touched, level_current 0 (R16: no self-bump; BUILD-open + any level move is director/twin per blocked_on)."
+          ]
+        },
+        {
+          "atom_id": "SPINE_3_gas_storage_crisis_regime",
+          "atom_name": "Gas storage stock-and-flow that can ENDOGENOUSLY produce a 2022-shape inversion: a European storage stock variable that fills and draws, driving wholesale gas so a defined supply-shock scenario reproduces the winter-2021/22 seasonal-spread inversion within a stated tolerance, rather than the inversion being scripted. The load-bearing Spec-004 gap; registered as a scenario within SPINE_1's spine. BACKLOG.md B2 (Wave B, coupled with B6).",
+          "level_current": 0,
+          "level_target": 3,
+          "notes": [
+            "2026-07-29 REGISTERED into the map (worker tick, sole map writer per THREE_LANES) from docs/design/BACKLOG.md item B2 (Wave B) + docs/design/SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md section C sibling SPINE_3_gas_storage_crisis_regime. AUTHORING ONLY (EPOCH_GATING: agent may author candidate atoms, provenance: proposal, never BUILD until opened). SEQUENCING RECONCILIATION: the FRAME (2026-07-23) held SPINE_3-5 \"named-not-registered until SPINE_1 lands\"; docs/design/THE_STANDARD.md (2026-07-29, governing) SS7.3 directs turning the Wave-B backlog into real candidate atoms now -- registration is not build, and depends_on: [SPINE_1_scenario_world_state] encodes the landing prerequisite so nothing can build out of order. This is the WORLD half of the Wave-B coupled pair; COUPLED-TRIAD law binds it to B6_collateral_cash_death_loop (the company capability this world exists to defeat) -- neither reaches L3 without the other. R13 SPLIT: the storage stock-and-flow MECHANISM is agent-buildable; the shock magnitude + the target 2021/22 inversion shape/tolerance are director-authored CURRICULUM, decided blind to company P&L (R13). DoD (BACKLOG B2): a storage state variable drives wholesale gas such that a defined shock scenario reproduces an inversion of the observed 2021-22 shape within a stated tolerance, verified blind to company P&L, registered as a scenario in SPINE_1s spine. No BUILD code, no engine touched, level_current 0 (R16: no self-bump)."
+          ]
+        },
+        {
           "atom_id": "W1_10_ev_heatpump_geography",
           "atom_name": "EV + heat-pump adoption geography (spatially-varying load growth)",
           "level_current": 2,
@@ -1861,6 +1888,6 @@
       ]
     }
   ],
-  "total_atoms_with_notes": 140,
-  "total_notes": 661
+  "total_atoms_with_notes": 143,
+  "total_notes": 664
 }

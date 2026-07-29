@@ -2960,6 +2960,67 @@
       "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 65
+    },
+    {
+      "id": "SPINE_1_scenario_world_state",
+      "name": "Scenario spine: the ScenarioSpine world-state object + director-authored named-world curriculum registry + the epistemic wall (company cannot read which scenario it lives in) + a byte-identical baseline guarantee. The exogenous world the WVC benchmark/formation is computed against; sampled tail-heavy with each world's true-probability tag. BACKLOG.md B1.",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 4,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "SPINE_3_gas_storage_crisis_regime",
+      "name": "Gas storage stock-and-flow that can ENDOGENOUSLY produce a 2022-shape inversion: a European storage stock variable that fills and draws, driving wholesale gas so a defined supply-shock scenario reproduces the winter-2021/22 seasonal-spread inversion within a stated tolerance, rather than the inversion being scripted. The load-bearing Spec-004 gap; registered as a scenario within SPINE_1's spine. BACKLOG.md B2 (Wave B, coupled with B6).",
+      "lane": "W1_market_weather",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "SPINE_1_scenario_world_state"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
+    },
+    {
+      "id": "B6_collateral_cash_death_loop",
+      "name": "Collateral -> cash death loop: a hedge book that posts variation margin against a moving forward, so a 2021/22-shape crisis can kill the company BY CASH (margin calls draining liquidity faster than the P&L looks bad) while accounting P&L survives on paper. Mortality-by-collateral recorded by the survival score. BACKLOG.md B6 (Wave B, coupled with SPINE_3).",
+      "lane": "E_finance_treasury",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "SPINE_3_gas_storage_crisis_regime"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null
     }
   ],
   "lanes": {
@@ -3042,7 +3103,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 146,
+  "total_atoms": 149,
   "epoch2_movements": [
     {
       "id": "M1",

@@ -56,7 +56,7 @@ CLAUDE_BIN = Path("/home/rich/.nvm/versions/node/v24.16.0/bin/claude")
 # (build=Opus, swarm=Sonnet, supervisor micro=Haiku) -- that is the turn's own
 # choice. AUTONOMOUS_TURN_MODEL (Haiku) is retained ONLY for the deferred
 # tournament-life micro-turns (Epoch-4), never for a build-executor draw turn.
-MAIN_LOOP_MODEL = "claude-opus-4-8"
+MAIN_LOOP_MODEL = "claude-opus-5"
 AUTONOMOUS_TURN_MODEL = "claude-haiku-4-5-20251001"  # tournament lives only (deferred)
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "build-executor-log.md"

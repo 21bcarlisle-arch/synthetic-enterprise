@@ -71,7 +71,7 @@ _VERDICT_CLASS = {
     "NOT_SCHEDULED": "paused",
 }
 
-MODEL = "claude-opus-4-8"
+MODEL = "claude-opus-5"
 
 # Worker preamble prepended to the drawn doorbell. R7: the reason is a DOORBELL — act on real
 # disk/git state, not this text. The invocation re-orients, does the drawn work, and EXITS.

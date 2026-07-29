@@ -34,7 +34,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 from background.secrets_location import MODEL_FACING_FORBIDDEN_SECRETS  # noqa: E402
 
 SESSION_NAME = "claude"
-MODEL = "claude-opus-4-8"
+MODEL = "claude-opus-5"
 # The dedicated worker conversation id (same as the old watchdog's — the seat's identity is stable).
 WORKER_SESSION_ID = "22080be5-e19e-4099-a007-d71c3a6e7845"
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
