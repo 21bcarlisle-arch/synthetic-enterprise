@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-07-29T19:17:24.924121+00:00",
+  "last_updated": "2026-07-29T19:34:57.336483+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T19:17:24.924121+00:00",
-      "last_action": "Heartbeat \u2014 15 files tracked",
-      "last_action_ts": "2026-07-29T19:17:24.924121+00:00",
+      "last_heartbeat": "2026-07-29T19:34:57.336483+00:00",
+      "last_action": "Heartbeat \u2014 16 files tracked",
+      "last_action_ts": "2026-07-29T19:34:57.336483+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -25,7 +25,7 @@
     {
       "name": "discovery-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T19:16:36.252177+00:00",
+      "last_heartbeat": "2026-07-29T19:31:36.255097+00:00",
       "last_action": "Discovery: 10 OK, 0 warnings, 0 critical",
       "last_action_ts": "2026-07-29T17:21:36.235442+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "running",
-      "last_heartbeat": "2026-07-29T19:16:47.635641+00:00",
-      "last_action": "Sim started \u2014 git=fe51476cd",
-      "last_action_ts": "2026-07-29T19:16:47.635641+00:00",
+      "last_heartbeat": "2026-07-29T19:34:22.529884+00:00",
+      "last_action": "Sim started \u2014 git=90a0617e5",
+      "last_action_ts": "2026-07-29T19:34:22.529884+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T19:00:40.254717+00:00",
-      "last_action": "Classified from_rich_20260729_190034.md as URGENT",
-      "last_action_ts": "2026-07-29T19:00:40.254717+00:00",
+      "last_heartbeat": "2026-07-29T19:29:58.695805+00:00",
+      "last_action": "Classified from_rich_20260729_192946.md as URGENT",
+      "last_action_ts": "2026-07-29T19:29:58.695805+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T19:00:37.112302+00:00",
-      "last_action": "Acked message: 'Both open, go ahead. And drop this whole thread \u2014 the signature and gate machine'",
-      "last_action_ts": "2026-07-29T19:00:37.112302+00:00",
+      "last_heartbeat": "2026-07-29T19:29:50.001742+00:00",
+      "last_action": "Acked message: 'Confirmed as director: \"safety control\" means protecting a real person, real mon'",
+      "last_action_ts": "2026-07-29T19:29:50.001742+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T19:16:55.354453+00:00",
+      "last_heartbeat": "2026-07-29T19:33:20.220506+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-07-27T05:55:09.574764+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-07-29T18:51:15.884549+00:00",
+      "last_heartbeat": "2026-07-29T19:21:31.298065+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-07-29T18:51:15.884549+00:00",
+      "last_action_ts": "2026-07-29T19:21:31.298065+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
