@@ -40,6 +40,7 @@ from pathlib import Path
 
 import saas.payment_behaviour as payment_behaviour_module
 from simulation.dd_collection_book import build_dd_collection_book
+from company.billing.dd_review_runner import run_annual_reviews
 from company.billing.account_adjustment_register import (
     AccountAdjustmentRecord,
     AdjustmentDirection,
@@ -548,6 +549,18 @@ def main(report_end: str | None = None, policy=None):
         bills, phase2b_result.get("per_customer_behavioral", {})
     )
 
+    # DD4a (atom DD_seasonal_cashflow_physics): the annual DD review as a
+    # first-class LIVE event -- dd_review.py held complete review logic but had
+    # zero live callers. run_annual_reviews drives it over the portfolio at
+    # each customer's 12-month anniversary. Purely additive and read-only,
+    # exactly like build_dd_collection_book above: reads only the company's own
+    # issued `bills` (company-observable), draws no RNG, mutates nothing, and
+    # changes no existing financial figure. The `large_increase` events it
+    # emits are the seam DD4b will route into the churn/resentment engine (the
+    # registered next gated step -- deliberately not wired here, as that shifts
+    # ground-truth churn and needs population-level verification).
+    annual_dd_review = run_annual_reviews(bills)
+
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
     # layer only, does not alter settlement-based revenue recognition above.
@@ -727,6 +740,7 @@ def main(report_end: str | None = None, policy=None):
         "phase2b": phase2b_result,
         "bills": bills,
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
+        "annual_dd_review": annual_dd_review.serialise(),
         "meter_read_log": meter_read_log,
         "credit_refund_log": credit_refund_log,
         "contact_centre_log": contact_centre_log,

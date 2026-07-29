@@ -1,4 +1,7 @@
-<!-- SUPERVISOR_DRAW: blocked -->
+<!-- SUPERVISOR_DRAW: discharged -->
+> **DISCHARGED 2026-07-29 → moved to done/.** The propose-then-proceed window (until 2026-07-27) elapsed with no director revision; the release fired and its registration work is COMPLETE — DD1–DD5 + DD-H are registered as the drawable maturity-map atom `DD_seasonal_cashflow_physics` (full scope + exit criteria in that atom's `simplifications`). The atom now carries the BUILD (DD5 SITE + DD1 payment-day tell built 2026-07-27; DD4a annual-review event organ built 2026-07-29, commit below; DD1-sizes-collection / DD2 [behind W2_12] / DD3 / DD-H remain drawable). This doc is retained as the decomposition reference only. Growth analysis + the seasonal-DD product stay director-reserved regardless.
+>
+> _(Historical header preserved below.)_
 <!-- BLOCK_RELEASE: director_level_up -- seasonal-DD cashflow physics; BUILD lands at build-quality, the level move is the director's (R16) -->
 > **PARKED to in_progress/ 2026-07-25** — the FRAME + propose half is DONE (committed 422d41675); this doc IS the "then propose" artifact.
 > **BLOCKING SUB-ITEM:** propose-then-proceed window open **until 2026-07-27** (48h from mint). BUILD of DD1–DD5 + DD-H is deliberately held for director/advisor revision of the requirements or the RESERVED boundary during that window.
