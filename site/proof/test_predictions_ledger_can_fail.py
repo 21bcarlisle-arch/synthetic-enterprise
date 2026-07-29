@@ -387,6 +387,7 @@ def test_undecided_entry_names_its_blocker_and_the_blockers_age(ledger):
     # entry must name the snapshot, its stamp and its AGE.
     led = ledger(_pending_scorecard(today="2026-07-15"))
     blk = _only_row(led)["blocker"]
+    assert blk, "an undecided entry with no named blocker IS the unfalsifiable state"
     assert blk["source"].endswith("live_portfolio.json"), blk
     assert blk["stamp"] == "2026-07-09T00:00:00Z", blk
     assert blk["age_days"] == 6, blk
