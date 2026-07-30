@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29T23:31:10.813457+00:00",
+  "generated_at": "2026-07-29T23:51:16.395290+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -9,12 +9,22 @@
     "5": "COARSE"
   },
   "empirical_cycle_times": {
-    "transition_count": 184,
-    "median_cycle_days": 0.081,
+    "transition_count": 185,
+    "median_cycle_days": 0.083,
     "min_cycle_days": 0.003,
-    "max_cycle_days": 6.626,
+    "max_cycle_days": 8.544,
     "note": "Sub-1-day median across every observed level transition -- reflects dense agent-turn cadence (many turns/day), NOT literal human-scale build difficulty per level. The slowest transitions (up to ~0.9 days) correspond to atoms needing multiple Expert Hour passes (e.g. W5_1_banking_payment_rails' final L2->L3), which is the real signal in this data -- REVIEW ITERATIONS, not raw elapsed time, drive the slow tail.",
     "slowest_transitions": [
+      {
+        "atom_id": "W1_9_dsr_flex_markets",
+        "lane": "W1_market_weather",
+        "epoch": 3,
+        "from_level": 0,
+        "to_level": 3,
+        "loop_stage_to": "harden",
+        "date": "2026-07-30T00:44:22+01:00",
+        "cycle_days": 8.544
+      },
       {
         "atom_id": "W2_14_continuous_behavioural_engagement_model",
         "lane": "W2_customer_generator",
@@ -54,16 +64,6 @@
         "loop_stage_to": "idle",
         "date": "2026-07-16T15:56:54+01:00",
         "cycle_days": 5.999
-      },
-      {
-        "atom_id": "A1_learn_loop_chair",
-        "lane": "A_strategy_governance",
-        "epoch": 1,
-        "from_level": 2,
-        "to_level": 3,
-        "loop_stage_to": "idle",
-        "date": "2026-07-16T07:28:20+01:00",
-        "cycle_days": 5.645
       }
     ]
   },
@@ -85,7 +85,7 @@
       "critical_chain_length": 1
     },
     "3": {
-      "open_atoms": 23,
+      "open_atoms": 22,
       "critical_chain": [
         "SPINE_1_scenario_world_state",
         "SPINE_3_gas_storage_crisis_regime",
@@ -110,9 +110,9 @@
     }
   },
   "concurrency": {
-    "total_open_atoms": 57,
+    "total_open_atoms": 56,
     "code_free_discover_frame_atoms": 11,
-    "atoms_with_real_file_scope": 46,
+    "atoms_with_real_file_scope": 45,
     "max_concurrent_width_overall": 40,
     "per_epoch": {
       "2": {
@@ -124,7 +124,7 @@
         "max_concurrent_width": 7
       },
       "3": {
-        "open_atoms": 23,
+        "open_atoms": 22,
         "max_concurrent_width": 18
       },
       "1": {
@@ -142,7 +142,7 @@
     "window_days": 3.0,
     "from_rich_touches": 84,
     "substantive_staged_doc_touches": 200,
-    "routine_daemon_markers_excluded": 2074,
+    "routine_daemon_markers_excluded": 2075,
     "tier1_gates_closed_all_time": 8,
     "estimated_director_hours_per_day": 31.51,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
