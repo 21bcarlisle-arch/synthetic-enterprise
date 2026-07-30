@@ -1232,7 +1232,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 163
+      "stall_consecutive_unchanged": 173
     },
     {
       "id": "SITE_EH1_segment_disclosure",
@@ -1251,7 +1251,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 155
+      "stall_consecutive_unchanged": 167
     },
     {
       "id": "SITE_EH2_predictions_ledger_can_fail",
@@ -1270,7 +1270,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 137
+      "stall_consecutive_unchanged": 148
     },
     {
       "id": "SITE_EH3_figure_reconciliation_and_periods",
@@ -1289,7 +1289,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 175
+      "stall_consecutive_unchanged": 181
     },
     {
       "id": "H10_worktree_isolation",
@@ -1841,7 +1841,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 77
+      "stall_consecutive_unchanged": 79
     },
     {
       "id": "W1_8_zonal_locational_pricing",
@@ -2777,9 +2777,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -2789,9 +2789,9 @@
         "F1b_company_comms"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 78
+      "stall_consecutive_unchanged": 84
     },
     {
       "id": "F1b_company_comms",
@@ -2814,7 +2814,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 75
+      "stall_consecutive_unchanged": 110
     },
     {
       "id": "F1c_harness_conversation_gap",
@@ -2900,7 +2900,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 294
+      "stall_consecutive_unchanged": 295
     },
     {
       "id": "HX1_exit_criterion_counter_mechanise",
@@ -2940,7 +2940,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 78
+      "stall_consecutive_unchanged": 80
     },
     {
       "id": "HX3_counter_published_and_derivable",
@@ -3255,7 +3255,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 928
+      "stall_consecutive_unchanged": 968
     },
     {
       "id": "OPS1_launcher_cutover_completion",
