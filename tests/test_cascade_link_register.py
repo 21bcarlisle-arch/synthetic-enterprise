@@ -86,9 +86,48 @@ def register():
 
 def test_register_is_complete_all_eight_links(register):
     assert register["covered_links"] == [f"D{i}" for i in range(1, 9)]
-    # five estimated (D1, D2, D4, D5, D8), three asserted -> all eight, no gap, no double.
-    assert len(register["estimated"]) == 5
-    assert len(register["asserted"]) == 3
+    # six estimated (D1, D2, D4, D5, D6, D8), two asserted (D3, D7) -> all eight, no gap, no double.
+    assert len(register["estimated"]) == 6
+    assert len(register["asserted"]) == 2
+
+
+def test_d6_end_to_end_estimated_on_real_data(register):
+    """D6 MOVED asserted->ESTIMATED: the real winter temp -> daily SSP price
+    end-to-end lift is genuinely computable from in-repo data (Open-Meteo temp
+    + the real daily-mean SSP fixture), so it is no longer a placeholder
+    assumption. It reproduces the magnitude previously only NOTED in the
+    maturity-map log (~1.77-1.80) -- but as a real, re-runnable estimate this
+    time, not an unbacked log claim."""
+    d6 = next(e for e in register["estimated"] if e["link_id"] == "D6_cross_seam_compounding")
+    assert d6["statistic"] == "end_to_end_lift"
+    assert d6["value"] == pytest.approx(1.8, abs=0.5)
+    assert d6["value"] > 1.0  # a real (if partial) coupling, not independence
+    assert d6["detail"]["n_winter_days"] > 100
+
+
+def test_d6_ci_honestly_straddles_the_null_partial_decoupling():
+    """Unlike D1/D2/D4/D5 (whose CIs all exclude the independence null), D6's
+    end-to-end CI straddles it -- an honest 'partial decoupling' finding, not
+    smoothed into looking like a clean confirmation. The register must report
+    this plainly (ci_excludes_null=False), never silently drop the CI."""
+    from background.cascade_link_register import estimate_d6_end_to_end
+    d6 = estimate_d6_end_to_end()
+    assert d6.detail["ci_low"] < 1.0 <= d6.detail["ci_high"]
+    assert d6.detail["ci_excludes_null"] == 0.0
+
+
+def test_compounding_diagnostic_reports_the_real_partial_decoupling(register):
+    """The compounding inequality L_end >= prod(link lifts) is a genuine
+    R12 diagnostic -- on the real record it does NOT hold (D6's end-to-end
+    lift ~1.8 is far below the product of D1*D2*D4*D5 ~79), and the register
+    must report that honestly (holds=False), never adjusted to look like the
+    cascade cleanly amplifies end-to-end."""
+    c = register["compounding"]
+    assert c["l_end"] == pytest.approx(1.8, abs=0.5)
+    assert c["product_of_links"] > 20  # D4~5.16 * D5~4.92 alone already ~25
+    assert c["holds"] is False
+    assert set(c["link_lifts"]) == {"D1_temp_wind", "D2_residual_demand_price",
+                                     "D4_demand_temp", "D5_windoutput_windspeed"}
 
 
 def test_d5_windoutput_windspeed_estimated_on_real_agws(register):
