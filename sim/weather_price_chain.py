@@ -50,8 +50,14 @@ R10 SIMPLIFICATIONS (registered, not hidden):
   * SOLAR is a seasonal x cloud proxy, not a fitted irradiance/PV model.
   * DEMAND is temperature-only (degree-day); no explicit daylight/working-day
     term (weekday/holiday load structure is out of this atom's L3 scope).
-  * WIND fleet is a single MEAN-MATCHED scalar over the whole window -- the real
-    fleet ~ doubled 2016-2025 (that time-trend is W1_7, an explicit follow-on).
+  * WIND fleet is a single MEAN-MATCHED scalar over the whole window BY DEFAULT --
+    the real fleet ~ doubled 2016-2025. W1_7 (`sim/renewable_capacity_trend.py`)
+    layers a per-year time-varying fleet on top, reachable per-call (`year=` on
+    `derive_price`/`wind_output_from_speed`/`solar_output_from_weather`) and as a
+    whole-record diagnostic (`derive_price_on_record(year_aware=True)`,
+    `chain_vs_real_ssp_mae(year_aware=True)`) -- but the DEFAULT stays the
+    whole-window scalar everywhere (this default flip is an explicit L2 step,
+    gated on re-running the SSP calibration below, W1_7 FRAME §9 task 7).
   * CARBON term left at the engine default (0.0) -- see sim/price_engine.py's own
     R10 note; adding a real UK-ETS series is future work, out of scope here.
   * NEGATIVE/DISCRETE price structure is the engine's (smooth, can go negative in
@@ -324,18 +330,44 @@ def residual_demand(temp_c, wind_speed_ms, cloud_pct, day_of_year,
     return np.asarray(demand) - np.asarray(wind) - np.asarray(solar)
 
 
-def derive_price_on_record(params: ChainParams | None = None) -> Dict[str, np.ndarray]:
+def derive_price_on_record(params: ChainParams | None = None,
+                           year_aware: bool = False) -> Dict[str, np.ndarray]:
     """The chain evaluated on every real weather day -- the ground-truth derived
     price series the coupled-triad measures the company against, plus the
-    intermediate demand/renewable/residual for inspection."""
+    intermediate demand/renewable/residual for inspection.
+
+    `year_aware` (W1_7): when True, EACH ROW uses ITS OWN calendar year's per-year
+    effective renewable fleet (`sim.renewable_capacity_trend.capacity_wind/solar`)
+    instead of the single whole-window scalar -- the mechanism actually LAYERED onto
+    the ground-truth series the harness (`background/weather_price_triad.py`)
+    measures the company against, not just reachable in isolation via the `year=`
+    kwarg on the individual link functions. Default False preserves the existing
+    series BYTE-IDENTICAL (the SSP calibration gate is not re-opened, R12/S8) --
+    flipping the default is the L2 step gated on re-running that gate (FRAME §9
+    task 7) and is deliberately NOT done here.
+    """
     rec = load_daily_record()
     p = params or fit_chain()
-    demand = demand_from_weather(rec["temperature_c"], p)
-    wind = wind_output_from_speed(rec["wind_speed_ms"], p)
-    solar = solar_output_from_weather(rec["day_of_year"], rec["cloud_pct"], p)
-    renewable = np.asarray(wind) + np.asarray(solar)
-    price = derive_price(rec["temperature_c"], rec["wind_speed_ms"], rec["cloud_pct"],
-                         rec["day_of_year"], rec["gas_price"], p)
+    if year_aware:
+        from sim.renewable_capacity_trend import _year_of
+        years = [_year_of(d) for d in rec["dates"]]
+        wind = np.array([wind_output_from_speed(float(w), p, year=y)
+                         for w, y in zip(rec["wind_speed_ms"], years)])
+        solar = np.array([solar_output_from_weather(int(doy), float(c), p, year=y)
+                          for doy, c, y in zip(rec["day_of_year"], rec["cloud_pct"], years)])
+        demand = demand_from_weather(rec["temperature_c"], p)
+        renewable = np.asarray(wind) + np.asarray(solar)
+        price = np.array([
+            synthetic_price(float(rec["gas_price"][i]), float(demand[i]), float(renewable[i]))
+            for i in range(len(demand))
+        ])
+    else:
+        demand = demand_from_weather(rec["temperature_c"], p)
+        wind = wind_output_from_speed(rec["wind_speed_ms"], p)
+        solar = solar_output_from_weather(rec["day_of_year"], rec["cloud_pct"], p)
+        renewable = np.asarray(wind) + np.asarray(solar)
+        price = derive_price(rec["temperature_c"], rec["wind_speed_ms"], rec["cloud_pct"],
+                             rec["day_of_year"], rec["gas_price"], p)
     return {
         "dates": rec["dates"], "month": rec["month"],
         "temperature_c": rec["temperature_c"], "wind_speed_ms": rec["wind_speed_ms"],
@@ -349,10 +381,16 @@ def derive_price_on_record(params: ChainParams | None = None) -> Dict[str, np.nd
 # Diagnostics (R12: reported, never a target)
 # ---------------------------------------------------------------------------
 
-def chain_vs_real_ssp_mae(params: ChainParams | None = None) -> Dict[str, float]:
+def chain_vs_real_ssp_mae(params: ChainParams | None = None,
+                          year_aware: bool = False) -> Dict[str, float]:
     """MAE of the composed chain's derived price vs real published SSP. A
-    DIAGNOSTIC (R12) -- the number the chain happens to hit, never optimised."""
-    out = derive_price_on_record(params)
+    DIAGNOSTIC (R12) -- the number the chain happens to hit, never optimised.
+
+    `year_aware` (W1_7): passthrough to `derive_price_on_record` -- reports the MAE
+    of the time-varying-fleet series as a diagnostic ALONGSIDE the default, never as
+    a target to beat (R12; FRAME §9 task 7: a worse MAE here is a finding about the
+    inputs, surfaced, never a cue to retune the merit-order calibration)."""
+    out = derive_price_on_record(params, year_aware=year_aware)
     err = out["derived_price"] - out["real_ssp"]
     return {
         "mae": float(np.mean(np.abs(err))),
